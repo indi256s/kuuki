@@ -12,37 +12,37 @@
 
 ## Что существует сейчас
 
-| Часть | Фактическое состояние |
-| --- | --- |
-| Frontend | React 19, Vite 6.4.1, TypeScript, Tailwind 4, React Query, Zustand; маршруты загружаются частями |
-| Backend | Cloudflare Pages Functions; auth, flights, profiles, passport, stats, badges, leaderboard, import и enrichment |
-| Пользователи | D1 `users`, `profiles`, `sessions`; `email` имеет уникальный индекс без учёта регистра |
-| Пароли | PBKDF2-HMAC-SHA256, случайная соль, pepper `AUTH_SECRET`, 100 000 итераций |
-| Сессии | Непрозрачный токен в HttpOnly cookie; D1 хранит SHA-256 токена; срок 30 дней с продлением |
-| Защита запросов | Проверка origin и double-submit CSRF на изменяющих маршрутах; ограничения попыток входа через KV |
-| AI | Google Gemini; runtime использует web-сборку SDK |
-| Supabase | В активном frontend и Functions импортов Supabase SDK не найдено; остались старые migrations, документация, облачные переменные и административный скрипт |
-| Cloudflare CLI | В проекте уже есть `wrangler.toml` и Wrangler 4.62.0. Сохранять этот инструмент до отдельного решения о миграции на `cf` |
+| Часть           | Фактическое состояние                                                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend        | React 19, Vite 6.4.1, TypeScript, Tailwind 4, React Query, Zustand; маршруты загружаются частями                                                          |
+| Backend         | Cloudflare Pages Functions; auth, flights, profiles, passport, stats, badges, leaderboard, import и enrichment                                            |
+| Пользователи    | D1 `users`, `profiles`, `sessions`; `email` имеет уникальный индекс без учёта регистра                                                                    |
+| Пароли          | PBKDF2-HMAC-SHA256, случайная соль, pepper `AUTH_SECRET`, 100 000 итераций                                                                                |
+| Сессии          | Непрозрачный токен в HttpOnly cookie; D1 хранит SHA-256 токена; срок 30 дней с продлением                                                                 |
+| Защита запросов | Проверка origin и double-submit CSRF на изменяющих маршрутах; ограничения попыток входа через KV                                                          |
+| AI              | Google Gemini; runtime использует web-сборку SDK                                                                                                          |
+| Supabase        | В активном frontend и Functions импортов Supabase SDK не найдено; остались старые migrations, документация, облачные переменные и административный скрипт |
+| Cloudflare CLI  | В проекте уже есть `wrangler.toml` и Wrangler 4.62.0. Сохранять этот инструмент до отдельного решения о миграции на `cf`                                  |
 
 ### Проверенные данные
 
 Данные production получены через Cloudflare API исключительно запросами `SELECT`. Ответ подтвердил `rows_written: 0`, `changed_db: false`. Локальную SQLite открывали с `mode=ro`.
 
-| Таблица / показатель | Локальная D1 | Production D1 |
-| --- | ---: | ---: |
-| users | 26 | 1 |
-| profiles | 26 | 1 |
-| flights | 343 | 0 |
-| visits | 171 | 0 |
-| user_stats | 17 | 0 |
-| user_advanced_stats | 17 | 0 |
-| user_badges | 26 | 0 |
-| leaderboard_cache | 25 | 0 |
-| aircraft_reference | 214 | 0 |
-| airports_reference | 557 | 0 |
-| badge_definitions | 60 | 0 |
-| RESET_REQUIRED | 0 | 0 |
-| d1_migrations | Не проверялась, локальная схема загружалась напрямую | 0 |
+| Таблица / показатель |                                         Локальная D1 | Production D1 |
+| -------------------- | ---------------------------------------------------: | ------------: |
+| users                |                                                   26 |             1 |
+| profiles             |                                                   26 |             1 |
+| flights              |                                                  343 |             0 |
+| visits               |                                                  171 |             0 |
+| user_stats           |                                                   17 |             0 |
+| user_advanced_stats  |                                                   17 |             0 |
+| user_badges          |                                                   26 |             0 |
+| leaderboard_cache    |                                                   25 |             0 |
+| aircraft_reference   |                                                  214 |             0 |
+| airports_reference   |                                                  557 |             0 |
+| badge_definitions    |                                                   60 |             0 |
+| RESET_REQUIRED       |                                                    0 |             0 |
+| d1_migrations        | Не проверялась, локальная схема загружалась напрямую |             0 |
 
 Также доступны gitignored JSON-снимки 26 пользователей, 343 перелётов, 37 country_claims, 15 ground_visits и производных данных. Это сохранённый исторический экспорт, а не подтверждение актуальности старого Supabase на сегодня. Локальный `PRAGMA foreign_key_check` вернул 0 нарушений. Две строки flights содержат отсутствующий в aircraft_reference код `A380` вместо `A388`.
 
@@ -61,18 +61,18 @@
 
 Среда аудита: Node 24.18.0, pnpm 9.15.0. Зависимости установлены из существующего lockfile, который не изменён.
 
-| Проверка | Результат | Что подтверждает |
-| --- | --- | --- |
-| `pnpm install --frozen-lockfile` | Успешно | Lockfile воспроизводимо устанавливается в текущей среде |
-| `pnpm build` | Успешно, 3 workspace packages | Production frontend собирается |
-| `pnpm typecheck` | Успешно | Настроенная workspace-проверка типов проходит |
-| `pnpm lint` | 0 ошибок, 23 warnings | Настроенный frontend lint проходит; backend этим не покрыт |
-| `pnpm --filter @kuuki/web test:run` | 175/175, 11 файлов | Существующие frontend unit/component tests проходят |
-| `pnpm --filter @kuuki/web exec tsc --project ../../functions/tsconfig.json --noEmit` | Успешно | Functions отдельно проходят TypeScript |
-| `pnpm exec wrangler pages functions build --outdir /tmp/kuuki-audit-20261003-functions --metafile /tmp/kuuki-audit-20261003-functions/meta.json` | Успешно | Backend компилируется в Worker, около 810 KB до minify |
-| `pnpm --filter @kuuki/web exec tsc --project ../../scripts/tsconfig.sbd1.json --noEmit` | Ошибка TS2688, отсутствует type definition `node` | Migration scripts не имеют воспроизводимой проверки типов при свежей установке |
-| `pnpm audit --json` | Exit 1, 182 advisory records | Lockfile содержит известные уязвимые версии; это не 182 доказанных уязвимости приложения |
-| Локальные probes с фиктивными пользователями | Подтвердили CSRF 403, продление только session cookie, порядок cookie `new, old`, сохранение старого расстояния | Механизмы A04, A05, A06, A09 воспроизведены без production-запросов |
+| Проверка                                                                                                                                         | Результат                                                                                                       | Что подтверждает                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `pnpm install --frozen-lockfile`                                                                                                                 | Успешно                                                                                                         | Lockfile воспроизводимо устанавливается в текущей среде                                  |
+| `pnpm build`                                                                                                                                     | Успешно, 3 workspace packages                                                                                   | Production frontend собирается                                                           |
+| `pnpm typecheck`                                                                                                                                 | Успешно                                                                                                         | Настроенная workspace-проверка типов проходит                                            |
+| `pnpm lint`                                                                                                                                      | 0 ошибок, 23 warnings                                                                                           | Настроенный frontend lint проходит; backend этим не покрыт                               |
+| `pnpm --filter @kuuki/web test:run`                                                                                                              | 175/175, 11 файлов                                                                                              | Существующие frontend unit/component tests проходят                                      |
+| `pnpm --filter @kuuki/web exec tsc --project ../../functions/tsconfig.json --noEmit`                                                             | Успешно                                                                                                         | Functions отдельно проходят TypeScript                                                   |
+| `pnpm exec wrangler pages functions build --outdir /tmp/kuuki-audit-20261003-functions --metafile /tmp/kuuki-audit-20261003-functions/meta.json` | Успешно                                                                                                         | Backend компилируется в Worker, около 810 KB до minify                                   |
+| `pnpm --filter @kuuki/web exec tsc --project ../../scripts/tsconfig.sbd1.json --noEmit`                                                          | Ошибка TS2688, отсутствует type definition `node`                                                               | Migration scripts не имеют воспроизводимой проверки типов при свежей установке           |
+| `pnpm audit --json`                                                                                                                              | Exit 1, 182 advisory records                                                                                    | Lockfile содержит известные уязвимые версии; это не 182 доказанных уязвимости приложения |
+| Локальные probes с фиктивными пользователями                                                                                                     | Подтвердили CSRF 403, продление только session cookie, порядок cookie `new, old`, сохранение старого расстояния | Механизмы A04, A05, A06, A09 воспроизведены без production-запросов                      |
 
 Корневая команда `pnpm exec tsc` недоступна: TypeScript объявлен в дочерних packages, а не в корне. Для отдельного backend использован бинарник из `@kuuki/web`. README также предлагает `pnpm test`, хотя корневого test script нет.
 

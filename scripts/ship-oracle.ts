@@ -7,7 +7,11 @@ import { openLocalTarget, parseLocalTarget } from './migration-target'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 type Kind = 'verbatim' | 'int' | 'real' | 'bool' | 'json' | 'timestamp'
-interface ColSpec { col: string; kind: Kind; notNull: boolean }
+interface ColSpec {
+  col: string
+  kind: Kind
+  notNull: boolean
+}
 export type Bind = string | number | null
 export interface TableDef {
   table: string
@@ -30,13 +34,15 @@ export function transform(spec: ColSpec, value: unknown, context: string): Bind 
     case 'int':
     case 'real': {
       const n = Number(value)
-      if (!Number.isFinite(n) || (spec.kind === 'int' && !Number.isInteger(n))) throw new Error(`Invalid number ${context}`)
+      if (!Number.isFinite(n) || (spec.kind === 'int' && !Number.isInteger(n)))
+        throw new Error(`Invalid number ${context}`)
       return n
     }
     case 'bool':
       if (typeof value !== 'boolean') throw new Error(`Invalid boolean ${context}`)
       return value ? 1 : 0
-    case 'json': return typeof value === 'string' ? value : JSON.stringify(value)
+    case 'json':
+      return typeof value === 'string' ? value : JSON.stringify(value)
     case 'timestamp': {
       const normalized = normalizeIso(value as string)
       if (!normalized) throw new Error(`Invalid timestamp ${context}`)
@@ -165,10 +171,18 @@ const LEADERBOARD_CACHE: TableDef = {
   tsColumns: ['updated_at'],
 }
 
-export const TABLES: TableDef[] = [VISITS, USER_STATS, USER_ADVANCED_STATS, USER_BADGES, LEADERBOARD_CACHE]
+export const TABLES: TableDef[] = [
+  VISITS,
+  USER_STATS,
+  USER_ADVANCED_STATS,
+  USER_BADGES,
+  LEADERBOARD_CACHE,
+]
 
 export function buildRows(def: TableDef, snapshot: Record<string, unknown>[]): Bind[][] {
-  return snapshot.map((row, i) => def.specs.map((spec) => transform(spec, row[spec.col], `${def.table}[${i}].${spec.col}`)))
+  return snapshot.map((row, i) =>
+    def.specs.map((spec) => transform(spec, row[spec.col], `${def.table}[${i}].${spec.col}`)),
+  )
 }
 
 /** Print aggregate comparison only; archived values and identifiers stay private. */
@@ -181,10 +195,14 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     // The cache is regenerated with new IDs on each refresh, so source cache
     // rows are not an authoritative migration comparison.
     for (const def of TABLES.filter((table) => table.table !== 'leaderboard_cache')) {
-      const source = JSON.parse(readFileSync(join(snapshotDir, `${def.table}.json`), 'utf8')) as Record<string, unknown>[]
+      const source = JSON.parse(
+        readFileSync(join(snapshotDir, `${def.table}.json`), 'utf8'),
+      ) as Record<string, unknown>[]
       const expected = buildRows(def, source)
       const columns = def.specs.map((spec) => spec.col)
-      const result = await target.db.prepare(`SELECT ${columns.join(', ')} FROM ${def.table}`).all<Record<string, unknown>>()
+      const result = await target.db
+        .prepare(`SELECT ${columns.join(', ')} FROM ${def.table}`)
+        .all<Record<string, unknown>>()
       const actual = result.results
       const keyColumn = def.autoincrement ? 'id' : 'user_id'
       const keyIndex = columns.indexOf(keyColumn)
@@ -193,11 +211,16 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
       let changed = 0
       for (const values of expected) {
         const row = byKey.get(String(values[keyIndex]))
-        if (!row) { missing++; continue }
+        if (!row) {
+          missing++
+          continue
+        }
         if (columns.some((col, i) => String(row[col] ?? '') !== String(values[i] ?? ''))) changed++
       }
       const extra = actual.length - expected.length + missing
-      console.log(`${def.table}: source=${expected.length} target=${actual.length} missing=${missing} changed=${changed} extra=${extra}`)
+      console.log(
+        `${def.table}: source=${expected.length} target=${actual.length} missing=${missing} changed=${changed} extra=${extra}`,
+      )
     }
   } finally {
     await target.dispose()
@@ -205,5 +228,8 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch(() => { console.error('Oracle comparison failed; private values suppressed'); process.exitCode = 1 })
+  main().catch(() => {
+    console.error('Oracle comparison failed; private values suppressed')
+    process.exitCode = 1
+  })
 }

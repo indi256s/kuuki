@@ -50,8 +50,12 @@ export function EmptyJournal({ locale }: { locale: Locale }) {
       description={t.emptyDescription}
       action={
         <div className="journal-empty-actions">
-          <Link className="ui-button" data-variant="primary" href="/import"><span>{t.import}</span></Link>
-          <Link className="journal-text-link" href="/add">{t.addByHand}</Link>
+          <Link className="ui-button" data-variant="primary" href="/import">
+            <span>{t.import}</span>
+          </Link>
+          <Link className="journal-text-link" href="/add">
+            {t.addByHand}
+          </Link>
         </div>
       }
     />
@@ -59,13 +63,23 @@ export function EmptyJournal({ locale }: { locale: Locale }) {
 }
 
 /** Flights exist but the filters or search hide all of them. */
-export function NoMatches({ locale, onClearFilters }: { locale: Locale; onClearFilters: () => void }) {
+export function NoMatches({
+  locale,
+  onClearFilters,
+}: {
+  locale: Locale
+  onClearFilters: () => void
+}) {
   const t = copy[locale]
   return (
     <EmptyState
       title={t.noMatchesTitle}
       description={t.noMatchesDescription}
-      action={<Button variant="secondary" onClick={onClearFilters}>{t.clearFilters}</Button>}
+      action={
+        <Button variant="secondary" onClick={onClearFilters}>
+          {t.clearFilters}
+        </Button>
+      }
     />
   )
 }
@@ -79,7 +93,11 @@ export function RefreshFailed({ locale, onRetry }: { locale: Locale; onRetry: ()
       variant="warning"
       urgent
       title={t.refreshFailedTitle}
-      action={<Button dense onClick={onRetry}>{t.retry}</Button>}
+      action={
+        <Button dense onClick={onRetry}>
+          {t.retry}
+        </Button>
+      }
     >
       {t.refreshFailedDescription}
     </Alert>
@@ -87,10 +105,18 @@ export function RefreshFailed({ locale, onRetry }: { locale: Locale; onRetry: ()
 }
 
 export function PublicationPending({ locale }: { locale: Locale }) {
-  return <p role="status" className="journal-note">{copy[locale].pending}</p>
+  return (
+    <p role="status" className="journal-note">
+      {copy[locale].pending}
+    </p>
+  )
 }
 
 /** Controls that are blocked offline point `aria-describedby` at `id`. */
 export function OfflineNote({ locale, id }: { locale: Locale; id: string }) {
-  return <p id={id} className="journal-note">{copy[locale].offline}</p>
+  return (
+    <p id={id} className="journal-note">
+      {copy[locale].offline}
+    </p>
+  )
 }

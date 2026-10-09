@@ -23,9 +23,13 @@ export const getRequestIdentity = cache(async (): Promise<RequestIdentity | null
   if (env.MAINTENANCE_MODE === 'true') throw new Error('MAINTENANCE')
   const requestHeaders = await headers()
   const cookies = parseCookies(requestHeaders.get('cookie'))
-  if (Object.hasOwn(cookies, BETTER_AUTH_COOKIE) || Object.hasOwn(cookies, `__Secure-${BETTER_AUTH_COOKIE}`)) {
+  if (
+    Object.hasOwn(cookies, BETTER_AUTH_COOKIE) ||
+    Object.hasOwn(cookies, `__Secure-${BETTER_AUTH_COOKIE}`)
+  ) {
     const session = await createAuth(env).api.getSession({
-      headers: new Headers(requestHeaders), query: { disableRefresh: true },
+      headers: new Headers(requestHeaders),
+      query: { disableRefresh: true },
     })
     return session?.user ? { id: session.user.id, email: session.user.email } : null
   }

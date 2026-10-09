@@ -1,7 +1,12 @@
 // Shared plumbing for the receipt-first lifecycle operations (confirm, transit review), ADR 0001 §5.
 import { HttpError } from '../_lib/http'
 import { sha256Hex } from '../_lib/crypto'
-import { isDerivedReady, repairUserDerivedState, stateOf, type DerivedStateRow } from './derivedState'
+import {
+  isDerivedReady,
+  repairUserDerivedState,
+  stateOf,
+  type DerivedStateRow,
+} from './derivedState'
 
 export type OperationKind = 'confirm' | 'transit_review'
 
@@ -18,19 +23,27 @@ export const MAX_ATTEMPTS = 4
 
 export const digestOf = (value: unknown) => sha256Hex(JSON.stringify(value))
 
-export const receiptStatement = (db: D1Database, userId: string, operationId: string) => db.prepare(
-  `SELECT kind, request_digest, complete, pressed_before_json, result_json
+export const receiptStatement = (db: D1Database, userId: string, operationId: string) =>
+  db
+    .prepare(
+      `SELECT kind, request_digest, complete, pressed_before_json, result_json
    FROM lifecycle_operation_receipts WHERE user_id = ? AND operation_id = ?`,
-).bind(userId, operationId)
+    )
+    .bind(userId, operationId)
 
 /** A duplicate operation id, a CHECK that rolled the batch back, or a revision that moved. Anything else is a real failure. */
-export const isConstraintError = (error: unknown) => /constraint/i.test(error instanceof Error ? error.message : String(error))
+export const isConstraintError = (error: unknown) =>
+  /constraint/i.test(error instanceof Error ? error.message : String(error))
 
 export const operationReused = () =>
-  new HttpError(409, 'Operation id already used for a different request', 'IDEMPOTENCY_CONFLICT', { cause: 'operation_reused' })
+  new HttpError(409, 'Operation id already used for a different request', 'IDEMPOTENCY_CONFLICT', {
+    cause: 'operation_reused',
+  })
 
 export const concurrentUpdate = () =>
-  new HttpError(409, 'Your flights are changing right now. Try again.', 'STATE_CONFLICT', { cause: 'concurrent_update' })
+  new HttpError(409, 'Your flights are changing right now. Try again.', 'STATE_CONFLICT', {
+    cause: 'concurrent_update',
+  })
 
 /** Same-kind, same-digest receipts replay; anything else on a known operation id is a conflict. */
 export function assertReplayable(receipt: Receipt, kind: OperationKind, digest: string): void {
@@ -47,16 +60,23 @@ export async function readyState(db: D1Database, userId: string): Promise<Derive
   return state && isDerivedReady(state) ? state : null
 }
 
-export const STATE_SELECT = 'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?'
+export const STATE_SELECT =
+  'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?'
 
 /** The outcome is recorded once, by whoever gets there first; every caller returns what was recorded. */
 export async function freezeResult<T extends { derivedState: string }>(
-  db: D1Database, userId: string, operationId: string, outcome: T,
+  db: D1Database,
+  userId: string,
+  operationId: string,
+  outcome: T,
 ): Promise<T> {
-  await db.prepare(
-    `UPDATE lifecycle_operation_receipts SET result_json = ?
+  await db
+    .prepare(
+      `UPDATE lifecycle_operation_receipts SET result_json = ?
      WHERE user_id = ? AND operation_id = ? AND json_extract(result_json, '$.derivedState') IS NULL`,
-  ).bind(JSON.stringify(outcome), userId, operationId).run()
+    )
+    .bind(JSON.stringify(outcome), userId, operationId)
+    .run()
   const row = await receiptStatement(db, userId, operationId).first<Receipt>()
   return JSON.parse(row?.result_json ?? JSON.stringify(outcome)) as T
 }

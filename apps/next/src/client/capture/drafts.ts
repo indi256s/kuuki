@@ -7,5 +7,7 @@ export function clearDrafts(ownerId?: string): void {
       const key = localStorage.key(i)
       if (key?.startsWith(prefix)) localStorage.removeItem(key)
     }
-  } catch { /* Storage unavailable. */ }
+  } catch {
+    /* Storage unavailable. */
+  }
 }

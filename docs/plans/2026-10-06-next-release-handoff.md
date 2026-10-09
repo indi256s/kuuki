@@ -45,18 +45,18 @@ Production pepper rotation is now explicitly authorized:
    before production; do not run the blanket `reset-passwords.ts` script.
 
 Identity mapping: the verified fresh source and live production share one email
-   and username across different IDs, and 64 differing flight rows share IDs.
-   The user said the current production account need not be kept. Further read-only
-   inspection found that the conflicting account owns zero flights; the other two
-   production accounts own all 69 flights and both have personal password hashes.
-   The user explicitly selected “Replace only conflicting account.” Preserve the
-   other two accounts and all 69 flights. Their passwords must now be reset under
-   the separately accepted pepper rotation above. Replace
-   the conflicting account after backup/restore proof, retain the historical user's
-   ID, and remap the 64 incoming flight-ID collisions. This authorizes no wholesale
-   production data reset. Remove the two retained old credentials as part of the
-   approved targeted password reset before enabling the new pepper.
-   Conflicts must be re-read under the production writer hold before applying.
+and username across different IDs, and 64 differing flight rows share IDs.
+The user said the current production account need not be kept. Further read-only
+inspection found that the conflicting account owns zero flights; the other two
+production accounts own all 69 flights and both have personal password hashes.
+The user explicitly selected “Replace only conflicting account.” Preserve the
+other two accounts and all 69 flights. Their passwords must now be reset under
+the separately accepted pepper rotation above. Replace
+the conflicting account after backup/restore proof, retain the historical user's
+ID, and remap the 64 incoming flight-ID collisions. This authorizes no wholesale
+production data reset. Remove the two retained old credentials as part of the
+approved targeted password reset before enabling the new pepper.
+Conflicts must be re-read under the production writer hold before applying.
 
 Fresh source accepted on 6 October at 08:42 UTC: the user supplied the private
 backup directory
@@ -78,11 +78,11 @@ the same pending identity/flight-ID conflicts. No production writes occurred.
 
 Account: `5cadcff0282e54f3ff1d7062d4dbb97a`.
 
-| Target | D1 ID | Accepted observations |
-| --- | --- | --- |
-| Production | `2a8e3895-6a98-4473-8d7b-a43ca0c0026f` | 3 users/profiles, 69 flights; original schema, empty ledger; read-only inspection only |
-| Preview | `80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c` | 6 users/profiles, 2 flights; migrations 0001–0007 recorded; original data preserved |
-| Preview restore proof | `d4dcdc60-fcc4-40e4-afcd-f9b106c39d3f` | Separate hosted restoration of the pre-migration preview export |
+| Target                | D1 ID                                  | Accepted observations                                                                  |
+| --------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
+| Production            | `2a8e3895-6a98-4473-8d7b-a43ca0c0026f` | 3 users/profiles, 69 flights; original schema, empty ledger; read-only inspection only |
+| Preview               | `80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c` | 6 users/profiles, 2 flights; migrations 0001–0007 recorded; original data preserved    |
+| Preview restore proof | `d4dcdc60-fcc4-40e4-afcd-f9b106c39d3f` | Separate hosted restoration of the pre-migration preview export                        |
 
 The hosted restore was re-exported and compared with the original export: all
 24 tables plus sequence rows and all 48 schema objects matched; no FK violations.
@@ -265,6 +265,7 @@ immediately and writes stop. Restore D1 only under hold, with reconciliation of
 writes made after the release.
 
 **Not done, by decision.**
+
 - `PRODUCTION_RELEASE_SHA` and `MAINTENANCE_DEPLOY_READY` stay unset; CI would
   redeploy Vite with the old pepper.
 - The production maintenance cron is not enabled.
@@ -272,6 +273,7 @@ writes made after the release.
   bundle.
 
 **Post-cutover follow-up (13:10–13:20Z).**
+
 1. **Legacy origin redirect.** `indi256.com` is an active zone in the same account;
    `kuuki.indi256.com` is a proxied CNAME to `kuuki.pages.dev` with no Workers
    routes. A zone Single Redirect (ruleset `de8f78fd…`, rule ref
@@ -323,6 +325,7 @@ at 100% and the rollback targets until the next deploy: `kuuki-next`
 [deploy-kuuki](../skills/deploy-kuuki/SKILL.md); CI no longer deploys.
 
 **Open follow-ups.**
+
 - The two retained owners complete activation, then rerun the read-only check above
   (pending owner action).
 - After rollback acceptance, switch the `kuuki.indi256.com` redirect from 302 to 301.

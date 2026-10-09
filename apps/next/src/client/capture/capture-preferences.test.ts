@@ -1,8 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { clearCapturePreferences, readCapturePreference, writeCapturePreference } from './capture-preferences'
+import {
+  clearCapturePreferences,
+  readCapturePreference,
+  writeCapturePreference,
+} from './capture-preferences'
 
-beforeEach(() => { sessionStorage.clear(); localStorage.clear() })
+beforeEach(() => {
+  sessionStorage.clear()
+  localStorage.clear()
+})
 afterEach(() => vi.unstubAllGlobals())
 
 it('clears only the departing owner when an owner is given', () => {
@@ -53,7 +60,17 @@ it('clears capture data from both stores while preserving unrelated persistent d
 it('tolerates unavailable persistent storage and malformed values', () => {
   localStorage.setItem('kuuki:capture:owner-a:airports', '{broken')
   expect(readCapturePreference('owner-a', 'airports', [])).toEqual([])
-  vi.stubGlobal('localStorage', { getItem() { throw Error('blocked') }, setItem() { throw Error('blocked') }, get length() { throw Error('blocked') } })
+  vi.stubGlobal('localStorage', {
+    getItem() {
+      throw Error('blocked')
+    },
+    setItem() {
+      throw Error('blocked')
+    },
+    get length() {
+      throw Error('blocked')
+    },
+  })
   expect(() => writeCapturePreference('owner-a', 'airports', ['TBS'])).not.toThrow()
   expect(readCapturePreference('owner-a', 'airports', [])).toEqual([])
   sessionStorage.setItem('kuuki:capture:owner-a:airports', '["IST"]')

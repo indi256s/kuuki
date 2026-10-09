@@ -1,9 +1,40 @@
 /* Journal shortcuts popover. Tokens only; weights 400 and 500; space groups the rows, no rules between them. */
-.journal-shortcuts{width:max-content;max-width:min(420px,calc(100vw - 16px))}
-.journal-shortcuts-title{margin:0 0 var(--space-3);font-size:15px;line-height:24px;font-weight:500}
-.journal-shortcuts-list{display:grid;grid-template-columns:max-content 1fr;align-items:center;gap:var(--space-2) var(--space-4);margin:0}
-.journal-shortcuts-list dt{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1);color:var(--text-muted);font-size:13px;line-height:20px}
-.journal-shortcuts-list dd{margin:0;font-size:14px;line-height:20px;font-weight:400}
+.journal-shortcuts {
+  width: max-content;
+  max-width: min(420px, calc(100vw - 16px));
+}
+.journal-shortcuts-title {
+  margin: 0 0 var(--space-3);
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+}
+.journal-shortcuts-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+.journal-shortcuts-list dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.journal-shortcuts-list dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
 
 /* No hardware keyboard to list on touch. */
-@media (pointer:coarse){.ui-button.journal-shortcuts-button{display:none}}
+@media (pointer: coarse) {
+  .ui-button.journal-shortcuts-button {
+    display: none;
+  }
+}

@@ -8,14 +8,24 @@ import { ToastProvider, ToastSlot, useToast } from './toast'
 
 function Trigger({ kind }: { kind?: 'error' }) {
   const { show } = useToast()
-  return <button type="button" onClick={() => show({ message: 'Link copied', kind })}>Show</button>
+  return (
+    <button type="button" onClick={() => show({ message: 'Link copied', kind })}>
+      Show
+    </button>
+  )
 }
 
 describe('Toast', () => {
-  afterEach(() => { vi.useRealTimers() })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('announces the message in a polite live region', async () => {
-    render(<ToastProvider><Trigger /></ToastProvider>)
+    render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>,
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Show' }))
     const region = screen.getByRole('status')
     expect(region).toHaveAttribute('aria-live', 'polite')
@@ -23,23 +33,39 @@ describe('Toast', () => {
   })
 
   it('announces errors assertively', async () => {
-    render(<ToastProvider><Trigger kind="error" /></ToastProvider>)
+    render(
+      <ToastProvider>
+        <Trigger kind="error" />
+      </ToastProvider>,
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Show' }))
     expect(screen.getByRole('alert')).toHaveTextContent('Link copied')
   })
 
   it('auto-dismisses, pausing while hovered', () => {
     vi.useFakeTimers()
-    render(<ToastProvider><Trigger /></ToastProvider>)
-    act(() => { screen.getByRole('button', { name: 'Show' }).click() })
+    render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>,
+    )
+    act(() => {
+      screen.getByRole('button', { name: 'Show' }).click()
+    })
     const toast = screen.getByText('Link copied').closest('.ui-toast') as HTMLElement
     fireEvent.pointerEnter(toast)
-    act(() => { vi.advanceTimersByTime(6000) })
+    act(() => {
+      vi.advanceTimersByTime(6000)
+    })
     expect(screen.getByText('Link copied')).toBeInTheDocument() // held while hovered
     fireEvent.pointerLeave(toast)
-    act(() => { vi.advanceTimersByTime(5000) })
+    act(() => {
+      vi.advanceTimersByTime(5000)
+    })
     expect(toast).toHaveAttribute('data-state', 'closed') // exit animation running
-    act(() => { vi.advanceTimersByTime(250) })
+    act(() => {
+      vi.advanceTimersByTime(250)
+    })
     expect(screen.queryByText('Link copied')).not.toBeInTheDocument()
   })
 })
@@ -47,9 +73,22 @@ describe('Toast', () => {
 it('keeps announcements exposed while a Radix modal sheet is open', async () => {
   function Modal() {
     const [open, setOpen] = useState(false)
-    return <Sheet title="Review" open={open} onOpenChange={setOpen} trigger={<button>Open review</button>}><Trigger /></Sheet>
+    return (
+      <Sheet
+        title="Review"
+        open={open}
+        onOpenChange={setOpen}
+        trigger={<button>Open review</button>}
+      >
+        <Trigger />
+      </Sheet>
+    )
   }
-  render(<ToastProvider><Modal /></ToastProvider>)
+  render(
+    <ToastProvider>
+      <Modal />
+    </ToastProvider>,
+  )
   await userEvent.click(screen.getByRole('button', { name: 'Open review' }))
   await userEvent.click(screen.getByRole('button', { name: 'Show' }))
   const announcement = screen.getByRole('status')
@@ -59,22 +98,50 @@ it('keeps announcements exposed while a Radix modal sheet is open', async () => 
 
 describe('ToastSlot', () => {
   it('renders a caller-owned notice inline when no provider is mounted', () => {
-    const { container } = render(<section><ToastSlot><p aria-live="polite" role="status">Pending</p></ToastSlot></section>)
+    const { container } = render(
+      <section>
+        <ToastSlot>
+          <p aria-live="polite" role="status">
+            Pending
+          </p>
+        </ToastSlot>
+      </section>,
+    )
     expect(container.querySelector('section')).toContainElement(screen.getByText('Pending'))
   })
 
   it('renders it in the provider region, outside both live regions, and keeps it exposed under a Radix modal', async () => {
     function Notice() {
       const [open, setOpen] = useState(false)
-      return <section data-testid="owner"><Sheet title="Review" open={open} onOpenChange={setOpen} trigger={<button>Open review</button>}><p>Body</p></Sheet><ToastSlot><p aria-live="polite" role="status">Pending</p></ToastSlot></section>
+      return (
+        <section data-testid="owner">
+          <Sheet
+            title="Review"
+            open={open}
+            onOpenChange={setOpen}
+            trigger={<button>Open review</button>}
+          >
+            <p>Body</p>
+          </Sheet>
+          <ToastSlot>
+            <p aria-live="polite" role="status">
+              Pending
+            </p>
+          </ToastSlot>
+        </section>
+      )
     }
-    render(<ToastProvider><Notice /></ToastProvider>)
+    render(
+      <ToastProvider>
+        <Notice />
+      </ToastProvider>,
+    )
     const pending = screen.getByText('Pending')
     expect(screen.getByTestId('owner')).not.toContainElement(pending)
     expect(pending.closest('.ui-toast-region')).not.toBeNull()
     expect(pending.closest('.ui-toast-live')).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Open review' }))
-    expect(screen.getAllByRole('status').map(region => region.textContent)).toContain('Pending')
+    expect(screen.getAllByRole('status').map((region) => region.textContent)).toContain('Pending')
     expect(pending.closest('[aria-hidden="true"]')).toBeNull()
   })
 })

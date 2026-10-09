@@ -7,10 +7,7 @@
   "homeOverride": null,
   "passport": {
     "countries": 2,
-    "countryCodes": [
-      "GB",
-      "US"
-    ],
+    "countryCodes": ["GB", "US"],
     "regions": 2
   },
   "rows": [

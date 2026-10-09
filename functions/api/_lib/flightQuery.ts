@@ -50,7 +50,8 @@ function csv(value: string | null): string[] | undefined {
 function flightRange(from: string | null | undefined, to: string | null | undefined) {
   if (from == null && to == null) return null
   const range = from?.length === 10 && to?.length === 10 ? periodDays({ from, to }) : null
-  if (!range) throw new HttpError(400, 'Valid inclusive from/to calendar days required', 'INVALID_DATE_RANGE')
+  if (!range)
+    throw new HttpError(400, 'Valid inclusive from/to calendar days required', 'INVALID_DATE_RANGE')
   return range
 }
 
@@ -73,7 +74,13 @@ export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   const airport = params.get('airport')
   if (airport && /^[A-Za-z]{3}$/.test(airport)) filters.airport = airport.toUpperCase()
   const status = params.get('status')
-  if (status === 'upcoming' || status === 'awaiting' || status === 'logged' || status === 'completed') filters.status = status
+  if (
+    status === 'upcoming' ||
+    status === 'awaiting' ||
+    status === 'logged' ||
+    status === 'completed'
+  )
+    filters.status = status
   const origin = params.get('origin')
   if (origin) filters.origin = origin.toUpperCase()
   const destination = params.get('destination')
@@ -88,15 +95,27 @@ export function parseFlightFilters(params: URLSearchParams): FlightFilters {
 }
 
 /** Build the WHERE clause (always scoped to user_id) + bound params for a flight list / ids query. */
-export function buildFlightWhere(userId: string, filters: FlightFilters): { where: string; binds: (string | number)[] } {
+export function buildFlightWhere(
+  userId: string,
+  filters: FlightFilters,
+): { where: string; binds: (string | number)[] } {
   const clauses: string[] = ['user_id = ?']
   const binds: (string | number)[] = [userId]
   if (filters.q) {
     // Bind every word, with the airport codes it resolves to, as one JSON array. SQLite lower() folds only
     // ASCII, so city and alias words (Russian, native script, diacritics) are resolved to IATA codes in JS
     // with Unicode folding and then matched against origin/destination.
-    const words = filters.q.trim().slice(0, 100).replace(/(?:→|->|—)/g, ' ').replace(/\b([A-Za-z]{3})-([A-Za-z]{3})\b/g, '$1 $2').split(/\s+/).filter(Boolean)
-    const terms = (words.length ? words : [filters.q]).map(word => ({ p: `%${word.replace(/[\\%_]/g, '\\$&')}%`, c: resolveAirportCodes(word, airportCatalog) }))
+    const words = filters.q
+      .trim()
+      .slice(0, 100)
+      .replace(/(?:→|->|—)/g, ' ')
+      .replace(/\b([A-Za-z]{3})-([A-Za-z]{3})\b/g, '$1 $2')
+      .split(/\s+/)
+      .filter(Boolean)
+    const terms = (words.length ? words : [filters.q]).map((word) => ({
+      p: `%${word.replace(/[\\%_]/g, '\\$&')}%`,
+      c: resolveAirportCodes(word, airportCatalog),
+    }))
     clauses.push(`NOT EXISTS (SELECT 1 FROM json_each(?) term WHERE NOT (
       lower(origin || ' ' || destination || ' ' || COALESCE(flight_number, '') || ' ' || COALESCE(airline_iata, '') || ' ' || date) LIKE lower(json_extract(term.value, '$.p')) ESCAPE '\\'
       OR EXISTS (SELECT 1 FROM json_each(term.value, '$.c') code WHERE code.value IN (origin, destination))
@@ -108,7 +127,11 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
     binds.push(filters.airport, filters.airport)
   }
   if (filters.status) {
-    clauses.push(filters.status === 'completed' ? "lifecycle_state IN ('awaiting', 'logged')" : 'lifecycle_state = ?')
+    clauses.push(
+      filters.status === 'completed'
+        ? "lifecycle_state IN ('awaiting', 'logged')"
+        : 'lifecycle_state = ?',
+    )
     if (filters.status !== 'completed') binds.push(filters.status)
   }
   const range = flightRange(filters.from, filters.to)
@@ -130,7 +153,11 @@ export function buildFlightWhere(userId: string, filters: FlightFilters): { wher
   }
   if (!filters.status && filters.isUpcoming !== undefined) {
     // `isUpcoming=false` keeps its meaning: completed, i.e. awaiting or logged (ADR 0001 §1).
-    clauses.push(filters.isUpcoming ? "lifecycle_state = 'upcoming'" : "lifecycle_state IN ('awaiting', 'logged')")
+    clauses.push(
+      filters.isUpcoming
+        ? "lifecycle_state = 'upcoming'"
+        : "lifecycle_state IN ('awaiting', 'logged')",
+    )
   }
   if (filters.originCodes?.length) {
     clauses.push(`origin IN (${filters.originCodes.map(() => '?').join(', ')})`)
@@ -177,7 +204,10 @@ export function orderByClause(sort: SortConfig): string {
   return `ORDER BY ${sort.field} ${dir}, id ${dir}`
 }
 
-export function parsePagination(params: URLSearchParams, defaultLimit = 20): { limit: number; offset: number } {
+export function parsePagination(
+  params: URLSearchParams,
+  defaultLimit = 20,
+): { limit: number; offset: number } {
   const rawLimit = Number(params.get('limit'))
   const rawOffset = Number(params.get('offset'))
   const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 200) : defaultLimit

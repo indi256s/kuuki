@@ -11,7 +11,7 @@ compatibility_flags = ["nodejs_compat"]
 # Environment variables for Functions
 [vars]
 # Add any non-secret environment variables here
-PAGES_ORIGIN = "https://kuuki.marchstudio.uk"  # canonical production origin (override per-env)
+PAGES_ORIGIN = "https://kuuki.marchstudio.uk" # canonical production origin (override per-env)
 MAINTENANCE_MODE = "false"
 
 # D1 Database

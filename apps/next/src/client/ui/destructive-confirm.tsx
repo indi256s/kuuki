@@ -31,40 +31,106 @@ export type DestructiveConfirmProps = {
 }
 
 /** Dialog composition: Cancel has initial focus, the danger button never doubles as an icon, and closing is blocked while pending. */
-export function DestructiveConfirm({ open, onOpenChange, title, consequence, confirmLabel, cancelLabel, pendingLabel, closeLabel, onConfirm, errorMessage, confirmDisabledReason, typedConfirmation, trigger, onCloseAutoFocus }: DestructiveConfirmProps) {
+export function DestructiveConfirm({
+  open,
+  onOpenChange,
+  title,
+  consequence,
+  confirmLabel,
+  cancelLabel,
+  pendingLabel,
+  closeLabel,
+  onConfirm,
+  errorMessage,
+  confirmDisabledReason,
+  typedConfirmation,
+  trigger,
+  onCloseAutoFocus,
+}: DestructiveConfirmProps) {
   const cancelRef = useRef<HTMLButtonElement>(null)
   const [pending, setPending] = useState(false)
   const [failed, setFailed] = useState(false)
   const [typed, setTyped] = useState('')
   // Reset whenever the dialog closes, whichever path closed it (adjusting state during render, not in an effect).
   const [wasOpen, setWasOpen] = useState(open)
-  if (wasOpen !== open) { setWasOpen(open); if (!open) { setTyped(''); setFailed(false) } }
+  if (wasOpen !== open) {
+    setWasOpen(open)
+    if (!open) {
+      setTyped('')
+      setFailed(false)
+    }
+  }
   const needsPhrase = typedConfirmation ? typed.trim() !== typedConfirmation.phrase : false
 
   const confirm = async () => {
     setPending(true)
     setFailed(false)
-    try { await onConfirm(); setTyped('') } catch { setFailed(true) } finally { setPending(false) }
+    try {
+      await onConfirm()
+      setTyped('')
+    } catch {
+      setFailed(true)
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
     <Dialog
       open={open}
-      onOpenChange={next => { if (!pending) { if (!next) { setFailed(false); setTyped('') } onOpenChange(next) } }}
+      onOpenChange={(next) => {
+        if (!pending) {
+          if (!next) {
+            setFailed(false)
+            setTyped('')
+          }
+          onOpenChange(next)
+        }
+      }}
       title={title}
       trigger={trigger}
       closeLabel={closeLabel}
       dismissible={!pending}
       initialFocusRef={cancelRef}
       onCloseAutoFocus={onCloseAutoFocus}
-      footer={<>
-        <Button ref={cancelRef} variant="secondary" disabled={pending} onClick={() => onOpenChange(false)}>{cancelLabel}</Button>
-        <Button variant="danger" loading={pending} loadingLabel={pendingLabel ?? confirmLabel} disabledReason={confirmDisabledReason ?? (needsPhrase ? typedConfirmation?.mismatchReason : undefined)} onClick={() => void confirm()}>{confirmLabel}</Button>
-      </>}
+      footer={
+        <>
+          <Button
+            ref={cancelRef}
+            variant="secondary"
+            disabled={pending}
+            onClick={() => onOpenChange(false)}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            variant="danger"
+            loading={pending}
+            loadingLabel={pendingLabel ?? confirmLabel}
+            disabledReason={
+              confirmDisabledReason ?? (needsPhrase ? typedConfirmation?.mismatchReason : undefined)
+            }
+            onClick={() => void confirm()}
+          >
+            {confirmLabel}
+          </Button>
+        </>
+      }
     >
       <p className="ui-confirm-consequence">{consequence}</p>
-      {typedConfirmation ? <Field label={typedConfirmation.label} value={typed} onChange={event => setTyped(event.target.value)} autoComplete="off" /> : null}
-      {failed && errorMessage ? <p className="ui-confirm-error" role="alert">{errorMessage}</p> : null}
+      {typedConfirmation ? (
+        <Field
+          label={typedConfirmation.label}
+          value={typed}
+          onChange={(event) => setTyped(event.target.value)}
+          autoComplete="off"
+        />
+      ) : null}
+      {failed && errorMessage ? (
+        <p className="ui-confirm-error" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </Dialog>
   )
 }

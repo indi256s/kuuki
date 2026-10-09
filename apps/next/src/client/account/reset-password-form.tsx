@@ -13,11 +13,41 @@ import { passwordRule } from '../public/password-field'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
 
-declare global { interface Window { __kuukiResetToken?: string } }
+declare global {
+  interface Window {
+    __kuukiResetToken?: string
+  }
+}
 
 const words = {
-  en: { title: 'Choose a new password', password: 'New password', hint: 'At least 8 characters', save: 'Save password', saving: 'Saving…', checking: 'Checking link…', expired: 'This link has expired', expiredBody: 'Links work once, for 30 minutes.', newLink: 'Send a new link', back: 'Back to sign in', rate: 'Too many attempts. Please wait and try again.', failed: 'Could not save your password. Please try again.' },
-  ru: { title: 'Выберите новый пароль', password: 'Новый пароль', hint: 'Не менее 8 символов', save: 'Сохранить пароль', saving: 'Сохраняем…', checking: 'Проверяем ссылку…', expired: 'Срок действия ссылки истёк', expiredBody: 'Ссылки действуют 30 минут и работают только один раз.', newLink: 'Отправить новую ссылку', back: 'Назад ко входу', rate: 'Слишком много попыток. Подождите и повторите.', failed: 'Не удалось сохранить пароль. Повторите попытку.' },
+  en: {
+    title: 'Choose a new password',
+    password: 'New password',
+    hint: 'At least 8 characters',
+    save: 'Save password',
+    saving: 'Saving…',
+    checking: 'Checking link…',
+    expired: 'This link has expired',
+    expiredBody: 'Links work once, for 30 minutes.',
+    newLink: 'Send a new link',
+    back: 'Back to sign in',
+    rate: 'Too many attempts. Please wait and try again.',
+    failed: 'Could not save your password. Please try again.',
+  },
+  ru: {
+    title: 'Выберите новый пароль',
+    password: 'Новый пароль',
+    hint: 'Не менее 8 символов',
+    save: 'Сохранить пароль',
+    saving: 'Сохраняем…',
+    checking: 'Проверяем ссылку…',
+    expired: 'Срок действия ссылки истёк',
+    expiredBody: 'Ссылки действуют 30 минут и работают только один раз.',
+    newLink: 'Отправить новую ссылку',
+    back: 'Назад ко входу',
+    rate: 'Слишком много попыток. Подождите и повторите.',
+    failed: 'Не удалось сохранить пароль. Повторите попытку.',
+  },
 }
 
 export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale }) {
@@ -42,20 +72,31 @@ export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale })
     try {
       const address = sessionStorage.getItem('kuuki_auth_email')?.trim() ?? ''
       if (address.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) setEmail(address)
-    } catch { /* A token-only visit still works when no same-origin email hint is available. */ }
+    } catch {
+      /* A token-only visit still works when no same-origin email hint is available. */
+    }
   }, [])
-  useEffect(() => { if (token !== null) heading.current?.focus() }, [token, success])
+  useEffect(() => {
+    if (token !== null) heading.current?.focus()
+  }, [token, success])
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (busy || !token) return
     setError('')
     const invalidPassword = password.length < 8 || password.length > 1024
     setPasswordError(invalidPassword)
-    if (invalidPassword) { heading.current?.focus(); return }
+    if (invalidPassword) {
+      heading.current?.focus()
+      return
+    }
     setBusy(true)
     try {
-      await withIdentityMutation(async identityToken => {
-        const reply = await api.post<{ ok?: unknown }>('/api/auth/password-reset/complete', { password }, { identityToken, headers: { Authorization: `Bearer ${token}` } })
+      await withIdentityMutation(async (identityToken) => {
+        const reply = await api.post<{ ok?: unknown }>(
+          '/api/auth/password-reset/complete',
+          { password },
+          { identityToken, headers: { Authorization: `Bearer ${token}` } },
+        )
         if (reply?.ok !== true) throw new Error('Invalid password reset response')
         return reply
       }, '/?notice=password-saved')
@@ -69,20 +110,72 @@ export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale })
         setPassword('')
         setToken('')
       } else setError(caught instanceof ApiError && caught.status === 429 ? 'rate' : 'failed')
-    } finally { setBusy(false) }
+    } finally {
+      setBusy(false)
+    }
   }
   const expired = token === '' && !success
-  return <AuthCardFrame locale={locale} onLocaleChange={next => { setLocale(next, false); setLocalLocale(next) }}>
-    <CardHeading ref={heading} title={expired ? t.expired : t.title} subtitle={expired ? t.expiredBody : undefined} />
-    {success ? <FormMessage tone="notice">{formMessages[locale]['password-saved']}</FormMessage> : token === null ? <p role="status">{t.checking}</p> : expired ?
-      <Link href="/forgot-password" className="ui-button auth-primary" data-variant="primary">{t.newLink}</Link> :
-      <form className="auth-form" onSubmit={submit} noValidate aria-busy={busy || undefined}>
-        {email ? <input type="hidden" name="username" autoComplete="username" value={email} /> : null}
-        <CardField ref={passwordInput} locale={locale} label={t.password} name="password" type="password" autoComplete="new-password" maxLength={1024} readOnly={busy}
-          value={password} onChange={event => { setPassword(event.target.value); setPasswordError(false) }} hint={t.hint} error={passwordError ? passwordRule[locale] : undefined} />
-        {error ? <FormMessage tone="error">{t[error]}</FormMessage> : null}
-        <Button variant="primary" type="submit" className="auth-primary" loading={busy} loadingLabel={t.saving}>{t.save}</Button>
-      </form>}
-    <Link className="auth-text-link" href="/"><span className="auth-button-row"><ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" />{t.back}</span></Link>
-  </AuthCardFrame>
+  return (
+    <AuthCardFrame
+      locale={locale}
+      onLocaleChange={(next) => {
+        setLocale(next, false)
+        setLocalLocale(next)
+      }}
+    >
+      <CardHeading
+        ref={heading}
+        title={expired ? t.expired : t.title}
+        subtitle={expired ? t.expiredBody : undefined}
+      />
+      {success ? (
+        <FormMessage tone="notice">{formMessages[locale]['password-saved']}</FormMessage>
+      ) : token === null ? (
+        <p role="status">{t.checking}</p>
+      ) : expired ? (
+        <Link href="/forgot-password" className="ui-button auth-primary" data-variant="primary">
+          {t.newLink}
+        </Link>
+      ) : (
+        <form className="auth-form" onSubmit={submit} noValidate aria-busy={busy || undefined}>
+          {email ? (
+            <input type="hidden" name="username" autoComplete="username" value={email} />
+          ) : null}
+          <CardField
+            ref={passwordInput}
+            locale={locale}
+            label={t.password}
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            maxLength={1024}
+            readOnly={busy}
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value)
+              setPasswordError(false)
+            }}
+            hint={t.hint}
+            error={passwordError ? passwordRule[locale] : undefined}
+          />
+          {error ? <FormMessage tone="error">{t[error]}</FormMessage> : null}
+          <Button
+            variant="primary"
+            type="submit"
+            className="auth-primary"
+            loading={busy}
+            loadingLabel={t.saving}
+          >
+            {t.save}
+          </Button>
+        </form>
+      )}
+      <Link className="auth-text-link" href="/">
+        <span className="auth-button-row">
+          <ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" />
+          {t.back}
+        </span>
+      </Link>
+    </AuthCardFrame>
+  )
 }

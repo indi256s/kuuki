@@ -52,7 +52,13 @@ API/scripts typechecks and Next build exited 0. Operator typecheck passed in
 Task 7; its source is unchanged. The current build reports:
 
 ```json
-{"node":"v24.18.0","openNextEntryBytes":2278,"assetCount":105,"assetBytes":9285828,"apiRoutes":71}
+{
+  "node": "v24.18.0",
+  "openNextEntryBytes": 2278,
+  "assetCount": 105,
+  "assetBytes": 9285828,
+  "apiRoutes": 71
+}
 ```
 
 Final backfill reporting edits are covered by the repeated API suite and

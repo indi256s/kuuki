@@ -3,9 +3,23 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import { ReplayTransport } from './replay-transport'
 import { buildTimeline } from './replay'
-const timeline = buildTimeline([{ key: '1', flightId: 1, origin: 'AAA', destination: 'BBB', date: '2019-01-01', weight: 1 },
-  { key: '2', flightId: 2, origin: 'AAA', destination: 'BBB', date: '2020-03-01', weight: 1 }], 12000)
-const props = { timeline, durationMs: 12000, timeMs: 0, paused: false, setPaused: vi.fn(), seek: vi.fn(), reduced: false, locale: 'en' as const }
+const timeline = buildTimeline(
+  [
+    { key: '1', flightId: 1, origin: 'AAA', destination: 'BBB', date: '2019-01-01', weight: 1 },
+    { key: '2', flightId: 2, origin: 'AAA', destination: 'BBB', date: '2020-03-01', weight: 1 },
+  ],
+  12000,
+)
+const props = {
+  timeline,
+  durationMs: 12000,
+  timeMs: 0,
+  paused: false,
+  setPaused: vi.fn(),
+  seek: vi.fn(),
+  reduced: false,
+  locale: 'en' as const,
+}
 
 it('previews month starts, commits release and cancels to the actual drag origin with Escape focus return', () => {
   const seek = vi.fn()
@@ -14,9 +28,9 @@ it('previews month starts, commits release and cancels to the actual drag origin
   const range = screen.getByRole('slider', { name: 'Replay month' })
   fireEvent.pointerDown(range)
   fireEvent.change(range, { target: { value: '1' } })
-  expect(seek).toHaveBeenLastCalledWith(31 / 456 * 12000, 'preview')
+  expect(seek).toHaveBeenLastCalledWith((31 / 456) * 12000, 'preview')
   fireEvent.pointerUp(range)
-  expect(seek).toHaveBeenLastCalledWith(31 / 456 * 12000, 'commit')
+  expect(seek).toHaveBeenLastCalledWith((31 / 456) * 12000, 'commit')
   fireEvent.pointerDown(range)
   fireEvent.change(range, { target: { value: '2' } })
   fireEvent.keyDown(range, { key: 'Escape' })

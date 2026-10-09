@@ -9,12 +9,24 @@ export interface ErrorShape {
 export function json(data: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(data), {
     ...init,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...(init.headers ?? {}) },
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      ...(init.headers ?? {}),
+    },
   })
 }
 
-export function jsonError(status: number, message: string, code?: string, shape: ErrorShape = {}): Response {
-  return json({ ...shape.fields, error: message, ...(code ? { code } : {}) }, { status, headers: shape.headers })
+export function jsonError(
+  status: number,
+  message: string,
+  code?: string,
+  shape: ErrorShape = {},
+): Response {
+  return json(
+    { ...shape.fields, error: message, ...(code ? { code } : {}) },
+    { status, headers: shape.headers },
+  )
 }
 
 // Covers the largest ordinary body: a 10,000-id bulk delete is ~110 KB. Bigger callers pass maxBytes.
@@ -25,7 +37,10 @@ const DEFAULT_MAX_JSON_BYTES = 128 * 1024
  * Bytes are counted from the stream itself, since Content-Length can be absent or false;
  * a body over maxBytes throws a 413 HttpError.
  */
-export async function readJson<T>(request: Request, { maxBytes = DEFAULT_MAX_JSON_BYTES }: { maxBytes?: number } = {}): Promise<T | null> {
+export async function readJson<T>(
+  request: Request,
+  { maxBytes = DEFAULT_MAX_JSON_BYTES }: { maxBytes?: number } = {},
+): Promise<T | null> {
   const tooLarge = () => new HttpError(413, 'Request too large', 'PAYLOAD_TOO_LARGE')
   if (Number(request.headers.get('Content-Length')) > maxBytes) throw tooLarge()
   if (!request.body) return null
@@ -69,11 +84,20 @@ export class HttpError extends Error {
 }
 
 /** Wrap a handler so thrown HttpErrors become JSON responses and unexpected throws become 500s. */
-export async function runHandler(fn: () => Promise<Response>, shape: ErrorShape = {}): Promise<Response> {
+export async function runHandler(
+  fn: () => Promise<Response>,
+  shape: ErrorShape = {},
+): Promise<Response> {
   try {
     return await fn()
   } catch (err) {
-    if (err instanceof HttpError) return jsonError(err.status, err.message, err.code, err.details ? { ...shape, fields: { ...err.details, ...shape.fields } } : shape)
+    if (err instanceof HttpError)
+      return jsonError(
+        err.status,
+        err.message,
+        err.code,
+        err.details ? { ...shape, fields: { ...err.details, ...shape.fields } } : shape,
+      )
     // Database/provider error messages can contain user input or payload fragments.
     console.error(JSON.stringify({ event: 'handler_error', code: 'INTERNAL' }))
     return jsonError(500, 'Internal server error', 'INTERNAL', shape)

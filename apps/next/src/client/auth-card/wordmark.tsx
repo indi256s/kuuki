@@ -5,7 +5,14 @@ import './auth-card.css'
  * One element named "Kuuki"; the two spans are visual only. The size comes from `--wordmark-size` on a parent.
  */
 export function Wordmark({ className }: { className?: string }) {
-  return <span role="img" aria-label="Kuuki" className={className ? `kuuki-wordmark ${className}` : 'kuuki-wordmark'}>
-    <span className="kuuki-wordmark-ku">Ku</span><span className="kuuki-wordmark-uki">uki</span>
-  </span>
+  return (
+    <span
+      role="img"
+      aria-label="Kuuki"
+      className={className ? `kuuki-wordmark ${className}` : 'kuuki-wordmark'}
+    >
+      <span className="kuuki-wordmark-ku">Ku</span>
+      <span className="kuuki-wordmark-uki">uki</span>
+    </span>
+  )
 }

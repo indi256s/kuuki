@@ -16,9 +16,20 @@ export type MonthRangeProps = MonthRangeValue & {
 
 export function MonthRange({ from, to, min, max, onChange, onClear, locale }: MonthRangeProps) {
   // Only incomplete input is local; complete ranges remain controlled by the caller.
-  const [draft, setDraft] = useState<(MonthRangeValue & { sourceFrom: string; sourceTo: string }) | null>(null)
-  const valid = (value: string) => !value || (/^\d{4}-(0[1-9]|1[0-2])$/.test(value) && (!min || value >= min) && (!max || value <= max))
-  const current = draft && draft.sourceFrom === from && draft.sourceTo === to && valid(draft.from) && valid(draft.to) ? draft : { from, to }
+  const [draft, setDraft] = useState<
+    (MonthRangeValue & { sourceFrom: string; sourceTo: string }) | null
+  >(null)
+  const valid = (value: string) =>
+    !value ||
+    (/^\d{4}-(0[1-9]|1[0-2])$/.test(value) && (!min || value >= min) && (!max || value <= max))
+  const current =
+    draft &&
+    draft.sourceFrom === from &&
+    draft.sourceTo === to &&
+    valid(draft.from) &&
+    valid(draft.to)
+      ? draft
+      : { from, to }
   if (draft && current !== draft) setDraft(null)
   const change = (field: keyof MonthRangeValue, value: string) => {
     const next = { from: current.from, to: current.to, [field]: value }
@@ -31,13 +42,39 @@ export function MonthRange({ from, to, min, max, onChange, onClear, locale }: Mo
       if (!next.from && !next.to) onChange(null)
     }
   }
-  return <div className="ui-month-range" lang={locale}>
-    <label className="ui-month-range-field">{locale === 'ru' ? 'С' : 'From'}
-      <input className="ui-field-input" type="month" value={current.from} min={min} max={max} onChange={event => change('from', event.target.value)} />
-    </label>
-    <label className="ui-month-range-field">{locale === 'ru' ? 'По' : 'To'}
-      <input className="ui-field-input" type="month" value={current.to} min={min} max={max} onChange={event => change('to', event.target.value)} />
-    </label>
-    <Button onClick={() => { setDraft(null); onChange(null); onClear() }}>{locale === 'ru' ? 'Очистить' : 'Clear'}</Button>
-  </div>
+  return (
+    <div className="ui-month-range" lang={locale}>
+      <label className="ui-month-range-field">
+        {locale === 'ru' ? 'С' : 'From'}
+        <input
+          className="ui-field-input"
+          type="month"
+          value={current.from}
+          min={min}
+          max={max}
+          onChange={(event) => change('from', event.target.value)}
+        />
+      </label>
+      <label className="ui-month-range-field">
+        {locale === 'ru' ? 'По' : 'To'}
+        <input
+          className="ui-field-input"
+          type="month"
+          value={current.to}
+          min={min}
+          max={max}
+          onChange={(event) => change('to', event.target.value)}
+        />
+      </label>
+      <Button
+        onClick={() => {
+          setDraft(null)
+          onChange(null)
+          onClear()
+        }}
+      >
+        {locale === 'ru' ? 'Очистить' : 'Clear'}
+      </Button>
+    </div>
+  )
 }

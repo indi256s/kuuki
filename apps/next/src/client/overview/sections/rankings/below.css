@@ -1,6 +1,28 @@
 /* Unlock meter for gated sections: one dot per flight still counted toward the threshold, a thin bar past 12. */
-.ov3-unlock { display: flex; gap: 4px; margin-bottom: 8px; }
-.ov3-unlock > i { flex: none; inline-size: 8px; block-size: 8px; border-radius: var(--radius-full); background: var(--surface-inset); }
-.ov3-unlock > i.on { background: var(--accent); }
-.ov3-unlock:has(> b) { inline-size: min(100%, 160px); block-size: 6px; border-radius: var(--radius-full); background: var(--surface-inset); overflow: hidden; }
-.ov3-unlock > b { display: block; block-size: 100%; background: var(--accent); }
+.ov3-unlock {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.ov3-unlock > i {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+}
+.ov3-unlock > i.on {
+  background: var(--accent);
+}
+.ov3-unlock:has(> b) {
+  inline-size: min(100%, 160px);
+  block-size: 6px;
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+.ov3-unlock > b {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+}

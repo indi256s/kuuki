@@ -10,7 +10,9 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/oxlint-design.mjs"]
+    },
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": []

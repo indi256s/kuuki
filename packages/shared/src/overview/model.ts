@@ -28,9 +28,19 @@ export type FacetKey = Exclude<keyof OverviewFilter, 'period'>
 export const HAUL_KM = { medium: 1500, long: 4000 } as const
 export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 18 } as const
 
-export interface RecordRef { flightId: number | null; origin: string; destination: string; value: number }
+export interface RecordRef {
+  flightId: number | null
+  origin: string
+  destination: string
+  value: number
+}
 // Source identities stay numeric until the cabinet is projected, including legacy carried extrema.
-export interface SourceRecordRef { flightId: number; origin: string; destination: string; value: number }
+export interface SourceRecordRef {
+  flightId: number
+  origin: string
+  destination: string
+  value: number
+}
 export interface DistanceRecordWitness extends SourceRecordRef {
   date?: string | null
   airline?: string | null
@@ -40,14 +50,23 @@ export interface DistanceRecordWitness extends SourceRecordRef {
   clockShiftMinutes?: number | null
 }
 export interface RecordExtrema {
-  longest: DistanceRecordWitness | null; shortest: DistanceRecordWitness | null
-  longestDuration: SourceRecordRef | null; shortestDuration: SourceRecordRef | null
+  longest: DistanceRecordWitness | null
+  shortest: DistanceRecordWitness | null
+  longestDuration: SourceRecordRef | null
+  shortestDuration: SourceRecordRef | null
   biggestClockJump: SourceRecordRef | null
 }
 export interface LatestFlightWitness {
-  flightId: number; origin: string; destination: string; value: number | null; date: string
+  flightId: number
+  origin: string
+  destination: string
+  value: number | null
+  date: string
 }
-export interface DepartureWitness extends SourceRecordRef { date: string; depMinute: number }
+export interface DepartureWitness extends SourceRecordRef {
+  date: string
+  depMinute: number
+}
 export interface RecordFlights {
   latest: LatestFlightWitness | null
   earliestDeparture: DepartureWitness | null
@@ -94,8 +113,25 @@ export interface OverviewPayload {
   homeOverride: string | null
   rows: OverviewRow[]
   refs: {
-    airports: Record<string, { lat: number | null; lon: number | null; country: string | null; city: string | null; name: string }>
-    aircraft: Record<string, { manufacturer: string | null; type: string | null; family: string | null; name: string | null }>
+    airports: Record<
+      string,
+      {
+        lat: number | null
+        lon: number | null
+        country: string | null
+        city: string | null
+        name: string
+      }
+    >
+    aircraft: Record<
+      string,
+      {
+        manufacturer: string | null
+        type: string | null
+        family: string | null
+        name: string | null
+      }
+    >
     regions: Record<string, string>
   }
 }

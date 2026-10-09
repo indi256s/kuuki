@@ -9,16 +9,25 @@ function List({ total }: { total: number }) {
   return <p data-testid="count">{count}</p>
 }
 const shown = () => Number(screen.getByTestId('count').textContent)
-const drain = async () => { for (let i = 0; i < 20; i++) await act(async () => { vi.runOnlyPendingTimers() }) }
+const drain = async () => {
+  for (let i = 0; i < 20; i++)
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
+}
 
-afterEach(() => { vi.useRealTimers() })
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 it('renders the first rows on the server and on hydration, then mounts the rest in chunks', async () => {
   expect(renderToString(<List total={1000} />)).toContain('>60<')
   vi.useFakeTimers()
   render(<List total={1000} />)
   expect(shown()).toBe(60)
-  await act(async () => { vi.runOnlyPendingTimers() })
+  await act(async () => {
+    vi.runOnlyPendingTimers()
+  })
   expect(shown()).toBe(210)
   await drain()
   expect(shown()).toBe(1000)

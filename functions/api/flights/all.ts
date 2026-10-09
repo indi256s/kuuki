@@ -8,8 +8,9 @@ import { FLIGHT_COLUMNS } from './index'
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
     const user = requireUser(context.data)
-    const rows = await context.env.DB
-      .prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights WHERE user_id = ? ORDER BY date DESC`)
+    const rows = await context.env.DB.prepare(
+      `SELECT ${FLIGHT_COLUMNS} FROM flights WHERE user_id = ? ORDER BY date DESC`,
+    )
       .bind(user.id)
       .all<FlightRow>()
     return json(rows.results.map(toOwnFlight))

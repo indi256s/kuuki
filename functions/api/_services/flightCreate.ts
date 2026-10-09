@@ -10,7 +10,11 @@ import { sha256Hex } from '../_lib/crypto'
 import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBodies } from '../_lib/flightValidation'
 import { resolveFlightMetrics } from './flightMetrics'
-import { dirtyUserStatement, repairUserDerivedState, type DerivedRepairResult } from './derivedState'
+import {
+  dirtyUserStatement,
+  repairUserDerivedState,
+  type DerivedRepairResult,
+} from './derivedState'
 import { LIFECYCLE_COLUMN_NAMES, lifecycleForCreate, lifecycleValues } from './lifecycle'
 import { nowIso } from '../_lib/time'
 import { readPressedBefore, stampsForCreated } from './newlyStamped'
@@ -48,7 +52,11 @@ export const conversionDigest = (draftId: string, version: number) =>
  * so stale, converted or unacknowledged repeated drafts write nothing at all (ADR 0001 §6 step 4).
  */
 export async function createFlightStatements(
-  db: D1Database, userId: string, key: string, input: FlightInput, timezone: string | null = null,
+  db: D1Database,
+  userId: string,
+  key: string,
+  input: FlightInput,
+  timezone: string | null = null,
   guard?: Pick<ConversionTarget, 'draftId' | 'version'>,
 ): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
   const date = input.date!
@@ -60,7 +68,16 @@ export async function createFlightStatements(
   const lifecycle = lifecycleForCreate(date, timezone)
   const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
 
-  const { originTz, destTz, departureUtc, arrivalUtc, distanceKm, durationMinutes, durationSource, zonesOverflown } = await resolveFlightMetrics(db, {
+  const {
+    originTz,
+    destTz,
+    departureUtc,
+    arrivalUtc,
+    distanceKm,
+    durationMinutes,
+    durationSource,
+    zonesOverflown,
+  } = await resolveFlightMetrics(db, {
     date,
     origin,
     destination,
@@ -74,51 +91,70 @@ export async function createFlightStatements(
   })
 
   const ledger = guard
-    ? db.prepare(
-      `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
+    ? db
+        .prepare(
+          `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
        SELECT ?, ?, ?, NULL, ?
        WHERE EXISTS (SELECT 1 FROM import_drafts d WHERE id = ? AND user_id = ? AND version = ? AND status = 'review'
          AND (d.duplicate_acknowledged = 1 OR NOT EXISTS
            (SELECT 1 FROM flights f WHERE f.user_id = d.user_id AND f.date = ? AND f.origin = ? AND f.destination = ?)))
        ON CONFLICT (user_id, key) DO NOTHING`,
-    ).bind(userId, key, digest, nowIso(), guard.draftId, userId, guard.version, date, origin, destination)
-    : db.prepare(
-      'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
-    ).bind(userId, key, digest, new Date().toISOString())
+        )
+        .bind(
+          userId,
+          key,
+          digest,
+          nowIso(),
+          guard.draftId,
+          userId,
+          guard.version,
+          date,
+          origin,
+          destination,
+        )
+    : db
+        .prepare(
+          'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
+        )
+        .bind(userId, key, digest, new Date().toISOString())
 
   const statements = [
     ledger,
-    db.prepare(
-      `INSERT INTO flights (
+    db
+      .prepare(
+        `INSERT INTO flights (
        date, origin, destination, airline_iata, aircraft_icao, flight_number,
        departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
        distance_km, duration_minutes, duration_source, zones_overflown, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
      ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
-    ).bind(
-      date,
-      origin,
-      destination,
-      input.airline_iata ?? null,
-      input.aircraft_icao ?? null,
-      input.flight_number ?? null,
-      input.departure_time ?? null,
-      input.arrival_time ?? null,
-      departureUtc,
-      arrivalUtc,
-      originTz,
-      destTz,
-      distanceKm,
-      durationMinutes,
-      durationSource,
-      zonesOverflown,
-      source,
-      enrichmentStatus,
-      userId,
-      ...lifecycleValues(lifecycle),
-    ),
-    db.prepare(
-      'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
-    ).bind(userId, key),
+      )
+      .bind(
+        date,
+        origin,
+        destination,
+        input.airline_iata ?? null,
+        input.aircraft_icao ?? null,
+        input.flight_number ?? null,
+        input.departure_time ?? null,
+        input.arrival_time ?? null,
+        departureUtc,
+        arrivalUtc,
+        originTz,
+        destTz,
+        distanceKm,
+        durationMinutes,
+        durationSource,
+        zonesOverflown,
+        source,
+        enrichmentStatus,
+        userId,
+        ...lifecycleValues(lifecycle),
+      ),
+    db
+      .prepare(
+        'UPDATE flight_idempotency SET flight_id = last_insert_rowid() WHERE user_id = ? AND key = ? AND flight_id IS NULL AND changes() = 1',
+      )
+      .bind(userId, key),
   ]
   return { digest, statements }
 }
@@ -130,30 +166,55 @@ export async function createFlightStatements(
  *  - the receipt, whose flight id comes only from the draft this batch converted. The no-target `ON CONFLICT` covers
  *    both the key and the draft uniqueness; neither conflict is reachable after the guards above.
  */
-function conversionStatements(db: D1Database, userId: string, key: string, target: ConversionTarget): D1PreparedStatement[] {
+function conversionStatements(
+  db: D1Database,
+  userId: string,
+  key: string,
+  target: ConversionTarget,
+): D1PreparedStatement[] {
   const now = nowIso()
   return [
-    db.prepare(
-      `UPDATE import_drafts SET status = 'converted', version = version + 1, converted_flight_id = last_insert_rowid(), updated_at = ?
+    db
+      .prepare(
+        `UPDATE import_drafts SET status = 'converted', version = version + 1, converted_flight_id = last_insert_rowid(), updated_at = ?
        WHERE id = ? AND user_id = ? AND version = ? AND status = 'review' AND changes() = 1`,
-    ).bind(now, target.draftId, userId, target.version),
-    db.prepare(
-      `INSERT INTO import_conversion_receipts (user_id, operation_key, draft_id, batch_id, request_digest, flight_id, created_at)
+      )
+      .bind(now, target.draftId, userId, target.version),
+    db
+      .prepare(
+        `INSERT INTO import_conversion_receipts (user_id, operation_key, draft_id, batch_id, request_digest, flight_id, created_at)
        SELECT ?, ?, ?, ?, ?, converted_flight_id, ? FROM import_drafts WHERE id = ? AND user_id = ? AND changes() = 1
        ON CONFLICT DO NOTHING`,
-    ).bind(userId, key, target.draftId, target.batchId, target.requestDigest, now, target.draftId, userId),
+      )
+      .bind(
+        userId,
+        key,
+        target.draftId,
+        target.batchId,
+        target.requestDigest,
+        now,
+        target.draftId,
+        userId,
+      ),
   ]
 }
 
 export type BulkItemResult =
   | {
-    key: string | null; status: 'created' | 'replayed'; flight: ReturnType<typeof toOwnFlight>
-    /** ADR 0001 §5: countries this item newly pressed; null on `replayed`, pending publication or an unknown before-set. */
-    newly_stamped_countries: string[] | null
-  }
+      key: string | null
+      status: 'created' | 'replayed'
+      flight: ReturnType<typeof toOwnFlight>
+      /** ADR 0001 §5: countries this item newly pressed; null on `replayed`, pending publication or an unknown before-set. */
+      newly_stamped_countries: string[] | null
+    }
   | { key: string | null; status: 'error'; http_status: number; code: string; error: string }
 
-export function itemFailure(key: string | null, status: number, code: string, error: string): BulkItemResult {
+export function itemFailure(
+  key: string | null,
+  status: number,
+  code: string,
+  error: string,
+): BulkItemResult {
   return { key, status: 'error', http_status: status, code, error }
 }
 
@@ -178,9 +239,15 @@ export interface BulkCreateOptions {
  * be classified by the caller from the conversion receipts (a `replayed` result only says the key had a ledger row).
  */
 export async function bulkCreate(
-  db: D1Database, userId: string, items: unknown[], { timezone, conversion, trailing = [] }: BulkCreateOptions,
+  db: D1Database,
+  userId: string,
+  items: unknown[],
+  { timezone, conversion, trailing = [] }: BulkCreateOptions,
 ): Promise<{ results: BulkItemResult[]; derived: DerivedRepairResult | null }> {
-  const parsed = await parseFlightBodies(db, items.map(item => isRecord(item) ? item.flight : undefined))
+  const parsed = await parseFlightBodies(
+    db,
+    items.map((item) => (isRecord(item) ? item.flight : undefined)),
+  )
   const results: BulkItemResult[] = []
   const accepted: Array<{ index: number; key: string; digest: string; first: number }> = []
   const statements: D1PreparedStatement[] = []
@@ -188,12 +255,19 @@ export async function bulkCreate(
     const key = isRecord(item) && isIdempotencyKey(item.key) ? item.key : null
     const input = parsed[index]
     const target = conversion?.[index] ?? undefined
-    if (!key) results.push(itemFailure(null, 400, 'IDEMPOTENCY_KEY_REQUIRED', 'Valid idempotency key required'))
-    else if (input instanceof HttpError) results.push(itemFailure(key, input.status, input.code ?? 'INVALID_FLIGHT', input.message))
+    if (!key)
+      results.push(
+        itemFailure(null, 400, 'IDEMPOTENCY_KEY_REQUIRED', 'Valid idempotency key required'),
+      )
+    else if (input instanceof HttpError)
+      results.push(itemFailure(key, input.status, input.code ?? 'INVALID_FLIGHT', input.message))
     else {
       const created = await createFlightStatements(db, userId, key, input, timezone, target)
       accepted.push({ index, key, digest: created.digest, first: statements.length })
-      statements.push(...created.statements, ...(target ? conversionStatements(db, userId, key, target) : []))
+      statements.push(
+        ...created.statements,
+        ...(target ? conversionStatements(db, userId, key, target) : []),
+      )
       results.push(itemFailure(key, 500, 'RECEIPT_MISSING', 'Flight receipt missing')) // replaced once the ledger is read
     }
   }
@@ -202,26 +276,45 @@ export async function bulkCreate(
   const pressedBefore = await readPressedBefore(db, userId)
   // Unconditional dirty mark: changes() only sees the last item, and a pure replay just repairs again.
   const batch = await db.batch([...statements, ...trailing, dirtyUserStatement(db, userId)])
-  const ledgers = await db.prepare(
-    'SELECT key, payload_digest, flight_id FROM flight_idempotency WHERE user_id = ? AND key IN (SELECT value FROM json_each(?))',
-  ).bind(userId, JSON.stringify(accepted.map(item => item.key))).all<{ key: string; payload_digest: string; flight_id: number | null }>()
-  const ledgerByKey = new Map(ledgers.results.map(row => [row.key, row]))
-  const ids = ledgers.results.flatMap(row => row.flight_id == null ? [] : [row.flight_id])
-  const rows = await db.prepare(`SELECT ${FLIGHT_COLUMNS} FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))`)
-    .bind(userId, JSON.stringify(ids)).all<FlightRow>()
-  const rowById = new Map(rows.results.map(row => [row.id, row]))
+  const ledgers = await db
+    .prepare(
+      'SELECT key, payload_digest, flight_id FROM flight_idempotency WHERE user_id = ? AND key IN (SELECT value FROM json_each(?))',
+    )
+    .bind(userId, JSON.stringify(accepted.map((item) => item.key)))
+    .all<{ key: string; payload_digest: string; flight_id: number | null }>()
+  const ledgerByKey = new Map(ledgers.results.map((row) => [row.key, row]))
+  const ids = ledgers.results.flatMap((row) => (row.flight_id == null ? [] : [row.flight_id]))
+  const rows = await db
+    .prepare(
+      `SELECT ${FLIGHT_COLUMNS} FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))`,
+    )
+    .bind(userId, JSON.stringify(ids))
+    .all<FlightRow>()
+  const rowById = new Map(rows.results.map((row) => [row.id, row]))
 
   const fresh: FlightRow[] = []
   for (const { index, key, digest, first } of accepted) {
     const ledger = ledgerByKey.get(key)
     const row = ledger?.flight_id == null ? undefined : rowById.get(ledger.flight_id)
     if (!ledger) continue
-    if (ledger.payload_digest !== digest) results[index] = itemFailure(key, 409, 'IDEMPOTENCY_CONFLICT', 'Idempotency key already used for another flight')
-    else if (!row) results[index] = itemFailure(key, 410, 'IDEMPOTENCY_GONE', 'Original flight was deleted')
+    if (ledger.payload_digest !== digest)
+      results[index] = itemFailure(
+        key,
+        409,
+        'IDEMPOTENCY_CONFLICT',
+        'Idempotency key already used for another flight',
+      )
+    else if (!row)
+      results[index] = itemFailure(key, 410, 'IDEMPOTENCY_GONE', 'Original flight was deleted')
     else {
       const created = (batch[first].meta.changes ?? 0) > 0
       if (created) fresh.push(row)
-      results[index] = { key, status: created ? 'created' : 'replayed', flight: toOwnFlight(row), newly_stamped_countries: null }
+      results[index] = {
+        key,
+        status: created ? 'created' : 'replayed',
+        flight: toOwnFlight(row),
+        newly_stamped_countries: null,
+      }
     }
   }
   const derived = await repairUserDerivedState(db, userId)

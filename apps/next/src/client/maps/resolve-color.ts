@@ -1,11 +1,12 @@
 let context: CanvasRenderingContext2D | null | undefined
 
 // Used when neither the requested value nor `--map-land` can be resolved: fully transparent, valid for MapLibre.
-// eslint-disable-next-line no-restricted-syntax -- MapLibre needs a literal transparent colour when no token resolves
+// oxlint-disable-next-line kuuki/design-tokens -- MapLibre needs a literal transparent colour when no token resolves
 const TRANSPARENT = 'rgba(0,0,0,0)'
 
 function paint(value: string): string | null {
-  if (context === undefined) context = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+  if (context === undefined)
+    context = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
   if (!context) return null
   const read = (seed: string) => {
     context!.clearRect(0, 0, 1, 1)
@@ -14,11 +15,13 @@ function paint(value: string): string | null {
     context!.fillRect(0, 0, 1, 1)
     return context!.getImageData(0, 0, 1, 1).data
   }
-  // eslint-disable-next-line no-restricted-syntax -- canvas probe seeds, not UI colours
-  const a = read('#000000'), b = read('#ffffff')
+  // oxlint-disable kuuki/design-tokens -- canvas probe seeds, not UI colours
+  const a = read('#000000'),
+    b = read('#ffffff')
+  // oxlint-enable kuuki/design-tokens
   // An unparseable value leaves the seed color, so the two reads would differ.
   if (a[0] !== b[0] || a[1] !== b[1] || a[2] !== b[2] || a[3] !== b[3]) return null
-  // eslint-disable-next-line no-restricted-syntax -- serialises the canvas-resolved colour into MapLibre's legacy syntax
+  // oxlint-disable-next-line kuuki/design-tokens -- serialises the canvas-resolved colour into MapLibre's legacy syntax
   return `rgba(${a[0]},${a[1]},${a[2]},${+(a[3] / 255).toFixed(3)})`
 }
 

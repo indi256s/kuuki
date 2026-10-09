@@ -6,12 +6,20 @@ import { SourceStep, MAX_FILE_BYTES } from './source-step'
 function image(name = 'screenshot.png', type = 'image/png', size = 3) {
   const file = new File(['png'], name, { type })
   Object.defineProperty(file, 'size', { value: size })
-  Object.defineProperty(file, 'arrayBuffer', { value: async () => new Uint8Array([112, 110, 103]).buffer, configurable: true })
+  Object.defineProperty(file, 'arrayBuffer', {
+    value: async () => new Uint8Array([112, 110, 103]).buffer,
+    configurable: true,
+  })
   return file
 }
 function paste(files: File[], target: Node = document.body) {
   const event = new Event('paste', { bubbles: true, cancelable: true })
-  Object.defineProperty(event, 'clipboardData', { value: { files, items: files.map(file => ({ kind: 'file', type: file.type, getAsFile: () => file })) } })
+  Object.defineProperty(event, 'clipboardData', {
+    value: {
+      files,
+      items: files.map((file) => ({ kind: 'file', type: file.type, getAsFile: () => file })),
+    },
+  })
   fireEvent(target, event)
   return event
 }
@@ -24,7 +32,11 @@ describe('import source clipboard and file selection', () => {
     expect(screen.getByText('screenshot.png')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Find flights' }))
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
-    expect(onSubmit.mock.calls[0][0]).toEqual({ type: 'image', content: 'cG5n', sourceLabel: 'screenshot.png' })
+    expect(onSubmit.mock.calls[0][0]).toEqual({
+      type: 'image',
+      content: 'cG5n',
+      sourceLabel: 'screenshot.png',
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Find flights' }))
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2))
     expect(onSubmit.mock.calls[1][1]).toBe(onSubmit.mock.calls[0][1])
@@ -34,7 +46,9 @@ describe('import source clipboard and file selection', () => {
     expect(onSubmit.mock.calls[2][0].sourceLabel).toBe('second.jpg')
     expect(onSubmit.mock.calls[2][1]).not.toBe(onSubmit.mock.calls[0][1])
     fireEvent.click(screen.getByRole('radio', { name: 'Paste text' }))
-    fireEvent.change(screen.getByLabelText('Booking or itinerary text'), { target: { value: 'JFK → BOS' } })
+    fireEvent.change(screen.getByLabelText('Booking or itinerary text'), {
+      target: { value: 'JFK → BOS' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Find flights' }))
     expect(onSubmit.mock.calls[3][0]).toEqual({ type: 'text', content: 'JFK → BOS' })
     fireEvent.click(screen.getByRole('radio', { name: 'File' }))
@@ -44,7 +58,10 @@ describe('import source clipboard and file selection', () => {
     expect(onSubmit.mock.calls[4][1]).not.toBe(onSubmit.mock.calls[3][1])
   })
 
-  it.each([['image/webp', 3, /Use a PDF, PNG or JPEG/], ['image/png', MAX_FILE_BYTES + 1, /over 10 MB/]])('rejects pasted %s at %s bytes through existing validation', (type, size, message) => {
+  it.each([
+    ['image/webp', 3, /Use a PDF, PNG or JPEG/],
+    ['image/png', MAX_FILE_BYTES + 1, /over 10 MB/],
+  ])('rejects pasted %s at %s bytes through existing validation', (type, size, message) => {
     const onSubmit = vi.fn()
     render(<SourceStep locale="en" busy={false} initialMode={null} onSubmit={onSubmit} />)
     paste([image('clipboard', type, size)])
@@ -56,17 +73,30 @@ describe('import source clipboard and file selection', () => {
   it('never submits a removed source after its in-flight file read completes', async () => {
     let finishRead!: (value: ArrayBuffer) => void
     const file = image()
-    Object.defineProperty(file, 'arrayBuffer', { value: () => new Promise<ArrayBuffer>(resolve => { finishRead = resolve }), configurable: true })
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: () =>
+        new Promise<ArrayBuffer>((resolve) => {
+          finishRead = resolve
+        }),
+      configurable: true,
+    })
     const onSubmit = vi.fn()
     render(<SourceStep locale="en" busy={false} initialMode={null} onSubmit={onSubmit} />)
     paste([file])
     fireEvent.click(screen.getByRole('button', { name: 'Find flights' }))
     fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot.png' }))
-    await act(async () => { finishRead(new Uint8Array([112, 110, 103]).buffer) })
+    await act(async () => {
+      finishRead(new Uint8Array([112, 110, 103]).buffer)
+    })
     expect(onSubmit).not.toHaveBeenCalled()
     paste([image('replacement.png')])
     fireEvent.click(screen.getByRole('button', { name: 'Find flights' }))
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ sourceLabel: 'replacement.png' }), expect.any(String)))
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ sourceLabel: 'replacement.png' }),
+        expect.any(String),
+      ),
+    )
   })
 
   it('leaves ordinary paste and editable-field paste alone, and stops listening when busy or unmounted', () => {
@@ -83,7 +113,9 @@ describe('import source clipboard and file selection', () => {
 
   it('takes one dropped document and lets the member remove it before submission', () => {
     render(<SourceStep locale="en" busy={false} initialMode={null} onSubmit={vi.fn()} />)
-    fireEvent.drop(screen.getByRole('button', { name: /Choose a file/ }), { dataTransfer: { files: [image('first.png'), image('second.png')], types: ['Files'] } })
+    fireEvent.drop(screen.getByRole('button', { name: /Choose a file/ }), {
+      dataTransfer: { files: [image('first.png'), image('second.png')], types: ['Files'] },
+    })
     expect(screen.getByText('first.png')).toBeInTheDocument()
     expect(screen.queryByText('second.png')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Remove first.png' }))

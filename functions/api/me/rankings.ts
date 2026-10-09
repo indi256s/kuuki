@@ -2,7 +2,12 @@
 
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
-import { derivedStateJoin, PUBLISHED_DERIVED_STATE, toLeaderboardEntry, type LeaderboardCacheRow } from '../_lib/leaderboard'
+import {
+  derivedStateJoin,
+  PUBLISHED_DERIVED_STATE,
+  toLeaderboardEntry,
+  type LeaderboardCacheRow,
+} from '../_lib/leaderboard'
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {

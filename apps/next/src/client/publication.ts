@@ -6,11 +6,19 @@ type Publication = { derived_state: 'ready' | 'pending' | 'error'; published_rev
 const delays = [1000, 2000, 4000, 8000, 8000, 8000]
 
 /** Bounded backoff poll for derived publication; 'stale' means the caller was aborted or the account changed. */
-export async function awaitPublication(revision: number, signal: AbortSignal, current: () => boolean): Promise<'ready' | 'delayed' | 'stale'> {
+export async function awaitPublication(
+  revision: number,
+  signal: AbortSignal,
+  current: () => boolean,
+): Promise<'ready' | 'delayed' | 'stale'> {
   try {
     for (const delay of delays) {
-      await new Promise<void>(resolve => {
-        const finish = () => { clearTimeout(timer); signal.removeEventListener('abort', finish); resolve() }
+      await new Promise<void>((resolve) => {
+        const finish = () => {
+          clearTimeout(timer)
+          signal.removeEventListener('abort', finish)
+          resolve()
+        }
         const timer = setTimeout(finish, delay)
         signal.addEventListener('abort', finish, { once: true })
         if (signal.aborted) finish()
@@ -21,6 +29,8 @@ export async function awaitPublication(revision: number, signal: AbortSignal, cu
       if (result.derived_state === 'ready' && result.published_revision >= revision) return 'ready'
       if (result.derived_state === 'error') break
     }
-  } catch { /* reported as delayed */ }
+  } catch {
+    /* reported as delayed */
+  }
   return current() ? 'delayed' : 'stale'
 }

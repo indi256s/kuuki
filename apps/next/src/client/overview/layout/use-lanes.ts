@@ -13,16 +13,24 @@ export function useLanes(signature: string) {
   const [root, setRoot] = useState<HTMLElement | null>(null)
   useLayoutEffect(() => {
     if (!root) return
-    const cards = ([...root.children] as HTMLElement[]).filter(card => !card.hasAttribute('data-ov-ghost'))
-    const span = (card: HTMLElement, height: number) => card.style.setProperty('--ov-span', String(laneSpan(height)))
-    const lanes = (width: number) => root.setAttribute('data-lanes', width >= LANES_MIN_WIDTH ? '2' : '1')
+    const cards = ([...root.children] as HTMLElement[]).filter(
+      (card) => !card.hasAttribute('data-ov-ghost'),
+    )
+    const span = (card: HTMLElement, height: number) =>
+      card.style.setProperty('--ov-span', String(laneSpan(height)))
+    const lanes = (width: number) =>
+      root.setAttribute('data-lanes', width >= LANES_MIN_WIDTH ? '2' : '1')
     lanes(root.clientWidth)
     for (const card of cards) span(card, card.offsetHeight)
     if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(entries => {
+    const observer = new ResizeObserver((entries) => {
       for (const { target, borderBoxSize } of entries) {
         if (target === root) lanes(root.clientWidth)
-        else span(target as HTMLElement, borderBoxSize?.[0]?.blockSize ?? (target as HTMLElement).offsetHeight)
+        else
+          span(
+            target as HTMLElement,
+            borderBoxSize?.[0]?.blockSize ?? (target as HTMLElement).offsetHeight,
+          )
       }
     })
     observer.observe(root)

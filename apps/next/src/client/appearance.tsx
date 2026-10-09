@@ -13,7 +13,11 @@ function cookie(name: string, value: string) {
 
 export function setLocale(locale: Locale, reload = true) {
   cookie('kuuki_locale', locale)
-  try { localStorage.setItem('kuuki-language', locale) } catch { /* storage unavailable */ }
+  try {
+    localStorage.setItem('kuuki-language', locale)
+  } catch {
+    /* storage unavailable */
+  }
   document.documentElement.lang = locale
   document.documentElement.dataset.locale = locale
   if (reload) window.location.reload()
@@ -22,7 +26,11 @@ export function setLocale(locale: Locale, reload = true) {
 
 export function setTheme(theme: Theme) {
   cookie('kuuki_theme', theme)
-  try { localStorage.setItem('kuuki-theme-mode', theme) } catch { /* storage unavailable */ }
+  try {
+    localStorage.setItem('kuuki-theme-mode', theme)
+  } catch {
+    /* storage unavailable */
+  }
   switchTheme(theme)
   window.dispatchEvent(new Event('kuuki:appearance'))
 }
@@ -48,12 +56,16 @@ function switchTheme(theme: Theme) {
     setBrowserBar(effective)
     delete root.dataset.themeSwitching
   }
-  if (typeof document.startViewTransition !== 'function' || root.dataset.routeTransition !== undefined) {
+  if (
+    typeof document.startViewTransition !== 'function' ||
+    root.dataset.routeTransition !== undefined
+  ) {
     applyTheme(theme)
     requestAnimationFrame(() => requestAnimationFrame(done))
     return
   }
-  const barAtStart = direction === 'dusk' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const barAtStart =
+    direction === 'dusk' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const transition = document.startViewTransition(() => {
     // A skipped switch still paints its theme; the next switch captures that page, so the bar follows it.
     paintTheme(effective)
@@ -75,20 +87,31 @@ export function setAccent(accent: Accent) {
 /** Reads the stored accent; removed names are rewritten to shu the first time they are seen. */
 function normalizeAccent(): Accent | undefined {
   const saved = document.cookie.match(/(?:^|; )kuuki_accent=([^;]+)/)?.[1]
-  if (['terracotta', 'kincha', 'sumi', 'yellow'].includes(saved ?? '')) { setAccent('shu'); return 'shu' }
+  if (['terracotta', 'kincha', 'sumi', 'yellow'].includes(saved ?? '')) {
+    setAccent('shu')
+    return 'shu'
+  }
   return isAccent(saved) ? saved : undefined
 }
 
 function currentTheme(): Theme {
   let legacy: string | null = null
-  try { legacy = localStorage.getItem('kuuki-theme-mode') } catch { /* storage unavailable */ }
+  try {
+    legacy = localStorage.getItem('kuuki-theme-mode')
+  } catch {
+    /* storage unavailable */
+  }
   if (legacy === 'light' || legacy === 'dark' || legacy === 'system') return legacy
   const saved = document.cookie.match(/(?:^|; )kuuki_theme=([^;]+)/)?.[1]
   return saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system'
 }
 
 function resolveTheme(theme: Theme): keyof typeof THEME_COLOR {
-  return theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme
+  return theme === 'system'
+    ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+    : theme
 }
 
 function paintTheme(effective: keyof typeof THEME_COLOR) {
@@ -97,7 +120,9 @@ function paintTheme(effective: keyof typeof THEME_COLOR) {
 }
 
 function setBrowserBar(effective: keyof typeof THEME_COLOR) {
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[effective])
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', THEME_COLOR[effective])
 }
 
 function applyTheme(theme: Theme) {
@@ -113,7 +138,9 @@ export function AppearanceProvider() {
     normalizeAccent()
     if (!document.cookie.includes('kuuki_theme=')) cookie('kuuki_theme', selected)
     const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const changed = () => { if (currentTheme() === 'system') switchTheme('system') }
+    const changed = () => {
+      if (currentTheme() === 'system') switchTheme('system')
+    }
     media.addEventListener('change', changed)
     return () => media.removeEventListener('change', changed)
   }, [])

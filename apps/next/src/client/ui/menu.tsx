@@ -16,12 +16,26 @@ export type MenuProps = {
 }
 
 /** Collision-aware: Radix flips and shifts the content to stay inside the viewport (8px padding). */
-export function Menu({ trigger, children, align = 'start', side = 'bottom', open, onOpenChange }: MenuProps) {
+export function Menu({
+  trigger,
+  children,
+  align = 'start',
+  side = 'bottom',
+  open,
+  onOpenChange,
+}: MenuProps) {
   return (
     <DropdownMenu.Root open={open} onOpenChange={onOpenChange}>
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
-        <DropdownMenu.Content className="ui-menu" align={align} side={side} sideOffset={6} collisionPadding={8} avoidCollisions>
+        <DropdownMenu.Content
+          className="ui-menu"
+          align={align}
+          side={side}
+          sideOffset={6}
+          collisionPadding={8}
+          avoidCollisions
+        >
           {children}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
@@ -29,8 +43,17 @@ export function Menu({ trigger, children, align = 'start', side = 'bottom', open
   )
 }
 
-export function MenuItem({ danger, ...props }: ComponentProps<typeof DropdownMenu.Item> & { danger?: boolean }) {
-  return <DropdownMenu.Item {...props} className="ui-menu-item" data-variant={danger ? 'danger' : undefined} />
+export function MenuItem({
+  danger,
+  ...props
+}: ComponentProps<typeof DropdownMenu.Item> & { danger?: boolean }) {
+  return (
+    <DropdownMenu.Item
+      {...props}
+      className="ui-menu-item"
+      data-variant={danger ? 'danger' : undefined}
+    />
+  )
 }
 
 export function MenuRadioGroup(props: ComponentProps<typeof DropdownMenu.RadioGroup>) {
@@ -38,20 +61,30 @@ export function MenuRadioGroup(props: ComponentProps<typeof DropdownMenu.RadioGr
 }
 
 /** The check is a visible indicator in a reserved gutter, so the selected item never relies on color alone. */
-export function MenuRadioItem({ children, ...props }: ComponentProps<typeof DropdownMenu.RadioItem>) {
+export function MenuRadioItem({
+  children,
+  ...props
+}: ComponentProps<typeof DropdownMenu.RadioItem>) {
   return (
     <DropdownMenu.RadioItem {...props} className="ui-menu-item ui-menu-radio">
-      <DropdownMenu.ItemIndicator className="ui-menu-check"><Check size={16} strokeWidth={2} aria-hidden="true" /></DropdownMenu.ItemIndicator>
+      <DropdownMenu.ItemIndicator className="ui-menu-check">
+        <Check size={16} strokeWidth={2} aria-hidden="true" />
+      </DropdownMenu.ItemIndicator>
       {children}
     </DropdownMenu.RadioItem>
   )
 }
 
 /** Toggle row with the same visible check gutter as radios, so on/off never relies on color alone. */
-export function MenuCheckboxItem({ children, ...props }: ComponentProps<typeof DropdownMenu.CheckboxItem>) {
+export function MenuCheckboxItem({
+  children,
+  ...props
+}: ComponentProps<typeof DropdownMenu.CheckboxItem>) {
   return (
     <DropdownMenu.CheckboxItem {...props} className="ui-menu-item ui-menu-radio">
-      <DropdownMenu.ItemIndicator className="ui-menu-check"><Check size={16} strokeWidth={2} aria-hidden="true" /></DropdownMenu.ItemIndicator>
+      <DropdownMenu.ItemIndicator className="ui-menu-check">
+        <Check size={16} strokeWidth={2} aria-hidden="true" />
+      </DropdownMenu.ItemIndicator>
       {children}
     </DropdownMenu.CheckboxItem>
   )

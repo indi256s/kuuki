@@ -23,7 +23,10 @@
 // - "Did not fly" is not a server call here. Spec D1: it is the 6 s deferred delete (`useDeferredDelete`) of
 //   `partitionPending(flights).awaiting`.
 import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
-import type { ConfirmOutcome, ConfirmRequest } from '../../../../../functions/api/_services/confirmation'
+import type {
+  ConfirmOutcome,
+  ConfirmRequest,
+} from '../../../../../functions/api/_services/confirmation'
 import { trackPrivateOperation } from '../activity'
 import type { AwaitingQueue } from '../awaiting'
 import type { JournalFlight } from './model'
@@ -53,8 +56,9 @@ export type ConfirmTransport = {
 }
 
 const defaultTransport: ConfirmTransport = {
-  readQueue: signal => api.get<AwaitingQueue>('/api/me/awaiting', undefined, { signal }),
-  confirm: (request, signal) => api.post<ConfirmOutcome>('/api/flights/confirm', request, { signal }),
+  readQueue: (signal) => api.get<AwaitingQueue>('/api/me/awaiting', undefined, { signal }),
+  confirm: (request, signal) =>
+    api.post<ConfirmOutcome>('/api/flights/confirm', request, { signal }),
 }
 
 export type ConfirmFlightsOptions = {
@@ -77,7 +81,13 @@ export type ConfirmFlightsOptions = {
  * - `unknown`: the only answer was lost: the flights in `failed` may or may not be confirmed.
  * - `stale`: aborted or the session changed. Drop the result.
  */
-export type ConfirmFlightsOutcome = 'confirmed' | 'nothing' | 'partial' | 'rejected' | 'unknown' | 'stale'
+export type ConfirmFlightsOutcome =
+  | 'confirmed'
+  | 'nothing'
+  | 'partial'
+  | 'rejected'
+  | 'unknown'
+  | 'stale'
 
 export type ConfirmFlightsResult = {
   outcome: ConfirmFlightsOutcome
@@ -101,14 +111,26 @@ export type ConfirmFlightsResult = {
   error: { status: number | null; code: string | null } | null
 }
 
-const lost = (cause: unknown) => !(cause instanceof ApiError) || cause.status === 408 || cause.status >= 500
+const lost = (cause: unknown) =>
+  !(cause instanceof ApiError) || cause.status === 408 || cause.status >= 500
 const conflict = (cause: unknown) => cause instanceof ApiError && cause.status === 409
 
-export async function confirmFlights({ flights, queue: given = null, arrivalTransit, signal, transport = defaultTransport }: ConfirmFlightsOptions): Promise<ConfirmFlightsResult> {
+export async function confirmFlights({
+  flights,
+  queue: given = null,
+  arrivalTransit,
+  signal,
+  transport = defaultTransport,
+}: ConfirmFlightsOptions): Promise<ConfirmFlightsResult> {
   const parts = partitionPending(flights)
   const result: ConfirmFlightsResult = {
-    outcome: 'nothing', confirmed: [], skipped: { upcoming: parts.upcoming, notAwaiting: [...parts.notAwaiting], noToken: [] },
-    failed: [], derivedState: null, newlyStampedCountries: [], error: null,
+    outcome: 'nothing',
+    confirmed: [],
+    skipped: { upcoming: parts.upcoming, notAwaiting: [...parts.notAwaiting], noToken: [] },
+    failed: [],
+    derivedState: null,
+    newlyStampedCountries: [],
+    error: null,
   }
   const stale = (): ConfirmFlightsResult => ({ ...result, outcome: 'stale' })
   if (parts.awaiting.length === 0) return { ...result, newlyStampedCountries: null }
@@ -131,15 +153,19 @@ export async function confirmFlights({ flights, queue: given = null, arrivalTran
     for (;;) {
       if (!remaining.length) break
       if (!queue) {
-        try { queue = await transport.readQueue(controller.signal) } catch {
+        try {
+          queue = await transport.readQueue(controller.signal)
+        } catch {
           if (!current()) return stale()
           break // No tokens to be had: the rest are reported as noToken.
         }
         if (!current()) return stale()
         fresh = true
       }
-      const tokens = new Map(queue.awaitingFlights.map(entry => [entry.flight.id, entry.candidateToken]))
-      const batch = remaining.filter(id => tokens.has(id)).slice(0, CONFIRM_BATCH)
+      const tokens = new Map(
+        queue.awaitingFlights.map((entry) => [entry.flight.id, entry.candidateToken]),
+      )
+      const batch = remaining.filter((id) => tokens.has(id)).slice(0, CONFIRM_BATCH)
       if (!batch.length) {
         if (fresh) break
         queue = null
@@ -147,14 +173,20 @@ export async function confirmFlights({ flights, queue: given = null, arrivalTran
       }
       const request: ConfirmRequest = {
         operationId: crypto.randomUUID(),
-        items: batch.map(flightId => {
+        items: batch.map((flightId) => {
           const transit = arrivalTransit?.get(flightId)
-          return { flightId, candidateToken: tokens.get(flightId)!, ...(transit === undefined ? {} : { arrivalTransit: transit }) }
+          return {
+            flightId,
+            candidateToken: tokens.get(flightId)!,
+            ...(transit === undefined ? {} : { arrivalTransit: transit }),
+          }
         }),
       }
       let outcome: ConfirmOutcome
       try {
-        try { outcome = await transport.confirm(request, controller.signal) } catch (cause) {
+        try {
+          outcome = await transport.confirm(request, controller.signal)
+        } catch (cause) {
           if (!current()) return stale()
           if (!lost(cause)) throw cause
           // The answer was lost, not refused: replay the same operation once and let its receipt say what happened.
@@ -174,12 +206,18 @@ export async function confirmFlights({ flights, queue: given = null, arrivalTran
       }
       if (!current()) return stale()
       conflicts = 0
-      const done = new Set(outcome.results.map(row => row.flightId))
-      result.confirmed.push(...batch.filter(id => done.has(id)))
-      for (let index = remaining.length - 1; index >= 0; index--) if (batch.includes(remaining[index]!)) remaining.splice(index, 1)
-      result.derivedState = result.derivedState === 'pending' || outcome.derivedState === 'pending' ? 'pending' : 'ready'
-      result.newlyStampedCountries = outcome.newlyStampedCountries && result.newlyStampedCountries
-        ? [...new Set([...result.newlyStampedCountries, ...outcome.newlyStampedCountries])] : null
+      const done = new Set(outcome.results.map((row) => row.flightId))
+      result.confirmed.push(...batch.filter((id) => done.has(id)))
+      for (let index = remaining.length - 1; index >= 0; index--)
+        if (batch.includes(remaining[index]!)) remaining.splice(index, 1)
+      result.derivedState =
+        result.derivedState === 'pending' || outcome.derivedState === 'pending'
+          ? 'pending'
+          : 'ready'
+      result.newlyStampedCountries =
+        outcome.newlyStampedCountries && result.newlyStampedCountries
+          ? [...new Set([...result.newlyStampedCountries, ...outcome.newlyStampedCountries])]
+          : null
       // The confirmed flights left the queue and the next ones may have entered it.
       fresh = false
     }
@@ -190,11 +228,15 @@ export async function confirmFlights({ flights, queue: given = null, arrivalTran
 
   if (failure) {
     result.failed = remaining
-    result.error = { status: failure instanceof ApiError ? failure.status : null, code: failure instanceof ApiError ? failure.code ?? null : null }
+    result.error = {
+      status: failure instanceof ApiError ? failure.status : null,
+      code: failure instanceof ApiError ? (failure.code ?? null) : null,
+    }
     result.outcome = result.confirmed.length ? 'partial' : lost(failure) ? 'unknown' : 'rejected'
   } else {
     // Left over without a token. A complete queue (every awaiting flight listed) proves they are no longer awaiting.
-    const complete = fresh && queue !== null && queue.awaitingFlights.length >= queue.awaitingFlightCount
+    const complete =
+      fresh && queue !== null && queue.awaitingFlights.length >= queue.awaitingFlightCount
     if (complete) result.skipped.notAwaiting.push(...remaining)
     else result.skipped.noToken = remaining
     result.outcome = result.confirmed.length ? 'confirmed' : 'nothing'

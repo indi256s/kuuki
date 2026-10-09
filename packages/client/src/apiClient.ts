@@ -58,7 +58,9 @@ async function withDeadline<T>(promise: Promise<T>, milliseconds: number): Promi
   try {
     return await Promise.race([
       promise,
-      new Promise<T>((_, reject) => { timer = setTimeout(() => reject(timeoutError()), milliseconds) }),
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(timeoutError()), milliseconds)
+      }),
     ])
   } finally {
     if (timer) clearTimeout(timer)
@@ -68,14 +70,21 @@ async function withDeadline<T>(promise: Promise<T>, milliseconds: number): Promi
 async function holdExclusiveLock(released: Promise<void>, signal: AbortSignal): Promise<void> {
   if (typeof navigator === 'undefined' || !navigator.locks) return
   let acquired!: () => void
-  const acquiredPromise = new Promise<void>(resolve => { acquired = resolve })
+  const acquiredPromise = new Promise<void>((resolve) => {
+    acquired = resolve
+  })
   const lockTask = navigator.locks.request(LOCK_NAME, { mode: 'exclusive', signal }, async () => {
     acquired()
     await released
   })
   // The lock task can reject after acquisition when the page is torn down.
   void lockTask.catch(() => {})
-  await Promise.race([acquiredPromise, lockTask.then(() => { throw new Error('Could not acquire the account lock') })])
+  await Promise.race([
+    acquiredPromise,
+    lockTask.then(() => {
+      throw new Error('Could not acquire the account lock')
+    }),
+  ])
 }
 
 /** Reserve the cookie identity before waiting for older responses and their Set-Cookie headers. */
@@ -84,7 +93,9 @@ export function beginIdentityOperation() {
   const token = Symbol('identity operation')
   identityOperation = token
   let unlock!: () => void
-  const released = new Promise<void>(resolve => { unlock = resolve })
+  const released = new Promise<void>((resolve) => {
+    unlock = resolve
+  })
   const controller = new AbortController()
   const ready = (async () => {
     try {
@@ -111,7 +122,9 @@ export function beginIdentityOperation() {
 // Registered by the auth store; called when a refresh attempt fails (hard logout).
 let onUnauthorized: (() => void) | null = null
 let authGeneration = 0
-export function getAuthGeneration(): number { return authGeneration }
+export function getAuthGeneration(): number {
+  return authGeneration
+}
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   onUnauthorized = handler
 }
@@ -160,14 +173,21 @@ async function parseBody(res: Response): Promise<unknown> {
 // De-dupe concurrent refreshes: many parallel requests can 401 at once; they should share
 // a single /api/auth/refresh round-trip rather than stampede it.
 type RefreshResult = 'refreshed' | 'unauthorized' | 'failed'
-let refreshInFlight: { generation: number; promise: Promise<RefreshResult>; controller: AbortController } | null = null
+let refreshInFlight: {
+  generation: number
+  promise: Promise<RefreshResult>
+  controller: AbortController
+} | null = null
 
 async function attemptRefresh(): Promise<RefreshResult> {
   if (!refreshInFlight || refreshInFlight.generation !== authGeneration) {
     const generation = authGeneration
     const controller = new AbortController()
     const promise = (async () => {
-      const timeout = setTimeout(() => controller.abort(new DOMException('Refresh timed out', 'TimeoutError')), REQUEST_TIMEOUT_MS)
+      const timeout = setTimeout(
+        () => controller.abort(new DOMException('Refresh timed out', 'TimeoutError')),
+        REQUEST_TIMEOUT_MS,
+      )
       try {
         const res = await fetch('/api/auth/refresh', {
           method: 'POST',
@@ -200,7 +220,14 @@ function csrfHeaders(token = readCookie(CSRF_COOKIE)): Record<string, string> {
   return token ? { 'X-CSRF-Token': token } : {}
 }
 
-async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: AbortSignal, customHeaders?: Record<string, string>, csrfToken?: string | null): Promise<Response> {
+async function doFetch(
+  method: HttpMethod,
+  url: string,
+  body: unknown,
+  signal?: AbortSignal,
+  customHeaders?: Record<string, string>,
+  csrfToken?: string | null,
+): Promise<Response> {
   const headers: Record<string, string> = { ...customHeaders }
   let payload: BodyInit | undefined
   if (body !== undefined) {
@@ -211,7 +238,12 @@ async function doFetch(method: HttpMethod, url: string, body: unknown, signal?: 
   return fetch(url, { method, headers, body: payload, credentials: 'include', signal })
 }
 
-async function performRequest<T>(method: HttpMethod, path: string, body: unknown, opts: RequestOptions): Promise<T> {
+async function performRequest<T>(
+  method: HttpMethod,
+  path: string,
+  body: unknown,
+  opts: RequestOptions,
+): Promise<T> {
   const requestGeneration = authGeneration
   const url = buildUrl(path, opts.params)
   let res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken)
@@ -233,37 +265,62 @@ async function performRequest<T>(method: HttpMethod, path: string, body: unknown
   const parsed = await parseBody(res)
   assertCurrentIdentity(requestGeneration)
   if (!res.ok) {
-    const errObj = (parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {}) as {
+    const errObj = (
+      parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {}
+    ) as {
       error?: string
       message?: string
       code?: string
     }
-    throw new ApiError(res.status, errObj.error || errObj.message || `Request failed (${res.status})`, errObj.code, parsed)
+    throw new ApiError(
+      res.status,
+      errObj.error || errObj.message || `Request failed (${res.status})`,
+      errObj.code,
+      parsed,
+    )
   }
   return parsed as T
 }
 
-function request<T>(method: HttpMethod, path: string, body?: unknown, opts: RequestOptions = {}): Promise<T> {
+function request<T>(
+  method: HttpMethod,
+  path: string,
+  body?: unknown,
+  opts: RequestOptions = {},
+): Promise<T> {
   if (identityOperation && opts.identityToken !== identityOperation) {
     return Promise.reject(new DOMException('Account action in progress', 'AbortError'))
   }
   const requestGeneration = authGeneration
   const csrfToken = readCookie(CSRF_COOKIE)
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(new DOMException('Request timed out', 'TimeoutError')), opts.timeoutMs ?? REQUEST_TIMEOUT_MS)
+  const timeout = setTimeout(
+    () => controller.abort(new DOMException('Request timed out', 'TimeoutError')),
+    opts.timeoutMs ?? REQUEST_TIMEOUT_MS,
+  )
   const abort = () => controller.abort(opts.signal?.reason)
   if (opts.signal?.aborted) abort()
   else opts.signal?.addEventListener('abort', abort, { once: true })
   const run = () => {
     // A peer may release its lock before this tab receives the identity broadcast.
     assertCurrentIdentity(requestGeneration)
-    if (readCookie(CSRF_COOKIE) !== csrfToken) throw new DOMException('Session changed', 'AbortError')
+    if (readCookie(CSRF_COOKIE) !== csrfToken)
+      throw new DOMException('Session changed', 'AbortError')
     return performRequest<T>(method, path, body, { ...opts, csrfToken, signal: controller.signal })
   }
   const pending = (async () => {
     try {
-      if ((opts.identityToken && opts.identityToken === identityOperation) || typeof navigator === 'undefined' || !navigator.locks) return await run()
-      return await navigator.locks.request(LOCK_NAME, { mode: 'shared', signal: controller.signal }, run)
+      if (
+        (opts.identityToken && opts.identityToken === identityOperation) ||
+        typeof navigator === 'undefined' ||
+        !navigator.locks
+      )
+        return await run()
+      return await navigator.locks.request(
+        LOCK_NAME,
+        { mode: 'shared', signal: controller.signal },
+        run,
+      )
     } finally {
       clearTimeout(timeout)
       opts.signal?.removeEventListener('abort', abort)
@@ -280,9 +337,14 @@ function request<T>(method: HttpMethod, path: string, body?: unknown, opts: Requ
 export type CallOptions = Pick<RequestOptions, 'signal' | 'identityToken' | 'timeoutMs' | 'headers'>
 
 export const api = {
-  get: <T>(path: string, params?: QueryParams, options?: CallOptions) => request<T>('GET', path, undefined, { ...options, params }),
-  post: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('POST', path, body, options),
-  patch: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('PATCH', path, body, options),
-  put: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('PUT', path, body, options),
-  delete: <T>(path: string, body?: unknown, options?: CallOptions) => request<T>('DELETE', path, body, options),
+  get: <T>(path: string, params?: QueryParams, options?: CallOptions) =>
+    request<T>('GET', path, undefined, { ...options, params }),
+  post: <T>(path: string, body?: unknown, options?: CallOptions) =>
+    request<T>('POST', path, body, options),
+  patch: <T>(path: string, body?: unknown, options?: CallOptions) =>
+    request<T>('PATCH', path, body, options),
+  put: <T>(path: string, body?: unknown, options?: CallOptions) =>
+    request<T>('PUT', path, body, options),
+  delete: <T>(path: string, body?: unknown, options?: CallOptions) =>
+    request<T>('DELETE', path, body, options),
 }

@@ -44,6 +44,7 @@ A personal "Nomad Passport" view with country stamps representing all visited co
 ### API Layer ✅
 
 Created `apps/web/src/lib/passport.ts`:
+
 - [x] `getUserCountries()` - Combines visits + claims into passport entries
 - [x] `getUserClaims()` - Get all manual claims for a user
 - [x] `claimCountry()` - Create manual country claim
@@ -58,6 +59,7 @@ Created `apps/web/src/lib/passport.ts`:
 ### React Hooks ✅
 
 Created `apps/web/src/hooks/usePassport.ts`:
+
 - [x] `usePassportCountries()` - TanStack Query for passport entries
 - [x] `usePassportStats()` - TanStack Query for summary stats
 - [x] `useClaimCountry()` - Mutation for claiming
@@ -67,6 +69,7 @@ Created `apps/web/src/hooks/usePassport.ts`:
 ### Components ✅
 
 Created `apps/web/src/components/passport/`:
+
 - [x] `PassportStamps.tsx` - Virtualized stamp grid with loading skeletons
 - [x] `CountryStamp.tsx` - SVG stamp with regional shapes, flag colors, native script
 - [x] `StampPopup.tsx` - Popover with detailed country stats
@@ -88,6 +91,7 @@ Created `apps/web/src/components/passport/`:
 ### Tests ✅
 
 Created `apps/web/src/lib/passport.test.ts` with 31 tests:
+
 - [x] Pure functions: `getAllCountries`, `getCountryByCode`
 - [x] Data fetching: `getUserCountries`, `getUserClaims`, `getCountryStats`, `getPassportStats`
 - [x] Mutations: `claimCountry`, `updateClaim`, `unclaimCountry`
@@ -153,13 +157,13 @@ ALTER TABLE user_stats ADD COLUMN
 
 ### Continent Badges
 
-| Code | Name | Description |
-|------|------|-------------|
-| `continent-europe` | Europhile | Visit 3+ European countries |
-| `continent-asia` | Asianaut | Visit 3+ Asian countries |
+| Code                 | Name              | Description                 |
+| -------------------- | ----------------- | --------------------------- |
+| `continent-europe`   | Europhile         | Visit 3+ European countries |
+| `continent-asia`     | Asianaut          | Visit 3+ Asian countries    |
 | `continent-americas` | Americas Wanderer | Visit 3+ American countries |
-| `continent-africa` | Africa Explorer | Visit 3+ African countries |
-| `continent-oceania` | Pacific Voyager | Visit 3+ Oceanian countries |
+| `continent-africa`   | Africa Explorer   | Visit 3+ African countries  |
+| `continent-oceania`  | Pacific Voyager   | Visit 3+ Oceanian countries |
 
 ---
 
@@ -167,13 +171,13 @@ ALTER TABLE user_stats ADD COLUMN
 
 ### Stamp Shapes by Region
 
-| Region | Shape | Rationale |
-|--------|-------|-----------|
-| Asia | Circle | Resembles traditional Asian seals/stamps |
-| Europe | Rectangle | European passport stamp style |
-| Americas | Rectangle | Western style |
-| Africa | Rectangle | Western style |
-| Oceania | Rectangle | Western style |
+| Region   | Shape     | Rationale                                |
+| -------- | --------- | ---------------------------------------- |
+| Asia     | Circle    | Resembles traditional Asian seals/stamps |
+| Europe   | Rectangle | European passport stamp style            |
+| Americas | Rectangle | Western style                            |
+| Africa   | Rectangle | Western style                            |
+| Oceania  | Rectangle | Western style                            |
 
 ### Data Combination Logic
 
@@ -186,18 +190,18 @@ ALTER TABLE user_stats ADD COLUMN
 
 ### Test Coverage
 
-| Function | Tests | Scenarios |
-|----------|-------|-----------|
-| `getAllCountries` | 2 | Data structure, count |
-| `getCountryByCode` | 3 | Valid/invalid codes, regional shapes |
-| `getUserCountries` | 7 | Empty, visits, claims, combined, sorting, errors |
-| `claimCountry` | 4 | Minimal/full data, duplicate, errors |
-| `unclaimCountry` | 2 | Success, errors |
-| `isCountryClaimed` | 3 | True/false/error |
-| `getPassportStats` | 2 | Calculation, empty |
-| `getCountryStats` | 3 | Invalid code, visits, claims |
-| `getUserClaims` | 3 | Normal, empty, errors |
-| `updateClaim` | 2 | Success, errors |
+| Function           | Tests | Scenarios                                        |
+| ------------------ | ----- | ------------------------------------------------ |
+| `getAllCountries`  | 2     | Data structure, count                            |
+| `getCountryByCode` | 3     | Valid/invalid codes, regional shapes             |
+| `getUserCountries` | 7     | Empty, visits, claims, combined, sorting, errors |
+| `claimCountry`     | 4     | Minimal/full data, duplicate, errors             |
+| `unclaimCountry`   | 2     | Success, errors                                  |
+| `isCountryClaimed` | 3     | True/false/error                                 |
+| `getPassportStats` | 2     | Calculation, empty                               |
+| `getCountryStats`  | 3     | Invalid code, visits, claims                     |
+| `getUserClaims`    | 3     | Normal, empty, errors                            |
+| `updateClaim`      | 2     | Success, errors                                  |
 
 ---
 

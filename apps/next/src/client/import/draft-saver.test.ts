@@ -7,14 +7,32 @@ import type { Draft, DraftPatchBody } from './import-types'
 function setup(patch: (id: string, body: DraftPatchBody) => Promise<Draft>) {
   const states: Array<[string, SaveState | null]> = []
   const drafts: Draft[] = []
-  const saver = new DraftSaver({ patch, onDraft: d => drafts.push(d), onState: (id, s) => states.push([id, s]) })
+  const saver = new DraftSaver({
+    patch,
+    onDraft: (d) => drafts.push(d),
+    onState: (id, s) => states.push([id, s]),
+  })
   return { saver, states, drafts }
 }
-const deferred = <T,>() => { let resolve!: (v: T) => void; let reject!: (e: unknown) => void; const promise = new Promise<T>((a, b) => { resolve = a; reject = b }); return { promise, resolve, reject } }
+const deferred = <T>() => {
+  let resolve!: (v: T) => void
+  let reject!: (e: unknown) => void
+  const promise = new Promise<T>((a, b) => {
+    resolve = a
+    reject = b
+  })
+  return { promise, resolve, reject }
+}
 
 describe('DraftSaver', () => {
   it('sends the known version, shows saving, then clears and reports the server draft', async () => {
-    const patch = vi.fn(async (_id: string, body: DraftPatchBody) => draft({ id: 'd1', version: body.version + 1, fields: { date: '2026-03-01', origin: 'JFK', destination: 'LAX', airline_iata: 'AA' } }))
+    const patch = vi.fn(async (_id: string, body: DraftPatchBody) =>
+      draft({
+        id: 'd1',
+        version: body.version + 1,
+        fields: { date: '2026-03-01', origin: 'JFK', destination: 'LAX', airline_iata: 'AA' },
+      }),
+    )
     const { saver, states, drafts } = setup(patch)
     await saver.save(draft({ id: 'd1' }), { fields: { destination: 'LAX' } })
     expect(patch).toHaveBeenCalledWith('d1', { version: 1, fields: { destination: 'LAX' } })
@@ -25,9 +43,12 @@ describe('DraftSaver', () => {
 
   it('serialises edits made while a save is in flight and merges them, using the newest version', async () => {
     const first = deferred<Draft>()
-    const patch = vi.fn()
+    const patch = vi
+      .fn()
       .mockImplementationOnce(() => first.promise)
-      .mockImplementation(async (_id: string, body: DraftPatchBody) => draft({ id: 'd1', version: body.version + 1 }))
+      .mockImplementation(async (_id: string, body: DraftPatchBody) =>
+        draft({ id: 'd1', version: body.version + 1 }),
+      )
     const { saver } = setup(patch)
     const a = saver.save(draft({ id: 'd1' }), { fields: { origin: 'LAX' } })
     const b = saver.save(draft({ id: 'd1' }), { fields: { flight_number: '12' } })
@@ -36,13 +57,20 @@ describe('DraftSaver', () => {
     first.resolve(draft({ id: 'd1', version: 2 }))
     await Promise.all([a, b, c])
     expect(patch).toHaveBeenCalledTimes(2)
-    expect(patch).toHaveBeenLastCalledWith('d1', { version: 2, fields: { flight_number: '13' }, selected: true })
+    expect(patch).toHaveBeenLastCalledWith('d1', {
+      version: 2,
+      fields: { flight_number: '13' },
+      selected: true,
+    })
   })
 
   it('keeps the unsent change after a failure, reports it, and a retry sends the same change', async () => {
-    const patch = vi.fn()
+    const patch = vi
+      .fn()
       .mockRejectedValueOnce(new ApiError(503, 'down', 'UNAVAILABLE'))
-      .mockImplementation(async (_id: string, body: DraftPatchBody) => draft({ id: 'd1', version: body.version + 1 }))
+      .mockImplementation(async (_id: string, body: DraftPatchBody) =>
+        draft({ id: 'd1', version: body.version + 1 }),
+      )
     const { saver, states } = setup(patch)
     await saver.save(draft({ id: 'd1' }), { fields: { destination: 'LAX' } })
     const failed = states.at(-1)![1]!
@@ -56,13 +84,21 @@ describe('DraftSaver', () => {
 
   it('on a version conflict adopts the newer server row, keeps my change as conflicted and applies it only on request', async () => {
     const current = draft({ id: 'd1', version: 4 })
-    const patch = vi.fn()
-      .mockRejectedValueOnce(new ApiError(409, 'changed', 'DRAFT_VERSION_CONFLICT', { draft: current }))
-      .mockImplementation(async (_id: string, body: DraftPatchBody) => draft({ id: 'd1', version: body.version + 1 }))
+    const patch = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new ApiError(409, 'changed', 'DRAFT_VERSION_CONFLICT', { draft: current }),
+      )
+      .mockImplementation(async (_id: string, body: DraftPatchBody) =>
+        draft({ id: 'd1', version: body.version + 1 }),
+      )
     const { saver, states, drafts } = setup(patch)
     await saver.save(draft({ id: 'd1' }), { fields: { destination: 'LAX' } })
     expect(drafts.at(-1)).toBe(current)
-    expect(states.at(-1)![1]).toMatchObject({ status: 'conflict', unsent: { fields: { destination: 'LAX' } } })
+    expect(states.at(-1)![1]).toMatchObject({
+      status: 'conflict',
+      unsent: { fields: { destination: 'LAX' } },
+    })
     expect(patch).toHaveBeenCalledTimes(1)
     await saver.retry('d1')
     expect(patch).toHaveBeenLastCalledWith('d1', { version: 4, fields: { destination: 'LAX' } })
@@ -79,9 +115,17 @@ describe('DraftSaver', () => {
   })
 
   it('tracks drafts independently', async () => {
-    const patch = vi.fn().mockRejectedValueOnce(new ApiError(500, 'x', 'INTERNAL')).mockImplementation(async (id: string, body: DraftPatchBody) => draft({ id, version: body.version + 1 }))
+    const patch = vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError(500, 'x', 'INTERNAL'))
+      .mockImplementation(async (id: string, body: DraftPatchBody) =>
+        draft({ id, version: body.version + 1 }),
+      )
     const { saver } = setup(patch)
-    await Promise.all([saver.save(draft({ id: 'a' }), { selected: false }), saver.save(draft({ id: 'b' }), { selected: false })])
+    await Promise.all([
+      saver.save(draft({ id: 'a' }), { selected: false }),
+      saver.save(draft({ id: 'b' }), { selected: false }),
+    ])
     expect(saver.unsentIds()).toEqual(['a'])
   })
 
@@ -104,7 +148,9 @@ describe('DraftSaver', () => {
   })
 
   it('dispose after a failed save forgets the failed edit', async () => {
-    const patch = vi.fn(async () => { throw new ApiError(503, 'down', 'INTERNAL') })
+    const patch = vi.fn(async () => {
+      throw new ApiError(503, 'down', 'INTERNAL')
+    })
     const { saver } = setup(patch)
     await saver.save(draft({ id: 'd1' }), { fields: { destination: 'LAX' } })
     expect(saver.hasUnsaved()).toBe(true)

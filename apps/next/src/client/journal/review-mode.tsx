@@ -26,7 +26,10 @@
  */
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
-import type { ConfirmOutcome, ConfirmRequest } from '../../../../../functions/api/_services/confirmation'
+import type {
+  ConfirmOutcome,
+  ConfirmRequest,
+} from '../../../../../functions/api/_services/confirmation'
 import { formatNumber, type Locale } from '../../lib/format'
 import { trackPrivateOperation } from '../activity'
 import type { AwaitingQueue } from '../awaiting'
@@ -42,34 +45,64 @@ import './review-mode.css'
 
 const copy = {
   en: {
-    title: 'Review', question: 'Did you take this flight?', flew: 'I flew', didNotFly: 'Did not fly, remove', confirming: 'Confirming…',
-    next: 'Next to review', position: (n: string, total: string) => `Review ${n} of ${total}`, close: 'Close',
-    empty: 'Nothing to confirm.', allConfirmed: 'All confirmed.', nothingLeft: 'Nothing left to confirm.',
-    connection: 'Connection', estimated: 'Estimated from dates', ambiguous: 'Ambiguous: the country will count unless you change it', precise: 'Based on flight times',
+    title: 'Review',
+    question: 'Did you take this flight?',
+    flew: 'I flew',
+    didNotFly: 'Did not fly, remove',
+    confirming: 'Confirming…',
+    next: 'Next to review',
+    position: (n: string, total: string) => `Review ${n} of ${total}`,
+    close: 'Close',
+    empty: 'Nothing to confirm.',
+    allConfirmed: 'All confirmed.',
+    nothingLeft: 'Nothing left to confirm.',
+    connection: 'Connection',
+    estimated: 'Estimated from dates',
+    ambiguous: 'Ambiguous: the country will count unless you change it',
+    precise: 'Based on flight times',
     leftAirport: 'Left the airport',
     confirmed: (route: string) => `Confirmed ${route}.`,
-    stamps: (names: string, count: number) => count === 1 ? `New stamp: ${names}.` : `New stamps: ${names}.`, noStamps: 'No new stamps.',
-    publishing: 'Your passport is updating…', publishDelayed: 'Your passport is still updating.',
+    stamps: (names: string, count: number) =>
+      count === 1 ? `New stamp: ${names}.` : `New stamps: ${names}.`,
+    noStamps: 'No new stamps.',
+    publishing: 'Your passport is updating…',
+    publishDelayed: 'Your passport is still updating.',
     notAwaiting: 'This flight is no longer waiting for confirmation.',
     noToken: 'Could not confirm this flight right now. Try again later.',
     rejected: 'Could not confirm this flight. The list is refreshing.',
-    unknown: 'Could not check whether this flight was confirmed. The list is refreshing; check it before trying again.',
+    unknown:
+      'Could not check whether this flight was confirmed. The list is refreshing; check it before trying again.',
     sessionChanged: 'Your session changed. Reopen the Journal before confirming.',
     removing: (route: string) => `Did not fly: removing ${route}.`,
   },
   ru: {
-    title: 'Проверка', question: 'Вы летели этим рейсом?', flew: 'Подтвердить', didNotFly: 'Не летали, удалить', confirming: 'Подтверждаем…',
-    next: 'Следующий', position: (n: string, total: string) => `Проверка ${n} из ${total}`, close: 'Закрыть',
-    empty: 'Подтверждать нечего.', allConfirmed: 'Все подтверждены.', nothingLeft: 'Больше подтверждать нечего.',
-    connection: 'Пересадка', estimated: 'Оценка по датам', ambiguous: 'Неоднозначная пересадка: страна будет засчитана, пока вы её не измените', precise: 'Определено по времени рейсов',
+    title: 'Проверка',
+    question: 'Вы летели этим рейсом?',
+    flew: 'Подтвердить',
+    didNotFly: 'Не летали, удалить',
+    confirming: 'Подтверждаем…',
+    next: 'Следующий',
+    position: (n: string, total: string) => `Проверка ${n} из ${total}`,
+    close: 'Закрыть',
+    empty: 'Подтверждать нечего.',
+    allConfirmed: 'Все подтверждены.',
+    nothingLeft: 'Больше подтверждать нечего.',
+    connection: 'Пересадка',
+    estimated: 'Оценка по датам',
+    ambiguous: 'Неоднозначная пересадка: страна будет засчитана, пока вы её не измените',
+    precise: 'Определено по времени рейсов',
     leftAirport: 'Выходили в город',
     confirmed: (route: string) => `Перелёт ${route} подтверждён.`,
-    stamps: (names: string, count: number) => count === 1 ? `Новая отметка: ${names}.` : `Новые отметки: ${names}.`, noStamps: 'Новых отметок нет.',
-    publishing: 'Паспорт обновляется…', publishDelayed: 'Паспорт ещё обновляется.',
+    stamps: (names: string, count: number) =>
+      count === 1 ? `Новая отметка: ${names}.` : `Новые отметки: ${names}.`,
+    noStamps: 'Новых отметок нет.',
+    publishing: 'Паспорт обновляется…',
+    publishDelayed: 'Паспорт ещё обновляется.',
     notAwaiting: 'Этот перелёт уже не ждёт подтверждения.',
     noToken: 'Не удалось подтвердить перелёт сейчас. Повторите позже.',
     rejected: 'Не удалось подтвердить перелёт. Список обновляется.',
-    unknown: 'Не удалось проверить, подтверждён ли перелёт. Список обновляется; проверьте его, прежде чем повторить.',
+    unknown:
+      'Не удалось проверить, подтверждён ли перелёт. Список обновляется; проверьте его, прежде чем повторить.',
     sessionChanged: 'Сессия изменилась. Откройте журнал снова, прежде чем подтверждать.',
     removing: (route: string) => `Не летали: удаляем ${route}.`,
   },
@@ -98,17 +131,24 @@ export type JournalReviewOptions = {
 }
 
 const oldestFirst = (a: JournalFlight, b: JournalFlight) =>
-  a.date.localeCompare(b.date) || (a.departure_utc ?? '').localeCompare(b.departure_utc ?? '') || a.id - b.id
+  a.date.localeCompare(b.date) ||
+  (a.departure_utc ?? '').localeCompare(b.departure_utc ?? '') ||
+  a.id - b.id
 
 /** The awaiting flights to review, oldest first. Pure. */
-export function reviewSet(flights: readonly JournalFlight[], exclude: (id: number) => boolean): JournalFlight[] {
-  return flights.filter(flight => flight.lifecycle_state === 'awaiting' && !exclude(flight.id)).sort(oldestFirst)
+export function reviewSet(
+  flights: readonly JournalFlight[],
+  exclude: (id: number) => boolean,
+): JournalFlight[] {
+  return flights
+    .filter((flight) => flight.lifecycle_state === 'awaiting' && !exclude(flight.id))
+    .sort(oldestFirst)
 }
 
 /** The flight after `id`, wrapping to the first remaining one; null when `id` is the only one. */
 function nextAfter(set: readonly JournalFlight[], id: number): JournalFlight | null {
-  const index = set.findIndex(flight => flight.id === id)
-  const rest = set.filter(flight => flight.id !== id)
+  const index = set.findIndex((flight) => flight.id === id)
+  const rest = set.filter((flight) => flight.id !== id)
   if (!rest.length) return null
   return (index >= 0 ? set[index + 1] : undefined) ?? rest[0]!
 }
@@ -120,7 +160,13 @@ function stampText(locale: Locale, codes: readonly string[] | null): string {
   if (!codes) return ''
   if (!codes.length) return ` ${copy[locale].noStamps}`
   const names = new Intl.DisplayNames([locale], { type: 'region' })
-  const label = (code: string) => { try { return names.of(code) ?? code } catch { return code } }
+  const label = (code: string) => {
+    try {
+      return names.of(code) ?? code
+    } catch {
+      return code
+    }
+  }
   return ` ${copy[locale].stamps(codes.map(label).join(', '), codes.length)}`
 }
 
@@ -128,7 +174,7 @@ function stampText(locale: Locale, codes: readonly string[] | null): string {
 function receiptTransport() {
   let last: { request: ConfirmRequest; outcome: ConfirmOutcome } | null = null
   const transport: ConfirmTransport = {
-    readQueue: signal => api.get<AwaitingQueue>('/api/me/awaiting', undefined, { signal }),
+    readQueue: (signal) => api.get<AwaitingQueue>('/api/me/awaiting', undefined, { signal }),
     confirm: async (request, signal) => {
       const outcome = await api.post<ConfirmOutcome>('/api/flights/confirm', request, { signal })
       last = { request, outcome }
@@ -138,7 +184,12 @@ function receiptTransport() {
   return { transport, last: () => last }
 }
 
-export function useJournalReview({ locale, docked, queue, offlineNoteId }: JournalReviewOptions): JournalReviewSlots | null {
+export function useJournalReview({
+  locale,
+  docked,
+  queue,
+  offlineNoteId,
+}: JournalReviewOptions): JournalReviewSlots | null {
   const t = copy[locale]
   const { payload, view, hidden, openFlight, closeSheet, refresh, online } = useJournalStore()
   const { scheduleDelete, pending, undo } = useJournalDelete()
@@ -148,14 +199,20 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
   const [seenPayload, setSeenPayload] = useState(payload)
   if (seenPayload !== payload) {
     setSeenPayload(payload)
-    const still = [...resolved].filter(id => payload.flights.some(flight => flight.id === id && flight.lifecycle_state === 'awaiting'))
+    const still = [...resolved].filter((id) =>
+      payload.flights.some((flight) => flight.id === id && flight.lifecycle_state === 'awaiting'),
+    )
     if (still.length !== resolved.size) setResolved(new Set(still))
   }
 
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<Note | null>(null)
   const noteSeq = useRef(0)
-  const say = (next: Note | null) => { noteSeq.current += 1; setNote(next); return noteSeq.current }
+  const say = (next: Note | null) => {
+    noteSeq.current += 1
+    setNote(next)
+    return noteSeq.current
+  }
   const [ending, setEnding] = useState<Ending>('empty')
   const [decisions, setDecisions] = useState<ReadonlyMap<number, boolean>>(() => new Map())
   const [removedId, setRemovedId] = useState<number | null>(null)
@@ -167,12 +224,19 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
   if (wasReview !== view.review) {
     setWasReview(view.review)
     setReviewSession(reviewSession + 1)
-    if (!view.review) { setNote(null); setEnding('empty'); setFocusKey(0) }
+    if (!view.review) {
+      setNote(null)
+      setEnding('empty')
+      setFocusKey(0)
+    }
   }
 
-  const set = useMemo(() => view.review ? reviewSet(payload.flights, id => hidden.has(id) || resolved.has(id)) : [],
-    [view.review, payload.flights, hidden, resolved])
-  const found = set.findIndex(flight => flight.id === view.flight)
+  const set = useMemo(
+    () =>
+      view.review ? reviewSet(payload.flights, (id) => hidden.has(id) || resolved.has(id)) : [],
+    [view.review, payload.flights, hidden, resolved],
+  )
+  const found = set.findIndex((flight) => flight.id === view.flight)
   const index = found >= 0 ? found : 0
   const current = set[index] ?? null
   const target = current?.id ?? null
@@ -183,9 +247,14 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
   }, [view.review, view.flight, target, openFlight])
 
   const latest = useRef({ view, set, reviewSession })
-  useEffect(() => { latest.current = { view, set, reviewSession } })
+  useEffect(() => {
+    latest.current = { view, set, reviewSession }
+  })
   const operations = useRef(new Set<AbortController>())
-  useEffect(() => { const running = operations.current; return () => running.forEach(controller => controller.abort()) }, [])
+  useEffect(() => {
+    const running = operations.current
+    return () => running.forEach((controller) => controller.abort())
+  }, [])
 
   if (!view.review) return null
 
@@ -198,22 +267,33 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
     operations.current.add(controller)
     const generation = getAuthGeneration()
     // A completed request may refresh data after closing, but its feedback belongs to the original review session.
-    const report = (next: Note) => latest.current.view.review && latest.current.reviewSession === reviewSession ? say(next) : -1
+    const report = (next: Note) =>
+      latest.current.view.review && latest.current.reviewSession === reviewSession ? say(next) : -1
     const receipts = receiptTransport()
     const transit = decisions.get(flight.id)
     const result = await confirmFlights({
-      flights: [flight], queue, signal: controller.signal, transport: receipts.transport,
+      flights: [flight],
+      queue,
+      signal: controller.signal,
+      transport: receipts.transport,
       ...(transit === undefined ? {} : { arrivalTransit: new Map([[flight.id, transit]]) }),
     })
     // Unmounted: nothing here belongs to a page any more.
-    if (controller.signal.aborted) { operations.current.delete(controller); return }
+    if (controller.signal.aborted) {
+      operations.current.delete(controller)
+      return
+    }
     setBusy(false)
     switch (result.outcome) {
       case 'confirmed': {
-        setResolved(old => new Set(old).add(flight.id))
+        setResolved((old) => new Set(old).add(flight.id))
         const { view: now, set: shown } = latest.current
         // Advance only when the sheet is still on this flight in review mode (the member may have closed it meanwhile).
-        if (now.review && latest.current.reviewSession === reviewSession && now.flight === flight.id) {
+        if (
+          now.review &&
+          latest.current.reviewSession === reviewSession &&
+          now.flight === flight.id
+        ) {
           const next = nextAfter(shown, flight.id)
           openFlight(next?.id ?? null, { review: true })
           if (!next) setEnding('confirmed')
@@ -224,7 +304,10 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
         const last = receipts.last()
         if (result.derivedState !== 'pending' || !last) {
           operations.current.delete(controller)
-          report({ text: confirmed + stampText(locale, result.newlyStampedCountries), alert: false })
+          report({
+            text: confirmed + stampText(locale, result.newlyStampedCountries),
+            alert: false,
+          })
           return
         }
         // Publication is pending: wait for it, then read this operation's receipt again for the stamps.
@@ -233,11 +316,22 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
         const release = trackPrivateOperation(controller)
         let text = `${confirmed} ${t.publishDelayed}`
         try {
-          if (await awaitPublication(last.outcome.revision, controller.signal, isCurrent) === 'ready') {
-            const receipt = await api.post<ConfirmOutcome>('/api/flights/confirm', last.request, { signal: controller.signal })
-            if (receipt.derivedState === 'ready') text = confirmed + stampText(locale, receipt.newlyStampedCountries)
+          if (
+            (await awaitPublication(last.outcome.revision, controller.signal, isCurrent)) ===
+            'ready'
+          ) {
+            const receipt = await api.post<ConfirmOutcome>('/api/flights/confirm', last.request, {
+              signal: controller.signal,
+            })
+            if (receipt.derivedState === 'ready')
+              text = confirmed + stampText(locale, receipt.newlyStampedCountries)
           }
-        } catch { /* the delayed line stays */ } finally { release(); operations.current.delete(controller) }
+        } catch {
+          /* the delayed line stays */
+        } finally {
+          release()
+          operations.current.delete(controller)
+        }
         if (isCurrent() && noteSeq.current === seq) report({ text, alert: false })
         return
       }
@@ -275,7 +369,10 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
       label: t.removing(routeOf(flight)),
       // The docked pane is not modal: the toast's Undo takes focus. The overlay traps focus, so its own Undo line does.
       focusUndo: docked,
-      onUndo: () => { openFlight(flight.id, { review: true }); setFocusKey(key => key + 1) },
+      onUndo: () => {
+        openFlight(flight.id, { review: true })
+        setFocusKey((key) => key + 1)
+      },
     })
     openFlight(next?.id ?? null, { review: true })
     if (!next) setEnding('removed')
@@ -288,83 +385,206 @@ export function useJournalReview({ locale, docked, queue, offlineNoteId }: Journ
     openFlight(next.id, { review: true })
   }
 
-  const ownPending = !docked && pending && pending.ids.length === 1 && pending.ids[0] === removedId ? pending : null
-  const undoLine = ownPending ? <ReviewUndo locale={locale} pending={ownPending} onUndo={undo} /> : null
+  const ownPending =
+    !docked && pending && pending.ids.length === 1 && pending.ids[0] === removedId ? pending : null
+  const undoLine = ownPending ? (
+    <ReviewUndo locale={locale} pending={ownPending} onUndo={undo} />
+  ) : null
   const outcome = <ReviewNote note={note} />
 
   if (!current) {
-    const message = ending === 'confirmed' ? t.allConfirmed : ending === 'removed' ? t.nothingLeft : t.empty
+    const message =
+      ending === 'confirmed' ? t.allConfirmed : ending === 'removed' ? t.nothingLeft : t.empty
     return {
-      top: null, status: null, footer: null,
-      placeholder: { title: t.title, content: <ReviewEmpty message={message} closeLabel={t.close} onClose={closeSheet}>{outcome}{undoLine}</ReviewEmpty> },
+      top: null,
+      status: null,
+      footer: null,
+      placeholder: {
+        title: t.title,
+        content: (
+          <ReviewEmpty message={message} closeLabel={t.close} onClose={closeSheet}>
+            {outcome}
+            {undoLine}
+          </ReviewEmpty>
+        ),
+      },
     }
   }
 
-  const entry = queue?.awaitingFlights.find(item => item.flight.id === current.id) ?? null
+  const entry = queue?.awaitingFlights.find((item) => item.flight.id === current.id) ?? null
   return {
-    status: <div className="journal-review-status">
-      <p className="journal-review-count">{t.position(formatNumber(locale, index + 1), formatNumber(locale, set.length))}</p>
-      {undoLine}
-    </div>,
-    top: <ReviewQuestion locale={locale} entry={entry} decision={decisions.get(current.id)}
-      onDecision={value => setDecisions(old => new Map(old).set(current.id, value))}
-      busy={busy} online={online} offlineNoteId={offlineNoteId} focusKey={focusKey}
-      onFlew={() => void confirm()} onDidNotFly={didNotFly}>{outcome}</ReviewQuestion>,
-    footer: <Button disabled={busy || index >= set.length - 1} onClick={goNext}>{t.next}</Button>,
+    status: (
+      <div className="journal-review-status">
+        <p className="journal-review-count">
+          {t.position(formatNumber(locale, index + 1), formatNumber(locale, set.length))}
+        </p>
+        {undoLine}
+      </div>
+    ),
+    top: (
+      <ReviewQuestion
+        locale={locale}
+        entry={entry}
+        decision={decisions.get(current.id)}
+        onDecision={(value) => setDecisions((old) => new Map(old).set(current.id, value))}
+        busy={busy}
+        online={online}
+        offlineNoteId={offlineNoteId}
+        focusKey={focusKey}
+        onFlew={() => void confirm()}
+        onDidNotFly={didNotFly}
+      >
+        {outcome}
+      </ReviewQuestion>
+    ),
+    footer: (
+      <Button disabled={busy || index >= set.length - 1} onClick={goNext}>
+        {t.next}
+      </Button>
+    ),
     placeholder: null,
   }
 }
 
 /** The outcome line. Both live regions stay mounted with the block, so a message after an advance is still announced. */
 function ReviewNote({ note }: { note: Note | null }) {
-  return <>
-    <p className="journal-review-note" role="status">{note && !note.alert ? note.text : ''}</p>
-    <p className="journal-review-note" role="alert">{note?.alert ? note.text : ''}</p>
-  </>
+  return (
+    <>
+      <p className="journal-review-note" role="status">
+        {note && !note.alert ? note.text : ''}
+      </p>
+      <p className="journal-review-note" role="alert">
+        {note?.alert ? note.text : ''}
+      </p>
+    </>
+  )
 }
 
-function ReviewQuestion({ locale, entry, decision, onDecision, busy, online, offlineNoteId, focusKey, onFlew, onDidNotFly, children }: {
-  locale: Locale; entry: QueueEntry | null; decision: boolean | undefined; onDecision: (transit: boolean) => void
-  busy: boolean; online: boolean; offlineNoteId: string; focusKey: number; onFlew: () => void; onDidNotFly: () => void; children: ReactNode
+function ReviewQuestion({
+  locale,
+  entry,
+  decision,
+  onDecision,
+  busy,
+  online,
+  offlineNoteId,
+  focusKey,
+  onFlew,
+  onDidNotFly,
+  children,
+}: {
+  locale: Locale
+  entry: QueueEntry | null
+  decision: boolean | undefined
+  onDecision: (transit: boolean) => void
+  busy: boolean
+  online: boolean
+  offlineNoteId: string
+  focusKey: number
+  onFlew: () => void
+  onDidNotFly: () => void
+  children: ReactNode
 }) {
   const t = copy[locale]
   const questionId = useId()
   const flew = useRef<HTMLButtonElement>(null)
   // After Undo returns the sheet to a removed flight, focus lands on its question.
-  useEffect(() => { if (focusKey) flew.current?.focus() }, [focusKey])
+  useEffect(() => {
+    if (focusKey) flew.current?.focus()
+  }, [focusKey])
   const offline = !online ? offlineNoteId : undefined
   const candidate = entry && entry.candidate.kind !== 'none' ? entry.candidate : null
-  const basis = candidate?.label === 'estimated' ? t.estimated : candidate?.label === 'ambiguous' ? t.ambiguous : t.precise
-  return <section className="journal-review" aria-labelledby={questionId}>
-    <h3 id={questionId} className="journal-review-question">{t.question}</h3>
-    {entry && candidate && <div className="journal-review-transit">
-      <p>{t.connection}: {entry.flight.destination}{candidate.leg && <> → {candidate.leg.destination}</>} · {basis}</p>
-      {/* Same default as the old queue: unticked means transit (the server's suggestion) until the member says otherwise. */}
-      {candidate.kind === 'link' && <Checkbox label={t.leftAirport} checked={!(decision ?? entry.effectiveDefault.transit)}
-        disabled={!online || busy} aria-describedby={offline} onChange={event => onDecision(!event.target.checked)} />}
-    </div>}
-    <div className="journal-review-actions">
-      <Button ref={flew} variant="primary" disabled={!online} loading={busy} loadingLabel={t.confirming} aria-describedby={offline} onClick={onFlew}>{t.flew}</Button>
-      <Button disabled={!online || busy} aria-describedby={offline} onClick={onDidNotFly}>{t.didNotFly}</Button>
-    </div>
-    {children}
-  </section>
+  const basis =
+    candidate?.label === 'estimated'
+      ? t.estimated
+      : candidate?.label === 'ambiguous'
+        ? t.ambiguous
+        : t.precise
+  return (
+    <section className="journal-review" aria-labelledby={questionId}>
+      <h3 id={questionId} className="journal-review-question">
+        {t.question}
+      </h3>
+      {entry && candidate && (
+        <div className="journal-review-transit">
+          <p>
+            {t.connection}: {entry.flight.destination}
+            {candidate.leg && <> → {candidate.leg.destination}</>} · {basis}
+          </p>
+          {/* Same default as the old queue: unticked means transit (the server's suggestion) until the member says otherwise. */}
+          {candidate.kind === 'link' && (
+            <Checkbox
+              label={t.leftAirport}
+              checked={!(decision ?? entry.effectiveDefault.transit)}
+              disabled={!online || busy}
+              aria-describedby={offline}
+              onChange={(event) => onDecision(!event.target.checked)}
+            />
+          )}
+        </div>
+      )}
+      <div className="journal-review-actions">
+        <Button
+          ref={flew}
+          variant="primary"
+          disabled={!online}
+          loading={busy}
+          loadingLabel={t.confirming}
+          aria-describedby={offline}
+          onClick={onFlew}
+        >
+          {t.flew}
+        </Button>
+        <Button disabled={!online || busy} aria-describedby={offline} onClick={onDidNotFly}>
+          {t.didNotFly}
+        </Button>
+      </div>
+      {children}
+    </section>
+  )
 }
 
 /** The overlay's own Undo for a review "Did not fly": the modal sheet keeps focus and pointer input inside it. */
-function ReviewUndo({ locale, pending, onUndo }: { locale: Locale; pending: PendingDelete; onUndo: () => void }) {
+function ReviewUndo({
+  locale,
+  pending,
+  onUndo,
+}: {
+  locale: Locale
+  pending: PendingDelete
+  onUndo: () => void
+}) {
   const button = useRef<HTMLButtonElement>(null)
-  useEffect(() => { button.current?.focus() }, [])
+  useEffect(() => {
+    button.current?.focus()
+  }, [])
   return <DeleteUndoLine ref={button} locale={locale} pending={pending} onUndo={onUndo} />
 }
 
-function ReviewEmpty({ message, closeLabel, onClose, children }: { message: string; closeLabel: string; onClose: () => void; children: ReactNode }) {
+function ReviewEmpty({
+  message,
+  closeLabel,
+  onClose,
+  children,
+}: {
+  message: string
+  closeLabel: string
+  onClose: () => void
+  children: ReactNode
+}) {
   const close = useRef<HTMLButtonElement>(null)
   // The question that had focus is gone: land on Close rather than the page body.
-  useEffect(() => { if (document.activeElement === null || document.activeElement === document.body) close.current?.focus() }, [])
-  return <div className="journal-review-empty">
-    <p role="status">{message}</p>
-    {children}
-    <Button ref={close} onClick={onClose}>{closeLabel}</Button>
-  </div>
+  useEffect(() => {
+    if (document.activeElement === null || document.activeElement === document.body)
+      close.current?.focus()
+  }, [])
+  return (
+    <div className="journal-review-empty">
+      <p role="status">{message}</p>
+      {children}
+      <Button ref={close} onClick={onClose}>
+        {closeLabel}
+      </Button>
+    </div>
+  )
 }

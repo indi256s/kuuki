@@ -25,6 +25,7 @@ The following is the original Opus response, retained without factual edits. Rea
 - **Not a Recharts wrapper.** It's an independent grammar-of-graphics engine. It replaces Recharts; it doesn't sit on top of it.
 
 ### What the shadcn collection actually is
+
 - There are 71 `benchmarks/conformance/cases/*-shadcn-*/case.json` files, each with `"referenceRenderer": "recharts"` and `"collections": ["shadcn"]`. Each one recreates an official shadcn example as a pixel/geometry conformance test.
 - There's no `registry.json` or `components.json`, so there's no `npx shadcn add` path.
 - The examples import `@tanstack/charts-data/shadcn`, which isn't published (npm returns 404). They also import `d3-scale`/`d3-shape` directly and hardcode `toLocaleString('en-US')` (see [145 example.tsx](https://github.com/TanStack/charts/blob/main/benchmarks/conformance/cases/145-shadcn-bar-horizontal/example.tsx)).
@@ -32,13 +33,13 @@ The following is the original Opus response, retained without factual edits. Rea
 
 ## How Kuuki's chart needs map onto it
 
-| Need | Uses Recharts today? | TanStack primitive | Fit | Caveat |
-|---|---|---|---|---|
-| Compare bars (`CompareChart.tsx`, two-series horizontal bar) | Yes | `barX` + band scale; cases 145 and 128 | Good | Per-row units (distance vs counts) need a custom tooltip `content`. The current `formatFn`-in-payload trick doesn't carry over directly. |
-| Continent radar (`AdvancedStatCards.tsx:911`) | Yes | `/polar`: `radialArea` + `radialGrid`/`angleGrid`; cases 130 and 172–184 | Good | The tiny 120px card needs label-collision checks. The radius domain must be fixed at 0–100. |
-| Airline/aircraft rankings | No (CSS) | `barX`, `transform/rank` | Possible | Today's CSS bars are cheaper and fully accessible. No need to move them. |
-| Activity / calendar heatmap | No (CSS) | `rect`/`cell` + `bin-time` + d3 time scale | Possible later | Speculative, not a current need. |
-| Cabin share | No (CSS/waffle) | `/waffle`, `pie` | Possible | The existing waffle already has per-cell `aria-label`s, so there's no reason to move it. |
+| Need                                                         | Uses Recharts today? | TanStack primitive                                                       | Fit            | Caveat                                                                                                                                   |
+| ------------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------ | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Compare bars (`CompareChart.tsx`, two-series horizontal bar) | Yes                  | `barX` + band scale; cases 145 and 128                                   | Good           | Per-row units (distance vs counts) need a custom tooltip `content`. The current `formatFn`-in-payload trick doesn't carry over directly. |
+| Continent radar (`AdvancedStatCards.tsx:911`)                | Yes                  | `/polar`: `radialArea` + `radialGrid`/`angleGrid`; cases 130 and 172–184 | Good           | The tiny 120px card needs label-collision checks. The radius domain must be fixed at 0–100.                                              |
+| Airline/aircraft rankings                                    | No (CSS)             | `barX`, `transform/rank`                                                 | Possible       | Today's CSS bars are cheaper and fully accessible. No need to move them.                                                                 |
+| Activity / calendar heatmap                                  | No (CSS)             | `rect`/`cell` + `bin-time` + d3 time scale                               | Possible later | Speculative, not a current need.                                                                                                         |
+| Cabin share                                                  | No (CSS/waffle)      | `/waffle`, `pie`                                                         | Possible       | The existing waffle already has per-cell `aria-label`s, so there's no reason to move it.                                                 |
 
 Only two components are actual Recharts consumers. The rest are future options; don't let them drive a redesign.
 
@@ -57,6 +58,7 @@ Only two components are actual Recharts consumers. The rest are future options; 
 - **Locale:** the library doesn't localise for you. Pass i18n formatters, as Kuuki already does in its tooltips.
 
 ## Bundle size and migration cost
+
 - TanStack's own comparison only measures itself against Recharts on its benchmark suite. Nothing has been measured for Kuuki, and I make no size or speed claim.
 - Kuuki's real baseline is the current Recharts chunk: 317.34 KB raw / 95.69 KB gzip, lazy-loaded.
 - Migration means:
@@ -65,6 +67,7 @@ Only two components are actual Recharts consumers. The rest are future options; 
   - removing `recharts` only after both charts are ported.
 
 ## Criteria to switch (all must pass)
+
 1. Both charts ported, matching current visuals in light and dark themes.
 2. The chart code stays a deferred client chunk, measured with the same build against the Recharts baseline. TanStack must be no larger, or must buy accessibility that justifies the size.
 3. Keyboard and screen-reader access to the exact values (wins summary or table kept), and reduced motion verified in a browser.
@@ -76,13 +79,14 @@ Only two components are actual Recharts consumers. The rest are future options; 
 If any of these fail, keep Recharts and revisit after a few 1.x patch releases.
 
 ## Static-assets cache nuance (item 6)
+
 The parent's reading is correct, with one detail to add. In `static-assets-incremental-cache.js:42-45`, `getAssetUrl` throws for `cacheType === "composable"`. `get` catches that, logs `"Failed to get from cache"` and returns `null`. So every runtime `'use cache'` lookup on this backend is a miss **and logs an error on every call**; `set` only logs. Prerendered route and fetch entries are unaffected. The audit should say that runtime composable caching needs a writable backend, and should mention the log noise.
 
 `★ Insight ─────────────────────────────────────`
-- The "71 shadcn examples" are conformance tests that render each shadcn chart with Recharts as the reference. That shows TanStack *can* reproduce those visuals; it's not something you can install as a shadcn component.
+
+- The "71 shadcn examples" are conformance tests that render each shadcn chart with Recharts as the reference. That shows TanStack _can_ reproduce those visuals; it's not something you can install as a shadcn component.
 - Of the candidate charts, only CompareChart and the radar actually use Recharts. Most of Kuuki's "charts" are hand-built CSS with their own `aria-label`s, which is why porting just those two is cheap enough for a spike.
 - The real gain from switching would be accessibility (keyboard focus, reduced motion). Bundle size is unknown until measured in Kuuki's own build.
-`─────────────────────────────────────────────────`
+  `─────────────────────────────────────────────────`
 
 Nothing in the repo was edited. I only read the npm tarball (extracted under `/tmp/tsc`), GitHub sources and the two Kuuki files.
-

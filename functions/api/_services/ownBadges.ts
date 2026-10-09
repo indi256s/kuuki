@@ -22,7 +22,8 @@ type JoinedRow = {
 }
 
 export async function readOwnBadges(db: D1Database, ownerId: string) {
-  const rows = await db.prepare(
+  const rows = await db
+    .prepare(
       `SELECT
          ub.id AS ub_id,
          ub.user_id AS ub_user_id,
@@ -42,30 +43,30 @@ export async function readOwnBadges(db: D1Database, ownerId: string) {
        WHERE ub.user_id = ?
        ORDER BY ub.earned_at DESC`,
     )
-      .bind(ownerId)
-      .all<JoinedRow>()
+    .bind(ownerId)
+    .all<JoinedRow>()
 
   assertRows(rows, 'Badges unavailable')
   const badges = rows.results.map((r) => {
-      const userBadge: UserBadgeRow = {
-        id: r.ub_id,
-        user_id: r.ub_user_id,
-        badge_id: r.ub_badge_id,
-        earned_at: r.ub_earned_at,
-      }
-      const def: BadgeDefinitionRow = {
-        id: r.bd_id,
-        code: r.bd_code,
-        name: r.bd_name,
-        description: r.bd_description,
-        category: r.bd_category,
-        tier: r.bd_tier,
-        icon: r.bd_icon,
-        points: r.bd_points,
-        criteria: r.bd_criteria,
-      }
-      return toUserBadgeWithDefinition(userBadge, def)
-    })
+    const userBadge: UserBadgeRow = {
+      id: r.ub_id,
+      user_id: r.ub_user_id,
+      badge_id: r.ub_badge_id,
+      earned_at: r.ub_earned_at,
+    }
+    const def: BadgeDefinitionRow = {
+      id: r.bd_id,
+      code: r.bd_code,
+      name: r.bd_name,
+      description: r.bd_description,
+      category: r.bd_category,
+      tier: r.bd_tier,
+      icon: r.bd_icon,
+      points: r.bd_points,
+      criteria: r.bd_criteria,
+    }
+    return toUserBadgeWithDefinition(userBadge, def)
+  })
 
   return badges
 }

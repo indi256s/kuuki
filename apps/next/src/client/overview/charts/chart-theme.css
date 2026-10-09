@@ -20,58 +20,197 @@
   font-variant-numeric: tabular-nums;
 }
 
-.kc-tooltip[popover] { inset: auto; margin: 0; }
+.kc-tooltip[popover] {
+  inset: auto;
+  margin: 0;
+}
 
-.kc svg text[font-size="12"],
-.kc svg text[font-size="22"] { font-family: var(--font-mono); }
-.kc svg text[font-size="22"] { font-weight: 500; }
-.kc svg text[font-size="13"] { font-family: var(--font-sans); }
+.kc svg text[font-size='12'],
+.kc svg text[font-size='22'] {
+  font-family: var(--font-mono);
+}
+.kc svg text[font-size='22'] {
+  font-weight: 500;
+}
+.kc svg text[font-size='13'] {
+  font-family: var(--font-sans);
+}
 /* Mono is a size-keyed default (12, 22). Axis names and numeric ticks that need the 12px floor opt back to the sans face with data-sans. */
-.kc svg text[data-sans] { font-family: var(--font-sans); }
+.kc svg text[data-sans] {
+  font-family: var(--font-sans);
+}
 .kc-svg:focus:not(:focus-visible),
-.kc-svg g:focus:not(:focus-visible) { outline: none; }
+.kc-svg g:focus:not(:focus-visible) {
+  outline: none;
+}
 .kc-svg:focus-visible,
 .kc-svg g:focus-visible,
 .kc button:focus-visible,
-.kc-tooltip button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.kc-tip-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
-.kc-tip-actions .ui-button { flex: 1; min-height: 44px; }
-.kc-table { color: var(--text); }
-.kc-table .ui-disclosure-trigger { min-height: 44px; font-weight: 400; }
-.kc-table-scroll { max-width: 100%; overflow-x: auto; }
-.kc-table table { width: 100%; border-collapse: collapse; }
-.kc-table caption { text-align: left; font: 600 15px/24px var(--font-sans); padding-block: var(--space-2); }
-.kc-table th, .kc-table td { padding: var(--space-2); text-align: left; border: 0; }
-.kc-table [data-numeric] { text-align: right; font-variant-numeric: tabular-nums; }
-
-.kc-svg { display: block; width: 100%; overflow: visible; }
-.kc-svg [role="button"] { cursor: pointer; }
-/* SVG geometry updates animate only while visible; initial SSR geometry is already final. */
-.kc[data-in-view="true"] .kc-svg :is(path, circle, rect) {
-  transition: d 1100ms var(--ease-in-out), cx 1100ms var(--ease-in-out), cy 1100ms var(--ease-in-out), x 1100ms var(--ease-in-out), y 1100ms var(--ease-in-out), width 1100ms var(--ease-in-out), height 1100ms var(--ease-in-out), transform 1100ms var(--ease-in-out);
+.kc-tooltip button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
-.kc[data-in-view="true"] .arc-waffle-cell { transition: transform 300ms var(--ease-in-out); }
+
+.kc-tip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.kc-tip-actions .ui-button {
+  flex: 1;
+  min-height: 44px;
+}
+.kc-table {
+  color: var(--text);
+}
+.kc-table .ui-disclosure-trigger {
+  min-height: 44px;
+  font-weight: 400;
+}
+.kc-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.kc-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.kc-table caption {
+  text-align: left;
+  font: 600 15px/24px var(--font-sans);
+  padding-block: var(--space-2);
+}
+.kc-table th,
+.kc-table td {
+  padding: var(--space-2);
+  text-align: left;
+  border: 0;
+}
+.kc-table [data-numeric] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.kc-svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.kc-svg [role='button'] {
+  cursor: pointer;
+}
+/* SVG geometry updates animate only while visible; initial SSR geometry is already final. */
+.kc[data-in-view='true'] .kc-svg :is(path, circle, rect) {
+  transition:
+    d 1100ms var(--ease-in-out),
+    cx 1100ms var(--ease-in-out),
+    cy 1100ms var(--ease-in-out),
+    x 1100ms var(--ease-in-out),
+    y 1100ms var(--ease-in-out),
+    width 1100ms var(--ease-in-out),
+    height 1100ms var(--ease-in-out),
+    transform 1100ms var(--ease-in-out);
+}
+.kc[data-in-view='true'] .arc-waffle-cell {
+  transition: transform 300ms var(--ease-in-out);
+}
 /* Charts draw in CSS pixels, so a resize moves geometry; it must not animate. */
-.kc[data-resizing] .kc-svg :is(path, circle, rect), .kc[data-resizing] .arc-waffle-cell { transition: none; }
+.kc[data-resizing] .kc-svg :is(path, circle, rect),
+.kc[data-resizing] .arc-waffle-cell {
+  transition: none;
+}
 /* Count-driven charts keep their natural width, left-aligned, and scroll when the host is narrower. */
-.kc[data-scroll] { overflow-x: auto; }
-.kc[data-more] { mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent); }
-.kc[data-in-view="true"] .arc-waffle-cell rect { transition-duration: 300ms; }
-.arc-brush { --brush-thumb: 22px; position: relative; }
-.arc-brush svg { display: block; width: 100%; height: var(--brush-height); }
+.kc[data-scroll] {
+  overflow-x: auto;
+}
+.kc[data-more] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+.kc[data-in-view='true'] .arc-waffle-cell rect {
+  transition-duration: 300ms;
+}
+.arc-brush {
+  --brush-thumb: 22px;
+  position: relative;
+}
+.arc-brush svg {
+  display: block;
+  width: 100%;
+  height: var(--brush-height);
+}
 /* Handles cover the plot area; each input is widened by one thumb so the thumb centre lands exactly on its value. Only thumbs take pointer input. */
-.arc-brush-handles { position: absolute; inset: 0 var(--brush-right) 0 var(--brush-left); }
-.arc-brush input { position: absolute; inset-block: 0; inset-inline-start: calc(var(--brush-thumb) / -2); width: calc(100% + var(--brush-thumb)); height: 100%; margin: 0; padding: 0; background: transparent; appearance: none; pointer-events: none; touch-action: pan-y; }
-.arc-brush input::-webkit-slider-runnable-track { height: 100%; background: transparent; border: 0; }
-.arc-brush input::-moz-range-track { height: 100%; background: transparent; border: 0; }
-.arc-brush input::-webkit-slider-thumb { appearance: none; box-sizing: border-box; width: var(--brush-thumb); height: 100%; border: calc((var(--brush-thumb) - 10px) / 2) solid transparent; border-block-width: 0; border-radius: 10px; background: var(--accent); background-clip: padding-box; pointer-events: auto; cursor: ew-resize; }
-.arc-brush input::-moz-range-thumb { box-sizing: border-box; width: var(--brush-thumb); height: var(--brush-height); border: calc((var(--brush-thumb) - 10px) / 2) solid transparent; border-block-width: 0; border-radius: 10px; background: var(--accent); background-clip: padding-box; pointer-events: auto; cursor: ew-resize; }
-.arc-brush input:focus-visible { outline: none; }
-.arc-brush input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--focus); outline-offset: 1px; }
-.arc-brush input:focus-visible::-moz-range-thumb { outline: 2px solid var(--focus); outline-offset: 1px; }
-@media (pointer: coarse) { .arc-brush { --brush-thumb: 44px; } }
+.arc-brush-handles {
+  position: absolute;
+  inset: 0 var(--brush-right) 0 var(--brush-left);
+}
+.arc-brush input {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--brush-thumb) / -2);
+  width: calc(100% + var(--brush-thumb));
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  appearance: none;
+  pointer-events: none;
+  touch-action: pan-y;
+}
+.arc-brush input::-webkit-slider-runnable-track {
+  height: 100%;
+  background: transparent;
+  border: 0;
+}
+.arc-brush input::-moz-range-track {
+  height: 100%;
+  background: transparent;
+  border: 0;
+}
+.arc-brush input::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: var(--brush-thumb);
+  height: 100%;
+  border: calc((var(--brush-thumb) - 10px) / 2) solid transparent;
+  border-block-width: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  background-clip: padding-box;
+  pointer-events: auto;
+  cursor: ew-resize;
+}
+.arc-brush input::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--brush-thumb);
+  height: var(--brush-height);
+  border: calc((var(--brush-thumb) - 10px) / 2) solid transparent;
+  border-block-width: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  background-clip: padding-box;
+  pointer-events: auto;
+  cursor: ew-resize;
+}
+.arc-brush input:focus-visible {
+  outline: none;
+}
+.arc-brush input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.arc-brush input:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+@media (pointer: coarse) {
+  .arc-brush {
+    --brush-thumb: 44px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .kc[data-in-view="true"] .kc-svg :is(path, circle, rect),
-  .kc[data-in-view="true"] .arc-waffle-cell { transition: none; }
+  .kc[data-in-view='true'] .kc-svg :is(path, circle, rect),
+  .kc[data-in-view='true'] .arc-waffle-cell {
+    transition: none;
+  }
 }

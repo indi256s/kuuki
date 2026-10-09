@@ -16,5 +16,8 @@ export interface PublicOverview {
   routes: Array<[string, string]>
   airports: Record<string, { lat: number; lon: number }>
   records?: PublicRecords
-  fleet?: Pick<Fleet, 'topType' | 'byBodyType' | 'byManufacturer' | 'families' | 'types' | 'typed' | 'total'>
+  fleet?: Pick<
+    Fleet,
+    'topType' | 'byBodyType' | 'byManufacturer' | 'families' | 'types' | 'typed' | 'total'
+  >
 }

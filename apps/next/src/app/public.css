@@ -1,3 +1,80 @@
-.settings-page{max-width:720px;margin:auto}.profile-head{display:flex;align-items:center;gap:24px}.handle,.field-help{font-family:var(--font-mono);color:var(--text-muted);font-size:13px}.profile-actions{display:flex;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--hairline);padding:20px 0}.settings-page section{border-top:1px solid var(--hairline);margin-top:32px;padding-top:24px}.settings-page dt{color:var(--text-muted)}.profile-join{margin-top:48px}.settings-page dl div{margin:0 0 16px}.settings-page dd{margin:4px 0 0}.settings-page section a{display:inline-flex;min-height:44px;align-items:center;color:var(--accent-text)}.onboarding-form{max-width:460px;display:grid;gap:14px;margin:32px 0}
-@media(max-width:700px){.profile-head{align-items:flex-start}}
-.guest-actions{margin-left:auto;display:flex;align-items:center;gap:16px}.guest-actions nav{display:flex;gap:4px}.guest-actions nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border-radius:var(--radius-sm);text-decoration:none;font-weight:500}@media (hover:hover) and (pointer:fine){.guest-actions nav a:hover{background:var(--surface-inset)}}
+.settings-page {
+  max-width: 720px;
+  margin: auto;
+}
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.handle,
+.field-help {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.profile-actions {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--hairline);
+  padding: 20px 0;
+}
+.settings-page section {
+  border-top: 1px solid var(--hairline);
+  margin-top: 32px;
+  padding-top: 24px;
+}
+.settings-page dt {
+  color: var(--text-muted);
+}
+.profile-join {
+  margin-top: 48px;
+}
+.settings-page dl div {
+  margin: 0 0 16px;
+}
+.settings-page dd {
+  margin: 4px 0 0;
+}
+.settings-page section a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--accent-text);
+}
+.onboarding-form {
+  max-width: 460px;
+  display: grid;
+  gap: 14px;
+  margin: 32px 0;
+}
+@media (max-width: 700px) {
+  .profile-head {
+    align-items: flex-start;
+  }
+}
+.guest-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.guest-actions nav {
+  display: flex;
+  gap: 4px;
+}
+.guest-actions nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-weight: 500;
+}
+@media (hover: hover) and (pointer: fine) {
+  .guest-actions nav a:hover {
+    background: var(--surface-inset);
+  }
+}

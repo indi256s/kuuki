@@ -12,22 +12,33 @@ function flightId(raw: string | null): number | null {
   return Number.isSafeInteger(id) ? id : null
 }
 function useOverviewURL() {
-  const pathname = usePathname(), params = useSearchParams()
+  const pathname = usePathname(),
+    params = useSearchParams()
   const { navigation, isCurrent } = useOverview()
   const query = params.toString()
   const url = pathname + (query ? `?${query}` : '')
-  useEffect(() => { navigation.observeURL(url, window.location.hash) }, [url, navigation])
   useEffect(() => {
-    const traverse = () => navigation.traverse(window.location.pathname + window.location.search + window.location.hash)
+    navigation.observeURL(url, window.location.hash)
+  }, [url, navigation])
+  useEffect(() => {
+    const traverse = () =>
+      navigation.traverse(window.location.pathname + window.location.search + window.location.hash)
     window.addEventListener('popstate', traverse)
     window.addEventListener('hashchange', traverse)
-    return () => { window.removeEventListener('popstate', traverse); window.removeEventListener('hashchange', traverse) }
+    return () => {
+      window.removeEventListener('popstate', traverse)
+      window.removeEventListener('hashchange', traverse)
+    }
   }, [navigation])
   const change = (key: 'flight' | 'makers', value: string | null, mode: 'push' | 'replace') => {
     if (!isCurrent()) return
     const requested = navigation.getRequested()
-    const base = new URL(requested && new URL(requested, window.location.href).pathname === pathname
-      ? requested : url + window.location.hash, window.location.href)
+    const base = new URL(
+      requested && new URL(requested, window.location.href).pathname === pathname
+        ? requested
+        : url + window.location.hash,
+      window.location.href,
+    )
     if (value) base.searchParams.set(key, value)
     else base.searchParams.delete(key)
     const target = base.pathname + base.search + base.hash
@@ -51,26 +62,50 @@ export function useMakerMetric(): readonly [MakerMetric, (metric: MakerMetric) =
   const { params, change } = useOverviewURL()
   const raw = params.get('makers')
   const metric = raw === 'hours' || raw === 'km' ? raw : 'flights'
-  return [metric, next => {
-    if (next === 'flights' || next === 'hours' || next === 'km') change('makers', next === 'flights' ? null : next, 'replace')
-  }]
+  return [
+    metric,
+    (next) => {
+      if (next === 'flights' || next === 'hours' || next === 'km')
+        change('makers', next === 'flights' ? null : next, 'replace')
+    },
+  ]
 }
 export function OverviewFlightSheet() {
   const { aggregate, ownerKey, locale, navigation, revalidate, isCurrent } = useOverview()
   const { params, pathname, change } = useOverviewURL()
   const id = aggregate || ownerKey === 'dev' ? null : flightId(params.get('flight'))
   const latestRevalidate = useRef(revalidate)
-  useEffect(() => { latestRevalidate.current = revalidate }, [revalidate])
+  useEffect(() => {
+    latestRevalidate.current = revalidate
+  }, [revalidate])
   useEffect(() => {
     if (id === null) return
-    return () => { void latestRevalidate.current() }
+    return () => {
+      void latestRevalidate.current()
+    }
   }, [id])
   if (id === null) return null
-  return <FlightDetailSheet ownerId={ownerKey} locale={locale} flightId={id}
-    onOpenChange={open => { if (!open) change('flight', null, 'replace') }}
-    onCloseAutoFocus={event => {
-      event.preventDefault()
-      const current = new URL(navigation.getRequested() ?? window.location.href, window.location.href)
-      if (isCurrent() && current.pathname === pathname && flightId(current.searchParams.get('flight')) === null) navigation.restoreFocus()
-    }} />
+  return (
+    <FlightDetailSheet
+      ownerId={ownerKey}
+      locale={locale}
+      flightId={id}
+      onOpenChange={(open) => {
+        if (!open) change('flight', null, 'replace')
+      }}
+      onCloseAutoFocus={(event) => {
+        event.preventDefault()
+        const current = new URL(
+          navigation.getRequested() ?? window.location.href,
+          window.location.href,
+        )
+        if (
+          isCurrent() &&
+          current.pathname === pathname &&
+          flightId(current.searchParams.get('flight')) === null
+        )
+          navigation.restoreFocus()
+      }}
+    />
+  )
 }

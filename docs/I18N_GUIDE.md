@@ -7,10 +7,12 @@ This guide covers how to work with translations and pluralization in the Kuuki a
 ## Overview
 
 Kuuki uses [i18next](https://www.i18next.com/) for internationalization with support for:
+
 - English (en) - Primary language
 - Russian (ru) - Secondary language
 
 Translation files are located in `packages/shared/src/i18n/`:
+
 - `en.json` - English translations
 - `ru.json` - Russian translations
 
@@ -35,10 +37,12 @@ i18next automatically handles pluralization based on the `count` parameter. Use 
 ### English Pluralization
 
 English has two forms:
+
 - `_one` - Singular (count = 1)
 - `_other` - Plural (count ≠ 1)
 
 **Example in `en.json`:**
+
 ```json
 {
   "flights": {
@@ -49,19 +53,22 @@ English has two forms:
 ```
 
 **Usage in component:**
+
 ```tsx
-t('flights.count', { count: 1 })  // "1 flight"
-t('flights.count', { count: 5 })  // "5 flights"
+t('flights.count', { count: 1 }) // "1 flight"
+t('flights.count', { count: 5 }) // "5 flights"
 ```
 
 ### Russian Pluralization
 
 Russian has three forms based on complex rules:
+
 - `_one` - Ends in 1 (but not 11): 1, 21, 31, 41, 101, 121...
 - `_few` - Ends in 2-4 (but not 12-14): 2, 3, 4, 22, 23, 24, 32...
 - `_other` - All other cases: 0, 5-20, 25-30, 35-40, 100, 1000...
 
 **Example in `ru.json`:**
+
 ```json
 {
   "flights": {
@@ -73,24 +80,26 @@ Russian has three forms based on complex rules:
 ```
 
 **Automatic selection:**
+
 ```tsx
-t('flights.count', { count: 1 })   // "1 полёт"    (_one)
-t('flights.count', { count: 2 })   // "2 полёта"   (_few)
-t('flights.count', { count: 5 })   // "5 полётов"  (_other)
-t('flights.count', { count: 21 })  // "21 полёт"   (_one)
-t('flights.count', { count: 22 })  // "22 полёта"  (_few)
-t('flights.count', { count: 25 })  // "25 полётов" (_other)
+t('flights.count', { count: 1 }) // "1 полёт"    (_one)
+t('flights.count', { count: 2 }) // "2 полёта"   (_few)
+t('flights.count', { count: 5 }) // "5 полётов"  (_other)
+t('flights.count', { count: 21 }) // "21 полёт"   (_one)
+t('flights.count', { count: 22 }) // "22 полёта"  (_few)
+t('flights.count', { count: 25 }) // "25 полётов" (_other)
 ```
 
 ### Russian Plural Rules Reference
 
-| Count | Form | Suffix | Example |
-|-------|------|--------|---------|
-| 1, 21, 31, 41... | Singular | `_one` | 1 полёт, 21 полёт |
-| 2-4, 22-24, 32-34... | Few | `_few` | 2 полёта, 22 полёта |
-| 0, 5-20, 25-30... | Many | `_other` | 5 полётов, 20 полётов |
+| Count                | Form     | Suffix   | Example               |
+| -------------------- | -------- | -------- | --------------------- |
+| 1, 21, 31, 41...     | Singular | `_one`   | 1 полёт, 21 полёт     |
+| 2-4, 22-24, 32-34... | Few      | `_few`   | 2 полёта, 22 полёта   |
+| 0, 5-20, 25-30...    | Many     | `_other` | 5 полётов, 20 полётов |
 
 **Special cases:**
+
 - Numbers ending in 11, 12, 13, 14 always use `_other` (не `_one` или `_few`)
 - Zero (0) uses `_other`
 
@@ -99,10 +108,12 @@ t('flights.count', { count: 25 })  // "25 полётов" (_other)
 ### Step 1: Identify if pluralization is needed
 
 Use pluralization when:
+
 - The translation contains a count that affects noun forms
 - Examples: "X flights", "X countries", "X travelers"
 
 Don't use pluralization when:
+
 - The count doesn't affect surrounding words
 - The phrase doesn't contain countable nouns
 
@@ -220,11 +231,13 @@ toast.success(t('toasts.flightsDeleted', { count: 3 }))
 Test with different count values to verify all forms:
 
 **English:**
+
 - count = 0: Should use `_other`
 - count = 1: Should use `_one`
 - count = 2+: Should use `_other`
 
 **Russian:**
+
 - count = 0: Should use `_other`
 - count = 1: Should use `_one`
 - count = 2, 3, 4: Should use `_few`
@@ -274,6 +287,7 @@ If pluralization isn't working:
 ## Migration from Old Format
 
 Old format (avoid):
+
 ```json
 {
   "flights": {
@@ -283,6 +297,7 @@ Old format (avoid):
 ```
 
 New format (correct):
+
 ```json
 {
   "flights": {

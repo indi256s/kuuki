@@ -18,7 +18,20 @@ export default async function Settings() {
       (SELECT COUNT(*) FROM country_claims WHERE user_id = ?) AS claims,
       (SELECT COUNT(*) FROM ground_visits WHERE user_id = ?) AS ground,
       (SELECT COUNT(*) FROM import_drafts WHERE user_id = ?) AS drafts`)
-      .bind(own.ownerId, own.ownerId, own.ownerId, own.ownerId, own.ownerId).first<SettingsCounts>()
-  } catch { /* Keep Settings usable; unavailable counts must never become an empty account. */ }
-  return <IdentitySnapshot ownerId={own.ownerId}><SettingsForm key={own.ownerId} ownerId={own.ownerId} profile={own.profile} locale={locale} counts={counts} /></IdentitySnapshot>
+      .bind(own.ownerId, own.ownerId, own.ownerId, own.ownerId, own.ownerId)
+      .first<SettingsCounts>()
+  } catch {
+    /* Keep Settings usable; unavailable counts must never become an empty account. */
+  }
+  return (
+    <IdentitySnapshot ownerId={own.ownerId}>
+      <SettingsForm
+        key={own.ownerId}
+        ownerId={own.ownerId}
+        profile={own.profile}
+        locale={locale}
+        counts={counts}
+      />
+    </IdentitySnapshot>
+  )
 }

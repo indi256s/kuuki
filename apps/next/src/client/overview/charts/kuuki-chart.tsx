@@ -1,6 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type SVGProps } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type SVGProps,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../ui/button'
 import { useAppearance } from '../../preferences'
@@ -40,19 +49,47 @@ export type KuukiChartProps<T> = {
 type Selection = { key: string; pinned: boolean; left: number; top: number }
 
 /** Shared interaction/table host for the locally adapted Arc SVG charts. Geometry stays with each chart, drawn in CSS pixels from `size`. */
-export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, palette = DEFAULT_PALETTE, inView, onPick, tip, actions, table, fit, scrollEnd, viewBox, keyStops, children }: KuukiChartProps<T>) {
-  const id = useId(), host = useRef<SVGSVGElement>(null), portal = useRef<HTMLDivElement>(null)
+export function KuukiChart<T>({
+  points,
+  height,
+  ariaLabel,
+  ariaDescription,
+  palette = DEFAULT_PALETTE,
+  inView,
+  onPick,
+  tip,
+  actions,
+  table,
+  fit,
+  scrollEnd,
+  viewBox,
+  keyStops,
+  children,
+}: KuukiChartProps<T>) {
+  const id = useId(),
+    host = useRef<SVGSVGElement>(null),
+    portal = useRef<HTMLDivElement>(null)
   const { locale } = useAppearance()
   const [measure, available] = useMeasuredWidth<HTMLDivElement>()
   const root = useRef<HTMLDivElement | null>(null)
-  const bindRoot = useCallback((node: HTMLDivElement | null) => { root.current = node; measure(node) }, [measure])
+  const bindRoot = useCallback(
+    (node: HTMLDivElement | null) => {
+      root.current = node
+      measure(node)
+    },
+    [measure],
+  )
   const wanted = fit?.(available)
   const width = wanted !== undefined && Number.isFinite(wanted) && wanted > 0 ? wanted : available
   const svgHeight = typeof height === 'function' ? height(width) : height
   const size: ChartSize = { width, height: svgHeight, available }
   // Geometry must not glide while the host is being resized: hold transitions until the width settles.
-  const [seen, setSeen] = useState(available), [resizing, setResizing] = useState(false)
-  if (seen !== available) { setSeen(available); setResizing(true) }
+  const [seen, setSeen] = useState(available),
+    [resizing, setResizing] = useState(false)
+  if (seen !== available) {
+    setSeen(available)
+    setResizing(true)
+  }
   useEffect(() => {
     if (!resizing) return
     const timer = setTimeout(() => setResizing(false), 150)
@@ -63,35 +100,59 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
   const [active, setActive] = useState<string | null>(null)
   const [picked, setSelection] = useState<Selection | null>(null)
   // A selection whose point left the data (filter change) reads as dismissed.
-  const selection = picked && points.some(item => item.key === picked.key) ? picked : null
-  const point = selection && points.find(item => item.key === selection.key)
-  const stops = keyStops ? points.filter(item => keyStops.includes(item.key)) : points
-  const activeKey = points.some(item => item.key === active) ? active : stops[0]?.key
+  const selection = picked && points.some((item) => item.key === picked.key) ? picked : null
+  const point = selection && points.find((item) => item.key === selection.key)
+  const stops = keyStops ? points.filter((item) => keyStops.includes(item.key)) : points
+  const activeKey = points.some((item) => item.key === active) ? active : stops[0]?.key
   const selectedKey = selection?.key
   // The tooltip portals into the dialog that holds the mark (so it stays above a sheet), else the body; chosen when a mark is shown.
   const [portalOwner, setPortalOwner] = useState<Element | null>(null)
-  const nativePopover = typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function'
-  const ownerBox = typeof document !== 'undefined' && !nativePopover && portalOwner && portalOwner !== document.body ? portalOwner.getBoundingClientRect() : null
+  const nativePopover =
+    typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function'
+  const ownerBox =
+    typeof document !== 'undefined' &&
+    !nativePopover &&
+    portalOwner &&
+    portalOwner !== document.body
+      ? portalOwner.getBoundingClientRect()
+      : null
   const hasPoint = !!point
   const dismiss = useCallback(() => {
-    if (portal.current?.contains(document.activeElement)) (selectedKey && marks.current.get(selectedKey) || host.current)?.focus()
+    if (portal.current?.contains(document.activeElement))
+      ((selectedKey && marks.current.get(selectedKey)) || host.current)?.focus()
     setSelection(null)
   }, [selectedKey])
   useEffect(() => {
     if (!selection?.pinned) return
     const outside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !portal.current?.contains(event.target) && !host.current?.contains(event.target)) dismiss()
+      if (
+        event.target instanceof Node &&
+        !portal.current?.contains(event.target) &&
+        !host.current?.contains(event.target)
+      )
+        dismiss()
     }
-    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); dismiss() } }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        event.stopPropagation()
+        dismiss()
+      }
+    }
     document.addEventListener('pointerdown', outside)
     window.addEventListener('keydown', escape, true)
-    return () => { document.removeEventListener('pointerdown', outside); window.removeEventListener('keydown', escape, true) }
+    return () => {
+      document.removeEventListener('pointerdown', outside)
+      window.removeEventListener('keydown', escape, true)
+    }
   }, [selection?.pinned, dismiss])
   useLayoutEffect(() => {
     const node = portal.current
     if (!node || !hasPoint || !nativePopover) return
     node.showPopover()
-    return () => { if (node.matches(':popover-open')) node.hidePopover() }
+    return () => {
+      if (node.matches(':popover-open')) node.hidePopover()
+    }
   }, [hasPoint, portalOwner, nativePopover])
   useLayoutEffect(() => {
     if (selection?.pinned) portal.current?.querySelector<HTMLButtonElement>('button')?.focus()
@@ -111,29 +172,71 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
   }
   const focus = (index: number) => {
     const target = stops[Math.max(0, Math.min(stops.length - 1, index))]
-    if (target) { setActive(target.key); marks.current.get(target.key)?.focus() }
+    if (target) {
+      setActive(target.key)
+      marks.current.get(target.key)?.focus()
+    }
   }
-  const mark = (item: ChartPoint<T>): SVGProps<SVGGElement> & { 'data-chart-key': string; 'data-kc-key': string; 'data-selected'?: string } => ({
-    ref: node => { if (node) marks.current.set(item.key, node); else marks.current.delete(item.key) },
-    role: 'button', tabIndex: item.key === activeKey ? 0 : -1, 'aria-label': item.label, 'aria-describedby': [ariaDescription ? `${id}-description` : '', `${id}-keys`].filter(Boolean).join(' '),
-    'data-chart-key': item.key, 'data-kc-key': item.key,
+  const mark = (
+    item: ChartPoint<T>,
+  ): SVGProps<SVGGElement> & {
+    'data-chart-key': string
+    'data-kc-key': string
+    'data-selected'?: string
+  } => ({
+    ref: (node) => {
+      if (node) marks.current.set(item.key, node)
+      else marks.current.delete(item.key)
+    },
+    role: 'button',
+    tabIndex: item.key === activeKey ? 0 : -1,
+    'aria-label': item.label,
+    'aria-describedby': [ariaDescription ? `${id}-description` : '', `${id}-keys`]
+      .filter(Boolean)
+      .join(' '),
+    'data-chart-key': item.key,
+    'data-kc-key': item.key,
     'data-selected': selection?.key === item.key ? 'true' : undefined,
-    onFocus: event => { setActive(item.key); if (!selection?.pinned) show(item.key, event.currentTarget, false) },
-    onPointerDown: event => { pointer.current = event.pointerType || 'mouse' },
-    onPointerEnter: event => { if (event.pointerType !== 'touch' && !selection?.pinned) show(item.key, event.currentTarget, false) },
-    onPointerLeave: () => { if (!selection?.pinned) dismiss() },
-    onContextMenu: event => { if (actions) { event.preventDefault(); show(item.key, event.currentTarget, true) } },
-    onClick: event => {
+    onFocus: (event) => {
+      setActive(item.key)
+      if (!selection?.pinned) show(item.key, event.currentTarget, false)
+    },
+    onPointerDown: (event) => {
+      pointer.current = event.pointerType || 'mouse'
+    },
+    onPointerEnter: (event) => {
+      if (event.pointerType !== 'touch' && !selection?.pinned)
+        show(item.key, event.currentTarget, false)
+    },
+    onPointerLeave: () => {
+      if (!selection?.pinned) dismiss()
+    },
+    onContextMenu: (event) => {
+      if (actions) {
+        event.preventDefault()
+        show(item.key, event.currentTarget, true)
+      }
+    },
+    onClick: (event) => {
       event.stopPropagation()
       if (pointer.current === 'touch') show(item.key, event.currentTarget, true)
-      else { dismiss(); onPick?.(points.find(current => current.key === item.key) ?? item) }
+      else {
+        dismiss()
+        onPick?.(points.find((current) => current.key === item.key) ?? item)
+      }
     },
-    onKeyDown: event => {
-      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); pointer.current = 'keyboard'; dismiss(); onPick?.(points.find(current => current.key === item.key) ?? item) }
+    onKeyDown: (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        event.stopPropagation()
+        pointer.current = 'keyboard'
+        dismiss()
+        onPick?.(points.find((current) => current.key === item.key) ?? item)
+      }
     },
   })
   const fixed = !viewBox && fit !== undefined
-  const scrolls = fixed && width > available + .5
+  const scrolls = fixed && width > available + 0.5
   // Content beyond the right edge shows as a fade (CSS) until the reader reaches the end.
   const [more, setMore] = useState(false)
   useLayoutEffect(() => {
@@ -145,41 +248,124 @@ export function KuukiChart<T>({ points, height, ariaLabel, ariaDescription, pale
     node.addEventListener('scroll', update, { passive: true })
     return () => node.removeEventListener('scroll', update)
   }, [scrolls, scrollEnd, width])
-  return <div ref={bindRoot} className="kc" style={palette} data-in-view={inView} data-resizing={resizing || undefined} data-scroll={scrolls || undefined} data-more={scrolls && more || undefined}>
-    <svg ref={host} className="kc-svg" role="group" tabIndex={activeKey ? -1 : 0} aria-label={ariaLabel} aria-describedby={[ariaDescription ? `${id}-description` : '', `${id}-keys`].filter(Boolean).join(' ')} viewBox={viewBox ?? `0 0 ${width} ${svgHeight}`} preserveAspectRatio={viewBox ? undefined : 'xMinYMin meet'} style={fixed ? { height: svgHeight, width, maxWidth: 'none' } : { height: svgHeight }}
-      onBlur={event => { if (!selection?.pinned && !event.currentTarget.contains(event.relatedTarget)) dismiss() }}
-      onKeyDown={event => {
-      if (actions && event.shiftKey && event.key === 'F10' && activeKey) {
-        const mark = marks.current.get(activeKey)
-        if (mark) { event.preventDefault(); event.stopPropagation(); show(activeKey, mark, true) }
-        return
-      }
-      const back = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
-      const at = stops.findIndex(item => item.key === activeKey)
-      // From a hovered mark that is not a stop, the arrows go to the nearest stop on that side.
-      const passed = stops.filter(item => points.indexOf(item) < points.findIndex(point => point.key === activeKey)).length
-      const next = at >= 0 ? at + (back ? -1 : 1) : back ? passed - 1 : passed
-      if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
-        event.preventDefault(); pointer.current = 'keyboard'
-        focus(event.key === 'Home' ? 0 : event.key === 'End' ? stops.length - 1 : next)
-      } else if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault(); pointer.current = 'keyboard'; dismiss()
-        const target = points.find(item => item.key === activeKey)
-        if (target) onPick?.(target)
-      } else if (event.key === 'Escape') dismiss()
-    }}>
-      {ariaDescription ? <desc id={`${id}-description`}>{ariaDescription}</desc> : null}
-      {children(mark, size)}
-    </svg>
-    {/* The keys are otherwise undiscoverable: one point is a tab stop and the others are reached with arrows. */}
-    <span id={`${id}-keys`} className="sr-only">{t(onPick
-      ? { en: 'Arrow keys move between points. Enter filters the page by the focused point.', ru: 'Стрелки переключают точки. Enter фильтрует страницу по выбранной точке.' }
-      : { en: 'Arrow keys move between points.', ru: 'Стрелки переключают точки.' }, locale)}{actions ? ` ${t({ en: 'Shift+F10 opens actions for the focused point.', ru: 'Shift+F10 открывает действия для выбранной точки.' }, locale)}` : ''}</span>
-    {point && selection && portalOwner ? createPortal(<div ref={portal} popover={nativePopover ? 'manual' : undefined} className="kc-tooltip" style={{ ...palette, left: selection.left - (ownerBox?.left ?? 0), top: selection.top - (ownerBox?.top ?? 0) }} role={selection.pinned ? 'dialog' : 'tooltip'} aria-label={point.label}
-      onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()} onKeyDown={event => { if (event.key !== 'Escape') event.stopPropagation() }}>
-      {tip ? tip([point]) : <span>{point.label}</span>}
-      {selection.pinned && <div className="kc-tip-actions">{actions?.(point).map(action => <Button key={action.label} onClick={() => { dismiss(); action.run() }}>{action.label}</Button>)}<Button onClick={dismiss}>{document.documentElement.lang === 'ru' ? 'Закрыть' : 'Close'}</Button></div>}
-    </div>, portalOwner) : null}
-    <TableView table={table} />
-  </div>
+  return (
+    <div
+      ref={bindRoot}
+      className="kc"
+      style={palette}
+      data-in-view={inView}
+      data-resizing={resizing || undefined}
+      data-scroll={scrolls || undefined}
+      data-more={(scrolls && more) || undefined}
+    >
+      <svg
+        ref={host}
+        className="kc-svg"
+        role="group"
+        tabIndex={activeKey ? -1 : 0}
+        aria-label={ariaLabel}
+        aria-describedby={[ariaDescription ? `${id}-description` : '', `${id}-keys`]
+          .filter(Boolean)
+          .join(' ')}
+        viewBox={viewBox ?? `0 0 ${width} ${svgHeight}`}
+        preserveAspectRatio={viewBox ? undefined : 'xMinYMin meet'}
+        style={fixed ? { height: svgHeight, width, maxWidth: 'none' } : { height: svgHeight }}
+        onBlur={(event) => {
+          if (!selection?.pinned && !event.currentTarget.contains(event.relatedTarget)) dismiss()
+        }}
+        onKeyDown={(event) => {
+          if (actions && event.shiftKey && event.key === 'F10' && activeKey) {
+            const mark = marks.current.get(activeKey)
+            if (mark) {
+              event.preventDefault()
+              event.stopPropagation()
+              show(activeKey, mark, true)
+            }
+            return
+          }
+          const back = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+          const at = stops.findIndex((item) => item.key === activeKey)
+          // From a hovered mark that is not a stop, the arrows go to the nearest stop on that side.
+          const passed = stops.filter(
+            (item) => points.indexOf(item) < points.findIndex((point) => point.key === activeKey),
+          ).length
+          const next = at >= 0 ? at + (back ? -1 : 1) : back ? passed - 1 : passed
+          if (
+            ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)
+          ) {
+            event.preventDefault()
+            pointer.current = 'keyboard'
+            focus(event.key === 'Home' ? 0 : event.key === 'End' ? stops.length - 1 : next)
+          } else if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            pointer.current = 'keyboard'
+            dismiss()
+            const target = points.find((item) => item.key === activeKey)
+            if (target) onPick?.(target)
+          } else if (event.key === 'Escape') dismiss()
+        }}
+      >
+        {ariaDescription ? <desc id={`${id}-description`}>{ariaDescription}</desc> : null}
+        {children(mark, size)}
+      </svg>
+      {/* The keys are otherwise undiscoverable: one point is a tab stop and the others are reached with arrows. */}
+      <span id={`${id}-keys`} className="sr-only">
+        {t(
+          onPick
+            ? {
+                en: 'Arrow keys move between points. Enter filters the page by the focused point.',
+                ru: 'Стрелки переключают точки. Enter фильтрует страницу по выбранной точке.',
+              }
+            : { en: 'Arrow keys move between points.', ru: 'Стрелки переключают точки.' },
+          locale,
+        )}
+        {actions
+          ? ` ${t({ en: 'Shift+F10 opens actions for the focused point.', ru: 'Shift+F10 открывает действия для выбранной точки.' }, locale)}`
+          : ''}
+      </span>
+      {point && selection && portalOwner
+        ? createPortal(
+            <div
+              ref={portal}
+              popover={nativePopover ? 'manual' : undefined}
+              className="kc-tooltip"
+              style={{
+                ...palette,
+                left: selection.left - (ownerBox?.left ?? 0),
+                top: selection.top - (ownerBox?.top ?? 0),
+              }}
+              role={selection.pinned ? 'dialog' : 'tooltip'}
+              aria-label={point.label}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => {
+                if (event.key !== 'Escape') event.stopPropagation()
+              }}
+            >
+              {tip ? tip([point]) : <span>{point.label}</span>}
+              {selection.pinned && (
+                <div className="kc-tip-actions">
+                  {actions?.(point).map((action) => (
+                    <Button
+                      key={action.label}
+                      onClick={() => {
+                        dismiss()
+                        action.run()
+                      }}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                  <Button onClick={dismiss}>
+                    {document.documentElement.lang === 'ru' ? 'Закрыть' : 'Close'}
+                  </Button>
+                </div>
+              )}
+            </div>,
+            portalOwner,
+          )
+        : null}
+      <TableView table={table} />
+    </div>
+  )
 }

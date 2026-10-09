@@ -24,7 +24,27 @@
 //   only, this is an interchange file). `upcoming` flights are exported as ordinary rows; confirmation source is dropped.
 import type { JournalFlight, JournalRefs } from './model'
 
-const HEADER = ['Date', 'From', 'To', 'Flight_Number', 'Airline', 'Distance', 'Duration', 'Seat', 'Seat_Type', 'Class', 'Reason', 'Plane', 'Registration', 'Trip', 'Note', 'From_OID', 'To_OID', 'Airline_OID', 'Plane_OID']
+const HEADER = [
+  'Date',
+  'From',
+  'To',
+  'Flight_Number',
+  'Airline',
+  'Distance',
+  'Duration',
+  'Seat',
+  'Seat_Type',
+  'Class',
+  'Reason',
+  'Plane',
+  'Registration',
+  'Trip',
+  'Note',
+  'From_OID',
+  'To_OID',
+  'Airline_OID',
+  'Plane_OID',
+]
 
 const KM_PER_MILE = 1.609344
 const AWAITING_NOTE = 'Awaiting confirmation'
@@ -56,7 +76,9 @@ function miles(km: number | null): string {
 
 function row(flight: JournalFlight, refs: JournalRefs): string {
   const airline = flight.airline_iata ? refs.airlines[flight.airline_iata]?.name : null
-  const plane = flight.aircraft_icao ? (refs.aircraft[flight.aircraft_icao]?.name ?? flight.aircraft_icao) : null
+  const plane = flight.aircraft_icao
+    ? (refs.aircraft[flight.aircraft_icao]?.name ?? flight.aircraft_icao)
+    : null
   const note = flight.lifecycle_state === 'awaiting' ? AWAITING_NOTE : null
   return [
     dateTime(flight.date, flight.departure_time),
@@ -66,17 +88,31 @@ function row(flight: JournalFlight, refs: JournalRefs): string {
     airline,
     miles(flight.distance_km),
     duration(flight.duration_minutes),
-    '', '', '', '', // Seat, Seat_Type, Class, Reason
+    '',
+    '',
+    '',
+    '', // Seat, Seat_Type, Class, Reason
     plane,
-    '', '', // Registration, Trip
+    '',
+    '', // Registration, Trip
     note,
-    '', '', '', '', // From_OID, To_OID, Airline_OID, Plane_OID
-  ].map(field).join(',')
+    '',
+    '',
+    '',
+    '', // From_OID, To_OID, Airline_OID, Plane_OID
+  ]
+    .map(field)
+    .join(',')
 }
 
 /** One OpenFlights CSV row per flight, in the given order, behind a BOM and the header; every line ends in CRLF. */
 export function openFlightsCsv(flights: JournalFlight[], refs: JournalRefs): string {
-  return '﻿' + [HEADER.join(','), ...flights.map(flight => row(flight, refs))].map(line => line + '\r\n').join('')
+  return (
+    '﻿' +
+    [HEADER.join(','), ...flights.map((flight) => row(flight, refs))]
+      .map((line) => line + '\r\n')
+      .join('')
+  )
 }
 
 /** Save `text` as a file through a temporary `<a download>` pointing at an object URL. */

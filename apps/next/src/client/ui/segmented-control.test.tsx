@@ -5,11 +5,25 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { SegmentedControl } from './segmented-control'
 
-const options = [{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'System' }] as const
+const options = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'system', label: 'System' },
+] as const
 
 function Harness({ onChange }: { onChange: (value: string) => void }) {
   const [value, setValue] = useState<'light' | 'dark' | 'system'>('light')
-  return <SegmentedControl label="Theme" value={value} options={options} onChange={next => { setValue(next); onChange(next) }} />
+  return (
+    <SegmentedControl
+      label="Theme"
+      value={value}
+      options={options}
+      onChange={(next) => {
+        setValue(next)
+        onChange(next)
+      }}
+    />
+  )
 }
 
 describe('SegmentedControl', () => {

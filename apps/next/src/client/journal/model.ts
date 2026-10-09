@@ -1,5 +1,10 @@
 // Shared client contract for the Journal store, filter engine, search, URL codec and views.
-import type { FlightFirsts, JournalFlight, JournalPayload, JournalRefs } from '../../../../../functions/api/_services/journalPayload'
+import type {
+  FlightFirsts,
+  JournalFlight,
+  JournalPayload,
+  JournalRefs,
+} from '../../../../../functions/api/_services/journalPayload'
 
 export type { FlightFirsts, JournalFlight, JournalPayload, JournalRefs }
 
@@ -35,7 +40,25 @@ export type JournalFilters = {
 export type JournalSort = { key: JournalSortKey; order: 'asc' | 'desc' }
 
 /** Everything the URL mirrors. `review` is review mode in the sheet; `flight` the open sheet. */
-export type JournalViewState = { filters: JournalFilters; sort: JournalSort; flight: number | null; review: boolean }
+export type JournalViewState = {
+  filters: JournalFilters
+  sort: JournalSort
+  flight: number | null
+  review: boolean
+}
 
-export const emptyFilters = (): JournalFilters => ({ q: '', years: [], from: '', to: '', airports: [], countries: [], airlines: [], aircraft: [], families: [], status: [], missing: [], alliances: [] })
+export const emptyFilters = (): JournalFilters => ({
+  q: '',
+  years: [],
+  from: '',
+  to: '',
+  airports: [],
+  countries: [],
+  airlines: [],
+  aircraft: [],
+  families: [],
+  status: [],
+  missing: [],
+  alliances: [],
+})
 export const defaultSort: JournalSort = { key: 'date', order: 'desc' }

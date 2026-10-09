@@ -12,7 +12,11 @@ const DEFAULT_METHODS = 'GET, POST, OPTIONS'
  * matches the configured origin; otherwise the configured origin is advertised so a mismatch is
  * visible rather than silently `*` (which credentials forbid).
  */
-export function corsHeaders(request: Request, env: Env, methods: string = DEFAULT_METHODS): Record<string, string> {
+export function corsHeaders(
+  request: Request,
+  env: Env,
+  methods: string = DEFAULT_METHODS,
+): Record<string, string> {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Headers': ALLOW_HEADERS,
@@ -28,6 +32,10 @@ export function corsHeaders(request: Request, env: Env, methods: string = DEFAUL
 }
 
 /** Preflight (OPTIONS) response for credentialed cross-origin requests. */
-export function corsPreflight(request: Request, env: Env, methods: string = DEFAULT_METHODS): Response {
+export function corsPreflight(
+  request: Request,
+  env: Env,
+  methods: string = DEFAULT_METHODS,
+): Response {
   return new Response(null, { status: 204, headers: corsHeaders(request, env, methods) })
 }

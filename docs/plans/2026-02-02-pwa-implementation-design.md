@@ -9,13 +9,13 @@ Add Progressive Web App (PWA) support to Kuuki with a custom icon featuring Kata
 
 ## Icon Design
 
-| Property | Value |
-|----------|-------|
-| Character | ク (Katakana KU) |
-| Background | `#08090A` (dark theme-color) |
+| Property   | Value                                         |
+| ---------- | --------------------------------------------- |
+| Character  | ク (Katakana KU)                              |
+| Background | `#08090A` (dark theme-color)                  |
 | Foreground | `#D4A544` (amber, from `oklch(0.72 0.14 55)`) |
-| Shape | Rounded square |
-| Font | Bold Japanese sans-serif |
+| Shape      | Rounded square                                |
+| Font       | Bold Japanese sans-serif                      |
 
 ## Files
 
@@ -40,6 +40,7 @@ apps/web/public/
 ## Implementation
 
 Using `vite-plugin-pwa` with Workbox for:
+
 - Precaching app shell assets
 - Runtime caching for API responses
 - Offline fallback support

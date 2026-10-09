@@ -6,7 +6,12 @@
 //   * `continentOf7` (`./continents.ts`): `continents_count` and continent badges, `badge-continents-v1`.
 //     Badges are award-only, so a changed input never revokes an earned award.
 //   * `regionOf` (`./continents.ts`): the persisted `user_advanced_stats` breakdowns.
-import { COUNTRY_REGION, REGION_IDS, REGION_TOTALS, type RegionId } from './countryRegions.generated'
+import {
+  COUNTRY_REGION,
+  REGION_IDS,
+  REGION_TOTALS,
+  type RegionId,
+} from './countryRegions.generated'
 
 export type { RegionId }
 
@@ -14,7 +19,7 @@ export type { RegionId }
 export const REGION_POLICY = { version: 1, id: 'catalog-regions-v1', regions: REGION_IDS } as const
 
 export const catalogRegionOf = (code: string | null | undefined): RegionId | null =>
-  (code && Object.hasOwn(COUNTRY_REGION, code) ? COUNTRY_REGION[code] : null)
+  code && Object.hasOwn(COUNTRY_REGION, code) ? COUNTRY_REGION[code] : null
 
 export interface RegionProgress {
   id: RegionId
@@ -34,7 +39,10 @@ export function regionCount(codes: Iterable<string | null | undefined>): number 
 }
 
 /** All six regions, with distinct pressed and pending countries kept apart. */
-export function regionProgress(pressed: Iterable<string>, pending: Iterable<string>): RegionProgress[] {
+export function regionProgress(
+  pressed: Iterable<string>,
+  pending: Iterable<string>,
+): RegionProgress[] {
   const count = (codes: Iterable<string>) => {
     const counts = new Map<RegionId, number>()
     for (const code of new Set(codes)) {
@@ -45,5 +53,10 @@ export function regionProgress(pressed: Iterable<string>, pending: Iterable<stri
   }
   const pressedCounts = count(pressed)
   const pendingCounts = count(pending)
-  return REGION_IDS.map(id => ({ id, total: REGION_TOTALS[id], pressed: pressedCounts.get(id) ?? 0, pending: pendingCounts.get(id) ?? 0 }))
+  return REGION_IDS.map((id) => ({
+    id,
+    total: REGION_TOTALS[id],
+    pressed: pressedCounts.get(id) ?? 0,
+    pending: pendingCounts.get(id) ?? 0,
+  }))
 }

@@ -5,7 +5,11 @@
 // Never stored: uploaded bytes, base64, pasted text, provider responses, `raw_text`. A draft holds only the
 // extracted flight fields and bounded confidence numbers.
 import { HttpError } from '../_lib/http'
-import { isCalendarDate, validateFlightInput, type FlightInput } from '../../../packages/shared/src/flightValidation'
+import {
+  isCalendarDate,
+  validateFlightInput,
+  type FlightInput,
+} from '../../../packages/shared/src/flightValidation'
 import { parseFlightBodies } from '../_lib/flightValidation'
 import { airportCandidates } from '../import/_text'
 import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
@@ -43,7 +47,8 @@ export interface DraftFields {
 
 const OPTIONAL_TEXT = ['flight_number', 'aircraft_icao', 'departure_time', 'arrival_time'] as const
 const FIELD_NAMES = ['date', 'origin', 'destination', 'airline_iata', ...OPTIONAL_TEXT] as const
-const clamp = (value: unknown, max: number) => typeof value === 'string' && value ? value.slice(0, max) : undefined
+const clamp = (value: unknown, max: number) =>
+  typeof value === 'string' && value ? value.slice(0, max) : undefined
 
 /** Project an extracted flight onto the stored fields; strings are bounded so `fields_json` stays far below its CHECK. */
 export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
@@ -63,9 +68,14 @@ export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
   if (arrival) fields.arrival_time = arrival
   if (flight.airline_was_placeholder === true) fields.airline_was_placeholder = true
   if (flight.enrichment_status) fields.enrichment_status = flight.enrichment_status
-  if (!fields.date && /^\d{2}-\d{2}$/.test(flight.date_month_day ?? '')) fields.date_month_day = flight.date_month_day
-  const originOptions = !fields.origin && flight.origin_hint ? airportCandidates(flight.origin_hint).slice(0, 6) : []
-  const destinationOptions = !fields.destination && flight.destination_hint ? airportCandidates(flight.destination_hint).slice(0, 6) : []
+  if (!fields.date && /^\d{2}-\d{2}$/.test(flight.date_month_day ?? ''))
+    fields.date_month_day = flight.date_month_day
+  const originOptions =
+    !fields.origin && flight.origin_hint ? airportCandidates(flight.origin_hint).slice(0, 6) : []
+  const destinationOptions =
+    !fields.destination && flight.destination_hint
+      ? airportCandidates(flight.destination_hint).slice(0, 6)
+      : []
   if (originOptions.length) fields.origin_options = originOptions
   if (destinationOptions.length) fields.destination_options = destinationOptions
   if (flight.review_required === true) fields.review_required = true
@@ -92,7 +102,12 @@ export function draftToFlightInput(fields: DraftFields): FlightInput {
 export function sanitizeSourceLabel(type: SourceType, value: unknown): string | null {
   if (type === 'text' || typeof value !== 'string') return null
   const base = value.split(/[\\/]/).pop() ?? ''
-  const clean = base.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, '').replace(/\s+/g, ' ').trim().slice(0, 120).trim()
+  const clean = base
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120)
+    .trim()
   return clean || null
 }
 
@@ -136,18 +151,28 @@ const BATCH_COLUMNS = `id, user_id, source_type, source_label, status, stage, se
 const DRAFT_COLUMNS = `id, user_id, batch_id, ordinal, fields_json, confidence, field_confidence_json, year_explicit, year_confirmed,
   selected, edited, duplicate_acknowledged, status, version, converted_flight_id`
 
-export const batchNotFound = () => new HttpError(404, 'Import batch not found', 'IMPORT_BATCH_NOT_FOUND')
-export const batchExpired = () => new HttpError(410, 'This import has expired', 'IMPORT_BATCH_EXPIRED')
+export const batchNotFound = () =>
+  new HttpError(404, 'Import batch not found', 'IMPORT_BATCH_NOT_FOUND')
+export const batchExpired = () =>
+  new HttpError(410, 'This import has expired', 'IMPORT_BATCH_EXPIRED')
 
-export const isBatchExpired = (batch: Pick<BatchRow, 'expires_at'>, now: Date) => batch.expires_at <= now.toISOString()
+export const isBatchExpired = (batch: Pick<BatchRow, 'expires_at'>, now: Date) =>
+  batch.expires_at <= now.toISOString()
 
 export function batchByOperation(db: D1Database, userId: string, operationId: string) {
-  return db.prepare(`SELECT ${BATCH_COLUMNS} FROM import_batches WHERE user_id = ? AND submission_operation_id = ?`)
-    .bind(userId, operationId).first<BatchRow>()
+  return db
+    .prepare(
+      `SELECT ${BATCH_COLUMNS} FROM import_batches WHERE user_id = ? AND submission_operation_id = ?`,
+    )
+    .bind(userId, operationId)
+    .first<BatchRow>()
 }
 
 export function ownedBatch(db: D1Database, userId: string, batchId: string) {
-  return db.prepare(`SELECT ${BATCH_COLUMNS} FROM import_batches WHERE id = ? AND user_id = ?`).bind(batchId, userId).first<BatchRow>()
+  return db
+    .prepare(`SELECT ${BATCH_COLUMNS} FROM import_batches WHERE id = ? AND user_id = ?`)
+    .bind(batchId, userId)
+    .first<BatchRow>()
 }
 
 /**
@@ -156,34 +181,65 @@ export function ownedBatch(db: D1Database, userId: string, batchId: string) {
  */
 export async function createProcessingBatch(
   db: D1Database,
-  input: { id: string; userId: string; sourceType: SourceType; sourceLabel: string | null; operationId: string },
+  input: {
+    id: string
+    userId: string
+    sourceType: SourceType
+    sourceLabel: string | null
+    operationId: string
+  },
   now: Date,
 ): Promise<boolean> {
   const instant = now.toISOString()
-  const result = await db.prepare(
-    `INSERT INTO import_batches
+  const result = await db
+    .prepare(
+      `INSERT INTO import_batches
        (id, user_id, source_type, source_label, status, stage, sequence, generation, submission_operation_id,
         processing_deadline, created_at, updated_at, expires_at)
      SELECT ?, ?, ?, ?, 'processing', 'accepted', 0, 1, ?, ?, ?, ?, ?
      WHERE (SELECT COUNT(*) FROM import_batches WHERE user_id = ? AND expires_at > ? AND status IN ('processing', 'review', 'partial')) < ${MAX_OPEN_BATCHES}
        AND NOT EXISTS (SELECT 1 FROM import_batches WHERE user_id = ? AND status = 'processing' AND processing_deadline > ?)
      ON CONFLICT (user_id, submission_operation_id) DO NOTHING`,
-  ).bind(
-    input.id, input.userId, input.sourceType, input.sourceLabel, input.operationId,
-    new Date(now.getTime() + PROCESSING_WINDOW_MS).toISOString(), instant, instant, new Date(now.getTime() + BATCH_TTL_DAYS * DAY_MS).toISOString(),
-    input.userId, instant, input.userId, instant,
-  ).run()
+    )
+    .bind(
+      input.id,
+      input.userId,
+      input.sourceType,
+      input.sourceLabel,
+      input.operationId,
+      new Date(now.getTime() + PROCESSING_WINDOW_MS).toISOString(),
+      instant,
+      instant,
+      new Date(now.getTime() + BATCH_TTL_DAYS * DAY_MS).toISOString(),
+      input.userId,
+      instant,
+      input.userId,
+      instant,
+    )
+    .run()
   return (result.meta.changes ?? 0) > 0
 }
 
 /** Why a new batch was refused, read after the fact so the answer names the limit that actually applies. */
 export async function refusalFor(db: D1Database, userId: string, now: Date): Promise<HttpError> {
   const instant = now.toISOString()
-  const live = await db.prepare(
-    "SELECT 1 AS found FROM import_batches WHERE user_id = ? AND status = 'processing' AND processing_deadline > ? LIMIT 1",
-  ).bind(userId, instant).first()
-  if (live) return new HttpError(409, 'Another import is still being processed. Wait for it to finish.', 'IMPORT_IN_PROGRESS')
-  return new HttpError(409, `At most ${MAX_OPEN_BATCHES} imports can be open at once. Discard one to start another.`, 'IMPORT_BATCH_LIMIT')
+  const live = await db
+    .prepare(
+      "SELECT 1 AS found FROM import_batches WHERE user_id = ? AND status = 'processing' AND processing_deadline > ? LIMIT 1",
+    )
+    .bind(userId, instant)
+    .first()
+  if (live)
+    return new HttpError(
+      409,
+      'Another import is still being processed. Wait for it to finish.',
+      'IMPORT_IN_PROGRESS',
+    )
+  return new HttpError(
+    409,
+    `At most ${MAX_OPEN_BATCHES} imports can be open at once. Discard one to start another.`,
+    'IMPORT_BATCH_LIMIT',
+  )
 }
 
 export interface DraftRowInput {
@@ -212,7 +268,11 @@ export interface FinalState {
  * the maintenance sweep or account deletion a late write matches nothing, and a half-written batch cannot exist.
  */
 export async function persistDraftRows(
-  db: D1Database, fence: BatchFence, rows: DraftRowInput[], final: FinalState | null, now: Date = new Date(),
+  db: D1Database,
+  fence: BatchFence,
+  rows: DraftRowInput[],
+  final: FinalState | null,
+  now: Date = new Date(),
   options: { ordinalStart?: number; stage?: 'recognizing' | 'validating' } = {},
 ): Promise<{ sequence: number; rowIds: string[] } | null> {
   const instant = now.toISOString()
@@ -222,26 +282,51 @@ export async function persistDraftRows(
   const statements = rows.slice(0, MAX_DRAFTS_PER_BATCH).map((row, ordinal) => {
     const id = crypto.randomUUID()
     ids.push(id)
-    return db.prepare(
-      `INSERT INTO import_drafts
+    return db
+      .prepare(
+        `INSERT INTO import_drafts
          (id, user_id, batch_id, ordinal, fields_json, confidence, field_confidence_json, year_explicit, year_confirmed,
           selected, edited, duplicate_acknowledged, status, version, created_at, updated_at)
        SELECT ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, 0, 'review', 1, ?, ?
        WHERE ${live} ON CONFLICT (batch_id, ordinal) DO NOTHING`,
-    ).bind(
-      id, fence.userId, fence.batchId, ordinal + (options.ordinalStart ?? 0), JSON.stringify(row.fields), row.confidence,
-      row.fieldConfidence ? JSON.stringify(row.fieldConfidence) : null, row.yearExplicit ? 1 : 0, row.selected ? 1 : 0, instant, instant,
-      ...fenceBinds,
-    )
+      )
+      .bind(
+        id,
+        fence.userId,
+        fence.batchId,
+        ordinal + (options.ordinalStart ?? 0),
+        JSON.stringify(row.fields),
+        row.confidence,
+        row.fieldConfidence ? JSON.stringify(row.fieldConfidence) : null,
+        row.yearExplicit ? 1 : 0,
+        row.selected ? 1 : 0,
+        instant,
+        instant,
+        ...fenceBinds,
+      )
   })
-  statements.push(db.prepare(
-    `UPDATE import_batches
+  statements.push(
+    db
+      .prepare(
+        `UPDATE import_batches
      SET status = ?, stage = ?, error_code = ?, sequence = sequence + 1,
          processing_deadline = CASE WHEN ? THEN NULL ELSE processing_deadline END, updated_at = ?
      WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?
      RETURNING sequence`,
-  ).bind(final?.status ?? 'processing', final ? final.status === 'failed' ? null : 'review_ready' : options.stage ?? 'recognizing',
-    final?.errorCode ?? null, final ? 1 : 0, instant, ...fenceBinds))
+      )
+      .bind(
+        final?.status ?? 'processing',
+        final
+          ? final.status === 'failed'
+            ? null
+            : 'review_ready'
+          : (options.stage ?? 'recognizing'),
+        final?.errorCode ?? null,
+        final ? 1 : 0,
+        instant,
+        ...fenceBinds,
+      ),
+  )
   const results = await db.batch(statements)
   const sequence = (results.at(-1)?.results as Array<{ sequence: number }>)[0]?.sequence
   if (sequence === undefined) return null
@@ -252,7 +337,10 @@ export async function persistDraftRows(
 // Snapshot
 // ---------------------------------------------------------------------------
 
-export interface DraftIssue { code: string; message: string }
+export interface DraftIssue {
+  code: string
+  message: string
+}
 
 export interface DraftView {
   id: string
@@ -289,49 +377,82 @@ export interface BatchView {
   expired: boolean
 }
 
-export interface BatchSnapshot { batch: BatchView; drafts: DraftView[] }
+export interface BatchSnapshot {
+  batch: BatchView
+  drafts: DraftView[]
+}
 
 const fieldsOf = (row: DraftRow) => JSON.parse(row.fields_json) as DraftFields
 
 /** A draft can match a flight only with a real date and two airport codes; anything else stays a correctable row. */
-const isTuple = (fields: DraftFields) => isCalendarDate(fields.date) && /^[A-Z]{3}$/.test(fields.origin) && /^[A-Z]{3}$/.test(fields.destination)
+const isTuple = (fields: DraftFields) =>
+  isCalendarDate(fields.date) &&
+  /^[A-Z]{3}$/.test(fields.origin) &&
+  /^[A-Z]{3}$/.test(fields.destination)
 
 /** Duplicate flight id per draft id over the owner's whole history (`excludeId`: the flight a draft already became). */
-export async function duplicatesFor(db: D1Database, userId: string, rows: DraftRow[]): Promise<Map<string, number>> {
+export async function duplicatesFor(
+  db: D1Database,
+  userId: string,
+  rows: DraftRow[],
+): Promise<Map<string, number>> {
   const candidates: DuplicateCandidate[] = []
   const ids: string[] = []
   for (const row of rows) {
     const fields = fieldsOf(row)
     if (!isTuple(fields)) continue
-    candidates.push({ date: fields.date, origin: fields.origin, destination: fields.destination,
-      ...(row.converted_flight_id == null ? {} : { excludeId: row.converted_flight_id }) })
+    candidates.push({
+      date: fields.date,
+      origin: fields.origin,
+      destination: fields.destination,
+      ...(row.converted_flight_id == null ? {} : { excludeId: row.converted_flight_id }),
+    })
     ids.push(row.id)
   }
   const matches = await findDuplicateMatches(db, userId, candidates)
-  return new Map(matches.map(match => [ids[match.candidateIndex], match.flightId]))
+  return new Map(matches.map((match) => [ids[match.candidateIndex], match.flightId]))
 }
 
 /** The shared validation (`parseFlightBodies`) over each draft; a draft past review needs none. */
-export async function issuesFor(db: D1Database, rows: DraftRow[]): Promise<Map<string, DraftIssue>> {
-  const pending = rows.filter(row => row.status === 'review')
-  const parsed = await parseFlightBodies(db, pending.map(row => draftToFlightInput(fieldsOf(row))))
+export async function issuesFor(
+  db: D1Database,
+  rows: DraftRow[],
+): Promise<Map<string, DraftIssue>> {
+  const pending = rows.filter((row) => row.status === 'review')
+  const parsed = await parseFlightBodies(
+    db,
+    pending.map((row) => draftToFlightInput(fieldsOf(row))),
+  )
   const issues = new Map<string, DraftIssue>()
   parsed.forEach((result, index) => {
-    if (result instanceof HttpError) issues.set(pending[index].id, { code: result.code ?? 'INVALID_FLIGHT', message: result.message })
+    if (result instanceof HttpError)
+      issues.set(pending[index].id, {
+        code: result.code ?? 'INVALID_FLIGHT',
+        message: result.message,
+      })
   })
   return issues
 }
 
-export async function viewDrafts(db: D1Database, userId: string, rows: DraftRow[]): Promise<DraftView[]> {
-  const [duplicates, issues] = await Promise.all([duplicatesFor(db, userId, rows), issuesFor(db, rows)])
-  return rows.map(row => ({
+export async function viewDrafts(
+  db: D1Database,
+  userId: string,
+  rows: DraftRow[],
+): Promise<DraftView[]> {
+  const [duplicates, issues] = await Promise.all([
+    duplicatesFor(db, userId, rows),
+    issuesFor(db, rows),
+  ])
+  return rows.map((row) => ({
     id: row.id,
     ordinal: row.ordinal,
     status: row.status,
     version: row.version,
     fields: fieldsOf(row),
     confidence: row.confidence,
-    fieldConfidence: row.field_confidence_json ? JSON.parse(row.field_confidence_json) as Record<string, number> : null,
+    fieldConfidence: row.field_confidence_json
+      ? (JSON.parse(row.field_confidence_json) as Record<string, number>)
+      : null,
     yearExplicit: row.year_explicit === 1,
     yearConfirmed: row.year_confirmed === 1,
     selected: row.selected === 1,
@@ -345,22 +466,45 @@ export async function viewDrafts(db: D1Database, userId: string, rows: DraftRow[
 
 export function batchView(row: BatchRow, now: Date): BatchView {
   return {
-    id: row.id, sourceType: row.source_type, sourceLabel: row.source_label, status: row.status, stage: row.stage,
-    sequence: row.sequence, errorCode: row.error_code, retryAfter: row.retry_after, createdAt: row.created_at,
-    updatedAt: row.updated_at, expiresAt: row.expires_at, expired: isBatchExpired(row, now),
+    id: row.id,
+    sourceType: row.source_type,
+    sourceLabel: row.source_label,
+    status: row.status,
+    stage: row.stage,
+    sequence: row.sequence,
+    errorCode: row.error_code,
+    retryAfter: row.retry_after,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    expiresAt: row.expires_at,
+    expired: isBatchExpired(row, now),
   }
 }
 
 /** Owner-scoped snapshot. An expired batch reports `expired` and no drafts: it can neither be reviewed nor converted. */
-export async function readBatchSnapshot(db: D1Database, userId: string, batchId: string, now: Date): Promise<BatchSnapshot | null> {
+export async function readBatchSnapshot(
+  db: D1Database,
+  userId: string,
+  batchId: string,
+  now: Date,
+): Promise<BatchSnapshot | null> {
   const [batchResult, draftsResult] = await db.batch([
-    db.prepare(`SELECT ${BATCH_COLUMNS} FROM import_batches WHERE id = ? AND user_id = ?`).bind(batchId, userId),
-    db.prepare(`SELECT ${DRAFT_COLUMNS} FROM import_drafts WHERE batch_id = ? AND user_id = ? ORDER BY ordinal`).bind(batchId, userId),
+    db
+      .prepare(`SELECT ${BATCH_COLUMNS} FROM import_batches WHERE id = ? AND user_id = ?`)
+      .bind(batchId, userId),
+    db
+      .prepare(
+        `SELECT ${DRAFT_COLUMNS} FROM import_drafts WHERE batch_id = ? AND user_id = ? ORDER BY ordinal`,
+      )
+      .bind(batchId, userId),
   ])
   const batch = (batchResult.results as BatchRow[])[0]
   if (!batch) return null
   const view = batchView(batch, now)
-  return { batch: view, drafts: view.expired ? [] : await viewDrafts(db, userId, draftsResult.results as DraftRow[]) }
+  return {
+    batch: view,
+    drafts: view.expired ? [] : await viewDrafts(db, userId, draftsResult.results as DraftRow[]),
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -379,11 +523,25 @@ export interface DraftPatch {
 const invalidDraft = (message: string) => new HttpError(400, message, 'INVALID_DRAFT')
 
 export function parseDraftPatch(body: unknown): DraftPatch {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) throw invalidDraft('Request body must be an object')
+  if (!body || typeof body !== 'object' || Array.isArray(body))
+    throw invalidDraft('Request body must be an object')
   const input = body as Record<string, unknown>
-  const allowed = new Set(['version', 'fields', 'selected', 'yearConfirmed', 'duplicateAcknowledged', 'dismissed'])
-  for (const key of Object.keys(input)) if (!allowed.has(key)) throw invalidDraft(`Unknown field: ${key}`)
-  if (typeof input.version !== 'number' || !Number.isSafeInteger(input.version) || input.version < 1) throw invalidDraft('version must be a positive integer')
+  const allowed = new Set([
+    'version',
+    'fields',
+    'selected',
+    'yearConfirmed',
+    'duplicateAcknowledged',
+    'dismissed',
+  ])
+  for (const key of Object.keys(input))
+    if (!allowed.has(key)) throw invalidDraft(`Unknown field: ${key}`)
+  if (
+    typeof input.version !== 'number' ||
+    !Number.isSafeInteger(input.version) ||
+    input.version < 1
+  )
+    throw invalidDraft('version must be a positive integer')
   const patch: DraftPatch = { version: input.version }
   for (const key of ['selected', 'yearConfirmed', 'duplicateAcknowledged', 'dismissed'] as const) {
     if (input[key] === undefined) continue
@@ -391,7 +549,8 @@ export function parseDraftPatch(body: unknown): DraftPatch {
     patch[key] = input[key] as boolean
   }
   if (input.fields !== undefined) {
-    if (!input.fields || typeof input.fields !== 'object' || Array.isArray(input.fields)) throw invalidDraft('fields must be an object')
+    if (!input.fields || typeof input.fields !== 'object' || Array.isArray(input.fields))
+      throw invalidDraft('fields must be an object')
     patch.fields = input.fields as Record<string, unknown>
   }
   return patch
@@ -408,9 +567,13 @@ export function mergeFields(current: DraftFields, patch: Record<string, unknown>
   const check: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(patch)) {
     if (!names.has(key)) throw invalidDraft(`Unknown draft field: ${key}`)
-    if (key === 'date' && value === '') { next.date = ''; continue }
+    if (key === 'date' && value === '') {
+      next.date = ''
+      continue
+    }
     if (value === null || value === '') {
-      if (key === 'origin' || key === 'destination' || key === 'date') throw invalidDraft(`${key} cannot be empty`)
+      if (key === 'origin' || key === 'destination' || key === 'date')
+        throw invalidDraft(`${key} cannot be empty`)
       if (key === 'airline_iata') next.airline_iata = ''
       else delete next[key]
       continue
@@ -418,30 +581,55 @@ export function mergeFields(current: DraftFields, patch: Record<string, unknown>
     check[key] = value
   }
   let normalized: FlightInput
-  try { normalized = validateFlightInput(check, 'patch') } catch (error) {
+  try {
+    normalized = validateFlightInput(check, 'patch')
+  } catch (error) {
     throw invalidDraft(error instanceof Error ? error.message : 'Invalid draft field')
   }
   Object.assign(next, normalized)
   // A changed airline is no longer the placeholder the extraction applied.
-  if (check.airline_iata !== undefined && next.airline_iata !== current.airline_iata) delete next.airline_was_placeholder
+  if (check.airline_iata !== undefined && next.airline_iata !== current.airline_iata)
+    delete next.airline_was_placeholder
   return next as unknown as DraftFields
 }
 
-const canonical = (fields: DraftFields) => JSON.stringify(Object.keys(fields).sort().map(key => [key, (fields as unknown as Record<string, unknown>)[key]]))
+const canonical = (fields: DraftFields) =>
+  JSON.stringify(
+    Object.keys(fields)
+      .sort()
+      .map((key) => [key, (fields as unknown as Record<string, unknown>)[key]]),
+  )
 
-export async function patchDraft(db: D1Database, userId: string, draftId: string, patch: DraftPatch, now: Date): Promise<DraftView> {
+export async function patchDraft(
+  db: D1Database,
+  userId: string,
+  draftId: string,
+  patch: DraftPatch,
+  now: Date,
+): Promise<DraftView> {
   const instant = now.toISOString()
-  const read = () => db.prepare(
-    `SELECT ${DRAFT_COLUMNS.split(',').map(column => `d.${column.trim()}`).join(', ')}, b.expires_at
+  const read = () =>
+    db
+      .prepare(
+        `SELECT ${DRAFT_COLUMNS.split(',')
+          .map((column) => `d.${column.trim()}`)
+          .join(', ')}, b.expires_at
      FROM import_drafts d JOIN import_batches b ON b.id = d.batch_id AND b.user_id = d.user_id
      WHERE d.id = ? AND d.user_id = ?`,
-  ).bind(draftId, userId).first<DraftRow & { expires_at: string }>()
+      )
+      .bind(draftId, userId)
+      .first<DraftRow & { expires_at: string }>()
   const conflict = async () => {
     const row = await read()
     if (!row) return new HttpError(404, 'Draft not found', 'DRAFT_NOT_FOUND')
     if (isBatchExpired(row, now)) return batchExpired()
     const [draft] = await viewDrafts(db, userId, [row])
-    return new HttpError(409, 'This row changed elsewhere. Reload it and try again.', 'DRAFT_VERSION_CONFLICT', { draft })
+    return new HttpError(
+      409,
+      'This row changed elsewhere. Reload it and try again.',
+      'DRAFT_VERSION_CONFLICT',
+      { draft },
+    )
   }
 
   const row = await read()
@@ -452,23 +640,36 @@ export async function patchDraft(db: D1Database, userId: string, draftId: string
   const current = fieldsOf(row)
   const fields = patch.fields ? mergeFields(current, patch.fields) : current
   const edited = row.edited === 1 || canonical(fields) !== canonical(current)
-  const status = patch.dismissed === undefined ? row.status : patch.dismissed ? 'dismissed' : 'review'
+  const status =
+    patch.dismissed === undefined ? row.status : patch.dismissed ? 'dismissed' : 'review'
   const results = await db.batch([
-    db.prepare(
-      `UPDATE import_drafts
+    db
+      .prepare(
+        `UPDATE import_drafts
        SET fields_json = ?, selected = ?, year_confirmed = ?, duplicate_acknowledged = ?, edited = ?, status = ?,
            version = version + 1, updated_at = ?
        WHERE id = ? AND user_id = ? AND version = ? AND status != 'converted'
          AND EXISTS (SELECT 1 FROM import_batches WHERE id = import_drafts.batch_id AND user_id = ? AND expires_at > ?)`,
-    ).bind(
-      JSON.stringify(fields), (patch.selected ?? row.selected === 1) ? 1 : 0, (patch.yearConfirmed ?? row.year_confirmed === 1) ? 1 : 0,
-      (patch.duplicateAcknowledged ?? row.duplicate_acknowledged === 1) ? 1 : 0, edited ? 1 : 0, status, instant,
-      draftId, userId, patch.version, userId, instant,
-    ),
+      )
+      .bind(
+        JSON.stringify(fields),
+        (patch.selected ?? row.selected === 1) ? 1 : 0,
+        (patch.yearConfirmed ?? row.year_confirmed === 1) ? 1 : 0,
+        (patch.duplicateAcknowledged ?? row.duplicate_acknowledged === 1) ? 1 : 0,
+        edited ? 1 : 0,
+        status,
+        instant,
+        draftId,
+        userId,
+        patch.version,
+        userId,
+        instant,
+      ),
     // Same batch as the draft update: a batch with no review row left is completed, and one that gets a review row
     // back (an un-dismiss) is open again. processing, failed and cancelled batches keep their status.
-    db.prepare(
-      `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?,
+    db
+      .prepare(
+        `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?,
          status = CASE
            WHEN status IN ('review', 'partial') AND NOT EXISTS
              (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review') THEN 'completed'
@@ -476,7 +677,8 @@ export async function patchDraft(db: D1Database, userId: string, draftId: string
              (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review') THEN 'review'
            ELSE status END
        WHERE id = ? AND user_id = ? AND expires_at > ? AND changes() = 1`,
-    ).bind(instant, row.batch_id, userId, instant),
+      )
+      .bind(instant, row.batch_id, userId, instant),
   ])
   if ((results[0].meta.changes ?? 0) === 0) throw await conflict()
   const updated = await read()
@@ -489,21 +691,34 @@ export async function patchDraft(db: D1Database, userId: string, draftId: string
 // ---------------------------------------------------------------------------
 
 /** Explicitly delete the drafts, then the batch, in one D1 batch; never rely on the FK cascade (0001_init.sql:13-14). */
-export async function discardBatch(db: D1Database, userId: string, batchId: string): Promise<boolean> {
-  if (!await ownedBatch(db, userId, batchId)) return false
+export async function discardBatch(
+  db: D1Database,
+  userId: string,
+  batchId: string,
+): Promise<boolean> {
+  if (!(await ownedBatch(db, userId, batchId))) return false
   await db.batch([
-    db.prepare('DELETE FROM import_drafts WHERE batch_id = ? AND user_id = ?').bind(batchId, userId),
+    db
+      .prepare('DELETE FROM import_drafts WHERE batch_id = ? AND user_id = ?')
+      .bind(batchId, userId),
     db.prepare('DELETE FROM import_batches WHERE id = ? AND user_id = ?').bind(batchId, userId),
   ])
   return true
 }
 
 /** Cancel is a durable fence even when the live worker cannot be reached. */
-export async function cancelBatch(db: D1Database, userId: string, batchId: string, now = new Date()) {
-  const changed = await db.prepare(`UPDATE import_batches SET status = 'cancelled', stage = NULL, generation = generation + 1,
+export async function cancelBatch(
+  db: D1Database,
+  userId: string,
+  batchId: string,
+  now = new Date(),
+) {
+  const changed = await db
+    .prepare(`UPDATE import_batches SET status = 'cancelled', stage = NULL, generation = generation + 1,
     sequence = sequence + 1, processing_deadline = NULL, updated_at = ?
     WHERE id = ? AND user_id = ? AND status = 'processing' RETURNING status`)
-    .bind(now.toISOString(), batchId, userId).first<{ status: BatchRow['status'] }>()
+    .bind(now.toISOString(), batchId, userId)
+    .first<{ status: BatchRow['status'] }>()
   if (changed) return { cancelled: true, status: changed.status }
   const batch = await ownedBatch(db, userId, batchId)
   if (!batch) throw batchNotFound()
@@ -512,11 +727,20 @@ export async function cancelBatch(db: D1Database, userId: string, batchId: strin
 
 /** Restart/deadline recovery retains review work and never attempts to recover the source. */
 export async function interruptBatch(db: D1Database, fence: BatchFence) {
-  const result = await db.prepare(`UPDATE import_batches SET
+  const result = await db
+    .prepare(`UPDATE import_batches SET
     status = CASE WHEN EXISTS (SELECT 1 FROM import_drafts WHERE batch_id = ? AND user_id = ?) THEN 'partial' ELSE 'failed' END,
     stage = NULL, error_code = 'JOB_INTERRUPTED', generation = generation + 1, sequence = sequence + 1,
     processing_deadline = NULL, updated_at = ? WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?
-    RETURNING sequence`).bind(fence.batchId, fence.userId, new Date().toISOString(), fence.batchId, fence.userId, fence.generation)
+    RETURNING sequence`)
+    .bind(
+      fence.batchId,
+      fence.userId,
+      new Date().toISOString(),
+      fence.batchId,
+      fence.userId,
+      fence.generation,
+    )
     .first<{ sequence: number }>()
   return result ? { sequence: result.sequence, rowIds: [] } : null
 }

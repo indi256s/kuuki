@@ -13,6 +13,7 @@ Implemented full flight CRUD operations, dashboard with real-time stats, route m
 ### Database Migration
 
 Applied migration `phase2_flights` with:
+
 - `is_upcoming` boolean field (auto-set based on date)
 - `origin_tz`, `dest_tz` text fields for timezone storage
 - `departure_utc`, `arrival_utc` timestamptz fields
@@ -56,6 +57,7 @@ packages/data/src/
 ### Features Implemented
 
 **Flight CRUD:**
+
 - Create with required fields (date, origin, destination, airline)
 - Optional fields (aircraft, flight number, departure/arrival times)
 - Auto-calculate distance using great circle × 1.10 routing factor
@@ -64,6 +66,7 @@ packages/data/src/
 - Delete with confirmation modal
 
 **Flight Form:**
+
 - Centered modal with progressive disclosure
 - Required fields visible, optional behind "Add more details"
 - Autocomplete for all lookup fields with keyboard navigation
@@ -72,12 +75,14 @@ packages/data/src/
 - Keyboard shortcuts: Ctrl+S to save, Escape to close
 
 **Future Flights:**
+
 - Stored with `is_upcoming = true`
 - Excluded from stats calculations
 - Display countdown ("X days away")
 - Auto-sync on page load (converts past dates to completed)
 
 **Dashboard:**
+
 - Stats cards: total flights, distance, countries, airlines
 - Route map with SVG great-circle arcs
 - Color toggle (by airline or by route)
@@ -86,12 +91,14 @@ packages/data/src/
 - Empty state when no flights
 
 **Flight List:**
+
 - Responsive: table on desktop, cards on mobile
 - Filter by year and airline
 - Infinite scroll pagination
 - Edit/delete actions per flight
 
 **Route Map:**
+
 - SVG-based visualization (no Mapbox dependency)
 - Great-circle arcs between airports
 - Airport dots with IATA labels
@@ -101,6 +108,7 @@ packages/data/src/
 ### Reference Data
 
 Added to `packages/data/`:
+
 - 115 major world airports with coordinates and timezones
 - 90+ airlines with IATA codes and brand colors
 - Search helpers: `searchAirports()`, `searchAirlines()`, `searchAircraft()`
@@ -109,6 +117,7 @@ Added to `packages/data/`:
 ### Translations
 
 Added 40+ new i18n keys in EN and RU for:
+
 - Flight form labels and placeholders
 - Dashboard stats and sections
 - Flight list filters and actions

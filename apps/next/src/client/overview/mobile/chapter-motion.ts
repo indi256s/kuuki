@@ -12,9 +12,13 @@ const DETENT_TICK = 8
 const SETTLE_QUIET = 120
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+const token = (name: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 /** Duration tokens may compile to seconds (`.15s`), as FeedbackText also allows for. */
-const ms = (name: string) => { const value = token(name); return parseFloat(value) * (value.endsWith('ms') ? 1 : 1000) || 0 }
+const ms = (name: string) => {
+  const value = token(name)
+  return parseFloat(value) * (value.endsWith('ms') ? 1 : 1000) || 0
+}
 
 /** Scroll Snap Events (Chromium 129+); without them there is no detent tick. */
 type SnapEvent = Event & { snapTargetInline: Element | null }
@@ -32,11 +36,22 @@ function trackPosition(track: HTMLElement) {
  * Each line fades out and slides with the outgoing chapter until the halfway point, switches there, and arrives with the
  * incoming one. The chapter becomes `openId` once the track settles.
  */
-export function useChapterTrack({ openId, order, onNavigate }: { openId: SectionId | null; order: SectionId[]; onNavigate: (id: SectionId) => void }) {
+export function useChapterTrack({
+  openId,
+  order,
+  onNavigate,
+}: {
+  openId: SectionId | null
+  order: SectionId[]
+  onNavigate: (id: SectionId) => void
+}) {
   const track = useRef<HTMLDivElement | null>(null)
   // Radix mounts the sheet's portal a commit after it opens, so effects wait for the track node itself.
   const [trackNode, setTrackNode] = useState<HTMLDivElement | null>(null)
-  const trackRef = useCallback((node: HTMLDivElement | null) => { track.current = node; setTrackNode(node) }, [])
+  const trackRef = useCallback((node: HTMLDivElement | null) => {
+    track.current = node
+    setTrackNode(node)
+  }, [])
   const heading = useRef<HTMLSpanElement>(null)
   const previousLabel = useRef<HTMLSpanElement>(null)
   const nextLabel = useRef<HTMLSpanElement>(null)
@@ -52,14 +67,18 @@ export function useChapterTrack({ openId, order, onNavigate }: { openId: Section
   const touching = useRef(false)
   const orderKey = order.join()
   const navigate = useRef(onNavigate)
-  useLayoutEffect(() => { navigate.current = onNavigate })
+  useLayoutEffect(() => {
+    navigate.current = onNavigate
+  })
   // A chapter opened from outside (a tile, closing, Hide) is shown at once; our own settles already match.
   const [synced, setSynced] = useState(openId)
   if (openId !== synced) {
     setSynced(openId)
     if (!openId || !shown || !order.includes(shown)) setShown(openId)
   }
-  useLayoutEffect(() => { shownRef.current = shown }, [shown])
+  useLayoutEffect(() => {
+    shownRef.current = shown
+  }, [shown])
 
   /** Switches the heading, labels and pager to `id`. */
   const show = (id: SectionId) => {
@@ -84,8 +103,11 @@ export function useChapterTrack({ openId, order, onNavigate }: { openId: Section
   // Opening, Hide and Move up/down put the open chapter in view without travel.
   useLayoutEffect(() => {
     const node = trackNode
-    const slide = openId ? node?.children[order.indexOf(openId)] as HTMLElement | undefined : undefined
-    if (node && slide && Math.abs(node.scrollLeft - slide.offsetLeft) > 1) node.scrollTo({ left: slide.offsetLeft, behavior: 'instant' })
+    const slide = openId
+      ? (node?.children[order.indexOf(openId)] as HTMLElement | undefined)
+      : undefined
+    if (node && slide && Math.abs(node.scrollLeft - slide.offsetLeft) > 1)
+      node.scrollTo({ left: slide.offsetLeft, behavior: 'instant' })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `order` is a fresh array on every render; its contents are `orderKey`.
   }, [openId, orderKey, trackNode])
 
@@ -102,7 +124,9 @@ export function useChapterTrack({ openId, order, onNavigate }: { openId: Section
       show(id)
       paintText(0)
       // Every other chapter starts at its top next time.
-      Array.from(node.children).forEach((slide, index) => { if (order[index] !== id) slide.scrollTop = 0 })
+      Array.from(node.children).forEach((slide, index) => {
+        if (order[index] !== id) slide.scrollTop = 0
+      })
       if (id !== openId) navigate.current(id)
     }
     const scrollEnd = 'onscrollend' in node
@@ -114,21 +138,30 @@ export function useChapterTrack({ openId, order, onNavigate }: { openId: Section
       const position = Math.max(0, Math.min(last, trackPosition(node)))
       const nearest = Math.round(position)
       // The new text must be in the DOM in the same frame its fade starts, or the old one flashes back for a frame.
-      if (!pinned.current && order[nearest] && order[nearest] !== shownRef.current) flushSync(() => show(order[nearest]))
+      if (!pinned.current && order[nearest] && order[nearest] !== shownRef.current)
+        flushSync(() => show(order[nearest]))
       paintText(Math.abs(position - nearest) < 0.001 ? 0 : position - nearest)
     }
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(follow)
-      if (!scrollEnd) { window.clearTimeout(quiet); quiet = window.setTimeout(settle, SETTLE_QUIET) }
+      if (!scrollEnd) {
+        window.clearTimeout(quiet)
+        quiet = window.setTimeout(settle, SETTLE_QUIET)
+      }
     }
     // Velocity-aware: fires as soon as a release would land on another chapter, before the finger lifts.
     const onSnapChanging = (event: Event) => {
       const target = (event as SnapEvent).snapTargetInline
-      if (target && target !== lastDetent.current && touching.current) navigator.vibrate?.(DETENT_TICK)
+      if (target && target !== lastDetent.current && touching.current)
+        navigator.vibrate?.(DETENT_TICK)
       lastDetent.current = target
     }
-    const onTouchStart = () => { touching.current = true }
-    const onTouchEnd = () => { touching.current = false }
+    const onTouchStart = () => {
+      touching.current = true
+    }
+    const onTouchEnd = () => {
+      touching.current = false
+    }
     node.addEventListener('scroll', onScroll, { passive: true })
     node.addEventListener('scrollend', settle)
     node.addEventListener('scrollsnapchanging', onSnapChanging)
@@ -157,10 +190,17 @@ export function useChapterTrack({ openId, order, onNavigate }: { openId: Section
     const slide = node?.children[index] as HTMLElement | undefined
     if (!node || !target || !slide) return
     aimed.current = target
-    if (keyboard) { pinned.current = true; show(target); paintText(0) }
+    if (keyboard) {
+      pinned.current = true
+      show(target)
+      paintText(0)
+    }
     if (reducedMotion()) {
       node.scrollTo({ left: slide.offsetLeft, behavior: 'instant' })
-      slide.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms('--dur-fast'), easing: 'linear' })
+      slide.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: ms('--dur-fast'),
+        easing: 'linear',
+      })
     } else node.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' })
   }
 

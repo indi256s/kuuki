@@ -8,21 +8,37 @@ export function gateActivationHost(request: Request, env: Env): Response | 'acti
   try {
     activationOrigin = configuredActivationOrigin(env)
   } catch {
-    return new Response('Service temporarily unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } })
+    return new Response('Service temporarily unavailable', {
+      status: 503,
+      headers: { 'Cache-Control': 'no-store' },
+    })
   }
   const url = new URL(request.url)
   if (url.origin !== activationOrigin) return null
-  if ((request.method === 'GET' || request.method === 'HEAD') &&
-      (url.pathname === '/activate' || url.pathname === '/activate.html' || url.pathname === '/activate.js')) return 'activation'
-  if (request.method === 'POST' && url.pathname === '/api/auth/activation/complete') return 'activation'
+  if (
+    (request.method === 'GET' || request.method === 'HEAD') &&
+    (url.pathname === '/activate' ||
+      url.pathname === '/activate.html' ||
+      url.pathname === '/activate.js')
+  )
+    return 'activation'
+  if (request.method === 'POST' && url.pathname === '/api/auth/activation/complete')
+    return 'activation'
   if (request.method === 'GET' || request.method === 'HEAD') {
     // The sign-in return (`/?mode=signin`) resolves to the card's password-saved notice; `mode=signin` stays so a legacy
     // rollback still opens sign-in. The empty fragment keeps the browser from carrying a token fragment across.
     const signIn = url.pathname === '/' && url.searchParams.get('mode') === 'signin'
-    return new Response(null, { status: 302, headers: {
-      Location: new URL(signIn ? '/?mode=signin&notice=password-saved#' : '/#', env.PAGES_ORIGIN).toString(),
-      'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer',
-    } })
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: new URL(
+          signIn ? '/?mode=signin&notice=password-saved#' : '/#',
+          env.PAGES_ORIGIN,
+        ).toString(),
+        'Cache-Control': 'no-store',
+        'Referrer-Policy': 'no-referrer',
+      },
+    })
   }
   return new Response('Forbidden', { status: 403, headers: { 'Cache-Control': 'no-store' } })
 }
@@ -30,5 +46,7 @@ export function gateActivationHost(request: Request, env: Env): Response | 'acti
 /** Enforce a maintenance hold before D1 work on private reads and all API routes. */
 export function maintenanceResponse(env: Env): Response | null {
   if (env.MAINTENANCE_MODE !== 'true') return null
-  return jsonError(503, 'Service temporarily unavailable', 'MAINTENANCE', { headers: { 'Retry-After': '300' } })
+  return jsonError(503, 'Service temporarily unavailable', 'MAINTENANCE', {
+    headers: { 'Retry-After': '300' },
+  })
 }

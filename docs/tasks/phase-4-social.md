@@ -37,13 +37,13 @@
 
 **Categories:**
 
-| Category | Metric |
-|----------|--------|
+| Category  | Metric                   |
+| --------- | ------------------------ |
 | countries | Unique countries visited |
-| cities | Unique cities visited |
-| flights | Total flight count |
-| distance | Total km flown |
-| airlines | Unique airlines |
+| cities    | Unique cities visited    |
+| flights   | Total flight count       |
+| distance  | Total km flown           |
+| airlines  | Unique airlines          |
 
 - [x] **Display:** Percentile only ("You're in the top 15%")
 - [x] **Opt-in:** User must enable `show_on_leaderboards` in settings
@@ -55,12 +55,12 @@
 
 **Categories:**
 
-| Type | Examples |
-|------|----------|
-| Milestones | First Flight, Frequent Flyer (50), Centurion (100), Circumnavigator |
-| Explorer | Arctic Circle, Equator Hopper, Island Collector |
-| Collector | Fleet Master, Alliance Ace, Retro |
-| Achievement | Iron Butt (12+ hr), Night Owl, Jet Setter |
+| Type        | Examples                                                            |
+| ----------- | ------------------------------------------------------------------- |
+| Milestones  | First Flight, Frequent Flyer (50), Centurion (100), Circumnavigator |
+| Explorer    | Arctic Circle, Equator Hopper, Island Collector                     |
+| Collector   | Fleet Master, Alliance Ace, Retro                                   |
+| Achievement | Iron Butt (12+ hr), Night Owl, Jet Setter                           |
 
 - [x] **Display:** Earned badges only, no progress indicators
 

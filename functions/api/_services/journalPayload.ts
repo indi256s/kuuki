@@ -23,7 +23,10 @@ export type FlightFirsts = {
 export type JournalRefs = {
   airports: Record<string, { city: string | null; name: string; country: string | null }>
   airlines: Record<string, { name: string }>
-  aircraft: Record<string, { name: string | null; family: string | null; manufacturer: string | null; type: string | null }>
+  aircraft: Record<
+    string,
+    { name: string | null; family: string | null; manufacturer: string | null; type: string | null }
+  >
 }
 
 export type JournalPayload = {

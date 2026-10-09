@@ -18,11 +18,20 @@ type Props = {
   locale: 'en' | 'ru'
 }
 
-export const isPublicationPending = (revision: number, publishedRevision: number, derivedState?: Props['derivedState']) =>
-  revision > publishedRevision || (derivedState !== undefined && derivedState !== 'ready')
+export const isPublicationPending = (
+  revision: number,
+  publishedRevision: number,
+  derivedState?: Props['derivedState'],
+) => revision > publishedRevision || (derivedState !== undefined && derivedState !== 'ready')
 
 /** RSC owns summaries; this status-only bridge never fetches a second summary. */
-export function ReadFreshness({ ownerId, revision, publishedRevision, derivedState, locale }: Props) {
+export function ReadFreshness({
+  ownerId,
+  revision,
+  publishedRevision,
+  derivedState,
+  locale,
+}: Props) {
   const pending = isPublicationPending(revision, publishedRevision, derivedState)
   const router = useRouter()
   const [delayed, setDelayed] = useState(false)
@@ -33,16 +42,18 @@ export function ReadFreshness({ ownerId, revision, publishedRevision, derivedSta
     let lastRefresh = Date.now()
     const current = () => !controller.signal.aborted && generation === getAuthGeneration()
     const refresh = () => {
-      if (!current() || document.visibilityState !== 'visible' || Date.now() - lastRefresh < 5000) return
+      if (!current() || document.visibilityState !== 'visible' || Date.now() - lastRefresh < 5000)
+        return
       lastRefresh = Date.now()
       router.refresh()
     }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', refresh)
-    if (pending) void awaitPublication(revision, controller.signal, current).then(result => {
-      if (result === 'ready') router.refresh()
-      else if (result === 'delayed') setDelayed(true)
-    })
+    if (pending)
+      void awaitPublication(revision, controller.signal, current).then((result) => {
+        if (result === 'ready') router.refresh()
+        else if (result === 'delayed') setDelayed(true)
+      })
     return () => {
       controller.abort()
       release()
@@ -51,7 +62,11 @@ export function ReadFreshness({ ownerId, revision, publishedRevision, derivedSta
     }
   }, [ownerId, revision, publishedRevision, pending, router])
   if (!pending || !delayed) return null
-  return <p role="status" className="status-note">{locale === 'ru'
-    ? 'Обновление итогов занимает больше времени. Перелёты сохранены. Проверьте итоги позже.'
-    : 'Totals are taking longer to update. Your flights are saved. Check again later.'}</p>
+  return (
+    <p role="status" className="status-note">
+      {locale === 'ru'
+        ? 'Обновление итогов занимает больше времени. Перелёты сохранены. Проверьте итоги позже.'
+        : 'Totals are taking longer to update. Your flights are saved. Check again later.'}
+    </p>
+  )
 }

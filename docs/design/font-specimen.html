@@ -1,75 +1,186 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><title>Kuuki font specimen</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<!-- Docs-only evidence for DESIGN.md "Typeface decision". Golos Text and Manrope load from Google Fonts here and are never shipped. -->
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..700&family=Manrope:wght@400..700&display=swap&subset=cyrillic">
-<style>
-@font-face{font-family:"Onest";src:url("../../apps/next/public/fonts/Onest.ttf") format("truetype");font-weight:100 900;font-display:swap}
-body{margin:0;padding:32px;background:#fbfaf8;color:#302d2a;font:15px/24px system-ui,sans-serif}
-h1{font:600 22px/28px system-ui;margin:0 0 24px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.col{background:#fff;border:1px solid #e8e5e0;border-radius:14px;padding:20px;font-variant-numeric:tabular-nums}
-h2{font-size:17px;line-height:24px;margin:0 0 8px;font-weight:600}
-.lbl{font-size:12px;line-height:16px;color:#6b6762;margin:16px 0 4px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
-.nav b{font-weight:600;color:#a4452c} .nav{margin:0;font-size:15px}
-.field{display:flex;flex-direction:column;border:1px solid #8f8a84;border-radius:10px;padding:8px 12px}
-.fl{font-size:12px;line-height:16px;color:#6b6762;font-weight:500} .fv{font-size:15px}
-.route{font-size:17px;font-weight:600;margin:0} .big{font-size:44px;line-height:48px;font-weight:600;letter-spacing:-.02em;margin:0}
-.tab{font-size:22px;margin:4px 0 0} .big2{font-size:30px;line-height:36px;font-weight:600;margin:0}
-</style></head><body>
-<h1>Kuuki typeface specimen: Onest vs Golos Text vs Manrope</h1>
-<div class="grid">
-<section class="col" style="font-family:'Onest',system-ui,sans-serif">
-<h2>Onest</h2>
-<p class="lbl">Nav RU / EN</p>
-<p class="nav"><b>Обзор</b> Журнал Паспорт Рейтинг</p>
-<p class="nav"><b>Overview</b> Journal Passport Leaderboard</p>
-<p class="lbl">Field label + value</p>
-<div class="field"><span class="fl">Аэропорт вылета / Departure airport</span><span class="fv">Шереметьево SVO</span></div>
-<p class="lbl">Route</p>
-<p class="route">Шереметьево SVO → Токио HND</p>
-<p class="lbl">Distance, tabular numerals</p>
-<p class="big">141 255 км</p>
-<p class="tab">0123456789 &nbsp; 1111 / 8888</p>
-<p class="lbl">Long words</p>
-<p class="big2">Авиакомпании</p><p class="big2">Ждут отметки</p>
-<p class="lbl">Plurals</p>
-<p>1 рейс · 2 рейса · 5 рейсов · 21 рейс<br>1 страна · 3 страны · 11 стран · 22 страны<br>1 flight · 2 flights · 1 country · 5 countries</p>
-</section>
-<section class="col" style="font-family:'Golos Text',system-ui,sans-serif">
-<h2>Golos Text</h2>
-<p class="lbl">Nav RU / EN</p>
-<p class="nav"><b>Обзор</b> Журнал Паспорт Рейтинг</p>
-<p class="nav"><b>Overview</b> Journal Passport Leaderboard</p>
-<p class="lbl">Field label + value</p>
-<div class="field"><span class="fl">Аэропорт вылета / Departure airport</span><span class="fv">Шереметьево SVO</span></div>
-<p class="lbl">Route</p>
-<p class="route">Шереметьево SVO → Токио HND</p>
-<p class="lbl">Distance, tabular numerals</p>
-<p class="big">141 255 км</p>
-<p class="tab">0123456789 &nbsp; 1111 / 8888</p>
-<p class="lbl">Long words</p>
-<p class="big2">Авиакомпании</p><p class="big2">Ждут отметки</p>
-<p class="lbl">Plurals</p>
-<p>1 рейс · 2 рейса · 5 рейсов · 21 рейс<br>1 страна · 3 страны · 11 стран · 22 страны<br>1 flight · 2 flights · 1 country · 5 countries</p>
-</section>
-<section class="col" style="font-family:'Manrope',system-ui,sans-serif">
-<h2>Manrope</h2>
-<p class="lbl">Nav RU / EN</p>
-<p class="nav"><b>Обзор</b> Журнал Паспорт Рейтинг</p>
-<p class="nav"><b>Overview</b> Journal Passport Leaderboard</p>
-<p class="lbl">Field label + value</p>
-<div class="field"><span class="fl">Аэропорт вылета / Departure airport</span><span class="fv">Шереметьево SVO</span></div>
-<p class="lbl">Route</p>
-<p class="route">Шереметьево SVO → Токио HND</p>
-<p class="lbl">Distance, tabular numerals</p>
-<p class="big">141 255 км</p>
-<p class="tab">0123456789 &nbsp; 1111 / 8888</p>
-<p class="lbl">Long words</p>
-<p class="big2">Авиакомпании</p><p class="big2">Ждут отметки</p>
-<p class="lbl">Plurals</p>
-<p>1 рейс · 2 рейса · 5 рейсов · 21 рейс<br>1 страна · 3 страны · 11 стран · 22 страны<br>1 flight · 2 flights · 1 country · 5 countries</p>
-</section>
-</div>
-</body></html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kuuki font specimen</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- Docs-only evidence for DESIGN.md "Typeface decision". Golos Text and Manrope load from Google Fonts here and are never shipped. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..700&family=Manrope:wght@400..700&display=swap&subset=cyrillic"
+    />
+    <style>
+      @font-face {
+        font-family: 'Onest';
+        src: url('../../apps/next/public/fonts/Onest.ttf') format('truetype');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #fbfaf8;
+        color: #302d2a;
+        font:
+          15px/24px system-ui,
+          sans-serif;
+      }
+      h1 {
+        font: 600 22px/28px system-ui;
+        margin: 0 0 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+      .col {
+        background: #fff;
+        border: 1px solid #e8e5e0;
+        border-radius: 14px;
+        padding: 20px;
+        font-variant-numeric: tabular-nums;
+      }
+      h2 {
+        font-size: 17px;
+        line-height: 24px;
+        margin: 0 0 8px;
+        font-weight: 600;
+      }
+      .lbl {
+        font-size: 12px;
+        line-height: 16px;
+        color: #6b6762;
+        margin: 16px 0 4px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .nav b {
+        font-weight: 600;
+        color: #a4452c;
+      }
+      .nav {
+        margin: 0;
+        font-size: 15px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #8f8a84;
+        border-radius: 10px;
+        padding: 8px 12px;
+      }
+      .fl {
+        font-size: 12px;
+        line-height: 16px;
+        color: #6b6762;
+        font-weight: 500;
+      }
+      .fv {
+        font-size: 15px;
+      }
+      .route {
+        font-size: 17px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .big {
+        font-size: 44px;
+        line-height: 48px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .tab {
+        font-size: 22px;
+        margin: 4px 0 0;
+      }
+      .big2 {
+        font-size: 30px;
+        line-height: 36px;
+        font-weight: 600;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kuuki typeface specimen: Onest vs Golos Text vs Manrope</h1>
+    <div class="grid">
+      <section class="col" style="font-family: 'Onest', system-ui, sans-serif">
+        <h2>Onest</h2>
+        <p class="lbl">Nav RU / EN</p>
+        <p class="nav"><b>Обзор</b> Журнал Паспорт Рейтинг</p>
+        <p class="nav"><b>Overview</b> Journal Passport Leaderboard</p>
+        <p class="lbl">Field label + value</p>
+        <div class="field">
+          <span class="fl">Аэропорт вылета / Departure airport</span
+          ><span class="fv">Шереметьево SVO</span>
+        </div>
+        <p class="lbl">Route</p>
+        <p class="route">Шереметьево SVO → Токио HND</p>
+        <p class="lbl">Distance, tabular numerals</p>
+        <p class="big">141 255 км</p>
+        <p class="tab">0123456789 &nbsp; 1111 / 8888</p>
+        <p class="lbl">Long words</p>
+        <p class="big2">Авиакомпании</p>
+        <p class="big2">Ждут отметки</p>
+        <p class="lbl">Plurals</p>
+        <p>
+          1 рейс · 2 рейса · 5 рейсов · 21 рейс<br />1 страна · 3 страны · 11 стран · 22 страны<br />1
+          flight · 2 flights · 1 country · 5 countries
+        </p>
+      </section>
+      <section class="col" style="font-family: 'Golos Text', system-ui, sans-serif">
+        <h2>Golos Text</h2>
+        <p class="lbl">Nav RU / EN</p>
+        <p class="nav"><b>Обзор</b> Журнал Паспорт Рейтинг</p>
+        <p class="nav"><b>Overview</b> Journal Passport Leaderboard</p>
+        <p class="lbl">Field label + value</p>
+        <div class="field">
+          <span class="fl">Аэропорт вылета / Departure airport</span
+          ><span class="fv">Шереметьево SVO</span>
+        </div>
+        <p class="lbl">Route</p>
+        <p class="route">Шереметьево SVO → Токио HND</p>
+        <p class="lbl">Distance, tabular numerals</p>
+        <p class="big">141 255 км</p>
+        <p class="tab">0123456789 &nbsp; 1111 / 8888</p>
+        <p class="lbl">Long words</p>
+        <p class="big2">Авиакомпании</p>
+        <p class="big2">Ждут отметки</p>
+        <p class="lbl">Plurals</p>
+        <p>
+          1 рейс · 2 рейса · 5 рейсов · 21 рейс<br />1 страна · 3 страны · 11 стран · 22 страны<br />1
+          flight · 2 flights · 1 country · 5 countries
+        </p>
+      </section>
+      <section class="col" style="font-family: 'Manrope', system-ui, sans-serif">
+        <h2>Manrope</h2>
+        <p class="lbl">Nav RU / EN</p>
+        <p class="nav"><b>Обзор</b> Журнал Паспорт Рейтинг</p>
+        <p class="nav"><b>Overview</b> Journal Passport Leaderboard</p>
+        <p class="lbl">Field label + value</p>
+        <div class="field">
+          <span class="fl">Аэропорт вылета / Departure airport</span
+          ><span class="fv">Шереметьево SVO</span>
+        </div>
+        <p class="lbl">Route</p>
+        <p class="route">Шереметьево SVO → Токио HND</p>
+        <p class="lbl">Distance, tabular numerals</p>
+        <p class="big">141 255 км</p>
+        <p class="tab">0123456789 &nbsp; 1111 / 8888</p>
+        <p class="lbl">Long words</p>
+        <p class="big2">Авиакомпании</p>
+        <p class="big2">Ждут отметки</p>
+        <p class="lbl">Plurals</p>
+        <p>
+          1 рейс · 2 рейса · 5 рейсов · 21 рейс<br />1 страна · 3 страны · 11 стран · 22 страны<br />1
+          flight · 2 flights · 1 country · 5 countries
+        </p>
+      </section>
+    </div>
+  </body>
+</html>

@@ -55,10 +55,16 @@ export function formatDateOnly(locale: Locale, value: string, style: DateStyle =
   const date = utcFromDateOnly(value)
   if (!date) return value
   if (style === 'short') {
-    const year = String(date.getUTCFullYear()).padStart(4, '0'), month = String(date.getUTCMonth() + 1).padStart(2, '0'), day = String(date.getUTCDate()).padStart(2, '0')
+    const year = String(date.getUTCFullYear()).padStart(4, '0'),
+      month = String(date.getUTCMonth() + 1).padStart(2, '0'),
+      day = String(date.getUTCDate()).padStart(2, '0')
     return locale === 'ru' ? `${day}.${month}.${year}` : `${month}/${day}/${year}`
   }
-  return new Intl.DateTimeFormat(locale, { ...dateOptions[style], timeZone: 'UTC' }).formatToParts(date).map(part => part.type === 'year' ? String(date.getUTCFullYear()) : part.value).join('').replaceAll('\u202f', ' ')
+  return new Intl.DateTimeFormat(locale, { ...dateOptions[style], timeZone: 'UTC' })
+    .formatToParts(date)
+    .map((part) => (part.type === 'year' ? String(date.getUTCFullYear()) : part.value))
+    .join('')
+    .replaceAll('\u202f', ' ')
 }
 
 /**
@@ -66,27 +72,47 @@ export function formatDateOnly(locale: Locale, value: string, style: DateStyle =
  * "kept until" names the day the member will actually see. `timeZone` is only for tests and server rendering.
  * Returns the input unchanged if it is not a valid instant.
  */
-export function formatInstantDate(locale: Locale, value: string, style: DateStyle = 'medium', timeZone?: string): string {
+export function formatInstantDate(
+  locale: Locale,
+  value: string,
+  style: DateStyle = 'medium',
+  timeZone?: string,
+): string {
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(locale, { ...dateOptions[style], ...(timeZone ? { timeZone } : {}) }).format(date)
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat(locale, {
+        ...dateOptions[style],
+        ...(timeZone ? { timeZone } : {}),
+      }).format(date)
 }
 
 /**
  * Month and year, e.g. "October 2026" / «октябрь 2026 г.» (Intl's standalone nominative form for Russian).
  * Accepts a Date (read in UTC) or a 'YYYY-MM[-DD]' string (never shifted).
  */
-export function formatMonthYear(locale: Locale, value: Date | string, month: 'long' | 'short' = 'long'): string {
+export function formatMonthYear(
+  locale: Locale,
+  value: Date | string,
+  month: 'long' | 'short' = 'long',
+): string {
   const date = typeof value === 'string' ? utcFromDateOnly(value) : value
   return date && !Number.isNaN(date.getTime())
-    ? new Intl.DateTimeFormat(locale, { month, year: 'numeric', timeZone: 'UTC' }).formatToParts(date).map(part => part.type === 'year' ? String(date.getUTCFullYear()) : part.value).join('').replaceAll('\u202f', ' ')
+    ? new Intl.DateTimeFormat(locale, { month, year: 'numeric', timeZone: 'UTC' })
+        .formatToParts(date)
+        .map((part) => (part.type === 'year' ? String(date.getUTCFullYear()) : part.value))
+        .join('')
+        .replaceAll('\u202f', ' ')
     : String(value)
 }
 
 /** "2 h 5 min" / "2 ч 5 мин"; whole minutes, hours omitted below 60 and minutes omitted on the hour. */
 export function formatDuration(locale: Locale, minutes: number): string {
   const total = Math.max(0, Math.round(minutes))
-  const h = Math.floor(total / 60), m = total % 60
-  const hUnit = locale === 'ru' ? 'ч' : 'h', mUnit = locale === 'ru' ? 'мин' : 'min'
+  const h = Math.floor(total / 60),
+    m = total % 60
+  const hUnit = locale === 'ru' ? 'ч' : 'h',
+    mUnit = locale === 'ru' ? 'мин' : 'min'
   const parts: string[] = []
   if (h) parts.push(`${formatNumber(locale, h)}${NBSP}${hUnit}`)
   if (m || !h) parts.push(`${formatNumber(locale, m)}${NBSP}${mUnit}`)
@@ -96,7 +122,8 @@ export function formatDuration(locale: Locale, minutes: number): string {
 /** Whole hours, clamped at zero; day-bearing values retain the remaining hours. */
 export function formatDurationDays(locale: Locale, minutes: number): string {
   const total = Number.isFinite(minutes) ? Math.max(0, Math.floor(minutes / 60)) : 0
-  const days = Math.floor(total / 24), hours = total % 24
+  const days = Math.floor(total / 24),
+    hours = total % 24
   const hour = `${formatNumber(locale, hours)}${NBSP}${locale === 'ru' ? 'ч' : 'h'}`
   return days ? `${formatNumber(locale, days)}${NBSP}${locale === 'ru' ? 'д' : 'd'} ${hour}` : hour
 }
@@ -111,11 +138,21 @@ export function formatRelativeDate(locale: Locale, value: string, now = new Date
   if (!date) return value
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12)
   const days = Math.max(0, Math.round((today - date.getTime()) / 86_400_000))
-  if (days < 7) return new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' }).format(-days, 'day')
+  if (days < 7)
+    return new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' }).format(
+      -days,
+      'day',
+    )
   const format = new Intl.RelativeTimeFormat(locale, { numeric: 'always', style: 'short' })
   if (days < 30) return format.format(-Math.floor(days / 7), 'week')
-  const months = (now.getUTCFullYear() - date.getUTCFullYear()) * 12 + now.getUTCMonth() - date.getUTCMonth() - (now.getUTCDate() < date.getUTCDate() ? 1 : 0)
-  return months < 12 ? format.format(-Math.max(1, months), 'month') : format.format(-Math.floor(months / 12), 'year')
+  const months =
+    (now.getUTCFullYear() - date.getUTCFullYear()) * 12 +
+    now.getUTCMonth() -
+    date.getUTCMonth() -
+    (now.getUTCDate() < date.getUTCDate() ? 1 : 0)
+  return months < 12
+    ? format.format(-Math.max(1, months), 'month')
+    : format.format(-Math.floor(months / 12), 'year')
 }
 
 /** Period bounds may be legacy months or exact calendar days. */

@@ -14,7 +14,13 @@ import {
   EXTRACTION_TASK,
 } from './_shared'
 import { decodedBase64Size } from './_body'
-import { DEFAULT_MODEL, PROVIDER_TIMEOUT_MS, ProviderResponseError, providerFailure, usageBucket } from './_provider'
+import {
+  DEFAULT_MODEL,
+  PROVIDER_TIMEOUT_MS,
+  ProviderResponseError,
+  providerFailure,
+  usageBucket,
+} from './_provider'
 import { HttpError } from '../_lib/http'
 import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
 import { parseStructuredText } from './_text'
@@ -68,21 +74,28 @@ export const FLIGHT_RESPONSE_SCHEMA = {
           },
           date_month_day: {
             type: Type.STRING,
-            description: 'MM-DD when the day and month are printed but the year is not; otherwise empty string',
+            description:
+              'MM-DD when the day and month are printed but the year is not; otherwise empty string',
           },
           origin_hint: {
             type: Type.STRING,
-            description: 'The city or airport name exactly as written when that code is left empty (for example a city with several airports); otherwise empty string',
+            description:
+              'The city or airport name exactly as written when that code is left empty (for example a city with several airports); otherwise empty string',
           },
           destination_hint: {
             type: Type.STRING,
-            description: 'The city or airport name exactly as written when that code is left empty (for example a city with several airports); otherwise empty string',
+            description:
+              'The city or airport name exactly as written when that code is left empty (for example a city with several airports); otherwise empty string',
           },
           confidence: {
             type: Type.NUMBER,
             description: 'Overall confidence score 0-1',
           },
-          review_required: { type: Type.BOOLEAN, description: 'True for conflicting evidence or unresolved required facts; keep for manual review' },
+          review_required: {
+            type: Type.BOOLEAN,
+            description:
+              'True for conflicting evidence or unresolved required facts; keep for manual review',
+          },
           field_confidence: {
             type: Type.OBJECT,
             description: 'Per-field confidence scores',
@@ -90,20 +103,40 @@ export const FLIGHT_RESPONSE_SCHEMA = {
               date: { type: Type.NUMBER, description: 'Confidence for date field 0-1' },
               date_year_explicit: {
                 type: Type.BOOLEAN,
-                description: 'true only if the year is explicitly visible; false when absent, with date empty',
+                description:
+                  'true only if the year is explicitly visible; false when absent, with date empty',
               },
               origin: { type: Type.NUMBER, description: 'Confidence for origin field 0-1' },
-              destination: { type: Type.NUMBER, description: 'Confidence for destination field 0-1' },
+              destination: {
+                type: Type.NUMBER,
+                description: 'Confidence for destination field 0-1',
+              },
               airline_iata: { type: Type.NUMBER, description: 'Confidence for airline code 0-1' },
               flight_number: { type: Type.NUMBER, description: 'Confidence for flight number 0-1' },
               aircraft_icao: { type: Type.NUMBER, description: 'Confidence for aircraft type 0-1' },
-              departure_time: { type: Type.NUMBER, description: 'Confidence for departure time 0-1' },
+              departure_time: {
+                type: Type.NUMBER,
+                description: 'Confidence for departure time 0-1',
+              },
               arrival_time: { type: Type.NUMBER, description: 'Confidence for arrival time 0-1' },
             },
             required: ['date', 'date_year_explicit', 'origin', 'destination', 'airline_iata'],
           },
         },
-        required: ['date', 'origin', 'destination', 'airline_iata', 'departure_time', 'arrival_time', 'date_month_day', 'origin_hint', 'destination_hint', 'confidence', 'field_confidence', 'review_required'],
+        required: [
+          'date',
+          'origin',
+          'destination',
+          'airline_iata',
+          'departure_time',
+          'arrival_time',
+          'date_month_day',
+          'origin_hint',
+          'destination_hint',
+          'confidence',
+          'field_confidence',
+          'review_required',
+        ],
       },
     },
     raw_text: {
@@ -151,23 +184,38 @@ async function extractFlightsWithGemini(
   try {
     parsedResponse = JSON.parse(responseText)
   } catch {
-    console.error(JSON.stringify({ event: 'gemini_parse_error', response_length: responseText.length }))
+    console.error(
+      JSON.stringify({ event: 'gemini_parse_error', response_length: responseText.length }),
+    )
     throw new ProviderResponseError('Invalid AI JSON')
   }
   if (!parsedResponse || !Array.isArray(parsedResponse.flights)) {
     throw new ProviderResponseError('Invalid AI response shape')
   }
 
-  console.log(JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }))
-  console.log(JSON.stringify({ event: 'import_provider_usage', model, usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount) }))
+  console.log(
+    JSON.stringify({ event: 'gemini_parsed', flight_count: parsedResponse.flights?.length ?? 0 }),
+  )
+  console.log(
+    JSON.stringify({
+      event: 'import_provider_usage',
+      model,
+      usage_bucket: usageBucket(response.usageMetadata?.totalTokenCount),
+    }),
+  )
 
   try {
     const result = normalizeFlights(parsedResponse)
-    logValidation(result.flights.length, parsedResponse.flights.length, result.rejected?.length ?? 0)
+    logValidation(
+      result.flights.length,
+      parsedResponse.flights.length,
+      result.rejected?.length ?? 0,
+    )
     return result
   } catch (error) {
     // Normalization refuses a non-empty envelope only when every row was rejected.
-    if (error instanceof ProviderResponseError) logValidation(0, parsedResponse.flights.length, parsedResponse.flights.length)
+    if (error instanceof ProviderResponseError)
+      logValidation(0, parsedResponse.flights.length, parsedResponse.flights.length)
     throw error
   }
 }
@@ -183,14 +231,21 @@ const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 function validMonthDay(value: unknown): string | undefined {
   const match = typeof value === 'string' ? /^(\d{2})-(\d{2})$/.exec(value) : null
   if (!match) return undefined
-  const month = Number(match[1]); const day = Number(match[2])
-  return month >= 1 && month <= 12 && day >= 1 && day <= DAYS_IN_MONTH[month - 1] ? value as string : undefined
+  const month = Number(match[1])
+  const day = Number(match[2])
+  return month >= 1 && month <= 12 && day >= 1 && day <= DAYS_IN_MONTH[month - 1]
+    ? (value as string)
+    : undefined
 }
 
-const cleanHint = (value: unknown) => typeof value === 'string' ? value.trim().slice(0, 60).trim() || undefined : undefined
+const cleanHint = (value: unknown) =>
+  typeof value === 'string' ? value.trim().slice(0, 60).trim() || undefined : undefined
 
 /** Shared normalization for complete streamed rows and the legacy envelope. */
-export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }, ordinalStart = 0): ParseResponse {
+export function normalizeFlights(
+  parsedResponse: { flights: ExtractedFlight[]; raw_text?: string },
+  ordinalStart = 0,
+): ParseResponse {
   // Validate and normalize flights, collecting rejected ones for diagnostics
   const rejectedFlights: RejectedFlight[] = []
   const geminiCount = parsedResponse.flights?.length || 0
@@ -214,13 +269,22 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
         reasons.push('destination is not 3 letters')
       }
       // Apply ZZ placeholder for missing airline instead of rejecting
-      if (!flight.origin && !flight.destination && !(typeof flight.date === 'string' && isCalendarDate(flight.date))) reasons.push('missing route and date')
-      if (typeof flight.airline_iata !== 'string' || !flight.airline_iata || flight.airline_iata.toUpperCase() === 'ZZ') {
+      if (
+        !flight.origin &&
+        !flight.destination &&
+        !(typeof flight.date === 'string' && isCalendarDate(flight.date))
+      )
+        reasons.push('missing route and date')
+      if (
+        typeof flight.airline_iata !== 'string' ||
+        !flight.airline_iata ||
+        flight.airline_iata.toUpperCase() === 'ZZ'
+      ) {
         flight.airline_iata = 'ZZ'
         flight.airline_was_placeholder = true
         flight.field_confidence = {
           ...flight.field_confidence,
-          airline_iata: 0,  // Zero confidence for placeholder
+          airline_iata: 0, // Zero confidence for placeholder
         }
       } else if (!/^[a-z0-9]{2}$/i.test(flight.airline_iata)) {
         // Still reject invalid lengths
@@ -240,10 +304,13 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
       // A model-supplied year without explicit source evidence is never a save-ready fact.
       // Keep the draft for review with a blank date and a visible provenance flag.
       const explicitYear = flight.field_confidence?.date_year_explicit === true
-      const score = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
-        ? Math.min(1, Math.max(0, value)) : 0
+      const score = (value: unknown) =>
+        typeof value === 'number' && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0
       const fields = flight.field_confidence
-      const date = explicitYear && typeof flight.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(flight.date) ? flight.date : ''
+      const date =
+        explicitYear && typeof flight.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(flight.date)
+          ? flight.date
+          : ''
       const origin = flight.origin.toUpperCase()
       const destination = flight.destination.toUpperCase()
       const monthDay = date === '' ? validMonthDay(flight.date_month_day) : undefined
@@ -255,13 +322,21 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
         destination,
         airline_iata: flight.airline_iata.toUpperCase(),
         flight_number: typeof flight.flight_number === 'string' ? flight.flight_number : undefined,
-        aircraft_icao: typeof flight.aircraft_icao === 'string' ? flight.aircraft_icao.toUpperCase() : undefined,
-        departure_time: typeof flight.departure_time === 'string' ? flight.departure_time || undefined : undefined,
-        arrival_time: typeof flight.arrival_time === 'string' ? flight.arrival_time || undefined : undefined,
+        aircraft_icao:
+          typeof flight.aircraft_icao === 'string' ? flight.aircraft_icao.toUpperCase() : undefined,
+        departure_time:
+          typeof flight.departure_time === 'string'
+            ? flight.departure_time || undefined
+            : undefined,
+        arrival_time:
+          typeof flight.arrival_time === 'string' ? flight.arrival_time || undefined : undefined,
         ...(monthDay ? { date_month_day: monthDay } : {}),
         ...(originHint ? { origin_hint: originHint } : {}),
         ...(destinationHint ? { destination_hint: destinationHint } : {}),
-        confidence: flight.review_required === true ? Math.min(0.5, score(flight.confidence)) : score(flight.confidence),
+        confidence:
+          flight.review_required === true
+            ? Math.min(0.5, score(flight.confidence))
+            : score(flight.confidence),
         review_required: flight.review_required === true,
         airline_was_placeholder: flight.airline_was_placeholder === true,
         field_confidence: {
@@ -282,9 +357,7 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
       // - 'pending' if we need to enrich it later
       const aircraftConfidence = flight.field_confidence?.aircraft_icao ?? 0
       const enrichmentStatus: EnrichmentStatus =
-        normalizedFlight.aircraft_icao && aircraftConfidence >= 0.8
-          ? 'skipped'
-          : 'pending'
+        normalizedFlight.aircraft_icao && aircraftConfidence >= 0.8 ? 'skipped' : 'pending'
 
       return {
         ...normalizedFlight,
@@ -298,7 +371,10 @@ export function normalizeFlights(parsedResponse: { flights: ExtractedFlight[]; r
 
   return {
     flights: validFlights,
-    raw_text: typeof parsedResponse.raw_text === 'string' ? parsedResponse.raw_text.slice(0, MAX_TEXT_LENGTH) : undefined,
+    raw_text:
+      typeof parsedResponse.raw_text === 'string'
+        ? parsedResponse.raw_text.slice(0, MAX_TEXT_LENGTH)
+        : undefined,
     ...(rejectedFlights.length > 0 && {
       rejected: rejectedFlights,
       gemini_count: geminiCount,
@@ -313,9 +389,11 @@ export function validateImportSource(body: Partial<ParseRequest> | null): ParseR
   if (!type || !['pdf', 'image', 'text'].includes(type)) {
     throw new HttpError(400, 'Invalid type. Must be pdf, image, or text', 'INVALID_SOURCE_TYPE')
   }
-  if (typeof content !== 'string' || !content) throw new HttpError(400, 'Content is required', 'INVALID_BODY')
+  if (typeof content !== 'string' || !content)
+    throw new HttpError(400, 'Content is required', 'INVALID_BODY')
   if (type !== 'text') {
-    if (decodedBase64Size(content) > MAX_FILE_SIZE) throw new HttpError(413, 'File too large. Maximum size is 10 MB', 'PAYLOAD_TOO_LARGE')
+    if (decodedBase64Size(content) > MAX_FILE_SIZE)
+      throw new HttpError(413, 'File too large. Maximum size is 10 MB', 'PAYLOAD_TOO_LARGE')
   } else if (content.length > MAX_TEXT_LENGTH) {
     throw new HttpError(400, 'Text too long. Maximum is 100,000 characters', 'TEXT_TOO_LONG')
   }
@@ -323,13 +401,20 @@ export function validateImportSource(body: Partial<ParseRequest> | null): ParseR
 }
 
 /** Supported lists parse locally; other sources make one provider call with the shared deadline. */
-export async function extractFlights(env: Env, { type, content }: ParseRequest): Promise<ParseResponse> {
+export async function extractFlights(
+  env: Env,
+  { type, content }: ParseRequest,
+): Promise<ParseResponse> {
   const local = type === 'text' ? parseStructuredText(content) : null
   if (local) {
     const result = normalizeFlights(local)
-    return { ...result, ...(local.rejected ? { rejected: [...(result.rejected ?? []), ...local.rejected] } : {}) }
+    return {
+      ...result,
+      ...(local.rejected ? { rejected: [...(result.rejected ?? []), ...local.rejected] } : {}),
+    }
   }
-  if (!env.GEMINI_API_KEY) throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
+  if (!env.GEMINI_API_KEY)
+    throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY })
   const contents = extractionContents({ type, content })
 
@@ -338,15 +423,32 @@ export async function extractFlights(env: Env, { type, content }: ParseRequest):
   const started = Date.now()
   const controller = new AbortController()
   let deadlineExpired = false
-  const deadline = setTimeout(() => { deadlineExpired = true; controller.abort() }, PROVIDER_TIMEOUT_MS)
+  const deadline = setTimeout(() => {
+    deadlineExpired = true
+    controller.abort()
+  }, PROVIDER_TIMEOUT_MS)
   try {
     result = await extractFlightsWithGemini(ai, model, contents, controller.signal)
-    console.log(JSON.stringify({ event: 'import_provider_result', model, outcome: 'success', duration_ms: Date.now() - started }))
+    console.log(
+      JSON.stringify({
+        event: 'import_provider_result',
+        model,
+        outcome: 'success',
+        duration_ms: Date.now() - started,
+      }),
+    )
   } catch (error) {
     const failure = deadlineExpired
       ? new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')
       : providerFailure(error)
-    console.error(JSON.stringify({ event: 'import_provider_result', model, outcome: failure.code, duration_ms: Date.now() - started }))
+    console.error(
+      JSON.stringify({
+        event: 'import_provider_result',
+        model,
+        outcome: failure.code,
+        duration_ms: Date.now() - started,
+      }),
+    )
     throw failure
   } finally {
     clearTimeout(deadline)

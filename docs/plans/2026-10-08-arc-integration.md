@@ -1,4 +1,5 @@
 Plan contract: wave-plan/v1
+
 # Arc Integration Implementation Plan
 
 Goal: Integrate the suitable free Arc components across Kuuki, add the explicitly requested range/edit/context/confirmation interactions and nine chart types, and migrate Overview chart rendering from TanStack to Arc while preserving its data and interaction contracts.
@@ -36,70 +37,71 @@ Status: All five waves and all 13 additions accepted for the bound execution bas
 
 **Adapt** means incorporate Arc styling/source while retaining local behavior. **Compose** means apply a component to an existing screen. **Reference** means reuse the design idea without importing a competing implementation. Entries naming new files below are proposals, not existing interfaces.
 
-| Arc candidates | Disposition | Current destination | Owner |
-|---|---|---|---|
-| Button, Action button, Button group | Adapt/compose | Existing Button; shell actions; forms and review actions | W1; consumers W2–W4 |
-| Input, Textarea, Password field | Adapt/compose | Existing Field; proposed textarea/password-field only if repeated callers justify them | W1; consumers W3/W4 |
-| Select, Checkbox, Radio group, Radio cards | Adapt/compose | Proposed shared select/checkbox/radio controls; filters, row selection, onboarding choice | W1; consumers W2–W4 |
-| Switch, Segmented control | Adapt | Existing SwitchRow/SegmentedControl; settings, years, passport, import | W1 |
-| Dropdown menu, Popover, Tooltip | Adapt/compose | Existing Menu; calendar popover; proposed tooltip only for real explanatory content | W1/W2 |
-| Dialog, Drawer, Bottom sheet | Adapt | Existing Dialog/Sheet and DestructiveConfirm composition | W2 |
-| Combobox, Calendar | Adapt | Existing code-based search and typed-date primitives | W2 |
-| Time picker | Adapt only after local-time/keyboard parity | Existing departure/arrival inputs; keep native controls if parity fails | W2 |
-| Search field, Filter toolbar, Chip group | Adapt/compose | JournalFilters; AddCountrySheet search | W2/W3 |
-| Date range picker | Adapt + scoped contract extension | Journal arbitrary-period filter and Overview period controls | W2; charts W5 |
-| Inline edit, Context menu, Confirm morph | Adapt + existing write-authority composition | Journal aircraft-type cell, flight action menu, reversible single-flight deletion | W2 |
-| Sortable data table, Pagination | Adapt/compose | Existing Journal ledger, mobile rows, server sort and URL pagination | W2 |
-| Floating button group | Adapt | Existing FloatingActionBar, not a second floating tray | W2 |
-| Accordion | Adapt | Existing Disclosure; flight optional fields, chains, import help, achievements | W1; consumers W2–W4 |
-| File dropzone | Adapt/compose | SourceStep; existing file validation and submission | W3 |
-| Stepper | Compose | Existing import stages and account deletion steps | W3/W4 |
-| Copy button | Adapt/compose | Import prompt and ShareProfile; retain fallback and FeedbackText | W3/W4 |
-| Alert, Toast, Announcement bar | Adapt/compose | Existing errors, ToastProvider/ToastSlot, ShellNotices | W1/W2; consumers all |
-| Progress, Skeleton, Empty state | Compose | Existing truthful progress and data placeholders; keep route LoadingScreen | W1; consumers all |
-| Badge, Card | Compose | Existing status, achievement, review, summary, and list surfaces | W1; consumers all |
-| Split button, User menu, Avatar | Adapt/compose | SplitAdd, AvatarMenu, ProfileAvatar; preserve Facehash | W4 |
-| Tabs | Reference/adapt styles | Navigation links and leaderboard category links; keep route semantics | W4 |
-| Metric card | Adapt/compose | OverviewFigures, PassportCover, profile statistics, DoneStep; no animated counter | W3/W5 |
-| Bar chart | Adapt/render | Where an existing bar view still remains; preserve values and drill-down actions | W5 |
-| Sparkline, Line chart, Brush chart | Adapt/render | Summary trend, cumulative flights/km, controlled period selection | W5 |
-| Donut chart, Waffle chart | Adapt/render | Airline/region shares; Manufacturers part-to-whole distribution | W5 |
-| Activity heatmap | Adapt/render + daily data | Days with completed flights; keep current monthly Rhythm as a separate view | W5 |
-| Slope chart, Ridgeline, Treemap | Adapt/render | Two-period comparison; Fleet distributions; region/country hierarchy | W5 |
-| Timeline | Compose only where it improves existing records | CountrySheet's dated visit/evidence list; no invented activity log | W3 |
-| Page header, Empty states, File upload blocks | Compose useful parts | Existing read-page headers, empty states, SourceStep | W3–W5 |
-| Sign in, Signup form blocks | Reference useful form parts | Current auth-card; preserve its brand panel and one-form states | W4 |
+| Arc candidates                                | Disposition                                     | Current destination                                                                       | Owner                |
+| --------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------- |
+| Button, Action button, Button group           | Adapt/compose                                   | Existing Button; shell actions; forms and review actions                                  | W1; consumers W2–W4  |
+| Input, Textarea, Password field               | Adapt/compose                                   | Existing Field; proposed textarea/password-field only if repeated callers justify them    | W1; consumers W3/W4  |
+| Select, Checkbox, Radio group, Radio cards    | Adapt/compose                                   | Proposed shared select/checkbox/radio controls; filters, row selection, onboarding choice | W1; consumers W2–W4  |
+| Switch, Segmented control                     | Adapt                                           | Existing SwitchRow/SegmentedControl; settings, years, passport, import                    | W1                   |
+| Dropdown menu, Popover, Tooltip               | Adapt/compose                                   | Existing Menu; calendar popover; proposed tooltip only for real explanatory content       | W1/W2                |
+| Dialog, Drawer, Bottom sheet                  | Adapt                                           | Existing Dialog/Sheet and DestructiveConfirm composition                                  | W2                   |
+| Combobox, Calendar                            | Adapt                                           | Existing code-based search and typed-date primitives                                      | W2                   |
+| Time picker                                   | Adapt only after local-time/keyboard parity     | Existing departure/arrival inputs; keep native controls if parity fails                   | W2                   |
+| Search field, Filter toolbar, Chip group      | Adapt/compose                                   | JournalFilters; AddCountrySheet search                                                    | W2/W3                |
+| Date range picker                             | Adapt + scoped contract extension               | Journal arbitrary-period filter and Overview period controls                              | W2; charts W5        |
+| Inline edit, Context menu, Confirm morph      | Adapt + existing write-authority composition    | Journal aircraft-type cell, flight action menu, reversible single-flight deletion         | W2                   |
+| Sortable data table, Pagination               | Adapt/compose                                   | Existing Journal ledger, mobile rows, server sort and URL pagination                      | W2                   |
+| Floating button group                         | Adapt                                           | Existing FloatingActionBar, not a second floating tray                                    | W2                   |
+| Accordion                                     | Adapt                                           | Existing Disclosure; flight optional fields, chains, import help, achievements            | W1; consumers W2–W4  |
+| File dropzone                                 | Adapt/compose                                   | SourceStep; existing file validation and submission                                       | W3                   |
+| Stepper                                       | Compose                                         | Existing import stages and account deletion steps                                         | W3/W4                |
+| Copy button                                   | Adapt/compose                                   | Import prompt and ShareProfile; retain fallback and FeedbackText                          | W3/W4                |
+| Alert, Toast, Announcement bar                | Adapt/compose                                   | Existing errors, ToastProvider/ToastSlot, ShellNotices                                    | W1/W2; consumers all |
+| Progress, Skeleton, Empty state               | Compose                                         | Existing truthful progress and data placeholders; keep route LoadingScreen                | W1; consumers all    |
+| Badge, Card                                   | Compose                                         | Existing status, achievement, review, summary, and list surfaces                          | W1; consumers all    |
+| Split button, User menu, Avatar               | Adapt/compose                                   | SplitAdd, AvatarMenu, ProfileAvatar; preserve Facehash                                    | W4                   |
+| Tabs                                          | Reference/adapt styles                          | Navigation links and leaderboard category links; keep route semantics                     | W4                   |
+| Metric card                                   | Adapt/compose                                   | OverviewFigures, PassportCover, profile statistics, DoneStep; no animated counter         | W3/W5                |
+| Bar chart                                     | Adapt/render                                    | Where an existing bar view still remains; preserve values and drill-down actions          | W5                   |
+| Sparkline, Line chart, Brush chart            | Adapt/render                                    | Summary trend, cumulative flights/km, controlled period selection                         | W5                   |
+| Donut chart, Waffle chart                     | Adapt/render                                    | Airline/region shares; Manufacturers part-to-whole distribution                           | W5                   |
+| Activity heatmap                              | Adapt/render + daily data                       | Days with completed flights; keep current monthly Rhythm as a separate view               | W5                   |
+| Slope chart, Ridgeline, Treemap               | Adapt/render                                    | Two-period comparison; Fleet distributions; region/country hierarchy                      | W5                   |
+| Timeline                                      | Compose only where it improves existing records | CountrySheet's dated visit/evidence list; no invented activity log                        | W3                   |
+| Page header, Empty states, File upload blocks | Compose useful parts                            | Existing read-page headers, empty states, SourceStep                                      | W3–W5                |
+| Sign in, Signup form blocks                   | Reference useful form parts                     | Current auth-card; preserve its brand panel and one-form states                           | W4                   |
 
 ### Screen coverage
 
-| Existing surface | Integration scope | State/behavior that must remain |
-|---|---|---|
-| Shell and mobile navigation | Split Add, user menu, route indicators, avatar, Add Sheet, notices | All five mobile destinations, current route, sign-out, keyboard clearance, owner-scoped notices |
-| /, /signin, /signup, activation/recovery request and reset screens | Inputs, password reveal, actions, errors, theme/language controls | Existing email/password stages, auth aliases, tokens, request throttling, Horizon and brand panel |
-| /onboarding | Name/username, source choice, first manual/import flow, result actions | Availability checks, shared save authorities, canonical first Ticket, published Stamp reveal |
-| /overview | Accepted Release 3 controls/layout plus Arc chart migration, trends/distributions/comparison/hierarchy and arbitrary range | Owner-qualified payload/prefs, engine values, aggregates, immediate figures, chart actions/tables, lazy mount, Next strip, globe/replay |
-| /journal | Search, date ranges, filters/chips, ledger/mobile rows, inline aircraft edit, Context menu, single-item Confirm morph, pagination, overlays/Undo | Full-dataset server sort/selection, staged mobile Apply, URL/back-forward, owner-qualified writes, hidden pending deletes, recovery/focus |
-| /add and /journal/[id]/edit | Search fields, typed date, time controls, optional fields, save/cancel/delete | Exact codes, recents, local-time semantics, duplicate warning, offline/pending/uncertain/retry states |
-| /import | File/text, progress, questions, review selection/edits, manual rows, failure and done | File limits, draft persistence, confidence, partial success, idempotency, aircraft-review evidence and selection |
-| /passport and /passport/manage | View/sort controls, progress, country search/sheets, visit fields, deletion, aircraft bulk edit | Catalog and regions, Stamp identity, map renderer, URL state, evidence consequences, batch outcomes |
-| /fly/[username] and /leaderboard | Avatar, copy, statistics, achievements, category links, eligibility, row presentation | Public-data boundary, rankings, five-flight requirement, own-row pinning and route transition |
-| /settings | Profile, API key, privacy, appearance, export, savebar, guards, deletion steps | Dirty-state guards, explicit save, CSV limits, dependent privacy choices, identity cleanup, password confirmation |
-| Route loaders, 404/error, account-deleted/password-updated | Existing status composition and recovery actions | Loading is not empty; no fictitious success; current recovery routes |
-| Isolated activation completion asset | No direct React component migration | Preserve current static HTML and Worker activation authority; do not enlarge this plan into runtime work |
+| Existing surface                                                   | Integration scope                                                                                                                                | State/behavior that must remain                                                                                                           |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell and mobile navigation                                        | Split Add, user menu, route indicators, avatar, Add Sheet, notices                                                                               | All five mobile destinations, current route, sign-out, keyboard clearance, owner-scoped notices                                           |
+| /, /signin, /signup, activation/recovery request and reset screens | Inputs, password reveal, actions, errors, theme/language controls                                                                                | Existing email/password stages, auth aliases, tokens, request throttling, Horizon and brand panel                                         |
+| /onboarding                                                        | Name/username, source choice, first manual/import flow, result actions                                                                           | Availability checks, shared save authorities, canonical first Ticket, published Stamp reveal                                              |
+| /overview                                                          | Accepted Release 3 controls/layout plus Arc chart migration, trends/distributions/comparison/hierarchy and arbitrary range                       | Owner-qualified payload/prefs, engine values, aggregates, immediate figures, chart actions/tables, lazy mount, Next strip, globe/replay   |
+| /journal                                                           | Search, date ranges, filters/chips, ledger/mobile rows, inline aircraft edit, Context menu, single-item Confirm morph, pagination, overlays/Undo | Full-dataset server sort/selection, staged mobile Apply, URL/back-forward, owner-qualified writes, hidden pending deletes, recovery/focus |
+| /add and /journal/[id]/edit                                        | Search fields, typed date, time controls, optional fields, save/cancel/delete                                                                    | Exact codes, recents, local-time semantics, duplicate warning, offline/pending/uncertain/retry states                                     |
+| /import                                                            | File/text, progress, questions, review selection/edits, manual rows, failure and done                                                            | File limits, draft persistence, confidence, partial success, idempotency, aircraft-review evidence and selection                          |
+| /passport and /passport/manage                                     | View/sort controls, progress, country search/sheets, visit fields, deletion, aircraft bulk edit                                                  | Catalog and regions, Stamp identity, map renderer, URL state, evidence consequences, batch outcomes                                       |
+| /fly/[username] and /leaderboard                                   | Avatar, copy, statistics, achievements, category links, eligibility, row presentation                                                            | Public-data boundary, rankings, five-flight requirement, own-row pinning and route transition                                             |
+| /settings                                                          | Profile, API key, privacy, appearance, export, savebar, guards, deletion steps                                                                   | Dirty-state guards, explicit save, CSV limits, dependent privacy choices, identity cleanup, password confirmation                         |
+| Route loaders, 404/error, account-deleted/password-updated         | Existing status composition and recovery actions                                                                                                 | Loading is not empty; no fictitious success; current recovery routes                                                                      |
+| Isolated activation completion asset                               | No direct React component migration                                                                                                              | Preserve current static HTML and Worker activation authority; do not enlarge this plan into runtime work                                  |
 
 ## Execution map
 
 Five waves express shared-component dependencies and the larger workflow risks. Acceptance is serial. No parallel app writers are needed by default.
 
-| Wave | Outcome | Depends on | Writes (active owner) | Reads / validates | Parallel-safe with | Material risk → primary proof | Acceptance owner |
-|---|---|---|---|---|---|---|---|
-| W1 | Theme/source policy and common controls | — | app styles/tokens; ui common controls; package/lock changes; source inventory/license | DESIGN, all shared callers, existing primitive tests | Read-only review | Global styling/API regression → token tests and shared-control tests | Primary |
-| W2 | Search/overlays plus arbitrary ranges and Journal interactions | W1 | ui advanced controls; capture/reads; URL helpers; shared range/prefs/filter contracts; flightQuery and affected API/client/tests | Data catalogs, list/ids queries, write authorities, Release 3 filters | Read-only review | Boundary dates, lost writes, focus/Undo → API/shared/unit and capture/read journeys | Primary |
-| W3 | Import and Passport use accepted controls | W2 | client/import, client/passport, reads/passport, capture/passport-manage; import/passport route CSS/tests | Draft/save state, current enrichment edits, accepted shared kit | Read-only review | Partial saves/evidence mistakes → import/passport tests and journeys | Primary |
-| W4 | Shell, account, auth and public screens | W2, W3 for reused onboarding flows | nav/avatar-menu/split-add/add-actions; account/auth-card/public/profile/leaderboard; route-local presentation CSS/tests | Identity/appearance/privacy contracts; accepted controls | Read-only review | Identity/privacy/dirty-state regression → account/auth/settings/shell journeys | Primary |
-| W5 | Arc chart migration, derived series, TanStack removal and acceptance | W3, W4 | Release 3 client/overview/charts/sections/globe; relevant shared engine/series and owner-scoped aggregate service/tests; final docs | Accepted Release 3 data/actions, chart source, scoped patch | Final lint/unit lanes only where safe | Semantic/interaction loss → engine parity, chart-host tests, globe/replay and full UI gates | Primary |
+| Wave | Outcome                                                              | Depends on                         | Writes (active owner)                                                                                                               | Reads / validates                                                     | Parallel-safe with                    | Material risk → primary proof                                                               | Acceptance owner |
+| ---- | -------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------- |
+| W1   | Theme/source policy and common controls                              | —                                  | app styles/tokens; ui common controls; package/lock changes; source inventory/license                                               | DESIGN, all shared callers, existing primitive tests                  | Read-only review                      | Global styling/API regression → token tests and shared-control tests                        | Primary          |
+| W2   | Search/overlays plus arbitrary ranges and Journal interactions       | W1                                 | ui advanced controls; capture/reads; URL helpers; shared range/prefs/filter contracts; flightQuery and affected API/client/tests    | Data catalogs, list/ids queries, write authorities, Release 3 filters | Read-only review                      | Boundary dates, lost writes, focus/Undo → API/shared/unit and capture/read journeys         | Primary          |
+| W3   | Import and Passport use accepted controls                            | W2                                 | client/import, client/passport, reads/passport, capture/passport-manage; import/passport route CSS/tests                            | Draft/save state, current enrichment edits, accepted shared kit       | Read-only review                      | Partial saves/evidence mistakes → import/passport tests and journeys                        | Primary          |
+| W4   | Shell, account, auth and public screens                              | W2, W3 for reused onboarding flows | nav/avatar-menu/split-add/add-actions; account/auth-card/public/profile/leaderboard; route-local presentation CSS/tests             | Identity/appearance/privacy contracts; accepted controls              | Read-only review                      | Identity/privacy/dirty-state regression → account/auth/settings/shell journeys              | Primary          |
+| W5   | Arc chart migration, derived series, TanStack removal and acceptance | W3, W4                             | Release 3 client/overview/charts/sections/globe; relevant shared engine/series and owner-scoped aggregate service/tests; final docs | Accepted Release 3 data/actions, chart source, scoped patch           | Final lint/unit lanes only where safe | Semantic/interaction loss → engine parity, chart-host tests, globe/replay and full UI gates | Primary          |
 
 Shared ownership transfers:
+
 - `apps/next/src/client/ui/ui.css`, `flight-controls.css`, and shared primitive tests: W1 → W2 after W1 is accepted and inactive.
 - Common primitives remain frozen during W3/W4/W5. Any required shared fix returns ownership to the completed foundation lane, is accepted there, and invalidates affected downstream evidence before consumers resume.
 - `styles.css`, `tokens.test.ts`, `apps/next/package.json`, `pnpm-lock.yaml`, and source/license inventory changes always belong to the foundation lane. Never mutate them concurrently with consumer work.
@@ -112,12 +114,14 @@ Shared ownership transfers:
 Objective: Low-risk controls render consistently in Kuuki themes without changing their public contracts.
 
 Owned writes:
+
 - Existing `apps/next/src/client/ui/{button,field,segmented-control,switch-row,disclosure}.tsx`, `ui.css`, associated tests.
 - New controls only where repeated current callers need them: select, checkbox/radio, textarea/password field, and simple badge/alert/card/empty/progress/skeleton compositions. Names and APIs are decided from actual callers, not a pre-generated kit.
 - `apps/next/src/app/styles.css`, `tokens.test.ts`, app package/lock files if needed.
 - Proposed `docs/research/2026-10-08-arc-source-inventory.md` and an Arc MIT notice beside copied UI source.
 
 Implementation:
+
 - [x] Record base revision, unrelated dirty files and active owners. Build the scoped caller inventory with rg before editing each shared export.
 - [x] Recheck free tier and registry dependency trees; retain source hashes and license text. Record adopted behavior, local patches, dependencies, and each excluded candidate.
 - [x] Map Arc CSS to Kuuki's tokens; avoid global resets and unconditional focus suppression.
@@ -130,6 +134,7 @@ Implementation:
 Dependencies: Accepted execution-baseline DESIGN and shared interfaces. W1 creates foundations only; W2/W5 own the explicitly requested product/API/series extensions.
 
 Focused proof:
+
 - Existing Button, Disclosure, SegmentedControl, SwatchPicker and token tests; add a small regression only for a newly retained behavior or changed contract.
 - EN/RU long labels, dark/light token pairs, initial and keyboard feedback, visible disabled reasons.
 - Compare production chunks using existing build output or a fresh relevant build if dependency changes require it; record which routes load Motion rather than inventing a size claim.
@@ -143,6 +148,7 @@ Objective: Forms and the full Journal adopt the shared kit with their current st
 Owned writes: Existing advanced ui controls and proposed date-range/inline-edit/context-menu/confirm-morph components; capture and Journal consumers/CSS/tests; apps/next/src/lib/url-state.ts; packages/shared/src/overview range/filter/prefs contracts and applicable exported DTOs; functions/api/_lib/flightQuery.ts, existing list/ids handlers and tests only as needed for range admission; affected client query helpers. Keep existing API routes/methods and write handlers unless an inspected caller proves a bounded admission change is needed.
 
 Implementation:
+
 - [x] Keep Radix focus, dismissal and collision behavior for existing overlays; apply Arc presentation in place.
 - [x] Keep the full-height mobile search Sheet, handle-only drag, visualViewport insets, focus restoration, pending dismissal lock, and current portal stacking.
 - [x] Patch Arc-inspired Combobox interactions to close when focus leaves the whole widget. Preserve code-first ranking, aliases/details, 50-result cap, owner recents, highlight, count speech and keyboard selection.
@@ -162,6 +168,7 @@ Implementation:
 Dependencies: Accepted W1 contracts.
 
 Focused proof:
+
 - Unit paths: `src/client/ui/`, `src/client/capture/flight-form.test.tsx`, `src/client/reads/journal.test.tsx`, `src/client/reads/delete-undo.test.tsx`, `src/lib/url-state.test.ts`.
 - Fresh local build, then focused Playwright `capture.test.ts` and `read-journeys.test.ts`.
 - Search exact IATA/ICAO/alias and Tab away; type RU/EN/ISO date; mobile keyboard open/close; arbitrary ranges across leap day/year/timezones, legacy month prefs and equal-length comparison; range list/ids/count parity and owner isolation; sort/select across pages; inline-save rejection/lost response; Context menu keyboard/row isolation; single Confirm morph Undo/failure; focus remains meaningful.
@@ -176,6 +183,7 @@ Objective: Existing import and passport workflows use the shared controls throug
 Owned writes: `apps/next/src/client/import/`, `client/passport/`, `client/reads/passport.tsx`, `client/capture/passport-manage.tsx`, related CSS/unit tests and `tests/import.test.ts` / `passport.test.ts`. Coordinate with the owner of pre-existing aircraft review edits before touching overlapping files.
 
 Implementation:
+
 - [x] SourceStep: segmented file/text choice, File dropzone and Textarea, existing size/type validation, Accordion help and Copy button fallback.
 - [x] ProgressStep: stages through Stepper and honest Progress; keep found counts and announcements on actual data.
 - [x] Review: checkbox selection, shared field editors, confidence/status badges, grouped questions, manual rows, confirm/cancel and current focus order.
@@ -189,6 +197,7 @@ Implementation:
 Dependencies: Accepted W2 search, overlays, and toast behavior.
 
 Focused proof:
+
 - Unit selections: `src/client/import`, `src/client/passport`, `src/client/reads/passport.test.tsx`, `src/client/capture/passport-manage.test.tsx`.
 - Fresh relevant local build and focused import/passport browser journeys.
 - File and pasted text; review and reload; one failed row among successful rows; stale/uncertain save; existing suggestion selection (structured scheduled proposals are absent from this baseline); country visit deletion consequences; mobile country-panel focus and keyboard clearance.
@@ -202,6 +211,7 @@ Objective: Every existing entry/account/social screen uses the same accepted con
 Owned writes: Existing shell/nav/avatar-menu/split-add/add-actions and notices; `client/account`, `auth-card`, `public`, `profile`, `leaderboard`; affected route presentation CSS and their unit/browser tests. Do not alter route handlers, bootstrap persistence, or static activation assets.
 
 Implementation:
+
 - [x] SplitAdd/User menu/Avatar compositions; preserve Facehash, route links, five mobile destinations, privacy actions and sign-out.
 - [x] Apply Tabs styling to links without changing routing/prefetch/current-page semantics.
 - [x] Settings: profile fields, password-like key field, saved privacy controls, immediate appearance controls, named accent radios, export rows and sticky savebar.
@@ -214,6 +224,7 @@ Implementation:
 Dependencies: W2 accepted kit; W3 completed before checking onboarding import/reveal.
 
 Focused proof:
+
 - Unit selections: account, auth-card, public, profile, leaderboard, nav/avatar-menu/add-actions/appearance/shell-notices.
 - Relevant browser files: auth-entry, auth-recovery, reset-password, onboarding, account, settings, shell, theme-toggle, text-feedback.
 - Check public/private transitions, pending sign-out, owner switch clearing data/notices, dirty-state navigation, partial CSV export, password-confirmed deletion, username availability and Keyboard/Clipboard fallback.
@@ -228,6 +239,7 @@ Objective: Integrate all nine requested chart types with useful, defined placeme
 Owned writes: Release 3 client/overview/charts, sections, hero/tile trend placements, store and globe/replay consumers and tests; packages/shared/src/overview series/filter extensions and rendering-test relocation; owner-qualified Overview payload/aggregate service/DTO tests only where day-level data requires them. Update affected docs including the existing Overview UI plan/handoff and DESIGN after implementation. Foundation owner performs package/lock/source-inventory changes. Preserve unrelated work.
 
 Implementation:
+
 - [x] Recheck Release 3 tip and dirty owners, read its adjacent handoff, and start from an accepted descendant. Treat 8b5e5c3 as inspected evidence, not a permanently fixed implementation base.
 - [x] Prove one Arc Line + Brush and one interactive Waffle integration against the current chart host before mass conversion: SSR/hydration, data identity, table, touch actions, keyboard selection, range commit and theme/motion. Resolve structural API gaps in local copied source; do not silently drop capabilities.
 - [x] Migrate each requested chart using the placement and data contract below. Retain computeOverview's domain authority; renderer adapters only format/project already derived values. Preserve current ghost/baseline, weighted aggregates, missing/approximate signals and thresholds.
@@ -249,57 +261,57 @@ Accept when: All nine requested charts and W2's four interactions have meaningfu
 
 ### Requested chart placements and compatibility gates
 
-| Requested chart | Planned placement / data question | Required adaptation or proof |
-|---|---|---|
-| Sparkline | Flight-count/distance trend beside the existing hero/summary metric or section tile, using the same selected period | Immediate numeric headline; localized point labels; aligned buckets; compact summary accessible without tooltip |
-| Line chart | Rhythm cumulative flights/km, preserving the current odometer's step meaning | Sorted real dates and weighted totals; add step-after geometry to copied source where needed; ghost baseline; explicit mark-action callbacks, not crosshair movement as a filter |
-| Brush chart | Rhythm time-window strip linked to the same period as Date range picker | UTC-stable epoch/day conversion; controlled draft while dragging, explicit commit on pointer/keyboard completion; no prefs/API write for every pointermove; minSpan supports one-day range |
-| Donut chart | Compact airline or region share view from existing rankings/country evidence | Stable identities and exact totals; configure/patch automatic Other grouping; zero/missing distinction; visible legend/table and actual filter actions |
-| Waffle chart | Current Manufacturers share/count view | Preserve flights/hours/km modes, printed unit/rounding, maker colors and aggregate weighting; retain per-flight action only where actual IDs exist; add explicit category/mark callbacks |
-| Activity heatmap | Rhythm daily calendar alongside the current month-by-year metric view | Real day counts; YYYY-MM-DD keys; leap days/week/locale; availability of daily summaries in aggregate mode; selecting a day applies the exact-day range |
-| Slope chart | Rankings/comparison view for selected versus previous period | Existing equal-length comparison rules; exact counts/shares and missing baseline; never substitute two endpoints for the current multi-year bump chart |
-| Ridgeline | Current Fleet duration distributions by family/type | Extend copied Arc source to accept precomputed sampled densities and summary statistics: upstream accepts raw values and always recomputes KDE. Feed the existing log-density output; prove parity for ticks, bandwidth, sparse samples and weighting before cutover; never reconstruct distributions from rounded aggregates |
-| Treemap | Region → country share view in the existing Overview geography/collection context | Leaves use explicit completed-flight country-evidence counts, not region totals or unique countries mixed with flights; transit suppression and unknown exclusions respected; hierarchy drill and filter are distinct actions |
+| Requested chart  | Planned placement / data question                                                                                   | Required adaptation or proof                                                                                                                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sparkline        | Flight-count/distance trend beside the existing hero/summary metric or section tile, using the same selected period | Immediate numeric headline; localized point labels; aligned buckets; compact summary accessible without tooltip                                                                                                                                                                                                               |
+| Line chart       | Rhythm cumulative flights/km, preserving the current odometer's step meaning                                        | Sorted real dates and weighted totals; add step-after geometry to copied source where needed; ghost baseline; explicit mark-action callbacks, not crosshair movement as a filter                                                                                                                                              |
+| Brush chart      | Rhythm time-window strip linked to the same period as Date range picker                                             | UTC-stable epoch/day conversion; controlled draft while dragging, explicit commit on pointer/keyboard completion; no prefs/API write for every pointermove; minSpan supports one-day range                                                                                                                                    |
+| Donut chart      | Compact airline or region share view from existing rankings/country evidence                                        | Stable identities and exact totals; configure/patch automatic Other grouping; zero/missing distinction; visible legend/table and actual filter actions                                                                                                                                                                        |
+| Waffle chart     | Current Manufacturers share/count view                                                                              | Preserve flights/hours/km modes, printed unit/rounding, maker colors and aggregate weighting; retain per-flight action only where actual IDs exist; add explicit category/mark callbacks                                                                                                                                      |
+| Activity heatmap | Rhythm daily calendar alongside the current month-by-year metric view                                               | Real day counts; YYYY-MM-DD keys; leap days/week/locale; availability of daily summaries in aggregate mode; selecting a day applies the exact-day range                                                                                                                                                                       |
+| Slope chart      | Rankings/comparison view for selected versus previous period                                                        | Existing equal-length comparison rules; exact counts/shares and missing baseline; never substitute two endpoints for the current multi-year bump chart                                                                                                                                                                        |
+| Ridgeline        | Current Fleet duration distributions by family/type                                                                 | Extend copied Arc source to accept precomputed sampled densities and summary statistics: upstream accepts raw values and always recomputes KDE. Feed the existing log-density output; prove parity for ticks, bandwidth, sparse samples and weighting before cutover; never reconstruct distributions from rounded aggregates |
+| Treemap          | Region → country share view in the existing Overview geography/collection context                                   | Leaves use explicit completed-flight country-evidence counts, not region totals or unique countries mixed with flights; transit suppression and unknown exclusions respected; hierarchy drill and filter are distinct actions                                                                                                 |
 
 All placements use accepted bento/section layouts and existing controls; alternative views are integrated into the relevant section rather than creating another dashboard. Exact UI placement is resolved against the accepted branch before implementation. Chart interaction extensions to local copied Arc source are part of W5, not assumptions about upstream props.
 
 ### TanStack removal inventory (inspected Release 3)
 
-| Current consumer | Migration path |
-|---|---|
-| charts/kuuki-chart.tsx, table-view.tsx, lazy-chart.tsx | Replace renderer-specific scene API; preserve shared interaction, accessible table and lazy host behavior |
-| sections/manufacturers/section.tsx | Arc Waffle with maker/flight identity and metric modes |
-| sections/fleet/section.tsx + helpers.ts | Extend local Arc Ridgeline for precomputed densities/statistics; preserve existing log-density/weighting contract |
-| sections/rhythm/section.tsx | Arc Line + Brush; daily Activity heatmap added; month-grid view remains a local Arc-styled DOM/SVG projection |
-| sections/rankings/section.tsx | Preserve multi-year bump through local Arc/SVG adaptation; add distinct Slope comparison view |
-| sections/clock/section.tsx; sections/crossings/section.tsx | Preserve radial hour dial and signed shift bars through local SVG adaptations |
-| globe/svg-globe.tsx | Direct SVG with existing d3-geo; retain SSR, projection/catalog/routes and MapLibre crossfade |
-| globe/replay-transport.tsx | Accessible controlled range/scrubber, preserving chronological playback and committed state |
-| Overview SSR tests; packages/shared/src/overview/charts.test.ts | Move rendering assertions to Arc/local SVG proof; keep engine/DOM-free calculations covered |
-| Root/app manifests and pnpm-lock.yaml | Remove TanStack only after the consumer search passes; retain caller-proven d3-geo/shape; remove unused d3-scale and its types |
+| Current consumer                                                | Migration path                                                                                                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| charts/kuuki-chart.tsx, table-view.tsx, lazy-chart.tsx          | Replace renderer-specific scene API; preserve shared interaction, accessible table and lazy host behavior                      |
+| sections/manufacturers/section.tsx                              | Arc Waffle with maker/flight identity and metric modes                                                                         |
+| sections/fleet/section.tsx + helpers.ts                         | Extend local Arc Ridgeline for precomputed densities/statistics; preserve existing log-density/weighting contract              |
+| sections/rhythm/section.tsx                                     | Arc Line + Brush; daily Activity heatmap added; month-grid view remains a local Arc-styled DOM/SVG projection                  |
+| sections/rankings/section.tsx                                   | Preserve multi-year bump through local Arc/SVG adaptation; add distinct Slope comparison view                                  |
+| sections/clock/section.tsx; sections/crossings/section.tsx      | Preserve radial hour dial and signed shift bars through local SVG adaptations                                                  |
+| globe/svg-globe.tsx                                             | Direct SVG with existing d3-geo; retain SSR, projection/catalog/routes and MapLibre crossfade                                  |
+| globe/replay-transport.tsx                                      | Accessible controlled range/scrubber, preserving chronological playback and committed state                                    |
+| Overview SSR tests; packages/shared/src/overview/charts.test.ts | Move rendering assertions to Arc/local SVG proof; keep engine/DOM-free calculations covered                                    |
+| Root/app manifests and pnpm-lock.yaml                           | Remove TanStack only after the consumer search passes; retain caller-proven d3-geo/shape; remove unused d3-scale and its types |
 
 ## Extension backlog: possible components, not required migration work
 
 The 13 explicitly added components are now required scope in W2/W5. Only the remaining candidates below are deferred; keep them uninstalled until their behavior is requested.
 
-| Candidates | Why deferred / prerequisite |
-|---|---|
-| Multi-select | Existing filters are single-valued; needs URL and API semantics for sets |
-| Password strength | Needs an agreed estimator aligned with actual password requirements |
-| Swipe actions | Not requested in the scope expansion; visible/Context-menu actions already cover this migration |
-| Command palette | New global commands/search and keyboard discoverability |
-| Streamgraph | Not requested; a separate stacked-composition question would need defined series semantics |
-| Notification center | Needs durable notification storage, ownership and read-state behavior |
+| Candidates          | Why deferred / prerequisite                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| Multi-select        | Existing filters are single-valued; needs URL and API semantics for sets                        |
+| Password strength   | Needs an agreed estimator aligned with actual password requirements                             |
+| Swipe actions       | Not requested in the scope expansion; visible/Context-menu actions already cover this migration |
+| Command palette     | New global commands/search and keyboard discoverability                                         |
+| Streamgraph         | Not requested; a separate stacked-composition question would need defined series semantics      |
+| Notification center | Needs durable notification storage, ownership and read-state behavior                           |
 
 Other free catalog alternatives are intentionally not migration targets:
 
-| Candidates | Disposition and reason |
-|---|---|
+| Candidates                     | Disposition and reason                                                                                                                                   |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Expanding search, Morph select | Use Search field and Select instead: current fields need persistent labels and predictable keyboard interaction, not another variant of the same control |
-| Hover card, Avatar group | No existing hover-only detail flow or multi-person grouping; essential information stays visible and usable on touch |
-| Color picker | Arbitrary colors conflict with the five named accent choices; retain SwatchPicker/radio semantics |
-| Number field | Current year entry remains Input with validation; bounded increment/decrement behavior is not an existing requirement |
-| Usage meter, Gauge | Keep existing truthful Progress/text for passport, eligibility and export allowance; no additional quota or dial visualization is required |
+| Hover card, Avatar group       | No existing hover-only detail flow or multi-person grouping; essential information stays visible and usable on touch                                     |
+| Color picker                   | Arbitrary colors conflict with the five named accent choices; retain SwatchPicker/radio semantics                                                        |
+| Number field                   | Current year entry remains Input with validation; bounded increment/decrement behavior is not an existing requirement                                    |
+| Usage meter, Gauge             | Keep existing truthful Progress/text for passport, eligibility and export allowance; no additional quota or dial visualization is required               |
 
 ## Final evidence gate
 
@@ -307,23 +319,24 @@ Identity: All final lanes validate the same immutable scoped patch. Use clean sc
 
 Commands below define implementation acceptance; actual final results are recorded in the execution handoff. Run from the workspace root. Build/browser fixtures are serial because they share build output and port 8800. Capture focused evidence during waves; run each final broad gate once for the final relevant state, repeating only after a relevant edit/failure.
 
-| Lane | Proves | Command or scenario | Success signal | Parallel-safe |
-|---|---|---|---|---|
-| Source/review | Scope, provenance, complete chart-removal inventory, all dispositions and contract safety | Scoped production/test import audit plus independent UI/API/shared-engine review | All 13 additions covered; no TanStack runtime/test import/declaration or unresolved blocking finding | Read-only |
-| Lint | Project conventions and source hygiene | `pnpm --filter @kuuki/next lint` | Exit 0 | With unit tests only |
-| Unit | Shared/screen behavior, all requested interactions/charts, tokens, SSR and recovery | `pnpm --filter @kuuki/next test` | Exit 0; existing behavioral assertions retained | With lint |
-| API/shared tests | Range list/ids/count parity, owner isolation, aggregate daily series, engine golden/property invariants | `pnpm test:api` (configuration includes packages/shared/data tests) | Exit 0; invalid-range, legacy-prefs, dates/weights and tenancy cases pass | With lint/unit |
-| API types | Scoped filter/series admission and exported contract consistency | `pnpm typecheck:api` | Exit 0 | With lint/unit |
-| Production build | OpenNext and actual deployed-app compilation | `pnpm next:build` | Exit 0, current build artifacts | No; wait for source writers |
-| Types | Component/caller contracts using current generated output | `pnpm --filter @kuuki/next typecheck` after build | Exit 0 | No build overlap |
-| Full UI journeys | Cross-screen effects of shared-control changes | `pnpm test:next:navigation` after current build | Entire suite passes, not just files named above | No build/fixture/browser overlap |
-| Focused layout/function | EN/RU, light/dark/System, accent, keyboard/reduced motion and portal geometry | Existing synthetic local fixture; 320/390/1440px, 200% zoom; longest labels, focused overlay/search/date/undo/privacy/partial-save scenarios | No overflow, hidden focus, blocked primary action or incorrect state; retain trace/result and relevant viewport/state notes | Serial browser lane |
+| Lane                    | Proves                                                                                                  | Command or scenario                                                                                                                          | Success signal                                                                                                              | Parallel-safe                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Source/review           | Scope, provenance, complete chart-removal inventory, all dispositions and contract safety               | Scoped production/test import audit plus independent UI/API/shared-engine review                                                             | All 13 additions covered; no TanStack runtime/test import/declaration or unresolved blocking finding                        | Read-only                        |
+| Lint                    | Project conventions and source hygiene                                                                  | `pnpm --filter @kuuki/next lint`                                                                                                             | Exit 0                                                                                                                      | With unit tests only             |
+| Unit                    | Shared/screen behavior, all requested interactions/charts, tokens, SSR and recovery                     | `pnpm --filter @kuuki/next test`                                                                                                             | Exit 0; existing behavioral assertions retained                                                                             | With lint                        |
+| API/shared tests        | Range list/ids/count parity, owner isolation, aggregate daily series, engine golden/property invariants | `pnpm test:api` (configuration includes packages/shared/data tests)                                                                          | Exit 0; invalid-range, legacy-prefs, dates/weights and tenancy cases pass                                                   | With lint/unit                   |
+| API types               | Scoped filter/series admission and exported contract consistency                                        | `pnpm typecheck:api`                                                                                                                         | Exit 0                                                                                                                      | With lint/unit                   |
+| Production build        | OpenNext and actual deployed-app compilation                                                            | `pnpm next:build`                                                                                                                            | Exit 0, current build artifacts                                                                                             | No; wait for source writers      |
+| Types                   | Component/caller contracts using current generated output                                               | `pnpm --filter @kuuki/next typecheck` after build                                                                                            | Exit 0                                                                                                                      | No build overlap                 |
+| Full UI journeys        | Cross-screen effects of shared-control changes                                                          | `pnpm test:next:navigation` after current build                                                                                              | Entire suite passes, not just files named above                                                                             | No build/fixture/browser overlap |
+| Focused layout/function | EN/RU, light/dark/System, accent, keyboard/reduced motion and portal geometry                           | Existing synthetic local fixture; 320/390/1440px, 200% zoom; longest labels, focused overlay/search/date/undo/privacy/partial-save scenarios | No overflow, hidden focus, blocked primary action or incorrect state; retain trace/result and relevant viewport/state notes | Serial browser lane              |
 
 The focused browser lane uses existing repository tests first. Add a new test only for a failure mode existing checks cannot catch, one per failure mode; adjust existing assertions when their contract changes. Carry forward Release 3's skipped visual audit and batched broad checks: run the full suites at integrated acceptance, with focused checks after each changed contract. If a one-off check remains necessary, use the current session's preferred available T3 preview tools and the existing local fixture. Record scenario, locale/theme, fixture/state, viewport, success signal and evidence artifact. A costly screenshot recapture or comprehensive visual audit needs its own explicit request.
 
 Runtime/boundary checks remain conditional on dispatch/auth/static-asset changes: reassess those changes before adding worker typecheck/smoke/boundary gates. Range filtering and owner-qualified series admission are planned API changes and require API/shared checks above even if dispatch is unchanged. Do not infer remote D1 writes or deployment from those local checks.
 
 Final acceptance (primary, serial):
+
 - [x] All five waves accepted and coverage/disposition ledger complete.
 - [x] Scoped range/series admission is validated and backward-compatible; existing routes/write authorities, schema, owner isolation and domain calculations are preserved.
 - [x] Date range picker, Inline edit, Context menu and Confirm morph pass their exact behavioral contracts.

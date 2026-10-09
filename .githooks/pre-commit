@@ -1,5 +1,9 @@
 #!/bin/sh
 set -e
+# shortcut: checks working-tree files; use an index snapshot if partial staging must be enforced.
+if [ -n "$(git diff --cached --name-only --diff-filter=ACMR)" ]; then
+  git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 pnpm exec oxfmt --check --no-error-on-unmatched-pattern --
+fi
 # Lint and typecheck only the packages affected by current changes.
 pnpm turbo run lint typecheck --affected --output-logs=errors-only
 # When Pages Functions are staged, typecheck them and verify the generated route table is current.

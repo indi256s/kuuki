@@ -153,9 +153,7 @@
           "effect": "Переходит на /passport."
         }
       ],
-      "source": [
-        "apps/web/src/routes/DashboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/DashboardPage.tsx"],
       "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
     },
     {
@@ -193,9 +191,7 @@
           "effect": "Переходит на /passport через нижнюю навигацию."
         }
       ],
-      "source": [
-        "apps/web/src/routes/DashboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/DashboardPage.tsx"],
       "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
     },
     {
@@ -1593,9 +1589,7 @@
           "effect": "Открывает выбор страны."
         }
       ],
-      "source": [
-        "apps/web/src/routes/PassportPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/PassportPage.tsx"],
       "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
     },
     {
@@ -1628,9 +1622,7 @@
           "effect": "Открывает список стран на телефоне."
         }
       ],
-      "source": [
-        "apps/web/src/routes/PassportPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/PassportPage.tsx"],
       "notes": "Состояние снято в локальном приложении; парный .txt содержит accessibility snapshot этого состояния."
     },
     {
@@ -2143,9 +2135,7 @@
       },
       "auth": "authenticated",
       "fixture": "Прототип: статические сегменты TBS—DOH и DOH—NRT; данные заданы в INITIAL_TRIP.",
-      "preconditions": [
-        "Открыть /journey и нажать Save Trip, Add Segment или круглый +."
-      ],
+      "preconditions": ["Открыть /journey и нажать Save Trip, Add Segment или круглый +."],
       "recognition": [
         "Кнопки видимы в screenshots исходного Journey.",
         "В JourneyPlannerPage у кнопок нет onClick; реальный рабочий drag меняет только useState."

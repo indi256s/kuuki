@@ -21,9 +21,7 @@
       "raw": "2015-05-21 | ROV → Moscow | 07:05 → 08:55 [calendar only; times from calendar]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "destination: ambiguous or absent airport Moscow"
-      ],
+      "reasons": ["destination: ambiguous or absent airport Moscow"],
       "flight": {
         "date": "2015-05-21",
         "origin": "ROV",
@@ -60,9 +58,7 @@
       "raw": "2015-05-25 | KGD → Moscow | 15:00 → 17:50 [calendar only; times from calendar]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "destination: ambiguous or absent airport Moscow"
-      ],
+      "reasons": ["destination: ambiguous or absent airport Moscow"],
       "flight": {
         "date": "2015-05-25",
         "origin": "KGD",
@@ -162,9 +158,7 @@
       "raw": "2017-03-24 | ZIA → MSQ | Belavia B2972 | 10:20 → 11:45",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "origin: ambiguous or absent airport ZIA"
-      ],
+      "reasons": ["origin: ambiguous or absent airport ZIA"],
       "flight": {
         "date": "2017-03-24",
         "origin": "ZIA",
@@ -226,9 +220,7 @@
       "raw": "2017-04-06 | MSQ → ZIA | Belavia B2973 | 18:05 → 19:30 [travel log only]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "destination: ambiguous or absent airport ZIA"
-      ],
+      "reasons": ["destination: ambiguous or absent airport ZIA"],
       "flight": {
         "date": "2017-04-06",
         "origin": "MSQ",
@@ -374,9 +366,7 @@
       "raw": "2017-12-21 | IST → MUC | Turkish Airlines TK1633 | 12:40 → 13:30 [travel log + calendar; time conflict; see source notes]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2017-12-21",
         "origin": "IST",
@@ -418,9 +408,7 @@
       "raw": "2017-12-28 | AMS → IST | Turkish Airlines TK1956 | 23:50 → 05:10 (2017-12-29) [travel log + calendar; time conflict; see source notes]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2017-12-28",
         "origin": "AMS",
@@ -441,9 +429,7 @@
       "raw": "2017-12-30 | IST → ROV | Turkish Airlines TK293 | 01:05 → 03:20 [travel log + calendar; time conflict; see source notes]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2017-12-30",
         "origin": "IST",
@@ -548,9 +534,7 @@
       "raw": "2019-01-22 | GRO → VKO | Pobeda DP832 | 11:35 → 17:50",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "origin: ambiguous or absent airport GRO"
-      ],
+      "reasons": ["origin: ambiguous or absent airport GRO"],
       "flight": {
         "date": "2019-01-22",
         "origin": "GRO",
@@ -591,9 +575,7 @@
       "raw": "2019-03-11 | VKO → TXL | UT705 | 10:55 → 11:45 [travel log only]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "destination: ambiguous or absent airport TXL"
-      ],
+      "reasons": ["destination: ambiguous or absent airport TXL"],
       "flight": {
         "date": "2019-03-11",
         "origin": "VKO",
@@ -613,9 +595,7 @@
       "raw": "2019-03-17 | TXL → VKO | Pobeda DP846 | 18:00 → 22:40 [travel log only]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "origin: ambiguous or absent airport TXL"
-      ],
+      "reasons": ["origin: ambiguous or absent airport TXL"],
       "flight": {
         "date": "2019-03-17",
         "origin": "TXL",
@@ -635,9 +615,7 @@
       "raw": "2019-06-28 | ROV → VKO | UT498 | 06:35 → 08:30 [travel log + calendar; time conflict; see source notes]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2019-06-28",
         "origin": "ROV",
@@ -679,9 +657,7 @@
       "raw": "2019-07-25 | BUD → IST | Turkish Airlines TK1036 | 09:05 → 12:05 [travel log only; same-day travel-log sequence conflicts]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2019-07-25",
         "origin": "BUD",
@@ -702,9 +678,7 @@
       "raw": "2019-07-25 | CDG → BUD | AF1494 | 16:45 → 18:55 [travel log only; same-day travel-log sequence conflicts]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2019-07-25",
         "origin": "CDG",
@@ -828,9 +802,7 @@
       "raw": "2020-03-25 | EVN → ROV | Azimuth A4226 | 12:55 → 12:35 [canceled; times from calendar]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2020-03-25",
         "origin": "EVN",
@@ -914,9 +886,7 @@
       "raw": "2021-06-11 | ROV → Moscow | 11:35 → 13:30 [calendar only; times from calendar]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "destination: ambiguous or absent airport Moscow"
-      ],
+      "reasons": ["destination: ambiguous or absent airport Moscow"],
       "flight": {
         "date": "2021-06-11",
         "origin": "ROV",
@@ -1058,9 +1028,7 @@
       "raw": "2022-03-13 | SAW → AYT | Pegasus Airlines PC2012 | 15:40 → 16:55 [unpaid reservation]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2022-03-13",
         "origin": "SAW",
@@ -1102,9 +1070,7 @@
       "raw": "2022-03-26 | AYT → ZIA | Red Wings WZ4610 | dep 01:55 [schedule updated]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "destination: ambiguous or absent airport ZIA"
-      ],
+      "reasons": ["destination: ambiguous or absent airport ZIA"],
       "flight": {
         "date": "2022-03-26",
         "origin": "AYT",
@@ -1123,9 +1089,7 @@
       "raw": "2022-04-30 | VKO → ROV | Yakutia R3765 | 14:30 → 16:20 [canceled/refunded]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2022-04-30",
         "origin": "VKO",
@@ -1146,9 +1110,7 @@
       "raw": "2022-05-04 | ROV → VKO | Yakutia R3766 | 17:20 → 19:20 [canceled/refunded]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2022-05-04",
         "origin": "ROV",
@@ -1169,9 +1131,7 @@
       "raw": "2022-07-17 | LED → OSL | Nordwind Airlines N42305 | 17:20 → 18:25 [canceled]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2022-07-17",
         "origin": "LED",
@@ -1192,9 +1152,7 @@
       "raw": "2022-07-31 | OSL → LED | Nordwind Airlines N42306 | 19:30 → 22:35 [outbound canceled; return status unresolved]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2022-07-31",
         "origin": "OSL",
@@ -1299,9 +1257,7 @@
       "raw": "2023-01-31 | TBS → SAW | Pegasus Airlines PC315 | 04:30 → 05:55 [possible refund not conclusively linked]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2023-01-31",
         "origin": "TBS",
@@ -1322,9 +1278,7 @@
       "raw": "2023-02-03 | SAW → TBS | Pegasus Airlines PC318 | 23:00 → 02:10 (2023-02-04) [possible refund not conclusively linked]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2023-02-03",
         "origin": "SAW",
@@ -1555,9 +1509,7 @@
       "raw": "2024-03-14 | BER → KUT | Wizz Air W66408 | 08:35 → 15:25 [canceled]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2024-03-14",
         "origin": "BER",
@@ -1620,9 +1572,7 @@
       "raw": "2024-10-31 | TBS → DOH | Qatar Airways QR256 | dep 14:20 [replaced QR254; arrival unresolved]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2024-10-31",
         "origin": "TBS",
@@ -1642,9 +1592,7 @@
       "raw": "2024-10-31 | TBS → DOH | Qatar Airways QR254 | 20:55 → 23:00 [superseded; replaced by QR256 at 14:20]",
       "section": "own",
       "status": "excluded",
-      "reasons": [
-        "canceled, unpaid or superseded"
-      ],
+      "reasons": ["canceled, unpaid or superseded"],
       "flight": {
         "date": "2024-10-31",
         "origin": "TBS",
@@ -1686,9 +1634,7 @@
       "raw": "2024-11-29 | NRT → BKK | AirJapan NQ001 | 17:35 → 23:00 [email says 18:05; PDF says 17:35]",
       "section": "own",
       "status": "review",
-      "reasons": [
-        "source explicitly flags uncertainty or conflict"
-      ],
+      "reasons": ["source explicitly flags uncertainty or conflict"],
       "flight": {
         "date": "2024-11-29",
         "origin": "NRT",
@@ -2087,9 +2033,7 @@
       "raw": "2017-01-24 | VKO → ROV | Pobeda DP107 | dep 19:10 [other passenger]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2017-01-24",
         "origin": "VKO",
@@ -2109,9 +2053,7 @@
       "raw": "2022-05-07 | VKO → ROV | Yakutia R3765 | 14:30 → 16:20 [canceled/refunded; other passenger; travel-log ownership conflicts]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2022-05-07",
         "origin": "VKO",
@@ -2132,9 +2074,7 @@
       "raw": "2022-05-11 | ROV → VKO | Yakutia R3766 | 17:20 → 19:20 [canceled/refunded; other passenger; travel-log ownership conflicts]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2022-05-11",
         "origin": "ROV",
@@ -2178,9 +2118,7 @@
       "raw": "2022-11-06 | GYD → TBS | Buta Airways J29225 | 21:45 → 22:55 [other passenger]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2022-11-06",
         "origin": "GYD",
@@ -2224,10 +2162,7 @@
       "raw": "2022-12-01 | Buta Airways [partial booking evidence; other passenger]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "incomplete route/date",
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["incomplete route/date", "other passenger or conflicting ownership"],
       "flight": null
     },
     {
@@ -2259,9 +2194,7 @@
       "raw": "2022-12-02 | GYD → TBS | Buta Airways J29225 | 21:45 → 22:55 [other passenger]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2022-12-02",
         "origin": "GYD",
@@ -2282,9 +2215,7 @@
       "raw": "2022-12-04 | TBS → EVN | FLYONE Armenia 3F584 | 11:35 → 12:10 [other passenger; travel-log ownership conflicts; seller code 5F584; erroneous calendar geography]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2022-12-04",
         "origin": "TBS",
@@ -2351,9 +2282,7 @@
       "raw": "2024-05-23 | AER → TBS | Red Wings WZ557 | 12:00 → 14:15 [other passenger; travel-log ownership conflicts]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2024-05-23",
         "origin": "AER",
@@ -2374,9 +2303,7 @@
       "raw": "2024-05-27 | TBS → AER | Red Wings WZ558 | 15:15 → 15:20 [other passenger; travel-log ownership conflicts]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2024-05-27",
         "origin": "TBS",
@@ -2397,9 +2324,7 @@
       "raw": "2024-07-05 | AER → TBS | Red Wings WZ557 | dep 16:05 [other passenger; travel-log ownership conflicts; changed from 12:30; revised arrival unknown]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2024-07-05",
         "origin": "AER",
@@ -2419,9 +2344,7 @@
       "raw": "2024-07-07 | TBS → AER | Red Wings WZ558 | 15:15 → 15:30 [other passenger; travel-log ownership conflicts]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2024-07-07",
         "origin": "TBS",
@@ -2442,9 +2365,7 @@
       "raw": "2026-01-30 | TBS → GYD | Azal J28234 | 17:50 → 19:00 [other passenger]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2026-01-30",
         "origin": "TBS",
@@ -2465,9 +2386,7 @@
       "raw": "2026-02-03 | GYD → TBS | Azal J28225 | 20:50 → 22:00 [other passenger]",
       "section": "other",
       "status": "excluded",
-      "reasons": [
-        "other passenger or conflicting ownership"
-      ],
+      "reasons": ["other passenger or conflicting ownership"],
       "flight": {
         "date": "2026-02-03",
         "origin": "GYD",
@@ -2488,10 +2407,7 @@
       "raw": "2016-04-04 (calendar entry) | to Moscow [calendar only; arrival from calendar]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     },
     {
@@ -2500,10 +2416,7 @@
       "raw": "2016-04-04 (calendar entry) | to Rostov-on-Don [calendar only; arrival from calendar]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     },
     {
@@ -2512,10 +2425,7 @@
       "raw": "2023-01-22 (calendar entry) | to Tbilisi [calendar only; arrival from calendar]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     },
     {
@@ -2524,10 +2434,7 @@
       "raw": "2025-12-03 (calendar entry) [calendar only]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     },
     {
@@ -2536,10 +2443,7 @@
       "raw": "Undated | BUD → VKO | Wizz Air [partial booking evidence; possible duplicate of Jan 27, 2022 log entry]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     },
     {
@@ -2548,10 +2452,7 @@
       "raw": "Undated | BUD → ORY | Wizz Air [partial booking evidence]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     },
     {
@@ -2560,10 +2461,7 @@
       "raw": "Undated | ORY → BUD | Wizz Air [partial booking evidence]",
       "section": "partial",
       "status": "review",
-      "reasons": [
-        "incomplete route/date",
-        "incomplete source record"
-      ],
+      "reasons": ["incomplete route/date", "incomplete source record"],
       "flight": null
     }
   ]

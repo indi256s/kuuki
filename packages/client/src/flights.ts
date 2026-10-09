@@ -36,12 +36,31 @@ export interface Flight {
   arrival_transit_leg_id?: number | null
 }
 
-type FlightWritable = Pick<Flight,
-  'id' | 'user_id' | 'date' | 'origin' | 'destination' | 'airline_iata' | 'aircraft_icao' |
-  'flight_number' | 'departure_time' | 'arrival_time' | 'departure_utc' | 'arrival_utc' |
-  'origin_tz' | 'dest_tz' | 'distance_km' | 'duration_minutes' | 'source' |
-  'is_upcoming' | 'enrichment_status' | 'created_at'>
-export type FlightInsert = Pick<FlightWritable, 'user_id' | 'date' | 'origin' | 'destination'> & Partial<Omit<FlightWritable, 'user_id' | 'date' | 'origin' | 'destination'>>
+type FlightWritable = Pick<
+  Flight,
+  | 'id'
+  | 'user_id'
+  | 'date'
+  | 'origin'
+  | 'destination'
+  | 'airline_iata'
+  | 'aircraft_icao'
+  | 'flight_number'
+  | 'departure_time'
+  | 'arrival_time'
+  | 'departure_utc'
+  | 'arrival_utc'
+  | 'origin_tz'
+  | 'dest_tz'
+  | 'distance_km'
+  | 'duration_minutes'
+  | 'source'
+  | 'is_upcoming'
+  | 'enrichment_status'
+  | 'created_at'
+>
+export type FlightInsert = Pick<FlightWritable, 'user_id' | 'date' | 'origin' | 'destination'> &
+  Partial<Omit<FlightWritable, 'user_id' | 'date' | 'origin' | 'destination'>>
 export type FlightUpdate = Partial<FlightWritable>
 
 /**
@@ -119,14 +138,18 @@ export async function checkDuplicateFlight(
   origin: string,
   destination: string,
   excludeId?: number,
-  options?: CallOptions
+  options?: CallOptions,
 ): Promise<Flight | null> {
-  const dto = await api.get<ApiFlight | null>('/api/flights/check-duplicate', {
-    date,
-    origin,
-    destination,
-    excludeId,
-  }, options)
+  const dto = await api.get<ApiFlight | null>(
+    '/api/flights/check-duplicate',
+    {
+      date,
+      origin,
+      destination,
+      excludeId,
+    },
+    options,
+  )
   return dto ? toFlight(dto, userId) : null
 }
 

@@ -8,11 +8,11 @@ backup and isolation gates.
 
 `MAINTENANCE_MODE` means two different things, and the checked-in values differ:
 
-| Config | Value | Meaning of the flag there |
-| --- | --- | --- |
-| `workers/maintenance/wrangler.toml` (default and `preview`) | `"true"` | The cron returns before any DB access. This is the only config that holds the cron, and the only one T09's cron enablement concerns. |
-| `wrangler.toml` (Pages, default and `preview`) | `"false"` | `"true"` would make API routes answer 503 `MAINTENANCE` before any session or database work (an application-wide hold). `"false"` is normal serving. |
-| `apps/next/wrangler.toml` (default and `preview`) | `"false"` | `"true"` would block the member routes and the API at the Next worker. `"false"` is normal serving. |
+| Config                                                      | Value     | Meaning of the flag there                                                                                                                            |
+| ----------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workers/maintenance/wrangler.toml` (default and `preview`) | `"true"`  | The cron returns before any DB access. This is the only config that holds the cron, and the only one T09's cron enablement concerns.                 |
+| `wrangler.toml` (Pages, default and `preview`)              | `"false"` | `"true"` would make API routes answer 503 `MAINTENANCE` before any session or database work (an application-wide hold). `"false"` is normal serving. |
+| `apps/next/wrangler.toml` (default and `preview`)           | `"false"` | `"true"` would block the member routes and the API at the Next worker. `"false"` is normal serving.                                                  |
 
 The Pages/Next `"false"` is not an enablement of anything lifecycle-specific: the owner sync, queue, confirm and transit
 review run whenever the application serves requests. A production application hold (`"true"` on Pages/Next) is applied by
@@ -20,12 +20,12 @@ the deployer at deploy time under the audit-remediation runbook, not by editing 
 
 ## What T09 changes at runtime
 
-| Piece | Behaviour | Needs |
-| --- | --- | --- |
-| `GET /api/me/awaiting`, `POST /api/flights/confirm`, `GET`/`POST /api/me/transit-review` | Owner-scoped queue, atomic confirmation, optional transit cleanup | Migrations `0006` and `0007` |
-| `POST /api/flights/sync-upcoming` | Upcoming to awaiting, awaiting to `automatic` logged, then inline repair; returns `{synced, awaited, autoConfirmed, more}` | Same |
-| Next shell `ActivityBridge` | After identity is confirmed, calls sync at most once per 10 minutes per owner across all tabs (shared `localStorage` timestamp), with up to two follow-ups while `more` is true. Never for guests | Next worker build |
-| Maintenance cron | Held while `MAINTENANCE_MODE = "true"`. When enabled: due transitions (50 users per direction, 100 flights per user), repair, leaderboards, cleanup | Maintenance worker deploy |
+| Piece                                                                                    | Behaviour                                                                                                                                                                                         | Needs                        |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `GET /api/me/awaiting`, `POST /api/flights/confirm`, `GET`/`POST /api/me/transit-review` | Owner-scoped queue, atomic confirmation, optional transit cleanup                                                                                                                                 | Migrations `0006` and `0007` |
+| `POST /api/flights/sync-upcoming`                                                        | Upcoming to awaiting, awaiting to `automatic` logged, then inline repair; returns `{synced, awaited, autoConfirmed, more}`                                                                        | Same                         |
+| Next shell `ActivityBridge`                                                              | After identity is confirmed, calls sync at most once per 10 minutes per owner across all tabs (shared `localStorage` timestamp), with up to two follow-ups while `more` is true. Never for guests | Next worker build            |
+| Maintenance cron                                                                         | Held while `MAINTENANCE_MODE = "true"`. When enabled: due transitions (50 users per direction, 100 flights per user), repair, leaderboards, cleanup                                               | Maintenance worker deploy    |
 
 While the cron is held, the owner sync is the only path that advances flights. A member who never opens the app keeps
 `upcoming` flights until the cron runs. Auto-confirm is therefore delayed, never lost: deadlines are stored and are not

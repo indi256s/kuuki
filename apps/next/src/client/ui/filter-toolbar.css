@@ -1,7 +1,32 @@
 /* Arc-derived filter toolbar and chip group. Tokens only; chip surfaces come from .ui-chip in ui.css. */
-.ui-filter-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3);min-width:0}
-.ui-filter-toolbar-search{flex:1 1 16rem;min-width:min(100%,12rem)}
-.ui-filter-toolbar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);margin-inline-start:auto}
-.ui-chip-group{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);min-width:0}
-.ui-facet-name{font-weight:500}
-.ui-facet-values{color:var(--text-muted)}
+.ui-filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.ui-filter-toolbar-search {
+  flex: 1 1 16rem;
+  min-width: min(100%, 12rem);
+}
+.ui-filter-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+.ui-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.ui-facet-name {
+  font-weight: 500;
+}
+.ui-facet-values {
+  color: var(--text-muted);
+}

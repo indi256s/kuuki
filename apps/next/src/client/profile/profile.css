@@ -1,36 +1,200 @@
 /* Arc avatar, badge, disclosure and static metric composition (MIT; ../ui/ARC-LICENSE.txt); Facehash and journal-derived values stay authoritative. */
-.editorial-profile { max-width: 720px; margin-inline: auto; position: relative; isolation: isolate; }
-.editorial-profile section { margin-block: var(--space-12); }
-.profile-watermark { position: absolute; inset-inline-end: 0; inset-block-start: 160px; writing-mode: vertical-rl; font: 600 80px var(--font-kana); color: var(--hairline); z-index: -1; pointer-events: none; }
-.editorial-profile .profile-head { display: flex; align-items: center; gap: var(--space-6); }
-.editorial-profile .profile-head > div, .profile-hero dd { min-inline-size: 0; overflow-wrap: anywhere; }
-.profile-avatar { display: block; border-radius: var(--radius-full); overflow: hidden; outline: 1px solid var(--outline-media); flex-shrink: 0; }
-.editorial-profile .handle, .profile-hero dd, .profile-metrics dd { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.profile-meta { display: flex; flex-wrap: wrap; gap: var(--space-3); color: var(--text-muted); }
-.profile-founding { border: 1px solid var(--hairline); border-radius: var(--radius-full); padding: 2px var(--space-3); }
-.editorial-profile .profile-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-.editorial-profile .profile-actions a { display: inline-flex; align-items: center; min-height: 44px; }
-.profile-share input { width: 100%; font-family: var(--font-mono); }
-.profile-hero { margin-bottom: var(--space-6); }
-.profile-hero dd { font-size: clamp(48px, 9vw, 80px); line-height: 1.1; margin: 0; }
-.profile-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); }
-.profile-metrics dd { margin: 0; font-size: 24px; }
-.profile-metrics > div { min-width: 0; display: grid; gap: var(--space-2); }
-.profile-metrics dt { color: var(--text-muted); }
-.profile-badges { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
-.profile-badges details { padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-inset); }
-.profile-badges summary { min-height: 44px; cursor: pointer; display: flex; gap: var(--space-3); align-items: center; }
-.profile-badges summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.profile-badges small { display: block; color: var(--text-muted); }
-.badge-shape { font-size: 32px; }
-.badge-shape[data-tier=gold] { color: var(--rank-gold); }
-.badge-shape[data-tier=silver] { color: var(--rank-silver); }
-.badge-shape[data-tier=bronze] { color: var(--rank-bronze); }
-.badge-notice { position: fixed; inset-block-end: calc(var(--tabbar-offset, 0px) + var(--space-6)); inset-inline: var(--page-gutter); max-width: 520px; margin-inline: auto; z-index: 70; background: var(--surface-floating); box-shadow: var(--shadow-floating); padding: var(--space-4); border-radius: var(--radius-md); }
-.badge-notice[data-first=true] { animation: first-achievement 600ms var(--ease-out); }
-@keyframes first-achievement { from { transform: perspective(500px) rotateY(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .badge-notice[data-first=true] { animation: achievement-fade 150ms linear; } }
-@keyframes achievement-fade { from { opacity: 0; } to { opacity: 1; } }
-@media (max-width: 700px) { .editorial-profile section { margin-block: var(--space-8); } .profile-metrics { grid-template-columns: repeat(2, minmax(0,1fr)); } .profile-badges { grid-template-columns: 1fr; } .editorial-profile .profile-head { gap: var(--space-4); } .profile-watermark { font-size: 64px; } }
-.profile-avatar [data-facehash-face] { transition: transform var(--dur-base) var(--ease-out) !important; }
-@media (prefers-reduced-motion: reduce) { .profile-avatar [data-facehash-face] { transform: none !important; transition: none !important; } .profile-avatar [data-facehash-face] svg * { animation: none !important; } }
+.editorial-profile {
+  max-width: 720px;
+  margin-inline: auto;
+  position: relative;
+  isolation: isolate;
+}
+.editorial-profile section {
+  margin-block: var(--space-12);
+}
+.profile-watermark {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: 160px;
+  writing-mode: vertical-rl;
+  font: 600 80px var(--font-kana);
+  color: var(--hairline);
+  z-index: -1;
+  pointer-events: none;
+}
+.editorial-profile .profile-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+.editorial-profile .profile-head > div,
+.profile-hero dd {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.profile-avatar {
+  display: block;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  outline: 1px solid var(--outline-media);
+  flex-shrink: 0;
+}
+.editorial-profile .handle,
+.profile-hero dd,
+.profile-metrics dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  color: var(--text-muted);
+}
+.profile-founding {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-3);
+}
+.editorial-profile .profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.editorial-profile .profile-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.profile-share input {
+  width: 100%;
+  font-family: var(--font-mono);
+}
+.profile-hero {
+  margin-bottom: var(--space-6);
+}
+.profile-hero dd {
+  font-size: clamp(48px, 9vw, 80px);
+  line-height: 1.1;
+  margin: 0;
+}
+.profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+.profile-metrics dd {
+  margin: 0;
+  font-size: 24px;
+}
+.profile-metrics > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.profile-metrics dt {
+  color: var(--text-muted);
+}
+.profile-badges {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.profile-badges details {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+}
+.profile-badges summary {
+  min-height: 44px;
+  cursor: pointer;
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+.profile-badges summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.profile-badges small {
+  display: block;
+  color: var(--text-muted);
+}
+.badge-shape {
+  font-size: 32px;
+}
+.badge-shape[data-tier='gold'] {
+  color: var(--rank-gold);
+}
+.badge-shape[data-tier='silver'] {
+  color: var(--rank-silver);
+}
+.badge-shape[data-tier='bronze'] {
+  color: var(--rank-bronze);
+}
+.badge-notice {
+  position: fixed;
+  inset-block-end: calc(var(--tabbar-offset, 0px) + var(--space-6));
+  inset-inline: var(--page-gutter);
+  max-width: 520px;
+  margin-inline: auto;
+  z-index: 70;
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+.badge-notice[data-first='true'] {
+  animation: first-achievement 600ms var(--ease-out);
+}
+@keyframes first-achievement {
+  from {
+    transform: perspective(500px) rotateY(-12deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-notice[data-first='true'] {
+    animation: achievement-fade 150ms linear;
+  }
+}
+@keyframes achievement-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 700px) {
+  .editorial-profile section {
+    margin-block: var(--space-8);
+  }
+  .profile-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .profile-badges {
+    grid-template-columns: 1fr;
+  }
+  .editorial-profile .profile-head {
+    gap: var(--space-4);
+  }
+  .profile-watermark {
+    font-size: 64px;
+  }
+}
+.profile-avatar [data-facehash-face] {
+  transition: transform var(--dur-base) var(--ease-out) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-avatar [data-facehash-face] {
+    transform: none !important;
+    transition: none !important;
+  }
+  .profile-avatar [data-facehash-face] svg * {
+    animation: none !important;
+  }
+}

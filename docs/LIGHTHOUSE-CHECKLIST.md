@@ -4,12 +4,12 @@ Manual audit checklist for Phase 6d Polish & Performance. Run Chrome DevTools Li
 
 ## Target Scores
 
-| Metric | Target |
-|--------|--------|
-| Performance | >90 |
-| Accessibility | >95 |
-| Best Practices | >90 |
-| SEO | >90 |
+| Metric         | Target |
+| -------------- | ------ |
+| Performance    | >90    |
+| Accessibility  | >95    |
+| Best Practices | >90    |
+| SEO            | >90    |
 
 ## Pages to Audit
 
@@ -23,29 +23,34 @@ Manual audit checklist for Phase 6d Polish & Performance. Run Chrome DevTools Li
 ## Performance Checklist (Target: >90)
 
 ### Images
+
 - [ ] All images use modern formats (WebP/AVIF)
 - [ ] Images have proper `width` and `height` attributes
 - [ ] Images use lazy loading (`loading="lazy"`) where appropriate
 - [ ] No images larger than necessary for display size
 
 ### Fonts
+
 - [ ] DM Sans subset properly (latin only if not using Cyrillic)
 - [ ] `font-display: swap` set in font loading
 - [ ] Critical fonts preloaded via `<link rel="preload">`
 - [ ] JetBrains Mono loaded only when needed
 
 ### JavaScript
+
 - [ ] Route code splitting enabled (lazy loading routes)
 - [ ] No large unused dependencies in bundle
 - [ ] Tree shaking working (check for dead code)
 - [ ] Third-party scripts deferred or async
 
 ### CSS
+
 - [ ] Tailwind CSS tree-shaking enabled
 - [ ] No large unused CSS blocks
 - [ ] Critical CSS inlined (if using SSR)
 
 ### Network
+
 - [ ] Resources compressed (gzip/brotli)
 - [ ] Proper cache headers set
 - [ ] No render-blocking resources
@@ -55,37 +60,44 @@ Manual audit checklist for Phase 6d Polish & Performance. Run Chrome DevTools Li
 ## Accessibility Checklist (Target: >95)
 
 ### Color Contrast
+
 - [ ] All text meets WCAG AA (4.5:1 for normal text, 3:1 for large)
 - [ ] Interactive elements have sufficient contrast in all states
 - [ ] Dark mode contrast verified separately
 
 ### Focus Indicators
+
 - [ ] All interactive elements have visible focus states
 - [ ] Focus ring color has sufficient contrast
 - [ ] Focus order follows logical reading order
 
 ### Touch Targets
+
 - [ ] Buttons meet 44px minimum (enforced via `@media (pointer: coarse)`)
 - [ ] Adequate spacing between adjacent touch targets (8px minimum)
 - [ ] MobileTabBar tabs are 64px (verified in code)
 
 ### Content
+
 - [ ] All images have meaningful `alt` text
 - [ ] Decorative images have empty `alt=""`
 - [ ] Icons have `aria-hidden="true"` or accessible labels
 
 ### Structure
+
 - [ ] Single `<h1>` per page
 - [ ] Heading hierarchy is logical (h1 → h2 → h3)
 - [ ] Landmark regions used (`<nav>`, `<main>`, `<aside>`)
 - [ ] Skip link present (if applicable)
 
 ### Forms
+
 - [ ] All inputs have associated labels
 - [ ] Error messages are announced to screen readers
 - [ ] Required fields are indicated programmatically
 
 ### Motion
+
 - [ ] `prefers-reduced-motion` support verified
 - [ ] Test with OS reduced motion setting enabled
 - [ ] All animations eliminated in reduced motion mode
@@ -95,15 +107,18 @@ Manual audit checklist for Phase 6d Polish & Performance. Run Chrome DevTools Li
 ## Best Practices Checklist (Target: >90)
 
 ### Security
+
 - [ ] All resources loaded over HTTPS
 - [ ] No mixed content warnings
 - [ ] No console errors or warnings
 
 ### Browser Compatibility
+
 - [ ] Works in latest Chrome, Firefox, Safari
 - [ ] No deprecated API warnings
 
 ### Mobile
+
 - [ ] Viewport meta tag present and correct
 - [ ] Safe areas handled for notched devices (iPhone)
 - [ ] Content doesn't overflow viewport
@@ -113,16 +128,19 @@ Manual audit checklist for Phase 6d Polish & Performance. Run Chrome DevTools Li
 ## SEO Checklist (Target: >90)
 
 ### Meta Tags
+
 - [ ] Unique `<title>` on each page (under 60 chars)
 - [ ] Unique `<meta name="description">` on each page (under 160 chars)
 - [ ] Open Graph tags present (og:title, og:description, og:image)
 
 ### Structure
+
 - [ ] Semantic HTML used (`<nav>`, `<main>`, `<article>`, `<section>`)
 - [ ] Proper heading hierarchy
 - [ ] Crawlable links using anchor tags
 
 ### Technical
+
 - [ ] robots.txt allows indexing
 - [ ] sitemap.xml present (if applicable)
 - [ ] Canonical URLs set
@@ -150,9 +168,10 @@ Manual audit checklist for Phase 6d Polish & Performance. Run Chrome DevTools Li
 Use this section to track issues found during audits:
 
 ### Page: [PAGE NAME]
-| Issue | Category | Severity | Fixed |
-|-------|----------|----------|-------|
-| Example: Missing alt text on hero image | A11y | Medium | [ ] |
+
+| Issue                                   | Category | Severity | Fixed |
+| --------------------------------------- | -------- | -------- | ----- |
+| Example: Missing alt text on hero image | A11y     | Medium   | [ ]   |
 
 ---
 
@@ -166,9 +185,9 @@ After addressing issues:
 
 ### Final Scores
 
-| Page | Performance | A11y | Best Practices | SEO | Date |
-|------|-------------|------|----------------|-----|------|
-| Landing | | | | | |
-| Dashboard | | | | | |
-| Flights | | | | | |
-| Passport | | | | | |
+| Page      | Performance | A11y | Best Practices | SEO | Date |
+| --------- | ----------- | ---- | -------------- | --- | ---- |
+| Landing   |             |      |                |     |      |
+| Dashboard |             |      |                |     |      |
+| Flights   |             |      |                |     |      |
+| Passport  |             |      |                |     |      |

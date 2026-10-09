@@ -2,7 +2,11 @@ import { runHandler, readJson, json, HttpError } from '../../_lib/http'
 import { requireStrictSameOrigin } from '../../_lib/auth'
 import { rateLimit, clientIp } from '../../_lib/ratelimit'
 import { activationEmailKey, requestActivation } from '../../_lib/activation'
-import { configuredActivationOrigin, configuredActivationSender, configuredRecoverySender } from '../../_lib/activationSender'
+import {
+  configuredActivationOrigin,
+  configuredActivationSender,
+  configuredRecoverySender,
+} from '../../_lib/activationSender'
 import { configuredRecoveryOrigin, requestPasswordRecovery } from '../../_lib/passwordRecovery'
 import { EMAIL_RE, getUserByEmail } from '../../_lib/users'
 
@@ -17,7 +21,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUnti
     // Every configuration check runs before any lookup so the 503 never depends on account state.
     const activationOrigin = configuredActivationOrigin(env)
     if (activationOrigin === new URL(request.url).origin) {
-      throw new HttpError(503, 'Account activation is temporarily unavailable', 'ACTIVATION_UNAVAILABLE')
+      throw new HttpError(
+        503,
+        'Account activation is temporarily unavailable',
+        'ACTIVATION_UNAVAILABLE',
+      )
     }
     const activationSender = configuredActivationSender(env)
     const recoveryOrigin = configuredRecoveryOrigin(env)
@@ -30,9 +38,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUnti
     }
     const key = await activationEmailKey(email, env.AUTH_SECRET)
     await rateLimit(env.DB, `link-email:${key}`, 3, 3600)
-    waitUntil(sendLink(env.DB, email, activationOrigin, activationSender, recoveryOrigin, recoverySender).catch(() => {
-      console.error(JSON.stringify({ event: 'link_request_failed' }))
-    }))
+    waitUntil(
+      sendLink(
+        env.DB,
+        email,
+        activationOrigin,
+        activationSender,
+        recoveryOrigin,
+        recoverySender,
+      ).catch(() => {
+        console.error(JSON.stringify({ event: 'link_request_failed' }))
+      }),
+    )
     return json({ ok: true })
   })
   response.headers.set('Cache-Control', 'no-store')
@@ -51,6 +68,7 @@ async function sendLink(
   const user = await getUserByEmail(db, email)
   if (!user) return
   // Each helper re-checks the account state, so a stale choice here cannot send the wrong link.
-  if (user.password_hash === 'RESET_REQUIRED') await requestActivation(db, email, activationOrigin, activationSender)
+  if (user.password_hash === 'RESET_REQUIRED')
+    await requestActivation(db, email, activationOrigin, activationSender)
   else await requestPasswordRecovery(db, email, recoveryOrigin, recoverySender)
 }

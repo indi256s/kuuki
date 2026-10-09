@@ -1,16 +1,81 @@
 /* Journal title, live summary and review pill. Tokens only; weights 400 and 500, no eyebrow, no uppercase. */
-.journal-header{display:grid;gap:var(--space-2)}
-.journal-header-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-4)}
-.journal-header h1{margin:0;font-weight:500}
-.journal-header-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:var(--space-2) var(--space-4)}
-.journal-summary{margin:0;font-size:15px;line-height:24px;color:var(--text)}
-.journal-summary-note,.journal-summary-sep{color:var(--text-muted)}
+.journal-header {
+  display: grid;
+  gap: var(--space-2);
+}
+.journal-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+.journal-header h1 {
+  margin: 0;
+  font-weight: 500;
+}
+.journal-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2) var(--space-4);
+}
+.journal-summary {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  color: var(--text);
+}
+.journal-summary-note,
+.journal-summary-sep {
+  color: var(--text-muted);
+}
 
 /* The pill is a tinted label (accent-tint over surface), not a second primary button. */
-.journal-header .journal-review-pill.ui-button{border-color:transparent;border-radius:var(--radius-full);background:var(--accent-tint);color:var(--accent-on-tint);font-weight:500}
-.journal-import-link{display:inline-flex;align-items:center;min-height:44px;color:var(--text-muted);font-size:13px;line-height:20px;text-decoration:underline;text-underline-offset:3px}
-.journal-import-link:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--radius-xs)}
-@media (hover:hover) and (pointer:fine){.journal-import-link:hover{color:var(--text)}}
+.journal-header .journal-review-pill.ui-button {
+  border-color: transparent;
+  border-radius: var(--radius-full);
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+  font-weight: 500;
+}
+.journal-import-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.journal-import-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+@media (hover: hover) and (pointer: fine) {
+  .journal-import-link:hover {
+    color: var(--text);
+  }
+}
 
 /* Phones: title and pill share the row. */
-@media (max-width:700px){.journal-header-row{display:grid;grid-template-columns:minmax(0,1fr) auto}.journal-header-actions{display:contents}.journal-review-pill{grid-column:2;grid-row:1}.journal-import-link{grid-column:1 / -1;grid-row:2}}
+@media (max-width: 700px) {
+  .journal-header-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .journal-header-actions {
+    display: contents;
+  }
+  .journal-review-pill {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .journal-import-link {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

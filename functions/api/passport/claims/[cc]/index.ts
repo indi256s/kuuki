@@ -8,11 +8,16 @@ import { nowIso } from '../../../_lib/time'
 import { parseCountryCode } from '../../../_lib/params'
 import { dirtyUserStatement, repairUserDerivedState } from '../../../_services/derivedState'
 
-export const onRequestPut: PagesFunction<Env, string, RequestData> = context =>
+export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =>
   claimCountryRequest(context.request, context.env, context.data, context.params.cc)
 
 /** Request/Response entry keeps compatibility transport separate from domain writes. */
-export function claimCountryRequest(request: Request, env: Env, data: RequestData, rawCode: string | string[]): Promise<Response> {
+export function claimCountryRequest(
+  request: Request,
+  env: Env,
+  data: RequestData,
+  rawCode: string | string[],
+): Promise<Response> {
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
@@ -21,25 +26,33 @@ export function claimCountryRequest(request: Request, env: Env, data: RequestDat
     const [inserted] = await env.DB.batch([
       env.DB.prepare(
         'INSERT INTO country_claims (id, user_id, country_code, claimed_at) VALUES (?, ?, ?, ?) ON CONFLICT (user_id, country_code) DO NOTHING',
-      )
-      .bind(newId(), user.id, cc, nowIso()),
+      ).bind(newId(), user.id, cc, nowIso()),
       dirtyUserStatement(env.DB, user.id, true),
     ])
 
-    const claim = await env.DB
-      .prepare('SELECT id, country_code, claimed_at FROM country_claims WHERE user_id = ? AND country_code = ?')
+    const claim = await env.DB.prepare(
+      'SELECT id, country_code, claimed_at FROM country_claims WHERE user_id = ? AND country_code = ?',
+    )
       .bind(user.id, cc)
       .first()
 
-    return json({ ...claim, ...(inserted.meta.changes ? await repairUserDerivedState(env.DB, user.id) : {}) }, { status: 201 })
+    return json(
+      { ...claim, ...(inserted.meta.changes ? await repairUserDerivedState(env.DB, user.id) : {}) },
+      { status: 201 },
+    )
   })
 }
 
-export const onRequestDelete: PagesFunction<Env, string, RequestData> = context =>
+export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
   unclaimCountryRequest(context.request, context.env, context.data, context.params.cc)
 
 /** Request/Response entry keeps compatibility transport separate from domain writes. */
-export function unclaimCountryRequest(request: Request, env: Env, data: RequestData, rawCode: string | string[]): Promise<Response> {
+export function unclaimCountryRequest(
+  request: Request,
+  env: Env,
+  data: RequestData,
+  rawCode: string | string[],
+): Promise<Response> {
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
@@ -48,9 +61,15 @@ export function unclaimCountryRequest(request: Request, env: Env, data: RequestD
     // Ground visits can exist without a claim, so each DELETE gets its own
     // only-if-changed dirty mark (changes() sees just the preceding statement).
     const [visits, , claims] = await env.DB.batch([
-      env.DB.prepare('DELETE FROM ground_visits WHERE user_id = ? AND country_code = ?').bind(user.id, cc),
+      env.DB.prepare('DELETE FROM ground_visits WHERE user_id = ? AND country_code = ?').bind(
+        user.id,
+        cc,
+      ),
       dirtyUserStatement(env.DB, user.id, true),
-      env.DB.prepare('DELETE FROM country_claims WHERE user_id = ? AND country_code = ?').bind(user.id, cc),
+      env.DB.prepare('DELETE FROM country_claims WHERE user_id = ? AND country_code = ?').bind(
+        user.id,
+        cc,
+      ),
       dirtyUserStatement(env.DB, user.id, true),
     ])
 

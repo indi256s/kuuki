@@ -3,6 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build everything the new Overview needs below the UI:
+
 - one owner payload;
 - a pure stats engine in `packages/shared` (filters, figures, the six sections, globe data);
 - preferences;
@@ -67,8 +68,9 @@ Chartable outputs are tidy row arrays that TanStack Charts marks take as they ar
    - Nov 2025–Feb 2026 compares with Jul–Oct 2025.
    - `{years: [2019, 2024]}` gets no delta.
    - `{years: [2023, 2024]}` compares with 2021–2022.
-   
+
    Test: Task 4 `previous period`.
+
 4. **Stale remembered prefs**: an airline no longer flown, an older prefs version, malformed JSON. Expected: unknown facet values are kept but match nothing (so the H1 can still name them); valid known fields from older versions merge with current defaults, with absent/invalid fields defaulted; malformed JSON or unknown future versions read as complete defaults; never a 500. This version policy was approved during Task 11. Tests: Task 11.
 5. **Public endpoint on a profile that turned private, or an unknown username.** Expected: identical 404s. The response never contains a `YYYY-MM-DD` date, `home`, `flightNumber` or per-route counts. Test: Task 14 `public subset leaks nothing finer than a month`.
 
@@ -76,22 +78,22 @@ Chartable outputs are tidy row arrays that TanStack Charts marks take as they ar
 
 ## File Structure
 
-| File | Responsibility |
-|---|---|
-| `packages/shared/src/overview/model.ts` | Payload, row, filter, scope types and constants |
-| `packages/shared/src/overview/aggregate.ts` | Monthly route aggregation of rows |
-| `packages/shared/src/overview/filter.ts` | Facet matching, sanitising, previous period |
-| `packages/shared/src/overview/figures.ts` | Figures, deltas, coverage, home |
-| `packages/shared/src/overview/records.ts`, `crossings.ts`, `fleet.ts`, `clock.ts`, `rhythm.ts`, `rankings.ts`, `globe.ts` | One section each (pure) |
-| `packages/shared/src/overview/compute.ts` | `computeOverview` entry |
-| `packages/shared/src/overview/__fixtures__/` | Golden payloads |
-| `packages/shared/src/overview/prefs.ts` | Prefs schema, defaults, parse |
-| `functions/api/_services/overviewData.ts` | Payload builder (D1) |
-| `functions/api/me/overview/data.ts`, `prefs.ts`, `share.png.ts` | Owner endpoints |
-| `functions/api/public/profiles/[username]/overview.ts` | Public subset |
-| `functions/api/flights/schedule-suggestions.ts`, `schedule-batch.ts` | Schedule rung |
-| `apps/next/src/client/overview/data-store.ts` | Memory store + revalidation |
-| `scripts/overview-parity.ts` | Legacy parity report |
+| File                                                                                                                      | Responsibility                                  |
+| ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `packages/shared/src/overview/model.ts`                                                                                   | Payload, row, filter, scope types and constants |
+| `packages/shared/src/overview/aggregate.ts`                                                                               | Monthly route aggregation of rows               |
+| `packages/shared/src/overview/filter.ts`                                                                                  | Facet matching, sanitising, previous period     |
+| `packages/shared/src/overview/figures.ts`                                                                                 | Figures, deltas, coverage, home                 |
+| `packages/shared/src/overview/records.ts`, `crossings.ts`, `fleet.ts`, `clock.ts`, `rhythm.ts`, `rankings.ts`, `globe.ts` | One section each (pure)                         |
+| `packages/shared/src/overview/compute.ts`                                                                                 | `computeOverview` entry                         |
+| `packages/shared/src/overview/__fixtures__/`                                                                              | Golden payloads                                 |
+| `packages/shared/src/overview/prefs.ts`                                                                                   | Prefs schema, defaults, parse                   |
+| `functions/api/_services/overviewData.ts`                                                                                 | Payload builder (D1)                            |
+| `functions/api/me/overview/data.ts`, `prefs.ts`, `share.png.ts`                                                           | Owner endpoints                                 |
+| `functions/api/public/profiles/[username]/overview.ts`                                                                    | Public subset                                   |
+| `functions/api/flights/schedule-suggestions.ts`, `schedule-batch.ts`                                                      | Schedule rung                                   |
+| `apps/next/src/client/overview/data-store.ts`                                                                             | Memory store + revalidation                     |
+| `scripts/overview-parity.ts`                                                                                              | Legacy parity report                            |
 
 Section types are declared in each section's task. `compute.ts` composes them.
 
@@ -100,10 +102,12 @@ Section types are declared in each section's task. `compute.ts` composes them.
 ### Task 1: Aircraft family data
 
 **Files:**
+
 - Modify: `packages/data/src/aircraft.json` (add `family` to all 215 entries), `packages/data/src/index.ts` (the `Aircraft` type gains `family: string`)
 - Create: `packages/data/src/aircraft-family.test.ts`; add `'packages/data/src/**/*.test.ts'` to `functions/vitest.config.ts` `include`
 
 **Interfaces:**
+
 - Produces:
   - `Aircraft.family: string`.
   - `familyOf(icao: string, ref?: { model: string | null }): string | null`, exported from `packages/data/src/aircraft-lookup.ts`. Order: the package family, else `ref.model`, else null.
@@ -126,41 +130,68 @@ Section types are declared in each section's task. `compute.ts` composes them.
 ### Task 2: Payload contract, aggregation and builder
 
 **Files:**
+
 - Create: `packages/shared/src/overview/model.ts`, `packages/shared/src/overview/aggregate.ts`, `functions/api/_services/overviewData.ts`, `functions/test/overview-data.test.ts`
 - Modify: `packages/shared/package.json` (export `"./overview/*"`)
 
 **Interfaces:**
+
 - Consumes: `DurationSource` (Release 1), `familyOf` (Task 1), `COUNTRY_REGION` (`functions/api/_lib/countryRegions.generated.ts`), `readPassport` (`functions/api/_services/passport.ts`), `stateOf` (`derivedState.ts`).
 - Produces (`model.ts`):
 
 ```ts
 export const AGGREGATE_THRESHOLD = 5000
 export interface OverviewRow {
-  id: number                    // aggregate mode: smallest id in the group
-  weight: number                // 1, or flights in the group
-  date: string                  // local departure date; aggregate mode: 'YYYY-MM-01'
+  id: number // aggregate mode: smallest id in the group
+  weight: number // 1, or flights in the group
+  date: string // local departure date; aggregate mode: 'YYYY-MM-01'
   state: 'upcoming' | 'awaiting' | 'logged'
-  origin: string; destination: string
-  airline: string | null; aircraft: string | null
-  flightNumber: string | null   // null in aggregate mode
-  depMinute: number | null      // local minute of day; aggregate mode: hour × 60
-  distanceKm: number | null; durationMinutes: number | null; zonesOverflown: number | null  // sums in aggregate mode
+  origin: string
+  destination: string
+  airline: string | null
+  aircraft: string | null
+  flightNumber: string | null // null in aggregate mode
+  depMinute: number | null // local minute of day; aggregate mode: hour × 60
+  distanceKm: number | null
+  durationMinutes: number | null
+  zonesOverflown: number | null // sums in aggregate mode
   durationSource: DurationSource | null
-  originTz: string | null; destTz: string | null
-  departureUtc: string | null   // null in aggregate mode
-  suppressed: 0 | 1 | 2 | 3     // bit 1 origin, bit 2 destination: D12 country evidence suppressed
-  recordExtrema?: RecordExtrema  // aggregate-only individual winners with values and ids
-  clockShiftMinutes?: number | null  // aggregate-only sum of absolute individual jumps
+  originTz: string | null
+  destTz: string | null
+  departureUtc: string | null // null in aggregate mode
+  suppressed: 0 | 1 | 2 | 3 // bit 1 origin, bit 2 destination: D12 country evidence suppressed
+  recordExtrema?: RecordExtrema // aggregate-only individual winners with values and ids
+  clockShiftMinutes?: number | null // aggregate-only sum of absolute individual jumps
 }
 export interface OverviewPayload {
-  schemaVersion: 2; etag: string; generatedAt: string; mode: 'flights' | 'aggregate'
+  schemaVersion: 2
+  etag: string
+  generatedAt: string
+  mode: 'flights' | 'aggregate'
   derivedReady: boolean
   passport: { countries: number; regions: number }
   homeOverride: string | null
   rows: OverviewRow[]
   refs: {
-    airports: Record<string, { lat: number | null; lon: number | null; country: string | null; city: string | null; name: string }>
-    aircraft: Record<string, { manufacturer: string | null; type: string | null; family: string | null; name: string | null }>
+    airports: Record<
+      string,
+      {
+        lat: number | null
+        lon: number | null
+        country: string | null
+        city: string | null
+        name: string
+      }
+    >
+    aircraft: Record<
+      string,
+      {
+        manufacturer: string | null
+        type: string | null
+        family: string | null
+        name: string | null
+      }
+    >
     regions: Record<string, string>
   }
 }
@@ -194,12 +225,14 @@ export interface OverviewPayload {
 ### Task 3: Owner payload endpoint
 
 **Files:**
+
 - Create: `functions/api/me/overview/data.ts`
 - Modify: `apps/next/src/server/overview.ts` (add `getOwnOverviewData()` mirroring `getOwnOverview`), `apps/next/api-routes.generated.ts` (via build)
 - Modify: `functions/api/profiles/me.ts` (user-approved home-edit invalidation)
 - Test: `functions/test/overview-data.test.ts` (extend)
 
 **Interfaces:**
+
 - Consumes: `readOverviewData`, `overviewEtag` (Task 2); `requireUser`, `runHandler`, `json`.
 - Produces: `GET /api/me/overview/data`.
   - 200 with the payload, plus `Cache-Control: no-store` and an `ETag`.
@@ -228,20 +261,29 @@ export interface OverviewPayload {
 ### Task 4: Filter engine
 
 **Files:**
+
 - Create: `packages/shared/src/overview/filter.ts`, `packages/shared/src/overview/filter.test.ts`
 - Modify: `packages/shared/src/overview/model.ts` (add the filter types and constants below)
 
 **Interfaces:**
+
 - Produces:
 
 ```ts
 export type Haul = 'short' | 'medium' | 'long'
 export type DepartureBand = 'night' | 'morning' | 'afternoon' | 'evening'
 export interface OverviewFilter {
-  period?: { years: number[] } | { from: string; to: string }   // months 'YYYY-MM', inclusive
-  countries?: string[]; regions?: string[]; airlines?: string[]; aircraft?: string[]
-  routes?: string[]; manufacturers?: string[]; bodyTypes?: string[]
-  haul?: Haul[]; domestic?: Array<'domestic' | 'international'>; departureBands?: DepartureBand[]
+  period?: { years: number[] } | { from: string; to: string } // months 'YYYY-MM', inclusive
+  countries?: string[]
+  regions?: string[]
+  airlines?: string[]
+  aircraft?: string[]
+  routes?: string[]
+  manufacturers?: string[]
+  bodyTypes?: string[]
+  haul?: Haul[]
+  domestic?: Array<'domestic' | 'international'>
+  departureBands?: DepartureBand[]
 }
 export const HAUL_KM = { medium: 1500, long: 4000 } as const
 export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 18 } as const
@@ -274,24 +316,39 @@ export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 
 ### Task 5: Figures, coverage, home and `computeOverview`
 
 **Files:**
+
 - Create: `packages/shared/src/overview/figures.ts`, `packages/shared/src/overview/compute.ts`, `packages/shared/src/overview/figures.test.ts`
 
 **Interfaces:**
+
 - Consumes: Task 4.
 - Produces:
 
 ```ts
-export type Gate<T> = { status: 'ready'; value: T } | { status: 'below'; have: number; need: number }
+export type Gate<T> =
+  | { status: 'ready'; value: T }
+  | { status: 'below'; have: number; need: number }
 export interface Figures {
-  flights: number; awaiting: number
+  flights: number
+  awaiting: number
   distanceKm: number
-  durationMinutes: number; durationApproximate: boolean
-  countries: { value: number; source: 'passport' | 'by_air' }; regions: number
-  deltas: { flights: number; distanceKm: number; durationMinutes: number } | null  // previous-period values
+  durationMinutes: number
+  durationApproximate: boolean
+  countries: { value: number; source: 'passport' | 'by_air' }
+  regions: number
+  deltas: { flights: number; distanceKm: number; durationMinutes: number } | null // previous-period values
 }
-export interface Coverage { total: number; typed: number; withDepartureTime: number; withBothTz: number; preciseDuration: number }
+export interface Coverage {
+  total: number
+  typed: number
+  withDepartureTime: number
+  withBothTz: number
+  preciseDuration: number
+}
 export interface OverviewScope {
-  filter: OverviewFilter; figures: Figures; coverage: Coverage
+  filter: OverviewFilter
+  figures: Figures
+  coverage: Coverage
   home: { iata: string; source: 'override' | 'most_departed' } | null
   // Tasks 6–9 each add their field here and wire it in compute.ts:
   // records: Gate<Records>; crossings: Gate<Crossings>; fleet: Gate<Fleet>; clock: Gate<Clock>;
@@ -322,6 +379,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 **Files:** Create `packages/shared/src/overview/records.ts`, `records.test.ts`; Modify `compute.ts`.
 
 **Interfaces:**
+
 - Produces:
   - `interface RecordRef { flightId: number; origin: string; destination: string; value: number }`.
   - `interface Records`:
@@ -332,8 +390,9 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     - `northernmost`, `southernmost: { iata: string; lat: number } | null` over all endpoints (airport evidence keeps transits);
     - `longestStreakMonths: number` (consecutive calendar months with ≥ 1 flight);
     - `longestGroundStopDays: number | null` (max gap between consecutive flight dates).
-    
+
     Day-level entries (`busiestDay`, `longestGroundStopDays`) are null in aggregate mode.
+
   - `records(rows, refs, mode): Gate<Records>`. Minimum 5 flights; ties go to the lowest id.
   - Clock jump = `utcOffsetMinutes(destTz, t) − utcOffsetMinutes(originTz, t)`, where `t = departureUtc ?? date+'T12:00:00Z'`.
   - Aggregate records select from `recordExtrema`, preserving real values and
@@ -358,6 +417,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 **Files:** Create `packages/shared/src/overview/crossings.ts`, `crossings.test.ts`; Modify `compute.ts`.
 
 **Interfaces:**
+
 - Consumes: `greatCirclePoints` (Release 1).
 - Produces:
   - `interface Crossings { zonesOverflown: number; clockShiftHours: number; equator: number; dateLine: number; arcticCircle: number; antarcticCircle: number; eastboundShare: number }`.
@@ -385,6 +445,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 **Files:** Create `packages/shared/src/overview/fleet.ts`, `clock.ts`, `fleet-clock.test.ts`; Modify `compute.ts`.
 
 **Interfaces:**
+
 - Produces:
   - `interface ShareRow { key: string; flights: number }`: chart rows, sorted by flights desc then key.
   - `interface Fleet { topType: { icao: string; share: number } | null; byBodyType: ShareRow[]; byManufacturer: ShareRow[]; families: number; types: number; typed: number; total: number }`.
@@ -408,6 +469,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 **Files:** Create `packages/shared/src/overview/rhythm.ts`, `rankings.ts`, `globe.ts`, `rhythm-rankings-globe.test.ts`; Modify `compute.ts`, `figures.ts`, `figures.test.ts`; reuse coordinate validation through `geo.ts` and `crossings.ts`.
 
 **Interfaces:**
+
 - Produces:
   - `interface RhythmCell { key: string /* 'YYYY-MM' */; year: number; month: number /* 1–12 */; flights: number; distanceKm: number; durationMinutes: number }`.
   - `interface Rhythm { years: number[] /* newest first */; cells: RhythmCell[] }`.
@@ -441,6 +503,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 **Files:** Create `packages/shared/src/overview/__fixtures__/*.json`, `packages/shared/src/overview/golden.test.ts`, `packages/shared/src/overview/properties.test.ts`; root `package.json` devDependency `fast-check@4.10.2`.
 
 **Interfaces:**
+
 - Consumes: `computeOverview`, `aggregateRows`.
 - Fixtures are payloads built by a committed generator in the test file; each is snapshotted with `toMatchSnapshot()`:
   - `polar` (JFK–HKG, DXB–LAX);
@@ -474,6 +537,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
 **Files:** Create `packages/shared/src/overview/prefs.ts`, `functions/api/me/overview/prefs.ts`, `functions/test/overview-prefs.test.ts`; regenerate routes.
 
 **Interfaces:**
+
 - Produces:
 
 ```ts
@@ -509,6 +573,7 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
 **Files:** Create `apps/next/src/client/overview/data-store.ts`, `data-store.test.ts`.
 
 **Interfaces:**
+
 - Consumes: `OverviewPayload`, `computeOverview`.
 - Produces:
   - `createOverviewDataStore(initial: OverviewPayload | null, fetcher = fetch)` → `{ get(): OverviewPayload | null; revalidate(): Promise<'unchanged' | 'updated' | 'failed'>; subscribe(fn: () => void): () => void }`.
@@ -530,10 +595,12 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
 ### Task 13: TanStack Charts foundation
 
 **Files:**
+
 - Modify: `apps/next/package.json` and the root `package.json`. Add the dependency `"@tanstack/charts": "1.0.0"` to both: Next renders charts in the browser and during SSR, and the Worker functions render SVG for the share card.
 - Create: `packages/shared/src/overview/charts.test.ts` (DOM-free), `apps/next/src/client/overview/chart-ssr.test.tsx` (React SSR)
 
 **Interfaces:**
+
 - Consumes: `computeOverview` outputs `rhythm.cells` (Task 9), `clock.byHour` and `fleet.byBodyType` (Task 8).
 - Produces: no new runtime API. This task proves the contract the design thread builds on:
   - engine rows go straight into `cell(...)` and `barY(...)` marks with no reshaping;
@@ -557,15 +624,16 @@ export function parsePrefs(raw: string | null): OverviewPrefs  // never throws; 
 **Files:** Create `functions/api/public/profiles/[username]/overview.ts`, `functions/api/_services/publicOverview.ts`, `packages/shared/src/overview/public.ts`, `functions/test/public-overview.test.ts`; Modify `apps/next/src/server/public.ts` (add `getPublicOverview(username)`); regenerate routes.
 
 **Interfaces:**
+
 - Consumes: `readPublicProfile`, `readOverviewData`, `parsePrefs`, `computeOverview`.
 - Produces: `GET /api/public/profiles/:username/overview` →
 
 ```ts
 interface PublicOverview {
-  routes: Array<[string, string]>           // undirected, deduplicated, sorted
+  routes: Array<[string, string]> // undirected, deduplicated, sorted
   airports: Record<string, { lat: number; lon: number }>
-  records?: PublicRecords   // only if publicSections.records: Records minus busiestDay/longestGroundStopDays, every RecordRef without flightId
-  fleet?: Fleet                             // only if publicSections.fleet
+  records?: PublicRecords // only if publicSections.records: Records minus busiestDay/longestGroundStopDays, every RecordRef without flightId
+  fleet?: Fleet // only if publicSections.fleet
 }
 ```
 
@@ -585,6 +653,7 @@ interface PublicOverview {
 **Files:** Create `functions/api/me/overview/share.png.ts` (or a `workers/share-card/` Worker, per Step 1), `functions/test/share-card.test.ts`.
 
 **Interfaces:**
+
 - Consumes: `readOverviewData`, `parsePrefs`, `computeOverview`; `createChartScene` + `renderChartSvg` (Task 13).
 - Produces: `GET /api/me/overview/share.png?filter=<base64url JSON>` (owner only, `no-store`) → `image/png`, 1 200 × 1 500.
   - Pending D12 publication (`derivedReady: false`) returns a no-store 503 with code `DERIVED_PENDING` before computation/rendering. Retrying after repair uses the current country evidence.
@@ -594,8 +663,9 @@ interface PublicOverview {
 - [x] **Step 1 (spike):** Add `@cf-wasm/og@0.5.0` and render the stub, including the embedded chart SVG, in the Next Worker. Run `pnpm next:build` and a Wrangler dry-run; record uncompressed and gzip Worker sizes, then decide:
   - If it stays under the current 64 MiB uncompressed Workers limit with ≥ 1 MiB headroom, render in-process. Cloudflare replaced compressed limits on [4 September 2026](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/).
   - Otherwise move rendering to `workers/share-card` behind a service binding, and record the decision in the commit body.
-  
+
   Before adding the package, check the current `@cf-wasm/og` docs (Context7) for its Workers import path. Context7 had no applicable package; official docs and installed 0.5.0 exports specify `@cf-wasm/og/workerd`. Measured dry-run: `Total Upload: 22461.50 KiB / gzip: 4640.51 KiB`; use in-process rendering. Local workerd renders a real 1200×1500 PNG, embedded Clock chart, with zero outbound calls.
+
 - [x] **Step 2: Write the failing tests:**
   - `owner gets a 1200x1500 png`: PNG signature; IHDR width/height read from bytes 16–23.
   - `card embeds the chart svg`: the layout function's intermediate tree contains an `<img>` whose `src` starts with `data:image/svg+xml`.
@@ -609,6 +679,7 @@ interface PublicOverview {
 **Files:** Create `functions/api/flights/schedule-suggestions.ts`, `functions/api/flights/schedule-batch.ts`, `functions/test/schedule-suggestions.test.ts` (with `import-fake-provider.ts`-style fake); Modify `functions/api/flights/[id].ts` (pass the existing resolver’s `timesFromSchedule` flag for PATCH preservation), export the shared deadline from `functions/api/enrich/aircraft.ts`, regenerate routes.
 
 **Interfaces:**
+
 - Consumes: `resolveFlightMetrics` (`timesFromSchedule`), the Gemini client pattern and `ENRICHMENT_DEADLINE_MS` from `functions/api/enrich/aircraft.ts`, `AIRCRAFT_BATCH_SIZE`.
 - Produces:
   - `POST /api/flights/schedule-suggestions` `{ ids: number[] }` (≤ 20; owned; only `duration_source = 'estimate'` with airline + flight number).
@@ -632,12 +703,14 @@ interface PublicOverview {
 ### Task 17: Parity report and legacy retirement
 
 **Files:**
+
 - Create: `scripts/overview-parity.ts`
 - Delete: `functions/api/me/advanced-stats.ts`, `functions/api/me/dashboard-stats.ts`, `functions/api/_services/advancedStats.ts`, `advancedStatsBreakdowns.ts`, `advancedStatsInsights.ts`, and their tests
 - Modify: `functions/api/_services/derivedState.ts` (drop `computedAdvancedStatsStatement` from the repair batch), regenerate routes
 - Keep: the `user_advanced_stats` table and its `deleteUserCascade` entry (additive-only schema)
 
 **Interfaces:**
+
 - Consumes: the Release 1 local restore (`scripts/restore-export-local.ts`), `readOverviewData`, `computeOverview`, and the legacy compute in `advancedStats.ts` before deletion.
 - Produces: `scripts/overview-parity.ts --database-id <id> --persist <abs dir> --user <id> [--schema-admission <json>]`.
   - Prints a table of metric | legacy | new | delta for: flights, distance, duration, airlines, aircraft types, manufacturers, regions, longest/shortest flight, top airline/airport/route.
@@ -649,7 +722,6 @@ interface PublicOverview {
 - [x] **Step 4:** `pnpm typecheck:api`, `pnpm test:api`, `pnpm next:build`. Expected: all pass.
 - [x] **Step 5:** Commit `refactor(api): retire legacy advanced stats after parity`.
 
-
 Retirement keeps the parity CLI runnable by freezing its two needed read-only legacy aggregates from `1ebf7b3` in the script. No legacy computation remains in the application. The historical table and deletion cascade are retained, and the composed-Worker smoke checks both retired routes return 404.
 
 ---
@@ -657,6 +729,7 @@ Retirement keeps the parity CLI runnable by freezing its two needed read-only le
 ## Handoff to the design plan
 
 The page swap belongs to the design plan. That plan:
+
 - replaces `(member)/overview`;
 - retires `/api/me/overview`, `/api/me/overview/missing-aircraft` and `/api/flights/route-projection` once nothing reads them;
 - shows `duration_source` as "≈" in Journal/flight sheets;
@@ -665,6 +738,7 @@ The page swap belongs to the design plan. That plan:
 It consumes `getOwnOverviewData`, `createOverviewDataStore`/`scopeFor`, `OverviewScope`, the prefs API, `PublicOverview` and the share endpoint as defined here.
 
 **Charts:** every chart in the design plan is a TanStack Charts `defineChart` over the engine's tidy rows (Task 13). The library is installed and its SSR and DOM-free paths are proven; the visuals are design's. Some options the design thread may want:
+
 - `cell` for the Rhythm heatmap;
 - `barY` for Clock hours and haul;
 - the `ridgeline` and `waffle` subpaths, which match the legacy AircraftTypesCard and ManufacturerCard;

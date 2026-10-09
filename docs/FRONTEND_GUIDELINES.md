@@ -11,10 +11,12 @@ This is a historical guide for the former Vite app. For the current Next UI, [DE
 **Name:** Warm Japanese Minimalism
 
 **Feel:**
+
 - Light mode: Warm paper-like neutrals (Washi) — breathable, organic
 - Dark mode: Deep ink/charcoal with amber accents — focused, energetic
 
 **Signature Elements:**
+
 - Hiragana (くうき) for atmospheric branding
 - Generous whitespace (Ma)
 - Soft rounded corners (14px default)
@@ -29,44 +31,44 @@ This is a historical guide for the former Vite app. For the current Next UI, [DE
 
 ### Light Mode
 
-| Token | OKLCH Value | Use |
-|-------|-------------|-----|
-| `--background` | `oklch(0.985 0.002 240)` | Page background |
-| `--foreground` | `oklch(0.25 0.01 260)` | Body text |
-| `--card` | `oklch(1 0 0)` | Card backgrounds |
-| `--card-foreground` | `oklch(0.25 0.01 260)` | Card text |
-| `--primary` | `oklch(0.55 0.12 25)` | Actions, links, accent |
-| `--primary-foreground` | `oklch(0.99 0 0)` | Text on primary |
-| `--secondary` | `oklch(0.96 0.005 260)` | Secondary backgrounds |
-| `--muted` | `oklch(0.97 0.003 250)` | Subtle backgrounds |
-| `--muted-foreground` | `oklch(0.55 0.01 260)` | Secondary text |
-| `--border` | `oklch(0.92 0.005 260)` | Borders |
-| `--destructive` | `oklch(0.65 0.18 25)` | Errors, delete |
-| `--success` | `oklch(0.72 0.14 160)` | Confirmations |
-| `--warning` | `oklch(0.82 0.12 85)` | Warnings |
-| `--info` | `oklch(0.55 0.10 200)` | Informational states, upcoming flights |
-| `--info-foreground` | `oklch(0.3 0.08 200)` | Text on info backgrounds |
+| Token                  | OKLCH Value              | Use                                    |
+| ---------------------- | ------------------------ | -------------------------------------- |
+| `--background`         | `oklch(0.985 0.002 240)` | Page background                        |
+| `--foreground`         | `oklch(0.25 0.01 260)`   | Body text                              |
+| `--card`               | `oklch(1 0 0)`           | Card backgrounds                       |
+| `--card-foreground`    | `oklch(0.25 0.01 260)`   | Card text                              |
+| `--primary`            | `oklch(0.55 0.12 25)`    | Actions, links, accent                 |
+| `--primary-foreground` | `oklch(0.99 0 0)`        | Text on primary                        |
+| `--secondary`          | `oklch(0.96 0.005 260)`  | Secondary backgrounds                  |
+| `--muted`              | `oklch(0.97 0.003 250)`  | Subtle backgrounds                     |
+| `--muted-foreground`   | `oklch(0.55 0.01 260)`   | Secondary text                         |
+| `--border`             | `oklch(0.92 0.005 260)`  | Borders                                |
+| `--destructive`        | `oklch(0.65 0.18 25)`    | Errors, delete                         |
+| `--success`            | `oklch(0.72 0.14 160)`   | Confirmations                          |
+| `--warning`            | `oklch(0.82 0.12 85)`    | Warnings                               |
+| `--info`               | `oklch(0.55 0.10 200)`   | Informational states, upcoming flights |
+| `--info-foreground`    | `oklch(0.3 0.08 200)`    | Text on info backgrounds               |
 
 ### Dark Mode
 
-| Token | OKLCH Value | Use |
-|-------|-------------|-----|
-| `--background` | `oklch(0.21 0.005 260)` | Page background |
-| `--foreground` | `oklch(0.95 0.005 250)` | Body text |
-| `--card` | `oklch(0.25 0.005 260)` | Card backgrounds |
-| `--primary` | `oklch(0.72 0.14 55)` | Amber accent |
-| `--muted` | `oklch(0.26 0.005 260)` | Subtle backgrounds |
-| `--muted-foreground` | `oklch(0.65 0.01 260)` | Secondary text |
-| `--border` | `oklch(0.32 0.005 260)` | Borders |
+| Token                | OKLCH Value             | Use                |
+| -------------------- | ----------------------- | ------------------ |
+| `--background`       | `oklch(0.21 0.005 260)` | Page background    |
+| `--foreground`       | `oklch(0.95 0.005 250)` | Body text          |
+| `--card`             | `oklch(0.25 0.005 260)` | Card backgrounds   |
+| `--primary`          | `oklch(0.72 0.14 55)`   | Amber accent       |
+| `--muted`            | `oklch(0.26 0.005 260)` | Subtle backgrounds |
+| `--muted-foreground` | `oklch(0.65 0.01 260)`  | Secondary text     |
+| `--border`           | `oklch(0.32 0.005 260)` | Borders            |
 
 ### Chart Colors
 
-| Token | OKLCH Value |
-|-------|-------------|
-| `--chart-1` | `oklch(0.55 0.12 25)` |
+| Token       | OKLCH Value            |
+| ----------- | ---------------------- |
+| `--chart-1` | `oklch(0.55 0.12 25)`  |
 | `--chart-2` | `oklch(0.72 0.14 160)` |
-| `--chart-3` | `oklch(0.68 0.10 50)` |
-| `--chart-4` | `oklch(0.82 0.12 85)` |
+| `--chart-3` | `oklch(0.68 0.10 50)`  |
+| `--chart-4` | `oklch(0.82 0.12 85)`  |
 | `--chart-5` | `oklch(0.55 0.10 200)` |
 
 ---
@@ -77,26 +79,27 @@ This is a historical guide for the former Vite app. For the current Next UI, [DE
 
 > **Superseded by [DESIGN.md](../DESIGN.md) for Next:** Onest replaces DM Sans (JetBrains Mono stays for ticket data). The table below describes the Vite compatibility UI only.
 
-| Role | Font | Weight | Class |
-|------|------|--------|-------|
-| Display/Headings | DM Sans | 600 | `font-display font-semibold` |
-| Body | DM Sans | 400 | `font-sans` |
-| Data/Numbers | JetBrains Mono | 500 | `font-mono font-medium` |
+| Role             | Font           | Weight | Class                        |
+| ---------------- | -------------- | ------ | ---------------------------- |
+| Display/Headings | DM Sans        | 600    | `font-display font-semibold` |
+| Body             | DM Sans        | 400    | `font-sans`                  |
+| Data/Numbers     | JetBrains Mono | 500    | `font-mono font-medium`      |
 
 ### Size Scale
 
-| Role | Class | When to use |
-|------|-------|-------------|
+| Role    | Class                    | When to use             |
+| ------- | ------------------------ | ----------------------- |
 | Display | `text-4xl` to `text-6xl` | Page titles, hero stats |
-| Heading | `text-2xl` to `text-3xl` | Section titles |
-| Subhead | `text-lg` | Card titles |
-| Body | `text-base` | Main content |
-| Small | `text-sm` | Secondary info |
-| Caption | `text-xs` | Timestamps, hints |
+| Heading | `text-2xl` to `text-3xl` | Section titles          |
+| Subhead | `text-lg`                | Card titles             |
+| Body    | `text-base`              | Main content            |
+| Small   | `text-sm`                | Secondary info          |
+| Caption | `text-xs`                | Timestamps, hints       |
 
 ### Data Display
 
 Always use `font-mono` for:
+
 - Flight numbers
 - IATA codes
 - Distances
@@ -114,10 +117,10 @@ Always use `font-mono` for:
 
 ### Scale
 
-| Token | Value |
-|-------|-------|
+| Token            | Value                    |
+| ---------------- | ------------------------ |
 | `--spacing-page` | `clamp(1rem, 5vw, 3rem)` |
-| `--radius` | `0.875rem` (14px) |
+| `--radius`       | `0.875rem` (14px)        |
 
 ### Patterns
 
@@ -138,18 +141,18 @@ Always use `font-mono` for:
 
 ### Timing
 
-| Duration | Token | Use |
-|----------|-------|-----|
-| 100ms | `--duration-micro` | Button press, toggles |
-| 150ms | `--duration-fast` | Hover states, focus |
-| 250ms | `--duration-normal` | Modals, tabs |
-| 400ms | `--duration-slow` | Page transitions |
+| Duration | Token               | Use                   |
+| -------- | ------------------- | --------------------- |
+| 100ms    | `--duration-micro`  | Button press, toggles |
+| 150ms    | `--duration-fast`   | Hover states, focus   |
+| 250ms    | `--duration-normal` | Modals, tabs          |
+| 400ms    | `--duration-slow`   | Page transitions      |
 
 ### Easing
 
-| Name | Value | Use |
-|------|-------|-----|
-| Smooth | `cubic-bezier(0.4, 0, 0.2, 1)` | Default |
+| Name   | Value                               | Use          |
+| ------ | ----------------------------------- | ------------ |
+| Smooth | `cubic-bezier(0.4, 0, 0.2, 1)`      | Default      |
 | Bounce | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Celebrations |
 
 ### Performance Rules
@@ -158,18 +161,20 @@ Always use `font-mono` for:
 
 ```tsx
 // NEVER use transition-all
-className="transition-all duration-200"  // ❌ Bad
+className = 'transition-all duration-200' // ❌ Bad
 
 // Always be explicit
-className="transition-transform duration-200"  // ✅ Good
-className="transition-[transform,opacity] duration-200"  // ✅ Good
+className = 'transition-transform duration-200' // ✅ Good
+className = 'transition-[transform,opacity] duration-200' // ✅ Good
 ```
 
 ### Reduced Motion
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -198,27 +203,27 @@ className="transition-[transform,opacity] duration-200"  // ✅ Good
 
 ### shadcn/ui Components
 
-| Need | Component | Notes |
-|------|-----------|-------|
-| Primary action | `<Button>` | Solid fill |
-| Secondary action | `<Button variant="outline">` | Border only |
-| Tertiary | `<Button variant="ghost">` | Text only |
-| Data container | `<Card>` | Subtle border |
-| Modal | `<Dialog>` | Centered, backdrop blur |
-| Side panel | `<Sheet>` | Full height, slide |
-| Form input | `<Input>` | With `<Label>` |
-| Selection | `<Select>` or `<Command>` | Command for searchable |
-| Toggle | `<Switch>` | Boolean settings |
-| Loading | `<Skeleton>` | Match content shape |
-| Notification | `toast()` from Sonner | Aviation-themed |
+| Need             | Component                    | Notes                   |
+| ---------------- | ---------------------------- | ----------------------- |
+| Primary action   | `<Button>`                   | Solid fill              |
+| Secondary action | `<Button variant="outline">` | Border only             |
+| Tertiary         | `<Button variant="ghost">`   | Text only               |
+| Data container   | `<Card>`                     | Subtle border           |
+| Modal            | `<Dialog>`                   | Centered, backdrop blur |
+| Side panel       | `<Sheet>`                    | Full height, slide      |
+| Form input       | `<Input>`                    | With `<Label>`          |
+| Selection        | `<Select>` or `<Command>`    | Command for searchable  |
+| Toggle           | `<Switch>`                   | Boolean settings        |
+| Loading          | `<Skeleton>`                 | Match content shape     |
+| Notification     | `toast()` from Sonner        | Aviation-themed         |
 
 ### Dialog vs Sheet
 
-| Use Dialog | Use Sheet |
-|------------|-----------|
+| Use Dialog    | Use Sheet       |
+| ------------- | --------------- |
 | Confirmations | Settings panels |
-| Quick forms | Filter drawers |
-| Focused tasks | Detail views |
+| Quick forms   | Filter drawers  |
+| Focused tasks | Detail views    |
 | Fits viewport | Content scrolls |
 
 ### Button as Link
@@ -236,6 +241,7 @@ className="transition-[transform,opacity] duration-200"  // ✅ Good
 ### Card Patterns
 
 **Stats Card:**
+
 ```
 ┌─────────────────────────────┐
 │  [Icon]          Top right  │
@@ -246,6 +252,7 @@ className="transition-[transform,opacity] duration-200"  // ✅ Good
 ```
 
 **Flight Card:**
+
 ```
 ┌─────────────────────────────┐
 │  JFK ●────[2h 30m]────● LHR │  ← Route visualization
@@ -264,11 +271,11 @@ className="transition-[transform,opacity] duration-200"  // ✅ Good
 
 Every form input **must** have:
 
-| Attribute | Purpose |
-|-----------|---------|
-| `name` | Form submission, autocomplete |
-| `autoComplete` | Password managers, autofill |
-| `type` | Correct mobile keyboard |
+| Attribute      | Purpose                       |
+| -------------- | ----------------------------- |
+| `name`         | Form submission, autocomplete |
+| `autoComplete` | Password managers, autofill   |
+| `type`         | Correct mobile keyboard       |
 
 ```tsx
 // ✅ Complete input
@@ -289,13 +296,13 @@ Every form input **must** have:
 
 ### Common Autocomplete Values
 
-| Field | Value |
-|-------|-------|
-| Email | `autocomplete="email"` |
-| Password (login) | `autocomplete="current-password"` |
-| Password (signup) | `autocomplete="new-password"` |
-| Name | `autocomplete="name"` |
-| Non-auth fields | `autocomplete="off"` |
+| Field             | Value                             |
+| ----------------- | --------------------------------- |
+| Email             | `autocomplete="email"`            |
+| Password (login)  | `autocomplete="current-password"` |
+| Password (signup) | `autocomplete="new-password"`     |
+| Name              | `autocomplete="name"`             |
+| Non-auth fields   | `autocomplete="off"`              |
 
 ### Labels
 
@@ -355,16 +362,16 @@ Icons next to text labels are decorative:
 
 ```tsx
 // Always show focus - never use outline-none alone
-className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+className = 'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 ```
 
 ### Semantic HTML
 
-| Need | Use | Not |
-|------|-----|-----|
-| Action | `<button>` | `<div onClick>` |
-| Navigation | `<Link>` | `<button>` with router |
-| Toggle | `<button aria-expanded>` | `<div>` |
+| Need       | Use                      | Not                    |
+| ---------- | ------------------------ | ---------------------- |
+| Action     | `<button>`               | `<div onClick>`        |
+| Navigation | `<Link>`                 | `<button>` with router |
+| Toggle     | `<button aria-expanded>` | `<div>`                |
 
 ### Touch Targets
 
@@ -380,28 +387,32 @@ Minimum **44×44px** for all interactive elements:
 
 ### Breakpoints
 
-| Breakpoint | Width | Changes |
-|------------|-------|---------|
-| Mobile | < 640px | Bottom tab bar, cards, single column |
-| Tablet | 640-1024px | Side nav, 2-column grids |
-| Desktop | 1024-1920px | Full nav, tables, 4-column grids |
-| Large | > 1920px | Two-panel layouts |
+| Breakpoint | Width       | Changes                              |
+| ---------- | ----------- | ------------------------------------ |
+| Mobile     | < 640px     | Bottom tab bar, cards, single column |
+| Tablet     | 640-1024px  | Side nav, 2-column grids             |
+| Desktop    | 1024-1920px | Full nav, tables, 4-column grids     |
+| Large      | > 1920px    | Two-panel layouts                    |
 
 ### Mobile Patterns
 
-| Desktop | Mobile |
-|---------|--------|
-| Left sidebar | Bottom tab bar |
-| Data tables | Card list |
-| Horizontal filters | Bottom sheet |
-| Dialog | Full-screen modal |
-| Hover tooltips | Tap to reveal |
+| Desktop            | Mobile            |
+| ------------------ | ----------------- |
+| Left sidebar       | Bottom tab bar    |
+| Data tables        | Card list         |
+| Horizontal filters | Bottom sheet      |
+| Dialog             | Full-screen modal |
+| Hover tooltips     | Tap to reveal     |
 
 ### Safe Areas
 
 ```css
-.pb-safe { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
-.h-tab-bar { height: calc(64px + env(safe-area-inset-bottom)); }
+.pb-safe {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+.h-tab-bar {
+  height: calc(64px + env(safe-area-inset-bottom));
+}
 ```
 
 ---
@@ -458,31 +469,31 @@ import type { Flight } from '@/types'
 
 ### Visual Anti-Patterns
 
-| Don't | Why | Do Instead |
-|-------|-----|------------|
-| Multiple accent colors | Visual noise | Single primary color |
-| Heavy drop shadows | Dated | Soft, atmospheric shadows |
-| Icon-heavy designs | Cluttered | Typography-driven |
-| Pure gray backgrounds | Cold | Blue-tinted neutrals |
+| Don't                  | Why          | Do Instead                |
+| ---------------------- | ------------ | ------------------------- |
+| Multiple accent colors | Visual noise | Single primary color      |
+| Heavy drop shadows     | Dated        | Soft, atmospheric shadows |
+| Icon-heavy designs     | Cluttered    | Typography-driven         |
+| Pure gray backgrounds  | Cold         | Blue-tinted neutrals      |
 
 ### Code Anti-Patterns
 
-| Don't | Why | Do Instead |
-|-------|-----|------------|
-| `text-white`, `text-black` | Hardcoded | `text-foreground` |
-| `bg-white`, `bg-black` | Hardcoded | `bg-background`, `bg-card` |
-| `bg-neutral-*` | Not in system | `bg-muted` |
-| `transition-all` | Performance | Specific properties |
-| `<div onClick>` | Accessibility | `<button>` |
+| Don't                      | Why           | Do Instead                 |
+| -------------------------- | ------------- | -------------------------- |
+| `text-white`, `text-black` | Hardcoded     | `text-foreground`          |
+| `bg-white`, `bg-black`     | Hardcoded     | `bg-background`, `bg-card` |
+| `bg-neutral-*`             | Not in system | `bg-muted`                 |
+| `transition-all`           | Performance   | Specific properties        |
+| `<div onClick>`            | Accessibility | `<button>`                 |
 
 ### UX Anti-Patterns
 
-| Don't | Why | Do Instead |
-|-------|-----|------------|
-| Tooltips for essential info | Mobile can't hover | Inline text |
-| Confirmation modals everywhere | Annoying | Inline confirm |
-| Loading spinners | Jarring | Skeleton placeholders |
-| Success modals | Interrupts flow | Toast notification |
+| Don't                          | Why                | Do Instead            |
+| ------------------------------ | ------------------ | --------------------- |
+| Tooltips for essential info    | Mobile can't hover | Inline text           |
+| Confirmation modals everywhere | Annoying           | Inline confirm        |
+| Loading spinners               | Jarring            | Skeleton placeholders |
+| Success modals                 | Interrupts flow    | Toast notification    |
 
 ---
 
@@ -530,7 +541,7 @@ Background (darkest)
 Borders more visible in dark mode:
 
 ```tsx
-className="border-border/50 dark:border-border/30"
+className = 'border-border/50 dark:border-border/30'
 ```
 
 ---
@@ -547,7 +558,7 @@ const date = `${d.getMonth()}/${d.getDate()}`
 const date = new Intl.DateTimeFormat(locale, {
   year: 'numeric',
   month: 'short',
-  day: 'numeric'
+  day: 'numeric',
 }).format(d)
 
 const distance = new Intl.NumberFormat(locale).format(km) + ' km'
@@ -566,6 +577,7 @@ const locale = navigator.language || 'en-US'
 Before building UI:
 
 **Design**
+
 - [ ] Content-first principle?
 - [ ] Calm, not flashy?
 - [ ] Progressive disclosure?
@@ -576,6 +588,7 @@ Before building UI:
 - [ ] Works in dark mode?
 
 **Accessibility**
+
 - [ ] Buttons have visible text OR `aria-label`
 - [ ] Inputs have `<label>`
 - [ ] Focus states visible (`focus-visible:ring-*`)
@@ -583,16 +596,19 @@ Before building UI:
 - [ ] Semantic HTML (`<button>`, `<a>`)
 
 **Forms**
+
 - [ ] Inputs have `name` and `autocomplete`
 - [ ] Correct input `type`
 - [ ] Errors inline, first error focused
 
 **Animation**
+
 - [ ] No `transition-all`
 - [ ] Only `transform`/`opacity`
 - [ ] Respects `prefers-reduced-motion`
 
 **Touch**
+
 - [ ] Touch targets 44×44px minimum
 - [ ] Safe area insets
 
@@ -600,8 +616,8 @@ Before building UI:
 
 ## Related Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [PRD.md](./PRD.md) | Product requirements |
-| [TECH_STACK.md](./TECH_STACK.md) | Dependencies |
-| [APP_FLOW.md](./APP_FLOW.md) | User flows |
+| Document                         | Purpose              |
+| -------------------------------- | -------------------- |
+| [PRD.md](./PRD.md)               | Product requirements |
+| [TECH_STACK.md](./TECH_STACK.md) | Dependencies         |
+| [APP_FLOW.md](./APP_FLOW.md)     | User flows           |

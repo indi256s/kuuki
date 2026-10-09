@@ -3,7 +3,14 @@ import { kyselyAdapter } from '@better-auth/kysely-adapter'
 import { Kysely } from 'kysely'
 import { D1Dialect } from 'kysely-d1'
 import { hashPassword, verifyPassword, generateToken } from './crypto'
-import { CSRF_COOKIE, SESSION_COOKIE, SESSION_TTL_SECONDS, serializeCookie, clearCookie, parseCookies } from './cookies'
+import {
+  CSRF_COOKIE,
+  SESSION_COOKIE,
+  SESSION_TTL_SECONDS,
+  serializeCookie,
+  clearCookie,
+  parseCookies,
+} from './cookies'
 import { revokeSession } from './session'
 import { requireCsrf, requireSameOrigin } from './auth'
 import { HttpError, jsonError } from './http'
@@ -12,12 +19,16 @@ export const BETTER_AUTH_COOKIE = 'kuuki_auth_session'
 
 /** Request-scoped configuration uses this environment's D1 binding and canonical origin. */
 export function createAuth(env: Env) {
-  if (!env.BETTER_AUTH_SECRET || env.BETTER_AUTH_SECRET.length < 32) throw new Error('BETTER_AUTH_SECRET must contain at least 32 characters')
+  if (!env.BETTER_AUTH_SECRET || env.BETTER_AUTH_SECRET.length < 32)
+    throw new Error('BETTER_AUTH_SECRET must contain at least 32 characters')
   if (!env.AUTH_SECRET) throw new Error('AUTH_SECRET is not configured')
   const origin = new URL(env.PAGES_ORIGIN).origin
   return betterAuth({
     appName: 'Kuuki',
-    database: kyselyAdapter(new Kysely({ dialect: new D1Dialect({ database: env.DB }) }), { type: 'sqlite', transaction: false }),
+    database: kyselyAdapter(new Kysely({ dialect: new D1Dialect({ database: env.DB }) }), {
+      type: 'sqlite',
+      transaction: false,
+    }),
     secret: env.BETTER_AUTH_SECRET,
     baseURL: origin,
     trustedOrigins: [origin],
@@ -35,7 +46,9 @@ export function createAuth(env: Env) {
     user: {
       modelName: 'users',
       fields: { createdAt: 'created_at', updatedAt: 'updated_at', emailVerified: 'email_verified' },
-      additionalFields: { password_hash: { type: 'string', input: false, returned: false, required: false } },
+      additionalFields: {
+        password_hash: { type: 'string', input: false, returned: false, required: false },
+      },
     },
     account: { modelName: 'auth_accounts' },
     session: {
@@ -58,27 +71,57 @@ export function createAuth(env: Env) {
 
 export function hasBetterAuthCookie(request: Request): boolean {
   const cookies = parseCookies(request.headers.get('Cookie'))
-  return Object.hasOwn(cookies, BETTER_AUTH_COOKIE) || Object.hasOwn(cookies, `__Secure-${BETTER_AUTH_COOKIE}`)
+  return (
+    Object.hasOwn(cookies, BETTER_AUTH_COOKIE) ||
+    Object.hasOwn(cookies, `__Secure-${BETTER_AUTH_COOKIE}`)
+  )
 }
 
-export function appendCsrfCookie(headers: Headers, request: Request, token = generateToken()): void {
-  headers.append('Set-Cookie', serializeCookie(CSRF_COOKIE, token, {
-    maxAge: SESSION_TTL_SECONDS, secure: new URL(request.url).protocol === 'https:',
-  }))
+export function appendCsrfCookie(
+  headers: Headers,
+  request: Request,
+  token = generateToken(),
+): void {
+  headers.append(
+    'Set-Cookie',
+    serializeCookie(CSRF_COOKIE, token, {
+      maxAge: SESSION_TTL_SECONDS,
+      secure: new URL(request.url).protocol === 'https:',
+    }),
+  )
 }
 
 export function clearBetterAuthCookie(headers: Headers, request: Request): void {
   const secure = new URL(request.url).protocol === 'https:'
-  headers.append('Set-Cookie', clearCookie(secure ? `__Secure-${BETTER_AUTH_COOKIE}` : BETTER_AUTH_COOKIE, { httpOnly: true, secure }))
+  headers.append(
+    'Set-Cookie',
+    clearCookie(secure ? `__Secure-${BETTER_AUTH_COOKIE}` : BETTER_AUTH_COOKIE, {
+      httpOnly: true,
+      secure,
+    }),
+  )
 }
 
 /** Preserve Better Auth's signed cookie headers and pair them with Kuuki's CSRF token. */
-export async function signInWithBetterAuth(env: Env, request: Request, email: string, password: string): Promise<Response> {
+export async function signInWithBetterAuth(
+  env: Env,
+  request: Request,
+  email: string,
+  password: string,
+): Promise<Response> {
   requireSameOrigin(request)
-  const response = await createAuth(env).api.signInEmail({ body: { email, password }, headers: request.headers, asResponse: true })
+  const response = await createAuth(env).api.signInEmail({
+    body: { email, password },
+    headers: request.headers,
+    asResponse: true,
+  })
   if (!response.ok) {
-    const failure = await response.clone().json().catch(() => null) as { code?: string } | null
-    if (failure?.code === 'INVALID_EMAIL_OR_PASSWORD') return jsonError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
+    const failure = (await response
+      .clone()
+      .json()
+      .catch(() => null)) as { code?: string } | null
+    if (failure?.code === 'INVALID_EMAIL_OR_PASSWORD')
+      return jsonError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
     if (failure?.code === 'FAILED_TO_CREATE_SESSION' || response.status >= 500) {
       throw new HttpError(503, 'Sign-in is temporarily unavailable', 'AUTH_UNAVAILABLE')
     }

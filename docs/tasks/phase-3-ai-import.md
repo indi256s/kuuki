@@ -15,12 +15,14 @@
 **Location:** `functions/api/import/parse.ts`
 
 **Implementation:**
+
 - Uses official `@google/genai` SDK (v1.39+)
 - Model: `gemini-3-flash-preview`
 - Structured JSON output via `responseSchema` with `Type` enum
 - Multimodal input: text, images (base64), PDFs
 
 **Features:**
+
 - Receive file/text from client
 - Call Gemini 3 Flash for OCR + semantic parsing
 - Return structured flight data with confidence scores
@@ -30,6 +32,7 @@
 - ✅ `departure_time`/`arrival_time` required in response schema (prevents Gemini from silently omitting visible times)
 
 **Secrets:**
+
 - `GEMINI_API_KEY` - stored in Workers secrets
 
 ### Upload UI
@@ -37,6 +40,7 @@
 **Skill:** `/interface-design`
 
 **Input types:**
+
 - PDF (boarding passes, itineraries)
 - Screenshots (PNG, JPG)
 - Plain text (copy-pasted flight info, Gemini output)
@@ -45,12 +49,13 @@
 
 The Import UI adapts based on user context:
 
-| User Type | Default Mode | Primary Action |
-|-----------|--------------|----------------|
-| New user (no flights) | Text mode | Bulk import via Gemini prompt |
-| Returning user (has flights) | File mode | Quick boarding pass scan |
+| User Type                    | Default Mode | Primary Action                |
+| ---------------------------- | ------------ | ----------------------------- |
+| New user (no flights)        | Text mode    | Bulk import via Gemini prompt |
+| Returning user (has flights) | File mode    | Quick boarding pass scan      |
 
 **Text Mode Features:**
+
 - Gemini prompt helper always visible (not collapsed)
 - "Copy" button for the optimized prompt
 - Large textarea for pasting results
@@ -58,11 +63,13 @@ The Import UI adapts based on user context:
 - Drag-drop files still works (shows overlay)
 
 **File Mode Features:**
+
 - Camera icon dropzone for boarding passes
 - Ctrl+V paste support for screenshots
 - "Or paste text" link to switch modes
 
 **Gemini Prompt (optimized for bulk extraction):**
+
 ```
 @Gmail @Google Calendar Search for all flight bookings, boarding passes, itineraries, and travel confirmations.
 
@@ -77,9 +84,11 @@ Format: one flight per line, include whatever info you found.
 ```
 
 **Loading feedback:**
+
 1. "Reading file..."
 2. "Extracting text..."
 3. "Finding flights..."
+
 - WindLoader animation with phase indicators
 - ✅ Live flight reveal: after API returns, flights appear one-by-one as compact text lines with staggered fade-up before transitioning to review
 
@@ -90,6 +99,7 @@ Format: one flight per line, include whatever info you found.
 **Layout:** Single scrollable list with all extracted flights
 
 **Features:**
+
 - Edit inline (all fields editable)
 - "Save all" button
 - Allow AI inferences (airline from flight number, etc.)
@@ -123,6 +133,7 @@ functions/
 ### POST /api/import/parse
 
 **Request:**
+
 ```json
 {
   "type": "pdf" | "image" | "text",
@@ -131,6 +142,7 @@ functions/
 ```
 
 **Response:**
+
 ```json
 {
   "flights": [
@@ -153,6 +165,7 @@ functions/
 ## Post-Launch: User API Keys
 
 When users provide their own Gemini key:
+
 1. Store encrypted in `profiles.gemini_api_key`
 2. Client sends key with request (or use stored key)
 3. Worker uses user's key instead of yours

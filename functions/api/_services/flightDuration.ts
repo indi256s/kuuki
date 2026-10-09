@@ -58,7 +58,14 @@ function tzOffsetMs(utcMs: number, timeZone: string): number {
   })
   const parts = dtf.formatToParts(new Date(utcMs))
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
-  const asIfUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'))
+  const asIfUtc = Date.UTC(
+    get('year'),
+    get('month') - 1,
+    get('day'),
+    get('hour'),
+    get('minute'),
+    get('second'),
+  )
   return asIfUtc - utcMs
 }
 
@@ -97,7 +104,9 @@ export interface ComputeFlightDurationResult {
  * Pure (no D1) — origin_tz/dest_tz are already on the flight row (airport tz lookup happens at
  * enrichment/import time, not here). Mirrors the migration's WHERE + CASE exactly. Never throws.
  */
-export function computeFlightDuration(input: ComputeFlightDurationInput): ComputeFlightDurationResult {
+export function computeFlightDuration(
+  input: ComputeFlightDurationInput,
+): ComputeFlightDurationResult {
   const { date, departureTime, arrivalTime, originTz, destTz, existingDurationMinutes } = input
 
   // WHERE departure_time IS NOT NULL AND arrival_time IS NOT NULL AND origin_tz IS NOT NULL AND dest_tz IS NOT NULL

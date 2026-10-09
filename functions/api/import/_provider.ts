@@ -18,18 +18,37 @@ export class ProviderResponseError extends Error {}
 /** Stable, user-visible failures without leaking provider payloads or document text. */
 export function providerFailure(error: unknown): HttpError {
   if (error instanceof ProviderResponseError) {
-    return new HttpError(502, 'The AI service returned an invalid response. Please try again.', 'PROVIDER_INVALID_RESPONSE')
+    return new HttpError(
+      502,
+      'The AI service returned an invalid response. Please try again.',
+      'PROVIDER_INVALID_RESPONSE',
+    )
   }
   if (error instanceof ApiError) {
     if (error.status === 404) {
-      return new HttpError(502, 'The AI model is unavailable. Please try again later.', 'MODEL_UNAVAILABLE')
+      return new HttpError(
+        502,
+        'The AI model is unavailable. Please try again later.',
+        'MODEL_UNAVAILABLE',
+      )
     }
     if (error.status === 429) {
-      return new HttpError(503, 'The AI service is at its usage limit. Please try again later.', 'PROVIDER_QUOTA')
+      return new HttpError(
+        503,
+        'The AI service is at its usage limit. Please try again later.',
+        'PROVIDER_QUOTA',
+      )
     }
   }
-  if (error instanceof Error && (error.name === 'AbortError' || /timed? out/i.test(error.message))) {
+  if (
+    error instanceof Error &&
+    (error.name === 'AbortError' || /timed? out/i.test(error.message))
+  ) {
     return new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')
   }
-  return new HttpError(502, 'The AI service could not process this request. Please try again.', 'PROVIDER_ERROR')
+  return new HttpError(
+    502,
+    'The AI service could not process this request. Please try again.',
+    'PROVIDER_ERROR',
+  )
 }

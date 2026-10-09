@@ -20,28 +20,34 @@ First visit → Showcase Modal (3 slides) → Landing Page → Auth → Username
 ### Files Created
 
 **Hooks:**
+
 - `apps/web/src/hooks/useShowcase.ts` - localStorage management for `kuuki-showcase-seen`
 
 **Onboarding Components:**
+
 - `apps/web/src/components/onboarding/ShowcaseModal.tsx` - 3-slide carousel with dots navigation
 - `apps/web/src/components/onboarding/UsernamePicker.tsx` - Username input with live normalization
 - `apps/web/src/components/onboarding/ImportCTA.tsx` - Import options (photo/manual/skip)
 - `apps/web/src/components/onboarding/index.ts` - Barrel export
 
 **Landing Components:**
+
 - `apps/web/src/components/landing/HeroSection.tsx` - Hero with title, subtitle, CTA buttons
 - `apps/web/src/components/landing/FeatureGrid.tsx` - 3 feature cards (Log, Stats, Compete)
 - `apps/web/src/components/landing/index.ts` - Barrel export
 
 **Dashboard Components:**
+
 - `apps/web/src/components/dashboard/EmptyState.tsx` - Sample data preview with overlay CTA
 - `apps/web/src/components/dashboard/index.ts` - Barrel export
 
 **Routes:**
+
 - `apps/web/src/routes/LandingPage.tsx` - Public landing page with showcase modal
 - `apps/web/src/routes/OnboardingPage.tsx` - Post-login onboarding flow
 
 **Data:**
+
 - `apps/web/src/lib/sampleData.ts` - Sample flight data and formatting utilities
 
 ### Files Modified
@@ -56,11 +62,11 @@ First visit → Showcase Modal (3 slides) → Landing Page → Auth → Username
 
 ### Pre-login Modal Showcase (3 slides) ✅
 
-| Slide | Content |
-|-------|---------|
-| 1 | "Log Your Journeys - Build your flight collection. Every takeoff, every landing, remembered." |
-| 2 | "Discover Your Stats - Distance flown, countries visited, airlines collected. See your patterns." |
-| 3 | "Compare & Share - Join the leaderboard. Share your aviation story with the world." |
+| Slide | Content                                                                                           |
+| ----- | ------------------------------------------------------------------------------------------------- |
+| 1     | "Log Your Journeys - Build your flight collection. Every takeoff, every landing, remembered."     |
+| 2     | "Discover Your Stats - Distance flown, countries visited, airlines collected. See your patterns." |
+| 3     | "Compare & Share - Join the leaderboard. Share your aviation story with the world."               |
 
 - Skip button always visible
 - Remembered in localStorage (`kuuki-showcase-seen`)

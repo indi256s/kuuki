@@ -41,7 +41,11 @@ export async function createSession(
 }
 
 /** Resolve a raw cookie token to its user, or null if missing/expired. Expired rows are pruned. */
-export async function resolveSession(db: D1Database, token: string | undefined, options: { pruneExpired?: boolean } = {}): Promise<ResolvedSession | null> {
+export async function resolveSession(
+  db: D1Database,
+  token: string | undefined,
+  options: { pruneExpired?: boolean } = {},
+): Promise<ResolvedSession | null> {
   if (!token) return null
   const tokenHash = await sha256Hex(token)
   const row = await db
@@ -51,10 +55,17 @@ export async function resolveSession(db: D1Database, token: string | undefined, 
        WHERE s.token_hash = ?`,
     )
     .bind(tokenHash)
-    .first<{ session_id: string; expires_at: string; last_seen_at: string | null; user_id: string; email: string }>()
+    .first<{
+      session_id: string
+      expires_at: string
+      last_seen_at: string | null
+      user_id: string
+      email: string
+    }>()
   if (!row) return null
   if (row.expires_at <= nowIso()) {
-    if (options.pruneExpired !== false) await db.prepare('DELETE FROM sessions WHERE id = ?').bind(row.session_id).run()
+    if (options.pruneExpired !== false)
+      await db.prepare('DELETE FROM sessions WHERE id = ?').bind(row.session_id).run()
     return null
   }
   return {

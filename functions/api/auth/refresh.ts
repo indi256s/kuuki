@@ -21,13 +21,20 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     if (!data.user) throw new HttpError(401, 'Session expired', 'SESSION_EXPIRED')
 
     if (hasBetterAuthCookie(request)) {
-      const response = await createAuth(env).api.getSession({ headers: request.headers, asResponse: true })
+      const response = await createAuth(env).api.getSession({
+        headers: request.headers,
+        asResponse: true,
+      })
       if (!response.ok) return response
-      const session = await response.json() as { user: { id: string; email: string } } | null
+      const session = (await response.json()) as { user: { id: string; email: string } } | null
       if (!session) throw new HttpError(401, 'Session expired', 'SESSION_EXPIRED')
       const res = json({ user: { id: session.user.id, email: session.user.email } })
       for (const cookie of response.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
-      appendCsrfCookie(res.headers, request, parseCookies(request.headers.get('Cookie'))[CSRF_COOKIE])
+      appendCsrfCookie(
+        res.headers,
+        request,
+        parseCookies(request.headers.get('Cookie'))[CSRF_COOKIE],
+      )
       return res
     }
     const cookies = parseCookies(request.headers.get('Cookie'))
@@ -37,6 +44,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
 
     const newExpiry = await slideSession(env.DB, session, true)
     const res = json({ user: session.user })
-    if (newExpiry && token && cookies[CSRF_COOKIE]) refreshSessionCookie(res.headers, token, cookies[CSRF_COOKIE], SESSION_TTL_SECONDS)
+    if (newExpiry && token && cookies[CSRF_COOKIE])
+      refreshSessionCookie(res.headers, token, cookies[CSRF_COOKIE], SESSION_TTL_SECONDS)
     return res
   })

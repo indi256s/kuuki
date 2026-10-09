@@ -14,20 +14,35 @@ export function AwaitingProvider({ ownerId, children }: { ownerId: string; child
   const [data, setData] = useState<AwaitingQueue | null>(null)
   const [error, setError] = useState(false)
   const [version, setVersion] = useState(0)
-  const reload = useCallback(() => setVersion(value => value + 1), [])
+  const reload = useCallback(() => setVersion((value) => value + 1), [])
   useEffect(() => {
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
     const generation = getAuthGeneration()
-    void api.get<AwaitingQueue>('/api/me/awaiting', undefined, { signal: controller.signal }).then(value => {
-      if (!controller.signal.aborted && generation === getAuthGeneration()) { setData(value); setError(false) }
-    }).catch(() => { if (!controller.signal.aborted && generation === getAuthGeneration()) setError(true) }).finally(release)
-    return () => { controller.abort(); release() }
+    void api
+      .get<AwaitingQueue>('/api/me/awaiting', undefined, { signal: controller.signal })
+      .then((value) => {
+        if (!controller.signal.aborted && generation === getAuthGeneration()) {
+          setData(value)
+          setError(false)
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted && generation === getAuthGeneration()) setError(true)
+      })
+      .finally(release)
+    return () => {
+      controller.abort()
+      release()
+    }
   }, [ownerId, version])
   useEffect(() => {
     window.addEventListener(LIFECYCLE_CHANGED_EVENT, reload)
     window.addEventListener('focus', reload)
-    return () => { window.removeEventListener(LIFECYCLE_CHANGED_EVENT, reload); window.removeEventListener('focus', reload) }
+    return () => {
+      window.removeEventListener(LIFECYCLE_CHANGED_EVENT, reload)
+      window.removeEventListener('focus', reload)
+    }
   }, [reload])
   return <Context.Provider value={{ data, error, reload }}>{children}</Context.Provider>
 }
@@ -40,7 +55,10 @@ export function useOnline() {
     update()
     window.addEventListener('online', update)
     window.addEventListener('offline', update)
-    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update) }
+    return () => {
+      window.removeEventListener('online', update)
+      window.removeEventListener('offline', update)
+    }
   }, [])
   return online
 }

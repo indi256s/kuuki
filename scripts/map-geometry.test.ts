@@ -3,8 +3,14 @@ import { routeGeometry, wrappedBounds } from '../apps/next/src/client/maps/geome
 import type { ProjectedRoute } from '../apps/next/src/client/maps/types'
 
 const route = (from: [number, number] | null, to: [number, number] | null): ProjectedRoute => ({
-  origin: 'AAA', destination: 'BBB', originCountry: null, destinationCountry: null,
-  count: 1, lastDate: '2026-01-01', from, to,
+  origin: 'AAA',
+  destination: 'BBB',
+  originCountry: null,
+  destinationCountry: null,
+  count: 1,
+  lastDate: '2026-01-01',
+  from,
+  to,
 })
 
 assert.equal(routeGeometry(route(null, [1, 2])), null)

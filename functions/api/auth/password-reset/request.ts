@@ -6,7 +6,11 @@ import { configuredRecoverySender } from '../../_lib/activationSender'
 import { activationEmailKey } from '../../_lib/activation'
 import { EMAIL_RE } from '../../_lib/users'
 
-export async function requestPasswordReset(request: Request, env: Env, waitUntil: (task: Promise<unknown>) => void): Promise<Response> {
+export async function requestPasswordReset(
+  request: Request,
+  env: Env,
+  waitUntil: (task: Promise<unknown>) => void,
+): Promise<Response> {
   const response = await runHandler(async () => {
     requireStrictSameOrigin(request)
     const origin = configuredRecoveryOrigin(env)
@@ -20,9 +24,11 @@ export async function requestPasswordReset(request: Request, env: Env, waitUntil
     }
     const key = await activationEmailKey(email, env.AUTH_SECRET)
     await rateLimit(env.DB, `recovery-email:${key}`, 3, 3600)
-    waitUntil(requestPasswordRecovery(env.DB, email, origin, sender).catch(() => {
-      console.error(JSON.stringify({ event: 'recovery_request_failed' }))
-    }))
+    waitUntil(
+      requestPasswordRecovery(env.DB, email, origin, sender).catch(() => {
+        console.error(JSON.stringify({ event: 'recovery_request_failed' }))
+      }),
+    )
     return json({ ok: true })
   })
   response.headers.set('Referrer-Policy', 'no-referrer')

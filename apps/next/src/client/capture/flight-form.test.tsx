@@ -8,39 +8,119 @@ import { FlightDetailSheet } from './flight-panels'
 import { clearCapturePreferences } from './capture-preferences'
 import type { Locale } from '../../lib/format'
 
-const mocks = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), duplicate: vi.fn(), get: vi.fn(), remove: vi.fn(), acknowledge: vi.fn(), refresh: vi.fn(), push: vi.fn() }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mocks.refresh, push: mocks.push }) }))
+const mocks = vi.hoisted(() => ({
+  create: vi.fn(),
+  update: vi.fn(),
+  duplicate: vi.fn(),
+  get: vi.fn(),
+  remove: vi.fn(),
+  acknowledge: vi.fn(),
+  refresh: vi.fn(),
+  push: vi.fn(),
+}))
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: mocks.refresh, push: mocks.push }),
+}))
 vi.mock('./flight-writes', () => ({ createFlight: mocks.create, updateFlight: mocks.update }))
-vi.mock('@kuuki/client/flights', () => ({ getFlight: mocks.get, checkDuplicateFlight: mocks.duplicate, deleteFlight: mocks.remove }))
+vi.mock('@kuuki/client/flights', () => ({
+  getFlight: mocks.get,
+  checkDuplicateFlight: mocks.duplicate,
+  deleteFlight: mocks.remove,
+}))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }) }))
-const flight = { id: 7, date: '2026-10-05', origin: 'TBS', destination: 'IST', airline_iata: 'TK', aircraft_icao: 'B738', flight_number: 'TK123', departure_time: '12:00', arrival_time: '14:00', lifecycle_state: 'awaiting' }
-const words = { en: { from: 'From', to: 'To', date: 'Date', save: 'Save flight', details: 'Optional details', swap: 'Swap route', anyway: 'Save anyway', airline: 'Airline (optional)', aircraft: 'Aircraft (optional)' }, ru: { from: 'Откуда', to: 'Куда', date: 'Дата', save: 'Сохранить перелёт', details: 'Подробности', swap: 'Поменять местами', anyway: 'Всё равно сохранить', airline: 'Авиакомпания (необязательно)', aircraft: 'Самолёт (необязательно)' } }
+vi.mock('../write-feedback', () => ({
+  useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }),
+}))
+const flight = {
+  id: 7,
+  date: '2026-10-05',
+  origin: 'TBS',
+  destination: 'IST',
+  airline_iata: 'TK',
+  aircraft_icao: 'B738',
+  flight_number: 'TK123',
+  departure_time: '12:00',
+  arrival_time: '14:00',
+  lifecycle_state: 'awaiting',
+}
+const words = {
+  en: {
+    from: 'From',
+    to: 'To',
+    date: 'Date',
+    save: 'Save flight',
+    details: 'Optional details',
+    swap: 'Swap route',
+    anyway: 'Save anyway',
+    airline: 'Airline (optional)',
+    aircraft: 'Aircraft (optional)',
+  },
+  ru: {
+    from: 'Откуда',
+    to: 'Куда',
+    date: 'Дата',
+    save: 'Сохранить перелёт',
+    details: 'Подробности',
+    swap: 'Поменять местами',
+    anyway: 'Всё равно сохранить',
+    airline: 'Авиакомпания (необязательно)',
+    aircraft: 'Самолёт (необязательно)',
+  },
+}
 async function fill(locale: Locale) {
   const w = words[locale]
   fireEvent.change(screen.getByRole('combobox', { name: w.from }), { target: { value: 'TBS' } })
   fireEvent.change(screen.getByRole('combobox', { name: w.to }), { target: { value: 'IST' } })
-  fireEvent.change(screen.getByLabelText(w.date), { target: { value: locale === 'ru' ? '05.10.2026' : '10/05/2026' } })
+  fireEvent.change(screen.getByLabelText(w.date), {
+    target: { value: locale === 'ru' ? '05.10.2026' : '10/05/2026' },
+  })
 }
 beforeEach(() => {
-  vi.clearAllMocks(); localStorage.clear(); sessionStorage.clear()
-  mocks.duplicate.mockResolvedValue(null); mocks.create.mockResolvedValue({ id: 8, derived_state: 'ready' }); mocks.update.mockResolvedValue({ id: 7, derived_state: 'pending' }); mocks.get.mockResolvedValue(flight); mocks.remove.mockResolvedValue({ derived_state: 'ready' })
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { callback(0); return 0 })
-  Object.defineProperty(window, 'matchMedia', { configurable: true, value: vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })) })
+  vi.clearAllMocks()
+  localStorage.clear()
+  sessionStorage.clear()
+  mocks.duplicate.mockResolvedValue(null)
+  mocks.create.mockResolvedValue({ id: 8, derived_state: 'ready' })
+  mocks.update.mockResolvedValue({ id: 7, derived_state: 'pending' })
+  mocks.get.mockResolvedValue(flight)
+  mocks.remove.mockResolvedValue({ derived_state: 'ready' })
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0)
+    return 0
+  })
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  })
 })
 
-describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
+describe.each(['en', 'ru'] as const)('manual flight (%s)', (locale) => {
   it('creates with route/date only via keyboard and publishes the acknowledgement', async () => {
     const onSaved = vi.fn()
     render(<FlightForm ownerId="a" locale={locale} onSaved={onSaved} />)
     await fill(locale)
     fireEvent.keyDown(window, { key: 'Enter', ctrlKey: locale === 'en', metaKey: locale === 'ru' })
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
-    expect(mocks.create.mock.calls[0][0]).toMatchObject({ date: '2026-10-05', origin: 'TBS', destination: 'IST', airline_iata: null, aircraft_icao: null, user_id: 'a' })
+    expect(mocks.create.mock.calls[0][0]).toMatchObject({
+      date: '2026-10-05',
+      origin: 'TBS',
+      destination: 'IST',
+      airline_iata: null,
+      aircraft_icao: null,
+      user_id: 'a',
+    })
     expect(mocks.acknowledge).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' })
     // onSaved runs from an effect after the saved render commits.
-    await waitFor(() => expect(onSaved).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' }, 'ready'))
-    expect(screen.getByRole('status')).toHaveTextContent(locale === 'ru' ? 'Итоги обновлены.' : 'Totals updated.')
+    await waitFor(() =>
+      expect(onSaved).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' }, 'ready'),
+    )
+    expect(screen.getByRole('status')).toHaveTextContent(
+      locale === 'ru' ? 'Итоги обновлены.' : 'Totals updated.',
+    )
   })
   it('swaps the route and preserves selected optional values', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
@@ -49,11 +129,20 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
     expect(screen.getByRole('combobox', { name: words[locale].from })).toHaveValue('IST')
     expect(screen.getByRole('combobox', { name: words[locale].to })).toHaveValue('TBS')
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), { target: { value: 'TK' } })
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].aircraft }), { target: { value: 'B738' } })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), {
+      target: { value: 'TK' },
+    })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].aircraft }), {
+      target: { value: 'B738' },
+    })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
-    expect(mocks.create.mock.calls[0][0]).toMatchObject({ origin: 'IST', destination: 'TBS', airline_iata: 'TK', aircraft_icao: 'B738' })
+    expect(mocks.create.mock.calls[0][0]).toMatchObject({
+      origin: 'IST',
+      destination: 'TBS',
+      airline_iata: 'TK',
+      aircraft_icao: 'B738',
+    })
   })
   it('blocks duplicates until explicit override and still validates override fields', async () => {
     mocks.duplicate.mockResolvedValue(flight)
@@ -64,22 +153,32 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     expect(mocks.create).not.toHaveBeenCalled()
     await waitFor(() => expect(document.activeElement).toBe(override.closest('[role=status]')))
-    expect(screen.getByRole('link', { name: locale === 'ru' ? 'Открыть существующий' : 'Open existing' })).toHaveAttribute('href', '/journal/7/edit')
+    expect(
+      screen.getByRole('link', {
+        name: locale === 'ru' ? 'Открыть существующий' : 'Open existing',
+      }),
+    ).toHaveAttribute('href', '/journal/7/edit')
     // An invalid optional value must never escape through the duplicate action.
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), { target: { value: 'X' } })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), {
+      target: { value: 'X' },
+    })
     fireEvent.click(override)
     await screen.findByRole('alert')
     expect(mocks.create).not.toHaveBeenCalled()
     expect(screen.getByRole('combobox', { name: words[locale].airline })).toHaveFocus()
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), { target: { value: '' } })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), {
+      target: { value: '' },
+    })
     await userEvent.click(override)
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
   })
   it('focuses the first inline error and rejects impossible dates', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    await waitFor(() => expect(screen.getByRole('combobox', { name: words[locale].from })).toHaveFocus())
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: words[locale].from })).toHaveFocus(),
+    )
     await fill(locale)
     fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: '2026-02-30' } })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
@@ -89,12 +188,32 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', locale => {
   it('loads edit values, excludes the edited ID and clears optional values explicitly', async () => {
     render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} initialEditing />)
     await screen.findByRole('combobox', { name: words[locale].airline })
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), { target: { value: '' } })
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].aircraft }), { target: { value: '' } })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), {
+      target: { value: '' },
+    })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].aircraft }), {
+      target: { value: '' },
+    })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(1))
-    expect(mocks.duplicate).toHaveBeenCalledWith('a', '2026-10-05', 'TBS', 'IST', 7, expect.any(Object))
-    expect(mocks.update.mock.calls[0]).toEqual([7, expect.objectContaining({ airline_iata: null, aircraft_icao: null, flight_number: 'TK123', departure_time: '12:00', arrival_time: '14:00' })])
+    expect(mocks.duplicate).toHaveBeenCalledWith(
+      'a',
+      '2026-10-05',
+      'TBS',
+      'IST',
+      7,
+      expect.any(Object),
+    )
+    expect(mocks.update.mock.calls[0]).toEqual([
+      7,
+      expect.objectContaining({
+        airline_iata: null,
+        aircraft_icao: null,
+        flight_number: 'TK123',
+        departure_time: '12:00',
+        arrival_time: '14:00',
+      }),
+    ])
     expect(mocks.acknowledge).toHaveBeenCalledWith({ id: 7, derived_state: 'pending' })
   })
 })
@@ -107,12 +226,18 @@ it('remembers details per account and clears capture recents on identity reset',
   await userEvent.click(screen.getByRole('option', { name: /TBS/ }))
   view.unmount()
   const second = render(<FlightForm ownerId="a" locale="en" />)
-  expect(screen.getByRole('button', { name: words.en.details })).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByRole('button', { name: words.en.details })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
   await userEvent.click(screen.getByRole('combobox', { name: 'From' }))
   expect(screen.getAllByRole('option')[0]).toHaveTextContent('TBS')
   second.unmount()
   const other = render(<FlightForm ownerId="b" locale="en" />)
-  expect(screen.getByRole('button', { name: words.en.details })).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.getByRole('button', { name: words.en.details })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  )
   await userEvent.click(screen.getByRole('combobox', { name: 'From' }))
   expect(screen.getAllByRole('option')[0]).not.toHaveTextContent('TBS')
   other.unmount()
@@ -127,7 +252,9 @@ it('offers named edit/delete actions in reusable Ticket detail and confirms dele
   await screen.findByRole('article', { name: 'TBS — IST' })
   expect(screen.getByRole('button', { name: 'Изменить перелёт' })).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Удалить перелёт' }))
-  const confirmation = await screen.findByRole('dialog', { name: /^Удалить перелёт TBS → IST, 5 окт\. 2026 г\.\?$/ })
+  const confirmation = await screen.findByRole('dialog', {
+    name: /^Удалить перелёт TBS → IST, 5 окт\. 2026 г\.\?$/,
+  })
   expect(within(confirmation).getByRole('button', { name: 'Отмена' })).toHaveFocus()
   await userEvent.click(within(confirmation).getByRole('button', { name: 'Удалить перелёт' }))
   await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith(7))
@@ -148,53 +275,81 @@ it('keeps a failed duplicate lookup from silently admitting a save', async () =>
 
 it('closes an embedded edit via its owner callback, preserving the Journal navigation state', async () => {
   const close = vi.fn()
-  render(<FlightDetailSheet ownerId="a" locale="en" flightId={7} initialEditing onOpenChange={close} />)
+  render(
+    <FlightDetailSheet ownerId="a" locale="en" flightId={7} initialEditing onOpenChange={close} />,
+  )
   await screen.findByRole('button', { name: 'Save flight' })
   await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
   expect(close).toHaveBeenCalledWith(false)
   expect(mocks.push).not.toHaveBeenCalled()
 })
 
-it.each(['delete', 'open journal'] as const)('returns embedded detail %s to its host without replacing Journal filters', async action => {
-  const close = vi.fn()
-  render(<FlightDetailSheet ownerId="a" locale="en" flightId={7} initialEditing={action === 'open journal'} onOpenChange={close} />)
-  if (action === 'delete') {
-    await screen.findByRole('button', { name: 'Edit flight' })
-    await userEvent.click(screen.getByRole('button', { name: 'Delete flight' }))
-    const confirmation = await screen.findByRole('dialog', { name: 'Delete TBS → IST, Oct 5, 2026?' })
-    await userEvent.click(within(confirmation).getByRole('button', { name: 'Delete flight' }))
-    await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith(7))
-  } else {
-    await screen.findByRole('button', { name: 'Save flight' })
-    await userEvent.click(screen.getByRole('button', { name: 'Save flight' }))
-    await screen.findByRole('heading', { name: 'Flight saved' })
-    await userEvent.click(screen.getByRole('link', { name: 'Done' }))
-  }
-  await waitFor(() => expect(close).toHaveBeenCalledWith(false))
-  expect(mocks.push).not.toHaveBeenCalled()
-})
+it.each(['delete', 'open journal'] as const)(
+  'returns embedded detail %s to its host without replacing Journal filters',
+  async (action) => {
+    const close = vi.fn()
+    render(
+      <FlightDetailSheet
+        ownerId="a"
+        locale="en"
+        flightId={7}
+        initialEditing={action === 'open journal'}
+        onOpenChange={close}
+      />,
+    )
+    if (action === 'delete') {
+      await screen.findByRole('button', { name: 'Edit flight' })
+      await userEvent.click(screen.getByRole('button', { name: 'Delete flight' }))
+      const confirmation = await screen.findByRole('dialog', {
+        name: 'Delete TBS → IST, Oct 5, 2026?',
+      })
+      await userEvent.click(within(confirmation).getByRole('button', { name: 'Delete flight' }))
+      await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith(7))
+    } else {
+      await screen.findByRole('button', { name: 'Save flight' })
+      await userEvent.click(screen.getByRole('button', { name: 'Save flight' }))
+      await screen.findByRole('heading', { name: 'Flight saved' })
+      await userEvent.click(screen.getByRole('link', { name: 'Done' }))
+    }
+    await waitFor(() => expect(close).toHaveBeenCalledWith(false))
+    expect(mocks.push).not.toHaveBeenCalled()
+  },
+)
 
-describe.each(['ru'] as const)('offline, errors and focus (%s)', locale => {
-  const say = (en: string, ru: string) => locale === 'ru' ? ru : en
-  const setOnline = (value: boolean) => Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => value })
+describe.each(['ru'] as const)('offline, errors and focus (%s)', (locale) => {
+  const say = (en: string, ru: string) => (locale === 'ru' ? ru : en)
+  const setOnline = (value: boolean) =>
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => value })
   afterEach(() => setOnline(true))
 
   it('keeps every field editable offline and blocks only save, with a visible reason', async () => {
     setOnline(false)
     render(<FlightForm ownerId="a" locale={locale} />)
-    for (const name of [words[locale].from, words[locale].to]) expect(screen.getByRole('combobox', { name })).toBeEnabled()
+    for (const name of [words[locale].from, words[locale].to])
+      expect(screen.getByRole('combobox', { name })).toBeEnabled()
     expect(screen.getByLabelText(words[locale].date)).toBeEnabled()
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
     expect(screen.getByRole('combobox', { name: words[locale].airline })).toBeEnabled()
     await fill(locale)
     const save = screen.getByRole('button', { name: words[locale].save })
     expect(save).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText(say('Offline. Connect to save.', 'Нет сети. Подключитесь, чтобы сохранить.'))).toBeVisible()
+    expect(
+      screen.getByText(
+        say('Offline. Connect to save.', 'Нет сети. Подключитесь, чтобы сохранить.'),
+      ),
+    ).toBeVisible()
     await userEvent.click(save)
     fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true })
     expect(mocks.create).not.toHaveBeenCalled()
-    act(() => { setOnline(true); window.dispatchEvent(new Event('online')) })
-    await waitFor(() => expect(screen.getByRole('button', { name: words[locale].save })).not.toHaveAttribute('aria-disabled'))
+    act(() => {
+      setOnline(true)
+      window.dispatchEvent(new Event('online'))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: words[locale].save })).not.toHaveAttribute(
+        'aria-disabled',
+      ),
+    )
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
   })
@@ -203,62 +358,115 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', locale => {
     const from = screen.getByRole('combobox', { name: words[locale].from })
     await userEvent.click(from)
     expect(from).toHaveFocus()
-    act(() => { setOnline(false); window.dispatchEvent(new Event('offline')) })
+    act(() => {
+      setOnline(false)
+      window.dispatchEvent(new Event('offline'))
+    })
     expect(from).toHaveFocus()
     expect(from).toBeEnabled()
   })
   it('blocks delete offline with its own reason', async () => {
     setOnline(false)
     render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
-    const trigger = await screen.findByRole('button', { name: say('Delete flight', 'Удалить перелёт') })
+    const trigger = await screen.findByRole('button', {
+      name: say('Delete flight', 'Удалить перелёт'),
+    })
     expect(trigger).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.getByText(say('Offline. Connect to delete.', 'Нет сети. Подключитесь, чтобы удалить.'))).toBeVisible()
+    expect(
+      screen.getByText(
+        say('Offline. Connect to delete.', 'Нет сети. Подключитесь, чтобы удалить.'),
+      ),
+    ).toBeVisible()
   })
   it('carries a connection drop into an open delete confirmation: blocked with the reason, not closed, not deleted', async () => {
     render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
-    await userEvent.click(await screen.findByRole('button', { name: say('Delete flight', 'Удалить перелёт') }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: say('Delete flight', 'Удалить перелёт') }),
+    )
     const confirmation = await screen.findByRole('dialog', { name: /TBS/ })
     const reason = say('Offline. Connect to delete.', 'Нет сети. Подключитесь, чтобы удалить.')
     expect(within(confirmation).queryByText(reason)).not.toBeInTheDocument()
-    act(() => { setOnline(false); window.dispatchEvent(new Event('offline')) })
-    const confirm = within(confirmation).getByRole('button', { name: say('Delete flight', 'Удалить перелёт') })
+    act(() => {
+      setOnline(false)
+      window.dispatchEvent(new Event('offline'))
+    })
+    const confirm = within(confirmation).getByRole('button', {
+      name: say('Delete flight', 'Удалить перелёт'),
+    })
     expect(confirm).toHaveAttribute('aria-disabled', 'true')
     expect(within(confirmation).getByText(reason)).toBeVisible()
     await userEvent.click(confirm)
     expect(mocks.remove).not.toHaveBeenCalled()
     expect(screen.getByRole('dialog', { name: /TBS/ })).toBeInTheDocument()
-    act(() => { setOnline(true); window.dispatchEvent(new Event('online')) })
-    expect(within(screen.getByRole('dialog', { name: /TBS/ })).getByRole('button', { name: say('Delete flight', 'Удалить перелёт') })).not.toHaveAttribute('aria-disabled', 'true')
+    act(() => {
+      setOnline(true)
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(
+      within(screen.getByRole('dialog', { name: /TBS/ })).getByRole('button', {
+        name: say('Delete flight', 'Удалить перелёт'),
+      }),
+    ).not.toHaveAttribute('aria-disabled', 'true')
   })
   it('says what is wrong in each field instead of a generic message', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].from }), { target: { value: 'ZZZ' } })
-    fireEvent.change(screen.getByRole('combobox', { name: words[locale].to }), { target: { value: 'ZZZ' } })
-    fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: locale === 'ru' ? '31.02.2026' : '02/30/2026' } })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].from }), {
+      target: { value: 'ZZZ' },
+    })
+    fireEvent.change(screen.getByRole('combobox', { name: words[locale].to }), {
+      target: { value: 'ZZZ' },
+    })
+    fireEvent.change(screen.getByLabelText(words[locale].date), {
+      target: { value: locale === 'ru' ? '31.02.2026' : '02/30/2026' },
+    })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    expect(await screen.findByText(say('This date does not exist. Check the day and month.', 'Такой даты нет. Проверьте день и месяц.'))).toBeInTheDocument()
-    expect(screen.getAllByText(say('Choose an airport from the list.', 'Выберите аэропорт из списка.'))).toHaveLength(2)
+    expect(
+      await screen.findByText(
+        say(
+          'This date does not exist. Check the day and month.',
+          'Такой даты нет. Проверьте день и месяц.',
+        ),
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getAllByText(say('Choose an airport from the list.', 'Выберите аэропорт из списка.')),
+    ).toHaveLength(2)
     expect(screen.queryByText(/Check this field|Проверьте значение поля/)).not.toBeInTheDocument()
     expect(mocks.create).not.toHaveBeenCalled()
   })
   it('accepts a leap day and rejects the same day in a common year', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
     await fill(locale)
-    fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: locale === 'ru' ? '29.02.2025' : '02/29/2025' } })
+    fireEvent.change(screen.getByLabelText(words[locale].date), {
+      target: { value: locale === 'ru' ? '29.02.2025' : '02/29/2025' },
+    })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    expect(await screen.findByText(say('This date does not exist. Check the day and month.', 'Такой даты нет. Проверьте день и месяц.'))).toBeInTheDocument()
+    expect(
+      await screen.findByText(
+        say(
+          'This date does not exist. Check the day and month.',
+          'Такой даты нет. Проверьте день и месяц.',
+        ),
+      ),
+    ).toBeInTheDocument()
     expect(mocks.create).not.toHaveBeenCalled()
-    fireEvent.change(screen.getByLabelText(words[locale].date), { target: { value: locale === 'ru' ? '29.02.2024' : '02/29/2024' } })
+    fireEvent.change(screen.getByLabelText(words[locale].date), {
+      target: { value: locale === 'ru' ? '29.02.2024' : '02/29/2024' },
+    })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
     expect(mocks.create.mock.calls[0][0]).toMatchObject({ date: '2024-02-29' })
   })
   it('shows localized copy for a structured server failure and for a failed load', async () => {
-    mocks.create.mockRejectedValueOnce(new ApiError(400, 'origin airport does not exist', 'UNKNOWN_AIRPORT'))
+    mocks.create.mockRejectedValueOnce(
+      new ApiError(400, 'origin airport does not exist', 'UNKNOWN_AIRPORT'),
+    )
     render(<FlightForm ownerId="a" locale={locale} />)
     await fill(locale)
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    const alert = await screen.findByText(say('Choose an airport from the list.', 'Выберите аэропорт из списка.'))
+    const alert = await screen.findByText(
+      say('Choose an airport from the list.', 'Выберите аэропорт из списка.'),
+    )
     expect(alert).toHaveAttribute('role', 'alert')
     expect(screen.queryByText(/origin airport does not exist/)).not.toBeInTheDocument()
   })
@@ -266,25 +474,52 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', locale => {
     mocks.get.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} />)
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent(say('Could not load the flight. Check your connection and try again.', 'Не удалось загрузить перелёт. Проверьте соединение и повторите.'))
+    expect(alert).toHaveTextContent(
+      say(
+        'Could not load the flight. Check your connection and try again.',
+        'Не удалось загрузить перелёт. Проверьте соединение и повторите.',
+      ),
+    )
     expect(alert).not.toHaveTextContent(/TypeError|Failed to fetch/)
   })
   it('keeps field errors out of the field label so they are not announced twice', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
-    fireEvent.change(screen.getByLabelText(say('Departure (optional)', 'Вылет (необязательно)')), { target: { value: '25:00' } })
+    fireEvent.change(screen.getByLabelText(say('Departure (optional)', 'Вылет (необязательно)')), {
+      target: { value: '25:00' },
+    })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     const departure = screen.getByLabelText(say('Departure (optional)', 'Вылет (необязательно)'))
     expect(departure.closest('label')).toBeNull()
-    expect(document.querySelector(`label[for="${departure.id}"]`)).not.toHaveTextContent(/HH:MM|ЧЧ:ММ/)
+    expect(document.querySelector(`label[for="${departure.id}"]`)).not.toHaveTextContent(
+      /HH:MM|ЧЧ:ММ/,
+    )
   })
   it('opens Optional details and focuses the aircraft field for a flight without aircraft', async () => {
-    mocks.get.mockResolvedValue({ ...flight, aircraft_icao: null, airline_iata: null, flight_number: null, departure_time: null, arrival_time: null })
+    mocks.get.mockResolvedValue({
+      ...flight,
+      aircraft_icao: null,
+      airline_iata: null,
+      flight_number: null,
+      departure_time: null,
+      arrival_time: null,
+    })
     localStorage.clear()
-    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} initialEditing focusField="aircraft" />)
+    render(
+      <FlightDetailSheet
+        ownerId="a"
+        locale={locale}
+        flightId={7}
+        initialEditing
+        focusField="aircraft"
+      />,
+    )
     const aircraft = await screen.findByRole('combobox', { name: words[locale].aircraft })
     await waitFor(() => expect(aircraft).toHaveFocus())
-    expect(screen.getByRole('button', { name: words[locale].details })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: words[locale].details })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
   })
   it('shows HH:MM in the detail view and focuses the saved heading after a save', async () => {
     mocks.get.mockResolvedValue({ ...flight, departure_time: '12:05:00', arrival_time: '14:30:00' })
@@ -293,8 +528,14 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', locale => {
     expect(screen.getByText('12:05')).toBeInTheDocument()
     expect(screen.getByText('14:30')).toBeInTheDocument()
     expect(screen.queryByText(/12:05:00|14:30:00/)).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: say('Edit flight', 'Изменить перелёт') }))
+    await userEvent.click(
+      screen.getByRole('button', { name: say('Edit flight', 'Изменить перелёт') }),
+    )
     await userEvent.click(await screen.findByRole('button', { name: words[locale].save }))
-    await waitFor(() => expect(screen.getByRole('heading', { name: say('Flight saved', 'Перелёт сохранён') })).toHaveFocus())
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { name: say('Flight saved', 'Перелёт сохранён') }),
+      ).toHaveFocus(),
+    )
   })
 })

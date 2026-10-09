@@ -6,35 +6,83 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShortcutsButton, ShortcutsPopover } from './shortcuts-popover'
 import { useJournalKeys, type JournalKeyOptions } from './use-journal-keys'
 
-type Handlers = Pick<JournalKeyOptions, 'onCloseSheet' | 'onToggleSelect' | 'onClearSearch' | 'onShowShortcuts' | 'onMove'>
-const handlers = (): Handlers => ({ onCloseSheet: vi.fn(), onToggleSelect: vi.fn(), onClearSearch: vi.fn(), onShowShortcuts: vi.fn() })
+type Handlers = Pick<
+  JournalKeyOptions,
+  'onCloseSheet' | 'onToggleSelect' | 'onClearSearch' | 'onShowShortcuts' | 'onMove'
+>
+const handlers = (): Handlers => ({
+  onCloseSheet: vi.fn(),
+  onToggleSelect: vi.fn(),
+  onClearSearch: vi.fn(),
+  onShowShortcuts: vi.fn(),
+})
 
-function Harness({ enabled = true, sheetOpen = false, hasSearch = false, on }: { enabled?: boolean; sheetOpen?: boolean; hasSearch?: boolean; on: Handlers }) {
+function Harness({
+  enabled = true,
+  sheetOpen = false,
+  hasSearch = false,
+  on,
+}: {
+  enabled?: boolean
+  sheetOpen?: boolean
+  hasSearch?: boolean
+  on: Handlers
+}) {
   const searchRef = useRef<HTMLInputElement>(null)
   const ledgerRef = useRef<HTMLTableElement>(null)
   useJournalKeys({ enabled, searchRef, ledgerRef, sheetOpen, hasSearch, ...on })
-  return <>
-    <input ref={searchRef} aria-label="Search" defaultValue="tbs" />
-    <button type="button">Outside</button>
-    <textarea aria-label="Note" />
-    <select aria-label="Sort"><option>Date</option></select>
-    <div contentEditable suppressContentEditableWarning role="textbox" aria-label="Rich note" />
-    <div role="dialog" aria-label="Other dialog"><button type="button">In dialog</button></div>
-    <table ref={ledgerRef}><tbody>
-      {[1, 2, 3].map(id => <tr key={id} role="row"><td><button type="button" data-flight-row={id}>Flight {id}</button></td><td><input type="checkbox" aria-label={`Select ${id}`} /></td></tr>)}
-    </tbody></table>
-    <aside aria-label="Flight details">
-      <div className="jd-row" data-field="aircraft"><button type="button" className="jd-trigger" aria-label="Change aircraft">A320</button></div>
-      <div className="jd-row" data-field="seat"><button type="button" className="jd-trigger" aria-label="Change seat">12A</button></div>
-      <button type="button">Close details</button>
-    </aside>
-  </>
+  return (
+    <>
+      <input ref={searchRef} aria-label="Search" defaultValue="tbs" />
+      <button type="button">Outside</button>
+      <textarea aria-label="Note" />
+      <select aria-label="Sort">
+        <option>Date</option>
+      </select>
+      <div contentEditable suppressContentEditableWarning role="textbox" aria-label="Rich note" />
+      <div role="dialog" aria-label="Other dialog">
+        <button type="button">In dialog</button>
+      </div>
+      <table ref={ledgerRef}>
+        <tbody>
+          {[1, 2, 3].map((id) => (
+            <tr key={id} role="row">
+              <td>
+                <button type="button" data-flight-row={id}>
+                  Flight {id}
+                </button>
+              </td>
+              <td>
+                <input type="checkbox" aria-label={`Select ${id}`} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <aside aria-label="Flight details">
+        <div className="jd-row" data-field="aircraft">
+          <button type="button" className="jd-trigger" aria-label="Change aircraft">
+            A320
+          </button>
+        </div>
+        <div className="jd-row" data-field="seat">
+          <button type="button" className="jd-trigger" aria-label="Change seat">
+            12A
+          </button>
+        </div>
+        <button type="button">Close details</button>
+      </aside>
+    </>
+  )
 }
 
 const row = (id: number) => screen.getByRole('button', { name: `Flight ${id}` })
-const press = (target: Element | Document, key: string, init: KeyboardEventInit = {}) => fireEvent.keyDown(target, { key, ...init })
+const press = (target: Element | Document, key: string, init: KeyboardEventInit = {}) =>
+  fireEvent.keyDown(target, { key, ...init })
 
-beforeEach(() => { Element.prototype.scrollIntoView = vi.fn() })
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn()
+})
 
 describe('useJournalKeys', () => {
   it('/ focuses and selects the search field', () => {
@@ -176,7 +224,12 @@ describe('useJournalKeys', () => {
     const on = handlers()
     render(<Harness on={on} sheetOpen hasSearch />)
     const search = screen.getByRole('textbox', { name: 'Search' })
-    for (const target of [search, screen.getByRole('textbox', { name: 'Note' }), screen.getByRole('combobox', { name: 'Sort' }), screen.getByRole('textbox', { name: 'Rich note' })]) {
+    for (const target of [
+      search,
+      screen.getByRole('textbox', { name: 'Note' }),
+      screen.getByRole('combobox', { name: 'Sort' }),
+      screen.getByRole('textbox', { name: 'Rich note' }),
+    ]) {
       for (const key of ['/', 'j', 'k', 'x', 'e', 'ArrowDown']) press(target, key)
       press(target, '?', { shiftKey: true })
     }
@@ -238,15 +291,43 @@ describe('ShortcutsPopover', () => {
   function Popover({ locale }: { locale: 'en' | 'ru' }) {
     const [open, setOpen] = useState(false)
     const anchor = useRef<HTMLButtonElement>(null)
-    return <>
-      <ShortcutsButton ref={anchor} locale={locale} onClick={() => setOpen(true)} />
-      <ShortcutsPopover open={open} onOpenChange={setOpen} locale={locale} anchor={anchor} />
-    </>
+    return (
+      <>
+        <ShortcutsButton ref={anchor} locale={locale} onClick={() => setOpen(true)} />
+        <ShortcutsPopover open={open} onOpenChange={setOpen} locale={locale} anchor={anchor} />
+      </>
+    )
   }
 
   it.each([
-    ['en', 'Keyboard shortcuts', ['Search', 'Move between flights', 'Open the flight', 'Close the sheet or clear the search', 'Select', 'Edit the focused field', 'Show shortcuts'], 'or'],
-    ['ru', 'Сочетания клавиш', ['Поиск', 'Перейти к перелёту', 'Открыть перелёт', 'Закрыть карточку или очистить поиск', 'Выбрать', 'Изменить поле', 'Показать сочетания'], 'или'],
+    [
+      'en',
+      'Keyboard shortcuts',
+      [
+        'Search',
+        'Move between flights',
+        'Open the flight',
+        'Close the sheet or clear the search',
+        'Select',
+        'Edit the focused field',
+        'Show shortcuts',
+      ],
+      'or',
+    ],
+    [
+      'ru',
+      'Сочетания клавиш',
+      [
+        'Поиск',
+        'Перейти к перелёту',
+        'Открыть перелёт',
+        'Закрыть карточку или очистить поиск',
+        'Выбрать',
+        'Изменить поле',
+        'Показать сочетания',
+      ],
+      'или',
+    ],
   ] as const)('lists the keys in %s', async (locale, title, labels, or) => {
     const user = userEvent.setup()
     render(<Popover locale={locale} />)
@@ -254,8 +335,11 @@ describe('ShortcutsPopover', () => {
     const dialog = await screen.findByRole('dialog', { name: title })
     expect(within(dialog).getByRole('heading', { name: title })).toBeInTheDocument()
     for (const label of labels) expect(within(dialog).getByText(label)).toBeInTheDocument()
-    for (const key of ['/', '↑', '↓', 'j', 'k', 'Enter', 'Esc', 'x', 'e', '?']) expect(within(dialog).getByText(key, { selector: 'kbd' })).toBeInTheDocument()
-    expect(within(dialog).getByText('↑', { selector: 'kbd' }).parentElement).toHaveTextContent(`↑ ↓ ${or} j k`)
+    for (const key of ['/', '↑', '↓', 'j', 'k', 'Enter', 'Esc', 'x', 'e', '?'])
+      expect(within(dialog).getByText(key, { selector: 'kbd' })).toBeInTheDocument()
+    expect(within(dialog).getByText('↑', { selector: 'kbd' }).parentElement).toHaveTextContent(
+      `↑ ↓ ${or} j k`,
+    )
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -265,7 +349,6 @@ describe('ShortcutsPopover', () => {
     expect(await screen.findByRole('dialog', { name: 'Keyboard shortcuts' })).toBeInTheDocument()
   })
 })
-
 
 it('does not move focus out of another modal with search, help or Escape', () => {
   const on = handlers()

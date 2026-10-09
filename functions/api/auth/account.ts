@@ -13,11 +13,15 @@ import { clearSessionCookies } from '../_lib/authCookies'
 import { clearBetterAuthCookie } from '../_lib/betterAuth'
 import { abortImportJob } from '../_services/importRuntime'
 
-export const onRequestDelete: PagesFunction<Env, string, RequestData> = context =>
+export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
   deleteAccountRequest(context.request, context.env, context.data)
 
 /** Request/Response entry keeps compatibility transport separate from domain writes. */
-export function deleteAccountRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+export function deleteAccountRequest(
+  request: Request,
+  env: Env,
+  data: RequestData,
+): Promise<Response> {
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
@@ -33,7 +37,7 @@ export function deleteAccountRequest(request: Request, env: Env, data: RequestDa
 
     const jobs = await deleteUserCascade(env.DB, user.id)
     // Commit the durable fence first; aborting live providers cannot restore deleted rows.
-    await Promise.all(jobs.map(batchId => abortImportJob(env, user.id, batchId)))
+    await Promise.all(jobs.map((batchId) => abortImportJob(env, user.id, batchId)))
 
     const res = json({ ok: true })
     clearSessionCookies(res.headers)

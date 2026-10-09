@@ -34,14 +34,15 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
     // Better Auth's own 401 body differs from the unknown-email one above, which would reveal that the account exists.
     if (!authResponse.ok) return authResponse
 
-    const authResult = await authResponse.json() as Record<string, unknown>
+    const authResult = (await authResponse.json()) as Record<string, unknown>
     delete authResult.token
     const profileRow = await getProfileRow(env.DB, user.id)
     const res = json({
       ...authResult,
       profile: profileRow ? toOwnProfile(profileRow) : null,
     })
-    for (const cookie of authResponse.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
+    for (const cookie of authResponse.headers.getSetCookie())
+      res.headers.append('Set-Cookie', cookie)
     res.headers.set('Cache-Control', 'no-store')
     return res
   })

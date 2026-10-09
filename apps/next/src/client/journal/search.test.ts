@@ -10,7 +10,11 @@ const refs: JournalRefs = {
     JFK: { city: 'New York', name: 'John F. Kennedy International Airport', country: 'US' },
     SVO: { city: 'Moscow', name: 'Sheremetyevo International Airport', country: 'RU' },
   },
-  airlines: { TK: { name: 'Turkish Airlines' }, DL: { name: 'Delta Air Lines' }, TR: { name: 'Scoot' } },
+  airlines: {
+    TK: { name: 'Turkish Airlines' },
+    DL: { name: 'Delta Air Lines' },
+    TR: { name: 'Scoot' },
+  },
   aircraft: {
     A359: { name: 'Airbus A350-900', family: 'A350', manufacturer: 'Airbus', type: null },
     B738: { name: 'Boeing 737-800', family: '737', manufacturer: 'Boeing', type: null },
@@ -21,10 +25,22 @@ const refs: JournalRefs = {
 const countryOf = (code: string) => refs.airports[code]?.country ?? null
 
 let nextId = 1
-function flight(date: string, origin: string, destination: string, extra: Partial<JournalFlight> = {}): JournalFlight {
+function flight(
+  date: string,
+  origin: string,
+  destination: string,
+  extra: Partial<JournalFlight> = {},
+): JournalFlight {
   return {
-    id: nextId++, date, origin, destination, airline_iata: null, aircraft_icao: null, flight_number: null,
-    origin_country: countryOf(origin), destination_country: countryOf(destination),
+    id: nextId++,
+    date,
+    origin,
+    destination,
+    airline_iata: null,
+    aircraft_icao: null,
+    flight_number: null,
+    origin_country: countryOf(origin),
+    destination_country: countryOf(destination),
     ...extra,
   } as JournalFlight
 }
@@ -33,7 +49,9 @@ const ctx = (locale: 'en' | 'ru' = 'en'): SearchContext => ({ refs, locale })
 
 function run(query: string, flights: JournalFlight[], locale: 'en' | 'ru' = 'en'): number[] {
   const search = parseJournalSearch(query, ctx(locale))
-  return flights.filter(row => matchesJournalSearch(row, search, ctx(locale))).map(row => row.id)
+  return flights
+    .filter((row) => matchesJournalSearch(row, search, ctx(locale)))
+    .map((row) => row.id)
 }
 
 // The same four rows as the server tests in functions/test/flights.test.ts.
@@ -44,7 +62,7 @@ const server = {
   d: flight('2025-04-05', 'JFK', 'IST', { flight_number: 'Q300', airline_iata: 'TK' }),
 }
 const serverRows = Object.values(server)
-const ids = (...rows: JournalFlight[]) => rows.map(row => row.id)
+const ids = (...rows: JournalFlight[]) => rows.map((row) => row.id)
 
 describe('server search cases', () => {
   it.each([
@@ -84,22 +102,54 @@ describe('server search cases', () => {
   })
 })
 
-const tbsIst = flight('2025-04-03', 'TBS', 'IST', { flight_number: 'TK381', airline_iata: 'TK', aircraft_icao: 'A359' })
-const istTbs = flight('2025-04-09', 'IST', 'TBS', { flight_number: 'TK 381', airline_iata: 'TK', aircraft_icao: 'A359' })
-const longer = flight('2025-05-01', 'SAW', 'JFK', { flight_number: 'TK3810', airline_iata: 'TK', aircraft_icao: 'B789' })
-const tbsJfk = flight('2024-03-09', 'TBS', 'JFK', { flight_number: 'DL100', airline_iata: 'DL', aircraft_icao: 'B738' })
+const tbsIst = flight('2025-04-03', 'TBS', 'IST', {
+  flight_number: 'TK381',
+  airline_iata: 'TK',
+  aircraft_icao: 'A359',
+})
+const istTbs = flight('2025-04-09', 'IST', 'TBS', {
+  flight_number: 'TK 381',
+  airline_iata: 'TK',
+  aircraft_icao: 'A359',
+})
+const longer = flight('2025-05-01', 'SAW', 'JFK', {
+  flight_number: 'TK3810',
+  airline_iata: 'TK',
+  aircraft_icao: 'B789',
+})
+const tbsJfk = flight('2024-03-09', 'TBS', 'JFK', {
+  flight_number: 'DL100',
+  airline_iata: 'DL',
+  aircraft_icao: 'B738',
+})
 const may2023 = flight('2023-05-12', 'IST', 'JFK', { airline_iata: 'TK', aircraft_icao: 'B789' })
 const old2019 = flight('2019-11-02', 'SVO', 'TBS')
 const library = [tbsIst, istTbs, longer, tbsJfk, may2023, old2019]
 
 describe('route pairs', () => {
-  it.each(['TBS IST', 'tbs ist', 'TBS-IST', 'TBS → IST', 'TBS->IST', 'TBS — IST', 'TBS–IST', 'IST TBS', 'Tbilisi Istanbul', 'tbilisi-istanbul', 'Тбилиси Стамбул', 'Стамбул Тбилиси'])('%s matches both directions', query => {
+  it.each([
+    'TBS IST',
+    'tbs ist',
+    'TBS-IST',
+    'TBS → IST',
+    'TBS->IST',
+    'TBS — IST',
+    'TBS–IST',
+    'IST TBS',
+    'Tbilisi Istanbul',
+    'tbilisi-istanbul',
+    'Тбилиси Стамбул',
+    'Стамбул Тбилиси',
+  ])('%s matches both directions', (query) => {
     expect(run(query, library)).toEqual(ids(tbsIst, istTbs))
-    expect(parseJournalSearch(query, ctx()).terms.map(term => term.kind)).toEqual(['route'])
+    expect(parseJournalSearch(query, ctx()).terms.map((term) => term.kind)).toEqual(['route'])
   })
 
   it('does not pair words whose airports overlap', () => {
-    expect(parseJournalSearch('Istanbul IST', ctx()).terms.map(term => term.kind)).toEqual(['any', 'any'])
+    expect(parseJournalSearch('Istanbul IST', ctx()).terms.map((term) => term.kind)).toEqual([
+      'any',
+      'any',
+    ])
     expect(run('Istanbul IST', library)).toEqual(ids(tbsIst, istTbs, longer, may2023))
   })
 
@@ -110,9 +160,12 @@ describe('route pairs', () => {
 })
 
 describe('flight numbers', () => {
-  it.each(['TK 381', 'TK381', 'tk381', 'tk 381', 'TK-381'])('%s is one flight-number prefix, spaces and case ignored', query => {
-    expect(run(query, library)).toEqual(ids(tbsIst, istTbs, longer))
-  })
+  it.each(['TK 381', 'TK381', 'tk381', 'tk 381', 'TK-381'])(
+    '%s is one flight-number prefix, spaces and case ignored',
+    (query) => {
+      expect(run(query, library)).toEqual(ids(tbsIst, istTbs, longer))
+    },
+  )
 
   it('narrows while a flight number is typed', () => {
     expect(run('TK38', library)).toEqual(ids(tbsIst, istTbs, longer))
@@ -189,9 +242,13 @@ describe('places', () => {
   })
 
   it('does not read a two-letter airline code as a country', () => {
-    const alts = (parseJournalSearch('TR', ctx()).terms[0] as { alts: Array<{ kind: string; place?: { countries: ReadonlySet<string> } }> }).alts
-    expect(alts.some(alt => alt.kind === 'airline')).toBe(true)
-    expect(alts.some(alt => alt.kind === 'place' && alt.place?.countries.has('TR'))).toBe(false)
+    const alts = (
+      parseJournalSearch('TR', ctx()).terms[0] as {
+        alts: Array<{ kind: string; place?: { countries: ReadonlySet<string> } }>
+      }
+    ).alts
+    expect(alts.some((alt) => alt.kind === 'airline')).toBe(true)
+    expect(alts.some((alt) => alt.kind === 'place' && alt.place?.countries.has('TR'))).toBe(false)
     expect(run('TR', library)).toEqual([])
   })
 

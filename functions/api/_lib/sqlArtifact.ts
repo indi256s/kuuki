@@ -13,7 +13,10 @@ export function dirtyMarkerSql(userIds: string[]): string[] {
   const statements: string[] = []
   for (let i = 0; i < userIds.length; i += 100) {
     statements.push(`INSERT INTO user_derived_state (user_id, revision, published_revision)
-SELECT id, 1, 0 FROM users WHERE id IN (${userIds.slice(i, i + 100).map(sqlLiteral).join(', ')})
+SELECT id, 1, 0 FROM users WHERE id IN (${userIds
+      .slice(i, i + 100)
+      .map(sqlLiteral)
+      .join(', ')})
 ON CONFLICT(user_id) DO UPDATE SET revision = user_derived_state.revision + 1,
   last_error = NULL, updated_at = excluded.updated_at;`)
   }

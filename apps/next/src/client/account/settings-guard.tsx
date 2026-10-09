@@ -8,7 +8,8 @@ import type { Locale } from '../../lib/format'
 
 type BrowserNavigation = { currentEntry?: { index: number } }
 function entryIndex(): number | undefined {
-  const nativeIndex = (window as Window & { navigation?: BrowserNavigation }).navigation?.currentEntry?.index
+  const nativeIndex = (window as Window & { navigation?: BrowserNavigation }).navigation
+    ?.currentEntry?.index
   const fallback = window.history.state?.__kuukiHistoryIndex
   return nativeIndex ?? (Number.isSafeInteger(fallback) ? fallback : undefined)
 }
@@ -18,7 +19,9 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
   const router = useRouter()
   const [pending, setPending] = useState<{ run: () => void } | null>(null)
   const state = useRef({ dirty, busy })
-  useLayoutEffect(() => { state.current = { dirty, busy } }, [dirty, busy])
+  useLayoutEffect(() => {
+    state.current = { dirty, busy }
+  }, [dirty, busy])
   const permitTraversal = useRef(false)
   const permitUnload = useRef(false)
   const request = (run: () => void) => {
@@ -29,42 +32,100 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
   useEffect(() => {
     let originIndex = entryIndex()
     let originHref = window.location.href
-    const hash = () => { originIndex = entryIndex(); originHref = window.location.href }
+    const hash = () => {
+      originIndex = entryIndex()
+      originHref = window.location.href
+    }
     let restoring = false
     const unload = (event: BeforeUnloadEvent) => {
-      if (!permitUnload.current && (state.current.dirty || state.current.busy)) { event.preventDefault(); event.returnValue = '' }
+      if (!permitUnload.current && (state.current.dirty || state.current.busy)) {
+        event.preventDefault()
+        event.returnValue = ''
+      }
     }
     const click = (event: MouseEvent) => {
-      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return
       const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null
-      if (!(anchor instanceof HTMLAnchorElement) || anchor.download || anchor.target && anchor.target !== '_self') return
+      if (
+        !(anchor instanceof HTMLAnchorElement) ||
+        anchor.download ||
+        (anchor.target && anchor.target !== '_self')
+      )
+        return
       const url = new URL(anchor.href, window.location.href)
-      if (url.origin !== window.location.origin || url.pathname === window.location.pathname && url.search === window.location.search) return
+      if (
+        url.origin !== window.location.origin ||
+        (url.pathname === window.location.pathname && url.search === window.location.search)
+      )
+        return
       if (!state.current.dirty && !state.current.busy) return
-      event.preventDefault(); event.stopImmediatePropagation()
-      if (!state.current.busy) setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      if (!state.current.busy)
+        setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
     }
     const pop = (event: Event) => {
-      if (permitTraversal.current) { permitTraversal.current = false; hash(); return }
-      if (restoring) { restoring = false; hash(); event.preventDefault(); event.stopImmediatePropagation(); return }
-      const origin = new URL(originHref), destination = new URL(window.location.href)
-      if (origin.pathname === destination.pathname && origin.search === destination.search && origin.hash !== destination.hash) { hash(); return }
-      if (!state.current.dirty && !state.current.busy) { hash(); return }
-      event.preventDefault(); event.stopImmediatePropagation()
+      if (permitTraversal.current) {
+        permitTraversal.current = false
+        hash()
+        return
+      }
+      if (restoring) {
+        restoring = false
+        hash()
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        return
+      }
+      const origin = new URL(originHref),
+        destination = new URL(window.location.href)
+      if (
+        origin.pathname === destination.pathname &&
+        origin.search === destination.search &&
+        origin.hash !== destination.hash
+      ) {
+        hash()
+        return
+      }
+      if (!state.current.dirty && !state.current.busy) {
+        hash()
+        return
+      }
+      event.preventDefault()
+      event.stopImmediatePropagation()
       const destinationIndex = entryIndex()
       // Native indexes or bootstrap-tagged App Router entries preserve traversal direction.
       // A pre-bootstrap document entry is handled by beforeunload.
-      const delta = originIndex !== undefined && destinationIndex !== undefined ? destinationIndex - originIndex : -1
+      const delta =
+        originIndex !== undefined && destinationIndex !== undefined
+          ? destinationIndex - originIndex
+          : -1
       if (!delta) return
       restoring = true
       history.go(-delta)
-      if (!state.current.busy) setPending({ run: () => { permitTraversal.current = true; history.go(delta) } })
+      if (!state.current.busy)
+        setPending({
+          run: () => {
+            permitTraversal.current = true
+            history.go(delta)
+          },
+        })
     }
     window.addEventListener('hashchange', hash)
     window.addEventListener('kuuki:history-index', hash)
     window.addEventListener('beforeunload', unload)
     document.addEventListener('click', click, true)
-    const popEvent = (window as Window & { __kuukiHistoryGate?: boolean }).__kuukiHistoryGate ? 'kuuki:before-popstate' : 'popstate'
+    const popEvent = (window as Window & { __kuukiHistoryGate?: boolean }).__kuukiHistoryGate
+      ? 'kuuki:before-popstate'
+      : 'popstate'
     window.addEventListener(popEvent, pop, true)
     return () => {
       window.removeEventListener('hashchange', hash)
@@ -77,7 +138,36 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
   const ru = locale === 'ru'
   return {
     request,
-    allowDocumentExit: () => { permitUnload.current = true; window.setTimeout(() => { permitUnload.current = false }, 1000) },
-    dialog: <Dialog open={pending !== null} onOpenChange={open => { if (!open) setPending(null) }} title={ru ? 'Выйти без сохранения?' : 'Leave without saving?'} description={ru ? 'Ваши изменения ещё не сохранены.' : 'Your changes have not been saved.'} closeLabel={ru ? 'Закрыть' : 'Close'} footer={<><Button onClick={() => setPending(null)}>{ru ? 'Остаться' : 'Stay'}</Button><Button onClick={() => { const run = pending?.run; setPending(null); run?.() }}>{ru ? 'Выйти без сохранения' : 'Leave without saving'}</Button></>} />,
+    allowDocumentExit: () => {
+      permitUnload.current = true
+      window.setTimeout(() => {
+        permitUnload.current = false
+      }, 1000)
+    },
+    dialog: (
+      <Dialog
+        open={pending !== null}
+        onOpenChange={(open) => {
+          if (!open) setPending(null)
+        }}
+        title={ru ? 'Выйти без сохранения?' : 'Leave without saving?'}
+        description={ru ? 'Ваши изменения ещё не сохранены.' : 'Your changes have not been saved.'}
+        closeLabel={ru ? 'Закрыть' : 'Close'}
+        footer={
+          <>
+            <Button onClick={() => setPending(null)}>{ru ? 'Остаться' : 'Stay'}</Button>
+            <Button
+              onClick={() => {
+                const run = pending?.run
+                setPending(null)
+                run?.()
+              }}
+            >
+              {ru ? 'Выйти без сохранения' : 'Leave without saving'}
+            </Button>
+          </>
+        }
+      />
+    ),
   }
 }

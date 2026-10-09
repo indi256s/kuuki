@@ -28,16 +28,16 @@ This private evidence is not published; no worktree was removed.
 
 Final checks: all passed against the accepted implementation.
 
-| Check | Evidence |
-|---|---|
-| API units | 45 files, 515 tests; `/tmp/kuuki-legacy-tests.log` |
-| Next units | 101 files, 1,060 tests; `/tmp/kuuki-legacy-next-units.log` |
-| Vite units | 12 files, 65 tests; `/tmp/kuuki-legacy-web-units.log` |
-| Full navigation | 102 tests; `/tmp/kuuki-legacy-navigation.log` |
-| Types and lint | workspace, API, scripts, maintenance, import, Worker and final Next; `/tmp/kuuki-legacy-*-types.log`, `*-lint.log` |
-| Builds | Next including embedded Vite, standalone Vite and maintenance dry-run; `*-build.log` |
-| Runtime | composed and boundary smoke; local compiled Next→Pages rollback/session/receipt/mutations/cron rehearsal; `*-smoke.log`, `*-boundary.log`, `*-rollback.log` |
-| Other checks | preview tests/config, map geometry, local artifact admission, 106 documentation links, CSS parsing and diff whitespace |
+| Check           | Evidence                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API units       | 45 files, 515 tests; `/tmp/kuuki-legacy-tests.log`                                                                                                          |
+| Next units      | 101 files, 1,060 tests; `/tmp/kuuki-legacy-next-units.log`                                                                                                  |
+| Vite units      | 12 files, 65 tests; `/tmp/kuuki-legacy-web-units.log`                                                                                                       |
+| Full navigation | 102 tests; `/tmp/kuuki-legacy-navigation.log`                                                                                                               |
+| Types and lint  | workspace, API, scripts, maintenance, import, Worker and final Next; `/tmp/kuuki-legacy-*-types.log`, `*-lint.log`                                          |
+| Builds          | Next including embedded Vite, standalone Vite and maintenance dry-run; `*-build.log`                                                                        |
+| Runtime         | composed and boundary smoke; local compiled Next→Pages rollback/session/receipt/mutations/cron rehearsal; `*-smoke.log`, `*-boundary.log`, `*-rollback.log` |
+| Other checks    | preview tests/config, map geometry, local artifact admission, 106 documentation links, CSS parsing and diff whitespace                                      |
 
 The initial chained `pnpm test` accepted API and failed Next setup; after fixing
 that setup, both frontend legs were rerun successfully. No API behavior changed

@@ -8,21 +8,33 @@ import { S, t } from '../copy'
 
 export function FirstRun() {
   const { locale } = useOverview()
-  return <div className="ov3-first-run">
-    <Narrator slot="firstRun" />
-    <div className="ov3-actions">
-      <Link className="ui-button" data-variant="primary" href="/import">{t(S.import, locale)}</Link>
-      <Link className="ui-button" data-variant="secondary" href="/add">{t(S.add, locale)}</Link>
+  return (
+    <div className="ov3-first-run">
+      <Narrator slot="firstRun" />
+      <div className="ov3-actions">
+        <Link className="ui-button" data-variant="primary" href="/import">
+          {t(S.import, locale)}
+        </Link>
+        <Link className="ui-button" data-variant="secondary" href="/add">
+          {t(S.add, locale)}
+        </Link>
+      </div>
     </div>
-  </div>
+  )
 }
 export function ZeroResult() {
   const { actions, locale } = useOverview()
-  return <div className="ov3-zero">
-    <Narrator slot="zero" />
-    <div className="ov3-actions">
-      <Button onClick={actions.removeLast}>{t({ en: 'Remove last filter', ru: 'Убрать последний фильтр' }, locale)}</Button>
-      <Button variant="ghost" onClick={actions.clear}>{t({ en: 'Clear all', ru: 'Сбросить всё' }, locale)}</Button>
+  return (
+    <div className="ov3-zero">
+      <Narrator slot="zero" />
+      <div className="ov3-actions">
+        <Button onClick={actions.removeLast}>
+          {t({ en: 'Remove last filter', ru: 'Убрать последний фильтр' }, locale)}
+        </Button>
+        <Button variant="ghost" onClick={actions.clear}>
+          {t({ en: 'Clear all', ru: 'Сбросить всё' }, locale)}
+        </Button>
+      </div>
     </div>
-  </div>
+  )
 }

@@ -8,9 +8,31 @@ import { setTheme } from '../../../client/appearance'
 import { OverviewPage } from '../../../client/overview/page/overview-page'
 
 const saveLocally = async (prefs: OverviewPrefs) => prefs
-export function DevOverview({ payload, prefs, theme, locale }: {
-  payload: OverviewPayload; prefs: OverviewPrefs; theme: 'light' | 'dark'; locale: Locale
+export function DevOverview({
+  payload,
+  prefs,
+  theme,
+  locale,
+}: {
+  payload: OverviewPayload
+  prefs: OverviewPrefs
+  theme: 'light' | 'dark'
+  locale: Locale
 }) {
-  useEffect(() => { setTheme(theme) }, [theme])
-  return <main id="main"><OverviewPage payload={payload} prefs={prefs} ownerKey="dev" name="" locale={locale} saver={saveLocally} live={false} /></main>
+  useEffect(() => {
+    setTheme(theme)
+  }, [theme])
+  return (
+    <main id="main">
+      <OverviewPage
+        payload={payload}
+        prefs={prefs}
+        ownerKey="dev"
+        name=""
+        locale={locale}
+        saver={saveLocally}
+        live={false}
+      />
+    </main>
+  )
 }

@@ -10,9 +10,24 @@ import { CountryTreemap } from './country-treemap'
 it('drills the country hierarchy without changing scope; an explicit region action adds the filter', () => {
   function Scene() {
     const { filter } = useOverview()
-    return <><CountryTreemap /><output aria-label="Current filters">{JSON.stringify(filter)}</output></>
+    return (
+      <>
+        <CountryTreemap />
+        <output aria-label="Current filters">{JSON.stringify(filter)}</output>
+      </>
+    )
   }
-  render(<OverviewProvider payload={fixture as OverviewPayload} prefs={DEFAULT_PREFS} ownerKey="owner" locale="en" live={false}><Scene /></OverviewProvider>)
+  render(
+    <OverviewProvider
+      payload={fixture as OverviewPayload}
+      prefs={DEFAULT_PREFS}
+      ownerKey="owner"
+      locale="en"
+      live={false}
+    >
+      <Scene />
+    </OverviewProvider>,
+  )
   fireEvent.click(screen.getByRole('button', { name: 'Countries from completed flights' }))
   const asia = screen.getByRole('button', { name: /^Asia:/ })
   fireEvent.click(asia)

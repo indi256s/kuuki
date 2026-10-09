@@ -1,6 +1,10 @@
 # Coding standards
 
-Read this before changing code and apply it when reviewing a diff. ESLint, the pre-commit hook and CI enforce the mechanical rules; these cover what they cannot check.
+Read this before changing code and apply it when reviewing a diff. Oxlint, Oxfmt, the pre-commit hook and CI enforce the mechanical rules; these cover what they cannot check.
+
+Run `pnpm format` to format the repository and `pnpm format:check` to check it. Formatting uses single quotes and no semicolons; generated files, vendored maps and scratch work are excluded. The pre-commit hook checks formatting of staged paths.
+
+`pnpm lint` runs Oxlint for `apps/next`. Its config preserves the migrated Next, React, accessibility and TypeScript rules. JavaScript compatibility plugins retain Next's navigation checks, React's deprecated API check and React Compiler checks whose native equivalents differ from the existing policy. The local `kuuki/design-tokens` rule enforces semantic colors and explicit transition properties outside unit tests. JSX usage is handled by Oxlint's unused-variable analysis.
 
 ## Where code changes go
 
@@ -14,13 +18,13 @@ Read this before changing code and apply it when reviewing a diff. ESLint, the p
 
 Before reporting a change done, run the checks for its behavior in addition to affected lint/typechecks and regression tests:
 
-| Change | Additional checks |
-| --- | --- |
-| API handlers | `pnpm typecheck:api`, `pnpm test:api` |
-| Next UI | `pnpm next:build`, then the full `pnpm test:next:navigation` suite; shared controls break journeys in other test files |
-| Worker dispatch, auth boundary or static assets | `pnpm next:build`, `pnpm --filter @kuuki/next typecheck:worker`, `pnpm next:smoke` (includes boundary checks) |
-| Migration or release tooling | Relevant isolated preservation and admission checks from `docs/runbooks/audit-remediation-release.md` and the current deploy procedure in `docs/skills/deploy-kuuki/SKILL.md` |
-| Prose only | Verify changed claims, links and commands against their sources; application tests are unnecessary |
+| Change                                          | Additional checks                                                                                                                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API handlers                                    | `pnpm typecheck:api`, `pnpm test:api`                                                                                                                                         |
+| Next UI                                         | `pnpm next:build`, then the full `pnpm test:next:navigation` suite; shared controls break journeys in other test files                                                        |
+| Worker dispatch, auth boundary or static assets | `pnpm next:build`, `pnpm --filter @kuuki/next typecheck:worker`, `pnpm next:smoke` (includes boundary checks)                                                                 |
+| Migration or release tooling                    | Relevant isolated preservation and admission checks from `docs/runbooks/audit-remediation-release.md` and the current deploy procedure in `docs/skills/deploy-kuuki/SKILL.md` |
+| Prose only                                      | Verify changed claims, links and commands against their sources; application tests are unnecessary                                                                            |
 
 Run builds and browser/runtime fixtures serially: they share `.wrangler/next-build` and port 8800. Use current build output after source changes.
 

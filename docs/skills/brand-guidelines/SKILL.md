@@ -38,9 +38,9 @@ Restrained editorial character with Japanese influence (Ma, Shibui): typography,
 
 ## Anti-Patterns
 
-| Don't | Do Instead |
-|-------|------------|
-| Cold/clinical styling | Warm, restrained neutrals |
-| "Tech" neon blue | Terracotta accent |
-| Dense information | Breathable space, progressive disclosure |
-| Kanji in functional text | Romanized for utility |
+| Don't                    | Do Instead                               |
+| ------------------------ | ---------------------------------------- |
+| Cold/clinical styling    | Warm, restrained neutrals                |
+| "Tech" neon blue         | Terracotta accent                        |
+| Dense information        | Breathable space, progressive disclosure |
+| Kanji in functional text | Romanized for utility                    |

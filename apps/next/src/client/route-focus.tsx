@@ -13,7 +13,7 @@ const MODE_KEYS: Record<string, string> = { '/onboarding': 'step', '/passport': 
 export function RouteFocus() {
   const pathname = usePathname()
   const search = useSearchParams()
-  const mode = MODE_KEYS[pathname] ? search.get(MODE_KEYS[pathname]) ?? '' : ''
+  const mode = MODE_KEYS[pathname] ? (search.get(MODE_KEYS[pathname]) ?? '') : ''
   const key = `${pathname}\u0000${mode}`
   const previous = useRef(key)
   useEffect(() => {
@@ -21,9 +21,19 @@ export function RouteFocus() {
     previous.current = key
     const focusHeading = () => {
       // An approved route transition keeps the outgoing page in the DOM, inert, until it settles.
-      const heading = [...document.querySelectorAll<HTMLElement>('main h1')].find(node => !node.closest('[hidden], [inert], [aria-hidden="true"]'))
-      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }) }
-      else { const main = document.getElementById('main'); if (main) { main.tabIndex = -1; main.focus({ preventScroll: true }) } } // loading state without a heading
+      const heading = [...document.querySelectorAll<HTMLElement>('main h1')].find(
+        (node) => !node.closest('[hidden], [inert], [aria-hidden="true"]'),
+      )
+      if (heading) {
+        heading.tabIndex = -1
+        heading.focus({ preventScroll: true })
+      } else {
+        const main = document.getElementById('main')
+        if (main) {
+          main.tabIndex = -1
+          main.focus({ preventScroll: true })
+        }
+      } // loading state without a heading
       return heading
     }
     let heading = focusHeading()
@@ -32,12 +42,28 @@ export function RouteFocus() {
     if (!main) return
     const observer = new MutationObserver(() => {
       if (heading?.isConnected && !heading.closest('[hidden], [inert]')) return
-      if (document.activeElement !== heading && document.activeElement && document.activeElement !== document.body && document.activeElement !== main) { observer.disconnect(); return }
+      if (
+        document.activeElement !== heading &&
+        document.activeElement &&
+        document.activeElement !== document.body &&
+        document.activeElement !== main
+      ) {
+        observer.disconnect()
+        return
+      }
       heading = focusHeading()
     })
-    observer.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'inert'] })
+    observer.observe(main, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['hidden', 'inert'],
+    })
     const timer = setTimeout(() => observer.disconnect(), 4000)
-    return () => { observer.disconnect(); clearTimeout(timer) }
+    return () => {
+      observer.disconnect()
+      clearTimeout(timer)
+    }
   }, [key])
   return null
 }

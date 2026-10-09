@@ -35,12 +35,44 @@ for (const [name, app, cron, accepted] of [
   ['aligned isolated optional caches', application + cache, databases + cache, true],
   ['shared D1 rejected', application.replace(previewId, productionId), databases, false],
   ['invalid preview ID rejected', application.replace(previewId, 'placeholder'), databases, false],
-  ['missing preview rejected', application.replace('binding = "DB"\ndatabase_id = "' + previewId + '"', ''), databases, false],
-  ['maintenance mismatch rejected', application, databases.replace(previewId, '33333333-3333-3333-3333-333333333333'), false],
-  ['same origins rejected', application.replace('https://preview.kuuki.example', 'https://kuuki.example'), databases, false],
-  ['activation shares application origin rejected', application.replace('https://activate.preview.kuuki.example', 'https://preview.kuuki.example'), databases, false],
-  ['shared optional cache rejected', application + cache.replace('22222222222222222222222222222222', '11111111111111111111111111111111'), databases, false],
-  ['maintenance cache mismatch rejected', application + cache, databases + cache.replace('22222222222222222222222222222222', '33333333333333333333333333333333'), false],
+  [
+    'missing preview rejected',
+    application.replace('binding = "DB"\ndatabase_id = "' + previewId + '"', ''),
+    databases,
+    false,
+  ],
+  [
+    'maintenance mismatch rejected',
+    application,
+    databases.replace(previewId, '33333333-3333-3333-3333-333333333333'),
+    false,
+  ],
+  [
+    'same origins rejected',
+    application.replace('https://preview.kuuki.example', 'https://kuuki.example'),
+    databases,
+    false,
+  ],
+  [
+    'activation shares application origin rejected',
+    application.replace('https://activate.preview.kuuki.example', 'https://preview.kuuki.example'),
+    databases,
+    false,
+  ],
+  [
+    'shared optional cache rejected',
+    application +
+      cache.replace('22222222222222222222222222222222', '11111111111111111111111111111111'),
+    databases,
+    false,
+  ],
+  [
+    'maintenance cache mismatch rejected',
+    application + cache,
+    databases +
+      cache.replace('22222222222222222222222222222222', '33333333333333333333333333333333'),
+    false,
+  ],
 ]) {
   test(name, () => {
     const directory = mkdtempSync(join(tmpdir(), 'kuuki-admission-'))
@@ -49,7 +81,11 @@ for (const [name, app, cron, accepted] of [
       const cronPath = join(directory, 'cron.toml')
       writeFileSync(appPath, app)
       writeFileSync(cronPath, cron)
-      const result = spawnSync(process.execPath, ['scripts/check-preview-config.mjs', '--config', appPath, '--maintenance-config', cronPath], { encoding: 'utf8' })
+      const result = spawnSync(
+        process.execPath,
+        ['scripts/check-preview-config.mjs', '--config', appPath, '--maintenance-config', cronPath],
+        { encoding: 'utf8' },
+      )
       assert.equal(result.status, accepted ? 0 : 1, result.stderr || result.stdout)
       if (!accepted) assert.ok(result.stderr.trim())
     } finally {

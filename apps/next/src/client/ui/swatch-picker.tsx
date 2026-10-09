@@ -28,15 +28,27 @@ export function SwatchPicker({ locale, label, value, onChange }: SwatchPickerPro
   const [own, setOwn] = useState<Accent>('shu')
   const refs = useRef<(HTMLButtonElement | null)[]>([])
   useEffect(() => {
-    const read = () => { const current = document.documentElement.dataset.accent; setOwn(isAccent(current) ? current : 'shu') }
+    const read = () => {
+      const current = document.documentElement.dataset.accent
+      setOwn(isAccent(current) ? current : 'shu')
+    }
     read()
     window.addEventListener('kuuki:appearance', read)
     return () => window.removeEventListener('kuuki:appearance', read)
   }, [])
   const current = value ?? own
-  const choose = (accent: Accent) => { setOwn(accent); setAccent(accent); onChange?.(accent) }
+  const choose = (accent: Accent) => {
+    setOwn(accent)
+    setAccent(accent)
+    onChange?.(accent)
+  }
   const move = (event: KeyboardEvent, index: number) => {
-    const delta = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0
+    const delta =
+      event.key === 'ArrowRight' || event.key === 'ArrowDown'
+        ? 1
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+          ? -1
+          : 0
     if (!delta) return
     event.preventDefault()
     const next = (index + delta + ACCENTS.length) % ACCENTS.length
@@ -44,20 +56,30 @@ export function SwatchPicker({ locale, label, value, onChange }: SwatchPickerPro
     choose(ACCENTS[next])
   }
   return (
-    <div className="ui-swatches" role="radiogroup" aria-label={label ?? (locale === 'ru' ? 'Акцентный цвет' : 'Accent color')}>
+    <div
+      className="ui-swatches"
+      role="radiogroup"
+      aria-label={label ?? (locale === 'ru' ? 'Акцентный цвет' : 'Accent color')}
+    >
       {ACCENTS.map((accent, index) => (
         <button
           key={accent}
-          ref={node => { refs.current[index] = node }}
+          ref={(node) => {
+            refs.current[index] = node
+          }}
           type="button"
           role="radio"
           className="ui-swatch"
           aria-checked={accent === current}
           tabIndex={accent === current ? 0 : -1}
           onClick={() => choose(accent)}
-          onKeyDown={event => move(event, index)}
+          onKeyDown={(event) => move(event, index)}
         >
-          <span className="ui-swatch-dot" style={{ '--swatch': `var(--swatch-${accent})` } as CSSProperties} aria-hidden="true">
+          <span
+            className="ui-swatch-dot"
+            style={{ '--swatch': `var(--swatch-${accent})` } as CSSProperties}
+            aria-hidden="true"
+          >
             {accent === current ? <Check size={16} strokeWidth={2.5} /> : null}
           </span>
           <span className="ui-swatch-name">{NAMES[accent][locale]}</span>

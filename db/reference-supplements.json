@@ -9,13 +9,85 @@
     "attribution": "OurAirports (https://ourairports.com/)"
   },
   "airports": [
-    { "sourceId": 3250, "iata": "ARK", "icao": "HTAR", "name": "Arusha Airport", "city": "Arusha", "countryCode": "TZ", "latitude": -3.3677899837493896, "longitude": 36.63330078125 },
-    { "sourceId": 6504, "iata": "BAX", "icao": "UNBB", "name": "Barnaul Gherman Titov International Airport", "city": "Barnaul", "countryCode": "RU", "latitude": 53.361285, "longitude": 83.539701 },
-    { "sourceId": 26669, "iata": "KBV", "icao": "VTSG", "name": "Krabi International Airport", "city": "Krabi", "countryCode": "TH", "latitude": 8.095591, "longitude": 98.988955 },
-    { "sourceId": 6513, "iata": "MCX", "icao": "URML", "name": "Makhachkala Uytash International Airport", "city": "Makhachkala", "countryCode": "RU", "latitude": 42.816799, "longitude": 47.652302 },
-    { "sourceId": 6514, "iata": "MRV", "icao": "URMM", "name": "Mineralnye Vody Airport", "city": "Mineralnyye Vody", "countryCode": "RU", "latitude": 44.225101, "longitude": 43.081902 },
-    { "sourceId": 6515, "iata": "NAL", "icao": "URMN", "name": "Nalchik Airport", "city": "Nalchik", "countryCode": "RU", "latitude": 43.512901, "longitude": 43.6366 },
-    { "sourceId": 6522, "iata": "VOG", "icao": "URWW", "name": "Volgograd International Airport", "city": "Volgograd", "countryCode": "RU", "latitude": 48.78134, "longitude": 44.339194 },
-    { "sourceId": 42967, "iata": "ZIA", "icao": "UUBW", "name": "Zhukovsky International Airport", "city": "Moscow", "countryCode": "RU", "latitude": 55.553299, "longitude": 38.150002 }
+    {
+      "sourceId": 3250,
+      "iata": "ARK",
+      "icao": "HTAR",
+      "name": "Arusha Airport",
+      "city": "Arusha",
+      "countryCode": "TZ",
+      "latitude": -3.3677899837493896,
+      "longitude": 36.63330078125
+    },
+    {
+      "sourceId": 6504,
+      "iata": "BAX",
+      "icao": "UNBB",
+      "name": "Barnaul Gherman Titov International Airport",
+      "city": "Barnaul",
+      "countryCode": "RU",
+      "latitude": 53.361285,
+      "longitude": 83.539701
+    },
+    {
+      "sourceId": 26669,
+      "iata": "KBV",
+      "icao": "VTSG",
+      "name": "Krabi International Airport",
+      "city": "Krabi",
+      "countryCode": "TH",
+      "latitude": 8.095591,
+      "longitude": 98.988955
+    },
+    {
+      "sourceId": 6513,
+      "iata": "MCX",
+      "icao": "URML",
+      "name": "Makhachkala Uytash International Airport",
+      "city": "Makhachkala",
+      "countryCode": "RU",
+      "latitude": 42.816799,
+      "longitude": 47.652302
+    },
+    {
+      "sourceId": 6514,
+      "iata": "MRV",
+      "icao": "URMM",
+      "name": "Mineralnye Vody Airport",
+      "city": "Mineralnyye Vody",
+      "countryCode": "RU",
+      "latitude": 44.225101,
+      "longitude": 43.081902
+    },
+    {
+      "sourceId": 6515,
+      "iata": "NAL",
+      "icao": "URMN",
+      "name": "Nalchik Airport",
+      "city": "Nalchik",
+      "countryCode": "RU",
+      "latitude": 43.512901,
+      "longitude": 43.6366
+    },
+    {
+      "sourceId": 6522,
+      "iata": "VOG",
+      "icao": "URWW",
+      "name": "Volgograd International Airport",
+      "city": "Volgograd",
+      "countryCode": "RU",
+      "latitude": 48.78134,
+      "longitude": 44.339194
+    },
+    {
+      "sourceId": 42967,
+      "iata": "ZIA",
+      "icao": "UUBW",
+      "name": "Zhukovsky International Airport",
+      "city": "Moscow",
+      "countryCode": "RU",
+      "latitude": 55.553299,
+      "longitude": 38.150002
+    }
   ]
 }

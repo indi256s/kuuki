@@ -12,7 +12,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     if (username.length < 3) return json({ available: false })
 
     const taken = await context.env.DB.prepare(
-      'SELECT id FROM profiles WHERE lower(username) = lower(?) AND id != ? LIMIT 1'
+      'SELECT id FROM profiles WHERE lower(username) = lower(?) AND id != ? LIMIT 1',
     )
       .bind(username, user.id)
       .first<{ id: string }>()

@@ -7,11 +7,7 @@
   "homeOverride": null,
   "passport": {
     "countries": 3,
-    "countryCodes": [
-      "AE",
-      "HK",
-      "US"
-    ],
+    "countryCodes": ["AE", "HK", "US"],
     "regions": 2
   },
   "rows": [

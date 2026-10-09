@@ -10,9 +10,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     if (!row) {
       return json({ derived_state: 'ready', revision: 0, published_revision: 0 })
     }
-    const derived_state = isDerivedReady(row)
-      ? 'ready'
-      : row.last_error ? 'error' : 'pending'
+    const derived_state = isDerivedReady(row) ? 'ready' : row.last_error ? 'error' : 'pending'
     return json({
       derived_state,
       revision: row.revision,

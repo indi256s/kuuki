@@ -11,11 +11,16 @@ export function dayToEpoch(day: string): number | null {
 export function epochToDay(epoch: number): string | null {
   const date = new Date(epoch)
   const year = date.getUTCFullYear()
-  return Number.isFinite(date.getTime()) && year >= 0 && year <= 9999 ? date.toISOString().slice(0, 10) : null
+  return Number.isFinite(date.getTime()) && year >= 0 && year <= 9999
+    ? date.toISOString().slice(0, 10)
+    : null
 }
 
 /** Legacy month bounds expand to whole months; exact bounds stay inclusive calendar days. */
-export function periodDays(period: { from: string; to: string }): { from: string; to: string } | null {
+export function periodDays(period: {
+  from: string
+  to: string
+}): { from: string; to: string } | null {
   let { from, to } = period
   if (/^\d{4}-(?:0[1-9]|1[0-2])$/.test(from) && /^\d{4}-(?:0[1-9]|1[0-2])$/.test(to)) {
     from += '-01'

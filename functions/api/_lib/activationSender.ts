@@ -13,10 +13,23 @@ export function configuredActivationOrigin(env: Env): string {
     origin = new URL(raw ?? '')
     main = new URL(env.PAGES_ORIGIN)
   } catch {
-    throw new HttpError(503, 'Account activation is temporarily unavailable', 'ACTIVATION_UNAVAILABLE')
+    throw new HttpError(
+      503,
+      'Account activation is temporarily unavailable',
+      'ACTIVATION_UNAVAILABLE',
+    )
   }
-  if (origin.protocol !== 'https:' || raw !== origin.origin || main.protocol !== 'https:' || origin.origin === main.origin) {
-    throw new HttpError(503, 'Account activation is temporarily unavailable', 'ACTIVATION_UNAVAILABLE')
+  if (
+    origin.protocol !== 'https:' ||
+    raw !== origin.origin ||
+    main.protocol !== 'https:' ||
+    origin.origin === main.origin
+  ) {
+    throw new HttpError(
+      503,
+      'Account activation is temporarily unavailable',
+      'ACTIVATION_UNAVAILABLE',
+    )
   }
   return origin.origin
 }
@@ -25,9 +38,17 @@ const SENDER_FAILURE = 'Activation sender failed'
 const MAX_RESPONSE_BYTES = 16 * 1024
 
 function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[character]!)
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character]!,
+  )
 }
 
 async function readBoundedResponse(response: Response): Promise<unknown> {
@@ -57,20 +78,40 @@ async function readBoundedResponse(response: Response): Promise<unknown> {
 function acknowledged(response: unknown, to: string): boolean {
   if (!response || typeof response !== 'object') return false
   const envelope = response as Record<string, unknown>
-  if (envelope.success !== true || !Array.isArray(envelope.errors) || envelope.errors.length !== 0) return false
+  if (envelope.success !== true || !Array.isArray(envelope.errors) || envelope.errors.length !== 0)
+    return false
   const result = envelope.result
   if (!result || typeof result !== 'object') return false
   const statuses = result as Record<string, unknown>
-  if (!Array.isArray(statuses.delivered) || !Array.isArray(statuses.queued) ||
-      !Array.isArray(statuses.permanent_bounces) || statuses.permanent_bounces.length !== 0) return false
+  if (
+    !Array.isArray(statuses.delivered) ||
+    !Array.isArray(statuses.queued) ||
+    !Array.isArray(statuses.permanent_bounces) ||
+    statuses.permanent_bounces.length !== 0
+  )
+    return false
   const recipients = [...statuses.delivered, ...statuses.queued]
-  return recipients.length > 0 && recipients.every((recipient) =>
-    typeof recipient === 'string' && recipient.toLowerCase() === to.toLowerCase())
+  return (
+    recipients.length > 0 &&
+    recipients.every(
+      (recipient) => typeof recipient === 'string' && recipient.toLowerCase() === to.toLowerCase(),
+    )
+  )
 }
 
 const MAIL = {
-  activation: { unavailable: 'Account activation is temporarily unavailable', code: 'ACTIVATION_UNAVAILABLE', subject: 'Activate your Kuuki account', action: 'Activate account' },
-  recovery: { unavailable: 'Password recovery is temporarily unavailable', code: 'RECOVERY_UNAVAILABLE', subject: 'Reset your Kuuki password', action: 'Reset password' },
+  activation: {
+    unavailable: 'Account activation is temporarily unavailable',
+    code: 'ACTIVATION_UNAVAILABLE',
+    subject: 'Activate your Kuuki account',
+    action: 'Activate account',
+  },
+  recovery: {
+    unavailable: 'Password recovery is temporarily unavailable',
+    code: 'RECOVERY_UNAVAILABLE',
+    subject: 'Reset your Kuuki password',
+    action: 'Reset password',
+  },
 }
 
 /** Use Cloudflare Email Sending only when its account and verified sender are configured. */
@@ -80,8 +121,11 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
   const bearer = env.ACTIVATION_MAIL_AUTH_TOKEN
   const from = env.ACTIVATION_MAIL_FROM
   const binding = env.ACTIVATION_MAIL
-  if (!from || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(from) ||
-      (!binding && (!accountId || !/^[0-9a-f]{32}$/i.test(accountId) || !bearer || /\s/.test(bearer)))) {
+  if (
+    !from ||
+    !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(from) ||
+    (!binding && (!accountId || !/^[0-9a-f]{32}$/i.test(accountId) || !bearer || /\s/.test(bearer)))
+  ) {
     throw new HttpError(503, mail.unavailable, mail.code)
   }
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/email/sending/send`
@@ -93,14 +137,17 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
       let errorCodes: number[] = []
       try {
         const message = {
-          from, to: [to], subject: mail.subject,
+          from,
+          to: [to],
+          subject: mail.subject,
           text: `${mail.subject} using this link:\n\n${link}\n`,
           html: `<p>${mail.subject} using this link:</p><p><a href="${escapeHtml(link)}">${mail.action}</a></p>`,
         }
         if (binding) {
           // Native sends cannot be cancelled: wait for acknowledgement before invalidating an issued link.
           const receipt = await binding.send(message)
-          if (typeof receipt?.messageId !== 'string' || receipt.messageId.length === 0) throw new Error(SENDER_FAILURE)
+          if (typeof receipt?.messageId !== 'string' || receipt.messageId.length === 0)
+            throw new Error(SENDER_FAILURE)
           return
         }
         const response = await fetch(url, {
@@ -113,16 +160,35 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
         })
         status = response.status
         const receipt = await readBoundedResponse(response)
-        const errors = receipt && typeof receipt === 'object' ? (receipt as Record<string, unknown>).errors : undefined
+        const errors =
+          receipt && typeof receipt === 'object'
+            ? (receipt as Record<string, unknown>).errors
+            : undefined
         if (Array.isArray(errors)) {
-          errorCodes = errors.flatMap(error => error && typeof error.code === 'number' && Number.isFinite(error.code) ? [error.code] : [])
+          errorCodes = errors.flatMap((error) =>
+            error && typeof error.code === 'number' && Number.isFinite(error.code)
+              ? [error.code]
+              : [],
+          )
         }
         if (!response.ok || !acknowledged(receipt, to)) throw new Error(SENDER_FAILURE)
       } catch {
         // Provider bodies and transport errors can contain addresses, links, or credentials.
-        console.error(JSON.stringify({ event: 'mail_send_failed', purpose, status, errorCodes,
-          reason: controller.signal.aborted ? 'timeout' : binding ? 'binding' : status === undefined ? 'transport' : 'response',
-        }))
+        console.error(
+          JSON.stringify({
+            event: 'mail_send_failed',
+            purpose,
+            status,
+            errorCodes,
+            reason: controller.signal.aborted
+              ? 'timeout'
+              : binding
+                ? 'binding'
+                : status === undefined
+                  ? 'transport'
+                  : 'response',
+          }),
+        )
         throw new Error(SENDER_FAILURE)
       } finally {
         clearTimeout(timer)

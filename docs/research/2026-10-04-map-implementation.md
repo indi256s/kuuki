@@ -22,9 +22,9 @@ Year views color countries reached by completed flight endpoints in that year; t
 `pnpm exec tsx scripts/map-geometry.test.ts` passes missing/invalid/coincident/antipodal, Pacific dateline and finite polar samples. `pnpm --filter @kuuki/next typecheck`, `pnpm --filter @kuuki/next exec eslint src/client/maps`, and `pnpm --filter @kuuki/data build` pass at this handoff. `scripts/map-benchmark.ts` constructs distinct synthetic directed routes and compares serialized batched versus per-route source payloads on this CPU (one run; not GPU evidence):
 
 | Routes | Valid | Geometry CPU | One batched source | One source per route |
-| ---: | ---: | ---: | ---: | ---: |
-| 50 | 50 | 3.1 ms | 77,311 B | 79,320 B |
-| 500 | 500 | 10.6 ms | 771,939 B | 792,398 B |
-| 5,000 | 5,000 | 76.1 ms | 7,726,426 B | 7,931,385 B |
+| -----: | ----: | -----------: | -----------------: | -------------------: |
+|     50 |    50 |       3.1 ms |           77,311 B |             79,320 B |
+|    500 |   500 |      10.6 ms |          771,939 B |            792,398 B |
+|  5,000 | 5,000 |      76.1 ms |        7,726,426 B |          7,931,385 B |
 
 One source avoids 50/500/5,000 source and layer lifecycles. This local serialization benchmark does **not** measure worker transfer, GPU frames, memory, interaction latency or first usable map. The required built-browser 50/500/5,000 route/theme/navigation/WebGL-worker failure proof remains for the primary integration check. If that proof fails, the list and SVG preview remain the shipped fallback; do not claim the interactive map accepted.

@@ -1,7 +1,13 @@
 // Decides when the live region may speak while recognition runs: every stage change at once, found-count changes
 // at most once per interval, and the last held count when the interval ends. Pure and clock-injected.
-export interface Progress { stage: string | null; found: number }
-export interface Announcement { stage: string | null; found?: number }
+export interface Progress {
+  stage: string | null
+  found: number
+}
+export interface Announcement {
+  stage: string | null
+  found?: number
+}
 
 export class Announcer {
   private stage: string | null | undefined
@@ -15,13 +21,22 @@ export class Announcer {
       this.stage = progress.stage
       this.held = null
       // A stage change carries the count only when there is something to say about it.
-      if (progress.found > 0) { this.spokenFound = progress.found; this.lastCountAt = now; return { stage: progress.stage, found: progress.found } }
+      if (progress.found > 0) {
+        this.spokenFound = progress.found
+        this.lastCountAt = now
+        return { stage: progress.stage, found: progress.found }
+      }
       this.spokenFound = Math.max(this.spokenFound, 0)
       return { stage: progress.stage }
     }
-    if (progress.found === this.spokenFound) { this.held = null; return null }
+    if (progress.found === this.spokenFound) {
+      this.held = null
+      return null
+    }
     if (now - this.lastCountAt >= this.interval) {
-      this.spokenFound = progress.found; this.lastCountAt = now; this.held = null
+      this.spokenFound = progress.found
+      this.lastCountAt = now
+      this.held = null
       return { stage: progress.stage, found: progress.found }
     }
     this.held = progress

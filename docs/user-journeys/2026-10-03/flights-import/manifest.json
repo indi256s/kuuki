@@ -14,9 +14,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Вход выполнен пользователем b@example.test; у аккаунта нет записей."
-      ],
+      "preconditions": ["Вход выполнен пользователем b@example.test; у аккаунта нет записей."],
       "recognition": [
         "Заголовок «Полёты», предложение добавить первый полёт, таблицы с записями нет."
       ],
@@ -50,9 +48,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Вход выполнен; журнал пуст."
-      ],
+      "preconditions": ["Вход выполнен; журнал пуст."],
       "recognition": [
         "Мобильная навигация внизу, короткий заголовок «Полёты», пустой список и кнопка добавления."
       ],
@@ -86,9 +82,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыт /import."
-      ],
+      "preconditions": ["Открыт /import."],
       "recognition": [
         "Поле для текста, зона выбора файла, кнопки «Показать промпт» и «Распознать рейсы»."
       ],
@@ -133,12 +127,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыт /import."
-      ],
-      "recognition": [
-        "Видны инструкции для подготовки данных и кнопка свернуть."
-      ],
+      "preconditions": ["Открыт /import."],
+      "recognition": ["Видны инструкции для подготовки данных и кнопка свернуть."],
       "actions": [],
       "source": [
         "apps/web/src/routes/ImportPage.tsx",
@@ -164,12 +154,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Введён синтетический текст с перелётом."
-      ],
-      "recognition": [
-        "Поле содержит маршрут/подтверждение; распознавание доступно."
-      ],
+      "preconditions": ["Введён синтетический текст с перелётом."],
+      "recognition": ["Поле содержит маршрут/подтверждение; распознавание доступно."],
       "actions": [
         {
           "label": "Распознать рейсы",
@@ -201,12 +187,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Запущен разбор тестового текста; используются локальные fake providers."
-      ],
-      "recognition": [
-        "Модальное состояние «Анализ данных о полётах» и «Отмена»."
-      ],
+      "preconditions": ["Запущен разбор тестового текста; используются локальные fake providers."],
+      "recognition": ["Модальное состояние «Анализ данных о полётах» и «Отмена»."],
       "actions": [
         {
           "label": "Успешный разбор",
@@ -238,9 +220,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Текстовый парсер вернул тестовый JFK→BOS, AA100, 03.01.2026."
-      ],
+      "preconditions": ["Текстовый парсер вернул тестовый JFK→BOS, AA100, 03.01.2026."],
       "recognition": [
         "Заголовок «Проверьте найденные полёты», редактируемые дата, маршрут, авиакомпания и времена."
       ],
@@ -285,12 +265,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Разбор текста завершился успешно."
-      ],
-      "recognition": [
-        "Раскрытая карточка проверки показывает редактируемые детали рейса."
-      ],
+      "preconditions": ["Разбор текста завершился успешно."],
+      "recognition": ["Раскрытая карточка проверки показывает редактируемые детали рейса."],
       "actions": [
         {
           "label": "Снять выбор",
@@ -327,12 +303,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Есть один найденный рейс."
-      ],
-      "recognition": [
-        "Чекбокс рейса выключен, кнопка импорта disabled/счётчик равен нулю."
-      ],
+      "preconditions": ["Есть один найденный рейс."],
+      "recognition": ["Чекбокс рейса выключен, кнопка импорта disabled/счётчик равен нулю."],
       "actions": [
         {
           "label": "Выбрать строку",
@@ -364,9 +336,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "На экране проверки удалена последняя строка."
-      ],
+      "preconditions": ["На экране проверки удалена последняя строка."],
       "recognition": [
         "Список пуст после удаления строки; доступно добавить рейс вручную или отменить."
       ],
@@ -440,12 +410,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Один рейс выбран и сохранён в локальной базе."
-      ],
-      "recognition": [
-        "Заголовок «Полёты импортированы!», действие «Посмотреть полёты»."
-      ],
+      "preconditions": ["Один рейс выбран и сохранён в локальной базе."],
+      "recognition": ["Заголовок «Полёты импортированы!», действие «Посмотреть полёты»."],
       "actions": [],
       "source": [
         "apps/web/src/routes/ImportPage.tsx",
@@ -471,9 +437,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыт экран /flights; fixture бсх пуст до создания рейсов."
-      ],
+      "preconditions": ["Открыт экран /flights; fixture бсх пуст до создания рейсов."],
       "recognition": [
         "Форма содержит маршрут, дату, авиакомпанию; номер рейса, самолёт и времена раскрываются отдельно."
       ],
@@ -512,12 +476,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыта форма добавления."
-      ],
-      "recognition": [
-        "Кнопка даты раскрывает календарь с выбором даты."
-      ],
+      "preconditions": ["Открыта форма добавления."],
+      "recognition": ["Кнопка даты раскрывает календарь с выбором даты."],
       "actions": [
         {
           "label": "Выбрать дату",
@@ -548,12 +508,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В форме введён код/часть названия аэропорта."
-      ],
-      "recognition": [
-        "Поле «Откуда» содержит JFK; показаны варианты аэропортов."
-      ],
+      "preconditions": ["В форме введён код/часть названия аэропорта."],
+      "recognition": ["Поле «Откуда» содержит JFK; показаны варианты аэропортов."],
       "actions": [
         {
           "label": "Перейти к авиакомпании",
@@ -584,12 +540,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Маршрут введён; фокус в поле авиакомпании."
-      ],
-      "recognition": [
-        "Поле авиакомпании показывает варианты по введённому коду/названию."
-      ],
+      "preconditions": ["Маршрут введён; фокус в поле авиакомпании."],
+      "recognition": ["Поле авиакомпании показывает варианты по введённому коду/названию."],
       "actions": [
         {
           "label": "Раскрыть детали",
@@ -620,12 +572,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыта форма добавления."
-      ],
-      "recognition": [
-        "Развёрнуты номер рейса, самолёт, время вылета и прилёта."
-      ],
+      "preconditions": ["Открыта форма добавления."],
+      "recognition": ["Развёрнуты номер рейса, самолёт, время вылета и прилёта."],
       "actions": [
         {
           "label": "Искать самолёт",
@@ -656,12 +604,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В форме раскрыто поле самолёта; введён поисковый запрос."
-      ],
-      "recognition": [
-        "Поле модели самолёта показывает подходящие варианты каталога."
-      ],
+      "preconditions": ["В форме раскрыто поле самолёта; введён поисковый запрос."],
+      "recognition": ["Поле модели самолёта показывает подходящие варианты каталога."],
       "actions": [
         {
           "label": "Заполнить запись",
@@ -692,12 +636,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Введён тестовый будущий рейс JFK→BOS на 04.05.2027."
-      ],
-      "recognition": [
-        "Поля даты, маршрута, авиакомпании, номера, самолёта и времени заполнены."
-      ],
+      "preconditions": ["Введён тестовый будущий рейс JFK→BOS на 04.05.2027."],
+      "recognition": ["Поля даты, маршрута, авиакомпании, номера, самолёта и времени заполнены."],
       "actions": [
         {
           "label": "Ввести дату и маршрут существующей записи",
@@ -728,9 +668,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Введены дата/маршрут уже существующей записи."
-      ],
+      "preconditions": ["Введены дата/маршрут уже существующей записи."],
       "recognition": [
         "Предупреждение о совпадении даты и маршрута; интерфейс позволяет продолжить сохранение."
       ],
@@ -758,9 +696,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Есть один импортированный и один вручную добавленный синтетический рейс."
-      ],
+      "preconditions": ["Есть один импортированный и один вручную добавленный синтетический рейс."],
       "recognition": [
         "Таблица содержит прошлый и будущий перелёты; видны заголовки колонок и действия."
       ],
@@ -799,12 +735,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В журнале есть прошлые и будущие рейсы."
-      ],
-      "recognition": [
-        "Раскрыт список фильтра типа поездки: все, предстоящие, прошедшие."
-      ],
+      "preconditions": ["В журнале есть прошлые и будущие рейсы."],
+      "recognition": ["Раскрыт список фильтра типа поездки: все, предстоящие, прошедшие."],
       "actions": [
         {
           "label": "Предстоящие",
@@ -840,12 +772,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбран фильтр предстоящих рейсов."
-      ],
-      "recognition": [
-        "В таблице остаётся будущий рейс с меткой дней до вылета."
-      ],
+      "preconditions": ["Выбран фильтр предстоящих рейсов."],
+      "recognition": ["В таблице остаётся будущий рейс с меткой дней до вылета."],
       "actions": [],
       "source": [
         "apps/web/src/routes/FlightsPage.tsx",
@@ -870,12 +798,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбран фильтр прошедших рейсов."
-      ],
-      "recognition": [
-        "В таблице остаётся прошедший рейс."
-      ],
+      "preconditions": ["Выбран фильтр прошедших рейсов."],
+      "recognition": ["В таблице остаётся прошедший рейс."],
       "actions": [],
       "source": [
         "apps/web/src/routes/FlightsPage.tsx",
@@ -900,12 +824,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Есть рейсы в нескольких годах."
-      ],
-      "recognition": [
-        "Раскрыт выбор года."
-      ],
+      "preconditions": ["Есть рейсы в нескольких годах."],
+      "recognition": ["Раскрыт выбор года."],
       "actions": [
         {
           "label": "Выбрать 2027",
@@ -936,12 +856,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбран фильтр года 2027."
-      ],
-      "recognition": [
-        "Выбран 2027; в списке будущий JFK→BOS."
-      ],
+      "preconditions": ["Выбран фильтр года 2027."],
+      "recognition": ["Выбран 2027; в списке будущий JFK→BOS."],
       "actions": [],
       "source": [
         "apps/web/src/routes/FlightsPage.tsx",
@@ -966,12 +882,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В журнале есть American Airlines."
-      ],
-      "recognition": [
-        "Раскрыт фильтр авиакомпании."
-      ],
+      "preconditions": ["В журнале есть American Airlines."],
+      "recognition": ["Раскрыт фильтр авиакомпании."],
       "actions": [
         {
           "label": "Выбрать AA",
@@ -1002,12 +914,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбрана American Airlines."
-      ],
-      "recognition": [
-        "Фильтр AA применён; видны подходящие полёты."
-      ],
+      "preconditions": ["Выбрана American Airlines."],
+      "recognition": ["Фильтр AA применён; видны подходящие полёты."],
       "actions": [],
       "source": [
         "apps/web/src/routes/FlightsPage.tsx",
@@ -1032,12 +940,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В журнале есть записанный Boeing 737-800."
-      ],
-      "recognition": [
-        "Раскрыт фильтр самолёта."
-      ],
+      "preconditions": ["В журнале есть записанный Boeing 737-800."],
+      "recognition": ["Раскрыт фильтр самолёта."],
       "actions": [
         {
           "label": "Выбрать B738",
@@ -1066,12 +970,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбран самолёт B738."
-      ],
-      "recognition": [
-        "Фильтр B738 применён к American Airlines и году 2027."
-      ],
+      "preconditions": ["Выбран самолёт B738."],
+      "recognition": ["Фильтр B738 применён к American Airlines и году 2027."],
       "actions": [],
       "source": [
         "apps/web/src/components/flights/AircraftEnrichButton.tsx",
@@ -1094,12 +994,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбран локальный синтетический PDF."
-      ],
-      "recognition": [
-        "В поле файла отображается itinerary.pdf; распознавание доступно."
-      ],
+      "preconditions": ["Выбран локальный синтетический PDF."],
+      "recognition": ["В поле файла отображается itinerary.pdf; распознавание доступно."],
       "actions": [
         {
           "label": "Распознать документ",
@@ -1131,12 +1027,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Распознан рейс, уже находящийся в журнале."
-      ],
-      "recognition": [
-        "Одна запись 03.01.2026 JFK→BOS помечена как совпадающая и снята с выбора."
-      ],
+      "preconditions": ["Распознан рейс, уже находящийся в журнале."],
+      "recognition": ["Одна запись 03.01.2026 JFK→BOS помечена как совпадающая и снята с выбора."],
       "actions": [
         {
           "label": "Выбрать дубль вручную",
@@ -1168,12 +1060,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Нажата команда выбрать всё."
-      ],
-      "recognition": [
-        "Дубликат явно отмечен чекбоксом; импорт разрешён после ручного выбора."
-      ],
+      "preconditions": ["Нажата команда выбрать всё."],
+      "recognition": ["Дубликат явно отмечен чекбоксом; импорт разрешён после ручного выбора."],
       "actions": [
         {
           "label": "Сохранить",
@@ -1205,12 +1093,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Выбран локальный синтетический PNG."
-      ],
-      "recognition": [
-        "В поле файла показан ticket.png/preview; распознавание доступно."
-      ],
+      "preconditions": ["Выбран локальный синтетический PNG."],
+      "recognition": ["В поле файла показан ticket.png/preview; распознавание доступно."],
       "actions": [
         {
           "label": "Распознать документ",
@@ -1242,12 +1126,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "PNG отправлен в fake parser."
-      ],
-      "recognition": [
-        "Виден экран распознавания/индикатор анализа после загрузки PNG."
-      ],
+      "preconditions": ["PNG отправлен в fake parser."],
+      "recognition": ["Виден экран распознавания/индикатор анализа после загрузки PNG."],
       "actions": [
         {
           "label": "Разбор завершён",
@@ -1390,12 +1270,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Перехват POST /api/flights снят; нажат повтор неудачных сохранений."
-      ],
-      "recognition": [
-        "Экран успешного импорта и toast Flight added to your log после повтора."
-      ],
+      "preconditions": ["Перехват POST /api/flights снят; нажат повтор неудачных сохранений."],
+      "recognition": ["Экран успешного импорта и toast Flight added to your log после повтора."],
       "actions": [
         {
           "label": "Посмотреть полёты",
@@ -1457,9 +1333,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыта строка прошедшего синтетического рейса."
-      ],
+      "preconditions": ["Открыта строка прошедшего синтетического рейса."],
       "recognition": [
         "Диалог с заголовком «Редактировать полёт», заполненными значениями и кнопкой «Удалить полёт»."
       ],
@@ -1494,9 +1368,7 @@
       "preconditions": [
         "Нажата «Удалить полёт» внутри формы; подтверждение отменено после съёмки."
       ],
-      "recognition": [
-        "Подтверждение «Удалить полёт?» с действиями отменить и удалить."
-      ],
+      "recognition": ["Подтверждение «Удалить полёт?» с действиями отменить и удалить."],
       "actions": [],
       "source": [
         "apps/web/src/components/flights/FlightTable.tsx",
@@ -1519,12 +1391,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Нажата «Выбрать» при четырёх синтетических рейсах."
-      ],
-      "recognition": [
-        "Таблица показывает чекбоксы; удаление отключено, пока ничего не выбрано."
-      ],
+      "preconditions": ["Нажата «Выбрать» при четырёх синтетических рейсах."],
+      "recognition": ["Таблица показывает чекбоксы; удаление отключено, пока ничего не выбрано."],
       "actions": [
         {
           "label": "Выбрать запись",
@@ -1555,12 +1423,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В режиме пакетного выбора отмечен один прошлый рейс."
-      ],
-      "recognition": [
-        "Выбран один чекбокс; активна кнопка удаления."
-      ],
+      "preconditions": ["В режиме пакетного выбора отмечен один прошлый рейс."],
+      "recognition": ["Выбран один чекбокс; активна кнопка удаления."],
       "actions": [
         {
           "label": "Удалить выбранное",
@@ -1591,12 +1455,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Запущено удаление выбранного рейса; снимок был отменён."
-      ],
-      "recognition": [
-        "Подтверждение «Удалить 1 полёт?» с отменой и подтверждением."
-      ],
+      "preconditions": ["Запущено удаление выбранного рейса; снимок был отменён."],
+      "recognition": ["Подтверждение «Удалить 1 полёт?» с отменой и подтверждением."],
       "actions": [],
       "source": [
         "apps/web/src/routes/FlightsPage.tsx",
@@ -1621,12 +1481,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыт /flights при ширине 390 px; четыре синтетических записи."
-      ],
-      "recognition": [
-        "Компактные карточки рейсов, мобильная нижняя навигация и фильтры."
-      ],
+      "preconditions": ["Открыт /flights при ширине 390 px; четыре синтетических записи."],
+      "recognition": ["Компактные карточки рейсов, мобильная нижняя навигация и фильтры."],
       "actions": [],
       "source": [
         "apps/web/src/routes/FlightsPage.tsx",
@@ -1651,9 +1507,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "На mobile нажата кнопка добавления полёта."
-      ],
+      "preconditions": ["На mobile нажата кнопка добавления полёта."],
       "recognition": [
         "Модальная форма добавления с маршрутными, датой и необязательными полями при ширине 390 px."
       ],
@@ -1681,9 +1535,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Открыт /import на mobile."
-      ],
+      "preconditions": ["Открыт /import на mobile."],
       "recognition": [
         "Поле текста, загрузка файла и нижняя мобильная навигация при ширине 390 px."
       ],
@@ -1718,12 +1570,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Распознан один тестовый рейс на /import при ширине 390 px."
-      ],
-      "recognition": [
-        "Редактируемый найденный рейс в адаптивной раскладке и нижняя навигация."
-      ],
+      "preconditions": ["Распознан один тестовый рейс на /import при ширине 390 px."],
+      "recognition": ["Редактируемый найденный рейс в адаптивной раскладке и нижняя навигация."],
       "actions": [],
       "source": [
         "apps/web/src/routes/ImportPage.tsx",
@@ -1752,9 +1600,7 @@
       "preconditions": [
         "Нажата пакетная команда enrichment для трёх рейсов без типа самолёта; fake Gemini endpoint вернул 502."
       ],
-      "recognition": [
-        "После «Найти самолёт (3)» отображается toast ошибки поиска."
-      ],
+      "recognition": ["После «Найти самолёт (3)» отображается toast ошибки поиска."],
       "actions": [
         {
           "label": "Указать тип вручную",
@@ -1783,12 +1629,8 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Нажата кнопка «Добавить самолёт» для рейса; каталог самолётов локальный."
-      ],
-      "recognition": [
-        "Диалог содержит поиск «737» и варианты B37M/B38M/B39M/B732…/B738."
-      ],
+      "preconditions": ["Нажата кнопка «Добавить самолёт» для рейса; каталог самолётов локальный."],
+      "recognition": ["Диалог содержит поиск «737» и варианты B37M/B38M/B39M/B732…/B738."],
       "actions": [
         {
           "label": "Закрыть каталог",
@@ -1924,9 +1766,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "Перехват PATCH снят и выбранный B738 сохранён локальным API."
-      ],
+      "preconditions": ["Перехват PATCH снят и выбранный B738 сохранён локальным API."],
       "recognition": [
         "Строка JFK→BOS AA100 показывает Boeing 737-800; toast сообщает, что сохранён 1 самолёт."
       ],
@@ -1958,9 +1798,7 @@
       },
       "auth": "authenticated",
       "fixture": "Локальный frozen fixture на localhost:8799, пользователь b@example.test; искусственные данные только в одноразовой БД.",
-      "preconditions": [
-        "В журнале есть синтетический JFK→BOS; задан фильтр аэропортов."
-      ],
+      "preconditions": ["В журнале есть синтетический JFK→BOS; задан фильтр аэропортов."],
       "recognition": [
         "Оба поля маршрута заполнены кодами JFK и BOS; таблица показывает совпадающий рейс."
       ],
@@ -2044,11 +1882,7 @@
     {
       "id": "flights-mobile-layout",
       "title": "Просмотреть журнал и добавить полёт на мобильном экране",
-      "states": [
-        "flights-empty-mobile",
-        "flights-populated-mobile",
-        "flight-add-form-mobile"
-      ],
+      "states": ["flights-empty-mobile", "flights-populated-mobile", "flight-add-form-mobile"],
       "steps": [
         "Открыть пустой список.",
         "Загрузить синтетические рейсы и проверить карточную раскладку.",
@@ -2111,11 +1945,7 @@
     {
       "id": "import-retry-save",
       "title": "Повторить сбой сохранения",
-      "states": [
-        "import-review-duplicate",
-        "import-save-error-retry",
-        "import-save-retried"
-      ],
+      "states": ["import-review-duplicate", "import-save-error-retry", "import-save-retried"],
       "steps": [
         "Явно выбрать найденный дубль.",
         "Тестовый перехват прерывает POST /api/flights; UI предлагает повторить неудачное сохранение.",
@@ -2126,10 +1956,7 @@
     {
       "id": "import-mobile-layout",
       "title": "Распознать рейс на мобильном экране",
-      "states": [
-        "import-upload-mobile",
-        "import-review-mobile"
-      ],
+      "states": ["import-upload-mobile", "import-review-mobile"],
       "steps": [
         "Открыть загрузку на ширине 390 px.",
         "Ввести тестовый текст и перейти к проверке."
@@ -2158,11 +1985,7 @@
     {
       "id": "import-review-selection",
       "title": "Исключить и снова выбрать распознанный рейс",
-      "states": [
-        "import-review-text",
-        "import-review-none-selected",
-        "import-review-text"
-      ]
+      "states": ["import-review-text", "import-review-none-selected", "import-review-text"]
     },
     {
       "id": "import-review-manual-add",

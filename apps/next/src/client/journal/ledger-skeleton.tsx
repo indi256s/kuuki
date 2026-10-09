@@ -29,9 +29,18 @@ export function LedgerSkeleton({ locale, rows = 8 }: { locale: Locale; rows?: nu
           <div className="ledger-skeleton-rows">
             {Array.from({ length: rows }, (_, index) => (
               <div className="ledger-skeleton-row" key={index}>
-                <div className="ledger-skeleton-date">{bar('is-text')}{bar('is-badge')}</div>
-                <div className="ledger-skeleton-route">{bar('is-code')}{bar('is-small')}</div>
-                <div className="ledger-skeleton-airline">{bar('is-text')}{bar('is-small')}</div>
+                <div className="ledger-skeleton-date">
+                  {bar('is-text')}
+                  {bar('is-badge')}
+                </div>
+                <div className="ledger-skeleton-route">
+                  {bar('is-code')}
+                  {bar('is-small')}
+                </div>
+                <div className="ledger-skeleton-airline">
+                  {bar('is-text')}
+                  {bar('is-small')}
+                </div>
                 <div className="ledger-skeleton-aircraft">{bar('is-text')}</div>
                 <div className="ledger-skeleton-duration">{bar('is-text')}</div>
                 <div className="ledger-skeleton-distance">{bar('is-text')}</div>

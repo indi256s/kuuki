@@ -10,16 +10,12 @@ Use this skill when building React applications with the Elastic UI Framework.
 ## Setup Required
 
 ```tsx
-import { EuiProvider } from '@elastic/eui';
-import '@elastic/eui/dist/eui_theme_light.css';
+import { EuiProvider } from '@elastic/eui'
+import '@elastic/eui/dist/eui_theme_light.css'
 // or '@elastic/eui/dist/eui_theme_dark.css'
 
 function App() {
-  return (
-    <EuiProvider colorMode="light">
-      {/* Your app */}
-    </EuiProvider>
-  );
+  return <EuiProvider colorMode="light">{/* Your app */}</EuiProvider>
 }
 ```
 
@@ -28,22 +24,20 @@ function App() {
 ## Layout Rules
 
 ### Page Structure
-```tsx
-import { EuiPage, EuiPageBody, EuiPageSection, EuiPageSidebar } from '@elastic/eui';
 
-<EuiPage>
-  <EuiPageSidebar paddingSize="l">
-    {/* Navigation */}
-  </EuiPageSidebar>
+```tsx
+import { EuiPage, EuiPageBody, EuiPageSection, EuiPageSidebar } from '@elastic/eui'
+
+;<EuiPage>
+  <EuiPageSidebar paddingSize="l">{/* Navigation */}</EuiPageSidebar>
   <EuiPageBody paddingSize="none" panelled>
-    <EuiPageSection>
-      {/* Content */}
-    </EuiPageSection>
+    <EuiPageSection>{/* Content */}</EuiPageSection>
   </EuiPageBody>
 </EuiPage>
 ```
 
 ### Flex Layout (Primary Layout Tool)
+
 ```tsx
 import { EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 
@@ -61,6 +55,7 @@ import { EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 ```
 
 ### Gutter Sizes
+
 - `none` - No spacing
 - `xs` - Extra small
 - `s` - Small
@@ -69,6 +64,7 @@ import { EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 - `xl` - Extra large
 
 ### Responsive Behavior
+
 ```tsx
 // Stacks vertically on mobile (default)
 <EuiFlexGroup>...</EuiFlexGroup>
@@ -78,10 +74,11 @@ import { EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 ```
 
 ### Spacing Between Sections
-```tsx
-import { EuiSpacer } from '@elastic/eui';
 
-<EuiSpacer size="m" /> // xs, s, m, l, xl, xxl
+```tsx
+import { EuiSpacer } from '@elastic/eui'
+
+;<EuiSpacer size="m" /> // xs, s, m, l, xl, xxl
 ```
 
 ---
@@ -90,14 +87,15 @@ import { EuiSpacer } from '@elastic/eui';
 
 ### Buttons
 
-| Use Case | Component | Example |
-|----------|-----------|---------|
-| Primary action | `<EuiButton fill>` | Save, Create, Submit |
-| Secondary action | `<EuiButtonEmpty>` | Cancel, Back |
-| Icon-only action | `<EuiButtonIcon>` | Edit, Delete, Close |
-| Destructive action | `<EuiButton color="danger">` | Delete, Remove |
+| Use Case           | Component                    | Example              |
+| ------------------ | ---------------------------- | -------------------- |
+| Primary action     | `<EuiButton fill>`           | Save, Create, Submit |
+| Secondary action   | `<EuiButtonEmpty>`           | Cancel, Back         |
+| Icon-only action   | `<EuiButtonIcon>`            | Edit, Delete, Close  |
+| Destructive action | `<EuiButton color="danger">` | Delete, Remove       |
 
 **Button Pattern:**
+
 ```tsx
 <EuiFlexGroup gutterSize="s">
   <EuiFlexItem grow={false}>
@@ -110,6 +108,7 @@ import { EuiSpacer } from '@elastic/eui';
 ```
 
 **Button Colors:**
+
 - `primary` - Default, main actions
 - `success` - Positive confirmation
 - `warning` - Caution actions
@@ -118,14 +117,15 @@ import { EuiSpacer } from '@elastic/eui';
 
 ### Panels
 
-| Use Case | Props |
-|----------|-------|
-| Card with shadow | `<EuiPanel hasShadow>` |
-| Bordered container | `<EuiPanel hasBorder>` |
-| Subdued background | `<EuiPanel color="subdued">` |
-| No styling | `<EuiPanel color="transparent" hasShadow={false}>` |
+| Use Case           | Props                                              |
+| ------------------ | -------------------------------------------------- |
+| Card with shadow   | `<EuiPanel hasShadow>`                             |
+| Bordered container | `<EuiPanel hasBorder>`                             |
+| Subdued background | `<EuiPanel color="subdued">`                       |
+| No styling         | `<EuiPanel color="transparent" hasShadow={false}>` |
 
 **Panel Nesting Rule:** When nesting 3+ panels, vary styles:
+
 ```tsx
 <EuiPanel hasShadow>
   <EuiPanel color="subdued">
@@ -139,10 +139,11 @@ import { EuiSpacer } from '@elastic/eui';
 ### Forms
 
 **Always wrap inputs in EuiFormRow:**
-```tsx
-import { EuiForm, EuiFormRow, EuiFieldText, EuiSelect, EuiSwitch } from '@elastic/eui';
 
-<EuiForm component="form">
+```tsx
+import { EuiForm, EuiFormRow, EuiFieldText, EuiSelect, EuiSwitch } from '@elastic/eui'
+
+;<EuiForm component="form">
   <EuiFormRow label="Name" helpText="Enter your full name">
     <EuiFieldText name="name" />
   </EuiFormRow>
@@ -159,6 +160,7 @@ import { EuiForm, EuiFormRow, EuiFieldText, EuiSelect, EuiSwitch } from '@elasti
 ```
 
 **Validation Pattern:**
+
 ```tsx
 <EuiFormRow
   label="Email"
@@ -170,6 +172,7 @@ import { EuiForm, EuiFormRow, EuiFieldText, EuiSelect, EuiSwitch } from '@elasti
 ```
 
 **Switch Labeling Rules:**
+
 - DO: Use static nouns - `"Malware protection"`
 - DO: Use action verbs - `"Use recommended defaults"`
 - DON'T: State-descriptive - `"Log enabled"`
@@ -186,8 +189,9 @@ import { EuiForm, EuiFormRow, EuiFieldText, EuiSelect, EuiSwitch } from '@elasti
 ### Tables
 
 **Basic Table:**
+
 ```tsx
-import { EuiBasicTable } from '@elastic/eui';
+import { EuiBasicTable } from '@elastic/eui'
 
 const columns = [
   { field: 'name', name: 'Name' },
@@ -195,14 +199,15 @@ const columns = [
   {
     field: 'actions',
     name: 'Actions',
-    render: (item) => <EuiButtonIcon iconType="trash" aria-label="Delete" />
+    render: (item) => <EuiButtonIcon iconType="trash" aria-label="Delete" />,
   },
-];
+]
 
-<EuiBasicTable items={data} columns={columns} />
+;<EuiBasicTable items={data} columns={columns} />
 ```
 
 **Data Grid (for large datasets):**
+
 ```tsx
 import { EuiDataGrid } from '@elastic/eui';
 
@@ -215,41 +220,51 @@ import { EuiDataGrid } from '@elastic/eui';
 ### Modals & Flyouts
 
 **Modal:**
-```tsx
-import { EuiModal, EuiModalHeader, EuiModalHeaderTitle, EuiModalBody, EuiModalFooter } from '@elastic/eui';
 
-{isOpen && (
-  <EuiModal onClose={closeModal}>
-    <EuiModalHeader>
-      <EuiModalHeaderTitle>Modal Title</EuiModalHeaderTitle>
-    </EuiModalHeader>
-    <EuiModalBody>
-      {/* Content */}
-    </EuiModalBody>
-    <EuiModalFooter>
-      <EuiButtonEmpty onClick={closeModal}>Cancel</EuiButtonEmpty>
-      <EuiButton fill onClick={save}>Save</EuiButton>
-    </EuiModalFooter>
-  </EuiModal>
-)}
+```tsx
+import {
+  EuiModal,
+  EuiModalHeader,
+  EuiModalHeaderTitle,
+  EuiModalBody,
+  EuiModalFooter,
+} from '@elastic/eui'
+
+{
+  isOpen && (
+    <EuiModal onClose={closeModal}>
+      <EuiModalHeader>
+        <EuiModalHeaderTitle>Modal Title</EuiModalHeaderTitle>
+      </EuiModalHeader>
+      <EuiModalBody>{/* Content */}</EuiModalBody>
+      <EuiModalFooter>
+        <EuiButtonEmpty onClick={closeModal}>Cancel</EuiButtonEmpty>
+        <EuiButton fill onClick={save}>
+          Save
+        </EuiButton>
+      </EuiModalFooter>
+    </EuiModal>
+  )
+}
 ```
 
 **Flyout (side panel):**
-```tsx
-import { EuiFlyout, EuiFlyoutHeader, EuiFlyoutBody, EuiTitle } from '@elastic/eui';
 
-{isOpen && (
-  <EuiFlyout onClose={closeFlyout} aria-labelledby="flyoutTitle">
-    <EuiFlyoutHeader hasBorder>
-      <EuiTitle size="m">
-        <h2 id="flyoutTitle">Flyout Title</h2>
-      </EuiTitle>
-    </EuiFlyoutHeader>
-    <EuiFlyoutBody>
-      {/* Content */}
-    </EuiFlyoutBody>
-  </EuiFlyout>
-)}
+```tsx
+import { EuiFlyout, EuiFlyoutHeader, EuiFlyoutBody, EuiTitle } from '@elastic/eui'
+
+{
+  isOpen && (
+    <EuiFlyout onClose={closeFlyout} aria-labelledby="flyoutTitle">
+      <EuiFlyoutHeader hasBorder>
+        <EuiTitle size="m">
+          <h2 id="flyoutTitle">Flyout Title</h2>
+        </EuiTitle>
+      </EuiFlyoutHeader>
+      <EuiFlyoutBody>{/* Content */}</EuiFlyoutBody>
+    </EuiFlyout>
+  )
+}
 ```
 
 ---
@@ -257,12 +272,13 @@ import { EuiFlyout, EuiFlyoutHeader, EuiFlyoutBody, EuiTitle } from '@elastic/eu
 ## Theming
 
 ### Access Theme Values
+
 ```tsx
-import { useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/react';
+import { useEuiTheme } from '@elastic/eui'
+import { css } from '@emotion/react'
 
 function MyComponent() {
-  const { euiTheme } = useEuiTheme();
+  const { euiTheme } = useEuiTheme()
 
   return (
     <div
@@ -275,11 +291,12 @@ function MyComponent() {
     >
       Content
     </div>
-  );
+  )
 }
 ```
 
 ### Color Mode
+
 ```tsx
 // App-wide
 <EuiProvider colorMode="dark">
@@ -294,6 +311,7 @@ function MyComponent() {
 ```
 
 ### Common Theme Tokens
+
 ```tsx
 const { euiTheme } = useEuiTheme();
 
@@ -324,6 +342,7 @@ padding: calc(${euiTheme.size.base} * 2);
 ## Accessibility Requirements
 
 ### Always Provide Labels
+
 ```tsx
 // Icon buttons MUST have aria-label
 <EuiButtonIcon iconType="trash" aria-label="Delete item" />
@@ -338,6 +357,7 @@ padding: calc(${euiTheme.size.base} * 2);
 ```
 
 ### Screen Reader Content
+
 ```tsx
 import { EuiScreenReaderOnly } from '@elastic/eui';
 
@@ -353,11 +373,14 @@ import { EuiScreenReaderOnly } from '@elastic/eui';
 ```
 
 ### Flyouts & Modals
+
 ```tsx
 // Always include aria-labelledby
 <EuiFlyout aria-labelledby="flyoutTitle">
   <EuiFlyoutHeader>
-    <EuiTitle><h2 id="flyoutTitle">Title</h2></EuiTitle>
+    <EuiTitle>
+      <h2 id="flyoutTitle">Title</h2>
+    </EuiTitle>
   </EuiFlyoutHeader>
 </EuiFlyout>
 ```
@@ -367,13 +390,18 @@ import { EuiScreenReaderOnly } from '@elastic/eui';
 ## Common Patterns
 
 ### Settings Page
+
 ```tsx
 <EuiPageSection>
-  <EuiTitle><h1>Settings</h1></EuiTitle>
+  <EuiTitle>
+    <h1>Settings</h1>
+  </EuiTitle>
   <EuiSpacer size="l" />
 
   <EuiPanel hasBorder>
-    <EuiTitle size="s"><h2>Profile</h2></EuiTitle>
+    <EuiTitle size="s">
+      <h2>Profile</h2>
+    </EuiTitle>
     <EuiSpacer size="m" />
 
     <EuiForm>
@@ -400,6 +428,7 @@ import { EuiScreenReaderOnly } from '@elastic/eui';
 ```
 
 ### Data List with Actions
+
 ```tsx
 <EuiBasicTable
   items={items}
@@ -431,29 +460,35 @@ import { EuiScreenReaderOnly } from '@elastic/eui';
 ```
 
 ### Empty State
-```tsx
-import { EuiEmptyPrompt, EuiButton } from '@elastic/eui';
 
-<EuiEmptyPrompt
+```tsx
+import { EuiEmptyPrompt, EuiButton } from '@elastic/eui'
+
+;<EuiEmptyPrompt
   iconType="folderOpen"
   title={<h2>No items found</h2>}
   body={<p>Create your first item to get started.</p>}
   actions={
-    <EuiButton fill iconType="plus">Create item</EuiButton>
+    <EuiButton fill iconType="plus">
+      Create item
+    </EuiButton>
   }
 />
 ```
 
 ### Loading State
-```tsx
-import { EuiLoadingSpinner, EuiSpacer, EuiText } from '@elastic/eui';
 
-<EuiFlexGroup alignItems="center" justifyContent="center" direction="column">
+```tsx
+import { EuiLoadingSpinner, EuiSpacer, EuiText } from '@elastic/eui'
+
+;<EuiFlexGroup alignItems="center" justifyContent="center" direction="column">
   <EuiFlexItem grow={false}>
     <EuiLoadingSpinner size="xl" />
   </EuiFlexItem>
   <EuiFlexItem grow={false}>
-    <EuiText><p>Loading...</p></EuiText>
+    <EuiText>
+      <p>Loading...</p>
+    </EuiText>
   </EuiFlexItem>
 </EuiFlexGroup>
 ```
@@ -463,6 +498,7 @@ import { EuiLoadingSpinner, EuiSpacer, EuiText } from '@elastic/eui';
 ## Do's and Don'ts
 
 ### DO
+
 - Use `EuiFlexGroup` for layouts, not CSS flexbox directly
 - Wrap all form inputs in `EuiFormRow`
 - Provide `aria-label` for icon-only buttons
@@ -471,6 +507,7 @@ import { EuiLoadingSpinner, EuiSpacer, EuiText } from '@elastic/eui';
 - Use `fill` prop on primary action buttons
 
 ### DON'T
+
 - Don't use raw `<button>` - use `EuiButton` family
 - Don't hardcode colors - use theme tokens
 - Don't nest more than 3 panels with same style
@@ -483,6 +520,7 @@ import { EuiLoadingSpinner, EuiSpacer, EuiText } from '@elastic/eui';
 ## Querying More Docs
 
 Use Context7 to query specific EUI components:
+
 ```
 Query EUI docs for: EuiDataGrid filtering sorting
 Query EUI docs for: EuiComboBox async loading

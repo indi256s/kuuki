@@ -1,12 +1,57 @@
 /* Review mode inside the Journal detail sheet. Tokens only, weights 400/500, no divider lines: space groups the blocks. */
-.journal-review-status{display:grid;gap:var(--space-3)}
-.journal-review-count{margin:0;font-size:13px;line-height:20px;color:var(--text-muted);font-variant-numeric:tabular-nums}
-.journal-review{display:grid;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-md);background:var(--surface-inset)}
-.journal-review-question{margin:0;font-size:15px;line-height:24px;font-weight:500;letter-spacing:0}
-.journal-review-transit{display:grid;gap:var(--space-2)}
-.journal-review-transit p{margin:0;font-size:13px;line-height:20px;color:var(--text-muted);text-wrap:pretty}
-.journal-review-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}
-.journal-review-note{margin:0;text-wrap:pretty}
-.journal-review-note:empty{position:absolute}
-.journal-review-empty{display:grid;gap:var(--space-3);justify-items:start}
-.journal-review-empty p{margin:0}
+.journal-review-status {
+  display: grid;
+  gap: var(--space-3);
+}
+.journal-review-count {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.journal-review {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+}
+.journal-review-question {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.journal-review-transit {
+  display: grid;
+  gap: var(--space-2);
+}
+.journal-review-transit p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.journal-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.journal-review-note {
+  margin: 0;
+  text-wrap: pretty;
+}
+.journal-review-note:empty {
+  position: absolute;
+}
+.journal-review-empty {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+.journal-review-empty p {
+  margin: 0;
+}

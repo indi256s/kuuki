@@ -16,7 +16,9 @@ export async function getOwnProfileStats(userId: string) {
   const identity = await getRequestIdentity()
   if (!identity || identity.id !== userId) return null
   const env = await getRequestEnv()
-  const row = await env.DB.prepare('SELECT * FROM user_stats WHERE user_id = ?').bind(userId).first<UserStatsRow>()
+  const row = await env.DB.prepare('SELECT * FROM user_stats WHERE user_id = ?')
+    .bind(userId)
+    .first<UserStatsRow>()
   return row ? toUserStats(row) : null
 }
 

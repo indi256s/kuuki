@@ -40,23 +40,45 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
     const city = refs.airports[code]?.city
     return city ? `${city} (${code})` : code
   }
-  return <section className="journal-next" aria-labelledby="journal-next-title">
-    <h2 id="journal-next-title">{t.title}</h2>
-    <ul>
-      {flights.map(flight => {
-        const date = formatDateOnly(locale, flight.date, 'medium')
-        const countdown = today ? relative.format(Math.round(dayNumber(flight.date) - dayNumber(today)), 'day') : null
-        const number = flight.flight_number ?? flight.airline_iata
-        const name = [`${place(flight.origin)} ${t.to} ${place(flight.destination)}`, date, number, countdown].filter(Boolean).join(', ')
-        return <li key={flight.id}>
-          <button type="button" className="journal-next-item" aria-label={name} onClick={() => onOpen(flight.id)}>
-            <span className="journal-next-date">{date}</span>
-            <span className="journal-next-route">{flight.origin}<span aria-hidden="true"> → </span>{flight.destination}</span>
-            {number && <span className="journal-next-number">{number}</span>}
-            {countdown && <span className="journal-next-countdown">{countdown}</span>}
-          </button>
-        </li>
-      })}
-    </ul>
-  </section>
+  return (
+    <section className="journal-next" aria-labelledby="journal-next-title">
+      <h2 id="journal-next-title">{t.title}</h2>
+      <ul>
+        {flights.map((flight) => {
+          const date = formatDateOnly(locale, flight.date, 'medium')
+          const countdown = today
+            ? relative.format(Math.round(dayNumber(flight.date) - dayNumber(today)), 'day')
+            : null
+          const number = flight.flight_number ?? flight.airline_iata
+          const name = [
+            `${place(flight.origin)} ${t.to} ${place(flight.destination)}`,
+            date,
+            number,
+            countdown,
+          ]
+            .filter(Boolean)
+            .join(', ')
+          return (
+            <li key={flight.id}>
+              <button
+                type="button"
+                className="journal-next-item"
+                aria-label={name}
+                onClick={() => onOpen(flight.id)}
+              >
+                <span className="journal-next-date">{date}</span>
+                <span className="journal-next-route">
+                  {flight.origin}
+                  <span aria-hidden="true"> → </span>
+                  {flight.destination}
+                </span>
+                {number && <span className="journal-next-number">{number}</span>}
+                {countdown && <span className="journal-next-countdown">{countdown}</span>}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
 }

@@ -47,7 +47,9 @@ export const MAX_BATCH_SIZE = AIRCRAFT_BATCH_SIZE
  */
 function buildFlightLine(f: FlightToEnrich, index: number): string {
   const flightId = f.flight_number
-    ? (f.airline_iata && f.flight_number.toUpperCase().startsWith(f.airline_iata.toUpperCase()) ? f.flight_number : `${f.airline_iata || ''}${f.flight_number}`)
+    ? f.airline_iata && f.flight_number.toUpperCase().startsWith(f.airline_iata.toUpperCase())
+      ? f.flight_number
+      : `${f.airline_iata || ''}${f.flight_number}`
     : `${f.airline_iata || 'Unknown'} flight`
   const airlinePart = f.airline_name ? ` (${f.airline_name})` : ''
   return `${index + 1}. ${flightId}${airlinePart} ${f.origin}-${f.destination} ${f.date}`

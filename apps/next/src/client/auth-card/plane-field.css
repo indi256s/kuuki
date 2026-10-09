@@ -1,39 +1,122 @@
 /* Brand panel decoration (boards 1.1, 3.1 to 3.3, build notes 4.1). Colours are the plane and watermark tokens in styles.css. */
-.auth-plane-field{position:absolute;inset:0;--plane-cycle:60s}
+.auth-plane-field {
+  position: absolute;
+  inset: 0;
+  --plane-cycle: 60s;
+}
 
 /* Watermark: く, う, き stacked one per line on desktop (board 1.1), in a row across the band on mobile. */
-.auth-watermark{position:absolute;left:128px;top:86px;display:flex;flex-direction:column;align-items:center;color:var(--accent);opacity:var(--auth-watermark-opacity);font:700 164px/164px var(--font-kana)}
+.auth-watermark {
+  position: absolute;
+  left: 128px;
+  top: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--accent);
+  opacity: var(--auth-watermark-opacity);
+  font: 700 164px/164px var(--font-kana);
+}
 
 /* Planes. The mask is a soft hole around the wordmark (40px in, 87×36 on desktop), so no plane ever crosses it in flight. */
-.auth-planes{position:absolute;inset:0;-webkit-mask-image:radial-gradient(ellipse 100px 46px at 84px 58px,transparent 70%,#000);mask-image:radial-gradient(ellipse 100px 46px at 84px 58px,transparent 70%,#000)}
-.auth-planes svg{position:absolute;overflow:hidden}
-.auth-planes-desktop{left:0;top:0}
-.auth-planes-mobile{display:none}
-.auth-plane path{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.auth-plane[data-plane=s] path{stroke:var(--plane-stroke-s)}
-.auth-plane[data-plane=m] path{stroke:var(--plane-stroke-m)}
-.auth-plane[data-plane=l] path{stroke:var(--plane-stroke-l)}
+.auth-planes {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(ellipse 100px 46px at 84px 58px, transparent 70%, #000);
+  mask-image: radial-gradient(ellipse 100px 46px at 84px 58px, transparent 70%, #000);
+}
+.auth-planes svg {
+  position: absolute;
+  overflow: hidden;
+}
+.auth-planes-desktop {
+  left: 0;
+  top: 0;
+}
+.auth-planes-mobile {
+  display: none;
+}
+.auth-plane path {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.auth-plane[data-plane='s'] path {
+  stroke: var(--plane-stroke-s);
+}
+.auth-plane[data-plane='m'] path {
+  stroke: var(--plane-stroke-m);
+}
+.auth-plane[data-plane='l'] path {
+  stroke: var(--plane-stroke-l);
+}
 
 /* Every plane flies along (+400, -800) at one speed, a drift per cycle, then laps from just outside the field to just outside.
    The negative delay starts each plane on the position drawn on the boards. */
-@keyframes auth-plane-drift{
-  from{transform:translate(calc(var(--plane-start)*400px),calc(var(--plane-start)*-800px))}
-  to{transform:translate(calc((var(--plane-start) + var(--plane-span))*400px),calc((var(--plane-start) + var(--plane-span))*-800px))}
+@keyframes auth-plane-drift {
+  from {
+    transform: translate(calc(var(--plane-start)*400px), calc(var(--plane-start)*-800px));
+  }
+  to {
+    transform: translate(
+      calc((var(--plane-start) + var(--plane-span))*400px),
+      calc((var(--plane-start) + var(--plane-span))*-800px)
+    );
+  }
 }
-.auth-plane{animation:auth-plane-drift calc(var(--plane-span)*var(--plane-cycle)) linear infinite;animation-delay:calc(var(--plane-start)*var(--plane-cycle))}
+.auth-plane {
+  animation: auth-plane-drift calc(var(--plane-span)*var(--plane-cycle)) linear infinite;
+  animation-delay: calc(var(--plane-start)*var(--plane-cycle));
+}
 /* Paused until the field is on screen and the page is visible; script sets the attribute. */
-.auth-plane-field:not([data-running=true]) .auth-plane{animation-play-state:paused}
-@media(prefers-reduced-motion:reduce){.auth-plane{animation:none}}
+.auth-plane-field:not([data-running='true']) .auth-plane {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-plane {
+    animation: none;
+  }
+}
 /* Theme switch (styles.css): the old page under the sweep is a still snapshot, which would stop every plane until the sweep reached it.
    The planes become their own layer instead: the old one is dropped and the live new one keeps flying, in the new theme's colours at once.
    overflow:clip keeps that layer inside the panel, which no longer clips it. Under reduced motion the planes are still anyway and fade with the page. */
-@media(prefers-reduced-motion:no-preference){:root[data-theme-switching] .auth-planes{view-transition-name:auth-planes;overflow:clip}}
-::view-transition-old(auth-planes){animation:none;opacity:0}::view-transition-new(auth-planes){animation:none}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme-switching] .auth-planes {
+    view-transition-name: auth-planes;
+    overflow: clip;
+  }
+}
+::view-transition-old(auth-planes) {
+  animation: none;
+  opacity: 0;
+}
+::view-transition-new(auth-planes) {
+  animation: none;
+}
 
 /* Mobile: the horizontal watermark and the 390×264 field sit below the header row (the band has no device status bar). */
-@media(max-width:700px){
-  .auth-watermark{left:0;right:0;top:125px;flex-direction:row;justify-content:center;font-size:104px;line-height:104px;letter-spacing:.04em}
-  .auth-planes{-webkit-mask-image:radial-gradient(ellipse 90px 44px at 53px 26px,transparent 70%,#000);mask-image:radial-gradient(ellipse 90px 44px at 53px 26px,transparent 70%,#000)}
-  .auth-planes-desktop{display:none}
-  .auth-planes-mobile{display:block;left:calc(50% - 195px);top:-15px}
+@media (max-width: 700px) {
+  .auth-watermark {
+    left: 0;
+    right: 0;
+    top: 125px;
+    flex-direction: row;
+    justify-content: center;
+    font-size: 104px;
+    line-height: 104px;
+    letter-spacing: 0.04em;
+  }
+  .auth-planes {
+    -webkit-mask-image: radial-gradient(ellipse 90px 44px at 53px 26px, transparent 70%, #000);
+    mask-image: radial-gradient(ellipse 90px 44px at 53px 26px, transparent 70%, #000);
+  }
+  .auth-planes-desktop {
+    display: none;
+  }
+  .auth-planes-mobile {
+    display: block;
+    left: calc(50% - 195px);
+    top: -15px;
+  }
 }

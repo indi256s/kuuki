@@ -12,12 +12,28 @@ import {
 beforeEach(() => clearFlightCreateOperations())
 
 it('reuses both key and original payload after an uncertain response', () => {
-  const first = getFlightCreateOperation('alice', 'manual', { date: '2026-01-01', origin: 'TBS', destination: 'LHR' })
-  const retry = getFlightCreateOperation('alice', 'manual', { date: '2026-01-01', origin: 'TBS', destination: 'LHR' })
+  const first = getFlightCreateOperation('alice', 'manual', {
+    date: '2026-01-01',
+    origin: 'TBS',
+    destination: 'LHR',
+  })
+  const retry = getFlightCreateOperation('alice', 'manual', {
+    date: '2026-01-01',
+    origin: 'TBS',
+    destination: 'LHR',
+  })
   expect(retry).toEqual(first)
-  expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-02', origin: 'TBS', destination: 'LHR' }))
-    .toThrow(UnconfirmedFlightOperationError)
-  expect(pendingFlightCreateOperation('alice', 'manual')).toMatchObject({ ...first, expired: false })
+  expect(() =>
+    getFlightCreateOperation('alice', 'manual', {
+      date: '2026-01-02',
+      origin: 'TBS',
+      destination: 'LHR',
+    }),
+  ).toThrow(UnconfirmedFlightOperationError)
+  expect(pendingFlightCreateOperation('alice', 'manual')).toMatchObject({
+    ...first,
+    expired: false,
+  })
 })
 
 it('clears only the acknowledged operation and keeps users isolated', () => {
@@ -34,7 +50,9 @@ it('refuses to replay a receipt older than the safe retention window', () => {
     vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
     getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })
     vi.setSystemTime(new Date('2026-01-08T00:00:00Z'))
-    expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })).toThrow(ExpiredFlightOperationError)
+    expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })).toThrow(
+      ExpiredFlightOperationError,
+    )
     expect(pendingFlightCreateOperation('alice', 'manual')?.expired).toBe(true)
   } finally {
     vi.useRealTimers()
@@ -42,10 +60,13 @@ it('refuses to replay a receipt older than the safe retention window', () => {
 })
 
 it('does not permit a create when its durable receipt cannot be written', () => {
-  const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota') })
+  const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new Error('quota')
+  })
   try {
-    expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' }))
-      .toThrow('Could not store a safe flight retry receipt')
+    expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })).toThrow(
+      'Could not store a safe flight retry receipt',
+    )
     expect(pendingFlightCreateOperation('alice', 'manual')).toBeNull()
   } finally {
     write.mockRestore()
@@ -54,7 +75,8 @@ it('does not permit a create when its durable receipt cannot be written', () => 
 
 it('does not mint a new key over a damaged receipt', () => {
   localStorage.setItem('kuuki-flight-create-operation:alice:manual', '{bad json')
-  expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' }))
-    .toThrow('Stored flight retry receipt is damaged')
+  expect(() => getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })).toThrow(
+    'Stored flight retry receipt is damaged',
+  )
   expect(pendingFlightCreateOperation('alice', 'manual')?.expired).toBe(true)
 })

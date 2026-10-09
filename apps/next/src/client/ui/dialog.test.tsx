@@ -7,15 +7,52 @@ import { Dialog } from './dialog'
 
 function Harness() {
   const [open, setOpen] = useState(false)
-  return <Dialog open={open} onOpenChange={setOpen} title="Edit flight" trigger={<button type="button">Open</button>} footer={<button type="button">Save</button>}><input aria-label="Notes" /></Dialog>
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      title="Edit flight"
+      trigger={<button type="button">Open</button>}
+      footer={<button type="button">Save</button>}
+    >
+      <input aria-label="Notes" />
+    </Dialog>
+  )
 }
 
 function ProgrammaticHarness({ redirectFocus = false }: { redirectFocus?: boolean }) {
   const [open, setOpen] = useState(false)
   const destination = useRef<HTMLButtonElement>(null)
-  return <><button type="button" onClick={() => setOpen(true)}>First opener</button><button ref={destination} type="button" onClick={() => setOpen(true)}>Second opener</button>
-    <Dialog open={open} onOpenChange={setOpen} title="Confirm change" onCloseAutoFocus={redirectFocus ? event => { event.preventDefault(); destination.current?.focus() } : undefined} footer={<button type="button" onClick={() => setOpen(false)}>Cancel</button>}><input aria-label="Notes" autoFocus /></Dialog>
-  </>
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        First opener
+      </button>
+      <button ref={destination} type="button" onClick={() => setOpen(true)}>
+        Second opener
+      </button>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Confirm change"
+        onCloseAutoFocus={
+          redirectFocus
+            ? (event) => {
+                event.preventDefault()
+                destination.current?.focus()
+              }
+            : undefined
+        }
+        footer={
+          <button type="button" onClick={() => setOpen(false)}>
+            Cancel
+          </button>
+        }
+      >
+        <input aria-label="Notes" autoFocus />
+      </Dialog>
+    </>
+  )
 }
 
 describe('Dialog', () => {
@@ -33,12 +70,15 @@ describe('Dialog', () => {
 
   it('retains the dialog until its closing animation finishes', async () => {
     const computedStyle = window.getComputedStyle.bind(window)
-    const spy = vi.spyOn(window, 'getComputedStyle').mockImplementation(element => {
+    const spy = vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => {
       const style = computedStyle(element)
-      if (element.classList.contains('ui-dialog')) Object.defineProperties(style, {
-        animationName: { value: element.getAttribute('data-state') === 'open' ? 'dialog-in' : 'dialog-out' },
-        display: { value: 'block' },
-      })
+      if (element.classList.contains('ui-dialog'))
+        Object.defineProperties(style, {
+          animationName: {
+            value: element.getAttribute('data-state') === 'open' ? 'dialog-in' : 'dialog-out',
+          },
+          display: { value: 'block' },
+        })
       return style
     })
     try {
@@ -53,7 +93,9 @@ describe('Dialog', () => {
       Object.defineProperty(end, 'animationName', { value: 'dialog-out' })
       fireEvent(dialog, end)
       await waitFor(() => expect(dialog).not.toBeInTheDocument())
-    } finally { spy.mockRestore() }
+    } finally {
+      spy.mockRestore()
+    }
   })
 
   it('closes with the visible close button', async () => {

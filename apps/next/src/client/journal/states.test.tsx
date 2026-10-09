@@ -36,16 +36,32 @@ it('refresh failure is an alert with a retry', () => {
 })
 
 it('crossfade is still on first render and fades after the signature changes', () => {
-  const { container, rerender } = render(<Crossfade signature="a"><p>rows</p></Crossfade>)
+  const { container, rerender } = render(
+    <Crossfade signature="a">
+      <p>rows</p>
+    </Crossfade>,
+  )
   const wrapper = container.firstElementChild!
   expect(wrapper).not.toHaveAttribute('data-fade')
 
-  rerender(<Crossfade signature="a"><p>rows</p></Crossfade>)
+  rerender(
+    <Crossfade signature="a">
+      <p>rows</p>
+    </Crossfade>,
+  )
   expect(wrapper).not.toHaveAttribute('data-fade')
 
-  rerender(<Crossfade signature="b"><p>rows</p></Crossfade>)
+  rerender(
+    <Crossfade signature="b">
+      <p>rows</p>
+    </Crossfade>,
+  )
   expect(wrapper).toHaveAttribute('data-fade', 'a')
-  rerender(<Crossfade signature="c"><p>rows</p></Crossfade>)
+  rerender(
+    <Crossfade signature="c">
+      <p>rows</p>
+    </Crossfade>,
+  )
   expect(wrapper).toHaveAttribute('data-fade', 'b')
   expect(container.firstElementChild).toBe(wrapper)
 })

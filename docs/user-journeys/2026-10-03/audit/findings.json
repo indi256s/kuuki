@@ -117,12 +117,8 @@
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Номера мест в «Вашем месте» окрашены Tailwind amber-500: 1.99:1 в светлой теме",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-sections-expanded-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-sections-expanded-mobile"],
       "locations": [
         "apps/web/src/components/profile/ProfileRankings.tsx:85",
         "apps/web/src/components/profile/ProfileRankings.tsx:80",
@@ -138,20 +134,14 @@
       "evidence": "ss_contrast.py: amber-500 на amber/6 over bg = 1.99 (light), 5.75 (dark). Код прочитан. Конкретно ранги видны только когда cache не пуст (в fixture пусты — состояние не снято, поэтому источник).",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "social-settings:amber-literal-rank-text-fails-contrast-light"
-      ]
+      "sources": ["social-settings:amber-literal-rank-text-fails-contrast-light"]
     },
     {
       "id": "contrast-text-tokens-below-aa",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Текстовые цвета ниже 4.5:1: destructive, success, warning и muted-foreground с opacity /40–/80",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "auth-signin-mobile",
         "flight-add-form-mobile",
@@ -259,10 +249,7 @@
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Границы полей, select и чекбоксов 1.2–1.4:1 вместо 3:1",
-      "areas": [
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["flights-import", "public-social"],
       "states": [
         "flight-add-form-mobile",
         "settings-main-mobile",
@@ -304,13 +291,8 @@
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Автокомплиты (аэропорт, авиакомпания, самолёт) — не combobox: нет role/aria-expanded/activedescendant, li с onClick",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "flight-origin-suggestions",
-        "flight-add-form-mobile"
-      ],
+      "areas": ["flights-import"],
+      "states": ["flight-origin-suggestions", "flight-add-form-mobile"],
       "locations": [
         "apps/web/src/components/flights/AirportAutocomplete.tsx:150",
         "apps/web/src/components/flights/AirportAutocomplete.tsx:207",
@@ -326,23 +308,15 @@
       "evidence": "Прочитан AirportAutocomplete.tsx (Input 150–164, ul/li 207–216, handleKeyDown), FlightForm.tsx 293–392 (FormItem без FormControl вокруг автокомплитов). grep по aria-/role= в файле: только Label htmlFor. Скриншот flight-origin-suggestions.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "flights-import:flight-form-combobox-aria-missing"
-      ]
+      "sources": ["flights-import:flight-form-combobox-aria-missing"]
     },
     {
       "id": "focus-ring-half-opacity-below-3-to-1",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Кольцо фокуса ring-ring/50 у Button/Input/Select/Checkbox даёт 1.2-2.0:1 на светлом фоне",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import"
-      ],
-      "states": [
-        "flight-add-form-mobile",
-        "passport-country-picker-mobile"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import"],
+      "states": ["flight-add-form-mobile", "passport-country-picker-mobile"],
       "locations": [
         "apps/web/src/components/ui/button.tsx:8",
         "apps/web/src/components/ui/input.tsx:12",
@@ -358,19 +332,14 @@
       "evidence": "Контраст кольца посчитан для 8 акцентов (mix 50% над --background). Код button/input/select/checkbox/accordion прочитан; скриншоты показывают красное кольцо на первом поле flight-add-form-mobile и поле поиска passport-country-picker-mobile (дефолтный red, наиболее благоприятный случай).",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "foundations:focus-ring-half-opacity-below-3-to-1"
-      ]
+      "sources": ["foundations:focus-ring-half-opacity-below-3-to-1"]
     },
     {
       "id": "html-lang-static-en",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "`<html lang>` всегда «en», даже когда интерфейс русский",
-      "areas": [
-        "dashboard-passport-journey",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "public-social"],
       "states": [
         "auth-signin-desktop",
         "landing-desktop",
@@ -392,10 +361,7 @@
       "evidence": "apps/web/index.html:2 — `<html lang=\"en\">`; в i18n.ts нет записи в documentElement.lang (проверено grep).",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "entry:html-lang-static-en",
-        "foundations:html-lang-static-en-ru-ui"
-      ],
+      "sources": ["entry:html-lang-static-en", "foundations:html-lang-static-en-ru-ui"],
       "slice_evidence": [
         "[entry:html-lang-static-en] grep по src на documentElement.lang / setAttribute(\"lang\") пуст; index.html:2 жёстко <html lang=\"en\">. i18n.ts changeLanguage только пишет в localStorage. Атлас: ru-снимки при этом не содержат смены языка документа.",
         "[foundations:html-lang-static-en-ru-ui] Прочитаны index.html, lib/i18n.ts, hooks/useLanguage.ts; rg \"documentElement.lang|\\.lang =\" по apps/web/src — нет совпадений. Локаль скриншотов ru (environment.json), a11y-снимки показывают русские имена при lang=en."
@@ -406,9 +372,7 @@
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Каждая страна на карте — безымянная tab-остановка (177 шт.), а Enter ничего не делает",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-desktop",
         "dashboard-populated-mobile",
@@ -437,18 +401,14 @@
       "evidence": "Код: node_modules/react-simple-maps/dist/index.js содержит tabIndex: \"0\" у rsm-geography; в RouteMapWithCountries.tsx только onClick. Подсчитано grep по accessibility-снимкам: dashboard-populated-desktop 177 graphics-symbol + 178 tabindex, passport-populated-desktop 177/177, journey-initial-desktop 177/177, passport-map-expanded-desktop 177/177. Реальную работу клавиатуры/скринридера не запускал.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "dashboard-passport-journey:map-geographies-177-tab-stops-no-keyboard-action"
-      ]
+      "sources": ["dashboard-passport-journey:map-geographies-177-tab-stops-no-keyboard-action"]
     },
     {
       "id": "map-overlays-white-on-light-theme",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Маркеры аэропортов, подписи, счётчики и кнопка «развернуть» на карте захардкожены белым и невидимы в светлой теме",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-desktop",
         "dashboard-populated-mobile",
@@ -475,20 +435,14 @@
       "evidence": "Прочитан код; посчитан контраст по токенам OKLCH: белый на --map-background (oklch 0.97) = 1.09:1, white/70 на нём = 1.06:1, white/70 поверх bg-white/10 на --card = 1.02:1. Просмотрены dashboard-populated-desktop, passport-populated-desktop, passport-map-expanded-desktop, dashboard-populated-full-mobile: сводка внизу слева еле различима, иконка разворота в правом верхнем углу почти не видна, маркеры — белые точки на светло-сером. Тёмная тема: белое на oklch 0.16 = 19.4:1, там нормально.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "dashboard-passport-journey:map-overlays-white-on-light-theme"
-      ]
+      "sources": ["dashboard-passport-journey:map-overlays-white-on-light-theme"]
     },
     {
       "id": "spa-route-change-no-title-no-focus",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Смена маршрута и режима не меняет document.title и не переносит фокус",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "settings-main-mobile",
         "flights-populated-mobile",
@@ -530,9 +484,7 @@
       "severity": "P1",
       "dimension": "integrity",
       "title": "При первой загрузке в RU части экрана остаются на английском до случайного ре-рендера",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "auth-signin-mobile",
         "auth-signin-invalid-credentials-desktop",
@@ -559,20 +511,14 @@
       "evidence": "i18n.ts инициализирует lng=ru, но в resources только en (стр. 14-27); RU подгружается динамическим import (стр. 45-52, 55-58), react-i18next по умолчанию не подписан на событие store «added» (в проекте bindI18n* не настраивается, grep). В dist RU лежит в отдельном чанке assets/index-BrcZAkM1.js (подтверждает реальный сетевой запрос после старта). Atlas: в snapshot auth-signin-mobile.txt skip-ссылка и «Activate an existing account» английские, а «Пароль»/«Войти» русские (форма перерисовалась при вводе); ключи a11y.skipToContent, auth.activateExisting и auth.taglines в ru.json есть. i18n.ts не менялся после съёмки (git diff 3156841..HEAD). Смотрел landing-mobile.png и showcase-step2: фон лендинга английский под русской модалкой. Механизм (отсутствие ре-рендера) выведен из кода, симптом подтверждён снимками.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "entry:i18n-first-paint-english-until-rerender"
-      ]
+      "sources": ["entry:i18n-first-paint-english-until-rerender"]
     },
     {
       "id": "i18n-hardcoded-english-and-missing-keys",
       "severity": "P1",
       "dimension": "integrity",
       "title": "В русском интерфейсе остаются английские строки: зашитые литералы, отсутствующие ключи, ошибки валидации и сервера",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "auth-signin-desktop",
         "auth-register-mobile",
@@ -703,10 +649,7 @@
       "severity": "P1",
       "dimension": "integrity",
       "title": "В ru.json нет plural-форм `_many`: 0, 5–20, 25–30… показываются по-английски",
-      "areas": [
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["flights-import", "public-social"],
       "states": [
         "settings-main-mobile",
         "settings-delete-wrong-password-desktop",
@@ -746,11 +689,7 @@
       "severity": "P1",
       "dimension": "integrity",
       "title": "На mobile нет пути в рейтинг, а ссылки на собственный публичный профиль нет нигде",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "settings-main-mobile",
         "profile-own-private-desktop",
@@ -788,11 +727,7 @@
       "severity": "P1",
       "dimension": "theming",
       "title": "Акцент перекрывает OKLCH-токены одним hex для обеих тем; дефолтный red не проходит AA",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "app-header-appearance-menu-desktop",
         "settings-dark-theme-desktop",
@@ -851,9 +786,7 @@
       "severity": "P1",
       "dimension": "theming",
       "title": "`.aura-input` / `.aura-button` на входе и регистрации ломаются в светлой теме: rgba-литералы, стекло, градиент",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "auth-signin-mobile",
         "auth-register-mobile",
@@ -910,18 +843,14 @@
       "evidence": "Прочитан BadgeNotificationToast.tsx целиком: ни role, ни aria-*; Button size=\"icon\" с className h-8 w-8 перекрывает 44px. Состояние в атласе отсутствует (триггерится локальным кэшем).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:badge-toast-no-live-region-unnamed-dismiss"
-      ]
+      "sources": ["social-settings:badge-toast-no-live-region-unnamed-dismiss"]
     },
     {
       "id": "delete-flow-error-and-progress-not-announced",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "В диалоге удаления аккаунта ошибка пароля и шаг «Удаляем…» не озвучиваются",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "settings-delete-wrong-password-desktop",
         "settings-delete-password-desktop",
@@ -940,22 +869,15 @@
       "evidence": "Прочитан DeleteAccountDialog.tsx; снимок settings-delete-wrong-password-desktop.txt: `paragraph \"Неверный пароль…\"` без роли, `textbox` без invalid/describedby; manifest notes: toast исчез к моменту PNG.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:delete-flow-error-and-progress-not-announced"
-      ]
+      "sources": ["social-settings:delete-flow-error-and-progress-not-announced"]
     },
     {
       "id": "flight-table-edit-and-sort-keyboard",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "В таблице рейсов кнопка редактирования без имени, сортировка по заголовкам недоступна с клавиатуры",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "flights-populated-desktop",
-        "flights-bulk-selected"
-      ],
+      "areas": ["flights-import"],
+      "states": ["flights-populated-desktop", "flights-bulk-selected"],
       "locations": [
         "apps/web/src/components/flights/FlightTable.tsx:54",
         "apps/web/src/components/flights/FlightTable.tsx:62",
@@ -969,18 +891,14 @@
       "evidence": "Прочитан FlightTable.tsx:54–70 (onClick на TableHead, без tabIndex), 258 (generic aria-label), 350–358 (Button size=icon без label). Снапшот flights-populated-desktop.txt.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:flight-table-edit-and-sort-keyboard"
-      ]
+      "sources": ["flights-import:flight-table-edit-and-sort-keyboard"]
     },
     {
       "id": "ground-visit-delete-hidden-until-hover",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Кнопка удаления наземного визита видна только при hover; подтверждающие кнопки без имён",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "passport-delete-visit-confirm-desktop",
         "passport-stamp-popup-atlas-account-desktop",
@@ -999,22 +917,15 @@
       "evidence": "Код StampPopup.tsx:53-84 прочитан (в «confirm»-режиме у обеих кнопок нет текста; в обычном — только sr-only у первой). Снимки passport-delete-visit-confirm-desktop показывают состояние уже с наведением. Реальный сенсорный ввод не проверялся.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:ground-visit-delete-hidden-until-hover"
-      ]
+      "sources": ["dashboard-passport-journey:ground-visit-delete-hidden-until-hover"]
     },
     {
       "id": "import-dropzone-keyboard-inaccessible",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Дропзона загрузки — Card с onClick: недоступна с клавиатуры, input скрыт, поле текста без метки",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-upload-desktop",
-        "import-upload-mobile"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-upload-desktop", "import-upload-mobile"],
       "locations": [
         "apps/web/src/components/import/ImportUpload.tsx:355",
         "apps/web/src/components/import/ImportUpload.tsx:358",
@@ -1029,21 +940,15 @@
       "evidence": "Прочитан ImportUpload.tsx:328–404: Card onClick без role/tabIndex, input className=\"hidden\", Textarea без Label, X-кнопки с title. Снапшоты import-upload-desktop.txt/mobile.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-dropzone-keyboard-inaccessible"
-      ]
+      "sources": ["flights-import:import-dropzone-keyboard-inaccessible"]
     },
     {
       "id": "import-progress-modal-not-a-dialog",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "FlightProgressModal — самописная «модалка» без role=dialog, фокус-ловушки и aria-live",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-parsing-text"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-parsing-text"],
       "locations": [
         "apps/web/src/components/import/FlightProgressModal.tsx:204",
         "apps/web/src/components/import/FlightProgressModal.tsx:207",
@@ -1056,22 +961,15 @@
       "evidence": "grep по FlightProgressModal.tsx и ImportPage.tsx: нет role=, aria-live, aria-modal. Прочитан разметка 204–214 (fixed + backdrop-blur-sm/-lg).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-progress-modal-not-a-dialog"
-      ]
+      "sources": ["flights-import:import-progress-modal-not-a-dialog"]
     },
     {
       "id": "import-row-checkbox-and-icon-buttons-unlabeled",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "В строках ревью импорта чекбокс, раскрытие и удаление не имеют доступных имён",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-review-mobile",
-        "import-review-expanded"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-review-mobile", "import-review-expanded"],
       "locations": [
         "apps/web/src/components/import/FlightEditRow.tsx:171",
         "apps/web/src/components/import/FlightEditRow.tsx:283",
@@ -1084,25 +982,16 @@
       "evidence": "Прочитан FlightEditRow.tsx: Checkbox без aria-label (171–176), Button size=icon с иконками без текста (283–302). Акссесибилити-снапшот import-review-mobile показывает безымянные checkbox/button.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-row-checkbox-and-icon-buttons-unlabeled"
-      ]
+      "sources": ["flights-import:import-row-checkbox-and-icon-buttons-unlabeled"]
     },
     {
       "id": "import-row-collapsed-form-focusable",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Свернутая форма редактирования строки остаётся в порядке Tab и дереве доступности",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-review-mobile",
-        "import-review-expanded"
-      ],
-      "locations": [
-        "apps/web/src/components/import/FlightEditRow.tsx:306"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-review-mobile", "import-review-expanded"],
+      "locations": ["apps/web/src/components/import/FlightEditRow.tsx:306"],
       "impact": "Панель скрыта только max-h-0 + opacity-0 + overflow-hidden; поля внутри остаются фокусируемыми и читаются скринридером. Клавиатурный пользователь «теряет» фокус в невидимых полях на каждой строке (по 6–8 полей × N рейсов).",
       "standard": "WCAG 2.1 SC 2.4.3 (A), SC 2.4.7 (AA), SC 1.3.1",
       "recommendation": "Добавить inert (или hidden / visibility:hidden с задержкой) пока expanded=false, id + aria-controls на кнопке; анимировать через grid-template-rows 0fr→1fr вместо max-height.",
@@ -1110,22 +999,15 @@
       "evidence": "Прочитан FlightEditRow.tsx:306–312: нет inert/hidden/aria-hidden. Снапшот import-review-expanded содержит поля формы.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-row-collapsed-form-focusable"
-      ]
+      "sources": ["flights-import:import-row-collapsed-form-focusable"]
     },
     {
       "id": "leaderboard-category-tabs-icon-only-unnamed-on-mobile",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Вкладки категорий рейтинга на mobile — безымянные кнопки без состояния",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "leaderboard-guest-mobile",
-        "leaderboard-flights-authenticated-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["leaderboard-guest-mobile", "leaderboard-flights-authenticated-desktop"],
       "locations": [
         "apps/web/src/components/leaderboard/CategoryTabs.tsx:29",
         "apps/web/src/components/leaderboard/CategoryTabs.tsx:40"
@@ -1137,21 +1019,15 @@
       "evidence": "Прочитан CategoryTabs.tsx целиком; в снимке leaderboard-guest-mobile.txt пять узлов `button [ref=e263..e267]` без имени; скриншот mobile — только иконки. Стрелочной навигации в коде нет.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:leaderboard-category-tabs-icon-only-unnamed-on-mobile"
-      ]
+      "sources": ["social-settings:leaderboard-category-tabs-icon-only-unnamed-on-mobile"]
     },
     {
       "id": "leaderboard-top3-rank-icon-only-no-text",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Места 1–3 в таблице рейтинга выражены только иконкой без текста",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "leaderboard-flights-populated-simulated-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["leaderboard-flights-populated-simulated-desktop"],
       "locations": [
         "apps/web/src/components/leaderboard/LeaderboardTable.tsx:27",
         "apps/web/src/components/leaderboard/LeaderboardTable.tsx:121"
@@ -1163,18 +1039,14 @@
       "evidence": "Прочитан RankBadge (return без текста для rank 1–3). Контраст посчитан скриптом ss_contrast.py: yellow-500 1.83, slate-400 2.52, amber-600 3.06 к фону light. Скриншот simulated (данные синтетические, структура реальная).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:leaderboard-top3-rank-icon-only-no-text"
-      ]
+      "sources": ["social-settings:leaderboard-top3-rank-icon-only-no-text"]
     },
     {
       "id": "mobile-filters-toggle-not-disclosure",
       "severity": "P1",
       "dimension": "accessibility",
       "title": "Мобильный переключатель фильтров без aria-expanded, нельзя свернуть при активных фильтрах, а скрытые контролы остаются в tab-порядке",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-filters-expanded-mobile",
         "dashboard-populated-mobile",
@@ -1192,23 +1064,15 @@
       "evidence": "Код FlightFilters.tsx:180-191, 371-436 прочитан. Скриншот dashboard-filters-expanded-mobile подтверждает визуальный размер кнопки (~32px по высоте). Поведение при Tab не запускалось.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:mobile-filters-toggle-not-disclosure"
-      ]
+      "sources": ["dashboard-passport-journey:mobile-filters-toggle-not-disclosure"]
     },
     {
       "id": "auth-form-disabled-during-session-bootstrap",
       "severity": "P1",
       "dimension": "integrity",
       "title": "Поля и кнопка входа блокируются на время проверки сессии; при недоступном API форма заблокирована бессрочно",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "auth-signin-desktop",
-        "auth-register-desktop",
-        "auth-signin-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["auth-signin-desktop", "auth-register-desktop", "auth-signin-mobile"],
       "locations": [
         "apps/web/src/components/auth/SignInForm.tsx:81",
         "apps/web/src/components/auth/SignInForm.tsx:105",
@@ -1226,22 +1090,15 @@
       "evidence": "authStore.ts:143 isLoading: true; initialize() (146-171) в catch снова ставит isLoading:true и retryIdentityLookup. useAuth() отдаёт store.isLoading напрямую; обе формы кладут его в disabled и в t(\"auth.signingIn\")/t(\"common.loading\"). Состояние появилось после перехода на Better Auth (в снимках /me уже ответил, форма активна), поэтому в atlas не видно; в браузере не воспроизводил.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:auth-form-disabled-during-session-bootstrap"
-      ]
+      "sources": ["entry:auth-form-disabled-during-session-bootstrap"]
     },
     {
       "id": "authpage-no-redirect-for-signed-in-user",
       "severity": "P1",
       "dimension": "integrity",
       "title": "Авторизованный пользователь на «/» видит форму регистрации (в том числе при старте PWA)",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "auth-register-desktop",
-        "auth-signin-success-source-only"
-      ],
+      "areas": ["public-social"],
+      "states": ["auth-register-desktop", "auth-signin-success-source-only"],
       "locations": [
         "apps/web/src/routes/AuthPage.tsx:24-38",
         "apps/web/src/App.tsx:67",
@@ -1254,21 +1111,15 @@
       "evidence": "AuthPage.tsx не обращается к useAuth/store и не содержит Navigate; единственный navigate(\"/dashboard\") в handleSuccess. grep по src: isAuthenticated используется только в ProtectedRoute. manifest.webmanifest:5 start_url \"/\" display standalone. В браузере не воспроизводил.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:authpage-no-redirect-for-signed-in-user"
-      ]
+      "sources": ["entry:authpage-no-redirect-for-signed-in-user"]
     },
     {
       "id": "import-error-quota-vs-model-indistinguishable",
       "severity": "P1",
       "dimension": "integrity",
       "title": "Ошибки парсинга (квота ИИ, модель недоступна, таймаут сервера) сводятся к одному общему сообщению",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-error-provider-quota"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-error-provider-quota"],
       "locations": [
         "apps/web/src/routes/ImportPage.tsx:179",
         "apps/web/src/routes/ImportPage.tsx:187",
@@ -1283,21 +1134,15 @@
       "evidence": "Прочитан ImportPage.tsx:179–198 (проверка includes) и серверные parse.ts/_provider.ts (разные коды). Скриншот import-error-provider-quota. Реальные ответы провайдера не воспроизводились.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-error-quota-vs-model-indistinguishable"
-      ]
+      "sources": ["flights-import:import-error-quota-vs-model-indistinguishable"]
     },
     {
       "id": "import-parse-error-shows-empty-state",
       "severity": "P1",
       "dimension": "integrity",
       "title": "После ошибки парсинга показывается «Рейсов не найдено» вместе с алертом об ошибке",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-error-provider-quota"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-error-provider-quota"],
       "locations": [
         "apps/web/src/routes/ImportPage.tsx:193",
         "apps/web/src/routes/ImportPage.tsx:197",
@@ -1312,22 +1157,15 @@
       "evidence": "Прочитаны ImportPage.tsx:193–198 и ImportReview.tsx:183–199; скриншот import-error-provider-quota показывает оба блока.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-parse-error-shows-empty-state"
-      ]
+      "sources": ["flights-import:import-parse-error-shows-empty-state"]
     },
     {
       "id": "onboarding-profile-url-preview-wrong",
       "severity": "P1",
       "dimension": "integrity",
       "title": "Шаг имени пользователя обещает адрес kuuki.app/@имя, которого в приложении нет",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "onboarding-username-normalized-desktop",
-        "onboarding-username-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["onboarding-username-normalized-desktop", "onboarding-username-desktop"],
       "locations": [
         "apps/web/src/components/onboarding/UsernamePicker.tsx:150-155",
         "apps/web/src/App.tsx:127",
@@ -1341,22 +1179,15 @@
       "evidence": "UsernamePicker.tsx:154 литерал kuuki.app/@{normalizedUsername}. Маршрут профиля App.tsx:127 /fly/:username; ProfileHeader.tsx:39 и ProfileSettingsDialog.tsx:61 собирают `${origin}/fly/${username}`. public/_redirects содержит только SPA-fallback, правила для /@ нет. Смотрел onboarding-username-normalized-desktop.png: карточка «kuuki.app/@journey-demo». Факт принадлежности домена kuuki.app не проверял.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:onboarding-profile-url-preview-wrong"
-      ]
+      "sources": ["entry:onboarding-profile-url-preview-wrong"]
     },
     {
       "id": "dashboard-mobile-horizontal-overflow-442px",
       "severity": "P1",
       "dimension": "responsive",
       "title": "Мобильный Dashboard шире экрана: карточки статистики выпирают за правый край (442px при viewport 390)",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
-      "states": [
-        "dashboard-populated-full-mobile",
-        "dashboard-populated-mobile"
-      ],
+      "areas": ["dashboard-passport-journey"],
+      "states": ["dashboard-populated-full-mobile", "dashboard-populated-mobile"],
       "locations": [
         "apps/web/src/components/dashboard/MicroBadgeStatCard.tsx:91-98",
         "apps/web/src/routes/DashboardPage.tsx:266",
@@ -1369,21 +1200,15 @@
       "evidence": "Просмотрен dashboard-populated-full-mobile (442×2399; «Расстояние» и «Авиакомпании» обрезаны/выходят за карточку) и dashboard-populated-mobile; код MicroBadgeStatCard.tsx и DashboardPage.tsx:266 прочитан. Скриншот сделан при коммите 3156841 — но файлы в scope изменились мало (подтверждено чтением текущего кода).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:dashboard-mobile-horizontal-overflow-442px"
-      ]
+      "sources": ["dashboard-passport-journey:dashboard-mobile-horizontal-overflow-442px"]
     },
     {
       "id": "import-row-mobile-overflow",
       "severity": "P1",
       "dimension": "responsive",
       "title": "Строка ревью импорта на 390px: фиксированная ширина колонок (~580px) переполняет контейнер ~310px",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-review-mobile"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-review-mobile"],
       "locations": [
         "apps/web/src/components/import/FlightEditRow.tsx:168",
         "apps/web/src/components/import/FlightEditRow.tsx:178",
@@ -1398,22 +1223,15 @@
       "evidence": "Расчёт по классам: ≈64+128+(min-w-0 flex)+96+112+2×32+gaps(16×6) ≈ 580px против ~310px доступных (390 − отступы). Скриншот import-review-mobile подтверждает обрезание. Вывод по скриншоту, код подтверждён.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-row-mobile-overflow"
-      ]
+      "sources": ["flights-import:import-row-mobile-overflow"]
     },
     {
       "id": "heatmap-legend-invisible-and-scale-mismatch",
       "severity": "P1",
       "dimension": "theming",
       "title": "Легенда тепловой карты не рисуется, а сама тепловая карта кодирует частоту прозрачностью флагового цвета каждой страны",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
-      "states": [
-        "passport-map-heatmap-desktop",
-        "passport-map-expanded-desktop"
-      ],
+      "areas": ["dashboard-passport-journey"],
+      "states": ["passport-map-heatmap-desktop", "passport-map-expanded-desktop"],
       "locations": [
         "apps/web/src/components/map/MapCard.tsx:168-187",
         "apps/web/src/components/map/RouteMapWithCountries.tsx:203-227",
@@ -1426,19 +1244,14 @@
       "evidence": "Просмотрен passport-map-heatmap-desktop: у легенды внизу справа только «1» и «61» без цветной полосы; Россия тёмно-синяя, Турция/Китай/Япония розовые. В index.css --primary:60 и dark:138 заданы oklch. Код MapCard.tsx:181-183 и RouteMapWithCountries.tsx:213-219 прочитан.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:heatmap-legend-invisible-and-scale-mismatch"
-      ]
+      "sources": ["dashboard-passport-journey:heatmap-legend-invisible-and-scale-mismatch"]
     },
     {
       "id": "heading-structure-gaps",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Иерархия заголовков: h4 без h2/h3 на Dashboard, нет h1 у пустого Passport, одинаковый h1 «Kuuki» у всех режимов входа",
-      "areas": [
-        "dashboard-passport-journey",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "public-social"],
       "states": [
         "dashboard-populated-desktop",
         "passport-empty-desktop",
@@ -1485,9 +1298,7 @@
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Слишком мелкий текст: 9–10px в карточках статистики и 5.5–7px в SVG штампов на мобильном",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-desktop",
         "dashboard-synthetic-fleet-manufacturer-desktop",
@@ -1512,9 +1323,7 @@
       "evidence": "Подсчёт grep: AdvancedStatCards 19, UpcomingFlightsCard 3, MapCard 2, Banner 1 вхождений 9/10px. Размеры штампов рассчитаны из viewBox (120→≈111px: ×0.925; 160→×0.69) и fontSize 6/7/8/10 в CountryStamp.tsx. На passport-populated-mobile штамп не попал в кадр, полагаюсь на расчёт.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "dashboard-passport-journey:micro-text-9-10px-and-stamp-svg-text"
-      ]
+      "sources": ["dashboard-passport-journey:micro-text-9-10px-and-stamp-svg-text"]
     },
     {
       "id": "reduced-motion-global-kill-no-loader-alternative",
@@ -1538,19 +1347,14 @@
       "evidence": "Прочитан index.css (оба блока) и места использования animate-spin/pulse-dot; rg motion-reduce = 7 вхождений.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "foundations:reduced-motion-global-kill-no-loader-alternative"
-      ]
+      "sources": ["foundations:reduced-motion-global-kill-no-loader-alternative"]
     },
     {
       "id": "dm-sans-has-no-cyrillic-fallback-system-font",
       "severity": "P2",
       "dimension": "integrity",
       "title": "DM Sans не содержит кириллицы: весь русский интерфейс рисуется системным шрифтом, а не брендовым",
-      "areas": [
-        "dashboard-passport-journey",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "public-social"],
       "states": [
         "settings-main-mobile",
         "dashboard-populated-mobile",
@@ -1568,19 +1372,14 @@
       "evidence": "Выполнен curl к fonts.googleapis.com/css2 с теми же параметрами: перечислены только latin/latin-ext для DM Sans. Просмотрены скриншоты (заголовки на русском визуально не DM Sans).",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "foundations:dm-sans-has-no-cyrillic-fallback-system-font"
-      ]
+      "sources": ["foundations:dm-sans-has-no-cyrillic-fallback-system-font"]
     },
     {
       "id": "fetch-errors-shown-as-empty-state",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Сбой загрузки выглядит как пустые данные: журнал «нет рейсов», рейтинг «Станьте первым!»",
-      "areas": [
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["flights-import", "public-social"],
       "states": [
         "leaderboard-flights-guest-desktop",
         "leaderboard-flights-authenticated-desktop",
@@ -1614,13 +1413,8 @@
       "severity": "P2",
       "dimension": "integrity",
       "title": "Экран успеха импорта начинается с «0 flights added to your log» на английском",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-success",
-        "import-save-retried"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-success", "import-save-retried"],
       "locations": [
         "apps/web/src/routes/ImportPage.tsx:110",
         "apps/web/src/routes/ImportPage.tsx:486",
@@ -1634,23 +1428,15 @@
       "evidence": "useCountUp.ts: useState(0) + rAF-анимация (прочитано в основном потоке); ImportPage.tsx:110/486. Объяснение «0» на снимке как первого кадра — вывод, не воспроизводился.",
       "confidence": "likely",
       "systemic": true,
-      "sources": [
-        "flights-import:import-success-counter-zero-english"
-      ]
+      "sources": ["flights-import:import-success-counter-zero-english"]
     },
     {
       "id": "dialog-no-max-height-no-scroll",
       "severity": "P2",
       "dimension": "responsive",
       "title": "DialogContent без max-height и прокрутки: высокие диалоги («Что такое Kuuki?», удаление аккаунта) обрезаются на телефоне",
-      "areas": [
-        "dashboard-passport-journey",
-        "public-social"
-      ],
-      "states": [
-        "passport-claim-new-mobile",
-        "auth-about-dialog-desktop"
-      ],
+      "areas": ["dashboard-passport-journey", "public-social"],
+      "states": ["passport-claim-new-mobile", "auth-about-dialog-desktop"],
       "locations": [
         "apps/web/src/components/ui/dialog.tsx:11",
         "apps/web/src/components/settings/DeleteAccountDialog.tsx:293",
@@ -1682,11 +1468,7 @@
       "severity": "P2",
       "dimension": "responsive",
       "title": "Касательные цели меньше 44×44: свотчи, вкладки, крестики, чекбоксы, слои карты, точки шоукейса, текстовые ссылки",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "import-review-mobile",
         "flight-add-form-mobile",
@@ -1761,9 +1543,7 @@
       "severity": "P2",
       "dimension": "theming",
       "title": "Цвета стран (dominantColor) — хардкод-hex из countries.json; на тёмной теме 137 из 246 ниже 3:1, на светлой 25 ниже 3:1",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "passport-populated-desktop",
         "passport-map-heatmap-desktop",
@@ -1786,20 +1566,14 @@
       "evidence": "Посчитан контраст всех 246 dominantColor (packages/data/src/countries.json) к --card в светлой/тёмной теме (python). Тёмные скриншоты в атласе отсутствуют — для тёмной темы вывод основан на расчёте, а не на изображении.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "dashboard-passport-journey:country-dominant-colors-hex-low-contrast-dark"
-      ]
+      "sources": ["dashboard-passport-journey:country-dominant-colors-hex-low-contrast-dark"]
     },
     {
       "id": "hardcoded-color-literals",
       "severity": "P2",
       "dimension": "theming",
       "title": "Цвета вне токенов: 36 hex, 27 классов палитры Tailwind (blue-500, amber-500…), rgba/white в карте и журнале",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "dashboard-populated-mobile",
         "profile-public-dark-theme-desktop",
@@ -1844,9 +1618,7 @@
       "severity": "P2",
       "dimension": "theming",
       "title": "Карточки сочетают рамку и тень/ореол вопреки правилу «один материал», карта получает постоянный розовый ореол",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-desktop",
         "passport-populated-desktop",
@@ -1868,18 +1640,14 @@
       "evidence": "Просмотрены скриншоты: розовый ореол вокруг карты на dashboard-populated-desktop, passport-map-expanded-desktop. Код и CSS .shadow-glow-sm прочитаны.",
       "confidence": "verified",
       "systemic": true,
-      "sources": [
-        "dashboard-passport-journey:one-material-border-plus-shadow"
-      ]
+      "sources": ["dashboard-passport-journey:one-material-border-plus-shadow"]
     },
     {
       "id": "activate-page-errors-not-associated-and-misleading",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Страница /activate: ошибки не привязаны к полям, фокус теряется, подсказка в ошибке вводит в заблуждение",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "activation-password-mismatch-desktop",
         "activation-server-unavailable-desktop",
@@ -1898,18 +1666,14 @@
       "evidence": "activate.js:44 шаблон `${error.message} If you submitted…` — в снимке activate-server-unavailable-desktop.png видно слипшееся «unavailable If you». #status (activate.html:34) role=\"status\" aria-live=\"polite\" расположен после формы; у input нет aria-invalid/aria-describedby; form.hidden=true (строка 40) убирает сфокусированный элемент.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:activate-page-errors-not-associated-and-misleading"
-      ]
+      "sources": ["entry:activate-page-errors-not-associated-and-misleading"]
     },
     {
       "id": "appearance-menu-controls-unreachable-by-keyboard",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Переключатели темы и акцента в шапке — обычные button внутри Radix DropdownMenu: Tab заблокирован, стрелки их не достигают",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "app-header-appearance-menu-desktop",
         "settings-main-mobile",
@@ -1928,18 +1692,14 @@
       "evidence": "Код AppearanceToggle.tsx и исходник Radix react-menu (grep \"Tab\", строка 305) прочитаны; поведение в браузере не запускалось. Скриншот app-header-appearance-menu-desktop показывает меню из обычных кнопок без пунктов меню.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:appearance-menu-controls-unreachable-by-keyboard"
-      ]
+      "sources": ["foundations:appearance-menu-controls-unreachable-by-keyboard"]
     },
     {
       "id": "charts-lack-text-alternative-and-keyboard",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Ридж-график, радар, полосы и вафля: нет текстового эквивалента, тултипы только по мыши, вложенные role=\"img\" на 64 квадратах",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-synthetic-fleet-manufacturer-desktop",
         "dashboard-populated-full",
@@ -1961,18 +1721,14 @@
       "evidence": "Прочитан код AdvancedStatCards.tsx; контраст цветов рассчитан по oklch-значениям MANUFACTURER_COLORS/TYPE_COLORS против --card (светлая) / --card (тёмная). Скриншот dashboard-synthetic-fleet-manufacturer-desktop показывает вафлю и легенды. Скринридер/клавиатуру не запускал.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:charts-lack-text-alternative-and-keyboard"
-      ]
+      "sources": ["dashboard-passport-journey:charts-lack-text-alternative-and-keyboard"]
     },
     {
       "id": "delete-dialog-focus-and-submit-semantics",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Диалог удаления: нет управления фокусом между шагами, нет <form>, Enter не подтверждает",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "settings-delete-preview-desktop",
         "settings-delete-export-prompt-desktop",
@@ -1991,21 +1747,15 @@
       "evidence": "Прочитан компонент и ui/dialog.tsx; снимки delete-*.txt: `button \"Close\"` англ. в ru-интерфейсе, нет paragraph-описаний на шаге пароля. Реальный порядок фокуса в браузере не проверялся (untested).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:delete-dialog-focus-and-submit-semantics"
-      ]
+      "sources": ["social-settings:delete-dialog-focus-and-submit-semantics"]
     },
     {
       "id": "flight-form-required-validation-wiring",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Обязательность и ошибки формы рейса не связаны с полями: звёздочка без sr-текста, DatePicker и автокомплиты вне FormControl",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "flight-add-form-mobile"
-      ],
+      "areas": ["flights-import"],
+      "states": ["flight-add-form-mobile"],
       "locations": [
         "apps/web/src/components/flights/FlightForm.tsx:43",
         "apps/web/src/components/flights/FlightForm.tsx:304",
@@ -2020,18 +1770,14 @@
       "evidence": "Прочитан FlightForm.tsx:43,361–374 и AirportAutocomplete (required передаётся атрибутом, ошибки показывает FormMessage отдельно). Поведение DatePicker с клавиатуры статически не проверялось.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:flight-form-required-validation-wiring"
-      ]
+      "sources": ["flights-import:flight-form-required-validation-wiring"]
     },
     {
       "id": "focus-lost-on-mode-and-step-switch",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Фокус теряется при переключении «вход / регистрация / активация» и шагов онбординга; режим не отражён в URL",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "auth-signin-desktop",
         "auth-register-desktop",
@@ -2055,18 +1801,14 @@
       "evidence": "AuthPage: mode в useState (стр. 29-31) инициализируется из searchParams один раз; кнопки переключения — type=button без ref/focus-логики; нет autoFocus и useEffect для фокуса в проекте форм (grep). Динамически проверить не мог: нужен браузер и скринридер.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:focus-lost-on-mode-and-step-switch"
-      ]
+      "sources": ["entry:focus-lost-on-mode-and-step-switch"]
     },
     {
       "id": "form-controls-unlabeled-filters-claim-dialog",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Фильтры, форма добавления визита и подсказки: поля без программных подписей и переключатели без состояния",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-desktop",
         "dashboard-filters-expanded-mobile",
@@ -2090,18 +1832,14 @@
       "evidence": "Код прочитан; accessibility-снимки dashboard-populated-desktop.txt содержат textbox \"City or code\" и combobox без label. Скриншот passport-claim-new-mobile: поле «Выберите год…» уже ширины колонки.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:form-controls-unlabeled-filters-claim-dialog"
-      ]
+      "sources": ["dashboard-passport-journey:form-controls-unlabeled-filters-claim-dialog"]
     },
     {
       "id": "journey-reorder-mouse-only-dnd",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Перестановка сегментов Journey — только нативный HTML5 drag-and-drop: нет клавиатуры, на touch не работает; кнопка «Reorder segment» ничего не делает",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "journey-initial-desktop",
         "journey-initial-mobile",
@@ -2122,18 +1860,14 @@
       "evidence": "Прочитан JourneyTimeline.tsx/FlightGanttBlock.tsx; в manifest указано, что drag наблюдался в реальном UI мышью. Реальное касание/клавиатуру не проверял; вывод про touch основан на отсутствии pointer-обработки и поведении HTML5 DnD в мобильных браузерах.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:journey-reorder-mouse-only-dnd"
-      ]
+      "sources": ["dashboard-passport-journey:journey-reorder-mouse-only-dnd"]
     },
     {
       "id": "leaderboard-table-unnamed-and-category-change-silent",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Таблица рейтинга без caption/имени; смена категории и загрузка не объявляются",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "leaderboard-distance-authenticated-desktop",
         "leaderboard-flights-populated-simulated-desktop"
@@ -2151,21 +1885,15 @@
       "evidence": "Прочитаны table.tsx и LeaderboardTable.tsx: нет caption/scope. Поведение скринридера не проверялось.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:leaderboard-table-unnamed-and-category-change-silent"
-      ]
+      "sources": ["social-settings:leaderboard-table-unnamed-and-category-change-silent"]
     },
     {
       "id": "loading-screen-english-and-silent",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "LoadingScreen: английский текст в RU и без объявления состояния загрузки",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "onboarding-import-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["onboarding-import-mobile"],
       "locations": [
         "apps/web/src/components/ui/LoadingScreen.tsx:20-41",
         "apps/web/src/lib/glados-text.ts:76-79",
@@ -2179,20 +1907,14 @@
       "evidence": "LoadingScreen.tsx: сообщение из getProcessingMessage('generic') (glados-text.ts, строки только по-английски), uppercase tracking-widest; нет role/aria-live. Смотрел onboarding-import-mobile.png: в atlas вместо онбординга пойман этот экран с английской фразой.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:loading-screen-english-and-silent"
-      ]
+      "sources": ["entry:loading-screen-english-and-silent"]
     },
     {
       "id": "nav-landmarks-missing-aria-current-and-labels",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Навигация без aria-current и aria-label, кнопка пользователя подписана инициалами",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import",
-        "public-social"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import", "public-social"],
       "states": [
         "dashboard-populated-mobile",
         "flights-populated-mobile",
@@ -2213,21 +1935,15 @@
       "evidence": "Код AppHeader/MobileTabBar/MobileHeader прочитан; a11y-снимок settings-system-theme-desktop.txt показывает безымянные navigation и button \"FI\". Просмотрены 4 мобильных состояния таб-бара.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:nav-landmarks-missing-aria-current-and-labels"
-      ]
+      "sources": ["foundations:nav-landmarks-missing-aria-current-and-labels"]
     },
     {
       "id": "profile-badges-tooltip-only-details-and-color-tier",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Бейджи профиля: описание и дата — только в title, тир — только цветом, лента не фокусируется",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-public-test-traveler-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-public-test-traveler-desktop"],
       "locations": [
         "apps/web/src/components/profile/ProfileBadges.tsx:103",
         "apps/web/src/components/profile/ProfileBadges.tsx:112",
@@ -2241,9 +1957,7 @@
       "evidence": "Код ProfileBadges.tsx прочитан; состояние с бейджами в fixture отсутствует (у test-traveler badges=0 в атласе) — вывод по исходнику.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-badges-tooltip-only-details-and-color-tier"
-      ]
+      "sources": ["social-settings:profile-badges-tooltip-only-details-and-color-tier"]
     },
     {
       "id": "profile-founding-pill-reveal-hover-only-and-auto-collapse",
@@ -2264,22 +1978,15 @@
       "evidence": "Код прочитан; в атласе нет профиля с founding-user badge (пилюля не снята) — вывод по исходнику.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-founding-pill-reveal-hover-only-and-auto-collapse"
-      ]
+      "sources": ["social-settings:profile-founding-pill-reveal-hover-only-and-auto-collapse"]
     },
     {
       "id": "profile-mobile-section-triggers-not-headings",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "На mobile заголовки секций профиля — кнопки без heading-семантики",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-public-test-traveler-mobile",
-        "profile-sections-expanded-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-public-test-traveler-mobile", "profile-sections-expanded-mobile"],
       "locations": [
         "apps/web/src/components/profile/ProfileSection.tsx:50",
         "apps/web/src/components/profile/ProfileSection.tsx:66",
@@ -2292,9 +1999,7 @@
       "evidence": "Снимок profile-public-test-traveler-mobile.txt: `button \"СТАТИСТИКА\" [expanded=true]` без heading; ss_contrast.py: /40 chevron 1.46:1 light, 2.79 dark.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-mobile-section-triggers-not-headings"
-      ]
+      "sources": ["social-settings:profile-mobile-section-triggers-not-headings"]
     },
     {
       "id": "progress-bar-value-not-exposed",
@@ -2316,18 +2021,14 @@
       "evidence": "Код progress.tsx прочитан; 5 вызовов найдены rg. В состояниях атласа не снят.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:progress-bar-value-not-exposed"
-      ]
+      "sources": ["foundations:progress-bar-value-not-exposed"]
     },
     {
       "id": "register-form-autocomplete-and-password-affordances",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Регистрация: нет autocomplete=email/new-password, нет подсказки про 8 символов и показа пароля",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "auth-register-desktop",
         "auth-register-mobile",
@@ -2346,23 +2047,15 @@
       "evidence": "RegisterForm.tsx: у email Input нет autoComplete (стр. 82-88), у password нет autoComplete (106-112); в SignInForm autoComplete есть (79, 103). grep: auth.passwordHint не используется ни в одном компоненте. Смотрел auth-register-mobile.png: «••••••••» в поле выглядит заполненным. Положительно: Label привязан через FormLabel/htmlFor.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:register-form-autocomplete-and-password-affordances"
-      ]
+      "sources": ["entry:register-form-autocomplete-and-password-affordances"]
     },
     {
       "id": "rotating-tagline-no-pause",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Слоган меняется каждые 6 секунд без возможности остановить; в reduced-motion продолжает меняться",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "auth-signin-desktop",
-        "auth-signin-mobile",
-        "auth-register-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["auth-signin-desktop", "auth-signin-mobile", "auth-register-mobile"],
       "locations": [
         "apps/web/src/components/auth/RotatingTagline.tsx:15-32",
         "apps/web/src/components/auth/RotatingTagline.tsx:38-49",
@@ -2375,21 +2068,15 @@
       "evidence": "Читал RotatingTagline.tsx: setInterval 6000 мс без matchMedia; фазы exit/enter через Tailwind-классы с blur-sm и transition-all. Глобальный блок reduced-motion в index.css:1068-1117 сокращает duration, но не останавливает таймер. Положительно: cleanup таймеров исправлен (swap/reveal очищаются), live-области нет (чтение не спамит).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:rotating-tagline-no-pause"
-      ]
+      "sources": ["entry:rotating-tagline-no-pause"]
     },
     {
       "id": "settings-save-result-and-form-errors-not-announced-or-localized",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Сохранение профиля: статус кнопки и ошибка не озвучиваются; «Failed to save» на английском",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-main-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-main-desktop"],
       "locations": [
         "apps/web/src/components/settings/ProfileSection.tsx:58",
         "apps/web/src/components/settings/ProfileSection.tsx:74",
@@ -2404,23 +2091,15 @@
       "evidence": "Код; снимок settings-main-mobile.txt: «Your display name or leave empty to use @fixture-a»; скрипт сверки ключей: profile.displayNameHint RU/EN-MISSING.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:settings-save-result-and-form-errors-not-announced-or-localized"
-      ]
+      "sources": ["social-settings:settings-save-result-and-form-errors-not-announced-or-localized"]
     },
     {
       "id": "settings-segmented-control-radio-keyboard-and-label",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Переключатель темы: role=radio без стрелочной навигации; подписи <label> без связи; язык без aria-pressed",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-main-desktop",
-        "settings-main-mobile",
-        "settings-system-theme-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-main-desktop", "settings-main-mobile", "settings-system-theme-desktop"],
       "locations": [
         "apps/web/src/components/settings/AppearanceSection.tsx:36",
         "apps/web/src/components/settings/AppearanceSection.tsx:33",
@@ -2435,22 +2114,15 @@
       "evidence": "Прочитаны AppearanceSection/LanguageSection: нет onKeyDown/roving; снимок settings-main-mobile.txt: `button \"Select blue accent color\"` при ru; кнопки языка без состояния.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:settings-segmented-control-radio-keyboard-and-label"
-      ]
+      "sources": ["social-settings:settings-segmented-control-radio-keyboard-and-label"]
     },
     {
       "id": "settings-visibility-leaderboard-disabled-reason-hidden",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Чекбокс «Показывать в рейтинге» отключён без объяснения причины; снятие «Публичный» молча снимает рейтинг",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-main-desktop",
-        "settings-public-profile-enabled-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-main-desktop", "settings-public-profile-enabled-desktop"],
       "locations": [
         "apps/web/src/components/settings/ProfileSection.tsx:141",
         "apps/web/src/components/settings/ProfileSection.tsx:159",
@@ -2463,21 +2135,15 @@
       "evidence": "Код ProfileSection.tsx:137-196; снимок settings-main-mobile.txt: checkbox disabled без описания причины, текст «требуется 5+ полётов».",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:settings-visibility-leaderboard-disabled-reason-hidden"
-      ]
+      "sources": ["social-settings:settings-visibility-leaderboard-disabled-reason-hidden"]
     },
     {
       "id": "share-button-feedback-silent-and-unhandled-clipboard-failure",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Кнопка «Share»: результат не озвучивается, сбой clipboard не обрабатывается",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-own-private-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-own-private-desktop"],
       "locations": [
         "apps/web/src/components/profile/ProfileHeader.tsx:38",
         "apps/web/src/components/profile/ProfileHeader.tsx:131"
@@ -2489,18 +2155,14 @@
       "evidence": "Код прочитан; снимок profile-own-private-desktop.txt: `button \"Share\"` (англ.); скрипт сверки ключей: profile.share, common.copied — RU-MISSING и EN-MISSING.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:share-button-feedback-silent-and-unhandled-clipboard-failure"
-      ]
+      "sources": ["social-settings:share-button-feedback-silent-and-unhandled-clipboard-failure"]
     },
     {
       "id": "stamp-popup-semantics-focus-and-position",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Попап штампа — не диалог: нет роли/имени, фокус не переносится, позиция не ограничена экраном и уходит под таб-бар",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "passport-stamp-popup-mobile",
         "passport-delete-visit-confirm-desktop",
@@ -2522,18 +2184,14 @@
       "evidence": "Просмотрены passport-stamp-popup-mobile (попап слева обрезан, снизу табы) и passport-delete-visit-confirm-desktop (карточка продолжается за низ страницы). Код прочитан; скринридер и клавиатуру не прогонял.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:stamp-popup-semantics-focus-and-position"
-      ]
+      "sources": ["dashboard-passport-journey:stamp-popup-semantics-focus-and-position"]
     },
     {
       "id": "username-picker-errors-not-announced",
       "severity": "P2",
       "dimension": "accessibility",
       "title": "Ошибки выбора имени пользователя не связаны с полем и не озвучиваются",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "onboarding-username-validation-desktop",
         "onboarding-username-normalized-desktop"
@@ -2550,18 +2208,14 @@
       "evidence": "UsernamePicker.tsx: <Input> (128-136) без aria-*; <p> ошибки (140-142) без id/role. Сравнил с form.tsx: FormControl ставит aria-invalid и aria-describedby, а на username-шаге компоненты формы не используются. Snapshot onboarding-username-validation-desktop.txt: ошибка простым paragraph.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:username-picker-errors-not-announced"
-      ]
+      "sources": ["entry:username-picker-errors-not-announced"]
     },
     {
       "id": "activate-page-english-only",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Страница /activate целиком на английском и не знает язык приложения",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "activation-no-token-desktop",
         "activation-no-token-mobile",
@@ -2588,9 +2242,7 @@
       "evidence": "activate.html/activate.js: все строки литералами; <html lang=\"en\">. activate.js:38 пробрасывает body.error сервера. Страница не подключает i18n SPA. Atlas flows.md сам фиксирует «весь статический /activate остаётся на английском». Смотрел activate-token-form-desktop.png и activate-no-token-mobile.png.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:activate-page-english-only"
-      ]
+      "sources": ["entry:activate-page-english-only"]
     },
     {
       "id": "badge-toast-queue-floods-on-new-device-and-global-seen-state",
@@ -2612,18 +2264,14 @@
       "evidence": "Код прочитан; поведение выведено из условий (`!seenBadges.includes`). В браузере не воспроизводилось.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "social-settings:badge-toast-queue-floods-on-new-device-and-global-seen-state"
-      ]
+      "sources": ["social-settings:badge-toast-queue-floods-on-new-device-and-global-seen-state"]
     },
     {
       "id": "continent-model-inconsistent-totals-and-labels",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Модель континентов расходится: хардкод-итоги радара, «/ 7», подписи «americas» и пропуск Антарктиды",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-full",
         "dashboard-populated-full-mobile",
@@ -2645,18 +2293,14 @@
       "evidence": "Подсчитано по countries.json (Counter по continent); прочитан код всех мест. Заголовок «americas» не наблюдался на скриншотах (тестовый паспорт — Asia/Europe), вывод из кода.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:continent-model-inconsistent-totals-and-labels"
-      ]
+      "sources": ["dashboard-passport-journey:continent-model-inconsistent-totals-and-labels"]
     },
     {
       "id": "country-picker-search-double-filter",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Поиск страны: cmdk повторно фильтрует по имени, поэтому код (ES) и родное название (España) не находятся; русские запросы не работают нигде",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "passport-country-picker-desktop",
         "passport-country-picker-mobile",
@@ -2677,18 +2321,14 @@
       "evidence": "Прочитан код и ui/command.tsx (shouldFilter не переопределён). Поведение cmdk по умолчанию (фильтр по value) известно из библиотеки, но интерактивно не запускалось. Скриншоты picker показывают только английские названия.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:country-picker-search-double-filter"
-      ]
+      "sources": ["dashboard-passport-journey:country-picker-search-double-filter"]
     },
     {
       "id": "dashboard-filters-vs-map-and-persistence",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Фильтры Dashboard и карта расходятся: aircraft-фильтр не применяется к карте, страны не фильтруются, а origin/destination из persist-стора стираются при монтировании",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-filter-aircraft-menu-desktop",
         "dashboard-filtered-2025-desktop",
@@ -2708,22 +2348,15 @@
       "evidence": "Прочитан DashboardPage.tsx:91-175 и dashboardStore.ts; в dashboard-filtered-2025-desktop карта показывает те же страны (Россия/Китай/Турция), что и без фильтра, при 12 полётах и «7 Страны». Поведение aircraft-фильтра на карте выведено из кода (не запускалось).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:dashboard-filters-vs-map-and-persistence"
-      ]
+      "sources": ["dashboard-passport-journey:dashboard-filters-vs-map-and-persistence"]
     },
     {
       "id": "data-export-disabled-looks-empty-while-stats-load",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Кнопки экспорта показывают «Нет полётов/стран» пока статистика грузится; экспорт стран может молча ничего не делать",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-data-export-populated-desktop",
-        "settings-data-export-success-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-data-export-populated-desktop", "settings-data-export-success-desktop"],
       "locations": [
         "apps/web/src/components/settings/DataExportSection.tsx:29",
         "apps/web/src/components/settings/DataExportSection.tsx:95",
@@ -2737,22 +2370,15 @@
       "evidence": "Код + atlas flows.md/manifest (экспорт 69 полётов, toast «Export Flights», claims toast «Экспорт стран»).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:data-export-disabled-looks-empty-while-stats-load"
-      ]
+      "sources": ["social-settings:data-export-disabled-looks-empty-while-stats-load"]
     },
     {
       "id": "flight-date-utc-shift",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Даты рейсов парсятся как UTC и форматируются локальными геттерами — для UTC− сдвиг на день",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "flights-populated-mobile",
-        "flights-populated-desktop"
-      ],
+      "areas": ["flights-import"],
+      "states": ["flights-populated-mobile", "flights-populated-desktop"],
       "locations": [
         "apps/web/src/components/flights/FlightCard.tsx:26",
         "apps/web/src/components/flights/FlightTable.tsx:122",
@@ -2767,22 +2393,15 @@
       "evidence": "Проверено node с TZ=America/New_York: дата сдвигается на день назад. Код прочитан в указанных местах; FlightEditRow использует безопасный вариант.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:flight-date-utc-shift"
-      ]
+      "sources": ["flights-import:flight-date-utc-shift"]
     },
     {
       "id": "header-appearance-state-stale-duplicate-hooks",
       "severity": "P2",
       "dimension": "integrity",
       "title": "useTheme/useAccentColor хранят состояние локально в каждом экземпляре: иконка темы и точка акцента в шапке устаревают",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-dark-theme-desktop",
-        "settings-system-theme-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-dark-theme-desktop", "settings-system-theme-desktop"],
       "locations": [
         "apps/web/src/hooks/useTheme.ts:77-127",
         "apps/web/src/hooks/useAccentColor.ts:57-79",
@@ -2796,18 +2415,14 @@
       "evidence": "Просмотрен и увеличен кроп шапки settings-dark-theme-desktop (солнце при тёмной теме); код хуков прочитан. Источник состояния не менялся с момента скриншота.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:header-appearance-state-stale-duplicate-hooks"
-      ]
+      "sources": ["foundations:header-appearance-state-stale-duplicate-hooks"]
     },
     {
       "id": "journey-dead-controls-fake-data-unreachable-nav",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Journey: Save Trip, «+» и Add Segment не подключены; шапка и итоги — статичный текст; прототип с жёсткими данными доступен по URL",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "journey-initial-desktop",
         "journey-initial-mobile",
@@ -2833,9 +2448,7 @@
       "evidence": "Прочитан исходник JourneyPlannerPage.tsx и JourneyTimeline.tsx; manifest.gaps подтверждает «Add Segment, +, Save Trip не подключены». Скриншот journey-reordered-desktop показывает DOH→NRT, TBS→DOH при неизменных итогах.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:journey-dead-controls-fake-data-unreachable-nav"
-      ]
+      "sources": ["dashboard-passport-journey:journey-dead-controls-fake-data-unreachable-nav"]
     },
     {
       "id": "lazy-chunk-retry-flag-cleared-before-use-reload-loop",
@@ -2844,10 +2457,7 @@
       "title": "Защита от повторной перезагрузки при сбое чанка сбрасывается при каждом старте и не работает",
       "areas": [],
       "states": [],
-      "locations": [
-        "apps/web/src/main.tsx:10-11",
-        "apps/web/src/App.tsx:20-33"
-      ],
+      "locations": ["apps/web/src/main.tsx:10-11", "apps/web/src/App.tsx:20-33"],
       "impact": "main.tsx:11 безусловно делает sessionStorage.removeItem(\"chunk_retry\") при загрузке модуля, до рендера и до загрузки lazy-маршрута. В lazyWithRetry флаг ставится и вызывается window.location.reload(); после перезагрузки флаг уже сброшен, а повторный сбой снова видит alreadyRetried=null → новый reload. Если чанк недоступен не из-за устаревшего хеша (офлайн в PWA, сбой CDN, блокировка), страница уходит в бесконечный цикл перезагрузок вместо CrashScreen.",
       "standard": "Playbook: Implementation integrity; resilience",
       "recommendation": "Сбрасывать флаг только после успешной загрузки чанка (в then внутри lazyWithRetry) или по таймеру (например, после 10 секунд работы), хранить timestamp и ограничивать одной перезагрузкой в минуту.",
@@ -2855,18 +2465,14 @@
       "evidence": "Логика прочитана по main.tsx и App.tsx; цикл не воспроизводился (нужен сбой сети).",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "foundations:lazy-chunk-retry-flag-cleared-before-use-reload-loop"
-      ]
+      "sources": ["foundations:lazy-chunk-retry-flag-cleared-before-use-reload-loop"]
     },
     {
       "id": "map-viewbox-clips-world-edges",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Карта обрезается фиксированным viewBox 800×600: жёсткий вертикальный срез у России/Тихого океана, обрезан юг",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "passport-populated-desktop",
         "passport-map-expanded-desktop",
@@ -2885,21 +2491,15 @@
       "evidence": "Просмотрены passport-populated-desktop, passport-map-expanded-desktop (Россия обрезана по прямой линии справа, нижняя часть карты обрезана), dashboard-populated-desktop. Причина (дефолтный viewBox react-simple-maps) выведена из кода и документации, не проверена в DevTools.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:map-viewbox-clips-world-edges"
-      ]
+      "sources": ["dashboard-passport-journey:map-viewbox-clips-world-edges"]
     },
     {
       "id": "own-private-profile-stats-section-empty-without-explanation",
       "severity": "P2",
       "dimension": "integrity",
       "title": "У владельца приватного профиля секция «Статистика» пустая, без объяснения и следующего шага",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-own-private-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-own-private-desktop"],
       "locations": [
         "apps/web/src/routes/ProfilePage.tsx:166",
         "apps/web/src/routes/ProfilePage.tsx:171",
@@ -2912,18 +2512,14 @@
       "evidence": "Скриншот profile-own-private-desktop просмотрен; код ProfilePage.tsx:165-173.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:own-private-profile-stats-section-empty-without-explanation"
-      ]
+      "sources": ["social-settings:own-private-profile-stats-section-empty-without-explanation"]
     },
     {
       "id": "profile-section-wrong-voice-for-visitors",
       "severity": "P2",
       "dimension": "integrity",
       "title": "На чужом профиле секция названа «Ваше место», а пустое состояние советует «Добавьте больше рейсов»",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "profile-sections-expanded-mobile",
         "profile-public-test-traveler-mobile",
@@ -2941,21 +2537,15 @@
       "evidence": "Просмотрены profile-sections-expanded-mobile (guest, «ВАШЕ МЕСТО» + «Добавьте больше рейсов…») и текст snapshot; код ProfilePage.tsx:176-187.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-section-wrong-voice-for-visitors"
-      ]
+      "sources": ["social-settings:profile-section-wrong-voice-for-visitors"]
     },
     {
       "id": "rank-card-eligibility-flash-and-silent-hidden-state",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Карточка «Ваше место»: ложное «Пока недоступно» во время загрузки и молчаливое исчезновение",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "leaderboard-flights-authenticated-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["leaderboard-flights-authenticated-desktop"],
       "locations": [
         "apps/web/src/components/leaderboard/UserRankCard.tsx:95",
         "apps/web/src/routes/LeaderboardPage.tsx:71",
@@ -2969,9 +2559,7 @@
       "evidence": "Код UserRankCard.tsx/LeaderboardPage.tsx; скриншот authenticated: у fixture-a 0 полётов (ветка notEligible видна и в ru-локали с английским текстом).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:rank-card-eligibility-flash-and-silent-hidden-state"
-      ]
+      "sources": ["social-settings:rank-card-eligibility-flash-and-silent-hidden-state"]
     },
     {
       "id": "rank-improvement-celebration-repeats-every-visit",
@@ -2993,21 +2581,15 @@
       "evidence": "Код: единственный storeRank — после ветки с return внутри if; ss_contrast.py: success on success/10 = 2.14 (light), 3.70 (dark).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:rank-improvement-celebration-repeats-every-visit"
-      ]
+      "sources": ["social-settings:rank-improvement-celebration-repeats-every-visit"]
     },
     {
       "id": "verify-password-collapses-all-errors-to-wrong-password",
       "severity": "P2",
       "dimension": "integrity",
       "title": "Любая ошибка verify-password показывается как «Неверный пароль»; сервер-ошибки — английскими строками",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-delete-wrong-password-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-delete-wrong-password-desktop"],
       "locations": [
         "apps/web/src/lib/auth.ts:115",
         "apps/web/src/components/settings/DeleteAccountDialog.tsx:101",
@@ -3022,21 +2604,15 @@
       "evidence": "Код: lib/auth.ts:115-122 (`catch { return false }`), DeleteAccountDialog.tsx:101-106; authStore.ts:33 английская строка. manifest notes подтверждают два запроса (verify-password 200 + DELETE 200).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:verify-password-collapses-all-errors-to-wrong-password"
-      ]
+      "sources": ["social-settings:verify-password-collapses-all-errors-to-wrong-password"]
     },
     {
       "id": "collapsible-uses-accordion-keyframes-height-jump",
       "severity": "P2",
       "dimension": "performance",
       "title": "CollapsibleContent использует keyframes accordion-*: переменная высоты не определена, анимация height 0→auto прыгает",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-sections-expanded-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-sections-expanded-mobile"],
       "locations": [
         "apps/web/src/components/profile/ProfileSection.tsx:81",
         "apps/web/src/components/common/CollapsibleCard.tsx:94",
@@ -3049,9 +2625,7 @@
       "evidence": "Код ProfileSection/CollapsibleCard/accordion и определения keyframes в node_modules/tw-animate-css прочитаны (collapsible-down использует --radix-collapsible-content-height). Рендер не проверялся.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:collapsible-uses-accordion-keyframes-height-jump"
-      ]
+      "sources": ["foundations:collapsible-uses-accordion-keyframes-height-jump"]
     },
     {
       "id": "eager-bundle-and-dev-tool-in-prod-chunk",
@@ -3074,21 +2648,15 @@
       "evidence": "Измерены размеры и gzip файлов apps/web/dist/assets, прочитан dist/index.html (modulepreload) и vite.config.ts; размер agentation не измерен. dist собран после коммита 1303485 (в тот же день), но актуальность относительно рабочего дерева не гарантирована.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:eager-bundle-and-dev-tool-in-prod-chunk"
-      ]
+      "sources": ["foundations:eager-bundle-and-dev-tool-in-prod-chunk"]
     },
     {
       "id": "flights-list-no-virtualization",
       "severity": "P2",
       "dimension": "performance",
       "title": "Список рейсов рендерит все загруженные карточки/строки без виртуализации, подгрузка кнопкой",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "flights-populated-desktop"
-      ],
+      "areas": ["flights-import"],
+      "states": ["flights-populated-desktop"],
       "locations": [
         "apps/web/src/components/flights/FlightList.tsx:262",
         "apps/web/src/components/flights/FlightList.tsx:289",
@@ -3101,21 +2669,15 @@
       "evidence": "Прочитан FlightList.tsx:262–289 (flights.map без windowing), FlightTable.tsx:243. Производительность при 1000+ рейсов не измерялась (untested).",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "flights-import:flights-list-no-virtualization"
-      ]
+      "sources": ["flights-import:flights-list-no-virtualization"]
     },
     {
       "id": "import-progress-modal-forced-delay-blur",
       "severity": "P2",
       "dimension": "performance",
       "title": "Искусственные задержки (300мс на рейс + 500 + 400) и backdrop-blur-lg вопреки DESIGN.md",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-parsing-text"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-parsing-text"],
       "locations": [
         "apps/web/src/components/import/FlightProgressModal.tsx:26",
         "apps/web/src/components/import/FlightProgressModal.tsx:28",
@@ -3130,18 +2692,14 @@
       "evidence": "Прочитаны константы 26–30 и таймеры 108–139; классы 207 и 214. Скриншот import-parsing-text.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-progress-modal-forced-delay-blur"
-      ]
+      "sources": ["flights-import:import-progress-modal-forced-delay-blur"]
     },
     {
       "id": "map-rerenders-on-every-filter-keystroke",
       "severity": "P2",
       "dimension": "performance",
       "title": "Карта не мемоизирована: каждый ввод в поле фильтра перерисовывает 177 Geography",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-origin-filter-tbs-desktop",
         "dashboard-add-flight-origin-suggestions-desktop"
@@ -3161,18 +2719,14 @@
       "evidence": "Прочитан код цепочки пропсов; цена ререндера оценена по числу узлов (177 path + рёбра), реальный profiler не запускался.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:map-rerenders-on-every-filter-keystroke"
-      ]
+      "sources": ["dashboard-passport-journey:map-rerenders-on-every-filter-keystroke"]
     },
     {
       "id": "map-topojson-third-party-cdn-no-fallback",
       "severity": "P2",
       "dimension": "performance",
       "title": "Геометрия карты тянется на каждый запуск со стороннего CDN без fallback и обработки ошибок",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-desktop",
         "dashboard-populated-mobile",
@@ -3200,9 +2754,7 @@
       "evidence": "Прочитан код и public/_headers. Сетевое поведение не измерялось (по правилам аудита браузер не запускался).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:map-topojson-third-party-cdn-no-fallback"
-      ]
+      "sources": ["dashboard-passport-journey:map-topojson-third-party-cdn-no-fallback"]
     },
     {
       "id": "windloader-animates-left-infinite",
@@ -3223,26 +2775,16 @@
       "evidence": "Прочитан WindLoader.tsx. Профилирование не выполнялось.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:windloader-animates-left-infinite"
-      ]
+      "sources": ["foundations:windloader-animates-left-infinite"]
     },
     {
       "id": "auth-mobile-no-language-toggle",
       "severity": "P2",
       "dimension": "responsive",
       "title": "На мобильном экране входа нет переключателя языка",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "auth-signin-mobile",
-        "auth-register-mobile"
-      ],
-      "locations": [
-        "apps/web/src/routes/AuthPage.tsx:109-117",
-        "apps/web/src/lib/i18n.ts:10-12"
-      ],
+      "areas": ["public-social"],
+      "states": ["auth-signin-mobile", "auth-register-mobile"],
+      "locations": ["apps/web/src/routes/AuthPage.tsx:109-117", "apps/web/src/lib/i18n.ts:10-12"],
       "impact": "Язык определяется по navigator.language; русскоязычный пользователь с английским интерфейсом телефона не может переключить язык до входа в аккаунт (на лендинге и онбординге переключатель есть, на auth его нет).",
       "standard": "PRODUCT.md: i18n EN/RU; DESIGN.md: единообразие управления",
       "recommendation": "Убрать hidden lg:flex у кнопки языка; на мобильном оставить три иконки (внешний вид, помощь, язык) с мин. 44px; при необходимости перенести в строку над формой.",
@@ -3250,21 +2792,15 @@
       "evidence": "AuthPage.tsx:114 className=\"hidden lg:flex ...\". Atlas snapshot auth-signin-mobile.txt / auth-register-mobile.txt: кнопки «Appearance» и «What is Kuuki?» есть, «Toggle language» нет; в desktop-снимках она есть. Смотрел auth-signin-mobile.png.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:auth-mobile-no-language-toggle"
-      ]
+      "sources": ["entry:auth-mobile-no-language-toggle"]
     },
     {
       "id": "badge-toast-motion-glow-and-overlaps-mobile-tab-bar",
       "severity": "P2",
       "dimension": "responsive",
       "title": "Toast наград: бесконечные pulse/sparkle, цветное свечение, перекрывает нижнюю панель на mobile",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-data-export-success-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-data-export-success-desktop"],
       "locations": [
         "apps/web/src/components/badges/BadgeNotificationToast.tsx:58",
         "apps/web/src/components/badges/BadgeNotificationToast.tsx:69",
@@ -3279,18 +2815,14 @@
       "evidence": "Код + index.css:523-560 (keyframes) и 272-281/1069-1078 (reduced motion); MobileTabBar.tsx:54 (z-50 fixed). Столкновение на устройстве не проверялось (расчёт по CSS).",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "social-settings:badge-toast-motion-glow-and-overlaps-mobile-tab-bar"
-      ]
+      "sources": ["social-settings:badge-toast-motion-glow-and-overlaps-mobile-tab-bar"]
     },
     {
       "id": "journey-layout-timeline-offscreen-and-mobile-header-wrap",
       "severity": "P2",
       "dimension": "responsive",
       "title": "Journey: на десктопе 1440×1000 таймлайн вытесняется за экран (h-screen + overflow-hidden), на мобильном шапка ломается",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "journey-initial-desktop",
         "journey-reordered-desktop",
@@ -3320,9 +2852,7 @@
       "severity": "P2",
       "dimension": "responsive",
       "title": "Карта перехватывает вертикальный свайп и колесо: прокрутка страницы застревает на карте",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
+      "areas": ["dashboard-passport-journey"],
       "states": [
         "dashboard-populated-mobile",
         "dashboard-filters-expanded-mobile",
@@ -3340,18 +2870,14 @@
       "evidence": "Прочитан код d3-zoom 2.0.0 (zoom.js:340-346 touchmoved → noevent) и react-simple-maps dist (filterFunc: !ctrlKey && !button). Реальный жест не синтезировался.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:map-touch-scroll-and-wheel-hijack"
-      ]
+      "sources": ["dashboard-passport-journey:map-touch-scroll-and-wheel-hijack"]
     },
     {
       "id": "profile-private-badge-detached-and-privacy-message-duplicated",
       "severity": "P2",
       "dimension": "responsive",
       "title": "Бейдж «Приватный» уплывает от аватара; сообщение о приватности показано дважды",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "profile-own-private-desktop",
         "profile-private-guest-mobile",
@@ -3370,21 +2896,15 @@
       "evidence": "Скриншоты profile-own-private-desktop (бейдж справа у x≈1000) и profile-private-guest-mobile (две одинаковые строки) просмотрены; код ProfileHeader.tsx:56-80, ProfilePage.tsx:135-153.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-private-badge-detached-and-privacy-message-duplicated"
-      ]
+      "sources": ["social-settings:profile-private-badge-detached-and-privacy-message-duplicated"]
     },
     {
       "id": "settings-segmented-theme-control-overflows-card-on-mobile",
       "severity": "P2",
       "dimension": "responsive",
       "title": "На 390px сегмент «Светлая/Тёмная/Системная» вылезает за границу карточки",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-main-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-main-mobile"],
       "locations": [
         "apps/web/src/components/settings/AppearanceSection.tsx:36",
         "apps/web/src/components/settings/AppearanceSection.tsx:50"
@@ -3396,27 +2916,21 @@
       "evidence": "Скриншот settings-main-mobile просмотрен (кнопка «Системная» выходит за рамку карточки); расчёт ширины по px-6 страницы и карточки.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:settings-segmented-theme-control-overflows-card-on-mobile"
-      ]
+      "sources": ["social-settings:settings-segmented-theme-control-overflows-card-on-mobile"]
     },
     {
       "id": "activate-page-off-system-theme-tokens",
       "severity": "P2",
       "dimension": "theming",
       "title": "Страница /activate выпадает из системы: hex-литералы, бирюзовый бренд, system-ui, игнорирует тему приложения",
-      "areas": [
-        "public-social"
-      ],
+      "areas": ["public-social"],
       "states": [
         "activation-token-form-desktop",
         "activation-no-token-desktop",
         "activation-no-token-mobile",
         "activation-password-mismatch-desktop"
       ],
-      "locations": [
-        "apps/web/public/activate.html:9-21"
-      ],
+      "locations": ["apps/web/public/activate.html:9-21"],
       "impact": "Пользователь после регистрации в «красном» приложении видит бирюзовую кнопку #176782 и системный шрифт: выглядит как чужой/фишинговый сайт именно на экране ввода пароля. Выбранная в приложении тема (light/dark/system) и акцент не применяются, а граница поля в светлой теме 2.8:1.",
       "standard": "DESIGN.md: «токены вместо литералов», DM Sans, один акцент; WCAG 2.1 SC 1.4.11 (граница поля)",
       "recommendation": "Подключить те же шрифты и токены (минимальный набор --background/--card/--primary/--border как CSS-переменные в activate.html, значения из index.css), читать kuuki-theme и kuuki-accent-color из localStorage, поднять границу поля до >=3:1, добавить <link rel=\"icon\">.",
@@ -3424,23 +2938,15 @@
       "evidence": "activate.html:9-21 — цвета #f4f7f9, #17242b, #dbe5eb, #176782, #8c9da8, #101b22 и др. литералами; font-family: system-ui. Посчитал: граница поля #8c9da8 на белом = 2.8:1 (светлая схема); белый на #176782 = 6.37:1, ссылка 6.37:1 (проходят). Тема берётся только из prefers-color-scheme, чтение localStorage отсутствует. Нет <link rel=\"icon\">. Снимки активации в тёмной схеме ОС: бирюзовая кнопка в окружении красного приложения.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:activate-page-off-system-theme-tokens"
-      ]
+      "sources": ["entry:activate-page-off-system-theme-tokens"]
     },
     {
       "id": "journey-timeline-white-literals-invisible",
       "severity": "P2",
       "dimension": "theming",
       "title": "Коннекторы и кнопка добавления сегмента в таймлайне Journey захардкожены bg-white/10, border-white/20, text-white/30 — на светлой карточке их нет",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
-      "states": [
-        "journey-reordered-desktop",
-        "journey-initial-mobile",
-        "journey-full-mobile"
-      ],
+      "areas": ["dashboard-passport-journey"],
+      "states": ["journey-reordered-desktop", "journey-initial-mobile", "journey-full-mobile"],
       "locations": [
         "apps/web/src/components/journey/JourneyTimeline.tsx:54",
         "apps/web/src/components/journey/JourneyTimeline.tsx:56",
@@ -3454,21 +2960,15 @@
       "evidence": "Расчёт: white/30 на --card = 1.009:1, white/20 = 1.006:1. На journey-reordered-desktop между карточками нет соединительных линий, в конце ряда нет кнопки «+».",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:journey-timeline-white-literals-invisible"
-      ]
+      "sources": ["dashboard-passport-journey:journey-timeline-white-literals-invisible"]
     },
     {
       "id": "selected-option-contrast-light",
       "severity": "P2",
       "dimension": "theming",
       "title": "Выбранная опция автокомплита: primary-foreground при opacity 60–75 даёт 2.8–3.6:1 в светлой теме",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "flight-origin-suggestions"
-      ],
+      "areas": ["flights-import"],
+      "states": ["flight-origin-suggestions"],
       "locations": [
         "apps/web/src/components/flights/AirportAutocomplete.tsx:215",
         "apps/web/src/components/flights/AirportAutocomplete.tsx:216"
@@ -3480,22 +2980,15 @@
       "evidence": "Рассчитано contrast_fi.py: pf/75 на primary 3.55, pf/60 2.83, solid 5.0 (light); dark 5.13/3.64/7.62.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:selected-option-contrast-light"
-      ]
+      "sources": ["flights-import:selected-option-contrast-light"]
     },
     {
       "id": "theme-bootstrap-theme-color-color-scheme-flash",
       "severity": "P2",
       "dimension": "theming",
       "title": "Начальная инициализация темы: theme-color обновляется не тот meta, нет color-scheme и inline-скрипта до первой отрисовки",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "settings-dark-theme-desktop",
-        "settings-system-theme-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["settings-dark-theme-desktop", "settings-system-theme-desktop"],
       "locations": [
         "apps/web/index.html:9-10",
         "apps/web/src/hooks/useTheme.ts:7",
@@ -3510,9 +3003,7 @@
       "evidence": "Код useTheme.ts/main.tsx/index.html прочитан; rg color-scheme по src и index.html — пусто. Вспышка не наблюдалась в браузере (не запускался), поэтому п.3 likely.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "foundations:theme-bootstrap-theme-color-color-scheme-flash"
-      ]
+      "sources": ["foundations:theme-bootstrap-theme-color-color-scheme-flash"]
     },
     {
       "id": "toast-sonner-styles-unlayered-theme-not-set",
@@ -3521,9 +3012,7 @@
       "title": "Тосты sonner: Tailwind-классы проигрывают unlayered CSS sonner и не передан theme; статус-цвета ниже AA",
       "areas": [],
       "states": [],
-      "locations": [
-        "apps/web/src/components/error/ToastProvider.tsx:17-51"
-      ],
+      "locations": ["apps/web/src/components/error/ToastProvider.tsx:17-51"],
       "impact": "sonner@2.0.7 вставляет стили вне @layer ([data-sonner-toast][data-styled=true]{background:var(--normal-bg);color:var(--normal-text)…}), Tailwind v4 utilities лежат в @layer utilities, поэтому bg-card/text-foreground/border-border из classNames, скорее всего, не применяются; theme не передан (по умолчанию light) — в тёмной теме тост остаётся светлым или рассинхронизируется. Дополнительно error: text-destructive на destructive/5 = 3.23:1 (light), success: text-success на success/5 = 2.18:1 (light). closeButton у sonner — маленькая кнопка без 44px.",
       "standard": "WCAG 2.1 SC 1.4.3 (AA); DESIGN.md: тема токенами",
       "recommendation": "Передать theme из useTheme().resolvedTheme и задать sonner-переменные через style: --normal-bg: var(--popover), --normal-text: var(--popover-foreground), --normal-border: var(--border), --success-*/--error-* через токены текстовых статусов; либо unstyled + classNames. Проверить в обеих темах.",
@@ -3531,22 +3020,15 @@
       "evidence": "Прочитан ToastProvider.tsx и CSS sonner в node_modules (нет @layer, data-sonner-theme=light/dark переменные). Тост не присутствует ни в одном состоянии атласа и не рендерился, поэтому уверенность likely.",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "foundations:toast-sonner-styles-unlayered-theme-not-set"
-      ]
+      "sources": ["foundations:toast-sonner-styles-unlayered-theme-not-set"]
     },
     {
       "id": "orphaned-components-and-dead-css",
       "severity": "P3",
       "dimension": "integrity",
       "title": "Осиротевший код: /landing без входящих ссылок, compare/*, legacy dashboard-компоненты, неиспользуемый CSS и AtmosphericCard",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "landing-desktop",
-        "landing-features-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["landing-desktop", "landing-features-desktop"],
       "locations": [
         "apps/web/src/App.tsx:5",
         "apps/web/src/App.tsx:68",
@@ -3600,10 +3082,7 @@
       "severity": "P3",
       "dimension": "performance",
       "title": "Анимации max-height / bottom / height при раскрытии строк, карты Passport и шторки",
-      "areas": [
-        "dashboard-passport-journey",
-        "flights-import"
-      ],
+      "areas": ["dashboard-passport-journey", "flights-import"],
       "states": [
         "passport-map-expanded-desktop",
         "passport-country-picker-mobile",
@@ -3645,16 +3124,9 @@
       "severity": "P3",
       "dimension": "accessibility",
       "title": "Баннер предстоящего рейса: нет региона/имени, десятипиксельный бейдж, удаление под значком «×»",
-      "areas": [
-        "dashboard-passport-journey"
-      ],
-      "states": [
-        "dashboard-upcoming-banner-desktop",
-        "dashboard-upcoming-delete-confirm-desktop"
-      ],
-      "locations": [
-        "apps/web/src/components/dashboard/UpcomingFlightsBanner.tsx:59-115"
-      ],
+      "areas": ["dashboard-passport-journey"],
+      "states": ["dashboard-upcoming-banner-desktop", "dashboard-upcoming-delete-confirm-desktop"],
+      "locations": ["apps/web/src/components/dashboard/UpcomingFlightsBanner.tsx:59-115"],
       "impact": "Баннер — безымянный div (не region/status), бейдж 10px uppercase, 28px иконки (на touch их поднимет глобальное правило до 44px), действие удаления нарисовано крестиком X, который читается как «закрыть баннер»; название рейса дублируется кнопкой и отдельным карандашом. Подтверждающий диалог защищает от случайного удаления (плюс).",
       "standard": "WCAG 2.1 SC 1.3.1, SC 3.3.4 (смягчено подтверждением)",
       "recommendation": "Дать баннеру role=\"region\" aria-label «Ближайший рейс», заменить X на иконку корзины, поднять бейдж до 12px.",
@@ -3662,21 +3134,15 @@
       "evidence": "Код прочитан; скриншоты dashboard-upcoming-banner-desktop и dashboard-upcoming-delete-confirm-desktop просмотрены (диалог подтверждения есть).",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "dashboard-passport-journey:upcoming-banner-semantics-and-delete-icon"
-      ]
+      "sources": ["dashboard-passport-journey:upcoming-banner-semantics-and-delete-icon"]
     },
     {
       "id": "what-is-kuuki-dialog-a11y-gaps",
       "severity": "P3",
       "dimension": "accessibility",
       "title": "WhatIsKuukiDialog: нет описания и видимого заголовка, кнопка закрытия 32px",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "auth-about-dialog-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["auth-about-dialog-desktop"],
       "locations": [
         "apps/web/src/components/auth/WhatIsKuukiDialog.tsx:41",
         "apps/web/src/components/auth/WhatIsKuukiDialog.tsx:45-48",
@@ -3689,24 +3155,16 @@
       "evidence": "Читал WhatIsKuukiDialog.tsx: DialogTitle sr-only, DialogDescription нет, DialogClose p-2 rounded-full. Смотрел auth-about-dialog-desktop.png: заголовка в окне нет, только список. Положительно: фокус-ловушка, Esc и возврат фокуса обеспечивает Radix.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:what-is-kuuki-dialog-a11y-gaps"
-      ]
+      "sources": ["entry:what-is-kuuki-dialog-a11y-gaps"]
     },
     {
       "id": "import-review-index-keys-and-dup-actions",
       "severity": "P3",
       "dimension": "integrity",
       "title": "Строки ревью используют key={index}; состояние раскрытия/годов привязано к позиции",
-      "areas": [
-        "flights-import"
-      ],
-      "states": [
-        "import-review-expanded"
-      ],
-      "locations": [
-        "apps/web/src/components/import/ImportReview.tsx:427"
-      ],
+      "areas": ["flights-import"],
+      "states": ["import-review-expanded"],
+      "locations": ["apps/web/src/components/import/ImportReview.tsx:427"],
       "impact": "При удалении строки React переиспользует состояние следующей строки (expanded, открытый popover подтверждения года), раскрытая форма «переезжает» на другой рейс.",
       "standard": null,
       "recommendation": "Генерировать стабильные id (crypto.randomUUID при разборе) и использовать как key и ключ selectedIds.",
@@ -3714,22 +3172,15 @@
       "evidence": "Прочитан ImportReview.tsx:425–432 и локальное состояние в FlightEditRow.tsx.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "flights-import:import-review-index-keys-and-dup-actions"
-      ]
+      "sources": ["flights-import:import-review-index-keys-and-dup-actions"]
     },
     {
       "id": "locale-less-dates-and-units-in-ru-profile",
       "severity": "P3",
       "dimension": "integrity",
       "title": "Даты и единицы не следуют языку приложения: «Участник с October 2026», «141,255 km»",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-public-test-traveler-mobile",
-        "profile-own-private-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-public-test-traveler-mobile", "profile-own-private-desktop"],
       "locations": [
         "apps/web/src/components/profile/ProfileHeader.tsx:32",
         "apps/web/src/components/profile/ProfileBadges.tsx:107",
@@ -3743,9 +3194,7 @@
       "evidence": "Снимки profile-public-test-traveler-mobile и profile-own-private-desktop; geo.ts:280-282.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:locale-less-dates-and-units-in-ru-profile"
-      ]
+      "sources": ["social-settings:locale-less-dates-and-units-in-ru-profile"]
     },
     {
       "id": "no-root-error-boundary-outside-routes",
@@ -3766,9 +3215,7 @@
       "evidence": "Код App.tsx и ErrorBoundary.tsx прочитан.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:no-root-error-boundary-outside-routes"
-      ]
+      "sources": ["foundations:no-root-error-boundary-outside-routes"]
     },
     {
       "id": "google-fonts-onload-inline-handler-breaks-under-csp",
@@ -3777,10 +3224,7 @@
       "title": "Загрузка шрифтов через media=\"print\" onload=\"…\" сломается, когда CSP из Report-Only станет принудительным",
       "areas": [],
       "states": [],
-      "locations": [
-        "apps/web/index.html:26",
-        "apps/web/public/_headers:5"
-      ],
+      "locations": ["apps/web/index.html:26", "apps/web/public/_headers:5"],
       "impact": "Паттерн отложенной загрузки (media=print + inline onload) — нормальный приём без блокировки рендера. Но CSP в _headers: script-src 'self' без unsafe-inline и unsafe-hashes: inline-обработчик onload будет заблокирован, и таблица стилей навсегда останется media=print, шрифты не загрузятся. Сейчас политика Report-Only, поэтому дефект латентный. Preload woff2 нет, шрифты — два сторонних origin.",
       "standard": "Playbook: performance / CSP readiness",
       "recommendation": "Самохостить шрифты (см. другой пункт) с preload и font-display:swap либо добавить хеш/nonce или отдельный внешний скрипт вместо inline onload.",
@@ -3788,22 +3232,15 @@
       "evidence": "Прочитаны index.html и dist/_headers (Content-Security-Policy-Report-Only). Принудительный CSP не включён, поэтому не воспроизводилось.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "foundations:google-fonts-onload-inline-handler-breaks-under-csp"
-      ]
+      "sources": ["foundations:google-fonts-onload-inline-handler-breaks-under-csp"]
     },
     {
       "id": "plane-animation-mounted-twice-always-running",
       "severity": "P3",
       "dimension": "performance",
       "title": "PlaneAnimation монтируется дважды на странице входа; на мобильном 30 бесконечных анимаций",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "auth-signin-mobile",
-        "auth-signin-desktop"
-      ],
+      "areas": ["public-social"],
+      "states": ["auth-signin-mobile", "auth-signin-desktop"],
       "locations": [
         "apps/web/src/routes/AuthPage.tsx:47-60",
         "apps/web/src/routes/AuthPage.tsx:69",
@@ -3817,21 +3254,15 @@
       "evidence": "AuthPage.tsx:57-59 и :69 — два <PlaneAnimation />; PlaneAnimation count=30 по умолчанию, анимация transform/opacity (композиторная, дешёвая), поэтому P3. В reduced-motion анимация отключается (index.css:1108-1111). Профайлером не мерил.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "entry:plane-animation-mounted-twice-always-running"
-      ]
+      "sources": ["entry:plane-animation-mounted-twice-always-running"]
     },
     {
       "id": "profile-duplicate-content-rendered-for-mobile-and-desktop",
       "severity": "P3",
       "dimension": "performance",
       "title": "ProfileSection монтирует контент дважды (mobile-collapsible + desktop-блок)",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-public-test-traveler-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-public-test-traveler-mobile"],
       "locations": [
         "apps/web/src/components/profile/ProfileSection.tsx:47",
         "apps/web/src/components/profile/ProfileSection.tsx:90",
@@ -3844,21 +3275,15 @@
       "evidence": "Код ProfileSection.tsx:44-105; снимки показывают только видимое дерево.",
       "confidence": "verified",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-duplicate-content-rendered-for-mobile-and-desktop"
-      ]
+      "sources": ["social-settings:profile-duplicate-content-rendered-for-mobile-and-desktop"]
     },
     {
       "id": "profile-mini-header-design-drift-and-landmark",
       "severity": "P3",
       "dimension": "theming",
       "title": "Мини-шапка профиля: backdrop-blur, will-change в покое, второй banner, перекрывает MobileHeader",
-      "areas": [
-        "public-social"
-      ],
-      "states": [
-        "profile-sticky-header-mobile"
-      ],
+      "areas": ["public-social"],
+      "states": ["profile-sticky-header-mobile"],
       "locations": [
         "apps/web/src/components/profile/ProfileMiniHeader.tsx:37",
         "apps/web/src/components/profile/ProfileMiniHeader.tsx:41",
@@ -3872,9 +3297,7 @@
       "evidence": "Код; скриншот profile-sticky-header-mobile — мини-шапка не видна (источник — код).",
       "confidence": "likely",
       "systemic": false,
-      "sources": [
-        "social-settings:profile-mini-header-design-drift-and-landmark"
-      ]
+      "sources": ["social-settings:profile-mini-header-design-drift-and-landmark"]
     }
   ],
   "detector": [

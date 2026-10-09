@@ -1,4 +1,10 @@
-type GroundVisit = { countryCode: string; visitYear: number | null; entryMethod: string | null; note: string | null; createdAt: string }
+type GroundVisit = {
+  countryCode: string
+  visitYear: number | null
+  entryMethod: string | null
+  note: string | null
+  createdAt: string
+}
 
 /** Keep untrusted notes inert when opened in spreadsheet software. */
 function cell(value: string | number | null): string {
@@ -10,7 +16,11 @@ function cell(value: string | number | null): string {
 
 function generateGroundVisitsCsv(visits: GroundVisit[]): string {
   const header = 'country_code,visit_year,entry_method,note,created_at'
-  const rows = visits.map(visit => [visit.countryCode, visit.visitYear, visit.entryMethod, visit.note, visit.createdAt].map(cell).join(','))
+  const rows = visits.map((visit) =>
+    [visit.countryCode, visit.visitYear, visit.entryMethod, visit.note, visit.createdAt]
+      .map(cell)
+      .join(','),
+  )
   return '\uFEFF' + header + '\n' + rows.join('\n')
 }
 

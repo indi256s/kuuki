@@ -35,11 +35,15 @@ const TEXT_FIELDS = [
   'theme_color',
 ] as const
 
-export const onRequestPatch: PagesFunction<Env, string, RequestData> = context =>
+export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
   updateProfileRequest(context.request, context.env, context.data)
 
 /** Request/Response entry keeps compatibility transport separate from domain writes. */
-export function updateProfileRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+export function updateProfileRequest(
+  request: Request,
+  env: Env,
+  data: RequestData,
+): Promise<Response> {
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
@@ -53,13 +57,16 @@ export function updateProfileRequest(request: Request, env: Env, data: RequestDa
 
     // Defense-in-depth validation for fields that reach render/fetch sinks (security hardening).
     if (
-      typeof body.avatar_url === 'string' && body.avatar_url.length > 0 &&
-      !/^https:\/\//i.test(body.avatar_url) && !/^data:image\//i.test(body.avatar_url)
+      typeof body.avatar_url === 'string' &&
+      body.avatar_url.length > 0 &&
+      !/^https:\/\//i.test(body.avatar_url) &&
+      !/^data:image\//i.test(body.avatar_url)
     ) {
       throw new HttpError(400, 'avatar_url must be an https:// or data:image/ URL', 'BAD_REQUEST')
     }
     if (
-      typeof body.theme_color === 'string' && body.theme_color.length > 0 &&
+      typeof body.theme_color === 'string' &&
+      body.theme_color.length > 0 &&
       !/^[a-zA-Z0-9#_-]{1,32}$/.test(body.theme_color)
     ) {
       throw new HttpError(400, 'Invalid theme_color', 'BAD_REQUEST')
@@ -85,7 +92,7 @@ export function updateProfileRequest(request: Request, env: Env, data: RequestDa
 
     if ('username' in body && body.username) {
       const taken = await env.DB.prepare(
-        'SELECT id FROM profiles WHERE lower(username) = lower(?) AND id != ? LIMIT 1'
+        'SELECT id FROM profiles WHERE lower(username) = lower(?) AND id != ? LIMIT 1',
       )
         .bind(body.username, user.id)
         .first<{ id: string }>()
@@ -99,12 +106,13 @@ export function updateProfileRequest(request: Request, env: Env, data: RequestDa
     binds.push(user.id)
 
     const statement = env.DB.prepare(
-      `UPDATE profiles SET ${sets.join(', ')} WHERE id = ? RETURNING *`
-    )
-      .bind(...binds)
+      `UPDATE profiles SET ${sets.join(', ')} WHERE id = ? RETURNING *`,
+    ).bind(...binds)
     const editsHome = 'home_airport' in body
     const row = editsHome
-      ? firstOf<ProfileRow>((await env.DB.batch([statement, dirtyUserStatement(env.DB, user.id, true)]))[0])
+      ? firstOf<ProfileRow>(
+          (await env.DB.batch([statement, dirtyUserStatement(env.DB, user.id, true)]))[0],
+        )
       : await statement.first<ProfileRow>()
 
     if (!row) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')

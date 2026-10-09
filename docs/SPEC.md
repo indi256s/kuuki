@@ -8,12 +8,12 @@
 
 Kuuki is a flight stats vault for aviation enthusiasts. Log journeys, build your collection, discover patterns, and compare with others.
 
-| Attribute | Value |
-|-----------|-------|
-| **Name** | Kuuki (display as "Kuuki" only, no kanji) |
-| **Domain** | kuuki.indi256.com |
-| **Scale** | 50-500 users (first 6 months) |
-| **Launch approach** | Feature-complete beta |
+| Attribute           | Value                                     |
+| ------------------- | ----------------------------------------- |
+| **Name**            | Kuuki (display as "Kuuki" only, no kanji) |
+| **Domain**          | kuuki.indi256.com                         |
+| **Scale**           | 50-500 users (first 6 months)             |
+| **Launch approach** | Feature-complete beta                     |
 
 ---
 
@@ -21,39 +21,40 @@ Kuuki is a flight stats vault for aviation enthusiasts. Log journeys, build your
 
 ### Tech Stack
 
-| Layer | Technology | Notes |
-|-------|------------|-------|
-| Frontend | React 19 + Vite + TypeScript | |
-| Styling | Tailwind CSS + shadcn/ui | Dark mode via user toggle |
-| State | Zustand + TanStack Query | |
-| Maps | **Mapbox GL JS** + react-map-gl | Flat world map with great-circle arcs |
-| i18n | react-i18next | EN primary, RU via AI-assisted translation |
-| Hosting | Cloudflare Pages | |
-| Edge API | Cloudflare Workers | **AI parsing only** - all other CRUD direct to Supabase |
-| Database | Supabase PostgreSQL | |
-| Auth | Supabase Auth (email/password) | 30-day sessions, optional email verification |
-| AI | Google Gemini 3.0 Flash | Your key for beta, users bring their own post-launch |
-| Forms | React Hook Form + Zod | Validation with TypeScript inference |
-| Dates | Luxon | Best timezone support for UTC + local display |
-| Charts | Recharts | React-native, good defaults |
-| Icons | Lucide + custom aviation icons | shadcn default + custom |
+| Layer    | Technology                      | Notes                                                   |
+| -------- | ------------------------------- | ------------------------------------------------------- |
+| Frontend | React 19 + Vite + TypeScript    |                                                         |
+| Styling  | Tailwind CSS + shadcn/ui        | Dark mode via user toggle                               |
+| State    | Zustand + TanStack Query        |                                                         |
+| Maps     | **Mapbox GL JS** + react-map-gl | Flat world map with great-circle arcs                   |
+| i18n     | react-i18next                   | EN primary, RU via AI-assisted translation              |
+| Hosting  | Cloudflare Pages                |                                                         |
+| Edge API | Cloudflare Workers              | **AI parsing only** - all other CRUD direct to Supabase |
+| Database | Supabase PostgreSQL             |                                                         |
+| Auth     | Supabase Auth (email/password)  | 30-day sessions, optional email verification            |
+| AI       | Google Gemini 3.0 Flash         | Your key for beta, users bring their own post-launch    |
+| Forms    | React Hook Form + Zod           | Validation with TypeScript inference                    |
+| Dates    | Luxon                           | Best timezone support for UTC + local display           |
+| Charts   | Recharts                        | React-native, good defaults                             |
+| Icons    | Lucide + custom aviation icons  | shadcn default + custom                                 |
 
 ### Server-Side Architecture
 
 **Minimal server footprint:**
+
 - Cloudflare Worker for Gemini API proxy (hides your API key)
 - All flight CRUD, stats, profiles → client direct to Supabase
 - Supabase RLS handles security
 
 ### Data Sources
 
-| Data Type | Source | Storage |
-|-----------|--------|---------|
-| Aircraft | OpenFlights planes.dat | Static JSON bundle (173 aircraft) |
-| Airports | Existing airports.json | Static JSON bundle |
-| Airlines | Existing airlines.json | Static JSON bundle |
-| Countries | Static JSON (basic geography) | name, ISO code, continent, UN region |
-| Country enrichment | REST Countries API | On-demand lazy load for flags, etc. |
+| Data Type          | Source                        | Storage                              |
+| ------------------ | ----------------------------- | ------------------------------------ |
+| Aircraft           | OpenFlights planes.dat        | Static JSON bundle (173 aircraft)    |
+| Airports           | Existing airports.json        | Static JSON bundle                   |
+| Airlines           | Existing airlines.json        | Static JSON bundle                   |
+| Countries          | Static JSON (basic geography) | name, ISO code, continent, UN region |
+| Country enrichment | REST Countries API            | On-demand lazy load for flags, etc.  |
 
 ---
 
@@ -94,11 +95,11 @@ Not elaborate - the showcase modals do the selling.
 
 ### Pre-Login Showcase (3 modals)
 
-| Modal | Content |
-|-------|---------|
-| 1 | "Log Your Journeys - Build your flight collection. Every takeoff, every landing, remembered." |
-| 2 | "Discover Your Stats - Distance flown, countries visited, airlines collected. See your patterns." |
-| 3 | "Compare & Share - Join the leaderboard. Share your aviation story with the world." |
+| Modal | Content                                                                                           |
+| ----- | ------------------------------------------------------------------------------------------------- |
+| 1     | "Log Your Journeys - Build your flight collection. Every takeoff, every landing, remembered."     |
+| 2     | "Discover Your Stats - Distance flown, countries visited, airlines collected. See your patterns." |
+| 3     | "Compare & Share - Join the leaderboard. Share your aviation story with the world."               |
 
 - **Skip button always visible** on every modal
 - Remembered in localStorage (don't show again)
@@ -109,22 +110,22 @@ Not elaborate - the showcase modals do the selling.
 
 ### Core Flight Fields
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| date | ✅ | DATE |
-| origin | ✅ | IATA code |
-| destination | ✅ | IATA code |
-| airline_iata | ✅ | Required for entry |
-| aircraft_icao | ❌ | Optional - leave blank if unknown |
-| flight_number | ❌ | |
-| departure_utc | ❌ | Stored as UTC |
-| arrival_utc | ❌ | Stored as UTC |
-| origin_tz | ❌ | Timezone offset for display |
-| dest_tz | ❌ | Timezone offset for display |
-| distance_km | computed | Typical routing (+10% over great circle) |
+| Field            | Required | Notes                                        |
+| ---------------- | -------- | -------------------------------------------- |
+| date             | ✅       | DATE                                         |
+| origin           | ✅       | IATA code                                    |
+| destination      | ✅       | IATA code                                    |
+| airline_iata     | ✅       | Required for entry                           |
+| aircraft_icao    | ❌       | Optional - leave blank if unknown            |
+| flight_number    | ❌       |                                              |
+| departure_utc    | ❌       | Stored as UTC                                |
+| arrival_utc      | ❌       | Stored as UTC                                |
+| origin_tz        | ❌       | Timezone offset for display                  |
+| dest_tz          | ❌       | Timezone offset for display                  |
+| distance_km      | computed | Typical routing (+10% over great circle)     |
 | duration_minutes | computed | Per-aircraft estimates if times not provided |
-| source | ✅ | 'manual' \| 'ai_import' |
-| is_upcoming | ✅ | Future flights flagged separately |
+| source           | ✅       | 'manual' \| 'ai_import'                      |
+| is_upcoming      | ✅       | Future flights flagged separately            |
 
 ### Not Tracked
 
@@ -141,6 +142,7 @@ This approximates real flight paths better than pure Haversine.
 ### Duration Calculation (when times not provided)
 
 Per-aircraft type estimates:
+
 - Jet (narrow/widebody): ~850 km/h
 - Regional jet: ~750 km/h
 - Turboprop: ~500 km/h
@@ -200,6 +202,7 @@ Per-aircraft type estimates:
 ### Layout Priority
 
 **Stats summary first:**
+
 1. Big numbers: total flights, distance, countries, airlines
 2. Map below (private - not on public profile)
 3. Recent flights list
@@ -212,12 +215,12 @@ Per-aircraft type estimates:
 
 **Progressive unlock:** Tabs appear as user has enough data.
 
-| Tab | Unlock Criteria |
-|-----|-----------------|
-| Overview | Always visible |
-| Avia Geek | 5+ aircraft types |
-| Country Geek | 5+ countries |
-| Duration Stats | 10+ flights |
+| Tab            | Unlock Criteria   |
+| -------------- | ----------------- |
+| Overview       | Always visible    |
+| Avia Geek      | 5+ aircraft types |
+| Country Geek   | 5+ countries      |
+| Duration Stats | 10+ flights       |
 
 ---
 
@@ -225,16 +228,17 @@ Per-aircraft type estimates:
 
 ### User Tiers (Progressive Unlock)
 
-| Tier | Focus |
-|------|-------|
-| **Overview** | Flights, countries, distance, airlines |
-| **Avia Geek** | Aircraft types, manufacturers, engine types, widebody vs narrowbody |
-| **Country Geek** | Continents, regions, hemispheres, UN subregions, completion % |
-| **Duration Stats** | Cumulative hours in air, longest flight, average duration trends |
+| Tier               | Focus                                                               |
+| ------------------ | ------------------------------------------------------------------- |
+| **Overview**       | Flights, countries, distance, airlines                              |
+| **Avia Geek**      | Aircraft types, manufacturers, engine types, widebody vs narrowbody |
+| **Country Geek**   | Continents, regions, hemispheres, UN subregions, completion %       |
+| **Duration Stats** | Cumulative hours in air, longest flight, average duration trends    |
 
 ### Time Metrics (replacing "streaks")
 
 Focus on **Duration milestones:**
+
 - Total hours/days in air
 - Longest single flight
 - Average flight duration
@@ -247,6 +251,7 @@ Focus on **Duration milestones:**
 ### Fun Facts
 
 Comparative framing:
+
 - "Distance to the Moon: 42% complete" (384,400 km)
 - "You've flown X.X trips around Earth" (40,075 km each)
 - "Time in air: X days, Y hours"
@@ -274,6 +279,7 @@ Comparative framing:
 ### Manual Place Addition
 
 Users can:
+
 1. Go to Visited Places view
 2. Search for a town/city
 3. Add it manually (appears in "Also visited" section)
@@ -285,6 +291,7 @@ Users can:
 ### Overview
 
 A personal "Nomad Passport" view at `/passport` with country stamps representing all visited countries. Countries are tracked from two sources:
+
 - **Flight data:** Auto-derived from airport country codes (all touched airports, including layovers)
 - **Manual claims:** For ground travel (land/sea entry methods)
 
@@ -292,14 +299,14 @@ A personal "Nomad Passport" view at `/passport` with country stamps representing
 
 ### Stamp Design
 
-| Element | Implementation |
-|---------|----------------|
-| **Shape** | Regional variation (circle for Asia, rectangle for EU/Americas/Africa/Oceania) |
-| **Colors** | Flag colors as border/accent |
-| **Text** | Native script name + English name |
-| **Date** | Relative format ("2 years ago") |
-| **Visit count** | Ink-stamped corner (×5) |
-| **Background** | User's theme color as subtle tint |
+| Element         | Implementation                                                                 |
+| --------------- | ------------------------------------------------------------------------------ |
+| **Shape**       | Regional variation (circle for Asia, rectangle for EU/Americas/Africa/Oceania) |
+| **Colors**      | Flag colors as border/accent                                                   |
+| **Text**        | Native script name + English name                                              |
+| **Date**        | Relative format ("2 years ago")                                                |
+| **Visit count** | Ink-stamped corner (×5)                                                        |
+| **Background**  | User's theme color as subtle tint                                              |
 
 ### Stamp Interaction
 
@@ -319,6 +326,7 @@ Users can manually claim countries visited by ground travel:
 ### Data Model
 
 **`country_claims` table:**
+
 - `user_id` - Owner
 - `country_code` - ISO 3166-1 alpha-2
 - `claimed_at` - Timestamp
@@ -329,6 +337,7 @@ Users can manually claim countries visited by ground travel:
 ### Country Data
 
 Static JSON with 246 countries/territories:
+
 - ISO 3166-1 alpha-2 codes
 - English and native names
 - Flag colors (dominant + palette)
@@ -339,6 +348,7 @@ Static JSON with 246 countries/territories:
 ### Stats
 
 Passport contributes to user stats:
+
 - Countries count (visits + claims deduplicated)
 - Continents count
 - World completion % (countries / 246 × 100)
@@ -348,6 +358,7 @@ Passport contributes to user stats:
 ### Badges
 
 Continent achievements (3+ countries required):
+
 - **Europhile** - Europe
 - **Asianaut** - Asia
 - **Americas Wanderer** - Americas
@@ -381,13 +392,13 @@ Continent achievements (3+ countries required):
 
 ### Categories
 
-| Category | Metric |
-|----------|--------|
+| Category  | Metric                   |
+| --------- | ------------------------ |
 | countries | Unique countries visited |
-| cities | Unique cities visited |
-| flights | Total flight count |
-| distance | Total km flown |
-| airlines | Unique airlines |
+| cities    | Unique cities visited    |
+| flights   | Total flight count       |
+| distance  | Total km flown           |
+| airlines  | Unique airlines          |
 
 ### Display
 
@@ -424,6 +435,7 @@ User must enable `show_on_leaderboards` in settings to appear.
 ### Actions for Visitors
 
 **Compare stats:**
+
 - Curated comparison by default (top 5 most interesting stats)
 - Option for full side-by-side tables ("You vs Them")
 
@@ -437,16 +449,17 @@ User must enable `show_on_leaderboards` in settings to appear.
 
 ### Categories
 
-| Type | Examples |
-|------|----------|
-| **Milestones** | First Flight, Frequent Flyer (50), Centurion (100), Circumnavigator (40,075 km) |
-| **Explorer** | Arctic Circle (flew above 66°N), Equator Hopper, Island Collector (10 island nations) |
-| **Collector** | Fleet Master (20 aircraft types), Alliance Ace (all 3 major alliances), Retro (flew turboprop) |
-| **Achievement** | Iron Butt (12+ hour flight), Night Owl (10 red-eyes), Jet Setter (3 continents in 30 days) |
+| Type            | Examples                                                                                       |
+| --------------- | ---------------------------------------------------------------------------------------------- |
+| **Milestones**  | First Flight, Frequent Flyer (50), Centurion (100), Circumnavigator (40,075 km)                |
+| **Explorer**    | Arctic Circle (flew above 66°N), Equator Hopper, Island Collector (10 island nations)          |
+| **Collector**   | Fleet Master (20 aircraft types), Alliance Ace (all 3 major alliances), Retro (flew turboprop) |
+| **Achievement** | Iron Butt (12+ hour flight), Night Owl (10 red-eyes), Jet Setter (3 continents in 30 days)     |
 
 ### Display
 
 **Minimal gamification:**
+
 - Just show earned badges
 - Don't display locked badges or progress toward next
 - No active prompts like "Log 2 more to earn..."
@@ -483,6 +496,7 @@ Badges evaluated via database trigger on flight insert.
 ### Keyboard UX
 
 **Enhanced shortcuts:**
+
 - Tab between fields
 - Ctrl+S to save
 - Escape to cancel
@@ -494,18 +508,18 @@ Badges evaluated via database trigger on flight insert.
 
 ### Configurable Preferences
 
-| Setting | Notes |
-|---------|-------|
-| Language | EN / RU |
-| Dark mode | User toggle |
-| Profile visibility | Public / Private |
-| Leaderboard opt-in | Yes / No |
-| Display name | |
-| Bio | 140 chars max |
-| Gemini API key | For post-launch |
-| Distance units | km only (future: user choice) |
-| Date format | User preference |
-| Email preferences | For future notification features |
+| Setting            | Notes                            |
+| ------------------ | -------------------------------- |
+| Language           | EN / RU                          |
+| Dark mode          | User toggle                      |
+| Profile visibility | Public / Private                 |
+| Leaderboard opt-in | Yes / No                         |
+| Display name       |                                  |
+| Bio                | 140 chars max                    |
+| Gemini API key     | For post-launch                  |
+| Distance units     | km only (future: user choice)    |
+| Date format        | User preference                  |
+| Email preferences  | For future notification features |
 
 ---
 
@@ -612,18 +626,19 @@ After core flight logging works:
 
 ### Visual Design
 
-| Aspect | Decision |
-|--------|----------|
-| **Aesthetic** | Modern but playful |
-| **Responsiveness** | Truly responsive (distinct mobile/desktop layouts) |
-| **Animations** | Subtle polish + delightful moments |
-| **Loading states** | Skeleton placeholders |
-| **Color themes** | Light, Dark, + 3 colorful themes (design with /interface-design) |
-| **Dashboard layout** | Hybrid (decide with /interface-design) |
+| Aspect               | Decision                                                         |
+| -------------------- | ---------------------------------------------------------------- |
+| **Aesthetic**        | Modern but playful                                               |
+| **Responsiveness**   | Truly responsive (distinct mobile/desktop layouts)               |
+| **Animations**       | Subtle polish + delightful moments                               |
+| **Loading states**   | Skeleton placeholders                                            |
+| **Color themes**     | Light, Dark, + 3 colorful themes (design with /interface-design) |
+| **Dashboard layout** | Hybrid (decide with /interface-design)                           |
 
 ### Navigation
 
 **Desktop:** Left sidebar with grouped sections
+
 - Personal: Dashboard, Flights, Passport
 - Explore: Stats, Leaderboard
 - Account: Profile, Settings
@@ -631,24 +646,26 @@ After core flight logging works:
 **Sidebar behavior:** Collapsible with icons (user toggleable)
 
 **Mobile:** Bottom tab bar with 5 items
+
 - Dashboard | Flights | **Add** (center, prominent) | Stats | Profile
 
 ### Components
 
-| Component | Implementation |
-|-----------|----------------|
-| **Toasts** | shadcn toast (built-in) |
-| **Autocomplete** | shadcn Combobox |
-| **Date picker** | Calendar dropdown |
-| **Flight list (desktop)** | Table view |
-| **Flight list (mobile)** | Card view |
-| **List pagination** | "Load more" button |
-| **Confirmation dialogs** | Inline confirmation ("Click again to confirm") |
-| **Badges display** | Cards with icon + name + date earned |
+| Component                 | Implementation                                 |
+| ------------------------- | ---------------------------------------------- |
+| **Toasts**                | shadcn toast (built-in)                        |
+| **Autocomplete**          | shadcn Combobox                                |
+| **Date picker**           | Calendar dropdown                              |
+| **Flight list (desktop)** | Table view                                     |
+| **Flight list (mobile)**  | Card view                                      |
+| **List pagination**       | "Load more" button                             |
+| **Confirmation dialogs**  | Inline confirmation ("Click again to confirm") |
+| **Badges display**        | Cards with icon + name + date earned           |
 
 ### Flight Entry Form
 
 **Layout:** Centered modal with progressive disclosure
+
 - Required fields shown first (date, route, airline)
 - "Add more details" expands optional fields (aircraft, times, flight number)
 
@@ -677,6 +694,7 @@ After core flight logging works:
 ### AI Import Loading
 
 **Feedback:** Animated plane + progress steps
+
 - "Reading file..."
 - "Extracting text..."
 - "Finding flights..."
@@ -693,12 +711,14 @@ After core flight logging works:
 ### Keyboard Shortcuts
 
 **Essential only:**
+
 - Cmd+K: Search
 - Escape: Close modals
 
 ### Search/Filter (Flights)
 
 **Capabilities:** Filter dropdowns
+
 - Filter by year
 - Filter by airline
 - Filter by aircraft type
@@ -714,6 +734,7 @@ After core flight logging works:
 ### Error Handling
 
 **Strategy:** Per-route error boundaries
+
 - Each route has its own error boundary
 - Global fallback for unexpected errors
 - Errors don't crash entire app
@@ -721,27 +742,32 @@ After core flight logging works:
 ### Bundle Optimization
 
 **Strategy:** Route-based code splitting
+
 - Lazy load Dashboard, Flights, Settings, Profile routes
 - Map component lazy-loaded within routes
 
 ### Database
 
 **Query pattern:** TanStack Query + Supabase
+
 - useQuery/useMutation wrapping Supabase calls
 - Automatic caching, retry, loading states
 - Optimistic updates for snappy UX
 
 **RLS strategy:** Strict owner-only
+
 - Users can only CRUD their own data
 - Leaderboard/profiles use separate RLS for public read
 
 **Stats computation:** Materialized views with trigger refresh
+
 - Views refresh on flight INSERT/UPDATE/DELETE
 - Always accurate, acceptable at 50-500 user scale
 
 ### Testing
 
 **Strategy:** Unit + component tests
+
 - Vitest + Testing Library
 - Test hooks, utilities, business logic
 - Render tests for key components
@@ -751,29 +777,34 @@ After core flight logging works:
 **Pipeline:** GitHub Actions + preview deployments
 
 On PR:
+
 1. Lint
 2. Type-check
 3. Test
 4. Deploy preview to CF Pages
 
 On merge to main:
+
 - Auto-deploy to production
 
 ### Environments
 
 **Strategy:** Dev + Prod
+
 - Preview deployments for PRs
 - Main branch = production
 
 ### Monitoring
 
 **Strategy:** Sentry for error tracking
+
 - Error tracking dashboard
 - Console logging for development
 
 ### Account Deletion
 
 **Available:** Yes, in settings
+
 - Full GDPR-style delete
 - Remove all user data
 

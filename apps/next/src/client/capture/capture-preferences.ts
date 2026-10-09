@@ -1,10 +1,18 @@
 const PREFIX = 'kuuki:capture:'
 
 export function readCapturePreference<T>(ownerId: string, key: string, fallback: T): T {
-  try { return JSON.parse(localStorage.getItem(`${PREFIX}${ownerId}:${key}`) ?? 'null') ?? fallback } catch { return fallback }
+  try {
+    return JSON.parse(localStorage.getItem(`${PREFIX}${ownerId}:${key}`) ?? 'null') ?? fallback
+  } catch {
+    return fallback
+  }
 }
 export function writeCapturePreference(ownerId: string, key: string, value: unknown) {
-  try { localStorage.setItem(`${PREFIX}${ownerId}:${key}`, JSON.stringify(value)) } catch { /* storage is optional */ }
+  try {
+    localStorage.setItem(`${PREFIX}${ownerId}:${key}`, JSON.stringify(value))
+  } catch {
+    /* storage is optional */
+  }
 }
 export function clearCapturePreferences(ownerId?: string) {
   const prefix = ownerId === undefined ? PREFIX : `${PREFIX}${ownerId}:`
@@ -13,6 +21,8 @@ export function clearCapturePreferences(ownerId?: string) {
     try {
       const storage = globalThis[name]
       for (const key of Object.keys(storage)) if (key.startsWith(prefix)) storage.removeItem(key)
-    } catch { /* either store may be unavailable independently */ }
+    } catch {
+      /* either store may be unavailable independently */
+    }
   }
 }

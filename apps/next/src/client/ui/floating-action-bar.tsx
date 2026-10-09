@@ -16,7 +16,9 @@ export type FloatingActionBarProps = {
 export function FloatingActionBar({ label, countLabel, children }: FloatingActionBarProps) {
   return (
     <div className="ui-action-bar" role="region" aria-label={label}>
-      <span className="ui-action-bar-count" aria-live="polite">{countLabel}</span>
+      <span className="ui-action-bar-count" aria-live="polite">
+        {countLabel}
+      </span>
       <div className="ui-action-bar-actions">{children}</div>
     </div>
   )

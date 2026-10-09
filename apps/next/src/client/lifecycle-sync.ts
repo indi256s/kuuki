@@ -46,7 +46,9 @@ const memory = new Map<string, number>()
 let inFlight: Promise<OwnerSyncOutcome | null> | null = null
 
 /** An identity reset removes every owner's throttle, so the next owner on this browser syncs on first sight. */
-export function clearOwnerSyncMarkers(storage: Pick<Storage, 'length' | 'key' | 'removeItem'> | null): void {
+export function clearOwnerSyncMarkers(
+  storage: Pick<Storage, 'length' | 'key' | 'removeItem'> | null,
+): void {
   memory.clear()
   try {
     if (!storage) return
@@ -56,7 +58,9 @@ export function clearOwnerSyncMarkers(storage: Pick<Storage, 'length' | 'key' | 
       if (key?.startsWith(KEY_PREFIX)) keys.push(key)
     }
     for (const key of keys) storage.removeItem(key)
-  } catch { /* blocked storage: nothing to clear */ }
+  } catch {
+    /* blocked storage: nothing to clear */
+  }
 }
 
 /** Test seam: the in-memory guard outlives a test otherwise. */
@@ -70,28 +74,45 @@ function lastRun(key: string, deps: OwnerSyncDeps): number | null {
   try {
     const raw = deps.storage?.getItem(key)
     stored = raw ? Number(raw) : null
-  } catch { /* blocked storage falls back to memory */ }
-  const values = [stored, memory.get(key) ?? null].filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+  } catch {
+    /* blocked storage falls back to memory */
+  }
+  const values = [stored, memory.get(key) ?? null].filter(
+    (value): value is number => typeof value === 'number' && Number.isFinite(value),
+  )
   return values.length ? Math.max(...values) : null
 }
 
 function remember(key: string, at: number, deps: OwnerSyncDeps): void {
   memory.set(key, at)
-  try { deps.storage?.setItem(key, String(at)) } catch { /* ignore */ }
+  try {
+    deps.storage?.setItem(key, String(at))
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Resolves null when nothing ran (guest, too soon, another run in flight, or failure before any pass completed). */
-export function syncOwner(ownerId: string | null | undefined, deps: OwnerSyncDeps): Promise<OwnerSyncOutcome | null> {
+export function syncOwner(
+  ownerId: string | null | undefined,
+  deps: OwnerSyncDeps,
+): Promise<OwnerSyncOutcome | null> {
   if (!ownerId) return Promise.resolve(null) // guests and unconfirmed identities never trigger a write
   if (inFlight) return Promise.resolve(null)
   const key = KEY_PREFIX + ownerId
   const started = deps.now()
   const last = lastRun(key, deps)
-  if (last !== null && started >= last && started - last < OWNER_SYNC_INTERVAL_MS) return Promise.resolve(null)
+  if (last !== null && started >= last && started - last < OWNER_SYNC_INTERVAL_MS)
+    return Promise.resolve(null)
   remember(key, started, deps)
 
   inFlight = (async () => {
-    const outcome: OwnerSyncOutcome = { changed: false, synced: 0, derivedState: null, revision: null }
+    const outcome: OwnerSyncOutcome = {
+      changed: false,
+      synced: 0,
+      derivedState: null,
+      revision: null,
+    }
     for (let pass = 0; pass < OWNER_SYNC_MAX_PASSES; pass++) {
       if (!deps.current()) break
       let reply: SyncReply
@@ -114,6 +135,8 @@ export function syncOwner(ownerId: string | null | undefined, deps: OwnerSyncDep
       await deps.sleep(PASS_DELAY_MS)
     }
     return outcome
-  })().finally(() => { inFlight = null })
+  })().finally(() => {
+    inFlight = null
+  })
   return inFlight
 }

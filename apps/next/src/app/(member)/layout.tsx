@@ -9,5 +9,10 @@ import { getRequestLocale } from '../../server/locale'
 export default async function MemberLayout({ children }: { children: ReactNode }) {
   const own = await requireOnboardedMember()
   const locale = await getRequestLocale()
-  return <MemberShell locale={locale}><BadgeNotifications key={own.ownerId} ownerId={own.ownerId} locale={locale} /><RouteStage stage="page">{children}</RouteStage></MemberShell>
+  return (
+    <MemberShell locale={locale}>
+      <BadgeNotifications key={own.ownerId} ownerId={own.ownerId} locale={locale} />
+      <RouteStage stage="page">{children}</RouteStage>
+    </MemberShell>
+  )
 }

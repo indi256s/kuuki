@@ -6,13 +6,12 @@ import { derivedStateJoin, PUBLISHED_DERIVED_STATE } from '../_lib/leaderboard'
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
-    const row = await context.env.DB
-      .prepare(`SELECT COUNT(DISTINCT lc.user_id) AS total FROM leaderboard_cache lc
+    const row =
+      await context.env.DB.prepare(`SELECT COUNT(DISTINCT lc.user_id) AS total FROM leaderboard_cache lc
          JOIN profiles p ON p.id = lc.user_id
          JOIN user_stats us ON us.user_id = lc.user_id
          ${derivedStateJoin('lc')}
          WHERE lc.category = 'flights' AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
-           AND ${PUBLISHED_DERIVED_STATE}`)
-      .first<{ total: number }>()
+           AND ${PUBLISHED_DERIVED_STATE}`).first<{ total: number }>()
     return json({ total: row?.total ?? 0 })
   })

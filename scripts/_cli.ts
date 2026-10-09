@@ -10,7 +10,8 @@ export const MAX_REVIEW_AGE_MS = 24 * 60 * 60 * 1000
 
 export function requiredArg(argv: string[], name: string): string {
   const at = argv.indexOf(name)
-  if (at < 0 || !argv[at + 1] || argv[at + 1].startsWith('--')) throw new Error(`Required argument: ${name}`)
+  if (at < 0 || !argv[at + 1] || argv[at + 1].startsWith('--'))
+    throw new Error(`Required argument: ${name}`)
   return argv[at + 1]
 }
 
@@ -21,8 +22,10 @@ export function privateOutputPath(raw: string): string {
   const allowed = [realpathSync(tmpdir())]
   const snapshot = join(ROOT, 'db', '_snapshot')
   if (existsSync(snapshot)) allowed.push(realpathSync(snapshot))
-  if (!allowed.some(base => parent === base || parent.startsWith(base + sep))) {
-    throw new Error('--output-sql must be inside the temporary directory or gitignored db/_snapshot')
+  if (!allowed.some((base) => parent === base || parent.startsWith(base + sep))) {
+    throw new Error(
+      '--output-sql must be inside the temporary directory or gitignored db/_snapshot',
+    )
   }
   return path
 }

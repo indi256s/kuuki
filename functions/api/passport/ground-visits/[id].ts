@@ -4,11 +4,16 @@ import { runHandler, json } from '../../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../../_lib/auth'
 import { dirtyUserStatement, repairUserDerivedState } from '../../_services/derivedState'
 
-export const onRequestDelete: PagesFunction<Env, string, RequestData> = context =>
+export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
   deleteGroundVisitRequest(context.request, context.env, context.data, context.params.id as string)
 
 /** Request/Response entry keeps compatibility transport separate from domain writes. */
-export function deleteGroundVisitRequest(request: Request, env: Env, data: RequestData, rawId: string): Promise<Response> {
+export function deleteGroundVisitRequest(
+  request: Request,
+  env: Env,
+  data: RequestData,
+  rawId: string,
+): Promise<Response> {
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
@@ -19,6 +24,9 @@ export function deleteGroundVisitRequest(request: Request, env: Env, data: Reque
       dirtyUserStatement(env.DB, user.id, true),
     ])
 
-    return json({ ok: true, ...(result.meta.changes ? await repairUserDerivedState(env.DB, user.id) : {}) })
+    return json({
+      ok: true,
+      ...(result.meta.changes ? await repairUserDerivedState(env.DB, user.id) : {}),
+    })
   })
 }

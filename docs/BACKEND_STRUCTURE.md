@@ -41,12 +41,12 @@
 
 ### Key Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| Direct Supabase access | No backend server to maintain |
-| RLS for security | Database-level authorization |
-| Worker for AI only | Single responsibility, hides API key |
-| Trigger-based stats | Pre-computed for fast reads |
+| Decision               | Rationale                            |
+| ---------------------- | ------------------------------------ |
+| Direct Supabase access | No backend server to maintain        |
+| RLS for security       | Database-level authorization         |
+| Worker for AI only     | Single responsibility, hides API key |
+| Trigger-based stats    | Pre-computed for fast reads          |
 
 ---
 
@@ -411,7 +411,7 @@ EXECUTE FUNCTION handle_new_user();
 ```typescript
 interface ParseRequest {
   type: 'pdf' | 'image' | 'text'
-  content: string  // base64 for files, plain text for text
+  content: string // base64 for files, plain text for text
 }
 ```
 
@@ -420,19 +420,19 @@ interface ParseRequest {
 ```typescript
 interface ParseResponse {
   flights: ParsedFlight[]
-  raw_text?: string  // For debugging
+  raw_text?: string // For debugging
 }
 
 interface ParsedFlight {
-  date: string           // ISO date
-  origin: string         // IATA code
-  destination: string    // IATA code
+  date: string // ISO date
+  origin: string // IATA code
+  destination: string // IATA code
   airline_iata?: string
   aircraft_icao?: string
   flight_number?: string
   departure_utc?: string // ISO timestamp
-  arrival_utc?: string   // ISO timestamp
-  confidence: number     // 0-1
+  arrival_utc?: string // ISO timestamp
+  confidence: number // 0-1
 }
 ```
 
@@ -456,7 +456,7 @@ export async function onRequest(context: EventContext) {
   }
 
   try {
-    const body = await request.json() as ParseRequest
+    const body = (await request.json()) as ParseRequest
 
     // Call Gemini API
     const gemini = new GoogleGenerativeAI(env.GEMINI_API_KEY)
@@ -469,10 +469,7 @@ export async function onRequest(context: EventContext) {
 
     return Response.json({ flights })
   } catch (error) {
-    return Response.json(
-      { error: 'Parse failed', code: 'PARSE_FAILED' },
-      { status: 500 }
-    )
+    return Response.json({ error: 'Parse failed', code: 'PARSE_FAILED' }, { status: 500 })
   }
 }
 ```
@@ -483,12 +480,12 @@ export async function onRequest(context: EventContext) {
 
 ### Supabase Auth Configuration
 
-| Setting | Value |
-|---------|-------|
-| Provider | Email/Password |
-| Session duration | 30 days |
-| Email verification | Optional |
-| Password reset | Requires verified email |
+| Setting            | Value                   |
+| ------------------ | ----------------------- |
+| Provider           | Email/Password          |
+| Session duration   | 30 days                 |
+| Email verification | Optional                |
+| Password reset     | Requires verified email |
 
 ### Auth Flow
 
@@ -553,21 +550,21 @@ Triggers fire for each flight
 
 ### Supabase Errors
 
-| Error Code | Meaning | Action |
-|------------|---------|--------|
-| `PGRST301` | RLS violation | Redirect to login |
-| `23505` | Unique constraint | Show "already exists" |
-| `23503` | Foreign key | Invalid reference |
-| Network error | Connection failed | Retry with backoff |
+| Error Code    | Meaning           | Action                |
+| ------------- | ----------------- | --------------------- |
+| `PGRST301`    | RLS violation     | Redirect to login     |
+| `23505`       | Unique constraint | Show "already exists" |
+| `23503`       | Foreign key       | Invalid reference     |
+| Network error | Connection failed | Retry with backoff    |
 
 ### Worker Errors
 
-| Code | HTTP Status | Meaning |
-|------|-------------|---------|
-| `PARSE_FAILED` | 500 | Gemini couldn't parse |
-| `NO_FLIGHTS_FOUND` | 400 | No valid flights in input |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `API_ERROR` | 502 | Gemini API down |
+| Code               | HTTP Status | Meaning                   |
+| ------------------ | ----------- | ------------------------- |
+| `PARSE_FAILED`     | 500         | Gemini couldn't parse     |
+| `NO_FLIGHTS_FOUND` | 400         | No valid flights in input |
+| `RATE_LIMITED`     | 429         | Too many requests         |
+| `API_ERROR`        | 502         | Gemini API down           |
 
 ---
 
@@ -575,12 +572,12 @@ Triggers fire for each flight
 
 ### Indexes
 
-| Table | Index | Purpose |
-|-------|-------|---------|
-| flights | (user_id, date DESC) | User's flight list |
-| flights | (airline_iata) | Filter by airline |
-| profiles | (username) | Profile lookup |
-| profiles | (is_public) | Leaderboard queries |
+| Table    | Index                | Purpose             |
+| -------- | -------------------- | ------------------- |
+| flights  | (user_id, date DESC) | User's flight list  |
+| flights  | (airline_iata)       | Filter by airline   |
+| profiles | (username)           | Profile lookup      |
+| profiles | (is_public)          | Leaderboard queries |
 
 ### Denormalization
 
@@ -601,16 +598,19 @@ Triggers fire for each flight
 **Location:** `supabase/migrations/`
 
 **Creating:**
+
 ```bash
 supabase migration new <name>
 ```
 
 **Applying:**
+
 ```bash
 supabase db push
 ```
 
 **Best Practices:**
+
 - One migration per feature
 - Always include rollback
 - Test locally first
@@ -619,8 +619,8 @@ supabase db push
 
 ## Related Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [PRD.md](./PRD.md) | Product requirements |
-| [TECH_STACK.md](./TECH_STACK.md) | Dependencies |
-| [PLAN.md](./PLAN.md) | Implementation status |
+| Document                         | Purpose               |
+| -------------------------------- | --------------------- |
+| [PRD.md](./PRD.md)               | Product requirements  |
+| [TECH_STACK.md](./TECH_STACK.md) | Dependencies          |
+| [PLAN.md](./PLAN.md)             | Implementation status |

@@ -16,13 +16,13 @@ The final comparison below uses **committed Arc main** as its baseline;
 unrelated local work is excluded. Counts include expanded runner cases.
 Standalone smoke assertions and build steps are not counted as runner cases.
 
-| Suite | Full inventory before | CI cases before | After | Net retired |
-| --- | ---: | ---: | ---: | ---: |
-| API, shared and data Vitest | 1,047 | 1,047 | 630 | 417 |
-| Next component/unit Vitest | 1,456 | 1,456 | 627 | 829 |
-| Playwright browser journeys | 161 | 101 | 37 | 124 |
-| Preview config and dependency-patch Node tests | 11 | 11 | 11 | 0 |
-| **Total** | **2,675** | **2,615** | **1,305** | **1,370** |
+| Suite                                          | Full inventory before | CI cases before |     After | Net retired |
+| ---------------------------------------------- | --------------------: | --------------: | --------: | ----------: |
+| API, shared and data Vitest                    |                 1,047 |           1,047 |       630 |         417 |
+| Next component/unit Vitest                     |                 1,456 |           1,456 |       627 |         829 |
+| Playwright browser journeys                    |                   161 |             101 |        37 |         124 |
+| Preview config and dependency-patch Node tests |                    11 |              11 |        11 |           0 |
+| **Total**                                      |             **2,675** |       **2,615** | **1,305** |   **1,370** |
 
 Net case retirement is **51.21%** of the full inventory; CI executes
 **50.10% fewer cases** (2,615 → 1,305). The old browser filename/grep selection
@@ -34,14 +34,14 @@ browser transition-recording helpers were removed.
 
 ## Coverage decisions
 
-| Retired coverage | Remaining primary protection | Accepted loss |
-| --- | --- | --- |
-| Overview math/classification matrices, randomized properties, alliance/manufacturer catalogs and reader parity | Shared golden fixtures with independent oracles, aggregate/prefs, API overview data/country policy/route projection, generated region admission | Fewer statistical, date, geometry, classification and volume edge probes |
-| Overview/globe/replay/narrator/layout, formatting, palette and display suites | Owner-scoped OverviewProvider, server adapters, actual chart SSR/keyboard/touch tests, map asset and WebGL fallback journeys | Less motion, contrast, viewport, copy, ordering and offscreen lifecycle coverage |
-| Journal presentation/filter matrix and Passport model/grid/collection cases | Deferred delete/Undo/arrival queue units; real filtered bulk delete, cancel-on-leave, retry, keyboard and country mutation journeys | Less navigation timing, focus restoration, sorting and URL permutation coverage |
-| Import prompt/text and subordinate question/review/error catalog cases | Provider/runtime/draft/receipt tests; client recognition/review reload, typed correction, partial retry, confirm and manual-save tests | Less recognition quality, prompt wording, candidate, confidence, error-code and locale coverage |
-| Browser visual/theme/locale/route animation matrices and overlapping happy paths | Actual sign-in/signup/reset/session revocation, privacy isolation, safe downloaded CSV, uncertain capture retry, settings deletion/history guard, PWA retirement and persisted/system theme | Less malformed UI-reply, legacy URL, mobile geometry, reduced-motion and language-switch coverage |
-| Repeated enabled Button click, EN offline/error/focus matrix, airport query permutations and calendar display cases | Full Button pending/failure/retry lifecycle; RU offline/error/focus; both locales' manual writes, typed dates and calendar keyboard controls | Less EN outcome wording, name-search variation, month-end clamping and today decoration coverage |
+| Retired coverage                                                                                                    | Remaining primary protection                                                                                                                                                                | Accepted loss                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Overview math/classification matrices, randomized properties, alliance/manufacturer catalogs and reader parity      | Shared golden fixtures with independent oracles, aggregate/prefs, API overview data/country policy/route projection, generated region admission                                             | Fewer statistical, date, geometry, classification and volume edge probes                          |
+| Overview/globe/replay/narrator/layout, formatting, palette and display suites                                       | Owner-scoped OverviewProvider, server adapters, actual chart SSR/keyboard/touch tests, map asset and WebGL fallback journeys                                                                | Less motion, contrast, viewport, copy, ordering and offscreen lifecycle coverage                  |
+| Journal presentation/filter matrix and Passport model/grid/collection cases                                         | Deferred delete/Undo/arrival queue units; real filtered bulk delete, cancel-on-leave, retry, keyboard and country mutation journeys                                                         | Less navigation timing, focus restoration, sorting and URL permutation coverage                   |
+| Import prompt/text and subordinate question/review/error catalog cases                                              | Provider/runtime/draft/receipt tests; client recognition/review reload, typed correction, partial retry, confirm and manual-save tests                                                      | Less recognition quality, prompt wording, candidate, confidence, error-code and locale coverage   |
+| Browser visual/theme/locale/route animation matrices and overlapping happy paths                                    | Actual sign-in/signup/reset/session revocation, privacy isolation, safe downloaded CSV, uncertain capture retry, settings deletion/history guard, PWA retirement and persisted/system theme | Less malformed UI-reply, legacy URL, mobile geometry, reduced-motion and language-switch coverage |
+| Repeated enabled Button click, EN offline/error/focus matrix, airport query permutations and calendar display cases | Full Button pending/failure/retry lifecycle; RU offline/error/focus; both locales' manual writes, typed dates and calendar keyboard controls                                                | Less EN outcome wording, name-search variation, month-end clamping and today decoration coverage  |
 
 All auth/CSRF/ownership, schema/migration/preservation, receipt/concurrency/rollback
 and flight-write suites remain. This does not claim that every security or

@@ -1,4 +1,5 @@
 Execution ledger: execution-ledger/v1
+
 # Arc integration execution handoff
 
 Plan: [2026-10-08-arc-integration.md](2026-10-08-arc-integration.md), wave-plan/v1. Exact copied input SHA256: 8703b5460f7e713d10999b1a08df5cdfff97298621ed8f0287beb6c204cd113f; authority/profile updated after copy.
@@ -7,15 +8,15 @@ Authority: All five waves and 13 additions, local checks/fixes, independent revi
 Runtime: Primary GPT-6.1 Sol high; native Codex delegation and app-owned T3 Sonnet delegation; shared filesystem; one writer per path. Live capabilities verified 2026-10-08.
 Profiles: Codex implementation GPT-6.1 Sol medium, Sonnet implementation Claude Sonnet 5.5 medium; independent review either high. No Opus.
 
-| Node | Owner / receipt | State | Owned paths / evidence |
-|---|---|---|---|
-| Baseline | Primary | Accepted | Frozen-lock install passes; initial build failed before install; fresh baseline build /tmp/kuuki-arc-baseline-build.log |
-| W1 source inventory | Sonnet medium; taskId node:delegated-task:command%3Amcp%3Ae7ac856b-edcb-4230-9490-ec2274f22b03%3Adelegate-task%3Aarc-w1-source-20261008 | Accepted | docs/research/2026-10-08-arc-source-inventory.md, client/ui/ARC-LICENSE.txt; staging /tmp/kuuki-arc-source |
-| W1 common kit | GPT-6.1 Sol medium /root/w1_common | Accepted | Shared controls/styles/manifests; primary retains foundation ownership until assigned |
-| W2 | Primary, Sol producer, Sonnet Journal | Accepted | Range/shared/API contracts, advanced UI, Journal/Capture |
-| W3 | Sonnet Import; Sol Passport; primary Manage | Accepted | Import/Passport consumers |
-| W4 | Sonnet Auth/onboarding; Sol Settings; primary shell/public profile | Accepted | Shell/account/auth/public consumers |
-| W5 | Sol host/Rankings/Globe; Sonnet Ridgeline/Fleet/Clock/Crossings; primary Rhythm/Hero/series/removal | Accepted | All nine Arc charts, non-equivalent local SVG views, full TanStack Charts removal |
+| Node                | Owner / receipt                                                                                                                         | State    | Owned paths / evidence                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Baseline            | Primary                                                                                                                                 | Accepted | Frozen-lock install passes; initial build failed before install; fresh baseline build /tmp/kuuki-arc-baseline-build.log |
+| W1 source inventory | Sonnet medium; taskId node:delegated-task:command%3Amcp%3Ae7ac856b-edcb-4230-9490-ec2274f22b03%3Adelegate-task%3Aarc-w1-source-20261008 | Accepted | docs/research/2026-10-08-arc-source-inventory.md, client/ui/ARC-LICENSE.txt; staging /tmp/kuuki-arc-source              |
+| W1 common kit       | GPT-6.1 Sol medium /root/w1_common                                                                                                      | Accepted | Shared controls/styles/manifests; primary retains foundation ownership until assigned                                   |
+| W2                  | Primary, Sol producer, Sonnet Journal                                                                                                   | Accepted | Range/shared/API contracts, advanced UI, Journal/Capture                                                                |
+| W3                  | Sonnet Import; Sol Passport; primary Manage                                                                                             | Accepted | Import/Passport consumers                                                                                               |
+| W4                  | Sonnet Auth/onboarding; Sol Settings; primary shell/public profile                                                                      | Accepted | Shell/account/auth/public consumers                                                                                     |
+| W5                  | Sol host/Rankings/Globe; Sonnet Ridgeline/Fleet/Clock/Crossings; primary Rhythm/Hero/series/removal                                     | Accepted | All nine Arc charts, non-equivalent local SVG views, full TanStack Charts removal                                       |
 
 Accepted waves: W1–W5, all 13 additions and the mapped-screen migration for the bound baseline. Historical Release 3 visual skips and checks are context only; this thread follows current user test/review instructions. The chronological checkpoints below are superseded by the final acceptance record when present.
 Events: Handoff exact-copy hash verified; source HEAD reconciled; DESIGN, coding standards, glossary, issue-tracker and Overview handoff inspected. Dependencies were absent; installed from frozen lock.
@@ -65,16 +66,16 @@ All five waves accepted for the bound `4b4fe54e1df31c486fb2de8b47970e82bc824ded`
 
 Final checks and retained logs:
 
-| Check | Result / evidence |
-|---|---|
-| Next unit suite | 1456 tests / 145 files pass, `/tmp/kuuki-arc-final-next-tests.log`; final test-only union repair 38/1 pass, `/tmp/kuuki-arc-final-section-types-repair.log`; final Journal handoff affected rerun 81/3 pass, `/tmp/kuuki-arc-final-journal-handoff-tests.log`. Broad unaffected evidence reused after these bounded edits. |
-| API/shared suite | 1047 / 80 pass, `/tmp/kuuki-arc-final-api-tests.log`; pure-engine goldens retained. |
-| Lint/types | Full Next lint and API types pass, `/tmp/kuuki-arc-final-{lint,api-types}.log`; changed Journal/browser files pass focused lint. Final post-build Next types pass, `/tmp/kuuki-arc-final-next-types-accepted.log`. |
-| Production build | `pnpm next:build` exit 0, `/tmp/kuuki-arc-final-build-journal.log`: Node 24.18.0, pnpm 9.15.0, Next 16.3.8 / OpenNext 1.20.8, 124 assets / 10,172,977 bytes, 73 API routes. |
-| Full navigation | `pnpm test:next:navigation`: **161 pass**, 4.7m, `/tmp/kuuki-arc-final-navigation-accepted.log`. Earlier interrupted run stopped at 46; it is not acceptance evidence. Final complete run uses the unchanged current build. |
-| Actual Worker renderer | `pnpm next:smoke` exit 0, `/tmp/kuuki-arc-final-workerd-smoke.log`; PNG 1200×1500 / 13,391 bytes, unauthorized/invalid-filter checks, zero outbound calls. Dispatch/auth/static boundaries unchanged; no extra boundary-smoke gate required. |
-| Import/dependency audit | No TanStack Charts production/test import or root/app/lock declaration; separate React Query remains. Archived `.scratch/overview-redesign/prototype/charts` is unchanged and outside the workspace. Motion and unused d3-scale/types removed after caller proof. |
-| Independent review | Sol-high foundation/shared/API/host, Journal, Import/Passport, Auth/Settings/shell, all W5 sections/globe/replay lanes approved after fixes. Final Sol-high documentation review verified all 13 callers and all 277 inventory hashes; bundle alias-count and result-type corrections applied. No unresolved source blocker. |
+| Check                   | Result / evidence                                                                                                                                                                                                                                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Next unit suite         | 1456 tests / 145 files pass, `/tmp/kuuki-arc-final-next-tests.log`; final test-only union repair 38/1 pass, `/tmp/kuuki-arc-final-section-types-repair.log`; final Journal handoff affected rerun 81/3 pass, `/tmp/kuuki-arc-final-journal-handoff-tests.log`. Broad unaffected evidence reused after these bounded edits.   |
+| API/shared suite        | 1047 / 80 pass, `/tmp/kuuki-arc-final-api-tests.log`; pure-engine goldens retained.                                                                                                                                                                                                                                          |
+| Lint/types              | Full Next lint and API types pass, `/tmp/kuuki-arc-final-{lint,api-types}.log`; changed Journal/browser files pass focused lint. Final post-build Next types pass, `/tmp/kuuki-arc-final-next-types-accepted.log`.                                                                                                           |
+| Production build        | `pnpm next:build` exit 0, `/tmp/kuuki-arc-final-build-journal.log`: Node 24.18.0, pnpm 9.15.0, Next 16.3.8 / OpenNext 1.20.8, 124 assets / 10,172,977 bytes, 73 API routes.                                                                                                                                                  |
+| Full navigation         | `pnpm test:next:navigation`: **161 pass**, 4.7m, `/tmp/kuuki-arc-final-navigation-accepted.log`. Earlier interrupted run stopped at 46; it is not acceptance evidence. Final complete run uses the unchanged current build.                                                                                                  |
+| Actual Worker renderer  | `pnpm next:smoke` exit 0, `/tmp/kuuki-arc-final-workerd-smoke.log`; PNG 1200×1500 / 13,391 bytes, unauthorized/invalid-filter checks, zero outbound calls. Dispatch/auth/static boundaries unchanged; no extra boundary-smoke gate required.                                                                                 |
+| Import/dependency audit | No TanStack Charts production/test import or root/app/lock declaration; separate React Query remains. Archived `.scratch/overview-redesign/prototype/charts` is unchanged and outside the workspace. Motion and unused d3-scale/types removed after caller proof.                                                            |
+| Independent review      | Sol-high foundation/shared/API/host, Journal, Import/Passport, Auth/Settings/shell, all W5 sections/globe/replay lanes approved after fixes. Final Sol-high documentation review verified all 13 callers and all 277 inventory hashes; bundle alias-count and result-type corrections applied. No unresolved source blocker. |
 
 Initial-render evidence is behavioral: actual SVG SSR and hydrateRoot preservation pass, Hero totals render immediately, lazy height/preload/visibility/observer cleanup and modal touch-action/Escape/focus assertions pass. Existing full browser journeys cover 320/390/1440px, EN/RU, themes, keyboard, reduced motion, overlays, copy fallback, Undo, owner/privacy and partial-write recovery. No production first-paint performance benchmark is claimed.
 
@@ -102,11 +103,11 @@ The user’s explicit “commit, merge and deploy” authorization was completed
 
 The app-bound feature worktree was fast-forwarded to the exact `origin/main` candidate and was clean for build/deployment. Its branch binding was retained instead of switching the dirty root checkout; no root files, local main branch or other worktree were updated. Fresh package and OpenNext builds passed: `/tmp/kuuki-arc-release-{packages,main}-build.log`, 124 static assets / **10,173,014 bytes**, 73 API routes. No migration was added or applied: production and preview ledgers contain all nine migration names.
 
-| Target | New version (100% traffic) | Retained pre-release rollback version |
-|---|---|---|
+| Target               | New version (100% traffic)             | Retained pre-release rollback version              |
+| -------------------- | -------------------------------------- | -------------------------------------------------- |
 | `kuuki-next-preview` | `fd991677-0132-43fc-96ba-bc1adfe6a863` | Preview is isolated; no production rollback change |
-| `kuuki-next` | `2d440d54-f3f7-4241-879d-4a81c0d7260d` | `d91b1cb4-22bf-4147-b510-989594a433de` |
-| `kuuki-activation` | `fec04eb3-1ac8-433a-9b19-5f9e8255ef61` | `f8e53b74-f761-484c-a639-0ee137274826` |
+| `kuuki-next`         | `2d440d54-f3f7-4241-879d-4a81c0d7260d` | `d91b1cb4-22bf-4147-b510-989594a433de`             |
+| `kuuki-activation`   | `fec04eb3-1ac8-433a-9b19-5f9e8255ef61` | `f8e53b74-f761-484c-a639-0ee137274826`             |
 
 All deployments used the same built candidate, `--no-autoconfig --strict`, tag `427953e5` and message `Arc integration (PR #51)`. Preview HTML and `/api/auth/get-session` returned 200 with expected HTML / anonymous `null`. Production [canonical HTML](https://kuuki.marchstudio.uk/), anonymous session endpoint and [activation page](https://kuuki-activation.indi256s.workers.dev/activate) returned the expected 200 responses. Read-back deployment status confirms both production versions at 100% traffic with the candidate tag. Receipts `/tmp/kuuki-arc-release-{preview,production}-http.json`, `*-deploy.log`, `*-active.log`, and `*-rollback.log`. No authenticated production writes or mail were used for verification.
 

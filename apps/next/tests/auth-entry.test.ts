@@ -11,13 +11,17 @@ function card(page: Page) {
     password: page.getByLabel('Password', { exact: true }),
     cantSignIn: page.getByRole('link', { name: 'Can’t sign in?', exact: true }),
     continue: page.getByRole('button', { name: 'Continue', exact: true }),
-    tagline: page.getByText(new RegExp(`^(${TAGLINES.map(line => line.replace(/[.?]/g, '\\$&')).join('|')})$`)),
+    tagline: page.getByText(
+      new RegExp(`^(${TAGLINES.map((line) => line.replace(/[.?]/g, '\\$&')).join('|')})$`),
+    ),
   }
 }
 
 /** Continue spends `signin:<ip>` and every `create` answer also spends `signup:<ip>`, so each journey gets its own IP. */
 async function ownIp(page: Page, baseURL: string) {
-  await page.setExtraHTTPHeaders({ 'CF-Connecting-IP': fixtureHeaders(baseURL)['CF-Connecting-IP'] })
+  await page.setExtraHTTPHeaders({
+    'CF-Connecting-IP': fixtureHeaders(baseURL)['CF-Connecting-IP'],
+  })
 }
 
 const newEmail = () => `new-${crypto.randomUUID()}@example.test`
@@ -36,11 +40,16 @@ function createStep(page: Page) {
 }
 
 async function expectDarkChangeInk(change: Locator) {
-  const paint = await change.evaluate(element => {
+  const paint = await change.evaluate((element) => {
     const style = getComputedStyle(element)
     let ancestor = element.parentElement
-    while (ancestor && getComputedStyle(ancestor).backgroundColor === 'rgba(0, 0, 0, 0)') ancestor = ancestor.parentElement
-    return { color: style.color, background: style.backgroundColor, paintedBackground: ancestor ? getComputedStyle(ancestor).backgroundColor : null }
+    while (ancestor && getComputedStyle(ancestor).backgroundColor === 'rgba(0, 0, 0, 0)')
+      ancestor = ancestor.parentElement
+    return {
+      color: style.color,
+      background: style.backgroundColor,
+      paintedBackground: ancestor ? getComputedStyle(ancestor).backgroundColor : null,
+    }
   })
   expect(paint.background).toBe('rgba(0, 0, 0, 0)')
   expect(paint.paintedBackground).toBe('rgb(64, 61, 58)')
@@ -61,42 +70,69 @@ async function reachCreateStep(page: Page, email: string, password = 'personal-p
   return s
 }
 
-test('Continue with known credentials lands in the journal, even when session bootstrap is unavailable', async ({ page, baseURL }) => {
+test('Continue with known credentials lands in the journal, even when session bootstrap is unavailable', async ({
+  page,
+  baseURL,
+}) => {
   await ownIp(page, baseURL!)
-  await page.route('**/api/auth/me', route => route.fulfill({ status: 503, json: { error: 'Unavailable', code: 'UNAVAILABLE' } }))
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({ status: 503, json: { error: 'Unavailable', code: 'UNAVAILABLE' } }),
+  )
   await page.goto('/')
   const c = card(page)
   await c.email.fill('a@example.test')
   await c.password.fill('rehearsal-password-2026')
-  const request = page.waitForRequest(request => request.url().endsWith('/api/auth/continue') && request.method() === 'POST')
+  const request = page.waitForRequest(
+    (request) => request.url().endsWith('/api/auth/continue') && request.method() === 'POST',
+  )
   await c.password.press('Enter')
-  expect((await request).postDataJSON()).toEqual({ email: 'a@example.test', password: 'rehearsal-password-2026' })
+  expect((await request).postDataJSON()).toEqual({
+    email: 'a@example.test',
+    password: 'rehearsal-password-2026',
+  })
   await expect(page).toHaveURL(/\/overview$/)
 })
 
-test('a wrong password keeps the email, shows the error with an icon and offers a link to get back in', async ({ page, baseURL }) => {
+test('a wrong password keeps the email, shows the error with an icon and offers a link to get back in', async ({
+  page,
+  baseURL,
+}) => {
   await ownIp(page, baseURL!)
   await page.goto('/')
   const c = card(page)
   // A migrated account with no usable password (RESET_REQUIRED) gets the same state as a wrong password.
   for (const email of ['a@example.test', 'ranked@example.test']) {
     await continueAs(page, email, 'wrong-password')
-    const error = page.locator('main').getByRole('alert').filter({ hasText: 'Email or password is incorrect.' })
+    const error = page
+      .locator('main')
+      .getByRole('alert')
+      .filter({ hasText: 'Email or password is incorrect.' })
     await expect(error).toBeVisible()
     await expect(error.locator('svg')).toBeVisible()
     await expect(c.email).toHaveValue(email)
     await expect(c.password).toHaveAttribute('aria-invalid', 'true')
     await expect(c.heading).toBeFocused()
-    await expect(page.getByRole('button', { name: 'Email me a link to get back in', exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: 'Email me a link to get back in', exact: true }),
+    ).toBeVisible()
   }
   await page.getByRole('button', { name: 'Email me a link to get back in', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Get back into Kuuki', exact: true })).toBeFocused()
+  await expect(
+    page.getByRole('heading', { name: 'Get back into Kuuki', exact: true }),
+  ).toBeFocused()
   await expect(c.email).toHaveValue('ranked@example.test')
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({ page, context, baseURL }) => {
-  await context.addCookies([{ name: 'kuuki_theme', value: 'dark', url: baseURL! }, { name: 'kuuki_accent', value: 'shu', url: baseURL! }])
+test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  await context.addCookies([
+    { name: 'kuuki_theme', value: 'dark', url: baseURL! },
+    { name: 'kuuki_accent', value: 'shu', url: baseURL! },
+  ])
   await ownIp(page, baseURL!)
   await page.goto('/')
   const email = newEmail()
@@ -119,5 +155,5 @@ test('an unknown email turns the card into the create step in place, and Create 
   await expect(page.getByLabel('Confirm password')).toHaveCount(0)
   // Enter on the focused Create account creates the journal.
   await page.keyboard.press('Enter')
-  await page.waitForURL(url => url.pathname === '/onboarding')
+  await page.waitForURL((url) => url.pathname === '/onboarding')
 })

@@ -2,7 +2,11 @@
 // Parse once, match many: everything that depends on `refs` is built once per refs object (`indexFor`),
 // so a keystroke only costs a few lookups and each flight a handful of set checks. The server keeps the
 // same semantics for its fallback (`buildFlightWhere`): every word must be found, folded and literal.
-import { airportAliases, airportSearchText, foldSearchText } from '../../../../../packages/shared/src/airportSearch'
+import {
+  airportAliases,
+  airportSearchText,
+  foldSearchText,
+} from '../../../../../packages/shared/src/airportSearch'
 import type { JournalFlight, JournalRefs } from './model'
 
 // Both languages are always accepted, so `locale` does not change what matches.
@@ -54,18 +58,39 @@ const countryNicknames: Record<string, string[]> = {
   AE: ['UAE'],
 }
 
-const russianGenitiveMonths = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+const russianGenitiveMonths = [
+  'января',
+  'февраля',
+  'марта',
+  'апреля',
+  'мая',
+  'июня',
+  'июля',
+  'августа',
+  'сентября',
+  'октября',
+  'ноября',
+  'декабря',
+]
 
 const indexes = new WeakMap<JournalRefs, Index>()
 
 function regionNames(language: string): Intl.DisplayNames | null {
-  try { return new Intl.DisplayNames([language], { type: 'region' }) } catch { return null }
+  try {
+    return new Intl.DisplayNames([language], { type: 'region' })
+  } catch {
+    return null
+  }
 }
 
 function buildIndex(refs: JournalRefs): Index {
   const airportText = new Map<string, string>()
   const airportWords = new Map<string, Set<string>>()
-  const codes = new Set([...Object.keys(refs.airports), ...Object.keys(airportAliases)].map(code => code.toUpperCase()))
+  const codes = new Set(
+    [...Object.keys(refs.airports), ...Object.keys(airportAliases)].map((code) =>
+      code.toUpperCase(),
+    ),
+  )
   for (const code of codes) {
     const known = refs.airports[code]
     const text = airportSearchText({ iata: code, name: known?.name ?? '', city: known?.city ?? '' })
@@ -79,7 +104,8 @@ function buildIndex(refs: JournalRefs): Index {
   }
 
   const countryCodes = new Set<string>()
-  for (const airport of Object.values(refs.airports)) if (airport.country) countryCodes.add(airport.country.toUpperCase())
+  for (const airport of Object.values(refs.airports))
+    if (airport.country) countryCodes.add(airport.country.toUpperCase())
   const countryWords: Array<[string, string]> = []
   const names = [regionNames('en'), regionNames('ru')]
   for (const code of countryCodes) {
@@ -88,17 +114,28 @@ function buildIndex(refs: JournalRefs): Index {
       try {
         const label = display?.of(code)
         if (label && label !== code) labels.push(label)
-      } catch { /* malformed region code: only the ISO code itself can match */ }
+      } catch {
+        /* malformed region code: only the ISO code itself can match */
+      }
     }
-    for (const label of labels) for (const word of foldSearchText(label).split(WORDS)) if (word) countryWords.push([word, code])
+    for (const label of labels)
+      for (const word of foldSearchText(label).split(WORDS))
+        if (word) countryWords.push([word, code])
   }
 
   return {
     airportText,
     airportWords,
-    airlineCodes: new Set(Object.keys(refs.airlines).map(code => code.toUpperCase())),
-    airlineNames: Object.entries(refs.airlines).map(([code, airline]) => [code, foldSearchText(airline.name)]),
-    aircraft: Object.entries(refs.aircraft).map(([icao, plane]) => [icao, foldSearchText(plane.name ?? ''), foldSearchText(plane.family ?? '')]),
+    airlineCodes: new Set(Object.keys(refs.airlines).map((code) => code.toUpperCase())),
+    airlineNames: Object.entries(refs.airlines).map(([code, airline]) => [
+      code,
+      foldSearchText(airline.name),
+    ]),
+    aircraft: Object.entries(refs.aircraft).map(([icao, plane]) => [
+      icao,
+      foldSearchText(plane.name ?? ''),
+      foldSearchText(plane.family ?? ''),
+    ]),
     countryCodes,
     countryWords,
   }
@@ -123,10 +160,14 @@ function months(): Map<string, string> {
   for (const language of ['en', 'ru']) {
     for (const style of ['long', 'short'] as const) {
       const standalone = new Intl.DateTimeFormat(language, { month: style, timeZone: 'UTC' })
-      const inDate = new Intl.DateTimeFormat(language, { day: 'numeric', month: style, timeZone: 'UTC' })
+      const inDate = new Intl.DateTimeFormat(language, {
+        day: 'numeric',
+        month: style,
+        timeZone: 'UTC',
+      })
       for (let month = 0; month < 12; month++) {
         forms[month].push(standalone.format(date(month)))
-        const part = inDate.formatToParts(date(month)).find(p => p.type === 'month')
+        const part = inDate.formatToParts(date(month)).find((p) => p.type === 'month')
         if (part) forms[month].push(part.value)
       }
     }
@@ -158,11 +199,18 @@ const FLIGHT_NUMBER = /^(?:[A-Za-z][A-Za-z0-9]|\d[A-Za-z]|[A-Za-z]{3})\d{1,4}$/
 /** Numeric date forms: "2024-03", "2024/03/15", "03/2024". Returns a YYYY-MM[-DD] prefix of the flight date. */
 function numericDatePrefix(word: string): string | null {
   const iso = /^(\d{4})[-/.](\d{1,2})(?:[-/.](\d{1,2}))?$/.exec(word)
-  if (iso && isYear(iso[1]) && +iso[2] >= 1 && +iso[2] <= 12 && (iso[3] === undefined || (+iso[3] >= 1 && +iso[3] <= 31))) {
+  if (
+    iso &&
+    isYear(iso[1]) &&
+    +iso[2] >= 1 &&
+    +iso[2] <= 12 &&
+    (iso[3] === undefined || (+iso[3] >= 1 && +iso[3] <= 31))
+  ) {
     return [iso[1], iso[2].padStart(2, '0'), iso[3]?.padStart(2, '0')].filter(Boolean).join('-')
   }
   const monthYear = /^(\d{1,2})[-/.](\d{4})$/.exec(word)
-  if (monthYear && isYear(monthYear[2]) && +monthYear[1] >= 1 && +monthYear[1] <= 12) return `${monthYear[2]}-${monthYear[1].padStart(2, '0')}`
+  if (monthYear && isYear(monthYear[2]) && +monthYear[1] >= 1 && +monthYear[1] <= 12)
+    return `${monthYear[2]}-${monthYear[1].padStart(2, '0')}`
   return null
 }
 
@@ -174,16 +222,23 @@ function resolvePlace(word: string, index: Index): Resolved {
   const codes = new Set<string>()
   const strongCodes = index.airportWords.get(folded)
   if (strongCodes) for (const code of strongCodes) codes.add(code)
-  if (folded.length >= 2) for (const [code, text] of index.airportText) if (text.includes(folded)) codes.add(code)
+  if (folded.length >= 2)
+    for (const [code, text] of index.airportText) if (text.includes(folded)) codes.add(code)
 
   const countries = new Set<string>()
-  if (/^[A-Z]{2}$/.test(upper) && index.countryCodes.has(upper) && !index.airlineCodes.has(upper)) countries.add(upper)
-  if (folded.length >= 3) for (const [name, code] of index.countryWords) if (name.startsWith(folded)) countries.add(code)
+  if (/^[A-Z]{2}$/.test(upper) && index.countryCodes.has(upper) && !index.airlineCodes.has(upper))
+    countries.add(upper)
+  if (folded.length >= 3)
+    for (const [name, code] of index.countryWords) if (name.startsWith(folded)) countries.add(code)
 
   return { place: { codes, countries }, strong: strongCodes !== undefined }
 }
 
-function codesWhere<T>(rows: readonly T[], test: (row: T) => boolean, code: (row: T) => string): Set<string> {
+function codesWhere<T>(
+  rows: readonly T[],
+  test: (row: T) => boolean,
+  code: (row: T) => string,
+): Set<string> {
   const out = new Set<string>()
   for (const row of rows) if (test(row)) out.add(code(row))
   return out
@@ -202,23 +257,44 @@ function wordAlts(word: string, index: Index, place: Place): SearchAlt[] {
 
   const airlines = new Set<string>()
   if (/^[A-Za-z0-9]{2,3}$/.test(word) && index.airlineCodes.has(upper)) airlines.add(upper)
-  if (folded.length >= 3) for (const code of codesWhere(index.airlineNames, ([, name]) => name.includes(folded), ([code]) => code)) airlines.add(code)
+  if (folded.length >= 3)
+    for (const code of codesWhere(
+      index.airlineNames,
+      ([, name]) => name.includes(folded),
+      ([code]) => code,
+    ))
+      airlines.add(code)
   if (airlines.size) alts.push({ kind: 'airline', codes: airlines })
 
   const aircraft = new Set<string>()
   for (const [icao] of index.aircraft) if (icao.toUpperCase() === upper) aircraft.add(icao)
-  if (folded.length >= 3) for (const code of codesWhere(index.aircraft, ([, name, family]) => name.includes(folded) || family.includes(folded), ([icao]) => icao)) aircraft.add(code)
+  if (folded.length >= 3)
+    for (const code of codesWhere(
+      index.aircraft,
+      ([, name, family]) => name.includes(folded) || family.includes(folded),
+      ([icao]) => icao,
+    ))
+      aircraft.add(code)
   if (aircraft.size) alts.push({ kind: 'aircraft', codes: aircraft })
 
   // A number under a known airline code is a flight number only: "TK381" must read like "TK 381".
-  if (!isFlightNumber || !(index.airlineCodes.has(upper.slice(0, 2)) || index.airlineCodes.has(upper.slice(0, 3)))) alts.push({ kind: 'text', needle: folded })
+  if (
+    !isFlightNumber ||
+    !(index.airlineCodes.has(upper.slice(0, 2)) || index.airlineCodes.has(upper.slice(0, 3)))
+  )
+    alts.push({ kind: 'text', needle: folded })
   return alts
 }
 
 /** Parse the field text. An empty search has no terms and matches everything. */
 export function parseJournalSearch(text: string, ctx: SearchContext): JournalSearch {
   const index = indexFor(ctx.refs)
-  const tokens = text.trim().slice(0, MAX_QUERY_LENGTH).replace(/→|->|—|–/g, ' ').split(/\s+/).filter(token => token && !/^-+$/.test(token))
+  const tokens = text
+    .trim()
+    .slice(0, MAX_QUERY_LENGTH)
+    .replace(/→|->|—|–/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token && !/^-+$/.test(token))
   const resolved = new Map<string, Resolved>()
   const place = (word: string) => {
     let found = resolved.get(word)
@@ -236,7 +312,12 @@ export function parseJournalSearch(text: string, ctx: SearchContext): JournalSea
     const b = place(second)
     if (!a.strong || !b.strong) return null
     for (const code of a.place.codes) if (b.place.codes.has(code)) return null
-    return { kind: 'route', text, from: { codes: a.place.codes, countries: new Set() }, to: { codes: b.place.codes, countries: new Set() } }
+    return {
+      kind: 'route',
+      text,
+      from: { codes: a.place.codes, countries: new Set() },
+      to: { codes: b.place.codes, countries: new Set() },
+    }
   }
 
   const terms: SearchTerm[] = []
@@ -257,14 +338,26 @@ export function parseJournalSearch(text: string, ctx: SearchContext): JournalSea
         i += 2
         continue
       }
-      if (/^\d{1,4}[A-Za-z]?$/.test(next) && /^[A-Za-z0-9]{2,3}$/.test(word) && index.airlineCodes.has(word.toUpperCase())) {
-        terms.push({ kind: 'flight', text: `${word} ${next}`, number: normalizeFlightNumber(word + next) })
+      if (
+        /^\d{1,4}[A-Za-z]?$/.test(next) &&
+        /^[A-Za-z0-9]{2,3}$/.test(word) &&
+        index.airlineCodes.has(word.toUpperCase())
+      ) {
+        terms.push({
+          kind: 'flight',
+          text: `${word} ${next}`,
+          number: normalizeFlightNumber(word + next),
+        })
         i += 2
         continue
       }
       const month = isYear(next) ? monthOf(word) : isYear(word) ? monthOf(next) : undefined
       if (month) {
-        terms.push({ kind: 'period', text: `${word} ${next}`, prefix: `${isYear(next) ? next : word}-${month}` })
+        terms.push({
+          kind: 'period',
+          text: `${word} ${next}`,
+          prefix: `${isYear(next) ? next : word}-${month}`,
+        })
         i += 2
         continue
       }
@@ -273,15 +366,27 @@ export function parseJournalSearch(text: string, ctx: SearchContext): JournalSea
     const hyphenFlight = /^([A-Za-z0-9]{2,3})-(\d{1,4})$/.exec(word)
     const prefix = isYear(word) ? word : numericDatePrefix(word)
     if (prefix) terms.push({ kind: 'period', text: word, prefix })
-    else terms.push({ kind: 'any', text: word, alts: wordAlts(hyphenFlight ? hyphenFlight[1] + hyphenFlight[2] : word, index, place(word).place) })
+    else
+      terms.push({
+        kind: 'any',
+        text: word,
+        alts: wordAlts(
+          hyphenFlight ? hyphenFlight[1] + hyphenFlight[2] : word,
+          index,
+          place(word).place,
+        ),
+      })
   }
   return { terms }
 }
 
 function matchesPlace(flight: JournalFlight, place: Place): boolean {
-  return place.codes.has(flight.origin) || place.codes.has(flight.destination)
-    || (flight.origin_country !== null && place.countries.has(flight.origin_country))
-    || (flight.destination_country !== null && place.countries.has(flight.destination_country))
+  return (
+    place.codes.has(flight.origin) ||
+    place.codes.has(flight.destination) ||
+    (flight.origin_country !== null && place.countries.has(flight.origin_country)) ||
+    (flight.destination_country !== null && place.countries.has(flight.destination_country))
+  )
 }
 
 type Memo = { haystack?: string }
@@ -292,13 +397,22 @@ function matchesAlt(flight: JournalFlight, alt: SearchAlt, index: Index, memo: M
       if (!flight.flight_number) return false
       const number = normalizeFlightNumber(flight.flight_number)
       // Prefix match, so the list narrows while the number is typed: "TK38" keeps TK381 and TK3810 until "TK381" is complete.
-      return number.startsWith(alt.number) || (flight.airline_iata !== null && (flight.airline_iata.toUpperCase() + number).startsWith(alt.number))
+      return (
+        number.startsWith(alt.number) ||
+        (flight.airline_iata !== null &&
+          (flight.airline_iata.toUpperCase() + number).startsWith(alt.number))
+      )
     }
-    case 'period': return flight.date.startsWith(alt.prefix)
-    case 'month': return flight.date.slice(5, 7) === alt.month
-    case 'place': return matchesPlace(flight, alt.place)
-    case 'airline': return flight.airline_iata !== null && alt.codes.has(flight.airline_iata)
-    case 'aircraft': return flight.aircraft_icao !== null && alt.codes.has(flight.aircraft_icao)
+    case 'period':
+      return flight.date.startsWith(alt.prefix)
+    case 'month':
+      return flight.date.slice(5, 7) === alt.month
+    case 'place':
+      return matchesPlace(flight, alt.place)
+    case 'airline':
+      return flight.airline_iata !== null && alt.codes.has(flight.airline_iata)
+    case 'aircraft':
+      return flight.aircraft_icao !== null && alt.codes.has(flight.aircraft_icao)
     case 'text': {
       // The server's haystack: the row's own fields, then each airport's city, name and aliases.
       memo.haystack ??= `${foldSearchText(`${flight.origin} ${flight.destination} ${flight.flight_number ?? ''} ${flight.airline_iata ?? ''} ${flight.date}`)} ${index.airportText.get(flight.origin) ?? ''} ${index.airportText.get(flight.destination) ?? ''}`
@@ -308,13 +422,21 @@ function matchesAlt(flight: JournalFlight, alt: SearchAlt, index: Index, memo: M
 }
 
 /** True when the flight satisfies every term. Call with the same `refs` the search was parsed with. */
-export function matchesJournalSearch(flight: JournalFlight, search: JournalSearch, ctx: SearchContext): boolean {
+export function matchesJournalSearch(
+  flight: JournalFlight,
+  search: JournalSearch,
+  ctx: SearchContext,
+): boolean {
   if (!search.terms.length) return true
   const index = indexFor(ctx.refs)
   const memo: Memo = {}
-  return search.terms.every(term => {
-    if (term.kind === 'route') return (term.from.codes.has(flight.origin) && term.to.codes.has(flight.destination)) || (term.from.codes.has(flight.destination) && term.to.codes.has(flight.origin))
-    if (term.kind === 'any') return term.alts.some(alt => matchesAlt(flight, alt, index, memo))
+  return search.terms.every((term) => {
+    if (term.kind === 'route')
+      return (
+        (term.from.codes.has(flight.origin) && term.to.codes.has(flight.destination)) ||
+        (term.from.codes.has(flight.destination) && term.to.codes.has(flight.origin))
+      )
+    if (term.kind === 'any') return term.alts.some((alt) => matchesAlt(flight, alt, index, memo))
     return matchesAlt(flight, term, index, memo)
   })
 }

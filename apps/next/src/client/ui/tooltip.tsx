@@ -1,6 +1,17 @@
 'use client'
 
-import { cloneElement, useEffect, useId, useLayoutEffect, useRef, useState, type FocusEvent, type PointerEvent, type ReactElement, type ReactNode } from 'react'
+import {
+  cloneElement,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type PointerEvent,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { createPortal } from 'react-dom'
 import './tooltip.css'
 
@@ -27,9 +38,17 @@ const MARGIN = 8
 
 let closedAt = 0
 
-const finePointer = () => typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+const finePointer = () =>
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches
 /** Keyboard focus only: a tap on a button also focuses it, and that must not leave a tooltip open. */
-const keyboardFocus = (element: Element) => { try { return element.matches(':focus-visible') } catch { return true } }
+const keyboardFocus = (element: Element) => {
+  try {
+    return element.matches(':focus-visible')
+  } catch {
+    return true
+  }
+}
 
 export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   const id = useId()
@@ -43,17 +62,29 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
 
   const show = (delay: number) => {
     window.clearTimeout(showTimer.current)
-    const run = () => { setOpen(true); setPresent(true) }
+    const run = () => {
+      setOpen(true)
+      setPresent(true)
+    }
     if (delay > 0) showTimer.current = window.setTimeout(run, delay)
     else run()
   }
   const hide = () => {
     window.clearTimeout(showTimer.current)
     window.clearTimeout(hideTimer.current)
-    setOpen(wasOpen => { if (wasOpen) closedAt = Date.now(); return false })
+    setOpen((wasOpen) => {
+      if (wasOpen) closedAt = Date.now()
+      return false
+    })
   }
 
-  useEffect(() => () => { window.clearTimeout(showTimer.current); window.clearTimeout(hideTimer.current) }, [])
+  useEffect(
+    () => () => {
+      window.clearTimeout(showTimer.current)
+      window.clearTimeout(hideTimer.current)
+    },
+    [],
+  )
   useEffect(() => {
     if (open) return
     const timer = window.setTimeout(() => setPresent(false), EXIT_MS)
@@ -61,8 +92,13 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   }, [open])
   useEffect(() => {
     if (!open) return
-    const close = () => { closedAt = Date.now(); setOpen(false) }
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') close() }
+    const close = () => {
+      closedAt = Date.now()
+      setOpen(false)
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close()
+    }
     document.addEventListener('keydown', onKeyDown)
     window.addEventListener('scroll', close, true)
     window.addEventListener('resize', close)
@@ -86,7 +122,10 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
     let placed = side
     if (side === 'top' && from.top - size.height - GAP < MARGIN) placed = 'bottom'
     else if (side === 'bottom' && from.bottom + size.height + GAP > height - MARGIN) placed = 'top'
-    const left = Math.max(MARGIN, Math.min(from.left + from.width / 2 - size.width / 2, width - size.width - MARGIN))
+    const left = Math.max(
+      MARGIN,
+      Math.min(from.left + from.width / 2 - size.width / 2, width - size.width - MARGIN),
+    )
     node.style.left = `${left}px`
     node.style.top = `${placed === 'top' ? from.top - size.height - GAP : from.bottom + GAP}px`
   }, [present, content, side])
@@ -102,16 +141,41 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
     window.clearTimeout(hideTimer.current)
     hideTimer.current = window.setTimeout(hide, LEAVE_GRACE)
   }
-  const onFocus = (event: FocusEvent) => { if (keyboardFocus(event.target as Element)) show(0) }
-  const describedBy = [children.props['aria-describedby'], open ? id : undefined].filter(Boolean).join(' ') || undefined
+  const onFocus = (event: FocusEvent) => {
+    if (keyboardFocus(event.target as Element)) show(0)
+  }
+  const describedBy =
+    [children.props['aria-describedby'], open ? id : undefined].filter(Boolean).join(' ') ||
+    undefined
 
-  return <>
-    {/* The wrapper only listens: it generates no box, so the trigger keeps its place in the surrounding layout. */}
-    <span ref={anchor} className="ui-tooltip-anchor" onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave} onFocus={onFocus} onBlur={hide}>
-      {cloneElement(children, { 'aria-describedby': describedBy })}
-      {/* The portal sits inside the wrapper in the React tree, so React counts the bubble as part of it for pointer enter
+  return (
+    <>
+      {/* The wrapper only listens: it generates no box, so the trigger keeps its place in the surrounding layout. */}
+      <span
+        ref={anchor}
+        className="ui-tooltip-anchor"
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
+        onFocus={onFocus}
+        onBlur={hide}
+      >
+        {cloneElement(children, { 'aria-describedby': describedBy })}
+        {/* The portal sits inside the wrapper in the React tree, so React counts the bubble as part of it for pointer enter
           and leave: the pointer can cross the gap (within LEAVE_GRACE) and rest on the bubble without closing it. */}
-      {present && createPortal(<div ref={bubble} id={id} role="tooltip" className="ui-tooltip" data-state={open ? 'open' : 'closed'}>{content}</div>, document.body)}
-    </span>
-  </>
+        {present &&
+          createPortal(
+            <div
+              ref={bubble}
+              id={id}
+              role="tooltip"
+              className="ui-tooltip"
+              data-state={open ? 'open' : 'closed'}
+            >
+              {content}
+            </div>,
+            document.body,
+          )}
+      </span>
+    </>
+  )
 }

@@ -21,7 +21,10 @@ export interface LocalTarget {
 
 export function parseLocalTarget(argv = process.argv.slice(2)): LocalTargetOptions {
   const target = requiredArg(argv, '--target')
-  if (target !== 'local') throw new Error('This command only supports --target local; remote migration is a separate approved operation')
+  if (target !== 'local')
+    throw new Error(
+      'This command only supports --target local; remote migration is a separate approved operation',
+    )
   const databaseId = requiredArg(argv, '--database-id')
   if (!/^[-a-zA-Z0-9]{6,100}$/.test(databaseId)) throw new Error('Invalid explicit database ID')
   const persistPath = requiredArg(argv, '--persist')
@@ -48,19 +51,28 @@ export async function schemaFingerprint(db: D1Database): Promise<string> {
   return schemaRowsSha256(objects.results ?? [])
 }
 
-export function applicationSchemaRows(rows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+export function applicationSchemaRows(
+  rows: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
   return rows.filter((row) => {
     const name = String(row.name ?? '')
     const owner = String(row.tbl_name ?? '')
     // D1 reserves the `_cf_` prefix for internal objects (hosted `_cf_KV`, local `_cf_METADATA`).
-    return !name.startsWith('sqlite_') && !name.startsWith('_cf_') && !owner.startsWith('_cf_') &&
-      name !== 'd1_migrations' && owner !== 'd1_migrations'
+    return (
+      !name.startsWith('sqlite_') &&
+      !name.startsWith('_cf_') &&
+      !owner.startsWith('_cf_') &&
+      name !== 'd1_migrations' &&
+      owner !== 'd1_migrations'
+    )
   })
 }
 
 export function schemaRowsSha256(rows: Array<Record<string, unknown>>): string {
   const normalized = applicationSchemaRows(rows).map((row) => ({
-    type: row.type, name: row.name, table: row.tbl_name,
+    type: row.type,
+    name: row.name,
+    table: row.tbl_name,
     // SQL literals can contain significant whitespace; text drift requires admission.
     sql: typeof row.sql === 'string' ? row.sql : null,
   }))
@@ -77,35 +89,72 @@ export interface SchemaAdmission {
   reviewedDimensions: string[]
 }
 
-const REVIEW_DIMENSIONS = ['columns', 'defaults', 'primaryKeys', 'foreignKeys', 'uniqueIndexes', 'indexes', 'checks']
+const REVIEW_DIMENSIONS = [
+  'columns',
+  'defaults',
+  'primaryKeys',
+  'foreignKeys',
+  'uniqueIndexes',
+  'indexes',
+  'checks',
+]
 
 /** Exact schema by default; a pinned, recent human semantic review admits only SQL-text variants. */
 export function assessSchemaAdmission(
-  observedRows: Array<Record<string, unknown>>, expectedRows: Array<Record<string, unknown>>,
-  target: { accountId: string; databaseId: string }, evidencePath?: string,
+  observedRows: Array<Record<string, unknown>>,
+  expectedRows: Array<Record<string, unknown>>,
+  target: { accountId: string; databaseId: string },
+  evidencePath?: string,
 ): { admitted: boolean; observedSha256: string; expectedSha256: string; reason?: string } {
   const observed = applicationSchemaRows(observedRows)
   const expected = applicationSchemaRows(expectedRows)
   const observedSha256 = schemaRowsSha256(observed)
   const expectedSha256 = schemaRowsSha256(expected)
-  const signature = (rows: Array<Record<string, unknown>>) => JSON.stringify(rows.map((row) =>
-    [String(row.type), String(row.name), String(row.tbl_name)]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))))
+  const signature = (rows: Array<Record<string, unknown>>) =>
+    JSON.stringify(
+      rows
+        .map((row) => [String(row.type), String(row.name), String(row.tbl_name)])
+        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+    )
   if (signature(observed) !== signature(expected)) {
-    return { admitted: false, observedSha256, expectedSha256, reason: 'application-object-inventory-mismatch' }
+    return {
+      admitted: false,
+      observedSha256,
+      expectedSha256,
+      reason: 'application-object-inventory-mismatch',
+    }
   }
   if (observedSha256 === expectedSha256) return { admitted: true, observedSha256, expectedSha256 }
-  if (!evidencePath) return { admitted: false, observedSha256, expectedSha256, reason: 'unreviewed-schema-variant' }
+  if (!evidencePath)
+    return { admitted: false, observedSha256, expectedSha256, reason: 'unreviewed-schema-variant' }
   const mode = statSync(evidencePath).mode & 0o777
-  if ((mode & 0o077) !== 0) return { admitted: false, observedSha256, expectedSha256, reason: 'schema-admission-not-private' }
+  if ((mode & 0o077) !== 0)
+    return {
+      admitted: false,
+      observedSha256,
+      expectedSha256,
+      reason: 'schema-admission-not-private',
+    }
   const evidence = JSON.parse(readFileSync(evidencePath, 'utf8')) as SchemaAdmission
   const reviewed = Date.parse(evidence.reviewedAt)
   const dimensions = [...(evidence.reviewedDimensions ?? [])].sort()
-  if (evidence.accountId !== target.accountId || evidence.databaseId !== target.databaseId ||
-      evidence.observedApplicationSchemaSha256 !== observedSha256 ||
-      evidence.expectedFreshSchemaSha256 !== expectedSha256 || evidence.semanticReview !== true ||
-      JSON.stringify(dimensions) !== JSON.stringify([...REVIEW_DIMENSIONS].sort()) ||
-      !Number.isFinite(reviewed) || reviewed > Date.now() || Date.now() - reviewed > MAX_REVIEW_AGE_MS) {
-    return { admitted: false, observedSha256, expectedSha256, reason: 'schema-admission-evidence-invalid-or-stale' }
+  if (
+    evidence.accountId !== target.accountId ||
+    evidence.databaseId !== target.databaseId ||
+    evidence.observedApplicationSchemaSha256 !== observedSha256 ||
+    evidence.expectedFreshSchemaSha256 !== expectedSha256 ||
+    evidence.semanticReview !== true ||
+    JSON.stringify(dimensions) !== JSON.stringify([...REVIEW_DIMENSIONS].sort()) ||
+    !Number.isFinite(reviewed) ||
+    reviewed > Date.now() ||
+    Date.now() - reviewed > MAX_REVIEW_AGE_MS
+  ) {
+    return {
+      admitted: false,
+      observedSha256,
+      expectedSha256,
+      reason: 'schema-admission-evidence-invalid-or-stale',
+    }
   }
   return { admitted: true, observedSha256, expectedSha256 }
 }
@@ -116,7 +165,9 @@ export async function expectedSchemaRows(): Promise<Array<Record<string, unknown
     const db = await mf.getD1Database('DB')
     await applyMigrations(db)
     return (await db.prepare(SCHEMA_SQL).all<Record<string, unknown>>()).results
-  } finally { await mf.dispose() }
+  } finally {
+    await mf.dispose()
+  }
 }
 
 /** Build the expected hash by actually applying this checkout's migrations to fresh D1. */
@@ -124,7 +175,10 @@ export async function expectedSchemaSha256(): Promise<string> {
   return schemaRowsSha256(await expectedSchemaRows())
 }
 
-export async function openLocalTarget(options: LocalTargetOptions, schemaAdmissionPath?: string): Promise<LocalTarget> {
+export async function openLocalTarget(
+  options: LocalTargetOptions,
+  schemaAdmissionPath?: string,
+): Promise<LocalTarget> {
   const mf = miniflare(options.databaseId, options.persistPath)
   try {
     const db = await mf.getD1Database('DB')
@@ -132,12 +186,20 @@ export async function openLocalTarget(options: LocalTargetOptions, schemaAdmissi
     if (schemaAdmissionPath) {
       // A local D1 namespace has no Cloudflare account; the reviewed restore evidence supplies it.
       const evidence = JSON.parse(readFileSync(schemaAdmissionPath, 'utf8')) as SchemaAdmission
-      if (typeof evidence.accountId !== 'string' || !/^[a-f0-9]{32}$/i.test(evidence.accountId)) throw new Error('Invalid schema admission account ID')
+      if (typeof evidence.accountId !== 'string' || !/^[a-f0-9]{32}$/i.test(evidence.accountId))
+        throw new Error('Invalid schema admission account ID')
       accountId = evidence.accountId
     }
-    const admission = assessSchemaAdmission((await db.prepare(SCHEMA_SQL).all()).results, await expectedSchemaRows(),
-      { accountId, databaseId: options.databaseId }, schemaAdmissionPath)
-    if (!admission.admitted) throw new Error(`Target schema mismatch: actual=${admission.observedSha256} expected=${admission.expectedSha256} reason=${admission.reason}`)
+    const admission = assessSchemaAdmission(
+      (await db.prepare(SCHEMA_SQL).all()).results,
+      await expectedSchemaRows(),
+      { accountId, databaseId: options.databaseId },
+      schemaAdmissionPath,
+    )
+    if (!admission.admitted)
+      throw new Error(
+        `Target schema mismatch: actual=${admission.observedSha256} expected=${admission.expectedSha256} reason=${admission.reason}`,
+      )
     return { db, schemaSha256: admission.observedSha256, dispose: () => mf.dispose() }
   } catch (error) {
     await mf.dispose()
@@ -146,9 +208,16 @@ export async function openLocalTarget(options: LocalTargetOptions, schemaAdmissi
 }
 
 /** An isolated schema fixture for functional tests, never the default Wrangler state. */
-export async function createLocalSchemaFixture(): Promise<{ options: LocalTargetOptions; cleanup(): void }> {
+export async function createLocalSchemaFixture(): Promise<{
+  options: LocalTargetOptions
+  cleanup(): void
+}> {
   const persistPath = mkdtempSync(join(tmpdir(), 'kuuki-migration-d1-'))
-  const options: LocalTargetOptions = { target: 'local', databaseId: 'local-synthetic-d1', persistPath }
+  const options: LocalTargetOptions = {
+    target: 'local',
+    databaseId: 'local-synthetic-d1',
+    persistPath,
+  }
   const mf = miniflare(options.databaseId, persistPath)
   try {
     const db = await mf.getD1Database('DB')

@@ -11,12 +11,12 @@ Update affected docs in the same change that invalidates them. Include bug fixes
 
 Paths below are relative to the repository root. Resolve changing facts from the actual tree and configuration, rather than from the prose being corrected.
 
-| Changed claim | Verify against | Update when affected |
-| --- | --- | --- |
-| App structure and routes | `apps/next`, `functions/api`, `apps/next/worker.ts`, `scripts/build-next.mjs` | `README.md`, `docs/README.md`, applicable `AGENTS.md` |
-| Commands and dependencies | Root/package `package.json`, `pnpm-lock.yaml`, `.github/workflows/` | Setup/check instructions and relevant runbooks |
-| Bindings and release behavior | Relevant `wrangler.toml`, workflows and runtime handlers | Relevant release runbook and applicable `AGENTS.md` |
-| Domain or UI contract | Changed handlers/components, relevant ADR, `GLOSSARY.md`, `DESIGN.md` | Relevant ADR/design docs and active plan or `.scratch/` issue |
+| Changed claim                 | Verify against                                                                | Update when affected                                          |
+| ----------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| App structure and routes      | `apps/next`, `functions/api`, `apps/next/worker.ts`, `scripts/build-next.mjs` | `README.md`, `docs/README.md`, applicable `AGENTS.md`         |
+| Commands and dependencies     | Root/package `package.json`, `pnpm-lock.yaml`, `.github/workflows/`           | Setup/check instructions and relevant runbooks                |
+| Bindings and release behavior | Relevant `wrangler.toml`, workflows and runtime handlers                      | Relevant release runbook and applicable `AGENTS.md`           |
+| Domain or UI contract         | Changed handlers/components, relevant ADR, `GLOSSARY.md`, `DESIGN.md`         | Relevant ADR/design docs and active plan or `.scratch/` issue |
 
 For Next runtime/cutover claims, read `docs/runbooks/2026-10-04-next-release-candidate.md`; for D1 migration gates, read `docs/runbooks/audit-remediation-release.md`. Treat `docs/TECH_STACK.md`, original MVP phases and Supabase material as explicitly historical where marked. Update phase/task status only when that document tracks the current task.
 

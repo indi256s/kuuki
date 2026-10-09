@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    ".scratch/**",
+    "pnpm-lock.yaml",
+    "**/*.generated.*",
+    "packages/data/src/country-neighbors.ts",
+    "**/next-env.d.ts",
+    "apps/next/public/maps/**"
+  ]
+}

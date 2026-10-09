@@ -15,7 +15,12 @@ export function createUIBus() {
   return {
     getSnapshot: () => snapshot,
     getServerSnapshot: () => initial,
-    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } },
+    subscribe(listener: () => void) {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
     setHoverRoute: (value: string | null) => set('hoverRoute', value),
     setHoverGhost: (value: number | null) => set('hoverGhost', value),
     setFocusRoute: (value: string | null) => set('focusRoute', value),

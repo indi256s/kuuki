@@ -7,13 +7,25 @@ import { dayToEpoch } from '@kuuki/shared/overview/range'
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
 import { Section } from './section'
 
-const context = vi.hoisted(() => ({ current: {} as ReturnType<typeof import('../../store/overview-context').useOverview> }))
+const context = vi.hoisted(() => ({
+  current: {} as ReturnType<typeof import('../../store/overview-context').useOverview>,
+}))
 vi.mock('../../store/overview-context', () => ({ useOverview: () => context.current }))
 vi.mock('../../store/open-flight', () => ({ useOpenFlight: () => vi.fn() }))
 afterEach(() => vi.unstubAllGlobals())
 function admit(payload: OverviewPayload, ownerKey = 'owner-a') {
   const setPeriod = vi.fn()
-  context.current = { payload, scope: computeOverview(payload, {}), all: computeOverview(payload, {}), filter: {}, aggregate: payload.mode === 'aggregate', ownerKey, locale: 'en', actions: { setPeriod }, isCurrent: () => true } as unknown as typeof context.current
+  context.current = {
+    payload,
+    scope: computeOverview(payload, {}),
+    all: computeOverview(payload, {}),
+    filter: {},
+    aggregate: payload.mode === 'aggregate',
+    ownerKey,
+    locale: 'en',
+    actions: { setPeriod },
+    isCurrent: () => true,
+  } as unknown as typeof context.current
   return setPeriod
 }
 

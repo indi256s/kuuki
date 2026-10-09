@@ -25,9 +25,20 @@ export type DialogProps = {
   onCloseAutoFocus?: (event: Event) => void
 }
 
-export function Dialog({ open, onOpenChange, trigger, dismissible = true, ...contentProps }: DialogProps) {
+export function Dialog({
+  open,
+  onOpenChange,
+  trigger,
+  dismissible = true,
+  ...contentProps
+}: DialogProps) {
   return (
-    <RadixDialog.Root open={open} onOpenChange={next => { if (dismissible || next) onOpenChange(next) }}>
+    <RadixDialog.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (dismissible || next) onOpenChange(next)
+      }}
+    >
       {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="ui-overlay" />
@@ -37,7 +48,19 @@ export function Dialog({ open, onOpenChange, trigger, dismissible = true, ...con
   )
 }
 
-function MountedDialogContent({ ref, title, description, trigger, children, footer, closeLabel = 'Close', dismissible, initialFocusRef, onCloseAutoFocus, className = '' }: Omit<DialogProps, 'open' | 'onOpenChange'> & { ref?: Ref<HTMLDivElement> }) {
+function MountedDialogContent({
+  ref,
+  title,
+  description,
+  trigger,
+  children,
+  footer,
+  closeLabel = 'Close',
+  dismissible,
+  initialFocusRef,
+  onCloseAutoFocus,
+  className = '',
+}: Omit<DialogProps, 'open' | 'onOpenChange'> & { ref?: Ref<HTMLDivElement> }) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   // Capture each Portal mount before a child autoFocus can replace the opener.
   const [opener] = useState(() => {
@@ -45,30 +68,51 @@ function MountedDialogContent({ ref, title, description, trigger, children, foot
     const active = document.activeElement
     return active instanceof HTMLElement && active !== document.body ? active : null
   })
-  return <RadixDialog.Content
-    ref={ref}
-    className={`ui-dialog ${className}`}
-    {...(description ? {} : { 'aria-describedby': undefined })}
-    onCloseAutoFocus={event => {
-      onCloseAutoFocus?.(event)
-      if (!event.defaultPrevented && !trigger && opener?.isConnected) {
+  return (
+    <RadixDialog.Content
+      ref={ref}
+      className={`ui-dialog ${className}`}
+      {...(description ? {} : { 'aria-describedby': undefined })}
+      onCloseAutoFocus={(event) => {
+        onCloseAutoFocus?.(event)
+        if (!event.defaultPrevented && !trigger && opener?.isConnected) {
+          event.preventDefault()
+          opener.focus()
+        }
+      }}
+      onOpenAutoFocus={(event) => {
         event.preventDefault()
-        opener.focus()
-      }
-    }}
-    onOpenAutoFocus={event => { event.preventDefault(); (initialFocusRef?.current ?? titleRef.current)?.focus() }}
-    onEscapeKeyDown={event => { if (!dismissible) event.preventDefault() }}
-    onPointerDownOutside={event => { if (!dismissible) event.preventDefault() }}
-    onInteractOutside={event => { if (!dismissible) event.preventDefault() }}
-  >
-    <div className="ui-panel-header">
-      <div>
-        <RadixDialog.Title ref={titleRef} tabIndex={-1} className="ui-panel-title">{title}</RadixDialog.Title>
-        {description ? <RadixDialog.Description className="ui-panel-description">{description}</RadixDialog.Description> : null}
+        ;(initialFocusRef?.current ?? titleRef.current)?.focus()
+      }}
+      onEscapeKeyDown={(event) => {
+        if (!dismissible) event.preventDefault()
+      }}
+      onPointerDownOutside={(event) => {
+        if (!dismissible) event.preventDefault()
+      }}
+      onInteractOutside={(event) => {
+        if (!dismissible) event.preventDefault()
+      }}
+    >
+      <div className="ui-panel-header">
+        <div>
+          <RadixDialog.Title ref={titleRef} tabIndex={-1} className="ui-panel-title">
+            {title}
+          </RadixDialog.Title>
+          {description ? (
+            <RadixDialog.Description className="ui-panel-description">
+              {description}
+            </RadixDialog.Description>
+          ) : null}
+        </div>
+        {dismissible ? (
+          <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}>
+            <X size={20} strokeWidth={2} aria-hidden="true" />
+          </RadixDialog.Close>
+        ) : null}
       </div>
-      {dismissible ? <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}><X size={20} strokeWidth={2} aria-hidden="true" /></RadixDialog.Close> : null}
-    </div>
-    <div className="ui-panel-body">{children}</div>
-    {footer ? <div className="ui-panel-footer">{footer}</div> : null}
-  </RadixDialog.Content>
+      <div className="ui-panel-body">{children}</div>
+      {footer ? <div className="ui-panel-footer">{footer}</div> : null}
+    </RadixDialog.Content>
+  )
 }

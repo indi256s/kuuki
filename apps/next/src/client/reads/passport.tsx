@@ -14,7 +14,17 @@ import { useMobile } from '../ui/use-mobile'
 import { AddCountrySheet } from '../passport/add-country-sheet'
 import { EmptyPassport, PassportCover, StampGroups, StampKey } from '../passport/collection'
 import { CountrySheet, countryDetailQuery } from '../passport/country-sheet'
-import { arrivalFlightId, arrivalHref, countryNamer, groupByRegion, headerFigures, isCatalogCountry, passportEntries, sortEntries, type PassportSort } from '../passport/model'
+import {
+  arrivalFlightId,
+  arrivalHref,
+  countryNamer,
+  groupByRegion,
+  headerFigures,
+  isCatalogCountry,
+  passportEntries,
+  sortEntries,
+  type PassportSort,
+} from '../passport/model'
 import type { PassportData } from '../../server/passport'
 import type { Locale } from '../../server/locale'
 import { normalizePassportQuery, withQuery } from '../../lib/url-state'
@@ -22,7 +32,17 @@ import type { OverviewPeriod } from '@kuuki/shared/overview'
 
 type Patch = Partial<Record<'view' | 'sort' | 'country' | 'layer', string | null>>
 
-function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: Locale; initial: PassportData; period?: OverviewPeriod }) {
+function Inner({
+  ownerId,
+  locale,
+  initial,
+  period,
+}: {
+  ownerId: string
+  locale: Locale
+  initial: PassportData
+  period?: OverviewPeriod
+}) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const search = useSearchParams()
@@ -35,7 +55,10 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const [opening, setOpening] = useState<string | null>(null)
   const arrivalIntent = useRef<{ code: string; href: string } | null>(null)
   useEffect(() => {
-    const cancelArrival = () => { arrivalIntent.current = null; setOpening(null) }
+    const cancelArrival = () => {
+      arrivalIntent.current = null
+      setOpening(null)
+    }
     window.addEventListener('popstate', cancelArrival)
     window.addEventListener(ROUTE_LINK_EVENT, cancelArrival)
     return () => {
@@ -51,51 +74,91 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   const collection = useQuery({
     queryKey: ['passport', ownerId],
     queryFn: async ({ signal }) => {
-      const controller = new AbortController(); const untrack = trackPrivateOperation(controller)
+      const controller = new AbortController()
+      const untrack = trackPrivateOperation(controller)
       signal.addEventListener('abort', () => controller.abort(), { once: true })
-      try { return await api.get<PassportData>('/api/passport/countries', undefined, { signal: controller.signal }) }
-      finally { untrack() }
+      try {
+        return await api.get<PassportData>('/api/passport/countries', undefined, {
+          signal: controller.signal,
+        })
+      } finally {
+        untrack()
+      }
     },
-    initialData: initial, initialDataUpdatedAt: initial.updatedAt, staleTime: 60_000, refetchOnWindowFocus: true,
+    initialData: initial,
+    initialDataUpdatedAt: initial.updatedAt,
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
   })
   useEffect(() => {
     const key = ['passport', ownerId]
-    const newer = (current: PassportData | undefined) => !current ||
-      (initial.revision >= current.revision && initial.publishedRevision >= current.publishedRevision &&
-        (initial.revision > current.revision || initial.publishedRevision > current.publishedRevision || initial.updatedAt > current.updatedAt))
+    const newer = (current: PassportData | undefined) =>
+      !current ||
+      (initial.revision >= current.revision &&
+        initial.publishedRevision >= current.publishedRevision &&
+        (initial.revision > current.revision ||
+          initial.publishedRevision > current.publishedRevision ||
+          initial.updatedAt > current.updatedAt))
     if (!newer(queryClient.getQueryData<PassportData>(key))) return
     let active = true
     void queryClient.cancelQueries({ queryKey: key, exact: true }).then(() => {
-      if (active && newer(queryClient.getQueryData<PassportData>(key))) queryClient.setQueryData(key, initial, { updatedAt: initial.updatedAt })
+      if (active && newer(queryClient.getQueryData<PassportData>(key)))
+        queryClient.setQueryData(key, initial, { updatedAt: initial.updatedAt })
     })
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [queryClient, ownerId, initial])
 
   const data = collection.data ?? initial
   const name = useMemo(() => countryNamer(locale), [locale])
   const entries = useMemo(() => passportEntries(data), [data])
-  const groups = useMemo(() => groupByRegion(sortEntries(entries, state.sort, name, locale)), [entries, state.sort, name, locale])
+  const groups = useMemo(
+    () => groupByRegion(sortEntries(entries, state.sort, name, locale)),
+    [entries, state.sort, name, locale],
+  )
   const figures = headerFigures(data, entries, now)
-  const countryVisits = useMemo<CountryVisit[]>(() => entries.map(entry => ({
-    countryCode: entry.code, count: entry.visits, groundCount: entry.ground, claimed: entry.claimed || entry.ground > 0, pending: entry.status === 'pending',
-  })), [entries])
+  const countryVisits = useMemo<CountryVisit[]>(
+    () =>
+      entries.map((entry) => ({
+        countryCode: entry.code,
+        count: entry.visits,
+        groundCount: entry.ground,
+        claimed: entry.claimed || entry.ground > 0,
+        pending: entry.status === 'pending',
+      })),
+    [entries],
+  )
 
   // View changes add a history entry and focus H1; sort, layer and the detail sheet replace the entry.
   // Native history keeps useSearchParams in sync without refetching the same collection.
-  const navigate = useCallback((patch: Patch, mode: 'push' | 'replace' = 'replace') => {
-    arrivalIntent.current = null; setOpening(null)
-    const params = new URLSearchParams(search.toString())
-    for (const [key, value] of Object.entries(patch)) { if (value) params.set(key, value); else params.delete(key) }
-    const href = withQuery('/passport', normalizePassportQuery(params, isCatalogCountry).query)
-    if (mode === 'push') window.history.pushState(null, '', href)
-    // Passing Next's own history state would mark the call as router-internal and skip the useSearchParams sync.
-    else window.history.replaceState(null, '', href)
-  }, [search])
+  const navigate = useCallback(
+    (patch: Patch, mode: 'push' | 'replace' = 'replace') => {
+      arrivalIntent.current = null
+      setOpening(null)
+      const params = new URLSearchParams(search.toString())
+      for (const [key, value] of Object.entries(patch)) {
+        if (value) params.set(key, value)
+        else params.delete(key)
+      }
+      const href = withQuery('/passport', normalizePassportQuery(params, isCatalogCountry).query)
+      if (mode === 'push') window.history.pushState(null, '', href)
+      // Passing Next's own history state would mark the call as router-internal and skip the useSearchParams sync.
+      else window.history.replaceState(null, '', href)
+    },
+    [search],
+  )
   const opener = useRef<HTMLElement | null>(null)
-  const openCountry = useCallback((code: string) => {
-    opener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null
-    navigate({ country: code })
-  }, [navigate])
+  const openCountry = useCallback(
+    (code: string) => {
+      opener.current =
+        document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+          ? document.activeElement
+          : null
+      navigate({ country: code })
+    },
+    [navigate],
+  )
 
   // A pending slot's arrival card comes from the country's published evidence, not from the queue page's flags.
   // Repeated activation of the same slot is ignored; a newer activation, any other navigation or leaving the page
@@ -105,16 +168,22 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
     const intent = { code, href: window.location.href }
     arrivalIntent.current = intent
     setOpening(code)
-    const flight = await queryClient.fetchQuery(countryDetailQuery(ownerId, code)).then(arrivalFlightId, () => null)
+    const flight = await queryClient
+      .fetchQuery(countryDetailQuery(ownerId, code))
+      .then(arrivalFlightId, () => null)
     if (arrivalIntent.current !== intent) return
     arrivalIntent.current = null
     setOpening(null)
     if (window.location.href === intent.href) router.push(arrivalHref(flight))
   }
-  const startAdding = () => { arrivalIntent.current = null; setOpening(null); setAdding(true) }
+  const startAdding = () => {
+    arrivalIntent.current = null
+    setOpening(null)
+    setAdding(true)
+  }
 
   async function changed(code: string, added: boolean) {
-    if (added) setPressed(current => new Map(current).set(code, `added:${code}:${Date.now()}`))
+    if (added) setPressed((current) => new Map(current).set(code, `added:${code}:${Date.now()}`))
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['passport', ownerId], exact: true }),
       queryClient.invalidateQueries({ queryKey: ['passport-country', ownerId] }),
@@ -122,7 +191,11 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
   }
   function removed(code: string) {
     navigate({ country: null })
-    setNotice(ru ? `Страна «${name(code)}» удалена из паспорта.` : `${name(code)} was removed from your passport.`)
+    setNotice(
+      ru
+        ? `Страна «${name(code)}» удалена из паспорта.`
+        : `${name(code)} was removed from your passport.`,
+    )
   }
   // Focus returns to the stamp (or map list item) that opened the sheet; when it is gone (a removed country, a
   // deep link), to the page heading.
@@ -136,45 +209,149 @@ function Inner({ ownerId, locale, initial, period }: { ownerId: string; locale: 
     target.focus({ preventScroll: !opened })
   }
 
-  return <section data-testid="passport-data" className="read-stack passport-data">
-    {data.derivedState !== 'ready' && <p role="status" className="status-note">{ru
-      ? 'Последние изменения ещё обрабатываются. Штампы могут отставать от сохранённых перелётов.'
-      : 'Recent changes are still being prepared. Stamps may lag behind saved flights.'}</p>}
-    {collection.isError && <p role="alert" className="status-note">{ru ? 'Не удалось обновить паспорт. Показаны последние загруженные места.' : 'Could not refresh your passport. Showing the last loaded places.'}{' '}
-      <Button dense onClick={() => void collection.refetch()}>{ru ? 'Повторить' : 'Try again'}</Button></p>}
-    <PassportCover locale={locale} figures={figures} regions={data.regions} name={name} onAdd={startAdding} now={now} />
-    <p role="status" className="passport-caption">{opening
-      ? (ru ? `Открываем карточку прилёта: ${name(opening)}…` : `Opening the arrival card for ${name(opening)}…`)
-      : notice}</p>
-    <div className="passport-toolbar" role="group" aria-label={ru ? 'Вид и порядок паспорта' : 'Passport view and sort'}>
-      <SegmentedControl label={ru ? 'Вид паспорта' : 'Passport view'} value={state.view} onChange={view => navigate({ view: view === 'stamps' ? null : view }, 'push')}
-        options={[{ value: 'stamps', label: ru ? 'Штампы' : 'Stamps' }, { value: 'map', label: ru ? 'Карта' : 'Map' }]} />
-      {state.view === 'stamps' && entries.length ? <SegmentedControl<PassportSort> label={ru ? 'Порядок штампов' : 'Sort stamps'} value={state.sort}
-        onChange={sort => navigate({ sort: sort === 'recent' ? null : sort })}
-        options={[{ value: 'recent', label: ru ? 'Недавние' : 'Recent' }, { value: 'visits', label: ru ? 'По визитам' : 'Most visits' }, { value: 'name', label: ru ? 'А–Я' : 'A–Z' }]} /> : null}
-    </div>
-    {state.view === 'map'
-      ? <RouteMapPanel ownerId={ownerId} locale={locale} period={period} countryVisits={countryVisits} initiallyOpen
-        revision={data.revision} publishedRevision={data.publishedRevision} onRefresh={() => { void collection.refetch() }} onSelectCountry={openCountry} layer={state.layer}
-        onLayerChange={(layer: MapLayer) => navigate({ layer: layer === 'countries' ? null : layer })}
-        describeCountry={visit => visit.pending ? (ru ? ' · ждёт отметки' : ' · waiting for confirmation') : null} />
-      : entries.length === 0
-        ? <EmptyPassport locale={locale} onAdd={startAdding} />
-        : <>
+  return (
+    <section data-testid="passport-data" className="read-stack passport-data">
+      {data.derivedState !== 'ready' && (
+        <p role="status" className="status-note">
+          {ru
+            ? 'Последние изменения ещё обрабатываются. Штампы могут отставать от сохранённых перелётов.'
+            : 'Recent changes are still being prepared. Stamps may lag behind saved flights.'}
+        </p>
+      )}
+      {collection.isError && (
+        <p role="alert" className="status-note">
+          {ru
+            ? 'Не удалось обновить паспорт. Показаны последние загруженные места.'
+            : 'Could not refresh your passport. Showing the last loaded places.'}{' '}
+          <Button dense onClick={() => void collection.refetch()}>
+            {ru ? 'Повторить' : 'Try again'}
+          </Button>
+        </p>
+      )}
+      <PassportCover
+        locale={locale}
+        figures={figures}
+        regions={data.regions}
+        name={name}
+        onAdd={startAdding}
+        now={now}
+      />
+      <p role="status" className="passport-caption">
+        {opening
+          ? ru
+            ? `Открываем карточку прилёта: ${name(opening)}…`
+            : `Opening the arrival card for ${name(opening)}…`
+          : notice}
+      </p>
+      <div
+        className="passport-toolbar"
+        role="group"
+        aria-label={ru ? 'Вид и порядок паспорта' : 'Passport view and sort'}
+      >
+        <SegmentedControl
+          label={ru ? 'Вид паспорта' : 'Passport view'}
+          value={state.view}
+          onChange={(view) => navigate({ view: view === 'stamps' ? null : view }, 'push')}
+          options={[
+            { value: 'stamps', label: ru ? 'Штампы' : 'Stamps' },
+            { value: 'map', label: ru ? 'Карта' : 'Map' },
+          ]}
+        />
+        {state.view === 'stamps' && entries.length ? (
+          <SegmentedControl<PassportSort>
+            label={ru ? 'Порядок штампов' : 'Sort stamps'}
+            value={state.sort}
+            onChange={(sort) => navigate({ sort: sort === 'recent' ? null : sort })}
+            options={[
+              { value: 'recent', label: ru ? 'Недавние' : 'Recent' },
+              { value: 'visits', label: ru ? 'По визитам' : 'Most visits' },
+              { value: 'name', label: ru ? 'А–Я' : 'A–Z' },
+            ]}
+          />
+        ) : null}
+      </div>
+      {state.view === 'map' ? (
+        <RouteMapPanel
+          ownerId={ownerId}
+          locale={locale}
+          period={period}
+          countryVisits={countryVisits}
+          initiallyOpen
+          revision={data.revision}
+          publishedRevision={data.publishedRevision}
+          onRefresh={() => {
+            void collection.refetch()
+          }}
+          onSelectCountry={openCountry}
+          layer={state.layer}
+          onLayerChange={(layer: MapLayer) =>
+            navigate({ layer: layer === 'countries' ? null : layer })
+          }
+          describeCountry={(visit) =>
+            visit.pending ? (ru ? ' · ждёт отметки' : ' · waiting for confirmation') : null
+          }
+        />
+      ) : entries.length === 0 ? (
+        <EmptyPassport locale={locale} onAdd={startAdding} />
+      ) : (
+        <>
           <StampKey locale={locale} />
-          <StampGroups groups={groups} locale={locale} name={name} onOpen={openCountry} onOpenArrival={code => void openArrival(code)} opening={opening} pressed={pressed} now={now} />
-        </>}
-    {mobile === null ? null : <>
-      <CountrySheet ownerId={ownerId} locale={locale} code={state.country} entry={entries.find(entry => entry.code === state.country)} publishedRevision={data.publishedRevision} mobile={mobile}
-        name={name} onClose={() => navigate({ country: null })} onChanged={changed} onRemoved={removed}
-        onCloseAutoFocus={restoreFocus} />
-      <AddCountrySheet open={adding} onOpenChange={setAdding} locale={locale} mobile={mobile} entries={entries} name={name}
-        onPick={(code, addOpener) => { setAdding(false); opener.current = addOpener; navigate({ country: code }) }} />
-    </>}
-  </section>
+          <StampGroups
+            groups={groups}
+            locale={locale}
+            name={name}
+            onOpen={openCountry}
+            onOpenArrival={(code) => void openArrival(code)}
+            opening={opening}
+            pressed={pressed}
+            now={now}
+          />
+        </>
+      )}
+      {mobile === null ? null : (
+        <>
+          <CountrySheet
+            ownerId={ownerId}
+            locale={locale}
+            code={state.country}
+            entry={entries.find((entry) => entry.code === state.country)}
+            publishedRevision={data.publishedRevision}
+            mobile={mobile}
+            name={name}
+            onClose={() => navigate({ country: null })}
+            onChanged={changed}
+            onRemoved={removed}
+            onCloseAutoFocus={restoreFocus}
+          />
+          <AddCountrySheet
+            open={adding}
+            onOpenChange={setAdding}
+            locale={locale}
+            mobile={mobile}
+            entries={entries}
+            name={name}
+            onPick={(code, addOpener) => {
+              setAdding(false)
+              opener.current = addOpener
+              navigate({ country: code })
+            }}
+          />
+        </>
+      )}
+    </section>
+  )
 }
 
-export function PassportView(props: { ownerId: string; locale: Locale; initial: PassportData; period?: OverviewPeriod }) {
+export function PassportView(props: {
+  ownerId: string
+  locale: Locale
+  initial: PassportData
+  period?: OverviewPeriod
+}) {
   const [client] = useState(() => new QueryClient())
-  return <QueryClientProvider client={client}><Inner {...props} /></QueryClientProvider>
+  return (
+    <QueryClientProvider client={client}>
+      <Inner {...props} />
+    </QueryClientProvider>
+  )
 }

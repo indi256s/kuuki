@@ -9,24 +9,34 @@ interface Body {
   ids?: number[]
 }
 
-export const onRequestPost: PagesFunction<Env, string, RequestData> = context =>
+export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   bulkDeleteRequest(context.request, context.env, context.data)
 
 /** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
-export function bulkDeleteRequest(request: Request, env: Env, data: RequestData): Promise<Response> {
+export function bulkDeleteRequest(
+  request: Request,
+  env: Env,
+  data: RequestData,
+): Promise<Response> {
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
 
     const body = await readJson<Body>(request)
-    if (!Array.isArray(body?.ids) || body.ids.some(id => !Number.isInteger(id) || id <= 0) || body.ids.length > 10_000) {
+    if (
+      !Array.isArray(body?.ids) ||
+      body.ids.some((id) => !Number.isInteger(id) || id <= 0) ||
+      body.ids.length > 10_000
+    ) {
       throw new HttpError(400, 'Invalid flight ids', 'INVALID_IDS')
     }
     const ids = [...new Set(body.ids)]
     if (ids.length === 0) return json({ deleted: 0 })
 
     const [result] = await env.DB.batch([
-      env.DB.prepare('DELETE FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))').bind(user.id, JSON.stringify(ids)),
+      env.DB.prepare(
+        'DELETE FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))',
+      ).bind(user.id, JSON.stringify(ids)),
       dirtyUserStatement(env.DB, user.id, true),
     ])
     const deleted = result.meta.changes ?? 0

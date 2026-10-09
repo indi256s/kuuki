@@ -16,24 +16,27 @@ Successfully completed comprehensive performance audit and implementation of all
 
 ## 📊 Results at a Glance
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
+| Metric                 | Before    | After     | Improvement |
+| ---------------------- | --------- | --------- | ----------- |
 | **Main bundle (gzip)** | 265.25 kB | 129.09 kB | **-51%** ✅ |
-| **Main bundle (raw)** | 899.71 kB | 442.27 kB | **-51%** ✅ |
-| **PWA precache** | 2316 KiB | 41 KiB | **-98%** ✅ |
-| **Build warnings** | 1 | 0 | **100%** ✅ |
+| **Main bundle (raw)**  | 899.71 kB | 442.27 kB | **-51%** ✅ |
+| **PWA precache**       | 2316 KiB  | 41 KiB    | **-98%** ✅ |
+| **Build warnings**     | 1         | 0         | **100%** ✅ |
 
 ---
 
 ## 🚀 Key Improvements
 
 ### 1. Bundle Size Reduction
+
 - **Main bundle halved**: 899 kB → 442 kB
 - **Initial load**: 66% faster (265 kB → 129 kB gzipped)
 - **Update efficiency**: 60-80% less bandwidth on app updates
 
 ### 2. Dependency Code-Splitting
+
 Successfully separated into logical chunks:
+
 - **Recharts**: 381 kB (lazy-loaded with AnalysisDeck)
 - **Data package**: 236 kB
 - **Supabase**: 169 kB
@@ -45,11 +48,13 @@ Successfully separated into logical chunks:
 - **React Query**: 43 kB
 
 ### 3. PWA Optimization
+
 - **Precache reduced**: 60 entries (2.3 MB) → 9 entries (41 KB)
 - **Runtime caching**: JS/CSS chunks cached on-demand
 - **Offline support**: Still fully functional
 
 ### 4. React Query Tuning
+
 - Increased staleTime: 30s → 60s (fewer API calls)
 - Added explicit garbage collection time (5 minutes)
 
@@ -58,6 +63,7 @@ Successfully separated into logical chunks:
 ## 📝 Changes Made
 
 ### Files Modified
+
 1. **apps/web/vite.config.ts**
    - Added `manualChunks` configuration
    - Updated PWA workbox config
@@ -89,6 +95,7 @@ Successfully separated into logical chunks:
 ## 🎓 What Was Already Good
 
 The codebase had several excellent patterns already in place:
+
 - ✅ Routes lazy-loaded with React.lazy
 - ✅ AnalysisDeck lazy-loaded on DashboardPage
 - ✅ MapCard lazy-loads RouteMapWithCountries
@@ -105,16 +112,19 @@ The main issue was missing **build-time code-splitting** (manualChunks), which h
 ## 📈 Real-World Impact
 
 ### First-Time Visitors
+
 - **Before**: Download 376 kB (main + recharts)
 - **After**: Download 129 kB (main only, recharts lazy-loaded)
 - **Impact**: 66% faster initial load 🚀
 
 ### Returning Visitors (After Updates)
+
 - **Before**: Re-download entire 900 kB bundle
 - **After**: Only changed chunks (~100-200 kB typical)
 - **Impact**: ~75% less bandwidth per update 📉
 
 ### Caching Efficiency
+
 - Core libraries (React Query, Router, Radix, etc.) cached long-term
 - App code updates don't invalidate library caches
 - Users benefit from faster subsequent visits
@@ -126,6 +136,7 @@ The main issue was missing **build-time code-splitting** (manualChunks), which h
 For continued performance optimization:
 
 1. **Bundle Analysis**
+
    ```bash
    pnpm build
    npx vite-bundle-visualizer
@@ -146,6 +157,7 @@ For continued performance optimization:
 ## 📚 Documentation
 
 See **PERFORMANCE-AUDIT.md** for:
+
 - Detailed findings organized by severity
 - Complete analysis of all components
 - Implementation plan

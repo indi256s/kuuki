@@ -14,7 +14,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Configuration is checked before lookup so all account states fail identically.
     const activationOrigin = configuredActivationOrigin(env)
     if (activationOrigin === new URL(request.url).origin) {
-      throw new HttpError(503, 'Account activation is temporarily unavailable', 'ACTIVATION_UNAVAILABLE')
+      throw new HttpError(
+        503,
+        'Account activation is temporarily unavailable',
+        'ACTIVATION_UNAVAILABLE',
+      )
     }
     const sender = configuredActivationSender(env)
     await rateLimit(env.DB, `activation-ip:${clientIp(request)}`, 10, 3600)
@@ -27,9 +31,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     await rateLimit(env.DB, `activation-email:${emailKey}`, 3, 3600)
     // Keep lookup and delivery out of the account-dependent response path. Pages
     // keeps this task alive after the generic response has been returned.
-    context.waitUntil(requestActivation(env.DB, email, activationOrigin, sender).catch(() => {
-      console.error(JSON.stringify({ event: 'activation_request_failed' }))
-    }))
+    context.waitUntil(
+      requestActivation(env.DB, email, activationOrigin, sender).catch(() => {
+        console.error(JSON.stringify({ event: 'activation_request_failed' }))
+      }),
+    )
     return json({ ok: true })
   })
   response.headers.set('Cache-Control', RESPONSE_HEADERS['Cache-Control'])

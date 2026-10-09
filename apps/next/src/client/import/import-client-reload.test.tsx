@@ -10,15 +10,29 @@ import type { Snapshot } from './import-types'
 const post = vi.fn()
 const refresh = vi.fn()
 const discardBatch = vi.fn(async () => ({ deleted: true }))
-vi.mock('@kuuki/client/flights', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/flights')>()), checkDuplicateFlight: vi.fn(async () => null) }))
+vi.mock('@kuuki/client/flights', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@kuuki/client/flights')>()),
+  checkDuplicateFlight: vi.fn(async () => null),
+}))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
-vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }) }))
+vi.mock('../write-feedback', () => ({
+  useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }),
+}))
 vi.mock('../signature/stamp', () => ({ Stamp: () => null }))
-vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()), api: { post: (...args: unknown[]) => post(...args) } }))
-vi.mock('./import-api', async importOriginal => ({
+vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()),
+  api: { post: (...args: unknown[]) => post(...args) },
+}))
+vi.mock('./import-api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./import-api')>()),
-  confirmItems: vi.fn(), cancelBatch: vi.fn(), discardBatch: () => discardBatch(), patchDraft: vi.fn(), listUnfinished: vi.fn(async () => []),
-  fetchPressedCountries: vi.fn(async () => new Set<string>()), submitSource: vi.fn(), readBatch: vi.fn(),
+  confirmItems: vi.fn(),
+  cancelBatch: vi.fn(),
+  discardBatch: () => discardBatch(),
+  patchDraft: vi.fn(),
+  listUnfinished: vi.fn(async () => []),
+  fetchPressedCountries: vi.fn(async () => new Set<string>()),
+  submitSource: vi.fn(),
+  readBatch: vi.fn(),
 }))
 
 import { clearFlightCreateOperations } from '@kuuki/client/flightCreateOperations'
@@ -29,28 +43,52 @@ import { ImportClient } from './import-client'
 import { emptyValues } from './review-model'
 import type { BatchApi } from './use-import-batch'
 
-const api = (answer: Snapshot = snapshot([draft({ id: 'a', selected: false })], { sequence: 5, expiresAt: '2026-11-04T12:00:00.000Z' })): BatchApi => ({
-  readBatch: vi.fn(async () => answer), connect: vi.fn(async () => {}), submit: vi.fn(), sleep: vi.fn(async () => {}),
+const api = (
+  answer: Snapshot = snapshot([draft({ id: 'a', selected: false })], {
+    sequence: 5,
+    expiresAt: '2026-11-04T12:00:00.000Z',
+  }),
+): BatchApi => ({
+  readBatch: vi.fn(async () => answer),
+  connect: vi.fn(async () => {}),
+  submit: vi.fn(),
+  sleep: vi.fn(async () => {}),
 })
 const committed = new Set<string>()
 const ok = (status: string) => ({ results: [{ status }], derived_state: 'ready', revision: 3 })
-const sentKeys = () => post.mock.calls.map(call => (call[1] as { items: Array<{ key: string }> }).items[0].key)
+const sentKeys = () =>
+  post.mock.calls.map((call) => (call[1] as { items: Array<{ key: string }> }).items[0].key)
 const RECEIPT = 'kuuki-flight-create-operation:'
 const DAY = 24 * 60 * 60 * 1000
 
 /** The server commits each key once; a replayed key answers `replayed`. */
-const serverCommits = () => post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => {
-  const key = body.items[0].key
-  const status = committed.has(key) ? 'replayed' : 'created'
-  committed.add(key)
-  return ok(status)
-})
+const serverCommits = () =>
+  post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => {
+    const key = body.items[0].key
+    const status = committed.has(key) ? 'replayed' : 'created'
+    committed.add(key)
+    return ok(status)
+  })
 /** The server commits the key, then the answer is lost. */
-const commitThenLose = () => post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => { committed.add(body.items[0].key); throw new TypeError('Failed to fetch') })
+const commitThenLose = () =>
+  post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => {
+    committed.add(body.items[0].key)
+    throw new TypeError('Failed to fetch')
+  })
 
-const flight = (over: Partial<ReturnType<typeof emptyValues>> = {}) => toFlightInput({ ...emptyValues(), date: '2026-03-01', origin: 'JFK', destination: 'BOS', ...over })
+const flight = (over: Partial<ReturnType<typeof emptyValues>> = {}) =>
+  toFlightInput({
+    ...emptyValues(),
+    date: '2026-03-01',
+    origin: 'JFK',
+    destination: 'BOS',
+    ...over,
+  })
 /** A manual save written the way main writes it (a plain UUID operation id) whose committed answer was lost. */
-async function loseOldFormatSave(owner = 'u1', over: Partial<ReturnType<typeof emptyValues>> = {}): Promise<string> {
+async function loseOldFormatSave(
+  owner = 'u1',
+  over: Partial<ReturnType<typeof emptyValues>> = {},
+): Promise<string> {
   const operationId = crypto.randomUUID()
   commitThenLose()
   await createFlights(owner, [{ operationId, flight: flight(over) }])
@@ -58,15 +96,24 @@ async function loseOldFormatSave(owner = 'u1', over: Partial<ReturnType<typeof e
 }
 /** Ages a stored receipt past the six-day safe-retry window, as if it had been written a week ago. */
 function age(owner: string, operationId: string) {
-  const stored = JSON.parse(localStorage.getItem(`${RECEIPT}${owner}:${operationId}`)!) as { createdAt: number }
-  localStorage.setItem(`${RECEIPT}${owner}:${operationId}`, JSON.stringify({ ...stored, createdAt: Date.now() - 7 * DAY }))
+  const stored = JSON.parse(localStorage.getItem(`${RECEIPT}${owner}:${operationId}`)!) as {
+    createdAt: number
+  }
+  localStorage.setItem(
+    `${RECEIPT}${owner}:${operationId}`,
+    JSON.stringify({ ...stored, createdAt: Date.now() - 7 * DAY }),
+  )
 }
 
 const recovery = () => screen.getByRole('region', { name: /unconfirmed saves/i })
 const entries = () => within(recovery()).getAllByRole('listitem')
-const manualRows = () => screen.getAllByText('Flight added by hand').map(title => title.closest('li')!)
+const manualRows = () =>
+  screen.getAllByText('Flight added by hand').map((title) => title.closest('li')!)
 
-async function addManual(user: ReturnType<typeof userEvent.setup>, over: { date?: string; origin?: string; destination?: string } = {}) {
+async function addManual(
+  user: ReturnType<typeof userEvent.setup>,
+  over: { date?: string; origin?: string; destination?: string } = {},
+) {
   await user.click(await screen.findByRole('button', { name: /add a flight manually/i }))
   const row = within(manualRows().at(-1)!)
   await user.type(row.getByLabelText(/^Date/), over.date ?? '2026-03-01')
@@ -75,15 +122,30 @@ async function addManual(user: ReturnType<typeof userEvent.setup>, over: { date?
 }
 
 beforeEach(() => {
-  window.matchMedia = ((query: string) => ({ matches: false, media: query, addEventListener: () => {}, removeEventListener: () => {} })) as unknown as typeof window.matchMedia
-  post.mockReset(); refresh.mockReset(); discardBatch.mockClear(); committed.clear(); clearFlightCreateOperations(); localStorage.clear(); window.history.replaceState(null, '', '/import')
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  })) as unknown as typeof window.matchMedia
+  post.mockReset()
+  refresh.mockReset()
+  discardBatch.mockClear()
+  committed.clear()
+  clearFlightCreateOperations()
+  localStorage.clear()
+  window.history.replaceState(null, '', '/import')
 })
 
 describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverable', () => {
   it('lost committed response, remount: the save is listed with its flight and retrying it commits one key', async () => {
     const user = userEvent.setup()
     await loseOldFormatSave()
-    render(<StrictMode><ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} /></StrictMode>)
+    render(
+      <StrictMode>
+        <ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />
+      </StrictMode>,
+    )
     await screen.findByRole('heading', { name: /review flights/i })
     expect(entries()).toHaveLength(1) // listed once, also under StrictMode
     expect(within(entries()[0]).getByText(/JFK → BOS · Mar 1, 2026/)).toBeInTheDocument()
@@ -98,72 +160,103 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
     expect(committed.size).toBe(1)
   })
 
-  it.each(['untouched', 'optional edit', 'optional edit restored', 'route edit restored', 'different route'])('lost committed response, %s: an identical re-add remains tied to recovery and is not saved twice', async edit => {
-    const user = userEvent.setup()
-    const old = await loseOldFormatSave()
-    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />)
-    await screen.findByRole('heading', { name: /review flights/i })
-    await addManual(user)
-    await user.click(screen.getByRole('button', { name: /import 1/i }))
-    expect(await screen.findByText(/same flight is still unconfirmed/i)).toBeInTheDocument()
-    expect(post).toHaveBeenCalledTimes(1) // only the lost original
-    expect(committed.size).toBe(1)
-
-    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
-    await user.click(within(manualRows()[0]).getByRole('button', { name: /show the unconfirmed save/i }))
-    expect(document.activeElement).toBe(entries()[0])
-    expect(entries()[0].id).toContain(old)
-
-    if (edit !== 'untouched') {
-      const input = within(manualRows()[0]).getByLabelText(edit === 'route edit restored' || edit === 'different route' ? /^To \(airport code\)/ : /^Flight number/)
-      if (edit === 'route edit restored' || edit === 'different route') await user.clear(input)
-      await user.type(input, edit === 'route edit restored' || edit === 'different route' ? 'LAX' : '123')
-      if (edit.endsWith('restored')) {
-        await user.clear(input)
-        if (edit === 'route edit restored') await user.type(input, 'BOS')
-      }
-    }
-    serverCommits()
-    await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
-    await within(recovery()).findByText(/saved: jfk → bos/i)
-    if (edit === 'different route') {
-      expect(within(manualRows()[0]).getByLabelText(/^To \(airport code\)/)).toHaveValue('LAX')
-      serverCommits()
+  it.each([
+    'untouched',
+    'optional edit',
+    'optional edit restored',
+    'route edit restored',
+    'different route',
+  ])(
+    'lost committed response, %s: an identical re-add remains tied to recovery and is not saved twice',
+    async (edit) => {
+      const user = userEvent.setup()
+      const old = await loseOldFormatSave()
+      render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />)
+      await screen.findByRole('heading', { name: /review flights/i })
+      await addManual(user)
       await user.click(screen.getByRole('button', { name: /import 1/i }))
-      await screen.findByRole('heading', { name: /import finished/i })
-      expect(committed.size).toBe(2) // The changed route is a different flight, not a recovered alias.
-    } else {
-      expect(screen.queryByRole('button', { name: /import 1/i })).toBeNull()
-      expect(screen.queryByText('Flight added by hand')).toBeNull()
-      expect(new Set(sentKeys()).size).toBe(1)
+      expect(await screen.findByText(/same flight is still unconfirmed/i)).toBeInTheDocument()
+      expect(post).toHaveBeenCalledTimes(1) // only the lost original
       expect(committed.size).toBe(1)
-    }
-  })
+
+      await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+      await user.click(
+        within(manualRows()[0]).getByRole('button', { name: /show the unconfirmed save/i }),
+      )
+      expect(document.activeElement).toBe(entries()[0])
+      expect(entries()[0].id).toContain(old)
+
+      if (edit !== 'untouched') {
+        const input = within(manualRows()[0]).getByLabelText(
+          edit === 'route edit restored' || edit === 'different route'
+            ? /^To \(airport code\)/
+            : /^Flight number/,
+        )
+        if (edit === 'route edit restored' || edit === 'different route') await user.clear(input)
+        await user.type(
+          input,
+          edit === 'route edit restored' || edit === 'different route' ? 'LAX' : '123',
+        )
+        if (edit.endsWith('restored')) {
+          await user.clear(input)
+          if (edit === 'route edit restored') await user.type(input, 'BOS')
+        }
+      }
+      serverCommits()
+      await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
+      await within(recovery()).findByText(/saved: jfk → bos/i)
+      if (edit === 'different route') {
+        expect(within(manualRows()[0]).getByLabelText(/^To \(airport code\)/)).toHaveValue('LAX')
+        serverCommits()
+        await user.click(screen.getByRole('button', { name: /import 1/i }))
+        await screen.findByRole('heading', { name: /import finished/i })
+        expect(committed.size).toBe(2) // The changed route is a different flight, not a recovered alias.
+      } else {
+        expect(screen.queryByRole('button', { name: /import 1/i })).toBeNull()
+        expect(screen.queryByText('Flight added by hand')).toBeNull()
+        expect(new Set(sentKeys()).size).toBe(1)
+        expect(committed.size).toBe(1)
+      }
+    },
+  )
 })
 
 describe('R3-I1 recovery does not depend on the batch that wrote the save', () => {
   it('discard the batch, remount in another: the identical re-add is held, the listed save is reachable, and the journal check frees the re-add', async () => {
     const user = userEvent.setup()
-    const first = render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />)
+    const first = render(
+      <ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api()} />,
+    )
     commitThenLose()
     await addManual(user)
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     await screen.findByRole('heading', { name: /some flights were not saved/i })
     await user.click(screen.getByRole('button', { name: /^back to review$/i }))
     await user.click(screen.getByRole('button', { name: /^discard import$/i }))
-    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: /^discard import$/i }))
+    await user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: /^discard import$/i }),
+    )
     await screen.findByRole('radio', { name: /paste text/i })
     expect(entries()).toHaveLength(1) // the discarded batch's save is still listed on Source
     first.unmount()
 
-    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b2" batchApi={api(snapshot([draft({ id: 'z', selected: false })], { id: 'b2' }))} />)
+    render(
+      <ImportClient
+        ownerId="u1"
+        locale="en"
+        initialBatchId="b2"
+        batchApi={api(snapshot([draft({ id: 'z', selected: false })], { id: 'b2' }))}
+      />,
+    )
     await screen.findByRole('heading', { name: /review flights/i })
     await addManual(user)
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     await screen.findByText(/same flight is still unconfirmed/i)
     expect(post).toHaveBeenCalledTimes(1)
     await user.click(screen.getByRole('button', { name: /^back to review$/i }))
-    await user.click(within(manualRows()[0]).getByRole('button', { name: /show the unconfirmed save/i }))
+    await user.click(
+      within(manualRows()[0]).getByRole('button', { name: /show the unconfirmed save/i }),
+    )
     expect(document.activeElement).toBe(entries()[0])
 
     await user.click(within(entries()[0]).getByRole('button', { name: /i checked the journal/i }))
@@ -178,17 +271,35 @@ describe('R3-I1 recovery does not depend on the batch that wrote the save', () =
 
   it('an expired batch still lists the unresolved save on Source', async () => {
     await loseOldFormatSave()
-    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api(snapshot([], { expired: true }))} />)
+    render(
+      <ImportClient
+        ownerId="u1"
+        locale="en"
+        initialBatchId="b1"
+        batchApi={api(snapshot([], { expired: true }))}
+      />,
+    )
     expect(await screen.findByRole('heading', { name: /expired/i })).toBeInTheDocument()
     expect(entries()).toHaveLength(1)
     expect(within(entries()[0]).getByText(/JFK → BOS/)).toBeInTheDocument()
-    expect(within(entries()[0]).getByRole('button', { name: /retry original save/i })).not.toHaveAttribute('aria-disabled', 'true')
-    expect(within(entries()[0]).getByRole('button', { name: /i checked the journal/i })).not.toHaveAttribute('aria-disabled', 'true')
+    expect(
+      within(entries()[0]).getByRole('button', { name: /retry original save/i }),
+    ).not.toHaveAttribute('aria-disabled', 'true')
+    expect(
+      within(entries()[0]).getByRole('button', { name: /i checked the journal/i }),
+    ).not.toHaveAttribute('aria-disabled', 'true')
   })
 
   it('a manual row started after leaving a failed batch is labelled solo, not with the old batch', async () => {
     const user = userEvent.setup()
-    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api(snapshot([], { status: 'failed', errorCode: 'NO_FLIGHTS_FOUND' }))} />)
+    render(
+      <ImportClient
+        ownerId="u1"
+        locale="en"
+        initialBatchId="b1"
+        batchApi={api(snapshot([], { status: 'failed', errorCode: 'NO_FLIGHTS_FOUND' }))}
+      />,
+    )
     await user.click(await screen.findByRole('button', { name: /enter flights by hand/i }))
     const row = within(manualRows()[0])
     await user.type(row.getByLabelText(/^Date/), '2026-03-01')
@@ -197,7 +308,7 @@ describe('R3-I1 recovery does not depend on the batch that wrote the save', () =
     commitThenLose()
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     await screen.findByRole('heading', { name: /some flights were not saved/i })
-    const stored = Object.keys(localStorage).filter(key => key.startsWith(`${RECEIPT}u1:`))
+    const stored = Object.keys(localStorage).filter((key) => key.startsWith(`${RECEIPT}u1:`))
     expect(stored).toHaveLength(1)
     expect(stored[0]).toContain(':manual:solo:')
   })
@@ -209,14 +320,24 @@ describe('R3-I2 a completed batch keeps restored saves settleable', () => {
     await loseOldFormatSave('u1')
     const aged = await loseOldFormatSave('u1', { origin: 'LHR', destination: 'CDG' })
     age('u1', aged)
-    const done = snapshot([draft({ id: 'a', status: 'converted', convertedFlightId: 5 })], { status: 'completed' })
+    const done = snapshot([draft({ id: 'a', status: 'converted', convertedFlightId: 5 })], {
+      status: 'completed',
+    })
     render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api(done)} />)
     await screen.findByRole('heading', { name: /import finished/i })
     expect(entries()).toHaveLength(2)
-    expect(screen.queryByRole('button', { name: /back to review|review the remaining/i })).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: /back to review|review the remaining/i }),
+    ).toBeNull()
 
-    const [lhr, jfk] = [entries().find(item => within(item).queryByText(/LHR → CDG/))!, entries().find(item => within(item).queryByText(/JFK → BOS/))!]
-    expect(within(lhr).getByRole('button', { name: /retry original save/i })).toHaveAttribute('aria-disabled', 'true')
+    const [lhr, jfk] = [
+      entries().find((item) => within(item).queryByText(/LHR → CDG/))!,
+      entries().find((item) => within(item).queryByText(/JFK → BOS/))!,
+    ]
+    expect(within(lhr).getByRole('button', { name: /retry original save/i })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
     serverCommits()
     await user.click(within(jfk).getByRole('button', { name: /retry original save/i }))
     await within(recovery()).findByText(/saved: jfk → bos/i)
@@ -240,7 +361,9 @@ describe('R3-I2 a completed batch keeps restored saves settleable', () => {
     await screen.findByRole('heading', { name: /some flights were not saved/i })
     await user.click(screen.getByRole('button', { name: /^back to review$/i }))
     expect(await screen.findByRole('heading', { name: /review flights/i })).toBeInTheDocument()
-    expect(within(manualRows()[0]).getByRole('button', { name: /i checked the journal/i })).toBeInTheDocument()
+    expect(
+      within(manualRows()[0]).getByRole('button', { name: /i checked the journal/i }),
+    ).toBeInTheDocument()
   })
 })
 
@@ -256,14 +379,16 @@ describe('R3-I3 an intact receipt past the safe-retry window', () => {
     expect(within(entry).getByText('AA')).toBeInTheDocument()
     const retry = within(entry).getByRole('button', { name: /retry original save/i })
     expect(retry).toHaveAttribute('aria-disabled', 'true')
-    expect(document.getElementById(retry.getAttribute('aria-describedby')!.split(' ').at(-1)!)).toHaveTextContent(/safe retry period has passed/i)
+    expect(
+      document.getElementById(retry.getAttribute('aria-describedby')!.split(' ').at(-1)!),
+    ).toHaveTextContent(/safe retry period has passed/i)
     await user.click(retry)
     expect(post).toHaveBeenCalledTimes(1)
     const check = within(entry).getByRole('button', { name: /i checked the journal/i })
     expect(check).not.toHaveAttribute('aria-disabled', 'true')
     await user.click(check)
     expect(screen.getByText(/marked as checked/i)).toBeInTheDocument()
-    expect(Object.keys(localStorage).filter(key => key.startsWith(RECEIPT))).toEqual([])
+    expect(Object.keys(localStorage).filter((key) => key.startsWith(RECEIPT))).toEqual([])
   })
 })
 
@@ -279,7 +404,9 @@ describe('owner isolation', () => {
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     expect(await screen.findByRole('heading', { name: /import finished/i })).toBeInTheDocument()
     expect(post).toHaveBeenCalledTimes(2)
-    expect(Object.keys(localStorage).filter(key => key.startsWith(`${RECEIPT}u1:`))).toHaveLength(1) // u1's save is untouched
+    expect(Object.keys(localStorage).filter((key) => key.startsWith(`${RECEIPT}u1:`))).toHaveLength(
+      1,
+    ) // u1's save is untouched
   })
 })
 
@@ -298,8 +425,10 @@ describe('R4 recovery continuation', () => {
     await screen.findByText(/same flight is still unconfirmed/i)
     await user.click(screen.getByRole('button', { name: /^back to review$/i }))
     const destination = within(manualRows()[1]).getByLabelText(/^To \(airport code\)/)
-    await user.clear(destination); await user.type(destination, 'LAX')
-    await user.clear(destination); await user.type(destination, 'BOS')
+    await user.clear(destination)
+    await user.type(destination, 'LAX')
+    await user.clear(destination)
+    await user.type(destination, 'BOS')
     serverCommits()
     await user.click(within(manualRows()[0]).getByRole('button', { name: /retry original save/i }))
     await screen.findByRole('heading', { name: /import finished/i })
@@ -315,7 +444,9 @@ describe('R4 recovery continuation', () => {
     fireEvent.change(screen.getByRole('combobox', { name: 'From' }), { target: { value: 'JFK' } })
     fireEvent.change(screen.getByRole('combobox', { name: 'To' }), { target: { value: 'BOS' } })
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '03/01/2026' } })
-    post.mockImplementationOnce(async () => { throw new TypeError('Lost response') })
+    post.mockImplementationOnce(async () => {
+      throw new TypeError('Lost response')
+    })
     await user.click(screen.getByRole('button', { name: 'Save flight' }))
     await screen.findByRole('button', { name: 'Retry original save' })
     expect(post.mock.calls[0][1]).not.toHaveProperty('enrichment_status')
@@ -327,65 +458,91 @@ describe('R4 recovery continuation', () => {
     expect(post).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['null', '[]', '42', '"broken"', '{"date":"2026-03-01","origin":"JFK","destination":"BOS","airline_iata":{}}'])('malformed body %s stays visible and can be settled without a send', async payload => {
+  it.each([
+    'null',
+    '[]',
+    '42',
+    '"broken"',
+    '{"date":"2026-03-01","origin":"JFK","destination":"BOS","airline_iata":{}}',
+  ])('malformed body %s stays visible and can be settled without a send', async (payload) => {
     const user = userEvent.setup()
     const id = crypto.randomUUID()
-    localStorage.setItem(`${RECEIPT}u1:${id}`, JSON.stringify({ key: crypto.randomUUID(), payload, createdAt: Date.now() }))
+    localStorage.setItem(
+      `${RECEIPT}u1:${id}`,
+      JSON.stringify({ key: crypto.randomUUID(), payload, createdAt: Date.now() }),
+    )
     render(<ImportClient ownerId="u1" locale="en" />)
     const entry = await waitFor(() => entries()[0])
-    expect(within(entry).getByRole('button', { name: /retry original save/i })).toHaveAttribute('aria-disabled', 'true')
+    expect(within(entry).getByRole('button', { name: /retry original save/i })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
     await user.click(within(entry).getByRole('button', { name: /i checked the journal/i }))
     expect(localStorage.getItem(`${RECEIPT}u1:${id}`)).toBeNull()
     expect(post).not.toHaveBeenCalled()
   })
 
-  it.each(['retry', 'check'])('a live lost save stays recoverable on expired Done and Source (%s)', async action => {
-    const user = userEvent.setup()
-    const batchApi = api()
-    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={batchApi} />)
-    await addManual(user)
-    vi.mocked(batchApi.readBatch).mockResolvedValue(snapshot([], { expired: true }))
-    commitThenLose()
-    await user.click(screen.getByRole('button', { name: /import 1/i }))
-    await screen.findByRole('heading', { name: /some flights were not saved/i })
-    expect(entries()).toHaveLength(1)
-    await user.click(screen.getByRole('button', { name: /^back to review$/i }))
-    await screen.findByRole('heading', { name: /expired/i })
-    expect(entries()).toHaveLength(1)
-    if (action === 'retry') {
-      serverCommits()
-      await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
-      await within(recovery()).findByText(/saved: jfk → bos/i)
-      expect(new Set(sentKeys()).size).toBe(1)
-    } else {
-      await user.click(within(entries()[0]).getByRole('button', { name: /i checked the journal/i }))
-      expect(post).toHaveBeenCalledTimes(1)
-    }
-    expect(within(recovery()).queryAllByRole('listitem')).toHaveLength(0)
-  })
+  it.each(['retry', 'check'])(
+    'a live lost save stays recoverable on expired Done and Source (%s)',
+    async (action) => {
+      const user = userEvent.setup()
+      const batchApi = api()
+      render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={batchApi} />)
+      await addManual(user)
+      vi.mocked(batchApi.readBatch).mockResolvedValue(snapshot([], { expired: true }))
+      commitThenLose()
+      await user.click(screen.getByRole('button', { name: /import 1/i }))
+      await screen.findByRole('heading', { name: /some flights were not saved/i })
+      expect(entries()).toHaveLength(1)
+      await user.click(screen.getByRole('button', { name: /^back to review$/i }))
+      await screen.findByRole('heading', { name: /expired/i })
+      expect(entries()).toHaveLength(1)
+      if (action === 'retry') {
+        serverCommits()
+        await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
+        await within(recovery()).findByText(/saved: jfk → bos/i)
+        expect(new Set(sentKeys()).size).toBe(1)
+      } else {
+        await user.click(
+          within(entries()[0]).getByRole('button', { name: /i checked the journal/i }),
+        )
+        expect(post).toHaveBeenCalledTimes(1)
+      }
+      expect(within(recovery()).queryAllByRole('listitem')).toHaveLength(0)
+    },
+  )
 })
 
 describe('original retry after cross-flow settlement', () => {
-  it.each(['retry', 'check'])('a stale add-form button sends nothing after Import %s', async action => {
-    const user = userEvent.setup()
-    const id = crypto.randomUUID()
-    const key = crypto.randomUUID()
-    // Freshly loaded owner: this intact receipt has never populated this module's fallback map.
-    localStorage.setItem(`${RECEIPT}u1:${id}`, JSON.stringify({ key, payload: JSON.stringify(flight()), createdAt: Date.now() }))
-    sessionStorage.setItem('kuuki-flight-operation-next-manual:u1', id)
-    const form = render(<FlightForm ownerId="u1" locale="en" />)
-    const staleRetry = within(form.container).getByRole('button', { name: 'Retry original save' })
-    render(<ImportClient ownerId="u1" locale="en" />)
-    await waitFor(() => expect(entries()).toHaveLength(1))
-    if (action === 'retry') {
-      serverCommits()
-      await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
-      await within(recovery()).findByText(/saved: jfk → bos/i)
-    } else await user.click(within(entries()[0]).getByRole('button', { name: /i checked the journal/i }))
-    const count = post.mock.calls.length
-    await user.click(staleRetry)
-    expect(await within(form.container).findByText(/settled elsewhere/i)).toBeInTheDocument()
-    expect(post).toHaveBeenCalledTimes(count)
-    expect(localStorage.getItem(`${RECEIPT}u1:${id}`)).toBeNull()
-  })
+  it.each(['retry', 'check'])(
+    'a stale add-form button sends nothing after Import %s',
+    async (action) => {
+      const user = userEvent.setup()
+      const id = crypto.randomUUID()
+      const key = crypto.randomUUID()
+      // Freshly loaded owner: this intact receipt has never populated this module's fallback map.
+      localStorage.setItem(
+        `${RECEIPT}u1:${id}`,
+        JSON.stringify({ key, payload: JSON.stringify(flight()), createdAt: Date.now() }),
+      )
+      sessionStorage.setItem('kuuki-flight-operation-next-manual:u1', id)
+      const form = render(<FlightForm ownerId="u1" locale="en" />)
+      const staleRetry = within(form.container).getByRole('button', { name: 'Retry original save' })
+      render(<ImportClient ownerId="u1" locale="en" />)
+      await waitFor(() => expect(entries()).toHaveLength(1))
+      if (action === 'retry') {
+        serverCommits()
+        await user.click(within(entries()[0]).getByRole('button', { name: /retry original save/i }))
+        await within(recovery()).findByText(/saved: jfk → bos/i)
+      } else
+        await user.click(
+          within(entries()[0]).getByRole('button', { name: /i checked the journal/i }),
+        )
+      const count = post.mock.calls.length
+      await user.click(staleRetry)
+      expect(await within(form.container).findByText(/settled elsewhere/i)).toBeInTheDocument()
+      expect(post).toHaveBeenCalledTimes(count)
+      expect(localStorage.getItem(`${RECEIPT}u1:${id}`)).toBeNull()
+    },
+  )
 })

@@ -15,11 +15,20 @@ import { generateToken } from './crypto'
  *  - kuuki_csrf:    a separate random token, readable by JS, echoed in X-CSRF-Token
  * Returns the CSRF token (handlers may also return it in the JSON body for convenience).
  */
-export function setSessionCookies(headers: Headers, sessionToken: string, maxAge = SESSION_TTL_SECONDS): string {
+export function setSessionCookies(
+  headers: Headers,
+  sessionToken: string,
+  maxAge = SESSION_TTL_SECONDS,
+): string {
   const csrf = generateToken()
   headers.append(
     'Set-Cookie',
-    serializeCookie(SESSION_COOKIE, sessionToken, { maxAge, httpOnly: true, secure: true, sameSite: 'Lax' }),
+    serializeCookie(SESSION_COOKIE, sessionToken, {
+      maxAge,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+    }),
   )
   headers.append(
     'Set-Cookie',
@@ -29,14 +38,29 @@ export function setSessionCookies(headers: Headers, sessionToken: string, maxAge
 }
 
 /** Renew both cookie expiries while keeping the existing CSRF token stable. */
-export function refreshSessionCookie(headers: Headers, sessionToken: string, csrfToken: string, maxAge = SESSION_TTL_SECONDS): void {
+export function refreshSessionCookie(
+  headers: Headers,
+  sessionToken: string,
+  csrfToken: string,
+  maxAge = SESSION_TTL_SECONDS,
+): void {
   headers.append(
     'Set-Cookie',
-    serializeCookie(SESSION_COOKIE, sessionToken, { maxAge, httpOnly: true, secure: true, sameSite: 'Lax' }),
+    serializeCookie(SESSION_COOKIE, sessionToken, {
+      maxAge,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+    }),
   )
   headers.append(
     'Set-Cookie',
-    serializeCookie(CSRF_COOKIE, csrfToken, { maxAge, httpOnly: false, secure: true, sameSite: 'Lax' }),
+    serializeCookie(CSRF_COOKIE, csrfToken, {
+      maxAge,
+      httpOnly: false,
+      secure: true,
+      sameSite: 'Lax',
+    }),
   )
 }
 

@@ -11,9 +11,15 @@ it('guest gate precedes the preferences SELECT', async () => {
   expect(getRequestEnv).not.toHaveBeenCalled()
 })
 it('authenticated preferences are owner-bound, normalized and tagged', async () => {
-  vi.mocked(getRequestIdentity).mockResolvedValue({ id: 'owner' } as Awaited<ReturnType<typeof getRequestIdentity>>)
-  const first = vi.fn().mockResolvedValue({ overview_prefs: '{' }), bind = vi.fn(() => ({ first })), prepare = vi.fn(() => ({ bind }))
-  vi.mocked(getRequestEnv).mockResolvedValue({ DB: { prepare } } as unknown as Awaited<ReturnType<typeof getRequestEnv>>)
+  vi.mocked(getRequestIdentity).mockResolvedValue({ id: 'owner' } as Awaited<
+    ReturnType<typeof getRequestIdentity>
+  >)
+  const first = vi.fn().mockResolvedValue({ overview_prefs: '{' }),
+    bind = vi.fn(() => ({ first })),
+    prepare = vi.fn(() => ({ bind }))
+  vi.mocked(getRequestEnv).mockResolvedValue({ DB: { prepare } } as unknown as Awaited<
+    ReturnType<typeof getRequestEnv>
+  >)
   expect(await getOwnOverviewPrefs()).toEqual({ ownerId: 'owner', prefs: DEFAULT_PREFS })
   expect(prepare).toHaveBeenCalledWith('SELECT overview_prefs FROM profiles WHERE id = ?')
   expect(bind).toHaveBeenCalledWith('owner')

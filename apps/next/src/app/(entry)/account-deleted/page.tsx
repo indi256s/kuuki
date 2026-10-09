@@ -7,5 +7,16 @@ export const generateMetadata = () => pageMetadata('Account deleted', 'Акка�
 export default async function AccountDeleted() {
   const locale = await getRequestLocale()
   const ru = locale === 'ru'
-  return <AuthShell locale={locale} title={ru ? 'Аккаунт удалён' : 'Account deleted'}><p role="status" className="auth-success">{ru ? 'Данные аккаунта удалены, все сеансы завершены.' : 'Your account data has been deleted and all sessions have ended.'}</p><div className="auth-links"><Link href="/">{ru ? 'На главную' : 'Return to home'}</Link></div></AuthShell>
+  return (
+    <AuthShell locale={locale} title={ru ? 'Аккаунт удалён' : 'Account deleted'}>
+      <p role="status" className="auth-success">
+        {ru
+          ? 'Данные аккаунта удалены, все сеансы завершены.'
+          : 'Your account data has been deleted and all sessions have ended.'}
+      </p>
+      <div className="auth-links">
+        <Link href="/">{ru ? 'На главную' : 'Return to home'}</Link>
+      </div>
+    </AuthShell>
+  )
 }

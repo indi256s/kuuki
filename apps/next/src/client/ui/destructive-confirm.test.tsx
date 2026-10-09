@@ -5,13 +5,39 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { DestructiveConfirm } from './destructive-confirm'
 
-function Harness({ onConfirm, onChange }: { onConfirm: () => void | Promise<void>; onChange?: (open: boolean) => void }) {
+function Harness({
+  onConfirm,
+  onChange,
+}: {
+  onConfirm: () => void | Promise<void>
+  onChange?: (open: boolean) => void
+}) {
   const [open, setOpen] = useState(false)
-  return <>
-    <button type="button" onClick={() => setOpen(true)}>Open</button>
-    <DestructiveConfirm open={open} onOpenChange={next => { setOpen(next); onChange?.(next) }} title="Delete account?" consequence="Everything is removed." confirmLabel="Delete account" cancelLabel="Cancel" pendingLabel="Deleting…" onConfirm={onConfirm}
-      typedConfirmation={{ phrase: 'DELETE', label: 'Type DELETE', mismatchReason: 'Type DELETE to continue.' }} />
-  </>
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        Open
+      </button>
+      <DestructiveConfirm
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          onChange?.(next)
+        }}
+        title="Delete account?"
+        consequence="Everything is removed."
+        confirmLabel="Delete account"
+        cancelLabel="Cancel"
+        pendingLabel="Deleting…"
+        onConfirm={onConfirm}
+        typedConfirmation={{
+          phrase: 'DELETE',
+          label: 'Type DELETE',
+          mismatchReason: 'Type DELETE to continue.',
+        }}
+      />
+    </>
+  )
 }
 
 describe('DestructiveConfirm', () => {
@@ -44,7 +70,16 @@ describe('DestructiveConfirm', () => {
     const user = userEvent.setup()
     let finish = () => {}
     const onChange = vi.fn()
-    render(<Harness onChange={onChange} onConfirm={() => new Promise<void>(resolve => { finish = resolve })} />)
+    render(
+      <Harness
+        onChange={onChange}
+        onConfirm={() =>
+          new Promise<void>((resolve) => {
+            finish = resolve
+          })
+        }
+      />,
+    )
     await user.click(screen.getByRole('button', { name: 'Open' }))
     await user.type(await screen.findByLabelText('Type DELETE'), 'DELETE')
     await user.click(screen.getByRole('button', { name: 'Delete account' }))
@@ -56,7 +91,9 @@ describe('DestructiveConfirm', () => {
     expect(onChange).not.toHaveBeenCalledWith(false)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     finish()
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'Deleting…' })).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Deleting…' })).not.toBeInTheDocument(),
+    )
     await user.keyboard('{Escape}')
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(false))
   })

@@ -4,7 +4,11 @@ import { runHandler, json } from '../_lib/http'
 import { requireCsrf } from '../_lib/auth'
 import { parseCookies, SESSION_COOKIE } from '../_lib/cookies'
 import { revokeSession } from '../_lib/session'
-import { hasBetterAuthCookie, signOutWithBetterAuth, clearBetterAuthCookie } from '../_lib/betterAuth'
+import {
+  hasBetterAuthCookie,
+  signOutWithBetterAuth,
+  clearBetterAuthCookie,
+} from '../_lib/betterAuth'
 import { clearSessionCookies } from '../_lib/authCookies'
 
 export const onRequestPost: PagesFunction<Env> = (context) =>
@@ -15,7 +19,8 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
       const authResponse = await signOutWithBetterAuth(env, request)
       if (!authResponse.ok) return authResponse
       const res = json({ ok: true })
-      for (const cookie of authResponse.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
+      for (const cookie of authResponse.headers.getSetCookie())
+        res.headers.append('Set-Cookie', cookie)
       clearSessionCookies(res.headers)
       return res
     }

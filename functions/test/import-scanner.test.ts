@@ -3,7 +3,13 @@ import { FlightScanner, type ScannedFlight } from '../../workers/import/scanner'
 import { providerFlight, providerText } from './import-fixture'
 
 it('emits only complete flights objects across every string/escape/nesting boundary', () => {
-  const rows = [providerFlight({ flight_number: 'quote " brace } backslash \\', extra: { nested: ['{', { x: '}' }] } }), providerFlight({ origin: 'TBS' })]
+  const rows = [
+    providerFlight({
+      flight_number: 'quote " brace } backslash \\',
+      extra: { nested: ['{', { x: '}' }] },
+    }),
+    providerFlight({ origin: 'TBS' }),
+  ]
   const text = providerText(rows, { raw_text: 'private source' })
   const scanner = new FlightScanner()
   const emitted: ScannedFlight[] = []
@@ -14,48 +20,81 @@ it('emits only complete flights objects across every string/escape/nesting bound
 it('does not confuse a flights string in another field with the top-level array', () => {
   const scanner = new FlightScanner()
   const row = providerFlight()
-  expect([...scanner.push(JSON.stringify({ raw_text: '"flights":[{}]', nested: { flights: [{}] }, flights: [row] }))]).toEqual([{ ordinal: 0, value: row }])
+  expect([
+    ...scanner.push(
+      JSON.stringify({ raw_text: '"flights":[{}]', nested: { flights: [{}] }, flights: [row] }),
+    ),
+  ]).toEqual([{ ordinal: 0, value: row }])
 })
-it.each(['{"flights":[', '{"flights":[{"origin":"JFK"', '{"flights":[{"origin":"JFK"},oops', '{"flights":[{}]}trailing'])('rejects invalid or truncated envelope %s', text => {
+it.each([
+  '{"flights":[',
+  '{"flights":[{"origin":"JFK"',
+  '{"flights":[{"origin":"JFK"},oops',
+  '{"flights":[{}]}trailing',
+])('rejects invalid or truncated envelope %s', (text) => {
   const scanner = new FlightScanner()
-  expect(() => { [...scanner.push(text)]; scanner.finish() }).toThrow()
+  expect(() => {
+    ;[...scanner.push(text)]
+    scanner.finish()
+  }).toThrow()
 })
 it('retains source ordinals when the array has invalid primitive rows', () => {
   const scanner = new FlightScanner()
-  expect([...scanner.push('{"flights":[null,{},false,{}]}')].map(row => row.ordinal)).toEqual([1, 3])
+  expect([...scanner.push('{"flights":[null,{},false,{}]}')].map((row) => row.ordinal)).toEqual([
+    1, 3,
+  ])
 })
 it('bounds output bytes and nesting', () => {
   expect(() => [...new FlightScanner().push('x'.repeat(1024 * 1024 + 1))]).toThrow()
   expect(() => [...new FlightScanner().push('{"flights":[{"x":' + '['.repeat(65))]).toThrow()
 })
 it('rejects a repeated opening chunk that breaks the JSON grammar', () => {
-  const scanner = new FlightScanner(); const chunk = '{"flights":[' + JSON.stringify(providerFlight())
+  const scanner = new FlightScanner()
+  const chunk = '{"flights":[' + JSON.stringify(providerFlight())
   expect([...scanner.push(chunk)]).toHaveLength(1)
-  expect(() => { [...scanner.push(chunk)]; scanner.finish() }).toThrow()
+  expect(() => {
+    ;[...scanner.push(chunk)]
+    scanner.finish()
+  }).toThrow()
 })
 it('rejects duplicate flights keys rather than reconciling the wrong envelope', () => {
   const scanner = new FlightScanner()
-  expect(() => { [...scanner.push('{"flights":[{}],"flights":[{}]}')]; scanner.finish() }).toThrow()
+  expect(() => {
+    ;[...scanner.push('{"flights":[{}],"flights":[{}]}')]
+    scanner.finish()
+  }).toThrow()
 })
 it('rejects a repeated flights key even when its first value was not an array', () => {
-  const scanner = new FlightScanner(); const emitted: ScannedFlight[] = []
+  const scanner = new FlightScanner()
+  const emitted: ScannedFlight[] = []
   expect(() => {
-    for (const row of scanner.push('{"flights":false,"flights":[' + JSON.stringify(providerFlight()) + ']}')) emitted.push(row)
+    for (const row of scanner.push(
+      '{"flights":false,"flights":[' + JSON.stringify(providerFlight()) + ']}',
+    ))
+      emitted.push(row)
     scanner.finish()
   }).toThrow()
   expect(emitted).toHaveLength(0)
 })
 it('classifies a root JSON string as an invalid provider response', () => {
   const scanner = new FlightScanner()
-  expect(() => { [...scanner.push('"not an envelope"')]; scanner.finish() }).toThrow(expect.objectContaining({ code: 'PROVIDER_INVALID_RESPONSE' }))
+  expect(() => {
+    ;[...scanner.push('"not an envelope"')]
+    scanner.finish()
+  }).toThrow(expect.objectContaining({ code: 'PROVIDER_INVALID_RESPONSE' }))
 })
 
 it('yields fitting complete rows in the crossing chunk before reporting the output limit', () => {
-  const rows = [providerFlight(), providerFlight({ origin: 'TBS' }), providerFlight({ destination: 'IST' })]
+  const rows = [
+    providerFlight(),
+    providerFlight({ origin: 'TBS' }),
+    providerFlight({ destination: 'IST' }),
+  ]
   const emitted: ScannedFlight[] = []
   const scanner = new FlightScanner()
   expect(() => {
-    for (const row of scanner.push(providerText(rows, { raw_text: 'x'.repeat(1024 * 1024) }))) emitted.push(row)
+    for (const row of scanner.push(providerText(rows, { raw_text: 'x'.repeat(1024 * 1024) })))
+      emitted.push(row)
   }).toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
   expect(emitted).toEqual(rows.map((value, ordinal) => ({ ordinal, value })))
 })
@@ -64,13 +103,16 @@ it('never emits a row whose closing brace lies beyond the remaining byte budget'
   const prefix = '{"padding":"' + 'x'.repeat(1024 * 1024 - 80) + '","flights":['
   expect([...scanner.push(prefix)]).toEqual([])
   const emitted: ScannedFlight[] = []
-  expect(() => { for (const row of scanner.push(JSON.stringify(providerFlight()) + ']}')) emitted.push(row) })
-    .toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
+  expect(() => {
+    for (const row of scanner.push(JSON.stringify(providerFlight()) + ']}')) emitted.push(row)
+  }).toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
   expect(emitted).toEqual([])
 })
 
 it('preserves OUTPUT_LIMIT precedence for an oversized malformed tail after a persisted row', () => {
   const scanner = new FlightScanner()
   expect([...scanner.push('{"flights":[' + JSON.stringify(providerFlight()))]).toHaveLength(1)
-  expect(() => [...scanner.push('x'.repeat(1024 * 1024))]).toThrow(expect.objectContaining({ code: 'OUTPUT_LIMIT' }))
+  expect(() => [...scanner.push('x'.repeat(1024 * 1024))]).toThrow(
+    expect.objectContaining({ code: 'OUTPUT_LIMIT' }),
+  )
 })

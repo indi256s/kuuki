@@ -3,100 +3,424 @@
    Table elements are turned into grids so a row can take content-visibility (internal table boxes cannot); the ARIA roles in the markup keep the table semantics.
    Lanes (audit): Date 96, Route 204, Airline 182, Aircraft 152, Duration 90, Distance 98, 8px gaps, 72px rows. The three text lanes shrink first below ~900px. */
 
-.journal-ledger{--jr-text-lanes:minmax(104px,204fr) minmax(72px,182fr) minmax(72px,152fr);--jr-lead:12px;display:block;width:100%;border:0;border-collapse:separate;font-size:13px;line-height:20px;color:var(--text)}
-.journal-ledger[data-selectable]{--jr-lead:40px}
-.journal-ledger :is(thead,tbody){display:block}
-.journal-ledger :is(.jr-headrow,.jr-row){display:grid;grid-template-columns:96px var(--jr-text-lanes) 90px 98px;column-gap:var(--space-2);align-items:center;padding-inline:var(--jr-lead) 12px}
-.journal-ledger[data-menu] :is(.jr-headrow,.jr-row){grid-template-columns:96px var(--jr-text-lanes) 90px 98px 44px}
-.journal-ledger[data-compact] :is(.jr-headrow,.jr-row){grid-template-columns:96px var(--jr-text-lanes)}
-.journal-ledger[data-compact][data-menu] :is(.jr-headrow,.jr-row){grid-template-columns:96px var(--jr-text-lanes) 44px}
-.journal-ledger :is(th,td){min-width:0;padding:0;font-weight:400;text-align:start}
-
-/* Header: sticky, an inset strip, one sort cue (the arrow on the active column). */
-.journal-ledger .jr-head{position:sticky;top:var(--ledger-sticky-top,0px);z-index:3;padding-block-end:var(--space-1);background:var(--background)}
-.journal-ledger .jr-headrow{min-height:40px;border-radius:var(--radius-sm);background:var(--surface-inset);color:var(--text-muted)}
-.journal-ledger .jr-headrow th{font-weight:500;white-space:nowrap}
-.journal-ledger .jr-select-head{position:absolute;width:1px;height:1px;overflow:hidden}
-.journal-ledger .jr-headrow :is(.jr-duration,.jr-distance){text-align:end}
-.jr-sort{display:inline-flex;align-items:center;gap:var(--space-1);max-width:100%;min-height:40px;padding:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:500;cursor:pointer}
-.jr-sort>span{overflow:hidden;text-overflow:ellipsis}
-.jr-sort-cue{flex:none;opacity:0;color:var(--text);transition:opacity var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out)}
-.jr-sort-cue[data-order]{opacity:1}
-.jr-sort-cue[data-order=desc]{transform:rotate(180deg)}
-.jr-sort:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--radius-xs)}
-.jr-headrow th[aria-sort=ascending],.jr-headrow th[aria-sort=descending]{color:var(--text)}
-@media (hover:hover) and (pointer:fine){.jr-sort:hover{color:var(--text)}}
-@media (pointer:coarse){.jr-sort{min-height:44px}}
-
-/* Rows: real DOM, skipped by the renderer when far off screen. */
-.journal-ledger .jr-body{display:grid;gap:var(--space-1);padding-block-start:var(--space-1)}
-.journal-ledger .jr-row{position:relative;min-height:72px;padding-block:var(--space-3);border-radius:var(--radius-sm);cursor:pointer;content-visibility:auto;contain-intrinsic-size:auto 72px;transition:background-color var(--dur-fast) var(--ease-out)}
-.journal-ledger .jr-row[data-kind=connector]{min-height:0;padding-block:var(--space-1);cursor:default;contain-intrinsic-size:auto 32px}
-.journal-ledger .jr-row:is([data-active],[data-selected]){background:var(--accent-tint)}
-@media (hover:hover) and (pointer:fine){.journal-ledger .jr-row[data-kind=flight]:not([data-active],[data-selected]):hover{background:var(--surface-inset)}}
-.journal-ledger .jr-connector{grid-column:1 / -1;color:var(--text-muted);font-size:13px;line-height:20px;padding-inline-start:calc(96px + var(--space-2))}
-
-.journal-ledger .jr-date{display:grid;gap:2px;justify-items:start}
-.jr-date-text{font:400 13px/20px var(--font-mono);font-variant-numeric:tabular-nums}
-.jr-badge{display:inline-flex;align-items:center;gap:var(--space-1);font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}
-.jr-badge::before{content:'';width:6px;height:6px;border-radius:var(--radius-full);background:currentColor}
-.jr-badge[data-state=awaiting]{color:var(--warning-text)}
-.jr-badge[data-state=upcoming]{color:var(--info-text)}
-
-/* Route: the focusable button names the row; the glyph and the "more" button sit beside it. */
-.jr-route-inner{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0}
-.jr-open{display:grid;gap:2px;min-width:0;max-width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
-.jr-open:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--radius-xs)}
-.jr-codes{font:400 18px/24px var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.jr-cities{overflow:hidden;color:var(--text-muted);text-overflow:ellipsis;white-space:nowrap}
-.journal-firsts{display:inline-grid;flex:none;place-items:center;width:24px;height:24px;color:var(--accent-text);border-radius:var(--radius-xs)}
-.journal-firsts:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.journal-firsts-line{display:block}
-@media (pointer:coarse){.journal-firsts{width:44px;height:44px;margin-block:-10px}}
-
-/* Airline, aircraft, metrics. */
-.journal-ledger .jr-airline{display:grid;gap:2px}
-.jr-airline-line{display:flex;gap:var(--space-2);align-items:center;min-width:0}
-.journal-ledger .ui-airline-mark[data-logo]{background:transparent;border:0;border-radius:0}
-.journal-ledger .ui-airline-mark:not([data-logo]){display:none}
-.journal-ledger .ui-airline-mark[data-logo]+.jr-code{display:none}
-.jr-code{flex:none;font-family:var(--font-mono)}
-.jr-airline-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.jr-flightno{font:400 12px/16px var(--font-mono);color:var(--text-muted)}
-.jr-aircraft-line{display:flex;gap:var(--space-2);align-items:center;min-width:0}
-.jr-aircraft-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.journal-ledger .jr-row :is(.jr-duration,.jr-distance){text-align:end;font:400 13px/20px var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.jr-km{display:none}
-
-/* Above the row-wide menu overlay: the controls that must stay clickable. */
-.journal-ledger .jr-menu::after{content:'';position:absolute;inset:0}
-.journal-ledger :is(.jr-open,.journal-firsts,.jr-aircraft .ui-button,.jr-select){position:relative;z-index:1}
-.journal-ledger .jr-more{position:absolute;inset-inline-end:var(--space-2);top:50%;margin-top:-22px;z-index:1}
-
-/* Selection: the checkbox lives in the row's leading padding and shows on hover, focus, or once anything is selected. */
-.journal-ledger .jr-select{position:absolute;inset-inline-start:var(--space-2);top:50%;margin-top:-12px;opacity:0;transition:opacity var(--dur-fast) var(--ease-out)}
-.journal-ledger[data-selecting] .jr-select,.journal-ledger .jr-row:is(:focus-within,[data-selected]) .jr-select{opacity:1}
-@media (hover:hover) and (pointer:fine){.journal-ledger .jr-row:hover .jr-select{opacity:1}}
-
-/* Phones: each row becomes a card. The header row is hidden (sort moves elsewhere), spacing comes from the gap. */
-@media (max-width:700px){
-  .journal-ledger .jr-head{display:none}
-  .journal-ledger .jr-body{gap:var(--space-3);padding-block-start:0}
-  .journal-ledger .jr-row[data-kind=flight]{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"route date" "airline aircraft" "distance distance";gap:var(--space-2) var(--space-3);align-items:start;padding:var(--space-4);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface)}
-  .journal-ledger .jr-row[data-kind=flight]:is([data-active],[data-selected]){background:var(--accent-tint)}
-  .journal-ledger .jr-row[data-kind=connector]{padding-inline:var(--space-4)}
-  .journal-ledger .jr-connector{padding-inline-start:0}
-  .journal-ledger .jr-row .jr-date{grid-area:date;justify-items:end;text-align:end}
-  .journal-ledger .jr-row .jr-route{grid-area:route}
-  .journal-ledger .jr-row .jr-airline{grid-area:airline}
-  .journal-ledger .jr-row .jr-aircraft{grid-area:aircraft;justify-self:end;min-width:0}
-  .journal-ledger .jr-row .jr-distance{grid-area:distance;text-align:start;padding-inline-end:44px}
-  .journal-ledger .jr-row .jr-duration,.journal-ledger .jr-row .jr-select{display:none}
-  .jr-km{display:inline}
-  .journal-ledger .jr-more{inset-inline-end:var(--space-1);top:auto;bottom:var(--space-1);margin-top:0}
+.journal-ledger {
+  --jr-text-lanes: minmax(104px, 204fr) minmax(72px, 182fr) minmax(72px, 152fr);
+  --jr-lead: 12px;
+  display: block;
+  width: 100%;
+  border: 0;
+  border-collapse: separate;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text);
+}
+.journal-ledger[data-selectable] {
+  --jr-lead: 40px;
+}
+.journal-ledger :is(thead, tbody) {
+  display: block;
+}
+.journal-ledger :is(.jr-headrow, .jr-row) {
+  display: grid;
+  grid-template-columns: 96px var(--jr-text-lanes) 90px 98px;
+  column-gap: var(--space-2);
+  align-items: center;
+  padding-inline: var(--jr-lead) 12px;
+}
+.journal-ledger[data-menu] :is(.jr-headrow, .jr-row) {
+  grid-template-columns: 96px var(--jr-text-lanes) 90px 98px 44px;
+}
+.journal-ledger[data-compact] :is(.jr-headrow, .jr-row) {
+  grid-template-columns: 96px var(--jr-text-lanes);
+}
+.journal-ledger[data-compact][data-menu] :is(.jr-headrow, .jr-row) {
+  grid-template-columns: 96px var(--jr-text-lanes) 44px;
+}
+.journal-ledger :is(th, td) {
+  min-width: 0;
+  padding: 0;
+  font-weight: 400;
+  text-align: start;
 }
 
-@media (prefers-reduced-motion:reduce){.jr-sort-cue,.journal-ledger .jr-row,.journal-ledger .jr-select{transition:none}}
+/* Header: sticky, an inset strip, one sort cue (the arrow on the active column). */
+.journal-ledger .jr-head {
+  position: sticky;
+  top: var(--ledger-sticky-top, 0px);
+  z-index: 3;
+  padding-block-end: var(--space-1);
+  background: var(--background);
+}
+.journal-ledger .jr-headrow {
+  min-height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+.journal-ledger .jr-headrow th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+.journal-ledger .jr-select-head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.journal-ledger .jr-headrow :is(.jr-duration, .jr-distance) {
+  text-align: end;
+}
+.jr-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.jr-sort > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jr-sort-cue {
+  flex: none;
+  opacity: 0;
+  color: var(--text);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.jr-sort-cue[data-order] {
+  opacity: 1;
+}
+.jr-sort-cue[data-order='desc'] {
+  transform: rotate(180deg);
+}
+.jr-sort:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+.jr-headrow th[aria-sort='ascending'],
+.jr-headrow th[aria-sort='descending'] {
+  color: var(--text);
+}
+@media (hover: hover) and (pointer: fine) {
+  .jr-sort:hover {
+    color: var(--text);
+  }
+}
+@media (pointer: coarse) {
+  .jr-sort {
+    min-height: 44px;
+  }
+}
 
-.jr-mobile-rows{display:grid;gap:var(--space-3)}
-.jr-mobile-rows .ui-swipe-row{border-radius:var(--radius-md)}
+/* Rows: real DOM, skipped by the renderer when far off screen. */
+.journal-ledger .jr-body {
+  display: grid;
+  gap: var(--space-1);
+  padding-block-start: var(--space-1);
+}
+.journal-ledger .jr-row {
+  position: relative;
+  min-height: 72px;
+  padding-block: var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.journal-ledger .jr-row[data-kind='connector'] {
+  min-height: 0;
+  padding-block: var(--space-1);
+  cursor: default;
+  contain-intrinsic-size: auto 32px;
+}
+.journal-ledger .jr-row:is([data-active], [data-selected]) {
+  background: var(--accent-tint);
+}
+@media (hover: hover) and (pointer: fine) {
+  .journal-ledger .jr-row[data-kind='flight']:not([data-active], [data-selected]):hover {
+    background: var(--surface-inset);
+  }
+}
+.journal-ledger .jr-connector {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+  padding-inline-start: calc(96px + var(--space-2));
+}
+
+.journal-ledger .jr-date {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+.jr-date-text {
+  font: 400 13px/20px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.jr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.jr-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+.jr-badge[data-state='awaiting'] {
+  color: var(--warning-text);
+}
+.jr-badge[data-state='upcoming'] {
+  color: var(--info-text);
+}
+
+/* Route: the focusable button names the row; the glyph and the "more" button sit beside it. */
+.jr-route-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.jr-open {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.jr-open:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+.jr-codes {
+  font: 400 18px/24px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.jr-cities {
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.journal-firsts {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--accent-text);
+  border-radius: var(--radius-xs);
+}
+.journal-firsts:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.journal-firsts-line {
+  display: block;
+}
+@media (pointer: coarse) {
+  .journal-firsts {
+    width: 44px;
+    height: 44px;
+    margin-block: -10px;
+  }
+}
+
+/* Airline, aircraft, metrics. */
+.journal-ledger .jr-airline {
+  display: grid;
+  gap: 2px;
+}
+.jr-airline-line {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+}
+.journal-ledger .ui-airline-mark[data-logo] {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.journal-ledger .ui-airline-mark:not([data-logo]) {
+  display: none;
+}
+.journal-ledger .ui-airline-mark[data-logo] + .jr-code {
+  display: none;
+}
+.jr-code {
+  flex: none;
+  font-family: var(--font-mono);
+}
+.jr-airline-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jr-flightno {
+  font: 400 12px/16px var(--font-mono);
+  color: var(--text-muted);
+}
+.jr-aircraft-line {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+}
+.jr-aircraft-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.journal-ledger .jr-row :is(.jr-duration, .jr-distance) {
+  text-align: end;
+  font: 400 13px/20px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.jr-km {
+  display: none;
+}
+
+/* Above the row-wide menu overlay: the controls that must stay clickable. */
+.journal-ledger .jr-menu::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.journal-ledger :is(.jr-open, .journal-firsts, .jr-aircraft .ui-button, .jr-select) {
+  position: relative;
+  z-index: 1;
+}
+.journal-ledger .jr-more {
+  position: absolute;
+  inset-inline-end: var(--space-2);
+  top: 50%;
+  margin-top: -22px;
+  z-index: 1;
+}
+
+/* Selection: the checkbox lives in the row's leading padding and shows on hover, focus, or once anything is selected. */
+.journal-ledger .jr-select {
+  position: absolute;
+  inset-inline-start: var(--space-2);
+  top: 50%;
+  margin-top: -12px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.journal-ledger[data-selecting] .jr-select,
+.journal-ledger .jr-row:is(:focus-within, [data-selected]) .jr-select {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .journal-ledger .jr-row:hover .jr-select {
+    opacity: 1;
+  }
+}
+
+/* Phones: each row becomes a card. The header row is hidden (sort moves elsewhere), spacing comes from the gap. */
+@media (max-width: 700px) {
+  .journal-ledger .jr-head {
+    display: none;
+  }
+  .journal-ledger .jr-body {
+    gap: var(--space-3);
+    padding-block-start: 0;
+  }
+  .journal-ledger .jr-row[data-kind='flight'] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'route date' 'airline aircraft' 'distance distance';
+    gap: var(--space-2) var(--space-3);
+    align-items: start;
+    padding: var(--space-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .journal-ledger .jr-row[data-kind='flight']:is([data-active], [data-selected]) {
+    background: var(--accent-tint);
+  }
+  .journal-ledger .jr-row[data-kind='connector'] {
+    padding-inline: var(--space-4);
+  }
+  .journal-ledger .jr-connector {
+    padding-inline-start: 0;
+  }
+  .journal-ledger .jr-row .jr-date {
+    grid-area: date;
+    justify-items: end;
+    text-align: end;
+  }
+  .journal-ledger .jr-row .jr-route {
+    grid-area: route;
+  }
+  .journal-ledger .jr-row .jr-airline {
+    grid-area: airline;
+  }
+  .journal-ledger .jr-row .jr-aircraft {
+    grid-area: aircraft;
+    justify-self: end;
+    min-width: 0;
+  }
+  .journal-ledger .jr-row .jr-distance {
+    grid-area: distance;
+    text-align: start;
+    padding-inline-end: 44px;
+  }
+  .journal-ledger .jr-row .jr-duration,
+  .journal-ledger .jr-row .jr-select {
+    display: none;
+  }
+  .jr-km {
+    display: inline;
+  }
+  .journal-ledger .jr-more {
+    inset-inline-end: var(--space-1);
+    top: auto;
+    bottom: var(--space-1);
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jr-sort-cue,
+  .journal-ledger .jr-row,
+  .journal-ledger .jr-select {
+    transition: none;
+  }
+}
+
+.jr-mobile-rows {
+  display: grid;
+  gap: var(--space-3);
+}
+.jr-mobile-rows .ui-swipe-row {
+  border-radius: var(--radius-md);
+}

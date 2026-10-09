@@ -25,33 +25,33 @@ Retained the configured local Markdown tracker, single-context glossary, and tri
 
 ## Skill inventory
 
-| Skill | Local state | Comparison with v1.3.1 |
-| --- | --- | --- |
-| `code-review` | active | Identical |
-| `codebase-design` | active | Changed: `DESIGN-IT-TWICE.md` |
-| `domain-modeling` | active | Changed: `CONTEXT-FORMAT.md`, `GLOSSARY-FORMAT.md`, `SKILL.md` |
-| `grill-me` | archived | Identical |
-| `grill-with-docs` | active | Identical |
-| `grilling` | active | Identical |
-| `handoff` | active | Identical |
-| `implement` | active | Identical |
-| `improve-codebase-architecture` | archived | Changed: `SKILL.md` |
-| `research` | active | Identical |
-| `resolving-merge-conflicts` | active | Removed upstream |
-| `retro` | active | Identical |
-| `setup-matt-pocock-skills` | archived | Changed: `SKILL.md`, `domain.md` |
-| `tdd` | active | Changed: `SKILL.md` |
-| `teach` | archived | Identical |
-| `to-prd` | archived | Removed upstream |
-| `to-questionnaire` | archived | Identical |
-| `to-spec` | active | Identical |
-| `to-tickets` | active | Identical |
-| `triage` | archived | Changed: `SKILL.md` |
-| `wait-what` | archived | Changed: `SKILL.md` |
-| `wayfinder` | active | Identical |
-| `wizard` | archived | Identical |
-| `writing-for-agents` | active | Identical |
-| `writing-great-skills` | active | Removed upstream |
+| Skill                           | Local state | Comparison with v1.3.1                                         |
+| ------------------------------- | ----------- | -------------------------------------------------------------- |
+| `code-review`                   | active      | Identical                                                      |
+| `codebase-design`               | active      | Changed: `DESIGN-IT-TWICE.md`                                  |
+| `domain-modeling`               | active      | Changed: `CONTEXT-FORMAT.md`, `GLOSSARY-FORMAT.md`, `SKILL.md` |
+| `grill-me`                      | archived    | Identical                                                      |
+| `grill-with-docs`               | active      | Identical                                                      |
+| `grilling`                      | active      | Identical                                                      |
+| `handoff`                       | active      | Identical                                                      |
+| `implement`                     | active      | Identical                                                      |
+| `improve-codebase-architecture` | archived    | Changed: `SKILL.md`                                            |
+| `research`                      | active      | Identical                                                      |
+| `resolving-merge-conflicts`     | active      | Removed upstream                                               |
+| `retro`                         | active      | Identical                                                      |
+| `setup-matt-pocock-skills`      | archived    | Changed: `SKILL.md`, `domain.md`                               |
+| `tdd`                           | active      | Changed: `SKILL.md`                                            |
+| `teach`                         | archived    | Identical                                                      |
+| `to-prd`                        | archived    | Removed upstream                                               |
+| `to-questionnaire`              | archived    | Identical                                                      |
+| `to-spec`                       | active      | Identical                                                      |
+| `to-tickets`                    | active      | Identical                                                      |
+| `triage`                        | archived    | Changed: `SKILL.md`                                            |
+| `wait-what`                     | archived    | Changed: `SKILL.md`                                            |
+| `wayfinder`                     | active      | Identical                                                      |
+| `wizard`                        | archived    | Identical                                                      |
+| `writing-for-agents`            | active      | Identical                                                      |
+| `writing-great-skills`          | active      | Removed upstream                                               |
 
 Promoted upstream skills absent from Matt's installation records: `ask-matt`, `diagnosing-bugs`, `implement-spec`, `pr`. These are not installed by this review.
 

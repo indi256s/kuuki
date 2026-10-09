@@ -9,10 +9,10 @@ Run commands from the workspace root. Each server is a long-lived process: start
 
 ## Pick the server
 
-| Check | Server | Ready line / URL |
-| --- | --- | --- |
-| Anything touching auth, API, D1, cookies or the Worker; the default | `pnpm next:preview` | `Next synthetic fixture ready: http://127.0.0.1:8800` |
-| Pure layout or styling on pages that render without the API | `pnpm --filter @kuuki/next dev` | Next's `Local:` URL |
+| Check                                                               | Server                          | Ready line / URL                                      |
+| ------------------------------------------------------------------- | ------------------------------- | ----------------------------------------------------- |
+| Anything touching auth, API, D1, cookies or the Worker; the default | `pnpm next:preview`             | `Next synthetic fixture ready: http://127.0.0.1:8800` |
+| Pure layout or styling on pages that render without the API         | `pnpm --filter @kuuki/next dev` | Next's `Local:` URL                                   |
 
 ## Steps
 

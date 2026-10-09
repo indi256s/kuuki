@@ -1,15 +1,93 @@
-.ov3-manufacturers { container: manufacturers / inline-size; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }.ov3-manufacturers > * { margin: 0; }.ov3-maker-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }.ov3-maker-heading strong { font-size: 28px; }.ov3-maker-heading p { margin: 4px 0; }
-.ov3-maker-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-2) var(--space-6); }.ov3-maker-legend button { background: none; border: 0; color: var(--text); min-height: 44px; padding: 8px 0; text-align: left; cursor: pointer; white-space: normal; }.ov3-maker-legend button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ov3-manufacturers {
+  container: manufacturers / inline-size;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.ov3-manufacturers > * {
+  margin: 0;
+}
+.ov3-maker-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.ov3-maker-heading strong {
+  font-size: 28px;
+}
+.ov3-maker-heading p {
+  margin: 4px 0;
+}
+.ov3-maker-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-2) var(--space-6);
+}
+.ov3-maker-legend button {
+  background: none;
+  border: 0;
+  color: var(--text);
+  min-height: 44px;
+  padding: 8px 0;
+  text-align: left;
+  cursor: pointer;
+  white-space: normal;
+}
+.ov3-maker-legend button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 /* Waffle and key stack on a narrow card; wide cards seat the key beside the waffle. */
-.ov3-maker-body { display: grid; gap: var(--space-3); min-width: 0; }
-.ov3-maker-side { display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
-@container manufacturers (min-width: 720px) { .ov3-maker-body { grid-template-columns: minmax(0, 360px) minmax(0, 40ch); gap: var(--space-8); align-items: start; } }
-.ov3-maker-stack { display: flex; height: 12px; gap: 2px; margin: 16px 0; }.ov3-maker-stack i { border-radius: 3px; min-width: 0; }
+.ov3-maker-body {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.ov3-maker-side {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+}
+@container manufacturers (min-width: 720px) {
+  .ov3-maker-body {
+    grid-template-columns: minmax(0, 360px) minmax(0, 40ch);
+    gap: var(--space-8);
+    align-items: start;
+  }
+}
+.ov3-maker-stack {
+  display: flex;
+  height: 12px;
+  gap: 2px;
+  margin: 16px 0;
+}
+.ov3-maker-stack i {
+  border-radius: 3px;
+  min-width: 0;
+}
 
 /* Preserve maker isolation for hover, keyboard focus and pinned touch actions. */
-.ov3-manufacturers .kc:has([data-waffle-group="airbus"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="airbus"]),
-.ov3-manufacturers .kc:has([data-waffle-group="boeing"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="boeing"]),
-.ov3-manufacturers .kc:has([data-waffle-group="embraer"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="embraer"]),
-.ov3-manufacturers .kc:has([data-waffle-group="atr"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="atr"]),
-.ov3-manufacturers .kc:has([data-waffle-group="other"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="other"]),
-.ov3-manufacturers .kc:has([data-waffle-group="unknown"][data-selected="true"]) [data-waffle-group]:not([data-waffle-group="unknown"]) { opacity: .22; }
+.ov3-manufacturers
+  .kc:has([data-waffle-group='airbus'][data-selected='true'])
+  [data-waffle-group]:not([data-waffle-group='airbus']),
+.ov3-manufacturers
+  .kc:has([data-waffle-group='boeing'][data-selected='true'])
+  [data-waffle-group]:not([data-waffle-group='boeing']),
+.ov3-manufacturers
+  .kc:has([data-waffle-group='embraer'][data-selected='true'])
+  [data-waffle-group]:not([data-waffle-group='embraer']),
+.ov3-manufacturers
+  .kc:has([data-waffle-group='atr'][data-selected='true'])
+  [data-waffle-group]:not([data-waffle-group='atr']),
+.ov3-manufacturers
+  .kc:has([data-waffle-group='other'][data-selected='true'])
+  [data-waffle-group]:not([data-waffle-group='other']),
+.ov3-manufacturers
+  .kc:has([data-waffle-group='unknown'][data-selected='true'])
+  [data-waffle-group]:not([data-waffle-group='unknown']) {
+  opacity: 0.22;
+}

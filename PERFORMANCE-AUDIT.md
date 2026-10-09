@@ -11,6 +11,7 @@
 ## Executive Summary
 
 **Current State**:
+
 - Main vendor bundle: **899.71 kB** (265.25 kB gzipped) ⚠️ CRITICAL
 - AnalysisDeck chunk: 384.66 kB (recharts-heavy)
 - RouteMapWithCountries: 102.12 kB (react-simple-maps)
@@ -18,6 +19,7 @@
 - Build warns: "Some chunks are larger than 500 kB"
 
 **Key Issues**:
+
 1. ❌ No `manualChunks` configuration → massive vendor bundle
 2. ✅ Routes are lazy-loaded (good!)
 3. ⚠️ Heavy components partially lazy-loaded
@@ -32,11 +34,13 @@
 ### 🔴 CRITICAL (Immediate Action Required)
 
 #### 1. Missing manualChunks Configuration
+
 **File**: `apps/web/vite.config.ts`  
 **Impact**: 900 kB vendor bundle, poor caching, slow initial load  
-**Issue**: All vendor dependencies bundled into single `index-*.js` chunk  
+**Issue**: All vendor dependencies bundled into single `index-*.js` chunk
 
 **Fix**: Add `build.rollupOptions.output.manualChunks`:
+
 ```typescript
 export default defineConfig({
   build: {
@@ -45,19 +49,19 @@ export default defineConfig({
         manualChunks: {
           // Core React (changes rarely)
           'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
-          
+
           // Router (changes rarely)
-          'router': ['react-router-dom'],
-          
+          router: ['react-router-dom'],
+
           // React Query (changes rarely)
           'react-query': ['@tanstack/react-query'],
-          
+
           // Heavy chart library (384KB chunk)
-          'recharts': ['recharts'],
-          
+          recharts: ['recharts'],
+
           // Map library (102KB chunk)
-          'maps': ['react-simple-maps'],
-          
+          maps: ['react-simple-maps'],
+
           // UI component library (Radix)
           'radix-ui': [
             '@radix-ui/react-dialog',
@@ -74,27 +78,27 @@ export default defineConfig({
             '@radix-ui/react-separator',
             '@radix-ui/react-slot',
           ],
-          
+
           // Form libraries
-          'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+
           // i18n (changes occasionally)
-          'i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          
+          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+
           // Utilities (small, can group)
-          'utils': ['clsx', 'tailwind-merge', 'class-variance-authority', 'date-fns'],
-          
+          utils: ['clsx', 'tailwind-merge', 'class-variance-authority', 'date-fns'],
+
           // State management
-          'state': ['zustand'],
-          
+          state: ['zustand'],
+
           // Supabase client
-          'supabase': ['@supabase/supabase-js'],
-          
+          supabase: ['@supabase/supabase-js'],
+
           // Data package (changes with app logic)
-          'data': ['@kuuki/data'],
-        }
-      }
-    }
+          data: ['@kuuki/data'],
+        },
+      },
+    },
   },
   // ... rest of config
 })
@@ -107,7 +111,9 @@ export default defineConfig({
 ### 🟠 HIGH (Significant Impact)
 
 #### 2. Heavy Chart Components Not Lazy-Loaded at Import Level
-**Files**: 
+
+**Files**:
+
 - `components/dashboard/AdvancedStatCards.tsx` (384 kB chunk)
 - `components/compare/CompareChart.tsx`
 
@@ -125,11 +131,13 @@ const ManufacturerCard = lazy(() => import('./cards/ManufacturerCard'))
 **Impact**: Medium (already lazy-loaded via AnalysisDeck, manualChunks will help more)
 
 #### 3. Map Component Not Lazy-Loaded Everywhere
+
 **File**: `components/map/RouteMapWithCountries.tsx` (102 kB)  
 **Usage**: Imported directly in `MapCard`, used on Dashboard (always visible)
 
 **Issue**: react-simple-maps loaded on initial dashboard render  
 **Fix**: If map is below fold or optional:
+
 ```typescript
 // In MapCard.tsx or DashboardPage.tsx
 const LazyRouteMap = lazy(() => import('@/components/map/RouteMapWithCountries'))
@@ -140,7 +148,9 @@ const LazyRouteMap = lazy(() => import('@/components/map/RouteMapWithCountries')
 **Impact**: Low-Medium (map is core feature, but manualChunks will separate it)
 
 #### 4. Barrel Exports in Component Directories
-**Files**: 
+
+**Files**:
+
 - `components/dashboard/index.ts` (17 exports)
 - `components/passport/index.ts`
 - `components/auth/index.ts`
@@ -149,7 +159,8 @@ const LazyRouteMap = lazy(() => import('@/components/map/RouteMapWithCountries')
 **Issue**: Barrel exports can prevent tree-shaking if not carefully managed  
 **Current State**: Exports look reasonable (named exports, no re-export chains)
 
-**Recommendation**: 
+**Recommendation**:
+
 - ✅ Keep for developer experience (imports are cleaner)
 - ⚠️ Monitor bundle analyzer to ensure no dead code included
 - Consider splitting large barrels if needed
@@ -161,15 +172,18 @@ const LazyRouteMap = lazy(() => import('@/components/map/RouteMapWithCountries')
 ### 🟡 MEDIUM (Optimization Opportunities)
 
 #### 5. PWA Precache Size (2316 KiB, 60 entries)
+
 **File**: `apps/web/vite.config.ts`  
 **Current**: `globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}']`
 
 **Issue**: Precaching all assets upfront increases first-load time  
-**Analysis**: 
+**Analysis**:
+
 - 60 entries seems high but reasonable for SPA with multiple routes
 - After manualChunks split, there will be ~15-20 JS chunks (normal)
 
 **Recommendation**:
+
 ```typescript
 workbox: {
   // Precache only critical assets
@@ -178,7 +192,7 @@ workbox: {
     '**/manifest*.{json,webmanifest}',
     // JS/CSS handled by runtime caching after manualChunks split
   ],
-  
+
   // Add runtime caching for JS/CSS chunks
   runtimeCaching: [
     {
@@ -200,8 +214,10 @@ workbox: {
 **Impact**: Reduce precache size, faster first load, still get offline benefits
 
 #### 6. React Query Configuration
+
 **File**: `apps/web/src/App.tsx`  
-**Current**: 
+**Current**:
+
 ```typescript
 staleTime: 30_000, // 30 seconds
 refetchOnWindowFocus: false,
@@ -209,6 +225,7 @@ refetchOnWindowFocus: false,
 
 **Status**: ✅ Good configuration!  
 **Recommendation**: Consider increasing `staleTime` for rarely-changing data:
+
 ```typescript
 queries: {
   staleTime: 60_000, // 1 minute (reduce API calls)
@@ -220,6 +237,7 @@ queries: {
 **Impact**: Low (already well-configured)
 
 #### 7. Zustand Store Patterns
+
 **Files**: `stores/authStore.ts`, `stores/dashboardStore.ts`, etc.
 
 **Current**: Direct store access with selectors in components  
@@ -234,6 +252,7 @@ queries: {
 ### 🟢 LOW (Minor Optimizations)
 
 #### 8. Icon Imports (lucide-react)
+
 **Status**: ✅ Individual icon imports throughout codebase  
 **Example**: `import { Search, Loader2 } from 'lucide-react'`
 
@@ -241,13 +260,16 @@ queries: {
 **Impact**: None (already optimal)
 
 #### 9. date-fns Imports
+
 **Current**: Only 1 usage found: `import { formatDistanceToNow } from 'date-fns'`
 
 **Status**: ✅ Tree-shakeable import, minimal footprint  
 **Impact**: None (already optimal)
 
 #### 10. React Performance Patterns
-**Files Audited**: 
+
+**Files Audited**:
+
 - 40 components use `useMemo`, `useCallback`, or `memo`
 - RouteMapWithCountries: properly memoized with `memo()` export
 - AdvancedStatCards: uses `useMemo` for chart data
@@ -255,6 +277,7 @@ queries: {
 **Status**: ✅ Good patterns overall
 
 **Recommendations**:
+
 - ✅ RouteMapWithCountries: Excellent use of memo, useMemo, useCallback
 - ✅ FlightForm: Proper form optimization with react-hook-form
 - ⚠️ Minor: Some components could benefit from React.memo (low priority)
@@ -262,12 +285,18 @@ queries: {
 **Impact**: Very Low (patterns are generally good)
 
 #### 11. Route Lazy Loading
+
 **File**: `apps/web/src/App.tsx`
 
 **Current**: ✅ All routes lazy-loaded:
+
 ```typescript
-const DashboardPage = lazy(() => import('@/routes/DashboardPage').then(m => ({ default: m.DashboardPage })))
-const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ default: m.FlightsPage })))
+const DashboardPage = lazy(() =>
+  import('@/routes/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+)
+const FlightsPage = lazy(() =>
+  import('@/routes/FlightsPage').then((m) => ({ default: m.FlightsPage })),
+)
 // ... 7 more lazy routes
 ```
 
@@ -275,9 +304,11 @@ const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ defau
 **Impact**: None (already optimal)
 
 #### 12. Supabase Query Patterns
+
 **File**: `hooks/useFlights.ts`
 
-**Current**: 
+**Current**:
+
 - Infinite query with pagination (good!)
 - `placeholderData: keepPreviousData` (prevents loading flickers)
 - Proper query key management
@@ -290,19 +321,23 @@ const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ defau
 ## Implementation Plan
 
 ### Phase 1: Critical Fixes (30-60 min)
+
 1. ✅ Add `manualChunks` to vite.config.ts
 2. ✅ Test build to verify chunk splitting
 3. ✅ Verify no runtime errors
 
 ### Phase 2: PWA Optimization (15-30 min)
+
 4. ⚠️ Update PWA config to use runtime caching for JS/CSS
 5. ✅ Test offline functionality still works
 
 ### Phase 3: Fine-Tuning (15-30 min)
+
 6. ⚠️ Adjust React Query staleTime if desired
 7. ✅ Run final build and verify chunk sizes
 
 ### Phase 4: Verification
+
 8. ✅ Run `pnpm build` and compare before/after
 9. ✅ Test app in production mode
 10. ✅ Commit changes
@@ -312,11 +347,13 @@ const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ defau
 ## Expected Results
 
 ### Before (Current)
+
 - Main bundle: 899.71 kB (265.25 kB gzip)
 - Total chunks: ~8-10
 - Build warning: chunks > 500 kB
 
 ### After (Projected)
+
 - Main bundle: ~200-300 kB (60-90 kB gzip)
 - React vendor: ~140 kB (45 kB gzip)
 - Recharts: ~200 kB (separate chunk, lazy-loaded)
@@ -328,7 +365,8 @@ const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ defau
 - Total chunks: ~20-25
 - Build warnings: ✅ None
 
-**Cache Efficiency**: 
+**Cache Efficiency**:
+
 - Core libraries (React, Router, Query) change rarely → cached long-term
 - App code changes frequently → only invalidate app chunks
 - Users download ~60-80% less on updates
@@ -338,19 +376,24 @@ const FlightsPage = lazy(() => import('@/routes/FlightsPage').then(m => ({ defau
 ## Additional Notes
 
 ### Build Analysis
+
 To verify chunk splitting after fixes:
+
 ```bash
 pnpm build
 npx vite-bundle-visualizer
 ```
 
 ### Performance Monitoring
+
 Consider adding:
+
 - Lighthouse CI in GitHub Actions
 - Bundle size tracking (bundlesize or similar)
 - Core Web Vitals monitoring (e.g., Vercel Analytics)
 
 ### Future Optimizations
+
 - Image optimization (next-gen formats, lazy loading)
 - Route preloading on hover (use `<link rel="prefetch">`)
 - Component-level code splitting for modals/dialogs
@@ -359,6 +402,7 @@ Consider adding:
 ---
 
 ## Changelog
+
 - **2026-02-07**: Initial audit completed
 - **Pending**: Implementation and verification
 
@@ -369,6 +413,7 @@ Consider adding:
 ### Build Output Comparison
 
 **Before**:
+
 ```
 dist/assets/index-C_8kst8j.js                 899.71 kB │ gzip: 265.25 kB ⚠️ CRITICAL
 dist/assets/AnalysisDeck-CEbfrXmw.js          384.66 kB │ gzip: 111.54 kB
@@ -384,6 +429,7 @@ PWA precache: 60 entries (2316.43 KiB)
 ```
 
 **After**:
+
 ```
 dist/assets/index-DUZbFeSj.js                 442.27 kB │ gzip: 129.09 kB ✅ 51% reduction!
 dist/assets/recharts-dU9FsRxa.js              381.55 kB │ gzip: 111.57 kB (lazy-loaded)
@@ -408,16 +454,16 @@ PWA precache: 9 entries (40.95 KiB) ✅ 98% reduction!
 
 ### Performance Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Main bundle size** | 899.71 kB | 442.27 kB | **-51% (-457 kB)** ✅ |
-| **Main bundle (gzip)** | 265.25 kB | 129.09 kB | **-51% (-136 kB)** ✅ |
-| **Total JS chunks** | ~10 | 62 | Better code-splitting |
-| **Build warnings** | 1 (>500kB) | 0 | **100% resolved** ✅ |
-| **PWA precache size** | 2316.43 KiB | 40.95 KiB | **-98% (-2275 KiB)** ✅ |
-| **PWA precache entries** | 60 | 9 | **-85%** ✅ |
-| **Recharts bundle** | In main | 381.55 kB (lazy) | Now lazy-loaded ✅ |
-| **Cache efficiency** | Low | High | Core libs cached separately ✅ |
+| Metric                   | Before      | After            | Improvement                    |
+| ------------------------ | ----------- | ---------------- | ------------------------------ |
+| **Main bundle size**     | 899.71 kB   | 442.27 kB        | **-51% (-457 kB)** ✅          |
+| **Main bundle (gzip)**   | 265.25 kB   | 129.09 kB        | **-51% (-136 kB)** ✅          |
+| **Total JS chunks**      | ~10         | 62               | Better code-splitting          |
+| **Build warnings**       | 1 (>500kB)  | 0                | **100% resolved** ✅           |
+| **PWA precache size**    | 2316.43 KiB | 40.95 KiB        | **-98% (-2275 KiB)** ✅        |
+| **PWA precache entries** | 60          | 9                | **-85%** ✅                    |
+| **Recharts bundle**      | In main     | 381.55 kB (lazy) | Now lazy-loaded ✅             |
+| **Cache efficiency**     | Low         | High             | Core libs cached separately ✅ |
 
 ### Key Achievements
 
@@ -431,7 +477,7 @@ PWA precache: 9 entries (40.95 KiB) ✅ 98% reduction!
    - Radix UI: 120 kB
    - Forms (RHF + Zod): 87 kB
 4. ✅ **98% reduction in PWA precache** (2.3 MB → 41 KB)
-5. ✅ **Better caching strategy**: 
+5. ✅ **Better caching strategy**:
    - Core libraries cached long-term
    - App code invalidates independently
    - Users download ~60-80% less on updates
@@ -440,16 +486,19 @@ PWA precache: 9 entries (40.95 KiB) ✅ 98% reduction!
 ### Real-World Impact
 
 **Initial Page Load** (first visit):
+
 - Before: 265 kB (gzipped main) + 111 kB (recharts) = **376 kB**
 - After: 129 kB (gzipped main, no recharts initially) = **129 kB**
 - **66% faster initial load** 🚀
 
 **Returning Visitors** (after app update):
+
 - Before: Re-download entire 900 kB bundle
 - After: Only changed chunks (~100-200 kB typically)
 - **~75% less bandwidth** per update 📉
 
 **Dashboard with Charts**:
+
 - Recharts (381 kB) only loaded when AnalysisDeck rendered (below fold, lazy)
 - Most users see map/stats first without chart overhead
 

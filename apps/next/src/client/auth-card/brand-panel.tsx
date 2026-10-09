@@ -8,8 +8,14 @@ import './auth-card.css'
  * assistive tech and never takes pointer input.
  */
 export function BrandPanel({ field }: { field?: ReactNode }) {
-  return <div className="auth-brand">
-    {field ? <div className="auth-brand-field" aria-hidden="true">{field}</div> : null}
-    <Wordmark className="auth-brand-wordmark" />
-  </div>
+  return (
+    <div className="auth-brand">
+      {field ? (
+        <div className="auth-brand-field" aria-hidden="true">
+          {field}
+        </div>
+      ) : null}
+      <Wordmark className="auth-brand-wordmark" />
+    </div>
+  )
 }

@@ -7,7 +7,10 @@ import { useDeferredDelete } from './deferred-delete'
 
 vi.mock('@kuuki/client/apiClient', () => ({ api: { delete: vi.fn(), post: vi.fn() } }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 it('defers deletion, pauses visible Undo time when hidden, and Undo cancels the write', async () => {
   vi.useFakeTimers()
@@ -18,11 +21,13 @@ it('defers deletion, pauses visible Undo time when hidden, and Undo cancels the 
   act(() => result.current.schedule([12]))
   act(() => vi.advanceTimersByTime(2000))
   expect(result.current.pending?.seconds).toBe(4)
-  hidden = true; fireEvent(document, new Event('visibilitychange'))
+  hidden = true
+  fireEvent(document, new Event('visibilitychange'))
   act(() => vi.advanceTimersByTime(20000))
   expect(result.current.pending?.seconds).toBe(4)
   expect(api.delete).not.toHaveBeenCalled()
-  hidden = false; fireEvent(document, new Event('visibilitychange'))
+  hidden = false
+  fireEvent(document, new Event('visibilitychange'))
   act(() => result.current.undo())
   act(() => vi.advanceTimersByTime(10000))
   expect(result.current.pending).toBeNull()
@@ -31,7 +36,9 @@ it('defers deletion, pauses visible Undo time when hidden, and Undo cancels the 
 
 it('unmount cancels an unsubmitted delete; a failed submitted delete restores IDs for retry', async () => {
   vi.useFakeTimers()
-  vi.mocked(api.post).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ derived_state: 'ready' })
+  vi.mocked(api.post)
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockResolvedValueOnce({ derived_state: 'ready' })
   const committed = vi.fn()
   const first = renderHook(() => useDeferredDelete(committed))
   act(() => first.result.current.schedule([1, 2]))
@@ -48,13 +55,15 @@ it('unmount cancels an unsubmitted delete; a failed submitted delete restores ID
   expect(committed).toHaveBeenCalledWith({ derived_state: 'ready' }, [1, 2])
 })
 
-
 it('ignores a second pending schedule and reports the IDs actually submitted', async () => {
   vi.useFakeTimers()
   vi.mocked(api.delete).mockResolvedValueOnce({ derived_state: 'ready' })
   const committed = vi.fn()
   const { result } = renderHook(() => useDeferredDelete(committed))
-  act(() => { result.current.schedule([4]); result.current.schedule([5]) })
+  act(() => {
+    result.current.schedule([4])
+    result.current.schedule([5])
+  })
   await act(() => vi.advanceTimersByTimeAsync(6000))
   expect(api.delete).toHaveBeenLastCalledWith('/api/flights/4', expect.anything())
   expect(committed).toHaveBeenCalledWith({ derived_state: 'ready' }, [4])
@@ -63,7 +72,13 @@ it('ignores a second pending schedule and reports the IDs actually submitted', a
 it('re-renders only when the whole second changes, not on every 100ms tick', () => {
   vi.useFakeTimers()
   let renders = 0
-  const { result } = renderHook(() => { const value = useDeferredDelete(() => {}); useEffect(() => { renders += 1 }); return value })
+  const { result } = renderHook(() => {
+    const value = useDeferredDelete(() => {})
+    useEffect(() => {
+      renders += 1
+    })
+    return value
+  })
   act(() => result.current.schedule([8]))
   const afterSchedule = renders
   const first = result.current.pending

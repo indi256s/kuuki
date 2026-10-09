@@ -100,4 +100,5 @@ Return one entry per flight segment, in document order.
 If the document has no flights, return {"flights": []}.`
 
 /** Follows the document, so the request comes after long pasted text (Gemini 3 long-context guidance). */
-export const EXTRACTION_TASK = 'Based on the document above, return every flight it contains, following the rules.'
+export const EXTRACTION_TASK =
+  'Based on the document above, return every flight it contains, following the rules.'

@@ -4,22 +4,22 @@
 
 Manifests specify compatible ranges; `pnpm-lock.yaml` records the installed versions. Use the lockfile rather than treating older documentation as a version pin.
 
-| Layer | Former Vite implementation |
-| --- | --- |
-| Web | React 19, TypeScript, Vite, React Router |
-| UI | Tailwind CSS 4, shadcn/ui and Radix |
-| State | Zustand and TanStack Query |
-| Forms | React Hook Form and Zod; shared flight validation at API boundaries |
-| Translation | react-i18next, Russian and English |
-| Maps/charts | react-simple-maps and Recharts |
-| Hosting/API | Cloudflare Pages and Pages Functions |
-| Database | Cloudflare D1, additive SQL migrations |
-| Authentication | Better Auth with D1 credential accounts and sessions, existing peppered passwords, HTTP-only signed session cookie and CSRF cookie |
-| Activation delivery | Native Cloudflare Email Sending binding; REST fallback and fake sender for local proof |
-| Recovery | Scheduled maintenance Worker, revision-guarded derived-state publication |
-| AI | Server-side `@google/genai`; model configuration and provider errors stay behind the API |
-| Toolchain | Node.js 24, pnpm 9.15.0, Turborepo, Wrangler |
-| Testing | Vitest, Testing Library, Miniflare D1 and compiled local workerd smoke |
+| Layer               | Former Vite implementation                                                                                                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Web                 | React 19, TypeScript, Vite, React Router                                                                                           |
+| UI                  | Tailwind CSS 4, shadcn/ui and Radix                                                                                                |
+| State               | Zustand and TanStack Query                                                                                                         |
+| Forms               | React Hook Form and Zod; shared flight validation at API boundaries                                                                |
+| Translation         | react-i18next, Russian and English                                                                                                 |
+| Maps/charts         | react-simple-maps and Recharts                                                                                                     |
+| Hosting/API         | Cloudflare Pages and Pages Functions                                                                                               |
+| Database            | Cloudflare D1, additive SQL migrations                                                                                             |
+| Authentication      | Better Auth with D1 credential accounts and sessions, existing peppered passwords, HTTP-only signed session cookie and CSRF cookie |
+| Activation delivery | Native Cloudflare Email Sending binding; REST fallback and fake sender for local proof                                             |
+| Recovery            | Scheduled maintenance Worker, revision-guarded derived-state publication                                                           |
+| AI                  | Server-side `@google/genai`; model configuration and provider errors stay behind the API                                           |
+| Toolchain           | Node.js 24, pnpm 9.15.0, Turborepo, Wrangler                                                                                       |
+| Testing             | Vitest, Testing Library, Miniflare D1 and compiled local workerd smoke                                                             |
 
 ## Runtime contracts
 

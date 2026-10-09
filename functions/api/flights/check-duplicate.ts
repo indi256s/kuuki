@@ -25,8 +25,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     }
     sql += ' LIMIT 1'
 
-    const row = await context.env.DB
-      .prepare(sql)
+    const row = await context.env.DB.prepare(sql)
       .bind(...binds)
       .first<FlightRow>()
     return json(row ? toOwnFlight(row) : null)

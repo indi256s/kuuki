@@ -1,5 +1,32 @@
 /* Arc-derived tooltip. Level-2 surface, tokens only; opacity is the only thing that animates. */
-.ui-tooltip-anchor{display:contents}
-.ui-tooltip{position:fixed;top:0;left:0;z-index:80;width:max-content;max-width:min(15rem,calc(100vw - 2 * var(--space-2)));padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating);font-size:13px;line-height:18px;font-weight:400;overflow-wrap:anywhere;animation:ui-tooltip-in var(--dur-fast) var(--ease-out);transition:opacity var(--dur-fast) var(--ease-out)}
-.ui-tooltip[data-state=closed]{opacity:0;pointer-events:none}
-@keyframes ui-tooltip-in{from{opacity:0}}
+.ui-tooltip-anchor {
+  display: contents;
+}
+.ui-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 80;
+  width: max-content;
+  max-width: min(15rem, calc(100vw - 2 * var(--space-2)));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-floating);
+  color: var(--text);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  animation: ui-tooltip-in var(--dur-fast) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.ui-tooltip[data-state='closed'] {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes ui-tooltip-in {
+  from {
+    opacity: 0;
+  }
+}

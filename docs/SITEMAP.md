@@ -6,25 +6,25 @@ The current app is [apps/next](../apps/next/src/app/), with server gates in
 [gates.ts](../apps/next/src/server/gates.ts). The Vite inventory below is
 historical and does not describe the current navigation.
 
-| Routes | Current behavior |
-| --- | --- |
-| `/`, `/signin`, `/signup` | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding. |
-| `/forgot-password`, `/activation-request` | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`. |
-| `/reset-password` | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in. |
-| `/password-updated` | Redirects to `/?notice=password-saved`. |
-| `/activate`, `/activate.html` | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in. |
-| `/account-deleted` | Signed-out deletion confirmation. |
-| `/onboarding?step=name`, `capture`, `reveal` | Name/profile setup, shared manual/upload/paste Capture, then truthful saved-flight feedback. A durable import `batch` can resume Capture. |
-| `/overview` | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery. |
-| `/journal` | Paged flight log; search/filter/sort/page state belongs to this URL. |
-| `/journal/[id]/edit`, `/add`, `/import` | Own-flight editing, manual Capture and resumable import Source/Progress/Review/Done. |
-| `/passport` | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map. |
-| `/passport/manage` | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`. |
-| `/fly/[username]` | Public profile for visitors or private owner profile; live visibility gates protect private records. |
-| `/leaderboard` | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy. |
-| `/settings` | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion. |
-| `/me` | Resolves to the own profile, unfinished Name step or sign-in. |
-| `/dashboard`, `/flights`, `/journey`, `/landing` | Compatibility redirects to Overview, Journal, Overview and `/`. |
+| Routes                                           | Current behavior                                                                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`, `/signin`, `/signup`                        | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding.   |
+| `/forgot-password`, `/activation-request`        | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`.                                                   |
+| `/reset-password`                                | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in.       |
+| `/password-updated`                              | Redirects to `/?notice=password-saved`.                                                                                                   |
+| `/activate`, `/activate.html`                    | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in.        |
+| `/account-deleted`                               | Signed-out deletion confirmation.                                                                                                         |
+| `/onboarding?step=name`, `capture`, `reveal`     | Name/profile setup, shared manual/upload/paste Capture, then truthful saved-flight feedback. A durable import `batch` can resume Capture. |
+| `/overview`                                      | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery.                                                        |
+| `/journal`                                       | Paged flight log; search/filter/sort/page state belongs to this URL.                                                                      |
+| `/journal/[id]/edit`, `/add`, `/import`          | Own-flight editing, manual Capture and resumable import Source/Progress/Review/Done.                                                      |
+| `/passport`                                      | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map.                                           |
+| `/passport/manage`                               | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`.                                     |
+| `/fly/[username]`                                | Public profile for visitors or private owner profile; live visibility gates protect private records.                                      |
+| `/leaderboard`                                   | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy.                                        |
+| `/settings`                                      | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion.                                                  |
+| `/me`                                            | Resolves to the own profile, unfinished Name step or sign-in.                                                                             |
+| `/dashboard`, `/flights`, `/journey`, `/landing` | Compatibility redirects to Overview, Journal, Overview and `/`.                                                                           |
 
 Member routes require an authenticated, named profile. Public profile and
 leaderboard pages use the member shell for authenticated viewers and the brand
@@ -42,25 +42,25 @@ The following inventory records the former `apps/web` app only.
 
 ## Public Routes
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/` | Auth Page | Sign in / sign up entry point (Default route) |
-| `/landing` | Landing Page | Marketing page |
+| Route            | Page           | Description                                     |
+| ---------------- | -------------- | ----------------------------------------------- |
+| `/`              | Auth Page      | Sign in / sign up entry point (Default route)   |
+| `/landing`       | Landing Page   | Marketing page                                  |
 | `/fly/:username` | Public Profile | Public view of user's flight stats and passport |
-| `/leaderboard` | Leaderboard | Global rankings and stats |
+| `/leaderboard`   | Leaderboard    | Global rankings and stats                       |
 
 ## Authenticated Routes
 
 All routes below require authentication (wrapped in `ProtectedRoute`).
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/dashboard` | Dashboard | Personal stats overview, map, and recent activity |
-| `/flights` | Flights | Full flight log with search, filter, and edit capabilities |
-| `/passport` | Passport | Visual passport representation of travel history & badges |
-| `/import` | Import | AI-powered flight import tool |
-| `/settings` | Settings | Account preferences and configuration |
-| `/onboarding` | Onboarding | First-time user setup wizard |
+| Route         | Page       | Description                                                |
+| ------------- | ---------- | ---------------------------------------------------------- |
+| `/dashboard`  | Dashboard  | Personal stats overview, map, and recent activity          |
+| `/flights`    | Flights    | Full flight log with search, filter, and edit capabilities |
+| `/passport`   | Passport   | Visual passport representation of travel history & badges  |
+| `/import`     | Import     | AI-powered flight import tool                              |
+| `/settings`   | Settings   | Account preferences and configuration                      |
+| `/onboarding` | Onboarding | First-time user setup wizard                               |
 
 ## Component Structure
 

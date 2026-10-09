@@ -12,14 +12,33 @@ import './styles.css'
 import './public.css'
 import './shell.css'
 
-export const metadata: Metadata = { title: 'Kuuki — flight journal', description: 'Keep your journeys close.' }
+export const metadata: Metadata = {
+  title: 'Kuuki — flight journal',
+  description: 'Keep your journeys close.',
+}
 export const viewport: Viewport = { themeColor: THEME_COLOR.light }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getRequestLocale()
-  return <html lang={locale} suppressHydrationWarning><head><Script src="/bootstrap.js" strategy="beforeInteractive" /></head><body>
-    <a className="skip-link" href="#main"><span className="locale-en">Skip to content</span><span className="locale-ru" lang="ru">Перейти к содержимому</span></a>
-    <RouteTransitions>{children}</RouteTransitions>
-    <Suspense fallback={null}><RouteFocus /></Suspense><AppearanceProvider /><ActivityBridge />
-  </body></html>
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <Script src="/bootstrap.js" strategy="beforeInteractive" />
+      </head>
+      <body>
+        <a className="skip-link" href="#main">
+          <span className="locale-en">Skip to content</span>
+          <span className="locale-ru" lang="ru">
+            Перейти к содержимому
+          </span>
+        </a>
+        <RouteTransitions>{children}</RouteTransitions>
+        <Suspense fallback={null}>
+          <RouteFocus />
+        </Suspense>
+        <AppearanceProvider />
+        <ActivityBridge />
+      </body>
+    </html>
+  )
 }

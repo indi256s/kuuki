@@ -7,12 +7,34 @@
   gap: 16px;
   overflow-wrap: anywhere;
 }
-.ov3-page h1 { margin: 0; }
-.ov3-page-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
-.ov3-scope { color: var(--text-muted); }
-.ov3-overview-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
-.ov3-globe-band { display: grid; grid-template-columns: minmax(0, 1fr) clamp(360px, 33%, 480px); gap: 16px; min-width: 0; }
-.ov3-globe, .ov3-hero, .ov3-section {
+.ov3-page h1 {
+  margin: 0;
+}
+.ov3-page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ov3-scope {
+  color: var(--text-muted);
+}
+.ov3-overview-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.ov3-globe-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 33%, 480px);
+  gap: 16px;
+  min-width: 0;
+}
+.ov3-globe,
+.ov3-hero,
+.ov3-section {
   min-width: 0;
   padding: 24px;
   border: 1px solid var(--hairline);
@@ -27,10 +49,20 @@
   align-items: center;
   background: var(--surface-inset);
 }
-:root[data-theme=dark] :is(.ov3-globe, .ov3-hero, .ov3-section) { border-color: transparent; box-shadow: inset 0 1px 0 var(--surface-highlight); }
-.ov3-globe-region { min-inline-size: 0; position: relative; }
-.ov3-globe-region:only-child { grid-column: 1 / -1; }
-.ov3-globe-region .globe-top-left { inline-size: calc(100% - 2 * var(--space-5) - var(--ov-filter-reserve, 120px)); }
+:root[data-theme='dark'] :is(.ov3-globe, .ov3-hero, .ov3-section) {
+  border-color: transparent;
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+}
+.ov3-globe-region {
+  min-inline-size: 0;
+  position: relative;
+}
+.ov3-globe-region:only-child {
+  grid-column: 1 / -1;
+}
+.ov3-globe-region .globe-top-left {
+  inline-size: calc(100% - 2 * var(--space-5) - var(--ov-filter-reserve, 120px));
+}
 .ov3-blank-globe {
   width: min(320px, 80%);
   aspect-ratio: 1;
@@ -39,66 +71,199 @@
   outline: 1px solid var(--hairline);
   margin: auto;
 }
-.ov3-globe[data-globe=ghost] .ov3-blank-globe { outline-style: dashed; }
-.ov3-pending-label { color: var(--text-muted); font-size: 13px; }
-.ov3-first-run { position: absolute; inset-inline: 24px; bottom: 16%; text-align: center; }
-.ov3-page .narrator { margin: 0; max-width: 60ch; font-size: 15px; line-height: 24px; font-weight: 400; color: var(--text-muted); }
-.ov3-first-run .narrator { margin-inline: auto; }
-.ov3-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 16px; }
-.ov3-actions a { min-height: 44px; text-decoration: none; }
-.ov3-actions a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.ov3-zero { padding-block: 24px; }
-.ov3-zero .ov3-actions { justify-content: flex-start; }
-.ov3-zero-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0; }
-.ov3-zero-figures dt { font-size: 13px; color: var(--text-muted); }
-.ov3-zero-figures dd { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 600; }
-.ov3-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-.ov3-sections[data-surface=tiles] h2 { margin: 0 0 16px; }
-.ov3-hidden { color: var(--text-muted); font-size: 13px; }
+.ov3-globe[data-globe='ghost'] .ov3-blank-globe {
+  outline-style: dashed;
+}
+.ov3-pending-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.ov3-first-run {
+  position: absolute;
+  inset-inline: 24px;
+  bottom: 16%;
+  text-align: center;
+}
+.ov3-page .narrator {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.ov3-first-run .narrator {
+  margin-inline: auto;
+}
+.ov3-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.ov3-actions a {
+  min-height: 44px;
+  text-decoration: none;
+}
+.ov3-actions a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ov3-zero {
+  padding-block: 24px;
+}
+.ov3-zero .ov3-actions {
+  justify-content: flex-start;
+}
+.ov3-zero-figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0;
+}
+.ov3-zero-figures dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ov3-zero-figures dd {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 600;
+}
+.ov3-sections {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.ov3-sections[data-surface='tiles'] h2 {
+  margin: 0 0 16px;
+}
+.ov3-hidden {
+  color: var(--text-muted);
+  font-size: 13px;
+}
 /* Wide screens: the map card grows with the viewport (capped). */
 @media (min-width: 1280px) {
-  .ov3-globe-band { --ov-globe-h: clamp(520px, 30vw, 720px); }
+  .ov3-globe-band {
+    --ov-globe-h: clamp(520px, 30vw, 720px);
+  }
 }
 /* Very wide screens: the globe card had spare space at its sides, so the globe key (Visits per country) docks as a third card after the figures, and the row grows taller (up to the viewport less the header) so the round globe fills more of its card; height, not width, limits its size.
    2176px is where the band reaches ~2080px: the shell caps at 2560px with a gutter that reaches 48px. A media query, not measurement, so the server's first paint already has the final layout. */
 @media (min-width: 2176px) {
-  .ov3-overview-workspace > .ov3-globe-band:has(> [data-region=figures]) {
+  .ov3-overview-workspace > .ov3-globe-band:has(> [data-region='figures']) {
     --ov-globe-h: max(720px, min(42vw, 100svh - 260px));
     grid-template-columns: minmax(0, 1fr) clamp(360px, 20%, 480px) clamp(320px, 15%, 380px);
-    & > .globe-country-card { display: flex; }
-    & .ov3-globe-region .globe-country-evidence { display: none; }
-    & > [data-region=figures] { display: grid; }
+    & > .globe-country-card {
+      display: flex;
+    }
+    & .ov3-globe-region .globe-country-evidence {
+      display: none;
+    }
+    & > [data-region='figures'] {
+      display: grid;
+    }
     /* The tall figures card fills with data instead of spreading three groups apart: each sparkline becomes a full-width row under its figure, and the year strip takes the remaining height (a size container, so its bars scale to it) with each year's count above its bar. */
-    & .ov3-hero-panel { justify-content: flex-start; gap: 32px; }
-    & .ov3-sparkline[data-place=inline] { display: none; }
-    & .ov3-sparkline[data-place=row] { display: block; }
-    & .ov3-hero-panel > .ov3-sparkline { margin-top: -16px; }
-    & .ov3-hero-measures { gap: 16px; }
-    & .ov3-hero-measures > .ov3-sparkline { margin: 0 0 8px; }
-    & .ov3-sparkline svg { width: 100%; height: 72px; aspect-ratio: auto; }
-    & .ov3-years { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-    & .ov3-years-bars { flex: 1; min-height: 120px; container-type: size; }
-    & .ov3-years-bars > button { min-height: 0; gap: 4px; }
-    & .ov3-year-label { margin-top: 4px; }
-    & .ov3-year-mark { width: min(12px, 100%); height: max(2px, calc(var(--bar, 0) * (100cqh - 44px))); }
-    & .ov3-year-mark.empty { height: 2px; }
-    & .ov3-year-count { display: block; color: var(--text-muted); font: 12px/16px var(--font-mono); font-variant-numeric: tabular-nums; }
+    & .ov3-hero-panel {
+      justify-content: flex-start;
+      gap: 32px;
+    }
+    & .ov3-sparkline[data-place='inline'] {
+      display: none;
+    }
+    & .ov3-sparkline[data-place='row'] {
+      display: block;
+    }
+    & .ov3-hero-panel > .ov3-sparkline {
+      margin-top: -16px;
+    }
+    & .ov3-hero-measures {
+      gap: 16px;
+    }
+    & .ov3-hero-measures > .ov3-sparkline {
+      margin: 0 0 8px;
+    }
+    & .ov3-sparkline svg {
+      width: 100%;
+      height: 72px;
+      aspect-ratio: auto;
+    }
+    & .ov3-years {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    & .ov3-years-bars {
+      flex: 1;
+      min-height: 120px;
+      container-type: size;
+    }
+    & .ov3-years-bars > button {
+      min-height: 0;
+      gap: 4px;
+    }
+    & .ov3-year-label {
+      margin-top: 4px;
+    }
+    & .ov3-year-mark {
+      width: min(12px, 100%);
+      height: max(2px, calc(var(--bar, 0) * (100cqh - 44px)));
+    }
+    & .ov3-year-mark.empty {
+      height: 2px;
+    }
+    & .ov3-year-count {
+      display: block;
+      color: var(--text-muted);
+      font: 12px/16px var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
   }
 }
 @media (min-width: 701px) and (max-width: 1023px) {
-  .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }
-  .ov3-hero .ui-skeleton { height: 240px !important; }
+  .ov3-globe-band {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ov3-hero .ui-skeleton {
+    height: 240px !important;
+  }
 }
 @media (max-width: 700px) {
-  .ov3-page { padding-block: 20px 104px; }
-  .ov3-page h1 { font-size: 24px; line-height: 30px; }
-  .ov3-globe-band { grid-template-columns: minmax(0, 1fr); }
-  .ov3-globe { min-height: 360px; padding: 16px; }
+  .ov3-page {
+    padding-block: 20px 104px;
+  }
+  .ov3-page h1 {
+    font-size: 24px;
+    line-height: 30px;
+  }
+  .ov3-globe-band {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ov3-globe {
+    min-height: 360px;
+    padding: 16px;
+  }
   /* The phone globe card is a grid (globe.css): the filter corner gets its own column beside Fullscreen, so it reserves nothing. */
-  .ov3-globe-region .globe-top-left { inline-size: auto; min-inline-size: 0; }
-  .ov3-blank-globe { width: min(240px, 80%); }
-  .ov3-hero .ui-skeleton { height: 200px !important; }
-  .ov3-sections[data-surface=tiles] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ov3-sections[data-surface=tiles] .ov3-section { padding: 16px; }
-  .ov3-sections[data-surface=tiles] h2 { font-size: 17px; }
+  .ov3-globe-region .globe-top-left {
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+  .ov3-blank-globe {
+    width: min(240px, 80%);
+  }
+  .ov3-hero .ui-skeleton {
+    height: 200px !important;
+  }
+  .ov3-sections[data-surface='tiles'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ov3-sections[data-surface='tiles'] .ov3-section {
+    padding: 16px;
+  }
+  .ov3-sections[data-surface='tiles'] h2 {
+    font-size: 17px;
+  }
 }

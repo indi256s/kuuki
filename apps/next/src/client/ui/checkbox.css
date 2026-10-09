@@ -1,22 +1,120 @@
 /* Arc-derived checkbox over a native input. Tokens only; the focus ring is the 2px offset ring and never shows on pointer focus. */
-.ui-checkbox{display:inline-flex;align-items:flex-start;gap:var(--space-2);max-width:100%}
-.ui-checkbox-box{position:relative;flex:none;display:grid;place-items:center;width:24px;height:24px}
-.ui-checkbox-input{position:absolute;inset:0;z-index:1;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.ui-checkbox-input:disabled{cursor:not-allowed}
-.ui-checkbox-mark{position:relative;display:block;width:18px;height:18px;border:1px solid var(--control-border);border-radius:calc(var(--radius-xs) - 1px);background:var(--surface);color:var(--accent-foreground);transition:background-color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out),transform var(--dur-press) var(--ease-out)}
-.ui-checkbox-mark svg{position:absolute;inset:-1px;width:18px;height:18px}
-.ui-checkbox-check,.ui-checkbox-dash{opacity:0;transition:opacity var(--dur-fast) var(--ease-out)}
-.ui-checkbox-input:is(:checked,:indeterminate)+.ui-checkbox-mark{background:var(--accent);border-color:var(--accent)}
-.ui-checkbox-input:checked+.ui-checkbox-mark .ui-checkbox-check{opacity:1}
-.ui-checkbox-input:indeterminate+.ui-checkbox-mark .ui-checkbox-check{opacity:0}
-.ui-checkbox-input:indeterminate+.ui-checkbox-mark .ui-checkbox-dash{opacity:1}
-.ui-checkbox-input:focus-visible+.ui-checkbox-mark{outline:2px solid var(--focus);outline-offset:2px}
-.ui-checkbox-input:active:not(:disabled)+.ui-checkbox-mark{transform:scale(.96)}
-.ui-checkbox-input:disabled+.ui-checkbox-mark{opacity:.55}
-.ui-checkbox-copy{display:grid;gap:2px;min-width:0}
-.ui-checkbox-label{font-size:15px;line-height:24px;font-weight:500;color:var(--text);cursor:pointer}
-.ui-checkbox-description{font-size:13px;line-height:20px;color:var(--text-muted)}
-.ui-checkbox:has(.ui-checkbox-input:disabled) .ui-checkbox-label{color:var(--text-muted);cursor:not-allowed}
-@media (hover:hover) and (pointer:fine){.ui-checkbox-input:not(:disabled,:checked,:indeterminate):hover+.ui-checkbox-mark{border-color:var(--text-muted)}}
-@media (pointer:coarse){.ui-checkbox-input{top:-10px;left:-10px;width:44px;height:44px}}
-@media (prefers-reduced-motion:reduce){.ui-checkbox-mark,.ui-checkbox-check,.ui-checkbox-dash{transition:none}.ui-checkbox-input:active:not(:disabled)+.ui-checkbox-mark{transform:none}}
+.ui-checkbox {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 100%;
+}
+.ui-checkbox-box {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+.ui-checkbox-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ui-checkbox-input:disabled {
+  cursor: not-allowed;
+}
+.ui-checkbox-mark {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--control-border);
+  border-radius: calc(var(--radius-xs) - 1px);
+  background: var(--surface);
+  color: var(--accent-foreground);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+.ui-checkbox-mark svg {
+  position: absolute;
+  inset: -1px;
+  width: 18px;
+  height: 18px;
+}
+.ui-checkbox-check,
+.ui-checkbox-dash {
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.ui-checkbox-input:is(:checked, :indeterminate) + .ui-checkbox-mark {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ui-checkbox-input:checked + .ui-checkbox-mark .ui-checkbox-check {
+  opacity: 1;
+}
+.ui-checkbox-input:indeterminate + .ui-checkbox-mark .ui-checkbox-check {
+  opacity: 0;
+}
+.ui-checkbox-input:indeterminate + .ui-checkbox-mark .ui-checkbox-dash {
+  opacity: 1;
+}
+.ui-checkbox-input:focus-visible + .ui-checkbox-mark {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ui-checkbox-input:active:not(:disabled) + .ui-checkbox-mark {
+  transform: scale(0.96);
+}
+.ui-checkbox-input:disabled + .ui-checkbox-mark {
+  opacity: 0.55;
+}
+.ui-checkbox-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.ui-checkbox-label {
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+.ui-checkbox-description {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.ui-checkbox:has(.ui-checkbox-input:disabled) .ui-checkbox-label {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-checkbox-input:not(:disabled, :checked, :indeterminate):hover + .ui-checkbox-mark {
+    border-color: var(--text-muted);
+  }
+}
+@media (pointer: coarse) {
+  .ui-checkbox-input {
+    top: -10px;
+    left: -10px;
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-checkbox-mark,
+  .ui-checkbox-check,
+  .ui-checkbox-dash {
+    transition: none;
+  }
+  .ui-checkbox-input:active:not(:disabled) + .ui-checkbox-mark {
+    transform: none;
+  }
+}

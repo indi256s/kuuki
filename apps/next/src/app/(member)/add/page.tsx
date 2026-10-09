@@ -8,5 +8,13 @@ export const generateMetadata = () => pageMetadata('Add a flight', 'Новый �
 export default async function AddFlight() {
   const [own, locale] = await Promise.all([requireOnboardedMember(), getRequestLocale()])
   const identity = { id: own.ownerId }
-  return <IdentitySnapshot ownerId={identity.id}><div className="page-heading"><p className="eyebrow">{locale === 'ru' ? 'Журнал' : 'Journal'}</p><h1>{locale === 'ru' ? 'Новый перелёт' : 'Add a flight'}</h1></div><FlightCaptureDialog ownerId={identity.id} locale={locale} /></IdentitySnapshot>
+  return (
+    <IdentitySnapshot ownerId={identity.id}>
+      <div className="page-heading">
+        <p className="eyebrow">{locale === 'ru' ? 'Журнал' : 'Journal'}</p>
+        <h1>{locale === 'ru' ? 'Новый перелёт' : 'Add a flight'}</h1>
+      </div>
+      <FlightCaptureDialog ownerId={identity.id} locale={locale} />
+    </IdentitySnapshot>
+  )
 }

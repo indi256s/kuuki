@@ -4,8 +4,8 @@ Historical investigation. The account counts and missing activation flow below
 describe that investigation, not the current deployment. See the current
 [remediation status](../runbooks/audit-remediation-status.md) before acting.
 
-Generated 2026-06-23. Triggered by a user report: *"trying to log in with old creds, getting
-invalid password errors"* on **production**. Investigated with systematic-debugging. **No code or
+Generated 2026-06-23. Triggered by a user report: _"trying to log in with old creds, getting
+invalid password errors"_ on **production**. Investigated with systematic-debugging. **No code or
 data was changed. Production `kuuki-db` was read-only inspected, never written.**
 
 ## 1. Diagnosis — CONFIRMED, and it is by-design (not a bug)
@@ -16,12 +16,14 @@ The production database has **never been seeded** — that is Phase 8 work, whic
 
 Evidence (live query of remote `kuuki-db`, id `2a8e3895-6a98-4473-8d7b-a43ca0c0026f`, the only
 `kuuki-db` in the account; it's the id `wrangler.toml` binds `DB` to):
+
 - Full 18-table schema **exists**, but **every table is empty**: users 0, profiles 0, flights 0,
   airports_reference 0, badge_definitions 0, `d1_migrations` 0.
 - Local D1 (`.wrangler/state/v3/d1`) by contrast holds all 26 users + reference data — the
   Phase 5 import only ever ran LOCAL, exactly as the prior handoff states.
 
 Why the symptom looks like a password problem (mechanism, verified in code):
+
 - `signin` calls `getUserByEmail` → returns `null` (no row) → runs `dummyVerify` to equalize
   timing → throws the **same** `401 "Invalid email or password"` it uses for a real wrong
   password. See `functions/api/auth/signin.ts:28-36` and `dummyVerify` in
@@ -29,6 +31,7 @@ Why the symptom looks like a password problem (mechanism, verified in code):
   against prod right now — there are no user rows to match.
 
 The earlier-suspected angles are real but **moot** given the empty table:
+
 - PBKDF2 210k→100k Workers cap (already fixed, `git e261cf5`) — irrelevant with 0 rows.
 - "Supabase bcrypt hashes weren't migratable" → users import as `RESET_REQUIRED` sentinel
   (unloginnable by design) — also irrelevant until rows exist.
@@ -61,22 +64,26 @@ rotation). This is design work, not a one-liner. Fold it into the Phase 8 decisi
 separately.
 
 ## 4. Interim answer for the user (no prod change)
+
 - **Local dev** works today: `wrangler pages dev --persist-to .wrangler/state`, sign in with any
   migrated email + temp password `kuuki-local-dev-2026` (see `scripts/reset-passwords.ts`).
 - **Production** cannot accept any login until Phase 8 seeds it — expected, not broken.
 
 ## 5. Memory correction needed
+
 The `kuuki-phase5-migration-done` memory implies the migration is "DONE." It is done **for LOCAL +
 preview only**; **production `kuuki-db` is empty and unseeded.** Consider amending that memory so a
 future session doesn't assume prod is live.
 
 ## Suggested skills for the next session
+
 - `superpowers:writing-plans` — turn the Phase 8 slice above into a reviewable step plan before any execution.
 - `llm-council` — pressure-test the Phase 8 prod-seed + reset-flow plan before touching remote `kuuki-db` (per user workflow: review plans with the council first).
 - `cloudflare` / `wrangler` (project skills under `kuuki/.claude/skills`) — correct `--remote` D1 + migrations syntax; mind the `d1_migrations`/already-exists landmine.
 - `superpowers:systematic-debugging` — already applied; root cause section above is its output.
 
 ## Guardrails (still in force, from prior handoff §7)
+
 Commit don't deploy; never write to remote `kuuki-db` or push/PR without explicit user request;
 `db/_snapshot/` + `.dev.vars` stay gitignored (emails / secrets). No secrets or user emails are
 reproduced in this doc.

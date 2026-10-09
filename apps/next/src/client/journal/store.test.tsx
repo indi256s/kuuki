@@ -9,25 +9,71 @@ import type { JournalFlight, JournalPayload } from './model'
 import { JournalStoreProvider, useJournalStore, type JournalStore } from './store'
 
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('@kuuki/client/apiClient', async importOriginal => ({ ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()), api: { get: vi.fn() } }))
+vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()),
+  api: { get: vi.fn() },
+}))
 
-const flight = (id: number, overrides: Partial<JournalFlight> = {}) => ({
-  id, date: `2024-05-0${id}`, origin: 'TBS', destination: 'IST', airline_iata: 'TK', aircraft_icao: null, flight_number: null, departure_utc: null, arrival_utc: null,
-  distance_km: 1000, duration_minutes: 120, lifecycle_state: 'logged', origin_country: 'GE', destination_country: 'TR', ...overrides,
-}) as unknown as JournalFlight
-const payloadOf = (flights: JournalFlight[], revision = 1, updatedAt = 1): JournalPayload =>
-  ({ flights, firsts: {}, refs: { airports: {}, airlines: {}, aircraft: {} }, updatedAt, revision, publishedRevision: revision, derivedState: 'ready' })
+const flight = (id: number, overrides: Partial<JournalFlight> = {}) =>
+  ({
+    id,
+    date: `2024-05-0${id}`,
+    origin: 'TBS',
+    destination: 'IST',
+    airline_iata: 'TK',
+    aircraft_icao: null,
+    flight_number: null,
+    departure_utc: null,
+    arrival_utc: null,
+    distance_km: 1000,
+    duration_minutes: 120,
+    lifecycle_state: 'logged',
+    origin_country: 'GE',
+    destination_country: 'TR',
+    ...overrides,
+  }) as unknown as JournalFlight
+const payloadOf = (flights: JournalFlight[], revision = 1, updatedAt = 1): JournalPayload => ({
+  flights,
+  firsts: {},
+  refs: { airports: {}, airlines: {}, aircraft: {} },
+  updatedAt,
+  revision,
+  publishedRevision: revision,
+  derivedState: 'ready',
+})
 
 const probe: { current: JournalStore | null } = { current: null }
 const store = () => probe.current!
 function Probe() {
   const value = useJournalStore()
-  useEffect(() => { probe.current = value })
-  return <ol>{value.selection.matching.map(item => <li key={item.id}>{item.origin}-{item.destination}</li>)}</ol>
+  useEffect(() => {
+    probe.current = value
+  })
+  return (
+    <ol>
+      {value.selection.matching.map((item) => (
+        <li key={item.id}>
+          {item.origin}-{item.destination}
+        </li>
+      ))}
+    </ol>
+  )
 }
-const mount = (initial: JournalPayload, initialQuery = '') => render(<JournalStoreProvider ownerId="owner" locale="en" initial={initial} initialQuery={initialQuery}><Probe /></JournalStoreProvider>)
+const mount = (initial: JournalPayload, initialQuery = '') =>
+  render(
+    <JournalStoreProvider ownerId="owner" locale="en" initial={initial} initialQuery={initialQuery}>
+      <Probe />
+    </JournalStoreProvider>,
+  )
 const href = () => window.location.pathname + window.location.search + window.location.hash
-const traverse = (step: () => void) => act(async () => { const popped = new Promise(resolve => window.addEventListener('popstate', resolve, { once: true })); step(); await popped })
+const traverse = (step: () => void) =>
+  act(async () => {
+    const popped = new Promise((resolve) =>
+      window.addEventListener('popstate', resolve, { once: true }),
+    )
+    step()
+    await popped
+  })
 const back = () => traverse(() => window.history.back())
 const forward = () => traverse(() => window.history.forward())
 
@@ -37,23 +83,44 @@ beforeEach(() => {
   vi.spyOn(window.history, 'replaceState')
   vi.mocked(api.get).mockReset().mockRejectedValue(new Error('unstubbed GET'))
 })
-afterEach(() => { vi.restoreAllMocks() })
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('Journal store URL mirror', () => {
   it('renders the initial query on the first render and leaves a canonical URL alone', () => {
     window.history.replaceState(null, '', '/journal?airport=IST')
     vi.mocked(window.history.replaceState).mockClear()
-    mount(payloadOf([flight(1), flight(2, { origin: 'MUC', destination: 'FRA', origin_country: 'DE', destination_country: 'DE' })]), 'airport=IST')
-    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['TBS-IST'])
+    mount(
+      payloadOf([
+        flight(1),
+        flight(2, {
+          origin: 'MUC',
+          destination: 'FRA',
+          origin_country: 'DE',
+          destination_country: 'DE',
+        }),
+      ]),
+      'airport=IST',
+    )
+    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual(['TBS-IST'])
     expect(store().view.filters.airports).toEqual(['IST'])
     expect(window.history.replaceState).not.toHaveBeenCalled()
   })
 
   it('canonicalises a legacy query and an arrival hash on mount', () => {
-    window.history.replaceState(null, '', '/journal?origin=tbs&page=3&sortField=distance_km#arrival-2')
+    window.history.replaceState(
+      null,
+      '',
+      '/journal?origin=tbs&page=3&sortField=distance_km#arrival-2',
+    )
     mount(payloadOf([flight(1), flight(2)]), 'origin=tbs&page=3&sortField=distance_km')
     expect(href()).toBe('/journal?airport=TBS&sort=distance&flight=2&review=1')
-    expect(store().view).toMatchObject({ flight: 2, review: true, sort: { key: 'distance', order: 'desc' } })
+    expect(store().view).toMatchObject({
+      flight: 2,
+      review: true,
+      sort: { key: 'distance', order: 'desc' },
+    })
     expect(window.history.pushState).not.toHaveBeenCalled()
   })
 
@@ -90,21 +157,28 @@ describe('Journal store URL mirror', () => {
     act(() => store().openFlight(1))
     act(() => store().setFilters({ airlines: ['TK'] }))
     const backSpy = vi.spyOn(window.history, 'back')
-    const popped = new Promise(resolve => window.addEventListener('popstate', resolve, { once: true }))
+    const popped = new Promise((resolve) =>
+      window.addEventListener('popstate', resolve, { once: true }),
+    )
     act(() => store().closeSheet())
     expect(backSpy).toHaveBeenCalledTimes(1)
     expect(store().view.flight).toBeNull()
-    await act(async () => { await popped })
+    await act(async () => {
+      await popped
+    })
     expect(href()).toBe('/journal?airline=TK')
     expect(store().view.filters.airlines).toEqual(['TK'])
   })
 
-  it('keeps filters only on Back to the sheet\'s own parent entry, not on Forward to a later one', async () => {
+  it("keeps filters only on Back to the sheet's own parent entry, not on Forward to a later one", async () => {
     window.history.replaceState(null, '', '/journal?airline=TK')
     mount(payloadOf([flight(1), flight(2, { airline_iata: 'PC' })]), 'airline=TK')
     act(() => store().openFlight(1))
     // A shell link to the bare Journal: Next pushes the entry, the store follows the link's view.
-    act(() => { window.history.pushState({}, '', '/journal'); window.dispatchEvent(new CustomEvent(ROUTE_LINK_EVENT, { detail: '/journal' })) })
+    act(() => {
+      window.history.pushState({}, '', '/journal')
+      window.dispatchEvent(new CustomEvent(ROUTE_LINK_EVENT, { detail: '/journal' }))
+    })
     expect(store().view.filters.airlines).toEqual([])
     await back()
     expect(store().view).toMatchObject({ flight: 1, filters: { airlines: ['TK'] } })
@@ -127,15 +201,39 @@ describe('Journal store payload', () => {
   it('keeps a newer cached payload when an older server render arrives, and adopts a newer one', async () => {
     const view = mount(payloadOf([flight(1)], 2, 2))
     vi.mocked(api.get).mockResolvedValue(payloadOf([flight(1), flight(2)], 3, 3))
-    await act(async () => { await store().refresh() })
-    expect(api.get).toHaveBeenCalledWith('/api/flights/journal', { owner: 'owner' }, expect.objectContaining({ signal: expect.any(AbortSignal) }))
+    await act(async () => {
+      await store().refresh()
+    })
+    expect(api.get).toHaveBeenCalledWith(
+      '/api/flights/journal',
+      { owner: 'owner' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
     await waitFor(() => expect(store().payload.revision).toBe(3))
 
-    view.rerender(<JournalStoreProvider ownerId="owner" locale="en" initial={payloadOf([flight(1)], 1, 9)} initialQuery=""><Probe /></JournalStoreProvider>)
+    view.rerender(
+      <JournalStoreProvider
+        ownerId="owner"
+        locale="en"
+        initial={payloadOf([flight(1)], 1, 9)}
+        initialQuery=""
+      >
+        <Probe />
+      </JournalStoreProvider>,
+    )
     await act(async () => {})
     expect(store().payload.revision).toBe(3)
 
-    view.rerender(<JournalStoreProvider ownerId="owner" locale="en" initial={payloadOf([flight(1), flight(2), flight(3)], 4, 4)} initialQuery=""><Probe /></JournalStoreProvider>)
+    view.rerender(
+      <JournalStoreProvider
+        ownerId="owner"
+        locale="en"
+        initial={payloadOf([flight(1), flight(2), flight(3)], 4, 4)}
+        initialQuery=""
+      >
+        <Probe />
+      </JournalStoreProvider>,
+    )
     await waitFor(() => expect(store().payload.revision).toBe(4))
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
   })
@@ -143,7 +241,9 @@ describe('Journal store payload', () => {
   it('keeps rows and reports an error when a background refresh fails', async () => {
     mount(payloadOf([flight(1)]))
     vi.mocked(api.get).mockRejectedValue(new Error('offline'))
-    await act(async () => { await store().refresh() })
+    await act(async () => {
+      await store().refresh()
+    })
     await waitFor(() => expect(store().isError).toBe(true), { timeout: 3000 })
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
   })
@@ -153,38 +253,74 @@ describe('Journal store payload', () => {
     vi.mocked(api.get).mockResolvedValue(payloadOf([flight(1)]))
     onlineManager.setOnline(false)
     try {
-      await act(async () => { await expect(store().refresh({ throwOnError: true })).rejects.toThrow('offline') })
-    } finally { onlineManager.setOnline(true) }
+      await act(async () => {
+        await expect(store().refresh({ throwOnError: true })).rejects.toThrow('offline')
+      })
+    } finally {
+      onlineManager.setOnline(true)
+    }
   })
 
   it('a required reconciliation rejects a failed refetch while keeping the cached rows', async () => {
     mount(payloadOf([flight(1)]))
     vi.mocked(api.get).mockRejectedValue(new Error('offline'))
-    await act(async () => { await expect(store().refresh({ throwOnError: true })).rejects.toThrow('offline') })
-    expect(store().payload.flights.map(item => item.id)).toEqual([1])
+    await act(async () => {
+      await expect(store().refresh({ throwOnError: true })).rejects.toThrow('offline')
+    })
+    expect(store().payload.flights.map((item) => item.id)).toEqual([1])
   })
 
   it('rejects a required read cancelled by a newer server payload instead of accepting reverted cached rows', async () => {
     const view = mount(payloadOf([flight(1)]))
-    vi.mocked(api.get).mockImplementation((_path, _params, options) => new Promise((_resolve, reject) => {
-      options?.signal?.addEventListener('abort', () => reject(new DOMException('Read cancelled', 'AbortError')), { once: true })
-    }))
+    vi.mocked(api.get).mockImplementation(
+      (_path, _params, options) =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener(
+            'abort',
+            () => reject(new DOMException('Read cancelled', 'AbortError')),
+            { once: true },
+          )
+        }),
+    )
     let result!: Promise<unknown>
-    act(() => { result = store().refresh({ throwOnError: true }).catch(error => error) })
+    act(() => {
+      result = store()
+        .refresh({ throwOnError: true })
+        .catch((error) => error)
+    })
     await waitFor(() => expect(api.get).toHaveBeenCalled())
-    view.rerender(<JournalStoreProvider ownerId="owner" locale="en" initial={payloadOf([flight(1), flight(2)], 2, 2)} initialQuery=""><Probe /></JournalStoreProvider>)
-    await act(async () => { expect(await result).toMatchObject({ name: 'AbortError' }) })
+    view.rerender(
+      <JournalStoreProvider
+        ownerId="owner"
+        locale="en"
+        initial={payloadOf([flight(1), flight(2)], 2, 2)}
+        initialQuery=""
+      >
+        <Probe />
+      </JournalStoreProvider>,
+    )
+    await act(async () => {
+      expect(await result).toMatchObject({ name: 'AbortError' })
+    })
     await waitFor(() => expect(store().payload.revision).toBe(2))
   })
 
-  it('keeps this owner\'s rows without an error when the server says the account changed', async () => {
+  it("keeps this owner's rows without an error when the server says the account changed", async () => {
     mount(payloadOf([flight(1)]))
-    vi.mocked(api.get).mockRejectedValue(new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED'))
-    await act(async () => { await store().refresh() })
+    vi.mocked(api.get).mockRejectedValue(
+      new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED'),
+    )
+    await act(async () => {
+      await store().refresh()
+    })
     await act(async () => {})
     expect(store().isError).toBe(false)
-    expect(store().payload.flights.map(item => item.id)).toEqual([1])
-    await act(async () => { await expect(store().refresh({ throwOnError: true })).rejects.toMatchObject({ code: 'OWNER_CHANGED' }) })
+    expect(store().payload.flights.map((item) => item.id)).toEqual([1])
+    await act(async () => {
+      await expect(store().refresh({ throwOnError: true })).rejects.toMatchObject({
+        code: 'OWNER_CHANGED',
+      })
+    })
   })
 
   it('hides rows optimistically and keeps hidden rows out of the visible selection', () => {
@@ -204,15 +340,30 @@ describe('Journal store payload', () => {
   it('applies a server-confirmed flight to the cached payload at once, re-ordering by date and adding missing refs', async () => {
     mount(payloadOf([flight(3), flight(2), flight(1)]))
     const before = store().payload
-    act(() => store().applyFlight(flight(1, { date: '2024-06-01', destination: 'AYT', destination_country: 'TR' }), { airports: { AYT: { city: 'Antalya', name: 'Antalya', country: 'TR' } } }))
+    act(() =>
+      store().applyFlight(
+        flight(1, { date: '2024-06-01', destination: 'AYT', destination_country: 'TR' }),
+        { airports: { AYT: { city: 'Antalya', name: 'Antalya', country: 'TR' } } },
+      ),
+    )
     await waitFor(() => expect(store().payload).not.toBe(before))
-    expect(store().payload.flights.map(item => item.id)).toEqual([1, 3, 2])
+    expect(store().payload.flights.map((item) => item.id)).toEqual([1, 3, 2])
     expect(store().payload.flights[0]).toMatchObject({ destination: 'AYT', date: '2024-06-01' })
-    expect(store().payload.refs.airports.AYT).toEqual({ city: 'Antalya', name: 'Antalya', country: 'TR' })
-    expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['TBS-AYT', 'TBS-IST', 'TBS-IST'])
+    expect(store().payload.refs.airports.AYT).toEqual({
+      city: 'Antalya',
+      name: 'Antalya',
+      country: 'TR',
+    })
+    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'TBS-AYT',
+      'TBS-IST',
+      'TBS-IST',
+    ])
     const applied = store().payload
     act(() => store().applyFlight(flight(9)))
-    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)) })
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
     expect(store().payload).toBe(applied)
   })
 })

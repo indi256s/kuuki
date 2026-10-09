@@ -50,17 +50,18 @@ leaderboard refresh, because Pages Functions can't host Cron Triggers.
 
 ## 2. Cloudflare resources
 
-| Resource | Action | Name / id |
-|---|---|---|
-| D1 database | create | `kuuki-db` (binding `DB`), region hint `eeur` |
-| KV namespace | keep | `IMPORT_JOBS` id `15bad9e7dfa44f8382883513c8bff292` |
-| Secret `AUTH_SECRET` | create (prod + preview) | `openssl rand -base64 32`, peppers password hashes |
-| Cron Worker | create (Phase 8) | `kuuki-cron`, `crons=["*/5 * * * *"]`, same `kuuki-db` |
-| `[vars]` SUPABASE_* | remove | — |
-| `apps/web` VITE_SUPABASE_* | remove | — |
-| `GEMINI_API_KEY`, `AIRLABS_API_KEY` | keep | — |
+| Resource                            | Action                  | Name / id                                              |
+| ----------------------------------- | ----------------------- | ------------------------------------------------------ |
+| D1 database                         | create                  | `kuuki-db` (binding `DB`), region hint `eeur`          |
+| KV namespace                        | keep                    | `IMPORT_JOBS` id `15bad9e7dfa44f8382883513c8bff292`    |
+| Secret `AUTH_SECRET`                | create (prod + preview) | `openssl rand -base64 32`, peppers password hashes     |
+| Cron Worker                         | create (Phase 8)        | `kuuki-cron`, `crons=["*/5 * * * *"]`, same `kuuki-db` |
+| `[vars]` SUPABASE_*                 | remove                  | —                                                      |
+| `apps/web` VITE_SUPABASE_*          | remove                  | —                                                      |
+| `GEMINI_API_KEY`, `AIRLABS_API_KEY` | keep                    | —                                                      |
 
 `wrangler.toml` gains:
+
 ```toml
 [[d1_databases]]
 binding = "DB"
@@ -70,7 +71,7 @@ database_id = "<from wrangler d1 create>"
 
 ## 3. D1 schema strategy
 
-Author **one** SQLite migration `db/migrations/0001_init.sql` representing the *end-state* schema
+Author **one** SQLite migration `db/migrations/0001_init.sql` representing the _end-state_ schema
 (not a replay of the 23 PG migrations), plus seed files. Apply with `wrangler d1 migrations apply`.
 
 ```
@@ -80,37 +81,40 @@ db/
 ```
 
 ### Type translation rules
-| Postgres | SQLite (D1) | Handling |
-|---|---|---|
-| `SERIAL`/`BIGSERIAL` PK | `INTEGER PRIMARY KEY AUTOINCREMENT` | on import, INSERT **explicit** ids and bump `sqlite_sequence` |
-| `UUID` | `TEXT` (36-char) | `crypto.randomUUID()` in TS before INSERT |
-| `TIMESTAMPTZ` + `NOW()` | `TEXT` ISO-8601 UTC | **single canonical format** `YYYY-MM-DDTHH:MM:SS.sssZ` for new writes AND imported rows |
-| `DECIMAL(5,2)` | `REAL` | round at **one** site (see percentile) |
-| `BIGINT` | `INTEGER` (64-bit) | direct |
-| `JSONB` | `TEXT` | `JSON.stringify`/`JSON.parse`; no `?`/`->>` |
-| `VARCHAR(n)` | `TEXT` | CHECK length only where critical |
-| `BOOLEAN` | `INTEGER` 0/1 | coerce in TS |
-| partial idx, functional unique idx | keep verbatim | SQLite supports both |
-| `char_length()` | `length()` | rename |
-| `ON CONFLICT … DO UPDATE/NOTHING` | identical | `EXCLUDED` works |
+
+| Postgres                           | SQLite (D1)                         | Handling                                                                                |
+| ---------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| `SERIAL`/`BIGSERIAL` PK            | `INTEGER PRIMARY KEY AUTOINCREMENT` | on import, INSERT **explicit** ids and bump `sqlite_sequence`                           |
+| `UUID`                             | `TEXT` (36-char)                    | `crypto.randomUUID()` in TS before INSERT                                               |
+| `TIMESTAMPTZ` + `NOW()`            | `TEXT` ISO-8601 UTC                 | **single canonical format** `YYYY-MM-DDTHH:MM:SS.sssZ` for new writes AND imported rows |
+| `DECIMAL(5,2)`                     | `REAL`                              | round at **one** site (see percentile)                                                  |
+| `BIGINT`                           | `INTEGER` (64-bit)                  | direct                                                                                  |
+| `JSONB`                            | `TEXT`                              | `JSON.stringify`/`JSON.parse`; no `?`/`->>`                                             |
+| `VARCHAR(n)`                       | `TEXT`                              | CHECK length only where critical                                                        |
+| `BOOLEAN`                          | `INTEGER` 0/1                       | coerce in TS                                                                            |
+| partial idx, functional unique idx | keep verbatim                       | SQLite supports both                                                                    |
+| `char_length()`                    | `length()`                          | rename                                                                                  |
+| `ON CONFLICT … DO UPDATE/NOTHING`  | identical                           | `EXCLUDED` works                                                                        |
 
 ### Critical correctness rules (from adversarial review — DO NOT deviate)
+
 - **Timestamp format discipline:** every timestamp (new + imported) is normalized to
   `YYYY-MM-DDTHH:MM:SS.sssZ`. All expiry/ordering checks are TEXT comparisons and break if formats
   mix. Imported Postgres timestamps (`2026-… +00`) MUST be reformatted.
 - **AUTOINCREMENT on import:** preserve existing `flights.id` etc. (frontend caches ids); INSERT
   explicit ids and set `sqlite_sequence` so new rows don't collide.
 - **`visits` constraints:** declare `country_code NOT NULL` and `UNIQUE(user_id, airport_iata)` (the
-  derivation upsert depends on it). *Confirm exact unique key against live DB.*
+  derivation upsert depends on it). _Confirm exact unique key against live DB._
 - **One SQLite trigger only**, written as a `BEFORE UPDATE` that assigns `NEW.enrichment_status`
   directly — **never** a nested `UPDATE` on the same table (recursive/invalid). Easiest: just set it
   in the TS write path and skip the trigger.
 - **PRAGMA foreign_keys:** do not trust cascade for account deletion — delete child rows explicitly
   in a `db.batch()` (D1 FK enforcement is not guaranteed every path).
 - **`lower(username)` is ASCII-only in SQLite** (unlike PG `ilike`). Use `lower()`/`COLLATE NOCASE`
-  consistently for the unique index *and* availability/search reads; accept ASCII-fold for v1.
+  consistently for the unique index _and_ availability/search reads; accept ASCII-fold for v1.
 
 ### New auth tables
+
 ```sql
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
@@ -131,21 +135,23 @@ CREATE INDEX idx_sessions_user ON sessions(user_id);
 ```
 
 ### PL/pgSQL → TypeScript services (`functions/api/_services/`)
-| Service | Replaces | Called from |
-|---|---|---|
-| `recomputeUserStats(db,userId)` | recalculate_user_stats (+4 stats triggers) | after every flights/visits/country_claims write |
-| `syncVisitsFromFlight(db,userId,flight,op)` | flights→visits trigger (**unversioned — extract live**) | flights write handlers |
-| `evaluateBadges(db,userId)` | evaluate_badges | chained after recompute |
-| `computeAdvancedStats(db,userId)` | refresh_advanced_stats + compute_* | after flights write (see decision D4) |
-| `refreshLeaderboards(db)` | refresh_leaderboards | **Cron**, not per-write |
-| `createUserWithProfile(...)` | handle_new_user (**unversioned — extract live**) | signup |
-| `computeFlightDuration(...)` | fix_timezone_aware_duration | flights create/update |
+
+| Service                                     | Replaces                                                | Called from                                     |
+| ------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------- |
+| `recomputeUserStats(db,userId)`             | recalculate_user_stats (+4 stats triggers)              | after every flights/visits/country_claims write |
+| `syncVisitsFromFlight(db,userId,flight,op)` | flights→visits trigger (**unversioned — extract live**) | flights write handlers                          |
+| `evaluateBadges(db,userId)`                 | evaluate_badges                                         | chained after recompute                         |
+| `computeAdvancedStats(db,userId)`           | refresh_advanced_stats + compute_*                      | after flights write (see decision D4)           |
+| `refreshLeaderboards(db)`                   | refresh_leaderboards                                    | **Cron**, not per-write                         |
+| `createUserWithProfile(...)`                | handle_new_user (**unversioned — extract live**)        | signup                                          |
+| `computeFlightDuration(...)`                | fix_timezone_aware_duration                             | flights create/update                           |
 
 > **Registration is OPEN — no invite codes** (user decision). The `invite_codes`/`beta_invites`
 > table, the `check_/use_invite_code` RPCs, and the invite-check endpoint are all dropped. Signup
 > takes only email + password. Per-IP/email signup rate-limiting is therefore load-bearing.
 
-**Verified parity rules for the services (review-confirmed against the *latest* migration defs):**
+**Verified parity rules for the services (review-confirmed against the _latest_ migration defs):**
+
 - **Leaderboards = exactly 5 categories**: `flights | distance | countries | cities | airlines`.
   There is **no `airports` category**. (Note the pre-existing quirk: the `cities` category ranks
   `airports_count`, not a city count — **preserve** for v1.)
@@ -170,6 +176,7 @@ all services (ends the 5-way duplication). Reference data (`aircraft_reference`,
 → **D1 seed tables** (services JOIN them in SQL).
 
 ## 4. Auth design
+
 - **Hashing:** PBKDF2-HMAC-SHA256 (WebCrypto), 16-byte salt, 210k iters, 32-byte key; password is
   HMAC'd with `AUTH_SECRET` (pepper) first. Store `pbkdf2$v1$sha256$210000$<salt>$<hash>` — **`v1`
   encodes the pepper version** so the pepper can be rotated (rehash on next login). Constant-time
@@ -182,7 +189,7 @@ all services (ends the 5-way duplication). Reference data (`aircraft_reference`,
   **`Origin`/`Sec-Fetch-Site` check + double-submit CSRF token** on all state-changing
   POST/PATCH/DELETE. (New requirement vs first draft.)
 - **`/api/auth/refresh` reality:** opaque sessions have no separate refresh token, so refresh can
-  only *slide an already-valid* session — it cannot revive an expired one. The client's "on 401,
+  only _slide an already-valid_ session — it cannot revive an expired one. The client's "on 401,
   refresh once then retry" must treat a failed refresh as logout (no infinite loop). `verify-password`
   must **not** slide/rotate the session (it's a re-auth gate before account delete).
 - **Open registration:** signup takes email + password only — no invite codes (user decision).
@@ -197,6 +204,7 @@ all services (ends the 5-way duplication). Reference data (`aircraft_reference`,
   the Pages origin + `Allow-Credentials` (they burn paid Gemini/AirLabs quota; currently public).
 
 ## 5. API endpoint surface
+
 Auth: **pub** | **own** (session) | **pubprofile** (only if `is_public`).
 
 - **Auth:** `POST /api/auth/signup` pub · `POST /api/auth/signin` pub · `POST /api/auth/signout` own ·
@@ -226,6 +234,7 @@ rankings must respect `show_on_leaderboards`; return profile+stats with `ranking
 has <5 flights or opted out.
 
 ## 6. Frontend refactor
+
 1. `src/lib/apiClient.ts` (new): typed `fetch`, `credentials:'include'`, throws `ApiError`,
    on-401-refresh-once-then-logout, CSRF header. Shared request/response types in `packages/shared`.
 2. Delete `src/lib/supabase.ts`; remove `@supabase/supabase-js` + `@supabase/ssr`.
@@ -244,10 +253,12 @@ has <5 flights or opted out.
 8. `functions/_middleware.ts` → custom session resolver (drop `@supabase/ssr`).
 
 ## 7. Data migration
+
 Source: Supabase `cwmotwkvpdkfrtjxmoce`. **Needs user-granted access** (Supabase MCP OAuth, or
 service-role key / `pg_dump` connection string).
 
 **Extract-first (BLOCKING, must precede service build) — the 2 unversioned, load-bearing objects:**
+
 1. `flights → visits` trigger fn (incl. **DELETE/UPDATE decrement** behavior — only INSERT is
    versioned). 2. `handle_new_user` (username generation, column defaults). Also dump exact DDL of
    the base tables not in migrations. Get via `pg_dump --schema-only` or
@@ -275,11 +286,12 @@ off `@supabase/*` to `lib/apiClient` (same-origin cookie+CSRF). Gate green: `fun
 access; remote/deploy-like), Phase 7 (preview deploy), Phase 8 (cron + cutover).
 
 **Carry-forwards / known gaps for the next session:**
+
 - **Phase 1′ live extraction NOT performed** — services were ported from the migration SQL +
   generated types, not from the 2 live unversioned objects (`flights→visits` trigger incl.
   DELETE/UPDATE decrement, `handle_new_user`). Verify against live defs before/at Phase 5.
 - **Compare feature regression** — `useCompareStats(otherUserId)` (`useCompare.ts`/`CompareModal.tsx`)
-  now returns the *current* user's stats: there is no per-arbitrary-user stats-by-id endpoint in §5
+  now returns the _current_ user's stats: there is no per-arbitrary-user stats-by-id endpoint in §5
   (only `/api/me/stats` + `/api/public/profiles/:username`). Needs a product/endpoint decision.
 - **Orphaned admin scripts** — `scripts/backfill-flight-times.ts` + `enrich-existing-flights.ts`
   still import `@supabase` (root dep removed) → `pnpm backfill:times` now errors. Rewrite as
@@ -290,12 +302,13 @@ access; remote/deploy-like), Phase 7 (preview deploy), Phase 8 (cron + cutover).
   flight DTO omits `user_id`/`aircraft_lookup_attempts` (re-attached in a mapper; no consumer reads them).
 
 ## 8. Phased execution order (corrected)
+
 - **Phase 0 — Prep (no creds):** add `db/`, shared continent/country map + types in `packages/*`.
   Pure additions; app still builds on Supabase.
 - **Phase 1 — Provision D1 (Cloudflare access):** `wrangler d1 create kuuki-db`, binding, generate
   `AUTH_SECRET`. ✅ (done early; empty + reversible)
 - **Phase 1′ — LIVE EXTRACTION (Supabase access) [MOVED EARLIER]:** dump the 2 unversioned objects +
-  base-table DDL. Finalize `0001_init.sql` (esp. `visits` shape) and the service specs from *real*
+  base-table DDL. Finalize `0001_init.sql` (esp. `visits` shape) and the service specs from _real_
   definitions. Everything downstream depends on this.
 - ✅ **Phase 2 — Auth backend:** `_lib/` (crypto, session, requireAuth, CSRF) + `api/auth/*` + rewrite
   `_middleware.ts` + `env.d.ts`. (refresh/verify-password/account-delete added 2026-06-20.)
@@ -314,15 +327,17 @@ access; remote/deploy-like), Phase 7 (preview deploy), Phase 8 (cron + cutover).
   decommission after soak.
 
 ## 9. Open decisions (need the user)
+
 - **D1. Data scope:** migrate existing Supabase data, or start fresh on D1? (Determines whether
   Phase 1′/5 run.)
 - **D2. Supabase access** (if migrating): MCP OAuth · service-role key · `pg_dump`/CLI.
 - **D3. Passwords:** force-reset all (recommended); how many real users exist?
-- **D4. Advanced stats:** wire `computeAdvancedStats` live (fresh — *changes* current stale-prod
+- **D4. Advanced stats:** wire `computeAdvancedStats` live (fresh — _changes_ current stale-prod
   behavior) vs preserve stale parity. Recommend **wire live** (data is regenerated anyway).
 - **D5. Cutover/downtime:** brief read-only freeze during final export+import — acceptable window?
 
 ### Decided defaults (not asking; baked into spec above)
+
 5 leaderboard categories · preserve `cities`=airports_count quirk · countries/continents =
 visits-only · latest 1-decimal percentile + total>0 guard · no per-continent badge logic ·
 `beta_invite` criterion always-true · reference data as D1 seed tables · CSRF double-submit +

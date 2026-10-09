@@ -7,7 +7,13 @@ import { useImportBatch, type BatchApi } from './use-import-batch'
 
 afterEach(cleanup)
 
-const rows = (sequence: number): ImportEvent => ({ name: 'rows', sequence, rowIds: [], snapshot: false, reupload: false })
+const rows = (sequence: number): ImportEvent => ({
+  name: 'rows',
+  sequence,
+  rowIds: [],
+  snapshot: false,
+  reupload: false,
+})
 const make = (over: Partial<BatchApi> = {}): BatchApi => ({
   readBatch: vi.fn(async () => snapshot([draft({ id: 'a' })])),
   connect: vi.fn(async () => {}),
@@ -21,7 +27,7 @@ describe('useImportBatch resume', () => {
     const api = make()
     const { result } = renderHook(() => useImportBatch({ api, initialBatchId: 'b1' }))
     await waitFor(() => expect(result.current.phase).toBe('ready'))
-    expect(result.current.drafts.map(row => row.id)).toEqual(['a'])
+    expect(result.current.drafts.map((row) => row.id)).toEqual(['a'])
     expect(api.submit).not.toHaveBeenCalled()
     expect(api.connect).not.toHaveBeenCalled()
   })
@@ -29,9 +35,16 @@ describe('useImportBatch resume', () => {
   it('resumes a running recognition: subscribes after the snapshot sequence and reloads when rows arrive', async () => {
     const processing = snapshot([], { status: 'processing', stage: 'recognizing', sequence: 3 })
     const done = snapshot([draft({ id: 'a' }), draft({ id: 'b', ordinal: 1 })], { sequence: 4 })
-    const readBatch = vi.fn<BatchApi['readBatch']>().mockResolvedValueOnce(processing).mockResolvedValue(done)
-    const connect = vi.fn<BatchApi['connect']>(async (_id, _after, onEvent) => { onEvent(rows(4)) })
-    const { result } = renderHook(() => useImportBatch({ api: make({ readBatch, connect }), initialBatchId: 'b1' }))
+    const readBatch = vi
+      .fn<BatchApi['readBatch']>()
+      .mockResolvedValueOnce(processing)
+      .mockResolvedValue(done)
+    const connect = vi.fn<BatchApi['connect']>(async (_id, _after, onEvent) => {
+      onEvent(rows(4))
+    })
+    const { result } = renderHook(() =>
+      useImportBatch({ api: make({ readBatch, connect }), initialBatchId: 'b1' }),
+    )
     await waitFor(() => expect(result.current.phase).toBe('ready'))
     expect(connect.mock.calls[0][1]).toBe(3)
     expect(result.current.drafts).toHaveLength(2)
@@ -40,18 +53,36 @@ describe('useImportBatch resume', () => {
 
   it('shows the stage and found count while processing', async () => {
     const hold = new Promise<void>(() => {})
-    const readBatch = vi.fn(async () => snapshot([draft({ id: 'a' })], { status: 'processing', stage: 'validating', sequence: 2 }))
-    const { result } = renderHook(() => useImportBatch({ api: make({ readBatch, connect: () => hold }), initialBatchId: 'b1' }))
+    const readBatch = vi.fn(async () =>
+      snapshot([draft({ id: 'a' })], { status: 'processing', stage: 'validating', sequence: 2 }),
+    )
+    const { result } = renderHook(() =>
+      useImportBatch({ api: make({ readBatch, connect: () => hold }), initialBatchId: 'b1' }),
+    )
     await waitFor(() => expect(result.current.phase).toBe('processing'))
     expect(result.current.batch?.stage).toBe('validating')
     expect(result.current.drafts).toHaveLength(1)
   })
 
   it('treats a missing or expired batch as a stated cause, not a blank screen', async () => {
-    const missing = renderHook(() => useImportBatch({ api: make({ readBatch: async () => { throw Object.assign(new Error('x'), { status: 404, code: 'IMPORT_BATCH_NOT_FOUND' }) } }), initialBatchId: 'b1' }))
+    const missing = renderHook(() =>
+      useImportBatch({
+        api: make({
+          readBatch: async () => {
+            throw Object.assign(new Error('x'), { status: 404, code: 'IMPORT_BATCH_NOT_FOUND' })
+          },
+        }),
+        initialBatchId: 'b1',
+      }),
+    )
     await waitFor(() => expect(missing.result.current.phase).toBe('failed'))
     expect(missing.result.current.failure?.kind).toBe('notFound')
-    const expired = renderHook(() => useImportBatch({ api: make({ readBatch: async () => snapshot([], { status: 'review', expired: true }) }), initialBatchId: 'b1' }))
+    const expired = renderHook(() =>
+      useImportBatch({
+        api: make({ readBatch: async () => snapshot([], { status: 'review', expired: true }) }),
+        initialBatchId: 'b1',
+      }),
+    )
     await waitFor(() => expect(expired.result.current.phase).toBe('failed'))
     expect(expired.result.current.failure?.kind).toBe('expired')
   })
@@ -63,8 +94,14 @@ describe('useImportBatch start', () => {
     const readBatch = vi.fn(async () => snapshot([draft({ id: 'a' })]))
     const api = make({ readBatch })
     const { result } = renderHook(() => useImportBatch({ api, onBatchId }))
-    await act(async () => { await result.current.start({ type: 'text', content: 'JFK BOS' }, 'op-12345678') })
-    expect(api.submit).toHaveBeenCalledWith({ type: 'text', content: 'JFK BOS' }, 'op-12345678', expect.anything())
+    await act(async () => {
+      await result.current.start({ type: 'text', content: 'JFK BOS' }, 'op-12345678')
+    })
+    expect(api.submit).toHaveBeenCalledWith(
+      { type: 'text', content: 'JFK BOS' },
+      'op-12345678',
+      expect.anything(),
+    )
     expect(onBatchId).toHaveBeenCalledWith('b1')
     await waitFor(() => expect(result.current.phase).toBe('ready'))
   })
@@ -73,16 +110,26 @@ describe('useImportBatch start', () => {
     const sync: Snapshot = snapshot([draft({ id: 'a' })])
     const api = make({ submit: vi.fn(async () => sync) })
     const { result } = renderHook(() => useImportBatch({ api }))
-    await act(async () => { await result.current.start({ type: 'text', content: 'x' }, 'op-12345678') })
+    await act(async () => {
+      await result.current.start({ type: 'text', content: 'x' }, 'op-12345678')
+    })
     expect(result.current.phase).toBe('ready')
     expect(api.connect).not.toHaveBeenCalled()
   })
 
   it('classifies a refused submit and keeps the retry instant', async () => {
     const retryAt = '2026-10-05T12:00:00.000Z'
-    const submit = vi.fn(async () => { throw Object.assign(new Error('quota'), { status: 429, code: 'PROVIDER_QUOTA', body: { retryAt } }) })
+    const submit = vi.fn(async () => {
+      throw Object.assign(new Error('quota'), {
+        status: 429,
+        code: 'PROVIDER_QUOTA',
+        body: { retryAt },
+      })
+    })
     const { result } = renderHook(() => useImportBatch({ api: make({ submit }) }))
-    await act(async () => { await result.current.start({ type: 'text', content: 'x' }, 'op-12345678') })
+    await act(async () => {
+      await result.current.start({ type: 'text', content: 'x' }, 'op-12345678')
+    })
     expect(result.current.phase).toBe('failed')
     expect(result.current.failure).toMatchObject({ kind: 'quota', retryAt })
     expect(result.current.drafts).toEqual([])
@@ -90,11 +137,18 @@ describe('useImportBatch start', () => {
 
   it('shows a failed batch cause from the snapshot and keeps partial rows', async () => {
     const failed = snapshot([], { status: 'failed', errorCode: 'NO_FLIGHTS_FOUND' })
-    const one = renderHook(() => useImportBatch({ api: make({ readBatch: async () => failed }), initialBatchId: 'b1' }))
+    const one = renderHook(() =>
+      useImportBatch({ api: make({ readBatch: async () => failed }), initialBatchId: 'b1' }),
+    )
     await waitFor(() => expect(one.result.current.phase).toBe('failed'))
     expect(one.result.current.failure?.kind).toBe('nothing')
-    const partial = snapshot([draft({ id: 'a' })], { status: 'partial', errorCode: 'JOB_INTERRUPTED' })
-    const two = renderHook(() => useImportBatch({ api: make({ readBatch: async () => partial }), initialBatchId: 'b1' }))
+    const partial = snapshot([draft({ id: 'a' })], {
+      status: 'partial',
+      errorCode: 'JOB_INTERRUPTED',
+    })
+    const two = renderHook(() =>
+      useImportBatch({ api: make({ readBatch: async () => partial }), initialBatchId: 'b1' }),
+    )
     await waitFor(() => expect(two.result.current.phase).toBe('ready'))
     expect(two.result.current.partial).toBe(true)
     expect(two.result.current.failure?.kind).toBe('interrupted')
@@ -114,9 +168,18 @@ describe('useImportBatch drafts', () => {
 
   it('stops watching on unmount', async () => {
     let signal: AbortSignal | undefined
-    const connect = vi.fn((_id: string, _after: number, _on: (e: ImportEvent) => void, s: AbortSignal) => { signal = s; return new Promise<void>(() => {}) })
-    const readBatch = vi.fn(async () => snapshot([], { status: 'processing', stage: 'accepted', sequence: 1 }))
-    const { unmount } = renderHook(() => useImportBatch({ api: make({ readBatch, connect }), initialBatchId: 'b1' }))
+    const connect = vi.fn(
+      (_id: string, _after: number, _on: (e: ImportEvent) => void, s: AbortSignal) => {
+        signal = s
+        return new Promise<void>(() => {})
+      },
+    )
+    const readBatch = vi.fn(async () =>
+      snapshot([], { status: 'processing', stage: 'accepted', sequence: 1 }),
+    )
+    const { unmount } = renderHook(() =>
+      useImportBatch({ api: make({ readBatch, connect }), initialBatchId: 'b1' }),
+    )
     await waitFor(() => expect(connect).toHaveBeenCalled())
     unmount()
     expect(signal?.aborted).toBe(true)
@@ -130,16 +193,32 @@ describe('useImportBatch cancelled batches', () => {
     const processing = snapshot([], { id: 'b1', status: 'processing' })
     const cancelled = snapshot([draft({ id: 'a' })], { id: 'b1', status: 'cancelled' })
     let answerReload!: (value: Snapshot) => void
-    const readBatch = vi.fn<BatchApi['readBatch']>()
+    const readBatch = vi
+      .fn<BatchApi['readBatch']>()
       .mockResolvedValueOnce(processing)
-      .mockImplementationOnce(() => new Promise<Snapshot>(resolve => { answerReload = resolve }))
-    const { result } = renderHook(() => useImportBatch({ api: make({ readBatch, connect: () => new Promise<void>(() => {}) }), initialBatchId: 'b1' }))
+      .mockImplementationOnce(
+        () =>
+          new Promise<Snapshot>((resolve) => {
+            answerReload = resolve
+          }),
+      )
+    const { result } = renderHook(() =>
+      useImportBatch({
+        api: make({ readBatch, connect: () => new Promise<void>(() => {}) }),
+        initialBatchId: 'b1',
+      }),
+    )
     await waitFor(() => expect(result.current.phase).toBe('processing'))
 
     let reloaded!: Promise<Snapshot | null>
-    act(() => { reloaded = result.current.reload() })
+    act(() => {
+      reloaded = result.current.reload()
+    })
     act(() => result.current.reset())
-    await act(async () => { answerReload(cancelled); expect(await reloaded).toBeNull() })
+    await act(async () => {
+      answerReload(cancelled)
+      expect(await reloaded).toBeNull()
+    })
     expect(result.current.phase).toBe('idle')
     expect(result.current.batch).toBeNull()
     expect(result.current.drafts).toEqual([])
@@ -154,20 +233,26 @@ describe('useImportBatch cancelled batches', () => {
     await waitFor(() => expect(result.current.batch?.id).toBe('b1'))
     const reloadOld = result.current.reload
     act(() => result.current.reset())
-    await act(async () => { await result.current.start({ type: 'text', content: 'LHR CDG' }, 'op-12345678') })
+    await act(async () => {
+      await result.current.start({ type: 'text', content: 'LHR CDG' }, 'op-12345678')
+    })
     expect(result.current.batch?.id).toBe('b2')
 
-    await act(async () => { expect(await reloadOld()).toBeNull() })
+    await act(async () => {
+      expect(await reloadOld()).toBeNull()
+    })
     expect(result.current.batch?.id).toBe('b2')
-    expect(result.current.drafts.map(row => row.id)).toEqual(['x'])
+    expect(result.current.drafts.map((row) => row.id)).toEqual(['x'])
   })
 
   it('keeps the rows extracted before a cancel as a stopped, partial review and does not subscribe', async () => {
-    const readBatch = vi.fn(async () => snapshot([draft({ id: 'a' })], { status: 'cancelled', stage: 'recognizing' }))
+    const readBatch = vi.fn(async () =>
+      snapshot([draft({ id: 'a' })], { status: 'cancelled', stage: 'recognizing' }),
+    )
     const api = make({ readBatch })
     const { result } = renderHook(() => useImportBatch({ api, initialBatchId: 'b1' }))
     await waitFor(() => expect(result.current.phase).toBe('ready'))
-    expect(result.current.drafts.map(row => row.id)).toEqual(['a'])
+    expect(result.current.drafts.map((row) => row.id)).toEqual(['a'])
     expect(result.current.partial).toBe(true)
     expect(result.current.cancelled).toBe(true)
     expect(api.connect).not.toHaveBeenCalled()
@@ -175,7 +260,9 @@ describe('useImportBatch cancelled batches', () => {
 
   it('returns to the source step only when a cancelled batch kept no rows', async () => {
     const readBatch = vi.fn(async () => snapshot([], { status: 'cancelled' }))
-    const { result } = renderHook(() => useImportBatch({ api: make({ readBatch }), initialBatchId: 'b1' }))
+    const { result } = renderHook(() =>
+      useImportBatch({ api: make({ readBatch }), initialBatchId: 'b1' }),
+    )
     await waitFor(() => expect(result.current.phase).toBe('cancelled'))
     expect(result.current.drafts).toEqual([])
   })

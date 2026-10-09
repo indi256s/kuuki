@@ -8,11 +8,20 @@ export function visitBucket(count: number): VisitBucket {
 }
 
 /** CSS custom property per bucket (index = bucket); every theme and accent defines them in styles.css. */
-export const BUCKET_TOKENS = ['--map-land', '--map-bucket-1', '--map-bucket-2', '--map-bucket-3', '--map-bucket-4'] as const
+export const BUCKET_TOKENS = [
+  '--map-land',
+  '--map-bucket-1',
+  '--map-bucket-2',
+  '--map-bucket-3',
+  '--map-bucket-4',
+] as const
 
 // Legend text for buckets 1..4 per UI locale; numerals go through the shared number formatter.
 const labels = (locale: Locale) => {
   const n = (v: number) => formatNumber(locale, v)
   return [n(1), `${n(2)}–${n(3)}`, `${n(4)}–${n(9)}`, `${n(10)}+`] as const
 }
-export const BUCKET_LABELS: Record<Locale, readonly [string, string, string, string]> = { en: labels('en'), ru: labels('ru') }
+export const BUCKET_LABELS: Record<Locale, readonly [string, string, string, string]> = {
+  en: labels('en'),
+  ru: labels('ru'),
+}

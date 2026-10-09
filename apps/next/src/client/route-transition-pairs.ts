@@ -16,9 +16,18 @@ export const isStampHero = (from: string, to: string) => from === '/import' && t
  * `back` is null for a Back or Forward the browser cannot tell apart, which drills neither way.
  */
 export const isProfileDrill = (from: string, to: string, back: boolean | null) =>
-  back === null ? false : back ? isProfile(from) && to === '/leaderboard' : from === '/leaderboard' && isProfile(to)
+  back === null
+    ? false
+    : back
+      ? isProfile(from) && to === '/leaderboard'
+      : from === '/leaderboard' && isProfile(to)
 
-export function isApprovedPair(stage: StageKind, from: string, to: string, back: boolean | null = false) {
+export function isApprovedPair(
+  stage: StageKind,
+  from: string,
+  to: string,
+  back: boolean | null = false,
+) {
   return stage === 'page' && (isStampHero(from, to) || isProfileDrill(from, to, back))
 }
 
@@ -27,13 +36,24 @@ export function isApprovedPair(stage: StageKind, from: string, to: string, back:
 type HistoryNavigation = EventTarget & { currentEntry: { index: number } | null }
 type EntryChange = Event & { navigationType: string | null; from: { index: number } }
 let traversal: { pathname: string; back: boolean | null } | null = null
-const navigation = typeof window === 'undefined' ? undefined : (window as Window & { navigation?: HistoryNavigation }).navigation
-if (navigation) navigation.addEventListener('currententrychange', event => {
-  const { navigationType, from } = event as EntryChange
-  if (navigationType === 'push') traversal = null
-  if (navigationType === 'traverse') traversal = { pathname: location.pathname, back: (navigation.currentEntry?.index ?? Infinity) < from.index }
-})
-else if (typeof window !== 'undefined') window.addEventListener('popstate', () => { traversal = { pathname: location.pathname, back: null } })
+const navigation =
+  typeof window === 'undefined'
+    ? undefined
+    : (window as Window & { navigation?: HistoryNavigation }).navigation
+if (navigation)
+  navigation.addEventListener('currententrychange', (event) => {
+    const { navigationType, from } = event as EntryChange
+    if (navigationType === 'push') traversal = null
+    if (navigationType === 'traverse')
+      traversal = {
+        pathname: location.pathname,
+        back: (navigation.currentEntry?.index ?? Infinity) < from.index,
+      }
+  })
+else if (typeof window !== 'undefined')
+  window.addEventListener('popstate', () => {
+    traversal = { pathname: location.pathname, back: null }
+  })
 
 /**
  * The boundary keeps its key, and so its DOM node, unless the pathname change is an approved pair. ssgoi
@@ -41,9 +61,18 @@ else if (typeof window !== 'undefined') window.addEventListener('popstate', () =
  */
 export function useTransitionKey(stage: StageKind, pathname: string) {
   const [state, setState] = useState({ pathname, key: 0 })
-  useEffect(() => { traversal = null }, [pathname])
+  useEffect(() => {
+    traversal = null
+  }, [pathname])
   if (state.pathname === pathname) return state.key
-  const key = isApprovedPair(stage, state.pathname, pathname, traversal?.pathname === pathname ? traversal.back : false) ? state.key + 1 : state.key
+  const key = isApprovedPair(
+    stage,
+    state.pathname,
+    pathname,
+    traversal?.pathname === pathname ? traversal.back : false,
+  )
+    ? state.key + 1
+    : state.key
   setState({ pathname, key })
   return key
 }

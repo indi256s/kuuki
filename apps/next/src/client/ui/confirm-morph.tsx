@@ -24,19 +24,53 @@ export type ConfirmMorphProps = {
 }
 
 /** Cancel takes focus when the question opens, Escape cancels, and Confirm is never the default action. */
-export function ConfirmMorph({ open, prompt, consequence, confirmLabel, cancelLabel, onConfirm, onCancel, disabledReason, className }: ConfirmMorphProps) {
+export function ConfirmMorph({
+  open,
+  prompt,
+  consequence,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+  disabledReason,
+  className,
+}: ConfirmMorphProps) {
   const cancelRef = useRef<HTMLButtonElement>(null)
   const promptId = useId()
   const consequenceId = useId()
-  useEffect(() => { if (open) cancelRef.current?.focus() }, [open])
+  useEffect(() => {
+    if (open) cancelRef.current?.focus()
+  }, [open])
   if (!open) return null
-  const keydown = (event: KeyboardEvent<HTMLDivElement>) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onCancel() } }
-  return <div className={['arc-confirm', className].filter(Boolean).join(' ')} role="group" aria-labelledby={promptId} aria-describedby={consequenceId} onKeyDown={keydown}>
-    <p id={promptId} className="arc-confirm-prompt">{prompt}</p>
-    <p id={consequenceId} className="arc-confirm-consequence">{consequence}</p>
-    <div className="arc-confirm-actions">
-      <Button ref={cancelRef} dense onClick={onCancel}>{cancelLabel}</Button>
-      <Button dense variant="danger" disabledReason={disabledReason} onClick={onConfirm}>{confirmLabel}</Button>
+  const keydown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      event.stopPropagation()
+      onCancel()
+    }
+  }
+  return (
+    <div
+      className={['arc-confirm', className].filter(Boolean).join(' ')}
+      role="group"
+      aria-labelledby={promptId}
+      aria-describedby={consequenceId}
+      onKeyDown={keydown}
+    >
+      <p id={promptId} className="arc-confirm-prompt">
+        {prompt}
+      </p>
+      <p id={consequenceId} className="arc-confirm-consequence">
+        {consequence}
+      </p>
+      <div className="arc-confirm-actions">
+        <Button ref={cancelRef} dense onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+        <Button dense variant="danger" disabledReason={disabledReason} onClick={onConfirm}>
+          {confirmLabel}
+        </Button>
+      </div>
     </div>
-  </div>
+  )
 }

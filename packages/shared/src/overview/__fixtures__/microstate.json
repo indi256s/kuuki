@@ -7,12 +7,7 @@
   "homeOverride": null,
   "passport": {
     "countries": 4,
-    "countryCodes": [
-      "BH",
-      "LU",
-      "MT",
-      "SG"
-    ],
+    "countryCodes": ["BH", "LU", "MT", "SG"],
     "regions": 2
   },
   "rows": [

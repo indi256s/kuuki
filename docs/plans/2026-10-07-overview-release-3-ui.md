@@ -5,6 +5,7 @@ Arc integration successor (2026-10-08): [implementation plan](2026-10-08-arc-int
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the Overview page in place with the Paper design:
+
 - a globe band with filter chips and replay;
 - a ranked hero panel and the Next strip;
 - seven reorderable, hideable sections in a bento grid (mobile: tiles plus a section sheet);
@@ -14,12 +15,14 @@ Arc integration successor (2026-10-08): [implementation plan](2026-10-08-arc-int
 All of it runs on the Release 2 engine.
 
 **Architecture:**
+
 - **Numbers.** Every number comes from `computeOverview(payload, filter)` in `packages/shared/src/overview`. This plan extends that engine with pure, tested fields (Tasks 2–11). The UI does only layout maths (waffle grid, bento packing, KDE sampling, display division).
 - **Data flow.** The server component sends the owner payload and prefs. A client context holds the filter, layout and replay state, computes `scope` and `allScope` (the ghost baseline) through the Release 2 data store, and persists prefs. Every section is a client component that reads that context.
 - **Charts and globe.** Every section chart goes through one `KuukiChart` wrapper over TanStack Charts. The globe is an SVG first paint (TanStack `geoShape`) that crossfades to MapLibre plus vendored flightcn after idle.
 - **Build order.** The new page is built behind the dev-only route `/dev/overview?fixture=…`. `/overview` switches over in Task 33.
 
 **Tech Stack:**
+
 - Next 16.3.8 App Router on Workers via OpenNext; React 19.2.4.
 - Plain CSS with tokens in `apps/next/src/app/styles.css`, plus a sibling `.css` file per component.
 - `@tanstack/charts@1.0.0` (pinned): `motion()` renderer, `brushX`, `handleX`, `geoShape`, polar.
@@ -30,6 +33,7 @@ All of it runs on the Release 2 engine.
 - Vitest with Testing Library (jsdom per file) and Playwright.
 
 **Spec:**
+
 - `.scratch/overview-redesign/design-decisions.md` is the visual and interaction spec; dated sections supersede earlier lines.
 - `.scratch/overview-redesign/decisions.md` holds the product decisions.
 - The Paper boards are at https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7/p-1-0, with PNG exports in `.scratch/overview-redesign/boards/`.
@@ -53,6 +57,7 @@ All of it runs on the Release 2 engine.
 **User review-batching override (2026-10-08):** Skip further per-task independent review rounds. Continue implementer self-checks and focused functional checks; run the consolidated whole-branch review and authorized Thermos/Ponytail audit at the end. This supersedes the per-task reviewer gates and executor review labels below.
 
 **Precedence**
+
 - The board wins on layout, type sizes and copy, except where "Audit fixes" or "Critique fixes" in `design-decisions.md` explicitly override it (example: segmented cells are 44px, not 32px).
 - Inside `design-decisions.md`, a later dated section beats an earlier line.
 - **Superseded; do not build:**
@@ -67,6 +72,7 @@ All of it runs on the Release 2 engine.
 - **Exact sizes and colours** come from the Paper file (`mcp__paper__get_computed_styles` / `get_jsx` on the named board; find nodes with `get_basic_info`). The PNGs are for visual comparison only.
 
 **Tokens and colour**
+
 - No hex or rgb in TS/TSX (ESLint). Chart code passes CSS variable strings such as `'var(--mark-1)'`.
 - No `transition: all`.
 - New tokens, per theme, in `styles.css`. Values are verbatim from the spec:
@@ -77,32 +83,32 @@ All of it runs on the Release 2 engine.
   - `--heat-0..4`: `var(--surface-inset)`, `#e6c8c1`, `#e4735c`, `#c23417`, `#892410` (both themes).
   - Maker tokens:
 
-    | Token | Light | Dark |
-    |---|---|---|
-    | `--cat-maker-airbus` | `#0F6390` | `#0685B6` |
-    | `--cat-maker-boeing` | `#16A384` | `#04AC7B` |
+    | Token                 | Light     | Dark      |
+    | --------------------- | --------- | --------- |
+    | `--cat-maker-airbus`  | `#0F6390` | `#0685B6` |
+    | `--cat-maker-boeing`  | `#16A384` | `#04AC7B` |
     | `--cat-maker-embraer` | `#8C6D08` | `#A4770F` |
-    | `--cat-maker-atr` | `#9A52CF` | `#A36FFA` |
-    | `--cat-maker-other` | `#C2BAB0` | `#C9C1B7` |
+    | `--cat-maker-atr`     | `#9A52CF` | `#A36FFA` |
+    | `--cat-maker-other`   | `#C2BAB0` | `#C9C1B7` |
     | `--cat-maker-unknown` | `#ECE9E5` | `#47433F` |
 
   - Alliance tokens:
 
-    | Token | Light | Dark |
-    |---|---|---|
-    | `--cat-alliance-star` | `#6B5A2E` | `#CDB98A` |
+    | Token                     | Light     | Dark      |
+    | ------------------------- | --------- | --------- |
+    | `--cat-alliance-star`     | `#6B5A2E` | `#CDB98A` |
     | `--cat-alliance-oneworld` | `#6A3F55` | `#D3A6BC` |
-    | `--cat-alliance-skyteam` | `#3E5266` | `#A9BBD0` |
+    | `--cat-alliance-skyteam`  | `#3E5266` | `#A9BBD0` |
 
   - `--accent-tint`: accent at 10% over `--surface`.
   - `--accent-on-tint`: `#b02f14` light; `var(--accent-text)` dark.
   - `--globe-rim`: accent at 14% light, 22% dark.
   - Shu map buckets, mixed in **oklab**:
 
-    | Theme | Buckets |
-    |---|---|
+    | Theme | Buckets                                 |
+    | ----- | --------------------------------------- |
     | Light | `#ecc6bb` `#e5a494` `#da7d68` `#c94c33` |
-    | Dark | `#674e47` `#865c51` `#ac6b5d` `#d87d6a` |
+    | Dark  | `#674e47` `#865c51` `#ac6b5d` `#d87d6a` |
 
 - **Default chart palette:** `--ts-chart-1..5` = `--mark-1`, `--mark-2`, `--mark-3`, `--mark-4`, `--mark-ghost`. Maker charts remap `--ts-chart-n` onto `--cat-maker-*`.
 - **Category rules:**
@@ -114,6 +120,7 @@ All of it runs on the Release 2 engine.
 - **Contrast:** every data mark is at least 3:1 against `--background`. Accepted exceptions for the exact specified palette: heat-ramp steps below 3:1 in either theme (including dark steps 3–4), map buckets 1–3, and the Other and Unknown swatches. Each always has a visible text-ink value or legend label; charts also provide accessible tooltip/value content and View as table. The specified colours remain verbatim. See [palette contrast acceptance](../../.scratch/overview-redesign/issues/01-palette-contrast.md) for the measured conflict and consumer verification gates.
 
 **Layout bans**
+
 - No divider hairlines inside content or page chrome:
   - none between rows;
   - none above the narrator;
@@ -123,6 +130,7 @@ All of it runs on the Release 2 engine.
 - Allowed: full outlines (cards, inputs, chips, buttons), the 2px active-tab bar, the 2px drag insertion indicator and the sheet pager segments.
 
 **Type and motion**
+
 - **Narrator:** 15/24 Commissioner 400, `--text-muted`, at the section foot, max 60ch, no icon, no quotes. The narrator is the only sarcastic line in a card; tile captions stay factual.
 - **Chart captions:** 15/24 Commissioner 600, normal case; never all caps for instructions.
 - **Mono** for routes, codes, times and chart ticks. **Tabular figures** for numbers.
@@ -132,6 +140,7 @@ All of it runs on the Release 2 engine.
 - **Reduced motion:** charts snap, the camera cuts, the replay is off with static plane glyphs mid-arc, and the logo shows a static く.
 
 **Interaction**
+
 - **Charts as filter inputs:** every chart is a filter input. A click, or Enter on a focused mark, adds the chip.
 - **Touch:** the first tap pins a tooltip with "Add filter" / "Open flight". A tap never filters directly. Tapping elsewhere dismisses it.
 - **Hit areas:**
@@ -145,6 +154,7 @@ All of it runs on the Release 2 engine.
 - **Plan decision: TanStack vs HTML.** TanStack Charts draws the seven section charts: bump, waffle, ridgeline, radial clock, heat grid, odometer and shift bars. Micro-visuals (tile tracks, leader strips, equator bar, route sketch) and segmented bars (hero years, Fleet body split, mobile maker bar) are plain HTML/SVG. Interactive segments are `<button>`s with full `aria-label`s.
 
 **Data, copy and scope**
+
 - **Engine:** the engine owns every number and returns codes, never copy. All copy is `{ en, ru }` through `copy.ts` helpers (`p()`, `t()`, `fill()`), with «вы» in Russian. RU must fit at 390px; the waffle legend wraps and is never truncated.
 - **Aggregate mode** (`payload.mode === 'aggregate'`, more than 5,000 rows): there is no "Open flight" anywhere, the replay runs in monthly batches and the waffle unit is at least 5.
 - **Out of scope** (no boards):
@@ -161,6 +171,7 @@ All of it runs on the Release 2 engine.
 - **Commits** carry no Claude/AI attribution. No push, no deploy, no remote D1. Deploys are manual through `deploy-kuuki` and are not part of this plan.
 
 **Commands and executors**
+
 - **Commands:**
   - Shared/functions: `pnpm test:api -- <file>`, `pnpm typecheck:api`.
   - Next: `pnpm --filter @kuuki/next test -- <name>`, `pnpm --filter @kuuki/next typecheck`, `pnpm --filter @kuuki/next lint`.
@@ -186,24 +197,24 @@ All of it runs on the Release 2 engine.
 ## Review Focus
 
 1. **Filtered to zero.**
-   - *Scenario:* Year 2016 + Airline QR, with no matching flights.
-   - *Expected:* the globe stays and is fully ghosted; figures show "—"; the sections collapse into one narrator line with "Remove last filter" and "Clear all"; the chips stay; no chart throws on empty rows.
-   - *Pinned in:* Task 17 (`zero-result renders one narrator line and two actions`) and Task 15 (`empty rows render an empty chart without throwing`).
+   - _Scenario:_ Year 2016 + Airline QR, with no matching flights.
+   - _Expected:_ the globe stays and is fully ghosted; figures show "—"; the sections collapse into one narrator line with "Remove last filter" and "Clear all"; the chips stay; no chart throws on empty rows.
+   - _Pinned in:_ Task 17 (`zero-result renders one narrator line and two actions`) and Task 15 (`empty rows render an empty chart without throwing`).
 2. **Stale prefs.**
-   - *Scenario:* stored prefs carry the old `manufacturers`/`bodyTypes` keys, an unknown section id, an order missing `manufacturers`, or a filter value that no longer exists in the payload.
-   - *Expected:* the page loads; legacy keys are dropped; the layout is normalized; unknown values still apply (giving the zero state, from which they can be removed).
-   - *Pinned in:* Task 4 (`legacy prefs normalize without throwing`) and Task 16 (`unknown facet value yields zero scope, not a crash`).
+   - _Scenario:_ stored prefs carry the old `manufacturers`/`bodyTypes` keys, an unknown section id, an order missing `manufacturers`, or a filter value that no longer exists in the payload.
+   - _Expected:_ the page loads; legacy keys are dropped; the layout is normalized; unknown values still apply (giving the zero state, from which they can be removed).
+   - _Pinned in:_ Task 4 (`legacy prefs normalize without throwing`) and Task 16 (`unknown facet value yields zero scope, not a crash`).
 3. **Touch.**
-   - *Scenario:* a vertical swipe that starts on the globe, a chart or a tile.
-   - *Expected:* the page scrolls; a horizontal swipe on the globe spins it; a tap on a chart pins the tooltip and never filters.
-   - *Pinned in:* Task 23 (`gestureAxis locks after 10px`) and Task 15 (`touch tap pins actions and does not call onPick`).
+   - _Scenario:_ a vertical swipe that starts on the globe, a chart or a tile.
+   - _Expected:_ the page scrolls; a horizontal swipe on the globe spins it; a tap on a chart pins the tooltip and never filters.
+   - _Pinned in:_ Task 23 (`gestureAxis locks after 10px`) and Task 15 (`touch tap pins actions and does not call onPick`).
 4. **RU and long names at 390px.**
-   - *Scenario:* "Авиакомпании", "Aeroflot – Russian Airlines", and a chip with three airlines.
-   - *Expected:* chips show two values plus "+N" and ellipsize inside the card; leader names wrap to two lines and then ellipsize; segmented labels fit; no horizontal scroll.
-   - *Pinned in:* Task 20 (`chipLabel shows two values and +N`) and V(9.4) in RU.
+   - _Scenario:_ "Авиакомпании", "Aeroflot – Russian Airlines", and a chip with three airlines.
+   - _Expected:_ chips show two values plus "+N" and ellipsize inside the card; leader names wrap to two lines and then ellipsize; segmented labels fit; no horizontal scroll.
+   - _Pinned in:_ Task 20 (`chipLabel shows two values and +N`) and V(9.4) in RU.
 5. **Aggregate accounts (more than 5,000 flights).**
-   - *Expected:* no "Open flight" affordances; waffle unit ≥ 5, stated in the legend; replay in monthly batches; record tiles without ↗.
-   - *Pinned in:* Task 27 (`aggregate payload uses unit 5 or more`), Task 26 (`aggregate hides open-flight`) and Task 24 (`aggregate timeline batches by month`).
+   - _Expected:_ no "Open flight" affordances; waffle unit ≥ 5, stated in the legend; replay in monthly batches; record tiles without ↗.
+   - _Pinned in:_ Task 27 (`aggregate payload uses unit 5 or more`), Task 26 (`aggregate hides open-flight`) and Task 24 (`aggregate timeline batches by month`).
 
 ---
 
@@ -272,6 +283,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Executor:** [UI] Sonnet · final review Opus
 
 **Files:**
+
 - Create: `.scratch/overview-redesign/prototype/**` and `.scratch/overview-redesign/boards/*.png`. Copy both from the main checkout.
 - Create: `docs/plans/2026-10-07-overview-release-3-ui.md` (this file) and `docs/plans/2026-10-07-overview-release-3-ui-handoff.md`.
 
@@ -286,11 +298,13 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Executor:** [Engine] · final review Opus
 
 **Files:**
+
 - Modify: `packages/shared/src/overview/model.ts`, `functions/api/_services/overviewData.ts`, every `packages/shared/src/overview/__fixtures__/*.json` (add `"arrMinute": null` and set `schemaVersion: 3`), and `apps/next/src/client/overview/data-store.ts` (accept v3).
 - Create: `scripts/overview/board-fixture.mts`, `packages/shared/src/overview/__fixtures__/board.json`.
 - Test: `functions/test/overview-data.test.ts`, `packages/shared/src/overview/golden.test.ts`.
 
 **Interfaces:**
+
 - Produces:
   - `OverviewRow.arrMinute: number | null`: the local arrival minute, 0–1439.
   - `OverviewPayload.schemaVersion: 3`.
@@ -324,6 +338,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Create `packages/data/src/aircraft-makers.ts`, `packages/data/src/aircraft-makers.test.ts`, `packages/data/src/alliance-membership.ts` and `packages/data/src/alliance-membership.test.ts`.
 
 **Interfaces:**
+
 - Produces:
   - `type MakerSlot = 'airbus' | 'boeing' | 'embraer' | 'atr' | 'other'`, `type MakerKey = MakerSlot | 'unknown'` and `MAKER_SLOTS: readonly MakerKey[]`, in display order: airbus, boeing, embraer, atr, other, unknown.
   - `makerOf(icao: string | null | undefined): MakerKey`. Null or unlisted types return `'unknown'`.
@@ -357,6 +372,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Modify `packages/shared/src/overview/model.ts`, `filter.ts`, `prefs.ts`, `filter.test.ts` and `properties.test.ts`, plus the prefs endpoint tests in `functions/test/`. Create `packages/shared/src/overview/prefs.test.ts`. Also modify `aggregate.ts` and its tests to preserve date-based alliance facets: membership state is a grouping dimension, and the deterministic representative date is the earliest actual represented source date. Monthly periods/replay labels and all Release 2 metric distinctions remain intact.
 
 **Interfaces:**
+
 - Consumes: `makerOf`, `allianceAt` (Task 3).
 - Produces `OverviewFilter` v2:
   - unchanged: `period`, `countries`, `regions`, `airlines`, `aircraft`, `routes`, `haul`, `domestic`, `departureBands`;
@@ -396,6 +412,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Modify `figures.ts`, `compute.ts`, `model.ts` and `figures.test.ts`. Create `next.ts` and `next.test.ts`. Add the required Passport country identity field through `functions/api/_services/overviewData.ts`, its focused API tests, and minimal payload constructors/fixture generators needed for the additive field.
 
 **Interfaces:**
+
 - `OverviewPayload.passport` gains `countryCodes: string[]`: sorted, unique pressed-country codes from the existing owner-scoped Passport read. Counts alone cannot establish whether an upcoming destination was visited by claim, ground visit or legacy evidence. Preserve schema v3 and the owner-qualified ETag.
 - `Figures` gains:
   - `firstDate: string | null`: the earliest counted date.
@@ -423,6 +440,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Modify `records.ts`, `records.test.ts` and `model.ts`. Preserve actual source context through `aggregate.ts` and its tests; update only the required aggregate fixture/computed snapshots through the existing generator. Keep the existing public subset explicit in `public.ts`/`publicOverview.ts` and cover its privacy boundary with API tests.
 
 **Interfaces:** `Records` (still `Gate<Records>`, ≥ 5 flights) becomes:
+
 - `longest`:
   - Fields: `RecordRef & { date; airline; flightNumber; durationMinutes: number | null; durationApproximate: boolean; speedKmh: number | null; clockShiftMinutes: number | null; previousBestKm: number | null; equatorShare: number }`.
   - `speedKmh` is null unless the duration is precise.
@@ -452,6 +470,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Modify `rankings.ts`, `rhythm-rankings-globe.test.ts` and `model.ts`.
 
 **Interfaces:** `Rankings` keeps `airlines`, `airports` and `routes` (full `RankRow[]`, ungated; airports count 2 per flight) and gains:
+
 - `leaders: Record<'airlines' | 'airports' | 'routes', Leader>`. `Leader` is `{ top: RankRow[]; total: number; topShare: number; top5Share: number }`, with `top` limited to 5.
 - `rankByYear: Record<'airlines' | 'airports' | 'routes', BumpRow[]>`:
   - `BumpRow` is `{ key: string; entity: string; year: number; rank: number; count: number }`, with `key` = `` `${entity}:${year}` ``.
@@ -478,6 +497,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Create `makers.ts` and `makers.test.ts`. Modify `fleet.ts`, `fleet-clock.test.ts`, `compute.ts` and `model.ts`.
 
 **Interfaces:**
+
 - `OverviewScope.makers: Gate<Makers>`, with the same gate as Fleet (≥ 5 typed).
 - `Makers`:
   - `rows: { key: MakerKey; flights: number; minutes: number; km: number }[]`: all six keys, in `MAKER_SLOTS` order, zero-filled.
@@ -509,6 +529,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Modify `clock.ts`, `rhythm.ts`, `fleet-clock.test.ts`, `rhythm-rankings-globe.test.ts` and `model.ts`.
 
 **Interfaces:**
+
 - `Clock` gains:
   - `arrByHour: { key; hour; flights }[24]`.
   - `withArrivalTime: number`.
@@ -536,6 +557,7 @@ Task 33 deletes the legacy `client/overview/{view,hero,figures,map-band,map-prev
 **Files:** Modify `crossings.ts`, `crossings.test.ts` and `model.ts`.
 
 **Interfaces:** `Crossings` gains:
+
 - `forwardHours` and `backHours`: sums of positive and negative `clockShiftMinutes` ÷ 60, rounded to whole hours. `clockShiftHours` stays their sum.
 - `shiftByYear: { key; year; forward; back; flights }[]`: zero-filled across the account's year span. `flights === 0` marks a year the UI shows as a dash.
 - `offsets: { key: string; offset: number; hit: boolean }[]`: exactly 24 rows for offsets −11…+12. Each endpoint's UTC offset at the flight date is floored to the hour and wrapped mod 24 into that window, so +13 maps to −11. `hit` means at least one counted endpoint.
@@ -558,6 +580,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Files:** Create `apps/next/src/client/overview/narrator/{triggers.ts,pick.ts,corpus.ts,narrator.tsx}` and `narrator/narrator.test.tsx`.
 
 **Interfaces:**
+
 - `type NarratorSlot = SectionId | 'globe' | 'firstRun' | 'zero'`.
 - `interface Trigger { id: string; slot: NarratorSlot; priority: number; when(scope: OverviewScope, all: OverviewScope): Record<string, string | number> | null }`.
   - For section slots, triggers run only when the section's gate is `ready`. Below-gate triggers use ids `below:<section>` with params `{ have, need }`.
@@ -584,6 +607,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Files:** Modify `narrator/triggers.ts`, `narrator/corpus.ts` and `narrator/narrator.test.tsx`. Create `.scratch/overview-redesign/narrator-corpus.md` (the review sheet).
 
 **Interfaces:**
+
 - About 40 triggers × 3 variants, with English and Russian each written natively. Russian uses a dry bureaucratic register and «вы».
 - Every slot needs a `below:*`, a `firstRun` and a `zero` line.
 - Lines take numbers only from params, never literals. A line may never state something the card contradicts (critique P1).
@@ -608,10 +632,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI] · final review Opus
 
 **Files:**
+
 - Modify: `apps/next/src/app/styles.css` (tokens, and the `--map-bucket-1..4` `color-mix` formula), `lib/theme-colors.ts:7`, `public/bootstrap.js:60-72`, `client/appearance.tsx:65-77`, `client/ui/swatch-picker.tsx:10-16` and `client/shell.tsx:13`.
 - Test: `app/tokens.test.ts:70-73,127-133`, `app/bootstrap-accent.test.ts`, `app/foundation.test.ts`, and a new `client/shell.test.tsx`.
 
 **Interfaces:**
+
 - `ACCENTS = ['shu', 'ai', 'matcha', 'asagi', 'sakura']`, with `shu` the default. The stored names `terracotta`, `kincha`, `sumi` and `yellow` map to `shu` in both `bootstrap.js` and `appearance.tsx`. The `kuuki_accent` cookie needs no D1 change.
 - Every token in Global Constraints is defined for light and dark (`--danger-*` changes globally).
 - `--map-bucket-1..4` use `color-mix(in oklab, var(--accent) N%, var(--map-land))` instead of `in oklch`. `lib/map-buckets.ts` (the token list and thresholds 1, 2–3, 4–9, 10+) stays as it is.
@@ -639,10 +665,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI] · final review Opus
 
 **Files:**
+
 - Create in `apps/next/src/client/ui/`: `chip.tsx`, `popover.tsx`, `skeleton.tsx`, `category-mark.tsx`, `month-range.tsx`, and a test file for each.
 - Modify: `ui.css`, `apps/next/src/app/dev/gallery/*`, `apps/next/package.json` (add `@radix-ui/react-popover`).
 
 **Interfaces:**
+
 - `Chip({ label, swatch?, onOpen, onRemove, removeLabel })`:
   - Level 2 surface.
   - 32px visual with a 44px coarse hit area.
@@ -668,10 +696,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI] · final review Opus
 
 **Files:**
+
 - Create in `apps/next/src/client/overview/charts/`: `kuuki-chart.tsx`, `lazy-chart.tsx`, `table-view.tsx`, `palettes.ts`, `chart-theme.css`, and `kuuki-chart.test.tsx` (jsdom).
 - Modify: `apps/next/package.json` (add `d3-scale@4.0.2`, `d3-shape@3.2.0` and `@types/*` dev dependencies, exact).
 
 **Interfaces:**
+
 - `KuukiChart<T>` is a `'use client'` wrapper over `RendererChart` from `@tanstack/charts/react/tooltip`, with `renderer={motion()}` from `@tanstack/charts/motion`. Props:
   - `definition`, `height`, `ariaLabel`, `ariaDescription?`;
   - `palette?: ChartPalette`;
@@ -707,10 +737,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI] · final review Opus
 
 **Files:**
+
 - Create in `apps/next/src/client/overview/store/`: `overview-context.tsx`, `filter-actions.ts`, `ui-bus.ts`, `open-flight.tsx`, plus `filter-actions.test.ts` and `overview-context.test.tsx`.
 - Modify: `apps/next/src/server/overview.ts`, adding `getOwnOverviewPrefs()` alongside `getOwnOverviewData()`.
 
 **Interfaces:**
+
 - `OverviewProvider({ payload, prefs, ownerKey, locale, children })`:
   - creates the store with `createOverviewDataStore` and `attachRevalidation`;
   - holds `filter`, `layout` and `replayPaused`;
@@ -739,9 +771,11 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI] · final review Opus
 
 **Files:**
+
 - Create: `apps/next/src/app/dev/overview/page.tsx`; `client/overview/page/{overview-page.tsx,page-states.tsx,scope-title.ts,page.css}`; `client/overview/sections/registry.ts`; tests `page/overview-page.test.tsx` and `page/scope-title.test.ts`.
 
 **Interfaces:**
+
 - `/dev/overview?fixture=board|empty|n1|zero|aggregate&theme&locale`:
   - It calls `notFound()` in production, like `dev/gallery`.
   - The fixtures map to `board.json`, `n0.json`, `n1.json`, `board.json` with `{period:{years:[2016]}, airlines:['QR']}`, and `n5001.json`.
@@ -775,6 +809,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Files:** Create in `client/overview/layout/`: `bento.ts`, `reorder.ts`, `use-reorder.ts`, `section-frame.tsx`, `hidden-footer.tsx`, `layout.css`, and tests `bento.test.ts`, `reorder.test.ts`, `section-frame.test.tsx`.
 
 **Interfaces:**
+
 - `packBento(order: SectionId[], hidden: SectionId[]): BentoRow[]`:
   - `BentoRow` is `{ kind: 'full'; id } | { kind: 'pair'; narrow: SectionId; wide: SectionId; narrowFirst: boolean }`.
   - Section classes: FULL = rankings, records, crossings; NARROW = manufacturers, clock; WIDE = fleet, rhythm.
@@ -809,7 +844,6 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - [x] **Step 5:** Visual/manual/device verification SKIPPED by the owner; logical pointer/focus checks only.
 - [x] **Step 6:** Commit `feat(overview): bento sections with drag, menu reorder and hide`.
 
-
 **Status:** Accepted combined source PAGE47a14cde404c4db35359ece7868346c3aa7c7b72, central UIb4711d8e024554ccc17e4260885cb2972ca18aac. Task19 fixes final Show focus. 73 focused implementation tests and affected types/lint pass; central page/sheet integration42tests pass. Minor M1 native Radix cleanup timing limitation is explicitly triaged. Consolidated final review remains pending.
 
 ### Task 19: Mobile tiles and section sheet
@@ -819,6 +853,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Files:** Create in `client/overview/mobile/`: `tiles.ts`, `section-tile.tsx`, `section-sheet.tsx`, `mobile.css`, and tests `tiles.test.ts`, `section-sheet.test.tsx`.
 
 **Interfaces:**
+
 - `packTiles(order, hidden): { id: SectionId; span: 'half' | 'full' }[]`:
   - `manufacturers` is always full.
   - The others are half. A half tile left alone in its row becomes full.
@@ -840,7 +875,6 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 - [x] **Step 5:** Visual/manual/device verification SKIPPED by the owner; logical pointer/focus checks only.
 - [x] **Step 6:** Commit `feat(overview): mobile tiles and section sheet`.
 
-
 **Status:** Accepted combined source PAGE47a14cd, central UIb4711d8. Real mobile tiles/sheet and provider persistence installed; 73 focused implementation checks plus42central page/sheet checks pass. Real touch and all visual verification skipped by owner; consolidated final audit remains pending.
 
 ### Task 20: Filter bar and "+ Filter" panel
@@ -852,6 +886,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Files:** Create in `client/overview/filters/`: `facet-index.ts`, `chip-label.ts`, `filter-bar.tsx`, `filter-panel.tsx`, `filters.css`, and tests `facet-index.test.ts`, `chip-label.test.ts`, `filter-panel.test.tsx`.
 
 **Interfaces:**
+
 - `buildFacetIndex(payload, labels, locale): FacetOption[]`:
   - `FacetOption` is `{ facet: FacetKey | 'period'; value: string; label: string; sublabel?: string; count: number; mark?: { kind: 'maker'; key: MakerKey } | { kind: 'alliance'; key: Alliance } }`.
   - Counts are weighted over all counted rows.
@@ -892,10 +927,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Implementation status (2026-10-08):** Accepted component source cffcb96 / UIe7db9fe, fixed accessible Next name and valid early-year captions;69 focused tests/types/lint passed. Actual dev-page wiring now passes all17 page tests. Full integration checks remain batched; all visual checks are skipped.
 
 **Files:**
+
 - Create: `client/overview/hero/{hero-panel.tsx,year-strip.tsx,next-strip.tsx,hero.css}` and tests `hero-panel.test.tsx`, `next-strip.test.tsx`.
 - Modify: `lib/format.ts`, adding `formatDurationDays(locale, minutes)`, which gives "9d 4h" / "9 д 4 ч".
 
 **Interfaces:**
+
 - **`HeroPanel` (desktop and tablet; board 9.3).** A level-1 card containing:
   - The lead figure (flights) at 80px, "Flights since March 2014" (from `figures.firstDate`), and an "N awaiting review →" link to the review queue. Reuse the legacy `hero.tsx` target.
   - `YearStrip`: one button per `figures.byYear` row. The peak is `--accent`, the others `--mark-2`, and empty years are 2px `--mark-ghost` stubs. Labels `'14…'26` are mono 12px. A tap sets `period: { years: [y] }`.
@@ -938,6 +975,7 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Files:** Create `client/overview/globe/{globe-card.tsx,svg-globe.tsx,globe.css}` and tests `svg-globe.test.tsx`, `globe-card.test.tsx`.
 
 **Interfaces:**
+
 - `GlobeCard({ children })`:
   - A level-1 card. The globe area sits on `--surface-inset`.
   - Rim: one flat 8px `--globe-rim` ring plus a 1px hairline at the limb. No blur, no gradient.
@@ -969,10 +1007,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI·Opus] · final review Opus
 
 **Files:**
+
 - Create: `client/overview/globe/{maplibre-globe.tsx,gestures.ts,night.ts,route-card.tsx}` and tests `gestures.test.ts`, `night.test.ts`, `maplibre-globe.test.tsx` (MapLibre mocked).
 - Modify: `client/maps/geometry.ts`, adding `bearing(a, b)`.
 
 **Interfaces:**
+
 - `MaplibreGlobe`:
   - It is loaded with `import()` after `requestIdleCallback`, and only when `webgl2Supported()`.
   - It renders mapcn `Map` with `projection={{ type: 'globe' }}`.
@@ -1017,10 +1057,12 @@ This is open decision 1: the default is endpoint offsets, not overflown zones.
 **Executor:** [UI·Opus] · final review Opus
 
 **Files:**
+
 - Create: `client/maps/flightcn.tsx`, vendored from flightcn `src/registry/flight.tsx` @ `5c9061ef36bb2cd3cfa9f11f6463419944566a9d`, keeping only the animated `FlightRoute` plane path and marker. It carries the MIT header "Copyright (c) 2026 Yen Cheng Lin" and the source URL, with `@turf/bearing` replaced by `geometry.bearing`.
 - Create: `client/maps/licenses/flightcn-LICENSE`, `client/overview/globe/{replay.ts,replay-transport.tsx}`, and tests `replay.test.ts`, `replay-transport.test.tsx`.
 
 **Interfaces:**
+
 - `replayDurationMs(n) = clamp(10_000 + 12_000 × log2(n / 10), 12_000, 120_000)`. For n < 10 this clamps to 12,000.
 - `buildTimeline(items: ReplayItem[], durationMs): { key; startMs; origin; destination; month: string }[]`:
   - Calendar-linear, from the first item's month start to the last item's month end.
@@ -1061,6 +1103,7 @@ Every section task follows the same contract, so it is stated once here.
 **Files:** `client/overview/sections/<id>/{section.tsx,tile.tsx,<chart files>,<helpers>.ts,<id>.css,<id>.test.tsx}`, plus registering the section in `sections/registry.ts`.
 
 **Section contract:**
+
 - `Section({ span })` renders inside `SectionFrame` with the title and controls from the board.
 - **Gate below:** the `below:<id>` narrator line, the coverage line and its fix action ("Add aircraft →", "Add times →") where the gate counts typed or timed flights.
 - **Gate ready:** the board content, then "View as table" under each chart, then the narrator at the foot.
@@ -1069,6 +1112,7 @@ Every section task follows the same contract, so it is stated once here.
 - `Tile()` renders the mobile preview from board 9.4 and opens the sheet. Tile captions are factual.
 
 **Section test minimums:**
+
 - `› below gate shows placeholder line`.
 - `› pick adds the expected chip` (one per chart).
 - `› table view lists the chart rows`.
@@ -1077,6 +1121,7 @@ Every section task follows the same contract, so it is stated once here.
 **Visual check:** V(9.3) for the card, V(9.4) for the tile, and V(9.5) for the sheet where shown.
 
 **Steps (each task):**
+
 1. Write the failing tests: the minimums plus the task's extra tests.
 2. Run `pnpm --filter @kuuki/next test -- <id>`. Expected: FAIL.
 3. Implement.
@@ -1234,6 +1279,7 @@ Every section task follows the same contract, so it is stated once here.
 **Files:** Modify `apps/next/src/client/reads/journal.tsx:224-238` and its test. If the Journal list response lacks `duration_source`, add it in the Journal list API handler under `functions/api` and its test.
 
 **Interfaces:**
+
 - Journal rows show `AllianceMark` (12px) before the airline code when `allianceAt(airline, date)` is non-null.
 - Durations whose source is an estimate are prefixed with "≈" in both the visible cell and the row's accessible name.
 
@@ -1246,11 +1292,13 @@ Every section task follows the same contract, so it is stated once here.
 **Executor:** [UI] · final review Opus
 
 **Files:**
+
 - Modify: `apps/next/src/app/(member)/overview/{page.tsx,loading.tsx}`; create `error.tsx`. Modify `apps/next/tests/read-journeys.test.ts:95-113`.
 - Delete: the legacy `client/overview/*` files listed under File Structure, and their tests.
 - Retire: `GET /api/me/overview` and `GET /api/me/overview/missing-aircraft`, with their handlers and services, once a grep shows no consumer. Then run `pnpm next:build` to regenerate the routes.
 
 **Interfaces:**
+
 - `page.tsx` is a server component: `getOwnOverviewData()` + `getOwnOverviewPrefs()` + the profile name and user id (as `ownerKey`) → `<OverviewPage>`.
 - `loading.tsx` renders the page skeleton: the H1 line, a fixed-height globe card `Skeleton`, and a hero `Skeleton`.
 - `error.tsx` shows a plain message plus Retry, following the existing error-boundary pattern.
@@ -1264,6 +1312,7 @@ Every section task follows the same contract, so it is stated once here.
   - the Passport steps stay unchanged.
 
   Idle-load behavior is covered by existing globe cases and the compiled dynamic loader. Functional navigation is batched in final verification; no new RED case is required under the owner override.
+
 - [x] **Step 2:** Implemented cut-over and deletions; consolidated checks pass with existing-case corrections and owner overrides (see final handoff). Original command gate: Then run `pnpm --filter @kuuki/next typecheck && pnpm --filter @kuuki/next lint && pnpm --filter @kuuki/next test && pnpm test:api && pnpm typecheck:api && pnpm next:build && pnpm test:next:navigation`. Expected: PASS.
 - [x] **Step 3:** Commit `feat(overview): ship the redesigned page and retire the legacy overview`.
 
@@ -1274,6 +1323,7 @@ Every section task follows the same contract, so it is stated once here.
 **Files:** Modify `DESIGN.md`, `GLOSSARY.md` and `docs/plans/2026-10-07-overview-release-3-ui-handoff.md`.
 
 **DESIGN.md:**
+
 - D8 is superseded by faceted filters.
 - Ambient loops are allowed (the replay and the globe rim).
 - The narrator is a product pillar.

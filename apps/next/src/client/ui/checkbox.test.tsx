@@ -7,7 +7,14 @@ import { Checkbox } from './checkbox'
 
 function Controlled() {
   const [checked, setChecked] = useState(false)
-  return <Checkbox label="Only flights without aircraft" description="Keeps the ones you already set." checked={checked} onChange={event => setChecked(event.target.checked)} />
+  return (
+    <Checkbox
+      label="Only flights without aircraft"
+      description="Keeps the ones you already set."
+      checked={checked}
+      onChange={(event) => setChecked(event.target.checked)}
+    />
+  )
 }
 
 it('toggles a native checkbox by its label and keyboard', async () => {
@@ -24,7 +31,9 @@ it('toggles a native checkbox by its label and keyboard', async () => {
 })
 
 it('shows the mixed state through the native indeterminate flag and takes its name from aria-label', () => {
-  const { rerender } = render(<Checkbox aria-label="Select all" indeterminate checked={false} onChange={() => {}} />)
+  const { rerender } = render(
+    <Checkbox aria-label="Select all" indeterminate checked={false} onChange={() => {}} />,
+  )
   const box = screen.getByRole('checkbox', { name: 'Select all' }) as HTMLInputElement
   expect(box.indeterminate).toBe(true)
   expect(box).toBePartiallyChecked()

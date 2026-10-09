@@ -12,6 +12,7 @@
 **Storage:** localStorage (`kuuki-theme` key)
 
 **Implementation:**
+
 - ✅ Tailwind dark mode classes (full OKLCH palette)
 - ✅ System preference detection
 - ✅ Persistent user choice (localStorage)
@@ -30,31 +31,37 @@
 **Breakpoint:** 640px (sm:) separates mobile and desktop
 
 **New Components:**
+
 - `MobileTabBar.tsx` — Bottom tab bar with 5 tabs (Dashboard, Flights, Import, Passport, Profile)
 - `MobileHeader.tsx` — Minimal sticky header with logo + action slot
 - `FloatingActionButton.tsx` — 56x56px FAB for primary actions
 
 **CSS Utilities Added:**
+
 - `pb-safe` — Bottom padding for tab bar + safe area
 - `h-tab-bar` — Tab bar height (64px + safe area)
 - `bottom-safe-fab` — FAB positioning above tab bar
 
 **Route Pages Updated:**
+
 - All 6 protected routes now have mobile header, tab bar, and safe padding
 - Desktop headers hidden on mobile via `hidden sm:block`
 - Profile tab dynamically links to `/fly/{username}`
 
 **i18n Keys Added:**
+
 - `nav.home`, `nav.addFlight` in EN/RU
 
 #### Phase 6b: Flight Management ✅
 
 **New Components:**
+
 - `FlightCardActions.tsx` — Overflow menu for Edit/Delete actions
 - `useIsMobile.ts` — Viewport detection hook with matchMedia
 - `useKeyboardHeight.ts` — Virtual keyboard height detection for bottom sheets
 
 **Changes:**
+
 - CSS-only card/table switch at 640px breakpoint (no JS hydration flash)
 - FlightForm uses Sheet (bottom drawer) on mobile, Dialog on desktop
 - Sheet component enhanced with keyboard-aware max-height adjustment
@@ -64,6 +71,7 @@
 #### Phase 6c: Content Pages ✅
 
 **New Components:**
+
 - `CollapsibleCard.tsx` — Reusable card with expand/collapse trigger
 - `MapCollapsible.tsx` — Dashboard map preview → fullscreen dialog
 - `ProfileMiniHeader.tsx` — Sticky mini-header that appears on scroll
@@ -72,12 +80,14 @@
 - `accordion.tsx`, `collapsible.tsx` — shadcn primitives added
 
 **Route Changes:**
+
 - Dashboard: MapCollapsible on mobile, inline map on desktop
 - Profile: Mini-header + collapsible sections with IntersectionObserver scroll detection
 - Passport: CountryListSheet on mobile, Dialog on desktop
 - CountryGeekTier: Vertical stack on mobile with compact progress bars
 
 **i18n Keys Added:**
+
 - `dashboard.routeMap`, `dashboard.tapToExpand`
 - `passport.claimHint`
 - `leaderboard.rankingsEmpty`
@@ -94,6 +104,7 @@
 - ❌ Playwright viewport tests (skipped — manual testing sufficient)
 
 **Manual Testing Required:**
+
 - Run Lighthouse on Landing, Dashboard, Flights, Passport pages
 - Target scores: Performance >90, Accessibility >95, Best Practices >90, SEO >90
 - Test touch targets on mobile device or Chrome DevTools emulation
@@ -106,6 +117,7 @@
 **Tone:** Aviation-themed messages with GLaDOS-lite personality for mild errors, neutral for serious errors (data loss risk).
 
 **Key Decisions:**
+
 - Context-dependent severity: same error can be mild (network) or serious (failed save)
 - Hybrid display: validation errors inline, API/network errors via toast
 - Auto-retry: 3 silent retries with exponential backoff (1s → 2s → 4s → max 30s)
@@ -114,6 +126,7 @@
 - Auth expiry: silent re-auth attempt before redirect
 
 **New Files Created:**
+
 ```
 apps/web/src/
 ├── lib/errors/
@@ -134,9 +147,11 @@ apps/web/src/
 ```
 
 **Dependencies Added:**
+
 - `sonner` — Toast library
 
 **i18n Messages Added (EN/RU):**
+
 - 3 network error variants ("Ground control to Major Tom...")
 - 3 API error variants ("Servers experiencing turbulence...")
 - 2 rate limit variants
@@ -146,12 +161,14 @@ apps/web/src/
 - Crash screen strings
 
 **React Query Configuration:**
+
 - `retry: 3` with exponential backoff for queries
 - `retry: false` for mutations (user-triggered retry)
 - `staleTime: 30_000` (30 seconds)
 - `refetchOnWindowFocus: false`
 
 **ImportPage Updates:**
+
 - Parse errors shown inline with Alert component
 - Tracks failed save indices for partial success messaging
 - New i18n key: `import.success.partialFail`
@@ -161,6 +178,7 @@ apps/web/src/
 **New Route:** `/settings` — Account and data management
 
 #### Settings Page Structure
+
 ```
 apps/web/src/
 ├── routes/
@@ -180,10 +198,12 @@ apps/web/src/
 #### CSV Export ✅
 
 **Two formats:**
+
 - **Portable** (9 columns): date, origin, destination, airline_iata, aircraft_icao, flight_number, distance_km, duration_minutes, source
 - **Enriched** (17 columns): + origin_name, origin_city, origin_country, destination_*, airline_name, aircraft_name
 
 **Features:**
+
 - Client-side generation (Blob API)
 - UTF-8 BOM for Excel compatibility
 - Timestamped filenames: `kuuki-flights-2024-01-15.csv`
@@ -191,6 +211,7 @@ apps/web/src/
 - Separate export for country claims
 
 **Rate Limiting:**
+
 - 5 exports per day (localStorage)
 - Automatic daily reset
 - Disabled button + tooltip when limit reached
@@ -198,6 +219,7 @@ apps/web/src/
 #### Account Deletion ✅
 
 **Flow:**
+
 1. Click "Delete Account" in Danger Zone
 2. Preview: Show flight/country counts + GLaDOS farewell
 3. Export prompt: Optional data download before deletion
@@ -206,6 +228,7 @@ apps/web/src/
 6. Sign out + redirect to landing
 
 **Tone:** Friendly GLaDOS (sassy flight attendant, not menacing)
+
 - "Well, this is it. Your final approach."
 - "Thank you for flying with us. Or don't. Your call."
 
@@ -220,6 +243,7 @@ apps/web/src/
 **Skill:** `/interface-design:init`, `/interface-design:audit`
 
 **Tasks:**
+
 - Establish design tokens (colors, spacing, typography)
 - Document component patterns
 - Consistency audit across all pages
@@ -230,6 +254,7 @@ apps/web/src/
 **Skill:** `/cloudflare:wrangler`
 
 **Files Created:**
+
 ```
 .github/
 ├── workflows/
@@ -239,6 +264,7 @@ apps/web/src/
 ```
 
 **CI Workflow Features:**
+
 - **Triggers:** Push to main/dev, PRs to main/dev
 - **Skip CI:** `[skip ci]` in commit message
 - **AI Agent Gate:** PRs from `github-actions[bot]` require `ci:approved` label
@@ -250,26 +276,30 @@ apps/web/src/
 - **Deploy Jobs:** Use npm instead of pnpm for wrangler-action compatibility
 
 **Auto-Revert Workflow:**
+
 - Triggers on CI/CD workflow failure on main
 - Automatically reverts the breaking commit
 - Sends Telegram notification with short SHA
 
 **GitHub Secrets Configured:**
-| Secret | Purpose |
-|--------|---------|
-| `CLOUDFLARE_API_TOKEN` | Wrangler deploy |
-| `CLOUDFLARE_ACCOUNT_ID` | Account identifier |
-| `VITE_SUPABASE_URL` | Build env var |
-| `VITE_SUPABASE_ANON_KEY` | Build env var |
-| `TELEGRAM_BOT_TOKEN` | Auto-revert notifications |
-| `TELEGRAM_CHAT_ID` | Telegram chat ID |
+
+| Secret                   | Purpose                   |
+| ------------------------ | ------------------------- |
+| `CLOUDFLARE_API_TOKEN`   | Wrangler deploy           |
+| `CLOUDFLARE_ACCOUNT_ID`  | Account identifier        |
+| `VITE_SUPABASE_URL`      | Build env var             |
+| `VITE_SUPABASE_ANON_KEY` | Build env var             |
+| `TELEGRAM_BOT_TOKEN`     | Auto-revert notifications |
+| `TELEGRAM_CHAT_ID`       | Telegram chat ID          |
 
 **Typecheck Scripts Added:**
+
 - Root: `pnpm typecheck` → turbo typecheck
 - turbo.json: `typecheck` task with `dependsOn: ["^build"]`
 - apps/web: `tsc -b --noEmit`
 
 **ESLint Configuration Added:**
+
 - apps/web/eslint.config.js with React hooks support
 - Warnings-only for existing code (no breaking changes)
 - React Compiler rules disabled (not using React Compiler)
@@ -277,6 +307,7 @@ apps/web/src/
 ## Files to Create/Update
 
 **Phase 6e Error Handling (Complete):**
+
 ```
 apps/web/src/
 ├── lib/errors/
@@ -301,6 +332,7 @@ packages/shared/src/i18n/
 ```
 
 **Phase 6f Settings Page (Complete):**
+
 ```
 apps/web/src/
 ├── routes/
@@ -322,6 +354,7 @@ packages/shared/src/i18n/
 ```
 
 **Phase 6g CI/CD (Complete):**
+
 ```
 .github/
 ├── workflows/
@@ -334,6 +367,7 @@ apps/web/eslint.config.js    ✅ ESLint configuration
 ## Verification
 
 From SPEC.md checklist:
+
 - [x] Dark mode: Toggle theme, verify persistence
 - [x] i18n: Switch to Russian, verify translations (error messages added)
 - [x] CSV export: Download flight data, verify format (portable + enriched)

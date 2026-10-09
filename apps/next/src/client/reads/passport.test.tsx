@@ -4,11 +4,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PassportData } from '../../server/passport'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), push: vi.fn() }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push, refresh: vi.fn(), replace: vi.fn() }), useSearchParams: () => new URLSearchParams(''), usePathname: () => '/passport' }))
-vi.mock('next/link', async () => ({ default: (await import('../../test/next-link')).linkStandIn(href => mocks.push(href)) }))
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mocks.push, refresh: vi.fn(), replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(''),
+  usePathname: () => '/passport',
+}))
+vi.mock('next/link', async () => ({
+  default: (await import('../../test/next-link')).linkStandIn((href) => mocks.push(href)),
+}))
 vi.mock('@kuuki/client/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }) }))
+vi.mock('../write-feedback', () => ({
+  useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }),
+}))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../maps/panel', () => ({ RouteMapPanel: () => null }))
 
@@ -16,23 +24,68 @@ const { PassportView } = await import('./passport')
 const { PrimaryNav } = await import('../nav')
 
 const initial = {
-  visits: [], claims: [], groundVisits: [],
+  visits: [],
+  claims: [],
+  groundVisits: [],
   countries: [
-    { country_code: 'PT', status: 'pending', logged_visit_count: 0, awaiting_visit_count: 1, claimed: 0, ground_visit_count: 0, first_visit: '2026-10-03', last_visit: '2026-10-03', region: 'europe' },
-    { country_code: 'GR', status: 'pending', logged_visit_count: 0, awaiting_visit_count: 1, claimed: 0, ground_visit_count: 0, first_visit: '2026-10-02', last_visit: '2026-10-02', region: 'europe' },
+    {
+      country_code: 'PT',
+      status: 'pending',
+      logged_visit_count: 0,
+      awaiting_visit_count: 1,
+      claimed: 0,
+      ground_visit_count: 0,
+      first_visit: '2026-10-03',
+      last_visit: '2026-10-03',
+      region: 'europe',
+    },
+    {
+      country_code: 'GR',
+      status: 'pending',
+      logged_visit_count: 0,
+      awaiting_visit_count: 1,
+      claimed: 0,
+      ground_visit_count: 0,
+      first_visit: '2026-10-02',
+      last_visit: '2026-10-02',
+      region: 'europe',
+    },
   ],
-  pressedCountryCount: 0, pendingCountryCount: 2, flightCountryCount: 0, regionPolicyVersion: 1,
+  pressedCountryCount: 0,
+  pendingCountryCount: 2,
+  flightCountryCount: 0,
+  regionPolicyVersion: 1,
   regions: [{ id: 'europe', total: 51, pressed: 0, pending: 2 }],
-  updatedAt: Date.now(), derivedState: 'ready', revision: 3, publishedRevision: 3,
+  updatedAt: Date.now(),
+  derivedState: 'ready',
+  revision: 3,
+  publishedRevision: 3,
 } as unknown as PassportData
 
 function deferred<T>() {
   let resolve!: (value: T) => void
-  const promise = new Promise<T>(done => { resolve = done })
+  const promise = new Promise<T>((done) => {
+    resolve = done
+  })
   return { promise, resolve }
 }
-const awaitingDetail = (code: string, flightId: number) => ({ countryCode: code, entries: [{ kind: 'flight', flightId, endpoint: 'destination', airport: 'LIS', date: '2026-10-03', state: 'awaiting' }] })
-const settle = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)) })
+const awaitingDetail = (code: string, flightId: number) => ({
+  countryCode: code,
+  entries: [
+    {
+      kind: 'flight',
+      flightId,
+      endpoint: 'destination',
+      airport: 'LIS',
+      date: '2026-10-03',
+      state: 'awaiting',
+    },
+  ],
+})
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
 
 let reads: Map<string, ReturnType<typeof deferred<unknown>>>
 beforeEach(() => {
@@ -47,7 +100,8 @@ beforeEach(() => {
   })
 })
 
-const pendingLink = (country: string) => screen.getByRole('link', { name: `${country}: waiting for confirmation. Open the arrival card` })
+const pendingLink = (country: string) =>
+  screen.getByRole('link', { name: `${country}: waiting for confirmation. Open the arrival card` })
 
 it('records a view change in browser history without a server navigation', () => {
   const before = window.location.href
@@ -72,7 +126,11 @@ describe('pending slot navigation', () => {
     await settle()
     expect(screen.getByText('Opening the arrival card for Portugal…')).toBeInTheDocument()
     expect(pendingLink('Portugal')).toHaveAttribute('aria-busy', 'true')
-    expect(mocks.get).toHaveBeenCalledWith('/api/passport/countries/PT/stats', undefined, expect.anything())
+    expect(mocks.get).toHaveBeenCalledWith(
+      '/api/passport/countries/PT/stats',
+      undefined,
+      expect.anything(),
+    )
     reads.get('PT')!.resolve(awaitingDetail('PT', 8))
     await settle()
     expect(mocks.push).toHaveBeenCalledTimes(1)
@@ -115,7 +173,9 @@ describe('pending slot navigation', () => {
     render(<PassportView ownerId="owner" locale="en" initial={initial} />)
     fireEvent.click(pendingLink('Portugal'))
     await settle()
-    act(() => { window.dispatchEvent(new PopStateEvent('popstate')) })
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
     expect(screen.queryByText('Opening the arrival card for Portugal…')).toBeNull()
     reads.get('PT')!.resolve(awaitingDetail('PT', 8))
     await settle()
@@ -133,11 +193,18 @@ describe('pending slot navigation', () => {
       await settle()
       expect(mocks.push).not.toHaveBeenCalled()
       expect(screen.queryByText('Opening the arrival card for Portugal…')).toBeNull()
-    } finally { window.history.replaceState(null, '', before) }
+    } finally {
+      window.history.replaceState(null, '', before)
+    }
   })
 
   it('lets a cold shell navigation supersede a pending arrival before its URL commits', async () => {
-    render(<><PrimaryNav /><PassportView ownerId="owner" locale="en" initial={initial} /></>)
+    render(
+      <>
+        <PrimaryNav />
+        <PassportView ownerId="owner" locale="en" initial={initial} />
+      </>,
+    )
     fireEvent.click(pendingLink('Portugal'))
     await settle()
     fireEvent.click(screen.getByRole('link', { name: /Overview/ }))
@@ -149,7 +216,12 @@ describe('pending slot navigation', () => {
   })
 
   it('keeps a pending arrival when a shell link opens in another tab', async () => {
-    render(<><PrimaryNav /><PassportView ownerId="owner" locale="en" initial={initial} /></>)
+    render(
+      <>
+        <PrimaryNav />
+        <PassportView ownerId="owner" locale="en" initial={initial} />
+      </>,
+    )
     fireEvent.click(pendingLink('Portugal'))
     await settle()
     fireEvent.click(screen.getByRole('link', { name: /Overview/ }), { ctrlKey: true })
@@ -164,6 +236,10 @@ describe('pending slot navigation', () => {
     const link = pendingLink('Portugal')
     expect(fireEvent.click(link, { metaKey: true })).toBe(true)
     expect(link).toHaveAttribute('href', '/journal?queue=awaiting')
-    expect(mocks.get).not.toHaveBeenCalledWith('/api/passport/countries/PT/stats', undefined, expect.anything())
+    expect(mocks.get).not.toHaveBeenCalledWith(
+      '/api/passport/countries/PT/stats',
+      undefined,
+      expect.anything(),
+    )
   })
 })

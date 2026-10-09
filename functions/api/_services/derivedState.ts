@@ -9,7 +9,11 @@ import {
   type BatchedRead,
   type DerivedVisit,
 } from './stats'
-import { countryEvidenceRead, countryEvidenceStatements, flightCountriesOf } from './countryEvidence'
+import {
+  countryEvidenceRead,
+  countryEvidenceStatements,
+  flightCountriesOf,
+} from './countryEvidence'
 
 export interface DerivedRepairResult {
   derived_state: 'ready' | 'pending'
@@ -24,11 +28,15 @@ export interface DerivedStateRow {
 }
 
 /** Readiness needs the evidence stamp too: an older build can publish a revision without the projection (ADR 0001 §4). */
-export const isDerivedReady = (state: Pick<DerivedStateRow, 'revision' | 'published_revision' | 'evidence_revision'>) =>
-  state.revision === state.published_revision && state.evidence_revision === state.published_revision
+export const isDerivedReady = (
+  state: Pick<DerivedStateRow, 'revision' | 'published_revision' | 'evidence_revision'>,
+) =>
+  state.revision === state.published_revision &&
+  state.evidence_revision === state.published_revision
 
 /** SQL form of "not ready", for maintenance selection and its remaining-work check. */
-export const STALE_DERIVED_PREDICATE = '(revision != published_revision OR evidence_revision != published_revision)'
+export const STALE_DERIVED_PREDICATE =
+  '(revision != published_revision OR evidence_revision != published_revision)'
 
 interface VisitSource {
   airport_iata: string
@@ -57,34 +65,40 @@ export function dirtyUserStatement(
   userId: string,
   onlyIfPreviousChanged = false,
 ): D1PreparedStatement {
-  return db.prepare(
-    `INSERT INTO user_derived_state
+  return db
+    .prepare(
+      `INSERT INTO user_derived_state
        (user_id, revision, published_revision, last_error, updated_at)
      SELECT ?, 1, 0, NULL, ? WHERE ${onlyIfPreviousChanged ? 'changes() > 0' : '1 = 1'}
      ON CONFLICT(user_id) DO UPDATE SET
        revision = user_derived_state.revision + 1,
        last_error = NULL,
        updated_at = excluded.updated_at`,
-  ).bind(userId, nowIso())
+    )
+    .bind(userId, nowIso())
 }
 
 /** Upsert-then-guard: an account with no derived-state row must still reach every revision-guarded write. */
 export function ensureDerivedStateRow(db: D1Database, userId: string): D1PreparedStatement {
-  return db.prepare(
-    'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 0, 0) ON CONFLICT (user_id) DO NOTHING',
-  ).bind(userId)
+  return db
+    .prepare(
+      'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 0, 0) ON CONFLICT (user_id) DO NOTHING',
+    )
+    .bind(userId)
 }
 
 function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisit[]> {
-  const flightSources = db.prepare(
-    `SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
+  const flightSources = db
+    .prepare(
+      `SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
      FROM flights f JOIN airports_reference ar ON ar.iata = f.origin
      WHERE f.user_id = ? AND f.lifecycle_state IN ('awaiting', 'logged')
      UNION ALL
      SELECT ar.iata AS airport_iata, ar.country_code, ar.city, f.date
      FROM flights f JOIN airports_reference ar ON ar.iata = f.destination
      WHERE f.user_id = ? AND f.lifecycle_state IN ('awaiting', 'logged')`,
-  ).bind(userId, userId)
+    )
+    .bind(userId, userId)
 
   return {
     statements: [flightSources, legacyEvidenceStatement(db, userId)],
@@ -95,17 +109,22 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
 
 // mergeVisits keeps the first contributing legacy country for each airport; keep that order explicit.
 export function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStatement {
-  return db.prepare(
-    `SELECT e.airport_iata, e.country_code, e.city, e.first_visit, e.last_visit,
+  return db
+    .prepare(
+      `SELECT e.airport_iata, e.country_code, e.city, e.first_visit, e.last_visit,
             e.visit_count, ar.country_code AS reference_country_code,
             ar.city AS reference_city
      FROM legacy_visit_evidence e
      LEFT JOIN airports_reference ar ON ar.iata = e.airport_iata
      WHERE e.user_id = ? AND e.contributes = 1 ORDER BY e.rowid`,
-  ).bind(userId)
+    )
+    .bind(userId)
 }
 
-export function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitSource[]): DerivedVisit[] {
+export function mergeVisits(
+  flightSources: VisitSource[],
+  evidence: LegacyVisitSource[],
+): DerivedVisit[] {
   const merged = new Map<string, DerivedVisit>()
   for (const source of flightSources) {
     const prior = merged.get(source.airport_iata)
@@ -131,7 +150,8 @@ export function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitS
       // Archived counters may overlap flight history. Keep the larger observed count,
       // never add both or infer a number of extra trips from their difference.
       prior.visit_count = Math.max(prior.visit_count, source.visit_count)
-      prior.first_visit = prior.first_visit < source.first_visit ? prior.first_visit : source.first_visit
+      prior.first_visit =
+        prior.first_visit < source.first_visit ? prior.first_visit : source.first_visit
       prior.last_visit = prior.last_visit > source.last_visit ? prior.last_visit : source.last_visit
     } else {
       const country = source.country_code ?? source.reference_country_code
@@ -150,9 +170,11 @@ export function mergeVisits(flightSources: VisitSource[], evidence: LegacyVisitS
 }
 
 function stateStatement(db: D1Database, userId: string): D1PreparedStatement {
-  return db.prepare(
-    'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
-  ).bind(userId)
+  return db
+    .prepare(
+      'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
+    )
+    .bind(userId)
 }
 
 export async function stateOf(db: D1Database, userId: string): Promise<DerivedStateRow | null> {
@@ -160,15 +182,22 @@ export async function stateOf(db: D1Database, userId: string): Promise<DerivedSt
 }
 
 /** Write proposed visits without touching unchanged rows: drop stale airports, upsert the rest. */
-function visitStatements(db: D1Database, userId: string, visits: DerivedVisit[]): D1PreparedStatement[] {
+function visitStatements(
+  db: D1Database,
+  userId: string,
+  visits: DerivedVisit[],
+): D1PreparedStatement[] {
   const proposed = JSON.stringify(visits)
   return [
-    db.prepare(
-      `DELETE FROM visits WHERE user_id = ? AND (airport_iata IS NULL OR airport_iata NOT IN
+    db
+      .prepare(
+        `DELETE FROM visits WHERE user_id = ? AND (airport_iata IS NULL OR airport_iata NOT IN
          (SELECT json_extract(value, '$.airport_iata') FROM json_each(?)))`,
-    ).bind(userId, proposed),
-    db.prepare(
-      `INSERT INTO visits
+      )
+      .bind(userId, proposed),
+    db
+      .prepare(
+        `INSERT INTO visits
          (user_id, country_code, city, airport_iata, first_visit, last_visit, visit_count)
        SELECT ?, json_extract(value, '$.country_code'), json_extract(value, '$.city'),
               json_extract(value, '$.airport_iata'), json_extract(value, '$.first_visit'),
@@ -181,7 +210,8 @@ function visitStatements(db: D1Database, userId: string, visits: DerivedVisit[])
        WHERE visits.country_code IS NOT excluded.country_code OR visits.city IS NOT excluded.city
          OR visits.first_visit IS NOT excluded.first_visit OR visits.last_visit IS NOT excluded.last_visit
          OR visits.visit_count IS NOT excluded.visit_count`,
-    ).bind(userId, proposed),
+      )
+      .bind(userId, proposed),
   ]
 }
 
@@ -189,14 +219,19 @@ function visitStatements(db: D1Database, userId: string, visits: DerivedVisit[])
  * Calculate only from canonical rows, then publish every derived table in one D1 batch.
  * A newer canonical mutation makes the first guard violate CHECK, rolling back the batch.
  */
-export async function repairUserDerivedState(db: D1Database, userId: string): Promise<DerivedRepairResult> {
+export async function repairUserDerivedState(
+  db: D1Database,
+  userId: string,
+): Promise<DerivedRepairResult> {
   // A new account with no mutation can be asked to repair; seed it dirty once.
   let state: DerivedStateRow | null
   try {
     const [, current] = await db.batch([
-      db.prepare(
-        'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 1, 0) ON CONFLICT(user_id) DO NOTHING',
-      ).bind(userId),
+      db
+        .prepare(
+          'INSERT INTO user_derived_state (user_id, revision, published_revision) VALUES (?, 1, 0) ON CONFLICT(user_id) DO NOTHING',
+        )
+        .bind(userId),
       stateStatement(db, userId),
     ])
     state = firstOf<DerivedStateRow>(current)
@@ -223,19 +258,23 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
     const now = nowIso()
     const statements: D1PreparedStatement[] = [
       // The -1 branch violates CHECK; no later result can publish after a newer revision.
-      db.prepare(
-        `UPDATE user_derived_state
+      db
+        .prepare(
+          `UPDATE user_derived_state
          SET published_revision = CASE WHEN revision = ? THEN ? ELSE -1 END,
              evidence_revision = ?,
              last_error = NULL, published_at = ?
          WHERE user_id = ?`,
-      ).bind(revision, revision, revision, now, userId),
+        )
+        .bind(revision, revision, revision, now, userId),
       // UPDATE matching zero rows must not let the remaining derived writes through.
-      db.prepare(
-        `INSERT INTO user_derived_state (user_id, revision, published_revision)
+      db
+        .prepare(
+          `INSERT INTO user_derived_state (user_id, revision, published_revision)
          SELECT ?, 0, -1 WHERE NOT EXISTS
            (SELECT 1 FROM user_derived_state WHERE user_id = ?)`,
-      ).bind(userId, userId),
+        )
+        .bind(userId, userId),
       ...visitStatements(db, userId, visits),
       computedStatsStatement(db, userId, stats),
       ...badgesFor(stats),
@@ -245,10 +284,14 @@ export async function repairUserDerivedState(db: D1Database, userId: string): Pr
     return { derived_state: 'ready', revision }
   } catch {
     // A newer mutation owns the marker; never attach this attempt's error to it.
-    await db.prepare(
-      `UPDATE user_derived_state SET last_error = 'DERIVED_REPAIR_FAILED'
+    await db
+      .prepare(
+        `UPDATE user_derived_state SET last_error = 'DERIVED_REPAIR_FAILED'
        WHERE user_id = ? AND revision = ? AND published_revision < revision`,
-    ).bind(userId, revision).run().catch(() => undefined)
+      )
+      .bind(userId, revision)
+      .run()
+      .catch(() => undefined)
     const current = await stateOf(db, userId).catch(() => null)
     return { derived_state: 'pending', revision: current?.revision ?? revision }
   }

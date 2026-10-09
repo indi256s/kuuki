@@ -31,10 +31,7 @@
           "effect": "Открывает экран входа в SPA."
         }
       ],
-      "source": [
-        "apps/web/public/activate.html",
-        "apps/web/public/activate.js"
-      ],
+      "source": ["apps/web/public/activate.html", "apps/web/public/activate.js"],
       "notes": ""
     },
     {
@@ -67,10 +64,7 @@
           "effect": "Открывает экран входа в SPA."
         }
       ],
-      "source": [
-        "apps/web/public/activate.html",
-        "apps/web/public/activate.js"
-      ],
+      "source": ["apps/web/public/activate.html", "apps/web/public/activate.js"],
       "notes": ""
     },
     {
@@ -103,10 +97,7 @@
           "effect": "Пока пароли не совпадают, клиент блокирует отправку и показывает ошибку валидации."
         }
       ],
-      "source": [
-        "apps/web/public/activate.html",
-        "apps/web/public/activate.js"
-      ],
+      "source": ["apps/web/public/activate.html", "apps/web/public/activate.js"],
       "notes": ""
     },
     {
@@ -175,10 +166,7 @@
           "effect": "Открывает экран входа в SPA."
         }
       ],
-      "source": [
-        "apps/web/public/activate.html",
-        "apps/web/public/activate.js"
-      ],
+      "source": ["apps/web/public/activate.html", "apps/web/public/activate.js"],
       "notes": "Код 503 означает временную недоступность сервиса в fixture; о действительности или сроке token этот экран ничего не подтверждает."
     },
     {
@@ -210,10 +198,7 @@
           "effect": "Открывает экран входа в SPA."
         }
       ],
-      "source": [
-        "apps/web/public/activate.html",
-        "apps/web/public/activate.js"
-      ],
+      "source": ["apps/web/public/activate.html", "apps/web/public/activate.js"],
       "notes": "Только локальный POST mock 200 с синтетическим token. Экран подтверждает success renderer; реальная ссылка и смена пароля аккаунта не проверялись."
     },
     {
@@ -233,12 +218,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Activate your account",
-        "Password",
-        "Confirm password",
-        "Activate account"
-      ],
+      "recognition": ["Activate your account", "Password", "Confirm password", "Activate account"],
       "actions": [
         {
           "label": "Activate account",
@@ -246,10 +226,7 @@
           "effect": "Реальный POST в локальной fixture возвращает 503; success renderer показан отдельно с браузерным mock 200."
         }
       ],
-      "source": [
-        "apps/web/public/activate.html",
-        "apps/web/public/activate.js"
-      ],
+      "source": ["apps/web/public/activate.html", "apps/web/public/activate.js"],
       "notes": ""
     },
     {
@@ -269,12 +246,7 @@
       "preconditions": [
         "Синтетический профиль test-traveler открыт на локальной fixture; авторизованные варианты сняты под journey-demo, гостевые — без входа."
       ],
-      "recognition": [
-        "Светлая",
-        "Тёмная",
-        "Системная",
-        "Blue"
-      ],
+      "recognition": ["Светлая", "Тёмная", "Системная", "Blue"],
       "actions": [
         {
           "label": "Светлая",
@@ -357,11 +329,7 @@
       "preconditions": [
         "Синтетический профиль test-traveler открыт на локальной fixture; авторизованные варианты сняты под journey-demo, гостевые — без входа."
       ],
-      "recognition": [
-        "Настройки",
-        "English",
-        "Выйти"
-      ],
+      "recognition": ["Настройки", "English", "Выйти"],
       "actions": [
         {
           "label": "Настройки",
@@ -404,10 +372,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Что такое Kuuki?",
-        "Close"
-      ],
+      "recognition": ["Что такое Kuuki?", "Close"],
       "actions": [
         {
           "label": "Close",
@@ -523,12 +488,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Светлая",
-        "Тёмная",
-        "Системная",
-        "Blue"
-      ],
+      "recognition": ["Светлая", "Тёмная", "Системная", "Blue"],
       "actions": [
         {
           "label": "Светлая",
@@ -610,12 +570,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "What is Kuuki?",
-        "Создать аккаунт"
-      ],
+      "recognition": ["Email", "Пароль", "What is Kuuki?", "Создать аккаунт"],
       "actions": [
         {
           "label": "Создать аккаунт",
@@ -652,12 +607,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "What is Kuuki?",
-        "Создать аккаунт"
-      ],
+      "recognition": ["Email", "Пароль", "What is Kuuki?", "Создать аккаунт"],
       "actions": [
         {
           "label": "Создать аккаунт",
@@ -688,9 +638,7 @@
       "auth": "new-user",
       "theme": "light",
       "fixture": "Новый аккаунт journey-demo был создан кликом через UI; пароль и email не включены.",
-      "preconditions": [
-        "Гость отправил валидный email и пароль."
-      ],
+      "preconditions": ["Гость отправил валидный email и пароль."],
       "recognition": [
         "AuthPage ведёт в dashboard, а guard отправляет аккаунт без username в onboarding."
       ],
@@ -726,12 +674,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "What is Kuuki?",
-        "Создать аккаунт"
-      ],
+      "recognition": ["Email", "Пароль", "What is Kuuki?", "Создать аккаунт"],
       "actions": [
         {
           "label": "Создать аккаунт",
@@ -768,12 +711,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "What is Kuuki?",
-        "Войти"
-      ],
+      "recognition": ["Email", "Пароль", "What is Kuuki?", "Войти"],
       "actions": [
         {
           "label": "Войти",
@@ -862,12 +800,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "What is Kuuki?",
-        "Войти"
-      ],
+      "recognition": ["Email", "Пароль", "What is Kuuki?", "Войти"],
       "actions": [
         {
           "label": "Войти",
@@ -903,12 +836,8 @@
       "auth": "authenticated",
       "theme": "light",
       "fixture": "Синтетический account a существует; снимок целевой dashboard есть в соседней зоне атласа.",
-      "preconditions": [
-        "Гость отправил корректные тестовые данные."
-      ],
-      "recognition": [
-        "Успешный sign-in создаёт сессию и направляет на защищённый маршрут."
-      ],
+      "preconditions": ["Гость отправил корректные тестовые данные."],
+      "recognition": ["Успешный sign-in создаёт сессию и направляет на защищённый маршрут."],
       "actions": [
         {
           "label": "Открыть профиль/рейтинг/настройки",
@@ -940,12 +869,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "What is Kuuki?",
-        "Войти"
-      ],
+      "recognition": ["Email", "Пароль", "What is Kuuki?", "Войти"],
       "actions": [
         {
           "label": "Войти",
@@ -987,12 +911,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Ваш архив авиастатистики",
-        "Учёт полётов",
-        "Посещённые места",
-        "Статистика"
-      ],
+      "recognition": ["Ваш архив авиастатистики", "Учёт полётов", "Посещённые места", "Статистика"],
       "actions": [
         {
           "label": "Войти",
@@ -1005,9 +924,7 @@
           "effect": "Открывает режим beta/signup."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LandingPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LandingPage.tsx"],
       "notes": ""
     },
     {
@@ -1027,12 +944,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Ваш архив авиастатистики",
-        "Учёт полётов",
-        "Посещённые места",
-        "Статистика"
-      ],
+      "recognition": ["Ваш архив авиастатистики", "Учёт полётов", "Посещённые места", "Статистика"],
       "actions": [
         {
           "label": "Войти",
@@ -1045,9 +957,7 @@
           "effect": "Открывает режим beta/signup."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LandingPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LandingPage.tsx"],
       "notes": ""
     },
     {
@@ -1085,9 +995,7 @@
           "effect": "Открывает режим beta/signup."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LandingPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LandingPage.tsx"],
       "notes": ""
     },
     {
@@ -1107,12 +1015,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Log Your Journeys",
-        "Go to slide 1",
-        "Go to slide 2",
-        "Go to slide 3"
-      ],
+      "recognition": ["Log Your Journeys", "Go to slide 1", "Go to slide 2", "Go to slide 3"],
       "actions": [
         {
           "label": "Go to slide 1",
@@ -1145,9 +1048,7 @@
           "effect": "Закрывает showcase и помечает его завершённым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LandingPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LandingPage.tsx"],
       "notes": ""
     },
     {
@@ -1167,12 +1068,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Изучайте статистику",
-        "Go to slide 1",
-        "Go to slide 2",
-        "Go to slide 3"
-      ],
+      "recognition": ["Изучайте статистику", "Go to slide 1", "Go to slide 2", "Go to slide 3"],
       "actions": [
         {
           "label": "Go to slide 1",
@@ -1205,9 +1101,7 @@
           "effect": "Закрывает showcase и помечает его завершённым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LandingPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LandingPage.tsx"],
       "notes": ""
     },
     {
@@ -1227,12 +1121,7 @@
       "preconditions": [
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл."
       ],
-      "recognition": [
-        "Сравнивайте и делитесь",
-        "Go to slide 1",
-        "Go to slide 2",
-        "Go to slide 3"
-      ],
+      "recognition": ["Сравнивайте и делитесь", "Go to slide 1", "Go to slide 2", "Go to slide 3"],
       "actions": [
         {
           "label": "Go to slide 1",
@@ -1265,9 +1154,7 @@
           "effect": "Закрывает showcase и помечает его завершённым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LandingPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LandingPage.tsx"],
       "notes": ""
     },
     {
@@ -1315,9 +1202,7 @@
           "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
     },
     {
@@ -1365,9 +1250,7 @@
           "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
     },
     {
@@ -1415,9 +1298,7 @@
           "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
     },
     {
@@ -1465,9 +1346,7 @@
           "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
     },
     {
@@ -1515,9 +1394,7 @@
           "effect": "Переключает категорию; читаемый локальный cache остаётся пустым."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Пустая таблица отражает отсутствующие строки в leaderboard_cache, а не отсутствие eligible/opted-in профилей."
     },
     {
@@ -1550,9 +1427,7 @@
           "effect": "Открывает форму входа."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Гостевой CTA сообщает условия участия; пустой список связан с локальным cache, а не с отсутствием подходящего профиля."
     },
     {
@@ -1624,9 +1499,7 @@
           "effect": "Открывает форму входа."
         }
       ],
-      "source": [
-        "apps/web/src/routes/LeaderboardPage.tsx"
-      ],
+      "source": ["apps/web/src/routes/LeaderboardPage.tsx"],
       "notes": "Гостевой CTA сообщает условия участия; пустой список связан с локальным cache, а не с отсутствием подходящего профиля."
     },
     {
@@ -1952,9 +1825,7 @@
           "effect": "Возврат к стартовой странице."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -1987,9 +1858,7 @@
           "effect": "Копирует URL текущего /fly/journey-demo в clipboard; приватность профиля не меняется."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -2021,9 +1890,7 @@
           "effect": "Переходит на стартовый экран."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -2055,9 +1922,7 @@
           "effect": "Переходит на стартовый экран."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -2084,9 +1949,7 @@
         "СТАТИСТИКА"
       ],
       "actions": [],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": "Тёмная тема включена только для этого снимка."
     },
     {
@@ -2113,9 +1976,7 @@
         "СТАТИСТИКА"
       ],
       "actions": [],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -2158,9 +2019,7 @@
           "effect": "Сворачивает или раскрывает соответствующую секцию."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -2187,9 +2046,7 @@
         "СТАТИСТИКА"
       ],
       "actions": [],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": "Синтетический профиль с 69 полётами и приготовленной историей; все данные локальные."
     },
     {
@@ -2232,9 +2089,7 @@
           "effect": "Сворачивает или раскрывает соответствующую секцию."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": "Синтетический профиль; мобильные карточки и навигация."
     },
     {
@@ -2277,9 +2132,7 @@
           "effect": "Сворачивает или раскрывает соответствующую секцию."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": ""
     },
     {
@@ -2322,9 +2175,7 @@
           "effect": "Сворачивает или раскрывает соответствующую секцию."
         }
       ],
-      "source": [
-        "apps/web/src/routes/ProfilePage.tsx"
-      ],
+      "source": ["apps/web/src/routes/ProfilePage.tsx"],
       "notes": "Снимок после прокрутки показывает содержимое профиля, но компактная sticky-шапка не проявилась."
     },
     {
@@ -2737,12 +2588,7 @@
         "Гостевая сессия на локальной fixture localhost:8799; пользователь не вошёл.",
         "Только disposable fixture account; основной account a и профили с подготовленными данными не затронуты."
       ],
-      "recognition": [
-        "Email",
-        "Пароль",
-        "Создать аккаунт",
-        "Уже есть аккаунт?"
-      ],
+      "recognition": ["Email", "Пароль", "Создать аккаунт", "Уже есть аккаунт?"],
       "actions": [
         {
           "label": "Создать аккаунт",
@@ -3169,10 +3015,7 @@
     {
       "id": "public-social-shared-header",
       "title": "Пользоваться меню общей шапки",
-      "states": [
-        "app-header-user-menu-desktop",
-        "app-header-appearance-menu-desktop"
-      ],
+      "states": ["app-header-user-menu-desktop", "app-header-appearance-menu-desktop"],
       "steps": [
         "На публичном профиле открыть пользовательское меню.",
         "Переходить в настройки, менять язык или завершить сессию.",

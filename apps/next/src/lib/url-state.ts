@@ -29,11 +29,20 @@ function toEntries(raw: RawQuery): Entries {
 
 const first = (entries: Entries, key: string) => entries.find(([name]) => name === key)?.[1]
 const sameSet = (a: Entries, b: Entries) => {
-  const flat = (list: Entries) => list.map(([k, v]) => `${k}\u0000${v}`).sort().join('\u0001')
+  const flat = (list: Entries) =>
+    list
+      .map(([k, v]) => `${k}\u0000${v}`)
+      .sort()
+      .join('\u0001')
   return a.length === b.length && flat(a) === flat(b)
 }
 
-function finish<T>(raw: Entries, owned: readonly string[], known: Entries, state: T): Normalized<T> {
+function finish<T>(
+  raw: Entries,
+  owned: readonly string[],
+  known: Entries,
+  state: T,
+): Normalized<T> {
   const extras = raw.filter(([key]) => !owned.includes(key))
   const out = [...known, ...extras]
   const params = new URLSearchParams()
@@ -73,18 +82,26 @@ export type PassportState = {
   /** Period applied to the route map; carried from the Overview year. */
   year: string | null
 }
-const pick = <T extends string>(allowed: readonly T[], value: string | undefined, fallback: T): T =>
-  (allowed as readonly string[]).includes(value ?? '') ? value as T : fallback
+const pick = <T extends string>(
+  allowed: readonly T[],
+  value: string | undefined,
+  fallback: T,
+): T => ((allowed as readonly string[]).includes(value ?? '') ? (value as T) : fallback)
 
 /**
  * `isCountry` is the catalog check (`isCatalogCountry` in client/passport/model): a country deep link opens a sheet with
  * write actions, so a well-formed code outside the catalog is dropped rather than shown. It is passed in to keep the
  * catalog out of every page that shares this module.
  */
-export function normalizePassportQuery(raw: RawQuery, isCountry: (code: string) => boolean, now = new Date()): Normalized<PassportState> {
+export function normalizePassportQuery(
+  raw: RawQuery,
+  isCountry: (code: string) => boolean,
+  now = new Date(),
+): Normalized<PassportState> {
   const entries = toEntries(raw)
   const rawCountry = first(entries, 'country')?.toUpperCase()
-  const country = rawCountry && /^[A-Z]{2}$/.test(rawCountry) && isCountry(rawCountry) ? rawCountry : null
+  const country =
+    rawCountry && /^[A-Z]{2}$/.test(rawCountry) && isCountry(rawCountry) ? rawCountry : null
   const state: PassportState = {
     view: pick(PASSPORT_VIEWS, first(entries, 'view'), 'stamps'),
     sort: pick(PASSPORT_SORTS, first(entries, 'sort'), 'recent'),
@@ -122,29 +139,67 @@ export type OnboardingStep = (typeof ONBOARDING_STEPS)[number]
 export type OnboardingProgress = { hasUsername: boolean; hasFlight: boolean }
 
 /** The step a member may actually see: capture needs a username, reveal needs a saved first flight too. */
-export function resolveOnboardingStep(requested: string | undefined, progress: OnboardingProgress): OnboardingStep {
+export function resolveOnboardingStep(
+  requested: string | undefined,
+  progress: OnboardingProgress,
+): OnboardingStep {
   const wanted = (ONBOARDING_STEPS as readonly string[]).includes(requested ?? '')
-    ? requested as OnboardingStep
-    : progress.hasUsername ? (progress.hasFlight ? 'reveal' : 'capture') : 'name'
+    ? (requested as OnboardingStep)
+    : progress.hasUsername
+      ? progress.hasFlight
+        ? 'reveal'
+        : 'capture'
+      : 'name'
   if (!progress.hasUsername) return 'name'
   if (wanted === 'reveal' && !progress.hasFlight) return 'capture'
   return wanted
 }
 
-export function normalizeOnboardingQuery(raw: RawQuery, progress: OnboardingProgress): Normalized<{ step: OnboardingStep }> {
+export function normalizeOnboardingQuery(
+  raw: RawQuery,
+  progress: OnboardingProgress,
+): Normalized<{ step: OnboardingStep }> {
   const entries = toEntries(raw)
   const step = resolveOnboardingStep(first(entries, 'step'), progress)
   return finish(entries, ['step'], [['step', step]], { step })
 }
 
-export const withQuery = (path: string, query: string) => query ? `${path}?${query}` : path
+export const withQuery = (path: string, query: string) => (query ? `${path}?${query}` : path)
 
-export const JOURNAL_FILTER_KEYS = ['q', 'year', 'from', 'to', 'status', 'airline', 'aircraft', 'airport', 'origin', 'destination'] as const
-export const JOURNAL_SORTS = ['date', 'origin', 'destination', 'airline_iata', 'aircraft_icao', 'distance_km', 'duration_minutes'] as const
-export function normalizeJournalQuery(raw: RawQuery, now = new Date()): Normalized<Record<string, string>> {
+export const JOURNAL_FILTER_KEYS = [
+  'q',
+  'year',
+  'from',
+  'to',
+  'status',
+  'airline',
+  'aircraft',
+  'airport',
+  'origin',
+  'destination',
+] as const
+export const JOURNAL_SORTS = [
+  'date',
+  'origin',
+  'destination',
+  'airline_iata',
+  'aircraft_icao',
+  'distance_km',
+  'duration_minutes',
+] as const
+export function normalizeJournalQuery(
+  raw: RawQuery,
+  now = new Date(),
+): Normalized<Record<string, string>> {
   const entries = toEntries(raw)
   const params = new URLSearchParams(entries)
-  for (const [old, key] of [['search', 'q'], ['airlineIata', 'airline'], ['aircraftIcao', 'aircraft'], ['sortField', 'sort'], ['sortOrder', 'order']]) {
+  for (const [old, key] of [
+    ['search', 'q'],
+    ['airlineIata', 'airline'],
+    ['aircraftIcao', 'aircraft'],
+    ['sortField', 'sort'],
+    ['sortOrder', 'order'],
+  ]) {
     if (!params.has(key) && params.has(old)) params.set(key, params.get(old)!)
     params.delete(old)
   }
@@ -156,7 +211,8 @@ export function normalizeJournalQuery(raw: RawQuery, now = new Date()): Normaliz
   const q = params.get('q')?.trim().slice(0, 100)
   if (q) state.q = q
   if (params.has('from') || params.has('to')) {
-    const from = params.get('from') ?? '', to = params.get('to') ?? ''
+    const from = params.get('from') ?? '',
+      to = params.get('to') ?? ''
     const range = from.length === 10 && to.length === 10 ? periodDays({ from, to }) : null
     if (range) Object.assign(state, range)
   } else {
@@ -164,21 +220,53 @@ export function normalizeJournalQuery(raw: RawQuery, now = new Date()): Normaliz
     if (year) state.year = year
   }
   const status = params.get('status')
-  if (status && ['upcoming', 'awaiting', 'logged', 'completed'].includes(status)) state.status = status
-  for (const [key, pattern] of [['airline', /^[A-Z0-9]{2,3}$/], ['aircraft', /^[A-Z0-9]{2,4}$/], ['airport', /^[A-Z]{3}$/], ['origin', /^[A-Z]{3}$/], ['destination', /^[A-Z]{3}$/]] as const) {
+  if (status && ['upcoming', 'awaiting', 'logged', 'completed'].includes(status))
+    state.status = status
+  for (const [key, pattern] of [
+    ['airline', /^[A-Z0-9]{2,3}$/],
+    ['aircraft', /^[A-Z0-9]{2,4}$/],
+    ['airport', /^[A-Z]{3}$/],
+    ['origin', /^[A-Z]{3}$/],
+    ['destination', /^[A-Z]{3}$/],
+  ] as const) {
     const value = params.get(key)?.toUpperCase()
     if (value && pattern.test(value)) state[key] = value
   }
   const sort = params.get('sort')
-  if (sort && (JOURNAL_SORTS as readonly string[]).includes(sort) && sort !== 'date') state.sort = sort
+  if (sort && (JOURNAL_SORTS as readonly string[]).includes(sort) && sort !== 'date')
+    state.sort = sort
   if (params.get('order') === 'asc') state.order = 'asc'
   const flight = params.get('flight')
-  if (flight && /^[1-9]\d*$/.test(flight) && Number.isSafeInteger(Number(flight))) state.flight = flight
+  if (flight && /^[1-9]\d*$/.test(flight) && Number.isSafeInteger(Number(flight)))
+    state.flight = flight
   if (params.get('queue') === 'awaiting') state.queue = 'awaiting'
   const batch = params.get('batch')
   if (batch && UUID.test(batch)) state.batch = batch.toLowerCase()
   // `page` is owned so a legacy paging bookmark is dropped: the Journal list is in memory (spec D4).
-  return finish(entries, [...JOURNAL_FILTER_KEYS, 'sort', 'order', 'flight', 'queue', 'batch', 'page', 'period', 'search', 'airlineIata', 'aircraftIcao', 'sortField', 'sortOrder', 'isUpcoming', 'originCodes', 'destinationCodes', 'airlineIataCodes'], Object.entries(state), state)
+  return finish(
+    entries,
+    [
+      ...JOURNAL_FILTER_KEYS,
+      'sort',
+      'order',
+      'flight',
+      'queue',
+      'batch',
+      'page',
+      'period',
+      'search',
+      'airlineIata',
+      'aircraftIcao',
+      'sortField',
+      'sortOrder',
+      'isUpcoming',
+      'originCodes',
+      'destinationCodes',
+      'airlineIataCodes',
+    ],
+    Object.entries(state),
+    state,
+  )
 }
 
 export function resetJournalFilters(query: string): string {
@@ -187,10 +275,24 @@ export function resetJournalFilters(query: string): string {
   return params.toString()
 }
 
-export type JournalLink = { airport?: string; airline?: string; aircraft?: string; origin?: string; destination?: string; year?: string | number; from?: string; to?: string; sort?: (typeof JOURNAL_SORTS)[number]; order?: 'asc'; status?: 'completed'; flight?: string | number }
+export type JournalLink = {
+  airport?: string
+  airline?: string
+  aircraft?: string
+  origin?: string
+  destination?: string
+  year?: string | number
+  from?: string
+  to?: string
+  sort?: (typeof JOURNAL_SORTS)[number]
+  order?: 'asc'
+  status?: 'completed'
+  flight?: string | number
+}
 /** Canonical `/journal` href for Overview category/route links and Passport flight details. Invalid values are dropped. */
 export function journalHref(link: JournalLink, now = new Date()): string {
   const params = new URLSearchParams()
-  for (const [key, value] of Object.entries(link)) if (value !== undefined && value !== '') params.set(key, String(value))
+  for (const [key, value] of Object.entries(link))
+    if (value !== undefined && value !== '') params.set(key, String(value))
   return withQuery('/journal', normalizeJournalQuery(params, now).query)
 }

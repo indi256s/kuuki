@@ -6,7 +6,12 @@ import { api, beginIdentityOperation, getAuthGeneration } from '@kuuki/client/ap
 import { clearFlightCreateOperations } from '@kuuki/client/flightCreateOperations'
 import { clearDrafts } from './capture/drafts'
 import { clearCapturePreferences } from './capture/capture-preferences'
-import { LIFECYCLE_CHANGED_EVENT, clearOwnerSyncMarkers, syncOwner, type SyncReply } from './lifecycle-sync'
+import {
+  LIFECYCLE_CHANGED_EVENT,
+  clearOwnerSyncMarkers,
+  syncOwner,
+  type SyncReply,
+} from './lifecycle-sync'
 import { awaitPublication } from './publication'
 
 type IdentityReply = { user: { id: string } | null }
@@ -22,7 +27,19 @@ function publishIdentity(id: string | null) {
 
 function safeTargetPath(path?: string): string {
   if (path === undefined) return window.location.pathname + window.location.search
-  const allowed = new Set(['/', '/?notice=password-saved', '/overview', '/journal', '/passport', '/signin', '/signup', '/settings', '/onboarding', '/account-deleted', '/password-updated'])
+  const allowed = new Set([
+    '/',
+    '/?notice=password-saved',
+    '/overview',
+    '/journal',
+    '/passport',
+    '/signin',
+    '/signup',
+    '/settings',
+    '/onboarding',
+    '/account-deleted',
+    '/password-updated',
+  ])
   if (!allowed.has(path)) throw new Error('Invalid identity navigation target')
   return path
 }
@@ -34,7 +51,8 @@ export function trackPrivateOperation(controller: AbortController): () => void {
 
 function resetPrivateState(previousOwner: string | null | undefined, targetPath?: string) {
   const target = safeTargetPath(targetPath)
-  for (const controller of tracked) controller.abort(new DOMException('Session changed', 'AbortError'))
+  for (const controller of tracked)
+    controller.abort(new DOMException('Session changed', 'AbortError'))
   tracked.clear()
   if (previousOwner) {
     clearFlightCreateOperations(previousOwner)
@@ -63,7 +81,11 @@ async function checkIdentity(): Promise<string | null> {
 }
 
 function sharedStore(): Storage | null {
-  try { return window.localStorage } catch { return null }
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -72,12 +94,13 @@ function sharedStore(): Storage | null {
  */
 async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: AbortSignal) {
   const generation = getAuthGeneration()
-  const current = () => !signal.aborted && generation === getAuthGeneration() && knownIdentity === ownerId
+  const current = () =>
+    !signal.aborted && generation === getAuthGeneration() && knownIdentity === ownerId
   const outcome = await syncOwner(ownerId, {
     post: () => api.post<SyncReply>('/api/flights/sync-upcoming', undefined, { signal }),
     now: Date.now,
     storage: sharedStore(),
-    sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
+    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     current,
   })
   if (!outcome?.changed || !current()) return
@@ -88,7 +111,8 @@ async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: Ab
   }
   announce()
   if (outcome.derivedState === 'pending' && outcome.revision !== null) {
-    if (await awaitPublication(outcome.revision, signal, current) === 'ready' && current()) refresh()
+    if ((await awaitPublication(outcome.revision, signal, current)) === 'ready' && current())
+      refresh()
   }
 }
 
@@ -97,7 +121,10 @@ async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: Ab
  * only a resolved result broadcasts and navigates. W3 sign-in passes `/overview`,
  * sign-out passes `/signin`.
  */
-export async function withIdentityMutation<T>(run: (token: symbol) => Promise<T>, targetPath?: string): Promise<T> {
+export async function withIdentityMutation<T>(
+  run: (token: symbol) => Promise<T>,
+  targetPath?: string,
+): Promise<T> {
   safeTargetPath(targetPath)
   const operation = beginIdentityOperation()
   await operation.ready
@@ -107,8 +134,15 @@ export async function withIdentityMutation<T>(run: (token: symbol) => Promise<T>
     // already be stale after another tab changed the cookie.
     let previousOwner: string | null = null
     try {
-      previousOwner = (await api.get<IdentityReply>('/api/auth/me', undefined, { identityToken: operation.token })).user?.id ?? null
-    } catch { /* An unavailable owner lookup must not block the account action. */ }
+      previousOwner =
+        (
+          await api.get<IdentityReply>('/api/auth/me', undefined, {
+            identityToken: operation.token,
+          })
+        ).user?.id ?? null
+    } catch {
+      /* An unavailable owner lookup must not block the account action. */
+    }
     const result = await run(operation.token)
     publishIdentity(null) // Hide any previous owner's streamed payload immediately.
     if ('BroadcastChannel' in window) {
@@ -130,7 +164,10 @@ export async function withIdentityMutation<T>(run: (token: symbol) => Promise<T>
  */
 export function IdentitySnapshot({ ownerId, children }: { ownerId: string; children: ReactNode }) {
   const current = useSyncExternalStore(
-    listener => { listeners.add(listener); return () => listeners.delete(listener) },
+    (listener) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
     () => knownIdentity,
     () => ownerId,
   )
@@ -142,7 +179,10 @@ export function ActivityBridge() {
   useEffect(() => {
     // Ask an installed root-scope legacy worker to pick up its retirement script.
     // Keep updating old installations until their root registration is retired.
-    void navigator.serviceWorker?.getRegistration('/')?.then(registration => registration?.update()).catch(() => {})
+    void navigator.serviceWorker
+      ?.getRegistration('/')
+      ?.then((registration) => registration?.update())
+      .catch(() => {})
     let active = true
     let checking = false
     let queued = false
@@ -150,25 +190,42 @@ export function ActivityBridge() {
     const release = trackPrivateOperation(syncing)
     const refresh = async () => {
       if (!active || document.visibilityState === 'hidden') return
-      if (checking) { queued = true; return }
+      if (checking) {
+        queued = true
+        return
+      }
       checking = true
       try {
         const owner = await checkIdentity()
         // Only a confirmed owner syncs; a guest or a switched identity never writes.
-        if (owner && active) void syncOwnerFlights(owner, () => router.refresh(), syncing.signal).catch(() => { /* retried on a later check */ })
-      } catch { /* API errors never imply logout. */ }
-      finally {
+        if (owner && active)
+          void syncOwnerFlights(owner, () => router.refresh(), syncing.signal).catch(() => {
+            /* retried on a later check */
+          })
+      } catch {
+        /* API errors never imply logout. */
+      } finally {
         checking = false
-        if (queued) { queued = false; void refresh() }
+        if (queued) {
+          queued = false
+          void refresh()
+        }
       }
     }
     void refresh()
-    const onFocus = () => { void refresh() }
+    const onFocus = () => {
+      void refresh()
+    }
     const channel = 'BroadcastChannel' in window ? new BroadcastChannel('kuuki-identity') : null
     channel?.addEventListener('message', onFocus)
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onFocus)
-    const interval = window.setInterval(() => { void refresh() }, 15 * 60 * 1000)
+    const interval = window.setInterval(
+      () => {
+        void refresh()
+      },
+      15 * 60 * 1000,
+    )
     return () => {
       active = false
       syncing.abort()

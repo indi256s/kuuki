@@ -1,23 +1,87 @@
 /* Upstream motions use CSS and Kuuki timing tokens; no mount, focus or route animation. */
-.animated-icon { flex-shrink: 0; }
-.animated-icon-plus { transform-origin: center; }
-.animated-icon-stamp > path { transform-origin: 12px 22px; }
-
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  :where(.tab, .split-add-main, .ui-button):not([aria-disabled=true]):hover .animated-icon-plus {
-    animation: icon-plus-turn var(--dur-base) var(--ease-out) forwards;
-  }
-  .tab:hover .animated-icon-grid rect { animation: icon-grid-x var(--dur-moment) var(--ease-out); }
-  .animated-icon-grid rect:nth-child(1) { --icon-shift: 11px; }
-  .tab:hover .animated-icon-grid rect:nth-child(2) { --icon-shift: 11px; animation-name: icon-grid-y; }
-  .animated-icon-grid rect:nth-child(3) { --icon-shift: -11px; }
-  .tab:hover .animated-icon-grid rect:nth-child(4) { --icon-shift: -11px; animation-name: icon-grid-y; }
-  .tab:hover .animated-icon-stamp g { animation: icon-stamp-press var(--dur-moment) var(--ease-out); }
-  .tab:hover .animated-icon-stamp > path { animation: icon-stamp-ink var(--dur-moment) var(--ease-out); }
+.animated-icon {
+  flex-shrink: 0;
+}
+.animated-icon-plus {
+  transform-origin: center;
+}
+.animated-icon-stamp > path {
+  transform-origin: 12px 22px;
 }
 
-@keyframes icon-plus-turn { to { transform: rotate(180deg); } }
-@keyframes icon-grid-x { 0%, 100% { transform: translateX(0); } 40%, 60% { transform: translateX(var(--icon-shift)); } }
-@keyframes icon-grid-y { 0%, 100% { transform: translateY(0); } 40%, 60% { transform: translateY(var(--icon-shift)); } }
-@keyframes icon-stamp-press { 0%, 100% { transform: translateY(0); } 35%, 65% { transform: translateY(4px); } }
-@keyframes icon-stamp-ink { 0%, 100% { opacity: 1; transform: scaleX(1); } 35%, 65% { opacity: .4; transform: scaleX(.85); } }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :where(.tab, .split-add-main, .ui-button):not([aria-disabled='true']):hover .animated-icon-plus {
+    animation: icon-plus-turn var(--dur-base) var(--ease-out) forwards;
+  }
+  .tab:hover .animated-icon-grid rect {
+    animation: icon-grid-x var(--dur-moment) var(--ease-out);
+  }
+  .animated-icon-grid rect:nth-child(1) {
+    --icon-shift: 11px;
+  }
+  .tab:hover .animated-icon-grid rect:nth-child(2) {
+    --icon-shift: 11px;
+    animation-name: icon-grid-y;
+  }
+  .animated-icon-grid rect:nth-child(3) {
+    --icon-shift: -11px;
+  }
+  .tab:hover .animated-icon-grid rect:nth-child(4) {
+    --icon-shift: -11px;
+    animation-name: icon-grid-y;
+  }
+  .tab:hover .animated-icon-stamp g {
+    animation: icon-stamp-press var(--dur-moment) var(--ease-out);
+  }
+  .tab:hover .animated-icon-stamp > path {
+    animation: icon-stamp-ink var(--dur-moment) var(--ease-out);
+  }
+}
+
+@keyframes icon-plus-turn {
+  to {
+    transform: rotate(180deg);
+  }
+}
+@keyframes icon-grid-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  40%,
+  60% {
+    transform: translateX(var(--icon-shift));
+  }
+}
+@keyframes icon-grid-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40%,
+  60% {
+    transform: translateY(var(--icon-shift));
+  }
+}
+@keyframes icon-stamp-press {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35%,
+  65% {
+    transform: translateY(4px);
+  }
+}
+@keyframes icon-stamp-ink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  35%,
+  65% {
+    opacity: 0.4;
+    transform: scaleX(0.85);
+  }
+}

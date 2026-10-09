@@ -24,7 +24,16 @@
  */
 import Link from 'next/link'
 import { X } from 'lucide-react'
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
 import type { Locale } from '../../lib/format'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
@@ -52,33 +61,76 @@ const subscribeDock = (notify: () => void) => {
 }
 /** True at ≥1280px once mounted; false on the server and during hydration, so the first render never depends on `window`. */
 export function useDockedDetail(): boolean {
-  return useSyncExternalStore(subscribeDock, () => window.matchMedia(DOCK_QUERY).matches, () => false)
+  return useSyncExternalStore(
+    subscribeDock,
+    () => window.matchMedia(DOCK_QUERY).matches,
+    () => false,
+  )
 }
 const noSubscribe = () => () => {}
-const useMounted = () => useSyncExternalStore(noSubscribe, () => true, () => false)
+const useMounted = () =>
+  useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  )
 
 const fieldNames: Record<Locale, Record<EditableField, string>> = {
-  en: { origin: 'Departure airport', destination: 'Arrival airport', date: 'Date', departure_time: 'Departure time', arrival_time: 'Arrival time', airline_iata: 'Airline', flight_number: 'Flight number', aircraft_icao: 'Aircraft' },
-  ru: { origin: 'аэропорт вылета', destination: 'аэропорт прилёта', date: 'дата', departure_time: 'время вылета', arrival_time: 'время прилёта', airline_iata: 'авиакомпания', flight_number: 'номер рейса', aircraft_icao: 'самолёт' },
+  en: {
+    origin: 'Departure airport',
+    destination: 'Arrival airport',
+    date: 'Date',
+    departure_time: 'Departure time',
+    arrival_time: 'Arrival time',
+    airline_iata: 'Airline',
+    flight_number: 'Flight number',
+    aircraft_icao: 'Aircraft',
+  },
+  ru: {
+    origin: 'аэропорт вылета',
+    destination: 'аэропорт прилёта',
+    date: 'дата',
+    departure_time: 'время вылета',
+    arrival_time: 'время прилёта',
+    airline_iata: 'авиакомпания',
+    flight_number: 'номер рейса',
+    aircraft_icao: 'самолёт',
+  },
 }
 
 const copy = {
   en: {
-    region: 'Flight details', close: 'Close flight details', flight: 'Flight', fullEditor: 'Open full editor',
-    missing: 'This flight is no longer in your journal.', closeMissing: 'Close',
-    saved: (field: EditableField) => `${fieldNames.en[field]} saved`, undo: 'Undo', undone: 'Change undone',
-    undoRefused: 'This flight changed after that edit, so it cannot be undone. Edit the field again instead.',
+    region: 'Flight details',
+    close: 'Close flight details',
+    flight: 'Flight',
+    fullEditor: 'Open full editor',
+    missing: 'This flight is no longer in your journal.',
+    closeMissing: 'Close',
+    saved: (field: EditableField) => `${fieldNames.en[field]} saved`,
+    undo: 'Undo',
+    undone: 'Change undone',
+    undoRefused:
+      'This flight changed after that edit, so it cannot be undone. Edit the field again instead.',
     busy: 'Another change to this flight is still saving. Try again in a moment.',
-    offline: 'Offline. Connect to change flights.', editorFailed: 'Could not load the editor. Try again.',
+    offline: 'Offline. Connect to change flights.',
+    editorFailed: 'Could not load the editor. Try again.',
     sessionChanged: 'Your session changed. Reopen the Journal before editing.',
   },
   ru: {
-    region: 'Сведения о перелёте', close: 'Закрыть сведения о перелёте', flight: 'Перелёт', fullEditor: 'Открыть полный редактор',
-    missing: 'Этого перелёта больше нет в журнале.', closeMissing: 'Закрыть',
-    saved: (field: EditableField) => `Сохранено: ${fieldNames.ru[field]}`, undo: 'Отменить', undone: 'Изменение отменено',
-    undoRefused: 'Перелёт изменился после этой правки, поэтому её нельзя отменить. Измените поле ещё раз.',
+    region: 'Сведения о перелёте',
+    close: 'Закрыть сведения о перелёте',
+    flight: 'Перелёт',
+    fullEditor: 'Открыть полный редактор',
+    missing: 'Этого перелёта больше нет в журнале.',
+    closeMissing: 'Закрыть',
+    saved: (field: EditableField) => `Сохранено: ${fieldNames.ru[field]}`,
+    undo: 'Отменить',
+    undone: 'Изменение отменено',
+    undoRefused:
+      'Перелёт изменился после этой правки, поэтому её нельзя отменить. Измените поле ещё раз.',
     busy: 'Другое изменение этого перелёта ещё сохраняется. Повторите через мгновение.',
-    offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.', editorFailed: 'Не удалось загрузить редактор. Повторите.',
+    offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.',
+    editorFailed: 'Не удалось загрузить редактор. Повторите.',
     sessionChanged: 'Сессия изменилась. Откройте журнал снова перед редактированием.',
   },
 } as const
@@ -92,9 +144,22 @@ type UndoOffer = { record: EditRecord; message: string }
  * The write side: one save per flight at a time, the lazily loaded write module, Undo records and the in-place confirmation.
  * A save or Undo answered after a sign-out or owner switch is dropped, never applied.
  */
-function useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight, refresh }: {
-  ownerId: string; locale: Locale; online: boolean; docked: boolean; payload: JournalPayload
-  applyFlight: (flight: JournalFlight, refs?: Partial<JournalPayload['refs']>) => void; refresh: () => Promise<void>
+function useFlightEdits({
+  ownerId,
+  locale,
+  online,
+  docked,
+  payload,
+  applyFlight,
+  refresh,
+}: {
+  ownerId: string
+  locale: Locale
+  online: boolean
+  docked: boolean
+  payload: JournalPayload
+  applyFlight: (flight: JournalFlight, refs?: Partial<JournalPayload['refs']>) => void
+  refresh: () => Promise<void>
 }) {
   const t = copy[locale]
   const toast = useToast()
@@ -105,17 +170,32 @@ function useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight,
   const loadEditor = useCallback(() => {
     if (!loading.current) {
       setEditorState('loading')
-      loading.current = import('./flight-edits').then(mod => { setEditor(mod); setEditorState('ready'); return mod }, () => { loading.current = null; setEditorState('failed'); return null })
+      loading.current = import('./flight-edits').then(
+        (mod) => {
+          setEditor(mod)
+          setEditorState('ready')
+          return mod
+        },
+        () => {
+          loading.current = null
+          setEditorState('failed')
+          return null
+        },
+      )
     }
     return loading.current
   }, [])
 
   const latest = useRef({ payload, online, locale, docked })
-  useEffect(() => { latest.current = { payload, online, locale, docked } })
+  useEffect(() => {
+    latest.current = { payload, online, locale, docked }
+  })
   const [offer, setOffer] = useState<UndoOffer | null>(null)
   const identityReset = useRef(false)
   useEffect(() => {
-    const reset = () => { identityReset.current = true }
+    const reset = () => {
+      identityReset.current = true
+    }
     window.addEventListener('kuuki:identity-reset', reset)
     return () => window.removeEventListener('kuuki:identity-reset', reset)
   }, [])
@@ -123,7 +203,8 @@ function useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight,
   const savingRef = useRef(new Set<number>())
   const [saving, setSaving] = useState<ReadonlySet<number>>(() => new Set())
   const mark = (id: number, on: boolean) => {
-    if (on) savingRef.current.add(id); else savingRef.current.delete(id)
+    if (on) savingRef.current.add(id)
+    else savingRef.current.delete(id)
     setSaving(new Set(savingRef.current))
   }
   const seqs = useRef(new Map<number, number>())
@@ -131,52 +212,96 @@ function useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight,
   const [confirmed, setConfirmed] = useState<Confirmation | null>(null)
   const confirmKey = useRef(0)
   const confirmTimer = useRef<number | null>(null)
-  useEffect(() => () => { if (confirmTimer.current !== null) window.clearTimeout(confirmTimer.current) }, [])
+  useEffect(
+    () => () => {
+      if (confirmTimer.current !== null) window.clearTimeout(confirmTimer.current)
+    },
+    [],
+  )
   const confirm = (flightId: number, field: EditableField) => {
     const key = ++confirmKey.current
     setConfirmed({ flightId, field, key })
     if (confirmTimer.current !== null) window.clearTimeout(confirmTimer.current)
-    confirmTimer.current = window.setTimeout(() => { confirmTimer.current = null; setConfirmed(current => current?.key === key ? null : current) }, CONFIRM_MS)
+    confirmTimer.current = window.setTimeout(() => {
+      confirmTimer.current = null
+      setConfirmed((current) => (current?.key === key ? null : current))
+    }, CONFIRM_MS)
   }
 
-  const current = (id: number) => latest.current.payload.flights.find(flight => flight.id === id)
+  const current = (id: number) => latest.current.payload.flights.find((flight) => flight.id === id)
   /** Applies the server's row at once, then lets the refetch recompute firsts, connections and refs. */
-  const settle = (mod: FlightEditor, flightId: number, field: EditableField, dto: FlightDto): JournalFlight | null => {
+  const settle = (
+    mod: FlightEditor,
+    flightId: number,
+    field: EditableField,
+    dto: FlightDto,
+  ): JournalFlight | null => {
     const before = current(flightId)
     feedback.acknowledge(dto)
-    if (!before) { void refresh(); return null }
+    if (!before) {
+      void refresh()
+      return null
+    }
     const merged = mod.mergeSavedFlight(before, dto)
     applyFlight(merged, mod.refsPatch(merged, latest.current.payload.refs))
     // Lifecycle moved (a date edit): Query-owned reads elsewhere (queue, badges) refresh too; the store's own listener refetches the list.
-    if (merged.lifecycle_state !== before.lifecycle_state) window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
+    if (merged.lifecycle_state !== before.lifecycle_state)
+      window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
     else void refresh()
     seqs.current.set(flightId, (seqs.current.get(flightId) ?? 0) + 1)
     confirm(flightId, field)
     return merged
   }
-  const dropped = (generation: number) => identityReset.current || generation !== getAuthGeneration()
+  const dropped = (generation: number) =>
+    identityReset.current || generation !== getAuthGeneration()
 
   const undo = async (record: EditRecord) => {
     const { online: isOnline, locale: lang } = latest.current
     const say = copy[lang]
-    if (!isOnline) { toast.show({ kind: 'error', message: say.offline }); return }
-    if (savingRef.current.has(record.flightId)) { toast.show({ kind: 'error', message: say.busy }); return }
+    if (!isOnline) {
+      toast.show({ kind: 'error', message: say.offline })
+      return
+    }
+    if (savingRef.current.has(record.flightId)) {
+      toast.show({ kind: 'error', message: say.busy })
+      return
+    }
     const mod = await loadEditor()
-    if (!mod) { toast.show({ kind: 'error', message: say.editorFailed }); return }
-    setOffer(current => current?.record === record ? null : current)
-    if (!mod.canUndo(record, current(record.flightId), seqs.current.get(record.flightId))) { toast.show({ kind: 'error', message: say.undoRefused }); return }
+    if (!mod) {
+      toast.show({ kind: 'error', message: say.editorFailed })
+      return
+    }
+    setOffer((current) => (current?.record === record ? null : current))
+    if (!mod.canUndo(record, current(record.flightId), seqs.current.get(record.flightId))) {
+      toast.show({ kind: 'error', message: say.undoRefused })
+      return
+    }
     if (identityReset.current) return
     const generation = getAuthGeneration()
     mark(record.flightId, true)
     try {
       const { outcome, flight: dto } = await mod.undoWrite(record, lang, generation)
       if (dropped(generation)) return
-      if (outcome.status === 'saved' && dto) { settle(mod, record.flightId, record.field, dto); toast.show({ kind: 'success', message: say.undone }) }
-      else { toast.show({ kind: 'error', message: outcome.status === 'saved' ? mod.unknownMessage(lang) : outcome.message }); void refresh() }
-    } finally { mark(record.flightId, false) }
+      if (outcome.status === 'saved' && dto) {
+        settle(mod, record.flightId, record.field, dto)
+        toast.show({ kind: 'success', message: say.undone })
+      } else {
+        toast.show({
+          kind: 'error',
+          message: outcome.status === 'saved' ? mod.unknownMessage(lang) : outcome.message,
+        })
+        void refresh()
+      }
+    } finally {
+      mark(record.flightId, false)
+    }
   }
 
-  const save = async (flight: JournalFlight, field: EditableField, draft: string): Promise<InlineEditOutcome> => {
+  const save = async (
+    flight: JournalFlight,
+    field: EditableField,
+    draft: string,
+  ): Promise<InlineEditOutcome> => {
     if (!latest.current.online) return { status: 'rejected', message: t.offline }
     if (identityReset.current) return { status: 'rejected', message: t.sessionChanged }
     if (savingRef.current.has(flight.id)) return { status: 'rejected', message: t.busy }
@@ -191,19 +316,46 @@ function useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight,
       const value = mod.normalizeDraft(field, draft)
       const previous = base[field] ?? null
       if (value === previous) return { status: 'saved' }
-      const { outcome, flight: dto } = await mod.writeFlightField(flight.id, field, value, locale, generation)
+      const { outcome, flight: dto } = await mod.writeFlightField(
+        flight.id,
+        field,
+        value,
+        locale,
+        generation,
+      )
       // The answer belongs to a session that has ended: never applied, never refetched here (the page is leaving).
-      if (dropped(generation)) return outcome.status === 'saved' ? { status: 'unknown', message: t.sessionChanged } : outcome
+      if (dropped(generation))
+        return outcome.status === 'saved'
+          ? { status: 'unknown', message: t.sessionChanged }
+          : outcome
       if (outcome.status === 'saved' && dto) {
         const merged = settle(mod, flight.id, field, dto)
         if (merged && dto.undo_token) {
-          const record: EditRecord = { flightId: flight.id, field, previous, undoToken: dto.undo_token, after: mod.editableValues(merged), seq: seqs.current.get(flight.id)! }
-          if (latest.current.docked) { setOffer(null); toast.show({ kind: 'success', message: t.saved(field), actionLabel: t.undo, onAction: () => { void undo(record) } }) }
-          else setOffer({ record, message: t.saved(field) })
+          const record: EditRecord = {
+            flightId: flight.id,
+            field,
+            previous,
+            undoToken: dto.undo_token,
+            after: mod.editableValues(merged),
+            seq: seqs.current.get(flight.id)!,
+          }
+          if (latest.current.docked) {
+            setOffer(null)
+            toast.show({
+              kind: 'success',
+              message: t.saved(field),
+              actionLabel: t.undo,
+              onAction: () => {
+                void undo(record)
+              },
+            })
+          } else setOffer({ record, message: t.saved(field) })
         }
       } else void refresh() // unknown: the list shows what landed; rejected: a conflict needs the current row
       return outcome
-    } finally { mark(flight.id, false) }
+    } finally {
+      mark(flight.id, false)
+    }
   }
 
   const dismissOffer = useCallback(() => setOffer(null), [])
@@ -221,22 +373,37 @@ export type JournalDetailProps = {
   placeholder?: { title: ReactNode; content: ReactNode } | null
 }
 
-export function JournalDetail({ ownerId, locale, docked, initialField, top, status, footer, placeholder }: JournalDetailProps) {
+export function JournalDetail({
+  ownerId,
+  locale,
+  docked,
+  initialField,
+  top,
+  status,
+  footer,
+  placeholder,
+}: JournalDetailProps) {
   const t = copy[locale]
-  const { payload, view, openFlight, closeSheet, refresh, applyFlight, online, hidden } = useJournalStore()
+  const { payload, view, openFlight, closeSheet, refresh, applyFlight, online, hidden } =
+    useJournalStore()
   const mounted = useMounted()
   const mobile = useMobile()
   const offlineNoteId = useId()
   const edits = useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight, refresh })
   const { loadEditor: loadEditorModule, dismissOffer } = edits
-  const loadEditor = useCallback(() => { void loadEditorModule() }, [loadEditorModule])
+  const loadEditor = useCallback(() => {
+    void loadEditorModule()
+  }, [loadEditorModule])
 
   const id = view.flight
   // The overlay keeps showing the last flight while it animates out.
   const [shownId, setShownId] = useState(id)
   if (id !== null && id !== shownId) setShownId(id)
-  const flight = shownId !== null && !hidden.has(shownId) ? payload.flights.find(item => item.id === shownId) : undefined
-  const idle = id === null ? placeholder ?? null : null
+  const flight =
+    shownId !== null && !hidden.has(shownId)
+      ? payload.flights.find((item) => item.id === shownId)
+      : undefined
+  const idle = id === null ? (placeholder ?? null) : null
 
   const paneTitle = useRef<HTMLHeadingElement | null>(null)
   const body = useRef<HTMLDivElement | null>(null)
@@ -251,7 +418,12 @@ export function JournalDetail({ ownerId, locale, docked, initialField, top, stat
     if (id === null) {
       dismissOffer()
       // Closed: focus fell out of the removed pane (or the overlay already handed it back). Return it to the row it came from.
-      if (docked && before !== null && (!document.activeElement || document.activeElement === document.body)) rowFor(before)?.focus()
+      if (
+        docked &&
+        before !== null &&
+        (!document.activeElement || document.activeElement === document.body)
+      )
+        rowFor(before)?.focus()
       return
     }
     const inside = swapFromInside.current
@@ -260,60 +432,159 @@ export function JournalDetail({ ownerId, locale, docked, initialField, top, stat
       if (before === null && initialField?.flightId === id) return // the requested field takes focus
       if (before === null || inside) paneTitle.current?.focus()
     } else if (inside) {
-      body.current?.closest<HTMLElement>('[role=dialog]')?.querySelector<HTMLElement>('.ui-panel-title')?.focus()
+      body.current
+        ?.closest<HTMLElement>('[role=dialog]')
+        ?.querySelector<HTMLElement>('.ui-panel-title')
+        ?.focus()
     }
   }, [id, docked, initialField, dismissOffer])
 
-  const swap = useCallback((next: number) => { swapFromInside.current = true; openFlight(next) }, [openFlight])
+  const swap = useCallback(
+    (next: number) => {
+      swapFromInside.current = true
+      openFlight(next)
+    },
+    [openFlight],
+  )
   const paneKeys = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Escape' || event.defaultPrevented) return
     event.preventDefault()
     closeSheet()
   }
 
-  const title = flight
-    ? <>{flight.origin}<span aria-hidden="true"> → </span><span className="sr-only">{locale === 'ru' ? ' в ' : ' to '}</span>{flight.destination}</>
-    : t.flight
-  const content = flight
-    ? <Crossfade signature={String(flight.id)}>
-      <FlightDetail key={flight.id} flight={flight} payload={payload} locale={locale} online={online} offlineNoteId={offlineNoteId}
-        editor={edits.editor} editorState={edits.editorState} loadEditor={loadEditor} onSave={edits.save} busy={edits.saving.has(flight.id)}
+  const title = flight ? (
+    <>
+      {flight.origin}
+      <span aria-hidden="true"> → </span>
+      <span className="sr-only">{locale === 'ru' ? ' в ' : ' to '}</span>
+      {flight.destination}
+    </>
+  ) : (
+    t.flight
+  )
+  const content = flight ? (
+    <Crossfade signature={String(flight.id)}>
+      <FlightDetail
+        key={flight.id}
+        flight={flight}
+        payload={payload}
+        locale={locale}
+        online={online}
+        offlineNoteId={offlineNoteId}
+        editor={edits.editor}
+        editorState={edits.editorState}
+        loadEditor={loadEditor}
+        onSave={edits.save}
+        busy={edits.saving.has(flight.id)}
         confirmedField={edits.confirmed?.flightId === flight.id ? edits.confirmed.field : null}
-        initialField={initialField?.flightId === flight.id ? initialField.field : null} onOpenFlight={swap} />
+        initialField={initialField?.flightId === flight.id ? initialField.field : null}
+        onOpenFlight={swap}
+      />
     </Crossfade>
-    : <div className="jd-missing" role="status">
+  ) : (
+    <div className="jd-missing" role="status">
       <p>{t.missing}</p>
-      <Button variant="secondary" onClick={closeSheet}>{t.closeMissing}</Button>
+      <Button variant="secondary" onClick={closeSheet}>
+        {t.closeMissing}
+      </Button>
     </div>
-  const lead = <>
-    {status}
-    {flight && !online && <OfflineNote locale={locale} id={offlineNoteId} />}
-    {flight && <Link className="journal-text-link jd-full-editor" href={`/journal/${flight.id}/edit`}>{t.fullEditor}</Link>}
-    {flight && top}
-  </>
+  )
+  const lead = (
+    <>
+      {status}
+      {flight && !online && <OfflineNote locale={locale} id={offlineNoteId} />}
+      {flight && (
+        <Link className="journal-text-link jd-full-editor" href={`/journal/${flight.id}/edit`}>
+          {t.fullEditor}
+        </Link>
+      )}
+      {flight && top}
+    </>
+  )
   const offer = !docked && flight && edits.offer?.record.flightId === flight.id ? edits.offer : null
-  const undoLine = <div className="jd-undo" role="status">
-    {offer && <><p>{offer.message}</p><Button variant="ghost" dense onClick={() => { void edits.undo(offer.record) }}>{t.undo}</Button></>}
-  </div>
+  const undoLine = (
+    <div className="jd-undo" role="status">
+      {offer && (
+        <>
+          <p>{offer.message}</p>
+          <Button
+            variant="ghost"
+            dense
+            onClick={() => {
+              void edits.undo(offer.record)
+            }}
+          >
+            {t.undo}
+          </Button>
+        </>
+      )}
+    </div>
+  )
 
   if (docked) {
     if (id === null && !idle) return null
-    return <aside className="journal-detail" aria-label={t.region} onKeyDown={paneKeys}>
-      <div className="jd-header">
-        <h2 ref={paneTitle} tabIndex={-1} className="jd-title">{idle ? idle.title : title}</h2>
-        <button type="button" className="ui-icon-button" aria-label={t.close} onClick={closeSheet}><X size={20} strokeWidth={2} aria-hidden="true" /></button>
-      </div>
-      <div ref={body} className="jd-body">{idle ? idle.content : <>{lead}{content}</>}</div>
-      {footer && flight && !idle && <div className="jd-footer">{footer}</div>}
-    </aside>
+    return (
+      <aside className="journal-detail" aria-label={t.region} onKeyDown={paneKeys}>
+        <div className="jd-header">
+          <h2 ref={paneTitle} tabIndex={-1} className="jd-title">
+            {idle ? idle.title : title}
+          </h2>
+          <button
+            type="button"
+            className="ui-icon-button"
+            aria-label={t.close}
+            onClick={closeSheet}
+          >
+            <X size={20} strokeWidth={2} aria-hidden="true" />
+          </button>
+        </div>
+        <div ref={body} className="jd-body">
+          {idle ? (
+            idle.content
+          ) : (
+            <>
+              {lead}
+              {content}
+            </>
+          )}
+        </div>
+        {footer && flight && !idle && <div className="jd-footer">{footer}</div>}
+      </aside>
+    )
   }
 
-  return <Sheet open={mounted && mobile !== null && (id !== null || idle !== null)} onOpenChange={open => { if (!open) closeSheet() }}
-    title={idle ? idle.title : title} side={mobile ? 'bottom' : 'right'} className={mobile ? 'journal-detail-sheet flight-full-sheet' : 'journal-detail-sheet'}
-    closeLabel={t.close} footer={footer && flight && !idle ? footer : undefined}
-    onCloseAutoFocus={event => { const row = shownId !== null ? rowFor(shownId) : null; if (row) { event.preventDefault(); row.focus() } }}>
-    <div ref={body} className="jd-body-inner">{idle ? idle.content : <>{lead}{content}{undoLine}</>}</div>
-  </Sheet>
+  return (
+    <Sheet
+      open={mounted && mobile !== null && (id !== null || idle !== null)}
+      onOpenChange={(open) => {
+        if (!open) closeSheet()
+      }}
+      title={idle ? idle.title : title}
+      side={mobile ? 'bottom' : 'right'}
+      className={mobile ? 'journal-detail-sheet flight-full-sheet' : 'journal-detail-sheet'}
+      closeLabel={t.close}
+      footer={footer && flight && !idle ? footer : undefined}
+      onCloseAutoFocus={(event) => {
+        const row = shownId !== null ? rowFor(shownId) : null
+        if (row) {
+          event.preventDefault()
+          row.focus()
+        }
+      }}
+    >
+      <div ref={body} className="jd-body-inner">
+        {idle ? (
+          idle.content
+        ) : (
+          <>
+            {lead}
+            {content}
+            {undoLine}
+          </>
+        )}
+      </div>
+    </Sheet>
+  )
 }
 
 function rowFor(id: number): HTMLElement | null {

@@ -4,7 +4,8 @@ import { claimUsername, fixtureHeaders } from './helpers'
 async function freshAccount(page: Page, origin: string) {
   const email = `capture-${crypto.randomUUID()}@example.test`
   const response = await page.request.post('/api/auth/sign-up/email', {
-    headers: fixtureHeaders(origin), data: { email, password: 'capture-password-2026' },
+    headers: fixtureHeaders(origin),
+    data: { email, password: 'capture-password-2026' },
   })
   expect(response.status()).toBe(201)
   await claimUsername(page, origin)
@@ -12,7 +13,10 @@ async function freshAccount(page: Page, origin: string) {
 
 async function fillFlight(page: Page) {
   await page.getByLabel('Date').fill('2025-06-01')
-  for (const [label, code] of [['From', 'JFK'], ['To', 'BOS']]) {
+  for (const [label, code] of [
+    ['From', 'JFK'],
+    ['To', 'BOS'],
+  ]) {
     await page.getByRole('combobox', { name: label }).click()
     const search = page.getByRole('dialog', { name: label, exact: true })
     await search.getByRole('combobox', { name: label }).fill(code)
@@ -20,13 +24,16 @@ async function fillFlight(page: Page) {
   }
 }
 
-test('manual capture retries the original uncertain save, then edits and deletes the flight', async ({ page, baseURL }) => {
+test('manual capture retries the original uncertain save, then edits and deletes the flight', async ({
+  page,
+  baseURL,
+}) => {
   await freshAccount(page, baseURL!)
   await page.goto('/add')
   await fillFlight(page)
   let firstKey = ''
   let writes = 0
-  await page.route('**/api/flights', async route => {
+  await page.route('**/api/flights', async (route) => {
     if (route.request().method() !== 'POST') return route.continue()
     writes++
     const key = route.request().headers()['idempotency-key']
@@ -34,7 +41,11 @@ test('manual capture retries the original uncertain save, then edits and deletes
       firstKey = key
       const accepted = await route.fetch()
       expect(accepted.status()).toBe(201)
-      await route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Response lost"}' })
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: '{"error":"Response lost"}',
+      })
     } else {
       expect(key).toBe(firstKey)
       await route.continue()
@@ -48,7 +59,7 @@ test('manual capture retries the original uncertain save, then edits and deletes
 
   const listing = await page.request.get('/api/flights/all')
   expect(listing.status()).toBe(200)
-  const flights = await listing.json() as { id: number }[]
+  const flights = (await listing.json()) as { id: number }[]
   expect(flights).toHaveLength(1)
   await page.goto(`/journal/${flights[0].id}/edit`)
   await page.getByRole('button', { name: 'Optional details', exact: true }).click()
@@ -56,14 +67,21 @@ test('manual capture retries the original uncertain save, then edits and deletes
   await page.getByRole('button', { name: 'Save flight' }).click()
   await expect(page.getByRole('heading', { name: 'Flight saved' })).toBeVisible()
   const edited = await page.request.get(`/api/flights/${flights[0].id}`)
-  expect((await edited.json() as { flight_number: string }).flight_number).toBe('AA123')
+  expect(((await edited.json()) as { flight_number: string }).flight_number).toBe('AA123')
   await page.goto(`/journal/${flights[0].id}/edit`)
   await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
-  await expect(page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Cancel', exact: true })).toBeFocused()
+  await expect(
+    page
+      .getByRole('dialog', { name: /^Delete .+ → .+\?$/ })
+      .getByRole('button', { name: 'Cancel', exact: true }),
+  ).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Delete flight', exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Delete flight', exact: true }).click()
-  await page.getByRole('dialog', { name: /^Delete .+ → .+\?$/ }).getByRole('button', { name: 'Delete flight', exact: true }).click()
+  await page
+    .getByRole('dialog', { name: /^Delete .+ → .+\?$/ })
+    .getByRole('button', { name: 'Delete flight', exact: true })
+    .click()
   await page.waitForURL('**/journal')
-  expect((await (await page.request.get('/api/flights/all')).json() as unknown[])).toHaveLength(0)
+  expect((await (await page.request.get('/api/flights/all')).json()) as unknown[]).toHaveLength(0)
 })

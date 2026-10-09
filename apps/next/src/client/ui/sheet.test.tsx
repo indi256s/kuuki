@@ -8,26 +8,69 @@ import { Menu, MenuItem } from './menu'
 
 function Harness({ onChange }: { onChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState(false)
-  return <Sheet open={open} onOpenChange={next => { setOpen(next); onChange?.(next) }} title="Country" trigger={<button type="button">Open sheet</button>} footer={<button type="button">Done</button>}><p>Body text</p></Sheet>
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        onChange?.(next)
+      }}
+      title="Country"
+      trigger={<button type="button">Open sheet</button>}
+      footer={<button type="button">Done</button>}
+    >
+      <p>Body text</p>
+    </Sheet>
+  )
 }
 
-function pointer(target: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp', clientY: number, timeStamp: number) {
+function pointer(
+  target: Element,
+  type: 'pointerDown' | 'pointerMove' | 'pointerUp',
+  clientY: number,
+  timeStamp: number,
+) {
   const event = createEvent[type](target, { clientY, clientX: 0, pointerId: 1, button: 0 })
   Object.defineProperty(event, 'timeStamp', { value: timeStamp })
   fireEvent(target, event)
 }
 
 describe('shouldDismiss', () => {
-  it('dismisses past 35% of the height', () => { expect(shouldDismiss({ distance: 180, height: 500, velocity: 0 })).toBe(true) })
-  it('dismisses on a fast flick even when short', () => { expect(shouldDismiss({ distance: 20, height: 500, velocity: 0.2 })).toBe(true) })
-  it('snaps back on a slow short drag', () => { expect(shouldDismiss({ distance: 100, height: 500, velocity: 0.05 })).toBe(false) })
-  it('never dismisses when dragged against the open direction', () => { expect(shouldDismiss({ distance: -300, height: 500, velocity: -1 })).toBe(false) })
-  it('damps overshoot below the limit', () => { expect(rubberBand(1000)).toBeLessThan(80); expect(rubberBand(50)).toBeLessThan(50) })
+  it('dismisses past 35% of the height', () => {
+    expect(shouldDismiss({ distance: 180, height: 500, velocity: 0 })).toBe(true)
+  })
+  it('dismisses on a fast flick even when short', () => {
+    expect(shouldDismiss({ distance: 20, height: 500, velocity: 0.2 })).toBe(true)
+  })
+  it('snaps back on a slow short drag', () => {
+    expect(shouldDismiss({ distance: 100, height: 500, velocity: 0.05 })).toBe(false)
+  })
+  it('never dismisses when dragged against the open direction', () => {
+    expect(shouldDismiss({ distance: -300, height: 500, velocity: -1 })).toBe(false)
+  })
+  it('damps overshoot below the limit', () => {
+    expect(rubberBand(1000)).toBeLessThan(80)
+    expect(rubberBand(50)).toBeLessThan(50)
+  })
 })
 
 describe('Sheet', () => {
-  beforeEach(() => { vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ width: 400, height: 500, top: 0, left: 0, right: 400, bottom: 500, x: 0, y: 0, toJSON: () => ({}) }) })
-  afterEach(() => { vi.restoreAllMocks() })
+  beforeEach(() => {
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+      width: 400,
+      height: 500,
+      top: 0,
+      left: 0,
+      right: 400,
+      bottom: 500,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
 
   it('Escape closes and focus returns to the trigger', async () => {
     const user = userEvent.setup()
@@ -51,12 +94,14 @@ describe('Sheet', () => {
   it('keeps keyboard focus in a portalled menu until selection returns it to the sheet', async () => {
     const user = userEvent.setup()
     const selected = vi.fn()
-    render(<Sheet open onOpenChange={() => {}} title="Rankings">
-      <Menu trigger={<button type="button">Section options</button>}>
-        <MenuItem>Move up</MenuItem>
-        <MenuItem onSelect={selected}>Hide</MenuItem>
-      </Menu>
-    </Sheet>)
+    render(
+      <Sheet open onOpenChange={() => {}} title="Rankings">
+        <Menu trigger={<button type="button">Section options</button>}>
+          <MenuItem>Move up</MenuItem>
+          <MenuItem onSelect={selected}>Hide</MenuItem>
+        </Menu>
+      </Sheet>,
+    )
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Rankings' })).toHaveFocus())
     await user.tab()
     await user.tab()

@@ -1,12 +1,48 @@
 /* Arc checkbox/list composition, using native selection and the accepted Kuuki field/menu authority (MIT; ui/ARC-LICENSE.txt). */
-.capture-manage .capture-card{min-width:0;border-radius:var(--radius-md)}
-.capture-manage fieldset{display:grid;gap:var(--space-1);border:1px solid var(--hairline)}
-.capture-manage fieldset label{min-height:44px;line-height:20px}
-.capture-manage fieldset input[type=checkbox]{flex:none;width:20px;height:20px;padding:0;accent-color:var(--accent)}
-.capture-manage fieldset input[type=checkbox]:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
-.capture-manage .flight-combobox{min-width:0}
-.capture-manage .flight-combobox .ui-field-input{background:var(--surface)}
-.capture-manage .capture-outcomes li{padding:var(--space-3);border-radius:var(--radius-sm);background:var(--surface-inset);overflow-wrap:anywhere}
-.capture-manage .capture-outcomes [data-state=uncertain]{border-inline-start:3px solid var(--warning-fill)}
-.capture-manage .capture-outcomes [data-state=failed]{border-inline-start:3px solid var(--danger-fill)}
-@media(max-width:700px){.capture-manage .capture-card{margin-inline:0}}
+.capture-manage .capture-card {
+  min-width: 0;
+  border-radius: var(--radius-md);
+}
+.capture-manage fieldset {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid var(--hairline);
+}
+.capture-manage fieldset label {
+  min-height: 44px;
+  line-height: 20px;
+}
+.capture-manage fieldset input[type='checkbox'] {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  accent-color: var(--accent);
+}
+.capture-manage fieldset input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.capture-manage .flight-combobox {
+  min-width: 0;
+}
+.capture-manage .flight-combobox .ui-field-input {
+  background: var(--surface);
+}
+.capture-manage .capture-outcomes li {
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  overflow-wrap: anywhere;
+}
+.capture-manage .capture-outcomes [data-state='uncertain'] {
+  border-inline-start: 3px solid var(--warning-fill);
+}
+.capture-manage .capture-outcomes [data-state='failed'] {
+  border-inline-start: 3px solid var(--danger-fill);
+}
+@media (max-width: 700px) {
+  .capture-manage .capture-card {
+    margin-inline: 0;
+  }
+}

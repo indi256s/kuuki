@@ -28,7 +28,7 @@ Linear does not use pure black (`#000000`). It uses deep, cool grays to reduce e
 **Typography & Contrast**
 
 - **Text Primary:** `#F2F4F7` (Almost white, never pure white)
-- **Text Secondary:** `#8A8F98` (Cool, medium gray - *Critical for hierarchy*)
+- **Text Secondary:** `#8A8F98` (Cool, medium gray - _Critical for hierarchy_)
 - **Text Tertiary:** `#5F6570` (Subtle metadata)
 - **Text Quaternary:** `#424752` (Disabled/Placeholder)
 
@@ -42,7 +42,7 @@ Linear does not use pure black (`#000000`). It uses deep, cool grays to reduce e
 **Functional Accents (The "Lights")**
 
 - **Primary (Coral):** `#F76B6E` (Brand, Links, Focus)
-  - *Glow:* `box-shadow: 0 0 16px rgba(247, 107, 110, 0.4)`
+  - _Glow:_ `box-shadow: 0 0 16px rgba(247, 107, 110, 0.4)`
 - **Success (Teal/Green):** `#2EB88A` (On track, Done)
 - **Warning (Amber):** `#E5A000` (At risk)
 - **Error (Red):** `#E5484D` (Failed, Off track)
@@ -68,16 +68,16 @@ Primary palette for charts, graphs, tags, and illustrations (10-tone scale):
 **Weights:** Regular (400), Medium (500), SemiBold (600).
 **Tracking:** Tighter than default to feel "engineered".
 
-| Role | Size (px) | Line Height | Weight | Tracking | Usage |
-|------|-----------|-------------|--------|----------|-------|
-| `text-xs` | 12px | 16px | Medium | 0 | Badges, captions |
-| `text-sm` | 13px | 20px | Regular | -0.01em | Body, list items |
-| `text-base` | 14px | 24px | Regular | -0.01em | Long form text |
-| `text-lg` | 16px | 28px | Medium | -0.02em | Section headers |
-| `text-xl` | 20px | 32px | Semibold | -0.02em | Modal titles |
-| `text-2xl` | 24px | 32px | Semibold | -0.03em | Page titles |
+| Role        | Size (px) | Line Height | Weight   | Tracking | Usage            |
+| ----------- | --------- | ----------- | -------- | -------- | ---------------- |
+| `text-xs`   | 12px      | 16px        | Medium   | 0        | Badges, captions |
+| `text-sm`   | 13px      | 20px        | Regular  | -0.01em  | Body, list items |
+| `text-base` | 14px      | 24px        | Regular  | -0.01em  | Long form text   |
+| `text-lg`   | 16px      | 28px        | Medium   | -0.02em  | Section headers  |
+| `text-xl`   | 20px      | 32px        | Semibold | -0.02em  | Modal titles     |
+| `text-2xl`  | 24px      | 32px        | Semibold | -0.03em  | Page titles      |
 
-*Note: Use `13px` as the default body size for that dense, information-rich dashboard feel.*
+_Note: Use `13px` as the default body size for that dense, information-rich dashboard feel._
 
 ### 1.3 Spacing & Layout
 
@@ -135,7 +135,7 @@ Used sparingly for floating headers, toast messages, and command palettes.
 
 ### 3.1 Buttons
 
-- **Primary:** Background `#F2F4F7` (White), Text `#08090A` (Black). *Inverted high contrast.*
+- **Primary:** Background `#F2F4F7` (White), Text `#08090A` (Black). _Inverted high contrast._
 - **Secondary:** Background `rgba(255,255,255,0.05)`, Text `#F2F4F7`, Border `1px solid rgba(255,255,255,0.05)`. Hover: `rgba(255,255,255,0.08)`.
 - **Ghost:** Transparent, Text `#8A8F98`. Hover: Text `#F2F4F7`, Background `rgba(255,255,255,0.05)`.
 
@@ -190,8 +190,8 @@ Used sparingly for floating headers, toast messages, and command palettes.
 1. **Colors:** Extend `colors` with `linear` palette variables.
 2. **Opacity:** Heavy use of `bg-white/5` or `border-white/10`.
 3. **Ref:**
-    - `bg-surface` -> `#121417`
-    - `border-highlight` -> `rgba(255,255,255,0.1)`
+   - `bg-surface` -> `#121417`
+   - `border-highlight` -> `rgba(255,255,255,0.1)`
 
 ```css
 /* Example Utility Class Extensions */
@@ -200,7 +200,7 @@ Used sparingly for floating headers, toast messages, and command palettes.
 }
 
 .glow-text {
-  text-shadow: 0 0 20px rgba(255,255,255,0.5);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 .chart-gradient {
@@ -210,4 +210,4 @@ Used sparingly for floating headers, toast messages, and command palettes.
 
 ---
 
-*Verified against user references.*
+_Verified against user references._

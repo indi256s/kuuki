@@ -1,6 +1,43 @@
 /* The Journal's pending-delete notice (toast region) and the same line inside a modal sheet. Tokens only, weights 400/500. */
-.journal-delete-notice{box-sizing:border-box;width:min(420px,100%);display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--surface-floating);color:var(--text);box-shadow:var(--shadow-floating),var(--ring-floating)}
-.journal-delete-notice:not([data-active]){position:absolute;inset:auto;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;background:none;box-shadow:none}
-.journal-delete-line{display:flex;align-items:center;gap:var(--space-3)}
-.journal-delete-message{flex:1;min-width:0;margin:0;font-weight:500;text-wrap:pretty}
-.journal-delete-seconds{color:var(--text-muted);font-variant-numeric:tabular-nums}
+.journal-delete-notice {
+  box-sizing: border-box;
+  width: min(420px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-floating);
+  color: var(--text);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
+}
+.journal-delete-notice:not([data-active]) {
+  position: absolute;
+  inset: auto;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.journal-delete-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.journal-delete-message {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+.journal-delete-seconds {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

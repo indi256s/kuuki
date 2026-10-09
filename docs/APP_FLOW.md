@@ -5,25 +5,25 @@
 The current app is [apps/next](../apps/next/src/app/), with server gates in
 [gates.ts](../apps/next/src/server/gates.ts). The former Vite inventory below is historical. Its source is no longer built. It does not describe the current navigation.
 
-| Routes | Current behavior |
-| --- | --- |
-| `/`, `/signin`, `/signup` | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding. |
-| `/forgot-password`, `/activation-request` | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`. |
-| `/reset-password` | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in. |
-| `/password-updated` | Redirects to `/?notice=password-saved`. |
-| `/activate`, `/activate.html` | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in. |
-| `/account-deleted` | Signed-out deletion confirmation. |
-| `/onboarding?step=name`, `capture`, `reveal` | Name/profile setup, shared manual/upload/paste Capture, then truthful saved-flight feedback. A durable import `batch` can resume Capture. |
-| `/overview` | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery. |
-| `/journal` | Paged flight log; search/filter/sort/page state belongs to this URL. |
-| `/journal/[id]/edit`, `/add`, `/import` | Own-flight editing, manual Capture and resumable import Source/Progress/Review/Done. |
-| `/passport` | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map. |
-| `/passport/manage` | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`. |
-| `/fly/[username]` | Public profile for visitors or private owner profile; live visibility gates protect private records. |
-| `/leaderboard` | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy. |
-| `/settings` | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion. |
-| `/me` | Resolves to the own profile, unfinished Name step or sign-in. |
-| `/dashboard`, `/flights`, `/journey`, `/landing` | Compatibility redirects to Overview, Journal, Overview and `/`. |
+| Routes                                           | Current behavior                                                                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`, `/signin`, `/signup`                        | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding.   |
+| `/forgot-password`, `/activation-request`        | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`.                                                   |
+| `/reset-password`                                | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in.       |
+| `/password-updated`                              | Redirects to `/?notice=password-saved`.                                                                                                   |
+| `/activate`, `/activate.html`                    | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in.        |
+| `/account-deleted`                               | Signed-out deletion confirmation.                                                                                                         |
+| `/onboarding?step=name`, `capture`, `reveal`     | Name/profile setup, shared manual/upload/paste Capture, then truthful saved-flight feedback. A durable import `batch` can resume Capture. |
+| `/overview`                                      | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery.                                                        |
+| `/journal`                                       | Paged flight log; search/filter/sort/page state belongs to this URL.                                                                      |
+| `/journal/[id]/edit`, `/add`, `/import`          | Own-flight editing, manual Capture and resumable import Source/Progress/Review/Done.                                                      |
+| `/passport`                                      | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map.                                           |
+| `/passport/manage`                               | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`.                                     |
+| `/fly/[username]`                                | Public profile for visitors or private owner profile; live visibility gates protect private records.                                      |
+| `/leaderboard`                                   | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy.                                        |
+| `/settings`                                      | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion.                                                  |
+| `/me`                                            | Resolves to the own profile, unfinished Name step or sign-in.                                                                             |
+| `/dashboard`, `/flights`, `/journey`, `/landing` | Compatibility redirects to Overview, Journal, Overview and `/`.                                                                           |
 
 Member routes require an authenticated, named profile. Public profile and
 leaderboard pages use the member shell for authenticated viewers and the brand
@@ -65,26 +65,25 @@ Everything below records former Vite screen names; it is not a buildable rollbac
 
 ## Screen Inventory
 
-
 ### Public Routes (No Auth Required)
 
-| Route | Component | Purpose |
-|-------|-----------|---------|
-| `/` | AuthPage | Sign in / sign up entry point |
-| `/landing` | LandingPage | Marketing page for visitors |
-| `/fly/:username` | ProfilePage | Public view of user stats |
-| `/leaderboard` | LeaderboardPage | Global rankings |
+| Route            | Component       | Purpose                       |
+| ---------------- | --------------- | ----------------------------- |
+| `/`              | AuthPage        | Sign in / sign up entry point |
+| `/landing`       | LandingPage     | Marketing page for visitors   |
+| `/fly/:username` | ProfilePage     | Public view of user stats     |
+| `/leaderboard`   | LeaderboardPage | Global rankings               |
 
 ### Protected Routes (Auth Required)
 
-| Route | Component | Purpose |
-|-------|-----------|---------|
-| `/dashboard` | DashboardPage | Personal stats overview |
-| `/flights` | FlightsPage | Full flight log |
-| `/passport` | PassportPage | Country stamps visualization |
-| `/import` | ImportPage | AI-powered flight import |
-| `/settings` | SettingsPage | Account preferences |
-| `/onboarding` | OnboardingPage | First-time user setup |
+| Route         | Component      | Purpose                      |
+| ------------- | -------------- | ---------------------------- |
+| `/dashboard`  | DashboardPage  | Personal stats overview      |
+| `/flights`    | FlightsPage    | Full flight log              |
+| `/passport`   | PassportPage   | Country stamps visualization |
+| `/import`     | ImportPage     | AI-powered flight import     |
+| `/settings`   | SettingsPage   | Account preferences          |
+| `/onboarding` | OnboardingPage | First-time user setup        |
 
 ---
 
@@ -468,12 +467,14 @@ Everything below records former Vite screen names; it is not a buildable rollbac
 ```
 
 **What's Visible:**
+
 - Username, display name, avatar, bio
 - Aggregate stats (not individual flights)
 - Badges earned
 - Leaderboard percentiles
 
 **What's NEVER Visible:**
+
 - Individual flights
 - Route map
 - Passport stamps
@@ -588,6 +589,7 @@ Everything below records former Vite screen names; it is not a buildable rollbac
 ```
 
 **Actions:**
+
 - Theme/language changes apply immediately
 - Profile changes require save
 - CSV export downloads file
@@ -682,6 +684,7 @@ Error:   ❌ "Flight log delayed on the tarmac"
 ```
 
 **Aviation-themed personality:**
+
 - "That route doesn't exist in our flight plan"
 - "Connection lost. We're working on rerouting"
 
@@ -699,19 +702,19 @@ Each route has its own error boundary. Errors don't crash the entire app.
 
 ## Responsive Behavior
 
-| Component | Desktop | Mobile |
-|-----------|---------|--------|
-| Navigation | Left sidebar | Bottom tab bar |
-| Flight list | Data table | Card list |
-| Add flight | Modal | Full-screen sheet |
-| Filters | Horizontal row | Bottom sheet |
-| Profile | Full width | Stacked sections |
+| Component   | Desktop        | Mobile            |
+| ----------- | -------------- | ----------------- |
+| Navigation  | Left sidebar   | Bottom tab bar    |
+| Flight list | Data table     | Card list         |
+| Add flight  | Modal          | Full-screen sheet |
+| Filters     | Horizontal row | Bottom sheet      |
+| Profile     | Full width     | Stacked sections  |
 
 ---
 
 ## Related Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [PRD.md](./PRD.md) | Product requirements and features |
-| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | UI patterns and components |
+| Document                                           | Purpose                           |
+| -------------------------------------------------- | --------------------------------- |
+| [PRD.md](./PRD.md)                                 | Product requirements and features |
+| [FRONTEND_GUIDELINES.md](./FRONTEND_GUIDELINES.md) | UI patterns and components        |

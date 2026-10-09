@@ -28,7 +28,8 @@ export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
  */
 export function parsePassword(value: unknown, kind: 'new' | 'current'): string {
   if (kind === 'new') {
-    if (typeof value !== 'string' || value.length < 8 || value.length > 1024) throw new HttpError(400, 'Password must be 8–1024 characters', 'WEAK_PASSWORD')
+    if (typeof value !== 'string' || value.length < 8 || value.length > 1024)
+      throw new HttpError(400, 'Password must be 8–1024 characters', 'WEAK_PASSWORD')
   } else if (typeof value !== 'string' || !value || value.length > 1024) {
     throw new HttpError(400, 'Password is required', 'MISSING_PASSWORD')
   }
@@ -50,12 +51,11 @@ export async function getUserByEmail(
 }
 
 /** Fetch a user's stored password hash by id (re-auth gate for verify-password). */
-export async function getPasswordHashById(
-  db: D1Database,
-  userId: string,
-): Promise<string | null> {
+export async function getPasswordHashById(db: D1Database, userId: string): Promise<string | null> {
   const row = await db
-    .prepare(`SELECT COALESCE((SELECT password FROM auth_accounts WHERE userId = users.id AND providerId = 'credential'), password_hash) AS password_hash FROM users WHERE id = ?`)
+    .prepare(
+      `SELECT COALESCE((SELECT password FROM auth_accounts WHERE userId = users.id AND providerId = 'credential'), password_hash) AS password_hash FROM users WHERE id = ?`,
+    )
     .bind(userId)
     .first<{ password_hash: string }>()
   return row?.password_hash ?? null
@@ -96,15 +96,19 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
   ]
   const [jobs] = await db.batch([
     // Capture live jobs in the same transaction as their deletion fence, including racing submissions.
-    db.prepare("SELECT id FROM import_batches WHERE user_id = ? AND status = 'processing'").bind(userId),
+    db
+      .prepare("SELECT id FROM import_batches WHERE user_id = ? AND status = 'processing'")
+      .bind(userId),
     ...childTables.map((t) => db.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(userId)),
     db.prepare('DELETE FROM auth_sessions WHERE userId = ?').bind(userId),
-    db.prepare("DELETE FROM auth_verifications WHERE identifier = ? AND id LIKE 'password-reset:%'").bind(`password-reset:${userId}`),
+    db
+      .prepare("DELETE FROM auth_verifications WHERE identifier = ? AND id LIKE 'password-reset:%'")
+      .bind(`password-reset:${userId}`),
     db.prepare('DELETE FROM auth_accounts WHERE userId = ?').bind(userId),
     db.prepare('DELETE FROM profiles WHERE id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
   ])
-  return (jobs.results as Array<{ id: string }>).map(job => job.id)
+  return (jobs.results as Array<{ id: string }>).map((job) => job.id)
 }
 
 /**
@@ -123,9 +127,14 @@ export async function createUserWithProfile(
 
   await db.batch([
     db
-      .prepare('INSERT INTO users (id, email, password_hash, created_at, updated_at, name, image) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .prepare(
+        'INSERT INTO users (id, email, password_hash, created_at, updated_at, name, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      )
       .bind(id, email, passwordHash, now, now, input.displayName ?? '', input.avatarUrl ?? null),
-    db.prepare(`INSERT INTO auth_accounts (id, accountId, providerId, userId, password, createdAt, updatedAt) VALUES (?, ?, 'credential', ?, ?, ?, ?)`)
+    db
+      .prepare(
+        `INSERT INTO auth_accounts (id, accountId, providerId, userId, password, createdAt, updatedAt) VALUES (?, ?, 'credential', ?, ?, ?, ?)`,
+      )
       .bind(`credential:${id}`, id, id, passwordHash, now, now),
     db
       .prepare(

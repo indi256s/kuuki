@@ -12,12 +12,26 @@ const options = [
 ]
 
 beforeEach(() => {
-  Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }) })
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+  })
 })
 
 function Harness({ onValueChange }: { onValueChange: (value: string[]) => void }) {
   const [value, setValue] = useState<string[]>([])
-  return <MultiSelect label="Airline" locale="en" options={options} value={value} onValueChange={next => { setValue(next); onValueChange(next) }} />
+  return (
+    <MultiSelect
+      label="Airline"
+      locale="en"
+      options={options}
+      value={value}
+      onValueChange={(next) => {
+        setValue(next)
+        onValueChange(next)
+      }}
+    />
+  )
 }
 
 it('toggles options with Space and Enter from the list and reports each change', async () => {

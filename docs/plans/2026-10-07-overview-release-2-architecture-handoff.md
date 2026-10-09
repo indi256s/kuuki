@@ -217,8 +217,7 @@ serialized-character validation. Both order and hidden lists reject duplicates
 and unknown sections. Partial order lists remain valid, as the Interfaces do
 not require completeness. Unknown object fields are rejected on writes; unknown
 facet strings survive. Home remains on profile PATCH, and preference writes do
-not dirty the derived state or change the Overview ETag. Missing profiles return
-404. No other owner is read or updated.
+not dirty the derived state or change the Overview ETag. Missing profiles return 404. No other owner is read or updated.
 
 The user approved issue 09: valid known fields from numeric older versions merge
 with defaults, with absent/invalid fields defaulted independently; malformed
@@ -404,7 +403,6 @@ R2 whole-branch Opus review over `feat/overview-release-1-migrations...HEAD`
 remains pending until implementation is finished. No remote D1, production
 write/deploy, provider enablement, GitHub/main or UI action in these tasks.
 Logs: `/tmp/kuuki-overview-execution/r2-t17-*`.
-
 
 Task 17 Steps 2–5: the user accepted the parity report and directed “all approved
 commit”. All 17 data tasks are implemented. Legacy advanced/dashboard handlers

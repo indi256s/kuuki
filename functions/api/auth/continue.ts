@@ -25,7 +25,8 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
     const body = await readJson<ContinueBody>(request)
     const email = typeof body?.email === 'string' ? body.email.trim() : null
     if (!email) throw new HttpError(400, 'Email and password are required', 'MISSING_CREDENTIALS')
-    if (!z.email().safeParse(email).success) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
+    if (!z.email().safeParse(email).success)
+      throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
     const password = parsePassword(body?.password, 'current')
 
     // Every call verifies a password: Better Auth for a known account, dummyVerify for an unknown one.
@@ -55,14 +56,15 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
       throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
     }
 
-    const authResult = await authResponse.json() as Record<string, unknown>
+    const authResult = (await authResponse.json()) as Record<string, unknown>
     delete authResult.token
     const profileRow = await getProfileRow(env.DB, user.id)
     const res = json({
       ...authResult,
       profile: profileRow ? toOwnProfile(profileRow) : null,
     })
-    for (const cookie of authResponse.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
+    for (const cookie of authResponse.headers.getSetCookie())
+      res.headers.append('Set-Cookie', cookie)
     res.headers.set('Cache-Control', 'no-store')
     return res
   })

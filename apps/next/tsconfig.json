@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,10 +13,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "types": [
-      "@cloudflare/workers-types",
-      "node"
-    ],
+    "types": ["@cloudflare/workers-types", "node"],
     "plugins": [
       {
         "name": "next"
@@ -28,9 +21,7 @@
     ],
     "paths": {
       "vitest": ["./node_modules/vitest"],
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -41,9 +32,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".open-next",
-    "worker.ts"
-  ]
+  "exclude": ["node_modules", ".open-next", "worker.ts"]
 }

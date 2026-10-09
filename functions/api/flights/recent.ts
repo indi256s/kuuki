@@ -10,12 +10,11 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     const user = requireUser(context.data)
     const raw = Number(new URL(context.request.url).searchParams.get('limit'))
     const limit = Number.isFinite(raw) && raw > 0 ? Math.min(raw, 200) : 5
-    const rows = await context.env.DB
-      .prepare(
-        `SELECT ${FLIGHT_COLUMNS} FROM flights
+    const rows = await context.env.DB.prepare(
+      `SELECT ${FLIGHT_COLUMNS} FROM flights
          WHERE user_id = ? AND lifecycle_state IN ('awaiting', 'logged')
          ORDER BY date DESC LIMIT ?`,
-      )
+    )
       .bind(user.id, limit)
       .all<FlightRow>()
     return json(rows.results.map(toOwnFlight))

@@ -8,8 +8,14 @@ import { forms, S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
 
 const copy = {
-  note: { en: 'A flight counts once in each country it touches, so an international flight counts twice.', ru: 'Перелёт учитывается один раз в каждой затронутой стране, поэтому международный учитывается дважды.' },
-  hint: { en: 'Click a country to filter the page', ru: 'Нажмите на страну, чтобы отфильтровать страницу' },
+  note: {
+    en: 'A flight counts once in each country it touches, so an international flight counts twice.',
+    ru: 'Перелёт учитывается один раз в каждой затронутой стране, поэтому международный учитывается дважды.',
+  },
+  hint: {
+    en: 'Click a country to filter the page',
+    ru: 'Нажмите на страну, чтобы отфильтровать страницу',
+  },
 }
 
 /** The globe's key on wide Overview bands: the map's countries by visits, each with its legend bucket swatch. A row toggles that country's filter. */
@@ -19,35 +25,62 @@ export function CountryList() {
   if (!scope) return null
   const names = new Intl.DisplayNames([locale], { type: 'region' })
   const countries = scope.globe.countries
-  return <section className="ov3-hero globe-country-card" aria-labelledby={heading}>
-    <div>
-      <h2 id={heading}>{t(S.legend, locale)}</h2>
-      {countries.length ? <p className="globe-country-note">{t(copy.hint, locale)}</p> : null}
-    </div>
-    {/* The list scrolls inside what the band leaves; it is out of flow so the globe and figures set the band's height. */}
-    <div className="globe-country-slot">
-      <div className="globe-country-fill">
-        {/* Fades at the ends say the list scrolls (scroll-state queries in globe.css); browsers without them show none. */}
-        <div className="globe-country-fade" data-edge="top" aria-hidden="true" />
-        {!countries.length ? <p className="globe-country-note">{t(S.noCountries, locale)}</p> : <ol className="globe-country-list">
-          {countries.map(({ code, visits }) => {
-            const name = names.of(code) ?? code
-            const active = filter.countries?.includes(code) ?? false
-            return <li key={code}>
-              <button type="button" className="globe-country-row" aria-pressed={active}
-                aria-label={`${name}, ${formatCount(locale, visits, forms.visits)}`}
-                onClick={() => active ? actions.remove('countries', code) : actions.add('countries', code)}>
-                <span className="globe-country-swatch" aria-hidden="true" style={{ background: `var(${BUCKET_TOKENS[visitBucket(visits)]})` }} />
-                <span className="globe-country-name">{name}</span>
-                {active ? <Check className="globe-country-check" size={16} strokeWidth={2} aria-hidden="true" /> : null}
-                <span className="globe-country-count" aria-hidden="true">{formatNumber(locale, visits)}</span>
-              </button>
-            </li>
-          })}
-        </ol>}
-        <div className="globe-country-fade" data-edge="bottom" aria-hidden="true" />
+  return (
+    <section className="ov3-hero globe-country-card" aria-labelledby={heading}>
+      <div>
+        <h2 id={heading}>{t(S.legend, locale)}</h2>
+        {countries.length ? <p className="globe-country-note">{t(copy.hint, locale)}</p> : null}
       </div>
-    </div>
-    {countries.length ? <p className="globe-country-note">{t(copy.note, locale)}</p> : null}
-  </section>
+      {/* The list scrolls inside what the band leaves; it is out of flow so the globe and figures set the band's height. */}
+      <div className="globe-country-slot">
+        <div className="globe-country-fill">
+          {/* Fades at the ends say the list scrolls (scroll-state queries in globe.css); browsers without them show none. */}
+          <div className="globe-country-fade" data-edge="top" aria-hidden="true" />
+          {!countries.length ? (
+            <p className="globe-country-note">{t(S.noCountries, locale)}</p>
+          ) : (
+            <ol className="globe-country-list">
+              {countries.map(({ code, visits }) => {
+                const name = names.of(code) ?? code
+                const active = filter.countries?.includes(code) ?? false
+                return (
+                  <li key={code}>
+                    <button
+                      type="button"
+                      className="globe-country-row"
+                      aria-pressed={active}
+                      aria-label={`${name}, ${formatCount(locale, visits, forms.visits)}`}
+                      onClick={() =>
+                        active ? actions.remove('countries', code) : actions.add('countries', code)
+                      }
+                    >
+                      <span
+                        className="globe-country-swatch"
+                        aria-hidden="true"
+                        style={{ background: `var(${BUCKET_TOKENS[visitBucket(visits)]})` }}
+                      />
+                      <span className="globe-country-name">{name}</span>
+                      {active ? (
+                        <Check
+                          className="globe-country-check"
+                          size={16}
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                      <span className="globe-country-count" aria-hidden="true">
+                        {formatNumber(locale, visits)}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+          <div className="globe-country-fade" data-edge="bottom" aria-hidden="true" />
+        </div>
+      </div>
+      {countries.length ? <p className="globe-country-note">{t(copy.note, locale)}</p> : null}
+    </section>
+  )
 }

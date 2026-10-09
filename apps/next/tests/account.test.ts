@@ -4,13 +4,21 @@ import { readFile } from 'node:fs/promises'
 
 test('settings saves owned profile and privacy on a fresh account', async ({ page, baseURL }) => {
   const email = `settings-${crypto.randomUUID()}@example.test`
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password: 'temporary-password-2026', displayName: 'Settings test' } })
+  const signup = await page.request.post('/api/auth/sign-up/email', {
+    headers: fixtureHeaders(baseURL!),
+    data: { email, password: 'temporary-password-2026', displayName: 'Settings test' },
+  })
   expect(signup.status()).toBe(201)
   await claimUsername(page, baseURL!)
   const cookies = await page.context().cookies()
-  const csrf = decodeURIComponent(cookies.find(cookie => cookie.name === 'kuuki_csrf')?.value ?? '')
+  const csrf = decodeURIComponent(
+    cookies.find((cookie) => cookie.name === 'kuuki_csrf')?.value ?? '',
+  )
   for (let index = 0; index < 5; index++) {
-    const created = await page.request.post('/api/flights', { headers: { Origin: baseURL!, 'X-CSRF-Token': csrf, 'Idempotency-Key': crypto.randomUUID() }, data: { date: '2025-01-01', origin: 'JFK', destination: 'BOS' } })
+    const created = await page.request.post('/api/flights', {
+      headers: { Origin: baseURL!, 'X-CSRF-Token': csrf, 'Idempotency-Key': crypto.randomUUID() },
+      data: { date: '2025-01-01', origin: 'JFK', destination: 'BOS' },
+    })
     expect(created.status()).toBe(201)
   }
   await page.goto('/settings')
@@ -24,18 +32,43 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   await expect(page.locator('main').getByRole('status')).toContainText('Saved.')
   const profile = await page.request.get('/api/auth/me')
   expect(profile.status()).toBe(200)
-  const profileData = await profile.json() as { profile: { display_name: string; bio: string; is_public: boolean; show_on_leaderboards: boolean } }
-  expect(profileData.profile).toMatchObject({ display_name: 'Account test name', bio: 'A private test bio', is_public: true, show_on_leaderboards: true })
+  const profileData = (await profile.json()) as {
+    profile: {
+      display_name: string
+      bio: string
+      is_public: boolean
+      show_on_leaderboards: boolean
+    }
+  }
+  expect(profileData.profile).toMatchObject({
+    display_name: 'Account test name',
+    bio: 'A private test bio',
+    is_public: true,
+    show_on_leaderboards: true,
+  })
   await expect(page.getByText('Records: 5')).toBeVisible()
 })
 
-test('ground visit export preserves year, entry and note while neutralizing spreadsheet formulas', async ({ page, baseURL }) => {
+test('ground visit export preserves year, entry and note while neutralizing spreadsheet formulas', async ({
+  page,
+  baseURL,
+}) => {
   const email = `ground-export-${crypto.randomUUID()}@example.test`
-  const signup = await page.request.post('/api/auth/sign-up/email', { headers: fixtureHeaders(baseURL!), data: { email, password: 'temporary-password-2026' } })
+  const signup = await page.request.post('/api/auth/sign-up/email', {
+    headers: fixtureHeaders(baseURL!),
+    data: { email, password: 'temporary-password-2026' },
+  })
   expect(signup.status()).toBe(201)
   await claimUsername(page, baseURL!)
   await page.goto('/settings')
-  const csrf = await page.evaluate(() => decodeURIComponent(document.cookie.split('; ').find(cookie => cookie.startsWith('kuuki_csrf='))?.split('=')[1] ?? ''))
+  const csrf = await page.evaluate(() =>
+    decodeURIComponent(
+      document.cookie
+        .split('; ')
+        .find((cookie) => cookie.startsWith('kuuki_csrf='))
+        ?.split('=')[1] ?? '',
+    ),
+  )
   const note = '=HYPERLINK("https://example.test","trip")'
   const created = await page.request.post('/api/passport/ground-visits', {
     headers: { Origin: baseURL!, 'X-CSRF-Token': csrf },
@@ -58,11 +91,17 @@ test('sign out clears local drafts and retry receipts', async ({ page, baseURL }
   await signIn(page, baseURL!)
   await page.goto('/settings')
   const me = await page.request.get('/api/auth/me')
-  const owner = (await me.json() as { user: { id: string } }).user.id
-  const keys = await page.evaluate(ownerId => {
+  const owner = ((await me.json()) as { user: { id: string } }).user.id
+  const keys = await page.evaluate((ownerId) => {
     const otherOwner = 'another-owner'
-    const owned = [`kuuki-import-draft:v1:${ownerId}:00000000-0000-0000-0000-000000000001`, `kuuki-flight-create-operation:${ownerId}:manual`]
-    const other = [`kuuki-import-draft:v1:${otherOwner}:00000000-0000-0000-0000-000000000002`, `kuuki-flight-create-operation:${otherOwner}:manual`]
+    const owned = [
+      `kuuki-import-draft:v1:${ownerId}:00000000-0000-0000-0000-000000000001`,
+      `kuuki-flight-create-operation:${ownerId}:manual`,
+    ]
+    const other = [
+      `kuuki-import-draft:v1:${otherOwner}:00000000-0000-0000-0000-000000000002`,
+      `kuuki-flight-create-operation:${otherOwner}:manual`,
+    ]
     for (const key of [...owned, ...other]) localStorage.setItem(key, '{}')
     return { owned, other }
   }, owner)
@@ -73,17 +112,30 @@ test('sign out clears local drafts and retry receipts', async ({ page, baseURL }
   for (const key of keys.other) expect(remaining).toContain(key)
 })
 
-test('an old tab preserves the new account draft and retry receipt on focus', async ({ page: oldTab, context, baseURL }) => {
+test('an old tab preserves the new account draft and retry receipt on focus', async ({
+  page: oldTab,
+  context,
+  baseURL,
+}) => {
   await signIn(oldTab, baseURL!)
-  const oldOwner = (await (await context.request.get('/api/auth/me')).json() as { user: { id: string } }).user.id
+  const oldOwner = (
+    (await (await context.request.get('/api/auth/me')).json()) as { user: { id: string } }
+  ).user.id
   await oldTab.goto('/overview')
   await expect(oldTab.locator('.ov-globe')).toBeVisible()
-  await oldTab.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }))
-  const bootstrap = oldTab.waitForResponse(response => response.url().endsWith('/api/auth/me'))
+  await oldTab.evaluate(() =>
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    }),
+  )
+  const bootstrap = oldTab.waitForResponse((response) => response.url().endsWith('/api/auth/me'))
   await oldTab.evaluate(() => window.dispatchEvent(new Event('focus')))
   await (await bootstrap).finished()
-  await oldTab.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)))
-  await oldTab.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }))
+  await oldTab.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)))
+  await oldTab.evaluate(() =>
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }),
+  )
 
   const newTab = await context.newPage()
   await newTab.goto('/settings')
@@ -95,12 +147,21 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await newTab.waitForURL('**/overview')
 
   // Manual capture is the remaining writer of an owner-scoped create receipt; the import UI keeps its drafts in D1.
-  await newTab.route('**/api/flights', route => route.request().method() === 'POST'
-    ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Temporary failure"}' })
-    : route.continue())
+  await newTab.route('**/api/flights', (route) =>
+    route.request().method() === 'POST'
+      ? route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: '{"error":"Temporary failure"}',
+        })
+      : route.continue(),
+  )
   await newTab.goto('/add')
   await newTab.getByLabel('Date').fill('2025-06-01')
-  for (const [label, code] of [['From', 'JFK'], ['To', 'BOS']]) {
+  for (const [label, code] of [
+    ['From', 'JFK'],
+    ['To', 'BOS'],
+  ]) {
     await newTab.getByRole('combobox', { name: label }).click()
     const search = newTab.getByRole('dialog', { name: label, exact: true })
     await search.getByRole('combobox', { name: label }).fill(code)
@@ -109,23 +170,44 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await newTab.getByRole('button', { name: 'Save flight' }).click()
   await expect(newTab.getByRole('button', { name: 'Retry original save' })).toBeVisible()
 
-  const owner = (await (await context.request.get('/api/auth/me')).json() as { user: { id: string } }).user.id
+  const owner = (
+    (await (await context.request.get('/api/auth/me')).json()) as { user: { id: string } }
+  ).user.id
   expect(owner).not.toBe(oldOwner)
   // Legacy local import drafts are still listed per owner, so seed one for each account.
   const oldDraftKey = `kuuki-import-draft:v1:${oldOwner}:legacy`
-  await newTab.evaluate(keys => {
-    localStorage.setItem(`kuuki-import-draft:v1:${keys.owner}:legacy`, JSON.stringify({ schema: 1, ownerId: keys.owner }))
-    localStorage.setItem(keys.oldDraftKey, JSON.stringify({ schema: 1, ownerId: keys.oldOwner }))
-  }, { owner, oldOwner, oldDraftKey })
-  const stored = await newTab.evaluate(ownerId => {
-    const draftKey = Object.keys(localStorage).find(key => key.startsWith(`kuuki-import-draft:v1:${ownerId}:`))
-    const receiptKey = Object.keys(localStorage).find(key => key.startsWith(`kuuki-flight-create-operation:${ownerId}:`))
-    return { draftKey, receiptKey, draft: draftKey && localStorage.getItem(draftKey), receipt: receiptKey && localStorage.getItem(receiptKey) }
+  await newTab.evaluate(
+    (keys) => {
+      localStorage.setItem(
+        `kuuki-import-draft:v1:${keys.owner}:legacy`,
+        JSON.stringify({ schema: 1, ownerId: keys.owner }),
+      )
+      localStorage.setItem(keys.oldDraftKey, JSON.stringify({ schema: 1, ownerId: keys.oldOwner }))
+    },
+    { owner, oldOwner, oldDraftKey },
+  )
+  const stored = await newTab.evaluate((ownerId) => {
+    const draftKey = Object.keys(localStorage).find((key) =>
+      key.startsWith(`kuuki-import-draft:v1:${ownerId}:`),
+    )
+    const receiptKey = Object.keys(localStorage).find((key) =>
+      key.startsWith(`kuuki-flight-create-operation:${ownerId}:`),
+    )
+    return {
+      draftKey,
+      receiptKey,
+      draft: draftKey && localStorage.getItem(draftKey),
+      receipt: receiptKey && localStorage.getItem(receiptKey),
+    }
   }, owner)
   expect(stored.draftKey).toBeTruthy()
   expect(stored.receiptKey).toBeTruthy()
   expect(JSON.parse(stored.draft!)).toMatchObject({ schema: 1, ownerId: owner })
-  expect(JSON.parse(stored.receipt!)).toMatchObject({ key: expect.any(String), payload: expect.any(String), createdAt: expect.any(Number) })
+  expect(JSON.parse(stored.receipt!)).toMatchObject({
+    key: expect.any(String),
+    payload: expect.any(String),
+    createdAt: expect.any(Number),
+  })
 
   // A new document, not a same-document history update: a focus refresh can commit before the identity reload.
   const oldTabReload = oldTab.waitForEvent('domcontentloaded')
@@ -134,8 +216,14 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
     window.dispatchEvent(new Event('focus'))
   })
   await oldTabReload
-  const remaining = await newTab.evaluate(keys => ({ draft: localStorage.getItem(keys.draftKey!), receipt: localStorage.getItem(keys.receiptKey!) }), stored)
+  const remaining = await newTab.evaluate(
+    (keys) => ({
+      draft: localStorage.getItem(keys.draftKey!),
+      receipt: localStorage.getItem(keys.receiptKey!),
+    }),
+    stored,
+  )
   expect(remaining).toEqual({ draft: stored.draft, receipt: stored.receipt })
   // The old tab clears only its own departing owner.
-  expect(await newTab.evaluate(key => localStorage.getItem(key), oldDraftKey)).toBeNull()
+  expect(await newTab.evaluate((key) => localStorage.getItem(key), oldDraftKey)).toBeNull()
 })

@@ -10,8 +10,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     const params = new URL(context.request.url).searchParams
     const filters = parseFlightFilters(params)
     const { where, binds } = buildFlightWhere(user.id, filters)
-    const rows = await context.env.DB
-      .prepare(`SELECT id FROM flights WHERE ${where}`)
+    const rows = await context.env.DB.prepare(`SELECT id FROM flights WHERE ${where}`)
       .bind(...binds)
       .all<{ id: number }>()
     return json({ ids: rows.results.map((r) => r.id) })

@@ -11,8 +11,25 @@ export function AirlineMark({ iata }: { iata: string | null }) {
   const [failedLogo, setFailedLogo] = useState<string>()
   const logo = airline?.logoUrl
   const showLogo = logo && logo !== failedLogo
-  return <span className="ui-airline-mark" data-logo={showLogo || undefined} aria-hidden="true" title={airline?.name ?? iata ?? undefined}>
-    {showLogo ? <Image src={logo} alt="" width={48} height={24} unoptimized onError={() => setFailedLogo(logo)} />
-      : <i style={{ backgroundColor: airlineColor(iata ?? '') }} />}
-  </span>
+  return (
+    <span
+      className="ui-airline-mark"
+      data-logo={showLogo || undefined}
+      aria-hidden="true"
+      title={airline?.name ?? iata ?? undefined}
+    >
+      {showLogo ? (
+        <Image
+          src={logo}
+          alt=""
+          width={48}
+          height={24}
+          unoptimized
+          onError={() => setFailedLogo(logo)}
+        />
+      ) : (
+        <i style={{ backgroundColor: airlineColor(iata ?? '') }} />
+      )}
+    </span>
+  )
 }

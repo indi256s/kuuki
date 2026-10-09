@@ -34,10 +34,10 @@ The owner approved the exact remote backfill, stats publication, temporary authe
 
 Release 3 deployed from clean main `bbb88414476ac9e571b8c729aaefe9cd44a199d7`, whose only differences from successful code CI `6cc8f8ff93664667637696a6b95d2395ebce1f78` are the four reviewed documentation records. The same accepted build was deployed with `--no-autoconfig --strict`, tag `bbb8841` and the exact commit subject. Interactive confirmation acknowledged replacing the temporary API writer hold with the admitted source config. Preview HTML/session passed before production; canonical HTML 200, session 200/`null` and activation `/activate` 200 passed after both production deploys. Each production Worker had a connected error tail for 300 seconds with zero error events. Writers are reopened; Task34 release is complete. No rollback was needed.
 
-| Worker | Previous held rollback version | Release3 version |
-| --- | --- | --- |
-| `kuuki-next` | `0bc3863f-5e2d-4769-a65d-a421cdf6d79a` | `d91b1cb4-22bf-4147-b510-989594a433de` |
-| `kuuki-activation` | `63dd4493-406c-49be-b8e1-c5859ef32f35` | `f8e53b74-f761-484c-a639-0ee137274826` |
+| Worker               | Previous held rollback version         | Release3 version                       |
+| -------------------- | -------------------------------------- | -------------------------------------- |
+| `kuuki-next`         | `0bc3863f-5e2d-4769-a65d-a421cdf6d79a` | `d91b1cb4-22bf-4147-b510-989594a433de` |
+| `kuuki-activation`   | `63dd4493-406c-49be-b8e1-c5859ef32f35` | `f8e53b74-f761-484c-a639-0ee137274826` |
 | `kuuki-next-preview` | `894284b2-4aac-480f-85ce-ad5951644eaa` | `fa26ff19-964e-4588-9431-a2b832bc1f49` |
 
 The existing preview activation code/bindings were preserved and its temporary hold released as version `9fccd8b7-e325-429d-b4dd-545daef9504a`; preview activation HTTP 200 passed. Historical Pages remains denied/held with Git deployments disabled. Existing preview maintenance stays held before DB access; no production maintenance Worker, cron, import provider, Pages frontend or framework experiment was deployed. Dirty MAIN, unrelated worktrees and port8800 remain preserved.
@@ -108,14 +108,11 @@ The user instructed: "do not do visual checks, skip them". Visual checks and the
 
 The user instructed not to run all tests for each task and to run them together later. Continue focused task/fix checks and affected lint/typechecks; defer full API/Next suites, builds and full navigation to later integrated checkpoints. This overrides the previous per-task broad gates. Visual verification remains skipped. Task15 may proceed through focused review/acceptance without another full suite/build/navigation run; bundle comparison waits for a later integrated build and must name its actual included changes.
 
-
 Parallel good-css audit — 2026-10-08: user coordinates authorized shared CSS, DESIGN and map asset fixes in current main checkout. No active Release3 source ownership intersects; retain its changes and reconcile deliberately during integration.
-
 
 ## Authorized final delivery — 2026-10-08
 
 After completing and committing Release3, the user requests a new thread running Thermos and Ponytail Audit, resolution of all findings, then deployment. Carry forward GPT‑6.1 Sol subagents, skipped visual verification and batched full tests. This extends the task through audit fixes and deployment; it does not waive the narrator corpus owner-review gate or authorize remote D1 migrations. Follow the project deployment procedure on the audited candidate, with preview proof and rollback targets. Durable execution details and exact skill paths are in `.superpowers/sdd/post-release-audit-deploy.md`.
-
 
 2026-10-08 resumed implementation: Task17 independently approved and committed in isolated page worktree at9562c420c351eec3dcf58118802a96c3b6051a87. Inherited Remove last empty-facet defect corrected at shared action (existing isEmptyFilter/findLast) in be3bdd4c977817996a0fc71ae9f02fee0979fc85, meaningfulRED/GREEN20focused/types/lint/hook0. CentralUIintegrationpending stableTask12review. Task18 nativepacking/reorder/hide active in PAGE frombe3bdd4; Task21 hero/Next active isolatedHERO from7a29193. Task12 complete42trigger/126pairedvariant corpus and owner sheet undergoing fresh independentreview; noowneracceptanceinferred. AllvisualverificationSKIPPED and broadchecksbatchedlater. Finalcommit/newthreadThermos+Ponytailaudit/fixes/deploy remains authorized; notstartedbeforeR3completion.
 
@@ -123,9 +120,7 @@ Task12 technical review completed 2026-10-08: fresh independent round2 APPROVED,
 
 Owner response 2026-10-08: **Approve the copy.** Task12 owner gate fulfilled after committed sheet8f9c604 and independentround2 approval. No requested source edits. Task17 plus shared Remove last fix integrated UIaeaacc7581990a8229cf513affb4aad07e09fdfc/dcd8bb992169d112c0690c286190ba3a8d58d4d2; focused combined page/scope/filter/corpus53 tests4files exit0. Task18 focus fix59 focused tests/types/lint passed, freshreviewround2 active. Task21 independentreviewround1 active after65 focused passes. Task22 SVG globe implementation active in isolatedfeat/overview-release-3-globe from7a29193. No visual checks; broad integration batch remains pending.
 
-
 Current implementation update 2026-10-08: user explicitly skips further per-task independent reviews; final consolidated review/audits remain required. Task21 accepted HEROcffcb96 / UIe7db9fe with69 focused tests, Task22 acceptedGLOBE33d7f02 / UI0b3070a with24 focused tests. Root wired actual dev page Hero/Next/SVG;17 actualpage tests pass including SSR, year filtering, global Next, firstRun/zero and only permitted public atlas reads. Task32 date-specific Journal alliance badges/estimated duration markers implemented; three focused EN/RU regressions pass, no DTO/API change needed. Sources/lint/types and normal commit hooks record current local validation; full suites/build/navigation remain pending for one final batch. Existing narrator copy revision192c1c4599c49154f9f1c19600d6f28939be5199 (shorter RU, unchanged EN) preserved as concurrent owner work. Task19 MOBILE/PAGE includes known final Show focus fix, Tasks23–24GLOBE and25–31HERO grouped implementations active. Task20 follows19;33cutover/34docs+review follow consumer integration. ALL visual checks remain skipped. Final new-thread Thermos/Ponytail Audit, findings fixes and deployment remain authorized.
-
 
 2026-10-08 integrated checkpoint: actual Hero/SVG/Journal composition committed8d003de973a137e0703a3bbde11878057ea9f1d9 (hook5packages lint/types pass). Combined Task18/19 source committedPAGE47a14cde404c4db35359ece7868346c3aa7c7b72 and integratedUIb4711d8e024554ccc17e4260885cb2972ca18aac. Two page conflicts resolved preserving Hero/SVG and mobile/bento/focus changes; actual central page+sheet42tests pass9.09s (/tmp/kuuki-r3-task18-task19-page-integration-focused.log). User reserves review for final audit; no independent per-task review added.
 Task20 active in formerPAGE checkout on separate clean branchfeat/overview-release-3-filters atb4711d8; old acceptedpagebranch preserved, frozenofflineinstall pass. Other active bundles23–24GLOBE and25–31HERO remain isolated.
@@ -138,7 +133,6 @@ LATEST OWNER OVERRIDE: “do not write any unit tests.” Active agents were suc
 2026-10-08 assembly: Task20 fcffe7c and Tasks23–24 62b92b7 integrated, preserving accepted main5673004 changes. Actual page composes OverviewGlobe topLeft FilterBar, one context/replay clock and honest first-run actions. Central affected Next types/lint pass (/tmp/kuuki-r3-globe-filter-assembly-{types,lint}.log). Task33 is active in isolated HERO branch feat/overview-release-3-cutover at abdb79b; Task34 DESIGN/GLOSSARY draft is active in isolated PAGE branch feat/overview-release-3-docs at62b92b7. Root owns final docs/status/central checks and commits. No new unit tests, visuals or per-task reviews.
 
 2026-10-08 Task34 docs: full two-file source-backed diff read and integrated. DESIGN records built R3 design, correct palettes/contrast exceptions/hairline ban and retained auth/Passport guidance; GLOSSARY adds seven definitions. Actual central composition committed ac89cd4. Root reconciled two navbar discrepancies: lowercase visible kuuki and kana --accent-on-tint, preserving accessible home name and static loading mark. Existing shell assertions corrected to lowercase and logical tab-border property; no new cases. Task33 remains active; broad verification/final audit/deploy pending.
-
 
 ## Final cutover and consolidated verification — 2026-10-08
 

@@ -192,16 +192,16 @@ Exclude credentials, owner IDs, emails, route labels, documents, reset links and
 complete provider responses. Invocation logging can include URLs: review its
 content and query policy separately from the application's sanitized events.
 
-| Panel / event selection | Fields / aggregation | Initial staging gate and owner |
-| --- | --- | --- |
-| API `api_request` | status, method, durationMs; count and latency quantiles | Operator: any unexpected 5xx during synthetic proof blocks; later alert at >1% 5xx over 5 min with >=100 requests; treat 4xx input separately |
-| Worker platform metrics | requests, errors, CPU, memory-limit failures | Operator: any startup/CPU/memory rejection blocks; compare representative-region samples with actual account entitlement |
-| D1 / `overview_read` | statements, rows (returned), d1Ms, durationMs | App owner: Overview stays 13 bounded statements; platform scanned rows/time are distinct from returned rows |
-| `flight_save` | outcome, canonicalMs, repairMs, durationMs, derivedState | App owner: separate created/replayed and canonical/pending; report p50/p95 from >=100 samples |
-| Publication / `overview_read` and derived status | revisionLag; status dirty count and oldest age | App owner: revision never moves backwards; investigate oldest dirty age >15 min; pending polling expiry alone is not repair failure |
-| `maintenance_success` / `maintenance_failure` | duration_ms, rolled_over, auto_confirmed, overdue_remaining, dirty_count, dirty_oldest_age_seconds, failure code | Operator: success older than 15 min or any failure alerts; maintenance holds are labelled intentionally paused |
-| `import_provider_result` and usage buckets | model, outcome, duration_ms; admitted quota consumption | App owner: separate timeout/provider errors from validation/quota denial; fake-provider success is not accuracy/availability proof |
-| Aggregate Web Vitals | LCP, INP, CLS by frontend/build and viewport only | Operator: no collector is installed by this candidate; authorized hosted aggregate measurement is a release gate |
+| Panel / event selection                          | Fields / aggregation                                                                                             | Initial staging gate and owner                                                                                                                |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| API `api_request`                                | status, method, durationMs; count and latency quantiles                                                          | Operator: any unexpected 5xx during synthetic proof blocks; later alert at >1% 5xx over 5 min with >=100 requests; treat 4xx input separately |
+| Worker platform metrics                          | requests, errors, CPU, memory-limit failures                                                                     | Operator: any startup/CPU/memory rejection blocks; compare representative-region samples with actual account entitlement                      |
+| D1 / `overview_read`                             | statements, rows (returned), d1Ms, durationMs                                                                    | App owner: Overview stays 13 bounded statements; platform scanned rows/time are distinct from returned rows                                   |
+| `flight_save`                                    | outcome, canonicalMs, repairMs, durationMs, derivedState                                                         | App owner: separate created/replayed and canonical/pending; report p50/p95 from >=100 samples                                                 |
+| Publication / `overview_read` and derived status | revisionLag; status dirty count and oldest age                                                                   | App owner: revision never moves backwards; investigate oldest dirty age >15 min; pending polling expiry alone is not repair failure           |
+| `maintenance_success` / `maintenance_failure`    | duration_ms, rolled_over, auto_confirmed, overdue_remaining, dirty_count, dirty_oldest_age_seconds, failure code | Operator: success older than 15 min or any failure alerts; maintenance holds are labelled intentionally paused                                |
+| `import_provider_result` and usage buckets       | model, outcome, duration_ms; admitted quota consumption                                                          | App owner: separate timeout/provider errors from validation/quota denial; fake-provider success is not accuracy/availability proof            |
+| Aggregate Web Vitals                             | LCP, INP, CLS by frontend/build and viewport only                                                                | Operator: no collector is installed by this candidate; authorized hosted aggregate measurement is a release gate                              |
 
 Local browser ScriptDuration/TaskDuration and JS heap samples are explicitly
 proxies, not hydration CPU, GPU completion, Web Vitals or D1 cost. The paired

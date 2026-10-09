@@ -12,12 +12,17 @@ const origin = `http://127.0.0.1:${process.env.KUUKI_NEXT_PORT ?? 8800}`
 const out = '.scratch/performance-audit'
 mkdirSync(out, { recursive: true })
 function browser(args, input, target = session) {
-  const result = JSON.parse(execFileSync('agent-browser', ['--session', target, '--json', ...args],
-    { input, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }))
+  const result = JSON.parse(
+    execFileSync('agent-browser', ['--session', target, '--json', ...args], {
+      input,
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+    }),
+  )
   if (!result.success) throw new Error(result.error)
   return result.data?.result ?? result.data
 }
-const evaluate = code => browser(['eval', '--stdin'], code)
+const evaluate = (code) => browser(['eval', '--stdin'], code)
 const seed = `async () => {
   const count = ${count};
   const signup = await fetch('/api/auth/sign-up/email', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: location.origin },
@@ -104,34 +109,79 @@ Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500)
 browser(['open', 'about:blank', '--init-script', initPath])
 browser(['state', 'load', statePath])
 browser(['set', 'viewport', '1280', '800'])
-const result = { phase, count, generatedAt: new Date().toISOString(), commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-  buildId: readFileSync('apps/next/.next/BUILD_ID', 'utf8').trim(), conditions: { viewport: '1280x800', cpu: 'unthrottled', network: 'localhost, unthrottled', cold: 'fresh browser process, existing auth cookies, empty HTTP and router cache', warm: 'same hydrated browser, HTTP/router caches enabled' }, loads: [], samples: [] }
-function save() { writeFileSync(join(out, `${phase}-${count}.json`), JSON.stringify(result, null, 2)) }
+const result = {
+  phase,
+  count,
+  generatedAt: new Date().toISOString(),
+  commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  buildId: readFileSync('apps/next/.next/BUILD_ID', 'utf8').trim(),
+  conditions: {
+    viewport: '1280x800',
+    cpu: 'unthrottled',
+    network: 'localhost, unthrottled',
+    cold: 'fresh browser process, existing auth cookies, empty HTTP and router cache',
+    warm: 'same hydrated browser, HTTP/router caches enabled',
+  },
+  loads: [],
+  samples: [],
+}
+function save() {
+  writeFileSync(join(out, `${phase}-${count}.json`), JSON.stringify(result, null, 2))
+}
 function jsClosure(resources) {
-  const paths = [...new Set(resources.filter(r => /\.m?js$/.test(r.path)).map(r => r.path))]
-  return paths.reduce((n, path) => { try { return n + gzipSync(readFileSync(join('apps/next/.open-next/assets', path))).length } catch { return n } }, 0)
+  const paths = [...new Set(resources.filter((r) => /\.m?js$/.test(r.path)).map((r) => r.path))]
+  return paths.reduce((n, path) => {
+    try {
+      return n + gzipSync(readFileSync(join('apps/next/.open-next/assets', path))).length
+    } catch {
+      return n
+    }
+  }, 0)
 }
 
-for (const route of process.env.KUUKI_PERF_PAGES_ONLY === '1' ? [] : ['journal', 'overview', 'passport']) {
+for (const route of process.env.KUUKI_PERF_PAGES_ONLY === '1'
+  ? []
+  : ['journal', 'overview', 'passport']) {
   for (let iteration = 0; iteration < 3; iteration++) {
     const coldSession = `${session}-cold-${route}-${iteration}`
     browser(['open', 'about:blank', '--init-script', initPath], undefined, coldSession)
     // State replay visits stored origins and warms shared chunks. Set cookies only.
-    for (const cookie of cookies) browser(['cookies', 'set', cookie.name, cookie.value,
-      '--url', origin + '/', '--path', cookie.path, '--sameSite', cookie.sameSite,
-      ...(cookie.httpOnly ? ['--httpOnly'] : [])], undefined, coldSession)
+    for (const cookie of cookies)
+      browser(
+        [
+          'cookies',
+          'set',
+          cookie.name,
+          cookie.value,
+          '--url',
+          origin + '/',
+          '--path',
+          cookie.path,
+          '--sameSite',
+          cookie.sameSite,
+          ...(cookie.httpOnly ? ['--httpOnly'] : []),
+        ],
+        undefined,
+        coldSession,
+      )
     browser(['set', 'viewport', '1280', '800'], undefined, coldSession)
     browser(['open', `${origin}/${route}`], undefined, coldSession)
-    const load = browser(['eval', '--stdin'], `(async () => {
+    const load = browser(
+      ['eval', '--stdin'],
+      `(async () => {
       await __kuukiBench.wait(() => __kuukiPerf.loadReadyMs); await new Promise(r => setTimeout(r, 250));
       const n = performance.getEntriesByType('navigation')[0];
       return { ua: navigator.userAgent, readyMs: __kuukiPerf.loadReadyMs, ttfb: n.responseStart, fcp: performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? null,
         lcp: __kuukiPerf.lcp, cls: __kuukiPerf.cls, longtasks: __kuukiPerf.longtasks,
         resources: performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, initiator: r.initiatorType, startMs: r.startTime, endMs: r.responseEnd, bytes: r.transferSize, encodedBytes: r.encodedBodySize, decodedBytes: r.decodedBodySize })) };
-    })()`, coldSession)
+    })()`,
+      coldSession,
+    )
     result.loads.push({ route, iteration, ...load, jsGzipBytes: jsClosure(load.resources) })
-    if (load.resources.some(r => /\.m?js$/.test(r.path) && r.bytes <= 300)) throw Error('cold JavaScript cache was warmed')
-    browser(['close'], undefined, coldSession); save()
+    if (load.resources.some((r) => /\.m?js$/.test(r.path) && r.bytes <= 300))
+      throw Error('cold JavaScript cache was warmed')
+    browser(['close'], undefined, coldSession)
+    save()
   }
   console.log(`${phase} ${count}: ${route} cold n=3`)
 }
@@ -143,7 +193,7 @@ if (process.env.KUUKI_PERF_PAGES_ONLY !== '1') {
   browser(['profiler', 'start'])
 }
 if (count > 20) {
-evaluate(`(async () => {
+  evaluate(`(async () => {
   const { wait, sample, button } = __kuukiBench;
   const rows = () => [...document.querySelectorAll('[data-flight-row]')].map(r => Number(r.dataset.flightRow)).sort((a,b) => a-b).join();
   const first = await (await fetch('/api/flights?limit=20')).json();
@@ -158,11 +208,25 @@ evaluate(`(async () => {
   }
 })()`)
 }
-result.samples.push(...evaluate('__kuukiPerf.samples')); evaluate('__kuukiPerf.samples = []'); save()
+result.samples.push(...evaluate('__kuukiPerf.samples'))
+evaluate('__kuukiPerf.samples = []')
+save()
 if (process.env.KUUKI_PERF_PAGES_ONLY === '1') process.exit(0)
 
 // Each filter is applied through its real UI handler and checked against the owned API.
-for (const [key, value] of [['q', 'Tbilisi'], ['year', '2025'], ['airline', 'TK'], ['aircraft', 'A320'], ['airport', 'IST'], ['origin', 'TBS'], ['destination', 'IST'], ['status', 'completed'], ['status', 'upcoming'], ['status', 'awaiting'], ['status', 'logged']]) {
+for (const [key, value] of [
+  ['q', 'Tbilisi'],
+  ['year', '2025'],
+  ['airline', 'TK'],
+  ['aircraft', 'A320'],
+  ['airport', 'IST'],
+  ['origin', 'TBS'],
+  ['destination', 'IST'],
+  ['status', 'completed'],
+  ['status', 'upcoming'],
+  ['status', 'awaiting'],
+  ['status', 'logged'],
+]) {
   evaluate(`(async () => {
     const { wait, ready, sample, input, select, button, frames } = __kuukiBench;
     for (let i = 0; i < 5; i++) {
@@ -182,7 +246,9 @@ for (const [key, value] of [['q', 'Tbilisi'], ['year', '2025'], ['airline', 'TK'
     return true;
   })()`)
   console.log(`${phase} ${count}: journal ${key}=${value} n=5`)
-  result.samples.push(...evaluate('__kuukiPerf.samples')); evaluate('__kuukiPerf.samples = []'); save()
+  result.samples.push(...evaluate('__kuukiPerf.samples'))
+  evaluate('__kuukiPerf.samples = []')
+  save()
 }
 
 evaluate(`(async () => {
@@ -211,7 +277,9 @@ evaluate(`(async () => {
   }
   return true;
 })()`)
-result.samples.push(...evaluate('__kuukiPerf.samples')); evaluate('__kuukiPerf.samples = []'); save()
+result.samples.push(...evaluate('__kuukiPerf.samples'))
+evaluate('__kuukiPerf.samples = []')
+save()
 
 for (let iteration = 0; iteration < 5; iteration++) {
   evaluate(`(async () => {
@@ -225,7 +293,8 @@ for (let iteration = 0; iteration < 5; iteration++) {
     return true;
   })()`)
 }
-result.samples.push(...evaluate('__kuukiPerf.samples')); save()
+result.samples.push(...evaluate('__kuukiPerf.samples'))
+save()
 browser(['open', `${origin}/overview`])
 evaluate(`(async () => {
   const { wait, ready, sample } = __kuukiBench;
@@ -254,7 +323,10 @@ evaluate(`(async () => {
   }
   return true;
 })()`)
-result.samples.push(...evaluate('__kuukiPerf.samples')); save()
+result.samples.push(...evaluate('__kuukiPerf.samples'))
+save()
 browser(['profiler', 'stop', `/tmp/kuuki-perf-${phase}-${count}-trace.json`])
 browser(['network', 'har', 'stop', `/tmp/kuuki-perf-${phase}-${count}.har`])
-console.log(`Saved ${out}/${phase}-${count}.json (${result.loads.length} loads, ${result.samples.length} interactions)`)
+console.log(
+  `Saved ${out}/${phase}-${count}.json (${result.loads.length} loads, ${result.samples.length} interactions)`,
+)

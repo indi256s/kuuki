@@ -1,5 +1,15 @@
 // Theme color options for profiles
-export type ThemeColor = 'teal' | 'red' | 'coral' | 'olive' | 'yellow' | 'orange' | 'purple' | 'blue' | 'gray' | 'green'
+export type ThemeColor =
+  | 'teal'
+  | 'red'
+  | 'coral'
+  | 'olive'
+  | 'yellow'
+  | 'orange'
+  | 'purple'
+  | 'blue'
+  | 'gray'
+  | 'green'
 
 // User profile
 export interface Profile {
@@ -110,7 +120,13 @@ export interface LeaderboardRanking {
 }
 
 // Badge categories
-export type BadgeCategory = 'flights' | 'distance' | 'airlines' | 'aircraft' | 'achievement' | 'secret'
+export type BadgeCategory =
+  | 'flights'
+  | 'distance'
+  | 'airlines'
+  | 'aircraft'
+  | 'achievement'
+  | 'secret'
 
 // Badge tiers
 export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | null
@@ -164,19 +180,25 @@ export interface Airline {
 
 // Aircraft reference
 export interface Aircraft {
-  icao: string                    // "B738" - primary key
-  iata: string | null             // "738"
-  manufacturer: string            // "Boeing"
-  model: string                   // "737-800"
+  icao: string // "B738" - primary key
+  iata: string | null // "738"
+  manufacturer: string // "Boeing"
+  model: string // "737-800"
   family: string
-  name: string                    // "Boeing 737-800"
+  name: string // "Boeing 737-800"
   type: AircraftType
   engineType: EngineType
   engineCount: number
   capacity: number | null
 }
 
-export type AircraftType = 'widebody' | 'narrowbody' | 'regional' | 'bizjet' | 'turboprop' | 'piston'
+export type AircraftType =
+  | 'widebody'
+  | 'narrowbody'
+  | 'regional'
+  | 'bizjet'
+  | 'turboprop'
+  | 'piston'
 export type EngineType = 'jet' | 'turboprop' | 'piston'
 
 // ============================================================================
@@ -231,11 +253,11 @@ export interface PassportEntry {
   stampShape: StampShape
   dominantColor: string
   flagColors: string[]
-  firstVisit: string        // ISO date
-  lastVisit: string         // ISO date
+  firstVisit: string // ISO date
+  lastVisit: string // ISO date
   visitCount: number
-  source: 'flight' | 'claim' | 'both'  // How this country was added
-  airports: string[]        // Airport IATA codes visited (empty for claims-only)
+  source: 'flight' | 'claim' | 'both' // How this country was added
+  airports: string[] // Airport IATA codes visited (empty for claims-only)
 }
 
 // Stats for individual country popup

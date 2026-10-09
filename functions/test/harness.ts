@@ -14,14 +14,31 @@ export async function createApiDatabase() {
 }
 
 /** Invoke a Pages Function at its public request boundary with a real D1 binding. */
-export function apiContext(db: D1Database, request: Request, next: () => Promise<Response> = async () => new Response('next')) {
-  return { request, env: { DB: db }, data: { user: null }, next, params: {}, waitUntil() {}, passThroughOnException() {} }
+export function apiContext(
+  db: D1Database,
+  request: Request,
+  next: () => Promise<Response> = async () => new Response('next'),
+) {
+  return {
+    request,
+    env: { DB: db },
+    data: { user: null },
+    next,
+    params: {},
+    waitUntil() {},
+    passThroughOnException() {},
+  }
 }
 
 export const testOrigin = 'https://kuuki.test'
 
 /** Build a same-origin request carrying the CSRF cookie/header pair; a string or stream body is sent as-is, anything else as JSON. */
-export function csrfRequest(path: string, method: string, body?: unknown, headers: Record<string, string> = {}) {
+export function csrfRequest(
+  path: string,
+  method: string,
+  body?: unknown,
+  headers: Record<string, string> = {},
+) {
   const raw = typeof body === 'string' || body instanceof ReadableStream
   return new Request(`${testOrigin}${path}`, {
     method,

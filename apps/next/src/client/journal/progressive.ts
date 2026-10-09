@@ -11,19 +11,32 @@ export const ROW_CHUNK = 150
 type State = { count: number; target: number }
 
 /** How many of `target` items to render now. Deterministic on the first render, so server and client markup match. */
-export function useProgressiveCount(target: number, initial = INITIAL_ROWS, chunk = ROW_CHUNK): number {
+export function useProgressiveCount(
+  target: number,
+  initial = INITIAL_ROWS,
+  chunk = ROW_CHUNK,
+): number {
   const [state, setState] = useState<State>(() => ({ count: Math.min(target, initial), target }))
   let current = state
   if (state.target !== target) {
     // Shrinking or a small growth shows everything at once; a large growth continues from what is mounted.
-    const count = target <= state.count || target - state.count <= chunk ? target : Math.max(state.count, initial)
+    const count =
+      target <= state.count || target - state.count <= chunk
+        ? target
+        : Math.max(state.count, initial)
     current = { count, target }
     setState(current)
   }
   useEffect(() => {
     if (state.count >= state.target) return
     const timer = window.setTimeout(() => {
-      startTransition(() => setState(old => old.target === state.target ? { ...old, count: Math.min(old.target, old.count + chunk) } : old))
+      startTransition(() =>
+        setState((old) =>
+          old.target === state.target
+            ? { ...old, count: Math.min(old.target, old.count + chunk) }
+            : old,
+        ),
+      )
     }, 0)
     return () => window.clearTimeout(timer)
   }, [state, chunk])

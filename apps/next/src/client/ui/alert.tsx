@@ -24,10 +24,23 @@ export type AlertProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'role'> 
 
 const icons = { info: Info, warning: TriangleAlert, danger: CircleX, success: CircleCheck }
 
-export function Alert({ variant = 'info', title, children, action, urgent = false, className, ...rest }: AlertProps) {
+export function Alert({
+  variant = 'info',
+  title,
+  children,
+  action,
+  urgent = false,
+  className,
+  ...rest
+}: AlertProps) {
   const Icon = icons[variant]
   return (
-    <div {...rest} className={clsx('ui-alert', className)} data-variant={variant} role={urgent ? 'alert' : 'status'}>
+    <div
+      {...rest}
+      className={clsx('ui-alert', className)}
+      data-variant={variant}
+      role={urgent ? 'alert' : 'status'}
+    >
       <Icon className="ui-alert-icon" size={18} strokeWidth={1.75} aria-hidden="true" />
       <div className="ui-alert-copy">
         <p className="ui-alert-title">{title}</p>

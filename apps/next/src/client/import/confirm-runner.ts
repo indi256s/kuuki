@@ -5,11 +5,20 @@ import { FLIGHT_BULK_CREATE_MAX } from '@kuuki/shared'
 import { classifyRequestFailure, classifyRowFailure, type RowFailureKind } from './import-errors'
 import type { ConfirmResponse } from './import-types'
 
-export interface ConfirmItem { draftId: string; version: number }
+export interface ConfirmItem {
+  draftId: string
+  version: number
+}
 
 export type RowOutcome =
   | { status: 'saved'; flightId: number; replayed: boolean; aircraftIcao: string | null }
-  | { status: 'failed'; code: string | null; httpStatus: number | null; failure: RowFailureKind; retryable: boolean }
+  | {
+      status: 'failed'
+      code: string | null
+      httpStatus: number | null
+      failure: RowFailureKind
+      retryable: boolean
+    }
   /** The request was sent but no answer arrived: the row may or may not be saved. Resending the same key is safe. */
   | { status: 'uncertain' }
   /** Never sent because an earlier chunk did not answer. */
@@ -27,11 +36,21 @@ export interface ConfirmOutcome {
 export const importKey = (draftId: string, version: number) => `import:${draftId}:${version}`
 
 export function retryableIds(outcome: ConfirmOutcome): string[] {
-  return [...outcome.rows].filter(([, row]) => row.status === 'uncertain' || row.status === 'unsent' || (row.status === 'failed' && row.retryable)).map(([id]) => id)
+  return [...outcome.rows]
+    .filter(
+      ([, row]) =>
+        row.status === 'uncertain' ||
+        row.status === 'unsent' ||
+        (row.status === 'failed' && row.retryable),
+    )
+    .map(([id]) => id)
 }
 
 function failedRow(code: string | null, httpStatus: number | null): RowOutcome {
-  const { kind, retryable } = classifyRowFailure({ code: code ?? undefined, http_status: httpStatus ?? undefined })
+  const { kind, retryable } = classifyRowFailure({
+    code: code ?? undefined,
+    http_status: httpStatus ?? undefined,
+  })
   return { status: 'failed', code, httpStatus, failure: kind, retryable }
 }
 
@@ -56,7 +75,10 @@ export async function runConfirm({ batchId, items, send, signal }: Run): Promise
       // A transport failure or a 5xx may have been committed; a 4xx was refused before any write.
       const maybeCommitted = failure.status === null || failure.status >= 500
       for (const item of chunk) {
-        outcome.rows.set(item.draftId, maybeCommitted ? { status: 'uncertain' } : failedRow(failure.code, failure.status))
+        outcome.rows.set(
+          item.draftId,
+          maybeCommitted ? { status: 'uncertain' } : failedRow(failure.code, failure.status),
+        )
       }
       if (maybeCommitted) outcome.uncertain = true
       break
@@ -69,11 +91,20 @@ export async function runConfirm({ batchId, items, send, signal }: Run): Promise
       if (result.status === 'error') {
         outcome.rows.set(result.draftId, failedRow(result.code, result.http_status))
       } else {
-        outcome.rows.set(result.draftId, { status: 'saved', flightId: result.flight.id, replayed: result.status === 'replayed', aircraftIcao: result.flight.aircraft_icao })
+        outcome.rows.set(result.draftId, {
+          status: 'saved',
+          flightId: result.flight.id,
+          replayed: result.status === 'replayed',
+          aircraftIcao: result.flight.aircraft_icao,
+        })
       }
     }
     // A well-formed answer covers every item; an item it omitted is unknown, never assumed saved.
-    for (const item of chunk) if (!answered.has(item.draftId)) { outcome.rows.set(item.draftId, { status: 'uncertain' }); outcome.uncertain = true }
+    for (const item of chunk)
+      if (!answered.has(item.draftId)) {
+        outcome.rows.set(item.draftId, { status: 'uncertain' })
+        outcome.uncertain = true
+      }
   }
   return outcome
 }

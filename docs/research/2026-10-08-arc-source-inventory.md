@@ -6,27 +6,27 @@ Plan: [2026-10-08-arc-integration.md](../plans/2026-10-08-arc-integration.md). B
 
 ## Upstream and licence
 
-| Item | Value |
-|---|---|
-| Fetched (UTC) | 2026-10-08T09:50:43Z |
-| Catalog | https://uiarc.dev/llms.txt — "129 of 240 items are free" |
-| Registry index | https://uiarc.dev/r/registry.json — 132 items, every `meta.tier` = `free` (Pro items are not in this index) |
-| Item source | https://uiarc.dev/r/{name}.json (shadcn registry-item JSON with inline `files[].content`) |
-| Component markdown | `meta.markdown` of each item; blocks at https://uiarc.dev/components/blocks/{name}/markdown |
-| Licence page | https://uiarc.dev/license (HTML, "Last updated September 26, 2026"; banner says the text is a **draft not yet reviewed by a lawyer**) |
-| Public repo | https://github.com/kuratlielia/arc-library — raw `LICENSE` fetched from `main` |
-| Free-tier licence | MIT, Copyright (c) 2026 Elia Kuratli. Full text in `apps/next/src/client/ui/ARC-LICENSE.txt` |
-| Pro | Not fetched or reconstructed. The licence forbids redistributing Pro source; no `@uiarc-pro` access used |
+| Item               | Value                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Fetched (UTC)      | 2026-10-08T09:50:43Z                                                                                                                  |
+| Catalog            | https://uiarc.dev/llms.txt — "129 of 240 items are free"                                                                              |
+| Registry index     | https://uiarc.dev/r/registry.json — 132 items, every `meta.tier` = `free` (Pro items are not in this index)                           |
+| Item source        | https://uiarc.dev/r/{name}.json (shadcn registry-item JSON with inline `files[].content`)                                             |
+| Component markdown | `meta.markdown` of each item; blocks at https://uiarc.dev/components/blocks/{name}/markdown                                           |
+| Licence page       | https://uiarc.dev/license (HTML, "Last updated September 26, 2026"; banner says the text is a **draft not yet reviewed by a lawyer**) |
+| Public repo        | https://github.com/kuratlielia/arc-library — raw `LICENSE` fetched from `main`                                                        |
+| Free-tier licence  | MIT, Copyright (c) 2026 Elia Kuratli. Full text in `apps/next/src/client/ui/ARC-LICENSE.txt`                                          |
+| Pro                | Not fetched or reconstructed. The licence forbids redistributing Pro source; no `@uiarc-pro` access used                              |
 
 Evidence of tier: all 70 fetched items carry `meta.tier` (or foundation entries) `free` and returned HTTP 200 without credentials; the script asserted this per item. The MIT text on the licence page and in the GitHub `LICENSE` is identical in wording. Risk to carry: the page's "draft" banner means the licence may change; the MIT grant applies to what was fetched on this date and the notice must stay with copied source.
 
 Hashes (SHA256) of catalog files, staged as retrieved:
 
-| File | SHA256 |
-|---|---|
-| catalog/llms.txt | `cf66acdf19f44225776d2ae11908eb9f433fcb9f1ae040e0bd0fdf3604a3f7b1` |
-| catalog/registry.json | `26c8c56a77088cc4d8949432785c48bd3b614a398e0faf80d7a8e2f4d4038cc5` |
-| catalog/license (HTML) | `bc046b425387455e1275c48e6b0f77374a94e6c95b223d3ce5cb81e72252f521` |
+| File                       | SHA256                                                             |
+| -------------------------- | ------------------------------------------------------------------ |
+| catalog/llms.txt           | `cf66acdf19f44225776d2ae11908eb9f433fcb9f1ae040e0bd0fdf3604a3f7b1` |
+| catalog/registry.json      | `26c8c56a77088cc4d8949432785c48bd3b614a398e0faf80d7a8e2f4d4038cc5` |
+| catalog/license (HTML)     | `bc046b425387455e1275c48e6b0f77374a94e6c95b223d3ce5cb81e72252f521` |
 | catalog/github-LICENSE.txt | `1b73a3fbab233cb995e6e9b6a63d302f91975c74c1629919c8e9820902820dde` |
 
 ## Staging layout (temporary, not committed)
@@ -37,15 +37,15 @@ Hashes (SHA256) of catalog files, staged as retrieved:
 
 Registry items declare only these npm packages (no versions pinned by Arc): `motion`, `lucide-react`, `@radix-ui/react-{accordion,checkbox,dialog,dropdown-menu,popover,select,switch,tabs,tooltip}`. Source also imports `react`, `react-dom`, and (one block) `next`; every non-relative import maps to those. All relative imports resolve inside the fetched set via each file's `target` (`@components/arc/lib/{motion-tokens,arc-provider,use-today,use-copy-feedback,media}`, `motion-tokens.ts`).
 
-| Package | Installed in apps/next | Needed by (fetched) | Version note (npm 2026-10-08) |
-|---|---|---|---|
-| `motion` | absent after W5 | upstream components (`motion/react`) | 14.0.0 was admitted during the pilot, then removed after caller proof. Local SVG/CSS updates and existing motion primitives require no Motion import; do not install an unused runtime. |
-| `lucide-react` | ^0.563.0 | combobox, action-button, split-button, button-group, … | already present |
-| `@radix-ui/react-dialog` | 1.1.15 | dialog, drawer, bottom-sheet | present; npm latest 1.2.0 — do not bump just for Arc |
-| `@radix-ui/react-dropdown-menu` | 2.1.16 | dropdown/context/split/button-group/user-menu | present; latest 2.1.25 |
-| `@radix-ui/react-popover` | 1.1.15 | popover, date pickers | present; latest 1.2.0 |
-| `@radix-ui/react-{select,checkbox,switch,tabs,tooltip,accordion}` | absent | select, checkbox/signup-form, switch, tabs, tooltip/floating-button-group, accordion | W1 decides per actual caller; latest select 2.3.8, checkbox 1.3.12, switch 1.3.8, tabs 1.1.22, tooltip 1.3.0, accordion 1.2.21. Plan prefers keeping existing CSS/React/Radix for equivalent simple controls (Switch/Segmented/Disclosure), so several may stay uninstalled |
-| `@tanstack/charts` | removed from root/app and lock | — (not an Arc dep) | All production/test consumers, including the PNG share-card SVG, have local equivalents. `@tanstack/react-query` remains the separate existing data transport. |
+| Package                                                           | Installed in apps/next         | Needed by (fetched)                                                                  | Version note (npm 2026-10-08)                                                                                                                                                                                                                                               |
+| ----------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `motion`                                                          | absent after W5                | upstream components (`motion/react`)                                                 | 14.0.0 was admitted during the pilot, then removed after caller proof. Local SVG/CSS updates and existing motion primitives require no Motion import; do not install an unused runtime.                                                                                     |
+| `lucide-react`                                                    | ^0.563.0                       | combobox, action-button, split-button, button-group, …                               | already present                                                                                                                                                                                                                                                             |
+| `@radix-ui/react-dialog`                                          | 1.1.15                         | dialog, drawer, bottom-sheet                                                         | present; npm latest 1.2.0 — do not bump just for Arc                                                                                                                                                                                                                        |
+| `@radix-ui/react-dropdown-menu`                                   | 2.1.16                         | dropdown/context/split/button-group/user-menu                                        | present; latest 2.1.25                                                                                                                                                                                                                                                      |
+| `@radix-ui/react-popover`                                         | 1.1.15                         | popover, date pickers                                                                | present; latest 1.2.0                                                                                                                                                                                                                                                       |
+| `@radix-ui/react-{select,checkbox,switch,tabs,tooltip,accordion}` | absent                         | select, checkbox/signup-form, switch, tabs, tooltip/floating-button-group, accordion | W1 decides per actual caller; latest select 2.3.8, checkbox 1.3.12, switch 1.3.8, tabs 1.1.22, tooltip 1.3.0, accordion 1.2.21. Plan prefers keeping existing CSS/React/Radix for equivalent simple controls (Switch/Segmented/Disclosure), so several may stay uninstalled |
+| `@tanstack/charts`                                                | removed from root/app and lock | — (not an Arc dep)                                                                   | All production/test consumers, including the PNG share-card SVG, have local equivalents. `@tanstack/react-query` remains the separate existing data transport.                                                                                                              |
 
 No Arc item requires Tailwind, shadcn config or a font package. The registry's foundation uses Geist/Inter variable font names (`--font-geist`, `--font-inter`) — do not add; keep Commissioner/JetBrains Mono. `use client` appears on all 68 TSX files; components are CSS-module based (`*.module.css`). Arc's `ArcProvider` (`lib/arc-provider.tsx`, pulled by avatar) is a new runtime provider: adopt only if avatar is genuinely adopted, otherwise strip.
 
@@ -59,21 +59,21 @@ The import file source now uses `client/import/file-dropzone.tsx` and its CSS mo
 
 The existing shared kit was adapted in place. Arc style/composition is applied to Button/Field/Segmented/Switch/Disclosure, Calendar/Combobox/search, Menu/Dialog/Sheet, Journal rows/pagination/floating actions, Import dropzone/textarea/progress/results, Passport metrics/timeline/search, Settings groups/deletion steps, auth/onboarding choices, shell SplitAdd/UserMenu/navigation, profile share fallback/badges and leaderboard tabs/progress. Existing authorities remain responsible for form submission, focus, timers, transport, pagination and validated writes.
 
-| Required addition | Local source / meaningful caller | Patch from upstream |
-|---|---|---|
-| Date range picker | `ui/date-range-picker.tsx`; Journal, Overview filters, Rhythm | Existing typed calendars; paired draft/Apply; validated exact-day API/URL/preferences; old YYYY-MM preferences readable |
-| Inline edit | `ui/inline-edit.tsx`; Journal aircraft cell | Enter/Escape, existing validated aircraft PATCH, current owner/receipt admission, no blur save |
-| Context menu | `ui/context-menu.tsx`; Journal row actions | Existing Radix Menu and same Open/Edit/Delete callbacks; visible and keyboard entry |
-| Confirm morph | `ui/confirm-morph.tsx`; single-flight Journal delete | Existing deferred DeleteUndo is the sole timer; Cancel/Escape focus preserved |
-| Sparkline | `charts/arc-sparkline.tsx`; Hero flight/km metrics | Upstream monotone SVG geometry; aligned actual monthly buckets; immediate totals, localized description and caption |
-| Line | `charts/arc-line.tsx`; Rhythm cumulative km/flights | Real UTC date spacing, step-after path, exact weighted sums, baseline and private-ID actions only in raw mode |
-| Brush | `charts/arc-brush.tsx`; Rhythm exact period | Controlled epoch draft, one completion commit, native 44px range handles, UTC day conversion, owner/filter remount |
-| Donut | `charts/arc-donut.tsx`; Rankings airline shares | All airline identities, no automatic Other grouping; exact totals and visible filter legend/table |
-| Waffle | `charts/arc-waffle.tsx`; Manufacturers | Existing units/apportionment and baseline positions; explicit maker/flight identity, group isolation and metric actions |
-| Activity heatmap | `charts/arc-activity-heatmap.tsx`; Rhythm daily calendar | Actual logged-day weighted aggregates, UTC/leap/locale calendar, exact-day selection; legacy monthly detail unavailable |
-| Slope | `charts/arc-slope.tsx`; Rankings previous-period comparison | Equal-length previousPeriod and same facets; top-five labelled view, full union table; missing distinct from valid zero |
-| Ridgeline | `charts/arc-ridgeline.tsx`; Fleet family distributions | Precomputed 128 log-domain samples and optional precomputed summary props; no upstream KDE; existing sparse/weight behavior and sampled-minute actions |
-| Treemap | `charts/arc-treemap.tsx`; GlobeCard country-evidence disclosure | Upstream squarify geometry; logged-only weighted deduplicated/suppressed country evidence; region drill separate from filtering |
+| Required addition | Local source / meaningful caller                                | Patch from upstream                                                                                                                                    |
+| ----------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Date range picker | `ui/date-range-picker.tsx`; Journal, Overview filters, Rhythm   | Existing typed calendars; paired draft/Apply; validated exact-day API/URL/preferences; old YYYY-MM preferences readable                                |
+| Inline edit       | `ui/inline-edit.tsx`; Journal aircraft cell                     | Enter/Escape, existing validated aircraft PATCH, current owner/receipt admission, no blur save                                                         |
+| Context menu      | `ui/context-menu.tsx`; Journal row actions                      | Existing Radix Menu and same Open/Edit/Delete callbacks; visible and keyboard entry                                                                    |
+| Confirm morph     | `ui/confirm-morph.tsx`; single-flight Journal delete            | Existing deferred DeleteUndo is the sole timer; Cancel/Escape focus preserved                                                                          |
+| Sparkline         | `charts/arc-sparkline.tsx`; Hero flight/km metrics              | Upstream monotone SVG geometry; aligned actual monthly buckets; immediate totals, localized description and caption                                    |
+| Line              | `charts/arc-line.tsx`; Rhythm cumulative km/flights             | Real UTC date spacing, step-after path, exact weighted sums, baseline and private-ID actions only in raw mode                                          |
+| Brush             | `charts/arc-brush.tsx`; Rhythm exact period                     | Controlled epoch draft, one completion commit, native 44px range handles, UTC day conversion, owner/filter remount                                     |
+| Donut             | `charts/arc-donut.tsx`; Rankings airline shares                 | All airline identities, no automatic Other grouping; exact totals and visible filter legend/table                                                      |
+| Waffle            | `charts/arc-waffle.tsx`; Manufacturers                          | Existing units/apportionment and baseline positions; explicit maker/flight identity, group isolation and metric actions                                |
+| Activity heatmap  | `charts/arc-activity-heatmap.tsx`; Rhythm daily calendar        | Actual logged-day weighted aggregates, UTC/leap/locale calendar, exact-day selection; legacy monthly detail unavailable                                |
+| Slope             | `charts/arc-slope.tsx`; Rankings previous-period comparison     | Equal-length previousPeriod and same facets; top-five labelled view, full union table; missing distinct from valid zero                                |
+| Ridgeline         | `charts/arc-ridgeline.tsx`; Fleet family distributions          | Precomputed 128 log-domain samples and optional precomputed summary props; no upstream KDE; existing sparse/weight behavior and sampled-minute actions |
+| Treemap           | `charts/arc-treemap.tsx`; GlobeCard country-evidence disclosure | Upstream squarify geometry; logged-only weighted deduplicated/suppressed country evidence; region drill separate from filtering                        |
 
 Local SVG equivalents also retain the monthly heat grid, multi-year reversed-rank bump/dashes/visibility, radial hour Clock, signed Crossings, d3 SVG globe and replay range. Share-card bars remain a DOM-free server SVG fixture. MapLibre and the existing vendored flight animation stay installed. Direct `d3-geo`/`d3-shape` remain for actual callers; unused `d3-scale` and its types were removed.
 
@@ -87,73 +87,73 @@ Import source-date/operator/registration and operated-versus-scheduled classific
 
 One row per candidate named in the plan's disposition table. "Tree" = transitive `registryDependencies` (Arc items) beyond `arc-motion-tokens`, which every item needs. Hash is SHA256 of the exact `registry/<item>.json` bytes; per-file hashes are in the appendix.
 
-| Item | Plan disposition | Wave | Tree (Arc items) | Registry JSON SHA256 | Adaptation decision / required patch |
-|---|---|---|---|---|---|
-| `button` | Adapt/compose | W1 | — | `a87bfc7182d4372c…` | Existing Button keeps loading/disabled-reason/text-feedback props; drop upstream motion tap bounce if routine |
-| `action-button` | Adapt/compose | W1 | — | `10dd212b94358431…` | Shell/toolbar actions only |
-| `button-group` | Adapt/compose | W1 | — | `07ad897449c6ddb3…` | Forms and review actions |
-| `input` | Adapt/compose | W1 | — | `6cf1b1f78bbfb29f…` | Presentation into existing Field; keep ref forwarding, RHF, reserved error row |
-| `textarea` | Adapt/compose | W1/W3 | — | `606f8ce2bf88ed45…` | Only if repeated callers (import paste) justify it |
-| `password-field` | Adapt/compose | W1/W4 | — | `5990c94b69cc09c4…` | Reveal semantics + autocomplete preserved |
-| `select` | Adapt/compose | W1 | — | `7c70286e13eb3932…` | Radix Select; only for real filter/choice callers |
-| `checkbox` | Adapt/compose | W1 | — | `5aa9d53a1edfcc25…` | Row selection, privacy choices |
-| `radio-group` | Adapt/compose | W1 | — | `94902e2298947678…` | One tab stop, arrows/Home/End, 44px targets |
-| `radio-cards` | Adapt/compose | W1/W4 | — | `a210886a62780797…` | Onboarding source choice |
-| `switch` | Adapt | W1 | — | `bc3b514941718cf6…` | Existing SwitchRow |
-| `segmented-control` | Adapt | W1 | — | `02ca9d645e6eed2b…` | Keep radiogroup semantics |
-| `dropdown-menu` | Adapt/compose | W1/W2 | — | `7c15289aff1979cf…` | Existing Menu (Radix 2.1.16 retained) |
-| `popover` | Adapt/compose | W1/W2 | — | `5bfaa4af94c78364…` | Calendar popover; popover.tsx exists |
-| `tooltip` | Adapt/compose | W1/W2 | — | `7348cccf3b922ae4…` | Only for real explanatory content; no hover-only essentials |
-| `dialog` | Adapt | W2 | — | `1f47479abe25fd2f…` | Existing Dialog/DestructiveConfirm; keep Radix focus/dismissal |
-| `drawer` | Adapt | W2 | — | `42ec423a96b7913a…` | Existing Sheet (visualViewport insets, handle-only drag) |
-| `bottom-sheet` | Adapt | W2 | — | `3bec01c6f348635c…` | Same Sheet; do not add a second sheet stack |
-| `combobox` | Adapt | W2 | — | `a0632ef5ca8cd3a3…` | Focus-leave close fix; keep code-first ranking, aliases, 50 cap, recents |
-| `calendar` | Adapt | W2 | — | `32e08f588540031c…` | Keep typed locale-aware input, ISO, week starts |
-| `date-picker` | Reference | W2 | calendar | `aaff3c9e6cce6e44…` | Button-first; informs Calendar popover only (plan Sources) |
-| `time-picker` | Adapt only with parity | W2 | — | `1ead4f69820e5c33…` | Else keep native time controls; record exclusion |
-| `search-field` | Adapt/compose | W2/W3 | — | `406c01f957792ddd…` | JournalFilters; AddCountrySheet |
-| `filter-toolbar` | Adapt/compose | W2 | — | `e5fbafcbf0464c07…` | Journal toolbar around query normalization |
-| `chip-group` | Adapt/compose | W2 | — | `edd2ae7c66a82164…` | Journal filter chips |
-| `date-range-picker` | Adapt + contract extension | W2 | — | `96e983e9e5bafade…` | Day-level from/to YYYY-MM-DD; needs API/URL/prefs contract |
-| `inline-edit` | Adapt + write authority | W2 | — | `3fa0955c8be35b39…` | Aircraft-type cell; Enter saves, Escape cancels, blur no save |
-| `context-menu` | Adapt + existing handlers | W2 | — | `fc7f3e15a6c91318…` | Open/Edit/Delete same handlers; keyboard entry |
-| `confirm-morph` | Adapt + deferred-delete/Undo | W2 | — | `abcddca90d61ae39…` | Single-flight delete only; no competing countdown |
-| `sortable-data-table` | Adapt/compose | W2 | — | `23e37213b102763f…` | Presentation only; remove internal row sorting (server sort authoritative) |
-| `pagination` | Adapt/compose | W2 | — | `2c3c5163a20c952d…` | URL pagination |
-| `floating-button-group` | Adapt | W2 | tooltip | `db0c5625dcfd66ea…` | Existing FloatingActionBar |
-| `accordion` | Adapt | W1 | — | `a069f821b73e05ec…` | Existing Disclosure |
-| `file-dropzone` | Adapt/compose | W3 | — | `f15cc4b530b5f270…` | SourceStep; keep existing validation |
-| `stepper` | Compose | W3/W4 | — | `ec68ecaf041ad57c…` | Import stages, deletion steps |
-| `copy-button` | Adapt/compose | W3/W4 | — | `d5f6a7bfb47d9f06…` | Keep fallback + FeedbackText |
-| `alert` | Adapt/compose | W1/W2 | — | `aaa26038ee991694…` | Errors/notices |
-| `toast` | Adapt/compose | W1/W2 | — | `31f89b19361286b8…` | Presentation only; keep owner scope, priority, timer pauses |
-| `announcement-bar` | Adapt/compose | W1/W2 | — | `27c34dbf9e5a9560…` | ShellNotices |
-| `progress` | Compose | W1 | — | `6f97a08c910a78cb…` | Truthful progress only |
-| `skeleton` | Compose | W1 | — | `c4eb5550975c2609…` | In-place data surfaces; LoadingScreen stays |
-| `empty-state` | Compose | W1 | — | `0b841ed91e404f48…` | Existing empty states |
-| `badge` | Compose | W1 | — | `1471ceb1ae9b67aa…` | Status/achievement/review |
-| `card` | Compose | W1 | — | `012b791bdd91d2e7…` | Surfaces |
-| `split-button` | Adapt/compose | W4 | — | `b977ffd132d934e0…` | SplitAdd |
-| `user-menu` | Adapt/compose | W4 | — | `ef016a7de2c4cbda…` | AvatarMenu; keep Facehash, sign-out |
-| `avatar` | Adapt/compose | W4 | — | `8d128c779fa302d8…` | ProfileAvatar; preserve Facehash |
-| `tabs` | Reference/adapt styles | W4 | — | `76407a8e59ff51cb…` | Navigation links; keep route semantics (do not adopt Radix Tabs for routes) |
-| `metric-card` | Adapt/compose | W3/W5 | animated-counter | `e068e8a22452ccee…` | REMOVE AnimatedCounter (imports ../animated-counter); immediate totals |
-| `bar-chart` | Adapt/render | W5 | — | `28131c8e2ed71b16…` | Where bar view remains |
-| `sparkline` | Adapt/render | W5 | — | `bd311156bd460d88…` | Summary trend beside immediate numeric headline |
-| `line-chart` | Adapt/render | W5 | — | `a72f88f0719d76ff…` | curve is smooth|linear only: add step-after for cumulative odometer |
-| `brush-chart` | Adapt/render | W5 | — | `bd4884ac47b95dcf…` | Epoch-ms range; onRangeChange fires during drag/resize/step: use controlled draft + explicit commit; minSpan default 7 days: allow one day |
-| `donut-chart` | Adapt/render | W5 | — | `711eb5c73940fdbc…` | groupBelow=.04/maxSegments=6 auto-"Other": disable/patch for stable identities |
-| `waffle-chart` | Adapt/render | W5 | — | `d3eec42f27514a94…` | onActiveChange only (focus/pin): add explicit category/mark callbacks |
-| `activity-heatmap` | Adapt/render + daily data | W5 | — | `dbba257f5b337cb9…` | days[] one per day, UTC date keys, onSelectDate(YYYY-MM-DD); needs real daily aggregates |
-| `slope-chart` | Adapt/render | W5 | — | `c49f5ca0109c20a3…` | Two-period comparison; not a replacement for multi-year bump |
-| `ridgeline` | Adapt/render | W5 | — | `4a6446a475871a0d…` | values[] raw observations; KDE always recomputed (silverman): add precomputed density/statistics input |
-| `treemap` | Adapt/render | W5 | — | `7d19bc3849b8e033…` | Region->country; explicit completed-flight country-evidence leaves |
-| `timeline` | Compose only where dated | W3 | — | `706b338d7cfc7d00…` | CountrySheet dated evidence only |
-| `page-header` | Block: compose parts | W3-W5 | animated-counter, avatar-group, avatar, badge, button, progress | `170467b836a46c03…` | Not installed as page; pulls avatar/avatar-group/badge/button/progress/animated-counter |
-| `empty-states` | Block: compose parts | W3-W5 | button | `04c7a7179263d4c5…` | Parts only (empty-states-art.ts) |
-| `file-upload` | Block: compose parts | W3 | — | `286439cde4189e3b…` | SourceStep reference |
-| `sign-in` | Block: reference | W4 | avatar, button, input, otp-input | `8558de0821f2cd7b…` | Form parts only; pulls otp-input + lib/media; preserve one-form flow |
-| `signup-form` | Block: reference | W4 | button, checkbox, input, password-field | `d28a9b36b04716ec…` | Form parts only |
+| Item                    | Plan disposition             | Wave  | Tree (Arc items)                                                | Registry JSON SHA256 | Adaptation decision / required patch                                                                                                       |
+| ----------------------- | ---------------------------- | ----- | --------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `button`                | Adapt/compose                | W1    | —                                                               | `a87bfc7182d4372c…`  | Existing Button keeps loading/disabled-reason/text-feedback props; drop upstream motion tap bounce if routine                              |
+| `action-button`         | Adapt/compose                | W1    | —                                                               | `10dd212b94358431…`  | Shell/toolbar actions only                                                                                                                 |
+| `button-group`          | Adapt/compose                | W1    | —                                                               | `07ad897449c6ddb3…`  | Forms and review actions                                                                                                                   |
+| `input`                 | Adapt/compose                | W1    | —                                                               | `6cf1b1f78bbfb29f…`  | Presentation into existing Field; keep ref forwarding, RHF, reserved error row                                                             |
+| `textarea`              | Adapt/compose                | W1/W3 | —                                                               | `606f8ce2bf88ed45…`  | Only if repeated callers (import paste) justify it                                                                                         |
+| `password-field`        | Adapt/compose                | W1/W4 | —                                                               | `5990c94b69cc09c4…`  | Reveal semantics + autocomplete preserved                                                                                                  |
+| `select`                | Adapt/compose                | W1    | —                                                               | `7c70286e13eb3932…`  | Radix Select; only for real filter/choice callers                                                                                          |
+| `checkbox`              | Adapt/compose                | W1    | —                                                               | `5aa9d53a1edfcc25…`  | Row selection, privacy choices                                                                                                             |
+| `radio-group`           | Adapt/compose                | W1    | —                                                               | `94902e2298947678…`  | One tab stop, arrows/Home/End, 44px targets                                                                                                |
+| `radio-cards`           | Adapt/compose                | W1/W4 | —                                                               | `a210886a62780797…`  | Onboarding source choice                                                                                                                   |
+| `switch`                | Adapt                        | W1    | —                                                               | `bc3b514941718cf6…`  | Existing SwitchRow                                                                                                                         |
+| `segmented-control`     | Adapt                        | W1    | —                                                               | `02ca9d645e6eed2b…`  | Keep radiogroup semantics                                                                                                                  |
+| `dropdown-menu`         | Adapt/compose                | W1/W2 | —                                                               | `7c15289aff1979cf…`  | Existing Menu (Radix 2.1.16 retained)                                                                                                      |
+| `popover`               | Adapt/compose                | W1/W2 | —                                                               | `5bfaa4af94c78364…`  | Calendar popover; popover.tsx exists                                                                                                       |
+| `tooltip`               | Adapt/compose                | W1/W2 | —                                                               | `7348cccf3b922ae4…`  | Only for real explanatory content; no hover-only essentials                                                                                |
+| `dialog`                | Adapt                        | W2    | —                                                               | `1f47479abe25fd2f…`  | Existing Dialog/DestructiveConfirm; keep Radix focus/dismissal                                                                             |
+| `drawer`                | Adapt                        | W2    | —                                                               | `42ec423a96b7913a…`  | Existing Sheet (visualViewport insets, handle-only drag)                                                                                   |
+| `bottom-sheet`          | Adapt                        | W2    | —                                                               | `3bec01c6f348635c…`  | Same Sheet; do not add a second sheet stack                                                                                                |
+| `combobox`              | Adapt                        | W2    | —                                                               | `a0632ef5ca8cd3a3…`  | Focus-leave close fix; keep code-first ranking, aliases, 50 cap, recents                                                                   |
+| `calendar`              | Adapt                        | W2    | —                                                               | `32e08f588540031c…`  | Keep typed locale-aware input, ISO, week starts                                                                                            |
+| `date-picker`           | Reference                    | W2    | calendar                                                        | `aaff3c9e6cce6e44…`  | Button-first; informs Calendar popover only (plan Sources)                                                                                 |
+| `time-picker`           | Adapt only with parity       | W2    | —                                                               | `1ead4f69820e5c33…`  | Else keep native time controls; record exclusion                                                                                           |
+| `search-field`          | Adapt/compose                | W2/W3 | —                                                               | `406c01f957792ddd…`  | JournalFilters; AddCountrySheet                                                                                                            |
+| `filter-toolbar`        | Adapt/compose                | W2    | —                                                               | `e5fbafcbf0464c07…`  | Journal toolbar around query normalization                                                                                                 |
+| `chip-group`            | Adapt/compose                | W2    | —                                                               | `edd2ae7c66a82164…`  | Journal filter chips                                                                                                                       |
+| `date-range-picker`     | Adapt + contract extension   | W2    | —                                                               | `96e983e9e5bafade…`  | Day-level from/to YYYY-MM-DD; needs API/URL/prefs contract                                                                                 |
+| `inline-edit`           | Adapt + write authority      | W2    | —                                                               | `3fa0955c8be35b39…`  | Aircraft-type cell; Enter saves, Escape cancels, blur no save                                                                              |
+| `context-menu`          | Adapt + existing handlers    | W2    | —                                                               | `fc7f3e15a6c91318…`  | Open/Edit/Delete same handlers; keyboard entry                                                                                             |
+| `confirm-morph`         | Adapt + deferred-delete/Undo | W2    | —                                                               | `abcddca90d61ae39…`  | Single-flight delete only; no competing countdown                                                                                          |
+| `sortable-data-table`   | Adapt/compose                | W2    | —                                                               | `23e37213b102763f…`  | Presentation only; remove internal row sorting (server sort authoritative)                                                                 |
+| `pagination`            | Adapt/compose                | W2    | —                                                               | `2c3c5163a20c952d…`  | URL pagination                                                                                                                             |
+| `floating-button-group` | Adapt                        | W2    | tooltip                                                         | `db0c5625dcfd66ea…`  | Existing FloatingActionBar                                                                                                                 |
+| `accordion`             | Adapt                        | W1    | —                                                               | `a069f821b73e05ec…`  | Existing Disclosure                                                                                                                        |
+| `file-dropzone`         | Adapt/compose                | W3    | —                                                               | `f15cc4b530b5f270…`  | SourceStep; keep existing validation                                                                                                       |
+| `stepper`               | Compose                      | W3/W4 | —                                                               | `ec68ecaf041ad57c…`  | Import stages, deletion steps                                                                                                              |
+| `copy-button`           | Adapt/compose                | W3/W4 | —                                                               | `d5f6a7bfb47d9f06…`  | Keep fallback + FeedbackText                                                                                                               |
+| `alert`                 | Adapt/compose                | W1/W2 | —                                                               | `aaa26038ee991694…`  | Errors/notices                                                                                                                             |
+| `toast`                 | Adapt/compose                | W1/W2 | —                                                               | `31f89b19361286b8…`  | Presentation only; keep owner scope, priority, timer pauses                                                                                |
+| `announcement-bar`      | Adapt/compose                | W1/W2 | —                                                               | `27c34dbf9e5a9560…`  | ShellNotices                                                                                                                               |
+| `progress`              | Compose                      | W1    | —                                                               | `6f97a08c910a78cb…`  | Truthful progress only                                                                                                                     |
+| `skeleton`              | Compose                      | W1    | —                                                               | `c4eb5550975c2609…`  | In-place data surfaces; LoadingScreen stays                                                                                                |
+| `empty-state`           | Compose                      | W1    | —                                                               | `0b841ed91e404f48…`  | Existing empty states                                                                                                                      |
+| `badge`                 | Compose                      | W1    | —                                                               | `1471ceb1ae9b67aa…`  | Status/achievement/review                                                                                                                  |
+| `card`                  | Compose                      | W1    | —                                                               | `012b791bdd91d2e7…`  | Surfaces                                                                                                                                   |
+| `split-button`          | Adapt/compose                | W4    | —                                                               | `b977ffd132d934e0…`  | SplitAdd                                                                                                                                   |
+| `user-menu`             | Adapt/compose                | W4    | —                                                               | `ef016a7de2c4cbda…`  | AvatarMenu; keep Facehash, sign-out                                                                                                        |
+| `avatar`                | Adapt/compose                | W4    | —                                                               | `8d128c779fa302d8…`  | ProfileAvatar; preserve Facehash                                                                                                           |
+| `tabs`                  | Reference/adapt styles       | W4    | —                                                               | `76407a8e59ff51cb…`  | Navigation links; keep route semantics (do not adopt Radix Tabs for routes)                                                                |
+| `metric-card`           | Adapt/compose                | W3/W5 | animated-counter                                                | `e068e8a22452ccee…`  | REMOVE AnimatedCounter (imports ../animated-counter); immediate totals                                                                     |
+| `bar-chart`             | Adapt/render                 | W5    | —                                                               | `28131c8e2ed71b16…`  | Where bar view remains                                                                                                                     |
+| `sparkline`             | Adapt/render                 | W5    | —                                                               | `bd311156bd460d88…`  | Summary trend beside immediate numeric headline                                                                                            |
+| `line-chart`            | Adapt/render                 | W5    | —                                                               | `a72f88f0719d76ff…`  | curve is smooth                                                                                                                            | linear only: add step-after for cumulative odometer |
+| `brush-chart`           | Adapt/render                 | W5    | —                                                               | `bd4884ac47b95dcf…`  | Epoch-ms range; onRangeChange fires during drag/resize/step: use controlled draft + explicit commit; minSpan default 7 days: allow one day |
+| `donut-chart`           | Adapt/render                 | W5    | —                                                               | `711eb5c73940fdbc…`  | groupBelow=.04/maxSegments=6 auto-"Other": disable/patch for stable identities                                                             |
+| `waffle-chart`          | Adapt/render                 | W5    | —                                                               | `d3eec42f27514a94…`  | onActiveChange only (focus/pin): add explicit category/mark callbacks                                                                      |
+| `activity-heatmap`      | Adapt/render + daily data    | W5    | —                                                               | `dbba257f5b337cb9…`  | days[] one per day, UTC date keys, onSelectDate(YYYY-MM-DD); needs real daily aggregates                                                   |
+| `slope-chart`           | Adapt/render                 | W5    | —                                                               | `c49f5ca0109c20a3…`  | Two-period comparison; not a replacement for multi-year bump                                                                               |
+| `ridgeline`             | Adapt/render                 | W5    | —                                                               | `4a6446a475871a0d…`  | values[] raw observations; KDE always recomputed (silverman): add precomputed density/statistics input                                     |
+| `treemap`               | Adapt/render                 | W5    | —                                                               | `7d19bc3849b8e033…`  | Region->country; explicit completed-flight country-evidence leaves                                                                         |
+| `timeline`              | Compose only where dated     | W3    | —                                                               | `706b338d7cfc7d00…`  | CountrySheet dated evidence only                                                                                                           |
+| `page-header`           | Block: compose parts         | W3-W5 | animated-counter, avatar-group, avatar, badge, button, progress | `170467b836a46c03…`  | Not installed as page; pulls avatar/avatar-group/badge/button/progress/animated-counter                                                    |
+| `empty-states`          | Block: compose parts         | W3-W5 | button                                                          | `04c7a7179263d4c5…`  | Parts only (empty-states-art.ts)                                                                                                           |
+| `file-upload`           | Block: compose parts         | W3    | —                                                               | `286439cde4189e3b…`  | SourceStep reference                                                                                                                       |
+| `sign-in`               | Block: reference             | W4    | avatar, button, input, otp-input                                | `8558de0821f2cd7b…`  | Form parts only; pulls otp-input + lib/media; preserve one-form flow                                                                       |
+| `signup-form`           | Block: reference             | W4    | button, checkbox, input, password-field                         | `d28a9b36b04716ec…`  | Form parts only                                                                                                                            |
 
 Hash prefix is shown for width; full 64-char values are in `SHA256SUMS-registry-json` and the appendix.
 
@@ -171,19 +171,19 @@ Recorded per plan: `expanding-search`, `morph-select` (use Search field/Select),
 
 ## Chart and special-interaction facts verified in fetched source
 
-| Item | Verified fact (file in staging) | Required Kuuki adaptation (W5 unless noted) |
-|---|---|---|
-| line-chart | `curve?: "smooth"\|"linear"`; dense monotone-cubic sampling; absent values default to 0 (`item.values[key] ?? 0`) | Add step-after geometry for cumulative odometer; missing ≠ zero; ghost baseline; explicit mark-action callbacks |
-| brush-chart | `range`/`defaultRange`/`onRangeChange` are `[start,end]` epoch ms; `commit()` calls `onRangeChange` on drag, resize, step and reset; `minSpan` default 7 days | UTC-day conversion (`YYYY-MM-DD`↔epoch at 00:00Z); controlled draft while dragging, commit on pointer-up/keyboard completion only; `minSpan` = 1 day |
-| donut-chart | `groupBelow=.04`, `maxSegments=6`, `otherLabel="Other"`: small parts auto-fold into one segment when ≥2 qualify | No donut grouping: set grouping off/patch so identities and exact totals stay filterable |
-| waffle-chart | 10×10, `activeKey`/`onActiveChange` (focus/pin only) | Add category/mark callbacks, maker colours, flights/hours/km modes |
-| activity-heatmap | `days[]` oldest-first, one per day, missing days count as zero; `onSelectDate(YYYY-MM-DD)`; `toUtc` date parsing | Needs real daily aggregates; missing/unknown ≠ zero; selection applies exact-day range |
-| slope-chart | `SlopeItem` two axes, `onActiveChange`, `highlightKey` | Two-period comparison only |
-| ridgeline | `series[].values: number[]` raw observations; KDE (`silverman` bandwidth) always recomputed in `density()` | Precomputed sampled-density + summary-stat input; parity with existing log-density before cutover |
-| treemap | `TreemapNode` hierarchy with drill + breadcrumb | Leaves = completed-flight country-evidence counts; drill and filter are distinct actions |
-| metric-card | Imports `AnimatedCounter` with `animateOnView` | Replace with static immediate value |
-| sortable-data-table | Sorts its own rows (`sortable`, `onSortChange`) | Presentation only; server sort remains authority |
-| combobox, date-picker | Per plan; not re-derived here | Per plan W2 |
+| Item                  | Verified fact (file in staging)                                                                                                                               | Required Kuuki adaptation (W5 unless noted)                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| line-chart            | `curve?: "smooth"\|"linear"`; dense monotone-cubic sampling; absent values default to 0 (`item.values[key] ?? 0`)                                             | Add step-after geometry for cumulative odometer; missing ≠ zero; ghost baseline; explicit mark-action callbacks                                      |
+| brush-chart           | `range`/`defaultRange`/`onRangeChange` are `[start,end]` epoch ms; `commit()` calls `onRangeChange` on drag, resize, step and reset; `minSpan` default 7 days | UTC-day conversion (`YYYY-MM-DD`↔epoch at 00:00Z); controlled draft while dragging, commit on pointer-up/keyboard completion only; `minSpan` = 1 day |
+| donut-chart           | `groupBelow=.04`, `maxSegments=6`, `otherLabel="Other"`: small parts auto-fold into one segment when ≥2 qualify                                               | No donut grouping: set grouping off/patch so identities and exact totals stay filterable                                                             |
+| waffle-chart          | 10×10, `activeKey`/`onActiveChange` (focus/pin only)                                                                                                          | Add category/mark callbacks, maker colours, flights/hours/km modes                                                                                   |
+| activity-heatmap      | `days[]` oldest-first, one per day, missing days count as zero; `onSelectDate(YYYY-MM-DD)`; `toUtc` date parsing                                              | Needs real daily aggregates; missing/unknown ≠ zero; selection applies exact-day range                                                               |
+| slope-chart           | `SlopeItem` two axes, `onActiveChange`, `highlightKey`                                                                                                        | Two-period comparison only                                                                                                                           |
+| ridgeline             | `series[].values: number[]` raw observations; KDE (`silverman` bandwidth) always recomputed in `density()`                                                    | Precomputed sampled-density + summary-stat input; parity with existing log-density before cutover                                                    |
+| treemap               | `TreemapNode` hierarchy with drill + breadcrumb                                                                                                               | Leaves = completed-flight country-evidence counts; drill and filter are distinct actions                                                             |
+| metric-card           | Imports `AnimatedCounter` with `animateOnView`                                                                                                                | Replace with static immediate value                                                                                                                  |
+| sortable-data-table   | Sorts its own rows (`sortable`, `onSortChange`)                                                                                                               | Presentation only; server sort remains authority                                                                                                     |
+| combobox, date-picker | Per plan; not re-derived here                                                                                                                                 | Per plan W2                                                                                                                                          |
 
 Claims in this table come from reading the staged source on the fetch date; local toast, combobox focus-leave and time-picker preservation are verified through existing callers and wave tests recorded in the implementation handoff.
 

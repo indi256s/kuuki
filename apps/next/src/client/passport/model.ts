@@ -5,12 +5,23 @@ import catalog from '@kuuki/data/countries.json'
 import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
 import type { CountryDetail, PassportData } from '../../server/passport'
 import type { StampKind } from '../signature/stamp'
-import { formatDateOnly, formatMonthYear, formatNumber, formatRelativeDate, type Locale } from '../../lib/format'
+import {
+  formatDateOnly,
+  formatMonthYear,
+  formatNumber,
+  formatRelativeDate,
+  type Locale,
+} from '../../lib/format'
 import { PASSPORT_SORTS } from '../../lib/url-state'
 
 export type PassportSort = (typeof PASSPORT_SORTS)[number]
 export type RegionId = NonNullable<PassportData['countries'][number]['region']>
-type CatalogCountry = { name: string; nativeName: string; dominantColor?: string; continent: string }
+type CatalogCountry = {
+  name: string
+  nativeName: string
+  dominantColor?: string
+  continent: string
+}
 const COUNTRIES = catalog as Record<string, CatalogCountry>
 
 /** Every catalog country and territory: the "of 246" denominator and the empty-state headline. */
@@ -36,12 +47,22 @@ export type VisitPoint = { year: number; date: string | null }
  * visit and a year-only visit fall in the same year, their order is unknown, so that end shows just the year.
  * Undated evidence (claims, visits without a year) adds nothing.
  */
-export function chronology(dates: readonly (string | null | undefined)[], years: readonly (number | null | undefined)[]): { first: VisitPoint | null; last: VisitPoint | null } {
+export function chronology(
+  dates: readonly (string | null | undefined)[],
+  years: readonly (number | null | undefined)[],
+): { first: VisitPoint | null; last: VisitPoint | null } {
   const points: VisitPoint[] = [
-    ...dates.filter((date): date is string => !!date).map(date => ({ year: Number(date.slice(0, 4)), date: date.slice(0, 10) })),
-    ...years.filter((year): year is number => typeof year === 'number' && year > 0).map(year => ({ year, date: null })),
+    ...dates
+      .filter((date): date is string => !!date)
+      .map((date) => ({ year: Number(date.slice(0, 4)), date: date.slice(0, 10) })),
+    ...years
+      .filter((year): year is number => typeof year === 'number' && year > 0)
+      .map((year) => ({ year, date: null })),
   ]
-  const end = (pick: (a: number, b: number) => boolean, better: (a: string, b: string) => boolean): VisitPoint | null => {
+  const end = (
+    pick: (a: number, b: number) => boolean,
+    better: (a: string, b: string) => boolean,
+  ): VisitPoint | null => {
     let best: VisitPoint | null = null
     for (const point of points) {
       if (!best || pick(point.year, best.year)) best = point
@@ -52,16 +73,31 @@ export function chronology(dates: readonly (string | null | undefined)[], years:
     }
     return best
   }
-  return { first: end((a, b) => a < b, (a, b) => a < b), last: end((a, b) => a > b, (a, b) => a > b) }
+  return {
+    first: end(
+      (a, b) => a < b,
+      (a, b) => a < b,
+    ),
+    last: end(
+      (a, b) => a > b,
+      (a, b) => a > b,
+    ),
+  }
 }
 
 /** Sort key for a point: a year-only point sorts at the start of its year. */
-const pointKey = (point: VisitPoint | null) => point ? point.date ?? String(point.year) : ''
+const pointKey = (point: VisitPoint | null) => (point ? (point.date ?? String(point.year)) : '')
 
 /** «2026» for a year-only point, otherwise the date (or month and year) it carries. */
-export function formatVisitPoint(locale: Locale, point: VisitPoint, style: 'date' | 'month'): string {
+export function formatVisitPoint(
+  locale: Locale,
+  point: VisitPoint,
+  style: 'date' | 'month',
+): string {
   if (!point.date) return String(point.year)
-  return style === 'month' ? formatMonthYear(locale, point.date, 'long') : formatDateOnly(locale, point.date)
+  return style === 'month'
+    ? formatMonthYear(locale, point.date, 'long')
+    : formatDateOnly(locale, point.date)
 }
 
 export type PassportEntry = {
@@ -79,18 +115,25 @@ export type PassportEntry = {
   region: RegionId | null
 }
 
-export const catalogCountry = (code: string): CatalogCountry | undefined => Object.hasOwn(COUNTRIES, code) ? COUNTRIES[code] : undefined
+export const catalogCountry = (code: string): CatalogCountry | undefined =>
+  Object.hasOwn(COUNTRIES, code) ? COUNTRIES[code] : undefined
 /** True for the 246 catalog countries and territories (upper-case ISO codes). */
 export const isCatalogCountry = (code: string): boolean => Object.hasOwn(COUNTRIES, code)
 
 export function countryNamer(locale: Locale): (code: string) => string {
   const names = new Intl.DisplayNames([locale], { type: 'region' })
-  return code => {
-    try { return names.of(code) ?? catalogCountry(code)?.name ?? code } catch { return catalogCountry(code)?.name ?? code }
+  return (code) => {
+    try {
+      return names.of(code) ?? catalogCountry(code)?.name ?? code
+    } catch {
+      return catalogCountry(code)?.name ?? code
+    }
   }
 }
 
-export function passportEntries(data: Pick<PassportData, 'countries' | 'groundVisits'>): PassportEntry[] {
+export function passportEntries(
+  data: Pick<PassportData, 'countries' | 'groundVisits'>,
+): PassportEntry[] {
   const ground = new Map<string, { years: number[]; sea: number; other: number }>()
   for (const visit of data.groundVisits) {
     const item = ground.get(visit.country_code) ?? { years: [], sea: 0, other: 0 }
@@ -99,12 +142,19 @@ export function passportEntries(data: Pick<PassportData, 'countries' | 'groundVi
     else item.other++
     ground.set(visit.country_code, item)
   }
-  return data.countries.map(row => {
+  return data.countries.map((row) => {
     const visits = ground.get(row.country_code)
     const flights = row.logged_visit_count + row.awaiting_visit_count
-    const kind: StampKind = flights > 0 ? 'air'
-      : row.ground_visit_count > 0 ? (visits && visits.sea > 0 && visits.other === 0 ? 'sea' : 'land')
-        : row.claimed === 1 ? 'claim' : 'air'
+    const kind: StampKind =
+      flights > 0
+        ? 'air'
+        : row.ground_visit_count > 0
+          ? visits && visits.sea > 0 && visits.other === 0
+            ? 'sea'
+            : 'land'
+          : row.claimed === 1
+            ? 'claim'
+            : 'air'
     const { first, last } = chronology([row.first_visit, row.last_visit], visits?.years ?? [])
     return {
       code: row.country_code,
@@ -122,10 +172,19 @@ export function passportEntries(data: Pick<PassportData, 'countries' | 'groundVi
 }
 
 /** Recent puts pending slots first, then the latest visit; visits and name fall back to the name. */
-export function sortEntries(entries: PassportEntry[], sort: PassportSort, name: (code: string) => string, locale: Locale): PassportEntry[] {
-  const byName = (a: PassportEntry, b: PassportEntry) => name(a.code).localeCompare(name(b.code), locale)
+export function sortEntries(
+  entries: PassportEntry[],
+  sort: PassportSort,
+  name: (code: string) => string,
+  locale: Locale,
+): PassportEntry[] {
+  const byName = (a: PassportEntry, b: PassportEntry) =>
+    name(a.code).localeCompare(name(b.code), locale)
   const compare: Record<PassportSort, (a: PassportEntry, b: PassportEntry) => number> = {
-    recent: (a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || pointKey(b.last).localeCompare(pointKey(a.last)) || byName(a, b),
+    recent: (a, b) =>
+      (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) ||
+      pointKey(b.last).localeCompare(pointKey(a.last)) ||
+      byName(a, b),
     visits: (a, b) => b.visits - a.visits || byName(a, b),
     name: byName,
   }
@@ -152,22 +211,33 @@ export type HeaderFigures = {
   newThisYear: number
   latest: PassportEntry | null
 }
-export function headerFigures(data: Pick<PassportData, 'pressedCountryCount' | 'pendingCountryCount'>, entries: PassportEntry[], now = new Date()): HeaderFigures {
+export function headerFigures(
+  data: Pick<PassportData, 'pressedCountryCount' | 'pendingCountryCount'>,
+  entries: PassportEntry[],
+  now = new Date(),
+): HeaderFigures {
   const year = String(now.getUTCFullYear())
-  const pressed = entries.filter(entry => entry.status === 'pressed')
-  const dated = pressed.filter(entry => entry.first)
-  const latest = dated.reduce<PassportEntry | null>((best, entry) => !best || pointKey(entry.first) > pointKey(best.first) ? entry : best, null)
+  const pressed = entries.filter((entry) => entry.status === 'pressed')
+  const dated = pressed.filter((entry) => entry.first)
+  const latest = dated.reduce<PassportEntry | null>(
+    (best, entry) => (!best || pointKey(entry.first) > pointKey(best.first) ? entry : best),
+    null,
+  )
   return {
     total: data.pressedCountryCount + data.pendingCountryCount,
     pressed: data.pressedCountryCount,
     pending: data.pendingCountryCount,
-    newThisYear: dated.filter(entry => String(entry.first!.year) === year).length,
+    newThisYear: dated.filter((entry) => String(entry.first!.year) === year).length,
     latest,
   }
 }
 
 /** «×12 · 2 мес. назад»: readable text under the stamp. Claim-only stamps carry their own label instead. */
-export function stampCaption(locale: Locale, entry: PassportEntry, now = new Date()): string | undefined {
+export function stampCaption(
+  locale: Locale,
+  entry: PassportEntry,
+  now = new Date(),
+): string | undefined {
   if (entry.visits === 0) return undefined
   const count = `×${formatNumber(locale, entry.visits)}`
   if (!entry.last) return count
@@ -180,32 +250,55 @@ export type Suggestions = { recent: string[]; neighbors: string[] }
  * catalog neighbors of collected countries that are not collected yet, ranked by how many collected
  * countries they border. Search over the whole catalog always remains.
  */
-export function suggestCountries(entries: PassportEntry[], limits = { recent: 4, neighbors: 6 }): Suggestions {
-  const collected = new Set(entries.map(entry => entry.code))
-  const recent = entries.filter(entry => entry.status === 'pressed' && entry.last)
-    .sort((a, b) => pointKey(b.last).localeCompare(pointKey(a.last)) || a.code.localeCompare(b.code))
-    .slice(0, limits.recent).map(entry => entry.code)
+export function suggestCountries(
+  entries: PassportEntry[],
+  limits = { recent: 4, neighbors: 6 },
+): Suggestions {
+  const collected = new Set(entries.map((entry) => entry.code))
+  const recent = entries
+    .filter((entry) => entry.status === 'pressed' && entry.last)
+    .sort(
+      (a, b) => pointKey(b.last).localeCompare(pointKey(a.last)) || a.code.localeCompare(b.code),
+    )
+    .slice(0, limits.recent)
+    .map((entry) => entry.code)
   const score = new Map<string, number>()
   for (const entry of entries) {
     if (entry.status !== 'pressed') continue
     for (const neighbor of COUNTRY_NEIGHBORS[entry.code] ?? []) {
-      if (!collected.has(neighbor) && catalogCountry(neighbor)) score.set(neighbor, (score.get(neighbor) ?? 0) + 1)
+      if (!collected.has(neighbor) && catalogCountry(neighbor))
+        score.set(neighbor, (score.get(neighbor) ?? 0) + 1)
     }
   }
-  const neighbors = [...score].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limits.neighbors).map(([code]) => code)
+  const neighbors = [...score]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limits.neighbors)
+    .map(([code]) => code)
   return { recent, neighbors }
 }
 
 /** Catalog search over code, English, native and localized names (case- and accent-insensitive). */
 export function searchCountries(query: string, name: (code: string) => string): string[] {
-  const fold = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase()
+  const fold = (value: string) =>
+    value
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLocaleLowerCase()
   const needle = fold(query.trim())
   const codes = Object.keys(COUNTRIES)
   if (!needle) return codes.sort((a, b) => name(a).localeCompare(name(b)))
-  return codes.filter(code => {
-    const item = COUNTRIES[code]
-    return [code, item.name, item.nativeName, name(code)].some(value => fold(value).includes(needle))
-  }).sort((a, b) => Number(!fold(name(a)).startsWith(needle)) - Number(!fold(name(b)).startsWith(needle)) || name(a).localeCompare(name(b)))
+  return codes
+    .filter((code) => {
+      const item = COUNTRIES[code]
+      return [code, item.name, item.nativeName, name(code)].some((value) =>
+        fold(value).includes(needle),
+      )
+    })
+    .sort(
+      (a, b) =>
+        Number(!fold(name(a)).startsWith(needle)) - Number(!fold(name(b)).startsWith(needle)) ||
+        name(a).localeCompare(name(b)),
+    )
 }
 
 /** The awaiting queue, where every pending slot leads. */
@@ -218,12 +311,20 @@ export const AWAITING_QUEUE_HREF = '/journal?queue=awaiting'
  * reinterpreted here. An arrival is preferred over a departure, then the latest date.
  */
 export function arrivalFlightId(detail: Pick<CountryDetail, 'entries'>): number | null {
-  const awaiting = detail.entries.flatMap(entry => entry.kind === 'flight' && entry.state === 'awaiting' ? [entry] : [])
-  awaiting.sort((a, b) => Number(b.endpoint === 'destination') - Number(a.endpoint === 'destination') || b.date.localeCompare(a.date) || b.flightId - a.flightId)
+  const awaiting = detail.entries.flatMap((entry) =>
+    entry.kind === 'flight' && entry.state === 'awaiting' ? [entry] : [],
+  )
+  awaiting.sort(
+    (a, b) =>
+      Number(b.endpoint === 'destination') - Number(a.endpoint === 'destination') ||
+      b.date.localeCompare(a.date) ||
+      b.flightId - a.flightId,
+  )
   return awaiting[0]?.flightId ?? null
 }
 
-export const arrivalHref = (flightId: number | null) => flightId ? `${AWAITING_QUEUE_HREF}#arrival-${flightId}` : AWAITING_QUEUE_HREF
+export const arrivalHref = (flightId: number | null) =>
+  flightId ? `${AWAITING_QUEUE_HREF}#arrival-${flightId}` : AWAITING_QUEUE_HREF
 
 export type RemovalOutcome = {
   /** Only claims and land/sea visits are removed from the passport directly; flight stamps go through the Journal. */
@@ -235,9 +336,18 @@ export type RemovalOutcome = {
 }
 /** Reads the country detail entries the way the evidence policy does (ADR 0001 §4, C3). */
 export function removalOutcome(detail: Pick<CountryDetail, 'entries'>): RemovalOutcome {
-  const claimed = detail.entries.some(entry => entry.kind === 'claim')
-  const groundVisits = detail.entries.filter(entry => entry.kind === 'ground').length
-  const logged = detail.entries.some(entry => entry.kind === 'legacy' || (entry.kind === 'flight' && entry.state === 'logged'))
-  const awaiting = detail.entries.some(entry => entry.kind === 'flight' && entry.state === 'awaiting')
-  return { removable: claimed || groundVisits > 0, claimed, groundVisits, after: logged ? 'pressed' : awaiting ? 'pending' : 'gone' }
+  const claimed = detail.entries.some((entry) => entry.kind === 'claim')
+  const groundVisits = detail.entries.filter((entry) => entry.kind === 'ground').length
+  const logged = detail.entries.some(
+    (entry) => entry.kind === 'legacy' || (entry.kind === 'flight' && entry.state === 'logged'),
+  )
+  const awaiting = detail.entries.some(
+    (entry) => entry.kind === 'flight' && entry.state === 'awaiting',
+  )
+  return {
+    removable: claimed || groundVisits > 0,
+    claimed,
+    groundVisits,
+    after: logged ? 'pressed' : awaiting ? 'pending' : 'gone',
+  }
 }

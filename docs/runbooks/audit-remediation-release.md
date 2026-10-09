@@ -6,17 +6,17 @@ This runbook prepares the Cloudflare audit-remediation cutover. Local implementa
 
 Read-only inspection on 2026-10-03 found:
 
-| Resource | Observed value |
-|---|---|
-| Cloudflare account | `5cadcff0282e54f3ff1d7062d4dbb97a` |
-| Existing Pages project | `kuuki`, production branch `main` |
-| Production D1 | `2a8e3895-6a98-4473-8d7b-a43ca0c0026f` |
-| Production `IMPORT_JOBS` KV | `15bad9e7dfa44f8382883513c8bff292` |
-| Preview D1 | `80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c` (`kuuki-preview`) |
-| Preview `IMPORT_JOBS` KV | `015fa195daf34090b3895197e291a814` (`kuuki-import-preview`) |
-| Pages Git deployment | Disabled for production and preview; release readiness remains separately gated |
-| Production data | One active user/profile/session, no flights/visits/claims/ground visits |
-| Migration ledger | Empty; existing schema must be baselined, not initialized again |
+| Resource                    | Observed value                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| Cloudflare account          | `5cadcff0282e54f3ff1d7062d4dbb97a`                                              |
+| Existing Pages project      | `kuuki`, production branch `main`                                               |
+| Production D1               | `2a8e3895-6a98-4473-8d7b-a43ca0c0026f`                                          |
+| Production `IMPORT_JOBS` KV | `15bad9e7dfa44f8382883513c8bff292`                                              |
+| Preview D1                  | `80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c` (`kuuki-preview`)                        |
+| Preview `IMPORT_JOBS` KV    | `015fa195daf34090b3895197e291a814` (`kuuki-import-preview`)                     |
+| Pages Git deployment        | Disabled for production and preview; release readiness remains separately gated |
+| Production data             | One active user/profile/session, no flights/visits/claims/ground visits         |
+| Migration ledger            | Empty; existing schema must be baselined, not initialized again                 |
 
 Re-read these facts before release mutations. The inspected account had no ID, normalized-email, or username collision with the rehearsal snapshot. That observation does not replace the comparison after write hold. The local `cf` CLI is authenticated and was used for release resource setup. The authorized custom-domain move attached `kuuki.marchstudio.uk` to the existing production deployment and updated production `PAGES_ORIGIN` configuration for future deployments. March Studio remains at `marchstudio.uk`; existing mail DNS was preserved. Obtain fresh data, schema and release-binding evidence before using earlier observations for release.
 
@@ -30,13 +30,13 @@ Staging uses `https://staging.kuuki.pages.dev` and the fresh activation hostname
 
 The user selected Cloudflare Email Service's Email Sending for activation delivery. The Next Workers use the [native sending binding](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/), restricted to `accounts@marchstudio.uk`, for activation and password recovery. A non-empty message ID is provider acceptance, not proof of inbox receipt. Environments without the binding retain the [REST adapter](https://developers.cloudflare.com/email-service/api/send-emails/rest-api/), accepting only explicit delivery or queue acknowledgement for the intended recipient with no provider errors or permanent bounces. Both paths send text and HTML and never retry automatically. The REST request has a ten-second abort deadline. Native sends cannot be cancelled, so the adapter waits for their acknowledgement rather than invalidating a link while its email may still be delivered. Failed sends remove the newly issued token and retain the same public response for missing, active and migrated accounts.
 
-| Setting | Value / handling |
-| --- | --- |
-| `ACTIVATION_MAIL` | Native `send_email` binding on production, activation and preview Next Workers; sender allowlist is `accounts@marchstudio.uk` |
-| `ACTIVATION_MAIL_ACCOUNT_ID` | REST fallback only: account hosting the verified sending domain; 32 hexadecimal characters; non-secret |
-| `ACTIVATION_MAIL_FROM` | `accounts@marchstudio.uk` after sending-domain verification; non-secret |
-| `ACTIVATION_MAIL_AUTH_TOKEN` | REST fallback only: Cloudflare API token with Email Sending: Edit permission for this account; server secret |
-| `ACTIVATION_ORIGIN` | Fresh dedicated HTTPS activation hostname; independent from the email sending domain |
+| Setting                      | Value / handling                                                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `ACTIVATION_MAIL`            | Native `send_email` binding on production, activation and preview Next Workers; sender allowlist is `accounts@marchstudio.uk` |
+| `ACTIVATION_MAIL_ACCOUNT_ID` | REST fallback only: account hosting the verified sending domain; 32 hexadecimal characters; non-secret                        |
+| `ACTIVATION_MAIL_FROM`       | `accounts@marchstudio.uk` after sending-domain verification; non-secret                                                       |
+| `ACTIVATION_MAIL_AUTH_TOKEN` | REST fallback only: Cloudflare API token with Email Sending: Edit permission for this account; server secret                  |
+| `ACTIVATION_ORIGIN`          | Fresh dedicated HTTPS activation hostname; independent from the email sending domain                                          |
 
 Cloudflare account inspection confirmed ownership of the active `marchstudio.uk` zone. The authorized setup verified Email Sending DNS, disabled email previews, retained suppressed-recipient reporting and existing apex Email Routing records, and configured a scoped preview REST send token. On 6 October, a fresh production token verified as active and authenticated over SMTP but the REST sending endpoint still rejected it. A native binding test was accepted and the user confirmed inbox receipt. Activation completion remains separate evidence. Native sending needs no API-token secret; the obsolete generic `ACTIVATION_MAIL_ENDPOINT` setting is no longer used.
 

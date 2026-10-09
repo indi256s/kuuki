@@ -6,12 +6,7 @@
 
 import { normalizeIso } from '../functions/api/_lib/time'
 import { verifyPassword } from '../functions/api/_lib/crypto'
-import {
-  FLIGHTS_COLUMNS,
-  USERS_COLUMNS,
-  PASSWORD_PLACEHOLDER,
-  rowsPerInsert,
-} from './sb-to-d1'
+import { FLIGHTS_COLUMNS, USERS_COLUMNS, PASSWORD_PLACEHOLDER, rowsPerInsert } from './sb-to-d1'
 
 async function smoke(): Promise<void> {
   // 1. The real normalizeIso turns a Postgres timestamptz into canonical ISO.

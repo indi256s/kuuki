@@ -2,29 +2,41 @@
 import greatCircle from '@turf/great-circle'
 import type { ProjectedRoute } from './types'
 
-export type RouteGeometry = { type: 'LineString'; coordinates: [number, number][] } |
-  { type: 'MultiLineString'; coordinates: [number, number][][] }
+export type RouteGeometry =
+  | { type: 'LineString'; coordinates: [number, number][] }
+  | { type: 'MultiLineString'; coordinates: [number, number][][] }
 
 function valid(point: [number, number] | null): point is [number, number] {
-  return !!point && Number.isFinite(point[0]) && Number.isFinite(point[1]) &&
-    Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90
+  return (
+    !!point &&
+    Number.isFinite(point[0]) &&
+    Number.isFinite(point[1]) &&
+    Math.abs(point[0]) <= 180 &&
+    Math.abs(point[1]) <= 90
+  )
 }
 
 /** Great-circle line between the two ends of a directed route or an undirected pair; null when it is undefined. */
 export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): RouteGeometry | null {
   const { from, to } = route
   if (!valid(from) || !valid(to)) return null
-  const lon1 = from[0] * Math.PI / 180, lon2 = to[0] * Math.PI / 180
-  const lat1 = from[1] * Math.PI / 180, lat2 = to[1] * Math.PI / 180
-  const dot = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
+  const lon1 = (from[0] * Math.PI) / 180,
+    lon2 = (to[0] * Math.PI) / 180
+  const lat1 = (from[1] * Math.PI) / 180,
+    lat2 = (to[1] * Math.PI) / 180
+  const dot =
+    Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
   // A coincident route is a point; antipodes have no unique great circle.
   if (dot > 0.99999999 || dot < -0.99999999) return null
   try {
     const geometry = greatCircle(from, to, { npoints: 64 }).geometry
     if (geometry.type === 'MultiLineString') {
-      const segments = geometry.coordinates.map(line => line.map(([lon, lat]) => [lon, lat] as [number, number]))
+      const segments = geometry.coordinates.map((line) =>
+        line.map(([lon, lat]) => [lon, lat] as [number, number]),
+      )
       for (let i = 1; i < segments.length; i++) {
-        const a = segments[i - 1].at(-1), b = segments[i][0]
+        const a = segments[i - 1].at(-1),
+          b = segments[i][0]
         if (!a || !b || Math.abs(a[0] - b[0]) <= 180) continue
         const seam = a[0] > 0 ? 180 : -180
         const unwrapped = b[0] + (seam > 0 ? 360 : -360)
@@ -42,17 +54,28 @@ export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): Route
   }
 }
 
-export function wrappedBounds(geometries: RouteGeometry[]): [[number, number], [number, number]] | null {
-  const points = geometries.flatMap(g => g.type === 'LineString' ? g.coordinates : g.coordinates.flat())
+export function wrappedBounds(
+  geometries: RouteGeometry[],
+): [[number, number], [number, number]] | null {
+  const points = geometries.flatMap((g) =>
+    g.type === 'LineString' ? g.coordinates : g.coordinates.flat(),
+  )
   if (!points.length) return null
-  const longitudes = points.map(p => ((p[0] % 360) + 360) % 360)
+  const longitudes = points.map((p) => ((p[0] % 360) + 360) % 360)
   const sorted = [...longitudes].sort((a, b) => a - b)
-  let largestGap = -1, start = 0
+  let largestGap = -1,
+    start = 0
   for (let i = 0; i < sorted.length; i++) {
-    const gap = (sorted[(i + 1) % sorted.length] + (i === sorted.length - 1 ? 360 : 0)) - sorted[i]
-    if (gap > largestGap) { largestGap = gap; start = sorted[(i + 1) % sorted.length] }
+    const gap = sorted[(i + 1) % sorted.length] + (i === sorted.length - 1 ? 360 : 0) - sorted[i]
+    if (gap > largestGap) {
+      largestGap = gap
+      start = sorted[(i + 1) % sorted.length]
+    }
   }
-  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity
+  let minLon = Infinity,
+    maxLon = -Infinity,
+    minLat = Infinity,
+    maxLat = -Infinity
   for (let i = 0; i < points.length; i++) {
     const longitude = longitudes[i] < start ? longitudes[i] + 360 : longitudes[i]
     minLon = Math.min(minLon, longitude)
@@ -63,18 +86,33 @@ export function wrappedBounds(geometries: RouteGeometry[]): [[number, number], [
   const offset = (minLon + maxLon) / 2 > 180 ? -360 : 0
   // Web Mercator ends at ±85.0511°: a polar great circle beyond it cannot be fitted, so clamp.
   const lat = (value: number) => Math.max(-MERCATOR_LAT, Math.min(MERCATOR_LAT, value))
-  return [[minLon + offset, lat(minLat)], [maxLon + offset, lat(maxLat)]]
+  return [
+    [minLon + offset, lat(minLat)],
+    [maxLon + offset, lat(maxLat)],
+  ]
 }
 
 const MERCATOR_LAT = 85
 
 /** Whole inhabited world for the first view: every longitude, without Antarctica's Mercator inflation. */
-export const WORLD_BOUNDS: [[number, number], [number, number]] = [[-180, -57], [180, 78]]
+export const WORLD_BOUNDS: [[number, number], [number, number]] = [
+  [-180, -57],
+  [180, 78],
+]
 
 /** Initial geographic heading, clockwise from north, in degrees. */
 export function bearing(a: [number, number], b: [number, number]): number {
   const rad = Math.PI / 180
-  const lat1 = a[1] * rad, lat2 = b[1] * rad, delta = (b[0] - a[0]) * rad
-  return (Math.atan2(Math.sin(delta) * Math.cos(lat2), Math.cos(lat1) * Math.sin(lat2) -
-    Math.sin(lat1) * Math.cos(lat2) * Math.cos(delta)) / rad + 360) % 360
+  const lat1 = a[1] * rad,
+    lat2 = b[1] * rad,
+    delta = (b[0] - a[0]) * rad
+  return (
+    (Math.atan2(
+      Math.sin(delta) * Math.cos(lat2),
+      Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(delta),
+    ) /
+      rad +
+      360) %
+    360
+  )
 }

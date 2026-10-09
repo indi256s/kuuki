@@ -56,7 +56,8 @@ interface Node {
 }
 
 /** Ordered by reliable instant first, then date, with the id as the stable tiebreak. Affects traversal only. */
-const sortKey = (node: Node) => (node.dep === null ? `${node.leg.date}T00:00:00.000Z` : new Date(node.dep).toISOString())
+const sortKey = (node: Node) =>
+  node.dep === null ? `${node.leg.date}T00:00:00.000Z` : new Date(node.dep).toISOString()
 const byTraversal = (a: Node, b: Node) => {
   const left = sortKey(a)
   const right = sortKey(b)
@@ -69,8 +70,10 @@ const byTraversal = (a: Node, b: Node) => {
  * candidate is ambiguous. A cycle (an untimed same-date pair that cannot be ordered) is ambiguous too.
  */
 export function connectionChains(allLegs: ConnectionLeg[]): Map<number, ConnectionDecision> {
-  const legs = allLegs.filter(leg => DATE_LABEL.test(leg.date))
-  const nodes = legs.map<Node>(leg => ({ leg, dep: instant(leg.departure_utc), arr: instant(leg.arrival_utc) })).sort(byTraversal)
+  const legs = allLegs.filter((leg) => DATE_LABEL.test(leg.date))
+  const nodes = legs
+    .map<Node>((leg) => ({ leg, dep: instant(leg.departure_utc), arr: instant(leg.arrival_utc) }))
+    .sort(byTraversal)
 
   // Origin airport -> date label -> legs departing there, so candidate search touches a few days only.
   const byOrigin = new Map<string, Map<string, Node[]>>()
@@ -86,7 +89,12 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
   const estimated = new Map<number, Set<number>>()
   const reversePrecise = new Map<number, Set<number>>()
   const reverseEstimated = new Map<number, Set<number>>()
-  const add = (forward: Map<number, Set<number>>, reverse: Map<number, Set<number>>, from: number, to: number) => {
+  const add = (
+    forward: Map<number, Set<number>>,
+    reverse: Map<number, Set<number>>,
+    from: number,
+    to: number,
+  ) => {
     forward.set(from, (forward.get(from) ?? new Set()).add(to))
     reverse.set(to, (reverse.get(to) ?? new Set()).add(from))
   }
@@ -106,7 +114,8 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
         if (b.leg.id === a.leg.id) continue
         if (a.arr !== null && b.dep !== null) {
           const gap = b.dep - a.arr
-          if (gap >= 0 && gap <= MAX_CONNECTION_GAP_MS) add(precise, reversePrecise, a.leg.id, b.leg.id)
+          if (gap >= 0 && gap <= MAX_CONNECTION_GAP_MS)
+            add(precise, reversePrecise, a.leg.id, b.leg.id)
         } else if (b.leg.date === a.leg.date || b.leg.date === addDays(a.leg.date, 1)) {
           add(estimated, reverseEstimated, a.leg.id, b.leg.id)
         }
@@ -149,21 +158,25 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
       let cycle = cursor
       do {
         const next = links.get(cycle)!.to
-        ambiguous.set(cycle, [next]); links.delete(cycle)
+        ambiguous.set(cycle, [next])
+        links.delete(cycle)
         cycle = next
       } while (cycle !== cursor)
     }
     for (const id of path) visited.add(id)
   }
 
-  const legById = new Map(nodes.map(node => [node.leg.id, node.leg]))
-  const hasIncoming = new Set([...links.values()].map(link => link.to))
+  const legById = new Map(nodes.map((node) => [node.leg.id, node.leg]))
+  const hasIncoming = new Set([...links.values()].map((link) => link.to))
   const chainOf = new Map<number, { ids: number[]; start: string | null; final: string | null }>()
   for (const { leg } of nodes) {
     if (hasIncoming.has(leg.id) || !links.has(leg.id)) continue // chains are walked from their head
     const ids = [leg.id]
     let tail = leg
-    while (links.has(tail.id)) { tail = legById.get(links.get(tail.id)!.to)!; ids.push(tail.id) }
+    while (links.has(tail.id)) {
+      tail = legById.get(links.get(tail.id)!.to)!
+      ids.push(tail.id)
+    }
     const chain = { ids, start: leg.origin_country, final: tail.destination_country }
     for (const id of ids) chainOf.set(id, chain)
   }
@@ -176,9 +189,20 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
       const chain = chainOf.get(leg.id)!
       const hub = leg.destination_country
       decisions.set(leg.id, {
-        kind: 'link', toId: link.to, label: link.label, hubCountry: hub, startCountry: chain.start, finalCountry: chain.final,
+        kind: 'link',
+        toId: link.to,
+        label: link.label,
+        hubCountry: hub,
+        startCountry: chain.start,
+        finalCountry: chain.final,
         // An unknown country (unmapped airport) never supports suppression, wherever it sits in the chain.
-        thirdCountry: hub !== null && chain.start !== null && chain.final !== null && hub !== chain.start && hub !== chain.final, chainIds: chain.ids,
+        thirdCountry:
+          hub !== null &&
+          chain.start !== null &&
+          chain.final !== null &&
+          hub !== chain.start &&
+          hub !== chain.final,
+        chainIds: chain.ids,
       })
     } else if (ambiguous.has(leg.id)) {
       decisions.set(leg.id, { kind: 'ambiguous', candidateIds: ambiguous.get(leg.id)! })

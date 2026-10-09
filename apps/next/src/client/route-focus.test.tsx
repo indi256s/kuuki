@@ -13,7 +13,10 @@ function page() {
 }
 
 describe('RouteFocus', () => {
-  beforeEach(() => { pathname = '/journal'; search = new URLSearchParams() })
+  beforeEach(() => {
+    pathname = '/journal'
+    search = new URLSearchParams()
+  })
 
   it('focuses the heading when the pathname changes', () => {
     const h1 = page()
@@ -60,10 +63,13 @@ describe('RouteFocus', () => {
   })
 
   it('focuses Reveal while Capture remains mounted and follows a heading that becomes hidden', async () => {
-    pathname = '/onboarding'; search = new URLSearchParams('step=capture')
-    document.body.innerHTML = '<main id="main"><div hidden><h1>Capture</h1></div><section><h1>Reveal</h1></section></main>'
+    pathname = '/onboarding'
+    search = new URLSearchParams('step=capture')
+    document.body.innerHTML =
+      '<main id="main"><div hidden><h1>Capture</h1></div><section><h1>Reveal</h1></section></main>'
     const view = render(<RouteFocus />)
-    search = new URLSearchParams('step=reveal'); view.rerender(<RouteFocus />)
+    search = new URLSearchParams('step=reveal')
+    view.rerender(<RouteFocus />)
     expect(document.activeElement?.textContent).toBe('Reveal')
     await act(async () => {
       document.querySelector('section')!.setAttribute('hidden', '')
@@ -74,7 +80,8 @@ describe('RouteFocus', () => {
   })
 
   it('skips the inert outgoing page of a route transition', async () => {
-    document.body.innerHTML = '<main id="main"><div data-ssgoi-transition="/passport"></div><div data-ssgoi-transition="/import" inert aria-hidden="true"><h1>Import</h1></div></main>'
+    document.body.innerHTML =
+      '<main id="main"><div data-ssgoi-transition="/passport"></div><div data-ssgoi-transition="/import" inert aria-hidden="true"><h1>Import</h1></div></main>'
     const ghost = document.querySelector('h1')!
     const focused: Element[] = []
     ghost.addEventListener('focus', () => focused.push(ghost))
@@ -83,7 +90,10 @@ describe('RouteFocus', () => {
     view.rerender(<RouteFocus />)
     expect(focused).toEqual([])
     expect(document.activeElement).toBe(document.getElementById('main'))
-    await act(async () => { document.querySelector('[data-ssgoi-transition="/passport"]')!.innerHTML = '<h1>Passport</h1>'; await Promise.resolve() })
+    await act(async () => {
+      document.querySelector('[data-ssgoi-transition="/passport"]')!.innerHTML = '<h1>Passport</h1>'
+      await Promise.resolve()
+    })
     expect(document.activeElement?.textContent).toBe('Passport')
   })
 
@@ -93,7 +103,10 @@ describe('RouteFocus', () => {
     pathname = '/overview'
     view.rerender(<RouteFocus />)
     expect(document.activeElement).toBe(first)
-    await act(async () => { document.getElementById('main')!.innerHTML = '<h1>Real</h1>'; await Promise.resolve() })
+    await act(async () => {
+      document.getElementById('main')!.innerHTML = '<h1>Real</h1>'
+      await Promise.resolve()
+    })
     expect(document.activeElement).toBe(document.querySelector('h1'))
     expect(document.activeElement?.textContent).toBe('Real')
   })

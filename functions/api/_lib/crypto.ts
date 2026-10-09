@@ -55,8 +55,14 @@ async function pepper(password: string, secret: string): Promise<ArrayBuffer> {
   return crypto.subtle.sign('HMAC', key, encoder.encode(password))
 }
 
-async function pbkdf2(peppered: ArrayBuffer, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
-  const keyMaterial = await crypto.subtle.importKey('raw', peppered, 'PBKDF2', false, ['deriveBits'])
+async function pbkdf2(
+  peppered: ArrayBuffer,
+  salt: Uint8Array,
+  iterations: number,
+): Promise<Uint8Array> {
+  const keyMaterial = await crypto.subtle.importKey('raw', peppered, 'PBKDF2', false, [
+    'deriveBits',
+  ])
   const bits = await crypto.subtle.deriveBits(
     // Copy into an ArrayBuffer-backed view for TS DOM BufferSource across runtimes.
     { name: 'PBKDF2', salt: new Uint8Array(salt), iterations, hash: 'SHA-256' },
@@ -74,16 +80,27 @@ export async function hashPassword(password: string, secret: string): Promise<st
 }
 
 /** Constant-time verify of a plaintext password against a stored hash string. */
-export async function verifyPassword(password: string, stored: string, secret: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  stored: string,
+  secret: string,
+): Promise<boolean> {
   if (typeof stored !== 'string') return false
   const parts = stored.split('$')
   // pbkdf2 $ version $ sha256 $ iterations $ salt $ hash
-  if (parts.length !== 6 || parts[0] !== 'pbkdf2' || parts[1] !== PEPPER_VERSION || parts[2] !== 'sha256') return false
+  if (
+    parts.length !== 6 ||
+    parts[0] !== 'pbkdf2' ||
+    parts[1] !== PEPPER_VERSION ||
+    parts[2] !== 'sha256'
+  )
+    return false
   if (!/^[1-9][0-9]*$/.test(parts[3])) return false
   const iterations = Number(parts[3])
   if (!Number.isSafeInteger(iterations) || iterations > PBKDF2_ITERATIONS) return false
   // Reject non-canonical encodings before atob, which accepts some malformed padding.
-  if (!/^[A-Za-z0-9+/]{22}==$/.test(parts[4]) || !/^[A-Za-z0-9+/]{43}=$/.test(parts[5])) return false
+  if (!/^[A-Za-z0-9+/]{22}==$/.test(parts[4]) || !/^[A-Za-z0-9+/]{43}=$/.test(parts[5]))
+    return false
   let salt: Uint8Array
   let expected: Uint8Array
   try {
@@ -92,8 +109,13 @@ export async function verifyPassword(password: string, stored: string, secret: s
   } catch {
     return false
   }
-  if (salt.length !== SALT_LEN_BYTES || expected.length !== KEY_LEN_BYTES ||
-      toBase64(salt) !== parts[4] || toBase64(expected) !== parts[5]) return false
+  if (
+    salt.length !== SALT_LEN_BYTES ||
+    expected.length !== KEY_LEN_BYTES ||
+    toBase64(salt) !== parts[4] ||
+    toBase64(expected) !== parts[5]
+  )
+    return false
   const actual = await pbkdf2(await pepper(password, secret), salt, iterations)
   return timingSafeEqual(actual, expected)
 }

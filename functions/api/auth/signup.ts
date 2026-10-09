@@ -23,7 +23,8 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
 
     const body = await readJson<SignupBody>(request)
     const email = typeof body?.email === 'string' ? body.email.trim() : null
-    if (!email || !z.email().safeParse(email).success) throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
+    if (!email || !z.email().safeParse(email).success)
+      throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
     const password = parsePassword(body?.password, 'new')
 
     // Account-enumeration tradeoff (security finding #8, LOW): a distinct 409 here reveals that
@@ -40,7 +41,11 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
     const displayName = body?.displayName ?? body?.name
     const user = await createUserWithProfile(
       env.DB,
-      { email, password, displayName: typeof displayName === 'string' ? displayName.trim() || null : null },
+      {
+        email,
+        password,
+        displayName: typeof displayName === 'string' ? displayName.trim() || null : null,
+      },
       env.AUTH_SECRET,
     )
 
@@ -48,18 +53,28 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
     try {
       authResponse = await signInWithBetterAuth(env, request, user.email, password)
     } catch {
-      throw new HttpError(503, 'Your account was created. Please sign in to continue.', 'SIGN_IN_REQUIRED')
+      throw new HttpError(
+        503,
+        'Your account was created. Please sign in to continue.',
+        'SIGN_IN_REQUIRED',
+      )
     }
-    if (!authResponse.ok) throw new HttpError(503, 'Your account was created. Please sign in to continue.', 'SIGN_IN_REQUIRED')
+    if (!authResponse.ok)
+      throw new HttpError(
+        503,
+        'Your account was created. Please sign in to continue.',
+        'SIGN_IN_REQUIRED',
+      )
 
-    const authResult = await authResponse.json() as Record<string, unknown>
+    const authResult = (await authResponse.json()) as Record<string, unknown>
     delete authResult.token
     const profileRow = await getProfileRow(env.DB, user.id)
     const res = json(
       { ...authResult, profile: profileRow ? toOwnProfile(profileRow) : null },
       { status: 201 },
     )
-    for (const cookie of authResponse.headers.getSetCookie()) res.headers.append('Set-Cookie', cookie)
+    for (const cookie of authResponse.headers.getSetCookie())
+      res.headers.append('Set-Cookie', cookie)
     res.headers.set('Cache-Control', 'no-store')
     return res
   })

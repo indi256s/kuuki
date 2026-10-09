@@ -40,30 +40,32 @@
 
 ## File Structure
 
-| File | Responsibility |
-|---|---|
-| `packages/shared/src/geo.ts` | Great-circle distance, path sampling, eastward share (pure) |
-| `packages/shared/src/timezones.ts` | `utcOffsetMinutes(zone, instant)` via cached `Intl` formatters (pure) |
-| `packages/shared/src/blockTime.ts` + `blockTimeModel.generated.ts` | Calibrated block-time model, its least-squares fit, legacy-estimate detector |
-| `functions/api/_lib/zones.ts` | `zonesOverflown`, `zoneAt` (tz-lookup wrapper); server-only, so tz-lookup never reaches the client bundle |
-| `functions/api/_services/blockTimeMedian.ts` | Pooled flight-number/route medians (D1 read + pure median) |
-| `functions/api/_services/flightMetrics.ts` | `decideDuration` (pure ladder) + `resolveFlightMetrics` (write-path resolver) |
-| `functions/api/_services/flightBackfill.ts` | Pure backfill planner + SQL renderer |
-| `db/migrations/0008_flight_metrics.sql` | Additive schema |
-| `scripts/fit-block-time.ts`, `scripts/overview-backfill-proposal.ts` | Local/read-only operator scripts |
-| `workers/release-operator/` | Temporary fixed-operation repair + leaderboard refresh Worker |
-| `docs/adr/0002-flight-metrics-provenance.md`, `docs/runbooks/overview-release-1.md` | Decision record and production sequence |
+| File                                                                                | Responsibility                                                                                            |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `packages/shared/src/geo.ts`                                                        | Great-circle distance, path sampling, eastward share (pure)                                               |
+| `packages/shared/src/timezones.ts`                                                  | `utcOffsetMinutes(zone, instant)` via cached `Intl` formatters (pure)                                     |
+| `packages/shared/src/blockTime.ts` + `blockTimeModel.generated.ts`                  | Calibrated block-time model, its least-squares fit, legacy-estimate detector                              |
+| `functions/api/_lib/zones.ts`                                                       | `zonesOverflown`, `zoneAt` (tz-lookup wrapper); server-only, so tz-lookup never reaches the client bundle |
+| `functions/api/_services/blockTimeMedian.ts`                                        | Pooled flight-number/route medians (D1 read + pure median)                                                |
+| `functions/api/_services/flightMetrics.ts`                                          | `decideDuration` (pure ladder) + `resolveFlightMetrics` (write-path resolver)                             |
+| `functions/api/_services/flightBackfill.ts`                                         | Pure backfill planner + SQL renderer                                                                      |
+| `db/migrations/0008_flight_metrics.sql`                                             | Additive schema                                                                                           |
+| `scripts/fit-block-time.ts`, `scripts/overview-backfill-proposal.ts`                | Local/read-only operator scripts                                                                          |
+| `workers/release-operator/`                                                         | Temporary fixed-operation repair + leaderboard refresh Worker                                             |
+| `docs/adr/0002-flight-metrics-provenance.md`, `docs/runbooks/overview-release-1.md` | Decision record and production sequence                                                                   |
 
 ---
 
 ### Task 1: Shared great-circle geometry and offsets
 
 **Files:**
+
 - Create: `packages/shared/src/geo.ts`, `packages/shared/src/timezones.ts`, `packages/shared/src/geo.test.ts`
 - Modify: `packages/shared/package.json` (exports `"./geo"`, `"./timezones"`), `functions/vitest.config.ts` (add `'packages/shared/src/**/*.test.ts'` to `include`), `packages/client/src/geo.ts` (`calculateFlightDistance` returns `Math.round(greatCircleKm(...))`; delete `ROUTING_ADJUSTMENT` and the local haversine)
 - Test: `packages/shared/src/geo.test.ts`, `apps/next/src/client/import/flight-input.test.ts` (create or extend)
 
 **Interfaces:**
+
 - Produces:
   - `interface LatLon { lat: number; lon: number }`
   - `EARTH_RADIUS_KM = 6371`
@@ -89,10 +91,12 @@
 ### Task 2: Zones overflown
 
 **Files:**
+
 - Create: `functions/api/_lib/zones.ts`, `functions/test/zones-overflown.test.ts`
 - Modify: root `package.json` (dependency `"@photostructure/tz-lookup": "11.7.0"`, pinned exactly)
 
 **Interfaces:**
+
 - Consumes: `greatCirclePoints`, `utcOffsetMinutes` (Task 1).
 - Produces:
   - `zoneAt(p: LatLon): string`: tz-lookup's IANA zone, including `Etc/GMT±n` over oceans.
@@ -114,10 +118,12 @@
 ### Task 3: Migration 0008, ADR and glossary
 
 **Files:**
+
 - Create: `db/migrations/0008_flight_metrics.sql`, `functions/test/flight-metrics-migration.test.ts`, `docs/adr/0002-flight-metrics-provenance.md`
-- Modify: `GLOSSARY.md` (entries: *duration source*, *zones overflown*, *clock shift*), `functions/api/_lib/flights.ts` (`FlightRow` + `toOwnFlight` gain `duration_source`, `zones_overflown`), `functions/api/flights/index.ts` (`FLIGHT_COLUMNS`), `packages/shared/src/types.ts` (own-flight DTO fields)
+- Modify: `GLOSSARY.md` (entries: _duration source_, _zones overflown_, _clock shift_), `functions/api/_lib/flights.ts` (`FlightRow` + `toOwnFlight` gain `duration_source`, `zones_overflown`), `functions/api/flights/index.ts` (`FLIGHT_COLUMNS`), `packages/shared/src/types.ts` (own-flight DTO fields)
 
 **Interfaces:**
+
 - Produces this exact schema:
 
 ```sql
@@ -150,9 +156,11 @@ The home override reuses the existing private `profiles.home_airport`; no column
 ### Task 4: Calibrated block-time model
 
 **Files:**
+
 - Create: `packages/shared/src/blockTime.ts`, `packages/shared/src/blockTimeModel.generated.ts`, `packages/shared/src/blockTime.test.ts`, `scripts/fit-block-time.ts`
 
 **Interfaces:**
+
 - Consumes: `greatCircleKm`, `eastwardShare` (Task 1); `computeFlightDuration` (`functions/api/_services/flightDuration.ts`); `openLocalTarget`/`parseLocalTarget` (`scripts/migration-target.ts`).
 - Produces:
   - `interface BlockTimeModel { intercept: number; slopes: [number, number, number]; jet: number; samples: number; rmse: number | null; fittedAt: string | null }`. Knots are at 1 500 and 4 000 km.
@@ -178,6 +186,7 @@ The home override reuses the existing private `profiles.home_airport`; no column
 ### Task 5: Server-authoritative write path
 
 **Files:**
+
 - Create: `functions/api/_services/blockTimeMedian.ts`, `functions/api/_services/flightMetrics.ts`, `functions/test/flight-metrics.test.ts`
 - Modify:
   - `functions/api/_services/flightCreate.ts:64-79` and the INSERT column list: replace both helpers with `resolveFlightMetrics`, and insert `duration_source`, `zones_overflown`.
@@ -185,6 +194,7 @@ The home override reuses the existing private `profiles.home_airport`; no column
   - `functions/api/_services/stats.ts`: delete `fillDistanceAndDuration`, and `haversineKm` once `grep -rn haversineKm functions` shows no other caller.
 
 **Interfaces:**
+
 - Consumes: Tasks 1, 2 and 4; `computeFlightDuration`; `airports` from `packages/data/src/airports.json`.
 - Produces:
   - `type DurationSource = 'times' | 'route_median' | 'schedule' | 'estimate'`. Export it from `packages/shared/src/types.ts` so Release 2 shares it.
@@ -223,9 +233,11 @@ The home override reuses the existing private `profiles.home_airport`; no column
 ### Task 6: Backfill planner and read-only proposal
 
 **Files:**
+
 - Create: `functions/api/_services/flightBackfill.ts`, `functions/test/flight-backfill.test.ts`, `scripts/overview-backfill-proposal.ts`
 
 **Interfaces:**
+
 - Consumes: `decideDuration`, `medianFromSamples`, `normalizeFlightNumber` (Task 5); `isLegacyEstimate`, `estimateBlockMinutes` (Task 4); `zonesOverflown` (Task 2); `computeFlightDuration`.
 - Script plumbing:
   - `MigrationReader` + `openRemoteReader`/`assertRemoteIds` (remote).
@@ -274,10 +286,12 @@ The home override reuses the existing private `profiles.home_airport`; no column
 ### Task 7: Temporary release operator (repair + leaderboards)
 
 **Files:**
+
 - Create: `workers/release-operator/index.ts`, `workers/release-operator/tsconfig.json`, `functions/test/release-operator.test.ts`
 - Not committed: the private deploy config `.scratch/overview-release-1/operator-prod.toml`. It binds the explicit production D1 and the `OPERATOR_TOKEN` secret; keep it out of git like `.scratch/next-release/`.
 
 **Interfaces:**
+
 - Consumes: `repairUserDerivedState`, `STALE_DERIVED_PREDICATE` (`derivedState.ts`), `refreshLeaderboards` (`leaderboard.ts`).
 - Produces: `fetch(request, env: { DB: D1Database; OPERATOR_TOKEN: string })`.
   - Every request needs `Authorization: Bearer <token>`, compared in constant time. Otherwise 401, and the handler reads nothing.
@@ -298,10 +312,12 @@ The home override reuses the existing private `profiles.home_airport`; no column
 ### Task 8: Rehearsal on the restored export and the production runbook
 
 **Files:**
+
 - Create: `scripts/restore-export-local.ts`, `docs/runbooks/overview-release-1.md`
 - Modify: `packages/shared/src/blockTimeModel.generated.ts` (real fit), `docs/skills/deploy-kuuki/SKILL.md` (one line: Release 1 requires the 0008 ledger row and the runbook)
 
 **Interfaces:**
+
 - Consumes: everything above.
 - Produces: `scripts/restore-export-local.ts --sql <abs export> --database-id <id> --persist <abs dir>`.
   - Applies `parseLocalTarget`'s path refusals.
@@ -312,8 +328,9 @@ The home override reuses the existing private `profiles.home_airport`; no column
   - `pnpm exec wrangler d1 export kuuki-db --remote --output <abs private dir>/kuuki-<UTC>.sql`. This is read-only, but it briefly blocks the DB.
   - `chmod 600` the file.
   - Restore it with `scripts/restore-export-local.ts`.
-  
+
   No remote writes.
+
 - [x] **Step 2:** Locally: apply 0008 (done by the restore's `applyMigrations`), then run `pnpm exec tsx scripts/fit-block-time.ts --database-id <id> --persist <dir> --schema-admission <reviewed json>`.
   - Expected: `samples ≥ 30`, then re-run with `--write`.
   - With fewer samples, keep the prior and record that.
@@ -338,6 +355,7 @@ The home override reuses the existing private `profiles.home_airport`; no column
   10. **Delete the operator.**
   11. **Deploy the Release 1 app via deploy-kuuki.**
   12. Release hold, then smoke: create a flight and check its distance, source and zones; check the leaderboard and profile totals.
-  
+
   Rollback: forward-fix while held; D1 restore only under hold, per the audit runbook.
+
 - [x] **Step 5:** Commit `docs: overview release 1 runbook and rehearsal evidence`. Stop. Production execution happens only when the user authorizes each marked step.

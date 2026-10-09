@@ -8,11 +8,13 @@ import { parseFlightFilters, buildFlightWhere } from '../_lib/flightQuery'
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
     const user = requireUser(context.data)
-    const { where, binds } = buildFlightWhere(user.id, parseFlightFilters(new URL(context.request.url).searchParams))
-    const rows = await context.env.DB
-      .prepare(
-        `SELECT id, origin, destination, airline_iata, date, is_upcoming, lifecycle_state FROM flights WHERE ${where} ORDER BY date DESC`,
-      )
+    const { where, binds } = buildFlightWhere(
+      user.id,
+      parseFlightFilters(new URL(context.request.url).searchParams),
+    )
+    const rows = await context.env.DB.prepare(
+      `SELECT id, origin, destination, airline_iata, date, is_upcoming, lifecycle_state FROM flights WHERE ${where} ORDER BY date DESC`,
+    )
       .bind(...binds)
       .all<FlightRouteRow>()
     return json(rows.results.map(toFlightRoute))

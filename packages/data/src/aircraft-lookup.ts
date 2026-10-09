@@ -5,7 +5,7 @@ const aircraft = aircraftData as Aircraft[]
 let byIcao: Map<string, Aircraft> | undefined
 
 export function findAircraft(icao: string): Aircraft | undefined {
-  byIcao ??= new Map(aircraft.map(item => [item.icao.toUpperCase(), item]))
+  byIcao ??= new Map(aircraft.map((item) => [item.icao.toUpperCase(), item]))
   return byIcao.get(icao.toUpperCase())
 }
 

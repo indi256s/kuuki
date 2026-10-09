@@ -66,13 +66,13 @@ override to workerd `1.20261004.1` also failed and is not a selected workaround.
 
 Observed isolation checks:
 
-| Controlled check | Observed result |
-| --- | --- |
-| Both flags enabled, composed Worker | Next public/authenticated documents fail with workerd hung-request cancellation (500); APIs work |
-| Both flags enabled, generated OpenNext Worker alone | Fresh `/bootstrap.js` returns JavaScript (200), then public `/` fails (500) |
-| Both flags enabled, default dummy incremental cache | Same static-asset success and document failure |
-| Both flags disabled, otherwise composed Worker | Public `/`, `/signin` and authenticated `/overview` served successfully in a diagnostic run |
-| Both flags enabled, native `next start` on the same `.next` artifact | Public `/` returns 200, 9,673 bytes; artifact configuration confirms both flags |
+| Controlled check                                                     | Observed result                                                                                  |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Both flags enabled, composed Worker                                  | Next public/authenticated documents fail with workerd hung-request cancellation (500); APIs work |
+| Both flags enabled, generated OpenNext Worker alone                  | Fresh `/bootstrap.js` returns JavaScript (200), then public `/` fails (500)                      |
+| Both flags enabled, default dummy incremental cache                  | Same static-asset success and document failure                                                   |
+| Both flags disabled, otherwise composed Worker                       | Public `/`, `/signin` and authenticated `/overview` served successfully in a diagnostic run      |
+| Both flags enabled, native `next start` on the same `.next` artifact | Public `/` returns 200, 9,673 bytes; artifact configuration confirms both flags                  |
 
 The native test establishes public-page behavior only; it does not prove D1
 binding, authentication or a replacement hosting architecture.

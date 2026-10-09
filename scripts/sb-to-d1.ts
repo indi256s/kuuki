@@ -191,7 +191,8 @@ async function runAsserts(
   }
 
   // A1: source closure, independent of a particular dated rehearsal snapshot.
-  if (authUsers.length === 0 || profiles.length !== authUsers.length) fail('auth/profile source count mismatch')
+  if (authUsers.length === 0 || profiles.length !== authUsers.length)
+    fail('auth/profile source count mismatch')
 
   // A2: every profiles.id is present in auth_users.id (and == 26 join coverage).
   const authIds = new Set(authUsers.map((u) => u.id))
@@ -201,7 +202,10 @@ async function runAsserts(
     if (!authIds.has(p.id)) fail(`profile id ${p.id} not found in auth_users`)
     profileJoinCount++
   }
-  if (profileJoinCount !== authUsers.length || new Set(profiles.map((p) => p.id)).size !== profiles.length) {
+  if (
+    profileJoinCount !== authUsers.length ||
+    new Set(profiles.map((p) => p.id)).size !== profiles.length
+  ) {
     fail('profile->auth join coverage or profile ids are not unique')
   }
 
@@ -213,7 +217,8 @@ async function runAsserts(
 
   // A3b: every country_claims.user_id and ground_visits.user_id references a profile.
   for (const c of countryClaims) {
-    if (!profileIds.has(c.user_id)) fail(`country_claim ${c.id} user_id ${c.user_id} has no profile`)
+    if (!profileIds.has(c.user_id))
+      fail(`country_claim ${c.id} user_id ${c.user_id} has no profile`)
   }
   for (const g of groundVisits) {
     if (!profileIds.has(g.user_id)) fail(`ground_visit ${g.id} user_id ${g.user_id} has no profile`)
@@ -222,7 +227,8 @@ async function runAsserts(
   // A4: every timestamptz string contains '+00' (UTC offset present pre-normalization).
   const assertTz = (value: string | null | undefined, ctx: string) => {
     if (value === null || value === undefined) return
-    if (!value.includes('+00')) fail(`timestamp ${ctx} missing '+00' offset: ${JSON.stringify(value)}`)
+    if (!value.includes('+00'))
+      fail(`timestamp ${ctx} missing '+00' offset: ${JSON.stringify(value)}`)
   }
   for (const u of authUsers) assertTz(u.created_at, `auth_users.created_at[${u.id}]`)
   for (const p of profiles) {
@@ -260,7 +266,8 @@ function buildUserRows(authUsers: AuthUserRow[], profiles: ProfileRow[]): Bind[]
   const authById = new Map(authUsers.map((u) => [u.id, u]))
   return profiles.map((p) => {
     const auth = authById.get(p.id)
-    if (!auth) throw new Error(`No auth_users row for profile ${p.id} (should be caught by asserts)`)
+    if (!auth)
+      throw new Error(`No auth_users row for profile ${p.id} (should be caught by asserts)`)
     const email = auth.email.trim().toLowerCase()
     const createdAt = tsRequired(auth.created_at, `users.created_at[${p.id}]`)
     return [p.id, email, PASSWORD_PLACEHOLDER, createdAt]
@@ -333,7 +340,9 @@ const FLIGHTS_COLUMNS = [
 // writing and records it in the local manifest for validation.
 function buildFlightRows(flights: FlightRow[]): Bind[][] {
   if (FLIGHTS_COLUMNS.length !== 20) {
-    throw new Error(`flights column list must be 20 (omitting aircraft_lookup_attempts), got ${FLIGHTS_COLUMNS.length}`)
+    throw new Error(
+      `flights column list must be 20 (omitting aircraft_lookup_attempts), got ${FLIGHTS_COLUMNS.length}`,
+    )
   }
   return flights.map((f) => [
     f.id, // explicit PK preserved
@@ -407,8 +416,10 @@ interface ImportTable {
 
 /** Source FK closure is checked against source plus pre-existing target parents. */
 export function assertSourceForeignKeyClosure(
-  tables: ImportTable[], sourceVisits: Array<{ user_id: string }>,
-  existingUsers: string[], existingBadges: number[],
+  tables: ImportTable[],
+  sourceVisits: Array<{ user_id: string }>,
+  existingUsers: string[],
+  existingBadges: number[],
 ): void {
   const table = (name: string): ImportTable => {
     const found = tables.find((item) => item.table === name)
@@ -430,17 +441,27 @@ export function assertSourceForeignKeyClosure(
     const index = source.columns.indexOf(column)
     if (index < 0) throw new Error(`Missing ${name}.${column}`)
     for (const row of source.rows) {
-      if (!parents.has(String(row[index]))) throw new Error(`Source FK closure failed: ${name}.${column}`)
+      if (!parents.has(String(row[index])))
+        throw new Error(`Source FK closure failed: ${name}.${column}`)
     }
   }
-  for (const name of ['profiles', 'flights', 'country_claims', 'ground_visits',
-    'legacy_visit_evidence', 'user_stats', 'user_advanced_stats', 'user_badges']) {
+  for (const name of [
+    'profiles',
+    'flights',
+    'country_claims',
+    'ground_visits',
+    'legacy_visit_evidence',
+    'user_stats',
+    'user_advanced_stats',
+    'user_badges',
+  ]) {
     edge(name, name === 'profiles' ? 'id' : 'user_id', users)
   }
   edge('user_badges', 'badge_id', badges)
-  for (const visit of sourceVisits) if (!users.has(String(visit.user_id))) {
-    throw new Error('Source FK closure failed: visits.user_id')
-  }
+  for (const visit of sourceVisits)
+    if (!users.has(String(visit.user_id))) {
+      throw new Error('Source FK closure failed: visits.user_id')
+    }
 }
 
 interface PreparedTable extends ImportTable {
@@ -468,31 +489,53 @@ export interface ImportManifest {
   referenceDatasetSha256: string
   tableRows: Record<string, number>
   expectedUnionCounts?: Record<string, number>
-  visitEvidence: { raw: number; contributing: number; derivedKeys: number; expectedUnionKeys: number }
+  visitEvidence: {
+    raw: number
+    contributing: number
+    derivedKeys: number
+    expectedUnionKeys: number
+  }
   aircraftCorrections: { count: number; ids: number[]; from: 'A380'; to: 'A388' }
 }
 
-function digest(value: string): string { return createHash('sha256').update(value).digest('hex') }
+function digest(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
 
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>
-    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`).join(',')}}`
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`)
+      .join(',')}}`
   }
   return JSON.stringify(value)
 }
 
-function loadJson<T>(path: string): T { return JSON.parse(readFileSync(path, 'utf8')) as T }
+function loadJson<T>(path: string): T {
+  return JSON.parse(readFileSync(path, 'utf8')) as T
+}
 
 export function buildImportTables(
   snapshotDir: string,
   supplementPath = join(__dirname, '..', 'db', 'reference-supplements.json'),
 ): { tables: ImportTable[]; manifest: ImportManifest } {
   const files = [
-    'auth_users', 'profiles', 'flights', 'country_claims', 'ground_visits', 'visits',
-    'user_stats', 'user_advanced_stats', 'user_badges', 'leaderboard_cache',
-    'badge_definitions', 'code_adjectives', 'code_nouns',
+    'auth_users',
+    'profiles',
+    'flights',
+    'country_claims',
+    'ground_visits',
+    'visits',
+    'user_stats',
+    'user_advanced_stats',
+    'user_badges',
+    'leaderboard_cache',
+    'badge_definitions',
+    'code_adjectives',
+    'code_nouns',
   ]
   const sourceFiles: ImportManifest['sourceFiles'] = {}
   for (const name of files) {
@@ -510,26 +553,92 @@ export function buildImportTables(
   const sourceVisits = readSnapshot<VisitRow>('visits', snapshotDir)
 
   const dataDir = join(__dirname, '..', 'packages', 'data', 'src')
-  const aircraft = loadJson<Array<{ icao: string; iata: string | null; name: string; manufacturer: string; model: string; type: string; engineType: string; engineCount: number }>>(join(dataDir, 'aircraft.json'))
-  const baseAirports = loadJson<Array<{ iata: string; icao: string | null; name: string; city: string; country: string; countryCode: string; latitude: number | null; longitude: number | null }>>(join(dataDir, 'airports.json'))
+  const aircraft = loadJson<
+    Array<{
+      icao: string
+      iata: string | null
+      name: string
+      manufacturer: string
+      model: string
+      type: string
+      engineType: string
+      engineCount: number
+    }>
+  >(join(dataDir, 'aircraft.json'))
+  const baseAirports = loadJson<
+    Array<{
+      iata: string
+      icao: string | null
+      name: string
+      city: string
+      country: string
+      countryCode: string
+      latitude: number | null
+      longitude: number | null
+    }>
+  >(join(dataDir, 'airports.json'))
   const countries = loadJson<Record<string, { name: string }>>(join(dataDir, 'countries.json'))
-  const supplement = loadJson<{ source: { sha256: string; license: string }; airports: Array<{ iata: string; icao: string; name: string; city: string; countryCode: string; latitude: number; longitude: number }> }>(supplementPath)
-  if (supplement.source.license !== 'Public Domain' || !/^[a-f0-9]{64}$/.test(supplement.source.sha256)) throw new Error('Unverified airport supplement provenance')
+  const supplement = loadJson<{
+    source: { sha256: string; license: string }
+    airports: Array<{
+      iata: string
+      icao: string
+      name: string
+      city: string
+      countryCode: string
+      latitude: number
+      longitude: number
+    }>
+  }>(supplementPath)
+  if (
+    supplement.source.license !== 'Public Domain' ||
+    !/^[a-f0-9]{64}$/.test(supplement.source.sha256)
+  )
+    throw new Error('Unverified airport supplement provenance')
 
-  const aircraftByIcao = new Map<string, typeof aircraft[number]>()
+  const aircraftByIcao = new Map<string, (typeof aircraft)[number]>()
   for (const row of aircraft) if (!aircraftByIcao.has(row.icao)) aircraftByIcao.set(row.icao, row)
   const airportsByIata = new Map<string, Bind[]>()
-  const airportColumns = ['iata', 'icao', 'name', 'city', 'country', 'country_code', 'latitude', 'longitude']
+  const airportColumns = [
+    'iata',
+    'icao',
+    'name',
+    'city',
+    'country',
+    'country_code',
+    'latitude',
+    'longitude',
+  ]
   for (const a of baseAirports) {
     if (airportsByIata.has(a.iata)) throw new Error('Duplicate base airport IATA')
-    airportsByIata.set(a.iata, [a.iata, a.icao, a.name, a.city, a.country, a.countryCode, a.latitude, a.longitude])
+    airportsByIata.set(a.iata, [
+      a.iata,
+      a.icao,
+      a.name,
+      a.city,
+      a.country,
+      a.countryCode,
+      a.latitude,
+      a.longitude,
+    ])
   }
   const expectedSupplement = ['ARK', 'BAX', 'KBV', 'MCX', 'MRV', 'NAL', 'VOG', 'ZIA']
-  if (stableJson(supplement.airports.map((a) => a.iata).sort()) !== stableJson(expectedSupplement)) throw new Error('Airport supplement code set changed')
+  if (stableJson(supplement.airports.map((a) => a.iata).sort()) !== stableJson(expectedSupplement))
+    throw new Error('Airport supplement code set changed')
   for (const a of supplement.airports) {
     const country = countries[a.countryCode]?.name
-    if (!country || airportsByIata.has(a.iata)) throw new Error('Airport supplement conflicts with base reference')
-    airportsByIata.set(a.iata, [a.iata, a.icao, a.name, a.city, country, a.countryCode, a.latitude, a.longitude])
+    if (!country || airportsByIata.has(a.iata))
+      throw new Error('Airport supplement conflicts with base reference')
+    airportsByIata.set(a.iata, [
+      a.iata,
+      a.icao,
+      a.name,
+      a.city,
+      country,
+      a.countryCode,
+      a.latitude,
+      a.longitude,
+    ])
   }
 
   const corrected = flights.filter((f) => f.aircraft_icao === 'A380')
@@ -537,7 +646,9 @@ export function buildImportTables(
   if (correctionIds.length && stableJson(correctionIds) !== stableJson([495, 496])) {
     throw new Error('A380 correction source set changed; review before import')
   }
-  const transformedFlights = flights.map((f) => f.aircraft_icao === 'A380' ? { ...f, aircraft_icao: 'A388' } : f)
+  const transformedFlights = flights.map((f) =>
+    f.aircraft_icao === 'A380' ? { ...f, aircraft_icao: 'A388' } : f,
+  )
   const completed = new Map<string, { first: string; last: string; count: number }>()
   for (const f of transformedFlights) {
     if (f.is_upcoming) continue
@@ -555,56 +666,200 @@ export function buildImportTables(
   const sourceVisitKeys = new Set<string>()
   const evidenceRows: Bind[][] = sourceVisits.map((v) => {
     const sourceId = String(v.id)
-    if (!v.airport_iata) throw new Error('Null source airport requires explicit review before import')
+    if (!v.airport_iata)
+      throw new Error('Null source airport requires explicit review before import')
     const key = `${v.user_id}|${v.airport_iata}`
     if (sourceVisitKeys.has(key)) throw new Error('Duplicate source visit user/airport key')
     sourceVisitKeys.add(key)
     const replay = completed.get(key)
     // The archived counter is cumulative and may include edited/deleted flight history.
     // Merge only if it adds a key or a wider observed count/date; never sum counters.
-    const contributes = !replay || v.first_visit < replay.first || v.last_visit > replay.last ||
-      v.visit_count > replay.count ? 1 : 0
+    const contributes =
+      !replay ||
+      v.first_visit < replay.first ||
+      v.last_visit > replay.last ||
+      v.visit_count > replay.count
+        ? 1
+        : 0
     const sourceJson = stableJson(v)
-    return [sourceId, v.user_id, v.airport_iata, v.country_code, v.city, v.first_visit, v.last_visit,
-      v.visit_count, digest(sourceJson), 'supabase.public.visits', contributes, sourceJson]
+    return [
+      sourceId,
+      v.user_id,
+      v.airport_iata,
+      v.country_code,
+      v.city,
+      v.first_visit,
+      v.last_visit,
+      v.visit_count,
+      digest(sourceJson),
+      'supabase.public.visits',
+      contributes,
+      sourceJson,
+    ]
   })
-  const evidenceColumns = ['source_id', 'user_id', 'airport_iata', 'country_code', 'city', 'first_visit', 'last_visit', 'visit_count', 'source_digest', 'provenance', 'contributes', 'source_json']
+  const evidenceColumns = [
+    'source_id',
+    'user_id',
+    'airport_iata',
+    'country_code',
+    'city',
+    'first_visit',
+    'last_visit',
+    'visit_count',
+    'source_digest',
+    'provenance',
+    'contributes',
+    'source_json',
+  ]
   const contributing = evidenceRows.filter((r) => r[10] === 1).length
   const unionKeys = new Set([...completed.keys(), ...sourceVisitKeys])
-  const badgeRows = readSnapshot<Record<string, unknown>>('badge_definitions', snapshotDir).map((b) => [
-    Number(b.id), String(b.code), String(b.name), b.description as string | null,
-    b.category as string | null, b.tier as string | null, b.icon as string | null,
-    b.points == null ? null : Number(b.points), b.criteria == null ? null : JSON.stringify(b.criteria),
-  ])
+  const badgeRows = readSnapshot<Record<string, unknown>>('badge_definitions', snapshotDir).map(
+    (b) => [
+      Number(b.id),
+      String(b.code),
+      String(b.name),
+      b.description as string | null,
+      b.category as string | null,
+      b.tier as string | null,
+      b.icon as string | null,
+      b.points == null ? null : Number(b.points),
+      b.criteria == null ? null : JSON.stringify(b.criteria),
+    ],
+  )
   const tables: ImportTable[] = [
-    { table: 'aircraft_reference', key: 'icao', columns: ['icao', 'iata', 'name', 'manufacturer', 'model', 'type', 'engine_type', 'engine_count'], rows: [...aircraftByIcao.values()].map((a) => [a.icao, a.iata, a.name, a.manufacturer, a.model, a.type, a.engineType, a.engineCount]) },
-    { table: 'airports_reference', key: 'iata', columns: airportColumns, rows: [...airportsByIata.values()] },
-    { table: 'badge_definitions', key: 'id', columns: ['id', 'code', 'name', 'description', 'category', 'tier', 'icon', 'points', 'criteria'], rows: badgeRows },
-    { table: '_code_adjectives', key: 'word', columns: ['word'], rows: readSnapshot<{ word: string }>('code_adjectives', snapshotDir).map((r) => [r.word]) },
-    { table: '_code_nouns', key: 'word', columns: ['word'], rows: readSnapshot<{ word: string }>('code_nouns', snapshotDir).map((r) => [r.word]) },
+    {
+      table: 'aircraft_reference',
+      key: 'icao',
+      columns: [
+        'icao',
+        'iata',
+        'name',
+        'manufacturer',
+        'model',
+        'type',
+        'engine_type',
+        'engine_count',
+      ],
+      rows: [...aircraftByIcao.values()].map((a) => [
+        a.icao,
+        a.iata,
+        a.name,
+        a.manufacturer,
+        a.model,
+        a.type,
+        a.engineType,
+        a.engineCount,
+      ]),
+    },
+    {
+      table: 'airports_reference',
+      key: 'iata',
+      columns: airportColumns,
+      rows: [...airportsByIata.values()],
+    },
+    {
+      table: 'badge_definitions',
+      key: 'id',
+      columns: [
+        'id',
+        'code',
+        'name',
+        'description',
+        'category',
+        'tier',
+        'icon',
+        'points',
+        'criteria',
+      ],
+      rows: badgeRows,
+    },
+    {
+      table: '_code_adjectives',
+      key: 'word',
+      columns: ['word'],
+      rows: readSnapshot<{ word: string }>('code_adjectives', snapshotDir).map((r) => [r.word]),
+    },
+    {
+      table: '_code_nouns',
+      key: 'word',
+      columns: ['word'],
+      rows: readSnapshot<{ word: string }>('code_nouns', snapshotDir).map((r) => [r.word]),
+    },
     { table: 'users', key: 'id', columns: USERS_COLUMNS, rows: buildUserRows(authUsers, profiles) },
     { table: 'profiles', key: 'id', columns: PROFILES_COLUMNS, rows: buildProfileRows(profiles) },
-    { table: 'flights', key: 'id', columns: FLIGHTS_COLUMNS, rows: buildFlightRows(transformedFlights) },
-    { table: 'country_claims', key: 'id', columns: COUNTRY_CLAIMS_COLUMNS, rows: buildCountryClaimRows(countryClaims) },
-    { table: 'ground_visits', key: 'id', columns: GROUND_VISITS_COLUMNS, rows: buildGroundVisitRows(groundVisits) },
-    { table: 'legacy_visit_evidence', key: 'source_id', columns: evidenceColumns, rows: evidenceRows },
+    {
+      table: 'flights',
+      key: 'id',
+      columns: FLIGHTS_COLUMNS,
+      rows: buildFlightRows(transformedFlights),
+    },
+    {
+      table: 'country_claims',
+      key: 'id',
+      columns: COUNTRY_CLAIMS_COLUMNS,
+      rows: buildCountryClaimRows(countryClaims),
+    },
+    {
+      table: 'ground_visits',
+      key: 'id',
+      columns: GROUND_VISITS_COLUMNS,
+      rows: buildGroundVisitRows(groundVisits),
+    },
+    {
+      table: 'legacy_visit_evidence',
+      key: 'source_id',
+      columns: evidenceColumns,
+      rows: evidenceRows,
+    },
   ]
   // Leaderboards are rebuilt from published stats and get new autoincrement IDs.
   // Preserve the source file hash, but never treat cache row IDs as import keys.
-  for (const def of ORACLE_TABLES.filter((d) => d.table !== 'visits' && d.table !== 'leaderboard_cache')) {
-    tables.push({ table: def.table, key: def.autoincrement ? 'id' : 'user_id', columns: def.specs.map((s) => s.col), rows: buildOracleRows(def, readSnapshot<Record<string, unknown>>(def.table, snapshotDir)) })
+  for (const def of ORACLE_TABLES.filter(
+    (d) => d.table !== 'visits' && d.table !== 'leaderboard_cache',
+  )) {
+    tables.push({
+      table: def.table,
+      key: def.autoincrement ? 'id' : 'user_id',
+      columns: def.specs.map((s) => s.col),
+      rows: buildOracleRows(def, readSnapshot<Record<string, unknown>>(def.table, snapshotDir)),
+    })
   }
-  const referenceSourceSha256 = digest(stableJson(tables
-    .filter((table) => table.table === 'aircraft_reference' || table.table === 'airports_reference')
-    .map((table) => ({ table: table.table, columns: table.columns,
-      rows: [...table.rows].sort((a, b) => String(a[0]).localeCompare(String(b[0]))) }))))
+  const referenceSourceSha256 = digest(
+    stableJson(
+      tables
+        .filter(
+          (table) => table.table === 'aircraft_reference' || table.table === 'airports_reference',
+        )
+        .map((table) => ({
+          table: table.table,
+          columns: table.columns,
+          rows: [...table.rows].sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+        })),
+    ),
+  )
   const tableRows = Object.fromEntries(tables.map((t) => [t.table, t.rows.length]))
-  return { tables, manifest: {
-    sourceSnapshotSha256, sourceFiles, referenceSourceSha256,
-    referenceDatasetSha256: supplement.source.sha256, tableRows,
-    visitEvidence: { raw: sourceVisits.length, contributing, derivedKeys: completed.size, expectedUnionKeys: unionKeys.size },
-    aircraftCorrections: { count: correctionIds.length, ids: correctionIds, from: 'A380', to: 'A388' },
-  } }
+  return {
+    tables,
+    manifest: {
+      sourceSnapshotSha256,
+      sourceFiles,
+      referenceSourceSha256,
+      referenceDatasetSha256: supplement.source.sha256,
+      tableRows,
+      visitEvidence: {
+        raw: sourceVisits.length,
+        contributing,
+        derivedKeys: completed.size,
+        expectedUnionKeys: unionKeys.size,
+      },
+      aircraftCorrections: {
+        count: correctionIds.length,
+        ids: correctionIds,
+        from: 'A380',
+        to: 'A388',
+      },
+    },
+  }
 }
 
 function equalCell(a: unknown, b: Bind): boolean {
@@ -614,23 +869,53 @@ function equalCell(a: unknown, b: Bind): boolean {
 }
 
 const COMPUTED_STATS = new Set([
-  'total_flights', 'total_distance_km', 'total_duration_minutes', 'longest_flight_minutes',
-  'airports_count', 'cities_count', 'countries_count', 'continents_count',
-  'airlines_count', 'aircraft_count', 'has_night_departure', 'updated_at',
+  'total_flights',
+  'total_distance_km',
+  'total_duration_minutes',
+  'longest_flight_minutes',
+  'airports_count',
+  'cities_count',
+  'countries_count',
+  'continents_count',
+  'airlines_count',
+  'aircraft_count',
+  'has_night_departure',
+  'updated_at',
 ])
 const COMPUTED_ADVANCED = new Set([
-  'avia_geek_unlocked', 'country_geek_unlocked', 'duration_unlocked',
-  'aircraft_breakdown', 'manufacturer_breakdown', 'aircraft_type_breakdown',
-  'continent_breakdown', 'region_breakdown', 'duration_stats', 'departure_patterns',
-  'duration_coverage', 'fleet_insights', 'manufacturer_insights', 'card_insights',
-  'duration_year_comparison', 'updated_at',
+  'avia_geek_unlocked',
+  'country_geek_unlocked',
+  'duration_unlocked',
+  'aircraft_breakdown',
+  'manufacturer_breakdown',
+  'aircraft_type_breakdown',
+  'continent_breakdown',
+  'region_breakdown',
+  'duration_stats',
+  'departure_patterns',
+  'duration_coverage',
+  'fleet_insights',
+  'manufacturer_insights',
+  'card_insights',
+  'duration_year_comparison',
+  'updated_at',
 ])
 
-export function sameProjectedRow(table: ImportTable, actual: Record<string, unknown>, values: Bind[], repaired = false): boolean {
+export function sameProjectedRow(
+  table: ImportTable,
+  actual: Record<string, unknown>,
+  values: Bind[],
+  repaired = false,
+): boolean {
   return table.columns.every((column, i) => {
     if (repaired && table.table === 'user_stats' && COMPUTED_STATS.has(column)) return true
-    if (repaired && table.table === 'user_advanced_stats' && COMPUTED_ADVANCED.has(column)) return true
-    if (table.table === 'users' && column === 'password_hash' && values[i] === PASSWORD_PLACEHOLDER) {
+    if (repaired && table.table === 'user_advanced_stats' && COMPUTED_ADVANCED.has(column))
+      return true
+    if (
+      table.table === 'users' &&
+      column === 'password_hash' &&
+      values[i] === PASSWORD_PLACEHOLDER
+    ) {
       return typeof actual[column] === 'string' && actual[column].length > 0
     }
     return equalCell(actual[column], values[i])
@@ -642,10 +927,18 @@ async function prepareImport(db: D1Database, tables: ImportTable[]): Promise<Pre
   const prepared: PreparedTable[] = []
   const conflicts: Record<string, number> = {}
   const existingByTable = new Map<string, Record<string, unknown>[]>()
-  const repairedRows = await db.prepare('SELECT user_id FROM user_derived_state WHERE revision = published_revision AND revision > 0').all<{ user_id: string }>()
+  const repairedRows = await db
+    .prepare(
+      'SELECT user_id FROM user_derived_state WHERE revision = published_revision AND revision > 0',
+    )
+    .all<{ user_id: string }>()
   const repairedUsers = new Set(repairedRows.results.map((r) => r.user_id))
   for (const table of tables) {
-    const existing = (await db.prepare(`SELECT ${table.columns.join(', ')} FROM ${table.table}`).all<Record<string, unknown>>()).results
+    const existing = (
+      await db
+        .prepare(`SELECT ${table.columns.join(', ')} FROM ${table.table}`)
+        .all<Record<string, unknown>>()
+    ).results
     existingByTable.set(table.table, existing)
     const keyIndex = table.columns.indexOf(table.key)
     if (keyIndex < 0) throw new Error(`Import key missing in ${table.table}`)
@@ -653,13 +946,15 @@ async function prepareImport(db: D1Database, tables: ImportTable[]): Promise<Pre
     const sourceKeys = new Set<string>()
     const missing: Bind[][] = []
     for (const values of table.rows) {
-      if (values.length !== table.columns.length) throw new Error(`Arity mismatch in ${table.table}`)
+      if (values.length !== table.columns.length)
+        throw new Error(`Arity mismatch in ${table.table}`)
       const key = String(values[keyIndex])
       if (sourceKeys.has(key)) throw new Error(`Duplicate source key in ${table.table}`)
       sourceKeys.add(key)
       const found = existingByKey.get(key)
       if (!found) missing.push(values)
-      else if (!sameProjectedRow(table, found, values, repairedUsers.has(key))) conflicts[table.table] = (conflicts[table.table] ?? 0) + 1
+      else if (!sameProjectedRow(table, found, values, repairedUsers.has(key)))
+        conflicts[table.table] = (conflicts[table.table] ?? 0) + 1
     }
     prepared.push({ ...table, before: existing.length, missing })
   }
@@ -667,21 +962,39 @@ async function prepareImport(db: D1Database, tables: ImportTable[]): Promise<Pre
   const users = tables.find((t) => t.table === 'users')!
   const oldUsers = existingByTable.get('users')!
   for (const row of users.rows) {
-    if (oldUsers.some((old) => old.id !== row[0] && String(old.email).toLowerCase() === String(row[1]).toLowerCase())) {
+    if (
+      oldUsers.some(
+        (old) =>
+          old.id !== row[0] && String(old.email).toLowerCase() === String(row[1]).toLowerCase(),
+      )
+    ) {
       conflicts.users = (conflicts.users ?? 0) + 1
     }
   }
   const profiles = tables.find((t) => t.table === 'profiles')!
   const oldProfiles = existingByTable.get('profiles')!
   for (const row of profiles.rows) {
-    if (row[1] && oldProfiles.some((old) => old.id !== row[0] && String(old.username ?? '').toLowerCase() === String(row[1]).toLowerCase())) {
+    if (
+      row[1] &&
+      oldProfiles.some(
+        (old) =>
+          old.id !== row[0] &&
+          String(old.username ?? '').toLowerCase() === String(row[1]).toLowerCase(),
+      )
+    ) {
       conflicts.profiles = (conflicts.profiles ?? 0) + 1
     }
   }
   const badges = tables.find((t) => t.table === 'badge_definitions')!
   const oldBadges = existingByTable.get('badge_definitions')!
-  for (const row of badges.rows) if (oldBadges.some((old) => old.id !== row[0] && old.code === row[1])) conflicts.badge_definitions = (conflicts.badge_definitions ?? 0) + 1
-  for (const [table, natural] of [[users, 'email'], [profiles, 'username'], [badges, 'code']] as const) {
+  for (const row of badges.rows)
+    if (oldBadges.some((old) => old.id !== row[0] && old.code === row[1]))
+      conflicts.badge_definitions = (conflicts.badge_definitions ?? 0) + 1
+  for (const [table, natural] of [
+    [users, 'email'],
+    [profiles, 'username'],
+    [badges, 'code'],
+  ] as const) {
     const columnIndex = table.columns.indexOf(natural)
     const seen = new Set<string>()
     for (const row of table.rows) {
@@ -691,11 +1004,15 @@ async function prepareImport(db: D1Database, tables: ImportTable[]): Promise<Pre
       seen.add(value)
     }
   }
-  if (Object.keys(conflicts).length) throw new Error(`Import conflicts before writes: ${JSON.stringify(conflicts)}`)
+  if (Object.keys(conflicts).length)
+    throw new Error(`Import conflicts before writes: ${JSON.stringify(conflicts)}`)
   return prepared
 }
 
-export async function inspectSnapshotImport(db: D1Database, snapshotDir = SNAPSHOT_DIR): Promise<{
+export async function inspectSnapshotImport(
+  db: D1Database,
+  snapshotDir = SNAPSHOT_DIR,
+): Promise<{
   manifest: ImportManifest
   prepared: PreparedTable[]
 }> {
@@ -706,13 +1023,25 @@ export async function inspectSnapshotImport(db: D1Database, snapshotDir = SNAPSH
   const ground = readSnapshot<GroundVisitRow>('ground_visits', snapshotDir)
   await runAsserts(authUsers, profiles, flights, claims, ground)
   const { tables, manifest } = buildImportTables(snapshotDir)
-  const targetUsers = (await db.prepare('SELECT id FROM users').all<{ id: string }>()).results.map((row) => row.id)
-  const targetBadges = (await db.prepare('SELECT id FROM badge_definitions').all<{ id: number }>()).results.map((row) => row.id)
-  assertSourceForeignKeyClosure(tables, readSnapshot<VisitRow>('visits', snapshotDir), targetUsers, targetBadges)
+  const targetUsers = (await db.prepare('SELECT id FROM users').all<{ id: string }>()).results.map(
+    (row) => row.id,
+  )
+  const targetBadges = (
+    await db.prepare('SELECT id FROM badge_definitions').all<{ id: number }>()
+  ).results.map((row) => row.id)
+  assertSourceForeignKeyClosure(
+    tables,
+    readSnapshot<VisitRow>('visits', snapshotDir),
+    targetUsers,
+    targetBadges,
+  )
   const fkBefore = await db.prepare('PRAGMA foreign_key_check').all()
-  if ((fkBefore.results ?? []).length) throw new Error('Target foreign-key violations before writes')
+  if ((fkBefore.results ?? []).length)
+    throw new Error('Target foreign-key violations before writes')
   const prepared = await prepareImport(db, tables)
-  manifest.expectedUnionCounts = Object.fromEntries(prepared.map((t) => [t.table, t.before + t.missing.length]))
+  manifest.expectedUnionCounts = Object.fromEntries(
+    prepared.map((t) => [t.table, t.before + t.missing.length]),
+  )
   return { manifest, prepared }
 }
 
@@ -724,20 +1053,28 @@ export async function importSnapshot(
 ): Promise<ImportManifest> {
   const { manifest, prepared } = await inspectSnapshotImport(db, snapshotDir)
   if (!apply) return manifest
-  const sourceUserIds = prepared.find((table) => table.table === 'users')!.rows.map((row) => String(row[0]))
-  const stateRows = await db.prepare('SELECT user_id FROM user_derived_state').all<{ user_id: string }>()
+  const sourceUserIds = prepared
+    .find((table) => table.table === 'users')!
+    .rows.map((row) => String(row[0]))
+  const stateRows = await db
+    .prepare('SELECT user_id FROM user_derived_state')
+    .all<{ user_id: string }>()
   const stateIds = new Set(stateRows.results.map((row) => row.user_id))
   const sourceChanged = prepared.some((table) => table.missing.length > 0)
   const dirtyIds = sourceChanged ? sourceUserIds : sourceUserIds.filter((id) => !stateIds.has(id))
   const dirtyStatements: D1PreparedStatement[] = []
   for (let i = 0; i < dirtyIds.length; i += 80) {
     const ids = dirtyIds.slice(i, i + 80)
-    dirtyStatements.push(db.prepare(
-      `INSERT INTO user_derived_state (user_id, revision, published_revision)
+    dirtyStatements.push(
+      db
+        .prepare(
+          `INSERT INTO user_derived_state (user_id, revision, published_revision)
        SELECT id, 1, 0 FROM users WHERE id IN (${ids.map(() => '?').join(', ')})
        ON CONFLICT(user_id) DO UPDATE SET revision = user_derived_state.revision + 1,
          last_error = NULL, updated_at = excluded.updated_at`,
-    ).bind(...ids))
+        )
+        .bind(...ids),
+    )
   }
   for (const table of prepared) {
     const statements = buildInserts(db, table.table, table.columns, table.missing)
@@ -751,12 +1088,17 @@ export async function importSnapshot(
     if (table.table === 'users' && statements.length === 0 && dirtyStatements.length) {
       await db.batch(dirtyStatements)
     }
-    const after = Number((await db.prepare(`SELECT COUNT(*) AS n FROM ${table.table}`).first<{ n: number }>())?.n ?? -1)
-    if (after !== table.before + table.missing.length) throw new Error(`Post-import count mismatch in ${table.table}`)
+    const after = Number(
+      (await db.prepare(`SELECT COUNT(*) AS n FROM ${table.table}`).first<{ n: number }>())?.n ??
+        -1,
+    )
+    if (after !== table.before + table.missing.length)
+      throw new Error(`Post-import count mismatch in ${table.table}`)
     if (stopAfterTable === table.table) throw new Error('Intentional import interruption')
   }
   const fk = await db.prepare('PRAGMA foreign_key_check').all()
-  if ((fk.results ?? []).length) throw new Error(`Post-import foreign-key violations: ${fk.results.length}`)
+  if ((fk.results ?? []).length)
+    throw new Error(`Post-import foreign-key violations: ${fk.results.length}`)
   return manifest
 }
 
@@ -770,10 +1112,35 @@ export async function main(): Promise<void> {
   try {
     const manifest = await importSnapshot(target.db, snapshotDir, apply)
     const manifestPath = join(snapshotDir, '_migration-manifest.json')
-    writeFileSync(manifestPath, JSON.stringify({ ...manifest, target: options.target, databaseId: options.databaseId, schemaSha256: target.schemaSha256 }, null, 2) + '\n', { mode: 0o600 })
-    console.log(JSON.stringify({ mode: apply ? 'local-applied' : 'local-plan', databaseId: options.databaseId, schemaSha256: target.schemaSha256,
-      sourceSnapshotSha256: manifest.sourceSnapshotSha256, tableRows: manifest.tableRows,
-      visitEvidence: manifest.visitEvidence, aircraftCorrections: manifest.aircraftCorrections }, null, 2))
+    writeFileSync(
+      manifestPath,
+      JSON.stringify(
+        {
+          ...manifest,
+          target: options.target,
+          databaseId: options.databaseId,
+          schemaSha256: target.schemaSha256,
+        },
+        null,
+        2,
+      ) + '\n',
+      { mode: 0o600 },
+    )
+    console.log(
+      JSON.stringify(
+        {
+          mode: apply ? 'local-applied' : 'local-plan',
+          databaseId: options.databaseId,
+          schemaSha256: target.schemaSha256,
+          sourceSnapshotSha256: manifest.sourceSnapshotSha256,
+          tableRows: manifest.tableRows,
+          visitEvidence: manifest.visitEvidence,
+          aircraftCorrections: manifest.aircraftCorrections,
+        },
+        null,
+        2,
+      ),
+    )
   } finally {
     await target.dispose()
   }
@@ -785,8 +1152,12 @@ if (invokedDirectly) {
   main().catch((err) => {
     // eslint-disable-next-line no-console
     const message = (err as Error).message
-    console.error(message.startsWith('Import conflicts before writes:') || message.startsWith('Target schema mismatch:')
-      ? message : 'Import refused; source identifiers and secrets suppressed')
+    console.error(
+      message.startsWith('Import conflicts before writes:') ||
+        message.startsWith('Target schema mismatch:')
+        ? message
+        : 'Import refused; source identifiers and secrets suppressed',
+    )
     process.exit(1)
   })
 }

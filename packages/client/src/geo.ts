@@ -19,7 +19,7 @@ export function calculateFlightDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   return Math.round(greatCircleKm({ lat: lat1, lon: lon1 }, { lat: lat2, lon: lon2 }))
 }
@@ -30,10 +30,7 @@ export function calculateFlightDistance(
  * @param aircraftType Type of aircraft (affects cruise speed)
  * @returns Duration in minutes
  */
-export function estimateFlightDuration(
-  distanceKm: number,
-  aircraftType?: AircraftType
-): number {
+export function estimateFlightDuration(distanceKm: number, aircraftType?: AircraftType): number {
   const speed = aircraftType ? SPEED_BY_AIRCRAFT_TYPE[aircraftType] : DEFAULT_SPEED_KMH
 
   // Add fixed time for taxi, takeoff, climb, descent, landing
@@ -60,7 +57,7 @@ export function calculateFlightDuration(
   arrivalTime: string,
   date?: string,
   departureTz?: string,
-  arrivalTz?: string
+  arrivalTz?: string,
 ): number | null {
   try {
     // Parse HH:MM format
@@ -68,7 +65,8 @@ export function calculateFlightDuration(
     const arrParts = arrivalTime.split(':').map(Number)
 
     if (depParts.length < 2 || arrParts.length < 2) return null
-    if (isNaN(depParts[0]) || isNaN(depParts[1]) || isNaN(arrParts[0]) || isNaN(arrParts[1])) return null
+    if (isNaN(depParts[0]) || isNaN(depParts[1]) || isNaN(arrParts[0]) || isNaN(arrParts[1]))
+      return null
 
     const flightDate = date || new Date().toISOString().split('T')[0]
 
@@ -114,10 +112,10 @@ export function calculateFlightDuration(
  * Uses the Intl API (no external libraries needed).
  */
 function localTimeToUtcMs(
-  date: string,     // "YYYY-MM-DD"
+  date: string, // "YYYY-MM-DD"
   hours: number,
   minutes: number,
-  timeZone: string
+  timeZone: string,
 ): number | null {
   try {
     // Build an ISO-ish string and parse it as if it were UTC,
@@ -143,7 +141,7 @@ function localTimeToUtcMs(
     // Format naiveUtcMs (treated as UTC) in the target timezone
     // The difference between the formatted time and the naive UTC time gives us the offset
     const parts = formatter.formatToParts(new Date(naiveUtcMs))
-    const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0', 10)
+    const get = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0', 10)
 
     const tzYear = get('year')
     const tzMonth = get('month')

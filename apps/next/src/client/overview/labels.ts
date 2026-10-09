@@ -15,9 +15,18 @@ export interface OverviewLabels {
 export function referenceLabels(locale: Locale): OverviewLabels {
   const regions = new Intl.DisplayNames([locale], { type: 'region' })
   return {
-    airline: code => airlineName(code) ?? code,
-    aircraft: icao => findAircraft(icao)?.name ?? icao,
-    airport: iata => { const city = findAirport(iata)?.city; return city ? `${iata} · ${city}` : iata },
-    country: code => { try { return regions.of(code) ?? code } catch { return code } },
+    airline: (code) => airlineName(code) ?? code,
+    aircraft: (icao) => findAircraft(icao)?.name ?? icao,
+    airport: (iata) => {
+      const city = findAirport(iata)?.city
+      return city ? `${iata} · ${city}` : iata
+    },
+    country: (code) => {
+      try {
+        return regions.of(code) ?? code
+      } catch {
+        return code
+      }
+    },
   }
 }

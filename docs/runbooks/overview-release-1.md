@@ -11,14 +11,14 @@ merging to main also require the user's approval.
 
 ## Target and artifacts
 
-| Item | Required value |
-|---|---|
-| Account | `5cadcff0282e54f3ff1d7062d4dbb97a` |
-| Production D1 | `kuuki-db`, `2a8e3895-6a98-4473-8d7b-a43ca0c0026f` |
-| Application Workers | `kuuki-next`, `kuuki-activation` |
-| Temporary operator | `kuuki-overview-release-operator` |
+| Item                       | Required value                                                 |
+| -------------------------- | -------------------------------------------------------------- |
+| Account                    | `5cadcff0282e54f3ff1d7062d4dbb97a`                             |
+| Production D1              | `kuuki-db`, `2a8e3895-6a98-4473-8d7b-a43ca0c0026f`             |
+| Application Workers        | `kuuki-next`, `kuuki-activation`                               |
+| Temporary operator         | `kuuki-overview-release-operator`                              |
 | Current pending migrations | `0008_flight_metrics.sql`, `0009_schedule_time_provenance.sql` |
-| Operator config | `.scratch/overview-release-1/operator-prod.toml` (gitignored) |
+| Operator config            | `.scratch/overview-release-1/operator-prod.toml` (gitignored)  |
 
 Pin `CLOUDFLARE_ACCOUNT_ID` to the account above for Wrangler commands. Commands
 run from the workspace root except the app deploy commands, which follow the
@@ -193,27 +193,27 @@ production hold, mutation, operator deployment, secret setting, app deployment
 or further remote read was performed. This export was not taken under a proven
 writer hold; regenerate and compare under the production gates below.
 
-| Check | Result |
-|---|---|
-| Export SHA-256 | `9c203950a2e7b8b62b7a0aaa7e893898ed0a8f96313b0e23271e066f3b51057c` |
-| Export size / mode | 825,958 bytes / 0600 |
-| Restore | 2,308 statements; ledger through `0007`; only `0008` added |
-| Raw preservation before backfill | 33 application tables, 2,221 records, exact match |
-| Foreign keys / local integrity | Zero violations / `ok` |
-| Restored schema SHA-256 | `07ad94687c76d731e57b89b889084f3c6cc089f4334829853e617b27a756e902` |
-| Fresh schema SHA-256 | `5a9c8f4e206985818971d176c52f053fed9d87fa30897de081a5cf878d8da359` |
-| Semantic admission | All seven dimensions match; historical `user_advanced_stats` column order differs |
-| Calibration | 315 valid samples, 13 skipped; RMSE 51.516435 minutes; commit `3c444cf` |
-| Proposal | 411 of 412 flights, 18 users; SQL SHA-256 `ee40516fbd85d3652e4842c74d26b3acc96a0fd49984a60f576f1a7c77c5d8f2` |
-| Classes | `times` 328, `route_median` 15, `estimate_replaced` 66, `kept_unexplained` 2, `distance_changed` 408, `zones_set` 408, `tz_filled` 39, `no_coordinates` 3 |
-| Distance for previously populated journals | 773,324 → 703,878 km |
-| Previously empty distance total | One journal gains 128,414 km; overall changed-user total becomes 832,292 km |
-| Compiled local operator | Dry-run 57.31 KiB / gzip 13.43 KiB; 18 repaired, 0 failed, 0 remaining |
-| Final status | 28 users, 412 flights, `dirty 0`, `metricsNull 0` |
-| Leaderboards | 25 rows = 5 categories × 5 eligible ready users |
-| Rerun | Zero proposal changes; repeat repair zero work |
-| Preservation after repair | 26 canonical/reference tables unchanged outside approved metrics; all 134 historical badges preserved; 4 new awards |
-| Checks | API 58 files / 636 tests; Next 105 files / 1,102 tests; API/scripts types and Next build passed |
+| Check                                      | Result                                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Export SHA-256                             | `9c203950a2e7b8b62b7a0aaa7e893898ed0a8f96313b0e23271e066f3b51057c`                                                                                        |
+| Export size / mode                         | 825,958 bytes / 0600                                                                                                                                      |
+| Restore                                    | 2,308 statements; ledger through `0007`; only `0008` added                                                                                                |
+| Raw preservation before backfill           | 33 application tables, 2,221 records, exact match                                                                                                         |
+| Foreign keys / local integrity             | Zero violations / `ok`                                                                                                                                    |
+| Restored schema SHA-256                    | `07ad94687c76d731e57b89b889084f3c6cc089f4334829853e617b27a756e902`                                                                                        |
+| Fresh schema SHA-256                       | `5a9c8f4e206985818971d176c52f053fed9d87fa30897de081a5cf878d8da359`                                                                                        |
+| Semantic admission                         | All seven dimensions match; historical `user_advanced_stats` column order differs                                                                         |
+| Calibration                                | 315 valid samples, 13 skipped; RMSE 51.516435 minutes; commit `3c444cf`                                                                                   |
+| Proposal                                   | 411 of 412 flights, 18 users; SQL SHA-256 `ee40516fbd85d3652e4842c74d26b3acc96a0fd49984a60f576f1a7c77c5d8f2`                                              |
+| Classes                                    | `times` 328, `route_median` 15, `estimate_replaced` 66, `kept_unexplained` 2, `distance_changed` 408, `zones_set` 408, `tz_filled` 39, `no_coordinates` 3 |
+| Distance for previously populated journals | 773,324 → 703,878 km                                                                                                                                      |
+| Previously empty distance total            | One journal gains 128,414 km; overall changed-user total becomes 832,292 km                                                                               |
+| Compiled local operator                    | Dry-run 57.31 KiB / gzip 13.43 KiB; 18 repaired, 0 failed, 0 remaining                                                                                    |
+| Final status                               | 28 users, 412 flights, `dirty 0`, `metricsNull 0`                                                                                                         |
+| Leaderboards                               | 25 rows = 5 categories × 5 eligible ready users                                                                                                           |
+| Rerun                                      | Zero proposal changes; repeat repair zero work                                                                                                            |
+| Preservation after repair                  | 26 canonical/reference tables unchanged outside approved metrics; all 134 historical badges preserved; 4 new awards                                       |
+| Checks                                     | API 58 files / 636 tests; Next 105 files / 1,102 tests; API/scripts types and Next build passed                                                           |
 
 The initial Python SQLite 3.39.4 comparison baseline rounded 58 airport
 coordinate fields differently from the export literals. Node SQLite 3.53.3

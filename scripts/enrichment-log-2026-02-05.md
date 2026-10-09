@@ -1,4 +1,5 @@
 # Aircraft Enrichment Analysis Log
+
 **Date:** 2026-02-05
 **Type:** One-time backfill enrichment
 **API Endpoint:** https://kuuki.pages.dev/api/enrich/aircraft
@@ -8,13 +9,13 @@
 
 ## Executive Summary
 
-| Metric | Value | Percentage |
-|--------|-------|------------|
-| Total flights in database | 259 | 100% |
-| Successfully enriched | 174 | 67.2% |
-| Skipped (low confidence) | 65 | 25.1% |
-| Failed (API errors) | 20 | 7.7% |
-| Remaining without aircraft | 85 | 32.8% |
+| Metric                     | Value | Percentage |
+| -------------------------- | ----- | ---------- |
+| Total flights in database  | 259   | 100%       |
+| Successfully enriched      | 174   | 67.2%      |
+| Skipped (low confidence)   | 65    | 25.1%      |
+| Failed (API errors)        | 20    | 7.7%       |
+| Remaining without aircraft | 85    | 32.8%      |
 
 ---
 
@@ -25,18 +26,21 @@
 **Duration:** ~5 minutes
 
 ### Results
+
 - **Processed:** 259 flights
 - **Enriched:** 92 flights
 - **Skipped:** 147 flights (low confidence)
 - **Errors:** 20 flights (API timeouts)
 
 ### API Performance
+
 - **Successful batches:** 11/13 (85%)
 - **Failed batches:** 2/13 (15%)
   - Batch 7: 502 Bad Gateway
   - Batch 11: 524 Timeout
 
 ### Sample Successful Matches (High Confidence ≥90%)
+
 ```
 LY5108 TBS-TLV → B738 (95%)  # El Al, Boeing 737-800
 MU2075 PKX-SVO → A333 (95%)  # China Eastern, Airbus A330-300
@@ -48,6 +52,7 @@ NQ001 NRT-BKK → B788 (95%)   # Nok Scoot, Boeing 787-8
 ```
 
 ### Sample Skipped (Low Confidence <70%)
+
 ```
 LX4590 ZRH-LIS → skipped (0%)  # Multiple equipment types
 VY1890 BCN-HAJ → skipped (0%)  # Route info unclear
@@ -64,17 +69,20 @@ SU1323 MMK-SVO → skipped (0%)  # Regional route variations
 **Remaining flights:** 167 (after Run 1 enriched 92)
 
 ### Results
+
 - **Processed:** 167 flights
 - **Enriched:** 82 flights
 - **Skipped:** 65 flights (low confidence)
 - **Errors:** 20 flights (API timeout)
 
 ### API Performance
+
 - **Successful batches:** 8/9 (89%)
 - **Failed batches:** 1/9 (11%)
   - Batch 8: 502 Bad Gateway
 
 ### Notable Enrichments
+
 ```
 QR859 ICN-DOH → A35K (95%)   # Qatar Airways, A350-1000
 QR835 BKK-DOH → A388 (95%)   # Qatar Airways, A380-800
@@ -85,6 +93,7 @@ HY601 TAS-DME → B763 (75%)   # Uzbekistan Airways, Boeing 767-300
 ```
 
 ### Persistent Low Confidence Routes
+
 ```
 J2 GYD-TBS → skipped (0%)     # Azerbaijan Airlines - multiple types
 LH1778 MUC-LIS → skipped (0%) # Lufthansa - schedule variations
@@ -100,11 +109,13 @@ SU2607 LIS-SVO → skipped (0%) # Aeroflot - multiple configs
 ### Success Patterns
 
 **High Success Routes (≥90% confidence):**
+
 1. **Long-haul international** (e.g., Qatar, Emirates, Thai) - consistent equipment
 2. **Major carriers on popular routes** (e.g., China Eastern, Turkish, Pegasus)
 3. **Regional jets with dedicated routes** (e.g., Sukhoi Superjet on domestic Russian)
 
 **Aircraft Types Identified:**
+
 - Wide-body: A333, A359, A35K, A388, B77W, B788, B763
 - Narrow-body: A319, A320, A321, A20N, A21N, B738, B739, B38M
 - Regional: E190, E195, E75L, SU95, DH8D, BCS3
@@ -112,6 +123,7 @@ SU2607 LIS-SVO → skipped (0%) # Aeroflot - multiple configs
 ### Failure Patterns
 
 **Low Confidence Categories:**
+
 1. **LCCs with variable equipment** (Wizz Air, easyJet routes)
 2. **Russian domestic routes** (multiple aircraft types on same route number)
 3. **Seasonal/charter routes** (equipment varies by season)
@@ -119,6 +131,7 @@ SU2607 LIS-SVO → skipped (0%) # Aeroflot - multiple configs
 5. **Regional carriers** (Red Wings, Georgian Airways - limited data)
 
 **API Reliability:**
+
 - **Overall success rate:** 87% of batches completed
 - **Timeout pattern:** Occurs on batches 7-8 (after ~150-160 requests)
 - **Likely cause:** Gemini API rate limiting or grounded search quota
@@ -129,24 +142,30 @@ SU2607 LIS-SVO → skipped (0%) # Aeroflot - multiple configs
 ## Recommendations
 
 ### 1. Improve Low Confidence Matches
+
 ```typescript
 // Consider adding operator context for code-shares
-airline_name: "Operated by X Airlines"  // vs marketed airline
+airline_name: 'Operated by X Airlines' // vs marketed airline
 ```
 
 ### 2. Handle API Timeouts
+
 - Increase batch delay from 2s to 3s
 - Implement exponential backoff on 502/524 errors
 - Retry failed batches at end of run
 
 ### 3. Data Quality Enhancements
+
 For skipped routes, could add:
+
 - Aircraft registration lookup (when available)
 - Fleet data from airline databases
 - Historical equipment probability (e.g., "LH usually operates A320 on MUC-LIS")
 
 ### 4. Monitoring Metrics
+
 Track over time:
+
 - Enrichment success rate by airline
 - Confidence score distribution
 - API timeout frequency
@@ -160,7 +179,7 @@ Track over time:
 const BATCH_SIZE = 20
 const CONFIDENCE_THRESHOLD = 0.7
 const API_BASE = 'https://kuuki.pages.dev'
-const BATCH_DELAY = 2000  // ms
+const BATCH_DELAY = 2000 // ms
 
 // Gemini Prompt Key Points:
 // - "CURRENTLY operated" (not historical)

@@ -6,18 +6,18 @@
 
 ## Interview Summary
 
-| Decision | Answer |
-|----------|--------|
-| Visual hierarchy | Brand first (katakana + planes), values secondary |
-| User context | Closed beta for friends — they already trust you |
+| Decision            | Answer                                                          |
+| ------------------- | --------------------------------------------------------------- |
+| Visual hierarchy    | Brand first (katakana + planes), values secondary               |
+| User context        | Closed beta for friends — they already trust you                |
 | Value communication | **Rotating tagline** under Kuuki logo (replaces static tagline) |
-| Tagline format | Single line, 4 items, 8s each |
-| Progress indicator | Subtle dots (4 dots, current highlighted) |
-| Katakana opacity | Hero element (10-12% opacity, static) |
-| Animation style | Soft slide (old slides up/fades, new slides in) |
-| Stat tone | Casual/warm |
-| Mobile layout | Full atmosphere — planes behind form, horizontal katakana |
-| Left panel | Keep Kuuki logo, rotating tagline replaces static one |
+| Tagline format      | Single line, 4 items, 8s each                                   |
+| Progress indicator  | Subtle dots (4 dots, current highlighted)                       |
+| Katakana opacity    | Hero element (10-12% opacity, static)                           |
+| Animation style     | Soft slide (old slides up/fades, new slides in)                 |
+| Stat tone           | Casual/warm                                                     |
+| Mobile layout       | Full atmosphere — planes behind form, horizontal katakana       |
+| Left panel          | Keep Kuuki logo, rotating tagline replaces static one           |
 
 ---
 
@@ -26,9 +26,9 @@
 ```typescript
 const rotatingTaglines = [
   "Snap a boarding pass. We'll figure it out.",
-  "Flights, countries, airports — all the nerdy stuff.",
-  "Halfway to the Moon, apparently.",
-  "23 countries down, 172 to go.",
+  'Flights, countries, airports — all the nerdy stuff.',
+  'Halfway to the Moon, apparently.',
+  '23 countries down, 172 to go.',
 ]
 ```
 
@@ -47,6 +47,7 @@ Each displays for 8 seconds with soft slide animation + subtle dot indicator.
 ### 2. Rotating Tagline (Replaces Static)
 
 **Current:**
+
 ```tsx
 <p className="text-neutral-500 dark:text-white/50 text-sm font-medium tracking-wide">
   {t('common.tagline', 'Keep track of your flights')}
@@ -54,6 +55,7 @@ Each displays for 8 seconds with soft slide animation + subtle dot indicator.
 ```
 
 **New:**
+
 ```tsx
 <RotatingTagline
   items={rotatingTaglines}
@@ -115,9 +117,9 @@ export function RotatingTagline({ items, interval = 8000, className }: RotatingT
       <div className="relative h-5 overflow-hidden">
         <p
           className={cn(
-            "transition-all duration-300 ease-out",
+            'transition-all duration-300 ease-out',
             className,
-            isExiting ? "translate-y-[-100%] opacity-0" : "translate-y-0 opacity-100"
+            isExiting ? 'translate-y-[-100%] opacity-0' : 'translate-y-0 opacity-100',
           )}
         >
           {items[currentIndex]}
@@ -130,10 +132,8 @@ export function RotatingTagline({ items, interval = 8000, className }: RotatingT
           <div
             key={i}
             className={cn(
-              "w-1 h-1 rounded-full transition-all duration-300",
-              i === currentIndex
-                ? "bg-primary/60 w-2"
-                : "bg-neutral-300 dark:bg-white/20"
+              'w-1 h-1 rounded-full transition-all duration-300',
+              i === currentIndex ? 'bg-primary/60 w-2' : 'bg-neutral-300 dark:bg-white/20',
             )}
           />
         ))}
@@ -147,13 +147,13 @@ export function RotatingTagline({ items, interval = 8000, className }: RotatingT
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `apps/web/src/routes/AuthPage.tsx` | Remove feature cards, replace static tagline with RotatingTagline, adjust katakana opacity, restructure for mobile |
-| `apps/web/src/components/auth/RotatingTagline.tsx` | **NEW** — Rotating tagline with dot indicators |
-| `apps/web/src/components/auth/index.ts` | Export RotatingTagline |
-| `packages/shared/src/i18n/en.json` | Add rotating tagline translations |
-| `packages/shared/src/i18n/ru.json` | Add rotating tagline translations |
+| File                                               | Changes                                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `apps/web/src/routes/AuthPage.tsx`                 | Remove feature cards, replace static tagline with RotatingTagline, adjust katakana opacity, restructure for mobile |
+| `apps/web/src/components/auth/RotatingTagline.tsx` | **NEW** — Rotating tagline with dot indicators                                                                     |
+| `apps/web/src/components/auth/index.ts`            | Export RotatingTagline                                                                                             |
+| `packages/shared/src/i18n/en.json`                 | Add rotating tagline translations                                                                                  |
+| `packages/shared/src/i18n/ru.json`                 | Add rotating tagline translations                                                                                  |
 
 ---
 
@@ -173,6 +173,7 @@ export function RotatingTagline({ items, interval = 8000, className }: RotatingT
 ```
 
 Russian:
+
 ```json
 {
   "auth": {

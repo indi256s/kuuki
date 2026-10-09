@@ -24,7 +24,9 @@ export class UnconfirmedFlightOperationError extends Error {
 
 export class SettledFlightOperationError extends Error {
   constructor() {
-    super('The original save was settled or replaced elsewhere. Check your journal before starting a new save.')
+    super(
+      'The original save was settled or replaced elsewhere. Check your journal before starting a new save.',
+    )
     this.name = 'SettledFlightOperationError'
   }
 }
@@ -37,26 +39,36 @@ function read(id: string): PendingOperation | undefined {
     const stored = localStorage.getItem(STORAGE_PREFIX + id)
     if (!stored) return fallback.get(id)
     const receipt = JSON.parse(stored) as PendingOperation
-    if (typeof receipt.key !== 'string' || typeof receipt.payload !== 'string') throw new Error('Invalid receipt')
+    if (typeof receipt.key !== 'string' || typeof receipt.payload !== 'string')
+      throw new Error('Invalid receipt')
     return receipt
   } catch {
     if (fallback.has(id)) return fallback.get(id)
-    throw new Error('Stored flight retry receipt is damaged. Start a new save only after checking your flights.')
+    throw new Error(
+      'Stored flight retry receipt is damaged. Start a new save only after checking your flights.',
+    )
   }
 }
 
 function write(id: string, operation: PendingOperation): void {
   try {
     localStorage.setItem(STORAGE_PREFIX + id, JSON.stringify(operation))
-    if (localStorage.getItem(STORAGE_PREFIX + id) !== JSON.stringify(operation)) throw new Error('Receipt verification failed')
+    if (localStorage.getItem(STORAGE_PREFIX + id) !== JSON.stringify(operation))
+      throw new Error('Receipt verification failed')
   } catch {
-    throw new Error('Could not store a safe flight retry receipt. Check browser storage and try again.')
+    throw new Error(
+      'Could not store a safe flight retry receipt. Check browser storage and try again.',
+    )
   }
   fallback.set(id, operation)
 }
 
 function expired(operation: PendingOperation): boolean {
-  return !Number.isFinite(operation.createdAt) || operation.createdAt > Date.now() || Date.now() - operation.createdAt >= SAFE_RETRY_MS
+  return (
+    !Number.isFinite(operation.createdAt) ||
+    operation.createdAt > Date.now() ||
+    Date.now() - operation.createdAt >= SAFE_RETRY_MS
+  )
 }
 
 function scope(userId: string, operationId: string): string {
@@ -64,25 +76,36 @@ function scope(userId: string, operationId: string): string {
 }
 
 /** Keep the exact payload and key together. An explicit retry must supply its captured key, never mint a new one. */
-export function getFlightCreateOperation(userId: string, operationId: string, payload: object, retryKey?: string): { key: string; body: object } {
+export function getFlightCreateOperation(
+  userId: string,
+  operationId: string,
+  payload: object,
+  retryKey?: string,
+): { key: string; body: object } {
   const serialized = JSON.stringify(payload)
   const id = scope(userId, operationId)
   const existing = read(id)
-  if (retryKey !== undefined && (!existing || existing.key !== retryKey)) throw new SettledFlightOperationError()
+  if (retryKey !== undefined && (!existing || existing.key !== retryKey))
+    throw new SettledFlightOperationError()
   if (existing && expired(existing)) throw new ExpiredFlightOperationError()
-  if (existing?.payload === serialized) return { key: existing.key, body: JSON.parse(existing.payload) as object }
+  if (existing?.payload === serialized)
+    return { key: existing.key, body: JSON.parse(existing.payload) as object }
   if (existing) throw new UnconfirmedFlightOperationError()
   const created = { key: crypto.randomUUID(), payload: serialized, createdAt: Date.now() }
   write(id, created)
   return { key: created.key, body: payload }
 }
 
-export function pendingFlightCreateOperation(userId: string, operationId: string): { key: string; body: object; expired: boolean } | null {
+export function pendingFlightCreateOperation(
+  userId: string,
+  operationId: string,
+): { key: string; body: object; expired: boolean } | null {
   try {
     const pending = read(scope(userId, operationId))
     if (!pending) return null
     const body: unknown = JSON.parse(pending.payload)
-    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('Invalid receipt payload')
+    if (!body || typeof body !== 'object' || Array.isArray(body))
+      throw new Error('Invalid receipt payload')
     return { key: pending.key, body, expired: expired(pending) }
   } catch {
     return { key: '', body: {}, expired: true }
@@ -94,16 +117,21 @@ export function pendingFlightCreateOperation(userId: string, operationId: string
  * a run and row number, or any prefixed id), so an unresolved save can be found again after a reload. A damaged receipt
  * is listed as expired with an empty body and no key.
  */
-export function pendingFlightCreateOperations(userId: string): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
+export function pendingFlightCreateOperations(
+  userId: string,
+): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
   const owner = `${userId}:`
   const ids = new Set<string>()
   for (const id of fallback.keys()) if (id.startsWith(owner)) ids.add(id.slice(owner.length))
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_PREFIX + owner)) ids.add(key.slice(STORAGE_PREFIX.length + owner.length))
+      if (key?.startsWith(STORAGE_PREFIX + owner))
+        ids.add(key.slice(STORAGE_PREFIX.length + owner.length))
     }
-  } catch { /* Storage may be unavailable. */ }
+  } catch {
+    /* Storage may be unavailable. */
+  }
   const receipts: Array<{ operationId: string; key: string; body: object; expired: boolean }> = []
   for (const operationId of [...ids].sort()) {
     const pending = pendingFlightCreateOperation(userId, operationId)
@@ -115,14 +143,26 @@ export function pendingFlightCreateOperations(userId: string): Array<{ operation
 export function abandonFlightCreateOperation(userId: string, operationId: string): void {
   const id = scope(userId, operationId)
   fallback.delete(id)
-  try { localStorage.removeItem(STORAGE_PREFIX + id) } catch { /* Explicit new operation; storage may be unavailable. */ }
+  try {
+    localStorage.removeItem(STORAGE_PREFIX + id)
+  } catch {
+    /* Explicit new operation; storage may be unavailable. */
+  }
 }
 
-export function completeFlightCreateOperation(userId: string, operationId: string, key: string): void {
+export function completeFlightCreateOperation(
+  userId: string,
+  operationId: string,
+  key: string,
+): void {
   const id = scope(userId, operationId)
   if (read(id)?.key !== key) return
   fallback.delete(id)
-  try { localStorage.removeItem(STORAGE_PREFIX + id) } catch { /* Storage may be unavailable. */ }
+  try {
+    localStorage.removeItem(STORAGE_PREFIX + id)
+  } catch {
+    /* Storage may be unavailable. */
+  }
 }
 
 export function clearFlightCreateOperations(userId?: string): void {
@@ -134,7 +174,9 @@ export function clearFlightCreateOperations(userId?: string): void {
       const key = localStorage.key(i)
       if (key?.startsWith(prefix)) localStorage.removeItem(key)
     }
-  } catch { /* Storage may be unavailable. */ }
+  } catch {
+    /* Storage may be unavailable. */
+  }
 }
 
 /** Session storage survives refresh while keeping independent tabs' manual attempts separate. */
@@ -153,6 +195,10 @@ export function currentFlightOperationId(kind: string): string {
 
 export function rotateFlightOperationId(kind: string): string {
   const id = crypto.randomUUID()
-  try { sessionStorage.setItem(`kuuki-flight-operation-${kind}`, id) } catch { /* Current request still has its key. */ }
+  try {
+    sessionStorage.setItem(`kuuki-flight-operation-${kind}`, id)
+  } catch {
+    /* Current request still has its key. */
+  }
   return id
 }

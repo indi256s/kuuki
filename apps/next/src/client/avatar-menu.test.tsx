@@ -7,11 +7,21 @@ import { AvatarMenu } from './avatar-menu'
 const patch = vi.fn()
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
-vi.mock('@kuuki/client/apiClient', () => ({ api: { patch: (...args: unknown[]) => patch(...args), post: vi.fn() }, getAuthGeneration: () => 1 }))
-vi.mock('./activity', () => ({ trackPrivateOperation: () => () => undefined, withIdentityMutation: vi.fn() }))
+vi.mock('@kuuki/client/apiClient', () => ({
+  api: { patch: (...args: unknown[]) => patch(...args), post: vi.fn() },
+  getAuthGeneration: () => 1,
+}))
+vi.mock('./activity', () => ({
+  trackPrivateOperation: () => () => undefined,
+  withIdentityMutation: vi.fn(),
+}))
 
 describe('AvatarMenu', () => {
-  beforeEach(() => { patch.mockReset(); refresh.mockReset(); patch.mockResolvedValue({}) })
+  beforeEach(() => {
+    patch.mockReset()
+    refresh.mockReset()
+    patch.mockResolvedValue({})
+  })
 
   it('uses the reactive profile fallback without changing the accessible account trigger', () => {
     render(<AvatarMenu id="owner-1" username="ana" displayName="Ana" isPublic />)
@@ -60,7 +70,11 @@ describe('AvatarMenu', () => {
     await user.click(toggle)
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not change visibility.')
     expect(toggle).toHaveAttribute('aria-checked', 'true')
-    expect(patch).toHaveBeenCalledWith('/api/profiles/me', { is_public: false, show_on_leaderboards: false }, expect.anything())
+    expect(patch).toHaveBeenCalledWith(
+      '/api/profiles/me',
+      { is_public: false, show_on_leaderboards: false },
+      expect.anything(),
+    )
   })
 
   it('offers theme and language radios', async () => {

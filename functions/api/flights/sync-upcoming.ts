@@ -23,6 +23,13 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     // evidence stamp left by a publication below the rollback floor (ADR 0001 §10), so a member's first session
     // reconciles even while the cron is held.
     const state = await stateOf(env.DB, user.id)
-    const derived = state && !isDerivedReady(state) ? await repairUserDerivedState(env.DB, user.id) : {}
-    return json({ synced: due.synced, awaited: due.awaited, autoConfirmed: due.autoConfirmed, more: due.more, ...derived })
+    const derived =
+      state && !isDerivedReady(state) ? await repairUserDerivedState(env.DB, user.id) : {}
+    return json({
+      synced: due.synced,
+      awaited: due.awaited,
+      autoConfirmed: due.autoConfirmed,
+      more: due.more,
+      ...derived,
+    })
   })

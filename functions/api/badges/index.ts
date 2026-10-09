@@ -7,8 +7,8 @@ import type { BadgeDefinitionRow } from '../_lib/badges'
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
-    const { results } = await context.env.DB
-      .prepare('SELECT * FROM badge_definitions ORDER BY category, tier')
-      .all<BadgeDefinitionRow>()
+    const { results } = await context.env.DB.prepare(
+      'SELECT * FROM badge_definitions ORDER BY category, tier',
+    ).all<BadgeDefinitionRow>()
     return json((results ?? []).map(toBadgeDefinition))
   })

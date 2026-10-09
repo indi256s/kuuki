@@ -19,7 +19,13 @@ const FATAL = new Set([401, 403, 404, 410])
 const fatal = (error: unknown) => FATAL.has((error as { status?: number } | null)?.status ?? 0)
 
 /** Returns when the batch is no longer processing, or when aborted. The first load rejects so the caller can show it. */
-export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: WatchOptions): Promise<void> {
+export async function watchBatch({
+  load,
+  connect,
+  sleep,
+  onSnapshot,
+  signal,
+}: WatchOptions): Promise<void> {
   let snapshot = await load()
   if (signal.aborted) return
   onSnapshot(snapshot, { reupload: false })
@@ -58,14 +64,25 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
           const wasReupload = reupload
           reupload = false
           let next: Snapshot
-          try { next = await load() } catch (error) { if (fatal(error)) fatalError = error; return }
+          try {
+            next = await load()
+          } catch (error) {
+            if (fatal(error)) fatalError = error
+            return
+          }
           if (signal.aborted) return
-          if (next.batch.sequence !== snapshot.batch.sequence || next.batch.status !== snapshot.batch.status) progressed = true
+          if (
+            next.batch.sequence !== snapshot.batch.sequence ||
+            next.batch.status !== snapshot.batch.status
+          )
+            progressed = true
           snapshot = next
           known = Math.max(known, next.batch.sequence)
           onSnapshot(next, { reupload: wasReupload })
         }
-      })().finally(() => { pumping = null })
+      })().finally(() => {
+        pumping = null
+      })
     }
     const onEvent = (event: ImportEvent) => {
       const decision = decideEvent(known, event)
@@ -77,10 +94,19 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
       pump()
     }
 
-    try { await connect(known, onEvent) } catch (error) { if (signal.aborted) return; if (fatal(error)) throw error }
+    try {
+      await connect(known, onEvent)
+    } catch (error) {
+      if (signal.aborted) return
+      if (fatal(error)) throw error
+    }
     if (signal.aborted) return
     // Let any reload started by the last notification finish before deciding what to do next.
-    for (;;) { const active: Promise<void> | null = pumping; if (!active) break; await active }
+    for (;;) {
+      const active: Promise<void> | null = pumping
+      if (!active) break
+      await active
+    }
     if (fatalError) throw fatalError
     if (signal.aborted) return
     // A terminal end status stops reconnecting for good. If the snapshot read it triggered failed, only that read is
@@ -96,6 +122,8 @@ export async function watchBatch({ load, connect, sleep, onSnapshot, signal }: W
       if (signal.aborted) return
       snapshot = next
       onSnapshot(next, { reupload: false })
-    } catch (error) { if (fatal(error)) throw error }
+    } catch (error) {
+      if (fatal(error)) throw error
+    }
   }
 }

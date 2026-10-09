@@ -59,7 +59,10 @@ export interface Batch {
   expired: boolean
 }
 
-export interface Snapshot { batch: Batch; drafts: Draft[] }
+export interface Snapshot {
+  batch: Batch
+  drafts: Draft[]
+}
 
 /** `{sequence,rowIds}` rows event, `snapshot` instruction (optionally `reupload`), or the terminal `end` event. */
 export interface ImportEvent {
@@ -81,8 +84,29 @@ export interface DraftPatchBody {
 }
 
 export type ConfirmItemResult =
-  | { draftId: string; key: string; status: 'created' | 'replayed'; flight: { id: number; aircraft_icao: string | null; origin: string; destination: string; date: string; airline_iata?: string | null; flight_number?: string | null } }
-  | { draftId: string; key: string; status: 'error'; http_status: number; code: string; error: string; flightId?: number }
+  | {
+      draftId: string
+      key: string
+      status: 'created' | 'replayed'
+      flight: {
+        id: number
+        aircraft_icao: string | null
+        origin: string
+        destination: string
+        date: string
+        airline_iata?: string | null
+        flight_number?: string | null
+      }
+    }
+  | {
+      draftId: string
+      key: string
+      status: 'error'
+      http_status: number
+      code: string
+      error: string
+      flightId?: number
+    }
 
 export interface ConfirmResponse {
   results: ConfirmItemResult[]

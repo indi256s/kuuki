@@ -2,7 +2,13 @@
 
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
+import {
+  useEffect,
+  useRef,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import './ui.css'
 
 /** Release past this share of the sheet's size dismisses it. */
@@ -11,7 +17,15 @@ export const DISMISS_RATIO = 0.35
 export const DISMISS_VELOCITY = 0.11
 
 /** Pure release decision. `distance` and `velocity` are measured in the dismissing direction (down / right). */
-export function shouldDismiss({ distance, height, velocity }: { distance: number; height: number; velocity: number }): boolean {
+export function shouldDismiss({
+  distance,
+  height,
+  velocity,
+}: {
+  distance: number
+  height: number
+  velocity: number
+}): boolean {
   if (distance <= 0) return false
   return velocity > DISMISS_VELOCITY || (height > 0 && distance >= height * DISMISS_RATIO)
 }
@@ -40,14 +54,29 @@ export type SheetProps = {
 
 type Sample = { t: number; p: number }
 
-export function Sheet({ open, onOpenChange, title, description, side = 'bottom', trigger, children, footer, closeLabel = 'Close', className = '', initialFocusRef, onCloseAutoFocus }: SheetProps) {
+export function Sheet({
+  open,
+  onOpenChange,
+  title,
+  description,
+  side = 'bottom',
+  trigger,
+  children,
+  footer,
+  closeLabel = 'Close',
+  className = '',
+  initialFocusRef,
+  onCloseAutoFocus,
+}: SheetProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const drag = useRef<{ id: number; start: number; samples: Sample[] } | null>(null)
   const axis = side === 'bottom' ? 'clientY' : 'clientX'
 
   const setOffset = (px: number) => contentRef.current?.style.setProperty('--sheet-drag', `${px}px`)
-  const setDragging = (on: boolean) => { if (contentRef.current) contentRef.current.dataset.dragging = String(on) }
+  const setDragging = (on: boolean) => {
+    if (contentRef.current) contentRef.current.dataset.dragging = String(on)
+  }
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
@@ -75,7 +104,7 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
     const distance = p - d.start
     // Velocity over roughly the last 100ms of movement.
     const last = { t: event.timeStamp, p }
-    const from = d.samples.find(s => last.t - s.t <= 100) ?? d.samples[d.samples.length - 1]
+    const from = d.samples.find((s) => last.t - s.t <= 100) ?? d.samples[d.samples.length - 1]
     const elapsed = from ? last.t - from.t : 0
     const velocity = from && elapsed > 0 ? (last.p - from.p) / elapsed : 0
     const rect = contentRef.current?.getBoundingClientRect()
@@ -100,7 +129,10 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
     updateKeyboard()
     viewport.addEventListener('resize', updateKeyboard)
     viewport.addEventListener('scroll', updateKeyboard)
-    return () => { viewport.removeEventListener('resize', updateKeyboard); viewport.removeEventListener('scroll', updateKeyboard) }
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboard)
+      viewport.removeEventListener('scroll', updateKeyboard)
+    }
   }, [open, side])
 
   return (
@@ -109,12 +141,18 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="ui-overlay" />
         <RadixDialog.Content
-          ref={node => { contentRef.current = node; if (node && side === 'bottom') updateKeyboard() }}
+          ref={(node) => {
+            contentRef.current = node
+            if (node && side === 'bottom') updateKeyboard()
+          }}
           className={`ui-sheet ${className}`}
           data-side={side}
           {...(description ? {} : { 'aria-describedby': undefined })}
           onCloseAutoFocus={onCloseAutoFocus}
-          onOpenAutoFocus={event => { event.preventDefault(); (initialFocusRef?.current ?? titleRef.current)?.focus() }}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault()
+            ;(initialFocusRef?.current ?? titleRef.current)?.focus()
+          }}
         >
           <div
             className="ui-sheet-handle"
@@ -122,15 +160,23 @@ export function Sheet({ open, onOpenChange, title, description, side = 'bottom',
             aria-hidden="true"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
-            onPointerUp={event => finish(event, false)}
-            onPointerCancel={event => finish(event, true)}
+            onPointerUp={(event) => finish(event, false)}
+            onPointerCancel={(event) => finish(event, true)}
           />
           <div className="ui-panel-header">
             <div>
-              <RadixDialog.Title ref={titleRef} tabIndex={-1} className="ui-panel-title">{title}</RadixDialog.Title>
-              {description ? <RadixDialog.Description className="ui-panel-description">{description}</RadixDialog.Description> : null}
+              <RadixDialog.Title ref={titleRef} tabIndex={-1} className="ui-panel-title">
+                {title}
+              </RadixDialog.Title>
+              {description ? (
+                <RadixDialog.Description className="ui-panel-description">
+                  {description}
+                </RadixDialog.Description>
+              ) : null}
             </div>
-            <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}><X size={20} strokeWidth={2} aria-hidden="true" /></RadixDialog.Close>
+            <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}>
+              <X size={20} strokeWidth={2} aria-hidden="true" />
+            </RadixDialog.Close>
           </div>
           <div className="ui-panel-body">{children}</div>
           {footer ? <div className="ui-panel-footer">{footer}</div> : null}

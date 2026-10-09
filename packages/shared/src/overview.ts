@@ -125,7 +125,10 @@ export interface OverviewSummary {
      * non-transit evidence across all time falls inside it. A repeat visit is never new again. `items` holds at most 12,
      * ordered by first visit then code; `count` is exact. Null while the country evidence is updating.
      */
-    newCountries: { count: number; items: Array<{ id: string; firstVisit: string; pending: boolean }> } | null
+    newCountries: {
+      count: number
+      items: Array<{ id: string; firstVisit: string; pending: boolean }>
+    } | null
   }
   topLists: {
     airlines: Array<{ id: string; count: number }>

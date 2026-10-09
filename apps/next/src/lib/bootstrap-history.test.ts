@@ -7,8 +7,37 @@ describe('early App Router history direction', () => {
     const listeners = new Map<string, (event?: { stopImmediatePropagation: () => void }) => void>()
     let blockTraversal = false
     const gates: Event[] = []
-    const history = { state: { __NA: true, tree: 'initial' } as Record<string, unknown>, pushState(state: Record<string, unknown>) { this.state = state }, replaceState(state: Record<string, unknown>) { this.state = state } }
-    const context = { history, location: { pathname: '/settings', hash: '' }, Event, window: { __kuukiHistoryGate: false, dispatchEvent: (event: Event) => { if (event.type === 'kuuki:before-popstate') { gates.push(event); if (blockTraversal) event.preventDefault() } }, addEventListener: (event: string, run: () => void) => listeners.set(event, run) }, document: { cookie: 'kuuki_theme=light; kuuki_locale=en; kuuki_accent=ai', documentElement: { dataset: {}, style: {} } }, localStorage: { getItem: () => null }, navigator: { language: 'en' }, matchMedia: () => ({ matches: false }) }
+    const history = {
+      state: { __NA: true, tree: 'initial' } as Record<string, unknown>,
+      pushState(state: Record<string, unknown>) {
+        this.state = state
+      },
+      replaceState(state: Record<string, unknown>) {
+        this.state = state
+      },
+    }
+    const context = {
+      history,
+      location: { pathname: '/settings', hash: '' },
+      Event,
+      window: {
+        __kuukiHistoryGate: false,
+        dispatchEvent: (event: Event) => {
+          if (event.type === 'kuuki:before-popstate') {
+            gates.push(event)
+            if (blockTraversal) event.preventDefault()
+          }
+        },
+        addEventListener: (event: string, run: () => void) => listeners.set(event, run),
+      },
+      document: {
+        cookie: 'kuuki_theme=light; kuuki_locale=en; kuuki_accent=ai',
+        documentElement: { dataset: {}, style: {} },
+      },
+      localStorage: { getItem: () => null },
+      navigator: { language: 'en' },
+      matchMedia: () => ({ matches: false }),
+    }
     vm.runInNewContext(source, context)
     expect(context.window.__kuukiHistoryGate).toBe(true)
     expect(history.state).toEqual({ __NA: true, tree: 'initial', __kuukiHistoryIndex: 0 })
@@ -19,11 +48,14 @@ describe('early App Router history direction', () => {
     const settings = history.state
     history.pushState({ __NA: true, tree: 'other' })
     const forward = history.state
-    history.state = settings; listeners.get('popstate')!()
+    history.state = settings
+    listeners.get('popstate')!()
     expect(history.state.__kuukiHistoryIndex).toBe(1)
-    history.state = forward; listeners.get('popstate')!()
+    history.state = forward
+    listeners.get('popstate')!()
     expect(history.state.__kuukiHistoryIndex).toBe(2)
-    history.state = {}; listeners.get('hashchange')!()
+    history.state = {}
+    listeners.get('hashchange')!()
     expect(history.state.__kuukiHistoryIndex).toBe(3)
     const event = { stopImmediatePropagation: vi.fn() }
     blockTraversal = true

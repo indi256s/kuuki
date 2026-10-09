@@ -7,9 +7,9 @@ description: Deploy the Kuuki Next app directly to production Cloudflare Workers
 
 Production is two Workers built from one Next build, both configured in `apps/next/wrangler.toml`:
 
-| Worker | wrangler env | Serves | D1 |
-| --- | --- | --- | --- |
-| `kuuki-next` | top level | `kuuki.marchstudio.uk/*` route | `kuuki-db` |
+| Worker             | wrangler env | Serves                                  | D1         |
+| ------------------ | ------------ | --------------------------------------- | ---------- |
+| `kuuki-next`       | top level    | `kuuki.marchstudio.uk/*` route          | `kuuki-db` |
 | `kuuki-activation` | `activation` | `kuuki-activation.indi256s.workers.dev` | `kuuki-db` |
 
 CI only verifies; every deploy is this procedure, run by hand. Run commands from the workspace root; `wrangler` below means `pnpm --filter @kuuki/next exec wrangler`, which runs inside `apps/next` and picks up that config.

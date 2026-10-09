@@ -26,4 +26,5 @@ export async function completePasswordReset(request: Request, env: Env): Promise
   return response
 }
 
-export const onRequestPost: PagesFunction<Env> = ({ request, env }) => completePasswordReset(request, env)
+export const onRequestPost: PagesFunction<Env> = ({ request, env }) =>
+  completePasswordReset(request, env)

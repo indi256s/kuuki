@@ -1,9 +1,19 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { advanceAuthGeneration, api, beginIdentityOperation, setUnauthorizedHandler } from '@kuuki/client/apiClient'
+import {
+  advanceAuthGeneration,
+  api,
+  beginIdentityOperation,
+  setUnauthorizedHandler,
+} from '@kuuki/client/apiClient'
 
 let resolveResponse: ((response: Response) => void) | undefined
-const fetchMock = vi.fn(() => new Promise<Response>((resolve) => { resolveResponse = resolve }))
+const fetchMock = vi.fn(
+  () =>
+    new Promise<Response>((resolve) => {
+      resolveResponse = resolve
+    }),
+)
 
 beforeEach(() => {
   advanceAuthGeneration()
@@ -36,7 +46,9 @@ it('rejects a mutation queued behind another tab changing the session cookie', a
     locks: {
       request: (_name: string, _options: unknown, callback: () => Promise<unknown>) =>
         new Promise((resolve, reject) => {
-          releaseLock = () => { void Promise.resolve().then(callback).then(resolve, reject) }
+          releaseLock = () => {
+            void Promise.resolve().then(callback).then(resolve, reject)
+          }
         }),
     },
   })
@@ -65,7 +77,11 @@ it('drains a bootstrap response before sending sign-in under a new cookie identi
   resolveResponse?.(new Response(JSON.stringify({ user: { id: 'old' } }), { status: 200 }))
   await expect(bootstrap).resolves.toMatchObject({ user: { id: 'old' } })
   await operation.ready
-  const signin = api.post('/api/auth/signin', { email: 'new@example.com' }, { identityToken: operation.token })
+  const signin = api.post(
+    '/api/auth/signin',
+    { email: 'new@example.com' },
+    { identityToken: operation.token },
+  )
   expect(fetchMock).toHaveBeenCalledTimes(2)
   resolveResponse?.(new Response(JSON.stringify({ user: { id: 'new' } }), { status: 200 }))
   await expect(signin).resolves.toMatchObject({ user: { id: 'new' } })
@@ -81,7 +97,11 @@ it('bounds a stalled refresh so a later account action can enter', async () => {
         return Promise.resolve(new Response(JSON.stringify({ error: 'expired' }), { status: 401 }))
       }
       return new Promise((_, reject) => {
-        init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+        init?.signal?.addEventListener(
+          'abort',
+          () => reject(new DOMException('Aborted', 'AbortError')),
+          { once: true },
+        )
       })
     })
     vi.stubGlobal('fetch', timedFetch)

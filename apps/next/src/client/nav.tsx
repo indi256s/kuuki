@@ -30,27 +30,65 @@ export function isMeActive(pathname: string, username?: string | null): boolean 
 }
 
 /** True when the on-screen keyboard is clearly open: the visual viewport is well below the layout height and not merely pinch-zoomed. */
-export function isKeyboardOpen({ innerHeight, viewportHeight, scale }: { innerHeight: number; viewportHeight: number; scale: number }): boolean {
+export function isKeyboardOpen({
+  innerHeight,
+  viewportHeight,
+  scale,
+}: {
+  innerHeight: number
+  viewportHeight: number
+  scale: number
+}): boolean {
   return scale <= 1.01 && innerHeight - viewportHeight > 120
 }
 
-function NavLabel({ en, ru }: { en: string; ru: string }) { return <><span className="locale-en">{en}</span><span className="locale-ru" lang="ru">{ru}</span></> }
+function NavLabel({ en, ru }: { en: string; ru: string }) {
+  return (
+    <>
+      <span className="locale-en">{en}</span>
+      <span className="locale-ru" lang="ru">
+        {ru}
+      </span>
+    </>
+  )
+}
 
 export function MobilePageTitle() {
   const pathname = usePathname()
-  const item = [...NAV_ITEMS,
+  const item = [
+    ...NAV_ITEMS,
     { href: '/settings', label: 'Settings', ru: 'Настройки' },
     { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
     { href: '/import', label: 'Import', ru: 'Импорт' },
     { href: '/me', label: 'Me', ru: 'Я' },
     { href: '/fly', label: 'Profile', ru: 'Профиль' },
-  ].find(item => isActive(pathname, item.href))
-  return <p className="mobile-page-title"><NavLabel en={item?.label ?? 'Kuuki'} ru={item?.ru ?? 'Kuuki'} /></p>
+  ].find((item) => isActive(pathname, item.href))
+  return (
+    <p className="mobile-page-title">
+      <NavLabel en={item?.label ?? 'Kuuki'} ru={item?.ru ?? 'Kuuki'} />
+    </p>
+  )
 }
 
 export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
   const pathname = usePathname()
-  return <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav"><ul className="main-nav">{NAV_ITEMS.map(item => <li key={item.href}><Link href={item.href} prefetch={item.href === '/leaderboard' ? undefined : true} aria-current={isActive(pathname, item.href) ? 'page' : undefined}><NavLabel en={item.label} ru={item.ru} /></Link></li>)}</ul></nav>
+  return (
+    <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav">
+      <ul className="main-nav">
+        {NAV_ITEMS.map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              prefetch={item.href === '/leaderboard' ? undefined : true}
+              aria-current={isActive(pathname, item.href) ? 'page' : undefined}
+            >
+              <NavLabel en={item.label} ru={item.ru} />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
 }
 
 /**
@@ -65,15 +103,54 @@ function useKeyboardFlag() {
     const viewport = window.visualViewport
     if (!viewport) return
     const root = document.documentElement
-    const update = () => { root.dataset.keyboard = String(isKeyboardOpen({ innerHeight: window.innerHeight, viewportHeight: viewport.height, scale: viewport.scale })) }
+    const update = () => {
+      root.dataset.keyboard = String(
+        isKeyboardOpen({
+          innerHeight: window.innerHeight,
+          viewportHeight: viewport.height,
+          scale: viewport.scale,
+        }),
+      )
+    }
     update()
     viewport.addEventListener('resize', update)
-    return () => { viewport.removeEventListener('resize', update); delete root.dataset.keyboard }
+    return () => {
+      viewport.removeEventListener('resize', update)
+      delete root.dataset.keyboard
+    }
   }, [])
 }
 
-function Tab({ href, active, icon, en, ru, prefetch }: { href: string; active: boolean; icon: ReactNode; en: string; ru: string; prefetch?: boolean }) {
-  return <li><Link href={href} prefetch={prefetch} className="tab" aria-current={active ? 'page' : undefined}>{icon}<span className="tab-label"><NavLabel en={en} ru={ru} /></span></Link></li>
+function Tab({
+  href,
+  active,
+  icon,
+  en,
+  ru,
+  prefetch,
+}: {
+  href: string
+  active: boolean
+  icon: ReactNode
+  en: string
+  ru: string
+  prefetch?: boolean
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        prefetch={prefetch}
+        className="tab"
+        aria-current={active ? 'page' : undefined}
+      >
+        {icon}
+        <span className="tab-label">
+          <NavLabel en={en} ru={ru} />
+        </span>
+      </Link>
+    </li>
+  )
 }
 
 export function TabBar({ locale = 'en', username }: { locale?: Locale; username?: string | null }) {
@@ -83,19 +160,67 @@ export function TabBar({ locale = 'en', username }: { locale?: Locale; username?
   useKeyboardFlag()
   // The sheet must not outlive a route change (back/forward, link taps).
   const [sheetPath, setSheetPath] = useState(pathname)
-  if (sheetPath !== pathname) { setSheetPath(pathname); setAddOpen(false) }
-  const icon = (Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>) => <Icon size={22} strokeWidth={2} aria-hidden="true" />
-  return <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar"><ul>
-    <Tab href="/overview" prefetch active={isActive(pathname, '/overview')} icon={icon(LayoutGrid)} en="Overview" ru="Обзор" />
-    <Tab href="/journal" prefetch active={isActive(pathname, '/journal')} icon={icon(BookOpen)} en="Journal" ru="Журнал" />
-    <li>
-      <Sheet open={addOpen} onOpenChange={setAddOpen} side="bottom" closeLabel={ru ? 'Закрыть' : 'Close'}
-        title={ru ? 'Добавить перелёт' : 'Add a flight'}
-        trigger={<button type="button" className="tab tab-add" aria-haspopup="dialog">{icon(Plus)}<span className="tab-label"><NavLabel en="Add" ru="Добавить" /></span></button>}>
-        <AddActions variant="sheet" onNavigate={() => setAddOpen(false)} />
-      </Sheet>
-    </li>
-    <Tab href="/passport" prefetch active={isActive(pathname, '/passport')} icon={icon(Stamp)} en="Passport" ru="Паспорт" />
-    <Tab href="/me" active={isMeActive(pathname, username)} icon={icon(CircleUser)} en="Me" ru="Я" />
-  </ul></nav>
+  if (sheetPath !== pathname) {
+    setSheetPath(pathname)
+    setAddOpen(false)
+  }
+  const icon = (Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>) => (
+    <Icon size={22} strokeWidth={2} aria-hidden="true" />
+  )
+  return (
+    <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar">
+      <ul>
+        <Tab
+          href="/overview"
+          prefetch
+          active={isActive(pathname, '/overview')}
+          icon={icon(LayoutGrid)}
+          en="Overview"
+          ru="Обзор"
+        />
+        <Tab
+          href="/journal"
+          prefetch
+          active={isActive(pathname, '/journal')}
+          icon={icon(BookOpen)}
+          en="Journal"
+          ru="Журнал"
+        />
+        <li>
+          <Sheet
+            open={addOpen}
+            onOpenChange={setAddOpen}
+            side="bottom"
+            closeLabel={ru ? 'Закрыть' : 'Close'}
+            title={ru ? 'Добавить перелёт' : 'Add a flight'}
+            trigger={
+              <button type="button" className="tab tab-add" aria-haspopup="dialog">
+                {icon(Plus)}
+                <span className="tab-label">
+                  <NavLabel en="Add" ru="Добавить" />
+                </span>
+              </button>
+            }
+          >
+            <AddActions variant="sheet" onNavigate={() => setAddOpen(false)} />
+          </Sheet>
+        </li>
+        <Tab
+          href="/passport"
+          prefetch
+          active={isActive(pathname, '/passport')}
+          icon={icon(Stamp)}
+          en="Passport"
+          ru="Паспорт"
+        />
+        <Tab
+          href="/me"
+          active={isMeActive(pathname, username)}
+          icon={icon(CircleUser)}
+          en="Me"
+          ru="Я"
+        />
+      </ul>
+    </nav>
+  )
 }

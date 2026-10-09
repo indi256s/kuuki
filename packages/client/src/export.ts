@@ -16,9 +16,9 @@ interface Country {
 }
 
 // Create lookup maps for enrichment (Map provides O(1) lookup)
-const airportMap = new Map(airports.map(a => [a.iata, a]))
-const airlineMap = new Map(airlines.map(a => [a.iata, a]))
-const aircraftMap = new Map(aircraft.map(a => [a.icao, a]))
+const airportMap = new Map(airports.map((a) => [a.iata, a]))
+const airlineMap = new Map(airlines.map((a) => [a.iata, a]))
+const aircraftMap = new Map(aircraft.map((a) => [a.icao, a]))
 const countryMap = countriesData as Record<string, Country>
 
 export interface ExportOptions {
@@ -66,12 +66,7 @@ const FLIGHT_COLUMNS_ENRICHED = [
 /**
  * Country claims columns
  */
-const CLAIM_COLUMNS = [
-  'country_code',
-  'country_name',
-  'continent',
-  'claimed_at',
-]
+const CLAIM_COLUMNS = ['country_code', 'country_name', 'continent', 'claimed_at']
 
 /**
  * Escape a value for CSV
@@ -97,8 +92,11 @@ function escapeCSV(value: string | number | null | undefined): string {
 /**
  * Generate a row from an object based on columns
  */
-function generateRow(obj: Record<string, string | number | null | undefined>, columns: string[]): string {
-  return columns.map(col => escapeCSV(obj[col])).join(',')
+function generateRow(
+  obj: Record<string, string | number | null | undefined>,
+  columns: string[],
+): string {
+  return columns.map((col) => escapeCSV(obj[col])).join(',')
 }
 
 /**
@@ -117,7 +115,7 @@ function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): str
   const { enriched = false } = options
   const columns = enriched ? FLIGHT_COLUMNS_ENRICHED : FLIGHT_COLUMNS_PORTABLE
 
-  const rows = flights.map(flight => {
+  const rows = flights.map((flight) => {
     // Start with base data
     const row: Record<string, string | number | null | undefined> = {
       date: flight.date,
@@ -158,7 +156,7 @@ function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): str
  * Generate country claims CSV
  */
 function generateClaimsCsv(claims: CountryClaim[]): string {
-  const rows = claims.map(claim => {
+  const rows = claims.map((claim) => {
     const countryInfo = countryMap[claim.country_code]
 
     const row: Record<string, string | number | null | undefined> = {
