@@ -196,8 +196,8 @@ function useFlightEdits({ ownerId, locale, online, docked, payload, applyFlight,
       if (dropped(generation)) return outcome.status === 'saved' ? { status: 'unknown', message: t.sessionChanged } : outcome
       if (outcome.status === 'saved' && dto) {
         const merged = settle(mod, flight.id, field, dto)
-        if (merged) {
-          const record: EditRecord = { flightId: flight.id, field, previous, after: mod.editableValues(merged), seq: seqs.current.get(flight.id)! }
+        if (merged && dto.undo_token) {
+          const record: EditRecord = { flightId: flight.id, field, previous, undoToken: dto.undo_token, after: mod.editableValues(merged), seq: seqs.current.get(flight.id)! }
           if (latest.current.docked) { setOffer(null); toast.show({ kind: 'success', message: t.saved(field), actionLabel: t.undo, onAction: () => { void undo(record) } }) }
           else setOffer({ record, message: t.saved(field) })
         }

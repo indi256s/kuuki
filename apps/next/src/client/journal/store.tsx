@@ -52,7 +52,7 @@ export type JournalStore = {
   hidden: ReadonlySet<number>
   hide: (ids: Iterable<number>) => void
   unhide: (ids: Iterable<number>) => void
-  refresh: () => Promise<void>
+  refresh: (options?: { throwOnError?: boolean }) => Promise<void>
   applyFlight: (flight: JournalFlight, refs?: Partial<JournalRefs>) => void
   isFetching: boolean
   isError: boolean
@@ -124,7 +124,7 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
         } catch (error) {
           // The cookie now names another account (a cross-tab switch). The server refused before reading anything;
           // keep showing this owner's data until the identity check navigates away.
-          if (error instanceof ApiError && error.code === 'OWNER_CHANGED') return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial
+          if (error instanceof ApiError && error.code === 'OWNER_CHANGED') { identityReset.current = true; return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial }
           throw error
         }
         // A response that outlived the session it was asked for is never shown; the page is navigating away.
@@ -147,7 +147,13 @@ function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
     return () => { active = false }
   }, [queryClient, ownerId, initial])
 
-  const refresh = useCallback(() => queryClient.invalidateQueries({ queryKey: journalKey(ownerId) }), [queryClient, ownerId])
+  const refresh = useCallback(async (options?: { throwOnError?: boolean }) => {
+    const generation = getAuthGeneration()
+    if (options?.throwOnError && !online) throw new Error('Cannot refresh the Journal while offline')
+    await queryClient.invalidateQueries({ queryKey: journalKey(ownerId) }, options)
+    if (options?.throwOnError && (identityReset.current || generation !== getAuthGeneration())) throw new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED')
+    if (options?.throwOnError && queryClient.getQueryState(journalKey(ownerId))?.fetchStatus === 'paused') throw new Error('Cannot refresh the Journal while offline')
+  }, [queryClient, ownerId, online])
   const applyFlight = useCallback((flight: JournalFlight, refs?: Partial<JournalRefs>) => {
     queryClient.setQueryData<JournalPayload>(journalKey(ownerId), current => {
       if (!current || !current.flights.some(item => item.id === flight.id)) return current

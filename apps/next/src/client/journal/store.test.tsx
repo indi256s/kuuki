@@ -2,6 +2,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { onlineManager } from '@tanstack/react-query'
 import { ApiError, api } from '@kuuki/client/apiClient'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import type { JournalFlight, JournalPayload } from './model'
@@ -147,6 +148,22 @@ describe('Journal store payload', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1)
   })
 
+  it('a required reconciliation rejects an offline paused refetch instead of accepting cached rows', async () => {
+    mount(payloadOf([flight(1)]))
+    vi.mocked(api.get).mockResolvedValue(payloadOf([flight(1)]))
+    onlineManager.setOnline(false)
+    try {
+      await act(async () => { await expect(store().refresh({ throwOnError: true })).rejects.toThrow('offline') })
+    } finally { onlineManager.setOnline(true) }
+  })
+
+  it('a required reconciliation rejects a failed refetch while keeping the cached rows', async () => {
+    mount(payloadOf([flight(1)]))
+    vi.mocked(api.get).mockRejectedValue(new Error('offline'))
+    await act(async () => { await expect(store().refresh({ throwOnError: true })).rejects.toThrow('offline') })
+    expect(store().payload.flights.map(item => item.id)).toEqual([1])
+  })
+
   it('keeps this owner\'s rows without an error when the server says the account changed', async () => {
     mount(payloadOf([flight(1)]))
     vi.mocked(api.get).mockRejectedValue(new ApiError(409, 'The signed-in account changed', 'OWNER_CHANGED'))
@@ -154,6 +171,7 @@ describe('Journal store payload', () => {
     await act(async () => {})
     expect(store().isError).toBe(false)
     expect(store().payload.flights.map(item => item.id)).toEqual([1])
+    await act(async () => { await expect(store().refresh({ throwOnError: true })).rejects.toMatchObject({ code: 'OWNER_CHANGED' }) })
   })
 
   it('hides rows optimistically and keeps hidden rows out of the visible selection', () => {

@@ -67,6 +67,7 @@ describe('Set aircraft', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     const calls = vi.mocked(api.post).mock.calls
     expect(calls.map(([path]) => path)).toEqual(['/api/flights/aircraft-batch', '/api/flights/aircraft-batch'])
+    expect(calls.every(([, body]) => (body as { replaceAll: boolean }).replaceAll === false)).toBe(true)
     const sent = calls.map(([, body]) => (body as { items: Array<{ id: number; aircraft_icao: string }> }).items)
     expect(sent.map(items => items.length)).toEqual([20, 5])
     expect(sent.flat().map(item => item.id)).toEqual(Array.from({ length: 25 }, (_, i) => i + 1))
@@ -87,6 +88,7 @@ describe('Set aircraft', () => {
     fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Replace all 2' }))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Set for all 2' }))
     await waitFor(() => expect(api.post).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(api.post).mock.calls[0]![1]).toMatchObject({ replaceAll: true })
     expect((vi.mocked(api.post).mock.calls[0]![1] as { items: Array<{ id: number }> }).items.map(item => item.id)).toEqual([1, 2])
   })
 
@@ -145,7 +147,7 @@ describe('Delete', () => {
     fireEvent.click(within(bar()).getByRole('button', { name: 'Delete' }))
     await act(() => vi.advanceTimersByTimeAsync(6100))
     expect(screen.getByText('Row 1')).toBeInTheDocument()
-    expect(screen.getByText('Could not delete 2 flights. They are back in the list.')).toBeInTheDocument()
+    expect(screen.getByText('Could not check whether the flights were deleted. Check the list before trying again.')).toBeInTheDocument()
   })
 })
 

@@ -23,12 +23,12 @@ export type EditableField = 'origin' | 'destination' | 'date' | 'departure_time'
 export const EDITABLE_FIELDS: readonly EditableField[] = ['origin', 'destination', 'date', 'departure_time', 'arrival_time', 'airline_iata', 'flight_number', 'aircraft_icao']
 
 /** The PATCH answer: the own-flight DTO plus the derived-state acknowledgement. */
-export type FlightDto = Omit<JournalFlight, 'origin_country' | 'destination_country'> & DerivedAck
+export type FlightDto = Omit<JournalFlight, 'origin_country' | 'destination_country'> & DerivedAck & { undo_token?: string }
 
 export type FieldWrite = { outcome: InlineEditOutcome; flight?: FlightDto }
 
 /** What Undo needs: the field, the value before the save and the editable values the save left behind. */
-export type EditRecord = { flightId: number; field: EditableField; previous: string | null; after: Record<EditableField, string | null>; seq: number }
+export type EditRecord = { flightId: number; field: EditableField; previous: string | null; after: Record<EditableField, string | null>; seq: number; undoToken: string }
 
 export type AirportLookup = (iata: string) => Pick<Airport, 'latitude' | 'longitude' | 'countryCode'> | undefined
 
@@ -129,12 +129,12 @@ export function failureOutcome(cause: unknown, locale: Locale): InlineEditOutcom
  * One PATCH carrying only `field`. The answer is applied only while the session that asked is still current and it really is this
  * flight with the sent value; anything else is unknown. A sign-out or owner switch aborts the request through `trackPrivateOperation`.
  */
-export async function writeFlightField(flightId: number, field: EditableField, value: string | null, locale: Locale, generation = getAuthGeneration()): Promise<FieldWrite> {
+export async function writeFlightField(flightId: number, field: EditableField, value: string | null, locale: Locale, generation = getAuthGeneration(), undoToken?: string): Promise<FieldWrite> {
   if (generation !== getAuthGeneration()) return { outcome: { status: 'rejected', message: sessionChangedMessage(locale) } }
   const controller = new AbortController()
   const untrack = trackPrivateOperation(controller)
   try {
-    const body = { [field]: value }
+    const body = undoToken ? { undo_token: undoToken } : { [field]: value, offer_undo: true }
     const dto = await sendWithZone(zone => api.patch<FlightDto>(`/api/flights/${flightId}`, withZone(body, zone), { signal: controller.signal }))
     if (generation !== getAuthGeneration()) return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
     if (!dto || dto.id !== flightId || (dto[field] ?? null) !== value) return { outcome: { status: 'unknown', message: unknownMessage(locale) } }
@@ -145,9 +145,9 @@ export async function writeFlightField(flightId: number, field: EditableField, v
   } finally { untrack() }
 }
 
-/** Undo: the same single-field PATCH, carrying the field's previous value only. Check `canUndo` first. */
+/** Undo restores the signed server snapshot only while its complete post-edit state still matches. */
 export const undoWrite = (record: EditRecord, locale: Locale, generation = getAuthGeneration()): Promise<FieldWrite> =>
-  writeFlightField(record.flightId, record.field, record.previous, locale, generation)
+  writeFlightField(record.flightId, record.field, record.previous, locale, generation, record.undoToken)
 
 /** Undo is safe only while the flight still holds exactly what that save left behind, and no later edit of it was recorded. */
 export function canUndo(record: EditRecord, current: JournalFlight | undefined, latestSeq: number | undefined): boolean {

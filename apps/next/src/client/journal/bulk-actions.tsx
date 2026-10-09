@@ -276,7 +276,7 @@ function SetAircraft({ locale, flights, online, offlineNoteId, blocked, open, on
     let run: Awaited<ReturnType<typeof acceptAircraft>>
     try {
       run = await acceptAircraft(items, chunk => current()
-        ? api.post<AircraftAccept>('/api/flights/aircraft-batch', { items: chunk }, { signal: controller.signal })
+        ? api.post<AircraftAccept>('/api/flights/aircraft-batch', { items: chunk, replaceAll: replace }, { signal: controller.signal })
         : Promise.reject(new DOMException('Session changed', 'AbortError')))
     } finally { release(); operations.current.delete(controller) }
     // A sign-out or owner switch happened meanwhile: this answer belongs to another identity and is never shown.

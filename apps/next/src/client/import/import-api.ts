@@ -42,7 +42,7 @@ export const enrichAircraft = (flights: EnrichFlight[], signal?: AbortSignal) =>
   api.post<{ results: EnrichResult[] }>('/api/enrich/aircraft', { flights }, { signal, timeoutMs: 40_000 })
 
 export const acceptAircraftBatch = (items: Array<{ id: number; aircraft_icao: string }>) =>
-  api.post<AircraftAccept>('/api/flights/aircraft-batch', { items })
+  api.post<AircraftAccept>('/api/flights/aircraft-batch', { items, replaceAll: true })
 
 /** Pressed country codes from the passport read, or null when it cannot be read (nothing is then claimed as new). */
 export async function fetchPressedCountries(signal?: AbortSignal): Promise<Set<string> | null> {

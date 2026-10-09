@@ -554,3 +554,62 @@ it('list and ids reject invalid ranges with a validation error', async () => {
     }
   } finally { await dispose() }
 })
+
+it('keeps a concurrently assigned aircraft when filling missing values, and replaces it only explicitly', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const [id] = await seedAircraftReplay(db)
+    // Another tab filled the null value after the Journal selected its missing-aircraft rows.
+    await db.prepare("UPDATE flights SET aircraft_icao = 'B738' WHERE id = ?").bind(id).run()
+    const items = [{ id, aircraft_icao: 'A320' }]
+    const filled = await (await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))).json() as AircraftReplayBody
+    expect(filled.results).toMatchObject([{ status: 'error', code: 'STATE_CONFLICT' }])
+    expect(await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(id).first()).toEqual({ aircraft_icao: 'B738' })
+    const replaced = await (await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items, replaceAll: true }))).json() as AircraftReplayBody
+    expect(replaced.results).toMatchObject([{ status: 'accepted', flight: { aircraft_icao: 'A320' } }])
+  } finally { await dispose() }
+})
+
+const undoContext = (db: D1Database, id: number, body: unknown) => ({
+  ...(context(db, `/api/flights/${id}`, 'PATCH', body, undefined, String(id)) as { request: Request; data: { user: typeof user }; params: { id: string } }),
+  env: { DB: db, AUTH_SECRET: 'flight-undo-test-secret' },
+}) as never
+
+it('rejects Undo after another tab changes the flight, and rejects tampered, foreign-owner or expired tokens', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const [id] = await seedAircraftReplay(db)
+    const saved = await onRequestPatch(undoContext(db, id, { aircraft_icao: 'A320', offer_undo: true }))
+    expect(saved.status).toBe(200)
+    const { undo_token: token } = await saved.json() as { undo_token: string }
+    expect(typeof token).toBe('string')
+    const original = await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(id).first()
+    const tampered = token.slice(0, -1) + (token.endsWith('0') ? '1' : '0')
+    expect((await onRequestPatch(undoContext(db, id, { undo_token: tampered }))).status).toBe(409)
+    const foreign = { ...(undoContext(db, id, { undo_token: token }) as { request: Request; env: Env; params: { id: string } }), data: { user: { id: 'u2', email: 'other@example.test' } } } as never
+    expect((await onRequestPatch(foreign)).status).toBe(404)
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 6 * 60_000)
+    expect((await onRequestPatch(undoContext(db, id, { undo_token: token }))).status).toBe(409)
+    vi.restoreAllMocks()
+    expect(await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(id).first()).toEqual(original)
+    await db.prepare("UPDATE flights SET aircraft_icao = 'B738' WHERE id = ?").bind(id).run()
+    expect((await onRequestPatch(undoContext(db, id, { undo_token: token }))).status).toBe(409)
+    expect(await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(id).first()).toEqual({ aircraft_icao: 'B738' })
+  } finally { await dispose() }
+})
+
+it.each([{ destination: 'JFK' }, { date: '2099-04-03' }])('Undo restores the complete confirmation, transit and metrics snapshot after %j', async patch => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const [id, leg] = await seedAircraftReplay(db)
+    await db.prepare("UPDATE flights SET lifecycle_state = 'logged', is_upcoming = 0, confirmation_source = 'user', confirmed_at = '2025-04-03T12:00:00.000Z', lifecycle_timezone = 'Asia/Tbilisi', arrival_transit = 1, arrival_transit_leg_id = ?, duration_minutes = 111, duration_source = 'estimate', distance_km = 123 WHERE id = ?").bind(leg, id).run()
+    const before = await db.prepare('SELECT * FROM flights WHERE id = ?').bind(id).first()
+    const saved = await onRequestPatch(undoContext(db, id, { ...patch, offer_undo: true }))
+    expect(saved.status).toBe(200)
+    const { undo_token: token } = await saved.json() as { undo_token: string }
+    const undone = await onRequestPatch(undoContext(db, id, { undo_token: token }))
+    expect(undone.status).toBe(200)
+    expect(await undone.json()).toMatchObject({ confirmation_source: 'user', confirmed_at: '2025-04-03T12:00:00.000Z', arrival_transit: true, arrival_transit_leg_id: leg, duration_minutes: 111 })
+    expect(await db.prepare('SELECT * FROM flights WHERE id = ?').bind(id).first()).toEqual(before)
+  } finally { await dispose() }
+})

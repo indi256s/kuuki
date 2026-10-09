@@ -68,7 +68,7 @@ describe('writes and outcomes', () => {
     expect(result.flight?.origin).toBe('MUC')
     const [path, body] = vi.mocked(api.patch).mock.calls[0]
     expect(path).toBe('/api/flights/7')
-    expect(Object.keys(body as object).filter(key => key !== 'timezone')).toEqual(['origin'])
+    expect(Object.keys(body as object).filter(key => key !== 'timezone')).toEqual(['origin', 'offer_undo'])
   })
 
   it('is unknown when the PATCH aborts, or when the answer does not carry the sent value', async () => {
@@ -85,19 +85,19 @@ describe('writes and outcomes', () => {
     expect(result.flight).toBeUndefined()
   })
 
-  it('undo re-PATCHes the previous value of that field only', async () => {
+  it('undo sends the server snapshot token instead of a replacement value', async () => {
     vi.mocked(api.patch).mockResolvedValue(dto({ origin: 'TBS' }))
-    const record: EditRecord = { flightId: 7, field: 'origin', previous: 'TBS', after: editableValues(flight({ origin: 'MUC' })), seq: 1 }
+    const record: EditRecord = { flightId: 7, field: 'origin', previous: 'TBS', after: editableValues(flight({ origin: 'MUC' })), seq: 1, undoToken: 'signed-snapshot' }
     expect((await undoWrite(record, 'en')).outcome).toEqual({ status: 'saved' })
     const [path, body] = vi.mocked(api.patch).mock.calls[0]
     expect(path).toBe('/api/flights/7')
-    expect(body).toMatchObject({ origin: 'TBS' })
-    expect(Object.keys(body as object).filter(key => key !== 'timezone')).toEqual(['origin'])
+    expect(body).toMatchObject({ undo_token: 'signed-snapshot' })
+    expect(Object.keys(body as object).filter(key => key !== 'timezone')).toEqual(['undo_token'])
   })
 
   it('refuses Undo once the flight changed again or a later edit was recorded', () => {
     const saved = flight({ origin: 'MUC' })
-    const record: EditRecord = { flightId: 7, field: 'origin', previous: 'TBS', after: editableValues(saved), seq: 1 }
+    const record: EditRecord = { flightId: 7, field: 'origin', previous: 'TBS', after: editableValues(saved), seq: 1, undoToken: 'signed-snapshot' }
     expect(canUndo(record, saved, 1)).toBe(true)
     expect(canUndo(record, flight({ origin: 'MUC', flight_number: 'TK1' }), 1)).toBe(false)
     expect(canUndo(record, saved, 2)).toBe(false)

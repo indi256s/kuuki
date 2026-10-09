@@ -2,7 +2,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { api } from '@kuuki/client/apiClient'
+import { api, ApiError } from '@kuuki/client/apiClient'
 import { ToastProvider } from '../ui/toast'
 import { JournalDeleteProvider, useJournalDelete } from './journal-delete'
 
@@ -17,12 +17,13 @@ function Actions() {
   </>
 }
 
-function Harness({ refresh = async () => {} }: { refresh?: () => Promise<void> }) {
+function Harness({ refresh = async () => {}, read }: { refresh?: (options?: { throwOnError?: boolean }) => Promise<void>; read?: () => Promise<number[]> }) {
+  const [rows, setRows] = useState([1, 2, 3])
   const [hidden, setHidden] = useState<ReadonlySet<number>>(() => new Set())
-  return <ToastProvider><JournalDeleteProvider locale="en" refresh={refresh}
+  return <ToastProvider><JournalDeleteProvider locale="en" refresh={async options => { await refresh(options); if (read) setRows(await read()) }}
     hide={ids => setHidden(old => new Set([...old, ...ids]))} unhide={ids => setHidden(old => new Set([...old].filter(id => !ids.includes(id))))}><main>
     <h1>Journal</h1>
-    {[1, 2, 3].filter(id => !hidden.has(id)).map(id => <button key={id} type="button" data-flight-row={id}>Row {id}</button>)}
+    {rows.filter(id => !hidden.has(id)).map(id => <button key={id} type="button" data-flight-row={id}>Row {id}</button>)}
     <Actions />
   </main></JournalDeleteProvider></ToastProvider>
 }
@@ -47,7 +48,7 @@ describe('Journal deferred delete', () => {
     expect(api.delete).not.toHaveBeenCalled()
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete 2 and 3' }))
-    expect(api.delete).toHaveBeenCalledWith('/api/flights/1', expect.anything())
+    expect(api.delete).toHaveBeenCalledWith('/api/flights/1', undefined, expect.objectContaining({ signal: expect.any(AbortSignal) }))
     expect(api.post).not.toHaveBeenCalled()
     expect(screen.getAllByRole('button', { name: 'Undo' })).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
@@ -87,15 +88,80 @@ describe('Journal deferred delete', () => {
     window.removeEventListener('kuuki:lifecycle-changed', changed)
   })
 
-  it('a failed delete brings the rows back with an error that offers to try again', async () => {
-    vi.mocked(api.delete).mockRejectedValueOnce(new TypeError('offline'))
+  it('a rejected delete brings the rows back with an error that offers to try again', async () => {
+    vi.mocked(api.delete).mockRejectedValueOnce(new ApiError(403, 'Forbidden'))
     render(<Harness />)
     fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
     await act(() => vi.advanceTimersByTimeAsync(6100))
     expect(screen.getByText('Row 1')).toBeInTheDocument()
-    expect(screen.getByText('Could not delete 1 flight. It is back in the list.')).toBeInTheDocument()
+    expect(screen.getByText('Could not delete 1 flight. Try again.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
   })
+})
+
+
+it('a lost committed DELETE and a retry returning 404 reconcile the server list before restoring rows', async () => {
+  let serverRows = [1, 2, 3]
+  const refresh = vi.fn(async () => {})
+  vi.mocked(api.delete).mockImplementationOnce(async () => { serverRows = [2, 3]; throw new TypeError('answer lost') })
+    .mockRejectedValueOnce(new ApiError(404, 'Flight not found'))
+  render(<Harness refresh={refresh} read={async () => serverRows} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(6100))
+  expect(refresh).toHaveBeenCalledWith({ throwOnError: true })
+  expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+  expect(screen.getByText('Could not check whether the flights were deleted. Check the list before trying again.')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(6100))
+  expect(refresh).toHaveBeenCalledTimes(2)
+  expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+})
+
+it('a failed reconciliation keeps uncertain rows hidden and its retry reads without deleting again', async () => {
+  const refresh = vi.fn().mockRejectedValueOnce(new TypeError('offline')).mockResolvedValue(undefined)
+  vi.mocked(api.delete).mockRejectedValueOnce(new TypeError('answer lost'))
+  render(<Harness refresh={refresh} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(6100))
+  expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+  expect(screen.getByText('Could not check whether the flights were deleted. Refresh the list before trying again.')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh list' }))
+  await act(() => vi.advanceTimersByTimeAsync(0))
+  expect(screen.getByText('Row 1')).toBeInTheDocument()
+  expect(refresh).toHaveBeenCalledTimes(2)
+  expect(api.delete).toHaveBeenCalledTimes(1)
+})
+
+it('passes the single-delete signal as transport options and aborts it when the page unmounts', async () => {
+  let signal: AbortSignal | undefined
+  vi.mocked(api.delete).mockImplementation((_path, _body, options) => new Promise((_resolve, reject) => {
+    signal = options?.signal
+    signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+  }))
+  const refresh = vi.fn(async () => {})
+  const view = render(<Harness refresh={refresh} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(6100))
+  expect(signal?.aborted).toBe(false)
+  view.unmount()
+  await act(() => vi.advanceTimersByTimeAsync(0))
+  expect(signal?.aborted).toBe(true)
+  expect(refresh).not.toHaveBeenCalled()
+})
+
+
+it('does not restore rows or announce an uncertain result after an identity reset', async () => {
+  let finish: (() => void) | undefined
+  const refresh = () => new Promise<void>(resolve => { finish = resolve })
+  vi.mocked(api.delete).mockRejectedValueOnce(new TypeError('answer lost'))
+  render(<Harness refresh={refresh} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(6100))
+  window.dispatchEvent(new Event('kuuki:identity-reset'))
+  await act(async () => { finish?.() })
+  expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+  expect(screen.queryByText(/Could not check whether/)).not.toBeInTheDocument()
 })

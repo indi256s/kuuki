@@ -4,7 +4,8 @@ import { AIRCRAFT_BATCH_SIZE } from '../../../packages/shared/src/constants'
 // Outcome contract (replay-safe absolute set):
 // - Each item gets its own result: `accepted` (with the resulting flight) or `error` (http_status, code, message).
 //   Valid items are written in one atomic D1 batch together with the derived-state dirty marker.
-// - The request sets an absolute aircraft value, it never increments anything. Replaying an identical request, for
+// - Missing-only is the default; replaceAll: true explicitly permits overwriting an existing aircraft.
+//   The request sets an absolute aircraft value, it never increments anything. Replaying an identical request, for
 //   example after a lost response, returns `accepted` with the same flight state and leaves the flight rows unchanged.
 //   Invalid items (NOT_FOUND, UNKNOWN_AIRCRAFT, ...) fail the same way on every replay.
 // - Derived state is marked dirty and republished on every call that writes, so a replay yields the same totals
@@ -34,7 +35,9 @@ export function aircraftBatchRequest(request: Request, env: Env, data: RequestDa
   return runHandler(async () => {
     requireCsrf(request)
     const user = requireUser(data)
-    const body = await readJson<{ items?: unknown }>(request, { maxBytes: 16 * 1024 })
+    const body = await readJson<{ items?: unknown; replaceAll?: unknown }>(request, { maxBytes: 16 * 1024 })
+    if (body?.replaceAll !== undefined && typeof body.replaceAll !== 'boolean') throw new HttpError(400, 'replaceAll must be a boolean', 'INVALID_ITEMS')
+    const replaceAll = body?.replaceAll === true
     const items = body?.items
     if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, 'items must be a non-empty array', 'INVALID_ITEMS')
     if (items.length > MAX_ITEMS) throw new HttpError(413, `At most ${MAX_ITEMS} flights per request`, 'TOO_MANY_FLIGHTS')
@@ -64,8 +67,8 @@ export function aircraftBatchRequest(request: Request, env: Env, data: RequestDa
           const patch = await parseFlightBody(env.DB, { aircraft_icao: raw.aircraft_icao }, 'patch', existing.get(id))
           if (!patch.aircraft_icao) throw new HttpError(400, 'aircraft_icao is required', 'INVALID_AIRCRAFT')
           accepted.push({ index, id })
-          statements.push(env.DB.prepare('UPDATE flights SET aircraft_icao = ? WHERE id = ? AND user_id = ?')
-            .bind(patch.aircraft_icao, id, user.id))
+          statements.push(env.DB.prepare("UPDATE flights SET aircraft_icao = ? WHERE id = ? AND user_id = ? AND (? = 1 OR aircraft_icao IS NULL OR aircraft_icao = '' OR aircraft_icao = ?)")
+            .bind(patch.aircraft_icao, id, user.id, replaceAll ? 1 : 0, patch.aircraft_icao))
           results.push(failure(resultId, new HttpError(500, 'Flight update missing', 'UPDATE_MISSING')))
         } catch (error) {
           if (!(error instanceof HttpError)) throw error
@@ -84,7 +87,7 @@ export function aircraftBatchRequest(request: Request, env: Env, data: RequestDa
       const row = updated.get(item.id)
       results[item.index] = row && (updates[position].meta.changes ?? 0) > 0
         ? { id: item.id, status: 'accepted', flight: toOwnFlight(row) }
-        : failure(item.id, new HttpError(404, 'Flight not found', 'NOT_FOUND'))
+        : failure(item.id, row ? new HttpError(409, 'Aircraft changed elsewhere; reload before replacing it', 'STATE_CONFLICT') : new HttpError(404, 'Flight not found', 'NOT_FOUND'))
     }
     return json({ results, ...await repairUserDerivedState(env.DB, user.id) })
   })

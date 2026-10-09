@@ -20,11 +20,12 @@
  * Ids already in the committed operation are left out of the new one.
  *
  * Committed: `refresh()` and `LIFECYCLE_CHANGED_EVENT` (badges, queue and the store's own refetch). Failed: the rows come back
- * and an error toast offers Try again, which schedules the same ids again. Unmounted while pending (leaving the Journal):
+ * on a definite rejection and an error toast offers Try again. An uncertain response reconciles the list before unhiding;
+ * a failed reconciliation keeps the rows hidden and offers a read-only refresh. Unmounted while pending (leaving the Journal):
  * nothing is sent and a notice says so, except after a sign-out or owner switch. Requests in flight are aborted on unmount.
  */
 import { createContext, forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { api } from '@kuuki/client/apiClient'
+import { api, ApiError } from '@kuuki/client/apiClient'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import { formatCount, type CountForms, type Locale } from '../../lib/format'
 import { trackPrivateOperation } from '../activity'
@@ -41,12 +42,12 @@ const being: CountForms = {
   ru: { one: '{count} перелёт будет удалён.', few: '{count} перелёта будут удалены.', many: '{count} перелётов будут удалены.', other: '{count} перелёта будут удалены.' },
 }
 const failed: CountForms = {
-  en: { one: 'Could not delete {count} flight. It is back in the list.', other: 'Could not delete {count} flights. They are back in the list.' },
-  ru: { one: 'Не удалось удалить {count} перелёт. Он снова в списке.', few: 'Не удалось удалить {count} перелёта. Они снова в списке.', many: 'Не удалось удалить {count} перелётов. Они снова в списке.', other: 'Не удалось удалить {count} перелёта. Они снова в списке.' },
+  en: { one: 'Could not delete {count} flight. Try again.', other: 'Could not delete {count} flights. Try again.' },
+  ru: { one: 'Не удалось удалить {count} перелёт. Повторите позже.', few: 'Не удалось удалить {count} перелёта. Повторите позже.', many: 'Не удалось удалить {count} перелётов. Повторите позже.', other: 'Не удалось удалить {count} перелёта. Повторите позже.' },
 }
 const copy = {
-  en: { undo: 'Undo', retry: 'Try again', seconds: 's', cancelled: 'Delete cancelled because you left the Journal. Nothing was removed.' },
-  ru: { undo: 'Отменить', retry: 'Повторить', seconds: 'с', cancelled: 'Удаление отменено, потому что вы ушли из журнала. Ничего не удалено.' },
+  en: { undo: 'Undo', retry: 'Try again', refresh: 'Refresh list', unknown: 'Could not check whether the flights were deleted. Check the list before trying again.', refreshFailed: 'Could not check whether the flights were deleted. Refresh the list before trying again.', seconds: 's', cancelled: 'Delete cancelled because you left the Journal. Nothing was removed.' },
+  ru: { undo: 'Отменить', retry: 'Повторить', refresh: 'Обновить список', unknown: 'Не удалось проверить, удалены ли перелёты. Проверьте список, прежде чем повторить.', refreshFailed: 'Не удалось проверить, удалены ли перелёты. Обновите список, прежде чем повторить.', seconds: 'с', cancelled: 'Удаление отменено, потому что вы ушли из журнала. Ничего не удалено.' },
 } as const
 
 export type ScheduleDeleteOptions = {
@@ -88,7 +89,7 @@ export type JournalDeleteProviderProps = {
   locale: Locale
   hide: (ids: number[]) => void
   unhide: (ids: number[]) => void
-  refresh: () => Promise<unknown>
+  refresh: (options?: { throwOnError?: boolean }) => Promise<unknown>
   children: ReactNode
 }
 
@@ -102,6 +103,7 @@ export function JournalDeleteProvider({ locale, hide, unhide, refresh, children 
   useEffect(() => { latest.current = { locale, hide, unhide, refresh, toast } })
   // Sign-out and owner switches reset identity before the Journal unmounts; their dropped delete is not announced.
   const identityReset = useRef(false)
+  const mounted = useRef(true)
 
   const scheduleRef = useRef<JournalDelete['scheduleDelete']>(() => {})
   const send = useCallback((op: Operation) => {
@@ -111,19 +113,38 @@ export function JournalDeleteProvider({ locale, hide, unhide, refresh, children 
     setNotice(current => current?.key === op.key ? { ...current, sending: true } : current)
     const release = trackPrivateOperation(controller)
     const request = ids.length === 1
-      ? api.delete<DerivedAck>(`/api/flights/${ids[0]}`, { signal: controller.signal })
+      ? api.delete<DerivedAck>(`/api/flights/${ids[0]}`, undefined, { signal: controller.signal })
       : api.post<DerivedAck>('/api/flights/bulk-delete', { ids }, { signal: controller.signal })
     void request.then(() => {
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted || identityReset.current) return
       setNotice(current => current?.key === op.key ? null : current)
       void latest.current.refresh()
       window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
-    }, () => {
-      if (controller.signal.aborted) return
+    }, async cause => {
+      if (controller.signal.aborted || identityReset.current) return
       setNotice(current => current?.key === op.key ? null : current)
       const { unhide: show, toast: toasts, locale: lang } = latest.current
-      show(ids)
-      toasts.show({ kind: 'error', message: formatCount(lang, ids.length, failed), actionLabel: copy[lang].retry, onAction: () => scheduleRef.current(ids, op.options) })
+      // A transport failure, timeout, 5xx or missing flight cannot prove this DELETE did not commit.
+      const rejected = cause instanceof ApiError && cause.status >= 400 && cause.status < 500 && cause.status !== 408 && cause.status !== 404
+      if (rejected) {
+        show(ids)
+        toasts.show({ kind: 'error', message: formatCount(lang, ids.length, failed), actionLabel: copy[lang].retry, onAction: () => scheduleRef.current(ids, op.options) })
+        return
+      }
+      const reconcile = async () => {
+        if (!mounted.current || controller.signal.aborted || identityReset.current) return
+        try {
+          await latest.current.refresh({ throwOnError: true })
+          if (!mounted.current || controller.signal.aborted || identityReset.current) return
+          latest.current.unhide(ids)
+          window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
+          toasts.show({ kind: 'error', message: copy[lang].unknown })
+        } catch {
+          if (!mounted.current || controller.signal.aborted || identityReset.current) return
+          toasts.show({ kind: 'error', message: copy[lang].refreshFailed, duration: 0, actionLabel: copy[lang].refresh, onAction: () => { void reconcile() } })
+        }
+      }
+      await reconcile()
     }).finally(() => { release(); inFlight.current.delete(controller) })
   }, [])
 
@@ -198,10 +219,12 @@ export function JournalDeleteProvider({ locale, hide, unhide, refresh, children 
   }, [shownKey])
 
   useEffect(() => {
+    mounted.current = true
     const reset = () => { identityReset.current = true }
     window.addEventListener('kuuki:identity-reset', reset)
     const running = inFlight.current
     return () => {
+      mounted.current = false
       window.removeEventListener('kuuki:identity-reset', reset)
       const dropped = pendingOp.current
       pendingOp.current = null

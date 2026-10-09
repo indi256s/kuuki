@@ -30,16 +30,23 @@ const dto = (base: JournalFlight, overrides: Partial<JournalFlight>) => {
   const row: Partial<JournalFlight> = { ...base, ...overrides }
   delete row.origin_country
   delete row.destination_country
-  return { ...row, derived_state: 'ready', revision: 2 }
+  return { ...row, derived_state: 'ready', revision: 2, undo_token: 'signed-snapshot' }
 }
 
 let payloadNow: () => JournalPayload = () => { throw new Error('not mounted') }
 /** The server's flights: a PATCH applies its body here and answers with the row, a GET serves them. */
 let server: JournalFlight[] = []
+let beforeEdit: JournalFlight | undefined
 const serve = async (path: string, body: unknown) => {
   const id = Number(path.split('/').at(-1))
   const fields = { ...(body as Record<string, unknown>) }
   delete fields.timezone
+  delete fields.offer_undo
+  if (fields.undo_token) {
+    server = server.map(item => item.id === id ? beforeEdit! : item)
+    return dto(server.find(item => item.id === id)!, {})
+  }
+  beforeEdit = server.find(item => item.id === id)
   server = server.map(item => item.id === id ? { ...item, ...fields } : item)
   return dto(server.find(item => item.id === id)!, {})
 }
@@ -68,7 +75,7 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks() })
 
 describe('Journal detail sheet', () => {
-  it('saves a field inline, confirms it in place, applies the server row and offers Undo inside the overlay that re-PATCHes the previous value', async () => {
+  it('saves a field inline, confirms it in place, applies the server row and offers Undo inside the overlay that restores the server snapshot', async () => {
     const user = userEvent.setup()
     const base = flight(1)
     mount([base])
@@ -86,7 +93,7 @@ describe('Journal detail sheet', () => {
     const [path, body] = vi.mocked(api.patch).mock.calls[0]
     expect(path).toBe('/api/flights/1')
     expect(body).toMatchObject({ flight_number: 'TK382' })
-    expect(Object.keys(body as object).filter(key => key !== 'timezone')).toEqual(['flight_number'])
+    expect(Object.keys(body as object).filter(key => key !== 'timezone')).toEqual(['flight_number', 'offer_undo'])
     await waitFor(() => expect(api.get).toHaveBeenCalled()) // background refresh
 
     // The overlay is modal, so its Undo lives inside it rather than in a toast behind the focus trap.
@@ -95,7 +102,7 @@ describe('Journal detail sheet', () => {
     await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(2))
     const [undoPath, undoBody] = vi.mocked(api.patch).mock.calls[1]
     expect(undoPath).toBe('/api/flights/1')
-    expect(Object.fromEntries(Object.entries(undoBody as object).filter(([key]) => key !== 'timezone'))).toEqual({ flight_number: 'TK381' })
+    expect(Object.fromEntries(Object.entries(undoBody as object).filter(([key]) => key !== 'timezone'))).toEqual({ undo_token: 'signed-snapshot' })
     expect(await screen.findByText('Change undone')).toBeInTheDocument()
     await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Change flight number, now TK381' })).toBeInTheDocument())
   })
