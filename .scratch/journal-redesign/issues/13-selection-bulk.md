@@ -1,6 +1,6 @@
 # 13 Selection and bulk actions
 
-Status: open
+Status: done
 Type: task
 Owner: Opus
 Blocked by: 08

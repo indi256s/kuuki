@@ -25,7 +25,7 @@ async function JournalData({ initialQuery }: { initialQuery: string }) {
   if (!owned) redirect('/signin')
   const { ownerId, data } = owned
   return <IdentitySnapshot ownerId={ownerId}><ReadFreshness ownerId={ownerId} revision={data.revision} publishedRevision={data.publishedRevision} derivedState={data.derivedState} locale={locale} />
-    <JournalStoreProvider key={ownerId} ownerId={ownerId} locale={locale} initial={data} initialQuery={initialQuery}><JournalShell locale={locale} /></JournalStoreProvider></IdentitySnapshot>
+    <JournalStoreProvider key={ownerId} ownerId={ownerId} locale={locale} initial={data} initialQuery={initialQuery}><JournalShell ownerId={ownerId} locale={locale} /></JournalStoreProvider></IdentitySnapshot>
 }
 export const generateMetadata = () => pageMetadata('Journal', 'Журнал')
 export default async function Journal({ searchParams }: { searchParams: Promise<SearchParams> }) {

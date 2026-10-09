@@ -1,13 +1,15 @@
 'use client'
 // The Journal's composition root: reads the store and hands plain props to the presentational pieces
 // (header, Next up, toolbar, ledger, states). Callbacks passed to the ledger stay stable so memoised rows do not re-render.
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { Locale } from '../../server/locale'
 import { useAwaiting } from '../awaiting'
 import { useMobile } from '../ui/use-mobile'
 import { JournalBulkActions } from './bulk-actions'
 import { Crossfade } from './crossfade'
+import { JournalDetail, useDockedDetail } from './detail-sheet'
 import { downloadCsv, exportFileName, openFlightsCsv } from './export-csv'
+import type { EditableField } from './flight-edits'
 import { JournalHeader } from './header'
 import { JournalLedger } from './ledger'
 import { NextUp } from './next-up'
@@ -19,7 +21,7 @@ import './journal-page.css'
 const NEXT_UP = 3
 const OFFLINE_NOTE_ID = 'journal-offline-note'
 
-export function JournalShell({ locale }: { locale: Locale }) {
+export function JournalShell({ ownerId, locale }: { ownerId: string; locale: Locale }) {
   const { payload, view, selection, setFilters, setSort, openFlight, resetFilters, refresh, isError, online, hidden,
     selectedVisible, toggle, selectAll, clear, hide, unhide } = useJournalStore()
   const { data: queue } = useAwaiting()
@@ -33,7 +35,15 @@ export function JournalShell({ locale }: { locale: Locale }) {
   const importBatches = (queue?.drafts ?? []).filter(draft => draft.reviewRowCount > 0)
   const importHref = importBatches.length === 1 ? `/import?batch=${importBatches[0]!.batchId}` : '/import'
 
-  const onOpen = useCallback((id: number) => openFlight(id), [openFlight])
+  // The sheet: docked beside the ledger at 1280px and up (the ledger then drops Duration and Distance), an overlay below.
+  const docked = useDockedDetail()
+  const split = docked && view.flight !== null
+  const [initialField, setInitialField] = useState<{ flightId: number; field: EditableField } | null>(null)
+  const onOpen = useCallback((id: number, opts?: { field?: 'aircraft' }) => {
+    setInitialField(opts?.field === 'aircraft' ? { flightId: id, field: 'aircraft_icao' } : null)
+    openFlight(id)
+  }, [openFlight])
+  const onOpenNextUp = useCallback((id: number) => onOpen(id), [onOpen])
   const onReview = useCallback(() => openFlight(null, { review: true }), [openFlight])
   // Desktop selection: the row checkbox shows on hover or focus. Phones start selection from the row menu (ticket 14).
   const selectable = useMobile() !== true
@@ -52,17 +62,22 @@ export function JournalShell({ locale }: { locale: Locale }) {
     {!online && <OfflineNote locale={locale} id={OFFLINE_NOTE_ID} />}
     {isError && <RefreshFailed locale={locale} onRetry={onRetry} />}
     {payload.derivedState === 'pending' && <PublicationPending locale={locale} />}
-    <NextUp flights={nextUp} refs={payload.refs} locale={locale} onOpen={onOpen} />
+    <NextUp flights={nextUp} refs={payload.refs} locale={locale} onOpen={onOpenNextUp} />
     {!empty && <JournalToolbar filters={view.filters} onFiltersChange={setFilters} facetValues={selection.facetValues} statusCounts={selection.statusCounts}
       refs={payload.refs} locale={locale} matchingCount={selection.matching.length} onExport={onExport} />}
+    <div className="journal-split" data-split={split || undefined}>
+    <div className="journal-main">
     {empty
       ? <EmptyJournal locale={locale} />
       : selection.items.length === 0
         ? <NoMatches locale={locale} onClearFilters={resetFilters} />
         : <Crossfade signature={signature}>
           <JournalLedger items={selection.items} refs={payload.refs} locale={locale} sort={view.sort} onSortChange={setSort}
-            activeId={view.flight} compact={false} selected={visibleSelected} selectable={selectable} onToggleSelect={onToggleSelect} onOpen={onOpen} hidden={hidden} />
+            activeId={view.flight} compact={split} selected={visibleSelected} selectable={selectable} onToggleSelect={onToggleSelect} onOpen={onOpen} hidden={hidden} />
         </Crossfade>}
+    </div>
+    <JournalDetail ownerId={ownerId} locale={locale} docked={docked} initialField={initialField} />
+    </div>
     <JournalBulkActions locale={locale} selected={selectedFlights} matching={selection.matching} refs={payload.refs} queue={queue} online={online} offlineNoteId={OFFLINE_NOTE_ID}
       onSelectAll={selectAll} onClear={clear} hide={hide} unhide={unhide} refresh={refresh} />
   </section>

@@ -1,3 +1,6 @@
 /* Journal page rhythm: space groups the blocks, no rules between them. */
 .journal-page{display:grid;gap:var(--space-6);min-width:0}
 @media (max-width:700px){.journal-page{gap:var(--space-5)}}
+.journal-split{display:grid;gap:var(--space-6);min-width:0}
+.journal-split[data-split]{grid-template-columns:minmax(0,1fr) 460px;align-items:start}
+.journal-main{display:grid;gap:var(--space-6);min-width:0}
