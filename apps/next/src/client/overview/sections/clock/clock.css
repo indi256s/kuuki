@@ -7,6 +7,10 @@
 .ov3-clock > * {
   margin: 0;
 }
+/* The grid gap already adds space-3 under the head; the margin tops it up to space-5. */
+.ov3-clock > .ov3-cookie-head {
+  margin-bottom: calc(var(--space-5) - var(--space-3));
+}
 .ov3-clock-dial {
   width: min(100%, 300px);
 }
@@ -21,14 +25,15 @@
 .ov3-clock-stats strong {
   font-size: 24px;
 }
-.ov3-clock-mini {
-  display: flex;
-  align-items: end;
-  gap: 2px;
-  height: 40px;
-  margin-bottom: 12px;
-}
-.ov3-clock-mini i {
-  flex: 1;
-  border-radius: 2px;
+.ov3-clock-toggle {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  flex: none;
+  border-radius: var(--radius-sm);
 }

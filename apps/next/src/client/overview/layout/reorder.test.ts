@@ -5,7 +5,7 @@ it('targets either card in a grid row by horizontal position, retaining vertical
   const rects = [
     { id: 'rankings', top: 0, bottom: 300, left: 0, right: 600 },
     { id: 'records', top: 0, bottom: 200, left: 616, right: 916 },
-    { id: 'fleet', top: 316, bottom: 600, left: 0, right: 916 },
+    { id: 'aircraft', top: 316, bottom: 600, left: 0, right: 916 },
   ]
   expect(dropIndex(100, rects, 100)).toBe(0)
   expect(dropIndex(100, rects, 700)).toBe(1)

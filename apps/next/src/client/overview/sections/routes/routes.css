@@ -1,0 +1,78 @@
+.ov3-routes {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.ov3-routes-headline {
+  margin: 0 0 var(--space-3);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.ov3-routes-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-6);
+}
+.ov3-routes-tile {
+  background: var(--surface-inset);
+  border-radius: 10px;
+  padding: var(--space-5);
+  min-width: 0;
+}
+.ov3-routes-tile p {
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.ov3-routes-tile strong {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 32px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ov3-routes-tile small {
+  display: block;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.ov3-routes > .ov3-chart-caption {
+  margin-top: var(--space-5);
+}
+.ov3-routes-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  font-size: 13px;
+}
+.ov3-routes-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ov3-routes-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--mark-1);
+}
+.ov3-routes-legend span:last-child i {
+  background: var(--mark-2);
+}
+.ov3-routes-mini {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 48px;
+  margin-bottom: 12px;
+}
+.ov3-routes-mini i {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 2px;
+  background: var(--mark-1);
+}

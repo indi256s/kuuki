@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
-import { Section } from './section'
+import { FleetContent } from './section'
 import { ridgeProfile } from './helpers'
 
 const context = vi.hoisted(() => ({
@@ -36,7 +36,7 @@ it.each(['en', 'ru'] as const)(
       } as unknown as typeof context.current
     }
     admit()
-    const view = render(<Section span="full" />)
+    const view = render(<FleetContent span="full" />)
     const caption = locale === 'en' ? 'Flight length by type' : 'Длительность по типам'
     expect(screen.queryByRole('group', { name: caption })).toBeNull()
     expect(
@@ -62,7 +62,7 @@ it.each(['en', 'ru'] as const)(
 
     payload.rows[3].durationSource = 'times'
     admit()
-    view.rerender(<Section span="full" />)
+    view.rerender(<FleetContent span="full" />)
     expect(
       screen.getByText(
         locale === 'en'
@@ -101,7 +101,7 @@ it('keeps zero-only recorded durations distinct from missing data and preserves 
     actions: { add },
     isCurrent: () => true,
   } as unknown as typeof context.current
-  render(<Section span="full" />)
+  render(<FleetContent span="full" />)
   expect(screen.getByText('Flight duration distribution is unavailable.')).toBeInTheDocument()
   expect(screen.queryByText('Exact flight durations are unavailable.')).not.toBeInTheDocument()
   expect(screen.getByText('Exact duration recorded: 4 of 4 flights')).toBeInTheDocument()

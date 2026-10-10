@@ -25,6 +25,7 @@ import { CountryList } from '../globe/country-list'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
+import { NextUp } from '../next-up/next-up'
 import { SECTIONS } from '../sections/registry'
 import { scopeTitle } from './scope-title'
 import { FirstRun, ZeroResult } from './page-states'
@@ -52,7 +53,11 @@ function PageContent({ name }: { name: string }) {
     payload.passport.countryCodes.length === 0 &&
     payload.passport.regions === 0
   const zero = scope?.figures.flights === 0 && !isEmptyFilter(filter)
-  const visible = layout.order.filter((id) => !layout.hidden.includes(id))
+  // A locked section leaves the grid and the tiles; it stays in the saved order and hidden lists.
+  const locked = scope
+    ? layout.order.filter((id) => SECTIONS[id].gate(scope)?.status === 'below')
+    : []
+  const visible = layout.order.filter((id) => !layout.hidden.includes(id) && !locked.includes(id))
   const [openId, setOpenId] = useState<SectionId | null>(null)
   const opener = useRef<HTMLButtonElement | null>(null)
   if (openId && (mobile !== true || !scope || firstRun || zero || !visible.includes(openId)))
@@ -118,7 +123,9 @@ function PageContent({ name }: { name: string }) {
     )
       return false
     setLayout((old) => {
-      const current = old.order.filter((section) => !old.hidden.includes(section))
+      const current = old.order.filter(
+        (section) => !old.hidden.includes(section) && !locked.includes(section),
+      )
       const target = current[index]
       return target && current.includes(id)
         ? { ...old, order: moveSection(old.order, id, old.order.indexOf(target)) }
@@ -152,8 +159,7 @@ function PageContent({ name }: { name: string }) {
   }
   const lanes = useLanes(visible.join(','))
   const frame = (id: SectionId) => {
-    const { Section, title, gate } = SECTIONS[id]
-    const below = scope ? gate(scope)?.status === 'below' : false
+    const { Section, title } = SECTIONS[id]
     return (
       <SectionFrame
         key={id}
@@ -169,8 +175,7 @@ function PageContent({ name }: { name: string }) {
         }}
         onHide={hide}
         drag={reorder.bindings(id)}
-        gated={below}
-        narrator={scope && !below ? <Narrator slot={id} /> : null}
+        narrator={scope ? <Narrator slot={id} /> : null}
       >
         <Section span="full" />
       </SectionFrame>
@@ -244,12 +249,13 @@ function PageContent({ name }: { name: string }) {
               ) : null}
             </div>
           </div>
+          {!firstRun && !zero ? <NextUp goals={scope.goals} /> : null}
           {zero ? (
             <ZeroResult />
           ) : !firstRun && mobile !== null ? (
             mobile ? (
               <div className="ov3-sections" data-surface="tiles">
-                {packTiles(layout.order, layout.hidden).map(({ id, span }) => {
+                {packTiles(visible).map(({ id, span }) => {
                   const { Tile } = SECTIONS[id]
                   return (
                     <SectionTile

@@ -1,0 +1,21 @@
+.iso-fleet [data-part='window'] {
+  opacity: 0;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .iso-fleet [data-part='plane'] {
+    transition: transform 150ms var(--ease-out);
+  }
+  .iso-fleet [data-part='window'] {
+    transition: opacity 120ms var(--ease-out);
+    transition-delay: calc(var(--t) * 160ms);
+  }
+  .ov3-tile:hover .iso-fleet [data-part='plane'],
+  .iso-fleet:hover [data-part='plane'] {
+    transform: translateY(var(--lift-y));
+    transition-duration: 200ms;
+  }
+  .ov3-tile:hover .iso-fleet [data-part='window'],
+  .iso-fleet:hover [data-part='window'] {
+    opacity: 1;
+  }
+}

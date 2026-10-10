@@ -55,17 +55,6 @@
   display: block;
   font-size: 28px;
 }
-.ov3-heat-mini {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 3px;
-  margin-bottom: 12px;
-}
-.ov3-heat-mini i {
-  aspect-ratio: 1;
-  border-radius: 3px;
-}
-
 .ov3-heat-year-totals {
   display: flex;
   flex-wrap: wrap;

@@ -34,10 +34,3 @@
   color: var(--text-muted);
   font: 13px/20px var(--font-mono);
 }
-.ov3-line-mini {
-  display: block;
-  width: 100%;
-  height: 40px;
-  margin-bottom: 12px;
-  overflow: visible;
-}

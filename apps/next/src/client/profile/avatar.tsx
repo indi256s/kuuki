@@ -22,7 +22,7 @@ export function ProfileAvatar({
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
       <AvatarFallback
-        name={id}
+        name={name.trim() || id}
         facehashProps={{
           size,
           colors: ['var(--surface-inset)', 'var(--surface)'],

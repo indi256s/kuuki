@@ -1,0 +1,17 @@
+.iso-tape :is([data-part='blade'], [data-part='blade-end']) {
+  transition: transform 180ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ov3-tile:hover .iso-tape :is([data-part='blade'], [data-part='blade-end']),
+  .ov3-cookie-head .iso-tape:hover :is([data-part='blade'], [data-part='blade-end']) {
+    transform: translate(var(--pay-x), var(--pay-y));
+    transition-duration: 240ms;
+    transition-delay: 60ms;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iso-tape :is([data-part='blade'], [data-part='blade-end']) {
+    transform: none;
+    transition: none;
+  }
+}

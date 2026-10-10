@@ -1,63 +1,33 @@
 'use client'
 
-import type { Gate } from '@kuuki/shared/overview/figures'
-import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { formatCount, formatNumber, type Locale } from '../../../../lib/format'
 import { forms, t } from '../../copy'
-import { Narrator } from '../../narrator/narrator'
 import { useOverview } from '../../store/overview-context'
-import { PayloadAircraftReview } from '../manufacturers/aircraft-review'
 import './below.css'
 
 export const copy = (locale: Locale, en: string, ru: string) => t({ en, ru }, locale)
 export const number = (locale: Locale, value: number) => formatNumber(locale, value)
 export const flights = (locale: Locale, value: number) => formatCount(locale, value, forms.flights)
 export const percent = (value: number) => `${Math.round(value * 100)}%`
-export function Below({
-  id,
-  gate,
-  fix,
+export function CoverageNote({
+  have,
+  total,
+  en,
+  ru,
 }: {
-  id: SectionId
-  gate: Gate<unknown>
-  fix?: 'aircraft' | 'times'
+  have: number
+  total: number
+  en: string
+  ru: string
 }) {
-  const { locale, scope } = useOverview()
-  if (gate.status !== 'below') return null
-  const total = scope?.figures.flights ?? gate.have
-  const need = formatCount(locale, gate.need, forms.flightsOf)
-  const sentence =
-    fix === 'times'
-      ? copy(
-          locale,
-          `Needs departure times on at least ${number(locale, gate.need)} flights. ${number(locale, gate.have)} of ${number(locale, total)} have them.`,
-          `Нужно время вылета минимум у ${need}. Указано у ${number(locale, gate.have)} из ${number(locale, total)}.`,
-        )
-      : fix === 'aircraft'
-        ? copy(
-            locale,
-            `Needs an aircraft on at least ${number(locale, gate.need)} flights. ${number(locale, gate.have)} of ${number(locale, total)} have one.`,
-            `Нужен самолёт минимум у ${need}. Указан у ${number(locale, gate.have)} из ${number(locale, total)}.`,
-          )
-        : null
-  const label =
-    fix === 'times'
-      ? copy(locale, 'Flights with departure times', 'Перелётов с временем вылета')
-      : fix === 'aircraft'
-        ? copy(locale, 'Flights with an aircraft', 'Перелётов с самолётом')
-        : copy(locale, 'Flights', 'Перелётов')
-  const meterLabel = `${label}: ${number(locale, gate.have)} ${copy(locale, 'of', 'из')} ${number(locale, gate.need)} ${copy(locale, 'needed', 'нужных')}`
-  return (
-    <div className="ov3-below">
-      <UnlockMeter have={gate.have} need={gate.need} label={meterLabel} />
-      {sentence === null ? <Narrator slot={id} /> : <p>{sentence}</p>}
-      {fix === 'aircraft' && <PayloadAircraftReview />}
-      {fix === 'times' && <a href="/journal">{copy(locale, 'Add times →', 'Указать время →')}</a>}
-    </div>
-  )
+  const { locale } = useOverview()
+  if (have >= total) return null
+  const fill = (text: string) =>
+    text.replace('{n}', number(locale, have)).replace('{m}', number(locale, total))
+  return <p className="ov3-sample">{copy(locale, fill(en), fill(ru))}</p>
 }
 // Dots up to 12 needed flights, a thin bar beyond. Decorative children; the meter role carries the value.
-function UnlockMeter({ have, need, label }: { have: number; need: number; label: string }) {
+export function UnlockMeter({ have, need, label }: { have: number; need: number; label: string }) {
   if (!(need > 0)) return null
   const value = Math.max(0, Math.min(have, need))
   return (

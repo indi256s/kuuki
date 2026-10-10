@@ -129,7 +129,7 @@ export function OnboardingName({
       <ProfileAvatar
         id={ownerId}
         url={null}
-        name={name || normalized || (ru ? 'Ваш профиль' : 'Your profile')}
+        name={name.trim() || normalized || (ru ? 'Ваш профиль' : 'Your profile')}
       />
       <Field
         label={ru ? 'Отображаемое имя' : 'Display name'}

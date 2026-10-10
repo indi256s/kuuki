@@ -181,13 +181,13 @@ export function SectionSheet({
           {/* Every chapter is a snap slide; only the open one and its neighbours render content, the rest keep their width. */}
           <div ref={track} className="ov3-sheet-track">
             {order.map((id, at) => {
-              const { Section, gate } = SECTIONS[id]
+              const { Section } = SECTIONS[id]
               return (
                 <div key={id} className="ov3-sheet-slide" inert={id !== openId}>
                   {Math.abs(at - index) <= 1 || id === openId ? (
                     <>
                       <Section span="sheet" />
-                      {scope && gate(scope)?.status !== 'below' ? <Narrator slot={id} /> : null}
+                      {scope ? <Narrator slot={id} /> : null}
                     </>
                   ) : null}
                 </div>

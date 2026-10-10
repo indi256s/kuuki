@@ -1,0 +1,8 @@
+.iso {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.iso-glow {
+  opacity: var(--iso-glow);
+}

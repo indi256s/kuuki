@@ -12,7 +12,6 @@ vi.mock('@kuuki/client/apiClient', () => ({
   ApiError: class extends Error {},
 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span /> }))
 const props = {
   ownerId: 'a',
   username: '',
@@ -25,6 +24,34 @@ beforeEach(() => {
   vi.mocked(api.patch).mockReset()
   push.mockReset()
   refresh.mockReset()
+})
+it('updates the generated face while editing the display name or fallback username', () => {
+  const { container } = render(<OnboardingName {...props} />)
+  const face = () => container.querySelector('[data-facehash-face]')!.outerHTML
+  const initial = face()
+  const displayName = screen.getByLabelText('Display name')
+  const username = screen.getByLabelText('Username')
+
+  fireEvent.change(displayName, { target: { value: 'Serg' } })
+  expect(face()).not.toBe(initial)
+  const firstName = face()
+  fireEvent.change(displayName, { target: { value: 'Serghkg' } })
+  expect(face()).not.toBe(firstName)
+  const fullName = face()
+  fireEvent.change(displayName, { target: { value: '  Serghkg  ' } })
+  expect(face()).toBe(fullName)
+
+  fireEvent.change(displayName, { target: { value: ' ' } })
+  fireEvent.change(username, { target: { value: 'AL' } })
+  const firstUsername = face()
+  expect(firstUsername).not.toBe(fullName)
+  fireEvent.change(username, { target: { value: 'AX' } })
+  expect(face()).not.toBe(firstUsername)
+  const finalUsername = face()
+  fireEvent.change(username, { target: { value: ' ax ' } })
+  expect(face()).toBe(finalUsername)
+  fireEvent.change(username, { target: { value: '' } })
+  expect(face()).toBe(initial)
 })
 it('normalizes a configured absolute profile URL and persists before Continue navigates', async () => {
   vi.mocked(api.get).mockResolvedValue({ available: true })

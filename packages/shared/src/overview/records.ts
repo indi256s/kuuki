@@ -43,6 +43,8 @@ export interface Records {
     } | null
   } | null
   earliestDeparture: (RecordRef & { date: string; depMinute: number }) | null
+  /** Null unless every row is a raw flight: route groups carry no witness for their latest departure. */
+  latestDeparture: (RecordRef & { date: string; depMinute: number }) | null
   busiestYear: {
     year: number
     flights: number
@@ -215,13 +217,48 @@ export function recordFlights(
   return { latest, earliestDeparture }
 }
 
+function latestDeparture(
+  rows: OverviewRow[],
+  mode: OverviewPayload['mode'],
+): RecordFlights['earliestDeparture'] {
+  if (mode !== 'flights') return null
+  let best: RecordFlights['earliestDeparture'] = null
+  for (const row of rows) {
+    if (row.weight !== 1 || row.recordExtrema || row.recordFlights) return null
+    const minute = row.depMinute
+    if (
+      dateInstant(row.date) === null ||
+      minute === null ||
+      !Number.isInteger(minute) ||
+      minute < 0 ||
+      minute > 1439
+    )
+      continue
+    if (
+      !best ||
+      minute > best.depMinute ||
+      (minute === best.depMinute &&
+        (row.date > best.date || (row.date === best.date && row.id < best.flightId)))
+    )
+      best = {
+        flightId: row.id,
+        origin: row.origin,
+        destination: row.destination,
+        date: row.date,
+        value: minute,
+        depMinute: minute,
+      }
+  }
+  return best
+}
+
 export function records(
   rows: OverviewRow[],
   refs: OverviewPayload['refs'],
   mode: OverviewPayload['mode'],
 ): Gate<Records> {
   const have = rows.reduce((sum, row) => sum + row.weight, 0)
-  if (have < 5) return { status: 'below', have, need: 5 }
+  if (have < 3) return { status: 'below', have, need: 3 }
   const endpoints = [...new Set(rows.flatMap((row) => [row.origin, row.destination]))]
     .sort()
     .flatMap((iata) => {
@@ -283,7 +320,8 @@ export function records(
         mode,
       ).latest
     : null
-  const earliest = recordFlights(rows, mode).earliestDeparture
+  const earliest = recordFlights(rows, mode).earliestDeparture,
+    latestDep = latestDeparture(rows, mode)
   const years = new Map<number, OverviewRow[]>()
   for (const row of rows)
     if (dateInstant(row.date) !== null) {
@@ -337,6 +375,9 @@ export function records(
       biggestClockJump: project(extrema.biggestClockJump),
       earliestDeparture: earliest
         ? { ...project(earliest)!, date: earliest.date, depMinute: earliest.depMinute }
+        : null,
+      latestDeparture: latestDep
+        ? { ...project(latestDep)!, date: latestDep.date, depMinute: latestDep.depMinute }
         : null,
       busiestYear: busyYear
         ? {

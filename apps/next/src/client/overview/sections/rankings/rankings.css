@@ -159,10 +159,6 @@
     color: var(--text-muted);
   }
 }
-.ov3-below a {
-  display: inline-flex;
-  padding-block: 12px;
-}
 .ov3-rankings button:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;

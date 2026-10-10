@@ -2,6 +2,8 @@ import { calendarDay, type NextFlight, type ReplayItem } from './next'
 import { isEmptyFilter, rowCountries } from './filter'
 import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
 import type { Records } from './records'
+import type { Routes } from './routes'
+import type { Goal } from './goals'
 import type { Crossings } from './crossings'
 import type { Fleet } from './fleet'
 import type { Makers } from './makers'
@@ -47,6 +49,7 @@ export interface OverviewScope {
   figures: Figures
   coverage: Coverage
   home: { iata: string; source: 'override' | 'most_departed' } | null
+  routes: Gate<Routes>
   records: Gate<Records>
   crossings: Gate<Crossings>
   fleet: Gate<Fleet>
@@ -57,6 +60,7 @@ export interface OverviewScope {
   globe: GlobeData
   next: NextFlight[]
   replay: ReplayItem[]
+  goals: Goal[]
 }
 
 const metric = (value: number | null): number =>

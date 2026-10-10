@@ -17,7 +17,7 @@ const reduced = () =>
     removeEventListener() {},
   }))
 
-const ids = ['rankings', 'fleet', 'crossings'] as SectionId[]
+const ids = ['rankings', 'aircraft', 'crossings'] as SectionId[]
 function Flow({
   onCommit,
   announce,

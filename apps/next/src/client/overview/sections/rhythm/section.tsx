@@ -14,7 +14,8 @@ import {
 import { LazyChart } from '../../charts/lazy-chart'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { Below, copy, filterLabel, number, flights } from '../rankings/display'
+import { copy, filterLabel, number, flights } from '../rankings/display'
+import { TimelineContent } from '../timeline/section'
 import { heatBucket, monthStart } from './helpers'
 import './rhythm.css'
 
@@ -27,14 +28,26 @@ const GUTTER = 36,
 const bandOf = (available: number) =>
   Math.min(BAND_MAX, Math.max(BAND_MIN, (available - GUTTER) / 12))
 const gridWidth = (available: number) => GUTTER + 12 * bandOf(available)
-export function Section({ span }: { span: Span }) {
+type CalendarState = {
+  metric: Metric
+  setMetric: (metric: Metric) => void
+  showAll: boolean
+  setShowAll: (showAll: boolean) => void
+  activityYear: number | null
+  setActivityYear: (year: number) => void
+}
+function CalendarContent({
+  metric,
+  setMetric,
+  showAll,
+  setShowAll,
+  activityYear,
+  setActivityYear,
+}: CalendarState) {
   const { scope, all, payload, filter, locale, actions, isCurrent } = useOverview()
-  const [metric, setMetric] = useState<Metric>('flights')
-  const [showAll, setShowAll] = useState(false)
-  const [activityYear, setActivityYear] = useState<number | null>(null)
   if (!scope || !all || !payload) return null
   const gate = scope.rhythm
-  if (gate.status === 'below') return <Below id="rhythm" gate={gate} />
+  if (gate.status !== 'ready') return null
   const data = gate.value,
     baseline = all.rhythm.status === 'ready' ? all.rhythm.value : data
   const years = showAll ? baseline.years : baseline.years.slice(0, 6)
@@ -60,6 +73,7 @@ export function Section({ span }: { span: Span }) {
       datum: row,
       label: `${row.key} · ${number(locale, metric === 'durationMinutes' ? row[metric] / 60 : row[metric])}`,
     }))
+  const pointOf = new Map(gridPoints.map((point) => [point.key, point]))
   const cellY = (year: number) => 8 + years.indexOf(year) * 36
   const series = overviewSeries(payload, filter)
   const gridCaption = copy(locale, 'Flights by month', 'Перелёты по месяцам')
@@ -71,7 +85,7 @@ export function Section({ span }: { span: Span }) {
     dayColumns = calendarColumns(days, locale)
   const dailyCaption = copy(locale, 'Completed flights by day', 'Завершённые перелёты по дням')
   return (
-    <div className="ov3-rhythm" data-span={span}>
+    <>
       <div className="ov3-rhythm-group">
         <div className="ov3-rhythm-stats">
           <p>
@@ -141,7 +155,7 @@ export function Section({ span }: { span: Span }) {
                       />
                     ))}
                     {rows.map((row) => {
-                      const point = gridPoints.find((point) => point.key === row.key),
+                      const point = pointOf.get(row.key),
                         future = row.key > today,
                         text = future
                           ? '–'
@@ -308,6 +322,39 @@ export function Section({ span }: { span: Span }) {
           </p>
         )}
       </div>
+    </>
+  )
+}
+export function Section({ span }: { span: Span }) {
+  const { scope, locale } = useOverview()
+  const [metric, setMetric] = useState<Metric>('flights')
+  const [showAll, setShowAll] = useState(false)
+  const [activityYear, setActivityYear] = useState<number | null>(null)
+  const [view, setView] = useState<'calendar' | 'timeline'>('calendar')
+  if (!scope || scope.rhythm.status !== 'ready') return null
+  return (
+    <div className="ov3-rhythm" data-span={span}>
+      <SegmentedControl
+        value={view}
+        onChange={setView}
+        label={copy(locale, 'Rhythm view', 'Вид ритма')}
+        options={[
+          { value: 'calendar', label: copy(locale, 'Calendar', 'Календарь') },
+          { value: 'timeline', label: copy(locale, 'Over time', 'Со временем') },
+        ]}
+      />
+      {view === 'calendar' ? (
+        <CalendarContent
+          metric={metric}
+          setMetric={setMetric}
+          showAll={showAll}
+          setShowAll={setShowAll}
+          activityYear={activityYear}
+          setActivityYear={setActivityYear}
+        />
+      ) : (
+        <TimelineContent span={span} />
+      )}
     </div>
   )
 }

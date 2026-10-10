@@ -13,8 +13,8 @@ export interface Trigger {
 const gated = [
   ['records', 'records'],
   ['crossings', 'crossings'],
-  ['manufacturers', 'makers'],
-  ['fleet', 'fleet'],
+  ['routes', 'routes'],
+  ['aircraft', 'fleet'],
   ['clock', 'clock'],
   ['rhythm', 'rhythm'],
 ] as const
@@ -122,7 +122,7 @@ export const TRIGGERS: Trigger[] = [
   // Ready Makers; Airbus positive, strictly above every other known maker; Boeing positive. Unknown excluded only from leader comparison, not recast as known.
   {
     id: 'manufacturers:airbus-boeing',
-    slot: 'manufacturers',
+    slot: 'aircraft',
     priority: 100,
     when: (scope) => {
       if (scope.makers.status !== 'ready') return null
@@ -139,7 +139,7 @@ export const TRIGGERS: Trigger[] = [
   // Ready Makers; unknown maker row positive; total denominator includes every scoped flight.
   {
     id: 'manufacturers:unknown',
-    slot: 'manufacturers',
+    slot: 'aircraft',
     priority: 70,
     when: (scope) => {
       if (scope.makers.status !== 'ready') return null
@@ -151,7 +151,7 @@ export const TRIGGERS: Trigger[] = [
   // Ready Makers; Boeing strictly above Airbus, both positive. Comparison only, no general leader assertion.
   {
     id: 'manufacturers:boeing-airbus',
-    slot: 'manufacturers',
+    slot: 'aircraft',
     priority: 90,
     when: (scope) => {
       if (scope.makers.status !== 'ready') return null
@@ -164,7 +164,7 @@ export const TRIGGERS: Trigger[] = [
   // Ready Fleet; actual byBodyType narrowbody count exceeds half of all classified body-type counts. Unknown/untyped not classified; total explicitly separate. Regional bands do not prove narrowbody.
   {
     id: 'fleet:narrow-majority',
-    slot: 'fleet',
+    slot: 'aircraft',
     priority: 100,
     when: (scope) => {
       if (scope.fleet.status !== 'ready') return null
@@ -181,7 +181,7 @@ export const TRIGGERS: Trigger[] = [
   // Ready Fleet; non-null positive topFamily. Engine selects stable ties; wording avoids unique leadership.
   {
     id: 'fleet:top-family',
-    slot: 'fleet',
+    slot: 'aircraft',
     priority: 60,
     when: (scope) => {
       if (scope.fleet.status !== 'ready') return null
@@ -193,12 +193,60 @@ export const TRIGGERS: Trigger[] = [
   // Ready Fleet; untyped positive. total is all scoped flights, untyped is absence of aircraft designation, not unknown body type.
   {
     id: 'fleet:untyped',
-    slot: 'fleet',
+    slot: 'aircraft',
     priority: 70,
     when: (scope) => {
       if (scope.fleet.status !== 'ready') return null
       const v = scope.fleet.value
       return v.untyped > 0 ? { untyped: v.untyped, total: v.total } : null
+    },
+  },
+  // Ready Routes; commuter profile (distinct/flights <= 0.5) with at least two distinct routes, so counts stay plural. Flights are weighted; routes undirected.
+  {
+    id: 'routes:commuter',
+    slot: 'routes',
+    priority: 70,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const v = scope.routes.value
+      return v.profile === 'commuter' && v.distinct > 1
+        ? { flights: v.flights, distinct: v.distinct }
+        : null
+    },
+  },
+  // Ready Routes; explorer profile (distinct/flights >= 0.8). Says how rarely routes repeat, not why.
+  {
+    id: 'routes:explorer',
+    slot: 'routes',
+    priority: 70,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const v = scope.routes.value
+      return v.profile === 'explorer' && v.distinct > 1
+        ? { flights: v.flights, distinct: v.distinct }
+        : null
+    },
+  },
+  // Ready Routes; a most-flown undirected route flown at least twice (the engine returns null below two). Both directions together.
+  {
+    id: 'routes:top-repeat',
+    slot: 'routes',
+    priority: 80,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const top = scope.routes.value.top
+      return top && top.count > 1 ? { route: top.key.replace('-', ' ↔ '), count: top.count } : null
+    },
+  },
+  // Ready Routes; a home airport is set and at least half of the flights start or end there.
+  {
+    id: 'routes:home',
+    slot: 'routes',
+    priority: 90,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const share = scope.routes.value.homeShare
+      return share !== null && share >= 0.5 ? { percent: Math.round(share * 100) } : null
     },
   },
   // Ready Clock; actual positive peakHour matches its bucket and is strictly greater than every other departure bucket. Timed denominator is withDepartureTime.
@@ -365,33 +413,12 @@ export const TRIGGERS: Trigger[] = [
     },
   },
 
-  ...gated.flatMap(([slot, key]): Trigger[] => [
-    {
-      id: slot,
-      slot,
-      priority: 0,
-      when: (scope) => (scope[key].status === 'ready' ? { flights: scope.figures.flights } : null),
-    },
-    {
-      id: `below:${slot}`,
-      slot,
-      priority: 10,
-      when: (scope) => {
-        const gate = scope[key]
-        return gate.status === 'below' ? { have: gate.have, need: gate.need } : null
-      },
-    },
-  ]),
-  // Timeline shares the Rhythm gate; only its below-threshold explanation needs a line.
-  {
-    id: 'below:timeline',
-    slot: 'timeline',
-    priority: 10,
-    when: (scope) => {
-      const gate = scope.rhythm
-      return gate.status === 'below' ? { have: gate.have, need: gate.need } : null
-    },
-  },
+  ...gated.map(([slot, key]): Trigger => ({
+    id: slot,
+    slot,
+    priority: 0,
+    when: (scope) => (scope[key].status === 'ready' ? { flights: scope.figures.flights } : null),
+  })),
   ...(['rankings', 'globe'] as const).map((slot) => ({
     id: slot,
     slot,

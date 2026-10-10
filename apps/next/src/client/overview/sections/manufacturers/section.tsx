@@ -14,7 +14,7 @@ import { useMakerMetric, useOpenFlight, type MakerMetric } from '../../store/ope
 import { useOverview } from '../../store/overview-context'
 import { formatDateOnly, formatDuration } from '../../../../lib/format'
 import type { Span } from '../registry'
-import { Below, copy, filterLabel, flights, number, percent } from '../rankings/display'
+import { copy, filterLabel, flights, number, percent } from '../rankings/display'
 import { PayloadAircraftReview } from './aircraft-review'
 import { percentCells, waffleLayout } from './helpers'
 import './manufacturers.css'
@@ -36,7 +36,7 @@ type WaffleCell = {
   y: number
   flight?: Makers['flights'][number]
 }
-export function Section({ span }: { span: Span }) {
+export function MakersContent({ span }: { span: Span }) {
   const { scope, all, aggregate, locale, actions, isCurrent, ownerKey } = useOverview()
   const [metric, setMetric] = useMakerMetric()
   const openFlight = useOpenFlight()
@@ -53,7 +53,7 @@ export function Section({ span }: { span: Span }) {
   }, [scope?.makers.status])
   if (!scope || !all) return null
   const gate = scope.makers
-  if (gate.status === 'below') return <Below id="manufacturers" gate={gate} fix="aircraft" />
+  if (gate.status === 'below') return null
   const data = gate.value,
     baseline = all.makers.status === 'ready' ? all.makers.value : data
   const layout =

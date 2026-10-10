@@ -104,3 +104,37 @@ it('shows the first-run state after revalidation removes the last flight', async
   await act(async () => window.dispatchEvent(new Event('focus')))
   await waitFor(() => expect(screen.getByRole('link', { name: 'Import flights' })).toBeVisible())
 })
+
+it('drops a locked section from the grid and lists its gate in Next up, keeping the saved layout', async () => {
+  const few: OverviewPayload = {
+    ...payload,
+    rows: payload.rows.slice(0, 4).map((row, index) => ({ ...row, id: index + 1, weight: 1 })),
+    etag: 'W/"ov3-few-owner-1-0"',
+  }
+  const save = vi.fn(saver)
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    })),
+  )
+  const { container } = render(
+    <OverviewPage
+      payload={few}
+      prefs={DEFAULT_PREFS}
+      ownerKey="few-owner"
+      name=""
+      locale="en"
+      live={true}
+      saver={save}
+    />,
+  )
+  const nextUp = await screen.findByRole('region', { name: 'Next up' })
+  expect(within(nextUp).getByText('1 more flight unlocks Routes')).toBeInTheDocument()
+  expect(container.querySelector('[data-section="routes"]')).toBeNull()
+  expect(container.querySelector('[data-section="records"]')).not.toBeNull()
+  expect(save).not.toHaveBeenCalled()
+})

@@ -8,38 +8,16 @@ const flights: [Line, Line, Line] = [
   },
   { en: 'Flight total for this view: {flights}.', ru: 'В обзоре перелётов: {flights}.' },
 ]
-const below: [Line, Line, Line] = [
-  {
-    en: 'Not enough data for this section yet: {have} of the {need} it needs.',
-    ru: 'Для раздела пока мало данных: {have} из {need} нужных.',
-  },
-  {
-    en: 'This section needs at least {need}. This view has {have}.',
-    ru: 'Для раздела нужно минимум {need}. Сейчас {have}.',
-  },
-  {
-    en: 'This view has {have}; the section starts at {need}.',
-    ru: 'Сейчас {have}; раздел появится при {need}.',
-  },
-]
-
-// Factual fallbacks for the ten slots and the six actual section gates.
+// Factual fallbacks for the slots and the six section gates.
 export const CORPUS: Record<string, [Line, Line, Line]> = {
   records: flights,
   crossings: flights,
-  manufacturers: flights,
-  fleet: flights,
+  routes: flights,
+  aircraft: flights,
   clock: flights,
   rhythm: flights,
   rankings: flights,
   globe: flights,
-  'below:records': below,
-  'below:crossings': below,
-  'below:manufacturers': below,
-  'below:fleet': below,
-  'below:clock': below,
-  'below:rhythm': below,
-  'below:timeline': below,
   firstRun: [
     {
       en: 'Your flight journal has no completed flights yet.',
@@ -262,6 +240,62 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
     {
       en: 'Your fleet view’s untyped count is {untyped} out of {total} flights. The missing field is still missing.',
       ru: 'Перелётов без типа: {untyped} из {total}. Пустая графа пока пуста.',
+    },
+  ],
+  'routes:commuter': [
+    {
+      en: '{flights} flights on {distinct} routes. Technically a commute with a boarding pass.',
+      ru: 'Перелётов: {flights}, маршрутов: {distinct}. По сути, поездки на работу, только с посадочным.',
+    },
+    {
+      en: '{flights} flights over {distinct} routes. The routes have memorised you.',
+      ru: 'Перелётов: {flights}, маршрутов: {distinct}. Новизна по большей части не зафиксирована.',
+    },
+    {
+      en: '{distinct} routes cover {flights} flights. Variety is kept to a minimum.',
+      ru: 'Маршрутов: {distinct}, перелётов: {flights}. Разнообразие сведено к необходимому минимуму.',
+    },
+  ],
+  'routes:explorer': [
+    {
+      en: '{distinct} routes in {flights} flights. Repeating one would have been sentimental.',
+      ru: 'Маршрутов: {distinct}, перелётов: {flights}. Повторы практически исключены.',
+    },
+    {
+      en: 'Almost every flight went somewhere new: {distinct} routes, {flights} flights. The loyalty programmes are confused.',
+      ru: 'Маршрутов: {distinct}, перелётов: {flights}. Программы лояльности озадачены.',
+    },
+    {
+      en: '{flights} flights, {distinct} routes. Returning was clearly never the plan.',
+      ru: 'Перелётов: {flights}, маршрутов: {distinct}. Возвращаться, судя по данным, не планировалось.',
+    },
+  ],
+  'routes:top-repeat': [
+    {
+      en: '{route} has been flown {count} times. Less a route than a habit.',
+      ru: '{route}: перелётов по маршруту — {count}. Это уже не маршрут, а привычка.',
+    },
+    {
+      en: '{route}, {count} times. The gate staff have stopped checking the name.',
+      ru: '{route}, перелётов: {count}. Персонал на посадке, судя по всему, запомнил вас в лицо.',
+    },
+    {
+      en: 'Most-flown route: {route}, {count} times. Noted.',
+      ru: 'Самый частый маршрут: {route}, перелётов: {count}. Принято к сведению.',
+    },
+  ],
+  'routes:home': [
+    {
+      en: '{percent}% of flights touch your home airport. Everything else is a guest appearance.',
+      ru: '{percent}% перелётов затрагивают домашний аэропорт. Всё остальное — гастроли.',
+    },
+    {
+      en: '{percent}% of flights start or end at home. Leaving is evidently always a round trip.',
+      ru: '{percent}% перелётов начинаются или заканчиваются дома. Отъезд, судя по данным, всегда обратимый.',
+    },
+    {
+      en: 'The home airport features in {percent}% of flights. It will take that as a compliment.',
+      ru: 'Домашний аэропорт фигурирует в {percent}% перелётов. Претензий с его стороны не поступало.',
     },
   ],
   'clock:unique-peak': [

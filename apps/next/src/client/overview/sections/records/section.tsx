@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import type { RecordRef } from '@kuuki/shared/overview/model'
 import { routeKey } from '@kuuki/shared/overview/filter'
 import { dateInstant } from '@kuuki/shared/overview/records'
@@ -8,9 +9,11 @@ import { TableView } from '../../charts/table-view'
 import { useOverview } from '../../store/overview-context'
 import { useOpenFlight } from '../../store/open-flight'
 import type { Span } from '../registry'
-import { Below, copy, flights, number, percent } from '../rankings/display'
-import { RouteSketch } from './route-sketch'
+import { copy, flights, number, percent } from '../rankings/display'
+import { IsoFigure } from '../../iso/iso-figure'
+import { foldedMap } from '../../iso/map'
 import './records.css'
+import '../../iso/map.css'
 
 /** Derived degrees read as a fact at one decimal; more digits only look like noise. */
 const tenth = (value: number) => Math.round(value * 10) / 10
@@ -18,9 +21,18 @@ const tenth = (value: number) => Math.round(value * 10) / 10
 export function Section({ span }: { span: Span }) {
   const { scope, payload, locale, aggregate, ownerKey, actions, bus, isCurrent } = useOverview()
   const openFlight = useOpenFlight()
+  const longest = scope?.records.status === 'ready' ? scope.records.value.longest : null
+  const originLat = longest ? payload?.refs.airports[longest.origin]?.lat : null
+  const destinationLat = longest ? payload?.refs.airports[longest.destination]?.lat : null
+  const equator = originLat != null && destinationLat != null && originLat * destinationLat < 0
+  const mapFigure = useMemo(
+    () => (longest ? foldedMap(longest.origin, longest.destination, 0.95, equator) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `longest` is rebuilt every render; its route is the key.
+    [longest?.origin, longest?.destination, equator],
+  )
   if (!scope || !payload) return null
   const gate = scope.records
-  if (gate.status === 'below') return <Below id="records" gate={gate} />
+  if (gate.status !== 'ready') return null
   const data = gate.value,
     lead = data.longest,
     short = data.shortest,
@@ -56,13 +68,6 @@ export function Section({ span }: { span: Span }) {
     )
   const clock = (minute: number) =>
     `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`
-  const equator =
-    lead &&
-    payload.refs.airports[lead.origin]?.lat !== null &&
-    payload.refs.airports[lead.destination]?.lat !== null &&
-    (payload.refs.airports[lead.origin]?.lat ?? 0) *
-      (payload.refs.airports[lead.destination]?.lat ?? 0) <
-      0
   // A bare flight number says nothing; show it only with its carrier (or when it already carries letters).
   const leadFlight = lead?.flightNumber
     ? /^[A-Za-z]/.test(lead.flightNumber)
@@ -156,7 +161,11 @@ export function Section({ span }: { span: Span }) {
                   </strong>
                 </span>
               </div>
-              <RouteSketch equator={!!equator} />
+              {mapFigure && (
+                <div className="ov3-record-map">
+                  <IsoFigure figure={mapFigure} className="iso-map" />
+                </div>
+              )}
               <div className="ov3-record-track">
                 <i style={{ width: percent(Math.min(1, lead.equatorShare)) }} />
                 {lead.previousBestKm !== null && (

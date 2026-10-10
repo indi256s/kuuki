@@ -26,3 +26,9 @@
   block-size: 100%;
   background: var(--accent);
 }
+.ov3-sample {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+  text-wrap: pretty;
+}

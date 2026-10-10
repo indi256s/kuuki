@@ -8,6 +8,8 @@ export interface ShareRow {
 }
 export interface Fleet {
   topType: { icao: string; share: number } | null
+  /** Top exact ICAO types, ranked by flight count; separate from family totals. */
+  topTypes: ShareRow[]
   byBodyType: ShareRow[]
   byManufacturer: ShareRow[]
   families: number
@@ -85,7 +87,8 @@ export function fleet(
       familyRows.set(key, family)
     }
   }
-  const top = shares(types)[0]
+  const ranked = shares(types)
+  const top = ranked[0]
   const rowsByFamily = [...familyRows.values()]
   for (const family of rowsByFamily) family.minutes.sort((a, b) => a - b)
   const topFamily = [...rowsByFamily].sort(
@@ -98,6 +101,7 @@ export function fleet(
     status: 'ready',
     value: {
       topType: top ? { icao: top.key, share: top.flights / typed } : null,
+      topTypes: ranked.slice(0, 3),
       byBodyType: shares(bodyTypes),
       byManufacturer: shares(manufacturers),
       families: families.size,

@@ -19,7 +19,6 @@ type Props = {
   onMove: (id: SectionId, index: number) => void
   onHide: (id: SectionId) => void
   narrator: ReactNode
-  gated?: boolean
   children: ReactNode
   drag?: { ref: Ref<HTMLElement>; onPointerDown: PointerEventHandler<HTMLElement>; active: boolean }
 }
@@ -33,7 +32,6 @@ export function SectionFrame({
   onMove,
   onHide,
   narrator,
-  gated,
   children,
   drag,
 }: Props) {
@@ -44,7 +42,6 @@ export function SectionFrame({
       ref={drag?.ref}
       className="ov3-section ov3-frame"
       data-section={id}
-      data-gated={gated || undefined}
       data-dragging={drag?.active || undefined}
       aria-labelledby={heading}
     >

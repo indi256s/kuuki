@@ -27,7 +27,7 @@ function peak(buckets: Clock['byHour']): Clock['peakHour'] {
 
 export function clock(rows: OverviewRow[]): Gate<Clock> {
   const { withDepartureTime, total } = coverage(rows)
-  if (withDepartureTime < 10) return { status: 'below', have: withDepartureTime, need: 10 }
+  if (withDepartureTime < 5) return { status: 'below', have: withDepartureTime, need: 5 }
   const byHour = Array.from({ length: 24 }, (_, hour) => ({
     key: String(hour).padStart(2, '0'),
     hour,

@@ -743,3 +743,25 @@ h2 {
 :root[data-theme='dark'] .country-preview-outline-dark {
   display: inline;
 }
+
+/* Overview iso figures follow the active theme and accent. */
+:root {
+  --iso-top: var(--surface);
+  --iso-front: #f3f1ee;
+  --iso-side: #e7e3df;
+  --iso-line: #5f5954;
+  --iso-detail: #cfc8c1;
+  --iso-glass: var(--accent-tint);
+  --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  --iso-glow: 0.4;
+}
+:root[data-theme='dark'] {
+  --iso-top: var(--surface-inset);
+  --iso-front: #363432;
+  --iso-side: #2e2c2a;
+  --iso-line: #a8a098;
+  --iso-detail: #5f5954;
+  --iso-glass: #262423;
+  --iso-ghost: #45403c;
+  --iso-glow: 0.75;
+}

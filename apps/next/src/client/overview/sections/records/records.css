@@ -71,12 +71,6 @@
 .ov3-record-stats strong {
   font-size: 17px;
 }
-.ov3-record-sketch {
-  width: 100%;
-  max-width: 240px;
-  height: 80px;
-  display: block;
-}
 .ov3-record-track {
   position: relative;
   height: 8px;
@@ -135,4 +129,10 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+
+.ov3-record-map {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-4) 0;
 }

@@ -112,13 +112,6 @@
 .ov3-section-narrator {
   margin-top: 24px;
 }
-/* A section below its data threshold is a short note, so it packs as a small card instead of a tall one. */
-.ov3-frame[data-gated] {
-  padding-block: 12px;
-}
-.ov3-frame[data-gated] .ov3-section-header {
-  margin-bottom: 8px;
-}
 .ov3-section-narrator .narrator {
   margin: 0;
   max-width: 60ch;

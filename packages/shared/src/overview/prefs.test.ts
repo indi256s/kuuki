@@ -23,17 +23,8 @@ it('legacy prefs normalize without throwing', () => {
     version: 1,
     filter: { airlines: ['TK'] },
     layout: {
-      order: [
-        'records',
-        'rankings',
-        'manufacturers',
-        'fleet',
-        'clock',
-        'rhythm',
-        'timeline',
-        'crossings',
-      ],
-      hidden: ['fleet'],
+      order: ['records', 'rankings', 'routes', 'crossings', 'rhythm', 'clock', 'aircraft'],
+      hidden: [],
     },
     replayPaused: false,
     publicSections: { records: true, fleet: false },
@@ -44,16 +35,7 @@ it('raw layouts drop malformed ids and append missing sections without sharing d
   expect(
     normalizeLayout({ order: [null, 'clock', 42, 'clock'], hidden: ['rhythm', null, 'rhythm'] }),
   ).toEqual({
-    order: [
-      'clock',
-      'rankings',
-      'records',
-      'manufacturers',
-      'fleet',
-      'rhythm',
-      'timeline',
-      'crossings',
-    ],
+    order: ['clock', 'rankings', 'routes', 'records', 'crossings', 'rhythm', 'aircraft'],
     hidden: ['rhythm'],
   })
   expect(normalizeLayout({ order: 'records', hidden: {} })).toEqual(DEFAULT_PREFS.layout)
@@ -62,31 +44,49 @@ it('raw layouts drop malformed ids and append missing sections without sharing d
   expect(parsePrefs(null).layout.order[0]).toBe('rankings')
 })
 
-it('stored layouts from before the timeline section keep their order and gain it at the end', () => {
+it('stored layouts from before cards v2 map retired ids onto their merged cards', () => {
   const stored = {
     version: 1,
     filter: {},
     layout: {
-      order: ['crossings', 'rhythm', 'rankings', 'records', 'manufacturers', 'fleet', 'clock'],
+      order: [
+        'crossings',
+        'rhythm',
+        'rankings',
+        'records',
+        'manufacturers',
+        'fleet',
+        'clock',
+        'timeline',
+      ],
       hidden: ['clock'],
     },
     replayPaused: false,
     publicSections: { records: false, fleet: false },
   }
-  expect(overviewPrefsSchema.safeParse(stored).success).toBe(true)
+  expect(overviewPrefsSchema.safeParse(stored).success).toBe(false)
   expect(parsePrefs(JSON.stringify(stored)).layout).toEqual({
-    order: [
-      'crossings',
-      'rhythm',
-      'rankings',
-      'records',
-      'manufacturers',
-      'fleet',
-      'clock',
-      'timeline',
-    ],
+    order: ['crossings', 'rhythm', 'rankings', 'records', 'aircraft', 'clock', 'routes'],
     hidden: ['clock'],
   })
+})
+
+it('a merged card is hidden only when every legacy card it absorbed was hidden', () => {
+  const hidden = (ids: string[]) => normalizeLayout({ hidden: ids }).hidden
+  expect(hidden(['timeline'])).toEqual([])
+  expect(hidden(['fleet'])).toEqual([])
+  expect(hidden(['manufacturers'])).toEqual([])
+  expect(hidden(['fleet', 'manufacturers'])).toEqual(['aircraft'])
+  expect(hidden(['clock', 'manufacturers', 'fleet', 'timeline'])).toEqual(['clock', 'aircraft'])
+  expect(hidden(['rhythm', 'timeline'])).toEqual(['rhythm'])
+  // Already-migrated layouts keep their hidden ids.
+  expect(hidden(['aircraft', 'rhythm'])).toEqual(['aircraft', 'rhythm'])
+})
+
+it('legacy ids keep the position of their first occurrence and dedupe', () => {
+  expect(
+    normalizeLayout({ order: ['timeline', 'records', 'rhythm', 'fleet', 'manufacturers'] }).order,
+  ).toEqual(['rhythm', 'records', 'aircraft', 'rankings', 'routes', 'crossings', 'clock'])
 })
 
 it('stored invalid known facets default independently and stale string values survive', () => {
@@ -150,4 +150,17 @@ it('admits exact days and legacy month preferences without rewriting stored boun
     expect(overviewPrefsSchema.safeParse(prefs).success).toBe(false)
     expect(parsePrefs(JSON.stringify(prefs)).filter).toEqual({ countries: ['JP'] })
   }
+})
+
+it('non-string layout ids are dropped without resetting the rest of the stored preferences', () => {
+  const stored = {
+    ...DEFAULT_PREFS,
+    replayPaused: true,
+    filter: { countries: ['JP'] },
+    layout: { order: [{ toString: 0 }, 'clock'], hidden: [{ toString: 0 }] },
+  }
+  const prefs = parsePrefs(JSON.stringify(stored))
+  expect(prefs.replayPaused).toBe(true)
+  expect(prefs.filter).toEqual({ countries: ['JP'] })
+  expect(prefs.layout.order[0]).toBe('clock')
 })

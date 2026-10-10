@@ -4,7 +4,7 @@ import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { Below, copy, filterLabel, number } from '../rankings/display'
+import { copy, filterLabel, number } from '../rankings/display'
 import { CrossingBars, barsWidth, type ShiftYear } from './bars'
 import './crossings.css'
 
@@ -22,7 +22,7 @@ export function Section({ span }: { span: Span }) {
   const { scope, all, locale, actions, isCurrent } = useOverview()
   if (!scope || !all) return null
   const gate = scope.crossings
-  if (gate.status === 'below') return <Below id="crossings" gate={gate} />
+  if (gate.status !== 'ready') return null
   const data = gate.value,
     baseline = all.crossings.status === 'ready' ? all.crossings.value : data
   const ghosts = baseline.shiftByYear
