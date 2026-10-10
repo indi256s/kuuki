@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { globeZoom } from './camera'
 
-it('fits the visible sphere to the rim across viewport sizes and camera latitudes', () => {
+it('covers the viewport corners with the visible sphere across viewport sizes and camera latitudes', () => {
   const fieldOfView = 36.86989764584402
   for (const [width, height] of [
     [280, 280],
@@ -16,6 +16,6 @@ it('fits the visible sphere to the rim across viewport sizes and camera latitude
       const radius = (512 * 2 ** zoom) / (2 * Math.PI * Math.cos((centerLatitude * Math.PI) / 180))
       const distance = height / (2 * Math.tan((fieldOfView * Math.PI) / 360))
       const apparentRadius = (distance * radius) / Math.sqrt((distance + radius) ** 2 - radius ** 2)
-      expect(apparentRadius).toBeCloseTo((Math.min(width, height) - 18) / 2, 8)
+      expect(apparentRadius).toBeCloseTo(Math.hypot(width, height) / 2, 8)
     }
 })

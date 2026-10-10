@@ -64,7 +64,16 @@ const layers = [
   'globe-upcoming',
   'globe-airport-dots',
   'globe-microstate-dots',
+  'globe-route-casing',
 ]
+// Routes used the land ramp, so a route over a country in its own bucket measured 1:1. They now draw in ink over a land-toned casing: one of the two holds 3:1 on every bucket, theme and accent.
+const routeWidth: ExpressionSpecification = ['min', 3, ['get', 'bucket']]
+const casingWidth = (width: ExpressionSpecification | number): ExpressionSpecification => [
+  '+',
+  2,
+  width,
+]
+const round = { 'line-cap': 'round', 'line-join': 'round' } as const
 
 function GlobeLayers({
   props,
@@ -226,11 +235,20 @@ function GlobeLayers({
         paint: { 'fill-opacity': ['case', ['boolean', ['feature-state', 'ghost'], false], 1, 0] },
       })
       map.addLayer({
+        id: layers[6],
+        type: 'line',
+        source: sources[1],
+        filter: ['!', ['get', 'upcoming']],
+        layout: round,
+        paint: { 'line-width': casingWidth(routeWidth), 'line-opacity': 0 },
+      })
+      map.addLayer({
         id: layers[2],
         type: 'line',
         source: sources[1],
         filter: ['!', ['get', 'upcoming']],
-        paint: { 'line-width': ['min', 3, ['get', 'bucket']], 'line-opacity': 0.15 },
+        layout: round,
+        paint: { 'line-width': routeWidth, 'line-opacity': 0.15 },
       })
       map.addLayer({
         id: layers[3],
@@ -345,9 +363,10 @@ function GlobeLayers({
     map.setPaintProperty(layers[2], 'line-color', [
       'case',
       ['get', 'selected'],
-      maker ?? bucket(['get', 'bucket']),
+      maker ?? token('--globe-route'),
       token('--mark-ghost'),
     ])
+    map.setPaintProperty(layers[6], 'line-color', token('--globe-route-casing'))
     map.setPaintProperty(layers[3], 'line-color', token('--mark-ghost'))
     map.setPaintProperty(layers[4], 'circle-color', token('--mark-1'))
     map.setPaintProperty(layers[5], 'circle-color', bucket(['get', 'bucket']))
@@ -374,15 +393,24 @@ function GlobeLayers({
           .map((item) => routeKey(item.origin, item.destination)),
       ),
     ]
+    const lit: ExpressionSpecification | boolean =
+      props.reduced || !props.timeline.length ? true : ['in', ['get', 'key'], ['literal', revealed]]
+    // Routes not yet flown in the replay stay visible but secondary (about 2:1); filtered-out context stays a .15 ghost.
     map.setPaintProperty(layers[2], 'line-opacity', [
       'case',
       ['!', ['get', 'selected']],
       0.15,
-      props.reduced || !props.timeline.length
-        ? true
-        : ['in', ['get', 'key'], ['literal', revealed]],
+      lit,
       1,
-      0.15,
+      0.3,
+    ])
+    map.setPaintProperty(layers[6], 'line-opacity', [
+      'case',
+      ['!', ['get', 'selected']],
+      0,
+      lit,
+      1,
+      0,
     ])
   }, [map, land, props.timeline, props.replay.arcs, props.reduced])
   useEffect(() => {
@@ -410,14 +438,9 @@ function GlobeLayers({
     }
   }, [map, ready, props.active, props.globe.centroid, props.filter, props.reduced])
   useEffect(() => {
-    if (!map || !ready || !host.current || !props.active) return
-    return attachGlobeGestures(
-      map,
-      host.current,
-      props.fullscreen,
-      window.matchMedia('(pointer: coarse)').matches,
-    )
-  }, [map, ready, host, props.fullscreen, props.active])
+    if (!map || !ready || !props.active) return
+    attachGlobeGestures(map, props.fullscreen, window.matchMedia('(pointer: coarse)').matches)
+  }, [map, ready, props.fullscreen, props.active])
   useEffect(() => {
     if (!map || !land || !map.getSource(sources[1]) || !props.active) return
     let lastFocus: string | null = null
@@ -430,12 +453,14 @@ function GlobeLayers({
         0.8,
         0.15,
       ])
-      map.setPaintProperty(layers[2], 'line-width', [
+      const width: ExpressionSpecification = [
         'case',
         ['==', ['get', 'key'], snapshot.hoverRoute ?? snapshot.focusRoute ?? ''],
         4,
-        ['min', 3, ['get', 'bucket']],
-      ])
+        routeWidth,
+      ]
+      map.setPaintProperty(layers[2], 'line-width', width)
+      map.setPaintProperty(layers[6], 'line-width', casingWidth(width))
       if (snapshot.focusRoute === lastFocus) return
       lastFocus = snapshot.focusRoute
       if (!snapshot.focusRoute) return

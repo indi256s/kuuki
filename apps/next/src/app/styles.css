@@ -83,6 +83,8 @@
   --map-land: var(--surface-inset);
   --map-border: var(--hairline);
   --map-route: var(--accent);
+  --globe-route: var(--text);
+  --globe-route-casing: var(--map-land);
   --map-bucket-1: color-mix(in oklab, var(--accent) 24%, var(--map-land));
   --map-bucket-2: color-mix(in oklab, var(--accent) 43%, var(--map-land));
   --map-bucket-3: color-mix(in oklab, var(--accent) 65%, var(--map-land));
@@ -136,7 +138,6 @@
   --cat-alliance-skyteam: #3e5266;
   --accent-tint: color-mix(in srgb, var(--accent) 10%, var(--surface));
   --accent-on-tint: #b02f14;
-  --globe-rim: color-mix(in srgb, var(--accent) 14%, transparent);
   --heat-0: var(--surface-inset);
   --heat-1: #e6c8c1;
   --heat-2: #e4735c;
@@ -207,7 +208,6 @@
   --cat-alliance-skyteam: #a9bbd0;
   --accent-tint: color-mix(in srgb, var(--accent) 10%, var(--surface));
   --accent-on-tint: color-mix(in srgb, var(--accent-text) 80%, var(--text));
-  --globe-rim: color-mix(in srgb, var(--accent) 22%, transparent);
   --heat-0: var(--surface-inset);
   --heat-1: #e6c8c1;
   --heat-2: #e4735c;
