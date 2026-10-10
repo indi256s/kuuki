@@ -43,10 +43,13 @@ export function Map({
   }, [onError])
   useEffect(() => {
     if (!host.current) return
-    if (!document.createElement('canvas').getContext('webgl2')) {
+    const probe = document.createElement('canvas').getContext('webgl2')
+    if (!probe) {
       onErrorRef.current()
       return
     }
+    // iOS Safari caps live WebGL contexts; release the probe instead of waiting for GC.
+    probe.getExtension('WEBGL_lose_context')?.loseContext()
     MapLibreGL.setWorkerUrl('/maps/maplibre-6.13.0/maplibre-gl-worker.mjs')
     let instance: MapLibreGL.Map
     try {
@@ -62,17 +65,40 @@ export function Map({
     // Keyboard users get the country and route lists; the canvas must not be an unnamed tab stop.
     instance.getCanvas().tabIndex = -1
     instance.touchZoomRotate.disableRotation()
+    let loaded = false,
+      lost = false,
+      lostTimer = 0
     const timeout = window.setTimeout(() => {
       if (!instance.loaded()) onErrorRef.current()
     }, 12000)
-    const handleError = () => onErrorRef.current()
+    // After load, MapLibre error events are recoverable; only a failed first load is fatal.
+    const handleError = () => {
+      if (!loaded) onErrorRef.current()
+    }
     const handleLoad = () => {
+      loaded = true
       window.clearTimeout(timeout)
       setReady(true)
     }
+    // MapLibre restores a lost context itself (iOS drops them on backgrounding and memory pressure). Fail only if a visible page stays lost.
+    const armLost = () => {
+      window.clearTimeout(lostTimer)
+      if (lost && document.visibilityState === 'visible')
+        lostTimer = window.setTimeout(() => onErrorRef.current(), 12000)
+    }
+    const handleLost = () => {
+      lost = true
+      armLost()
+    }
+    const handleRestored = () => {
+      lost = false
+      window.clearTimeout(lostTimer)
+    }
     instance.on('error', handleError)
-    instance.on('webglcontextlost', handleError)
+    instance.on('webglcontextlost', handleLost)
+    instance.on('webglcontextrestored', handleRestored)
     instance.on('load', handleLoad)
+    document.addEventListener('visibilitychange', armLost)
     setMap(instance)
     const observer = new MutationObserver(() => setThemeRevision((value) => value + 1))
     observer.observe(document.documentElement, {
@@ -82,9 +108,12 @@ export function Map({
     return () => {
       observer.disconnect()
       window.clearTimeout(timeout)
+      window.clearTimeout(lostTimer)
+      document.removeEventListener('visibilitychange', armLost)
       instance.off('error', handleError)
       instance.off('load', handleLoad)
-      instance.off('webglcontextlost', handleError)
+      instance.off('webglcontextlost', handleLost)
+      instance.off('webglcontextrestored', handleRestored)
       instance.remove()
       setMap(null)
       setReady(false)

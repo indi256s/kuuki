@@ -285,13 +285,15 @@ function GlobeLayers({
     } catch {
       latest.current.onError()
     }
+    // Watchdog for the first render only: `map.loaded()` is false whenever a style or source update is pending, so polling it later fails a working globe.
+    const timeout = window.setTimeout(() => {
+      if (!disposed) latest.current.onError()
+    }, 12000)
     const idle = () => {
+      window.clearTimeout(timeout)
       if (!disposed && latest.current.isCurrent()) latest.current.onReady()
     }
     map.once('idle', idle)
-    const timeout = window.setTimeout(() => {
-      if (!disposed && !map.loaded()) latest.current.onError()
-    }, 12000)
     const click = (event: MapMouseEvent) => {
       if (!latest.current.active || !latest.current.isCurrent()) return
       const [feature] = map.queryRenderedFeatures(
