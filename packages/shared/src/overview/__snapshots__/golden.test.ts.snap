@@ -3,9 +3,278 @@
 exports[`dateLine matches its generated fixture and known snapshot values 1`] = `
 {
   "clock": {
-    "have": 6,
-    "need": 10,
-    "status": "below",
+    "status": "ready",
+    "value": {
+      "arrByHour": [
+        {
+          "flights": 0,
+          "hour": 0,
+          "key": "00",
+        },
+        {
+          "flights": 0,
+          "hour": 1,
+          "key": "01",
+        },
+        {
+          "flights": 0,
+          "hour": 2,
+          "key": "02",
+        },
+        {
+          "flights": 0,
+          "hour": 3,
+          "key": "03",
+        },
+        {
+          "flights": 0,
+          "hour": 4,
+          "key": "04",
+        },
+        {
+          "flights": 0,
+          "hour": 5,
+          "key": "05",
+        },
+        {
+          "flights": 0,
+          "hour": 6,
+          "key": "06",
+        },
+        {
+          "flights": 0,
+          "hour": 7,
+          "key": "07",
+        },
+        {
+          "flights": 0,
+          "hour": 8,
+          "key": "08",
+        },
+        {
+          "flights": 0,
+          "hour": 9,
+          "key": "09",
+        },
+        {
+          "flights": 0,
+          "hour": 10,
+          "key": "10",
+        },
+        {
+          "flights": 0,
+          "hour": 11,
+          "key": "11",
+        },
+        {
+          "flights": 0,
+          "hour": 12,
+          "key": "12",
+        },
+        {
+          "flights": 0,
+          "hour": 13,
+          "key": "13",
+        },
+        {
+          "flights": 0,
+          "hour": 14,
+          "key": "14",
+        },
+        {
+          "flights": 0,
+          "hour": 15,
+          "key": "15",
+        },
+        {
+          "flights": 0,
+          "hour": 16,
+          "key": "16",
+        },
+        {
+          "flights": 0,
+          "hour": 17,
+          "key": "17",
+        },
+        {
+          "flights": 0,
+          "hour": 18,
+          "key": "18",
+        },
+        {
+          "flights": 0,
+          "hour": 19,
+          "key": "19",
+        },
+        {
+          "flights": 0,
+          "hour": 20,
+          "key": "20",
+        },
+        {
+          "flights": 0,
+          "hour": 21,
+          "key": "21",
+        },
+        {
+          "flights": 0,
+          "hour": 22,
+          "key": "22",
+        },
+        {
+          "flights": 0,
+          "hour": 23,
+          "key": "23",
+        },
+      ],
+      "arrPeakHour": null,
+      "averageSpeedKmh": 4113,
+      "beforeNoonShare": 1,
+      "byHour": [
+        {
+          "flights": 0,
+          "hour": 0,
+          "key": "00",
+        },
+        {
+          "flights": 0,
+          "hour": 1,
+          "key": "01",
+        },
+        {
+          "flights": 0,
+          "hour": 2,
+          "key": "02",
+        },
+        {
+          "flights": 0,
+          "hour": 3,
+          "key": "03",
+        },
+        {
+          "flights": 0,
+          "hour": 4,
+          "key": "04",
+        },
+        {
+          "flights": 0,
+          "hour": 5,
+          "key": "05",
+        },
+        {
+          "flights": 0,
+          "hour": 6,
+          "key": "06",
+        },
+        {
+          "flights": 0,
+          "hour": 7,
+          "key": "07",
+        },
+        {
+          "flights": 0,
+          "hour": 8,
+          "key": "08",
+        },
+        {
+          "flights": 0,
+          "hour": 9,
+          "key": "09",
+        },
+        {
+          "flights": 6,
+          "hour": 10,
+          "key": "10",
+        },
+        {
+          "flights": 0,
+          "hour": 11,
+          "key": "11",
+        },
+        {
+          "flights": 0,
+          "hour": 12,
+          "key": "12",
+        },
+        {
+          "flights": 0,
+          "hour": 13,
+          "key": "13",
+        },
+        {
+          "flights": 0,
+          "hour": 14,
+          "key": "14",
+        },
+        {
+          "flights": 0,
+          "hour": 15,
+          "key": "15",
+        },
+        {
+          "flights": 0,
+          "hour": 16,
+          "key": "16",
+        },
+        {
+          "flights": 0,
+          "hour": 17,
+          "key": "17",
+        },
+        {
+          "flights": 0,
+          "hour": 18,
+          "key": "18",
+        },
+        {
+          "flights": 0,
+          "hour": 19,
+          "key": "19",
+        },
+        {
+          "flights": 0,
+          "hour": 20,
+          "key": "20",
+        },
+        {
+          "flights": 0,
+          "hour": 21,
+          "key": "21",
+        },
+        {
+          "flights": 0,
+          "hour": 22,
+          "key": "22",
+        },
+        {
+          "flights": 0,
+          "hour": 23,
+          "key": "23",
+        },
+      ],
+      "haul": [
+        {
+          "flights": 0,
+          "key": "short",
+        },
+        {
+          "flights": 0,
+          "key": "medium",
+        },
+        {
+          "flights": 6,
+          "key": "long",
+        },
+      ],
+      "peakHour": {
+        "flights": 6,
+        "hour": 10,
+      },
+      "redEyes": 0,
+      "total": 6,
+      "withArrivalTime": 0,
+      "withDepartureTime": 6,
+    },
   },
   "coverage": {
     "preciseDuration": 6,
@@ -288,6 +557,38 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
       },
     ],
   },
+  "goals": [
+    {
+      "have": 1,
+      "id": "unlock:rhythm",
+      "kind": "unlock",
+      "need": 2,
+      "section": "rhythm",
+      "unit": "months",
+    },
+    {
+      "have": 6,
+      "id": "milestone:flights:10",
+      "kind": "milestone",
+      "metric": "flights",
+      "need": 10,
+    },
+    {
+      "have": 2,
+      "id": "milestone:countries:5",
+      "kind": "milestone",
+      "metric": "countries",
+      "need": 5,
+    },
+    {
+      "have": 49356,
+      "id": "milestone:distanceKm:384400",
+      "kind": "milestone",
+      "metric": "distanceKm",
+      "need": 384400,
+      "rung": "moon",
+    },
+  ],
   "home": {
     "iata": "NRT",
     "source": "most_departed",
@@ -746,6 +1047,28 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
     "need": 2,
     "status": "below",
   },
+  "routes": {
+    "status": "ready",
+    "value": {
+      "byYear": [
+        {
+          "flights": 6,
+          "key": "2025",
+          "newRoutes": 1,
+          "year": 2025,
+        },
+      ],
+      "distinct": 1,
+      "flights": 6,
+      "homeShare": 1,
+      "profile": "commuter",
+      "repeatShare": 1,
+      "top": {
+        "count": 6,
+        "key": "NRT-SFO",
+      },
+    },
+  },
 }
 `;
 
@@ -753,7 +1076,7 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
 {
   "clock": {
     "have": 4,
-    "need": 10,
+    "need": 5,
     "status": "below",
   },
   "coverage": {
@@ -1024,6 +1347,40 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
       },
     ],
   },
+  "goals": [
+    {
+      "have": 4,
+      "id": "unlock:routes",
+      "kind": "unlock",
+      "need": 5,
+      "section": "routes",
+      "unit": "flights",
+    },
+    {
+      "have": 4,
+      "id": "unlock:clock",
+      "kind": "unlock",
+      "need": 5,
+      "section": "clock",
+      "unit": "times",
+    },
+    {
+      "have": 4,
+      "id": "unlock:aircraft",
+      "kind": "unlock",
+      "need": 5,
+      "section": "aircraft",
+      "unit": "aircraft",
+    },
+    {
+      "have": 1,
+      "id": "unlock:rhythm",
+      "kind": "unlock",
+      "need": 2,
+      "section": "rhythm",
+      "unit": "months",
+    },
+  ],
   "home": {
     "iata": "BAH",
     "source": "most_departed",
@@ -1247,9 +1604,148 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
     ],
   },
   "records": {
-    "have": 4,
-    "need": 5,
-    "status": "below",
+    "status": "ready",
+    "value": {
+      "biggestClockJump": {
+        "destination": "SIN",
+        "flightId": 4,
+        "origin": "LUX",
+        "value": 420,
+      },
+      "busiestDay": {
+        "date": "2025-01-01",
+        "flights": 4,
+      },
+      "busiestYear": {
+        "activeMonths": 1,
+        "countries": 4,
+        "flights": 4,
+        "months": [
+          {
+            "flights": 4,
+            "key": "2025-01",
+            "month": 1,
+          },
+          {
+            "flights": 0,
+            "key": "2025-02",
+            "month": 2,
+          },
+          {
+            "flights": 0,
+            "key": "2025-03",
+            "month": 3,
+          },
+          {
+            "flights": 0,
+            "key": "2025-04",
+            "month": 4,
+          },
+          {
+            "flights": 0,
+            "key": "2025-05",
+            "month": 5,
+          },
+          {
+            "flights": 0,
+            "key": "2025-06",
+            "month": 6,
+          },
+          {
+            "flights": 0,
+            "key": "2025-07",
+            "month": 7,
+          },
+          {
+            "flights": 0,
+            "key": "2025-08",
+            "month": 8,
+          },
+          {
+            "flights": 0,
+            "key": "2025-09",
+            "month": 9,
+          },
+          {
+            "flights": 0,
+            "key": "2025-10",
+            "month": 10,
+          },
+          {
+            "flights": 0,
+            "key": "2025-11",
+            "month": 11,
+          },
+          {
+            "flights": 0,
+            "key": "2025-12",
+            "month": 12,
+          },
+        ],
+        "peakMonth": 1,
+        "year": 2025,
+      },
+      "earliestDeparture": {
+        "date": "2025-01-01",
+        "depMinute": 600,
+        "destination": "BAH",
+        "flightId": 1,
+        "origin": "SIN",
+        "value": 600,
+      },
+      "longest": {
+        "airline": "TK",
+        "clockShiftMinutes": 420,
+        "date": "2025-01-01",
+        "destination": "SIN",
+        "durationApproximate": false,
+        "durationMinutes": 120,
+        "equatorShare": 0.2607860262008734,
+        "flightId": 4,
+        "flightNumber": "4",
+        "origin": "LUX",
+        "previousBestKm": null,
+        "speedKmh": 5225.5,
+        "value": 10451,
+      },
+      "longestDuration": {
+        "destination": "BAH",
+        "flightId": 1,
+        "origin": "SIN",
+        "value": 120,
+      },
+      "longestGroundStopDays": null,
+      "longestStreakMonths": 1,
+      "northernmost": {
+        "flight": {
+          "date": "2025-01-01",
+          "destination": "LUX",
+          "flightId": 3,
+          "origin": "MLA",
+          "value": 1671,
+        },
+        "iata": "LUX",
+        "lat": 49.6233333,
+      },
+      "shortest": {
+        "date": "2025-01-01",
+        "destination": "LUX",
+        "flightId": 3,
+        "origin": "MLA",
+        "shareOfLongest": 0.15988900583676202,
+        "value": 1671,
+      },
+      "shortestDuration": {
+        "destination": "BAH",
+        "flightId": 1,
+        "origin": "SIN",
+        "value": 120,
+      },
+      "southernmost": {
+        "iata": "SIN",
+        "lat": 1.3644,
+      },
+    },
   },
   "replay": [
     {
@@ -1290,6 +1786,11 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
     "need": 2,
     "status": "below",
   },
+  "routes": {
+    "have": 4,
+    "need": 5,
+    "status": "below",
+  },
 }
 `;
 
@@ -1297,7 +1798,7 @@ exports[`n0 matches its generated fixture and known snapshot values 1`] = `
 {
   "clock": {
     "have": 0,
-    "need": 10,
+    "need": 5,
     "status": "below",
   },
   "coverage": {
@@ -1346,6 +1847,7 @@ exports[`n0 matches its generated fixture and known snapshot values 1`] = `
     "ghosts": [],
     "routes": [],
   },
+  "goals": [],
   "home": null,
   "makers": {
     "have": 0,
@@ -1423,13 +1925,18 @@ exports[`n0 matches its generated fixture and known snapshot values 1`] = `
   },
   "records": {
     "have": 0,
-    "need": 5,
+    "need": 3,
     "status": "below",
   },
   "replay": [],
   "rhythm": {
     "have": 0,
     "need": 2,
+    "status": "below",
+  },
+  "routes": {
+    "have": 0,
+    "need": 5,
     "status": "below",
   },
 }
@@ -1439,7 +1946,7 @@ exports[`n1 matches its generated fixture and known snapshot values 1`] = `
 {
   "clock": {
     "have": 1,
-    "need": 10,
+    "need": 5,
     "status": "below",
   },
   "coverage": {
@@ -1518,6 +2025,40 @@ exports[`n1 matches its generated fixture and known snapshot values 1`] = `
       },
     ],
   },
+  "goals": [
+    {
+      "have": 1,
+      "id": "unlock:rhythm",
+      "kind": "unlock",
+      "need": 2,
+      "section": "rhythm",
+      "unit": "months",
+    },
+    {
+      "have": 1,
+      "id": "unlock:records",
+      "kind": "unlock",
+      "need": 3,
+      "section": "records",
+      "unit": "flights",
+    },
+    {
+      "have": 1,
+      "id": "unlock:crossings",
+      "kind": "unlock",
+      "need": 3,
+      "section": "crossings",
+      "unit": "flights",
+    },
+    {
+      "have": 1,
+      "id": "unlock:routes",
+      "kind": "unlock",
+      "need": 5,
+      "section": "routes",
+      "unit": "flights",
+    },
+  ],
   "home": {
     "iata": "TBS",
     "source": "most_departed",
@@ -1667,7 +2208,7 @@ exports[`n1 matches its generated fixture and known snapshot values 1`] = `
   },
   "records": {
     "have": 1,
-    "need": 5,
+    "need": 3,
     "status": "below",
   },
   "replay": [
@@ -1683,6 +2224,11 @@ exports[`n1 matches its generated fixture and known snapshot values 1`] = `
   "rhythm": {
     "have": 1,
     "need": 2,
+    "status": "below",
+  },
+  "routes": {
+    "have": 1,
+    "need": 5,
     "status": "below",
   },
 }
@@ -2325,6 +2871,30 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
       },
     ],
   },
+  "goals": [
+    {
+      "have": 5,
+      "id": "milestone:countries:10",
+      "kind": "milestone",
+      "metric": "countries",
+      "need": 10,
+    },
+    {
+      "have": 10,
+      "id": "milestone:flights:25",
+      "kind": "milestone",
+      "metric": "flights",
+      "need": 25,
+    },
+    {
+      "have": 46694,
+      "id": "milestone:distanceKm:384400",
+      "kind": "milestone",
+      "metric": "distanceKm",
+      "need": 384400,
+      "rung": "moon",
+    },
+  ],
   "home": {
     "iata": "TBS",
     "source": "most_departed",
@@ -3135,6 +3705,28 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
       "years": [
         2020,
       ],
+    },
+  },
+  "routes": {
+    "status": "ready",
+    "value": {
+      "byYear": [
+        {
+          "flights": 10,
+          "key": "2020",
+          "newRoutes": 3,
+          "year": 2020,
+        },
+      ],
+      "distinct": 3,
+      "flights": 10,
+      "homeShare": 0.4,
+      "profile": "commuter",
+      "repeatShare": 1,
+      "top": {
+        "count": 4,
+        "key": "IST-TBS",
+      },
     },
   },
 }
@@ -4464,6 +5056,22 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
       },
     ],
   },
+  "goals": [
+    {
+      "have": 455,
+      "id": "milestone:flights:500",
+      "kind": "milestone",
+      "metric": "flights",
+      "need": 500,
+    },
+    {
+      "have": 5,
+      "id": "milestone:countries:10",
+      "kind": "milestone",
+      "metric": "countries",
+      "need": 10,
+    },
+  ],
   "home": {
     "iata": "JFK",
     "source": "most_departed",
@@ -17277,6 +17885,58 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
       ],
     },
   },
+  "routes": {
+    "status": "ready",
+    "value": {
+      "byYear": [
+        {
+          "flights": 77,
+          "key": "2020",
+          "newRoutes": 3,
+          "year": 2020,
+        },
+        {
+          "flights": 77,
+          "key": "2021",
+          "newRoutes": 0,
+          "year": 2021,
+        },
+        {
+          "flights": 77,
+          "key": "2022",
+          "newRoutes": 0,
+          "year": 2022,
+        },
+        {
+          "flights": 76,
+          "key": "2023",
+          "newRoutes": 0,
+          "year": 2023,
+        },
+        {
+          "flights": 76,
+          "key": "2024",
+          "newRoutes": 0,
+          "year": 2024,
+        },
+        {
+          "flights": 72,
+          "key": "2025",
+          "newRoutes": 0,
+          "year": 2025,
+        },
+      ],
+      "distinct": 3,
+      "flights": 455,
+      "homeShare": 0.33406593406593404,
+      "profile": "commuter",
+      "repeatShare": 1,
+      "top": {
+        "count": 152,
+        "key": "IST-TBS",
+      },
+    },
+  },
 }
 `;
 
@@ -22650,6 +23310,15 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
       },
     ],
   },
+  "goals": [
+    {
+      "have": 5,
+      "id": "milestone:countries:10",
+      "kind": "milestone",
+      "metric": "countries",
+      "need": 10,
+    },
+  ],
   "home": {
     "iata": "JFK",
     "source": "most_departed",
@@ -29997,15 +30666,336 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
       ],
     },
   },
+  "routes": {
+    "status": "ready",
+    "value": {
+      "byYear": [
+        {
+          "flights": 764,
+          "key": "2020",
+          "newRoutes": 3,
+          "year": 2020,
+        },
+        {
+          "flights": 764,
+          "key": "2021",
+          "newRoutes": 0,
+          "year": 2021,
+        },
+        {
+          "flights": 761,
+          "key": "2022",
+          "newRoutes": 0,
+          "year": 2022,
+        },
+        {
+          "flights": 753,
+          "key": "2023",
+          "newRoutes": 0,
+          "year": 2023,
+        },
+        {
+          "flights": 753,
+          "key": "2024",
+          "newRoutes": 0,
+          "year": 2024,
+        },
+        {
+          "flights": 752,
+          "key": "2025",
+          "newRoutes": 0,
+          "year": 2025,
+        },
+      ],
+      "distinct": 3,
+      "flights": 4547,
+      "homeShare": 0.3334066417418078,
+      "profile": "commuter",
+      "repeatShare": 1,
+      "top": {
+        "count": 1516,
+        "key": "IST-TBS",
+      },
+    },
+  },
 }
 `;
 
 exports[`polar matches its generated fixture and known snapshot values 1`] = `
 {
   "clock": {
-    "have": 6,
-    "need": 10,
-    "status": "below",
+    "status": "ready",
+    "value": {
+      "arrByHour": [
+        {
+          "flights": 0,
+          "hour": 0,
+          "key": "00",
+        },
+        {
+          "flights": 0,
+          "hour": 1,
+          "key": "01",
+        },
+        {
+          "flights": 0,
+          "hour": 2,
+          "key": "02",
+        },
+        {
+          "flights": 0,
+          "hour": 3,
+          "key": "03",
+        },
+        {
+          "flights": 0,
+          "hour": 4,
+          "key": "04",
+        },
+        {
+          "flights": 0,
+          "hour": 5,
+          "key": "05",
+        },
+        {
+          "flights": 0,
+          "hour": 6,
+          "key": "06",
+        },
+        {
+          "flights": 0,
+          "hour": 7,
+          "key": "07",
+        },
+        {
+          "flights": 0,
+          "hour": 8,
+          "key": "08",
+        },
+        {
+          "flights": 0,
+          "hour": 9,
+          "key": "09",
+        },
+        {
+          "flights": 0,
+          "hour": 10,
+          "key": "10",
+        },
+        {
+          "flights": 0,
+          "hour": 11,
+          "key": "11",
+        },
+        {
+          "flights": 0,
+          "hour": 12,
+          "key": "12",
+        },
+        {
+          "flights": 0,
+          "hour": 13,
+          "key": "13",
+        },
+        {
+          "flights": 0,
+          "hour": 14,
+          "key": "14",
+        },
+        {
+          "flights": 0,
+          "hour": 15,
+          "key": "15",
+        },
+        {
+          "flights": 0,
+          "hour": 16,
+          "key": "16",
+        },
+        {
+          "flights": 0,
+          "hour": 17,
+          "key": "17",
+        },
+        {
+          "flights": 0,
+          "hour": 18,
+          "key": "18",
+        },
+        {
+          "flights": 0,
+          "hour": 19,
+          "key": "19",
+        },
+        {
+          "flights": 0,
+          "hour": 20,
+          "key": "20",
+        },
+        {
+          "flights": 0,
+          "hour": 21,
+          "key": "21",
+        },
+        {
+          "flights": 0,
+          "hour": 22,
+          "key": "22",
+        },
+        {
+          "flights": 0,
+          "hour": 23,
+          "key": "23",
+        },
+      ],
+      "arrPeakHour": null,
+      "averageSpeedKmh": 6592.5,
+      "beforeNoonShare": 1,
+      "byHour": [
+        {
+          "flights": 0,
+          "hour": 0,
+          "key": "00",
+        },
+        {
+          "flights": 0,
+          "hour": 1,
+          "key": "01",
+        },
+        {
+          "flights": 0,
+          "hour": 2,
+          "key": "02",
+        },
+        {
+          "flights": 0,
+          "hour": 3,
+          "key": "03",
+        },
+        {
+          "flights": 0,
+          "hour": 4,
+          "key": "04",
+        },
+        {
+          "flights": 0,
+          "hour": 5,
+          "key": "05",
+        },
+        {
+          "flights": 0,
+          "hour": 6,
+          "key": "06",
+        },
+        {
+          "flights": 0,
+          "hour": 7,
+          "key": "07",
+        },
+        {
+          "flights": 0,
+          "hour": 8,
+          "key": "08",
+        },
+        {
+          "flights": 0,
+          "hour": 9,
+          "key": "09",
+        },
+        {
+          "flights": 6,
+          "hour": 10,
+          "key": "10",
+        },
+        {
+          "flights": 0,
+          "hour": 11,
+          "key": "11",
+        },
+        {
+          "flights": 0,
+          "hour": 12,
+          "key": "12",
+        },
+        {
+          "flights": 0,
+          "hour": 13,
+          "key": "13",
+        },
+        {
+          "flights": 0,
+          "hour": 14,
+          "key": "14",
+        },
+        {
+          "flights": 0,
+          "hour": 15,
+          "key": "15",
+        },
+        {
+          "flights": 0,
+          "hour": 16,
+          "key": "16",
+        },
+        {
+          "flights": 0,
+          "hour": 17,
+          "key": "17",
+        },
+        {
+          "flights": 0,
+          "hour": 18,
+          "key": "18",
+        },
+        {
+          "flights": 0,
+          "hour": 19,
+          "key": "19",
+        },
+        {
+          "flights": 0,
+          "hour": 20,
+          "key": "20",
+        },
+        {
+          "flights": 0,
+          "hour": 21,
+          "key": "21",
+        },
+        {
+          "flights": 0,
+          "hour": 22,
+          "key": "22",
+        },
+        {
+          "flights": 0,
+          "hour": 23,
+          "key": "23",
+        },
+      ],
+      "haul": [
+        {
+          "flights": 0,
+          "key": "short",
+        },
+        {
+          "flights": 0,
+          "key": "medium",
+        },
+        {
+          "flights": 6,
+          "key": "long",
+        },
+      ],
+      "peakHour": {
+        "flights": 6,
+        "hour": 10,
+      },
+      "redEyes": 0,
+      "total": 6,
+      "withArrivalTime": 0,
+      "withDepartureTime": 6,
+    },
   },
   "coverage": {
     "preciseDuration": 6,
@@ -30312,6 +31302,38 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
       },
     ],
   },
+  "goals": [
+    {
+      "have": 1,
+      "id": "unlock:rhythm",
+      "kind": "unlock",
+      "need": 2,
+      "section": "rhythm",
+      "unit": "months",
+    },
+    {
+      "have": 6,
+      "id": "milestone:flights:10",
+      "kind": "milestone",
+      "metric": "flights",
+      "need": 10,
+    },
+    {
+      "have": 3,
+      "id": "milestone:countries:5",
+      "kind": "milestone",
+      "metric": "countries",
+      "need": 5,
+    },
+    {
+      "have": 79110,
+      "id": "milestone:distanceKm:384400",
+      "kind": "milestone",
+      "metric": "distanceKm",
+      "need": 384400,
+      "rung": "moon",
+    },
+  ],
   "home": {
     "iata": "DXB",
     "source": "most_departed",
@@ -30814,6 +31836,28 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
     "have": 1,
     "need": 2,
     "status": "below",
+  },
+  "routes": {
+    "status": "ready",
+    "value": {
+      "byYear": [
+        {
+          "flights": 6,
+          "key": "2025",
+          "newRoutes": 2,
+          "year": 2025,
+        },
+      ],
+      "distinct": 2,
+      "flights": 6,
+      "homeShare": 0.5,
+      "profile": "commuter",
+      "repeatShare": 1,
+      "top": {
+        "count": 3,
+        "key": "DXB-LAX",
+      },
+    },
   },
 }
 `;
@@ -31373,6 +32417,38 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
       },
     ],
   },
+  "goals": [
+    {
+      "have": 1,
+      "id": "unlock:rhythm",
+      "kind": "unlock",
+      "need": 2,
+      "section": "rhythm",
+      "unit": "months",
+    },
+    {
+      "have": 10,
+      "id": "milestone:flights:25",
+      "kind": "milestone",
+      "metric": "flights",
+      "need": 25,
+    },
+    {
+      "have": 2,
+      "id": "milestone:countries:5",
+      "kind": "milestone",
+      "metric": "countries",
+      "need": 5,
+    },
+    {
+      "have": 55400,
+      "id": "milestone:distanceKm:384400",
+      "kind": "milestone",
+      "metric": "distanceKm",
+      "need": 384400,
+      "rung": "moon",
+    },
+  ],
   "home": {
     "iata": "JFK",
     "source": "most_departed",
@@ -31903,6 +32979,28 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
     "need": 2,
     "status": "below",
   },
+  "routes": {
+    "status": "ready",
+    "value": {
+      "byYear": [
+        {
+          "flights": 10,
+          "key": "2026",
+          "newRoutes": 1,
+          "year": 2026,
+        },
+      ],
+      "distinct": 1,
+      "flights": 10,
+      "homeShare": 1,
+      "profile": "commuter",
+      "repeatShare": 1,
+      "top": {
+        "count": 10,
+        "key": "JFK-LHR",
+      },
+    },
+  },
 }
 `;
 
@@ -31910,7 +33008,7 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
 {
   "clock": {
     "have": 2,
-    "need": 10,
+    "need": 5,
     "status": "below",
   },
   "coverage": {
@@ -32013,6 +33111,40 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
       },
     ],
   },
+  "goals": [
+    {
+      "have": 2,
+      "id": "unlock:records",
+      "kind": "unlock",
+      "need": 3,
+      "section": "records",
+      "unit": "flights",
+    },
+    {
+      "have": 2,
+      "id": "unlock:crossings",
+      "kind": "unlock",
+      "need": 3,
+      "section": "crossings",
+      "unit": "flights",
+    },
+    {
+      "have": 1,
+      "id": "unlock:rhythm",
+      "kind": "unlock",
+      "need": 2,
+      "section": "rhythm",
+      "unit": "months",
+    },
+    {
+      "have": 2,
+      "id": "unlock:routes",
+      "kind": "unlock",
+      "need": 5,
+      "section": "routes",
+      "unit": "flights",
+    },
+  ],
   "home": {
     "iata": "IST",
     "source": "most_departed",
@@ -32192,7 +33324,7 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
   },
   "records": {
     "have": 2,
-    "need": 5,
+    "need": 3,
     "status": "below",
   },
   "replay": [
@@ -32216,6 +33348,11 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
   "rhythm": {
     "have": 1,
     "need": 2,
+    "status": "below",
+  },
+  "routes": {
+    "have": 2,
+    "need": 5,
     "status": "below",
   },
 }

@@ -1,10 +1,10 @@
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 
-export function packTiles(order: SectionId[], hidden: SectionId[]): { id: SectionId; span: 'half' | 'full' }[] {
+export function packTiles(visible: SectionId[]): { id: SectionId; span: 'half' | 'full' }[] {
   const tiles: ReturnType<typeof packTiles> = []
   let orphan: number | null = null
-  for (const id of order.filter(id => !hidden.includes(id))) {
-    if (id === 'manufacturers') {
+  for (const id of visible) {
+    if (id === 'aircraft') {
       if (orphan !== null) tiles[orphan].span = 'full'
       orphan = null
       tiles.push({ id, span: 'full' })
