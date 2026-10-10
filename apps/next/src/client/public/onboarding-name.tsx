@@ -55,7 +55,7 @@ export function OnboardingName({ ownerId, username: initialUsername, displayName
     : (ru ? 'Не удалось проверить имя. Измените имя или повторите проверку.' : 'Could not check username. Edit it or retry the check.')
   const taken = valid && !available && check?.value === normalized && check.status === 'taken'
   return <form className="onboarding-form" onSubmit={save}>
-    <ProfileAvatar id={ownerId} url={null} name={name || normalized || (ru ? 'Ваш профиль' : 'Your profile')} />
+    <ProfileAvatar id={ownerId} url={null} name={name.trim() || normalized || (ru ? 'Ваш профиль' : 'Your profile')} />
     <Field label={ru ? 'Отображаемое имя' : 'Display name'} value={name} maxLength={80} disabled={saving} onChange={event => setName(event.target.value)} />
     <Field label={ru ? 'Имя пользователя' : 'Username'} hint={ru ? 'Мы сохраняем имя пользователя строчными латинскими буквами.' : 'We save your username in lowercase Latin letters.'}
       value={username} disabled={saving} onChange={event => { setUsername(event.target.value); setMessage('') }} autoComplete="username" maxLength={30}
