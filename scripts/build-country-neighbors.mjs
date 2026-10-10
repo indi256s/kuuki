@@ -7,7 +7,7 @@
 // is shared. A single shared point (a tripoint touch) is not enough. Only catalog codes are kept.
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const geometryPath = 'apps/next/public/maps/countries-110m-2.0.2.geojson'
+const geometryPath = 'apps/next/public/maps/countries-110m-2.0.2-r2.geojson'
 const outputPath = 'packages/data/src/country-neighbors.ts'
 const catalog = JSON.parse(readFileSync('packages/data/src/countries.json', 'utf8'))
 const { features } = JSON.parse(readFileSync(geometryPath, 'utf8'))

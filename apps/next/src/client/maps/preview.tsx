@@ -1,6 +1,6 @@
 import type { ProjectedPair } from '@kuuki/shared'
 import { BUCKET_TOKENS, visitBucket } from '../../lib/map-buckets'
-import centers from '../../../public/maps/country-centers-110m-2.0.2.json'
+import centers from '../../../public/maps/country-centers-110m-2.0.2-r2.json'
 import { routeGeometry } from './geometry'
 
 /** `pending`: awaiting flights only. Listed, never filled as a visit. */
@@ -71,13 +71,13 @@ export function CountryPreview({
       >
         <image
           className="country-preview-outline-light"
-          href="/maps/world-outline-110m-2.0.2-light.svg"
+          href="/maps/world-outline-110m-2.0.2-r2-light.svg"
           width="720"
           height="360"
         />
         <image
           className="country-preview-outline-dark"
-          href="/maps/world-outline-110m-2.0.2-dark.svg"
+          href="/maps/world-outline-110m-2.0.2-r2-dark.svg"
           width="720"
           height="360"
         />

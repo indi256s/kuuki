@@ -66,11 +66,20 @@ const layers = [
   'globe-microstate-dots',
   'globe-route-casing',
 ]
-// Routes used the land ramp, so a route over a country in its own bucket measured 1:1. They now draw in ink over a land-toned casing: one of the two holds 3:1 on every bucket, theme and accent.
-const routeWidth: ExpressionSpecification = ['min', 3, ['get', 'bucket']]
+// Routes used the land ramp, so a route over a country in its own bucket measured 1:1. They now draw in ink over a land-toned halo: one of the two holds 3:1 on every bucket, theme and accent.
+// The core stays fine (1.25–2.5px by visit bucket); the halo is solid for its first half-pixel and blurs out over 2px, so it separates the line without outlining it.
+const routeWidth: ExpressionSpecification = [
+  'interpolate',
+  ['linear'],
+  ['get', 'bucket'],
+  1,
+  1.25,
+  4,
+  2.5,
+]
 const casingWidth = (width: ExpressionSpecification | number): ExpressionSpecification => [
   '+',
-  2,
+  5,
   width,
 ]
 const round = { 'line-cap': 'round', 'line-join': 'round' } as const
@@ -198,7 +207,7 @@ function GlobeLayers({
     const controller = new AbortController()
     const retire = () => controller.abort()
     window.addEventListener('kuuki:identity-reset', retire)
-    void fetch('/maps/countries-110m-2.0.2.geojson', {
+    void fetch('/maps/countries-110m-2.0.2-r2.geojson', {
       signal: controller.signal,
       cache: 'force-cache',
     })
@@ -240,7 +249,7 @@ function GlobeLayers({
         source: sources[1],
         filter: ['!', ['get', 'upcoming']],
         layout: round,
-        paint: { 'line-width': casingWidth(routeWidth), 'line-opacity': 0 },
+        paint: { 'line-width': casingWidth(routeWidth), 'line-blur': 2, 'line-opacity': 0 },
       })
       map.addLayer({
         id: layers[2],
@@ -261,7 +270,8 @@ function GlobeLayers({
         id: layers[4],
         type: 'circle',
         source: sources[2],
-        paint: { 'circle-radius': 2.5 },
+        // Every route ends on a bead in its own ink, so a line over a fully filled country still reads as arriving somewhere.
+        paint: { 'circle-radius': 3, 'circle-stroke-width': 1.5 },
       })
       map.addLayer({
         id: layers[5],
@@ -368,7 +378,8 @@ function GlobeLayers({
     ])
     map.setPaintProperty(layers[6], 'line-color', token('--globe-route-casing'))
     map.setPaintProperty(layers[3], 'line-color', token('--mark-ghost'))
-    map.setPaintProperty(layers[4], 'circle-color', token('--mark-1'))
+    map.setPaintProperty(layers[4], 'circle-color', token('--globe-route'))
+    map.setPaintProperty(layers[4], 'circle-stroke-color', token('--globe-route-casing'))
     map.setPaintProperty(layers[5], 'circle-color', bucket(['get', 'bucket']))
   }, [
     map,
@@ -421,20 +432,12 @@ function GlobeLayers({
     moveCamera(map, center, props.reduced)
     const resize = () => {
       if (!latest.current.isCurrent()) return
-      map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE)
+      setZoomLimits(map)
       map.jumpTo({ zoom: fitZoom(map, map.getCenter().lat) })
     }
-    // The fit depends on latitude, so a fixed minZoom would pin a dragged sphere too large or let it shrink; settle back to the fit instead.
-    const settle = () => {
-      const fit = fitZoom(map, map.getCenter().lat)
-      if (latest.current.isCurrent() && map.getZoom() < fit - 0.01)
-        map.easeTo({ zoom: fit, duration: latest.current.reduced ? 0 : 200 })
-    }
     map.on('resize', resize)
-    map.on('moveend', settle)
     return () => {
       map.off('resize', resize)
-      map.off('moveend', settle)
     }
   }, [map, ready, props.active, props.globe.centroid, props.filter, props.reduced])
   useEffect(() => {
@@ -456,7 +459,7 @@ function GlobeLayers({
       const width: ExpressionSpecification = [
         'case',
         ['==', ['get', 'key'], snapshot.hoverRoute ?? snapshot.focusRoute ?? ''],
-        4,
+        3.5,
         routeWidth,
       ]
       map.setPaintProperty(layers[2], 'line-width', width)
@@ -505,16 +508,23 @@ function GlobeLayers({
       })
     : null
 }
-const fitZoom = (map: LibreMap, latitude: number) =>
+const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'cover') =>
   globeZoom(
     map.getContainer().clientWidth,
     map.getContainer().clientHeight,
     latitude,
     map.getVerticalFieldOfView(),
+    fit,
   )
+// Zoom out stops where the whole sphere shows and stays there; zoom in goes a few cities deep past the cover fit.
+// On a globe MapLibre applies both limits at the equator and corrects them for the center's latitude itself, so they are fitted at 0°.
+function setZoomLimits(map: LibreMap) {
+  map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE)
+  map.setMinZoom(fitZoom(map, 0, 'contain'))
+}
 function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {
   const zoom = fitZoom(map, center[1])
-  map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE)
+  setZoomLimits(map)
   if (reduced) map.jumpTo({ center, zoom })
   else
     map.flyTo({

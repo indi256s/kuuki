@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { globeZoom } from './camera'
 
-it('covers the viewport corners with the visible sphere across viewport sizes and camera latitudes', () => {
+it('covers the viewport corners, or fits inside its margin, across viewport sizes and camera latitudes', () => {
   const fieldOfView = 36.86989764584402
   for (const [width, height] of [
     [280, 280],
@@ -10,12 +10,18 @@ it('covers the viewport corners with the visible sphere across viewport sizes an
     [860, 380],
     [380, 860],
   ])
-    for (const latitude of [-90, -70, 0, 70, 90]) {
-      const zoom = globeZoom(width, height, latitude, fieldOfView)
-      const centerLatitude = Math.max(-85.051129, Math.min(85.051129, latitude))
-      const radius = (512 * 2 ** zoom) / (2 * Math.PI * Math.cos((centerLatitude * Math.PI) / 180))
-      const distance = height / (2 * Math.tan((fieldOfView * Math.PI) / 360))
-      const apparentRadius = (distance * radius) / Math.sqrt((distance + radius) ** 2 - radius ** 2)
-      expect(apparentRadius).toBeCloseTo(Math.hypot(width, height) / 2, 8)
-    }
+    for (const latitude of [-90, -70, 0, 70, 90])
+      for (const [fit, expected] of [
+        ['cover', Math.hypot(width, height) / 2],
+        ['contain', Math.min(width, height) / 2 - 16],
+      ] as const) {
+        const zoom = globeZoom(width, height, latitude, fieldOfView, fit)
+        const centerLatitude = Math.max(-85.051129, Math.min(85.051129, latitude))
+        const radius =
+          (512 * 2 ** zoom) / (2 * Math.PI * Math.cos((centerLatitude * Math.PI) / 180))
+        const distance = height / (2 * Math.tan((fieldOfView * Math.PI) / 360))
+        const apparentRadius =
+          (distance * radius) / Math.sqrt((distance + radius) ** 2 - radius ** 2)
+        expect(apparentRadius).toBeCloseTo(expected, 8)
+      }
 })

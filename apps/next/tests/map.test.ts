@@ -10,7 +10,7 @@ test('the overview globe keeps its canvas visible in the card and fullscreen', a
   const atlasReady = new Promise<void>((resolve) => {
     releaseAtlas = resolve
   })
-  await page.route('**/maps/countries-110m-2.0.2.geojson', async (route) => {
+  await page.route('**/maps/countries-110m-2.0.2-r2.geojson', async (route) => {
     await atlasReady
     await route.continue()
   })
@@ -76,7 +76,7 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Fit routes' }).click()
   expect(assets.some((url) => url.endsWith('maplibre-gl-worker.mjs'))).toBe(true)
-  expect(assets.some((url) => url.endsWith('countries-110m-2.0.2.geojson'))).toBe(true)
+  expect(assets.some((url) => url.endsWith('countries-110m-2.0.2-r2.geojson'))).toBe(true)
   expect(assets.every((url) => new URL(url).origin === baseURL)).toBe(true)
   await page.getByRole('button', { name: 'Close map', exact: true }).click()
   await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)

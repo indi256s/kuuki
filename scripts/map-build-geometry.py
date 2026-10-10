@@ -3,10 +3,16 @@
 Inputs are supplied explicitly so this script never fetches changing data silently.
 
     python3 scripts/map-build-geometry.py <countries-110m.json> <country-codes.csv> <output.geojson>
-    python3 scripts/map-build-geometry.py --rebuild apps/next/public/maps/countries-110m-2.0.2.geojson
+    python3 scripts/map-build-geometry.py --rebuild apps/next/public/maps/countries-110m-2.0.2-r2.geojson
 
 `--rebuild` re-derives the SVG outline and centers from the pinned GeoJSON (and re-applies the
-antimeridian split, which is idempotent) when the original inputs are not at hand.
+antimeridian split and the Crimea assignment, both idempotent) when the original inputs are not at hand.
+
+Borders follow Ukraine's internationally recognised territory: world-atlas (Natural Earth's default view)
+draws Crimea inside Russia, so `assign_crimea_to_ukraine` moves it back.
+
+The assets are served as immutable, so any change to their content needs a new revision suffix on the GeoJSON
+name (`-r2`, `-r3`…); the outline and centers take their names from it.
 """
 import csv
 import json
@@ -68,6 +74,36 @@ def split_geometry(geometry):
     return {'type': 'Polygon', 'coordinates': out[0]} if len(out) == 1 else {'type': 'MultiPolygon', 'coordinates': out}
 
 
+CRIMEA = (32.0, 44.0, 37.0, 46.5)  # lon/lat box holding the peninsula and nothing else of Russia at 110m
+
+
+def assign_crimea_to_ukraine(features):
+    """Move Russia's Crimea polygon into Ukraine, joined along their shared Perekop edge so no border line is left."""
+    by_id = {feature['id']: feature for feature in features}
+    russia, ukraine = by_id['RU']['geometry'], by_id['UA']['geometry']
+    if russia['type'] != 'MultiPolygon':
+        return
+    inside = lambda polygon: all(CRIMEA[0] <= x <= CRIMEA[2] and CRIMEA[1] <= y <= CRIMEA[3] for x, y in polygon[0])
+    crimea = [polygon for polygon in russia['coordinates'] if inside(polygon)]
+    if not crimea:
+        return  # already assigned
+    if len(crimea) != 1 or len(crimea[0]) != 1 or ukraine['type'] != 'Polygon':
+        raise ValueError('unexpected Crimea or Ukraine geometry')
+    peninsula, mainland = crimea[0][0][:-1], ukraine['coordinates'][0]
+    index = {tuple(point): i for i, point in enumerate(mainland[:-1])}
+    shared = [i for i, point in enumerate(peninsula) if tuple(point) in index]
+    # The shared edge is a contiguous run that the two rings walk in opposite directions.
+    start = next(i for i in shared if (i - 1) % len(peninsula) not in shared)
+    end = next(i for i in shared if (i + 1) % len(peninsula) not in shared)
+    a, b = index[tuple(peninsula[end])], index[tuple(peninsula[start])]
+    if a >= b:
+        raise ValueError('Crimea shares no simple edge with Ukraine')
+    coast = [peninsula[(end + k) % len(peninsula)] for k in range((start - end) % len(peninsula) + 1)]
+    merged = mainland[:a] + coast + mainland[b + 1:]
+    ukraine['coordinates'] = [merged] + ukraine['coordinates'][1:]
+    russia['coordinates'] = [polygon for polygon in russia['coordinates'] if not inside(polygon)]
+
+
 def main(topology_path, codes_path, output_path):
     topology = json.loads(Path(topology_path).read_text())
     with Path(codes_path).open(newline='') as source:
@@ -111,6 +147,8 @@ def main(topology_path, codes_path, output_path):
 
 
 def write_outputs(features, output_path):
+    tag = Path(output_path).stem.removeprefix('countries-')
+    assign_crimea_to_ukraine(features)
     for feature in features:
         feature['geometry'] = split_geometry(feature['geometry'])
     output = {'type': 'FeatureCollection', 'features': features}
@@ -137,8 +175,13 @@ def write_outputs(features, output_path):
             path_parts.append('M' + 'L'.join(f'{x},{y}' for x, y in map(project, points)) + 'Z')
         paths.append(f'<path d="{"".join(path_parts)}"/>')
     css = (Path(__file__).resolve().parents[1] / 'apps/next/src/app/styles.css').read_text()
-    light = dict(re.findall(r'(--[\w-]+):([^;}]*)', re.search(r':root\{([^}]*)\}', css).group(1)))
-    dark = {**light, **dict(re.findall(r'(--[\w-]+):([^;}]*)', re.search(r':root\[data-theme=dark\]\{([^}]*)\}', css).group(1)))}
+    def block(selector):
+        bodies = re.findall(selector + r'\s*\{([^}]*)\}', css)
+        if not bodies:
+            raise ValueError(f'no {selector} block in styles.css')
+        return {name: value.strip() for body in bodies for name, value in re.findall(r'(--[\w-]+):([^;}]*)', body)}
+    light = block(r':root')
+    dark = {**light, **block(r":root\[data-theme=['\"]?dark['\"]?\]")}
     for theme, tokens in [('light', light), ('dark', dark)]:
         def color(name):
             value = tokens[name].strip()
@@ -148,8 +191,8 @@ def write_outputs(features, output_path):
                 raise ValueError(f'{theme} {name} is not a hex color: {value}')
             return value
         svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" fill="{color("--map-land")}" stroke="{color("--map-border")}" stroke-width=".35">' + ''.join(paths) + '</svg>'
-        Path(output_path).with_name(f'world-outline-110m-2.0.2-{theme}.svg').write_text(svg)
-    Path(output_path).with_name('country-centers-110m-2.0.2.json').write_text(json.dumps(centers, separators=(',', ':')))
+        Path(output_path).with_name(f'world-outline-{tag}-{theme}.svg').write_text(svg)
+    Path(output_path).with_name(f'country-centers-{tag}.json').write_text(json.dumps(centers, separators=(',', ':')))
 
 
 def rebuild(geojson_path):

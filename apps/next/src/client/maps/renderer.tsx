@@ -19,7 +19,7 @@ type Countries = GeoJSON.FeatureCollection<
   GeoJSON.Geometry,
   { id: string; name: string; count?: number; claimed?: boolean }
 >
-const asset = '/maps/countries-110m-2.0.2.geojson'
+const asset = '/maps/countries-110m-2.0.2-r2.geojson'
 // MapLibre needs resolved colors: read the computed token and let the browser resolve color-mix()/var().
 const token = (name: string) =>
   resolveColor(getComputedStyle(document.documentElement).getPropertyValue(name).trim())

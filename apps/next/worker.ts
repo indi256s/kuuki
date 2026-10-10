@@ -10,11 +10,11 @@ type RuntimeEnv = Env & { ASSETS: Fetcher }
 
 const authRoute = '/api/auth/activation/complete'
 const cachedMapAssets = new Set([
-  '/maps/countries-110m-2.0.2.geojson',
-  '/maps/country-centers-110m-2.0.2.json',
+  '/maps/countries-110m-2.0.2-r2.geojson',
+  '/maps/country-centers-110m-2.0.2-r2.json',
   '/maps/world-outline-110m-2.0.2.svg',
-  '/maps/world-outline-110m-2.0.2-light.svg',
-  '/maps/world-outline-110m-2.0.2-dark.svg',
+  '/maps/world-outline-110m-2.0.2-r2-light.svg',
+  '/maps/world-outline-110m-2.0.2-r2-dark.svg',
   '/maps/maplibre-6.13.0/maplibre-gl.css',
   '/maps/maplibre-6.13.0/maplibre-gl-worker.mjs',
 ])
