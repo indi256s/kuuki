@@ -30,7 +30,7 @@ The source tree no longer builds a Vite frontend. The 6 October release handoff 
    `wrangler deploy --no-autoconfig --strict --tag "$(git rev-parse --short HEAD)" --message "$(git log -1 --format=%s)"`
    `wrangler deploy --no-autoconfig --strict --env activation --tag "$(git rev-parse --short HEAD)" --message "$(git log -1 --format=%s)"`
    Record both printed Version IDs.
-5. **Verify.** `https://kuuki.marchstudio.uk/` returns 200 with HTML, `/api/auth/get-session` returns 200 with `null`, and `https://kuuki-activation.indi256s.workers.dev/activate` returns 200. Connect `wrangler tail kuuki-next --status error`, then observe for five minutes. Any error or failed check: roll back, then report.
+5. **Verify.** `https://kuuki.marchstudio.uk/` returns 200 with HTML, `/api/auth/get-session` returns 200 with `null`, and `https://kuuki-activation.indi256s.workers.dev/activate` returns 200. Any failed check: roll back, then report. Do not tail or watch the Workers after the checks pass.
 
 ## Rollback
 
