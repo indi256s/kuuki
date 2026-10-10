@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { overviewSeries } from '@kuuki/shared/overview/series'
 import { DAY_MS, dayToEpoch, epochToDay, periodDays } from '@kuuki/shared/overview/range'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { MonthRange } from '../../../ui/month-range'
 import { Button } from '../../../ui/button'
+import { IsoFigure } from '../../iso/iso-figure'
+import { tape } from '../../iso/tape'
 import { KuukiChart } from '../../charts/kuuki-chart'
 import { ArcLine } from '../../charts/arc-line'
 import { ArcBrush } from '../../charts/arc-brush'
@@ -23,6 +25,8 @@ import {
   withinReach,
   type Landmark,
 } from './landmarks'
+import '../cookie.css'
+import '../../iso/tape.css'
 import './timeline.css'
 
 // Plot insets in CSS pixels shared by the line, its axis labels and the brush below it; the plot fills whatever width the card measures.
@@ -37,6 +41,9 @@ export function TimelineContent({ span }: { span: Span }) {
     useOverview()
   const openFlight = useOpenFlight()
   const [cumulativeMetric, setCumulativeMetric] = useState<'km' | 'flights'>('km')
+  const distanceKm = scope?.figures.distanceKm ?? 0
+  const tapeLabel = `${number(locale, distanceKm)} ${copy(locale, 'km', 'км')}`
+  const tapeFigure = useMemo(() => tape(tapeLabel, 1), [tapeLabel])
   if (!scope || !all || !payload) return null
   const gate = scope.rhythm
   if (gate.status === 'below') return null
@@ -114,6 +121,16 @@ export function TimelineContent({ span }: { span: Span }) {
   const active = !!filter.period
   return (
     <div className="ov3-timeline" data-span={span}>
+      <div className="ov3-cookie-head">
+        <div className="ov3-cookie-copy">
+          <p className="ov3-cookie-value">{tapeLabel}</p>
+          <p className="ov3-cookie-sub">
+            {copy(locale, 'Distance so far', 'Пройдено')}
+            {headLandmark(locale, distanceKm)}
+          </p>
+        </div>
+        <IsoFigure figure={tapeFigure} className="iso-tape" />
+      </div>
       {series.dailyAvailable && (
         <SegmentedControl
           value={cumulativeMetric}
@@ -274,6 +291,25 @@ function landmarkSentence(locale: 'en' | 'ru', total: number) {
     locale,
     `${number(locale, total)} km. ${lapText}× around the equator${moon ? `, ${percentOf(moon.percent)} of the way to the Moon${back ? ' and back' : ''}` : ''}.`,
     `${number(locale, total)} км. Экватор: ${lapText}×${moon ? `, до Луны${back ? ' и обратно' : ''} пройдено ${percentOf(moon.percent)}` : ''}.`,
+  )
+}
+// The head's pointer to what comes next after the total; empty once the total is past every landmark.
+function headLandmark(locale: 'en' | 'ru', total: number) {
+  const next = nextLandmark(total)
+  if (!next) return ''
+  const km = number(locale, next.km)
+  if (next.kind === 'lap')
+    return copy(
+      locale,
+      ` · next landmark: ${next.laps} ${next.laps === 1 ? 'lap' : 'laps'} of the equator, ${km} km`,
+      ` · следующая веха: экватор ×${next.laps}, ${km} км`,
+    )
+  if (next.kind === 'moon')
+    return copy(locale, ` · next landmark: the Moon, ${km} km`, ` · следующая веха: Луна, ${km} км`)
+  return copy(
+    locale,
+    ` · next landmark: the Moon and back, ${km} km`,
+    ` · следующая веха: до Луны и обратно, ${km} км`,
   )
 }
 function referenceLabel(locale: 'en' | 'ru', landmark: Landmark, total: number) {

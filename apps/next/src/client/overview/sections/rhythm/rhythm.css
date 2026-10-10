@@ -9,9 +9,6 @@
 .ov3-rhythm-stats { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 .ov3-rhythm-stats p { margin: 0; }
 .ov3-rhythm-stats strong { display: block; font-size: 28px; }
-.ov3-heat-mini { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-bottom: 12px; }
-.ov3-heat-mini i { aspect-ratio: 1; border-radius: 3px; }
-
 .ov3-heat-year-totals { display: flex; flex-wrap: wrap; gap: var(--space-3); font: 12px var(--font-mono); }
 
 .ov3-activity-year { display: flex; align-items: center; gap: var(--space-3); color: var(--text); }

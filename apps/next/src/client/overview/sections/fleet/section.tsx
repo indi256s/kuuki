@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { MakerSwatch } from '../../../ui/category-mark'
 import { Button } from '../../../ui/button'
@@ -13,10 +13,26 @@ import type { Span } from '../registry'
 import { copy, filterLabel, flights, number, types } from '../rankings/display'
 import { PayloadAircraftReview } from '../manufacturers/aircraft-review'
 import { ridgeProfile } from './helpers'
+import { fleet, hasDims } from '../../iso/fleet'
+import { IsoFigure } from '../../iso/iso-figure'
+import '../cookie.css'
+import '../../iso/fleet.css'
 import './fleet.css'
 
 export function FleetContent({ span }: { span: Span }) {
-  const { scope, all, locale, actions, isCurrent } = useOverview()
+  const { scope, all, payload, locale, actions, isCurrent } = useOverview()
+  const topTypes = scope?.fleet.status === 'ready' ? scope.fleet.value.topTypes : null
+  const figure = useMemo(
+    () =>
+      fleet(
+        (topTypes ?? []).map(({ key }) => ({
+          icao: key,
+          body: payload?.refs.aircraft[key]?.type ?? null,
+        })),
+        201,
+      ),
+    [topTypes, payload],
+  )
   if (!scope || !all) return null
   const gate = scope.fleet
   if (gate.status === 'below') return null
@@ -85,18 +101,57 @@ export function FleetContent({ span }: { span: Span }) {
   const pick = (family: string) => {
     if (isCurrent()) actions.add('families', family)
   }
-  const top = data.topFamily,
-    topRow = data.familyRows.find((row) => row.family === top?.family)
+  const top = data.topTypes[0]
+  const unsupported = data.topTypes.filter(({ key }) => !hasDims(key))
   const slots = ridges.reduce((count, row, i) => count + (row.gapBefore && i > 0 ? 2 : 1), 0)
   const height = Math.max(200, slots * 42 + 66)
   return (
     <div className="ov3-fleet" data-span={span}>
-      <div className="ov3-fleet-heading">
-        {topRow && <MakerSwatch maker={topRow.maker} />} <strong>{top?.family ?? '—'}</strong>
-        {top && <> · {flights(locale, top.flights)}</>}
-        <p>
-          {copy(locale, 'Most flown type', 'Самый частый тип')} · {types(locale, data.familyCount)}
-        </p>
+      <div className="ov3-cookie-head">
+        <div className="ov3-cookie-copy">
+          <strong className="ov3-cookie-value">
+            {top ? `${top.key} ×${number(locale, top.flights)}` : '—'}
+          </strong>
+          <p className="ov3-cookie-sub">
+            {copy(locale, 'Most flown type', 'Самый частый тип')} · {types(locale, data.types)}
+            {data.topTypes.length > 0 &&
+              unsupported.length === 0 &&
+              ` · ${copy(locale, 'drawn to scale', 'в одном масштабе')}`}
+          </p>
+          {unsupported.length > 0 && (
+            <p className="ov3-cookie-sub">
+              {copy(locale, 'Body-class silhouette:', 'Силуэт класса самолёта:')}{' '}
+              {unsupported.map(({ key }) => key).join(', ')}
+            </p>
+          )}
+        </div>
+        <IsoFigure figure={figure} className="iso-fleet" />
+      </div>
+      <div className="ov3-fleet-types">
+        {data.topTypes.map(({ key, flights: count }) => {
+          const name = payload?.refs.aircraft[key]?.name ?? key
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-label={`${filterLabel(locale)} · ${name} · ${key} · ${flights(locale, count)}`}
+              onClick={() => {
+                if (isCurrent()) actions.add('aircraft', key)
+              }}
+            >
+              <span>
+                {name}
+                {name !== key && (
+                  <>
+                    {' '}
+                    · <span className="ov3-fleet-code">{key}</span>
+                  </>
+                )}
+              </span>
+              <strong>×{number(locale, count)}</strong>
+            </button>
+          )
+        })}
       </div>
       <div className="ov3-body-split">
         {(['narrow', 'wide'] as const).map((body) => {

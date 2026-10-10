@@ -1,0 +1,108 @@
+/* Shared layout of the cookie cards: a tile body (half or full span) and the section head. */
+.ov3-cookie-value {
+  display: block;
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.ov3-cookie-label,
+.ov3-cookie-detail {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+/* Tile body: the figure, then the text group. Each line is in the DOM once; the span decides which show. */
+.ov3-cookie {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ov3-cookie-figure {
+  display: flex;
+  justify-content: center;
+  padding-top: 2px;
+}
+.ov3-cookie-figure .iso {
+  max-width: 100%;
+  height: auto;
+}
+.ov3-tile[data-tile-span='full'] .iso-tape {
+  width: 148px;
+}
+.ov3-cookie-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ov3-tile[data-tile-span='half'] .ov3-cookie-value {
+  font-size: 24px;
+  line-height: 28px;
+}
+.ov3-tile[data-tile-span='half'] .ov3-cookie-label {
+  order: 1;
+}
+.ov3-tile[data-tile-span='half'] .ov3-cookie-detail {
+  display: none;
+}
+.ov3-tile[data-tile-span='full'] .ov3-cookie {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.ov3-tile[data-tile-span='full'] .ov3-cookie-figure {
+  order: 1;
+  flex: none;
+  padding-top: 0;
+}
+.ov3-tile[data-tile-span='full'] .ov3-cookie-text {
+  padding-bottom: var(--space-1);
+}
+.ov3-tile[data-tile-span='full'] .ov3-cookie-label {
+  order: -1;
+}
+.ov3-tile[data-tile-span='full'] .ov3-cookie-value {
+  font-size: 28px;
+  line-height: 32px;
+}
+
+/* Section head: the headline figure on the left, the cookie on the right; the cookie drops under the text when the row is too narrow. */
+.ov3-cookie-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.ov3-cookie-copy {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.ov3-cookie-head .ov3-cookie-value {
+  font-size: 40px;
+  line-height: 44px;
+}
+.ov3-cookie-sub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+/* A line that belongs to one span only, for cards whose caption and eyebrow differ. */
+.ov3-tile[data-tile-span='full'] .ov3-cookie-half,
+.ov3-tile[data-tile-span='half'] .ov3-cookie-full {
+  display: none;
+}

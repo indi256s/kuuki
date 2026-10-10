@@ -1,18 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
+import { IsoFigure } from '../../iso/iso-figure'
+import { clock } from '../../iso/clock'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { CoverageNote, copy, filterLabel, flights, percent } from '../rankings/display'
 import { ClockDial, DIAL_SIZE, type ClockHour } from './dial'
+import { departures, hhmm, pad } from './departure'
+import '../cookie.css'
+import '../../iso/clock.css'
 import './clock.css'
 
 export function Section({ span }: { span: Span }) {
   const { scope, all, locale, actions, isCurrent } = useOverview()
   const [mode, setMode] = useState<'departures' | 'arrivals'>('departures')
+  const [showLatest, setShowLatest] = useState(false)
+  const found = scope && departures(scope)
+  const earliest = found?.earliest,
+    latest = found?.latest,
+    busiest = found?.peak
+  const earliestTime = earliest
+    ? hhmm(earliest.depMinute)
+    : busiest
+      ? `${pad(busiest.hour)}:00`
+      : '--:--'
+  const latestTime = latest ? hhmm(latest.depMinute) : ''
+  const figure = useMemo(
+    () => clock(earliestTime, 1.2, latestTime || undefined),
+    [earliestTime, latestTime],
+  )
   if (!scope || !all) return null
   const gate = scope.clock
   if (gate.status !== 'ready') return null
@@ -34,8 +54,51 @@ export function Section({ span }: { span: Span }) {
     mode === 'departures' ? 'Local departure time' : 'Local arrival time',
     mode === 'departures' ? 'Местное время вылета' : 'Местное время прилёта',
   )
+  const shown = showLatest && latest ? latest : earliest
+  const value = shown ? hhmm(shown.depMinute) : busiest ? `${pad(busiest.hour)}:00` : '—'
+  const sub = (
+    shown
+      ? [
+          showLatest && latest
+            ? copy(locale, 'Latest departure', 'Самый поздний вылет')
+            : copy(locale, 'Earliest departure', 'Самый ранний вылет'),
+          `${shown.origin} → ${shown.destination}`,
+          busiest &&
+            copy(
+              locale,
+              `busiest hour ${pad(busiest.hour)}:00`,
+              `чаще всего в ${pad(busiest.hour)}:00`,
+            ),
+        ]
+      : [
+          copy(locale, 'Busiest hour', 'Самый частый час'),
+          busiest && flights(locale, busiest.flights),
+        ]
+  )
+    .filter(Boolean)
+    .join(' · ')
+  const clockFigure = <IsoFigure figure={figure} className="iso-clock" />
   return (
     <div className="ov3-clock" data-span={span}>
+      <div className="ov3-cookie-head">
+        <div className="ov3-cookie-copy" aria-live="polite">
+          <p className="ov3-cookie-value">{value}</p>
+          <p className="ov3-cookie-sub">{sub}</p>
+        </div>
+        {earliest && latest ? (
+          <button
+            type="button"
+            className="ov3-clock-toggle"
+            aria-pressed={showLatest}
+            aria-label={copy(locale, 'Show latest departure', 'Показать самый поздний вылет')}
+            onClick={() => setShowLatest((v) => !v)}
+          >
+            {clockFigure}
+          </button>
+        ) : (
+          clockFigure
+        )}
+      </div>
       <SegmentedControl
         value={mode}
         onChange={setMode}

@@ -5,6 +5,8 @@ import type { OverviewPayload, OverviewRow } from './model'
 export interface ShareRow { key: string; flights: number }
 export interface Fleet {
   topType: { icao: string; share: number } | null
+  /** Top exact ICAO types, ranked by flight count; separate from family totals. */
+  topTypes: ShareRow[]
   byBodyType: ShareRow[]; byManufacturer: ShareRow[]
   families: number; types: number; typed: number; total: number
   bodies: Array<{ key: string; body: 'narrow' | 'wide'; maker: MakerSlot; flights: number }>
@@ -53,13 +55,15 @@ export function fleet(rows: OverviewRow[], refs: OverviewPayload['refs'], mode: 
       familyRows.set(key, family)
     }
   }
-  const top = shares(types)[0]
+  const ranked = shares(types)
+  const top = ranked[0]
   const rowsByFamily = [...familyRows.values()]
   for (const family of rowsByFamily) family.minutes.sort((a, b) => a - b)
   const topFamily = [...rowsByFamily].sort((a, b) => b.flights - a.flights || a.family.localeCompare(b.family) ||
     MAKER_SLOTS.indexOf(a.maker) - MAKER_SLOTS.indexOf(b.maker))[0]
   return { status: 'ready', value: {
     topType: top ? { icao: top.key, share: top.flights / typed } : null,
+    topTypes: ranked.slice(0, 3),
     byBodyType: shares(bodyTypes), byManufacturer: shares(manufacturers),
     families: families.size, types: types.size, typed, total,
     bodies: [...bodies.values()].sort((a, b) => a.body.localeCompare(b.body) || MAKER_SLOTS.indexOf(a.maker) - MAKER_SLOTS.indexOf(b.maker)),
