@@ -11,6 +11,6 @@ describe('import prompt v2 and the structured-text parser', () => {
     const parsed = parseStructuredText('```text\n' + example + '\n```')
     expect(parsed).not.toBeNull()
     expect(parsed!.flights).toHaveLength(rows.length)
-    expect(parsed!.flights.filter((flight) => flight.review_required)).toHaveLength(1)
+    expect(parsed!.flights.filter((flight) => flight.review_required)).toHaveLength(2)
   })
 })
