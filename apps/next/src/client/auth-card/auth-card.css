@@ -51,6 +51,19 @@
   inset: 0;
   pointer-events: none;
 }
+/* Watermark: く, う, き stacked one per line on desktop (board 1.1), in a row across the band on mobile. */
+.auth-watermark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--accent);
+  opacity: var(--auth-watermark-opacity);
+  font: 700 164px/164px var(--font-kana);
+}
 .auth-brand-wordmark {
   position: relative;
   --wordmark-size: 36px;
@@ -491,6 +504,19 @@
   }
   .auth-brand-wordmark {
     --wordmark-size: 28px;
+  }
+  /* The watermark fills the band below the header row. */
+  .auth-watermark {
+    left: 0;
+    right: 0;
+    top: 52px;
+    bottom: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.04em;
+    font-size: clamp(80px, 100dvh - 560px, 104px);
+    line-height: 1;
+    letter-spacing: 0;
   }
   .auth-corner {
     top: 4px;

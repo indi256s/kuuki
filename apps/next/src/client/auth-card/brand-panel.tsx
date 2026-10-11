@@ -4,7 +4,7 @@ import './auth-card.css'
 
 /**
  * The card's brand side: the left panel on desktop, the band above the sheet on mobile.
- * `field` is the decorative layer behind the wordmark (the plane field and the くうき watermark); it is hidden from
+ * `field` is the decorative layer behind the wordmark (the turning Concorde and the くうき watermark); it is hidden from
  * assistive tech and never takes pointer input.
  */
 export function BrandPanel({ field }: { field?: ReactNode }) {

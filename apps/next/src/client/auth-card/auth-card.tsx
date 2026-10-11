@@ -12,10 +12,10 @@ import { WelcomeFlow } from '../welcome/welcome-flow'
 import '../welcome/welcome.css'
 import type { Locale } from '../../lib/format'
 import { BrandPanel } from './brand-panel'
+import { ConcordeField } from './concorde/concorde-field'
 import { CornerControls } from './corner-controls'
 import { FormStep } from './form-step'
 import { GetBackInStep, type RequestState } from './get-back-in-step'
-import { PlaneField } from './plane-field'
 import { Tagline } from './taglines'
 import './auth-card.css'
 
@@ -41,10 +41,10 @@ export function AuthCardFrame({
   welcomeStep?: string
   children: ReactNode
 }) {
-  // The plane field holds still while focus is anywhere in the form column; leaving the column (or the card) resumes it.
+  // The brand field holds still while focus is anywhere in the form column; leaving the column (or the card) resumes it.
   return (
     <div className="auth-card" ref={cardRef} data-welcome={welcomeStep}>
-      <BrandPanel field={brandField ?? <PlaneField />} />
+      <BrandPanel field={brandField ?? <ConcordeField />} />
       <CornerControls locale={locale} theme={theme} onLocaleChange={onLocaleChange} />
       <section
         className="auth-form-panel"
