@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { isEmptyFilter, previousPeriod } from '@kuuki/shared/overview/filter'
 import { calendarDay } from '@kuuki/shared/overview/next'
 import { overviewSeries } from '@kuuki/shared/overview/series'
@@ -86,17 +86,24 @@ function Delta({
 /** Each sparkline renders twice: inline in its figure's column, and as a full-width row that only the docked wide band (page.css) shows. CSS picks one, so the server's first paint matches. */
 export function HeroPanel() {
   const { scope, payload, filter, locale } = useOverview()
+  const trend = useMemo(
+    () => (payload ? overviewSeries(payload, filter).monthly : []),
+    [payload, filter],
+  )
+  const trendLabels = useMemo(() => {
+    const dates = trend.map((row) => formatPeriodDate(locale, row.date))
+    return {
+      flights: trend.map(
+        (row, i) => `${dates[i]}: ${formatCount(locale, row.flights, forms.flights)}`,
+      ),
+      km: trend.map((row, i) => `${dates[i]}: ${formatDistanceKm(locale, row.km)}`),
+    }
+  }, [trend, locale])
   if (!payload || !scope) return <p role="status">{t(S.loading, locale)}</p>
   const f = scope.figures,
     zero = f.flights === 0 && !isEmptyFilter(filter)
-  const trend = overviewSeries(payload, filter).monthly
   const trendLabel =
     locale === 'ru' ? 'По месяцам выбранного периода' : 'By month in the selected period'
-  const trendLabels = (key: 'flights' | 'km') =>
-    trend.map(
-      (row) =>
-        `${formatPeriodDate(locale, row.date)}: ${key === 'km' ? formatDistanceKm(locale, row.km) : formatCount(locale, row.flights, forms.flights)}`,
-    )
   const previous = previousPeriod(filter)?.period
   const label = previous
     ? 'years' in previous
@@ -181,7 +188,7 @@ export function HeroPanel() {
       <ArcSparkline
         place={place}
         values={trend.map((row) => row.flights)}
-        labels={trendLabels('flights')}
+        labels={trendLabels.flights}
         summary={`${t(S.flights, locale)} · ${trendLabel}`}
         caption={sparkCaption(t(S.flights, locale))}
       />
@@ -191,7 +198,7 @@ export function HeroPanel() {
       <ArcSparkline
         place={place}
         values={trend.map((row) => row.km)}
-        labels={trendLabels('km')}
+        labels={trendLabels.km}
         summary={`${t(copy.km, locale)} · ${trendLabel}`}
         caption={sparkCaption(t(copy.km, locale))}
       />

@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { FlightDetailSheet } from '../../capture/flight-panels'
 import { useOverview } from './overview-context'
 
 export type MakerMetric = 'flights' | 'hours' | 'km'
@@ -74,6 +73,26 @@ export function OverviewFlightSheet() {
   const { aggregate, ownerKey, locale, navigation, revalidate, isCurrent } = useOverview()
   const { params, pathname, change } = useOverviewURL()
   const id = aggregate || ownerKey === 'dev' ? null : flightId(params.get('flight'))
+  const [DetailSheet, setDetailSheet] = useState<
+    (typeof import('../../capture/flight-panels'))['FlightDetailSheet'] | null
+  >(null)
+  const [loadError, setLoadError] = useState<Error | null>(null)
+  useEffect(() => {
+    if (id === null || DetailSheet) return
+    let active = true
+    void import('../../capture/flight-panels').then(
+      (module) => {
+        if (active && isCurrent()) setDetailSheet(() => module.FlightDetailSheet)
+      },
+      (error) => {
+        if (active && isCurrent())
+          setLoadError(error instanceof Error ? error : new Error(String(error)))
+      },
+    )
+    return () => {
+      active = false
+    }
+  }, [id, DetailSheet, isCurrent])
   const latestRevalidate = useRef(revalidate)
   useEffect(() => {
     latestRevalidate.current = revalidate
@@ -85,8 +104,11 @@ export function OverviewFlightSheet() {
     }
   }, [id])
   if (id === null) return null
+  if (loadError) throw loadError
+  if (!DetailSheet)
+    return <p role="status">{locale === 'ru' ? 'Открываем перелёт…' : 'Opening flight…'}</p>
   return (
-    <FlightDetailSheet
+    <DetailSheet
       ownerId={ownerKey}
       locale={locale}
       flightId={id}

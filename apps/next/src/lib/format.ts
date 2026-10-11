@@ -13,13 +13,19 @@ export type CountForms = {
 export type DateStyle = 'long' | 'medium' | 'padded' | 'short'
 
 const NBSP = ' '
+const pluralRules: Partial<Record<Locale, Intl.PluralRules>> = {}
+const numberFormats: Partial<Record<Locale, Intl.NumberFormat>> = {}
+const dateFormats: Partial<Record<Locale, Partial<Record<DateStyle, Intl.DateTimeFormat>>>> = {}
+const monthFormats: Partial<
+  Record<Locale, Partial<Record<'long' | 'short', Intl.DateTimeFormat>>>
+> = {}
 
 export function pluralCategory(locale: Locale, n: number): PluralCategory {
-  return new Intl.PluralRules(locale).select(n) as PluralCategory
+  return (pluralRules[locale] ??= new Intl.PluralRules(locale)).select(n) as PluralCategory
 }
 
 export function formatNumber(locale: Locale, n: number): string {
-  return new Intl.NumberFormat(locale).format(n)
+  return (numberFormats[locale] ??= new Intl.NumberFormat(locale)).format(n)
 }
 
 /** Picks the plural form for `n` and fills `{count}` with the locale-grouped number. */
@@ -60,7 +66,11 @@ export function formatDateOnly(locale: Locale, value: string, style: DateStyle =
       day = String(date.getUTCDate()).padStart(2, '0')
     return locale === 'ru' ? `${day}.${month}.${year}` : `${month}/${day}/${year}`
   }
-  return new Intl.DateTimeFormat(locale, { ...dateOptions[style], timeZone: 'UTC' })
+  const formats = (dateFormats[locale] ??= {})
+  return (formats[style] ??= new Intl.DateTimeFormat(locale, {
+    ...dateOptions[style],
+    timeZone: 'UTC',
+  }))
     .formatToParts(date)
     .map((part) => (part.type === 'year' ? String(date.getUTCFullYear()) : part.value))
     .join('')
@@ -97,8 +107,13 @@ export function formatMonthYear(
   month: 'long' | 'short' = 'long',
 ): string {
   const date = typeof value === 'string' ? utcFromDateOnly(value) : value
+  const formats = (monthFormats[locale] ??= {})
   return date && !Number.isNaN(date.getTime())
-    ? new Intl.DateTimeFormat(locale, { month, year: 'numeric', timeZone: 'UTC' })
+    ? (formats[month] ??= new Intl.DateTimeFormat(locale, {
+        month,
+        year: 'numeric',
+        timeZone: 'UTC',
+      }))
         .formatToParts(date)
         .map((part) => (part.type === 'year' ? String(date.getUTCFullYear()) : part.value))
         .join('')

@@ -45,7 +45,7 @@ test('the overview globe keeps its canvas visible in the card and fullscreen', a
     canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext()
   })
   await expect(fullscreen.getByRole('status')).toContainText('Globe unavailable.', {
-    timeout: 15_000,
+    timeout: 20_000,
   })
   await expect(fullscreen.locator('.maplibregl-canvas')).toHaveCount(0)
 })

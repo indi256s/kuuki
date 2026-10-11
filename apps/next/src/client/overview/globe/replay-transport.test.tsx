@@ -37,3 +37,18 @@ it('previews month starts, commits release and cancels to the actual drag origin
   expect(seek).toHaveBeenLastCalledWith(123, 'cancel')
   expect(screen.getByRole('button', { name: 'JAN 2019' })).toHaveFocus()
 })
+
+it('updates the month label across clock ticks, locale changes and replacement timelines', () => {
+  const view = render(<ReplayTransport {...props} />)
+  expect(screen.getByRole('button', { name: 'JAN 2019' })).toBeVisible()
+  view.rerender(<ReplayTransport {...props} timeMs={11999} />)
+  expect(screen.getByRole('button', { name: 'MAR 2020' })).toBeVisible()
+  view.rerender(<ReplayTransport {...props} timeMs={11999} locale="ru" />)
+  expect(screen.getByRole('button', { name: 'МАРТ 2020 Г.' })).toBeVisible()
+  const next = buildTimeline(
+    [{ key: '3', flightId: 3, origin: 'AAA', destination: 'BBB', date: '2026-06-01', weight: 1 }],
+    12000,
+  )
+  view.rerender(<ReplayTransport {...props} timeline={next} />)
+  expect(screen.getByRole('button', { name: 'JUN 2026' })).toBeVisible()
+})

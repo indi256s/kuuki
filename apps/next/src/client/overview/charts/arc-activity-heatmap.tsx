@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react'
 import { DAY_MS, dayToEpoch, epochToDay } from '@kuuki/shared/overview/range'
-import { formatDateOnly, type Locale } from '../../../lib/format'
+import { formatDateOnly, formatNumber, type Locale } from '../../../lib/format'
 import type { ChartPoint } from './kuuki-chart'
 
 type ActivityDay = { date: string; count: number }
@@ -21,7 +21,7 @@ export function activityPoints(
     return {
       key: date,
       datum: { date, count },
-      label: `${formatDateOnly(locale, date, 'medium')} · ${new Intl.NumberFormat(locale).format(count)}`,
+      label: `${formatDateOnly(locale, date, 'medium')} · ${formatNumber(locale, count)}`,
     }
   })
 }

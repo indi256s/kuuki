@@ -37,14 +37,16 @@ export function ReplayTransport({
   const month = monthAt(timeline, timeMs, durationMs)
   const value =
     draft ?? candidates.find((item) => item.month === month)?.startMs ?? candidates[0]?.startMs ?? 0
-  const format = (time: number) => {
-    const item = candidates.find((item) => item.startMs === time)
+  const formatter = useMemo(
+    () => new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' }),
+    [locale],
+  )
+  const monthLabel = useMemo(() => {
+    const item = candidates.find((item) => item.startMs === value)
     return item
-      ? new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' })
-          .format(new Date(`${item.month}-01T00:00:00Z`))
-          .toLocaleUpperCase(locale)
+      ? formatter.format(new Date(`${item.month}-01T00:00:00Z`)).toLocaleUpperCase(locale)
       : '—'
-  }
+  }, [candidates, value, formatter, locale])
   const drag = useRef<{ origin: number; value: number } | null>(null)
   const change = (index: number, phase: 'preview' | 'commit') => {
     const next = candidates[index]?.startMs
@@ -146,7 +148,7 @@ export function ReplayTransport({
         aria-expanded={expanded}
         onClick={() => setExpanded(!expanded)}
       >
-        {format(value)}
+        {monthLabel}
       </Button>
       <div className="replay-scrubber">
         <input
