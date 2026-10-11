@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import { CircleQuestion as CircleHelp, Globe } from '@keyline-icons/react'
+import { CircleQuestion as CircleHelp, Globe, Pause, Play } from '@keyline-icons/react'
 import { setLocale } from '../appearance'
 import { useAppearance } from '../preferences'
 import { Dialog } from '../ui/dialog'
@@ -13,6 +13,7 @@ const words = {
   en: {
     language: 'Language',
     help: 'Help',
+    pause: 'Pause animation',
     close: 'Close',
     about: 'About Kuuki',
     body: [
@@ -24,6 +25,7 @@ const words = {
   ru: {
     language: 'Язык',
     help: 'Помощь',
+    pause: 'Приостановить анимацию',
     close: 'Закрыть',
     about: 'О Kuuki',
     body: [
@@ -88,13 +90,33 @@ export function CornerControls({
   locale,
   theme,
   onLocaleChange,
+  motionPaused,
+  onMotionPauseChange,
 }: {
   locale: Locale
   theme?: ReactNode
   onLocaleChange?: (locale: Locale) => void
+  motionPaused?: boolean
+  onMotionPauseChange?: (paused: boolean) => void
 }) {
   return (
     <div className="auth-corner">
+      {motionPaused !== undefined ? (
+        <button
+          type="button"
+          className="auth-corner-control"
+          aria-label={words[locale].pause}
+          title={words[locale].pause}
+          aria-pressed={motionPaused}
+          onClick={() => onMotionPauseChange?.(!motionPaused)}
+        >
+          {motionPaused ? (
+            <Play size={16} aria-hidden="true" />
+          ) : (
+            <Pause size={16} aria-hidden="true" />
+          )}
+        </button>
+      ) : null}
       <LanguageControl locale={locale} onLocaleChange={onLocaleChange} />
       {theme ?? <HorizonToggle locale={locale} />}
       <HelpControl locale={locale} />

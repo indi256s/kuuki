@@ -50,6 +50,7 @@ async function submit(value = 'personal-password') {
   await waitFor(() => expect(request).toHaveBeenCalled())
 }
 afterEach(() => {
+  localStorage.clear()
   request.mockReset()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -226,7 +227,7 @@ it('opens localised help, focuses its heading and returns focus to its trigger w
   expect(request).not.toHaveBeenCalled()
 })
 
-it('runs the plane field only while it is on screen and the page is visible', () => {
+it('runs the plane field only while visible and keeps the explicit pause through focus and visibility changes', () => {
   boot()
   const plane = document.querySelector('.planes-desktop .plane')!
   // Every lap begins and ends out of sight, and passes through its unchanged drawn position.
@@ -266,4 +267,32 @@ it('runs the plane field only while it is on screen and the page is visible', ()
   expect(getComputedStyle(plane).animationPlayState).toBe('running')
   onScreen(false)
   expect(getComputedStyle(plane).animationPlayState).toBe('paused')
+  onScreen(true)
+  const pause = screen.getByRole('button', { name: 'Pause animation' })
+  fireEvent.click(pause)
+  expect(pause).toHaveAttribute('aria-pressed', 'true')
+  password().focus()
+  password().blur()
+  visibility.mockReturnValue(true)
+  document.dispatchEvent(new Event('visibilitychange'))
+  visibility.mockReturnValue(false)
+  document.dispatchEvent(new Event('visibilitychange'))
+  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
+  fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'ru' } })
+  expect(screen.getByRole('button', { name: 'Приостановить анимацию' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  fireEvent.click(pause)
+  expect(getComputedStyle(plane).animationPlayState).toBe('running')
+  fireEvent.click(pause)
+  boot()
+  onScreen(true)
+  expect(screen.getByRole('button', { name: 'Приостановить анимацию' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  expect(
+    getComputedStyle(document.querySelector('.planes-desktop .plane')!).animationPlayState,
+  ).toBe('paused')
 })

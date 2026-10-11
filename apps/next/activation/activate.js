@@ -25,6 +25,7 @@ const words = {
     signin: 'Back to sign in',
     language: 'Language',
     darkTheme: 'Dark theme',
+    pause: 'Pause animation',
     help: 'Help',
     close: 'Close',
     about: 'About Kuuki',
@@ -53,6 +54,7 @@ const words = {
     signin: 'Назад ко входу',
     language: 'Язык',
     darkTheme: 'Тёмная тема',
+    pause: 'Приостановить анимацию',
     help: 'Помощь',
     close: 'Закрыть',
     about: 'О Kuuki',
@@ -168,10 +170,37 @@ function setup() {
     })
   })
   const field = document.querySelector('.brand-field')
+  const pause = $('motion-pause')
+  let motionPaused = false
+  try {
+    motionPaused = localStorage.getItem('kuuki-auth-motion-paused') === 'true'
+  } catch {
+    // Storage may be blocked; the pause still lasts for this page.
+  }
   let onScreen = false
   const syncPlanes = () => {
-    field.dataset.running = String(onScreen && !document.hidden)
+    field.dataset.running = String(onScreen && !document.hidden && !motionPaused)
+    pause.setAttribute('aria-pressed', String(motionPaused))
+    // Keyline Play/Pause geometry, matching the auth card's static state icons.
+    pause
+      .querySelector('path')
+      .setAttribute(
+        'd',
+        motionPaused
+          ? 'M6 6C6 5.2291 6.4431 4.5268 7.1389 4.1949C7.8347 3.8629 8.6593 3.9605 9.2585 4.4456L17.6292 11.2228C17.8638 11.4127 18 11.6983 18 12C18 12.3017 17.8638 12.5873 17.6292 12.7772L9.2585 19.5544C8.6593 20.0395 7.8347 20.1371 7.1389 19.8051C6.4431 19.4732 6 18.7709 6 18Z'
+          : 'M5 5C5 4.447715 5.447715 4 6 4L8 4C8.552285 4 9 4.447715 9 5L9 19C9 19.552285 8.552285 20 8 20L6 20C5.447715 20 5 19.552285 5 19ZM15 5C15 4.447715 15.447715 4 16 4L18 4C18.552285 4 19 4.447715 19 5L19 19C19 19.552285 18.552285 20 18 20L16 20C15.447715 20 15 19.552285 15 19Z',
+      )
   }
+  pause.addEventListener('click', () => {
+    motionPaused = !motionPaused
+    try {
+      localStorage.setItem('kuuki-auth-motion-paused', String(motionPaused))
+    } catch {
+      // Keep the explicit pause even when its saved choice cannot be written.
+    }
+    syncPlanes()
+  })
+  syncPlanes()
   const observer = new IntersectionObserver((entries) => {
     onScreen = entries[entries.length - 1].isIntersecting
     syncPlanes()
