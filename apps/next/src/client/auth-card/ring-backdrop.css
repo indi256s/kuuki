@@ -1,0 +1,23 @@
+/* The auth page's ring backdrop (ring-backdrop.tsx). Hairlines that fade toward the screen's edges. */
+.auth-rings {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  opacity: 0.7;
+  -webkit-mask-image: radial-gradient(closest-corner at 50% 50%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(closest-corner at 50% 50%, #000 40%, transparent 100%);
+}
+.auth-rings circle {
+  translate: calc(var(--ring-x, 0) * var(--ring-depth) * 1px)
+    calc(var(--ring-y, 0) * var(--ring-depth) * 1px);
+}
+@media (max-width: 700px) {
+  .auth-rings {
+    display: none;
+  }
+}

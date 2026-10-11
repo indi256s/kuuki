@@ -32,6 +32,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "generate:fleet-geometry": "node scripts/generate-fleet-geometry.mjs",
+    "generate:concorde": "node scripts/generate-concorde.mjs",
     "verify:cloudflare": "bash scripts/verify-cloudflare.sh"
   },
   "devDependencies": {
