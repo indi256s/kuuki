@@ -10,6 +10,7 @@ import { formatCount, type Locale } from '../../../../lib/format'
 import { copy, filterLabel, flights, number, percent } from '../rankings/display'
 import type { Span } from '../registry'
 import { BAR_MARGIN, barsWidth } from '../crossings/bars'
+import { PassSheetFigure } from './figure'
 import './routes.css'
 
 type YearRow = { key: string; year: number; flights: number; newRoutes: number }
@@ -138,6 +139,7 @@ export function Section({ span }: { span: Span }) {
   )
   return (
     <div className="ov3-routes" data-span={span}>
+      <PassSheetFigure />
       <p className="ov3-routes-headline">
         {headline(locale, data.profile, data.distinct, data.flights, topName)}
       </p>

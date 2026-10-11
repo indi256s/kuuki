@@ -6,6 +6,7 @@ import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, filterLabel, number } from '../rankings/display'
 import { CrossingBars, barsWidth, type ShiftYear } from './bars'
+import { GlobeSheetFigure } from './figure'
 import './crossings.css'
 
 export function CrossingDots({ count }: { count: number }) {
@@ -53,6 +54,7 @@ export function Section({ span }: { span: Span }) {
   const caption = copy(locale, 'Clock change per year · hours', 'Сдвиг часов по годам · часы')
   return (
     <div className="ov3-crossings" data-span={span}>
+      <GlobeSheetFigure />
       <div className="ov3-crossing-tiles">
         <div className="ov3-crossing-tile">
           <p>{copy(locale, 'Clocks shifted', 'Сдвиг часов')}</p>

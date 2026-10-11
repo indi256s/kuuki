@@ -104,6 +104,21 @@
   text-wrap: pretty;
 }
 
+/* A sheet's figure, centred over its content, for sheets whose first card already carries the headline number. */
+.ov3-sheet-figure {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+}
+.ov3-sheet-figure .iso {
+  max-width: 100%;
+  height: auto;
+}
+/* These sheets are grids whose gap already spaces the figure from what follows. */
+:is(.ov3-rhythm, .ov3-crossings) > .ov3-sheet-figure {
+  margin-bottom: 0;
+}
+
 /* A line that belongs to one span only, for cards whose caption and eyebrow differ. */
 .ov3-tile[data-tile-span='full'] .ov3-cookie-half,
 .ov3-tile[data-tile-span='half'] .ov3-cookie-full {

@@ -18,6 +18,7 @@ import { referenceLabels } from '../../labels'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, flights, percent, filterLabel, moreAirlines, number } from './display'
+import { BoardSheetFigure } from './figure'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
@@ -133,6 +134,7 @@ export function Section({ span }: { span: Span }) {
   }
   return (
     <div className="ov3-rankings" data-span={span}>
+      <BoardSheetFigure />
       <p className="ov3-fine-hint">
         {copy(
           locale,

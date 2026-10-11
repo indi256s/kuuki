@@ -3,26 +3,38 @@ import { useMemo } from 'react'
 import { formatDuration } from '../../../../lib/format'
 import { IsoFigure } from '../../iso/iso-figure'
 import { fitK } from '../../iso/scene'
-import { foldedMap } from '../../iso/map'
+import { foldedMap, mapPin } from '../../iso/map'
 import { TILE_FIGURE_WIDTH, type TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { copy, number } from '../rankings/display'
 import '../cookie.css'
 import '../../iso/map.css'
 export function Tile({ span }: { span: TileSpan }) {
-  const { scope, locale } = useOverview()
+  const { scope, payload, locale } = useOverview()
   const lead = scope?.records.status === 'ready' ? scope.records.value.longest : null
+  const origin = lead ? payload?.refs.airports[lead.origin] : undefined
+  const destination = lead ? payload?.refs.airports[lead.destination] : undefined
   const figure = useMemo(
-    () =>
-      lead
-        ? foldedMap(
-            lead.origin,
-            lead.destination,
-            fitK(TILE_FIGURE_WIDTH[span], (k) => foldedMap(lead.origin, lead.destination, k)),
-          )
-        : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `lead` is rebuilt every render; its route is the key.
-    [lead?.origin, lead?.destination, span],
+    () => {
+      if (!lead) return null
+      const from = mapPin(lead.origin, origin),
+        to = mapPin(lead.destination, destination)
+      return foldedMap(
+        from,
+        to,
+        fitK(TILE_FIGURE_WIDTH[span], (k) => foldedMap(from, to, k)),
+      )
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `lead` and the refs are rebuilt every render; the route and its coordinates are the key.
+    [
+      lead?.origin,
+      lead?.destination,
+      origin?.lat,
+      origin?.lon,
+      destination?.lat,
+      destination?.lon,
+      span,
+    ],
   )
   if (!lead || !figure) return <p>—</p>
   const route = `${lead.origin} → ${lead.destination}`

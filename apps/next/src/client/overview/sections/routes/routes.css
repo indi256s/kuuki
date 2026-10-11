@@ -63,16 +63,3 @@
 .ov3-routes-legend span:last-child i {
   background: var(--mark-2);
 }
-.ov3-routes-mini {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 48px;
-  margin-bottom: 12px;
-}
-.ov3-routes-mini i {
-  flex: 1;
-  min-height: 2px;
-  border-radius: 2px;
-  background: var(--mark-1);
-}

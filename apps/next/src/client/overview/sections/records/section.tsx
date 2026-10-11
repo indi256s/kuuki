@@ -11,7 +11,7 @@ import { useOpenFlight } from '../../store/open-flight'
 import type { Span } from '../registry'
 import { copy, flights, number, percent } from '../rankings/display'
 import { IsoFigure } from '../../iso/iso-figure'
-import { foldedMap } from '../../iso/map'
+import { foldedMap, mapPin } from '../../iso/map'
 import { hhmm } from '../clock/departure'
 import './records.css'
 import '../../iso/map.css'
@@ -23,13 +23,30 @@ export function Section({ span }: { span: Span }) {
   const { scope, payload, locale, aggregate, ownerKey, actions, bus, isCurrent } = useOverview()
   const openFlight = useOpenFlight()
   const longest = scope?.records.status === 'ready' ? scope.records.value.longest : null
-  const originLat = longest ? payload?.refs.airports[longest.origin]?.lat : null
-  const destinationLat = longest ? payload?.refs.airports[longest.destination]?.lat : null
-  const equator = originLat != null && destinationLat != null && originLat * destinationLat < 0
+  const origin = longest ? payload?.refs.airports[longest.origin] : undefined
+  const destination = longest ? payload?.refs.airports[longest.destination] : undefined
+  const equator =
+    origin?.lat != null && destination?.lat != null && origin.lat * destination.lat < 0
   const mapFigure = useMemo(
-    () => (longest ? foldedMap(longest.origin, longest.destination, 0.95, equator) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `longest` is rebuilt every render; its route is the key.
-    [longest?.origin, longest?.destination, equator],
+    () =>
+      longest
+        ? foldedMap(
+            mapPin(longest.origin, origin),
+            mapPin(longest.destination, destination),
+            0.95,
+            equator,
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `longest` and the refs are rebuilt every render; the route and its coordinates are the key.
+    [
+      longest?.origin,
+      longest?.destination,
+      origin?.lat,
+      origin?.lon,
+      destination?.lat,
+      destination?.lon,
+      equator,
+    ],
   )
   if (!scope || !payload) return null
   const gate = scope.records

@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import type { IsoFigureData, IsoNode, Paint } from './scene'
 import './iso.css'
 
-const PAINT: Record<Paint, string> = {
+const PAINT: Record<Exclude<Paint, `maker${string}`>, string> = {
   top: 'var(--iso-top)',
   front: 'var(--iso-front)',
   side: 'var(--iso-side)',
@@ -21,6 +21,13 @@ const PAINT: Record<Paint, string> = {
   ink: 'var(--text)',
   muted: 'var(--text-muted)',
   none: 'none',
+}
+
+function paint(p: Paint): string {
+  if (p.startsWith('maker-side:'))
+    return `color-mix(in oklab, var(--cat-maker-${p.slice(11)}) 72%, black)`
+  if (p.startsWith('maker:')) return `var(--cat-maker-${p.slice(6)})`
+  return PAINT[p as keyof typeof PAINT]
 }
 
 function blurs(nodes: readonly IsoNode[], out = new Set<number>()) {
@@ -56,9 +63,10 @@ export function IsoFigure({
               strokeWidth={node.width ?? 1}
               strokeLinejoin="round"
               style={{
-                fill: PAINT[node.fill],
-                stroke: PAINT[node.stroke],
+                fill: paint(node.fill),
+                stroke: paint(node.stroke),
                 strokeOpacity: node.strokeOpacity,
+                opacity: node.opacity,
               }}
             />
           )
@@ -71,7 +79,7 @@ export function IsoFigure({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeDasharray={node.dash}
-              style={{ fill: PAINT[node.fill], stroke: PAINT[node.stroke] }}
+              style={{ fill: paint(node.fill), stroke: paint(node.stroke) }}
             />
           )
         case 'text':
@@ -86,7 +94,7 @@ export function IsoFigure({
               textAnchor={node.anchor}
               letterSpacing={node.mono && !node.transform ? '0.04em' : undefined}
               style={{
-                fill: PAINT[node.fill],
+                fill: paint(node.fill),
                 fontFamily: node.mono ? 'var(--font-mono)' : 'var(--font-sans)',
               }}
             >

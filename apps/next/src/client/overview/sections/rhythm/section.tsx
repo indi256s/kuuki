@@ -17,6 +17,7 @@ import type { Span } from '../registry'
 import { copy, filterLabel, number, flights } from '../rankings/display'
 import { TimelineContent } from '../timeline/section'
 import { heatBucket, monthStart } from './helpers'
+import { CalendarSheetFigure } from './figure'
 import './rhythm.css'
 
 type Metric = 'flights' | 'distanceKm' | 'durationMinutes'
@@ -86,6 +87,7 @@ function CalendarContent({
   const dailyCaption = copy(locale, 'Completed flights by day', 'Завершённые перелёты по дням')
   return (
     <>
+      <CalendarSheetFigure />
       <div className="ov3-rhythm-group">
         <div className="ov3-rhythm-stats">
           <p>

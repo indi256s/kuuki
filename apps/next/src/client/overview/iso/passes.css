@@ -1,0 +1,10 @@
+/* Routes: on hover the top boarding pass slides out of the stack. */
+@media (prefers-reduced-motion: no-preference) {
+  .iso-passes [data-part='top-pass'] {
+    transform: translate(
+      calc(var(--slide-x) * var(--iso-move)),
+      calc(var(--slide-y) * var(--iso-move))
+    );
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+}

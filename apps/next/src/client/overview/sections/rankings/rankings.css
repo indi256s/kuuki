@@ -138,18 +138,6 @@
 .ov3-score button:last-child {
   text-align: right;
 }
-.ov3-mini-bars div {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font: 12px var(--font-mono);
-  margin-bottom: 4px;
-}
-.ov3-mini-bars i {
-  height: 8px;
-  background: var(--mark-1);
-  border-radius: 3px;
-}
 .ov3-fine-hint {
   display: none;
 }

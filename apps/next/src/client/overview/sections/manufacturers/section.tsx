@@ -17,6 +17,7 @@ import type { Span } from '../registry'
 import { copy, filterLabel, flights, number, percent } from '../rankings/display'
 import { PayloadAircraftReview } from './aircraft-review'
 import { percentCells, waffleLayout } from './helpers'
+import { UldSheetFigure } from './figure'
 import './manufacturers.css'
 
 export const makerName = (key: MakerKey, locale: 'en' | 'ru') =>
@@ -123,6 +124,7 @@ export function MakersContent({ span }: { span: Span }) {
   )
   return (
     <div className="ov3-manufacturers" data-span={span}>
+      <UldSheetFigure />
       <div className="ov3-maker-heading">
         <div>
           <strong>

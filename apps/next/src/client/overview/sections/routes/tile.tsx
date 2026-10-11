@@ -1,27 +1,37 @@
 'use client'
+import { IsoFigure } from '../../iso/iso-figure'
+import type { TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { copy, number, percent } from '../rankings/display'
 import { routeArrow } from '@kuuki/shared/overview/filter'
 import { forms } from '../../copy'
 import { formatCount } from '../../../../lib/format'
-import './routes.css'
-export function Tile() {
+import { usePassFigure } from './figure'
+import '../cookie.css'
+import '../../iso/passes.css'
+export function Tile({ span }: { span: TileSpan }) {
   const { scope, locale } = useOverview()
-  if (!scope || scope.routes.status !== 'ready') return <p>—</p>
-  const data = scope.routes.value,
-    max = Math.max(1, ...data.byYear.map((row) => row.flights))
+  const data = scope?.routes.status === 'ready' ? scope.routes.value : null
+  const figure = usePassFigure(span, data)
+  if (!data) return <p>—</p>
   return (
-    <div>
-      <div className="ov3-routes-mini" aria-hidden="true">
-        {data.byYear.map((row) => (
-          <i key={row.key} style={{ height: (row.flights / max) * 48 }} />
-        ))}
+    <div className="ov3-cookie">
+      <div className="ov3-cookie-figure">
+        <IsoFigure figure={figure} className="iso-passes" />
       </div>
-      <strong>{formatCount(locale, data.distinct, forms.routes)}</strong>
-      <p>
-        {percent(data.repeatShare)} {copy(locale, 'repeat', 'повторов')}
-        {data.top ? ` · ${routeArrow(data.top.key)} ×${number(locale, data.top.count)}` : ''}
-      </p>
+      <div className="ov3-cookie-text">
+        <strong className="ov3-cookie-value">
+          {formatCount(locale, data.distinct, forms.routes)}
+        </strong>
+        <p className="ov3-cookie-label">
+          {percent(data.repeatShare)} {copy(locale, 'repeat', 'повторов')}
+        </p>
+        {data.top && (
+          <p className="ov3-cookie-detail">
+            {routeArrow(data.top.key)} ×{number(locale, data.top.count)}
+          </p>
+        )}
+      </div>
     </div>
   )
 }

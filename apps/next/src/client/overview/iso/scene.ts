@@ -1,6 +1,8 @@
 // Iso-glow kernel: every point is projected here, so the SVG holds absolute screen coordinates (no nested transforms) and 1px strokes stay 1px at any scale.
 // Builders return a node tree instead of markup so named parts stay addressable for motion, and paints stay theme roles resolved by CSS variables.
 
+import type { MakerKey } from '@kuuki/data/aircraft-makers'
+
 const C = Math.cos(Math.PI / 6),
   S = 0.5
 
@@ -24,6 +26,9 @@ export type Paint =
   | 'ink'
   | 'muted'
   | 'none'
+  /** A manufacturer's category colour (`--cat-maker-*`) and its shaded side, for figures whose colour is the data. */
+  | `maker:${MakerKey}`
+  | `maker-side:${MakerKey}`
 
 export type IsoNode =
   | {
@@ -34,6 +39,8 @@ export type IsoNode =
       strokeOpacity?: number
       /** Stroke width in px; the renderer defaults to 1. */
       width?: number
+      /** Whole-polygon opacity, for a fill whose strength is data (a heat cell). */
+      opacity?: number
     }
   | {
       kind: 'path'
@@ -126,6 +133,7 @@ export class Scene {
     stroke: Paint = 'line',
     strokeOpacity?: number,
     width?: number,
+    opacity?: number,
   ) {
     this.push({
       kind: 'polygon',
@@ -134,6 +142,7 @@ export class Scene {
       stroke,
       strokeOpacity,
       width,
+      opacity,
     })
   }
   /** Polygon already in screen space. */
@@ -435,6 +444,18 @@ export function fitK(width: number, build: (k: number) => { width: number }): nu
   for (let i = 0; i < 20 && build(k).width > width; i++) k -= 0.005
   for (let i = 0; i < 20 && build(k + 0.005).width <= width; i++) k += 0.005
   return Math.round(k * 1000) / 1000
+}
+
+/** Like fitK, but the figure must also be at most `height` px tall: upright figures (a board, a calendar) run out of height before width. */
+export function fitBox(
+  width: number,
+  height: number,
+  build: (k: number) => { width: number; height: number },
+): number {
+  return Math.min(
+    fitK(width, build),
+    fitK(width, (k) => ({ width: (build(k).height * width) / height })),
+  )
 }
 
 /** Rounded rectangle wound counter-clockwise from the (x + w, y) corner. `r` is one radius or one per corner in that order; a 0 corner is a single sharp point. */
