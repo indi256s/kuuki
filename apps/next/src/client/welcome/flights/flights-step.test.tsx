@@ -77,6 +77,27 @@ describe('FlightsStep paste and drop', () => {
   })
 })
 
+describe('FlightsStep touch paste box', () => {
+  it('submits text a keyboard inserted without a paste event', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(pointer: coarse)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    try {
+      setup()
+      fireEvent.click(screen.getByRole('button', { name: 'Paste or add a boarding pass' }))
+      expect(screen.queryByRole('button', { name: 'Read these flights' })).toBeNull()
+      fireEvent.change(screen.getByLabelText('Paste the reply here'), { target: { value: V2 } })
+      fireEvent.click(screen.getByRole('button', { name: 'Read these flights' }))
+      await waitFor(() => expect(m.submit).toHaveBeenCalledTimes(1))
+      expect(m.submit.mock.calls[0][0]).toEqual({ type: 'text', content: V2 })
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
 describe('FlightsStep close-tab note', () => {
   it('shows it and opens the event stream when the job worker accepts (202)', async () => {
     setup()

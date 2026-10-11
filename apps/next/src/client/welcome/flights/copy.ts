@@ -49,6 +49,7 @@ export const COPY = {
   ),
   boxLabel: p('Paste the reply here', 'Вставьте ответ сюда'),
   boxHint: p('Press and hold here, then tap Paste', 'Нажмите и удерживайте, затем «Вставить»'),
+  readBox: p('Read these flights', 'Прочитать перелёты'),
   drop: p('Drop it to read it', 'Отпустите, чтобы прочитать'),
 
   denied: p(

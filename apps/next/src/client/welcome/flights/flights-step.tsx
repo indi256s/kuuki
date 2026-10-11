@@ -197,6 +197,8 @@ export function FlightsStep({
   const [notice, setNotice] = useState<Notice | null>(null)
   const [blocked, setBlocked] = useState(false)
   const [dropping, setDropping] = useState(false)
+  // Keyboard clipboard chips (Gboard, SwiftKey) insert text without a paste event, so the box needs its own submit.
+  const [boxText, setBoxText] = useState('')
   // The job worker accepted the batch (202), or we are resuming one it already holds. The unbound fallback is false.
   const [bound, setBound] = useState(Boolean(batch) && jobs)
   const [skip, setSkip] = useState<'idle' | 'busy' | 'failed'>('idle')
@@ -775,6 +777,8 @@ export function FlightsStep({
                   rows={2}
                   aria-label={t(COPY.boxLabel)}
                   placeholder={t(COPY.boxHint)}
+                  value={boxText}
+                  onChange={(event) => setBoxText(event.target.value)}
                 />
               ) : blocked ? (
                 <>
@@ -787,6 +791,11 @@ export function FlightsStep({
             </>
           )}
         </div>
+        {coarse && boxText.trim() && !limited ? (
+          <Button variant="primary" className="flights-read" onClick={() => submitText(boxText)}>
+            {t(COPY.readBox)}
+          </Button>
+        ) : null}
         {coarse ? addFile : null}
         <div className="flights-status">
           {copied === 'ok' ? (
