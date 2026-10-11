@@ -51,24 +51,13 @@ describe('RouteFocus', () => {
     expect(document.activeElement).toBe(h1)
   })
 
-  it('focuses when the onboarding step changes', () => {
-    pathname = '/onboarding'
-    search = new URLSearchParams('step=name')
-    const h1 = page()
-    const view = render(<RouteFocus />)
-    expect(document.activeElement).not.toBe(h1)
-    search = new URLSearchParams('step=capture')
-    view.rerender(<RouteFocus />)
-    expect(document.activeElement).toBe(h1)
-  })
-
-  it('focuses Reveal while Capture remains mounted and follows a heading that becomes hidden', async () => {
-    pathname = '/onboarding'
-    search = new URLSearchParams('step=capture')
+  it('focuses the new view while the old one remains mounted and follows a heading that becomes hidden', async () => {
+    pathname = '/passport'
+    search = new URLSearchParams('view=list')
     document.body.innerHTML =
       '<main id="main"><div hidden><h1>Capture</h1></div><section><h1>Reveal</h1></section></main>'
     const view = render(<RouteFocus />)
-    search = new URLSearchParams('step=reveal')
+    search = new URLSearchParams('view=map')
     view.rerender(<RouteFocus />)
     expect(document.activeElement?.textContent).toBe('Reveal')
     await act(async () => {

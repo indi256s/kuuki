@@ -1,8 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
+import { markOnboarded } from '../welcome/api'
+import { dissolve } from '../welcome/dissolve'
+import { morph } from '../welcome/morph'
+import { PassportPreview } from '../welcome/passport/passport-preview'
+import type { PassportPreview as Preview, WelcomeInit } from '../welcome/types'
+import { WelcomeFlow } from '../welcome/welcome-flow'
+import '../welcome/welcome.css'
 import type { Locale } from '../../lib/format'
 import { BrandPanel } from './brand-panel'
 import { CornerControls } from './corner-controls'
@@ -21,16 +28,21 @@ export function AuthCardFrame({
   brandField,
   theme,
   onLocaleChange,
+  cardRef,
+  welcomeStep,
   children,
 }: {
   locale: Locale
   brandField?: ReactNode
   theme?: ReactNode
   onLocaleChange?: (locale: Locale) => void
+  cardRef?: Ref<HTMLDivElement>
+  /** Onboarding inside the card: the step drives the card height and the mobile sheet. */
+  welcomeStep?: string
   children: ReactNode
 }) {
   return (
-    <div className="auth-card">
+    <div className="auth-card" ref={cardRef} data-welcome={welcomeStep}>
       <BrandPanel field={brandField ?? <PlaneField />} />
       <CornerControls locale={locale} theme={theme} onLocaleChange={onLocaleChange} />
       <section className="auth-form-panel">
@@ -56,6 +68,7 @@ export type CardState =
   | { step: 'checking' }
   | { step: 'create'; email: string; error?: 'short' | 'rate' | 'network' }
   | { step: 'creating'; email: string }
+  | { step: 'welcome'; init: WelcomeInit }
   | RequestState
 
 /** Where focus goes after a state change. The heading is the default; the create step and Change are the exceptions. */
@@ -63,6 +76,34 @@ type FocusTarget = 'heading' | 'primary' | 'email-selected' | 'email' | 'passwor
 
 /** Continue answered `{ next: 'create' }`: no session was issued, so the identity mutation must not navigate. */
 class NoJournal extends Error {}
+
+/** A new account starts onboarding with nothing saved. */
+const freshWelcome = (ownerId: string): WelcomeInit => ({
+  ownerId,
+  step: 'name',
+  displayName: '',
+  username: null,
+  batch: null,
+  manual: false,
+  saved: null,
+  // Unknown until the first submission answers 202; a fresh account has no batch to resume.
+  jobs: false,
+})
+
+/** The signed-in member's own profile, read under the identity lock: finished onboarding or not. */
+async function onboardedAfterSignIn(token: symbol) {
+  try {
+    const me = await api.get<{ profile?: { onboarded_at?: string | null } | null }>(
+      '/api/auth/me',
+      undefined,
+      { identityToken: token },
+    )
+    return !!me?.profile?.onboarded_at
+  } catch {
+    // Unknown: land on the Overview; its gate sends an unfinished member to the card.
+    return true
+  }
+}
 
 /** Sign-in and signup return a user ID; a 2xx response alone does not establish a session. */
 function sessionReply(reply: unknown) {
@@ -92,18 +133,33 @@ export function AuthCard({
   initialStep = 'form',
   initialNotice,
   tagline,
+  welcome,
 }: {
   locale: Locale
   initialEmail?: string
   initialStep?: 'form' | 'request'
   initialNotice?: 'password-saved'
   tagline: number
+  /** Set on `/welcome/*`: the card opens at this onboarding step. */
+  welcome?: WelcomeInit
 }) {
   const [state, setState] = useState<CardState>(
-    initialStep === 'request'
-      ? { step: 'request', email: initialEmail }
-      : { step: 'form', notice: initialNotice },
+    welcome
+      ? { step: 'welcome', init: welcome }
+      : initialStep === 'request'
+        ? { step: 'request', email: initialEmail }
+        : { step: 'form', notice: initialNotice },
   )
+  const card = useRef<HTMLDivElement>(null)
+  const [passport, setPassport] = useState<Preview | null>(null)
+  const onPassport = useCallback((preview: Preview) => setPassport(preview), [])
+  // "I'll do this later", "Start empty" and "Open my journal": record it first, then dissolve into the Overview.
+  const finish = useCallback(async () => {
+    await markOnboarded()
+    await dissolve(card.current)
+    // oxlint-disable-next-line next-compat/no-location-assign-relative-destination -- a document navigation drops the guest-era router cache (spec "Dissolve")
+    window.location.assign('/overview')
+  }, [])
   const [email, setEmail] = useState(() => {
     if (initialEmail || !initialNotice || typeof window === 'undefined') return initialEmail
     try {
@@ -144,16 +200,25 @@ export function AuthCard({
     if (!password) return go({ step: 'form', error: 'password' }, 'password')
     go({ step: 'checking' })
     try {
-      await withIdentityMutation(async (token) => {
-        const reply = await api.post<unknown>(
-          '/api/auth/continue',
-          { email: address, password },
-          { identityToken: token },
-        )
-        if (reply && typeof reply === 'object' && 'next' in reply && reply.next === 'create')
-          throw new NoJournal()
-        return sessionReply(reply)
-      }, '/overview')
+      await withIdentityMutation(
+        async (token) => {
+          const reply = await api.post<unknown>(
+            '/api/auth/continue',
+            { email: address, password },
+            { identityToken: token },
+          )
+          if (reply && typeof reply === 'object' && 'next' in reply && reply.next === 'create')
+            throw new NoJournal()
+          sessionReply(reply)
+          return { onboarded: await onboardedAfterSignIn(token) }
+        },
+        '/overview',
+        {
+          // An unfinished member resumes the card at their step (the server picks it); everyone else dissolves.
+          target: ({ onboarded }) => (onboarded ? '/overview' : '/welcome/name'),
+          beforeNavigate: ({ onboarded }) => (onboarded ? dissolve(card.current) : undefined),
+        },
+      )
     } catch (error) {
       // The create step focuses Create account, the one documented exception to focusing the heading.
       if (error instanceof NoJournal) return go({ step: 'create', email: address }, 'primary')
@@ -172,7 +237,7 @@ export function AuthCard({
       return go({ step: 'create', email: address, error: 'short' }, 'password')
     go({ step: 'creating', email: address })
     try {
-      await withIdentityMutation(
+      const reply = (await withIdentityMutation(
         async (token) =>
           sessionReply(
             await api.post(
@@ -181,8 +246,12 @@ export function AuthCard({
               { identityToken: token },
             ),
           ),
-        '/onboarding',
-      )
+        '/welcome/name',
+        { inPlaceOwner: (result) => (result as { user: { id: string } }).user.id },
+      )) as { user: { id: string } }
+      // In place, the URL is already `/welcome/name` and the card morphs; otherwise the page is navigating away.
+      if (window.location.pathname === '/welcome/name')
+        morph('forward', () => go({ step: 'welcome', init: freshWelcome(reply.user.id) }))
     } catch (error) {
       const code = codeOf(error)
       if (code === 'WEAK_PASSWORD') return go({ step: 'create', email: address, error: 'short' })
@@ -251,8 +320,19 @@ export function AuthCard({
   }
 
   const notice = state.step === 'form' ? state.notice : undefined
+  if (state.step === 'welcome')
+    return (
+      <AuthCardFrame
+        locale={locale}
+        cardRef={card}
+        welcomeStep={passport?.step ?? state.init.step}
+        brandField={passport ? <PassportPreview preview={passport} locale={locale} /> : undefined}
+      >
+        <WelcomeFlow init={state.init} locale={locale} onPassport={onPassport} onFinish={finish} />
+      </AuthCardFrame>
+    )
   return (
-    <AuthCardFrame locale={locale}>
+    <AuthCardFrame locale={locale} cardRef={card}>
       <div
         className="auth-step"
         data-step={state.step === 'create' || state.step === 'creating' ? 'create' : 'form'}

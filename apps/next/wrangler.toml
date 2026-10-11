@@ -1,7 +1,8 @@
 name = "kuuki-next"
 main = "worker.ts"
 compatibility_date = "2026-08-06"
-compatibility_flags = ["nodejs_compat"]
+# The request-signal flags let a closed import event stream unsubscribe (ADR 0001 §9); they need no newer date.
+compatibility_flags = ["nodejs_compat", "enable_request_signal", "request_signal_passthrough"]
 # Production serves only through this zone route. wrangler deploy PUTs `routes` as the Worker's complete set.
 # routes, workers_dev and preview_urls inherit into environments, so each [env.*] sets all three.
 routes = [{ pattern = "kuuki.marchstudio.uk/*", zone_name = "marchstudio.uk" }]
@@ -37,6 +38,13 @@ binding = "DB"
 database_name = "kuuki-db"
 database_id = "2a8e3895-6a98-4473-8d7b-a43ca0c0026f"
 migrations_dir = "../../db/migrations"
+
+# Import jobs run in the kuuki-import Worker's Durable Object (ADR 0001 §9). Removing this binding and redeploying
+# returns to synchronous recognition. Bindings do not inherit: preview binds its own Worker; activation has none.
+[[durable_objects.bindings]]
+name = "IMPORT_JOBS"
+class_name = "ImportJob"
+script_name = "kuuki-import"
 
 # Same build as production, served on its own workers.dev origin for account activation.
 [env.activation]
@@ -79,6 +87,11 @@ binding = "DB"
 database_name = "kuuki-preview"
 database_id = "80e0c789-c1ab-4aa5-a6fe-e65c6e6cb74c"
 migrations_dir = "../../db/migrations"
+
+[[env.preview.durable_objects.bindings]]
+name = "IMPORT_JOBS"
+class_name = "ImportJob"
+script_name = "kuuki-import-preview"
 
 [env.preview.vars]
 PAGES_ORIGIN = "https://kuuki-next-preview.indi256s.workers.dev"

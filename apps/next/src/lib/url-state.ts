@@ -134,36 +134,6 @@ export function normalizeImportQuery(raw: RawQuery): Normalized<ImportState> {
   return finish(entries, ['source', 'batch'], known, state)
 }
 
-export const ONBOARDING_STEPS = ['name', 'capture', 'reveal'] as const
-export type OnboardingStep = (typeof ONBOARDING_STEPS)[number]
-export type OnboardingProgress = { hasUsername: boolean; hasFlight: boolean }
-
-/** The step a member may actually see: capture needs a username, reveal needs a saved first flight too. */
-export function resolveOnboardingStep(
-  requested: string | undefined,
-  progress: OnboardingProgress,
-): OnboardingStep {
-  const wanted = (ONBOARDING_STEPS as readonly string[]).includes(requested ?? '')
-    ? (requested as OnboardingStep)
-    : progress.hasUsername
-      ? progress.hasFlight
-        ? 'reveal'
-        : 'capture'
-      : 'name'
-  if (!progress.hasUsername) return 'name'
-  if (wanted === 'reveal' && !progress.hasFlight) return 'capture'
-  return wanted
-}
-
-export function normalizeOnboardingQuery(
-  raw: RawQuery,
-  progress: OnboardingProgress,
-): Normalized<{ step: OnboardingStep }> {
-  const entries = toEntries(raw)
-  const step = resolveOnboardingStep(first(entries, 'step'), progress)
-  return finish(entries, ['step'], [['step', step]], { step })
-}
-
 export const withQuery = (path: string, query: string) => (query ? `${path}?${query}` : path)
 
 export const JOURNAL_FILTER_KEYS = [

@@ -1,0 +1,370 @@
+/* The first-flight step (boards 15.2–15.4, 15.8, 17.x). Tokens only. */
+.flights-step {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- Prompt tray (15.2) ---------- */
+.flights-tray {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+  overflow: clip;
+}
+.flights-tray-window {
+  position: relative;
+  block-size: 112px;
+  overflow: clip;
+}
+.flights-prompt {
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  padding: 16px 16px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: 400 12px/18px var(--font-mono);
+  resize: none;
+}
+.flights-prompt:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.flights-tray-fade {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 48px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--surface-inset) 90%, transparent)
+  );
+  pointer-events: none;
+}
+.flights-tray-foot {
+  padding: 8px;
+}
+.flights-tray-foot .ui-button {
+  inline-size: 100%;
+  gap: 8px;
+}
+
+/* ---------- Quiet links and rows ---------- */
+.flights-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+}
+.flights-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--accent-text);
+  font: 500 14px/20px var(--font-sans);
+  cursor: pointer;
+}
+.flights-link[data-tone='muted'] {
+  color: var(--text-muted);
+}
+.flights-link[aria-busy='true'] {
+  cursor: progress;
+}
+.flights-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.flights-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+}
+.flights-status .flights-links {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+.flights-copied {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text);
+  font: 400 14px/20px var(--font-sans);
+}
+.flights-copied svg {
+  color: var(--success-text);
+}
+.flights-skip-error {
+  margin: 0;
+  color: var(--danger-text);
+  font: 400 13px/20px var(--font-sans);
+}
+.flights-outline {
+  inline-size: 100%;
+}
+.flights-pill {
+  padding-inline: 20px;
+}
+.flights-file {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Paste target (15.3, 17.x) ---------- */
+.flights-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-block-size: 188px;
+  padding: 16px;
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  text-align: center;
+}
+.flights-target[data-compact='true'] {
+  min-block-size: 150px;
+}
+.flights-target .ui-button {
+  padding-inline: 20px;
+}
+.flights-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-sans);
+}
+.flights-key {
+  padding: 6px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: 500 18px/24px var(--font-mono);
+}
+.flights-box {
+  inline-size: 100%;
+  min-block-size: 96px;
+  padding: 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: 400 16px/24px var(--font-sans);
+  text-align: center;
+  resize: none;
+}
+.flights-box::placeholder {
+  color: var(--text-muted);
+}
+.flights-box:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Notices (17.x) ---------- */
+.flights-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--warning-fill) 14%, var(--surface));
+  color: var(--warning-text);
+  font: 400 14px/22px var(--font-sans);
+}
+.flights-notice svg {
+  flex: none;
+  margin-block-start: 2px;
+}
+.flights-notice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-inline-size: 0;
+}
+.flights-notice-text p {
+  margin: 0;
+}
+.flights-notice-detail {
+  font: 400 12px/18px var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.flights-notice-snippet {
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: 400 12px/18px var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Reading (15.4, 17.5–17.7) ---------- */
+.flights-live {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.flights-count {
+  margin: 0;
+  min-block-size: 24px;
+  color: var(--text-muted);
+  font: 400 15px/24px var(--font-sans);
+}
+.flights-count-n {
+  color: var(--accent-text);
+  font: 500 15px/24px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+/* Four rows always take their room, so the card does not jump as rows arrive. */
+.flights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-block-size: calc(4 * 32px + 3 * 2px + 20px);
+  margin: 0;
+  padding: 10px 0;
+  list-style: none;
+}
+.flights-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  block-size: 32px;
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-mono);
+}
+.flights-list li > :first-child {
+  flex: none;
+  inline-size: 92px;
+}
+.flights-list-route {
+  flex: none;
+  inline-size: 120px;
+  color: var(--text);
+  font-weight: 500;
+}
+.flights-skeleton span {
+  display: block;
+  block-size: 12px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-inset);
+}
+.flights-safe {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+  color: var(--text);
+  font: 400 14px/22px var(--font-sans);
+}
+.flights-safe svg {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+/* ---------- Drop target: the whole card ---------- */
+.flights-drop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent-tint) 92%, transparent);
+  color: var(--accent-text);
+  font: 600 20px/28px var(--font-sans);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.flights-step[data-dropping='true'] .flights-drop {
+  opacity: 1;
+}
+.flights-step:not([data-dropping='true']) .flights-drop {
+  visibility: hidden;
+  /* Hide only once the fade-out has run. */
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    visibility 0s linear var(--dur-fast);
+}
+
+/* The newest rows sit on top and the older ones fade down the list. A row that arrives presses in from just above
+   (@starting-style runs once, when it mounts); the rows it pushes down ease to their dimmer step. */
+.flights-list li:nth-child(3) {
+  opacity: 0.6;
+}
+.flights-list li:nth-child(4) {
+  opacity: 0.3;
+}
+.flights-list li:not(.flights-skeleton) {
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    translate var(--dur-base) var(--ease-out);
+}
+@starting-style {
+  .flights-list li:not(.flights-skeleton):nth-child(n) {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+}
+
+@media (max-width: 700px) {
+  .flights-tray-window {
+    block-size: 92px;
+  }
+  .flights-prompt {
+    padding: 14px 14px 4px;
+  }
+  .flights-tray-fade {
+    block-size: 40px;
+  }
+  .flights-list li > :first-child {
+    inline-size: 88px;
+  }
+  .flights-list-route {
+    inline-size: 96px;
+  }
+  .flights-target {
+    min-block-size: 96px;
+  }
+}
+@media (pointer: coarse) {
+  .flights-tray-foot .ui-button,
+  .flights-target .ui-button,
+  .flights-outline {
+    min-block-size: 48px;
+  }
+}
+/* Reduced motion keeps the fades and drops the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .flights-list li:not(.flights-skeleton) {
+    transition: opacity var(--dur-fast) linear;
+  }
+  @starting-style {
+    .flights-list li:not(.flights-skeleton):nth-child(n) {
+      translate: none;
+    }
+  }
+}

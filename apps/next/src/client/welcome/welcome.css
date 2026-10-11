@@ -1,0 +1,217 @@
+/*
+ * The auth card while onboarding (boards 15.x). The frame owns the card height, the panel padding and the mobile
+ * sheet; steps own their contents. `--welcome-bleed` is the panel's inline padding, so a step's sticky footer can
+ * span the panel edge to edge with `margin-inline: calc(-1 * var(--welcome-bleed))`.
+ */
+.auth-card[data-welcome] .auth-form-panel {
+  --welcome-bleed: 64px;
+  padding: 96px var(--welcome-bleed) 48px;
+}
+.auth-card[data-welcome] .auth-column {
+  width: min(400px, 100%);
+}
+.auth-card[data-welcome='name'] .auth-column {
+  width: min(360px, 100%);
+}
+/* Review: the card grows with its list; the panel starts at the top and its footer spans the full panel. */
+.auth-card[data-welcome='review'] .auth-form-panel {
+  --welcome-bleed: 90px;
+  justify-content: flex-start;
+  padding: 128px var(--welcome-bleed) 0;
+}
+.auth-card[data-welcome='review'] .auth-column {
+  width: 100%;
+}
+.welcome-step {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+}
+.welcome-step {
+  --welcome-shift: 16px;
+}
+.welcome-step[data-direction='back'] {
+  --welcome-shift: -16px;
+}
+
+/* Browsers without view transitions: the incoming step slides in on its own, from the side it comes from. */
+@supports not (view-transition-name: none) {
+  .welcome-step[data-direction] {
+    animation: welcome-step-in var(--dur-base) var(--ease-out);
+  }
+}
+@keyframes welcome-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--welcome-shift));
+  }
+}
+
+/* The morph (morph.ts): create → name and every step change run as one view transition. The card grows or shrinks
+   as a clipped box over its snapshots at natural size, so the radius and the text never stretch. The passport changes
+   shape in place (cover → spread → tall spread), and the step content cross-slides with a 2px blur that bridges the
+   two states. Names exist only while html[data-welcome-morph] is set, so the theme sweep never captures them. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-welcome-morph='forward'] {
+    --welcome-out: -12px;
+    --welcome-in: 16px;
+  }
+  html[data-welcome-morph='back'] {
+    --welcome-out: 12px;
+    --welcome-in: -16px;
+  }
+  html[data-welcome-morph] .auth-card {
+    view-transition-name: welcome-card;
+  }
+  html[data-welcome-morph] .welcome-passport {
+    view-transition-name: welcome-passport;
+  }
+  html[data-welcome-morph] :is(.auth-step, .welcome-step) {
+    view-transition-name: welcome-step;
+  }
+  html[data-welcome-morph]::view-transition-old(root),
+  html[data-welcome-morph]::view-transition-new(root) {
+    animation: none;
+  }
+  html[data-welcome-morph]::view-transition-group(welcome-card),
+  html[data-welcome-morph]::view-transition-group(welcome-passport) {
+    animation-duration: var(--dur-sheet);
+    animation-timing-function: var(--ease-drawer);
+  }
+  html[data-welcome-morph]::view-transition-group(welcome-card) {
+    overflow: clip;
+    border-radius: var(--radius-lg);
+  }
+  @media (max-width: 700px) {
+    html[data-welcome-morph]::view-transition-group(welcome-card) {
+      border-radius: 0;
+    }
+  }
+  html[data-welcome-morph]::view-transition-old(welcome-card),
+  html[data-welcome-morph]::view-transition-new(welcome-card) {
+    block-size: auto;
+    animation-duration: var(--dur-base);
+    animation-timing-function: var(--ease-out);
+  }
+  /* The passport snapshots keep their own size, centred, so the cover never squashes into the spread. */
+  html[data-welcome-morph]::view-transition-old(welcome-passport),
+  html[data-welcome-morph]::view-transition-new(welcome-passport) {
+    inset: 0;
+    margin: auto;
+    inline-size: auto;
+    block-size: auto;
+  }
+  html[data-welcome-morph]::view-transition-old(welcome-passport) {
+    animation: welcome-passport-out var(--dur-fast) var(--ease-out) both;
+  }
+  html[data-welcome-morph]::view-transition-new(welcome-passport) {
+    animation: welcome-passport-in var(--dur-sheet) var(--ease-out) both;
+  }
+  /* The step content swaps in place: no travel between columns, only the cross-slide. Clipped to the new step, so a
+     taller outgoing step (review going Back) never shows below the shrinking card. */
+  html[data-welcome-morph]::view-transition-group(welcome-step) {
+    animation: none;
+    overflow: clip;
+  }
+  html[data-welcome-morph]::view-transition-old(welcome-step),
+  html[data-welcome-morph]::view-transition-new(welcome-step) {
+    inline-size: auto;
+    block-size: auto;
+  }
+  html[data-welcome-morph]::view-transition-old(welcome-step) {
+    animation: welcome-morph-out var(--dur-fast) var(--ease-out) both;
+  }
+  html[data-welcome-morph]::view-transition-new(welcome-step) {
+    animation: welcome-morph-in var(--dur-base) var(--ease-out) both;
+  }
+}
+@keyframes welcome-morph-out {
+  to {
+    opacity: 0;
+    transform: translateX(var(--welcome-out, -12px));
+    filter: blur(2px);
+  }
+}
+@keyframes welcome-morph-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--welcome-in, 16px));
+    filter: blur(2px);
+  }
+}
+@keyframes welcome-passport-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(2px);
+  }
+}
+@keyframes welcome-passport-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(2px);
+  }
+}
+/* Reduced motion: the whole card crossfades, with nothing sliding, scaling or growing. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-welcome-morph]::view-transition-old(root),
+  html[data-welcome-morph]::view-transition-new(root) {
+    animation-duration: var(--dur-fast);
+    animation-timing-function: linear;
+  }
+  @supports not (view-transition-name: none) {
+    .welcome-step[data-direction] {
+      animation: welcome-step-fade var(--dur-fast) linear;
+    }
+  }
+  @keyframes welcome-step-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* Mobile: the plane band becomes a header row over the passport strip, and the sheet takes the rest of the height. */
+@media (max-width: 700px) {
+  .auth-page:has(.auth-card[data-welcome]) {
+    background: var(--auth-brand-surface);
+  }
+  .auth-card[data-welcome] .auth-brand {
+    height: auto;
+    padding: 0 0 16px;
+    background: var(--auth-brand-surface);
+  }
+  .auth-card[data-welcome] .auth-brand-wordmark {
+    order: -1;
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    padding-left: 19px;
+  }
+  .auth-card[data-welcome] .auth-brand-field {
+    position: static;
+    pointer-events: auto;
+  }
+  /* Review and the reveal need the room: no header row, only the strip. */
+  .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-brand {
+    padding-top: 4px;
+  }
+  .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-brand-wordmark,
+  .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-corner {
+    display: none;
+  }
+  .auth-card[data-welcome] .auth-form-panel,
+  .auth-card[data-welcome='review'] .auth-form-panel {
+    --welcome-bleed: 20px;
+    justify-content: flex-start;
+    padding: 32px var(--welcome-bleed) 46px;
+  }
+  .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-form-panel {
+    padding-top: 24px;
+    padding-bottom: 0;
+  }
+  .auth-card[data-welcome] .auth-column {
+    width: 100%;
+  }
+}

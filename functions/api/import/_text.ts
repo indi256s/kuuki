@@ -35,15 +35,26 @@ function airport(value: string): string {
   return candidates.length === 1 ? candidates[0] : ''
 }
 
-/** Only a fully recognised pipe-list bypasses the model. Any unknown prose falls back intact. */
+const VERSION_HEADER = /^KUUKI\s+FLIGHTS\s+v\d+$/i
+const FENCE_OPEN = /^```[\w+-]*$/
+const FENCE_CLOSE = /^```$/
+
+/**
+ * Only a fully recognised pipe-list bypasses the model. Any unknown prose falls back intact.
+ * A leading `KUUKI FLIGHTS v<N>` line (any N) and a wrapping Markdown code fence are ignored.
+ */
 export function parseStructuredText(content: string): ParseResponse | null {
   const flights: ExtractedFlight[] = []
   const rejected: RejectedFlight[] = []
   let records = 0
   let otherPassenger = false
+  let leading = true
   for (const [index, raw] of content.split(/\r?\n/).entries()) {
     const line = raw.trim()
     if (!line) continue
+    if (leading && (VERSION_HEADER.test(line) || FENCE_OPEN.test(line))) continue
+    leading = false
+    if (FENCE_CLOSE.test(line)) continue
     if (/^Other-passenger bookings or conflicting ownership \(\d+\)$/i.test(line)) {
       otherPassenger = true
       continue

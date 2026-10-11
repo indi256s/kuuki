@@ -423,6 +423,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/profiles/me/onboarded",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/profiles/search",
     "methods": [
       "GET"

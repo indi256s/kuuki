@@ -215,6 +215,41 @@ describe('POST /api/import/jobs', () => {
     expect(await count(db, 'import_drafts')).toBe(100)
   })
 
+  describe('source-dependent draft caps', () => {
+    const list = (count: number) =>
+      [
+        'KUUKI FLIGHTS v2',
+        ...Array.from(
+          { length: count },
+          (_, index) =>
+            `${new Date(Date.UTC(2020, 0, 1 + index)).toISOString().slice(0, 10)} | JFK → LHR | British Airways BA ${index + 1}`,
+        ),
+      ].join('\n')
+
+    it('keeps 450 locally parsed rows without a model call', async () => {
+      const { status, body } = await postJob(db, { content: list(450) })
+      expect(status).toBe(201)
+      expect(body.batch).toMatchObject({ status: 'review', errorCode: null })
+      expect(body.drafts).toHaveLength(450)
+      expect(provider.generateContent).not.toHaveBeenCalled()
+    })
+
+    it('truncates 600 locally parsed rows at 500', async () => {
+      const { body } = await postJob(db, { content: list(600) })
+      expect(body.batch).toMatchObject({ status: 'partial', errorCode: 'ROWS_TRUNCATED' })
+      expect(body.drafts).toHaveLength(500)
+      expect(await count(db, 'import_drafts')).toBe(500)
+    })
+
+    it('truncates 150 model-extracted rows at 100', async () => {
+      const snapshot = await seed(
+        Array.from({ length: 150 }, (_, index) => providerFlight({ flight_number: String(index) })),
+      )
+      expect(snapshot.batch).toMatchObject({ status: 'partial', errorCode: 'ROWS_TRUNCATED' })
+      expect(snapshot.drafts).toHaveLength(100)
+    })
+  })
+
   it('marks rows the normalization rejected as partial and an empty extraction as failed', async () => {
     const partial = await seed([
       providerFlight(),

@@ -36,7 +36,7 @@ function safeTargetPath(path?: string): string {
     '/signin',
     '/signup',
     '/settings',
-    '/onboarding',
+    '/welcome/name',
     '/account-deleted',
     '/password-updated',
   ])
@@ -49,8 +49,8 @@ export function trackPrivateOperation(controller: AbortController): () => void {
   return () => tracked.delete(controller)
 }
 
-function resetPrivateState(previousOwner: string | null | undefined, targetPath?: string) {
-  const target = safeTargetPath(targetPath)
+/** Drop everything the departing owner left in this tab: tracked requests, local stores and sync markers. */
+function dropPrivateState(previousOwner: string | null | undefined) {
   for (const controller of tracked)
     controller.abort(new DOMException('Session changed', 'AbortError'))
   tracked.clear()
@@ -62,6 +62,11 @@ function resetPrivateState(previousOwner: string | null | undefined, targetPath?
   // Sync markers are only a request throttle; clearing every owner's lets the next owner sync on first sight.
   clearOwnerSyncMarkers(sharedStore())
   window.dispatchEvent(new Event('kuuki:identity-reset'))
+}
+
+function resetPrivateState(previousOwner: string | null | undefined, targetPath?: string) {
+  const target = safeTargetPath(targetPath)
+  dropPrivateState(previousOwner)
   // A document navigation discards Next segment cache as well as client stores.
   window.location.assign(target)
 }
@@ -116,6 +121,20 @@ async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: Ab
   }
 }
 
+/** How a successful identity mutation leaves the page (see `withIdentityMutation`). */
+export type IdentityExit<T> = {
+  /**
+   * Guest → new member on a page that renders no private data (the auth card): publish the new owner and push
+   * `targetPath` without a reload, so the card shell stays mounted. Returns the new owner's ID. Any other
+   * transition (a departing member, or no owner in the result) still takes the document navigation.
+   */
+  inPlaceOwner?: (result: T) => string | null
+  /** Runs after the mutation succeeded and before the document navigation, e.g. the card's dissolve. */
+  beforeNavigate?: (result: T) => Promise<void> | void
+  /** Picks the navigation target from the result; it must be one of the allowed identity targets. */
+  target?: (result: T) => string
+}
+
 /**
  * Use for successful cookie-identity mutations. `run` must throw on API failure;
  * only a resolved result broadcasts and navigates. W3 sign-in passes `/overview`,
@@ -124,6 +143,7 @@ async function syncOwnerFlights(ownerId: string, refresh: () => void, signal: Ab
 export async function withIdentityMutation<T>(
   run: (token: symbol) => Promise<T>,
   targetPath?: string,
+  exit: IdentityExit<T> = {},
 ): Promise<T> {
   safeTargetPath(targetPath)
   const operation = beginIdentityOperation()
@@ -133,6 +153,7 @@ export async function withIdentityMutation<T>(
     // mounted tab may not have finished bootstrap, and its remembered owner may
     // already be stale after another tab changed the cookie.
     let previousOwner: string | null = null
+    let ownerKnown = false
     try {
       previousOwner =
         (
@@ -140,17 +161,33 @@ export async function withIdentityMutation<T>(
             identityToken: operation.token,
           })
         ).user?.id ?? null
+      ownerKnown = true
     } catch {
       /* An unavailable owner lookup must not block the account action. */
     }
     const result = await run(operation.token)
-    publishIdentity(null) // Hide any previous owner's streamed payload immediately.
+    const target = exit.target ? safeTargetPath(exit.target(result)) : targetPath
+    const nextOwner = exit.inPlaceOwner?.(result) ?? null
+    // In place only when the departing identity is a confirmed guest: there is nothing private to drop that a
+    // reload would have to discard, and the card page rendered no owner-scoped payload.
+    const inPlace = !!nextOwner && ownerKnown && previousOwner === null && target !== undefined
+    publishIdentity(inPlace ? nextOwner : null) // Hide any previous owner's streamed payload immediately.
     if ('BroadcastChannel' in window) {
       const channel = new BroadcastChannel('kuuki-identity')
       channel.postMessage({ tabId })
       channel.close()
     }
-    resetPrivateState(previousOwner, targetPath)
+    if (inPlace) {
+      dropPrivateState(previousOwner)
+      window.history.pushState(null, '', safeTargetPath(target))
+      return result
+    }
+    try {
+      await exit.beforeNavigate?.(result)
+    } catch {
+      /* An exit animation never blocks the navigation. */
+    }
+    resetPrivateState(previousOwner, target)
     return result
   } finally {
     operation.release()

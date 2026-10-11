@@ -1,0 +1,474 @@
+/*
+ * The compact review (boards 15.5, 15.9, 18.x). Tokens only. No hairlines between rows: space does the grouping.
+ * The save bar bleeds to the panel edge with the frame's `--welcome-bleed`.
+ */
+.review-step {
+  --review-warn-bg: color-mix(in srgb, var(--warning-fill) 12%, var(--surface));
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-inline-size: 0;
+}
+.review-step .auth-heading {
+  gap: 6px;
+}
+
+/* ---------- Unsure cards ---------- */
+.review-unsure {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--review-warn-bg);
+}
+.review-head {
+  display: grid;
+  grid-template-columns: 92px 132px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 14px;
+  font: 400 13px/20px var(--font-mono);
+  color: var(--text-muted);
+}
+.review-head > *,
+.review-meta > * {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.review-head .review-tag {
+  white-space: normal;
+}
+.review-meta {
+  display: contents;
+}
+.review-head .review-date {
+  grid-column: 1;
+  grid-row: 1;
+}
+.review-head .review-route {
+  grid-column: 2;
+  grid-row: 1;
+  font-weight: 500;
+  color: var(--text);
+}
+.review-head .review-flight {
+  grid-column: 3;
+  grid-row: 1;
+}
+.review-head .review-tag {
+  grid-column: 4;
+  grid-row: 1;
+  max-inline-size: 16ch;
+  font: 600 12px/16px var(--font-sans);
+  letter-spacing: 0.02em;
+  text-align: end;
+  color: var(--warning-text);
+}
+.review-date[data-problem='true'] {
+  color: var(--warning-text);
+}
+.review-sep {
+  display: none;
+}
+
+/* Up to four chips share one row; more wrap into three columns. Never a horizontal scroll. */
+.review-chips {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.review-chips[data-grid='true'] {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.review-chip,
+.review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 0 auto;
+  min-block-size: 32px;
+  min-inline-size: 0;
+  padding-inline: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: 500 13px/20px var(--font-sans);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.review-chip {
+  flex-direction: column;
+  gap: 0;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding-block: 4px;
+  font: 400 13px/20px var(--font-mono);
+}
+.review-chip-code,
+.review-chip-name {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.review-chip-name {
+  color: var(--text-muted);
+  font: 400 11px/14px var(--font-sans);
+}
+.review-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+.review-chip:disabled,
+.review-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.review-chip:focus-visible,
+.review-button:focus-visible,
+.review-toggle:focus-visible,
+.review-put:focus-visible,
+.review-date-field:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.review-fix {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.review-fix[data-equal='true'] {
+  justify-content: flex-start;
+}
+.review-fix[data-equal='true'] .review-button {
+  flex: 0 0 auto;
+}
+.review-button[data-quiet='true'] {
+  flex: 0 0 auto;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+.review-date-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  inline-size: 180px;
+  min-block-size: 36px;
+  padding-inline: 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.review-date-field.is-invalid {
+  border-color: var(--danger-text);
+}
+.review-date-field input {
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: 400 13px/20px var(--font-mono);
+}
+.review-date-field input::placeholder {
+  color: var(--text-muted);
+}
+.review-date-field input:focus {
+  outline: none;
+}
+.review-error {
+  margin: 0;
+  color: var(--danger-text);
+  font: 400 13px/20px var(--font-sans);
+}
+
+/* ---------- Looks right / left out ---------- */
+.review-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.review-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-block-end: 4px;
+  color: var(--text);
+  font: 600 13px/20px var(--font-sans);
+  letter-spacing: 0;
+}
+.review-group-head svg {
+  color: var(--success-text);
+}
+.review-count {
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-mono);
+}
+.review-lines {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.review-line {
+  display: grid;
+  grid-template-columns: 92px 132px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 14px;
+  min-block-size: 34px;
+  padding: 7px 16px;
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-mono);
+}
+.review-line > * {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.review-upcoming {
+  margin-inline-start: 8px;
+  color: var(--text-muted);
+  font: 500 11px/16px var(--font-sans);
+  letter-spacing: 0.02em;
+}
+.review-line .review-route {
+  font-weight: 500;
+  color: var(--text);
+}
+.review-line[data-kind='left'] {
+  grid-template-columns: 92px 132px minmax(0, 1fr) auto;
+  align-items: center;
+  border-radius: 12px;
+  background: var(--surface-inset);
+}
+.review-line[data-kind='left'] .review-route {
+  color: var(--text-muted);
+}
+/* The expanded list scrolls inside a capped region; the card never grows to the full list. */
+.review-scroll {
+  max-block-size: min(70vh, 480px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.review-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.review-toggle,
+.review-put {
+  align-self: flex-start;
+  min-block-size: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--accent-text);
+  font: 500 14px/20px var(--font-sans);
+  cursor: pointer;
+}
+.review-put {
+  min-block-size: 36px;
+  padding-inline: 8px;
+  font-weight: 600;
+}
+.review-put:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* ---------- Sticky save bar ---------- */
+.review-bar {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-inline: calc(-1 * var(--welcome-bleed));
+  padding: 16px var(--welcome-bleed) 20px;
+  background: var(--surface);
+  box-shadow: 0 -10px 24px -16px color-mix(in srgb, var(--text) 25%, transparent);
+}
+.review-bar-text {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+.review-bar-title,
+.review-bar-sub {
+  margin: 0;
+}
+.review-bar-title {
+  color: var(--text);
+  font: 600 14px/20px var(--font-sans);
+}
+.review-bar-sub {
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-sans);
+}
+.review-bar .ui-button {
+  padding-inline: 24px;
+  white-space: nowrap;
+}
+.review-bar-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.review-gone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* ---------- Loading ---------- */
+.review-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-block-size: 280px;
+}
+.review-skeleton span {
+  display: block;
+  block-size: 84px;
+  border-radius: 12px;
+  background: var(--surface-inset);
+}
+
+/* ---------- Phone: a sheet, header over meta, chips 44 high ---------- */
+@media (max-width: 700px) {
+  .review-step {
+    gap: 20px;
+  }
+  .review-step .auth-heading {
+    gap: 4px;
+  }
+  .review-step .auth-heading h1 {
+    font-size: 28px;
+    line-height: 34px;
+  }
+  .review-unsure {
+    gap: 8px;
+  }
+  .review-card {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .review-head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    gap: 2px 12px;
+  }
+  .review-head .review-route {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 14px;
+  }
+  .review-head .review-tag {
+    grid-column: 2;
+    grid-row: 1;
+    letter-spacing: 0;
+  }
+  .review-meta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .review-sep {
+    display: inline;
+  }
+  .review-chip,
+  .review-button {
+    min-block-size: 44px;
+    font-size: 14px;
+  }
+  .review-button {
+    flex: 1 1 0;
+    font-size: 15px;
+  }
+  .review-button[data-quiet='true'] {
+    flex: 0 0 auto;
+    border-color: var(--hairline);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .review-date-field {
+    flex: 1 1 auto;
+    inline-size: auto;
+    min-block-size: 44px;
+    border-color: var(--hairline);
+  }
+  .review-date-field input {
+    font-size: 14px;
+  }
+  .review-line {
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    padding-inline: 0;
+    column-gap: 12px;
+  }
+  .review-line[data-kind='left'] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: 12px;
+  }
+  .review-line[data-kind='left'] .review-date,
+  .review-line[data-kind='left'] .review-flight {
+    display: none;
+  }
+  .review-bar {
+    padding-block: 14px 34px;
+  }
+  .review-bar .ui-button {
+    padding-inline: 20px;
+    min-block-size: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-chip,
+  .review-button {
+    transition: none;
+  }
+}
+
+/* Rows with other problems reuse the import page's ReviewRow. Inside the card they drop its 3px side stripes (a
+   pattern this card does not use): an unsure row is outlined in the warning ink all round, like the unsure cards'
+   tint, and its inner hints sit on the inset without a stripe. */
+.review-step .import-row[data-low='true'] {
+  border-left: 1px solid var(--warning-fill);
+  border-color: var(--warning-fill);
+}
+.review-step .import-form-field.is-unsure,
+.review-step .import-snippet {
+  border-left: 0;
+  padding-left: var(--space-3);
+}

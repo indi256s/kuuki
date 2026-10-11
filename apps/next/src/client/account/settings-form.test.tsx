@@ -46,6 +46,7 @@ const profile = {
   locale: 'en',
   theme_color: null,
   created_at: '',
+  onboarded_at: '2026-01-01T00:00:00.000Z',
   updated_at: '',
 }
 const counts = { flights: 12, completed: 10, claims: 2, ground: 1, drafts: 3 }
@@ -78,7 +79,7 @@ describe('Settings work and data outcomes', () => {
       />,
     )
     expect(screen.getByLabelText('Display name')).toHaveValue('Local edit')
-    await userEvent.click(screen.getByRole('link', { name: 'Change username' }))
+    await userEvent.click(screen.getByRole('link', { name: 'View my profile' }))
     await userEvent.click(screen.getByRole('button', { name: 'Stay' }))
     expect(m.push).not.toHaveBeenCalled()
     expect(screen.getByLabelText('Display name')).toHaveValue('Local edit')
@@ -176,7 +177,7 @@ describe('Settings work and data outcomes', () => {
     mount()
     fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Pending edit' } })
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-    await userEvent.click(screen.getByRole('link', { name: 'Change username' }))
+    await userEvent.click(screen.getByRole('link', { name: 'View my profile' }))
     expect(m.push).not.toHaveBeenCalled()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await act(async () => reject(new TypeError('offline')))
@@ -198,6 +199,106 @@ describe('Settings work and data outcomes', () => {
     const dirty = new Event('beforeunload', { cancelable: true })
     window.dispatchEvent(dirty)
     expect(dirty.defaultPrevented).toBe(true)
+  })
+})
+describe('Settings name and address', () => {
+  const edit = () => userEvent.click(screen.getByRole('button', { name: 'Edit' }))
+  it('caps the name at 40 characters', () => {
+    mount()
+    expect(screen.getByLabelText('Display name')).toHaveAttribute('maxlength', '40')
+  })
+  it('leaves an unchanged legacy long name out of an unrelated save', async () => {
+    const legacy = 'A'.repeat(60)
+    render(
+      <SettingsForm
+        ownerId="a"
+        profile={{ ...profile, display_name: legacy }}
+        locale="en"
+        counts={counts}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Bio'), { target: { value: 'New bio' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(m.patch).toHaveBeenCalled())
+    expect(m.patch.mock.calls[0][1]).not.toHaveProperty('display_name')
+    expect(m.patch.mock.calls[0][1]).toMatchObject({ bio: 'New bio' })
+  })
+  it('sends an edited address as username on save', async () => {
+    m.get.mockResolvedValue({ available: true, valid: true })
+    mount()
+    await edit()
+    fireEvent.change(screen.getByLabelText('Address'), { target: { value: ' New-Slug ' } })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Save changes' })).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+      ),
+    )
+    expect(m.get).toHaveBeenCalledWith(
+      '/api/profiles/check-username',
+      { username: 'new-slug' },
+      expect.anything(),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(m.patch).toHaveBeenCalled())
+    expect(m.patch.mock.calls[0][1]).toMatchObject({ username: 'new-slug' })
+  })
+  it('marks a 409 as taken and keeps the typed slug', async () => {
+    m.get.mockResolvedValue({ available: true, valid: true })
+    m.patch.mockRejectedValue(new ApiError(409, 'taken', 'USERNAME_TAKEN'))
+    mount()
+    await edit()
+    fireEvent.change(screen.getByLabelText('Address'), { target: { value: 'busy-slug' } })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Save changes' })).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+      ),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(await screen.findByText('That address is taken.')).toBeVisible()
+    expect(screen.getByLabelText('Address')).toHaveValue('busy-slug')
+    expect(screen.getByRole('button', { name: 'Save changes' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
+  it('blocks save with a reason while the address is invalid', async () => {
+    mount()
+    await edit()
+    fireEvent.change(screen.getByLabelText('Address'), { target: { value: 'a!' } })
+    expect(screen.getByText('Use letters, numbers and hyphens, 3 to 30 characters.')).toBeVisible()
+    expect(screen.getByText('Fix the address to save.')).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(m.patch).not.toHaveBeenCalled()
+  })
+  it('tells a member without an address it comes from the name, with no profile link', () => {
+    render(
+      <SettingsForm
+        ownerId="a"
+        profile={{ ...profile, username: null }}
+        locale="en"
+        counts={counts}
+      />,
+    )
+    expect(screen.getByText('Your address is set from your name when you save.')).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'View my profile' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeVisible()
+  })
+  it('never links to the retired onboarding page', () => {
+    const view = mount()
+    expect(view.container.querySelector('a[href*="onboarding"]')).toBeNull()
+    view.unmount()
+    const bare = render(
+      <SettingsForm
+        ownerId="a"
+        profile={{ ...profile, username: null }}
+        locale="ru"
+        counts={counts}
+      />,
+    )
+    expect(bare.container.querySelector('a[href*="onboarding"]')).toBeNull()
+    expect(screen.getByText('Адрес появится из вашего имени, когда вы сохраните.')).toBeVisible()
   })
 })
 describe.each(['en', 'ru'] as const)('deletion (%s)', (locale) => {

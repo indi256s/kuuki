@@ -44,7 +44,7 @@ The shared header and page container align at `--content-width` 1200px. Gutter `
 
 Navigation stays available while private data streams in. Every data surface distinguishes loading, empty, partial, error, and ready states; route `loading.tsx` files render the [loading screen](#loading-screen). Never present an unavailable read as a confirmed empty journal. Links and controls have visible 2px offset focus rings (`--focus`) and 44px touch targets. Press feedback is 120ms scale to 0.96 except static rows and cards; hover styles apply only to fine pointers. Disabled actions explain why in visible text, not a `title`. Use Lucide icons with text labels; color alone does not signal active state. Capture, authentication, privacy, and destructive copy is calm and direct.
 
-After a route change focus moves to `main h1` (`RouteFocus`); only the pathname or a mode key (`/onboarding?step`, `/passport?view`) triggers it, never filters or search text.
+After a route change focus moves to `main h1` (`RouteFocus`); only the pathname (each `/welcome/*` onboarding step is its own path) or the mode key `/passport?view` triggers it, never filters or search text.
 
 System theme is the default for new users. Preserve an explicit light/dark choice, map supported legacy settings, and keep EN/RU and theme consistent with the first usable page (`public/bootstrap.js` sets theme, locale and accent before paint). Client persistence uses same-origin cookies; private app data and authorization are never cached in shared shells.
 

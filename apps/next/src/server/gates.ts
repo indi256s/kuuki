@@ -1,19 +1,23 @@
 import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
-import { getRequestEnv } from './identity'
 import { getOwnProfile } from './profile'
-
-export const ONBOARDING_NAME_PATH = '/onboarding?step=name'
+import { getWelcomeResume, welcomePath } from './welcome'
 
 /** One own-profile read per request, shared by every gate on the page. */
 export const getGateProfile = cache(getOwnProfile)
 
-/** Member pages: guests go to sign-in; a member without a username finishes onboarding first. */
+/** The unfinished member's resume URL, read once per request. */
+const resumePath = cache(async (userId: string, displayName: string | null) => {
+  const resume = await getWelcomeResume(userId, { display_name: displayName })
+  return welcomePath(resume.step, resume.batch)
+})
+
+/** Member pages: guests go to sign-in; a member who hasn't finished onboarding resumes the card first. */
 export async function requireOnboardedMember() {
   const own = await getGateProfile()
   if (!own) redirect('/signin')
-  if (!own.profile.username) redirect(ONBOARDING_NAME_PATH)
+  if (!own.profile.onboarded_at) redirect(await resumePath(own.ownerId, own.profile.display_name))
   return own
 }
 
@@ -27,13 +31,5 @@ export async function getMemberLanding(): Promise<string | null> {
     return null
   }
   if (!own) return null
-  return own.profile.username ? '/overview' : ONBOARDING_NAME_PATH
-}
-
-/** A saved flight (not derived stats) is what earns the Reveal step. */
-export async function hasSavedFlight(userId: string): Promise<boolean> {
-  const env = await getRequestEnv()
-  return !!(await env.DB.prepare('SELECT 1 AS present FROM flights WHERE user_id = ? LIMIT 1')
-    .bind(userId)
-    .first())
+  return own.profile.onboarded_at ? '/overview' : resumePath(own.ownerId, own.profile.display_name)
 }

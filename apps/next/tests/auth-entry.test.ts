@@ -124,7 +124,7 @@ test('a wrong password keeps the email, shows the error with an icon and offers 
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('an unknown email turns the card into the create step in place, and Create account reaches onboarding', async ({
+test('an unknown email turns the card into the create step in place, and Create account morphs into the name step', async ({
   page,
   context,
   baseURL,
@@ -155,5 +155,6 @@ test('an unknown email turns the card into the create step in place, and Create 
   await expect(page.getByLabel('Confirm password')).toHaveCount(0)
   // Enter on the focused Create account creates the journal.
   await page.keyboard.press('Enter')
-  await page.waitForURL((url) => url.pathname === '/onboarding')
+  await page.waitForURL((url) => url.pathname === '/welcome/name')
+  await expect(page.getByRole('heading', { name: 'What should we call you?' })).toBeVisible()
 })

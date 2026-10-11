@@ -1,4 +1,4 @@
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportJob } from '../../workers/import/ImportJob'
 import { cancelBatch, createProcessingBatch } from '../api/_services/importDrafts'
 import { importAccount, postJob, providerFlight, providerText } from './import-fixture'
@@ -733,4 +733,119 @@ it('persists complete fitting rows from one oversized provider chunk and ends pa
         .all()
     ).results,
   ).toEqual([0, 1, 2].map((ordinal) => ({ ordinal, status: 'review' })))
+})
+
+describe('bound job draft caps by source', () => {
+  const list = (count: number) =>
+    [
+      'KUUKI FLIGHTS v2',
+      ...Array.from(
+        { length: count },
+        (_, index) =>
+          `${new Date(Date.UTC(2020, 0, 1 + index)).toISOString().slice(0, 10)} | JFK → LHR | British Airways BA ${index + 1}`,
+      ),
+    ].join('\n')
+
+  async function run(content: string) {
+    const fixture = await importAccount()
+    dispose = fixture.dispose
+    const batchId = crypto.randomUUID()
+    await createProcessingBatch(
+      fixture.db,
+      {
+        id: batchId,
+        userId: 'u1',
+        sourceType: 'text',
+        sourceLabel: null,
+        operationId: `cap-${batchId}`,
+      },
+      new Date(),
+    )
+    const pending: Promise<unknown>[] = []
+    const state = {
+      storage: {
+        get: async () => undefined,
+        put: async () => undefined,
+        setAlarm: async () => undefined,
+        deleteAlarm: async () => undefined,
+        deleteAll: async () => undefined,
+      },
+      blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn(),
+      waitUntil: (work: Promise<unknown>) => pending.push(work),
+    } as unknown as DurableObjectState
+    const job = new ImportJob(state, { DB: fixture.db, GEMINI_API_KEY: 'fake' })
+    await job.fetch(
+      new Request('https://import.internal/start', {
+        method: 'POST',
+        body: JSON.stringify({
+          fence: { userId: 'u1', batchId, generation: 1 },
+          source: { type: 'text', content },
+        }),
+      }),
+    )
+    await Promise.all(pending)
+    return {
+      batch: await fixture.db
+        .prepare('SELECT status,error_code FROM import_batches WHERE id = ?')
+        .bind(batchId)
+        .first(),
+      drafts: (
+        await fixture.db
+          .prepare('SELECT COUNT(*) AS n FROM import_drafts WHERE batch_id = ?')
+          .bind(batchId)
+          .first<{ n: number }>()
+      )?.n,
+    }
+  }
+
+  it('keeps 450 locally parsed rows without a provider call', async () => {
+    expect(await run(list(450))).toEqual({
+      batch: { status: 'review', error_code: null },
+      drafts: 450,
+    })
+    expect(provider.stream).not.toHaveBeenCalled()
+  })
+
+  it('truncates 600 locally parsed rows at 500', async () => {
+    expect(await run(list(600))).toEqual({
+      batch: { status: 'partial', error_code: 'ROWS_TRUNCATED' },
+      drafts: 500,
+    })
+    expect(provider.stream).not.toHaveBeenCalled()
+  })
+
+  it('truncates a long compact paste at 500 without tripping the provider output cap', async () => {
+    // About 92,000 characters of input: under MAX_TEXT_LENGTH, but over a megabyte once every row is serialized.
+    const compact = [
+      'KUUKI FLIGHTS v2',
+      ...Array.from(
+        { length: 4000 },
+        (_, index) =>
+          `${new Date(Date.UTC(2000, 0, 1 + index)).toISOString().slice(0, 10)} | JFK → LHR`,
+      ),
+    ].join('\n')
+    expect(compact.length).toBeLessThan(100_000)
+    expect(await run(compact)).toEqual({
+      batch: { status: 'partial', error_code: 'ROWS_TRUNCATED' },
+      drafts: 500,
+    })
+  })
+
+  it('truncates 150 model-extracted rows at 100', async () => {
+    provider.stream.mockResolvedValueOnce(
+      (async function* () {
+        yield {
+          text: providerText(
+            Array.from({ length: 150 }, (_, index) =>
+              providerFlight({ flight_number: String(index) }),
+            ),
+          ),
+        }
+      })(),
+    )
+    expect(await run('Flight details')).toEqual({
+      batch: { status: 'partial', error_code: 'ROWS_TRUNCATED' },
+      drafts: 100,
+    })
+  })
 })
