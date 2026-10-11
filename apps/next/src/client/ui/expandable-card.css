@@ -1,0 +1,140 @@
+/* Arc-derived expandable card. Height opens through grid rows, content fades; nothing runs while the card is still. */
+.ui-xcard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: var(--surface-floating);
+  color: var(--text);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
+  overflow: hidden;
+}
+.ui-xcard[data-direction='up'] {
+  flex-direction: column-reverse;
+}
+.ui-xcard-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 56px;
+  padding-inline-end: var(--space-2);
+}
+.ui-xcard-trigger {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  gap: var(--space-3);
+  border: 0;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--radius-md);
+}
+.ui-xcard-trigger[data-static] {
+  cursor: default;
+}
+.ui-xcard-trigger:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.ui-xcard-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+.ui-xcard-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+.ui-xcard-title {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-xcard-description {
+  display: block;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.ui-xcard-roll {
+  display: block;
+}
+.ui-xcard-word {
+  display: inline-block;
+  white-space: pre;
+}
+.ui-xcard-word[data-roll] {
+  animation: ui-xcard-rise var(--dur-base) var(--ease-out) both;
+}
+.ui-xcard-chevron {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-muted);
+}
+.ui-xcard[data-direction='up'] .ui-xcard-chevron {
+  transform: scaleY(-1);
+}
+.ui-xcard-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+.ui-xcard-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-base) var(--ease-out);
+}
+.ui-xcard[data-expanded] .ui-xcard-panel {
+  grid-template-rows: 1fr;
+}
+.ui-xcard-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.ui-xcard[data-expanded] .ui-xcard-panel-inner {
+  opacity: 1;
+  transition: opacity var(--dur-base) var(--ease-out) 60ms;
+}
+@keyframes ui-xcard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-xcard-trigger:hover .ui-xcard-chevron {
+    color: var(--text);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-xcard-panel {
+    transition: none;
+  }
+  .ui-xcard-panel-inner,
+  .ui-xcard[data-expanded] .ui-xcard-panel-inner {
+    transition: opacity var(--dur-fast) linear;
+  }
+  .ui-xcard-word[data-roll] {
+    animation: none;
+  }
+}

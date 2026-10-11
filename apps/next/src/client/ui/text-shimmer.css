@@ -1,0 +1,62 @@
+/* Arc-derived text shimmer. One background-position animation on a fixed gradient; no script runs per frame. */
+.ui-shimmer {
+  display: inline-block;
+  max-width: 100%;
+}
+.ui-shimmer-label {
+  display: inline-block;
+  max-width: 100%;
+  animation: ui-shimmer-rise var(--dur-base) var(--ease-out) both;
+}
+.ui-shimmer[data-active] .ui-shimmer-label {
+  background-image: linear-gradient(
+    90deg,
+    var(--text-muted) 0%,
+    var(--text-muted) 35%,
+    var(--text) 50%,
+    var(--text-muted) 65%,
+    var(--text-muted) 100%
+  );
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation:
+    ui-shimmer-rise var(--dur-base) var(--ease-out) both,
+    ui-shimmer-sweep 1.8s linear 120ms infinite;
+}
+.ui-shimmer[data-paused] .ui-shimmer-label {
+  animation-play-state: paused;
+}
+.ui-shimmer-label::selection {
+  -webkit-text-fill-color: currentColor;
+}
+@keyframes ui-shimmer-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+  }
+}
+@keyframes ui-shimmer-sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-shimmer-label,
+  .ui-shimmer[data-active] .ui-shimmer-label {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+@media (forced-colors: active) {
+  .ui-shimmer[data-active] .ui-shimmer-label {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}

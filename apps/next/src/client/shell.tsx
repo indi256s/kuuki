@@ -7,7 +7,10 @@ import { Preferences } from './preferences'
 import { QueueSummarySlot } from './queue-summary'
 import { SplitAdd } from './split-add'
 import { ShellNotices } from './shell-notices'
+import { ImportDock } from './import/import-dock'
+import { ImportRunsProvider } from './import/import-runs'
 import { getGateProfile } from '../server/gates'
+import { getRequestEnv } from '../server/identity'
 import type { Locale } from '../server/locale'
 
 function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
@@ -32,42 +35,68 @@ function Main({ children }: { children: ReactNode }) {
   )
 }
 
+/** Background reading needs the import job worker; without it imports are read inside the request on /import. */
+function ImportRuns({
+  jobs,
+  ownerId,
+  locale,
+  children,
+}: {
+  jobs: boolean
+  ownerId: string
+  locale: Locale
+  children: ReactNode
+}) {
+  if (!jobs) return children
+  return (
+    <ImportRunsProvider key={ownerId}>
+      {children}
+      <ImportDock locale={locale} />
+    </ImportRunsProvider>
+  )
+}
+
 /**
  * Member shell: 56px desktop header (wordmark, nav, queue slot, split Add, avatar menu) or 48px mobile header
- * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page.
+ * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
+ * and, where the import job worker is bound, one import dock.
  */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const own = await getGateProfile()
   if (!own) return <Main>{children}</Main>
+  const env = await getRequestEnv()
+  const jobs = Boolean((env as { IMPORT_JOBS?: unknown }).IMPORT_JOBS)
   const username = own.profile.username ?? null
   return (
     <AwaitingProvider key={own.profile.id} ownerId={own.profile.id}>
       <ShellNotices ownerId={own.profile.id} locale={locale}>
-        <header className="site-header member-header">
-          <div className="site-header-inner">
-            <Wordmark />
-            <MobilePageTitle />
-            <PrimaryNav locale={locale} />
-            <div className="header-end">
-              <QueueSummarySlot locale={locale} />
-              <div className="header-desktop-only">
-                <SplitAdd locale={locale} />
-                {username && own ? (
-                  <AvatarMenu
-                    id={own.profile.id}
-                    avatarUrl={own.profile.avatar_url}
-                    username={username}
-                    displayName={own.profile.display_name}
-                    isPublic={own.profile.is_public}
-                    locale={locale}
-                  />
-                ) : null}
+        <ImportRuns jobs={jobs} ownerId={own.profile.id} locale={locale}>
+          <header className="site-header member-header">
+            <div className="site-header-inner">
+              <Wordmark />
+              <MobilePageTitle />
+              <PrimaryNav locale={locale} />
+              <div className="header-end">
+                <QueueSummarySlot locale={locale} />
+                <div className="header-desktop-only">
+                  <SplitAdd locale={locale} />
+                  {username && own ? (
+                    <AvatarMenu
+                      id={own.profile.id}
+                      avatarUrl={own.profile.avatar_url}
+                      username={username}
+                      displayName={own.profile.display_name}
+                      isPublic={own.profile.is_public}
+                      locale={locale}
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
-          </div>
-        </header>
-        <Main>{children}</Main>
-        <TabBar locale={locale} username={username} />
+          </header>
+          <Main>{children}</Main>
+          <TabBar locale={locale} username={username} />
+        </ImportRuns>
       </ShellNotices>
     </AwaitingProvider>
   )

@@ -6,12 +6,19 @@ import { formatDateOnly, formatNumber, type Locale } from '../../lib/format'
 import { FeedbackText } from '../ui/feedback-text'
 import { Button } from '../ui/button'
 import { Announcer } from './announcer'
+import { useImportRunsStore } from './import-runs'
 import { S, STAGE_KEY, count, tx } from './copy'
 import type { Batch, BatchStage, Draft } from './import-types'
 
 const ORDER: BatchStage[] = ['accepted', 'recognizing', 'validating', 'review_ready']
 /** The stages shown; `review_ready` is the hand-off to the review page, not a step of its own. */
-const SHOWN = ORDER.slice(0, 3)
+export const SHOWN = ORDER.slice(0, 3)
+export type StageState = 'done' | 'active' | 'pending'
+/** Where the shown stage at `position` stands while the batch is at `stage`. */
+export function stageState(position: number, stage: BatchStage | null): StageState {
+  const index = ORDER.indexOf(stage ?? 'accepted')
+  return position < index ? 'done' : position === index ? 'active' : 'pending'
+}
 
 /** Spoken progress: every stage change at once, found counts at most every few seconds, and the last one when it settles. */
 function useAnnouncement(stage: BatchStage | null, found: number, locale: Locale): string {
@@ -66,6 +73,8 @@ export function ProgressStep({
   const finished = Math.min(index, SHOWN.length)
   const announcement = useAnnouncement(batch ? stage : null, drafts.length, locale)
   const [initial] = useState(() => new Set(drafts.map((draft) => draft.id)))
+  // The shell's runs exist only where the job worker is bound: there the dock carries the batch once this page is left.
+  const bound = useImportRunsStore() !== null
   return (
     <section className="import-progress" aria-labelledby="import-progress-title">
       <h2 id="import-progress-title">{S.recognizing[locale]}</h2>
@@ -89,7 +98,7 @@ export function ProgressStep({
       </div>
       <ol className="import-stages" aria-label={S.stagesLabel[locale]}>
         {SHOWN.map((name, position) => {
-          const state = position < index ? 'done' : position === index ? 'active' : 'pending'
+          const state = stageState(position, stage)
           const Icon = state === 'done' ? Check : state === 'active' ? LoaderCircle : Circle
           return (
             <li
@@ -145,7 +154,7 @@ export function ProgressStep({
           ))}
         </ul>
       ) : null}
-      <p className="import-hint">{S.leaveSafe[locale]}</p>
+      <p className="import-hint">{bound ? S.progressBound[locale] : S.leaveSafe[locale]}</p>
       {error ? (
         <p className="import-problem" role="alert">
           {error}
