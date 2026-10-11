@@ -24,7 +24,7 @@ The source uses one value per accent for fill and text, and `--accent-text` equa
 
 ## Type and layout
 
-Self-hosted Commissioner WOFF2 ([`apps/next/public/fonts`](apps/next/public/fonts), weights 400/500/600/700) is the Cyrillic-capable UI and display face; JetBrains Mono is for ticket codes, flight numbers, times, table dates, and handles. OFL licenses ship beside the font files. Changing and aligned numbers use tabular figures. Headings wrap with `balance`, paragraphs with `pretty`. Use locale-aware EN/RU dates, numbers, and real plural forms (one/few/many/other in Russian). Russian copy addresses the user as «вы».
+Self-hosted Commissioner WOFF2 ([`apps/next/public/fonts`](apps/next/public/fonts), weights 400/500/600/700) is the Cyrillic-capable UI and display face; Paper Mono is for ticket codes, flight numbers, times, table dates, and handles. OFL licenses ship beside the font files. Changing and aligned numbers use tabular figures. Headings wrap with `balance`, paragraphs with `pretty`. Use locale-aware EN/RU dates, numbers, and real plural forms (one/few/many/other in Russian). Russian copy addresses the user as «вы».
 
 | Style             | Built value                                                                                               | Where                                           |
 | ----------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
@@ -128,7 +128,7 @@ Shell and control tokens (all in `:root`):
 | `--action-row-h`              | 52px                                                                                  | Add-action rows in the mobile sheet.                                                     |
 | `--badge-size`                | 24px                                                                                  | Queue count pill.                                                                        |
 | `--z-tabbar`                  | 30                                                                                    | Tab bar; the only tokenized z-index.                                                     |
-| `--font-sans` / `--font-mono` | Commissioner, system-ui / JetBrains Mono, ui-monospace                                | Text; ticket data only.                                                                  |
+| `--font-sans` / `--font-mono` | Commissioner, system-ui / Paper Mono, Commissioner, ui-monospace                      | Text; ticket data only.                                                                  |
 | `--font-kana`                 | Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, then `--font-sans` | The member くうき tile, loading 空 tile and くうき watermarks; system stack, no webfont. |
 
 Runtime variables set by the shell and primitives, not for authoring: `--tabbar-offset`, `--toast-bottom-offset`, `--action-bar-bottom` (mobile, derived from the tab bar and safe area; zeroed while the keyboard is open), `--sheet-kb`, `--n` (segmented option count).
@@ -139,7 +139,7 @@ Motion tokens: see Motion.
 
 ## Typeface decision
 
-Commissioner replaces Onest at the user's request. The UI and display face is self-hosted as WOFF2 with real upright 400/500/600/700 faces and Latin/Cyrillic coverage. The official static faces include the `tnum` feature that the variable release lacks. Tabular figures are enabled on the body and inherited by data values and form controls; JetBrains Mono remains the ticket-data face. The OFL license ships beside the font. The earlier [`font specimen`](docs/design/font-specimen.html) and screenshot record the previous Onest selection.
+Commissioner replaces Onest at the user's request. The UI and display face is self-hosted as WOFF2 with real upright 400/500/600/700 faces and Latin/Cyrillic coverage. The official static faces include the `tnum` feature that the variable release lacks. Tabular figures are enabled on the body and inherited by data values and form controls; Paper Mono (self-hosted variable WOFF2, 100–800, replacing JetBrains Mono at the user's request) is the ticket-data face. It has no Cyrillic, so Russian text set in it (month names in dates, for example) falls back glyph by glyph to Commissioner, the next face in `--font-mono`, rather than to a system monospace. Both OFL licenses ship beside the fonts. The earlier [`font specimen`](docs/design/font-specimen.html) and screenshot record the previous Onest selection.
 
 ## Surfaces and elevation
 

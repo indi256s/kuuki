@@ -572,7 +572,7 @@ async function main() {
       ],
       [
         'public, max-age=3600, must-revalidate',
-        ['/fonts/Commissioner-Regular.woff2', '/fonts/JetBrainsMono.ttf'],
+        ['/fonts/Commissioner-Regular.woff2', '/fonts/PaperMono.woff2'],
       ],
     ] as const)
       for (const path of paths) {

@@ -59,7 +59,7 @@ Calm, precise, quietly proud. Japanese-minimal restraint with warm terracotta ac
 - [User-journey atlas](docs/user-journeys/README.md), captured 2026-10-03: 184 states across 29 flows, with screenshots.
 - [Interface audit](docs/user-journeys/2026-10-03/audit/AUDIT.md): 113 findings.
 - Real copy: the EN/RU strings in `packages/shared/src/i18n`, including the auth taglines.
-- Self-hosted Onest and JetBrains Mono fonts and country map data in `apps/next/public`.
+- Self-hosted Commissioner and Paper Mono fonts and country map data in `apps/next/public`.
 - Kuuki has no testimonials, press coverage, user counts or usage statistics. Do not invent any of them. The sample data on surfaces is illustrative and must be labelled as such.
 
 ## Product Principles

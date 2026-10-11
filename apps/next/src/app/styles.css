@@ -31,10 +31,10 @@
   font-display: swap;
 }
 @font-face {
-  font-family: JetBrains Mono;
-  src: url('/fonts/JetBrainsMono.ttf') format('truetype');
+  font-family: Paper Mono;
+  src: url('/fonts/PaperMono.woff2') format('woff2');
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 100 800;
   font-display: swap;
 }
 :root {
@@ -111,7 +111,7 @@
   --dur-moment: 450ms;
   --dur-horizon: 500ms;
   --font-sans: Commissioner, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-mono: 'Paper Mono', Commissioner, ui-monospace, monospace;
   --accent-hover: color-mix(in oklch, var(--accent) 82%, var(--text));
   --swatch-shu: #c23417;
   --swatch-ai: #4e5ea2;
