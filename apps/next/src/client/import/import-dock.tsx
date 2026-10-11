@@ -355,6 +355,11 @@ export function ImportDockView({
     </ul>
   )
   const opens = several || reading
+  // A lone finished run has nothing to open: forget an open panel or sheet so it never comes back open by surprise.
+  if (!opens && (expanded || sheet)) {
+    setExpanded(false)
+    setSheet(false)
+  }
   const card = (
     <section
       className="import-dock"
