@@ -91,7 +91,9 @@ it('keeps announcements exposed while a Radix modal sheet is open', async () => 
   )
   await userEvent.click(screen.getByRole('button', { name: 'Open review' }))
   await userEvent.click(screen.getByRole('button', { name: 'Show' }))
-  const announcement = screen.getByRole('status')
+  const announcement = screen
+    .getAllByRole('status')
+    .find((region) => region.textContent?.includes('Link copied'))!
   expect(announcement).toHaveTextContent('Link copied')
   expect(announcement.closest('[aria-hidden="true"]')).toBeNull()
 })

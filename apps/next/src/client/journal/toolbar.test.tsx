@@ -244,6 +244,6 @@ it('phones open all filter facets in the bottom sheet and keep the search outsid
   await user.click(within(sheet).getByRole('button', { name: 'Airline' }))
   await user.click(await screen.findByRole('option', { name: /Turkish Airlines/ }))
   await user.keyboard('{Escape}')
-  await user.click(within(sheet).getByRole('button', { name: 'Reset' }))
+  await user.click(await within(sheet).findByRole('button', { name: 'Reset' }))
   expect(onChange).toHaveBeenLastCalledWith(emptyFilters())
 })
