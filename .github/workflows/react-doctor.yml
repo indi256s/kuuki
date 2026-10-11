@@ -5,7 +5,7 @@ on:
       base_ref:
         description: Base revision for changed-scope diagnostics
         required: true
-        default: main
+        default: HEAD^
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
