@@ -16,6 +16,9 @@ required = ["GEMINI_API_KEY"]
 [observability]
 enabled = true
 
+[ai]
+binding = "AI"
+
 [[durable_objects.bindings]]
 name = "IMPORT_JOBS"
 class_name = "ImportJob"
@@ -39,6 +42,9 @@ preview_urls = false
 
 [env.preview.secrets]
 required = ["GEMINI_API_KEY"]
+
+[env.preview.ai]
+binding = "AI"
 
 [[env.preview.durable_objects.bindings]]
 name = "IMPORT_JOBS"

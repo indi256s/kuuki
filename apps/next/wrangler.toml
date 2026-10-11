@@ -22,6 +22,9 @@ not_found_handling = "none"
 [observability]
 enabled = true
 
+[ai]
+binding = "AI"
+
 [vars]
 PAGES_ORIGIN = "https://kuuki.marchstudio.uk"
 MAINTENANCE_MODE = "false"
@@ -81,6 +84,9 @@ preview_urls = true
 
 [env.preview.secrets]
 required = ["AUTH_SECRET", "BETTER_AUTH_SECRET", "GEMINI_API_KEY"]
+
+[env.preview.ai]
+binding = "AI"
 
 [[env.preview.d1_databases]]
 binding = "DB"

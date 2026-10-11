@@ -82,8 +82,8 @@ export const S = {
   needFile: p('Choose a file first.', 'Сначала выберите файл.'),
   needText: p('Paste some text first.', 'Сначала вставьте текст.'),
   privacy: p(
-    'The document is sent to a recognition service to find flights. Kuuki keeps only the flight details it finds, for 30 days, so you can come back to them. The file and pasted text are not kept.',
-    'Документ отправляется в сервис распознавания, чтобы найти перелёты. Kuuki хранит только найденные данные перелётов, 30 дней, чтобы вы могли вернуться к ним. Файл и вставленный текст не сохраняются.',
+    'The document is sent to recognition and checking services to find flights and check their details. Kuuki keeps only the flight details it finds, for 30 days, so you can come back to them. The file and pasted text are not kept.',
+    'Документ отправляется в сервисы распознавания и проверки, чтобы найти перелёты и проверить данные. Kuuki хранит только найденные данные перелётов, 30 дней, чтобы вы могли вернуться к ним. Файл и вставленный текст не сохраняются.',
   ),
   emailHelp: p('How to export flights from your email', 'Как выгрузить перелёты из почты'),
   // Provider-neutral: assistants rename their mail and calendar features often, so the help names the assistants, not the features.
@@ -202,6 +202,10 @@ ${PROMPT_EXAMPLE.ru}
   check: p('Check', 'Проверьте'),
   confidence: p('Confidence', 'Уверенность'),
   confidenceUnknown: p('Confidence unknown', 'Уверенность неизвестна'),
+  notVerified: p(
+    'Not verified against the source. Check the details before selecting this flight.',
+    'Данные не подтверждены источником. Проверьте их, прежде чем выбрать перелёт.',
+  ),
   fieldUnsure: p('Unsure', 'Не уверены'),
   snippetTitle: p('Found in the document', 'Найдено в документе'),
   saving: p('Saving…', 'Сохраняем…'),

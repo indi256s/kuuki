@@ -24,6 +24,7 @@ import {
 import { HttpError } from '../_lib/http'
 import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
 import { parseStructuredText } from './_text'
+import { verifyFlights, type VerificationStatus } from './_verify'
 
 export const MAX_FILE_SIZE = IMPORT_MAX_FILE_BYTES
 export const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text branch; controls Gemini cost
@@ -437,6 +438,21 @@ export async function extractFlights(
         duration_ms: Date.now() - started,
       }),
     )
+    let verification: VerificationStatus[] | undefined
+    try {
+      verification = await verifyFlights(
+        env.AI,
+        { type, content },
+        result.flights,
+        controller.signal,
+      )
+    } catch {
+      console.error(JSON.stringify({ event: 'import_verification_result', outcome: 'failed' }))
+    }
+    result.flights = result.flights.map((flight, index) => ({
+      ...flight,
+      verification: verification?.[index] ?? 'failed',
+    }))
   } catch (error) {
     const failure = deadlineExpired
       ? new HttpError(504, 'The AI service timed out. Please try again.', 'PROVIDER_TIMEOUT')

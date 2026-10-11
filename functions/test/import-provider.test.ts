@@ -3,7 +3,7 @@ import { ApiError } from '@google/genai'
 import { onRequestPost as parseImport } from '../api/import/parse'
 import { onRequestPost as enrichAircraft } from '../api/enrich/aircraft'
 import { decodedBase64Size } from '../api/import/_body'
-import { validateImportSource } from '../api/import/_extract'
+import { extractFlights, validateImportSource } from '../api/import/_extract'
 import { createApiDatabase, csrfRequest, testOrigin as origin } from './harness'
 
 const provider = vi.hoisted(() => ({ generateContent: vi.fn() }))
@@ -38,6 +38,64 @@ function context(path: string, body: BodyInit, userId = 'u1') {
 
 afterEach(() => {
   provider.generateContent.mockReset()
+})
+
+it('uses the remaining extraction deadline for a stalled checker and retains the flight for review', async () => {
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+  try {
+    const flight = {
+      date: '2026-03-10',
+      origin: 'JFK',
+      destination: 'LHR',
+      airline_iata: 'BA',
+      confidence: 0.9,
+      field_confidence: { date_year_explicit: true },
+    }
+    provider.generateContent.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve({ text: JSON.stringify({ flights: [flight] }) }), 30_000)
+        }),
+    )
+    let checkSignal: AbortSignal | undefined
+    const run = vi.fn((_model: string, _input: unknown, options: { signal: AbortSignal }) => {
+      checkSignal = options.signal
+      return new Promise(() => undefined)
+    })
+    const work = extractFlights({ GEMINI_API_KEY: 'test', AI: { run } as unknown as Ai } as Env, {
+      type: 'text',
+      content: 'My flight: 2026-03-10 JFK to LHR, BA.',
+    })
+    let settled = false
+    void work.then(
+      () => {
+        settled = true
+      },
+      () => {
+        settled = true
+      },
+    )
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(run).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(59_999)
+    expect(settled).toBe(false)
+    expect(checkSignal?.aborted).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(settled).toBe(true)
+    expect(checkSignal?.aborted).toBe(true)
+    const result = await work
+    expect(result.flights).toHaveLength(1)
+    expect(result.flights[0]).toMatchObject({
+      date: '2026-03-10',
+      origin: 'JFK',
+      destination: 'LHR',
+      airline_iata: 'BA',
+      confidence: 0.9,
+      verification: 'failed',
+    })
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
 it('validates a 10 MiB base64 boundary without a repeating-group regex', () => {
