@@ -83,7 +83,7 @@ describe('import api', () => {
       sourceLabel: null,
       submissionOperationId: 'op-12345678',
     })
-    expect(post.mock.calls[0][2].timeoutMs).toBeGreaterThan(30_000)
+    expect(post.mock.calls[0][2].timeoutMs).toBeGreaterThan(90_000)
   })
 
   it('unwraps a patched draft and routes cancel, discard and the unfinished list', async () => {
