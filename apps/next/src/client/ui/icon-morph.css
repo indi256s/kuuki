@@ -1,0 +1,71 @@
+.icon-morph {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.icon-morph-chevron,
+.icon-morph-copy-back,
+.icon-morph-copy-front {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.icon-morph-chevron[data-on='true'] {
+  transform: rotate(180deg);
+}
+
+/* Arc's two play quads interpolate into pause bars without a JS animation loop. */
+.icon-morph-play-left {
+  clip-path: polygon(7px 4.5px, 12px 7.42px, 12px 16.58px, 7px 19.5px);
+}
+.icon-morph-play-right {
+  clip-path: polygon(12px 7.42px, 19.5px 11.8px, 19.5px 12.2px, 12px 16.58px);
+}
+.icon-morph-play-left,
+.icon-morph-play-right {
+  transition: clip-path var(--dur-base) var(--ease-out);
+}
+.icon-morph[data-on='true'] .icon-morph-play-left {
+  clip-path: polygon(6.5px 5px, 10px 5px, 10px 19px, 6.5px 19px);
+}
+.icon-morph[data-on='true'] .icon-morph-play-right {
+  clip-path: polygon(14px 5px, 17.5px 5px, 17.5px 19px, 14px 19px);
+}
+
+.icon-morph-copy-check {
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition:
+    stroke-dashoffset var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+.icon-morph[data-on='true'] .icon-morph-copy-back {
+  transform: translate(4px, 4px);
+  opacity: 0;
+}
+.icon-morph[data-on='true'] .icon-morph-copy-front {
+  transform: scale(0.7);
+  opacity: 0;
+}
+.icon-morph[data-on='true'] .icon-morph-copy-check {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+
+:focus-visible .icon-morph,
+:focus-visible .icon-morph *,
+[data-icon-instant='true'] .icon-morph,
+[data-icon-instant='true'] .icon-morph * {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-morph,
+  .icon-morph * {
+    transition: none;
+  }
+}

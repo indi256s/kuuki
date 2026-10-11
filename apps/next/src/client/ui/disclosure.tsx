@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
+import { ChevronIcon } from './icon-morph'
 import { useId, useState, type ReactNode } from 'react'
 import './ui.css'
 
@@ -40,7 +40,7 @@ export function Disclosure({
       >
         {summary}
         <span className="ui-disclosure-chevron" aria-hidden="true">
-          <ChevronDown size={18} strokeWidth={2} />
+          <ChevronIcon state={open} size={18} strokeWidth={2} />
         </span>
       </button>
       <div className="ui-disclosure-panel" data-open={open ? 'true' : 'false'}>

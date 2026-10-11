@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pause, Play } from 'lucide-react'
+import { PlayPauseIcon } from '../../ui/icon-morph'
 import { Button } from '../../ui/button'
 import type { Locale } from '../../../lib/format'
 import { monthAt, monthCandidates, yearTicks, type TimelineItem } from './replay'
@@ -140,7 +140,7 @@ export function ReplayTransport({
         }
         onClick={() => setPaused(!paused)}
       >
-        {paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
+        <PlayPauseIcon state={!paused} size={16} />
       </Button>
       <Button
         ref={label}

@@ -41,6 +41,16 @@
 .ui-button > span > svg {
   flex: none;
 }
+.ui-button:has(> .ui-button-icon) {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-2);
+}
+.ui-button:has(> .ui-button-icon) > span {
+  grid-area: 1/2;
+}
+.ui-button > span.ui-button-icon {
+  grid-area: 1/1;
+}
 .ui-button .ui-button-hidden {
   visibility: hidden;
 }
@@ -778,10 +788,8 @@
   display: inline-grid;
   flex: none;
   color: var(--text-muted);
-  transition: transform var(--dur-base) var(--ease-out);
 }
 .ui-disclosure-trigger[aria-expanded='true'] .ui-disclosure-chevron {
-  transform: rotate(180deg);
   color: var(--text);
 }
 @media (hover: hover) and (pointer: fine) {

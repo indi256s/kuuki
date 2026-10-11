@@ -26,6 +26,7 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'childre
   /** Reserve both localized copy states, including the idle label after a copy succeeds. */
   textAlternatives?: readonly string[]
   instantText?: boolean
+  icon?: ReactNode
   /** Visible helper text under a disabled button, linked with aria-describedby. Implies disabled. */
   disabledReason?: ReactNode
   /** Rows and cards: no press scale. */
@@ -45,6 +46,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     morphText,
     textAlternatives,
     instantText,
+    icon,
     className,
     children,
     onClick,
@@ -92,11 +94,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       data-variant={variant}
       data-dense={dense ? 'true' : undefined}
       data-static={isStatic ? 'true' : undefined}
+      data-icon-instant={keyboardText ? 'true' : undefined}
       aria-busy={loading ? true : undefined}
       aria-disabled={blocked ? true : undefined}
       aria-describedby={describedById}
       onClick={handleClick}
     >
+      {icon ? <span className="ui-button-icon">{icon}</span> : null}
       {textOnly ? (
         <>
           <span className="ui-button-hidden" aria-hidden="true">

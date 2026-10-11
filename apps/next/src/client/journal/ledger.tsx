@@ -1,7 +1,7 @@
 'use client'
 
 import { makerOf } from '@kuuki/data/aircraft-makers'
-import { ArrowUp } from 'lucide-react'
+import { ChevronIcon } from '../ui/icon-morph'
 import { memo, useMemo, useRef, type MouseEvent } from 'react'
 import { formatDateOnly, formatDuration, formatNumber, type Locale } from '../../lib/format'
 import { airlineIdentity } from '../../lib/airline'
@@ -386,8 +386,9 @@ export function JournalLedger({
       >
         <button type="button" className="jr-sort" onClick={() => sortBy(key)}>
           <span>{label}</span>
-          <ArrowUp
+          <ChevronIcon
             className="jr-sort-cue"
+            state={sort.order === 'asc'}
             size={14}
             strokeWidth={1.75}
             aria-hidden="true"

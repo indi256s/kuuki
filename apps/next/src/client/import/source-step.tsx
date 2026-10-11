@@ -4,6 +4,7 @@ import { IMPORT_MAX_FILE_BYTES } from '@kuuki/shared/constants'
 import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
+import { CopyCheckIcon } from '../ui/icon-morph'
 import { Disclosure } from '../ui/disclosure'
 import { SegmentedControl } from '../ui/segmented-control'
 import { S } from './copy'
@@ -225,6 +226,7 @@ export function SourceStep({
           <div className="import-actions">
             <Button
               morphText
+              icon={<CopyCheckIcon state={copied === 'ok'} size={16} />}
               textAlternatives={[S.copyPrompt[locale], locale === 'ru' ? 'Скопировано' : 'Copied']}
               onClick={() => void copy()}
             >

@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react'
 import { Field } from '../ui/field'
 import { Button } from '../ui/button'
+import { CopyCheckIcon } from '../ui/icon-morph'
 import { badgeName, badgeTier, badgeDescription, type EarnedBadge } from './achievements'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import './profile.css'
@@ -13,6 +14,7 @@ export function ShareProfile({ url, locale }: { url: string; locale: Locale }) {
     <div className="profile-share">
       <Button
         morphText
+        icon={<CopyCheckIcon state={result === 'copied'} size={16} />}
         textAlternatives={[
           ru ? 'Скопировать ссылку' : 'Copy profile link',
           ru ? 'Скопировано' : 'Copied',
