@@ -1,4 +1,4 @@
-import { Scene, hull, type IsoFigureData, type P3, type Paint } from './scene'
+import { Scene, hull, r1, type IsoFigureData, type P3, type Paint } from './scene'
 
 type Wingtip = 'blended winglet' | 'fence' | 'none' | 'raked' | 'sharklet' | 'split scimitar'
 /** Length, wingspan, height, fuselage width and engine nacelle diameter in metres; wing sweep in degrees. */
@@ -398,5 +398,3 @@ export function fleet(
   const probe = draw(1)
   return draw((width - pad) / (probe.width - pad))
 }
-
-const r1 = (n: number) => Math.round(n * 10) / 10

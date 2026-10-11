@@ -1,7 +1,7 @@
 import { Scene, type P3 } from './scene'
 
 /** How far the blade pays out on hover, in iso units along the blade. */
-export const TAPE_PAY = 20
+const TAPE_PAY = 20
 const SLOT_X = 46,
   BZ = 2.6,
   BLADE = 146,

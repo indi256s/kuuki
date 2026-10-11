@@ -10,7 +10,7 @@ import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { CoverageNote, copy, filterLabel, flights, percent } from '../rankings/display'
 import { ClockDial, DIAL_SIZE, type ClockHour } from './dial'
-import { departures, hhmm, pad } from './departure'
+import { departures, hhmm } from './departure'
 import '../cookie.css'
 import '../../iso/clock.css'
 import './clock.css'
@@ -23,16 +23,9 @@ export function Section({ span }: { span: Span }) {
   const earliest = found?.earliest,
     latest = found?.latest,
     busiest = found?.peak
-  const earliestTime = earliest
-    ? hhmm(earliest.depMinute)
-    : busiest
-      ? `${pad(busiest.hour)}:00`
-      : '--:--'
-  const latestTime = latest ? hhmm(latest.depMinute) : ''
-  const figure = useMemo(
-    () => clock(earliestTime, 1.2, latestTime || undefined),
-    [earliestTime, latestTime],
-  )
+  const earliestTime = found?.time ?? '--:--'
+  const latestTime = latest ? hhmm(latest.depMinute) : undefined
+  const figure = useMemo(() => clock(earliestTime, 1.2, latestTime), [earliestTime, latestTime])
   if (!scope || !all) return null
   const gate = scope.clock
   if (gate.status !== 'ready') return null
@@ -55,7 +48,7 @@ export function Section({ span }: { span: Span }) {
     mode === 'departures' ? 'Местное время вылета' : 'Местное время прилёта',
   )
   const shown = showLatest && latest ? latest : earliest
-  const value = shown ? hhmm(shown.depMinute) : busiest ? `${pad(busiest.hour)}:00` : '—'
+  const value = showLatest && latest ? hhmm(latest.depMinute) : (found?.time ?? '—')
   const sub = (
     shown
       ? [
@@ -66,8 +59,8 @@ export function Section({ span }: { span: Span }) {
           busiest &&
             copy(
               locale,
-              `busiest hour ${pad(busiest.hour)}:00`,
-              `чаще всего в ${pad(busiest.hour)}:00`,
+              `busiest hour ${hhmm(busiest.hour * 60)}`,
+              `чаще всего в ${hhmm(busiest.hour * 60)}`,
             ),
         ]
       : [

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
+import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { OverviewProvider, useOverview } from '../store/overview-context'
 import { OverviewFlightSheet } from '../store/open-flight'
@@ -55,9 +56,13 @@ function PageContent({ name }: { name: string }) {
   const zero = scope?.figures.flights === 0 && !isEmptyFilter(filter)
   // A locked section leaves the grid and the tiles; it stays in the saved order and hidden lists.
   const locked = scope
-    ? layout.order.filter((id) => SECTIONS[id].gate(scope)?.status === 'below')
+    ? layout.order.filter(
+        (id) => id !== 'rankings' && SECTION_GATES[id].gate(scope).status === 'below',
+      )
     : []
-  const visible = layout.order.filter((id) => !layout.hidden.includes(id) && !locked.includes(id))
+  const shown = ({ order, hidden }: typeof layout) =>
+    order.filter((id) => !hidden.includes(id) && !locked.includes(id))
+  const visible = shown(layout)
   const [openId, setOpenId] = useState<SectionId | null>(null)
   const opener = useRef<HTMLButtonElement | null>(null)
   if (openId && (mobile !== true || !scope || firstRun || zero || !visible.includes(openId)))
@@ -123,9 +128,7 @@ function PageContent({ name }: { name: string }) {
     )
       return false
     setLayout((old) => {
-      const current = old.order.filter(
-        (section) => !old.hidden.includes(section) && !locked.includes(section),
-      )
+      const current = shown(old)
       const target = current[index]
       return target && current.includes(id)
         ? { ...old, order: moveSection(old.order, id, old.order.indexOf(target)) }

@@ -61,8 +61,8 @@ export type IsoFigureData = {
   nodes: IsoNode[]
 }
 
-const r1 = (n: number) => Math.round(n * 10) / 10
-const r3 = (n: number) => Math.round(n * 1000) / 1000
+export const r1 = (n: number) => Math.round(n * 10) / 10
+export const r3 = (n: number) => Math.round(n * 1000) / 1000
 
 export class Scene {
   readonly k: number
@@ -314,12 +314,20 @@ export class Scene {
   }
 
   done(pad = 6): IsoFigureData {
-    const xs = this.pts.map((p) => p[0]),
-      ys = this.pts.map((p) => p[1])
-    const x0 = Math.min(...xs) - pad,
-      y0 = Math.min(...ys) - pad
-    const width = Math.ceil(Math.max(...xs) + pad - x0),
-      height = Math.ceil(Math.max(...ys) + pad - y0)
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity
+    for (const [x, y] of this.pts) {
+      minX = Math.min(minX, x)
+      minY = Math.min(minY, y)
+      maxX = Math.max(maxX, x)
+      maxY = Math.max(maxY, y)
+    }
+    const x0 = minX - pad,
+      y0 = minY - pad
+    const width = Math.ceil(maxX + pad - x0),
+      height = Math.ceil(maxY + pad - y0)
     return {
       width,
       height,
@@ -329,7 +337,7 @@ export class Scene {
   }
 }
 
-export function roundRect(x: number, y: number, w: number, d: number, r: number, n = 6): Pt[] {
+function roundRect(x: number, y: number, w: number, d: number, r: number, n = 6): Pt[] {
   const out: Pt[] = [],
     corners = [
       [x + w - r, y + r, -90],

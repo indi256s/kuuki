@@ -45,7 +45,7 @@ const DIGIT: Record<string, string> = {
 }
 
 /** How far the snooze bar travels, in iso units: a hover hint and a full press. */
-export const SNOOZE_DIP = 1.5,
+const SNOOZE_DIP = 1.5,
   SNOOZE_PRESS = 2.5
 
 /**

@@ -1,3 +1,4 @@
+import { EARTH_CIRCUMFERENCE_KM, MOON_DISTANCE_KM } from '../constants'
 import type { Gate, OverviewScope } from './figures'
 import { isEmptyFilter } from './filter'
 import { DEFAULT_ORDER, type SectionId } from './prefs'
@@ -52,9 +53,9 @@ const LADDERS: {
   flights: [10, 25, 50, 100, 250, 500, 1000],
   countries: [5, 10, 25, 50, 100],
   distanceKm: [
-    { need: 40075, rung: 'equator' },
-    { need: 384400, rung: 'moon' },
-    { need: 768800, rung: 'moon_back' },
+    { need: EARTH_CIRCUMFERENCE_KM, rung: 'equator' },
+    { need: MOON_DISTANCE_KM, rung: 'moon' },
+    { need: MOON_DISTANCE_KM * 2, rung: 'moon_back' },
   ],
 }
 

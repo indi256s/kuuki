@@ -8,6 +8,7 @@ import { MonthRange } from '../../../ui/month-range'
 import { Button } from '../../../ui/button'
 import { IsoFigure } from '../../iso/iso-figure'
 import { tape } from '../../iso/tape'
+import { formatDistanceKm } from '../../../../lib/format'
 import { KuukiChart } from '../../charts/kuuki-chart'
 import { ArcLine } from '../../charts/arc-line'
 import { ArcBrush } from '../../charts/arc-brush'
@@ -42,7 +43,7 @@ export function TimelineContent({ span }: { span: Span }) {
   const openFlight = useOpenFlight()
   const [cumulativeMetric, setCumulativeMetric] = useState<'km' | 'flights'>('km')
   const distanceKm = scope?.figures.distanceKm ?? 0
-  const tapeLabel = `${number(locale, distanceKm)} ${copy(locale, 'km', 'км')}`
+  const tapeLabel = formatDistanceKm(locale, distanceKm)
   const tapeFigure = useMemo(() => tape(tapeLabel, 1), [tapeLabel])
   if (!scope || !all || !payload) return null
   const gate = scope.rhythm

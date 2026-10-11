@@ -1,7 +1,6 @@
 'use client'
-import { useMemo } from 'react'
-import { fleet } from '../../iso/fleet'
 import { IsoFigure } from '../../iso/iso-figure'
+import { useFleetFigure } from '../fleet/figure'
 import { useOverview } from '../../store/overview-context'
 import { CoverageNote, copy, number, types } from '../rankings/display'
 import '../cookie.css'
@@ -9,19 +8,8 @@ import '../../iso/fleet.css'
 export function Tile() {
   const { scope, payload, locale } = useOverview()
   const data = scope?.fleet.status === 'ready' ? scope.fleet.value : null
-  const figure = useMemo(
-    () =>
-      fleet(
-        (data?.topTypes ?? []).map(({ key }) => ({
-          icao: key,
-          body: payload?.refs.aircraft[key]?.type ?? null,
-        })),
-        145,
-      ),
-    [data, payload],
-  )
-  if (!scope || scope.fleet.status !== 'ready' || scope.makers.status !== 'ready' || !data)
-    return <p>—</p>
+  const figure = useFleetFigure(145)
+  if (!scope || !data) return <p>—</p>
   const top = data.topTypes[0]
   return (
     <div className="ov3-cookie">

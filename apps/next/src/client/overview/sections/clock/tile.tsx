@@ -5,16 +5,16 @@ import { IsoFigure } from '../../iso/iso-figure'
 import { clock } from '../../iso/clock'
 import { useOverview } from '../../store/overview-context'
 import { CoverageNote, copy, flights } from '../rankings/display'
-import { departures, hhmm, pad } from './departure'
+import { departures } from './departure'
 import '../cookie.css'
 import '../../iso/clock.css'
 export function Tile() {
   const { scope, locale } = useOverview()
   const found = scope && departures(scope)
   const earliest = found?.earliest,
-    peak = found?.peak
-  const time = earliest ? hhmm(earliest.depMinute) : peak ? `${pad(peak.hour)}:00` : '--:--'
-  const figure = useMemo(() => clock(time, 0.85), [time])
+    peak = found?.peak,
+    time = found?.time ?? null
+  const figure = useMemo(() => clock(time ?? '--:--', 0.85), [time])
   if (!scope) return null
   if (scope.clock.status !== 'ready')
     return <p>{copy(locale, 'Not enough times yet', 'Пока мало данных о времени')}</p>
@@ -37,7 +37,7 @@ export function Tile() {
           <IsoFigure figure={figure} className="iso-clock" />
         </div>
         <div className="ov3-cookie-text">
-          <strong className="ov3-cookie-value">{earliest || peak ? time : '—'}</strong>
+          <strong className="ov3-cookie-value">{time ?? '—'}</strong>
           {eyebrow === caption ? (
             <p className="ov3-cookie-label">{eyebrow}</p>
           ) : (

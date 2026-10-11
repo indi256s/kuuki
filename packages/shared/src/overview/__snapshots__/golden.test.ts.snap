@@ -488,7 +488,6 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
         },
       ],
       "families": 1,
-      "familyCount": 1,
       "familyRows": [
         {
           "body": "narrow",
@@ -664,11 +663,6 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
           "origin": "SFO",
         },
       ],
-      "leader": {
-        "flights": 6,
-        "key": "airbus",
-        "share": 1,
-      },
       "other": [],
       "rows": [
         {
@@ -2764,7 +2758,6 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
         },
       ],
       "families": 3,
-      "familyCount": 3,
       "familyRows": [
         {
           "body": "narrow",
@@ -3040,11 +3033,6 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
           "origin": "NRT",
         },
       ],
-      "leader": {
-        "flights": 6,
-        "key": "boeing",
-        "share": 0.6,
-      },
       "other": [],
       "rows": [
         {
@@ -4344,7 +4332,6 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
         },
       ],
       "families": 3,
-      "familyCount": 3,
       "familyRows": [
         {
           "body": "narrow",
@@ -9689,11 +9676,6 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
           "origin": "NRT",
         },
       ],
-      "leader": {
-        "flights": 303,
-        "key": "boeing",
-        "share": 0.6659340659340659,
-      },
       "other": [],
       "rows": [
         {
@@ -18574,7 +18556,6 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
         },
       ],
       "families": 3,
-      "familyCount": 3,
       "familyRows": [
         {
           "body": "narrow",
@@ -23407,11 +23388,6 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
     "status": "ready",
     "value": {
       "flights": [],
-      "leader": {
-        "flights": 3031,
-        "key": "boeing",
-        "share": 0.6665933582581922,
-      },
       "other": [],
       "rows": [
         {
@@ -31296,7 +31272,6 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
         },
       ],
       "families": 1,
-      "familyCount": 1,
       "familyRows": [
         {
           "body": "narrow",
@@ -31490,11 +31465,6 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
           "origin": "DXB",
         },
       ],
-      "leader": {
-        "flights": 6,
-        "key": "airbus",
-        "share": 1,
-      },
       "other": [],
       "rows": [
         {
@@ -32439,7 +32409,6 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
         },
       ],
       "families": 1,
-      "familyCount": 1,
       "familyRows": [
         {
           "body": "narrow",
@@ -32659,11 +32628,6 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
           "origin": "JFK",
         },
       ],
-      "leader": {
-        "flights": 10,
-        "key": "airbus",
-        "share": 1,
-      },
       "other": [],
       "rows": [
         {

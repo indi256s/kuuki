@@ -1,11 +1,11 @@
-import { Scene, type P3, type Pt } from './scene'
+import { Scene, r3, type P3, type Pt } from './scene'
 
 // The sheet folds like an accordion: fold lines at X, each at height Z.
 const X = [0, 46, 92, 138, 184],
   Z = [0, 13, 1, 13, 0],
   D = 84
 /** How far each fold line sinks when the map unfolds a little on hover, in iso units. */
-export const UNFOLD = [0, 5, 0, 5, 0]
+const UNFOLD = [0, 5, 0, 5, 0]
 const A = [30, 40] as const,
   B = [158, 52] as const
 // Screen-space dash pattern of the route, in px, at every scale.
@@ -265,5 +265,4 @@ export function foldedMap(from: string, to: string, k = 1, equator = false) {
   return s.done()
 }
 
-const r3 = (n: number) => Math.round(n * 1000) / 1000
 const dist = (a: Pt, b: Pt) => Math.hypot(b[0] - a[0], b[1] - a[1])

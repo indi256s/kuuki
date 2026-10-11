@@ -1,6 +1,7 @@
 'use client'
 
 import type { SVGProps } from 'react'
+import { routeArrow } from '@kuuki/shared/overview/filter'
 import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
 import { forms } from '../../copy'
@@ -8,7 +9,7 @@ import { useOverview } from '../../store/overview-context'
 import { formatCount, type Locale } from '../../../../lib/format'
 import { copy, filterLabel, flights, number, percent } from '../rankings/display'
 import type { Span } from '../registry'
-import { BAR_MARGIN } from '../crossings/bars'
+import { BAR_MARGIN, barsWidth } from '../crossings/bars'
 import './routes.css'
 
 type YearRow = { key: string; year: number; flights: number; newRoutes: number }
@@ -16,11 +17,7 @@ type YearRow = { key: string; year: number; flights: number; newRoutes: number }
 const HEIGHT = 220,
   BAND_MIN = 52,
   BAND_MAX = 72
-// One band per year, like Crossings: it grows with the card up to BAND_MAX and stops at BAND_MIN (the host scrolls instead).
-const bandsWidth = (years: number, available: number) =>
-  Math.max(1, years) * Math.min(BAND_MAX, Math.max(BAND_MIN, available / Math.max(1, years)))
-
-export const arrow = (key: string) => key.replace('-', ' ↔ ')
+// One band per year, like Crossings, with wider bands.
 
 function headline(
   locale: Locale,
@@ -122,7 +119,7 @@ export function Section({ span }: { span: Span }) {
   const data = gate.value,
     home = scope.home?.iata ?? null
   const city = (code: string) => payload?.refs.airports[code]?.city ?? code
-  const topName = data.top ? arrow(data.top.key) : null
+  const topName = data.top ? routeArrow(data.top.key) : null
   const points: ChartPoint<YearRow>[] = data.byYear
     .filter((row) => row.flights > 0)
     .map((row) => ({
@@ -194,7 +191,7 @@ export function Section({ span }: { span: Span }) {
           <KuukiChart
             points={points}
             height={HEIGHT}
-            fit={(available) => bandsWidth(data.byYear.length, available)}
+            fit={(available) => barsWidth(data.byYear.length, available, BAND_MIN, BAND_MAX)}
             inView={inView}
             ariaLabel={caption}
             onPick={(point) => pick(point.datum.year)}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, type CSSProperties } from 'react'
+import { type CSSProperties } from 'react'
 import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { MakerSwatch } from '../../../ui/category-mark'
 import { Button } from '../../../ui/button'
@@ -13,7 +13,8 @@ import type { Span } from '../registry'
 import { copy, filterLabel, flights, number, types } from '../rankings/display'
 import { PayloadAircraftReview } from '../manufacturers/aircraft-review'
 import { ridgeProfile } from './helpers'
-import { fleet, hasDims } from '../../iso/fleet'
+import { hasDims } from '../../iso/fleet'
+import { useFleetFigure } from './figure'
 import { IsoFigure } from '../../iso/iso-figure'
 import '../cookie.css'
 import '../../iso/fleet.css'
@@ -21,18 +22,7 @@ import './fleet.css'
 
 export function FleetContent({ span }: { span: Span }) {
   const { scope, all, payload, locale, actions, isCurrent } = useOverview()
-  const topTypes = scope?.fleet.status === 'ready' ? scope.fleet.value.topTypes : null
-  const figure = useMemo(
-    () =>
-      fleet(
-        (topTypes ?? []).map(({ key }) => ({
-          icao: key,
-          body: payload?.refs.aircraft[key]?.type ?? null,
-        })),
-        201,
-      ),
-    [topTypes, payload],
-  )
+  const figure = useFleetFigure(201)
   if (!scope || !all) return null
   const gate = scope.fleet
   if (gate.status === 'below') return null

@@ -23,9 +23,9 @@ export const BAR_MARGIN = { top: 20, bottom: 30 }
 // One band per year: it grows with the card up to BAND_MAX and stops at BAND_MIN (the host scrolls instead), so few years never smear across a wide card.
 const BAND_MIN = 36,
   BAND_MAX = 64
-/** Natural SVG width for `years` bands inside `available` pixels. */
-export const barsWidth = (years: number, available: number) =>
-  Math.max(1, years) * Math.min(BAND_MAX, Math.max(BAND_MIN, available / Math.max(1, years)))
+/** Natural SVG width for `years` bands inside `available` pixels, each band between `min` and `max`. */
+export const barsWidth = (years: number, available: number, min = BAND_MIN, max = BAND_MAX) =>
+  Math.max(1, years) * Math.min(max, Math.max(min, available / Math.max(1, years)))
 // Forward shifts rise above the zero axis, back shifts hang below it; both share one scale sized from the unscoped maxima.
 export function CrossingBars({ points, ghosts, height, width, format, mark }: Props) {
   const plot = height - BAR_MARGIN.top - BAR_MARGIN.bottom

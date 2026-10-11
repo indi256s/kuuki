@@ -12,6 +12,7 @@ import type { Span } from '../registry'
 import { copy, flights, number, percent } from '../rankings/display'
 import { IsoFigure } from '../../iso/iso-figure'
 import { foldedMap } from '../../iso/map'
+import { hhmm } from '../clock/departure'
 import './records.css'
 import '../../iso/map.css'
 
@@ -66,8 +67,6 @@ export function Section({ span }: { span: Span }) {
     new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(
       new Date(`2000-${String(month).padStart(2, '0')}-01T00:00:00Z`),
     )
-  const clock = (minute: number) =>
-    `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`
   // A bare flight number says nothing; show it only with its carrier (or when it already carries letters).
   const leadFlight = lead?.flightNumber
     ? /^[A-Za-z]/.test(lead.flightNumber)
@@ -95,7 +94,7 @@ export function Section({ span }: { span: Span }) {
     {
       record: copy(locale, 'Earliest departure', 'Самый ранний вылет'),
       route: route(early),
-      value: early ? clock(early.depMinute) : '—',
+      value: early ? hhmm(early.depMinute) : '—',
     },
     {
       record: copy(locale, 'Busiest year', 'Самый активный год'),
@@ -226,7 +225,7 @@ export function Section({ span }: { span: Span }) {
             {early ? (
               <>
                 {affordance(early)}
-                <strong>{clock(early.depMinute)}</strong>
+                <strong>{hhmm(early.depMinute)}</strong>
                 <button className="ov3-record-route" onClick={() => filter(early)}>
                   {route(early)}
                 </button>

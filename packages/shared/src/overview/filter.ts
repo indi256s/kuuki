@@ -14,6 +14,8 @@ import {
 type Refs = OverviewPayload['refs']
 
 export const routeKey = (a: string, b: string): string => [a, b].sort().join('-')
+/** An undirected route key for display: `LHR-TBS` → `LHR ↔ TBS`. */
+export const routeArrow = (key: string): string => key.replace('-', ' ↔ ')
 export const haulOf = (km: number): Haul =>
   km < HAUL_KM.medium ? 'short' : km < HAUL_KM.long ? 'medium' : 'long'
 

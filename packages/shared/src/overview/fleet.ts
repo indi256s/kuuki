@@ -27,7 +27,6 @@ export interface Fleet {
     minutes: number[]
   }>
   topFamily: { family: string; flights: number } | null
-  familyCount: number
 }
 
 function add(counts: Map<string, number>, key: string | null | undefined, weight: number): void {
@@ -122,7 +121,6 @@ export function fleet(
           MAKER_SLOTS.indexOf(a.maker) - MAKER_SLOTS.indexOf(b.maker),
       ),
       topFamily: topFamily ? { family: topFamily.family, flights: topFamily.flights } : null,
-      familyCount: rowsByFamily.length,
     },
   }
 }

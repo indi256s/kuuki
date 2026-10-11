@@ -59,16 +59,6 @@
     align-items: start;
   }
 }
-.ov3-maker-stack {
-  display: flex;
-  height: 12px;
-  gap: 2px;
-  margin: 16px 0;
-}
-.ov3-maker-stack i {
-  border-radius: 3px;
-  min-width: 0;
-}
 
 /* Preserve maker isolation for hover, keyboard focus and pinned touch actions. */
 .ov3-manufacturers

@@ -1,7 +1,7 @@
 'use client'
 import { useOverview } from '../../store/overview-context'
-import { copy, number } from '../rankings/display'
-import { arrow } from './section'
+import { copy, number, percent } from '../rankings/display'
+import { routeArrow } from '@kuuki/shared/overview/filter'
 import { forms } from '../../copy'
 import { formatCount } from '../../../../lib/format'
 import './routes.css'
@@ -19,8 +19,8 @@ export function Tile() {
       </div>
       <strong>{formatCount(locale, data.distinct, forms.routes)}</strong>
       <p>
-        {Math.round(data.repeatShare * 100)}% {copy(locale, 'repeat', 'повторов')}
-        {data.top ? ` · ${arrow(data.top.key)} ×${number(locale, data.top.count)}` : ''}
+        {percent(data.repeatShare)} {copy(locale, 'repeat', 'повторов')}
+        {data.top ? ` · ${routeArrow(data.top.key)} ×${number(locale, data.top.count)}` : ''}
       </p>
     </div>
   )

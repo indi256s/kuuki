@@ -3,14 +3,15 @@ import { useMemo } from 'react'
 import { IsoFigure } from '../../iso/iso-figure'
 import { tape } from '../../iso/tape'
 import { useOverview } from '../../store/overview-context'
-import { copy, number } from '../rankings/display'
+import { formatDistanceKm } from '../../../../lib/format'
+import { copy } from '../rankings/display'
 import { landmarkSummary } from '../timeline/landmarks'
 import '../cookie.css'
 import '../../iso/tape.css'
 export function Tile() {
   const { scope, locale } = useOverview()
   const total = scope?.figures.distanceKm ?? 0
-  const label = `${number(locale, total)} ${copy(locale, 'km', 'км')}`
+  const label = formatDistanceKm(locale, total)
   const figure = useMemo(() => tape(label, 0.7), [label])
   if (!scope || scope.rhythm.status !== 'ready') return <p>—</p>
   const { laps, moon } = landmarkSummary(total)

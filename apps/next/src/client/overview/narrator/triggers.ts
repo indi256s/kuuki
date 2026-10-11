@@ -1,5 +1,6 @@
-import { isEmptyFilter } from '@kuuki/shared/overview/filter'
+import { isEmptyFilter, routeArrow } from '@kuuki/shared/overview/filter'
 import type { OverviewScope } from '@kuuki/shared/overview/figures'
+import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 
 export type NarratorSlot = SectionId | 'globe' | 'firstRun' | 'zero'
@@ -9,15 +10,6 @@ export interface Trigger {
   priority: number
   when(scope: OverviewScope, all: OverviewScope): Record<string, string | number> | null
 }
-
-const gated = [
-  ['records', 'records'],
-  ['crossings', 'crossings'],
-  ['routes', 'routes'],
-  ['aircraft', 'fleet'],
-  ['clock', 'clock'],
-  ['rhythm', 'rhythm'],
-] as const
 
 export const TRIGGERS: Trigger[] = [
   // Ready Records; longestDuration destination AKL and positive minutes. Hours rounded to one decimal, explicitly approximate.
@@ -201,32 +193,20 @@ export const TRIGGERS: Trigger[] = [
       return v.untyped > 0 ? { untyped: v.untyped, total: v.total } : null
     },
   },
-  // Ready Routes; commuter profile (distinct/flights <= 0.5) with at least two distinct routes, so counts stay plural. Flights are weighted; routes undirected.
-  {
-    id: 'routes:commuter',
+  // Ready Routes; commuter (distinct/flights <= 0.5) or explorer (>= 0.8) profile with at least two distinct routes, so counts stay plural.
+  // Flights are weighted; routes undirected. Says how often routes repeat, not why.
+  ...(['commuter', 'explorer'] as const).map((profile): Trigger => ({
+    id: `routes:${profile}`,
     slot: 'routes',
     priority: 70,
     when: (scope) => {
       if (scope.routes.status !== 'ready') return null
       const v = scope.routes.value
-      return v.profile === 'commuter' && v.distinct > 1
+      return v.profile === profile && v.distinct > 1
         ? { flights: v.flights, distinct: v.distinct }
         : null
     },
-  },
-  // Ready Routes; explorer profile (distinct/flights >= 0.8). Says how rarely routes repeat, not why.
-  {
-    id: 'routes:explorer',
-    slot: 'routes',
-    priority: 70,
-    when: (scope) => {
-      if (scope.routes.status !== 'ready') return null
-      const v = scope.routes.value
-      return v.profile === 'explorer' && v.distinct > 1
-        ? { flights: v.flights, distinct: v.distinct }
-        : null
-    },
-  },
+  })),
   // Ready Routes; a most-flown undirected route flown at least twice (the engine returns null below two). Both directions together.
   {
     id: 'routes:top-repeat',
@@ -235,7 +215,7 @@ export const TRIGGERS: Trigger[] = [
     when: (scope) => {
       if (scope.routes.status !== 'ready') return null
       const top = scope.routes.value.top
-      return top && top.count > 1 ? { route: top.key.replace('-', ' ↔ '), count: top.count } : null
+      return top && top.count > 1 ? { route: routeArrow(top.key), count: top.count } : null
     },
   },
   // Ready Routes; a home airport is set and at least half of the flights start or end there.
@@ -413,11 +393,11 @@ export const TRIGGERS: Trigger[] = [
     },
   },
 
-  ...gated.map(([slot, key]): Trigger => ({
+  ...Object.entries(SECTION_GATES).map(([slot, { gate }]): Trigger => ({
     id: slot,
-    slot,
+    slot: slot as SectionId,
     priority: 0,
-    when: (scope) => (scope[key].status === 'ready' ? { flights: scope.figures.flights } : null),
+    when: (scope) => (gate(scope).status === 'ready' ? { flights: scope.figures.flights } : null),
   })),
   ...(['rankings', 'globe'] as const).map((slot) => ({
     id: slot,

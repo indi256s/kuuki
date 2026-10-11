@@ -21,7 +21,6 @@ export interface Makers {
     aircraft: string | null
     durationMinutes: number | null
   }>
-  leader: { key: MakerKey; share: number; flights: number } | null
 }
 
 export function makers(
@@ -50,7 +49,6 @@ export function makers(
     }
   }
   const sum = totals(rows)
-  const leader = slots.reduce((best, row) => (row.flights > best.flights ? row : best))
   return {
     status: 'ready',
     value: {
@@ -90,10 +88,6 @@ export function makers(
                   a.date.localeCompare(b.date) ||
                   a.flightId - b.flightId,
               ),
-      leader:
-        sum.flights > 0
-          ? { key: leader.key, flights: leader.flights, share: leader.flights / sum.flights }
-          : null,
     },
   }
 }
