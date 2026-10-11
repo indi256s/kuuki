@@ -1,41 +1,25 @@
 /* Records map: on hover the sheet unfolds a little and the route lights up from origin to destination. */
 .iso-map [data-part='fold'] {
-  transform: translateY(0) scaleY(1) skewY(0deg);
   transform-box: view-box;
   transform-origin: 0 0;
-  transition: transform 180ms var(--ease-out);
-}
-.iso-map [data-part='pin'] {
-  transition: transform 180ms var(--ease-out);
 }
 .iso-map [data-part='dash'] {
-  opacity: 0;
-  transition: opacity 120ms var(--ease-out);
+  opacity: var(--iso-lit);
 }
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .ov3-tile:hover .iso-map [data-part='fold'],
-  .iso-map:hover [data-part='fold'] {
-    transform: translateY(var(--fold-y)) scaleY(var(--fold-s)) skewY(var(--fold-k));
-    transition-duration: 240ms;
-    transition-delay: 60ms;
+@media (prefers-reduced-motion: no-preference) {
+  .iso-map [data-part='fold'] {
+    transform: translateY(calc(var(--fold-y) * var(--iso-move)))
+      scaleY(calc(1 + (var(--fold-s) - 1) * var(--iso-move)))
+      skewY(calc(var(--fold-k) * var(--iso-move)));
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
-  .ov3-tile:hover .iso-map [data-part='pin'],
-  .iso-map:hover [data-part='pin'] {
-    transform: translateY(var(--lift-y));
-    transition-duration: 240ms;
-    transition-delay: 60ms;
+  .iso-map [data-part='pin'] {
+    transform: translateY(calc(var(--lift-y) * var(--iso-move)));
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
   /* Each dash lights in turn from origin to destination; leaving clears them all at once. */
-  .ov3-tile:hover .iso-map [data-part='dash'],
-  .iso-map:hover [data-part='dash'] {
-    opacity: 1;
-    transition-duration: 80ms;
-    transition-delay: calc(60ms + var(--t) * 160ms);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .iso-map :is([data-part='fold'], [data-part='pin'], [data-part='dash']) {
-    transform: none;
-    transition: none;
+  .iso-map [data-part='dash'] {
+    transition: opacity var(--iso-dur) var(--iso-ease)
+      calc(var(--iso-delay) + var(--t) * var(--iso-stagger));
   }
 }

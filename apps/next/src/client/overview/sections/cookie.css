@@ -27,12 +27,15 @@
   justify-content: center;
   padding-top: 2px;
 }
+/* The half tiles' figures are 96 (map), 108 (clock) and 112 (tape) tall; bottom-aligned in the tallest's height, their values line up in a row. */
+.ov3-tile[data-tile-span='half'] .ov3-cookie-figure {
+  min-height: 112px;
+  align-items: flex-end;
+}
+/* Figures are built at the width their tile has at 390px (TILE_FIGURE_WIDTH); this only guards narrower viewports. */
 .ov3-cookie-figure .iso {
   max-width: 100%;
   height: auto;
-}
-.ov3-tile[data-tile-span='full'] .iso-tape {
-  width: 148px;
 }
 .ov3-cookie-text {
   display: flex;

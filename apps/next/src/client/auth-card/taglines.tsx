@@ -15,7 +15,7 @@ export function pickTagline(random = Math.random) {
   return Math.floor(random() * TAGLINES.length)
 }
 
-/** Shown under the form on the form and create steps only. It never animates. */
+/** Shown under the form on the form and create steps only. It sits outside the step, so it never moves with it. */
 export function Tagline({ locale, index }: { locale: Locale; index: number }) {
   return <p className="auth-tagline">{(TAGLINES[index] ?? TAGLINES[0])[locale]}</p>
 }

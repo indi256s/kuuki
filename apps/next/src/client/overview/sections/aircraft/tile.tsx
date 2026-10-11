@@ -1,6 +1,7 @@
 'use client'
 import { IsoFigure } from '../../iso/iso-figure'
 import { useFleetFigure } from '../fleet/figure'
+import { TILE_FIGURE_WIDTH } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { CoverageNote, copy, number, types } from '../rankings/display'
 import '../cookie.css'
@@ -8,7 +9,7 @@ import '../../iso/fleet.css'
 export function Tile() {
   const { scope, payload, locale } = useOverview()
   const data = scope?.fleet.status === 'ready' ? scope.fleet.value : null
-  const figure = useFleetFigure(145)
+  const figure = useFleetFigure(TILE_FIGURE_WIDTH.full, 'podium')
   if (!scope || !data) return <p>—</p>
   const top = data.topTypes[0]
   return (

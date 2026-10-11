@@ -1,0 +1,462 @@
+[
+  {
+    "icao": "B763",
+    "name": "Boeing 767-300ER",
+    "family": "767",
+    "reference": {
+      "engine": "GE CF6-80C2 (ACAP engine-inlet dimension used: GE 18.54 m)",
+      "wingtip": "none (factory plain tip)",
+      "notes": "Reference = Boeing factory configuration shown in ACAP D6-58328 (Rev I used) section 2.2.2: plain wingtip, no winglet. Aviation Partners blended winglet retrofit exists (certified 2009; a trade report of roughly 217 767-300ER fitted, undated, circa 2012-13), but I could not verify fleet shares today, so 'none' is chosen as the documented configuration; this is an inference, not a counted fact. If drawing a winglet variant, treat it as an overlay, not geometry in this record. Engine choice CF6-80C2 vs PW4000 is also unverified by fleet counts; the ACAP gives inlet x for both (RR/PW 18.72 m, GE 18.54 m) and nacelle outline is near-identical at drawing scale. Distinctive 767 traits: small round nacelle (about 2.8 m, pod sits close under the wing, gap to wing about 0.5 m), narrow 5.03 m fuselage with a 5.41 m height (taller than wide by 0.4 m, slightly oval front view), a long rounded nose with cockpit side windows ending near x=3 m, wing LE sweep about 35 deg with a trailing-edge kink at y about 7.5 m, tail with a smooth dorsal-style fillet but no distinct dorsal fin, tip rounded and plain. Overall length 54.94 m includes the horizontal-stab tip; the fuselage itself ends near x=53.7 m (measured). Tail height: ACAP gives a range 15.39-16.03 m depending on attitude; Boeing's 767 page lists 15.85 m (listed on the 767F page, same airframe family), used here."
+    },
+    "dims": {
+      "length": 54.94,
+      "span": 47.57,
+      "height": 15.85,
+      "fuselageWidth": 5.03,
+      "fuselageHeight": 5.41
+    },
+    "fuselage": {
+      "noseLength": 6.6,
+      "tailconeLength": 14.5,
+      "tailUpsweep": 0.9,
+      "cockpitWindowX": 3,
+      "decks": 1,
+      "end": 53.7
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 18.3,
+      "rootChord": 10.9,
+      "kinkY": 7.5,
+      "tipChord": 2.29,
+      "sweepLE": 35.6,
+      "dihedral": 3.9
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.9,
+      "rootLEx": 46.8,
+      "span": 18.62,
+      "rootChord": 5.6,
+      "tipChord": 1.81,
+      "sweepLE": 37.5,
+      "dihedral": 10,
+      "tipLEx": 52.48,
+      "tipTEx": 54.29
+    },
+    "vtail": {
+      "rootLEx": 41.9,
+      "height": 8.7,
+      "rootChord": 9.7,
+      "tipChord": 2.4,
+      "sweepLE": 44.3,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 7.92,
+        "fanX": 18.54,
+        "nacelleDiameter": 2.8,
+        "nacelleLength": 6.5,
+        "dropBelowWing": 1.8,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://aviation.hawaii.gov/wp-content/uploads/2025/06/767.pdf",
+        "doc": "Boeing D6-58328 767 Airplane Characteristics for Airport Planning, Rev I (July 2021) - copy hosted by Hawaii DOT; Boeing lists Rev K (Dec 2024) as current, not retrieved",
+        "page": "2-9 general dimensions 767-300/-300ER (span 47.57, length 54.94, fuselage width 5.03, height 5.41, engine y 7.92, inlet x 18.72 RR/PW and 18.54 GE, tip LE x 32.87, tip chord 2.29); 2-13 ground clearances (tail height 15.39-16.03)"
+      },
+      {
+        "url": "https://www.boeing.com/commercial/767",
+        "doc": "Boeing 767 page, 767F spec table (height 15.85 m)",
+        "page": "specs table"
+      },
+      {
+        "url": "https://cargofacts.com/?p=6248",
+        "doc": "Cargo Facts: blended winglets on 217 767-300ERs (undated)",
+        "page": "n/a"
+      },
+      {
+        "url": "https://www.boeing.com/commercial/airports/plan-manuals",
+        "doc": "Boeing plan manuals index (current revisions)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58328 Rev I p.2-9 (PDF p.28): stabiliser span 18.62 labelled in the front view (documented); tip TE 54.29 measured on the plan (overall length 54.94 runs to the tail-cone end, not the stabiliser); rootY and LE scaled at 400 dpi",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.span",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.height",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": [
+      "htail.tipTEx 54.29 is measured (the 54.94 overall length runs to the tail-cone end, not the stabiliser tip)"
+    ]
+  },
+  {
+    "icao": "B788",
+    "name": "Boeing 787-8 Dreamliner",
+    "family": "787",
+    "reference": {
+      "engine": "GE GEnx-1B (Trent 1000 is the alternative)",
+      "wingtip": "raked",
+      "notes": "Reference = ACAP D6-58333 Rev Q (Oct 2025) section 2.2.1 787-8 drawing, raked wingtip, nacelles with chevrons on the fan and core nozzles. GEnx-1B chosen because a web article (eplaneai, undated) says about 34 percent of 787s in service use Rolls-Royce, implying roughly two thirds GE; this is a single secondary source, not a fleet count. The ACAP general-dimension drawing does not distinguish the two engines (ground clearance F differs slightly: GE 0.74-1.07 m, RR 0.71-1.07 m). Distinctive 787 traits: smooth, more rounded nose with a four-pane cockpit glazing (two large forward panes and two side panes; the glazing shows as a shallow slanted band, side windows end near x=3.1 m), no pronounced nose 'chin' break, a long gently curving trailing edge with no sharp Yehudi kink (kinkY is the point where TE starts to sweep aft, about y=9.5 m), highly swept raked tip that ends in a pointed trailing corner (tip LE x 37.69 m, TE x 40.36 m per ACAP), large round nacelle (about 3.95 m) with sawtooth chevrons on the fan and core nozzle trailing edges, and a high-aspect, strongly upswept tail cone ending in a rounded (not blade) point. Overall length 56.72 m is to the horizontal-stab tip; the fuselage ends near x=55.91 m (ACAP side-view dimension). Tail height 16.92 m is the nominal ACAP figure; the clearance table gives 16.59-17.09 m. Raked-tip LE departs the straight LE near y=27.7 m (rakeSpan measured as tip y 30.06 minus 27.7). v3: noseExponent measured from the plan silhouette (plan view only). v4: tip rebuilt from wingtip.rakeLE / rakeTE measured on ACAP p.2-5. The two ACAP markers (LE 37.69, TE 40.36) are not a 2.67 m tip chord: the LE passes x = 37.69 at y = 28.9, 1.16 m inboard of the pointed tip corner (40.36, 30.06). Straight LE refit to the same plan raster (rootLEx 18.8, sweep 34.9). Stabiliser: rootY 1.8, sweep fitted to the measured tip LE 55.17 / TE 56.72."
+    },
+    "dims": {
+      "length": 56.72,
+      "span": 60.12,
+      "height": 16.92,
+      "fuselageWidth": 5.77,
+      "fuselageHeight": 5.94
+    },
+    "fuselage": {
+      "noseLength": 9.5,
+      "tailconeLength": 15.9,
+      "tailUpsweep": 1.3,
+      "cockpitWindowX": 3.1,
+      "decks": 1,
+      "end": 55.91,
+      "tailEnd": "cone"
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 18.8,
+      "rootChord": 12.0,
+      "kinkY": 9.5,
+      "tipChord": 0.1,
+      "sweepLE": 34.9,
+      "dihedral": 4
+    },
+    "wingtip": {
+      "type": "raked",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 2.38,
+      "rakeLE": [
+        {
+          "x": 36.14,
+          "y": 27.68
+        },
+        {
+          "x": 37.05,
+          "y": 28.51
+        },
+        {
+          "x": 37.69,
+          "y": 28.9
+        },
+        {
+          "x": 38.58,
+          "y": 29.46
+        },
+        {
+          "x": 39.53,
+          "y": 29.94
+        },
+        {
+          "x": 40.36,
+          "y": 30.06
+        }
+      ],
+      "rakeTE": [
+        {
+          "x": 38.22,
+          "y": 27.68
+        },
+        {
+          "x": 38.76,
+          "y": 28.51
+        },
+        {
+          "x": 39.17,
+          "y": 28.99
+        },
+        {
+          "x": 39.65,
+          "y": 29.46
+        },
+        {
+          "x": 40.04,
+          "y": 29.82
+        },
+        {
+          "x": 40.36,
+          "y": 30.06
+        }
+      ]
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.8,
+      "rootLEx": 48,
+      "span": 20,
+      "rootChord": 5.6,
+      "tipChord": 1.55,
+      "sweepLE": 41.1,
+      "dihedral": 5.6,
+      "tipLEx": 55.17,
+      "tipTEx": 56.72
+    },
+    "vtail": {
+      "rootLEx": 42.7,
+      "height": 9,
+      "rootChord": 9.6,
+      "tipChord": 2,
+      "sweepLE": 41.6,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 9.73,
+        "fanX": 17.76,
+        "nacelleDiameter": 3.95,
+        "nacelleLength": 6.5,
+        "dropBelowWing": 2.1,
+        "section": "round",
+        "chevrons": true,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/787_ACAP_Rev_Q.pdf",
+        "doc": "Boeing D6-58333 787 Airplane Characteristics for Airport Planning, Rev Q (October 2025)",
+        "page": "2-5 general dimensions 787-8 (length 56.72, span 60.12, width 5.77, height 5.94, tail height 16.92, engine y 9.73, inlet x 17.76, tip LE x 37.69, tip TE x 40.36, fuselage end 55.91); 2-8 ground clearances; 9-2 scaled drawings"
+      },
+      {
+        "url": "https://www.eplaneai.com/news/why-some-airlines-are-choosing-general-electric-over-rolls-royce-engines",
+        "doc": "eplaneai article, about 34 percent of 787s use Rolls-Royce (undated, secondary)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58333 Rev Q p.2-5 (PDF p.21): overall length 56.72 is to the stabiliser tip TE; plan raster (native 216 ppi) measured: straight LE extrapolated to the tip, rootY at the fuselage side",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58333 Rev Q p.2-5 (PDF p.21), plan view raster (native 216 ppi, 16.78 px/m, centreline row and x scale calibrated on the 56.72 and 123 ft 8 in / 132 ft 5 in extension lines): LE marker 37.69 and TE marker 40.36 are documented; the LE crosses x = 37.69 at y = 28.9, 1.16 m inboard of the pointed tip corner (40.36, 30.06), so the tip is narrow, not a 2.67 m chord. The straight LE is refit to the same raster (rootLEx 18.8, sweep 34.9; measured LE x 20.94 at y 6, 33.42 at y 24, 36.14 at y 27.68) and rootChord 12.0 puts the root TE at the measured 30.8; tipChord is now the 0.1 m pointed stub",
+        "page": "raked wingtip vertices, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.span",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.height",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.rootY",
+      "htail.tipLEx",
+      "wingtip.rakeSpan",
+      "wingtip.rakeLE",
+      "wingtip.rakeTE",
+      "wing.tipChord"
+    ],
+    "gaps": ["fuselage.noseExponent"]
+  },
+  {
+    "icao": "B77W",
+    "name": "Boeing 777-300ER",
+    "family": "777",
+    "reference": {
+      "engine": "GE GE90-115B",
+      "wingtip": "raked",
+      "notes": "Reference = ACAP D6-58329-2 Rev G (Dec 2024) section 2.2.2 777-300ER drawing; GE90-115B is the only engine offered on the -300ER. Nacelle diameter: the ACAP drawing gives no diameter label (the '13 ft 0 in (3.96 m)' dimension in the front view is the gap between main gear and nacelle, not a diameter). Measured off the ACAP front and side views the outer nacelle is about 3.8 m (front view 3.73 m outer circle, side view 3.86 m). Wikipedia lists GE90 'maximum width' 3.769 m (consistent) but also states a nacelle maximum diameter of 166 in (4.2 m) for the higher-thrust variants; that 4.2 m is unverified for the -115B and conflicts with the ACAP drawing, so 3.8 m is used. Fan diameter is 128 in (3.25-3.3 m), not used. Distinctive 777 traits: very large round nacelle (about 3.8 m) sitting close beneath the wing; the long fuselage constant section with a slender nose; a tail cone that ends in a flat, blade-shaped (vertical-knife) cone, upswept by about 2.3 m and extending rearward of the fuselage end at x=73.08 m, hence the overall length 73.86 m reaching the horizontal-stab tip; a smooth wing with a long straight leading edge (sweep about 34 deg), a pronounced kink in the trailing edge near y=11 m, and a pointed raked tip: LE rake begins near y=31.1 m, TE rake near y=29.9 m, tip LE x 48.50 m, tip TE x 49.11 m (ACAP) so tip chord is 0.61 m at the very point. Tail height: ACAP ground-clearance table gives 18.24-18.85 m (attitude range, no nominal); the maximum 18.85 m is stored; nominal not verified. Wheelbase/landing gear (six-wheel main bogies) not drawn. v3: noseExponent measured from the plan silhouette (plan view only; applied to the side profile too). v4: wingtip.rakeLE / rakeTE added (LE rake start (46.20, 31.30), tip LE (48.50, 32.40); TE rake break (47.36, 29.86), tip TE (49.11, 32.40)) measured on the ACAP p.2-4 vector plan; straight LE sweep 34.4. Stabiliser: rootY 1.9, rootLEx 64.25, rootChord 6.3, sweep fitted to tip LE 71.58 / TE 73.86 (overall length is to the stabiliser tip)."
+    },
+    "dims": {
+      "length": 73.86,
+      "span": 64.8,
+      "height": 18.85,
+      "fuselageWidth": 6.2,
+      "fuselageHeight": 6.2
+    },
+    "fuselage": {
+      "noseLength": 9,
+      "tailconeLength": 18.6,
+      "tailUpsweep": 2.3,
+      "cockpitWindowX": 3.05,
+      "decks": 1,
+      "end": 73.08,
+      "tailEnd": "blade"
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 26.89,
+      "rootChord": 13.3,
+      "kinkY": 11,
+      "tipChord": 0.61,
+      "sweepLE": 34.4,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "raked",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 1.1,
+      "rakeLE": [
+        {
+          "x": 46.2,
+          "y": 31.3
+        },
+        {
+          "x": 48.5,
+          "y": 32.4
+        }
+      ],
+      "rakeTE": [
+        {
+          "x": 47.36,
+          "y": 29.86
+        },
+        {
+          "x": 49.11,
+          "y": 32.4
+        }
+      ]
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.9,
+      "rootLEx": 64.25,
+      "span": 21.8,
+      "rootChord": 6.3,
+      "tipChord": 2.28,
+      "sweepLE": 39.1,
+      "dihedral": 5.6,
+      "tipLEx": 71.58,
+      "tipTEx": 73.86
+    },
+    "vtail": {
+      "rootLEx": 57.8,
+      "height": 9.8,
+      "rootChord": 11.1,
+      "tipChord": 2.4,
+      "sweepLE": 44.7,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 9.61,
+        "fanX": 25.76,
+        "nacelleDiameter": 3.8,
+        "nacelleLength": 6.4,
+        "dropBelowWing": 1.9,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/777-200LR-300ER-F_Rev_G.pdf",
+        "doc": "Boeing D6-58329-2 777-200LR/-300ER/-Freighter Airplane Characteristics for Airport Planning, Rev G (December 2024)",
+        "page": "2-4 general dimensions 777-300ER (length 73.86, span 64.80, width 6.20, engine y 9.61, inlet x 25.76, wing LE x at body 26.89, tip LE x 48.50, tip TE x 49.11, fuselage end 73.08); 2-7 ground clearances (tail 18.24-18.85)"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/General_Electric_GE90",
+        "doc": "GE90 specifications: fan 128 in, width 148.38 in, nacelle max diameter 166 in (stated for higher-thrust variants, unverified for -115B)",
+        "page": "Specifications / Design"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58329-2 Rev G p.2-4 (PDF p.18): overall length 73.86 is to the stabiliser tip TE; plan view rendered at 500 dpi (vector) measured: straight LE extrapolated to the tip, rootY at the fuselage side",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58329-2 Rev G p.2-4 (PDF p.18), vector plan rendered at 500 dpi, calibrated on the 73.86 and 159 ft 1.4 in / 161 ft 1.4 in extension lines: LE leaves its straight line at (46.20, 31.30), tip LE (48.50, 32.40) and TE (49.11, 32.40) are documented, TE rake break at (47.36, 29.86); straight LE refit from 34.2 to 34.4 deg so it reaches the rake start (measured)",
+        "page": "raked wingtip vertices, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.span",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.height",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.rootY",
+      "htail.tipLEx",
+      "wingtip.rakeSpan",
+      "wingtip.rakeLE",
+      "wingtip.rakeTE"
+    ],
+    "gaps": [
+      "dims.height nominal (ACAP gives attitude range 18.24-18.85 m only; maximum stored)",
+      "fuselage.noseExponent"
+    ]
+  }
+]

@@ -22,7 +22,7 @@ import './fleet.css'
 
 export function FleetContent({ span }: { span: Span }) {
   const { scope, all, payload, locale, actions, isCurrent } = useOverview()
-  const figure = useFleetFigure(201)
+  const figure = useFleetFigure(201, 'lineup')
   if (!scope || !all) return null
   const gate = scope.fleet
   if (gate.status === 'below') return null

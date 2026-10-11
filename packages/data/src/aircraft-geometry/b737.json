@@ -1,0 +1,408 @@
+[
+  {
+    "icao": "B733",
+    "name": "Boeing 737-300",
+    "family": "737",
+    "reference": {
+      "engine": "CFM56-3B1/-3B2 (flat-bottom 'hamster pouch' nacelle, oval inlet, no chevrons)",
+      "wingtip": "none (original square-cut tip, no winglet)",
+      "notes": "Original Classic 737-300 as drawn in Boeing D6-58325-6 sec 2.2.3. CFM56-3 nacelle is flattened underneath for ground clearance (side-view height ~1.8 m vs plan width ~2.2 m, both measured off the Boeing three-view; engine ground clearance 0.46-0.53 m per sec 2.3.2). Aviation Partners blended-winglet retrofits exist for the 737-300/-500 but are rare on the type, so the plain tip is the reference. Wing LE is one straight ~30 deg line with no Yehudi LE break (unlike NG/MAX). Tailcone is the shortest/shallowest of the three. Heights in dims are from ground-clearance table (vertical tail 11.07-11.15 m). Fin height above crown 5.9 m = tail clearance minus top-of-fuselage clearance (sec 2.3.2). v3: fin root now excludes the dorsal fillet (see vtail.dorsalLength)."
+    },
+    "dims": {
+      "length": 33.4,
+      "span": 28.88,
+      "height": 11.1,
+      "fuselageWidth": 3.76,
+      "fuselageHeight": 4.01
+    },
+    "fuselage": {
+      "noseLength": 5.5,
+      "tailconeLength": 12.7,
+      "tailUpsweep": 1,
+      "cockpitWindowX": 2.9,
+      "decks": 1,
+      "end": 32.18
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 12.1,
+      "rootChord": 6.25,
+      "kinkY": 5.5,
+      "tipChord": 1,
+      "sweepLE": 30,
+      "dihedral": 6
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.25,
+      "rootLEx": 27.9,
+      "span": 12.7,
+      "rootChord": 3.9,
+      "tipChord": 2.24,
+      "sweepLE": 32.5,
+      "dihedral": 6,
+      "tipLEx": 31.16,
+      "tipTEx": 33.4
+    },
+    "vtail": {
+      "rootLEx": 26.2,
+      "height": 5.9,
+      "rootChord": 5.3,
+      "tipChord": 1.6,
+      "sweepLE": 40.5,
+      "dorsalFin": true,
+      "dorsalLength": 2.55,
+      "dorsalHeight": 1.5
+    },
+    "engines": [
+      {
+        "y": 4.83,
+        "fanX": 11,
+        "nacelleDiameter": 2.18,
+        "nacelleLength": 4,
+        "dropBelowWing": 0.9,
+        "section": "flat-bottom",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737CL_REV_E.pdf",
+        "doc": "Boeing D6-58325-6 Rev E (Nov 2023), 737-100/-500 Airplane Characteristics for Airport Planning",
+        "page": "sec 2.2.3 General Dimensions: Model 737-300, p.2-12 (length 33.40, span 28.88, fanX 11.00, engine y 4.83, fuselage 3.76 x 4.01, htail span 12.70, fuselage end 32.18)"
+      },
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737CL_REV_E.pdf",
+        "doc": "Boeing D6-58325-6 Rev E (Nov 2023), 737-100/-500 Airplane Characteristics for Airport Planning",
+        "page": "sec 2.3.2 Ground Clearances: Model 737-300, p.2-17 (top of fuselage 5.13-5.26, vertical tail 11.07-11.15, engine 0.46-0.53)"
+      },
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737CL_REV_E.pdf",
+        "doc": "Boeing D6-58325-6 Rev E",
+        "page": "sec 2.2.3 p.2-12 side view, measured: vtail root/fillet (raster, +-0.3 m)"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58325-6 Rev E, 737-300 general dimensions p.2-12 (overall length 33.40 is to the stabiliser tip TE); plan view scaled at 400 dpi: straight LE extrapolated to the tip, rootY at the fuselage side",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "dims.height",
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.height",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight",
+      "htail.rootY",
+      "htail.tipLEx"
+    ],
+    "gaps": ["fuselage.noseLength (plan-view value; side-profile roof only levels out near x=8.5)"]
+  },
+  {
+    "icao": "B738",
+    "name": "Boeing 737-800",
+    "family": "737",
+    "reference": {
+      "engine": "CFM56-7B (flat-bottom nacelle, no chevrons)",
+      "wingtip": "Blended winglet (-800W configuration, span 35.79 m)",
+      "notes": "Reference = 737-800W as drawn in D6-58325-7 sec 2.2.6; the blended winglet is the common NG configuration, so span is 35.79 m, not the winglet-less span. Split scimitar is an Aviation Partners retrofit (e.g. Ryanair) and is NOT used; contrast photo is in refs/B738. Nacelle: 2.13 m plan width, ~1.8 m height (flat-bottom, ground clearance 0.48-0.64 m per sec 2.3.2); fan face at x=13.36 m (documented). Wing has a Yehudi LE break (inboard LE ~37 deg out to y~5.5, outboard ~27 deg) and TE kink at y=5.5. Fin height above crown 7.0 m = vertical tail minus top-of-fuselage clearance (12.62-5.56 OEW, 12.37-5.41 MTW), documented; the three-view scale reads ~7.7 so treat +/-0.4. Tailcone: fuselage ends at 38.02 m (doc) vs 39.47 overall (to horizontal stabiliser tip). v3: the fin root (rootLEx 28.9, rootChord 8.2) used to include the dorsal fillet; rootLEx/rootChord now describe the fin proper and the fillet is vtail.dorsalLength/dorsalHeight. Fin is the same as B38M."
+    },
+    "dims": {
+      "length": 39.47,
+      "span": 35.79,
+      "height": 12.55,
+      "fuselageWidth": 3.76,
+      "fuselageHeight": 4.01
+    },
+    "fuselage": {
+      "noseLength": 5.8,
+      "tailconeLength": 12.1,
+      "tailUpsweep": 1,
+      "cockpitWindowX": 3,
+      "decks": 1,
+      "end": 38.02
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 15,
+      "rootChord": 6.4,
+      "kinkY": 5.5,
+      "tipChord": 1.1,
+      "sweepLE": 27.3,
+      "dihedral": 5.5,
+      "leBreakY": 5.5,
+      "sweepLEInboard": 37
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 2.35,
+      "below": 0,
+      "cant": 20,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.3,
+      "rootLEx": 33.7,
+      "span": 14.35,
+      "rootChord": 3.9,
+      "tipChord": 1.47,
+      "sweepLE": 36.1,
+      "dihedral": 7,
+      "tipLEx": 38.0,
+      "tipTEx": 39.47
+    },
+    "vtail": {
+      "rootLEx": 31.65,
+      "height": 7,
+      "rootChord": 5.4,
+      "tipChord": 1.6,
+      "sweepLE": 40,
+      "dorsalFin": true,
+      "dorsalLength": 2.85,
+      "dorsalHeight": 1.5
+    },
+    "engines": [
+      {
+        "y": 4.83,
+        "fanX": 13.36,
+        "nacelleDiameter": 2.13,
+        "nacelleLength": 4,
+        "dropBelowWing": 0.9,
+        "section": "flat-bottom",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737NG_REV_C.pdf",
+        "doc": "Boeing D6-58325-7 Rev C (Oct 2025), 737-600/-900 Airplane Characteristics for Airport Planning",
+        "page": "sec 2.2.6 General Dimensions: Model 737-800W, p.2-14 (length 39.47, span 35.79, height 12.55, fanX 13.36, engine y 4.83, fuselage end 38.02, htail span 14.35, tip LE/TE x 23.88/26.01)"
+      },
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737NG_REV_C.pdf",
+        "doc": "Boeing D6-58325-7 Rev C (Oct 2025), 737-600/-900 Airplane Characteristics for Airport Planning",
+        "page": "sec 2.3.2 Ground Clearances: Model 737-800, p.2-18 (top of fuselage 5.41-5.56, vertical tail 12.37-12.62, engine 0.48-0.64)"
+      },
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737NG_REV_C.pdf",
+        "doc": "Boeing D6-58325-7 Rev C",
+        "page": "sec 2.2.6 p.2-14 plan/side views, measured: wing.leBreakY, wing.sweepLEInboard, vtail root/fillet (raster, +-0.3 m)"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-58325-7 Rev C p.2-14 (overall length 39.47 is to the stabiliser tip TE); plan view scaled at 400 dpi: straight LE extrapolated to the tip, rootY at the fuselage side",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.height",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "wing.leBreakY",
+      "wing.sweepLEInboard",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight",
+      "htail.rootY",
+      "htail.tipLEx"
+    ],
+    "gaps": [
+      "Boeing planning drawing does not state tipChord, rootChord or sweep; all wing/tail planform numbers are scaled off the three-view (+/-0.2 m, +/-3 deg)"
+    ]
+  },
+  {
+    "icao": "B38M",
+    "name": "Boeing 737 MAX 8",
+    "family": "737",
+    "reference": {
+      "engine": "CFM LEAP-1B (round nacelle ~2.4 m, serrated chevron nozzle)",
+      "wingtip": "Advanced Technology (dual-feather) winglet: upper blade + lower blade",
+      "notes": "Reference = 737-8 in D6-38A004 sec 2.2.2. NOT split scimitar: the MAX AT winglet has an upper blade (~2.1 m above the wing tip, leaning ~32 deg outward) and a short lower blade (~0.8 m below, ~60 deg from vertical); total blade-to-blade height 2.92 m (doc, 9 ft 7 in) matches the sum. Blade clearances: lower 2.79-3.15 m, upper 5.72-6.07 m (sec 2.3.2). Nacelle is bigger and round (front view ~2.4 m, vs the NG's flattened ~2.13 x 1.8) with chevrons on the nozzle; fan face is documented at x=13.00 m vs NG 13.36 m, so by the planning drawing it is only ~0.4 m further forward (the 'higher' mounting could not be confirmed from the drawing). Tailcone: fuselage length 39.12 m (doc) vs NG 38.02 m, i.e. the MAX tailcone is ~1.1 m longer and ends higher; overall length per this Boeing drawing is 39.47 m (secondary sources and aircraft-top20.json say 39.52). Fin shown identical to NG within measurement error. v3: rootChord 8.6 vs B738 8.2 was one fin measured from the fillet start with different drawing scale error; both now share fin LE 31.65, TE 37.05 (chord 5.4) plus a 2.85 x 1.5 m fillet."
+    },
+    "dims": {
+      "length": 39.47,
+      "span": 35.92,
+      "height": 12.3,
+      "fuselageWidth": 3.76,
+      "fuselageHeight": 4.01
+    },
+    "fuselage": {
+      "noseLength": 5.8,
+      "tailconeLength": 12,
+      "tailUpsweep": 1.6,
+      "cockpitWindowX": 3.1,
+      "decks": 1,
+      "end": 39.12
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 14.6,
+      "rootChord": 6.55,
+      "kinkY": 5,
+      "tipChord": 1.5,
+      "sweepLE": 28.5,
+      "dihedral": 4.5,
+      "leBreakY": 5.5,
+      "sweepLEInboard": 38
+    },
+    "wingtip": {
+      "type": "at-winglet",
+      "height": 2.1,
+      "below": 0.77,
+      "cant": 32,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.1,
+      "rootLEx": 34.5,
+      "span": 14.35,
+      "rootChord": 3.4,
+      "tipChord": 0.67,
+      "sweepLE": 35.2,
+      "dihedral": 6,
+      "tipLEx": 38.8,
+      "tipTEx": 39.47
+    },
+    "vtail": {
+      "rootLEx": 31.65,
+      "height": 6.9,
+      "rootChord": 5.4,
+      "tipChord": 1.5,
+      "sweepLE": 40,
+      "dorsalFin": true,
+      "dorsalLength": 2.85,
+      "dorsalHeight": 1.5
+    },
+    "engines": [
+      {
+        "y": 4.82,
+        "fanX": 13,
+        "nacelleDiameter": 2.4,
+        "nacelleLength": 4.2,
+        "dropBelowWing": 1.2,
+        "section": "round",
+        "chevrons": true,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737MAX_RevK.pdf",
+        "doc": "Boeing D6-38A004 Rev K (Jul 2025), 737 MAX Airplane Characteristics for Airport Planning",
+        "page": "sec 2.2.2 General Dimensions: Model 737-8, p.2-10 (length 39.47, span 35.92, fanX 13.00, engine y 4.82, htail span 14.35, winglet 9ft7in = 2.92 m, fuselage end 39.12; embedded raster, accurate +/-6 in)"
+      },
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737MAX_RevK.pdf",
+        "doc": "Boeing D6-38A004 Rev K (Jul 2025), 737 MAX Airplane Characteristics for Airport Planning",
+        "page": "sec 2.3.2 Ground Clearances: Model 737-8, p.2-14 (top of fuselage 5.08-5.51, vertical stabilizer 11.86-12.45, engine 0.43-0.56, winglet blades lower 2.79-3.15 / upper 5.72-6.07)"
+      },
+      {
+        "url": "https://skybrary.aero/aircraft/b38m",
+        "doc": "SKYbrary B38M (secondary, height 12.3 m)",
+        "page": "-"
+      },
+      {
+        "url": "https://www.boeing.com/content/dam/boeing/v2/airports/acaps/737MAX_RevK.pdf",
+        "doc": "Boeing D6-38A004 Rev K",
+        "page": "sec 2.2.2 p.2-10 plan view, measured: wing.leBreakY, wing.sweepLEInboard, vtail root/fillet (raster, +-0.3 m)"
+      },
+      {
+        "url": "",
+        "doc": "Boeing D6-38A004 Rev K, 737-8 general dimensions p.2-10 (overall length 39.47 is to the stabiliser tip TE); plan view scaled at 400 dpi: straight LE extrapolated to the tip, rootY at the fuselage side",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "dims.height (secondary sources; Boeing clearance table gives vertical tail 11.86-12.45 above ground)",
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.below",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.height",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "wing.leBreakY",
+      "wing.sweepLEInboard",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight",
+      "htail.rootY",
+      "htail.tipLEx"
+    ],
+    "gaps": [
+      "MAX engine 'mounted higher' vs NG not confirmable from the drawing",
+      "drawing is a raster so values are +/-0.3 m"
+    ]
+  }
+]

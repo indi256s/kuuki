@@ -1,6 +1,6 @@
 'use client'
 
-import type { FormEvent, ReactNode, Ref } from 'react'
+import { useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { CircleAlert, CircleCheck, Mail } from 'lucide-react'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
@@ -180,6 +180,9 @@ export function FormStep({
   const creating = step === 'create' || step === 'creating'
   const busy = step === 'checking' || step === 'creating'
   const field = error ? FIELD_ERRORS[error] : undefined
+  // The status line stays mounted after the first create step so it can collapse with its text; it keeps the email it showed.
+  const [checked, setChecked] = useState('')
+  if (creating && checked !== email.trim()) setChecked(email.trim())
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     onSubmit()
@@ -191,21 +194,27 @@ export function FormStep({
         title={creating ? t.createHeading : t.heading}
         subtitle={creating ? t.createSubtitle : t.subtitle}
       />
-      {creating ? (
-        <div className="auth-status-line">
-          <p role="status">
-            {t.noJournal[0]} <strong>{email.trim()}</strong> {t.noJournal[1]}
-          </p>
-          <button
-            type="button"
-            className="auth-status-change"
-            onClick={onChangeEmail}
-            disabled={step === 'creating'}
-          >
-            {t.change}
-          </button>
+      {/* Always rendered: the create step grows it open and Change collapses it (auth-card.css). Inert and hidden while closed. */}
+      <div className="auth-status" inert={!creating} aria-hidden={!creating || undefined}>
+        <div className="auth-status-clip">
+          {checked ? (
+            <div className="auth-status-line">
+              {/* Remounted on open so the live region is announced as it is today. */}
+              <p key={creating ? 'live' : 'idle'} role={creating ? 'status' : undefined}>
+                {t.noJournal[0]} <strong>{checked}</strong> {t.noJournal[1]}
+              </p>
+              <button
+                type="button"
+                className="auth-status-change"
+                onClick={onChangeEmail}
+                disabled={step === 'creating'}
+              >
+                {t.change}
+              </button>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </div>
       <form className="auth-form" onSubmit={submit} noValidate aria-busy={busy || undefined}>
         <div className="auth-fields">
           {/* `text` with an email keyboard rather than `email`: only text inputs expose the selection Change sets. */}

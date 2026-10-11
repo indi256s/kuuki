@@ -12,6 +12,11 @@ const PAINT: Record<Paint, string> = {
   glass: 'var(--iso-glass)',
   ghost: 'var(--iso-ghost)',
   accent: 'var(--accent)',
+  'accent-side': 'color-mix(in oklab, var(--accent) 80%, black)',
+  // Mixed toward the text colour, so it darkens in light and lightens in dark: on-accent text keeps 4.5:1 on it for every accent.
+  'accent-plate': 'color-mix(in oklab, var(--accent) 80%, var(--text))',
+  shadow: 'var(--iso-shadow)',
+  land: 'color-mix(in oklab, var(--iso-detail) 35%, transparent)',
   'on-accent': 'var(--accent-foreground)',
   ink: 'var(--text)',
   muted: 'var(--text-muted)',
@@ -48,7 +53,7 @@ export function IsoFigure({
             <polygon
               key={index}
               points={node.points}
-              strokeWidth={1}
+              strokeWidth={node.width ?? 1}
               strokeLinejoin="round"
               style={{
                 fill: PAINT[node.fill],
@@ -125,6 +130,8 @@ export function IsoFigure({
         }
       }
     })
+  // A glow's region is the figure's box plus 3 sigma of blur. Builders include motion travel in the box, and a moving part carries its user space (and so the region) along, so nothing the glow reaches gets clipped.
+  const [bx, by, bw, bh] = figure.viewBox.split(' ').map(Number)
   const body = render(figure.nodes)
   return (
     <svg
@@ -142,10 +149,10 @@ export function IsoFigure({
             key={blur}
             id={`${base}-b${blur}`}
             filterUnits="userSpaceOnUse"
-            x="-2000"
-            y="-2000"
-            width="4000"
-            height="4000"
+            x={bx - 3 * blur}
+            y={by - 3 * blur}
+            width={bw + 6 * blur}
+            height={bh + 6 * blur}
           >
             <feGaussianBlur stdDeviation={blur} />
           </filter>

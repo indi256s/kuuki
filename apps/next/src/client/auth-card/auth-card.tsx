@@ -41,11 +41,21 @@ export function AuthCardFrame({
   welcomeStep?: string
   children: ReactNode
 }) {
+  // The plane field holds still while focus is anywhere in the form column; leaving the column (or the card) resumes it.
   return (
     <div className="auth-card" ref={cardRef} data-welcome={welcomeStep}>
       <BrandPanel field={brandField ?? <PlaneField />} />
       <CornerControls locale={locale} theme={theme} onLocaleChange={onLocaleChange} />
-      <section className="auth-form-panel">
+      <section
+        className="auth-form-panel"
+        onFocus={(event) => {
+          event.currentTarget.closest<HTMLElement>('.auth-card')!.dataset.formFocus = 'true'
+        }}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            delete event.currentTarget.closest<HTMLElement>('.auth-card')!.dataset.formFocus
+        }}
+      >
         <div className="auth-column">{children}</div>
       </section>
     </div>
@@ -370,13 +380,13 @@ export function AuthCard({
             }}
           />
         )}
-        {state.step === 'form' ||
-        state.step === 'checking' ||
-        state.step === 'create' ||
-        state.step === 'creating' ? (
-          <Tagline locale={locale} index={tagline} />
-        ) : null}
       </div>
+      {state.step === 'form' ||
+      state.step === 'checking' ||
+      state.step === 'create' ||
+      state.step === 'creating' ? (
+        <Tagline locale={locale} index={tagline} />
+      ) : null}
     </AuthCardFrame>
   )
 }

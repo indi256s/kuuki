@@ -153,6 +153,16 @@
   --kc-chart-3: var(--mark-3);
   --kc-chart-4: var(--mark-4);
   --kc-chart-5: var(--mark-ghost);
+  /* Iso-glow figures (Overview cards): faces, hairlines, glass and unlit segments. The accent glows; --iso-glow is its blurred copy's opacity; --iso-shadow is the contact shadow fill. */
+  --iso-top: var(--surface);
+  --iso-front: #f3f1ee;
+  --iso-side: #e7e3df;
+  --iso-line: #5f5954;
+  --iso-detail: #cfc8c1;
+  --iso-glass: var(--accent-tint);
+  --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  --iso-glow: 0.4;
+  --iso-shadow: rgb(48 45 42 / 14%);
 }
 :root[data-theme='dark'] {
   --background: #292827;
@@ -223,6 +233,15 @@
   --kc-chart-3: var(--mark-3);
   --kc-chart-4: var(--mark-4);
   --kc-chart-5: var(--mark-ghost);
+  --iso-top: var(--surface-inset);
+  --iso-front: #363432;
+  --iso-side: #2e2c2a;
+  --iso-line: #a8a098;
+  --iso-detail: #5f5954;
+  --iso-glass: #262423;
+  --iso-ghost: #45403c;
+  --iso-glow: 0.75;
+  --iso-shadow: rgb(0 0 0 / 35%);
 }
 :root[data-accent='ai'] {
   --accent: #4e5ea2;
@@ -544,6 +563,23 @@ h2 {
   mask-position: 0 100%;
   animation-name: theme-dawn;
 }
+/* Dawn sweeps up from the bottom and reaches the corner controls last, which would hide the Horizon sunrise. The button becomes its own layer instead: the old one fades out over --dur-fast and the live one, mid-sunrise, shows through. */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme-switching='dawn'] .auth-horizon {
+    view-transition-name: auth-horizon;
+  }
+}
+::view-transition-old(auth-horizon) {
+  animation: var(--dur-fast) linear both theme-fade-out;
+}
+::view-transition-new(auth-horizon) {
+  animation: none;
+}
+@keyframes theme-fade-out {
+  to {
+    opacity: 0;
+  }
+}
 @keyframes theme-dusk {
   from {
     mask-position: 0 100%;
@@ -742,26 +778,4 @@ h2 {
 }
 :root[data-theme='dark'] .country-preview-outline-dark {
   display: inline;
-}
-
-/* Overview iso figures follow the active theme and accent. */
-:root {
-  --iso-top: var(--surface);
-  --iso-front: #f3f1ee;
-  --iso-side: #e7e3df;
-  --iso-line: #5f5954;
-  --iso-detail: #cfc8c1;
-  --iso-glass: var(--accent-tint);
-  --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
-  --iso-glow: 0.4;
-}
-:root[data-theme='dark'] {
-  --iso-top: var(--surface-inset);
-  --iso-front: #363432;
-  --iso-side: #2e2c2a;
-  --iso-line: #a8a098;
-  --iso-detail: #5f5954;
-  --iso-glass: #262423;
-  --iso-ghost: #45403c;
-  --iso-glow: 0.75;
 }

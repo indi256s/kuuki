@@ -16,13 +16,25 @@ export type Paint =
   | 'glass'
   | 'ghost'
   | 'accent'
+  | 'accent-side'
+  | 'accent-plate'
+  | 'shadow'
+  | 'land'
   | 'on-accent'
   | 'ink'
   | 'muted'
   | 'none'
 
 export type IsoNode =
-  | { kind: 'polygon'; points: string; fill: Paint; stroke: Paint; strokeOpacity?: number }
+  | {
+      kind: 'polygon'
+      points: string
+      fill: Paint
+      stroke: Paint
+      strokeOpacity?: number
+      /** Stroke width in px; the renderer defaults to 1. */
+      width?: number
+    }
   | {
       kind: 'path'
       d: string
@@ -43,7 +55,7 @@ export type IsoNode =
       anchor: 'start' | 'middle' | 'end'
       fill: Paint
     }
-  /** A blurred copy under an accent part; its opacity is the theme's `--iso-glow`. */
+  /** A blurred copy under an accent part; `blur` is the final stdDeviation in px (Scene.glow already scaled it by k), its opacity is the theme's `--iso-glow`. */
   | { kind: 'glow'; blur: number; children: IsoNode[] }
   /** A named, addressable part (`data-part`), optionally clipped by a screen-space polygon that stays fixed while the part moves. */
   | {
@@ -108,13 +120,26 @@ export class Scene {
   }
 
   /** Planar polygon in 3D. */
-  poly(pts3: readonly P3[], fill: Paint, stroke: Paint = 'line', strokeOpacity?: number) {
-    this.push({ kind: 'polygon', points: this.str(this.pp(pts3)), fill, stroke, strokeOpacity })
+  poly(
+    pts3: readonly P3[],
+    fill: Paint,
+    stroke: Paint = 'line',
+    strokeOpacity?: number,
+    width?: number,
+  ) {
+    this.push({
+      kind: 'polygon',
+      points: this.str(this.pp(pts3)),
+      fill,
+      stroke,
+      strokeOpacity,
+      width,
+    })
   }
   /** Polygon already in screen space. */
-  poly2(pts: readonly Pt[], fill: Paint, stroke: Paint = 'line') {
+  poly2(pts: readonly Pt[], fill: Paint, stroke: Paint = 'line', width?: number) {
     this.pts.push(...pts)
-    this.push({ kind: 'polygon', points: this.str(pts), fill, stroke })
+    this.push({ kind: 'polygon', points: this.str(pts), fill, stroke, width })
   }
   line(pts3: readonly P3[], stroke: Paint = 'line', width = 1, dash?: string) {
     const d =
@@ -123,6 +148,21 @@ export class Scene {
         .map(([a, b]) => `${r1(a)} ${r1(b)}`)
         .join('L')
     this.push({ kind: 'path', d, fill: 'none', stroke, width, dash })
+  }
+  /** Several screen-space polygons filled as one shape: each is wound the same way, so overlaps fill once under the nonzero rule (a translucent fill does not darken where they meet). */
+  area(polys: readonly (readonly Pt[])[], fill: Paint) {
+    const d = polys
+      .map((pts) => {
+        this.pts.push(...pts)
+        const twice = pts.reduce((sum, [a, b], i) => {
+          const [c, e] = pts[(i + 1) % pts.length]
+          return sum + a * e - c * b
+        }, 0)
+        const ring = twice < 0 ? [...pts].reverse() : pts
+        return 'M' + ring.map(([a, b]) => `${r1(a)} ${r1(b)}`).join('L') + 'Z'
+      })
+      .join('')
+    this.push({ kind: 'path', d, fill, stroke: 'none', width: 0 })
   }
   /** Many separate segments as one path. */
   segs(list: readonly (readonly P3[])[], stroke: Paint, width = 1) {
@@ -137,11 +177,11 @@ export class Scene {
       .join('')
     this.push({ kind: 'path', d, fill: 'none', stroke, width })
   }
-  /** Soft light under an accent part: whatever `draw` emits, blurred. */
+  /** Soft light under an accent part: whatever `draw` emits, blurred. `blur` is the stdDeviation at k = 1, so glows scale with the figure like its geometry. */
   glow(blur: number, draw: () => void) {
-    this.push({ kind: 'glow', blur, children: this.collect(draw) })
+    this.push({ kind: 'glow', blur: r3(blur * this.k), children: this.collect(draw) })
   }
-  /** Accent face with glow. */
+  /** Accent face with glow; `blur` is at k = 1. */
   lit(pts3: readonly P3[], blur = 4) {
     this.glow(blur, () => this.poly(pts3, 'accent', 'none'))
     this.poly(pts3, 'accent', 'accent')
@@ -275,7 +315,10 @@ export class Scene {
       f.stroke,
     )
   }
-  /** Rounded box: one continuous wall (hull of top and bottom outlines) plus a rounded top. */
+  /**
+   * Rounded box: the outline is filled `wall` (the y-facing tone), the visible facets that face more along x than y are merged into one `side` polygon, then come the outline stroke and a rounded top.
+   * Facets are the straight runs of `roundRect`, which winds counter-clockwise in plan, so a facet's outward normal is (dy, -dx).
+   */
   rbox(
     x: number,
     y: number,
@@ -284,23 +327,69 @@ export class Scene {
     d: number,
     h: number,
     r: number,
-    f: { top?: Paint; wall?: Paint; stroke?: Paint } = {},
+    f: { top?: Paint; wall?: Paint; side?: Paint; stroke?: Paint } = {},
   ) {
     const fp = roundRect(x, y, w, d, r)
     const bottom = fp.map(([a, b]) => this.P(a, b, z)),
-      top = fp.map(([a, b]) => this.P(a, b, z + h))
-    this.poly2(hull([...bottom, ...top]), f.wall ?? 'front', f.stroke)
-    // Corner seam on the nearest corner for volume.
-    const cx = x + w - r + r * Math.SQRT1_2,
-      cy = y + d - r + r * Math.SQRT1_2
-    this.line(
-      [
-        [cx, cy, z],
-        [cx, cy, z + h],
-      ],
-      'detail',
-    )
+      top = fp.map(([a, b]) => this.P(a, b, z + h)),
+      outline = hull([...bottom, ...top])
+    this.poly2(outline, f.wall ?? 'front', 'none')
+    // Facing the viewer needs nx + ny > 0 (the camera looks along -x -y); nx > ny picks the x-facing half, one contiguous run of the loop.
+    const facing: number[] = []
+    fp.forEach(([x0, y0], i) => {
+      const [x1, y1] = fp[(i + 1) % fp.length]
+      const nx = y1 - y0,
+        ny = x0 - x1
+      if (nx + ny > 1e-6 && nx > ny) facing.push(i)
+    })
+    if (facing.length) {
+      const run = [...facing, (facing[facing.length - 1] + 1) % fp.length]
+      this.poly2(
+        [
+          ...run.map((i) => this.P(fp[i][0], fp[i][1], z + h)),
+          ...[...run].reverse().map((i) => this.P(fp[i][0], fp[i][1], z)),
+        ],
+        f.side ?? 'side',
+        'none',
+      )
+    }
+    this.poly2(outline, 'none', f.stroke)
     this.poly2(top, f.top ?? 'top', f.stroke)
+  }
+  /**
+   * Prism extruded along y from `y` to `y + d`, from a convex x–z profile wound counter-clockwise with z up (`roundRect(x, z, w, h, r)`), so a facet's outward normal is (dz, -dx).
+   * The outline is filled `side`, visible facets that face more up than along x are merged into `top` runs, then the near end face (`front`) and the outline stroke.
+   */
+  prism(
+    profile: readonly Pt[],
+    y: number,
+    d: number,
+    f: { top?: Paint; side?: Paint; front?: Paint; stroke?: Paint } = {},
+  ) {
+    const near = profile.map(([a, b]) => this.P(a, y + d, b)),
+      far = profile.map(([a, b]) => this.P(a, y, b)),
+      outline = hull([...near, ...far])
+    this.poly2(outline, f.side ?? 'side', 'none')
+    // Facing the viewer needs nx + nz > 0; a run of up-facing facets is one polygon, so no seams show between them.
+    const n = profile.length,
+      up = profile.map(([a0, b0], i) => {
+        const [a1, b1] = profile[(i + 1) % n]
+        const nx = b1 - b0,
+          nz = a0 - a1
+        return nx + nz > 1e-6 && nz > nx
+      })
+    for (let j = 0; j < n; j++) {
+      if (!up[j] || up[(j + n - 1) % n]) continue
+      const run = [j]
+      while (up[run[run.length - 1]]) run.push((run[run.length - 1] + 1) % n)
+      this.poly2(
+        [...run.map((k) => near[k]), ...[...run].reverse().map((k) => far[k])],
+        f.top ?? 'top',
+        'none',
+      )
+    }
+    this.poly2(near, f.front ?? 'front', f.stroke)
+    this.poly2(outline, 'none', f.stroke)
   }
   /** Circle on a plane, given its centre and radius in plane units. */
   circle(O: P3, U: P3, V: P3, cu: number, cv: number, rad: number, n = 28): P3[] {
@@ -337,18 +426,38 @@ export class Scene {
   }
 }
 
-function roundRect(x: number, y: number, w: number, d: number, r: number, n = 6): Pt[] {
+/** The largest scale (to 0.005) at which `build(k)` is at most `width` px wide, so a tile can draw a figure at the width its box has instead of CSS shrinking it. Width is near-linear in k below the scales where detail switches on: two probes place the guess and a few steps settle it. */
+export function fitK(width: number, build: (k: number) => { width: number }): number {
+  const w1 = build(0.8).width,
+    w2 = build(0.4).width
+  const slope = (w1 - w2) / 0.4
+  let k = Math.round((0.8 + (width - w1) / slope) / 0.005) * 0.005
+  for (let i = 0; i < 20 && build(k).width > width; i++) k -= 0.005
+  for (let i = 0; i < 20 && build(k + 0.005).width <= width; i++) k += 0.005
+  return Math.round(k * 1000) / 1000
+}
+
+/** Rounded rectangle wound counter-clockwise from the (x + w, y) corner. `r` is one radius or one per corner in that order; a 0 corner is a single sharp point. */
+export function roundRect(
+  x: number,
+  y: number,
+  w: number,
+  d: number,
+  r: number | readonly [number, number, number, number],
+  n = 6,
+): Pt[] {
+  const [r0, r1, r2, r3] = typeof r === 'number' ? [r, r, r, r] : r
   const out: Pt[] = [],
     corners = [
-      [x + w - r, y + r, -90],
-      [x + w - r, y + d - r, 0],
-      [x + r, y + d - r, 90],
-      [x + r, y + r, 180],
+      [x + w - r0, y + r0, -90, r0],
+      [x + w - r1, y + d - r1, 0, r1],
+      [x + r2, y + d - r2, 90, r2],
+      [x + r3, y + r3, 180, r3],
     ]
-  for (const [cx, cy, a0] of corners)
-    for (let i = 0; i <= n; i++) {
+  for (const [cx, cy, a0, rad] of corners)
+    for (let i = 0; i <= (rad ? n : 0); i++) {
       const a = ((a0 + (90 * i) / n) * Math.PI) / 180
-      out.push([cx + r * Math.cos(a), cy + r * Math.sin(a)])
+      out.push([cx + rad * Math.cos(a), cy + rad * Math.sin(a)])
     }
   return out
 }

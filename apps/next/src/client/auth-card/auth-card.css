@@ -69,7 +69,8 @@
 .auth-column {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  --auth-gap: 28px;
+  gap: var(--auth-gap);
   width: min(360px, 100%);
 }
 
@@ -118,14 +119,14 @@
 }
 /* Horizon: the sun sets by half the viewBox in dark, and the icon shifts up so the half-set sun keeps the globe's and help icon's centre line. Both are CSS on html[data-theme], so first paint needs no script. */
 .auth-horizon svg {
-  translate: 0 -0.5px;
+  translate: 0 -1px;
   transition: translate var(--dur-horizon) var(--ease-horizon);
 }
 .auth-horizon-sun {
   transition: translate var(--dur-horizon) var(--ease-horizon);
 }
 :root[data-theme='dark'] .auth-horizon svg {
-  translate: 0 -4.5px;
+  translate: 0 -4px;
 }
 :root[data-theme='dark'] .auth-horizon-sun {
   translate: 0 50%;
@@ -147,6 +148,12 @@
 .auth-heading p {
   margin: 0;
   color: var(--text-muted);
+}
+/* The Russian welcome heading wraps to two lines (up to 375px wide and from 701px) where the create heading fits one, so the step reserves both lines and the centred column does not shift. */
+@media (max-width: 389px), (min-width: 701px) {
+  :lang(ru) .auth-step[data-step] .auth-heading h1 {
+    min-height: 2lh;
+  }
 }
 .auth-form {
   display: flex;
@@ -328,15 +335,29 @@
   flex-direction: column;
   gap: inherit;
 }
-/* The create step swaps in place with a short slide; reduced motion swaps it without one (below). */
-.auth-step[data-step='create'] {
-  animation: auth-step-in var(--dur-base) var(--ease-out);
+/* The create step grows its status line in place: the row opens from 0fr to 1fr while its margin takes back the step gap the collapsed row would add (heading, row and form are 3 items, so 2 gaps). Inputs and the button only move down as it opens; reduced motion skips the transition (below). */
+.auth-status {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: calc(-1 * var(--auth-gap));
+  opacity: 0;
+  transition:
+    grid-template-rows var(--dur-base) var(--ease-in-out),
+    margin-top var(--dur-base) var(--ease-in-out),
+    opacity var(--dur-fast);
 }
-@keyframes auth-step-in {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
-  }
+.auth-step[data-step='create'] .auth-status {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+}
+.auth-status-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+/* Open and focused, the clip lets the Change button's focus ring out. */
+.auth-step[data-step='create'] .auth-status:focus-within .auth-status-clip {
+  overflow: visible;
 }
 /* Create-step status line (board 1.2): the checked email and Change. It grows if a long email wraps. */
 .auth-status-line {
@@ -412,8 +433,8 @@
   color: var(--text-muted);
   cursor: default;
 }
-/* The 24px it grows up must clear the field above, so a field whose label row holds one sits 8px lower (24px, not 16). */
-.auth-field:has(.auth-text-link-up) {
+/* The 24px it grows up must clear the field above, so a field whose label row holds one sits 8px lower (24px, not 16). The create step's hint keeps the same 8px so the field does not jump when the step changes. */
+.auth-field:has(.auth-text-link-up, .auth-field-hint) {
   margin-top: 8px;
 }
 
@@ -438,7 +459,9 @@
   .auth-horizon-sun {
     transition: none;
   }
-  .auth-step[data-step='create'],
+  .auth-status {
+    transition: none;
+  }
   .auth-spinner {
     animation: none;
   }
@@ -484,8 +507,8 @@
     box-shadow: var(--auth-sheet-edge);
   }
   .auth-column {
+    --auth-gap: 24px;
     width: 100%;
-    gap: 24px;
   }
   .auth-form {
     gap: 24px;

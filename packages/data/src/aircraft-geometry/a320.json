@@ -1,0 +1,690 @@
+[
+  {
+    "icao": "A319",
+    "name": "Airbus A319 (A319ceo)",
+    "family": "A320",
+    "reference": {
+      "engine": "CFM56-5B",
+      "wingtip": "Wingtip fence",
+      "notes": "CFM56-5B nacelle chosen because the AC lists the CFM56 as the primary ceo installation and CFM56 powers the largest share of ceo airframes (inferred, no in-service count found; V2500 is the alternative, AC intake x is 0.07 m further forward). Wingtip fence chosen because the AC presents it as the baseline ceo wing and Sharklets were only an option on ceo (new-build from late 2012, retrofit since 2013), so fences remain the most numerous ceo tip (inferred, unverified). Sharklet ceo variant: span 35.80 m, tip as the neo record. A319 plug: forward plug is 1.60 m shorter than A320 (main gear 11.04 m behind nose gear vs 12.64 m), aft 2.13 m shorter. Nacelle diameter 2.1 m is the width (fan-cowl section 2.07 m); the inlet lip section is 2.3 m tall because the lower lip droops. Nacelle length is lip to aft end of the reverser cowl (0.93+1.3+1.2 m); primary nozzle and centrebody add ~1.5 m more. Wing, fin and tailplane are identical across the family; only fuselage plugs move them (wing and engines shift with the forward plug, tail items follow the tail end). Fuselage station values are +-0.4 m (read from AC scale drawings)."
+    },
+    "dims": {
+      "length": 33.84,
+      "span": 34.1,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 11.3,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.5,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 0.6,
+      "below": 0.35,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.4,
+      "rootLEx": 28.37,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "tipLEx": 31.77,
+      "tipTEx": 33.01
+    },
+    "vtail": {
+      "rootLEx": 26.27,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 9.59,
+        "nacelleDiameter": 2.1,
+        "nacelleLength": 3.43,
+        "dropBelowWing": 1.3,
+        "section": "round",
+        "chevrons": false,
+        "prop": null,
+        "exhaustLength": 1.5
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A319_0624.pdf",
+        "doc": "Airbus Aircraft Characteristics - Airport and Maintenance Planning, A319 AC, Jun 01/24 (Rev. 44 for A320; June 2024 issue)",
+        "page": "pp.37-38 (2-2-0 General Aircraft Dimensions, wing tip fence sheets 1-2); sharklet sheets pp.39-40"
+      },
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A319_0624.pdf",
+        "doc": "Same AC, Chapter 2-12-0 Power Plant Handling - Major Dimensions",
+        "page": "p.115 (Fig 2-12-0-991-020, CFM56)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a320neo",
+        "doc": "Airbus A320neo spec page (height 11.76 m, fuselage width 3.95 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a319neo",
+        "doc": "Airbus A319neo spec page (length 33.84 m, height 11.76 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://www.airbus.com/en/newsroom/press-releases/2013-10-airbus-launches-sharklet-retrofit-for-in-service-a320-family",
+        "doc": "Airbus Sharklet retrofit press release (Sharklets also exist on ceo)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "A320 AC plan view (PDF p.45) shifted by the rootLEx offset to the A319; A319 AC PDF p.45 plan scaled at 300 dpi agrees within 0.2 m",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].dropBelowWing",
+      "dims.fuselageHeight",
+      "wingtip.height",
+      "wingtip.below",
+      "engines[0].exhaustLength",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": [
+      "htail tip anchors (tipLEx/tipTEx) derived from the A320 plan view plus the rootLEx offset, no per-variant label; A319/A321 AC plan rasters agree within 0.2 m"
+    ]
+  },
+  {
+    "icao": "A320",
+    "name": "Airbus A320 (A320ceo)",
+    "family": "A320",
+    "reference": {
+      "engine": "CFM56-5B",
+      "wingtip": "Wingtip fence",
+      "notes": "CFM56-5B nacelle chosen because the AC lists the CFM56 as the primary ceo installation and CFM56 powers the largest share of ceo airframes (inferred, no in-service count found; V2500 is the alternative, AC intake x is 0.07 m further forward). Wingtip fence chosen because the AC presents it as the baseline ceo wing and Sharklets were only an option on ceo (new-build from late 2012, retrofit since 2013), so fences remain the most numerous ceo tip (inferred, unverified). Sharklet ceo variant: span 35.80 m, tip as the neo record. Baseline plug length. Nacelle diameter 2.1 m is the width (fan-cowl section 2.07 m); the inlet lip section is 2.3 m tall because the lower lip droops. Nacelle length is lip to aft end of the reverser cowl (0.93+1.3+1.2 m); primary nozzle and centrebody add ~1.5 m more. Wing, fin and tailplane are identical across the family; only fuselage plugs move them (wing and engines shift with the forward plug, tail items follow the tail end). Fuselage station values are +-0.4 m (read from AC scale drawings)."
+    },
+    "dims": {
+      "length": 37.57,
+      "span": 34.1,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 12.9,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.5,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 0.6,
+      "below": 0.35,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.4,
+      "rootLEx": 32.1,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "tipLEx": 35.5,
+      "tipTEx": 36.74
+    },
+    "vtail": {
+      "rootLEx": 30,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 11.19,
+        "nacelleDiameter": 2.1,
+        "nacelleLength": 3.43,
+        "dropBelowWing": 1.3,
+        "section": "round",
+        "chevrons": false,
+        "prop": null,
+        "exhaustLength": 1.5
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A320_0624.pdf",
+        "doc": "Airbus Aircraft Characteristics - Airport and Maintenance Planning, A320 AC, Jun 01/24 (Rev. 44 for A320; June 2024 issue)",
+        "page": "pp.40-41 (2-2-0, wing tip fence sheets 1-2); sharklet sheets pp.42-43"
+      },
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A320_0624.pdf",
+        "doc": "Same AC, Chapter 2-12-0 Power Plant Handling - Major Dimensions",
+        "page": "p.124 (Fig 2-12-0-991-028, CFM56)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a320neo",
+        "doc": "Airbus A320neo spec page (height 11.76 m, fuselage width 3.95 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a319neo",
+        "doc": "Airbus A319neo spec page (length 33.84 m, height 11.76 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://www.airbus.com/en/newsroom/press-releases/2013-10-airbus-launches-sharklet-retrofit-for-in-service-a320-family",
+        "doc": "Airbus Sharklet retrofit press release (Sharklets also exist on ceo)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A320 AC (same document as above), 2-2-0 General Aircraft Dimensions sheet 2 plan view (PDF p.45; tip chord 1.24 labelled, rest scaled at 300 dpi)",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].dropBelowWing",
+      "dims.fuselageHeight",
+      "wingtip.height",
+      "wingtip.below",
+      "engines[0].exhaustLength",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": []
+  },
+  {
+    "icao": "A20N",
+    "name": "Airbus A320neo",
+    "family": "A320",
+    "reference": {
+      "engine": "CFM LEAP-1A",
+      "wingtip": "Sharklet",
+      "notes": "CFM LEAP-1A chosen over PW1100G: LEAP-1A has more orders (38.7% vs 28.5% of the A320neo family in Aircraft Commerce 2019, order share only; no current in-service split found) and is the AC's first-listed neo engine. PW1100G nacelle for comparison: 2.67 m wide, 3.65 m long (lip to reverser end), intake at the same x within 0.01 m; shorter and broader than the LEAP-1A. LEAP-1A nacelle 2.60 m wide (2.52 m tall incl. pylon fairing, so slightly oval), lip to aft end of reverser = 0.67+1.58+1.98 m = 4.23 m; primary nozzle and plug add ~1 m. Sharklets are standard on neo (AC shows only Sharklet), so this is the unique neo tip. Baseline plug length. The neo nacelle is visibly larger and longer than CFM56 (ceo is 2.1 m wide, 3.43 m long), sits higher relative to the wing, and the intake is 0.05 to 0.06 m further forward. Sharklet blade is nearly vertical (~7 deg from the front view) with a curved blend; the AC gives 1.61 m outward offset from wing tip (16.29 m semi-span) to the blade tip including the blend, and 2.43 m height. Wing, fin and tailplane are identical across the family; fuselage plugs shift wing/engines (forward plug) and the tail items (follow tail end). Fuselage station values are +-0.4 m. wingtip.rootY 16.29 m (AC p.45): the wing ends there and the sharklet leans the remaining 1.61 m outward, so dims.span stays the overall width."
+    },
+    "dims": {
+      "length": 37.57,
+      "span": 35.8,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 12.9,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.64,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "sharklet",
+      "height": 2.43,
+      "below": 0,
+      "cant": 7,
+      "rakeSpan": 0,
+      "rootY": 16.29
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.4,
+      "rootLEx": 32.1,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "tipLEx": 35.5,
+      "tipTEx": 36.74
+    },
+    "vtail": {
+      "rootLEx": 30,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 11.14,
+        "nacelleDiameter": 2.6,
+        "nacelleLength": 4.23,
+        "dropBelowWing": 1.2,
+        "section": "round",
+        "chevrons": false,
+        "prop": null,
+        "exhaustLength": 1
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A320_0624.pdf",
+        "doc": "Airbus Aircraft Characteristics - Airport and Maintenance Planning, A320 AC, Jun 01/24 (Rev. 44 for A320; June 2024 issue)",
+        "page": "pp.44-45 (2-2-0, A320neo sheets 1-2)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A320_0624.pdf",
+        "doc": "Same AC, Chapter 2-12-0 Power Plant Handling - Major Dimensions",
+        "page": "p.135 (Fig 2-12-0-991-055, LEAP-1A); p.131 PW1100G"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a320neo",
+        "doc": "Airbus A320neo spec page (height 11.76 m, fuselage width 3.95 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a319neo",
+        "doc": "Airbus A319neo spec page (length 33.84 m, height 11.76 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft-commerce.com/wp-content/uploads/aircraft-commerce-docs/General%20Articles/2019/123_MTCE_B.pdf",
+        "doc": "Aircraft Commerce 2019: LEAP-1A orders 38.7% vs PW1100G 28.5% of A320neo family (order share, not in-service share)",
+        "page": "engine market share table"
+      },
+      {
+        "url": "",
+        "doc": "A320 AC plan view, same stabiliser as the A320 (rootLEx identical)",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].dropBelowWing",
+      "dims.fuselageHeight",
+      "wingtip.cant",
+      "engines[0].exhaustLength",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": [
+      "htail tip anchors (tipLEx/tipTEx) derived from the A320 plan view plus the rootLEx offset, no per-variant label; A319/A321 AC plan rasters agree within 0.2 m"
+    ]
+  },
+  {
+    "icao": "A321",
+    "name": "Airbus A321 (A321ceo)",
+    "family": "A320",
+    "reference": {
+      "engine": "CFM56-5B",
+      "wingtip": "Wingtip fence",
+      "notes": "CFM56-5B nacelle chosen because the AC lists the CFM56 as the primary ceo installation and CFM56 powers the largest share of ceo airframes (inferred, no in-service count found; V2500 is the alternative, AC intake x is 0.07 m further forward). Wingtip fence chosen because the AC presents it as the baseline ceo wing and Sharklets were only an option on ceo (new-build from late 2012, retrofit since 2013), so fences remain the most numerous ceo tip (inferred, unverified). Sharklet ceo variant: span 35.80 m, tip as the neo record. A321 forward plug is 4.27 m longer than A320 (main gear 16.90 m behind nose gear vs 12.64 m), aft plug +2.67 m. Sharklets were certified on A321 CFM56 in 2013; I could not establish whether sharklet or fence A321ceos are more numerous, so fence is chosen on baseline grounds only (LOW confidence). Sharklet A321ceo: span 35.80 m. Nacelle diameter 2.1 m is the width (fan-cowl section 2.07 m); the inlet lip section is 2.3 m tall because the lower lip droops. Nacelle length is lip to aft end of the reverser cowl (0.93+1.3+1.2 m); primary nozzle and centrebody add ~1.5 m more. Wing, fin and tailplane are identical across the family; only fuselage plugs move them (wing and engines shift with the forward plug, tail items follow the tail end). Fuselage station values are +-0.4 m (read from AC scale drawings)."
+    },
+    "dims": {
+      "length": 44.51,
+      "span": 34.1,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 17.2,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.5,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 0.6,
+      "below": 0.35,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.4,
+      "rootLEx": 39.04,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "tipLEx": 42.44,
+      "tipTEx": 43.68
+    },
+    "vtail": {
+      "rootLEx": 36.94,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 15.46,
+        "nacelleDiameter": 2.1,
+        "nacelleLength": 3.43,
+        "dropBelowWing": 1.3,
+        "section": "round",
+        "chevrons": false,
+        "prop": null,
+        "exhaustLength": 1.5
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A321_0624.pdf",
+        "doc": "Airbus Aircraft Characteristics - Airport and Maintenance Planning, A321 AC, Jun 01/24 (Rev. 44 for A320; June 2024 issue)",
+        "page": "pp.46-47 (2-2-0, wing tip fence sheets 1-2); sharklet sheets pp.48-49"
+      },
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A321_0624.pdf",
+        "doc": "Same AC, Chapter 2-12-0 Power Plant Handling - Major Dimensions",
+        "page": "p.141 (Fig 2-12-0-991-036, CFM56)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a320neo",
+        "doc": "Airbus A320neo spec page (height 11.76 m, fuselage width 3.95 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a319neo",
+        "doc": "Airbus A319neo spec page (length 33.84 m, height 11.76 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://www.airbus.com/en/newsroom/press-releases/2013-10-airbus-launches-sharklet-retrofit-for-in-service-a320-family",
+        "doc": "Airbus Sharklet retrofit press release (Sharklets also exist on ceo)",
+        "page": "n/a"
+      },
+      {
+        "url": "https://aviationnews.eu/news/2013/07/another-sharklet-equipped-a320-family-member-earns-easa-certification/",
+        "doc": "EASA certification of Sharklet A321 (CFM56), 2013",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "A320 AC plan view (PDF p.45) shifted by the rootLEx offset to the A321; A321neo AC PDF p.51 plan scaled at 300 dpi agrees within 0.1 m",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].dropBelowWing",
+      "dims.fuselageHeight",
+      "wingtip.height",
+      "wingtip.below",
+      "engines[0].exhaustLength",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": [
+      "htail tip anchors (tipLEx/tipTEx) derived from the A320 plan view plus the rootLEx offset, no per-variant label; A319/A321 AC plan rasters agree within 0.2 m"
+    ]
+  },
+  {
+    "icao": "A21N",
+    "name": "Airbus A321neo",
+    "family": "A320",
+    "reference": {
+      "engine": "CFM LEAP-1A",
+      "wingtip": "Sharklet",
+      "notes": "CFM LEAP-1A chosen over PW1100G: LEAP-1A has more orders (38.7% vs 28.5% of the A320neo family in Aircraft Commerce 2019, order share only; no current in-service split found) and is the AC's first-listed neo engine. PW1100G nacelle for comparison: 2.67 m wide, 3.65 m long (lip to reverser end), intake at the same x within 0.01 m; shorter and broader than the LEAP-1A. LEAP-1A nacelle 2.60 m wide (2.52 m tall incl. pylon fairing, so slightly oval), lip to aft end of reverser = 0.67+1.58+1.98 m = 4.23 m; primary nozzle and plug add ~1 m. Sharklets are standard on neo (AC shows only Sharklet), so this is the unique neo tip. A321 forward plug is 4.27 m longer than A320 (main gear 16.90 m behind nose gear), aft plug +2.67 m. Rear-door layouts and cabin exit doors differ on A321neo (not modelled). The neo nacelle is visibly larger and longer than CFM56 (ceo is 2.1 m wide, 3.43 m long), sits higher relative to the wing, and the intake is 0.05 to 0.06 m further forward. Sharklet blade is nearly vertical (~7 deg from the front view) with a curved blend; the AC gives 1.61 m outward offset from wing tip (16.29 m semi-span) to the blade tip including the blend, and 2.43 m height. Wing, fin and tailplane are identical across the family; fuselage plugs shift wing/engines (forward plug) and the tail items (follow tail end). Fuselage station values are +-0.4 m. wingtip.rootY 16.29 m (AC p.45, same wing as A320neo): the wing ends there and the sharklet leans the remaining 1.61 m outward."
+    },
+    "dims": {
+      "length": 44.51,
+      "span": 35.8,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 17.2,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.64,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "sharklet",
+      "height": 2.43,
+      "below": 0,
+      "cant": 7,
+      "rakeSpan": 0,
+      "rootY": 16.29
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.4,
+      "rootLEx": 39.04,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "tipLEx": 42.44,
+      "tipTEx": 43.68
+    },
+    "vtail": {
+      "rootLEx": 36.94,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 15.4,
+        "nacelleDiameter": 2.6,
+        "nacelleLength": 4.23,
+        "dropBelowWing": 1.2,
+        "section": "round",
+        "chevrons": false,
+        "prop": null,
+        "exhaustLength": 1
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A321_0624.pdf",
+        "doc": "Airbus Aircraft Characteristics - Airport and Maintenance Planning, A321 AC, Jun 01/24 (Rev. 44 for A320; June 2024 issue)",
+        "page": "pp.50-51 (2-2-0, A321neo sheets 1-2)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/sites/g/files/jlcbta126/files/2024-06/AC_A321_0624.pdf",
+        "doc": "Same AC, Chapter 2-12-0 Power Plant Handling - Major Dimensions",
+        "page": "p.152 (Fig 2-12-0-991-055, LEAP-1A); p.148 PW1100G"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a320neo",
+        "doc": "Airbus A320neo spec page (height 11.76 m, fuselage width 3.95 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a320-the-most-successful-aircraft-family-ever/a319neo",
+        "doc": "Airbus A319neo spec page (length 33.84 m, height 11.76 m)",
+        "page": "specifications table"
+      },
+      {
+        "url": "https://aircraft-commerce.com/wp-content/uploads/aircraft-commerce-docs/General%20Articles/2019/123_MTCE_B.pdf",
+        "doc": "Aircraft Commerce 2019: LEAP-1A orders 38.7% vs PW1100G 28.5% of A320neo family (order share, not in-service share)",
+        "page": "engine market share table"
+      },
+      {
+        "url": "",
+        "doc": "as A321 (same stabiliser and fuselage)",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].dropBelowWing",
+      "dims.fuselageHeight",
+      "wingtip.cant",
+      "engines[0].exhaustLength",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": [
+      "htail tip anchors (tipLEx/tipTEx) derived from the A320 plan view plus the rootLEx offset, no per-variant label; A319/A321 AC plan rasters agree within 0.2 m"
+    ]
+  }
+]

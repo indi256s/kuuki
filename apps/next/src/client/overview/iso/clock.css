@@ -1,9 +1,7 @@
-/* Earliest departure clock: the snooze bar dips on hover and presses on click; the display morphs segment by segment between two readings. */
-.iso-clock [data-part='snooze'] {
-  transition: transform 120ms var(--ease-out);
-}
-.iso-clock :is([data-part='lit-a'], [data-part='lit-b']) {
-  transition: opacity 150ms var(--ease-out);
+/* Earliest departure clock: the snooze bar dips on hover and presses on click, and hover raises the display backlight; the display morphs segment by segment between two readings. */
+/* The backlight rises by 0.3 (0.4 → 0.7 in light; dark passes 1 and clamps). */
+.iso-clock [data-part='backlight'] .iso-glow {
+  opacity: calc(var(--iso-glow) + 0.3 * var(--iso-lit));
 }
 .iso-clock [data-part='lit-b'],
 .ov3-clock-toggle[aria-pressed='true'] .iso-clock [data-part='lit-a'] {
@@ -12,24 +10,25 @@
 .ov3-clock-toggle[aria-pressed='true'] .iso-clock [data-part='lit-b'] {
   opacity: 1;
 }
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  :is(.ov3-tile, .ov3-clock-toggle):hover .iso-clock [data-part='snooze'] {
-    transform: translateY(var(--dip-y));
-    transition-duration: 150ms;
-  }
-}
 @media (prefers-reduced-motion: no-preference) {
+  .iso-clock [data-part='snooze'] {
+    transform: translateY(calc(var(--dip-y) * var(--iso-move)));
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+  .iso-clock [data-part='backlight'] .iso-glow {
+    transition: opacity var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+  .iso-clock :is([data-part='lit-a'], [data-part='lit-b']) {
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  /* A click presses the bar at once, whatever the hover timing was. */
   .ov3-clock-toggle:active:not(:focus-visible) .iso-clock [data-part='snooze'] {
     transform: translateY(var(--press-y));
-    transition-duration: 120ms;
+    transition-duration: var(--dur-press);
+    transition-delay: 0ms;
   }
 }
-/* Keyboard toggles and reduced motion swap the reading instantly. */
+/* Keyboard toggles swap the reading instantly. */
 .ov3-clock-toggle:focus-visible .iso-clock [data-part] {
   transition: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .iso-clock [data-part] {
-    transition: none;
-  }
 }

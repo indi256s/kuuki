@@ -1,17 +1,14 @@
-.iso-tape :is([data-part='blade'], [data-part='blade-end']) {
-  transition: transform 180ms var(--ease-out);
+/* Retraction is a sprung snap home: it starts slow and lands fast. Payout takes the shared hover timing. */
+.iso-tape.iso {
+  --iso-dur: 160ms;
+  --iso-ease: cubic-bezier(0.55, 0, 1, 0.45);
 }
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .ov3-tile:hover .iso-tape :is([data-part='blade'], [data-part='blade-end']),
-  .ov3-cookie-head .iso-tape:hover :is([data-part='blade'], [data-part='blade-end']) {
-    transform: translate(var(--pay-x), var(--pay-y));
-    transition-duration: 240ms;
-    transition-delay: 60ms;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: no-preference) {
   .iso-tape :is([data-part='blade'], [data-part='blade-end']) {
-    transform: none;
-    transition: none;
+    transform: translate(
+      calc(var(--pay-x) * var(--iso-move)),
+      calc(var(--pay-y) * var(--iso-move))
+    );
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
 }

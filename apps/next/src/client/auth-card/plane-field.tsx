@@ -10,7 +10,12 @@ import './plane-field.css'
  *
  * Every plane is drawn rotated −18.4° (atan2(−800, 400) + 45°, so the nose points along its flight) and drifts along
  * (+400, −800) per cycle, transform only. The frame the boards draw is the frozen frame: the field is paused until it
- * is on screen and the page is visible, and is not animated at all under reduced motion.
+ * is on screen and the page is visible, while focus is inside the form (auth-card.tsx), and is not animated at all
+ * under reduced motion.
+ *
+ * The mobile field is wider than the phone (700px, centred), so the side margins fill in on wider screens and planes
+ * enter from beyond the phone's edges. The desktop field is taller than the card's minimum (620px) because the card
+ * grows with its content.
  */
 type Size = 's' | 'm' | 'l'
 type Plane = readonly [x: number, y: number, size: Size]
@@ -23,10 +28,16 @@ const ROTATION = -18.4
 const DRIFT = { x: 400, y: -800 }
 /** How far past the field's edge a plane's centre must be before it counts as gone (the large glyph is about 17px across). */
 const EDGE = 16
+/** Half of a plane's width across its flight line, stroke included, in px (measured from the glyph at each size). */
+const HALF_WIDTH: Record<Size, number> = { s: 5.4, m: 7.2, l: 9.9 }
+/** Unit normal to the flight line: a plane's lane is its centre projected onto it. */
+const NORMAL = { x: 0.8944, y: 0.4472 }
+/** Clear space kept between the outlines of two planes in neighbouring lanes. */
+const LANE_GAP = 2
 
 const DESKTOP: Layout = {
   width: 420,
-  height: 620,
+  height: 720,
   planes: [
     [29, 245, 's'],
     [45, 325, 'm'],
@@ -58,26 +69,54 @@ const DESKTOP: Layout = {
     [384, 78, 's'],
     [398, 602, 'm'],
     [17, 351, 's'],
+    [60, 650, 'm'],
+    [130, 690, 's'],
+    [215, 660, 'l'],
+    [290, 700, 's'],
+    [360, 640, 'm'],
   ],
 }
+/**
+ * The first 14 are the boards' planes, shifted by (+155, −15) from the 390×264 field so a 390px phone frames the same frame.
+ * The next 8 fill the side margins. The last 9 are drawn in the top 30px, under the header mask (fully clear down to y=48), so the
+ * still frame is unchanged; in flight they enter late in their laps and keep the band populated (a plane is on screen for about
+ * two thirds of its lap, so the 14 drawn in view alone would average about 9 in motion).
+ */
 const MOBILE: Layout = {
-  width: 390,
-  height: 264,
+  width: 700,
+  height: 302,
   planes: [
-    [199, 194, 's'],
-    [323, 195, 'm'],
-    [41, 194, 'l'],
-    [188, 233, 's'],
-    [261, 148, 'm'],
-    [77, 162, 'l'],
-    [157, 175, 's'],
-    [128, 205, 'm'],
-    [104, 135, 'l'],
-    [283, 249, 's'],
-    [321, 146, 'm'],
-    [153, 131, 'l'],
-    [40, 232, 's'],
-    [372, 181, 'm'],
+    [354, 179, 's'],
+    [478, 180, 'm'],
+    [196, 179, 'l'],
+    [343, 218, 's'],
+    [416, 133, 'm'],
+    [232, 147, 'l'],
+    [312, 160, 's'],
+    [283, 190, 'm'],
+    [259, 120, 'l'],
+    [438, 234, 's'],
+    [476, 131, 'm'],
+    [308, 116, 'l'],
+    [195, 217, 's'],
+    [527, 166, 'm'],
+    [35, 230, 'm'],
+    [80, 140, 's'],
+    [125, 255, 'l'],
+    [570, 250, 's'],
+    [610, 170, 'l'],
+    [655, 240, 'm'],
+    [590, 90, 'm'],
+    [680, 120, 's'],
+    [185, 22, 's'],
+    [240, 12, 'm'],
+    [300, 26, 'l'],
+    [355, 8, 's'],
+    [410, 20, 'm'],
+    [465, 28, 's'],
+    [520, 14, 'l'],
+    [90, 18, 'm'],
+    [610, 24, 's'],
   ],
 }
 
@@ -91,12 +130,40 @@ const MOBILE: Layout = {
 function lap(width: number, height: number, [x, y]: Plane) {
   const enter = Math.max((-EDGE - x) / DRIFT.x, (y - height - EDGE) / -DRIFT.y)
   const leave = Math.min((width + EDGE - x) / DRIFT.x, (y + EDGE) / -DRIFT.y)
+  return { start: enter - 0.01, span: leave - enter + 0.02 }
+}
+
+/**
+ * Every plane's lap, with neighbouring lanes kept in step. Planes whose lanes are closer than their outlines plus
+ * `LANE_GAP` would drift into each other as their laps of different lengths wrap at different times, so such planes
+ * (and, transitively, their neighbours) share the longest lap in the group. They keep their own starts, so the drawn
+ * frame is unchanged, and at one speed and one period they hold their spacing for ever.
+ */
+function laps({ width, height, planes }: Layout) {
+  const own = planes.map((plane) => lap(width, height, plane))
+  const lane = ([x, y]: Plane) => x * NORMAL.x + y * NORMAL.y
+  const root = planes.map((_, index) => index)
+  const find = (index: number): number =>
+    root[index] === index ? index : (root[index] = find(root[index]!))
+  planes.forEach((a, i) => {
+    for (let j = i + 1; j < planes.length; j++) {
+      const b = planes[j]!
+      if (Math.abs(lane(a) - lane(b)) < HALF_WIDTH[a[2]] + HALF_WIDTH[b[2]] + LANE_GAP)
+        root[find(i)] = find(j)
+    }
+  })
+  const longest = new Map<number, number>()
+  own.forEach(({ span }, i) => longest.set(find(i), Math.max(longest.get(find(i)) ?? 0, span)))
   const round = (value: number) => Math.round(value * 1e4) / 1e4
-  return { '--plane-start': round(enter - 0.01), '--plane-span': round(leave - enter + 0.02) }
+  return own.map(({ start }, i) => ({
+    '--plane-start': round(start),
+    '--plane-span': round(longest.get(find(i))!),
+  }))
 }
 
 function Planes({ layout, className }: { layout: Layout; className: string }) {
   const { width, height, planes } = layout
+  const timing = laps(layout)
   return (
     <svg
       className={className}
@@ -112,7 +179,7 @@ function Planes({ layout, className }: { layout: Layout; className: string }) {
             key={index}
             className="auth-plane"
             data-plane={size}
-            style={lap(width, height, plane) as CSSProperties}
+            style={timing[index] as CSSProperties}
           >
             <g
               transform={`translate(${x},${y}) rotate(${ROTATION}) scale(${SCALE[size]}) translate(-12,-12)`}

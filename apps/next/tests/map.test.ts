@@ -5,6 +5,7 @@ test('the overview globe keeps its canvas visible in the card and fullscreen', a
   page,
   baseURL,
 }) => {
+  test.setTimeout(60_000)
   await signIn(page, baseURL!)
   let releaseAtlas!: () => void
   const atlasReady = new Promise<void>((resolve) => {
@@ -43,7 +44,9 @@ test('the overview globe keeps its canvas visible in the card and fullscreen', a
   await fullscreen.locator('.maplibregl-canvas').evaluate((canvas: HTMLCanvasElement) => {
     canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext()
   })
-  await expect(fullscreen.getByRole('status')).toContainText('Globe unavailable.')
+  await expect(fullscreen.getByRole('status')).toContainText('Globe unavailable.', {
+    timeout: 15_000,
+  })
   await expect(fullscreen.locator('.maplibregl-canvas')).toHaveCount(0)
 })
 

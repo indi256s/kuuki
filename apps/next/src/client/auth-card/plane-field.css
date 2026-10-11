@@ -8,7 +8,8 @@
 /* Watermark: く, う, き stacked one per line on desktop (board 1.1), in a row across the band on mobile. */
 .auth-watermark {
   position: absolute;
-  left: 128px;
+  left: 0;
+  right: 0;
   top: 86px;
   display: flex;
   flex-direction: column;
@@ -69,8 +70,9 @@
   animation: auth-plane-drift calc(var(--plane-span)*var(--plane-cycle)) linear infinite;
   animation-delay: calc(var(--plane-start)*var(--plane-cycle));
 }
-/* Paused until the field is on screen and the page is visible; script sets the attribute. */
-.auth-plane-field:not([data-running='true']) .auth-plane {
+/* Paused until the field is on screen and the page is visible (script sets the attribute), and while focus is inside the form column (AuthCardFrame sets the card's attribute). */
+.auth-plane-field:not([data-running='true']) .auth-plane,
+.auth-card[data-form-focus] .auth-plane {
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -95,28 +97,34 @@
   animation: none;
 }
 
-/* Mobile: the horizontal watermark and the 390×264 field sit below the header row (the band has no device status bar). */
+/* Mobile: the horizontal watermark and the 700×302 field fill the band below the header row (the band has no device status bar).
+   The field is centred and bottom-anchored (on a band shorter than 246px it hangs 56px above the top instead, so the frozen frame keeps its planes), so a phone shows its middle 390px and planes cross the sheet's edge and the phone's sides. */
 @media (max-width: 700px) {
   .auth-watermark {
     left: 0;
     right: 0;
-    top: 125px;
+    top: 52px;
+    bottom: 0;
     flex-direction: row;
     justify-content: center;
-    font-size: 104px;
-    line-height: 104px;
-    letter-spacing: 0.04em;
+    gap: 0.04em;
+    font-size: clamp(80px, 100dvh - 560px, 104px);
+    line-height: 1;
+    letter-spacing: 0;
   }
+  /* The header row (52px) is clear of planes: they fade out over its last 32px, so none crosses the wordmark or the controls. */
   .auth-planes {
-    -webkit-mask-image: radial-gradient(ellipse 90px 44px at 53px 26px, transparent 70%, #000);
-    mask-image: radial-gradient(ellipse 90px 44px at 53px 26px, transparent 70%, #000);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 48px, #000 80px);
+    mask-image: linear-gradient(to bottom, transparent 48px, #000 80px);
   }
   .auth-planes-desktop {
     display: none;
   }
   .auth-planes-mobile {
     display: block;
-    left: calc(50% - 195px);
-    top: -15px;
+    left: 50%;
+    top: max(-56px, 100% - 302px);
+    bottom: auto;
+    translate: -50% 0;
   }
 }

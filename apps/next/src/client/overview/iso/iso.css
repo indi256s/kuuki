@@ -6,3 +6,56 @@
 .iso-glow {
   opacity: var(--iso-glow);
 }
+
+/* Figure motion, one family for the fleet, map, clock and tape. A figure rests with --iso-lit (windows, route, backlight) and --iso-move (lift, dip, payout, fold) at 0 and leaves over
+   --dur-fast with no delay. Hover, keyboard focus and a touch press engage it; its parts read --iso-dur, --iso-ease, --iso-delay and, scaled by their own --t, --iso-stagger.
+   Lit shows under any motion preference, so reduced motion swaps it instantly; movement only where motion is welcome. */
+.iso {
+  --iso-lit: 0;
+  --iso-move: 0;
+  --iso-dur: var(--dur-fast);
+  --iso-ease: var(--ease-out);
+  --iso-delay: 0ms;
+  --iso-stagger: 0ms;
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.ov3-tile, .ov3-clock-toggle):hover .iso,
+  .iso:is(.iso-fleet, .iso-map):hover,
+  .ov3-cookie-head :is(.iso-tape, .iso-clock):hover {
+    --iso-lit: 1;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :is(.ov3-tile, .ov3-clock-toggle):hover .iso,
+  .iso:is(.iso-fleet, .iso-map):hover,
+  .ov3-cookie-head :is(.iso-tape, .iso-clock):hover {
+    --iso-move: 1;
+    --iso-dur: var(--dur-base);
+    --iso-ease: var(--ease-out);
+    --iso-delay: 60ms;
+    --iso-stagger: 160ms;
+  }
+}
+/* Keyboard focus shows the hover pose at once: keyboard actions don't animate. */
+:is(.ov3-tile, .ov3-clock-toggle):focus-visible .iso {
+  --iso-lit: 1;
+  --iso-dur: 0ms;
+  --iso-delay: 0ms;
+  --iso-stagger: 0ms;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :is(.ov3-tile, .ov3-clock-toggle):focus-visible .iso {
+    --iso-move: 1;
+  }
+}
+/* Touch has no hover: a pressed tile takes the pose, and lets go of it when the long-press reorder drag starts. */
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+  .ov3-tile:active:not([data-dragging]) .iso {
+    --iso-lit: 1;
+    --iso-move: 1;
+    --iso-dur: var(--dur-press);
+    --iso-ease: var(--ease-out);
+    --iso-delay: 0ms;
+    --iso-stagger: 0ms;
+  }
+}

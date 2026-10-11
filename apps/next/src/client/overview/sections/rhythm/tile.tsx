@@ -1,18 +1,27 @@
 'use client'
 import { useMemo } from 'react'
 import { IsoFigure } from '../../iso/iso-figure'
+import { fitK } from '../../iso/scene'
 import { tape } from '../../iso/tape'
+import { TILE_FIGURE_WIDTH, type TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { formatDistanceKm } from '../../../../lib/format'
 import { copy } from '../rankings/display'
 import { landmarkSummary } from '../timeline/landmarks'
 import '../cookie.css'
 import '../../iso/tape.css'
-export function Tile() {
+export function Tile({ span }: { span: TileSpan }) {
   const { scope, locale } = useOverview()
   const total = scope?.figures.distanceKm ?? 0
   const label = formatDistanceKm(locale, total)
-  const figure = useMemo(() => tape(label, 0.7), [label])
+  const figure = useMemo(
+    () =>
+      tape(
+        label,
+        fitK(TILE_FIGURE_WIDTH[span], (k) => tape(label, k)),
+      ),
+    [label, span],
+  )
   if (!scope || scope.rhythm.status !== 'ready') return <p>—</p>
   const { laps, moon } = landmarkSummary(total)
   const lapText = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(laps)

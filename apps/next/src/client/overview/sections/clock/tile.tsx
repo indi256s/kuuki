@@ -3,18 +3,27 @@ import { useMemo } from 'react'
 import { formatDateOnly } from '../../../../lib/format'
 import { IsoFigure } from '../../iso/iso-figure'
 import { clock } from '../../iso/clock'
+import { fitK } from '../../iso/scene'
+import { TILE_FIGURE_WIDTH, type TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { CoverageNote, copy, flights } from '../rankings/display'
 import { departures } from './departure'
 import '../cookie.css'
 import '../../iso/clock.css'
-export function Tile() {
+export function Tile({ span }: { span: TileSpan }) {
   const { scope, locale } = useOverview()
   const found = scope && departures(scope)
   const earliest = found?.earliest,
-    peak = found?.peak,
-    time = found?.time ?? null
-  const figure = useMemo(() => clock(time ?? '--:--', 0.85), [time])
+    peak = found?.peak
+  const time = found?.time ?? null
+  const figure = useMemo(
+    () =>
+      clock(
+        time ?? '--:--',
+        fitK(TILE_FIGURE_WIDTH[span], (k) => clock(time ?? '--:--', k)),
+      ),
+    [time, span],
+  )
   if (!scope) return null
   if (scope.clock.status !== 'ready')
     return <p>{copy(locale, 'Not enough times yet', 'Пока мало данных о времени')}</p>

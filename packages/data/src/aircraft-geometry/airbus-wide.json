@@ -1,0 +1,623 @@
+[
+  {
+    "icao": "A332",
+    "name": "Airbus A330-200",
+    "family": "A330",
+    "reference": {
+      "engine": "Rolls-Royce Trent 700",
+      "wingtip": "A330ceo canted winglet (blended, single kink)",
+      "notes": "Reference: Rolls-Royce Trent 700 (RR is the engine whose AC nacelle drawing and fanX label match the plan-view nacelle) with the standard (pre-neo) canted A330ceo wingtip device (single kink, about 42 deg from vertical). The A330-200/-300 also fly with GE CF6-80E1 (fanX label 21.14 / 17.94) and PW4000-94 (21.45 / 18.25); their nacelles are larger (not drawn here). A330neo (Trent 7000, sharklets) is a different wing and is NOT represented. nacelleLength 7.32 m is the AC overall length incl. the common nozzle (cowls only about 5.6 m); nacelleDiameter 3.08 m is the AC fan-cowl section width (AC also shows 3.2 m height). Plan-view pixel measurement of the nacelle gave 2.95-3.2 m. Fin, HTP and wing numbers are decoded from the AC dimension drawing (fin: root LE x, root chord, tip LE offset, tip chord, height) or measured off the AC three-view raster/vector at its own printed scale (estimated). Wing/HTP drawn in 1 g flexed attitude per AC note. A332: fanX 18.08 m (AC RR label). Fin is the Post-Mod 48979 fin (height 8.8 m, root chord 8.58 m, tip chord 3.1 m, length 58.82 m); the Pre-Mod 48979 sheet has a taller fin (9.3 m, tip chord 2.79 m, LE offset 9.12 m, overall 59.0 m). Wing is the A333 wing moved 3.2 m forward (plan measurement; same engine-label offset 21.28-18.08). v4: stabiliser fitted to the AC plan labels (A330-200 p.64: tip LE 56.36, TE 58.37, chord 2.01; A330-300 p.61: LE 61.67, TE 63.70, chord 2.03), rootY 2.0. Dorsal fillet measured on the AC side view (the fin dimensions already describe the fin proper): dorsalLength 1.85, dorsalHeight 0.5."
+    },
+    "dims": {
+      "length": 58.82,
+      "span": 60.3,
+      "height": 17.39,
+      "fuselageWidth": 5.64,
+      "fuselageHeight": 5.64
+    },
+    "fuselage": {
+      "noseLength": 9.5,
+      "tailconeLength": 20.2,
+      "tailUpsweep": 2.7,
+      "cockpitWindowX": 3.2,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 19.7,
+      "rootChord": 10.1,
+      "kinkY": 8.4,
+      "tipChord": 2.2,
+      "sweepLE": 32.2,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.5,
+      "below": 0,
+      "cant": 42,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 2.0,
+      "rootLEx": 51.5,
+      "span": 19.4,
+      "rootChord": 4.6,
+      "tipChord": 2.01,
+      "sweepLE": 32.3,
+      "dihedral": 5,
+      "tipLEx": 56.36,
+      "tipTEx": 58.37
+    },
+    "vtail": {
+      "rootLEx": 47.09,
+      "height": 8.8,
+      "rootChord": 8.58,
+      "tipChord": 3.1,
+      "sweepLE": 44.4,
+      "dorsalFin": true,
+      "dorsalLength": 1.85,
+      "dorsalHeight": 0.5
+    },
+    "engines": [
+      {
+        "y": 9.3,
+        "fanX": 18.08,
+        "nacelleDiameter": 3.08,
+        "nacelleLength": 7.32,
+        "dropBelowWing": 1.95,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.aircraft.airbus.com/sites/g/files/jlcbta126/files/2025-12/AC_A330_20251201.pdf",
+        "doc": "Airbus A330 Aircraft Characteristics - Airport and Maintenance Planning (AC), Rev 34, Dec 01/25",
+        "page": "2-2-0 General Aircraft Dimensions, A330-200 Post Mod 48979 sheets 2-3 (PDF pp.63-64) and Pre Mod sheet 1 (PDF p.62); 2-12-0 Nacelle Dimensions - Trent 700 (PDF p.209)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a330/a330-200",
+        "doc": "Airbus A330-200 spec page: length 58.82 m, span 60.3 m, height 17.39 m, body width 5.64 m",
+        "page": "specification page"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A330 AC Jul 01/23, 2-2-0 General Aircraft Dimensions A330-200 sheet 3 (PDF p.64): HTP tip LE 56.36, tip TE 58.37, tip chord 2.01, LE offset root to tip 6.44 (documented); rootY measured on the plan raster at 400 dpi",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A330 AC Jul 01/23 A330-200 sheet 2 side view (PDF p.63) at 400 dpi: fillet leaves the crown 1.85 m ahead of the fin root LE (47.09) and tops out about 0.5 m above the crown",
+        "page": "vtail.dorsalLength / dorsalHeight, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.dorsalFin",
+      "engines[0].y",
+      "engines[0].dropBelowWing",
+      "htail.rootY",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight"
+    ],
+    "gaps": []
+  },
+  {
+    "icao": "A333",
+    "name": "Airbus A330-300",
+    "family": "A330",
+    "reference": {
+      "engine": "Rolls-Royce Trent 700",
+      "wingtip": "A330ceo canted winglet (blended, single kink)",
+      "notes": "Reference: Rolls-Royce Trent 700 (RR is the engine whose AC nacelle drawing and fanX label match the plan-view nacelle) with the standard (pre-neo) canted A330ceo wingtip device (single kink, about 42 deg from vertical). The A330-200/-300 also fly with GE CF6-80E1 (fanX label 21.14 / 17.94) and PW4000-94 (21.45 / 18.25); their nacelles are larger (not drawn here). A330neo (Trent 7000, sharklets) is a different wing and is NOT represented. nacelleLength 7.32 m is the AC overall length incl. the common nozzle (cowls only about 5.6 m); nacelleDiameter 3.08 m is the AC fan-cowl section width (AC also shows 3.2 m height). Plan-view pixel measurement of the nacelle gave 2.95-3.2 m. Fin, HTP and wing numbers are decoded from the AC dimension drawing (fin: root LE x, root chord, tip LE offset, tip chord, height) or measured off the AC three-view raster/vector at its own printed scale (estimated). Wing/HTP drawn in 1 g flexed attitude per AC note. A333: fanX 21.28 m (AC RR label). v4: stabiliser fitted to the AC plan labels (A330-200 p.64: tip LE 56.36, TE 58.37, chord 2.01; A330-300 p.61: LE 61.67, TE 63.70, chord 2.03), rootY 2.0. Dorsal fillet measured on the AC side view (the fin dimensions already describe the fin proper): dorsalLength 1.5, dorsalHeight 0.5."
+    },
+    "dims": {
+      "length": 63.67,
+      "span": 60.3,
+      "height": 16.79,
+      "fuselageWidth": 5.64,
+      "fuselageHeight": 5.64
+    },
+    "fuselage": {
+      "noseLength": 9.5,
+      "tailconeLength": 20.2,
+      "tailUpsweep": 2.7,
+      "cockpitWindowX": 3.2,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 22.9,
+      "rootChord": 10.1,
+      "kinkY": 8.4,
+      "tipChord": 2.2,
+      "sweepLE": 32.2,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.5,
+      "below": 0,
+      "cant": 42,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 2.0,
+      "rootLEx": 56.8,
+      "span": 19.4,
+      "rootChord": 4.6,
+      "tipChord": 2.03,
+      "sweepLE": 32.1,
+      "dihedral": 5,
+      "tipLEx": 61.67,
+      "tipTEx": 63.7
+    },
+    "vtail": {
+      "rootLEx": 52.43,
+      "height": 8.3,
+      "rootChord": 7.79,
+      "tipChord": 3.1,
+      "sweepLE": 44.4,
+      "dorsalFin": true,
+      "dorsalLength": 1.5,
+      "dorsalHeight": 0.5
+    },
+    "engines": [
+      {
+        "y": 9.3,
+        "fanX": 21.28,
+        "nacelleDiameter": 3.08,
+        "nacelleLength": 7.32,
+        "dropBelowWing": 1.95,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.aircraft.airbus.com/sites/g/files/jlcbta126/files/2025-12/AC_A330_20251201.pdf",
+        "doc": "Airbus A330 Aircraft Characteristics - Airport and Maintenance Planning (AC), Rev 34, Dec 01/25",
+        "page": "2-2-0 General Aircraft Dimensions, A330-300 sheets 1-2 (PDF pp.60-61); 2-12-0 Nacelle Dimensions - Trent 700 (PDF p.209)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a330/a330-300",
+        "doc": "Airbus A330-300 spec page: length 63.66 m, span 60.30 m, height 16.79 m, fuselage width 5.64 m",
+        "page": "specification page"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A330 AC Jul 01/23, 2-2-0 A330-300 sheet 2 (PDF p.61): HTP tip LE 61.67, tip TE 63.70, tip chord 2.03 (documented); A330-900 sheet 2 (PDF p.66) plan measured at 300 dpi puts the LE at 56.75 at y = 2.0 (same fuselage and tail), so rootLEx is measured",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A330 AC Jul 01/23 A330-300 sheet 1 side view (PDF p.60) at 400 dpi: fillet leaves the crown 1.5 m ahead of the fin root LE (52.43), about 0.5 m high",
+        "page": "vtail.dorsalLength / dorsalHeight, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.dorsalFin",
+      "engines[0].y",
+      "engines[0].dropBelowWing",
+      "htail.rootY",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight"
+    ],
+    "gaps": []
+  },
+  {
+    "icao": "A359",
+    "name": "Airbus A350-900",
+    "family": "A350",
+    "reference": {
+      "engine": "Rolls-Royce Trent XWB-84",
+      "wingtip": "Curved blended winglet",
+      "notes": "Reference: Rolls-Royce Trent XWB (-84 on the -900, -97 on the -1000; the AC gives ONE nacelle drawing for both and the AC plan views show the same nacelle) with the curved blended wingtip (curve starts about 2.8 m inboard of the tip in plan, rises about 2.4 m, end tangent about 25 deg from vertical; AC lists the 2.88 m planform dimension). The black cockpit mask is paint, not nose shape. The AC carries no nacelle dimension drawing, so nacelle diameter/length/y are measured off the AC plan and front views (plan width 3.97 m, front-view circle 4.1 m; 4.0 used). Chevrons: sources conflict whether the Trent XWB nozzle has chevrons (small serrations at most); left null. Fin: AC side-view labels 9.09 (root LE to tip LE x offset), 7.79 (root chord), 3.04 (tip chord), 9.42 (height), tail end at the side-view overall length; fin rootLEx derived as overall side length minus 3.04 minus 9.09. Plan-view x values for the -1000 were shifted +0.24 m to anchor the AC 25.78 m engine label (this reproduces the AC 3.81 m -900/-1000 engine offset). Wing/HTP in 1 g flexed attitude per AC note. A359 overall length 66.80 m (plan); AC side view overall 66.61 m (excludes the tail tip), tail cone end 65.26 m. v3: fuselage.end added from the documented tail-cone end; tailconeLength shortened so the taper still starts at the same station. v4: wingtip.rootY = span/2 - 2.88 (AC plan 2.88 m planform dimension), so the curved device reaches exactly span/2. Stabiliser fitted to the AC anchors: tip chord 2.46, TE at the overall length, rootY 2.0."
+    },
+    "dims": {
+      "length": 66.8,
+      "span": 64.75,
+      "height": 17.05,
+      "fuselageWidth": 5.96,
+      "fuselageHeight": 6.09
+    },
+    "fuselage": {
+      "noseLength": 10,
+      "tailconeLength": 15.96,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.84,
+      "decks": 1,
+      "end": 65.26
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 22.4,
+      "rootChord": 13.5,
+      "kinkY": 10.1,
+      "tipChord": 1.7,
+      "sweepLE": 35,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "curved",
+      "height": 2.4,
+      "below": 0,
+      "cant": 25,
+      "rakeSpan": 0,
+      "rootY": 29.495
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 2.0,
+      "rootLEx": 58.3,
+      "span": 18.79,
+      "rootChord": 5.6,
+      "tipChord": 2.46,
+      "sweepLE": 39.2,
+      "dihedral": 5,
+      "tipLEx": 64.34,
+      "tipTEx": 66.8
+    },
+    "vtail": {
+      "rootLEx": 54.48,
+      "height": 9.42,
+      "rootChord": 7.79,
+      "tipChord": 3.04,
+      "sweepLE": 44,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 10.4,
+        "fanX": 21.97,
+        "nacelleDiameter": 4,
+        "nacelleLength": 6.4,
+        "dropBelowWing": 2.1,
+        "section": "round",
+        "chevrons": null,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://mediaassets.airbus.com/pm_38_916_916746-gxtwm2qvq4.pdf?fileName=a350-aircraft-characteristics-airport-and-maintenance-planning.pdf",
+        "doc": "Airbus A350 AC, Issue Nov 01/16, Rev 17 Jul 01/26",
+        "page": "2-2-0 General Aircraft Dimensions, A350-900 sheets 1-2 (PDF pp.50-51)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a350/a350-900",
+        "doc": "Airbus A350-900 spec page: length 66.80 m, span 64.75 m, height 17.05 m, fuselage width 5.94 m (AC drawing: 5.96 m)",
+        "page": "specification page"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A350 AC Rev 17 Jul 01/26, A350-900 sheet 2 (PDF p.51): overall 66.80 is to the stabiliser tip TE; tip chord 2.46 and LE offset 6.21 shared with the A350-1000 sheet 2 (PDF p.53); span 18.79 front view p.50; rootY measured",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A350 AC Rev 17 Jul 01/26, A350-900 sheet 2 plan view (PDF p.51): vertical dimension 2.88 m (9.45 ft) at the wing tip = planform reach of the curved device from where it leaves the wing to the overall span, so wingtip.rootY = span/2 - 2.88",
+        "page": "wingtip.rootY, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "engines[0].y",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.rootY"
+    ],
+    "gaps": [
+      "engines[0].chevrons",
+      "htail.rootChord (not re-measured against the new htail.rootY; previous value kept)"
+    ]
+  },
+  {
+    "icao": "A35K",
+    "name": "Airbus A350-1000",
+    "family": "A350",
+    "reference": {
+      "engine": "Rolls-Royce Trent XWB-97",
+      "wingtip": "Curved blended winglet",
+      "notes": "Reference: Rolls-Royce Trent XWB (-84 on the -900, -97 on the -1000; the AC gives ONE nacelle drawing for both and the AC plan views show the same nacelle) with the curved blended wingtip (curve starts about 2.8 m inboard of the tip in plan, rises about 2.4 m, end tangent about 25 deg from vertical; AC lists the 2.88 m planform dimension). The black cockpit mask is paint, not nose shape. The AC carries no nacelle dimension drawing, so nacelle diameter/length/y are measured off the AC plan and front views (plan width 3.97 m, front-view circle 4.1 m; 4.0 used). Chevrons: sources conflict whether the Trent XWB nozzle has chevrons (small serrations at most); left null. Fin: AC side-view labels 9.09 (root LE to tip LE x offset), 7.79 (root chord), 3.04 (tip chord), 9.42 (height), tail end at the side-view overall length; fin rootLEx derived as overall side length minus 3.04 minus 9.09. Plan-view x values for the -1000 were shifted +0.24 m to anchor the AC 25.78 m engine label (this reproduces the AC 3.81 m -900/-1000 engine offset). Wing/HTP in 1 g flexed attitude per AC note. A35K overall length 73.79 m (plan; Airbus spec page says 73.78 m); AC side view overall 73.59 m, tail cone end 72.25 m. The -1000 wing root chord measures slightly larger than the -900 (13.6 vs 13.5 m, within measurement error). v3: fuselage.end added from the documented tail-cone end; tailconeLength shortened so the taper still starts at the same station. v4: wingtip.rootY = span/2 - 2.88 (AC plan 2.88 m planform dimension), so the curved device reaches exactly span/2. Stabiliser fitted to the AC anchors: tip chord 2.46, TE at the overall length, rootY 2.0."
+    },
+    "dims": {
+      "length": 73.79,
+      "span": 64.75,
+      "height": 17.05,
+      "fuselageWidth": 5.96,
+      "fuselageHeight": 6.09
+    },
+    "fuselage": {
+      "noseLength": 10,
+      "tailconeLength": 15.76,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.84,
+      "decks": 1,
+      "end": 72.25
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 26.2,
+      "rootChord": 13.6,
+      "kinkY": 10.1,
+      "tipChord": 1.7,
+      "sweepLE": 35,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "curved",
+      "height": 2.4,
+      "below": 0,
+      "cant": 25,
+      "rakeSpan": 0,
+      "rootY": 29.495
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 2.0,
+      "rootLEx": 65.3,
+      "span": 18.79,
+      "rootChord": 5.7,
+      "tipChord": 2.46,
+      "sweepLE": 39.1,
+      "dihedral": 5,
+      "tipLEx": 71.33,
+      "tipTEx": 73.79
+    },
+    "vtail": {
+      "rootLEx": 61.46,
+      "height": 9.42,
+      "rootChord": 7.79,
+      "tipChord": 3.04,
+      "sweepLE": 44,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 10.4,
+        "fanX": 25.78,
+        "nacelleDiameter": 4,
+        "nacelleLength": 6.4,
+        "dropBelowWing": 2.1,
+        "section": "round",
+        "chevrons": null,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://mediaassets.airbus.com/pm_38_916_916746-gxtwm2qvq4.pdf?fileName=a350-aircraft-characteristics-airport-and-maintenance-planning.pdf",
+        "doc": "Airbus A350 AC, Issue Nov 01/16, Rev 17 Jul 01/26",
+        "page": "2-2-0 General Aircraft Dimensions, A350-1000 sheets 1-2 (PDF pp.52-53)"
+      },
+      {
+        "url": "https://aircraft.airbus.com/en/aircraft/a350/a350-1000",
+        "doc": "Airbus A350-1000 spec page: length 73.78 m, span 64.75 m, fuselage width 5.94 m",
+        "page": "specification page"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A350 AC Rev 17 Jul 01/26, A350-1000 sheet 2 (PDF p.53): overall 73.79 to the stabiliser tip TE, tip chord 2.46 (documented, tip LE 71.33), LE offset 6.21; span 18.79 front view p.52; rootY measured",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A350 AC Rev 17 Jul 01/26, A350-1000 sheet 2 plan view (PDF p.53): vertical dimension 2.88 m (9.45 ft) at the wing tip = planform reach of the curved device from where it leaves the wing to the overall span, so wingtip.rootY = span/2 - 2.88",
+        "page": "wingtip.rootY, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "engines[0].y",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.rootY"
+    ],
+    "gaps": [
+      "engines[0].chevrons",
+      "htail.rootChord (not re-measured against the new htail.rootY; previous value kept)"
+    ]
+  },
+  {
+    "icao": "A388",
+    "name": "Airbus A380-800",
+    "family": "A380",
+    "reference": {
+      "engine": "Rolls-Royce Trent 900 (four; GP7200 shares the AC engine positions, nacelle 3.9 m, 2.52 m reverser; Trent 900 chosen as documented reference)",
+      "wingtip": "Wingtip fence (upper and lower blades)",
+      "notes": "Reference: Trent 900 on all four positions (inboard y 14.8 m, outboard y 25.7 m, each half of the AC front-view engine spacing 29.6 m / 51.4 m; plan-view measurement agrees: 14.5-14.7 and 25.5-25.8). fanX 22.23 / 29.94 m are the AC plan labels. nacelleDiameter 3.9 m and length 8.06 m (nose cowl 1.30 + fan cowl 2.18 + thrust reverser 2.39 + primary nozzle 2.19; cowls only 5.87 m) from the AC Trent 900 nacelle drawing (3.88 m fan-cowl section, 3.9 m max); front-view circle measures 3.9 m too (plan-view width measured only 3.55 m). Wingtip: vertical fence, about 1.2 m above and 1.1 m below the tip chord line (front-view measurement). Double deck: fuselage 7.14 m wide x 8.41 m high (AC: 8.41 m); window rows measured on the AC side view (bottom of the fuselage at the constant section = 0): main deck row about 3.9 m, upper deck row about 6.7 m (centres of the oval windows). Fin from AC labels: 53.94 root LE, 14.08 LE offset, 12.06 root chord, 4.7 tip chord, 14.59 height. Wing root chord 17.67 m is an AC label (root LE to root TE arrow, verified against the plan raster). Wing/HTP 1 g flexed attitude. Plan overall 72.57 m, side overall 72.73 m, fuselage end 70.4 m. v3: noseLength 13 m confirmed on refs/A388/A388_drawing.png (side roof levels out at ~13 m, plan half-width 0.75 at 3.4 m from the tip matches a 13 m nose). Tail cone: belly rises from ~46.5 m, so tailconeLength is 23.9 m to the 70.4 m fuselage end (26.2 m ran to the 72.73 m overall length)."
+    },
+    "dims": {
+      "length": 72.73,
+      "span": 79.75,
+      "height": 24.09,
+      "fuselageWidth": 7.14,
+      "fuselageHeight": 8.41
+    },
+    "fuselage": {
+      "noseLength": 13,
+      "tailconeLength": 23.87,
+      "tailUpsweep": 1.7,
+      "cockpitWindowX": 3.8,
+      "decks": 2,
+      "mainDeckWindowZ": 3.9,
+      "upperDeckWindowZ": 6.7,
+      "end": 70.4
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 19.2,
+      "rootChord": 17.67,
+      "kinkY": 12,
+      "tipChord": 3.98,
+      "sweepLE": 36.6,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 1.2,
+      "below": 1.1,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 2.9,
+      "rootLEx": 59,
+      "span": 30.37,
+      "rootChord": 9.2,
+      "tipChord": 3.72,
+      "sweepLE": 38.7,
+      "dihedral": 5.5,
+      "tipLEx": 68.85,
+      "tipTEx": 72.57
+    },
+    "vtail": {
+      "rootLEx": 53.94,
+      "height": 14.59,
+      "rootChord": 12.06,
+      "tipChord": 4.7,
+      "sweepLE": 44,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 14.8,
+        "fanX": 22.23,
+        "nacelleDiameter": 3.9,
+        "nacelleLength": 8.06,
+        "dropBelowWing": 2.2,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      },
+      {
+        "y": 25.7,
+        "fanX": 29.94,
+        "nacelleDiameter": 3.9,
+        "nacelleLength": 8.06,
+        "dropBelowWing": 2.5,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.aircraft.airbus.com/sites/g/files/jlcbta126/files/2025-12/AC_A380_20251201.pdf",
+        "doc": "Airbus A380 AC, Rev 20, Dec 01/25",
+        "page": "2-2-0 General Aircraft Dimensions sheets 1-2 (PDF pp.34-35); 2-12-0 Nacelle Dimensions - Trent 900 (PDF p.112)"
+      },
+      {
+        "url": "https://www.airbus.com/en/products-services/commercial-aircraft/passenger-aircraft/a380",
+        "doc": "Airbus A380 page: 79.8 m span, 24 m high, 73 m long (rounded); AC: 72.73 m / 79.75 m",
+        "page": "specification page"
+      },
+      {
+        "url": "",
+        "doc": "Airbus A380 AC Rev 20 Dec 01/25, 2-2-0 sheet 2 (PDF p.35): HTP tip LE 68.85, tip TE 72.57, tip chord 3.72 (documented); rootY and rootChord measured on the plan at 300 dpi",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "dims.height",
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "fuselage.mainDeckWindowZ",
+      "fuselage.upperDeckWindowZ",
+      "wing.rootLEx",
+      "wing.kinkY",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.below",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "engines[0].dropBelowWing",
+      "engines[1].dropBelowWing",
+      "htail.rootY"
+    ],
+    "gaps": [
+      "dims.height (no exact Airbus primary value: AC does not label it, Airbus page says 24 m; 24.09 m carried from aircraft-top20, AC drawing scales to about 24.0 m)"
+    ]
+  }
+]

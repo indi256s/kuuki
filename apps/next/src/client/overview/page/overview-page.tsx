@@ -273,7 +273,7 @@ function PageContent({ name }: { name: string }) {
                         }
                       }}
                     >
-                      <Tile />
+                      <Tile span={span} />
                     </SectionTile>
                   )
                 })}

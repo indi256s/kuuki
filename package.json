@@ -2,7 +2,7 @@
   "name": "kuuki",
   "version": "0.0.1",
   "private": true,
-  "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
+  "description": "Kuuki (\u7a7a\u6c17) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -30,7 +30,8 @@
     "build:import:release": "wrangler deploy --dry-run --env '' --config workers/import/wrangler.toml --outdir .wrangler/import-release && wrangler deploy --dry-run --config workers/import/wrangler.toml --env preview --outdir .wrangler/import-release-preview",
     "verify:import:provider": "tsx scripts/verify-import-provider.ts",
     "format": "oxfmt .",
-    "format:check": "oxfmt --check ."
+    "format:check": "oxfmt --check .",
+    "generate:fleet-geometry": "node scripts/generate-fleet-geometry.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261009.1",

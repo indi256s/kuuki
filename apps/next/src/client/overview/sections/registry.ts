@@ -2,6 +2,7 @@
 
 import type { ComponentType } from 'react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
+import type { TileSpan } from '../mobile/tiles'
 
 import { Section as rankingsSection } from './rankings/section'
 import { Tile as rankingsTile } from './rankings/tile'
@@ -22,7 +23,7 @@ export type Span = 'full' | 'sheet'
 type Entry = {
   title: Copy
   Section: ComponentType<{ span: Span }>
-  Tile: ComponentType
+  Tile: ComponentType<{ span: TileSpan }>
 }
 export const SECTIONS: Record<SectionId, Entry> = {
   rankings: {

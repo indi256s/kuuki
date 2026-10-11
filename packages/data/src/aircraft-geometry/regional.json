@@ -1,0 +1,539 @@
+[
+  {
+    "icao": "E170",
+    "name": "Embraer 170 (E170-100)",
+    "family": "E-Jet E1",
+    "reference": {
+      "engine": "GE CF34-8E5",
+      "wingtip": "Small blended winglet (tall, narrow, near-vertical, cant about 16 deg)",
+      "notes": "Conventional fuselage-mounted horizontal tail, underwing engines, no T-tail or aft engines. No E170 Airport Planning Manual could be retrieved (Embraer old URLs 404). Geometry is derived from the manufacturer E175 APM: E170 = E175 minus 0.84 m forward plug (wing and nacelle x shifted -0.84) and minus 0.94 m aft plug (tail x shifted a further -0.94, total -1.78). Wing, nacelle, fin and stabiliser shapes are identical between the two (stretch plugs only). Span 26.00 m is the E175 APM span over winglets for the standard (pre-SB 170-57-0058) wing; the 28.65 m extended-wingtip option is E175-only and not used. Height 9.86 m is the E175 APM value; secondary sources give 9.67 m (LOT table) and 9.85 m, so height is unresolved for the E170. Length 29.90 m from secondary sources (LOT, GE), equal to E175 31.68 minus 1.78. All shape values were measured off APM Fig 2.1, which is anisotropic (x 53.25 px/m, y 56.4 px/m at 400 dpi), so each axis was calibrated separately. v4: vtail.rootLEx confirmed as the fin proper (fin leading edge extended to the crown) on the APM side view; the dorsal fillet is separate (dorsalLength / dorsalHeight measured). Stabiliser rootY and tip anchors measured on the APM plan."
+    },
+    "dims": {
+      "length": 29.9,
+      "span": 26,
+      "height": 9.86,
+      "fuselageWidth": 3.01,
+      "fuselageHeight": 3.35
+    },
+    "fuselage": {
+      "noseLength": 5.45,
+      "tailconeLength": 9.5,
+      "tailUpsweep": 0.93,
+      "cockpitWindowX": 3.36,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 10.99,
+      "rootChord": 4.95,
+      "kinkY": 4.6,
+      "tipChord": 1.47,
+      "sweepLE": 27.6,
+      "dihedral": 4.1
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.45,
+      "below": 0,
+      "cant": 15.6,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.0,
+      "rootLEx": 24.9,
+      "span": 10,
+      "rootChord": 3.18,
+      "tipChord": 1.29,
+      "sweepLE": 35.8,
+      "dihedral": 6.3,
+      "tipLEx": 27.78,
+      "tipTEx": 29.07
+    },
+    "vtail": {
+      "rootLEx": 23.32,
+      "height": 5.13,
+      "rootChord": 5,
+      "tipChord": 1.66,
+      "sweepLE": 42.9,
+      "dorsalFin": true,
+      "dorsalLength": 1.67,
+      "dorsalHeight": 0.74
+    },
+    "engines": [
+      {
+        "y": 3.98,
+        "fanX": 9.38,
+        "nacelleDiameter": 1.62,
+        "nacelleLength": 3.45,
+        "dropBelowWing": 0.82,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://data.ntsb.gov/Docket/Document/docBLOB?ID=13691419&FileExtension=pdf&FileName=DCA20IA014+Attachment+2+-+Embraer+175+Airport+Planning+Manual-Rel.pdf",
+        "doc": "Embraer 175 Airport Planning Manual (NTSB docket DCA20IA014 attachment 2)",
+        "page": "Fig 2.1/2.2, pdf pp 31-32"
+      },
+      {
+        "url": "https://www.flightglobal.com/brazil-special-little-big-jet/73036.article",
+        "doc": "Flightglobal: E170-to-E175 stretch plugs (0.84 m fwd, 0.94 m aft)",
+        "page": "n/a"
+      },
+      {
+        "url": "https://www.lot.com/",
+        "doc": "LOT/GE secondary tables: E170 length 29.90, height 9.67 (conflicts)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "Embraer 175 APM Fig 2.1 (refs/E170/apm175-031.png, 110 dpi raster): stabiliser measured on the E175 plan and shifted -1.78 m to the E170 (plan view y scale corrected to the labelled 10.00 m span); accuracy about +/-0.2 m",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Embraer 175 APM Fig 2.1 side view (refs/E170/apm175-031.png): fin-proper LE extended to the crown lands at 24.99 on the E175 = 23.21 on the E170 (record rootLEx 23.32 is the fin proper); fillet starts 1.67 m ahead and its break is 0.74 m above the crown",
+        "page": "vtail.dorsalLength / dorsalHeight, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].y",
+      "engines[0].fanX",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight"
+    ],
+    "gaps": [
+      "dims.height (conflict: 9.67 vs 9.85/9.86; no E170 APM)",
+      "E170 stabiliser anchors are the E175 APM plan shifted by the 1.78 m length difference (no E170-specific plan page retrieved)"
+    ]
+  },
+  {
+    "icao": "E195",
+    "name": "Embraer 195 (E1, ERJ-190-200)",
+    "family": "E-Jet E1",
+    "reference": {
+      "engine": "GE CF34-10E",
+      "wingtip": "Small blended winglet (tall, narrow, cant about 19 deg)",
+      "notes": "E1 E195, not the E2. Conventional fuselage-mounted horizontal tail and underwing engines. No E195 APM retrieved. Geometry derived from the manufacturer E190 APM (CF34-10E, same wing and engines as E195): E195 = E190 with wing and nacelle x shifted +0.81 m (plug A 2.41 to 3.22 m) and tail x shifted +2.43 m (plug B 3.7 to 5.31 m, +1.61 m more). Span 28.72 m over winglets and height 10.57 m are E190 APM figures; E195 secondary sources give 10.55 m height (APM 10.57 retained would be E190). Length 38.67 m is E190 36.24 plus 2.43; Skybrary gives 38.65. Shape values measured off APM Fig 2.1 (x 54.6 px/m, y 49.7 px/m at 400 dpi, calibrated per axis). Fuselage section 3.01 x 3.35 assumed equal to the E175 APM value. Nacelle is 2.19 wide by 1.84 high on the drawing; nacelleDiameter 2.0 is the mean. v4: vtail.rootLEx confirmed as the fin proper (fin leading edge extended to the crown) on the APM side view; the dorsal fillet is separate (dorsalLength / dorsalHeight measured). Stabiliser rootY and tip anchors measured on the APM plan."
+    },
+    "dims": {
+      "length": 38.67,
+      "span": 28.72,
+      "height": 10.55,
+      "fuselageWidth": 3.01,
+      "fuselageHeight": 3.35
+    },
+    "fuselage": {
+      "noseLength": 5,
+      "tailconeLength": 9.2,
+      "tailUpsweep": 0.9,
+      "cockpitWindowX": 3.24,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 14.59,
+      "rootChord": 5.42,
+      "kinkY": 5.1,
+      "tipChord": 1.65,
+      "sweepLE": 26.8,
+      "dihedral": 3.2
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.6,
+      "below": 0,
+      "cant": 18.8,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.0,
+      "rootLEx": 34.1,
+      "span": 12.08,
+      "rootChord": 2.96,
+      "tipChord": 0.83,
+      "sweepLE": 34.8,
+      "dihedral": 5.9,
+      "tipLEx": 37.6,
+      "tipTEx": 38.43
+    },
+    "vtail": {
+      "rootLEx": 32.28,
+      "height": 5.1,
+      "rootChord": 4.59,
+      "tipChord": 1.4,
+      "sweepLE": 40.6,
+      "dorsalFin": true,
+      "dorsalLength": 1.7,
+      "dorsalHeight": 0.87
+    },
+    "engines": [
+      {
+        "y": 4.5,
+        "fanX": 12.86,
+        "nacelleDiameter": 2,
+        "nacelleLength": 3.55,
+        "dropBelowWing": 0.93,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://embraer.com/media/jwsj1u1u/e190apm_apm_190-1.pdf",
+        "doc": "Embraer 190 APM APM-1901 (Rev 21 sec 2, Rev 23 sec 9)",
+        "page": "Fig 2.1, pdf p 18"
+      },
+      {
+        "url": "https://www.flightglobal.com/brazil-special-little-big-jet/73036.article",
+        "doc": "Flightglobal: E170-to-E175 stretch plugs (0.84 m fwd, 0.94 m aft)",
+        "page": "n/a"
+      },
+      {
+        "url": "https://skybrary.aero/aircraft/e195",
+        "doc": "Skybrary E195 length 38.65 (secondary)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "Embraer 190 APM Fig 2.1 (refs/E195/apm190-018.png, 110 dpi raster): stabiliser measured on the E190 plan and shifted +2.43 m to the E195 (plan y scale corrected to the labelled 12.08 m span); accuracy about +/-0.2 m",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      },
+      {
+        "url": "",
+        "doc": "Embraer 190 APM Fig 2.1 side view (refs/E195/apm190-018.png): fin-proper LE extended to the crown lands at 29.91 on the E190 = 32.34 on the E195 (record rootLEx 32.28 is the fin proper); fillet starts 1.7 m ahead and its break is 0.87 m above the crown",
+        "page": "vtail.dorsalLength / dorsalHeight, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].y",
+      "engines[0].fanX",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "dims.length (E190 + plugs)",
+      "dims.height (E190 APM 10.57 vs secondary 10.55)",
+      "dims.fuselageHeight (assumed from E175)",
+      "dims.fuselageWidth (assumed from E175)",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx",
+      "vtail.dorsalLength",
+      "vtail.dorsalHeight"
+    ],
+    "gaps": [
+      "no E195-specific APM; every x offset is E190 value plus stretch plug",
+      "E195 stabiliser anchors are the E190 APM plan shifted by the 2.43 m length difference"
+    ]
+  },
+  {
+    "icao": "SU95",
+    "name": "Sukhoi Superjet 100 (SSJ100/95B, 95LR)",
+    "family": "Superjet",
+    "reference": {
+      "engine": "PowerJet SaM146-1S17/18",
+      "wingtip": "None (plain wingtip, 27.80 m span); sabrelet horizontal tip extension option gives 29.70 m and is not drawn",
+      "notes": "Conventional fuselage-mounted horizontal tail and underwing engines. UAC specifies span 27.80 m without GZK (horizontal wingtip extensions, sabrelets) and 29.70 m with them; length 29.94 m, height 10.28 m (UAC page and SuperJet International 2011 datasheet). The legacy fleet and photos show a plain wingtip with nav light, so the reference is 27.80 m with wingtip.type none. aircraft-top20 pairs 27.8 m with a blended winglet, which is inconsistent. Shape values measured off a UAC top-view render (17.43 px/m) and a three-view drawing (side 16.1 px/m, front 15.76 px/m), scaled by the 29.94 m length. Fuselage width measured about 3.45 m (top20 gives 3.46). No manufacturer drawing with dimension lines was found."
+    },
+    "dims": {
+      "length": 29.94,
+      "span": 27.8,
+      "height": 10.28,
+      "fuselageWidth": 3.45,
+      "fuselageHeight": 3.46
+    },
+    "fuselage": {
+      "noseLength": 5,
+      "tailconeLength": 7.3,
+      "tailUpsweep": 0.7,
+      "cockpitWindowX": 3.76,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 10.85,
+      "rootChord": 5.04,
+      "kinkY": 5,
+      "tipChord": 1.4,
+      "sweepLE": 27.5,
+      "dihedral": 4.1
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootY": 1.2,
+      "rootLEx": 26.1,
+      "span": 10.1,
+      "rootChord": 2.5,
+      "tipChord": 0.82,
+      "sweepLE": 33.6,
+      "dihedral": 2.5,
+      "tipLEx": 28.66,
+      "tipTEx": 29.48
+    },
+    "vtail": {
+      "rootLEx": 23.1,
+      "height": 5,
+      "rootChord": 4.3,
+      "tipChord": 1.3,
+      "sweepLE": 41.8,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 4.48,
+        "fanX": 9.4,
+        "nacelleDiameter": 1.85,
+        "nacelleLength": 4.25,
+        "dropBelowWing": 1.15,
+        "section": "round",
+        "chevrons": false,
+        "prop": null
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://uacrussia.ru/ru/aircraft/lineup/lineup/superjet-100/",
+        "doc": "UAC Superjet 100: span 27.80 w/o GZK, 29.70 with; length 29.94; height 10.28",
+        "page": "specs"
+      },
+      {
+        "url": "https://commons.wikimedia.org/wiki/File:SSJ100_Three_views_drawing_(5476115362).jpg",
+        "doc": "Three-view drawing (non-manufacturer upload; measured)",
+        "page": "n/a"
+      },
+      {
+        "url": "SSJ100_Datasheet.pdf",
+        "doc": "SuperJet International datasheet 2011 (length 29.94, height 10.28, span 27.80)",
+        "page": "n/a"
+      },
+      {
+        "url": "",
+        "doc": "refs/SU95/ssj100_threeview_flickr.jpg (non-manufacturer CGI three-view, 965 px, scaled by 29.94 m length): stabiliser measured, accuracy about +/-0.25 m",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.kinkY",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "wingtip.height",
+      "wingtip.cant",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].y",
+      "engines[0].fanX",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "dims.fuselageWidth",
+      "dims.fuselageHeight",
+      "vtail.height",
+      "htail.rootY",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": [
+      "no manufacturer dimensioned three-view found; nacelle dims approximate (1.93 wide x 1.70 high on drawing)",
+      "htail.rootChord and htail.dihedral (not measurable on the CGI three-view; previous values kept)"
+    ]
+  },
+  {
+    "icao": "DH8B",
+    "name": "De Havilland Canada Dash 8 Series 200 (DHC-8-200)",
+    "family": "Dash 8",
+    "reference": {
+      "engine": "Pratt & Whitney Canada PW123C/D with Hamilton Sundstrand 14SF-23 propellers",
+      "wingtip": "None",
+      "notes": "Series 200 (DHC-8-201/202), the ICAO DH8B type. High wing, T-tail, two turboprops. Primary sources: De Havilland Canada Q200 APM PSM 1-82-13 (Fig 2-3, 2-4) and EASA TCDS IM.A.191 Issue 16. APM: length 22.25, span 25.89, htail span 7.93, prop diameter 3.96 m (13 ft), fuselage width 2.69, fuselage height 2.57, engine y 3.94, prop plane 6.34 m from nose, fuselage end 20.78 m, fin top 7.47 m and fuselage top 3.17 m above ground (fin height above crown 4.30). TCDS: height 7.49. Wing, tail chords and nacelle shapes measured off the APM plan/side/front views (about 53 px/m front view). Small dorsal fillet at the fin leading edge is not modelled (dorsalFin false). Matches aircraft-top20 except it lacked a prop diameter. v3: fuselage.end added from the documented tail-cone end; tailconeLength shortened so the taper still starts at the same station."
+    },
+    "dims": {
+      "length": 22.25,
+      "span": 25.89,
+      "height": 7.49,
+      "fuselageWidth": 2.69,
+      "fuselageHeight": 2.57
+    },
+    "fuselage": {
+      "noseLength": 4.3,
+      "tailconeLength": 6.03,
+      "tailUpsweep": 0.8,
+      "cockpitWindowX": 3.46,
+      "decks": 1,
+      "end": 20.78
+    },
+    "wing": {
+      "position": "high",
+      "rootLEx": 8.4,
+      "rootChord": 2.64,
+      "kinkY": null,
+      "tipChord": 1.37,
+      "sweepLE": 4.3,
+      "dihedral": 2
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "t-tail",
+      "rootY": 0,
+      "rootLEx": 19.85,
+      "span": 7.93,
+      "rootChord": 2.14,
+      "tipChord": 1.55,
+      "sweepLE": 8.5,
+      "dihedral": 0,
+      "zBelowFinTop": 0.25,
+      "tipLEx": 20.44,
+      "tipTEx": 21.99
+    },
+    "vtail": {
+      "rootLEx": 16.54,
+      "height": 4.3,
+      "rootChord": 4,
+      "tipChord": 2.8,
+      "sweepLE": 33.6,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 3.94,
+        "fanX": 5.82,
+        "nacelleDiameter": 0.88,
+        "nacelleLength": 7.2,
+        "dropBelowWing": 0.15,
+        "section": "round",
+        "chevrons": false,
+        "prop": {
+          "diameter": 3.96
+        }
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://dehavillandportal.com/assets/public-documents/D8200-APM.pdf",
+        "doc": "DHC Dash 8 Series 200 APM PSM 1-82-13 (4 Aug 2000)",
+        "page": "Fig 2-3, 2-4 (pdf pp 16-17)"
+      },
+      {
+        "url": "https://www.easa.europa.eu/en/downloads/7257/en",
+        "doc": "EASA TCDS IM.A.191 Issue 16",
+        "page": "Series 200 data sheet"
+      },
+      {
+        "url": "https://dehavillandportal.com/assets/public-documents/D8200-APM.pdf",
+        "doc": "De Havilland Canada Q200 APM PSM 1-82-13",
+        "page": "Fig 2-4 p.2-5 ground clearances: I 7.47 m, J 7.22 m (htail.zBelowFinTop)"
+      },
+      {
+        "url": "",
+        "doc": "DHC Q200 APM PSM 1-82-13 Fig 2-3 (refs/DH8B/q200apm-016.png, 935 px raster, scaled by 20.78 m / 22.25 m): T-tail stabiliser measured, root at the centreline; accuracy about +/-0.15 m",
+        "page": "stabiliser root station (rootY) and tip anchors, v4"
+      }
+    ],
+    "estimated": [
+      "fuselage.noseLength",
+      "fuselage.tailconeLength",
+      "fuselage.tailUpsweep",
+      "fuselage.cockpitWindowX",
+      "wing.rootLEx",
+      "wing.rootChord",
+      "wing.tipChord",
+      "wing.sweepLE",
+      "wing.dihedral",
+      "htail.rootLEx",
+      "htail.rootChord",
+      "htail.tipChord",
+      "htail.sweepLE",
+      "htail.dihedral",
+      "vtail.rootLEx",
+      "vtail.rootChord",
+      "vtail.tipChord",
+      "vtail.sweepLE",
+      "engines[0].fanX",
+      "engines[0].nacelleDiameter",
+      "engines[0].nacelleLength",
+      "engines[0].dropBelowWing",
+      "htail.tipLEx",
+      "htail.tipTEx"
+    ],
+    "gaps": ["wing.kinkY (no trailing-edge kink on this wing; null)"]
+  }
+]
