@@ -7,11 +7,11 @@ import { useOverview } from '../../store/overview-context'
 import '../cookie.css'
 import '../../iso/passes.css'
 
-/** The Routes boarding-pass stack: one pass per flight on the top route. */
+/** The Routes boarding-pass stack: the repeat share of its passes carry a red stub. */
 export function usePassFigure(size: FigureSize, data: Routes | null) {
-  const count = data?.top?.count ?? 1,
+  const share = data?.repeatShare ?? 0,
     route = data?.top ? routeArrow(data.top.key) : ''
-  return useFigure(size, `${count}|${route}`, (k) => passStack(count, route, k))
+  return useFigure(size, `${share}|${route}`, (k) => passStack(share, route, k))
 }
 
 /** The figure at the head of the Routes sheet. */

@@ -242,6 +242,48 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Полярный круг, пересечений: {count}. С высоты линия не видна.',
     },
   ],
+  'crossings:equator': [
+    {
+      en: 'Equator crossings: {count}. The water in the sink was not consulted.',
+      ru: 'Пересечений экватора: {count}. Мнение воды в раковине не учитывалось.',
+    },
+    {
+      en: 'Equator: {count}. The seasons have stopped making sense.',
+      ru: 'Экватор, пересечений: {count}. Времена года утратили логику.',
+    },
+    {
+      en: 'Equator crossings: {count}. No ceremony was held, presumably.',
+      ru: 'Экватор пересечён, раз: {count}. Церемоний, по-видимому, не проводилось.',
+    },
+  ],
+  'crossings:zones': [
+    {
+      en: 'Clocks set to {zones} different hours. {left} zones have not met you yet.',
+      ru: 'Часовых поясов освоено: {zones}, не охвачено: {left}. Работа продолжается.',
+    },
+    {
+      en: '{zones} time zones in, {left} left. The wristwatch has stopped keeping score.',
+      ru: 'Часовых поясов: {zones}, впереди ещё: {left}. Наручные часы претензий не предъявляют.',
+    },
+    {
+      en: '{zones} zones down, {left} to go before the planet runs out of hours.',
+      ru: 'Поясов пройдено: {zones}. До исчерпания суток планеты осталось: {left}.',
+    },
+  ],
+  'crossings:no-equator': [
+    {
+      en: 'Never crossed the equator. The other hemisphere is taking it personally.',
+      ru: 'Экватор вы не пересекали. Другое полушарие принимает это на свой счёт.',
+    },
+    {
+      en: 'The equator remains uncrossed. Summer still happens in summer.',
+      ru: 'Экватор не пересечён. Лето по-прежнему наступает летом.',
+    },
+    {
+      en: 'One hemisphere, fully committed. The other one is still there.',
+      ru: 'Одно полушарие, полная преданность. Второе по-прежнему на месте.',
+    },
+  ],
   'manufacturers:airbus-boeing': [
     {
       en: 'Airbus flights in this view: {airbus}; Boeing: {boeing}. Boeing is still auditioning.',

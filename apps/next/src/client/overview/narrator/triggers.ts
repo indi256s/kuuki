@@ -180,6 +180,38 @@ export const TRIGGERS: Trigger[] = [
       return count >= 1 ? { count } : null
     },
   },
+  // Ready Crossings; the route crossed the equator at least once. Count is crossings, not flights.
+  {
+    id: 'crossings:equator',
+    slot: 'crossings',
+    priority: 93,
+    when: (scope) => {
+      if (scope.crossings.status !== 'ready') return null
+      const count = scope.crossings.value.equator
+      return count >= 1 ? { count } : null
+    },
+  },
+  // Ready Crossings; between 4 and 22 of the 24 hourly UTC offsets reached, so both counts are plural in EN. `left` is what the globe still shows unlit.
+  {
+    id: 'crossings:zones',
+    slot: 'crossings',
+    priority: 91,
+    when: (scope) => {
+      if (scope.crossings.status !== 'ready') return null
+      const zones = scope.crossings.value.offsets.filter((row) => row.hit).length
+      return zones >= 4 && zones <= 22 ? { zones, left: 24 - zones } : null
+    },
+  },
+  // Ready Crossings; no equator crossing, so every flight stayed in one hemisphere. Fallback below the date-line lines.
+  {
+    id: 'crossings:no-equator',
+    slot: 'crossings',
+    priority: 68,
+    when: (scope) => {
+      if (scope.crossings.status !== 'ready') return null
+      return scope.crossings.value.equator === 0 ? {} : null
+    },
+  },
   // Ready Makers; Airbus positive, strictly above every other known maker; Boeing positive. Unknown excluded only from leader comparison, not recast as known.
   {
     id: 'manufacturers:airbus-boeing',

@@ -89,7 +89,7 @@ exports[`trigger simulation > records which line wins each card > winning line p
   "prod:eight": {
     "aircraft": "aircraft:full — Every flight has its aircraft. Suspiciously thorough.",
     "clock": "clock:unique-peak — The 07:00 hour leads departures outright: 3 of 8 timed flights. The schedule has a recurring appointment.",
-    "crossings": "crossings:forward — Clock shifts in this view: forward 9 h, back 1 h. Forward wins the ledger.",
+    "crossings": "crossings:zones — Clocks set to 5 different hours. 19 zones have not met you yet.",
     "globe": "globe:route-footprint — Your selected route footprint: 8 airport pairs across 10 airports. Directions combined for counting.",
     "rankings": "rankings:airport-leader — IST heads the airport list: 3 of 16 endpoint entries. This denominator has both ends.",
     "records": "records:biggest-clock-jump — 5 h in one go. Local time won on points.",
@@ -127,7 +127,7 @@ exports[`trigger simulation > records which line wins each card > winning line p
     "routes": "routes:repeat-share — Routes used more than once carry 83%. Familiar airports, familiar queues.",
   },
   "prod:three": {
-    "crossings": "crossings:forward — Clock shifts in this view: forward 3 h, back 0 h. Forward wins the ledger.",
+    "crossings": "crossings:zones — Clocks set to 4 different hours. 20 zones have not met you yet.",
     "globe": "globe:route-footprint — Your selected route footprint: 3 airport pairs across 5 airports. Directions combined for counting.",
     "rankings": "rankings:airport-leader — FRA heads the airport list: 2 of 6 endpoint entries. This denominator has both ends.",
     "records": "records:longest-distance — The longest route here is FRA–IST: 1,791 km. Filed under distance.",

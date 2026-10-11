@@ -191,6 +191,12 @@ Aircraft and Clock open on a sample and print "Based on N of M". In prod most jo
 - Times past the Arctic Circle: {count}. Polar bears were not informed. / Полярный круг, пересечений: {count}. Белых медведей не уведомляли.
 - Arctic Circle: {count}. The line is invisible from above. / Полярный круг, пересечений: {count}. С высоты линия не видна.
 
+**Time zones reached** — 4 to 22 of the 24 hourly offsets hit; `{zones}`, `{left}` (24 − zones). The globe on the card lights the same zones.
+
+- Clocks set to {zones} different hours. {left} zones have not met you yet. / Часовых поясов освоено: {zones}, не охвачено: {left}. Работа продолжается.
+- {zones} time zones in, {left} left. The wristwatch has stopped keeping score. / Часовых поясов: {zones}, впереди ещё: {left}. Наручные часы претензий не предъявляют.
+- {zones} zones down, {left} to go before the planet runs out of hours. / Поясов пройдено: {zones}. До исчерпания суток планеты осталось: {left}.
+
 ### Aircraft: makers
 
 **Leader** — leader ≥ 2 flights ahead; `{leader}`, `{runnerUp}`, `{n}` (pinned: "Airbus has carried you 38 times. Boeing is still auditioning.").

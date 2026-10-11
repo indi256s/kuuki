@@ -11,7 +11,7 @@ const ROW = { v0: 16, gap: 4, codeU: 6, codeW: 10, barU: 32 }
 
 /**
  * Rankings: a split-flap departures board, one row per ranked airline (leader first). Each row shows the airline code on two flaps, then a bar of flaps lit by `share`, the airline's flights over the leader's (so the leader's bar is full).
- * Codes are drawn from k = 0.9; smaller, the tile's text names the leader.
+ * Codes are drawn at every size: they are what makes the rows airlines.
  * Parts: `backlight` (the leader's glow, which hover raises).
  */
 export function flapBoard(rows: readonly { code: string; share: number }[], k = 1) {
@@ -87,7 +87,7 @@ export function flapBoard(rows: readonly { code: string; share: number }[], k = 
       const u = ROW.codeU + c * (ROW.codeW + 1.6)
       flap(u, v, ROW.codeW, false)
       const ch = row?.code[c]
-      if (big && ch)
+      if (ch)
         s.text(ch, face(u + ROW.codeW / 2, v + rh / 2 + 3.2), U, V, {
           size: 9,
           weight: 700,

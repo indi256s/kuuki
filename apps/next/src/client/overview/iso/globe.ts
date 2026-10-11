@@ -25,7 +25,7 @@ const VIEW = unit([1, 1, 1])
 
 /**
  * Crossings: a desk globe turned to face the time zones flown through. The equator is cut into the 24 hourly zones; `offsets` (whole hours from UTC) that were reached are lit. The Arctic Circle is drawn, and both lines turn solid when crossed.
- * Land is the true coast; anything over the horizon is pressed onto the rim, so a continent never shows through.
+ * Land is the true coast; anything over the horizon is pressed onto the rim, so a continent never shows through. Below k = 0.9 (a tile) the graticule, uncrossed lines and axis pivots are left out.
  * Parts: `backlight` (the lit zones' glow, which hover raises).
  */
 export function globe(
@@ -34,6 +34,8 @@ export function globe(
   k = 1,
 ) {
   const s = new Scene(k)
+  // A tile keeps the sphere, its land and the zones; the graticule, uncrossed lines and pivots only show from section size.
+  const big = k >= 0.9
   const lift = BASE.h + POST + RING.outer * Math.cos(TILT)
   const C: V3 = [0, 0, lift]
   const axis: V3 = [Math.sin(TILT) / Math.SQRT2, -Math.sin(TILT) / Math.SQRT2, Math.cos(TILT)]
@@ -164,7 +166,7 @@ export function globe(
     for (let lat = -84; lat <= 84; lat += 6) pts.push(at(lon, lat))
     grat.push(...runs(pts))
   }
-  s.segs(grat, 'detail', 0.6)
+  if (big) s.segs(grat, 'detail', 0.6)
   const parallel = (lat: number) => {
     const pts: V3[] = []
     for (let lon = 0; lon <= 360; lon += 4) pts.push(at(lon, lat))
@@ -173,9 +175,11 @@ export function globe(
   for (const [lat, crossed] of [
     [66.56, arctic],
     [0, equator],
-  ] as const)
+  ] as const) {
+    if (!big && !crossed) continue
     for (const run of parallel(lat))
       s.line(run, crossed ? 'muted' : 'detail', 0.9, crossed ? undefined : '2 2.5')
+  }
 
   // The 24 zones along the equator, each 15° wide around its whole-hour offset, standing just off the surface.
   const zone = (offset: number) => {
@@ -196,7 +200,7 @@ export function globe(
 
   // The ring's upper half, in front, and the pivots where the axis meets it.
   band(-90, 90)
-  for (const sign of [1, -1]) {
+  for (const sign of big ? [1, -1] : []) {
     const p = scale(axis, (sign * (RING.inner + RING.outer)) / 2)
     if (!seen(p)) continue
     s.poly(

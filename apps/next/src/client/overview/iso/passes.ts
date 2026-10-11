@@ -3,30 +3,33 @@ import { Scene, type P3, type Pt } from './scene'
 // A boarding pass in plan: L long (x), B wide (y), T thick; the stub is the last STUB units, past a perforation.
 const L = 112,
   B = 44,
-  T = 1.6,
+  T = 2.4,
   STUB = 30
-/** At most this many passes show; more repeats only top the stack up to it. */
-export const MAX_PASSES = 8
+/** Passes in the stack; the repeat share of them carry a red stub. */
+export const PASSES = 8
 /** How far the top pass slides out on hover, in iso units along its length. */
 const SLIDE = 14
-// Each pass under the top one lies a little askew: a turn in degrees and a shift in plan, fixed so the stack never reshuffles.
-const SKEW: readonly [number, number, number][] = [
-  [-3, -2, 1],
-  [2.5, 1.5, -1],
-  [-1.5, -1, 2],
-  [3, 2, 0],
-  [-2.5, 0, -2],
-  [1.5, -2, 1],
-  [-1, 1, -1],
+// Passes under the top one fan out past its stub end, FAN further each, so every stub shows as a step; each also lies a little askew (a turn in degrees and a sideways shift), fixed so the stack never reshuffles.
+const FAN = 3.4
+const SKEW: readonly [number, number][] = [
+  [-1.5, 1],
+  [1.2, -1],
+  [-0.8, 1.5],
+  [1.5, 0],
+  [-1.2, -1.5],
+  [0.8, 1],
+  [-0.5, -1],
 ]
 
 /**
- * Routes: a stack of boarding passes, one per flight on the top route (up to MAX_PASSES). The top pass has a lit stub; at section size it reads `route` (for example "ROV ⇄ VKO").
+ * Routes: a stack of PASSES boarding passes. `repeatShare` of them (rounded, from the top down) are repeats: their stub is red, which shows on each pass's edge; the rest are plain new routes. At section size the top pass reads `route` (for example "ROV ↔ VKO").
  * Parts: `top-pass` (carries --slide-x/--slide-y; slides out along its length on hover).
  */
-export function passStack(count: number, route: string, k = 1) {
+export function passStack(repeatShare: number, route: string, k = 1) {
   const s = new Scene(k)
-  const n = Math.max(1, Math.min(MAX_PASSES, count))
+  const n = PASSES,
+    repeats = Math.max(0, Math.min(n, Math.round(repeatShare * n)))
+  const isRepeat = (i: number) => i >= n - repeats
   // Contact shadow, a little larger than the stack.
   s.poly(
     [
@@ -40,7 +43,7 @@ export function passStack(count: number, route: string, k = 1) {
   )
   const centre: Pt = [L / 2, B / 2]
   /** A pass turned by `deg` about its centre and shifted by (dx, dy), its top at z; returns its plan → 3D mapper. */
-  const card = (deg: number, dx: number, dy: number, z: number) => {
+  const card = (deg: number, dx: number, dy: number, z: number, repeat: boolean) => {
     const a = (deg * Math.PI) / 180,
       c = Math.cos(a),
       q = Math.sin(a)
@@ -64,6 +67,14 @@ export function passStack(count: number, route: string, k = 1) {
         ny = p0[0] - p1[0]
       if (nx + ny <= 0) return
       s.poly([p0, p1, at(u1, v1, z - T), at(u0, v0, z - T)], nx > ny ? 'side' : 'front')
+      // A repeat's stub is red right through, so its edge shows red where the stub runs.
+      if (!repeat) return
+      const from = Math.max(Math.min(u0, u1), L - STUB),
+        to = Math.max(u0, u1)
+      if (to <= from) return
+      const e = (u: number, h: number) =>
+        at(u, v0 === v1 ? v0 : v0 + ((u - u0) / (u1 - u0 || 1)) * (v1 - v0), h)
+      s.poly([e(from, z), e(to, z), e(to, z - T), e(from, z - T)], 'accent-side', 'line')
     })
     s.poly(
       corners.map(([u, v]) => at(u, v)),
@@ -72,10 +83,13 @@ export function passStack(count: number, route: string, k = 1) {
     return at
   }
   for (let i = 0; i < n - 1; i++) {
-    const [deg, dx, dy] = SKEW[(n - 2 - i) % SKEW.length]
-    const at = card(deg, dx, dy, (i + 1) * T)
-    // The stub's lower edge peeks out on the passes underneath.
-    s.segs([[at(L - STUB, 1), at(L - STUB, B - 1)]], 'detail', 0.7)
+    const depth = n - 1 - i,
+      [deg, dy] = SKEW[(depth - 1) % SKEW.length]
+    const dx = depth * FAN
+    const repeat = isRepeat(i)
+    const at = card(deg, dx, dy, (i + 1) * T, repeat)
+    if (repeat) s.poly([at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)], 'accent', 'line')
+    else s.segs([[at(L - STUB, 1), at(L - STUB, B - 1)]], 'detail', 0.7)
   }
 
   const [sx, sy] = s.vector(SLIDE, 0, 0)
@@ -83,11 +97,13 @@ export function passStack(count: number, route: string, k = 1) {
     'top-pass',
     () => {
       const z = n * T
-      const at = card(0, 0, 0, z)
+      const repeat = isRepeat(n - 1)
+      const at = card(0, 0, 0, z, repeat)
       const U: P3 = [1, 0, 0],
         V: P3 = [0, 1, 0]
-      // The stub, lit, past a perforated tear line.
-      s.lit([at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)], 3.5)
+      // The stub past a perforated tear line: lit when the top route is a repeat.
+      const stub = [at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)]
+      if (repeat) s.lit(stub, 3.5)
       const holes: P3[][] = []
       for (let v = 3; v < B - 1; v += 4) holes.push(s.circle(at(L - STUB, v), U, V, 0, 0, 0.6, 6))
       for (const hole of holes) s.poly(hole, 'line', 'none')
@@ -98,8 +114,8 @@ export function passStack(count: number, route: string, k = 1) {
         const v = 8 + i * 3.3
         ;(i % 3 === 1 ? thick : bars).push([at(L - 9, v), at(L - 4, v)])
       }
-      s.segs(bars, 'on-accent', 0.8)
-      s.segs(thick, 'on-accent', 1.6)
+      s.segs(bars, repeat ? 'on-accent' : 'line', 0.8)
+      s.segs(thick, repeat ? 'on-accent' : 'line', 1.6)
       // The body: a plane glyph, the route or printed rules, and a seat box.
       const glyph: Pt[] = [
         [4, 0],
