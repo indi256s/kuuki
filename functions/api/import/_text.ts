@@ -47,7 +47,6 @@ export function parseStructuredText(content: string): ParseResponse | null {
   const flights: ExtractedFlight[] = []
   const rejected: RejectedFlight[] = []
   let records = 0
-  let otherPassenger = false
   let leading = true
   for (const [index, raw] of content.split(/\r?\n/).entries()) {
     const line = raw.trim()
@@ -55,14 +54,8 @@ export function parseStructuredText(content: string): ParseResponse | null {
     if (leading && (VERSION_HEADER.test(line) || FENCE_OPEN.test(line))) continue
     leading = false
     if (FENCE_CLOSE.test(line)) continue
-    if (/^Other-passenger bookings or conflicting ownership \(\d+\)$/i.test(line)) {
-      otherPassenger = true
-      continue
-    }
-    if (/^Partial dates \/ incomplete records \(\d+\)$/i.test(line)) {
-      otherPassenger = false
-      continue
-    }
+    if (/^Other-passenger bookings or conflicting ownership \(\d+\)$/i.test(line)) return null
+    if (/^Partial dates \/ incomplete records \(\d+\)$/i.test(line)) continue
     const notes = [...line.matchAll(/\[([^\]]*)\]/g)].map((match) => match[1]).join('; ')
     const parts = line
       .replace(/\[[^\]]*\]/g, '')
@@ -74,7 +67,7 @@ export function parseStructuredText(content: string): ParseResponse | null {
     const segments = notes.split(';').map((note) => note.trim())
     const uncertainStatus =
       /\?|\bnot\b|possible|unresolved|uncertain|disputed|conflict|outbound|return/i.test(notes)
-    if (otherPassenger || segments.some((note) => /^other passenger$/i.test(note))) continue
+    if (segments.some((note) => /^other passenger$/i.test(note))) continue
     if (
       !uncertainStatus &&
       segments.some((note) =>
@@ -100,6 +93,7 @@ export function parseStructuredText(content: string): ParseResponse | null {
     const date = parts[0].slice(0, 10)
     const yearExplicit = isCalendarDate(date)
     let airline = 'ZZ'
+    let hasAirline = false
     let number: string | undefined
     let departure: string | undefined
     let arrival: string | undefined
@@ -121,6 +115,8 @@ export function parseStructuredText(content: string): ParseResponse | null {
             Date.parse(times[5]) > Date.parse(date) + 2 * 86_400_000
         continue
       }
+      if (hasAirline) return null
+      hasAirline = true
       const flight = part.match(/\b([A-Z0-9]{2})\s*(\d{1,5}[A-Z]?)$/i)
       if (flight) {
         airline = code(flight[1])
@@ -141,7 +137,8 @@ export function parseStructuredText(content: string): ParseResponse | null {
     // Only status or evidence doubt blocks preselection; catalog and year gaps show in field_confidence and the empty fields.
     const review =
       contradictoryArrival ||
-      /conflict|unresolved|unconfirmed|possible|partial booking|email says|cancel|refund|unpaid|supersed|replaced by|passenger|\?/i.test(
+      /\(calendar entry\)/i.test(parts[0]) ||
+      /calendar only|conflict|unresolved|unconfirmed|possible|partial booking|email says|cancel|refund|unpaid|supersed|replaced by|passenger|\?/i.test(
         notes,
       )
     flights.push({

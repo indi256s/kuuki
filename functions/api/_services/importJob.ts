@@ -60,6 +60,7 @@ export function rowOf(flight: ExtractedFlight): DraftRowInput {
     yearExplicit,
     // Uncertain required facts wait for the member's decision.
     selected:
+      (flight.verification === undefined || flight.verification === 'verified') &&
       yearExplicit &&
       isCalendarDate(flight.date) &&
       Boolean(flight.origin && flight.destination) &&

@@ -67,6 +67,7 @@ export function ReviewRow({
   const duplicate = isDuplicate(draft)
   const blocked = readiness(draft)
   const chosen = isChosen(draft)
+  const notVerified = draft.fields.verification && draft.fields.verification !== 'verified'
   const confidence = rowConfidence(draft)
   const low = lowFields(draft)
   const [values, setValues] = useState(() => toValues(draft.fields))
@@ -162,7 +163,11 @@ export function ReviewRow({
         type="checkbox"
         checked={duplicate ? draft.selected && draft.duplicateAcknowledged : chosen}
         disabled={blocked.length > 0 || frozen}
-        aria-describedby={blockText ? `${id}-block` : undefined}
+        aria-describedby={
+          [blockText && `${id}-block`, notVerified && `${id}-verification`]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
         onChange={(event) => toggle(event.target.checked)}
       />
       <span>
@@ -197,6 +202,11 @@ export function ReviewRow({
 
   const notes = (
     <>
+      {notVerified ? (
+        <p className="import-note" id={`${id}-verification`}>
+          {S.notVerified[locale]}
+        </p>
+      ) : null}
       {blockText ? (
         <p className="import-note" id={`${id}-block`}>
           {blockText}

@@ -79,6 +79,14 @@ export const providerFlight = (over: Record<string, unknown> = {}) => ({
 export const providerText = (flights: unknown[], extra: Record<string, unknown> = {}) =>
   JSON.stringify({ flights, ...extra })
 
+export const verifiedAi = {
+  run: async (_model: string, input: { questions: Record<string, unknown> }) => ({
+    answers: Object.fromEntries(
+      Object.keys(input.questions).map((key) => [key, { type: 'noul', noul: 1 }]),
+    ),
+  }),
+} as unknown as Ai
+
 type Who = { id: string; email: string } | null
 const context = (
   db: D1Database,
@@ -89,7 +97,7 @@ const context = (
 ) =>
   ({
     request,
-    env: { GEMINI_API_KEY: 'test', PAGES_ORIGIN: testOrigin, DB: db, ...env },
+    env: { AI: verifiedAi, GEMINI_API_KEY: 'test', PAGES_ORIGIN: testOrigin, DB: db, ...env },
     data: { user },
     params,
     waitUntil() {},

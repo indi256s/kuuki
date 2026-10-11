@@ -1,5 +1,7 @@
 // Shared types and utilities for import API
 
+import type { VerificationStatus } from './_verify'
+
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 
 export interface ExtractedFlight {
@@ -18,6 +20,7 @@ export interface ExtractedFlight {
   enrichment_status?: EnrichmentStatus // Aircraft enrichment state
   airline_was_placeholder?: boolean // Flag when ZZ was auto-applied
   review_required?: boolean // Conflicting or uncertain source evidence: never preselect
+  verification?: VerificationStatus // Server-owned source check; never accepted from extraction output
   field_confidence?: {
     date?: number
     date_year_explicit?: boolean // true if year was in source, false if inferred

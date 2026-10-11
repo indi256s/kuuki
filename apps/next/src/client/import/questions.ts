@@ -173,6 +173,8 @@ const REQUIRED: FieldName[] = ['date', 'origin', 'destination', 'airline_iata']
  * required field the source was unsure about has now been stated by the member.
  */
 function readyAfter(draft: Draft, change: DraftChange, stated: FieldName[]): boolean {
+  // Field answers invalidate source verification; importing remains an explicit choice.
+  if (draft.fields.verification !== undefined) return false
   const fields = { ...draft.fields } as Record<string, unknown>
   for (const [key, value] of Object.entries(change.fields ?? {})) {
     if (value === null) fields[key] = key === 'airline_iata' ? '' : undefined
