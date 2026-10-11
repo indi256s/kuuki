@@ -12,6 +12,13 @@ type Runtime = (typeof import('./turn.generated.js'))['TURN']
 const SPEED = 12
 /** How quickly the turn speeds up after a pause and slows to a stop for one, in seconds (exponential follow). */
 const EASE = 0.7
+/**
+ * Adaptive half rate (the anatomy kit's lever 5): when a drawn frame costs more than SLOW ms of main thread (the
+ * runtime's writes plus the style, layout and paint they cause), draw every other frame; below FAST, every frame again.
+ * The angle stays time-based, so the speed never changes; at 30 fps a step moves the wingtip about 1.3px.
+ */
+const SLOW = 14
+const FAST = 9
 
 /**
  * The brand panel's decoration: the くうき watermark with a 1:200 Concorde display model turning slowly on its stand
@@ -49,6 +56,31 @@ export function ConcordeField() {
     let last = 0
     let frame = 0
     let onScreen = false
+    // A message posted from a tick runs once the browser has finished that frame. It times the frame's rendering and,
+    // at half rate, carries the next drawn frame's writes into the idle frame before it, so neither frame overruns: the
+    // writes are about half of a drawn frame's cost, and the style, layout and paint they cause are the other half.
+    let cost = 0
+    let scriptMs = 0
+    let renderedAt = 0
+    let half = false
+    let drawNext = false
+    let next = 0
+    const write = (at: number) => {
+      const start = performance.now()
+      controller.set({ model: at })
+      scriptMs = performance.now() - start
+    }
+    const after = new MessageChannel()
+    after.port1.onmessage = ({ data }: MessageEvent<'write' | 'measure'>) => {
+      if (data === 'write') {
+        write(next)
+        return
+      }
+      const ms = scriptMs + performance.now() - renderedAt
+      cost = cost ? cost + (ms - cost) * 0.1 : ms
+      if (cost > SLOW) half = true
+      else if (cost < FAST) half = false
+    }
     const wanted = () =>
       onScreen && !document.hidden && !still.matches && !card?.hasAttribute('data-form-focus')
     const tick = (now: number) => {
@@ -57,9 +89,25 @@ export function ConcordeField() {
       const target = wanted() ? SPEED : 0
       speed += (target - speed) * (1 - Math.exp(-dt / (EASE / 3)))
       angle = (angle + speed * dt) % 360
-      controller.set({ model: angle })
       // Off screen or hidden, stop at once; otherwise run until the ease-out has settled.
       const settled = target === 0 && speed < 0.05
+      if (half && !settled) {
+        // Alternate frames: write the next frame's pose (one frame ahead) after this one, then show it.
+        drawNext = !drawNext
+        if (drawNext) {
+          next = (angle + speed * dt) % 360
+          after.port2.postMessage('write')
+        } else {
+          renderedAt = performance.now()
+          after.port2.postMessage('measure')
+        }
+      } else {
+        drawNext = false
+        renderedAt = performance.now()
+        write(angle)
+        scriptMs = 0
+        after.port2.postMessage('measure')
+      }
       frame = settled || !onScreen || document.hidden ? 0 : requestAnimationFrame(tick)
       if (!frame) speed = 0
     }
@@ -80,6 +128,7 @@ export function ConcordeField() {
     still.addEventListener('change', sync)
     return () => {
       cancelAnimationFrame(frame)
+      after.port1.close()
       observer.disconnect()
       focus.disconnect()
       document.removeEventListener('visibilitychange', sync)

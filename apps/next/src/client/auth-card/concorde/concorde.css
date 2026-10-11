@@ -32,6 +32,11 @@
   left: 0;
   right: 0;
   bottom: 24px;
+  /* Its own layer, sized by the stage's aspect so size containment holds: a turning frame restyles, lays out and
+     repaints only this box, never the panel or the page. The drawing stays inside the viewBox at every heading. */
+  aspect-ratio: 420 / 400;
+  contain: strict;
+  will-change: transform;
   opacity: 0;
   transition: opacity var(--dur-moment) var(--ease-out);
 }
@@ -73,7 +78,6 @@
     bottom: 0;
     left: 50%;
     right: auto;
-    aspect-ratio: 420 / 400;
     translate: -50% 0;
   }
 }
