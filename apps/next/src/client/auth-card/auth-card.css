@@ -434,7 +434,7 @@
   cursor: default;
 }
 /* The 24px it grows up must clear the field above, so a field whose label row holds one sits 8px lower (24px, not 16). The create step's hint keeps the same 8px so the field does not jump when the step changes. */
-.auth-field:has(.auth-text-link-up, .auth-field-hint) {
+.auth-field:has(.auth-field-label-row :is(.auth-text-link-up, .auth-field-hint)) {
   margin-top: 8px;
 }
 

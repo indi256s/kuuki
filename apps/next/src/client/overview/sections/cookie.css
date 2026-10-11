@@ -27,9 +27,9 @@
   justify-content: center;
   padding-top: 2px;
 }
-/* The half tiles' figures are 96 (map), 108 (clock) and 112 (tape) tall; bottom-aligned in the tallest's height, their values line up in a row. */
+/* The half tiles' figures are 96 (map), 108 (clock) and 112 (tape) tall; the shared box includes its 2px top padding so their values line up. */
 .ov3-tile[data-tile-span='half'] .ov3-cookie-figure {
-  min-height: 112px;
+  min-height: 114px;
   align-items: flex-end;
 }
 /* Figures are built at the width their tile has at 390px (TILE_FIGURE_WIDTH); this only guards narrower viewports. */

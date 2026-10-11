@@ -11,7 +11,7 @@ All eleven final-review fixes and the podium refinements landed before the Sonne
 - Tape tag plate uses the shared paint mixed toward text. Computed contrast is 6.67–7.23:1 in light and 6.74–9.35:1 in dark across shu, sakura, ai, matcha and asagi.
 - Dawn fades the old Horizon layer over 150ms. Browser animation inspection confirms that fade alongside the 500ms theme sweep.
 - Russian headings reserve two lines at widths where the welcome heading wraps; first-frame measurements cover desktop and phone.
-- Half-tile figures share a 112px bottom-aligned figure area.
+- Half-tile figures share a 114px bottom-aligned figure area, including 2px top padding around the tallest 112px figure.
 - The single-reading clock header takes the shared 60ms-delay/200ms hover pose; reduced motion preserves lighting with no snooze movement.
 - DESIGN.md describes 31 mobile planes and the completed motion contracts.
 
@@ -19,6 +19,6 @@ All eleven final-review fixes and the podium refinements landed before the Sonne
 
 2026-10-11: typecheck, lint (one existing capture/flight-form warning), scoped formatting, 95 unit-test files / 762 tests and the OpenNext production build passed. Fresh isolated Chromium checks used agent-browser; screenshots and logs are under `/tmp/svg-resume-checks/`. Existing batch simulations establish zero plane overlaps over one hour; layout arrays and lap grouping are unchanged by the final fixes.
 
-Sol high completed the final scoped code review with no blockers. The earlier Opus high visual review passed with these small fixes; the requested fresh follow-up could not run because Claude remained rate-limited. Parent verified the final fixes directly.
+Sol high completed the final scoped code review with no blockers. The earlier Opus high visual review passed with small fixes. The fresh follow-up was initially rate-limited, then resumed and identified four remaining defects; their corrections and focused verification are recorded in issue 11.
 
-The full navigation suite completed with 38 passes and one failure in `tests/map.test.ts:4`, the fullscreen globe canvas check: its 30-second test budget expired while reading the fullscreen WebGL layer bounds. A focused retry reached fullscreen but failed at line 46: forcing WebGL context loss did not produce the expected `Globe unavailable.` status within ten seconds. Globe runtime code is outside this candidate; the failure remains open in issue 10 for the combined release owner. No deployment was performed.
+The original navigation suite completed with 38 passes and one failure in `tests/map.test.ts:4`, the fullscreen globe canvas check: its 30-second test budget expired while reading the fullscreen WebGL layer bounds. A focused retry reached fullscreen but failed at line 46: forcing WebGL context loss did not produce the expected `Globe unavailable.` status within ten seconds. The combined release owner resolved the fixture's insufficient timeout budgets in issue 10; globe runtime was unchanged. After the resumed Opus corrections, a fresh build and all 40 navigation tests passed. This thread performed no deployment.

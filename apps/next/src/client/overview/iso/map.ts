@@ -281,7 +281,7 @@ export function foldedMap(from: string, to: string, k = 1, equator = false) {
   // The destination's label stands above the sheet's back-right edge, which would otherwise cut through it.
   for (const [[x, y], code, dy] of [
     [A, from, 3.5],
-    [B, to, -6],
+    [B, to, -14],
   ] as const) {
     const z = zAt(x) + 0.3
     const [, liftY] = s.vector(0, 0, -sinkAt(x))
