@@ -45,6 +45,22 @@
 .gallery-tickets {
   width: 100%;
 }
+.gallery-dock-layout {
+  display: grid;
+  gap: var(--space-3);
+}
+.gallery-dock-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+}
+.gallery-dock-cell {
+  max-inline-size: 100%;
+}
+.gallery-dock-cell .import-dock-host {
+  width: 100%;
+}
 @media (max-width: 700px) {
   :root {
     --toast-bottom-offset: var(--tabbar-h);

@@ -156,6 +156,10 @@ ${PROMPT_EXAMPLE.ru}
     'You can close this page. What is found stays in your Journal under waiting drafts.',
     'Страницу можно закрыть. Найденное останется в Журнале среди ожидающих черновиков.',
   ),
+  progressBound: p(
+    'Go do something else. We’ll wave from the corner when it’s read.',
+    'Займитесь своими делами — помашем из угла, когда дочитаем.',
+  ),
   cancelRun: p('Cancel', 'Отменить'),
   cancelling: p('Cancelling…', 'Отменяем…'),
   cancelFailed: p('Could not cancel. Try again.', 'Не удалось отменить. Попробуйте ещё раз.'),
@@ -481,6 +485,21 @@ ${PROMPT_EXAMPLE.ru}
   ),
 } as const
 
+/** The floating import dock in the member shell. Counts are in COUNTS. */
+export const DOCK = {
+  label: p('Imports', 'Импорт'),
+  reading: p('Reading {label}', 'Читаем {label}'),
+  readingSub: p('Go do something else. We’ll wave.', 'Займитесь своими делами — помашем.'),
+  review: p('Review', 'Проверить'),
+  tryAgain: p('Try again', 'Ещё раз'),
+  yourFile: p('your file', 'ваш файл'),
+  yourText: p('your text', 'ваш текст'),
+  hide: p('Hide', 'Скрыть'),
+  open: p('Show imports', 'Показать импорт'),
+  cancelReading: p('Cancel reading', 'Остановить чтение'),
+  recent: p('Found last', 'Последние найденные'),
+}
+
 export type Key = keyof typeof S
 export const tx = (locale: Locale, key: Key): string => S[key][locale]
 
@@ -680,6 +699,40 @@ export const COUNTS = {
       many: '{count} перелётов уже сохранены',
       other: '{count} перелёта уже сохранены',
     },
+  },
+  foundShort: {
+    en: { one: '{count} found', other: '{count} found' },
+    ru: {
+      one: 'Найдено: {count}',
+      few: 'Найдено: {count}',
+      many: 'Найдено: {count}',
+      other: 'Найдено: {count}',
+    },
+  },
+  allSorted: {
+    en: { one: '{count} flight, all sorted.', other: '{count} flights, all sorted.' },
+    ru: {
+      one: '{count} перелёт, всё ясно.',
+      few: '{count} перелёта, всё ясно.',
+      many: '{count} перелётов, всё ясно.',
+      other: '{count} перелёта, всё ясно.',
+    },
+  },
+  stoppedKept: {
+    en: {
+      one: 'Stopped early. {count} flight kept.',
+      other: 'Stopped early. {count} flights kept.',
+    },
+    ru: {
+      one: 'Остановились раньше. Сохранили {count}.',
+      few: 'Остановились раньше. Сохранили {count}.',
+      many: 'Остановились раньше. Сохранили {count}.',
+      other: 'Остановились раньше. Сохранили {count}.',
+    },
+  },
+  more: {
+    en: { one: '+{count}', other: '+{count}' },
+    ru: { one: '+{count}', few: '+{count}', many: '+{count}', other: '+{count}' },
   },
 } satisfies Record<string, CountForms>
 

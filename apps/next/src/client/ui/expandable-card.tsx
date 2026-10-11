@@ -53,8 +53,8 @@ function RollingText({ text }: { text: string }) {
 export interface ExpandableCardProps {
   /** The one-line summary. */
   title: ReactNode
-  /** A second line; changed words rise in place. */
-  description?: string
+  /** A second line. As a string, its changed words rise in place; a node (a rolling count) renders as given. */
+  description?: ReactNode
   /** Leading mark inside the header button. */
   icon?: ReactNode
   /** Controls beside the header button (an action, a dismiss). */
@@ -67,8 +67,6 @@ export interface ExpandableCardProps {
   direction?: 'down' | 'up'
   /** When set, the header calls this instead of opening the panel (it opens a sheet or dialog). */
   onTrigger?: () => void
-  /** Accessible name of the header when it opens something else. */
-  triggerLabel?: string
   className?: string
 }
 
@@ -83,7 +81,6 @@ export function ExpandableCard({
   onExpandedChange,
   direction = 'down',
   onTrigger,
-  triggerLabel,
   className,
 }: ExpandableCardProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultExpanded)
@@ -101,6 +98,22 @@ export function ExpandableCard({
     trigger.current?.focus()
   }
 
+  // With nothing to open, the header is plain content rather than a button that does nothing.
+  const opens = Boolean(children) || Boolean(onTrigger)
+  const summary = (
+    <>
+      {icon ? <span className="ui-xcard-icon">{icon}</span> : null}
+      <span className="ui-xcard-copy">
+        <span className="ui-xcard-title">{title}</span>
+        {description ? (
+          <span className="ui-xcard-description">
+            {typeof description === 'string' ? <RollingText text={description} /> : description}
+          </span>
+        ) : null}
+      </span>
+    </>
+  )
+
   return (
     <div
       className={clsx('ui-xcard', className)}
@@ -109,31 +122,26 @@ export function ExpandableCard({
       onKeyDown={onKeyDown}
     >
       <div className="ui-xcard-head">
-        <button
-          ref={trigger}
-          type="button"
-          className="ui-xcard-trigger"
-          aria-label={onTrigger ? triggerLabel : undefined}
-          aria-haspopup={onTrigger ? 'dialog' : undefined}
-          aria-expanded={onTrigger ? undefined : expanded}
-          aria-controls={onTrigger || !children ? undefined : panelId}
-          onClick={() => (onTrigger ? onTrigger() : toggle(!expanded))}
-        >
-          {icon ? <span className="ui-xcard-icon">{icon}</span> : null}
-          <span className="ui-xcard-copy">
-            <span className="ui-xcard-title">{title}</span>
-            {description ? (
-              <span className="ui-xcard-description">
-                <RollingText text={description} />
-              </span>
-            ) : null}
-          </span>
-          {children || onTrigger ? (
+        {opens ? (
+          <button
+            ref={trigger}
+            type="button"
+            className="ui-xcard-trigger"
+            aria-haspopup={onTrigger ? 'dialog' : undefined}
+            aria-expanded={onTrigger ? undefined : expanded}
+            aria-controls={onTrigger ? undefined : panelId}
+            onClick={() => (onTrigger ? onTrigger() : toggle(!expanded))}
+          >
+            {summary}
             <span className="ui-xcard-chevron" aria-hidden="true">
               <ChevronIcon state={expanded} size={18} strokeWidth={2} />
             </span>
-          ) : null}
-        </button>
+          </button>
+        ) : (
+          <div className="ui-xcard-trigger" data-static="true">
+            {summary}
+          </div>
+        )}
         {actions ? <div className="ui-xcard-actions">{actions}</div> : null}
       </div>
       {children && !onTrigger ? (

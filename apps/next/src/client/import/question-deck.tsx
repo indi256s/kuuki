@@ -17,6 +17,7 @@ import {
   answerRestore,
   answerYear,
   buildQuestions,
+  localToday,
   monthDayOf,
   questionDrafts,
   type Endpoint,
@@ -48,11 +49,6 @@ export function formatMonthDay(locale: Locale, monthDay: { month: number; day: n
   return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(
     new Date(Date.UTC(2000, monthDay.month - 1, monthDay.day, 12)),
   )
-}
-
-export const localToday = () => {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
 export function QuestionDeck({

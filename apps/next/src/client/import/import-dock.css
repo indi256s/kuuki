@@ -1,0 +1,239 @@
+/* The import dock in the toast region. Enter and leave use opacity and transform; while idle only the shimmer and the
+   reading spinner (a composited rotation) move. Space groups the rows: no divider lines. */
+.import-dock-host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+@media (min-width: 700px) {
+  .import-dock-host {
+    width: 320px;
+  }
+}
+.import-dock {
+  width: 100%;
+  animation: import-dock-in var(--dur-sheet) var(--ease-out) both;
+}
+.import-dock[data-state='closed'] {
+  pointer-events: none;
+  animation: import-dock-out var(--dur-base) var(--ease-out) both;
+}
+@keyframes import-dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes import-dock-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.import-dock-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.import-dock-title > .ui-shimmer {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.import-dock-more {
+  flex: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* The leading mark: one layer per state, crossfaded. */
+.import-dock-mark {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+}
+.import-dock-mark-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.import-dock-mark-layer[data-on='true'] {
+  opacity: 1;
+  transform: none;
+}
+.import-dock-spinner::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid var(--control-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+}
+.import-dock-spinner[data-on='true']::before {
+  animation: import-dock-spin 900ms linear infinite;
+}
+@keyframes import-dock-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.import-dock-badge .ui-slot-text {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+}
+.import-dock-mark[data-kind='sorted'] {
+  color: var(--success-text);
+}
+.import-dock-mark[data-kind='failed'] {
+  color: var(--danger-text);
+}
+.import-dock-mark[data-kind='stopped'] {
+  color: var(--warning-text);
+}
+
+.import-dock-action {
+  white-space: nowrap;
+}
+.import-dock-hide.ui-icon-button {
+  margin: 0;
+}
+
+/* Detail: opens upward in the card, or fills the phone sheet. */
+.import-dock-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-xcard .import-dock-list {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+.import-dock-run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.import-dock-run-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.import-dock-run-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.import-dock-run-line,
+.import-dock-run-label {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.import-dock-run-line {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+.import-dock-run-label,
+.import-dock-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.import-dock-stages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  list-style: none;
+}
+.import-dock-stages li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.import-dock-stages li[data-state='active'] {
+  color: var(--text);
+}
+.import-dock-stages li[data-state='done'] .import-dock-stage-marker {
+  color: var(--success-text);
+}
+.import-dock-stage-marker {
+  display: inline-flex;
+}
+.import-dock-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 18px;
+  list-style: none;
+}
+.import-dock-cancel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.import-dock-problem {
+  margin: 0;
+  color: var(--danger-text);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .import-dock,
+  .import-dock[data-state='closed'] {
+    animation-name: import-dock-fade;
+    animation-duration: var(--dur-fast);
+    animation-timing-function: linear;
+  }
+  .import-dock[data-state='closed'] {
+    animation-direction: reverse;
+  }
+  .import-dock-mark-layer {
+    transform: none;
+    transition: opacity var(--dur-fast) linear;
+  }
+  .import-dock-spinner[data-on='true']::before {
+    animation: none;
+  }
+}
+@keyframes import-dock-fade {
+  from {
+    opacity: 0;
+  }
+}

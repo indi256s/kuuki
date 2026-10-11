@@ -152,6 +152,20 @@ export const questionDrafts = (question: Question): Draft[] =>
     ? [...new Map(question.items.map((item) => [item.draft.id, item.draft])).values()]
     : question.drafts
 
+/** Review rows still waiting on a question; skipped and answered ones have no open cause left. */
+export const needCount = (drafts: Draft[], today: string) =>
+  new Set(
+    buildQuestions(drafts, today).flatMap((question) =>
+      questionDrafts(question).map((draft) => draft.id),
+    ),
+  ).size
+
+/** The member's calendar day (YYYY-MM-DD), the anchor for year suggestions. */
+export const localToday = () => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
 const REQUIRED: FieldName[] = ['date', 'origin', 'destination', 'airline_iata']
 
 /**

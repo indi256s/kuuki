@@ -11,7 +11,13 @@ import type { Batch, BatchStage, Draft } from './import-types'
 
 const ORDER: BatchStage[] = ['accepted', 'recognizing', 'validating', 'review_ready']
 /** The stages shown; `review_ready` is the hand-off to the review page, not a step of its own. */
-const SHOWN = ORDER.slice(0, 3)
+export const SHOWN = ORDER.slice(0, 3)
+export type StageState = 'done' | 'active' | 'pending'
+/** Where the shown stage at `position` stands while the batch is at `stage`. */
+export function stageState(position: number, stage: BatchStage | null): StageState {
+  const index = ORDER.indexOf(stage ?? 'accepted')
+  return position < index ? 'done' : position === index ? 'active' : 'pending'
+}
 
 /** Spoken progress: every stage change at once, found counts at most every few seconds, and the last one when it settles. */
 function useAnnouncement(stage: BatchStage | null, found: number, locale: Locale): string {
@@ -89,7 +95,7 @@ export function ProgressStep({
       </div>
       <ol className="import-stages" aria-label={S.stagesLabel[locale]}>
         {SHOWN.map((name, position) => {
-          const state = position < index ? 'done' : position === index ? 'active' : 'pending'
+          const state = stageState(position, stage)
           const Icon = state === 'done' ? Check : state === 'active' ? LoaderCircle : Circle
           return (
             <li

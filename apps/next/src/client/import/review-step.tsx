@@ -13,8 +13,8 @@ import type { DraftChange, SaveState } from './draft-saver'
 import type { Failure } from './import-errors'
 import type { Draft } from './import-types'
 import { ManualRow } from './manual-row'
-import { QuestionDeck, localToday } from './question-deck'
-import { buildQuestions, questionDrafts } from './questions'
+import { QuestionDeck } from './question-deck'
+import { localToday, needCount } from './questions'
 import { flightIdentity, newManualRow, type ManualRowState } from './manual-save'
 import { ReviewRow } from './review-row'
 import {
@@ -111,15 +111,7 @@ export function ReviewStep(props: ReviewStepProps) {
   const unsaved = Object.keys(saveStates).length > 0 || dirty.size > 0
   const everySelected = selectable.length > 0 && selectable.every(isChosen)
   // Flights still waiting on a question: skipped and answered ones have no open cause left.
-  const need = useMemo(
-    () =>
-      new Set(
-        buildQuestions(shown, today ?? localToday()).flatMap((question) =>
-          questionDrafts(question).map((draft) => draft.id),
-        ),
-      ).size,
-    [shown, today],
-  )
+  const need = useMemo(() => needCount(shown, today ?? localToday()), [shown, today])
   const inReview = groups.active.length + groups.duplicates.length
   const asking = !partial && need > 0
   useEffect(() => {
