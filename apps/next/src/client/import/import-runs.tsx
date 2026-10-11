@@ -16,6 +16,7 @@ import {
   createBatchRun,
   defaultBatchApi,
   isReading,
+  sourceOf,
   type BatchApi,
   type BatchRun,
   type BatchState,
@@ -28,16 +29,26 @@ export interface RunEntry {
   viewed: boolean
 }
 
-/** Runs that end with nothing to look at leave without a word: a cancel that kept no rows, or an expired batch. */
+/**
+ * Runs that end with nothing to look at leave without a word: a cancel that kept no rows, an expired batch, or a
+ * finished batch with no rows left in review.
+ */
 const silent = (state: BatchState) =>
-  state.phase === 'cancelled' || state.phase === 'idle' || state.failure?.kind === 'expired'
+  state.phase === 'cancelled' ||
+  state.phase === 'idle' ||
+  state.failure?.kind === 'expired' ||
+  (state.phase === 'ready' && !state.partial && !state.drafts.some((d) => d.status === 'review'))
+
+interface Held {
+  views: number
+  reading: boolean
+  unsubscribe: () => void
+}
 
 export class ImportRuns {
   readonly api: BatchApi
-  private runs: BatchRun[] = []
-  private views = new Map<BatchRun, number>()
-  private unsubscribe = new Map<BatchRun, () => void>()
-  private reading = new Map<BatchRun, boolean>()
+  /** Every run this tab follows, in the order it started following them. */
+  private runs = new Map<BatchRun, Held>()
   /** Every batch this tab has held: a stale awaiting read never brings back a run that ended or was dismissed. */
   private seen = new Set<string>()
   private listeners = new Set<() => void>()
@@ -62,7 +73,8 @@ export class ImportRuns {
   }
 
   find(batchId: string) {
-    return this.runs.find((run) => run.batchId() === batchId) ?? null
+    for (const run of this.runs.keys()) if (run.batchId() === batchId) return run
+    return null
   }
 
   /** Follow batches the server is still reading. Batches already in review are the header queue's, not the dock's. */
@@ -77,10 +89,11 @@ export class ImportRuns {
     for (const draft of drafts) {
       if (draft.status !== 'processing' || this.seen.has(draft.batchId) || this.find(draft.batchId))
         continue
-      const run = createBatchRun(this.api, draft.batchId, {
-        type: draft.sourceType === 'text' ? 'text' : 'file',
-        label: draft.sourceLabel,
-      })
+      const run = createBatchRun(
+        this.api,
+        draft.batchId,
+        sourceOf(draft.sourceType, draft.sourceLabel),
+      )
       this.add(run)
       run.open()
     }
@@ -88,15 +101,14 @@ export class ImportRuns {
 
   /** A page shows `run` until the returned release. A run still being read when the page lets go stays with the dock. */
   view(run: BatchRun) {
-    this.add(run)
-    this.views.set(run, (this.views.get(run) ?? 0) + 1)
+    this.add(run).views++
     this.publish()
     return () => {
-      const left = (this.views.get(run) ?? 1) - 1
-      if (left > 0) this.views.set(run, left)
-      else this.views.delete(run)
+      const held = this.runs.get(run)
+      if (!held) return
+      held.views = Math.max(0, held.views - 1)
       // Opening a finished run's review is what clears it from the dock.
-      if (left <= 0 && !isReading(run.getState().phase)) this.remove(run)
+      if (held.views === 0 && !isReading(run.getState().phase)) this.remove(run)
       else this.publish()
     }
   }
@@ -109,30 +121,30 @@ export class ImportRuns {
 
   /** Drops every run. A remount (Strict Mode, a new owner) starts clean and seeds again. */
   dispose() {
-    for (const run of [...this.runs]) this.remove(run)
+    for (const run of [...this.runs.keys()]) this.remove(run)
     this.seen.clear()
   }
 
-  private add(run: BatchRun) {
-    if (this.runs.includes(run)) return
-    this.runs = [...this.runs, run]
-    this.reading.set(run, isReading(run.getState().phase))
-    this.unsubscribe.set(
-      run,
-      run.subscribe(() => this.changed(run)),
-    )
+  private add(run: BatchRun): Held {
+    const known = this.runs.get(run)
+    if (known) return known
+    const held: Held = {
+      views: 0,
+      reading: isReading(run.getState().phase),
+      unsubscribe: run.subscribe(() => this.changed(run)),
+    }
+    this.runs.set(run, held)
     this.note(run)
     this.publish()
+    return held
   }
 
   private remove(run: BatchRun) {
-    if (!this.runs.includes(run)) return
-    this.unsubscribe.get(run)?.()
-    this.unsubscribe.delete(run)
-    this.reading.delete(run)
-    this.views.delete(run)
+    const held = this.runs.get(run)
+    if (!held) return
+    held.unsubscribe()
+    this.runs.delete(run)
     run.dispose()
-    this.runs = this.runs.filter((item) => item !== run)
     this.publish()
   }
 
@@ -142,21 +154,22 @@ export class ImportRuns {
   }
 
   private changed(run: BatchRun) {
+    const held = this.runs.get(run)
+    if (!held) return
     this.note(run)
     const state = run.getState()
-    const was = this.reading.get(run) ?? false
-    const now = isReading(state.phase)
-    this.reading.set(run, now)
-    if (was && !now) this.onTerminal()
-    if (!this.views.has(run) && silent(state)) this.remove(run)
+    const was = held.reading
+    held.reading = isReading(state.phase)
+    if (was && !held.reading) this.onTerminal()
+    if (held.views === 0 && silent(state)) this.remove(run)
     else this.publish()
   }
 
   private publish() {
-    this.entries = this.runs.map((run) => ({
+    this.entries = [...this.runs].map(([run, held]) => ({
       run,
       state: run.getState(),
-      viewed: this.views.has(run),
+      viewed: held.views > 0,
     }))
     this.listeners.forEach((listener) => listener())
   }

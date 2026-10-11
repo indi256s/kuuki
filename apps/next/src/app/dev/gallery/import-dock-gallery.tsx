@@ -69,8 +69,6 @@ function fixtures(locale: Locale, found: number): Record<DockKind, DockItem> {
   }
 }
 
-const KINDS: DockKind[] = ['reading', 'need', 'sorted', 'stopped', 'failed']
-
 export function ImportDockGallery({ locale }: { locale: Locale }) {
   const [found, setFound] = useState(3)
   const items = fixtures(locale, found)
@@ -91,7 +89,7 @@ export function ImportDockGallery({ locale }: { locale: Locale }) {
         <div key={layout.name} className="gallery-dock-layout">
           <h3>{layout.name}</h3>
           <div className="gallery-dock-grid">
-            {[...KINDS.map((kind) => [items[kind]]), several].map((list) => (
+            {[...Object.values(items).map((item) => [item]), several].map((list) => (
               <div
                 key={list.map((item) => item.key).join('+')}
                 className="gallery-dock-cell"

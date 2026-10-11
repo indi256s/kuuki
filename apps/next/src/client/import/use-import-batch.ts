@@ -13,8 +13,6 @@ import {
   type BatchRun,
 } from './batch-run'
 import { useImportRunsStore } from './import-runs'
-import type { ImportSource } from './import-api'
-import type { Draft } from './import-types'
 
 export { defaultBatchApi, type BatchApi, type BatchState, type Phase } from './batch-run'
 
@@ -74,14 +72,9 @@ export function useImportBatch({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, store])
 
-  const start = useCallback(
-    (source: ImportSource, operationId: string) => run.start(source, operationId),
-    [run],
-  )
   const seen = state.batch?.id ?? initialBatchId ?? null
   const reload = useCallback(() => run.reload(seen), [run, seen])
-  const setDraft = useCallback((next: Draft) => run.setDraft(next), [run])
-  const reset = useCallback(() => run.reset(), [run])
 
-  return { ...state, start, reload, setDraft, reset }
+  // The run's own methods are stable for its lifetime.
+  return { ...state, start: run.start, reload, setDraft: run.setDraft, reset: run.reset }
 }

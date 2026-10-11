@@ -13,18 +13,21 @@ import './expandable-card.css'
 // open state can be controlled, and `onTrigger` lets the header open something else (the phone sheet) instead. The
 // upstream inset divider and tinted panel are gone: space groups the rows.
 
-type Fresh = { text: string; keys: Set<string>; fresh: Set<string> }
-const wordsOf = (text: string) => text.split(/(\s+)/).map((word, index) => `${index}:${word}`)
+type Rolled = { text: string; keys: Set<string>; fresh: Set<string> }
+/** Each word with a key of its position and text, so an unchanged word keeps its node and never replays. */
+const wordsOf = (text: string) =>
+  text.split(/(\s+)/).map((word, index) => ({ key: `${index}:${word}`, word }))
 
 function RollingText({ text }: { text: string }) {
-  const [state, setState] = useState<Fresh>(() => ({
+  const [state, setState] = useState<Rolled>(() => ({
     text,
-    keys: new Set(wordsOf(text)),
+    keys: new Set(wordsOf(text).map((word) => word.key)),
     fresh: new Set(),
   }))
+  const words = wordsOf(text)
   let current = state
   if (state.text !== text) {
-    const keys = wordsOf(text)
+    const keys = words.map((word) => word.key)
     current = {
       text,
       keys: new Set(keys),
@@ -36,13 +39,13 @@ function RollingText({ text }: { text: string }) {
     <span className="ui-xcard-roll">
       <span className="sr-only">{text}</span>
       <span aria-hidden="true">
-        {wordsOf(text).map((key) => (
+        {words.map(({ key, word }) => (
           <span
             key={key}
             className="ui-xcard-word"
             data-roll={current.fresh.has(key) ? 'true' : undefined}
           >
-            {key.slice(key.indexOf(':') + 1)}
+            {word}
           </span>
         ))}
       </span>

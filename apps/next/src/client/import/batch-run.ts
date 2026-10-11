@@ -120,7 +120,7 @@ export interface BatchRun {
   dispose: () => void
 }
 
-const sourceOf = (type: Batch['sourceType'] | ImportSource['type'], label?: string | null) => ({
+export const sourceOf = (type: string, label?: string | null): RunSource => ({
   type: type === 'text' ? ('text' as const) : ('file' as const),
   label: label ?? null,
 })
@@ -203,15 +203,11 @@ export function createBatchRun(
       try {
         const answer = await api.submit(input, operationId, own.signal)
         if (own.signal.aborted) return
-        if ('batchId' in answer) {
-          activeBatchId = answer.batchId
-          idListeners.forEach((listener) => listener(answer.batchId))
-          watch(answer.batchId)
-          return
-        }
-        activeBatchId = answer.batch.id
-        idListeners.forEach((listener) => listener(answer.batch.id))
-        if (answer.batch.status === 'processing') watch(answer.batch.id)
+        // A 202 names the batch to watch; an answer read inside the request is already its snapshot.
+        const id = 'batchId' in answer ? answer.batchId : answer.batch.id
+        activeBatchId = id
+        idListeners.forEach((listener) => listener(id))
+        if ('batchId' in answer || answer.batch.status === 'processing') watch(id)
         else set(fromSnapshot(answer))
       } catch (error) {
         if (own.signal.aborted) return

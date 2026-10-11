@@ -43,7 +43,7 @@ export interface DockItem {
   actionLabel: string | null
 }
 
-export type CancelState = 'busy' | 'failed' | 'readFailed'
+type CancelState = 'busy' | 'failed' | 'readFailed'
 
 /** Needs-you (and stopped, which also waits on a review) first, then failed, reading, and sorted last. */
 const URGENCY: Record<DockKind, number> = { need: 0, stopped: 0, failed: 1, reading: 2, sorted: 3 }
@@ -100,7 +100,6 @@ export function itemOf(
       href: review,
       actionLabel: DOCK.review[locale],
     }
-  if (total === 0) return null
   const need = needCount(state.drafts, today)
   return {
     ...base,
@@ -308,12 +307,19 @@ export function ImportDockView({
     )
     return () => window.clearTimeout(timer)
   }, [current.leaving])
-  if (!open && (expanded || sheet)) {
+  const shown = open ? items : current.leaving
+  // Nothing left to open (the dock is leaving, or a lone finished run remains): forget an open panel or sheet.
+  const openable = open && (items.length > 1 || items[0].kind === 'reading')
+  if (!openable && (expanded || sheet)) {
     setExpanded(false)
     setSheet(false)
   }
+  const act = (target: DockItem) => {
+    setExpanded(false)
+    setSheet(false)
+    onAction?.(target)
+  }
 
-  const shown = open ? items : current.leaving
   const status = (
     <div className="sr-only" role="status" aria-live="polite">
       {announcement}
@@ -345,21 +351,12 @@ export function ImportDockView({
           cancel={cancel}
           onCancel={onCancel}
           onDismiss={onDismiss}
-          onAction={(target) => {
-            setExpanded(false)
-            setSheet(false)
-            onAction?.(target)
-          }}
+          onAction={act}
         />
       ))}
     </ul>
   )
   const opens = several || reading
-  // A lone finished run has nothing to open: forget an open panel or sheet so it never comes back open by surprise.
-  if (!opens && (expanded || sheet)) {
-    setExpanded(false)
-    setSheet(false)
-  }
   const card = (
     <section
       className="import-dock"
@@ -388,15 +385,7 @@ export function ImportDockView({
         }
         actions={
           several ? null : (
-            <Actions
-              item={lead}
-              locale={locale}
-              onDismiss={onDismiss}
-              onAction={(target) => {
-                setExpanded(false)
-                onAction?.(target)
-              }}
-            />
+            <Actions item={lead} locale={locale} onDismiss={onDismiss} onAction={act} />
           )
         }
       >
@@ -434,6 +423,18 @@ const keyOf = (run: BatchRun) => {
   return key
 }
 
+/** One item per run state and locale: a change to one run never rebuilds the others' review counts. States are immutable. */
+const itemCache: Record<Locale, WeakMap<RunEntry['state'], DockItem | null>> = {
+  en: new WeakMap(),
+  ru: new WeakMap(),
+}
+function cachedItem(entry: RunEntry, locale: Locale, today: string) {
+  const cache = itemCache[locale]
+  if (!cache.has(entry.state))
+    cache.set(entry.state, itemOf(entry, keyOf(entry.run), locale, today))
+  return cache.get(entry.state) ?? null
+}
+
 /** Mounted inside the shell's import runs: shows every run no page is showing. */
 export function ImportDock({ locale }: { locale: Locale }) {
   const store = useImportRunsStore()
@@ -443,7 +444,7 @@ export function ImportDock({ locale }: { locale: Locale }) {
     const today = localToday()
     return byUrgency(
       docked.flatMap((entry) => {
-        const item = itemOf(entry, keyOf(entry.run), locale, today)
+        const item = cachedItem(entry, locale, today)
         return item ? [item] : []
       }),
     )
