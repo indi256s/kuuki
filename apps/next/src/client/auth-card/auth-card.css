@@ -51,7 +51,7 @@
   inset: 0;
   pointer-events: none;
 }
-/* Watermark: く, う, き stacked one per line on desktop (board 1.1), in a row across the band on mobile. */
+/* The くうき watermark behind the brand field: stacked one per line on desktop (board 1.1), in a row across the band on mobile. */
 .auth-watermark {
   position: absolute;
   left: 0;
