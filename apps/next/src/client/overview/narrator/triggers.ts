@@ -1,6 +1,7 @@
 import { isEmptyFilter, routeArrow } from '@kuuki/shared/overview/filter'
 import type { OverviewScope } from '@kuuki/shared/overview/figures'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
+import { calendarDay } from '@kuuki/shared/overview/next'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 
 export type NarratorSlot = SectionId | 'globe' | 'firstRun' | 'zero'
@@ -77,6 +78,54 @@ export const TRIGGERS: Trigger[] = [
       return v.longestStreakMonths > 1 ? { months: v.longestStreakMonths } : null
     },
   },
+  {
+    id: 'records:southernmost',
+    slot: 'records',
+    priority: 92,
+    when: (scope) => {
+      if (scope.records.status !== 'ready') return null
+      const ref = scope.records.value.southernmost
+      return ref && ref.lat <= -30
+        ? { code: ref.iata, lat: Math.round(Math.abs(ref.lat) * 10) / 10 }
+        : null
+    },
+  },
+  {
+    id: 'records:shortest-duration',
+    slot: 'records',
+    priority: 85,
+    when: (scope) => {
+      if (scope.records.status !== 'ready') return null
+      const ref = scope.records.value.shortestDuration
+      return ref && ref.value > 0 && ref.value < 60 ? { minutes: ref.value } : null
+    },
+  },
+  {
+    id: 'records:biggest-clock-jump',
+    slot: 'records',
+    priority: 95,
+    when: (scope) => {
+      if (scope.records.status !== 'ready') return null
+      const ref = scope.records.value.biggestClockJump
+      return ref && Math.abs(ref.value) >= 300
+        ? { hours: Math.round(Math.abs(ref.value) / 6) / 10 }
+        : null
+    },
+  },
+  {
+    id: 'records:latest-departure',
+    slot: 'records',
+    priority: 88,
+    when: (scope) => {
+      if (scope.records.status !== 'ready') return null
+      const ref = scope.records.value.latestDeparture
+      return ref && ref.depMinute >= 1320
+        ? {
+            time: `${String(Math.floor(ref.depMinute / 60)).padStart(2, '0')}:${String(ref.depMinute % 60).padStart(2, '0')}`,
+          }
+        : null
+    },
+  },
   // Ready Crossings; dateLine exactly zero. Claim limited to crossings recorded by this card in the current view.
   // A fallback: Crossings often ends the page, and an absence is a weak last line when the clocks did move.
   {
@@ -111,11 +160,31 @@ export const TRIGGERS: Trigger[] = [
       return v.forwardHours > v.backHours ? { forward: v.forwardHours, back: v.backHours } : null
     },
   },
+  {
+    id: 'crossings:mostly-backwards',
+    slot: 'crossings',
+    priority: 92,
+    when: (scope) => {
+      if (scope.crossings.status !== 'ready') return null
+      const v = scope.crossings.value
+      return v.backHours > 2 * v.forwardHours ? { back: v.backHours } : null
+    },
+  },
+  {
+    id: 'crossings:arctic-circle',
+    slot: 'crossings',
+    priority: 95,
+    when: (scope) => {
+      if (scope.crossings.status !== 'ready') return null
+      const count = scope.crossings.value.arcticCircle
+      return count >= 1 ? { count } : null
+    },
+  },
   // Ready Makers; Airbus positive, strictly above every other known maker; Boeing positive. Unknown excluded only from leader comparison, not recast as known.
   {
     id: 'manufacturers:airbus-boeing',
     slot: 'aircraft',
-    priority: 100,
+    priority: 75,
     when: (scope) => {
       if (scope.makers.status !== 'ready') return null
       const v = scope.makers.value
@@ -157,7 +226,7 @@ export const TRIGGERS: Trigger[] = [
   {
     id: 'fleet:narrow-majority',
     slot: 'aircraft',
-    priority: 100,
+    priority: 65,
     when: (scope) => {
       if (scope.fleet.status !== 'ready') return null
       const v = scope.fleet.value
@@ -191,6 +260,65 @@ export const TRIGGERS: Trigger[] = [
       if (scope.fleet.status !== 'ready') return null
       const v = scope.fleet.value
       return v.untyped > 0 ? { untyped: v.untyped, total: v.total } : null
+    },
+  },
+  // Ready Fleet; untyped flights outnumber half of all scoped flights, so the fleet is a sample. No numbers: the caption prints "Based on N of M".
+  {
+    id: 'aircraft:sample',
+    slot: 'aircraft',
+    priority: 110,
+    when: (scope) => {
+      if (scope.fleet.status !== 'ready') return null
+      const v = scope.fleet.value
+      return v.untyped > v.total / 2 ? {} : null
+    },
+  },
+  // Ready Fleet; no untyped flights and at least five scoped flights. Every flight has its aircraft; no numbers.
+  {
+    id: 'aircraft:full',
+    slot: 'aircraft',
+    priority: 105,
+    when: (scope) => {
+      if (scope.fleet.status !== 'ready') return null
+      const v = scope.fleet.value
+      return v.untyped === 0 && v.total >= 5 ? {} : null
+    },
+  },
+  // Ready Fleet; at most two distinct types across at least five typed flights. types is distinct ICAO types, typed is flights with a type.
+  {
+    id: 'fleet:few-types',
+    slot: 'aircraft',
+    priority: 98,
+    when: (scope) => {
+      if (scope.fleet.status !== 'ready') return null
+      const v = scope.fleet.value
+      return v.types <= 2 && v.typed >= 5 ? { types: v.types, typed: v.typed } : null
+    },
+  },
+  // Ready Fleet; at least one widebody flight, but under 20% of typed flights. wide is the byBodyType widebody count, typed excludes untyped.
+  {
+    id: 'fleet:widebody-minority',
+    slot: 'aircraft',
+    priority: 85,
+    when: (scope) => {
+      if (scope.fleet.status !== 'ready') return null
+      const v = scope.fleet.value
+      const wide = v.byBodyType.find((row) => row.key === 'widebody')?.flights ?? 0
+      return wide >= 1 && wide < v.typed * 0.2 ? { wide, typed: v.typed } : null
+    },
+  },
+  // Ready Fleet; topFamily flights are at least half of typed flights. percent is a whole number of typed, not all scoped, flights.
+  {
+    id: 'fleet:family-majority',
+    slot: 'aircraft',
+    priority: 80,
+    when: (scope) => {
+      if (scope.fleet.status !== 'ready') return null
+      const v = scope.fleet.value
+      const family = v.topFamily
+      return family && v.typed > 0 && family.flights >= v.typed / 2
+        ? { family: family.family, percent: Math.round((family.flights / v.typed) * 100) }
+        : null
     },
   },
   // Ready Routes; commuter (distinct/flights <= 0.5) or explorer (>= 0.8) profile with at least two distinct routes, so counts stay plural.
@@ -229,6 +357,62 @@ export const TRIGGERS: Trigger[] = [
       return share !== null && share >= 0.5 ? { percent: Math.round(share * 100) } : null
     },
   },
+  // Ready Routes; share includes every flight on routes used at least twice, including their first flight.
+  {
+    id: 'routes:repeat-share',
+    slot: 'routes',
+    priority: 85,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const share = scope.routes.value.repeatShare
+      return share >= 0.6 ? { percent: Math.round(share * 100) } : null
+    },
+  },
+  {
+    id: 'routes:mixed-profile',
+    slot: 'routes',
+    priority: 82,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const v = scope.routes.value
+      return v.profile === 'mixed' ? { flights: v.flights, distinct: v.distinct } : null
+    },
+  },
+  // Latest active scoped year only; a lone flight does not send the search back to an older year.
+  {
+    id: 'routes:all-new-year',
+    slot: 'routes',
+    priority: 98,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const year = scope.routes.value.byYear.filter((row) => row.flights > 0).at(-1)
+      return year && year.flights >= 2 && year.newRoutes === year.flights
+        ? { year: String(year.year), flights: year.flights }
+        : null
+    },
+  },
+  {
+    id: 'routes:nothing-new-year',
+    slot: 'routes',
+    priority: 96,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const year = scope.routes.value.byYear.filter((row) => row.flights > 0).at(-1)
+      return year && year.flights >= 2 && year.newRoutes === 0
+        ? { year: String(year.year), flights: year.flights }
+        : null
+    },
+  },
+  {
+    id: 'routes:home-on-margin',
+    slot: 'routes',
+    priority: 92,
+    when: (scope) => {
+      if (scope.routes.status !== 'ready') return null
+      const share = scope.routes.value.homeShare
+      return share !== null && share < 0.25 ? { percent: Math.round(share * 100) } : null
+    },
+  },
   // Ready Clock; actual positive peakHour matches its bucket and is strictly greater than every other departure bucket. Timed denominator is withDepartureTime.
   {
     id: 'clock:unique-peak',
@@ -259,7 +443,7 @@ export const TRIGGERS: Trigger[] = [
       if (scope.clock.status !== 'ready') return null
       const v = scope.clock.value
       return v.withDepartureTime > 0 && v.beforeNoonShare > 0.5
-        ? { percent: Math.round(v.beforeNoonShare * 1000) / 10, timed: v.withDepartureTime }
+        ? { percent: Math.round(v.beforeNoonShare * 100), timed: v.withDepartureTime }
         : null
     },
   },
@@ -272,6 +456,78 @@ export const TRIGGERS: Trigger[] = [
       if (scope.clock.status !== 'ready') return null
       const v = scope.clock.value
       return v.redEyes > 0 ? { count: v.redEyes, timed: v.withDepartureTime } : null
+    },
+  },
+  // Missing departure times outnumber known times; the caption carries the counts.
+  {
+    id: 'clock:sample',
+    slot: 'clock',
+    priority: 110,
+    when: (scope) => {
+      if (scope.clock.status !== 'ready') return null
+      const v = scope.clock.value
+      return v.withDepartureTime < v.total / 2 ? {} : null
+    },
+  },
+  {
+    id: 'clock:long-haul',
+    slot: 'clock',
+    priority: 106,
+    when: (scope) => {
+      if (scope.clock.status !== 'ready') return null
+      const v = scope.clock.value
+      const long = v.haul.find((row) => row.key === 'long')?.flights ?? 0
+      return long >= v.total / 4 ? { percent: Math.round((long / v.total) * 100) } : null
+    },
+  },
+  {
+    id: 'clock:after-noon',
+    slot: 'clock',
+    priority: 104,
+    when: (scope) => {
+      if (scope.clock.status !== 'ready') return null
+      const v = scope.clock.value
+      return v.beforeNoonShare < 0.35
+        ? { percent: Math.round((1 - v.beforeNoonShare) * 100), timed: v.withDepartureTime }
+        : null
+    },
+  },
+  {
+    id: 'clock:short-haul',
+    slot: 'clock',
+    priority: 96,
+    when: (scope) => {
+      if (scope.clock.status !== 'ready') return null
+      const v = scope.clock.value
+      const short = v.haul.find((row) => row.key === 'short')?.flights ?? 0
+      return short >= v.total * 0.6 ? { percent: Math.round((short / v.total) * 100) } : null
+    },
+  },
+  // The arrival winner must be unique; a tied hour does not establish a peak.
+  {
+    id: 'clock:arrival-peak',
+    slot: 'clock',
+    priority: 85,
+    when: (scope) => {
+      if (scope.clock.status !== 'ready') return null
+      const v = scope.clock.value,
+        peak = v.arrPeakHour
+      return v.withArrivalTime >= 5 &&
+        peak &&
+        peak.flights > 0 &&
+        v.arrByHour.every((row) => row.hour === peak.hour || row.flights < peak.flights)
+        ? { hour: `${String(peak.hour).padStart(2, '0')}:00` }
+        : null
+    },
+  },
+  {
+    id: 'clock:average-speed',
+    slot: 'clock',
+    priority: 50,
+    when: (scope) => {
+      if (scope.clock.status !== 'ready') return null
+      const speed = scope.clock.value.averageSpeedKmh
+      return speed !== null ? { speed: Math.round(speed) } : null
     },
   },
   // Ready Rhythm; at least two consecutive included years; each has an actual positive July cell. Span is scoped rhythm.years, not all-time or pooled busiest month.
@@ -305,7 +561,50 @@ export const TRIGGERS: Trigger[] = [
       return gap && gap.months > 0 ? { months: gap.months, from: gap.from, to: gap.to } : null
     },
   },
-  // Ready Rhythm; positive busiestMonthOfYear. Month number and count pool all years in this view; no annual recurrence or unique-peak assertion.
+  {
+    id: 'rhythm:july-and-august-empty',
+    slot: 'rhythm',
+    priority: 95,
+    when: (scope) => {
+      if (!isEmptyFilter(scope.filter) || scope.rhythm.status !== 'ready') return null
+      const v = scope.rhythm.value
+      return v.years.length >= 2 &&
+        v.cells.some((cell) => cell.flights > 0) &&
+        v.cells.every((cell) => (cell.month !== 7 && cell.month !== 8) || cell.flights === 0) &&
+        v.years.every((year) =>
+          [7, 8].every((month) =>
+            v.cells.some(
+              (cell) => cell.year === year && cell.month === month && cell.flights === 0,
+            ),
+          ),
+        )
+        ? { from: String(Math.min(...v.years)), to: String(Math.max(...v.years)) }
+        : null
+    },
+  },
+  // Measure the observed archive span; aggregate replay has no exact latest flight date.
+  {
+    id: 'rhythm:archive-depth',
+    slot: 'rhythm',
+    priority: 50,
+    when: (scope) => {
+      if (scope.rhythm.status !== 'ready') return null
+      const first = scope.figures.firstDate
+      if (!first || calendarDay(first) === null) return null
+      const latest = scope.replay.reduce(
+        (date, item) => (calendarDay(item.date) !== null && item.date > date ? item.date : date),
+        '',
+      )
+      if (!latest) return null
+      const firstYear = Number(first.slice(0, 4))
+      const latestYear = Number(latest.slice(0, 4))
+      return latestYear - firstYear > 3 ||
+        (latestYear - firstYear === 3 && latest.slice(5) >= first.slice(5))
+        ? { year: String(firstYear) }
+        : null
+    },
+  },
+  // Ready Rhythm; unique pooled winner with at least two flights; no annual recurrence implied.
   {
     id: 'rhythm:pooled-month',
     slot: 'rhythm',
@@ -314,7 +613,12 @@ export const TRIGGERS: Trigger[] = [
       if (scope.rhythm.status !== 'ready') return null
       const v = scope.rhythm.value
       const month = v.busiestMonthOfYear
-      return month && month.flights > 0 ? { month: month.month, count: month.flights } : null
+      if (!month || month.flights < 2) return null
+      const totals = Array<number>(12).fill(0)
+      for (const cell of v.cells) totals[cell.month - 1] += cell.flights
+      return totals.every((flights, index) => index === month.month - 1 || flights < month.flights)
+        ? { month: month.month, count: month.flights }
+        : null
     },
   },
   // Ungated Rankings; matching TBS airport endpoint row count times two equals positive scope.figures.flights. Endpoint occurrences compared to flight total; never airport topShare.
@@ -350,8 +654,56 @@ export const TRIGGERS: Trigger[] = [
     when: (scope) => {
       const leader = scope.rankings.leaders.airlines
       const top = leader.top[0]
-      return top && leader.total > 0 && top.count > leader.total / 2
+      return top &&
+        scope.rankings.airlines.length >= 2 &&
+        leader.total > 0 &&
+        top.count > leader.total / 2
         ? { code: top.key, count: top.count, known: leader.total }
+        : null
+    },
+  },
+  // Latest active scoped year; annual and all-time airline leaders must both be unique.
+  {
+    id: 'rankings:new-airline-leader',
+    slot: 'rankings',
+    priority: 95,
+    when: (scope, all) => {
+      const year = scope.figures.byYear.filter((row) => row.flights > 0).at(-1)
+      if (!year || year.flights < 2) return null
+      const annual = scope.rankings.rankByYear.airlines.filter((row) => row.year === year.year)
+      const leaders = annual.filter((row) => row.rank === 1)
+      const top = leaders[0]
+      const allTime = all.rankings.airlines[0]
+      const unrepresented = year.flights - annual.reduce((sum, row) => sum + row.count, 0)
+      // shortcut: the bump chart omits some airlines; skip uncertain leaders until full annual counts are exposed.
+      return leaders.length === 1 &&
+        top.count > 0 &&
+        top.count > unrepresented &&
+        allTime &&
+        allTime.count > 0 &&
+        all.rankings.airlines.every(
+          (row) => row.key === allTime.key || row.count < allTime.count,
+        ) &&
+        top.entity !== allTime.key
+        ? { year: String(year.year) }
+        : null
+    },
+  },
+  // Shares use every scoped flight, including those without an airline.
+  {
+    id: 'rankings:two-airline-split',
+    slot: 'rankings',
+    priority: 85,
+    when: (scope) => {
+      const [first, second] = scope.rankings.airlines
+      const flights = scope.figures.flights
+      return first &&
+        second &&
+        flights > 0 &&
+        first.count + second.count >= flights * 0.8 &&
+        first.count <= flights * 0.6 &&
+        second.count <= flights * 0.6
+        ? { percent: Math.round(((first.count + second.count) / flights) * 100) }
         : null
     },
   },
@@ -390,6 +742,16 @@ export const TRIGGERS: Trigger[] = [
       return scope.figures.flights > 0 && scope.globe.routes.length > 1
         ? { routes: scope.globe.routes.length, airports: scope.globe.airports.length }
         : null
+    },
+  },
+
+  {
+    id: 'globe:few-countries',
+    slot: 'globe',
+    priority: 60,
+    when: (scope) => {
+      const countries = scope.figures.countries.value
+      return countries >= 2 && countries <= 4 ? { countries } : null
     },
   },
 

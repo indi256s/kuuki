@@ -20,7 +20,13 @@ Narrator triggers list their condition and params, then three interchangeable va
 
 ## Narrator: below the section minimum
 
-Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with time zones, Fleet ≥ 5 typed, Clock ≥ 10 with a departure time, Rhythm ≥ 2 months.
+Params `{have}`, `{need}`. Minimums: Records ≥ 3 flights, Routes ≥ 5 flights, Crossings ≥ 3 with both time zones, Aircraft ≥ 5 typed, Clock ≥ 5 with a departure time, Rhythm ≥ 2 months. Locked cards now sit in the Next up band, whose rows stay factual, and `triggers.ts` has no `below:` slot yet; these lines are ready for when one exists.
+
+### `below:routes`
+
+- Routes need {need} flights to find a pattern. So far: {have}. / Для маршрутов нужно перелётов: {need}. Пока: {have}.
+- {have} of {need}. Too few lines to call it a network. / {have} из {need}. Для маршрутной сети линий маловато.
+- Patterns need repeats. {have} of {need} flights so far. / Закономерности нужны повторы. Перелётов: {have} из {need}.
 
 ### `below:records`
 
@@ -34,14 +40,11 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - {have} of {need}. Your clocks have barely noticed. / {have} из {need}. Ваши часы пока ничего не заметили.
 - The jet-lag ledger opens at {need}. Current balance: {have}. / Ведомость джетлага открывается с отметки {need}. Текущий остаток: {have}.
 
-### `below:manufacturers`
+### `below:aircraft` (Manufacturers and Fleet merged into Aircraft)
 
 - {have} of {need} flights have a known aircraft. The manufacturers remain anonymous. / Тип самолёта известен: {have} из {need}. Производители пока сохраняют анонимность.
 - Airbus or Boeing? Insufficient evidence: {have} of {need}. / Airbus или Boeing? Доказательств недостаточно: {have} из {need}.
 - The chart needs {need} typed flights and has {have}. It refuses to guess. / Для диаграммы нужно перелётов с типом: {need}. Есть: {have}. Гадать диаграмма отказывается.
-
-### `below:fleet`
-
 - {have} of {need} flights with a known aircraft. The hangar echoes. / Тип самолёта известен: {have} из {need}. В ангаре гулко.
 - Fleet stats open at {need} typed flights. Currently: {have}. / Статистика парка открывается от {need}. Сейчас: {have}. Ожидаем.
 - A fleet, technically. {have} of {need} needed to say anything about it. / Формально это уже парк. Но для выводов нужно {need}, а есть {have}.
@@ -57,6 +60,28 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - Rhythm needs {need} months of flying. So far: {have}. Hard to call it a habit. / Для ритма нужно месяцев с перелётами: {need}. Пока: {have}. Привычкой это не назовёшь.
 - {have} of {need}. That is an event, not a pattern. / {have} из {need}. Это пока событие, а не закономерность.
 - A pattern takes {need} months. You have supplied {have}. / Закономерность требует месяцев: {need}. Предоставлено: {have}.
+
+## Narrator: partial coverage
+
+Aircraft and Clock open on a sample and print "Based on N of M". In prod most journals are imports with aircraft on about half the flights and some with none, so these fire often. They sit beside the sample caption and never restate it as the whole.
+
+### Aircraft on a sample — typed below half of all flights; no params (the caption prints "Based on N of M").
+
+- The fleet below is a sample. The rest flew on something, presumably. / Ниже — выборка. Остальные, предположительно, тоже летели на чём-то.
+- Most of the aircraft never introduced themselves. Rude. / Большинство самолётов не представились. Невежливо.
+- Blank fields stay blank. Nobody here is guessing. / Пустые графы остаются пустыми. Гадать здесь не принято.
+
+### Clock on a sample — timed below half of all flights; no params.
+
+- The clock counts only flights that admit when they left. / Часы учитывают только рейсы с признанным временем вылета.
+- Most departures kept their time to themselves. The clock copes. / Большинство вылетов время не указали. Часы справляются.
+- Untimed flights stay off the dial. Their loss. / Перелёты без времени на циферблат не попали. Сами виноваты.
+
+### Full aircraft coverage — typed equals total, total ≥ 5; no params.
+
+- Every flight has its aircraft. Suspiciously thorough. / Тип указан для всех перелётов. Подозрительно тщательно.
+- No blank aircraft fields. Someone enjoys paperwork. / Пустых граф нет. Кто-то любит заполнять бланки.
+- Aircraft known for every flight. The report has no complaints. / Тип известен для каждого перелёта. Претензий к отчёту нет.
 
 ## Narrator: sections
 
@@ -85,6 +110,36 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - {city}, {lat}° north. A coat was hopefully involved. / {city}, {lat}° с. ш. Шапка, предположительно, была взята.
 - Furthest north: {city}, {lat}°. The sun keeps odd hours there. / Самая северная точка — {city}, {lat}° с. ш. Солнце там работает по особому графику.
 - {city}, {lat}° north. Any further and the map starts to stretch. / {city}: {lat}° с. ш. Дальше карта начинает растягиваться.
+
+**Furthest south** — southernmost latitude ≤ −30°; `{code}`, `{lat}` (absolute value).
+
+- Furthest south: {code}, {lat}° S. The sun sits in the north there. / Самая южная точка — {code}, {lat}° ю. ш. Солнце там светит с севера.
+- {code}, {lat}° south. Most maps don't bother to centre here. / {code}: {lat}° ю. ш. Большинство карт сюда не заглядывает.
+- {code} at {lat}° south. The seasons run backwards there, on principle. / {code}, {lat}° ю. ш. Времена года там идут наоборот — принципиально.
+
+**Shortest by time** — shortestDuration < 60 min; `{minutes}`.
+
+- Shortest flight: {minutes} min. The gear barely had time to retract. / Самый короткий — {minutes} мин. Шасси можно было не убирать.
+- {minutes} min in the air. The seatbelt sign barely went off. / {minutes} мин в воздухе. Табло «Пристегните ремни» почти не гасло.
+- {minutes} min aloft. Climb, level off, descend. / Всего {minutes} мин: набор высоты, снижение, посадка.
+
+**Biggest clock jump** — |biggestClockJump| ≥ 5 h; `{hours}` (abs minutes ÷ 60, one decimal).
+
+- One flight moved the clock {hours} h. The body filed an appeal. / Один перелёт сдвинул часы на {hours} ч. Организм подал апелляцию.
+- Biggest clock jump: {hours} h in one flight. The watch adjusted; sleep did not. / Сдвиг на {hours} ч за один перелёт. Часы перестроились, сон — нет.
+- {hours} h in one go. Local time won on points. / {hours} ч за один рейс. Местное время победило по очкам.
+
+**Latest departure** — latestDeparture at or after 22:00; `{time}` (string).
+
+- Latest departure: {time}. Sensible people were asleep. / Самый поздний вылет — {time}. Здравомыслящие люди в это время спят.
+- Departure at {time}. The day went into unpaid overtime. / Вылет в {time}. День ушёл в неоплачиваемую переработку.
+- A {time} departure. Bedtime was negotiable. / Вылет в {time}. Отбой перенесён.
+
+**Longest ground stop** — longestGroundStopDays ≥ 180; `{days}`. Held: it overlaps `rhythm:gap`, so wire one of the two.
+
+- Longest stretch on the ground: {days} days. Gravity won that round. / Дольше всего на земле — дней: {days}. Этот раунд за гравитацией.
+- At most {days} days between flights. The airline emails kept coming. / Максимальный перерыв между перелётами — дней: {days}. Рассылки авиакомпаний не прекращались.
+- Longest gap between flights: {days} days. The boarding-pass app sulked. / Самый долгий перерыв без полётов — дней: {days}. Приложение с посадочными обиделось.
 
 ### Crossings
 
@@ -124,7 +179,19 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - Both hemispheres visited. The seasons have stopped making sense. / Оба полушария посещены. Времена года утратили логику.
 - The equator has been crossed. No ceremony was held, presumably. / Экватор пересечён. Церемонии, по-видимому, не проводилось.
 
-### Manufacturers
+**Mostly backwards** — back hours > 2 × forward hours; `{back}`. Clock shifts do not establish geographic direction, especially across the date line.
+
+- The clock returned {back} h. The days keep running long. / Часы вернули {back} ч. Дни получаются длиннее.
+- Clock refunds: {back} h. Non-transferable. / Часы вернули {back} ч. Без права передачи.
+- {back} h back. The clock gives refunds. / {back} ч назад. Часы возвращают сдачу.
+
+**Arctic Circle crossed** — arcticCircle ≥ 1; `{count}`.
+
+- Arctic Circle crossings: {count}. The penguins are at the other end. / Пересечений Полярного круга: {count}. Пингвины, напомним, на другом конце.
+- Times past the Arctic Circle: {count}. Polar bears were not informed. / Полярный круг, пересечений: {count}. Белых медведей не уведомляли.
+- Arctic Circle: {count}. The line is invisible from above. / Полярный круг, пересечений: {count}. С высоты линия не видна.
+
+### Aircraft: makers
 
 **Leader** — leader ≥ 2 flights ahead; `{leader}`, `{runnerUp}`, `{n}` (pinned: "Airbus has carried you 38 times. Boeing is still auditioning.").
 
@@ -150,7 +217,7 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - Unknown aircraft: {unknown}. The waffle has holes. / Неизвестных бортов: {unknown}. В диаграмме пробелы.
 - {unknown} flights by person or persons unknown. / Перелётов на неустановленных судах: {unknown}.
 
-### Fleet
+### Aircraft: fleet
 
 **Mostly narrowbody** — narrowbody ≥ 70%; no params (pinned: "Mostly narrowbodies…").
 
@@ -182,6 +249,24 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - {types} different types. Spotters would be impressed; the airlines weren't asked. / Разных типов: {types}. Споттеры бы оценили.
 - Types flown: {types}. Variety, mostly at the gate's discretion. / Освоено типов: {types}. Разнообразие обеспечено расписанием.
 
+**Family majority** — topFamily ≥ 50% of flights with a known type; `{family}`, `{percent}`. In prod the A320 family is over half of all typed flights. `fleet:family-majority` ranks above `fleet:top-family`, which retains its broader fallback.
+
+- {family}: {percent}% of known-type flights. Other aircraft do exist. / {family}: {percent}% рейсов с типом. Другие самолёты тоже существуют.
+- {family}: {percent}% of known-type flights. You could find the lavatory blindfolded. / {family} — {percent}% рейсов с типом. Туалет вы найдёте с закрытыми глазами.
+- {family} on {percent}% of known-type flights. Practically a company car. / На {family} — {percent}% рейсов с типом. Практически служебный транспорт.
+
+**Few types** — types ≤ 2 with typed ≥ 5; `{types}`, `{typed}`.
+
+- Aircraft types: {types}, across {typed} flights. A compact fleet. / Типов: {types}, перелётов с типом: {typed}. Парк компактный.
+- Types: {types} over {typed} flights. It all fits on a sticky note. / Типов: {types}, перелётов с типом: {typed}. Умещается на стикере.
+- {typed} typed flights, types: {types}. Brand loyalty, or a lack of options. / Перелётов с типом: {typed}, типов: {types}. Лояльность или отсутствие выбора.
+
+**Widebody minority** — widebody ≥ 1 and below 20% of typed; `{wide}`, `{typed}`.
+
+- Widebodies: {wide} of {typed}. Two aisles remain a special occasion. / Широкофюзеляжные: {wide} из {typed}. Два прохода — по особым случаям.
+- {wide} of {typed} known-type flights had two aisles. A rare upgrade in floor space. / Два прохода: {wide} из {typed}. Дополнительное пространство — редкость.
+- Two aisles on {wide} of {typed}. Luxury has a small market share. / Широких бортов — {wide} из {typed}. У простора скромная доля рынка.
+
 ### Clock
 
 **Peak hour** — `{hour}` (string) (pinned: "More trips start at 7 a.m. than at any other hour…").
@@ -208,6 +293,36 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - Landing after {hour} is the norm. Taxis at that hour cost what they cost. / Прилёт после {hour} — норма. Такси в это время стоит сколько стоит.
 - Most landings after {hour}. Dinner is a sandwich from the gate. / Посадка обычно после {hour}. Ужин — бутерброд у выхода.
 
+**After-noon majority** — beforeNoonShare < 0.35; `{percent}` (after-noon share, whole number), `{timed}`.
+
+- After noon: {percent}% of {timed} departures. Mornings are not negotiable. / После полудня — {percent}% из {timed}. Утро не обсуждается.
+- {percent}% of {timed} leave after noon. Early flights happen to other people. / {percent}% из {timed} — после полудня. Ранние рейсы — это для других.
+- After noon: {percent}% of {timed}. Dawn departures are someone else's problem. / После полудня: {percent}% из {timed}. Рассветные рейсы — чужая проблема.
+
+**Arrival peak** — arrPeakHour strictly above every other arrival hour, withArrivalTime ≥ 5; `{hour}` (string). The busiest hour, not "most" arrivals.
+
+- Arrivals peak around {hour}. Punctual, at least as a habit. / Пик прилётов — около {hour}. Пунктуальность на уровне привычки.
+- Arrival peak: around {hour}. The arrivals board could set its watch by you. / Пик прилётов — около {hour}. По вам можно сверять табло.
+- Around {hour}: more arrivals than any other hour. Predictable; noted. / Около {hour} — больше всего прилётов. Предсказуемо; принято к сведению.
+
+**Average speed** — averageSpeedKmh not null; `{speed}`. Distance is great-circle, so the true path was longer.
+
+- Average speed: {speed} km/h. The baggage belt is considerably slower. / Средняя скорость — {speed} км/ч. Багажная лента двигается заметно медленнее.
+- {speed} km/h on average. Connections still feel tight. / В среднем {speed} км/ч. На пересадку всё равно впритык.
+- {speed} km/h, measured in a straight line. The aircraft did not fly one. / Средняя скорость по прямой — {speed} км/ч. Самолёт летел не совсем по прямой.
+
+**Mostly short-haul** — short (< 1,500 km) ≥ 60%; `{percent}`. Prod: about half of all flights are short-haul.
+
+- {percent}% short-haul. The seat-back pocket stays unexplored. / Ближнемагистральных — {percent}%. Карман кресла так и не изучен до конца.
+- Short-haul: {percent}%. The drinks trolley rarely finishes the aisle. / Ближние рейсы — {percent}%. Тележка с напитками не успевает доехать до конца салона.
+- Short hops: {percent}%. Ambition, measured in kilometres. / Короткие перелёты — {percent}%. Амбиции в пределах региона.
+
+**Long-haul share** — long (≥ 4,000 km) ≥ 25%; `{percent}`.
+
+- Long-haul: {percent}%. Time zones are a lifestyle now. / Дальнемагистральных — {percent}%. Часовые пояса стали образом жизни.
+- {percent}% long-haul. Cruising altitude is practically a second address. / {percent}% — дальние рейсы. Крейсерская высота — второй адрес.
+- {percent}% of flights are long-haul. You and the seat have history. / Дальние рейсы — {percent}%. С креслом у вас общая история.
+
 ### Rhythm
 
 **Annual habit** — the same month ≥ 3 years running; `{month}` (lowercase RU nominative), `{year}` (string) (pinned: "Every July since 2021…").
@@ -233,6 +348,52 @@ Params `{have}`, `{need}`. Minimums: Records ≥ 5 flights, Crossings ≥ 3 with
 - {months} months in a row with a flight. Staying put would feel strange now. / Месяцев подряд с перелётами: {months}. Без полёта теперь было бы странно.
 - A {months}-month streak. Ground time is the exception. / Серия — {months} мес. подряд. Время на земле стало исключением.
 - {months} consecutive months airborne at least once. Consistency, noted. / {months} мес. подряд хотя бы один перелёт. Стабильность зафиксирована.
+
+**July and August empty** — unfiltered journal only: no July or August flights across `{from}`–`{to}` (≥ 2 years), other months active; `{from}`, `{to}` (strings). Name the months, not the season: the southern hemisphere disagrees.
+
+- No July or August flights, {from}–{to}. Peak fares, declined. / {from}–{to}: в июле и августе ни одного вылета. От пиковых тарифов отказались.
+- July and August stay empty, {from}–{to}. Almost on principle. / Июль и август пусты: {from}–{to}. Почти из принципа.
+- {from}–{to}: nothing in July or August. The crowds went without you. / {from}–{to}: июль и август пусты. Толпы обошлись без вас.
+
+**Archive depth** — firstDate at least 3 calendar years before the latest observed scoped flight date; `{year}` (string). Exact flight dates are required; aggregate month labels do not establish the span. An old entry proves reach, not a complete record: most prod journals are imported history.
+
+- Records go back to {year}. The archive has depth. / Самая ранняя запись — {year}. У архива есть глубина.
+- Oldest entry: {year}. It has outlived several phones. / Старейшая запись — {year}. Пережила несколько телефонов.
+- Paperwork reaches back to {year}. Memory rarely does. / Документы восходят к {year}. Память обычно короче.
+
+### Routes
+
+The Routes card is new: repeat share, commuter/explorer/mixed profile, top route, home share, new routes per year. `triggers.ts` already covers commuter, explorer, top repeat and home ≥ 50%.
+
+**Repeat share** — repeatShare ≥ 0.6; `{percent}`. `repeatShare` counts every flight on a route flown at least twice, including its first flight, so never call them "repeats" or "flown before".
+
+- Repeat routes: {percent}%. Novelty is rationed. / Повторяющиеся маршруты — {percent}%. Новизна выдаётся по талонам.
+- {percent}% on routes flown more than once. The map draws over its own lines. / {percent}% — на маршрутах-повторах. Карта обводит собственные линии.
+- Routes used more than once carry {percent}%. Familiar airports, familiar queues. / Знакомые маршруты — {percent}% перелётов. Знакомые аэропорты, знакомые очереди.
+
+**Mixed profile** — profile `mixed`; `{flights}`, `{distinct}`.
+
+- {flights} flights, {distinct} routes. Habit, with lapses into curiosity. / Перелётов: {flights}, маршрутов: {distinct}. Привычка с редкими приступами любопытства.
+- {distinct} routes over {flights} flights. Some returns, some firsts. / Маршрутов: {distinct}, перелётов: {flights}. Повторы чередуются с новинками.
+- {flights} flights on {distinct} routes. Neither a rut nor a grand tour. / Перелётов: {flights}, маршрутов: {distinct}. Ни колея, ни кругосветка.
+
+**All new in a year** — latest byYear row with flights ≥ 2 and newRoutes = flights; `{year}` (string), `{flights}`.
+
+- Every route in {year} was a first. {flights} flights, no reruns. / {year}: все маршруты новые. Перелётов: {flights}, повторов нет.
+- {year}: {flights} flights, each on a new route. Remarkably unrepetitive. / {year}: ни одного повтора. Перелётов: {flights}.
+- No route repeated in {year}. The map gained {flights} new lines. / {year} прошёл без повторов. Новых линий на карте: {flights}.
+
+**Nothing new in a year** — latest byYear row with flights ≥ 2 and newRoutes 0; `{year}` (string), `{flights}`.
+
+- {year}: {flights} flights, all on routes you knew. / {year}: перелётов: {flights}, все по знакомым маршрутам.
+- No new routes in {year}, across {flights} flights. The old ones coped. / {year}: новых маршрутов нет, перелётов: {flights}. Старые справлялись.
+- {year} repeated itself: {flights} flights, no premieres. / {year} прошёл в повторе. Перелётов: {flights}, премьер нет.
+
+**Home on the margin** — home set, homeShare < 0.25; `{percent}`.
+
+- Home airport: {percent}% of flights. It hears about the trips afterwards. / Домашний аэропорт — в {percent}% перелётов. О поездках он узнаёт постфактум.
+- {percent}% touch the home airport. Home base, in name only. / Через домашний аэропорт — {percent}%. База — скорее номинально.
+- The home airport features in {percent}% of flights. A cameo. / Домашний аэропорт: {percent}%. Эпизодическая роль.
 
 ### Rankings
 
@@ -261,6 +422,18 @@ Keep the leader's name and count out of the line: the leader tile already prints
 - {route}, {n} times. You have a preferred seat and opinions about the meal. / {route} — перелётов: {n}. У вас наверняка есть любимое место и мнение о бортпитании.
 - {route}: {n}. The crew could brief you. / {route}: {n}. Инструктаж по безопасности вы можете проводить сами.
 - {n} times on {route}. A commute with a safety demonstration. / {route}: {n}. Поездка на работу, но с демонстрацией спасательного жилета.
+
+**New airline leader** — the latest year (≥ 2 flights) has a top airline (rankByYear) different from the all-time leader; `{year}` (string). No names: the bump chart shows them.
+
+- {year} has a different favourite airline. Loyalty is negotiable. / {year}: лидирует другая авиакомпания. Лояльность обсуждается.
+- The airline table reshuffled in {year}. Nobody was notified. / {year}: таблица авиакомпаний перетасована. Уведомлений не рассылалось.
+- {year} crowned a new airline. The old one has not commented. / {year}: у авиакомпаний новый лидер. Прежний воздерживается от комментариев.
+
+**Two-airline split** — top two airlines ≥ 80% of all scoped flights, neither above 60%; `{percent}` (combined, over all flights so "of flights" stays true).
+
+- Two airlines carry {percent}% of flights. A duopoly of your own making. / Две авиакомпании — {percent}% перелётов. Дуополия собственного производства.
+- {percent}% split between two airlines. The rest are occasional guests. / {percent}% поделили две авиакомпании. Остальные — эпизодически.
+- Two carriers, {percent}% of flights. Everyone else is a substitute. / На двух перевозчиков приходится {percent}%. Прочие — на замене.
 
 ### Globe
 
@@ -294,6 +467,46 @@ Keep the leader's name and count out of the line: the leader tile already prints
 - No borders crossed. The passport is purely ceremonial. / Границы не пересекались. Загранпаспорт носит церемониальный характер.
 - One country, thoroughly covered. The others can wait. / Одна страна, изученная досконально. Остальные подождут.
 
+**Few countries** — 2–4 countries; `{countries}`.
+
+- Countries and territories: {countries}. A compact itinerary. / Стран и территорий: {countries}. Маршрут компактный.
+- Countries and territories: {countries}. The rest of the world is on standby. / Стран и территорий: {countries}. Остальной мир в режиме ожидания.
+- Countries and territories so far: {countries}. Plenty left to colour in. / Стран и территорий пока: {countries}. Раскрашивать есть что.
+
+## Next up band
+
+The band holds locked cards, milestones and upcoming flights; its rows stay factual. Held: `NarratorSlot` has no band slot yet. These are candidates for one secondary line beside it, under the same one-witty-line rule. Upcoming-flight lines joke about the countdown and the timetable, never about why the trip is happening.
+
+**Next flight today** — daysAway 0; `{destination}` (IATA code).
+
+- {destination} today. Too late to change your mind. / Сегодня — {destination}. Передумывать поздно.
+- Today: {destination}. The countdown has run out of days. / Сегодня: {destination}. Дни в отсчёте закончились.
+- {destination}, today. The schedule waits for no one. / {destination}, сегодня. Расписание никого не ждёт.
+
+**Next flight tomorrow** — daysAway 1; `{destination}`.
+
+- {destination} tomorrow. The countdown is down to hours. / Завтра — {destination}. Обратный отсчёт перешёл на часы.
+- Tomorrow: {destination}. One more night on the ground. / Завтра: {destination}. Ещё одна ночь на земле.
+- {destination} tomorrow. The timetable is set; the packing, presumably, isn't. / Завтра — {destination}. Расписание утверждено, сборы — предположительно нет.
+
+**Next flight later** — daysAway ≥ 2; `{destination}`, `{days}`.
+
+- {destination} in {days} days. Plenty of time to overpack. / {destination} — через {days} дн. Времени собрать лишнее предостаточно.
+- {days} days to {destination}. The calendar is already smug about it. / До вылета в {destination}: {days} дн. Календарь уже доволен собой.
+- {destination}, {days} days out. Refreshing the booking won't speed it up. / {destination}: через {days} дн. Обновление брони процесс не ускорит.
+
+**Flight milestone close** — have ≥ 90% of a flight rung; `{need}` (≥ 10), `{left}`.
+
+- {left} to go until {need} flights. Practically there. / До отметки {need} осталось {left}. Почти у цели.
+- {left} to go before {need}. Practically a formality. / До {need} осталось {left}. Практически формальность.
+- {need} flights is {left} away. The counter is leaning forward. / До {need} осталось {left}. Счётчик в нетерпении.
+
+**Equator close** — under 3,000 km left to the equator rung; `{left}` (km). Say "the equator's length": the rung is distance, not a place.
+
+- {left} km short of the equator's length. One decent trip, really. / До длины экватора — {left} км. Одна приличная поездка.
+- {left} km from an equator's worth of flying. The planet is unimpressed so far. / До длины экватора — {left} км. Планета пока не впечатлена.
+- {left} km to the equator's length. So close it's almost awkward. / До длины экватора — {left} км. Так близко, что даже неловко.
+
 ## Empty states
 
 Normal, then Sarcastic; each EN / RU.
@@ -317,6 +530,21 @@ Normal, then Sarcastic; each EN / RU.
 
 - Normal: No notes for this flight. / Заметок к этому перелёту нет.
 - Sarcastic: No notes. What happens at the gate stays at the gate. / Заметок нет. Что было у выхода на посадку, остаётся там.
+
+**Leaderboard empty**
+
+- Normal: The leaderboard is empty. / Таблица лидеров пуста.
+- Sarcastic: Nobody on the leaderboard yet. First place is unattended. / В таблице лидеров никого. Первое место без присмотра.
+
+**Public profile with no flights** (`/fly/[username]`)
+
+- Normal: No flights to show yet. / Перелётов пока нет.
+- Sarcastic: This journal is still on the ground. / Этот журнал пока на земле.
+
+**Passport with no countries**
+
+- Normal: No countries yet. / Стран пока нет.
+- Sarcastic: No countries recorded. Geography is on hold. / Стран не зафиксировано. География отложена.
 
 ## Achievements and milestones
 
@@ -367,6 +595,26 @@ Normal, then Sarcastic; each EN / RU.
 - Normal: New country: {country}. / Новая страна: {country}.
 - Sarcastic: {country}, added. The map has one less blank. / {country}: добавлена. На карте одним белым пятном меньше.
 
+**Moon distance**
+
+- Normal: You've flown the distance to the Moon. / Пролетено расстояние до Луны.
+- Sarcastic: Moon distance reached. Horizontally. / Расстояние до Луны набрано. По горизонтали.
+
+**Moon and back**
+
+- Normal: You've flown to the Moon and back, by distance. / Пролетено расстояние до Луны и обратно.
+- Sarcastic: To the Moon and back. Sentimental, but measured. / До Луны и обратно. Сентиментально, но измерено.
+
+**First Arctic Circle crossing**
+
+- Normal: First Arctic Circle crossing. / Первое пересечение Северного полярного круга.
+- Sarcastic: Arctic Circle crossed. No frostbite reported. / Полярный круг пересечён. Обморожений не зафиксировано.
+
+**Every section unlocked** — the Next up band has no locked cards left.
+
+- Normal: All sections are open. / Все разделы открыты.
+- Sarcastic: Every section unlocked. Only more flights left to earn. / Все разделы открыты. Дальше — только новые перелёты.
+
 ## Profile insights
 
 Witty line under a factual figure.
@@ -385,6 +633,12 @@ One line, one at a time, under a factual spinner label.
 - Asking the globe to hold still. / Просим глобус не вертеться.
 - Reconciling time zones. They disagree. / Сверяем часовые пояса. Они не согласны друг с другом.
 - Measuring great circles. / Измеряем дуги большого круга.
+- Sorting airlines by how often they turn up. / Сортируем авиакомпании по частоте появлений.
+- Looking up aircraft types. Some are shy. / Уточняем типы самолётов. Некоторые стесняются.
+- Counting time zones underneath. / Считаем часовые пояса под крылом.
+- Lining up departures by the hour. / Раскладываем вылеты по часам.
+- Checking which routes repeat. / Проверяем, какие маршруты повторяются.
+- Folding the calendar into months. / Сворачиваем календарь в месяцы.
 
 ## Landing
 

@@ -116,6 +116,62 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Самая длинная серия — {months} мес. Без пустых месяцев.',
     },
   ],
+  'records:southernmost': [
+    {
+      en: 'Furthest south: {code}, {lat}° S. The sun sits in the north there.',
+      ru: 'Самая южная точка — {code}, {lat}° ю. ш. Солнце там светит с севера.',
+    },
+    {
+      en: "{code}, {lat}° south. Most maps don't bother to centre here.",
+      ru: '{code}: {lat}° ю. ш. Большинство карт сюда не заглядывает.',
+    },
+    {
+      en: '{code} at {lat}° south. The seasons run backwards there, on principle.',
+      ru: '{code}, {lat}° ю. ш. Времена года там идут наоборот — принципиально.',
+    },
+  ],
+  'records:shortest-duration': [
+    {
+      en: 'Shortest flight: {minutes} min. The gear barely had time to retract.',
+      ru: 'Самый короткий — {minutes} мин. Шасси можно было не убирать.',
+    },
+    {
+      en: '{minutes} min in the air. The seatbelt sign barely went off.',
+      ru: '{minutes} мин в воздухе. Табло «Пристегните ремни» почти не гасло.',
+    },
+    {
+      en: '{minutes} min aloft. Climb, level off, descend.',
+      ru: 'Всего {minutes} мин: набор высоты, снижение, посадка.',
+    },
+  ],
+  'records:biggest-clock-jump': [
+    {
+      en: 'One flight moved the clock {hours} h. The body filed an appeal.',
+      ru: 'Один перелёт сдвинул часы на {hours} ч. Организм подал апелляцию.',
+    },
+    {
+      en: 'Biggest clock jump: {hours} h in one flight. The watch adjusted; sleep did not.',
+      ru: 'Сдвиг на {hours} ч за один перелёт. Часы перестроились, сон — нет.',
+    },
+    {
+      en: '{hours} h in one go. Local time won on points.',
+      ru: '{hours} ч за один рейс. Местное время победило по очкам.',
+    },
+  ],
+  'records:latest-departure': [
+    {
+      en: 'Latest departure: {time}. Sensible people were asleep.',
+      ru: 'Самый поздний вылет — {time}. Здравомыслящие люди в это время спят.',
+    },
+    {
+      en: 'Departure at {time}. The day went into unpaid overtime.',
+      ru: 'Вылет в {time}. День ушёл в неоплачиваемую переработку.',
+    },
+    {
+      en: 'A {time} departure. Bedtime was negotiable.',
+      ru: 'Вылет в {time}. Отбой перенесён.',
+    },
+  ],
   'crossings:no-date-line': [
     {
       en: 'Date-line crossings recorded in this view: {count}. That boundary stayed out of the report.',
@@ -156,6 +212,34 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
     {
       en: 'Forward shifts lead here: {forward} h; backward: {back} h. The clocks submitted totals.',
       ru: 'Вперёд — {forward} ч, назад — {back} ч. Часы сдали итоги.',
+    },
+  ],
+  'crossings:mostly-backwards': [
+    {
+      en: 'The clock returned {back} h. The days keep running long.',
+      ru: 'Часы вернули {back} ч. Дни получаются длиннее.',
+    },
+    {
+      en: 'Clock refunds: {back} h. Non-transferable.',
+      ru: 'Часы вернули {back} ч. Без права передачи.',
+    },
+    {
+      en: '{back} h back. The clock gives refunds.',
+      ru: '{back} ч назад. Часы возвращают сдачу.',
+    },
+  ],
+  'crossings:arctic-circle': [
+    {
+      en: 'Arctic Circle crossings: {count}. The penguins are at the other end.',
+      ru: 'Пересечений Полярного круга: {count}. Пингвины, напомним, на другом конце.',
+    },
+    {
+      en: 'Times past the Arctic Circle: {count}. Polar bears were not informed.',
+      ru: 'Полярный круг, пересечений: {count}. Белых медведей не уведомляли.',
+    },
+    {
+      en: 'Arctic Circle: {count}. The line is invisible from above.',
+      ru: 'Полярный круг, пересечений: {count}. С высоты линия не видна.',
     },
   ],
   'manufacturers:airbus-boeing': [
@@ -242,6 +326,76 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Перелётов без типа: {untyped} из {total}. Пустая графа пока пуста.',
     },
   ],
+  'aircraft:sample': [
+    {
+      en: 'The fleet below is a sample. The rest flew on something, presumably.',
+      ru: 'Ниже — выборка. Остальные, предположительно, тоже летели на чём-то.',
+    },
+    {
+      en: 'Most of the aircraft never introduced themselves. Rude.',
+      ru: 'Большинство самолётов не представились. Невежливо.',
+    },
+    {
+      en: 'Blank fields stay blank. Nobody here is guessing.',
+      ru: 'Пустые графы остаются пустыми. Гадать здесь не принято.',
+    },
+  ],
+  'aircraft:full': [
+    {
+      en: 'Every flight has its aircraft. Suspiciously thorough.',
+      ru: 'Тип указан для всех перелётов. Подозрительно тщательно.',
+    },
+    {
+      en: 'No blank aircraft fields. Someone enjoys paperwork.',
+      ru: 'Пустых граф нет. Кто-то любит заполнять бланки.',
+    },
+    {
+      en: 'Aircraft known for every flight. The report has no complaints.',
+      ru: 'Тип известен для каждого перелёта. Претензий к отчёту нет.',
+    },
+  ],
+  'fleet:few-types': [
+    {
+      en: 'Aircraft types: {types}, across {typed} flights. A compact fleet.',
+      ru: 'Типов: {types}, перелётов с типом: {typed}. Парк компактный.',
+    },
+    {
+      en: 'Types: {types} over {typed} flights. It all fits on a sticky note.',
+      ru: 'Типов: {types}, перелётов с типом: {typed}. Умещается на стикере.',
+    },
+    {
+      en: '{typed} typed flights, types: {types}. Brand loyalty, or a lack of options.',
+      ru: 'Перелётов с типом: {typed}, типов: {types}. Лояльность или отсутствие выбора.',
+    },
+  ],
+  'fleet:widebody-minority': [
+    {
+      en: 'Widebodies: {wide} of {typed}. Two aisles remain a special occasion.',
+      ru: 'Широкофюзеляжные: {wide} из {typed}. Два прохода — по особым случаям.',
+    },
+    {
+      en: '{wide} of {typed} known-type flights had two aisles. A rare upgrade in floor space.',
+      ru: 'Два прохода: {wide} из {typed}. Дополнительное пространство — редкость.',
+    },
+    {
+      en: 'Two aisles on {wide} of {typed}. Luxury has a small market share.',
+      ru: 'Широких бортов — {wide} из {typed}. У простора скромная доля рынка.',
+    },
+  ],
+  'fleet:family-majority': [
+    {
+      en: '{family}: {percent}% of known-type flights. Other aircraft do exist.',
+      ru: '{family}: {percent}% рейсов с типом. Другие самолёты тоже существуют.',
+    },
+    {
+      en: '{family}: {percent}% of known-type flights. You could find the lavatory blindfolded.',
+      ru: '{family} — {percent}% рейсов с типом. Туалет вы найдёте с закрытыми глазами.',
+    },
+    {
+      en: '{family} on {percent}% of known-type flights. Practically a company car.',
+      ru: 'На {family} — {percent}% рейсов с типом. Практически служебный транспорт.',
+    },
+  ],
   'routes:commuter': [
     {
       en: '{flights} flights on {distinct} routes. Technically a commute with a boarding pass.',
@@ -298,6 +452,76 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Домашний аэропорт фигурирует в {percent}% перелётов. Претензий с его стороны не поступало.',
     },
   ],
+  'routes:repeat-share': [
+    {
+      en: 'Repeat routes: {percent}%. Novelty is rationed.',
+      ru: 'Повторяющиеся маршруты — {percent}%. Новизна выдаётся по талонам.',
+    },
+    {
+      en: '{percent}% on routes flown more than once. The map draws over its own lines.',
+      ru: '{percent}% — на маршрутах-повторах. Карта обводит собственные линии.',
+    },
+    {
+      en: 'Routes used more than once carry {percent}%. Familiar airports, familiar queues.',
+      ru: 'Знакомые маршруты — {percent}% перелётов. Знакомые аэропорты, знакомые очереди.',
+    },
+  ],
+  'routes:mixed-profile': [
+    {
+      en: '{flights} flights, {distinct} routes. Habit, with lapses into curiosity.',
+      ru: 'Перелётов: {flights}, маршрутов: {distinct}. Привычка с редкими приступами любопытства.',
+    },
+    {
+      en: '{distinct} routes over {flights} flights. Some returns, some firsts.',
+      ru: 'Маршрутов: {distinct}, перелётов: {flights}. Повторы чередуются с новинками.',
+    },
+    {
+      en: '{flights} flights on {distinct} routes. Neither a rut nor a grand tour.',
+      ru: 'Перелётов: {flights}, маршрутов: {distinct}. Ни колея, ни кругосветка.',
+    },
+  ],
+  'routes:all-new-year': [
+    {
+      en: 'Every route in {year} was a first. {flights} flights, no reruns.',
+      ru: '{year}: все маршруты новые. Перелётов: {flights}, повторов нет.',
+    },
+    {
+      en: '{year}: {flights} flights, each on a new route. Remarkably unrepetitive.',
+      ru: '{year}: ни одного повтора. Перелётов: {flights}.',
+    },
+    {
+      en: 'No route repeated in {year}. The map gained {flights} new lines.',
+      ru: '{year} прошёл без повторов. Новых линий на карте: {flights}.',
+    },
+  ],
+  'routes:nothing-new-year': [
+    {
+      en: '{year}: {flights} flights, all on routes you knew.',
+      ru: '{year}: перелётов: {flights}, все по знакомым маршрутам.',
+    },
+    {
+      en: 'No new routes in {year}, across {flights} flights. The old ones coped.',
+      ru: '{year}: новых маршрутов нет, перелётов: {flights}. Старые справлялись.',
+    },
+    {
+      en: '{year} repeated itself: {flights} flights, no premieres.',
+      ru: '{year} прошёл в повторе. Перелётов: {flights}, премьер нет.',
+    },
+  ],
+  'routes:home-on-margin': [
+    {
+      en: 'Home airport: {percent}% of flights. It hears about the trips afterwards.',
+      ru: 'Домашний аэропорт — в {percent}% перелётов. О поездках он узнаёт постфактум.',
+    },
+    {
+      en: '{percent}% touch the home airport. Home base, in name only.',
+      ru: 'Через домашний аэропорт — {percent}%. База — скорее номинально.',
+    },
+    {
+      en: 'The home airport features in {percent}% of flights. A cameo.',
+      ru: 'Домашний аэропорт: {percent}%. Эпизодическая роль.',
+    },
+  ],
   'clock:unique-peak': [
     {
       en: 'More departures fall in the {hour} hour than any other here: {count} of {timed} timed departures. The clock has a preference.',
@@ -340,6 +564,90 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Вылетов ночью: {count} из {timed}. Учтено во внеурочные часы.',
     },
   ],
+  'clock:sample': [
+    {
+      en: 'The clock counts only flights that admit when they left.',
+      ru: 'Часы учитывают только рейсы с признанным временем вылета.',
+    },
+    {
+      en: 'Most departures kept their time to themselves. The clock copes.',
+      ru: 'Большинство вылетов время не указали. Часы справляются.',
+    },
+    {
+      en: 'Untimed flights stay off the dial. Their loss.',
+      ru: 'Перелёты без времени на циферблат не попали. Сами виноваты.',
+    },
+  ],
+  'clock:long-haul': [
+    {
+      en: 'Long-haul: {percent}%. Time zones are a lifestyle now.',
+      ru: 'Дальнемагистральных — {percent}%. Часовые пояса стали образом жизни.',
+    },
+    {
+      en: '{percent}% long-haul. Cruising altitude is practically a second address.',
+      ru: '{percent}% — дальние рейсы. Крейсерская высота — второй адрес.',
+    },
+    {
+      en: '{percent}% of flights are long-haul. You and the seat have history.',
+      ru: 'Дальние рейсы — {percent}%. С креслом у вас общая история.',
+    },
+  ],
+  'clock:after-noon': [
+    {
+      en: 'After noon: {percent}% of {timed} departures. Mornings are not negotiable.',
+      ru: 'После полудня — {percent}% из {timed}. Утро не обсуждается.',
+    },
+    {
+      en: '{percent}% of {timed} leave after noon. Early flights happen to other people.',
+      ru: '{percent}% из {timed} — после полудня. Ранние рейсы — это для других.',
+    },
+    {
+      en: "After noon: {percent}% of {timed}. Dawn departures are someone else's problem.",
+      ru: 'После полудня: {percent}% из {timed}. Рассветные рейсы — чужая проблема.',
+    },
+  ],
+  'clock:short-haul': [
+    {
+      en: '{percent}% short-haul. The seat-back pocket stays unexplored.',
+      ru: 'Ближнемагистральных — {percent}%. Карман кресла так и не изучен до конца.',
+    },
+    {
+      en: 'Short-haul: {percent}%. The drinks trolley rarely finishes the aisle.',
+      ru: 'Ближние рейсы — {percent}%. Тележка с напитками не успевает доехать до конца салона.',
+    },
+    {
+      en: 'Short hops: {percent}%. Ambition, measured in kilometres.',
+      ru: 'Короткие перелёты — {percent}%. Амбиции в пределах региона.',
+    },
+  ],
+  'clock:arrival-peak': [
+    {
+      en: 'Arrivals peak around {hour}. Punctual, at least as a habit.',
+      ru: 'Пик прилётов — около {hour}. Пунктуальность на уровне привычки.',
+    },
+    {
+      en: 'Arrival peak: around {hour}. The arrivals board could set its watch by you.',
+      ru: 'Пик прилётов — около {hour}. По вам можно сверять табло.',
+    },
+    {
+      en: 'Around {hour}: more arrivals than any other hour. Predictable; noted.',
+      ru: 'Около {hour} — больше всего прилётов. Предсказуемо; принято к сведению.',
+    },
+  ],
+  'clock:average-speed': [
+    {
+      en: 'Average speed: {speed} km/h. The baggage belt is considerably slower.',
+      ru: 'Средняя скорость — {speed} км/ч. Багажная лента двигается заметно медленнее.',
+    },
+    {
+      en: '{speed} km/h on average. Connections still feel tight.',
+      ru: 'В среднем {speed} км/ч. На пересадку всё равно впритык.',
+    },
+    {
+      en: '{speed} km/h, measured in a straight line. The aircraft did not fly one.',
+      ru: 'Средняя скорость по прямой — {speed} км/ч. Самолёт летел не совсем по прямой.',
+    },
+  ],
   'rhythm:every-july': [
     {
       en: 'Flights every July from {from} through {to} in this view: {years} years. The calendar has a standing appointment.',
@@ -347,7 +655,7 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
     },
     {
       en: 'Each July in the scoped {from}–{to} span has flights: {years} years. Recurrence documented.',
-      ru: '{from}–{to}: перелёты в каждом июле. Лет: {years}. Традиция.',
+      ru: '{from}–{to}: перелёты в каждом июле, лет: {years}. Традиция.',
     },
     {
       en: 'Your July cells are active throughout {from}–{to}: {years} years. A pattern with annual evidence.',
@@ -380,6 +688,34 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
     {
       en: 'Month number {month} tops the displayed pooled totals: flights {count}. Years combined for counting.',
       ru: 'В сумме лидирует месяц номер {month}: перелётов {count}. Годы сложены.',
+    },
+  ],
+  'rhythm:july-and-august-empty': [
+    {
+      en: 'No July or August flights, {from}–{to}. Peak fares, declined.',
+      ru: '{from}–{to}: в июле и августе ни одного вылета. От пиковых тарифов отказались.',
+    },
+    {
+      en: 'July and August stay empty, {from}–{to}. Almost on principle.',
+      ru: 'Июль и август пусты: {from}–{to}. Почти из принципа.',
+    },
+    {
+      en: '{from}–{to}: nothing in July or August. The crowds went without you.',
+      ru: '{from}–{to}: июль и август пусты. Толпы обошлись без вас.',
+    },
+  ],
+  'rhythm:archive-depth': [
+    {
+      en: 'Records go back to {year}. The archive has depth.',
+      ru: 'Самая ранняя запись — {year}. У архива есть глубина.',
+    },
+    {
+      en: 'Oldest entry: {year}. It has outlived several phones.',
+      ru: 'Старейшая запись — {year}. Пережила несколько телефонов.',
+    },
+    {
+      en: 'Paperwork reaches back to {year}. Memory rarely does.',
+      ru: 'Документы восходят к {year}. Память обычно короче.',
     },
   ],
   'rankings:tbilisi-half': [
@@ -424,6 +760,34 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Лидирует {code}: {count} из {known}. Членство не предполагается.',
     },
   ],
+  'rankings:new-airline-leader': [
+    {
+      en: '{year} has a different favourite airline. Loyalty is negotiable.',
+      ru: '{year}: лидирует другая авиакомпания. Лояльность обсуждается.',
+    },
+    {
+      en: 'The airline table reshuffled in {year}. Nobody was notified.',
+      ru: '{year}: таблица авиакомпаний перетасована. Уведомлений не рассылалось.',
+    },
+    {
+      en: '{year} crowned a new airline. The old one has not commented.',
+      ru: '{year}: у авиакомпаний новый лидер. Прежний воздерживается от комментариев.',
+    },
+  ],
+  'rankings:two-airline-split': [
+    {
+      en: 'Two airlines carry {percent}% of flights. A duopoly of your own making.',
+      ru: 'Две авиакомпании — {percent}% перелётов. Дуополия собственного производства.',
+    },
+    {
+      en: '{percent}% split between two airlines. The rest are occasional guests.',
+      ru: '{percent}% поделили две авиакомпании. Остальные — эпизодически.',
+    },
+    {
+      en: 'Two carriers, {percent}% of flights. Everyone else is a substitute.',
+      ru: 'На двух перевозчиков приходится {percent}%. Прочие — на замене.',
+    },
+  ],
   'rankings:route-leader': [
     {
       en: 'A leading route here is {route}: flights {count}, both directions combined. A well-used line.',
@@ -450,6 +814,20 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
     {
       en: 'Selected flights: {selected} out of {total} all-time. The filter has narrowed the report.',
       ru: 'Фильтр оставил {selected} из {total} за всё время. Отчёт сокращён.',
+    },
+  ],
+  'globe:few-countries': [
+    {
+      en: 'Countries and territories: {countries}. A compact itinerary.',
+      ru: 'Стран и территорий: {countries}. Маршрут компактный.',
+    },
+    {
+      en: 'Countries and territories: {countries}. The rest of the world is on standby.',
+      ru: 'Стран и территорий: {countries}. Остальной мир в режиме ожидания.',
+    },
+    {
+      en: 'Countries and territories so far: {countries}. Plenty left to colour in.',
+      ru: 'Стран и территорий пока: {countries}. Раскрашивать есть что.',
     },
   ],
   'globe:route-footprint': [
