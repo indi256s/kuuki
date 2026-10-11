@@ -121,6 +121,7 @@ export function answerDate(draft: Draft, date: string): DraftChange {
   const change: DraftChange = { fields: { date }, yearConfirmed: true }
   const after = withUnsent(draft, change)
   const ready =
+    draft.fields.verification === undefined &&
     openCauses(after).length === 0 &&
     readiness(after).length === 0 &&
     !isDuplicate(after) &&
