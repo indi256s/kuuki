@@ -3,14 +3,11 @@
    quiet faces and lines, and only the cabin windows lit in the accent. */
 .auth-concorde {
   --anatomy-paper: var(--iso-side);
-  --anatomy-face: var(--iso-front);
   --anatomy-top: var(--iso-top);
   --anatomy-shade-0: color-mix(in oklab, var(--iso-side) 84%, #000);
   --anatomy-shade-1: var(--iso-side);
   --anatomy-shade-2: color-mix(in oklab, var(--iso-side) 50%, var(--iso-front));
   --anatomy-shade-3: var(--iso-front);
-  --anatomy-lit-top: var(--iso-top);
-  --anatomy-lit-shade: var(--iso-front);
   --anatomy-hi: var(--iso-line);
   --anatomy-mid: color-mix(in oklab, var(--iso-line) 55%, var(--iso-detail));
   --anatomy-lo: var(--iso-detail);
@@ -19,12 +16,6 @@
   --anatomy-lit: var(--accent);
   --anatomy-halo: var(--iso-shadow);
   --anatomy-halo-opacity: 1;
-  --anatomy-text: var(--text-muted);
-  --anatomy-muted: var(--text-muted);
-  --anatomy-card: var(--auth-brand-surface);
-  --anatomy-red: var(--accent);
-  --anatomy-green: var(--accent);
-  --anatomy-blue: var(--accent);
   --anatomy-mono: var(--font-mono, ui-monospace, monospace);
   --anatomy-weight: 0.75px;
 
@@ -32,9 +23,9 @@
   left: 0;
   right: 0;
   bottom: 24px;
-  /* Its own layer, sized by the stage's aspect so size containment holds: a turning frame restyles, lays out and
-     repaints only this box, never the panel or the page. The drawing stays inside the viewBox at every heading. */
-  aspect-ratio: 420 / 400;
+  /* Its own layer, sized by the stage's aspect (set in concorde.generated.css) so size containment holds: a turning
+     frame restyles, lays out and repaints only this box, never the panel or the page. The drawing stays inside the
+     viewBox at every heading. */
   contain: strict;
   will-change: transform;
   opacity: 0;

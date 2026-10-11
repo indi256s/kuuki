@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import '../plane-field.css'
 import './concorde.generated.css'
 import './concorde.css'
 
@@ -138,7 +137,7 @@ export function ConcordeField() {
   }, [figure])
 
   return (
-    <div className="auth-plane-field">
+    <>
       <div className="auth-watermark">
         <span>く</span>
         <span>う</span>
@@ -150,12 +149,10 @@ export function ConcordeField() {
             ref={stage}
             className="iso-stage iso-turn"
             // The generator's own markup: the static stand, the live model layer at its rest pose, the front layer.
-            dangerouslySetInnerHTML={{
-              __html: figure.art.back + figure.art.live + figure.art.front,
-            }}
+            dangerouslySetInnerHTML={{ __html: figure.art.html }}
           />
         ) : null}
       </div>
-    </div>
+    </>
   )
 }

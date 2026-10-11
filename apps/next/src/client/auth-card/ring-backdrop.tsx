@@ -24,26 +24,27 @@ export function RingBackdrop() {
     if (!element) return
     const fine = matchMedia('(hover: hover) and (pointer: fine)')
     const still = matchMedia('(prefers-reduced-motion: reduce)')
-    let target = [0, 0]
-    let now = [0, 0]
+    let targetX = 0
+    let targetY = 0
+    let x = 0
+    let y = 0
     let last = 0
     let frame = 0
     const tick = (time: number) => {
       const dt = last ? Math.min(0.1, (time - last) / 1000) : 0
       last = time
       const k = 1 - Math.exp(-dt / FOLLOW)
-      now = [now[0]! + (target[0]! - now[0]!) * k, now[1]! + (target[1]! - now[1]!) * k]
-      element.style.setProperty('--ring-x', now[0]!.toFixed(3))
-      element.style.setProperty('--ring-y', now[1]!.toFixed(3))
-      const resting =
-        Math.abs(target[0]! - now[0]!) < 0.002 && Math.abs(target[1]! - now[1]!) < 0.002
+      x += (targetX - x) * k
+      y += (targetY - y) * k
+      element.style.setProperty('--ring-x', x.toFixed(3))
+      element.style.setProperty('--ring-y', y.toFixed(3))
+      const resting = Math.abs(targetX - x) < 0.002 && Math.abs(targetY - y) < 0.002
       frame = resting ? 0 : requestAnimationFrame(tick)
     }
     const move = (event: PointerEvent) => {
       if (!fine.matches || still.matches || event.pointerType !== 'mouse') return
-      const x = (event.clientX / window.innerWidth) * 2 - 1
-      const y = (event.clientY / window.innerHeight) * 2 - 1
-      target = [x, y]
+      targetX = (event.clientX / window.innerWidth) * 2 - 1
+      targetY = (event.clientY / window.innerHeight) * 2 - 1
       if (!frame) {
         last = 0
         frame = requestAnimationFrame(tick)

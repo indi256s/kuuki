@@ -1,5 +1,3 @@
-// @ts-nocheck
-/* eslint-disable */
 // The anatomy kit's 3D turn runtime, copied by scripts/generate-concorde.mjs. Do not edit by hand.
 /*
 MIT License
