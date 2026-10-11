@@ -261,6 +261,7 @@ export function Combobox({
       {open && !mobile && <div className="flight-search-popover">{list}</div>}
       {mobile && (
         <Sheet
+          initialDetent={1}
           open={open}
           onOpenChange={(next) => {
             setOpen(next)

@@ -10,6 +10,7 @@ function Harness({ onChange }: { onChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState(false)
   return (
     <Sheet
+      side="right"
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
@@ -30,7 +31,7 @@ function pointer(
   clientY: number,
   timeStamp: number,
 ) {
-  const event = createEvent[type](target, { clientY, clientX: 0, pointerId: 1, button: 0 })
+  const event = createEvent[type](target, { clientY, clientX: clientY, pointerId: 1, button: 0 })
   Object.defineProperty(event, 'timeStamp', { value: timeStamp })
   fireEvent(target, event)
 }
@@ -102,7 +103,8 @@ describe('Sheet', () => {
         </Menu>
       </Sheet>,
     )
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Rankings' })).toHaveFocus())
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Rankings' })).toHaveFocus())
+    await user.tab()
     await user.tab()
     await user.tab()
     const trigger = screen.getByRole('button', { name: 'Section options' })
@@ -162,10 +164,10 @@ describe('Sheet', () => {
     const sheet = screen.getByRole('dialog')
     pointer(handle, 'pointerDown', 100, 1000)
     pointer(handle, 'pointerMove', 130, 2000)
-    expect(sheet.style.getPropertyValue('--sheet-drag')).toBe('30px')
+    expect(sheet.style.transform).toBe('translateX(30px)')
     pointer(handle, 'pointerUp', 140, 3000) // 40px of 500, ~0.01 px/ms
     expect(onChange).not.toHaveBeenCalledWith(false)
-    expect(sheet.style.getPropertyValue('--sheet-drag')).toBe('0px')
+    expect(sheet.style.transform).toBe('translateX(0px)')
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
@@ -178,7 +180,7 @@ describe('Sheet', () => {
     pointer(body, 'pointerDown', 100, 1000)
     pointer(body, 'pointerMove', 400, 1010)
     pointer(body, 'pointerUp', 500, 1020)
-    expect(sheet.style.getPropertyValue('--sheet-drag')).toBe('')
+    expect(sheet.style.transform).toBe('')
     expect(onChange).not.toHaveBeenCalledWith(false)
   })
 })

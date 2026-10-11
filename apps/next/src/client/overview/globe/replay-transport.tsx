@@ -13,6 +13,7 @@ export function ReplayTransport({
   timeline,
   durationMs,
   timeMs,
+  getFrame,
   paused,
   setPaused,
   seek,
@@ -22,6 +23,7 @@ export function ReplayTransport({
   timeline: TimelineItem[]
   durationMs: number
   timeMs: number
+  getFrame?: () => { timeMs: number }
   paused: boolean
   setPaused: (paused: boolean) => void
   seek: (time: number, phase: 'preview' | 'commit' | 'cancel') => void
@@ -160,7 +162,7 @@ export function ReplayTransport({
           aria-label={locale === 'ru' ? 'Месяц повтора' : 'Replay month'}
           aria-valuetext={candidates[index]?.month ?? ''}
           onPointerDown={(event) => {
-            drag.current = { origin: timeMs, value }
+            drag.current = { origin: getFrame?.().timeMs ?? timeMs, value }
             event.currentTarget.setPointerCapture?.(event.pointerId)
             seek(value, 'preview')
           }}

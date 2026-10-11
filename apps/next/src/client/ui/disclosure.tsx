@@ -12,7 +12,7 @@ export type DisclosureProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-/** Height animates via grid rows 0fr -> 1fr. Collapsed content is `inert` (no focus, no AT) and `visibility:hidden` after the collapse. */
+/** Layout snaps before the content fades in. Collapsed content is inert and hidden. */
 export function Disclosure({
   summary,
   children,

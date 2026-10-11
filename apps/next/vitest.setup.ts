@@ -13,6 +13,9 @@ afterEach(() => {
 // jsdom has no Web Animations API. Browser suites own motion and layout assertions.
 beforeEach(() => {
   if (typeof Element === 'undefined') return
+  if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false
+  if (!Element.prototype.setPointerCapture) Element.prototype.setPointerCapture = () => {}
+  if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => {}
   if (!Element.prototype.getAnimations) Element.prototype.getAnimations = () => []
   if (!Element.prototype.animate)
     Element.prototype.animate = () =>

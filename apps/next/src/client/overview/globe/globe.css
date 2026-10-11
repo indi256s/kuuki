@@ -252,9 +252,8 @@
   overflow: hidden;
   visibility: hidden;
   transition:
-    inline-size 200ms ease-out,
-    opacity 200ms ease-out,
-    visibility 200ms;
+    opacity var(--dur-base) var(--ease-out),
+    visibility 0s;
 }
 .replay-transport[data-expanded='true'] .replay-scrubber {
   inline-size: min(300px, 45vw);

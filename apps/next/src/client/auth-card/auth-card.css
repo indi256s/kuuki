@@ -335,16 +335,13 @@
   flex-direction: column;
   gap: inherit;
 }
-/* The create step grows its status line in place: the row opens from 0fr to 1fr while its margin takes back the step gap the collapsed row would add (heading, row and form are 3 items, so 2 gaps). Inputs and the button only move down as it opens; reduced motion skips the transition (below). */
+/* Reserve the final layout once, then fade the status; the collapsed row cancels its extra flex gap. */
 .auth-status {
   display: grid;
   grid-template-rows: 0fr;
   margin-top: calc(-1 * var(--auth-gap));
   opacity: 0;
-  transition:
-    grid-template-rows var(--dur-base) var(--ease-in-out),
-    margin-top var(--dur-base) var(--ease-in-out),
-    opacity var(--dur-fast);
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 .auth-step[data-step='create'] .auth-status {
   grid-template-rows: 1fr;

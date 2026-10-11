@@ -67,18 +67,28 @@
   margin: 0;
   box-sizing: border-box;
   cursor: grabbing;
-  transition:
-    scale var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
+  transition: scale var(--dur-fast) var(--ease-out);
+}
+.ov3-ghost > .ov3-ghost-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--shadow-floating), var(--ring-floating);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 /* Lifted: a slight scale and the floating elevation (shadow in light, ring in dark). The card keeps its own 1px outline. */
 :root .ov3-ghost > .ov3-ghost-card[data-lifted] {
   scale: 1.02;
   background: var(--surface-floating);
-  box-shadow: var(--shadow-floating), var(--ring-floating);
+}
+:root .ov3-ghost > .ov3-ghost-card[data-lifted]::after {
+  opacity: 1;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ov3-ghost > .ov3-ghost-card {
+  .ov3-ghost > .ov3-ghost-card,
+  .ov3-ghost > .ov3-ghost-card::after {
     transition: none;
   }
   :root .ov3-ghost > .ov3-ghost-card[data-lifted] {

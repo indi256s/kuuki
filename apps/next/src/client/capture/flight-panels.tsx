@@ -49,6 +49,7 @@ export function FlightDetailSheet({
       }}
       surface={(content, footer) => (
         <Sheet
+          initialDetent={1}
           open={open}
           onOpenChange={
             onOpenChange ??
@@ -81,6 +82,7 @@ export function FlightCaptureDialog({ ownerId, locale }: { ownerId: string; loca
       onCancel={() => router.push('/journal')}
       surface={(content, footer) => (
         <Panel
+          {...(mobile ? { initialDetent: 1 } : {})}
           open
           onOpenChange={(next) => {
             if (!next) router.push('/journal')

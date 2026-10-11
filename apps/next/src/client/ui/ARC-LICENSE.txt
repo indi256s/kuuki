@@ -13,6 +13,9 @@ docs/research/2026-10-08-arc-source-inventory.md. Arc Pro source is not used.
 Icon-morph was additionally fetched on 2026-10-11; its source hashes and
 CSS adaptation are recorded in the same inventory.
 
+Bottom-sheet was additionally fetched on 2026-10-12; its source hashes and
+adaptation are recorded in the same inventory.
+
 The MIT License below is reproduced verbatim from the repository LICENSE
 (SHA256 1b73a3fbab233cb995e6e9b6a63d302f91975c74c1629919c8e9820902820dde,
 fetched 2026-10-08), which matches the Free: MIT section of

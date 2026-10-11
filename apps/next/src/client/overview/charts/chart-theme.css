@@ -100,17 +100,9 @@
 .kc-svg [role='button'] {
   cursor: pointer;
 }
-/* SVG geometry updates animate only while visible; initial SSR geometry is already final. */
+/* Geometry updates snap; only transform transitions are retained. */
 .kc[data-in-view='true'] .kc-svg :is(path, circle, rect) {
-  transition:
-    d 1100ms var(--ease-in-out),
-    cx 1100ms var(--ease-in-out),
-    cy 1100ms var(--ease-in-out),
-    x 1100ms var(--ease-in-out),
-    y 1100ms var(--ease-in-out),
-    width 1100ms var(--ease-in-out),
-    height 1100ms var(--ease-in-out),
-    transform 1100ms var(--ease-in-out);
+  transition: transform 1100ms var(--ease-in-out);
 }
 .kc[data-in-view='true'] .arc-waffle-cell {
   transition: transform 300ms var(--ease-in-out);
@@ -126,9 +118,6 @@
 }
 .kc[data-more] {
   mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
-}
-.kc[data-in-view='true'] .arc-waffle-cell rect {
-  transition-duration: 300ms;
 }
 .arc-brush {
   --brush-thumb: 22px;

@@ -180,7 +180,7 @@ export function FormStep({
   const creating = step === 'create' || step === 'creating'
   const busy = step === 'checking' || step === 'creating'
   const field = error ? FIELD_ERRORS[error] : undefined
-  // The status line stays mounted after the first create step so it can collapse with its text; it keeps the email it showed.
+  // Keep the last checked email mounted while the status is collapsed.
   const [checked, setChecked] = useState('')
   if (creating && checked !== email.trim()) setChecked(email.trim())
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -194,7 +194,7 @@ export function FormStep({
         title={creating ? t.createHeading : t.heading}
         subtitle={creating ? t.createSubtitle : t.subtitle}
       />
-      {/* Always rendered: the create step grows it open and Change collapses it (auth-card.css). Inert and hidden while closed. */}
+      {/* Always rendered: create reveals it and Change collapses it. Inert and hidden while closed. */}
       <div className="auth-status" inert={!creating} aria-hidden={!creating || undefined}>
         <div className="auth-status-clip">
           {checked ? (

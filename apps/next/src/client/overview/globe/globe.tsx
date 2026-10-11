@@ -131,6 +131,7 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
             timeline={timeline}
             durationMs={durationMs}
             timeMs={replay.timeMs}
+            getFrame={replay.getFrame}
             paused={replayPaused}
             setPaused={setReplayPaused}
             seek={replay.seek}
@@ -155,7 +156,6 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
             routeDistances={routeDistances}
             replay={replay}
             timeline={timeline}
-            absoluteMs={replay.absoluteMs}
           />
         )}
       </GlobeCard>

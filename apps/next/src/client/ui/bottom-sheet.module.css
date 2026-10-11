@@ -1,0 +1,83 @@
+/* Arc Bottom sheet, adapted to Kuuki tokens (MIT, see ARC-LICENSE.txt). */
+.overlay:global(.ui-overlay) {
+  animation: none;
+}
+.overlay[data-state='closed'],
+.sheet[data-state='closed'] {
+  pointer-events: none !important;
+}
+.sheet:global(.ui-sheet.ui-bottom-sheet[data-side='bottom']) {
+  bottom: calc(var(--sheet-kb, 0px) - var(--sheet-extension));
+  width: min(100%, 36rem);
+  height: calc(var(--sheet-max) * var(--sheet-viewport, 100dvh) + var(--sheet-extension));
+  block-size: calc(var(--sheet-max) * var(--sheet-viewport, 100dvh) + var(--sheet-extension));
+  max-height: none;
+  max-block-size: none;
+  margin-inline: auto;
+  overflow: hidden;
+  padding-bottom: var(--sheet-extension);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  outline: none;
+  animation: none;
+  transition: none;
+  will-change: transform;
+}
+/* Keep actions above the viewport edge without resizing the scrolling body per frame. */
+.footer {
+  position: relative;
+  background: var(--surface-floating);
+}
+.header {
+  flex: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.sheet[data-dragging] .header {
+  cursor: grabbing;
+}
+.headText {
+  min-width: 0;
+}
+.grabber {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  min-height: 44px;
+  margin: 0 auto -16px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: inherit;
+}
+.grabberBar {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--control-border);
+}
+.body {
+  touch-action: auto;
+  /* Reserve scroll space at the resting detent, including for browser focus/click scrolling. */
+  padding-bottom: calc(var(--space-2) + var(--sheet-peek) * var(--sheet-viewport, 100dvh));
+  scroll-padding-bottom: calc(var(--sheet-peek) * var(--sheet-viewport, 100dvh));
+}
+.sheet:not([data-expanded]) .body {
+  overflow: hidden;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 40rem) {
+  .sheet :global(.ui-panel-header),
+  .sheet :global(.ui-panel-body),
+  .sheet :global(.ui-panel-footer) {
+    padding-inline: var(--space-4);
+  }
+}

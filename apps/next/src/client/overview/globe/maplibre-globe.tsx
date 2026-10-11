@@ -6,7 +6,7 @@ import type {
   GeoJSONSource,
   ExpressionSpecification,
 } from 'maplibre-gl'
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { coordinates } from '@kuuki/shared/geo'
 import { routeKey } from '@kuuki/shared/overview/filter'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
@@ -19,7 +19,8 @@ import { FlightPlane, interpolatePosition, unwrapArcCoordinates } from '../../ma
 import { resolveColor } from '../../maps/resolve-color'
 import { attachGlobeGestures } from './gestures'
 import { RouteCard, type GlobeRouteCard } from './route-card'
-import { PLANE_MS, type ReplayPlane, type TimelineItem } from './replay'
+import { PLANE_MS, type TimelineItem } from './replay'
+import type { useReplay } from './use-replay'
 import type { createUIBus } from '../store/ui-bus'
 import { isLand, type GlobeLand } from './atlas'
 import { GLOBE_ZOOM_RANGE, globeZoom } from './camera'
@@ -37,9 +38,8 @@ export type MaplibreGlobeProps = {
   isCurrent: () => boolean
   onScope: (key: string) => void
   routeDistances: ReadonlyMap<string, number | null>
-  replay: { planes: ReplayPlane[]; arcs: Set<string>; timeMs: number }
+  replay: ReturnType<typeof useReplay>
   timeline: TimelineItem[]
-  absoluteMs: number
   onReady: () => void
   onError: () => void
 }
@@ -493,22 +493,57 @@ function GlobeLayers({
         origin: route.a,
         destination: route.b,
         progress: 0.5,
+        launchMs: null,
       }))
     : props.replay.planes.map((plane) => ({
         key: plane.key,
         origin: plane.item.origin,
         destination: plane.item.destination,
-        progress: (props.absoluteMs - plane.launchMs) / PLANE_MS,
+        progress: (props.replay.absoluteMs - plane.launchMs) / PLANE_MS,
+        launchMs: plane.launchMs,
       }))
   return props.active && land
     ? planes.map((plane) => {
         const from = point(plane.origin),
           to = point(plane.destination)
         return from && to ? (
-          <FlightPlane key={plane.key} from={from} to={to} progress={plane.progress} />
+          <ReplayFlightPlane
+            key={plane.key}
+            from={from}
+            to={to}
+            plane={plane}
+            replay={props.replay}
+          />
         ) : null
       })
     : null
+}
+function ReplayFlightPlane({
+  from,
+  to,
+  plane,
+  replay,
+}: {
+  from: [number, number]
+  to: [number, number]
+  plane: { progress: number; launchMs: number | null }
+  replay: ReturnType<typeof useReplay>
+}) {
+  const { launchMs } = plane
+  const { getFrame, subscribe } = replay
+  const getProgress = useCallback(
+    () => (launchMs === null ? 0.5 : (getFrame().absoluteMs - launchMs) / PLANE_MS),
+    [getFrame, launchMs],
+  )
+  return (
+    <FlightPlane
+      from={from}
+      to={to}
+      progress={plane.progress}
+      getProgress={getProgress}
+      subscribe={launchMs === null ? undefined : subscribe}
+    />
+  )
 }
 const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'cover') =>
   globeZoom(

@@ -38,6 +38,7 @@ export function FeedbackText({
       ease: tokens.getPropertyValue('--ease-out').trim() || 'cubic-bezier(.23,1,.32,1)',
       locale,
       scale: false,
+      animateSize: false,
       numbers,
       disabled: disabled || rapid,
     }

@@ -307,6 +307,7 @@ export function ReviewRow({
         {flags}
         {notes}
         <Sheet
+          initialDetent={1}
           open={sheet}
           onOpenChange={(next) => {
             setSheet(next)

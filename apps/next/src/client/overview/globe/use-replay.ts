@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
-import { createReplaySchedule, type TimelineItem } from './replay'
+import { createReplaySchedule, monthAt, type TimelineItem } from './replay'
 
 function createClock(schedule: ReturnType<typeof createReplaySchedule>) {
   let elapsed = 0,
@@ -23,6 +23,41 @@ function createClock(schedule: ReturnType<typeof createReplaySchedule>) {
   }
 }
 
+function createFrames(
+  schedule: ReturnType<typeof createReplaySchedule>,
+  timeline: TimelineItem[],
+  durationMs: number,
+) {
+  let current = schedule.advance(0)
+  let rendered = current
+  const listeners = new Set<() => void>()
+  return {
+    initial: current,
+    getFrame: () => current,
+    subscribe(listener: () => void) {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    publish(frame: typeof current, force = false) {
+      current = frame
+      for (const listener of listeners) listener()
+      if (
+        !force &&
+        rendered.arcs === frame.arcs &&
+        rendered.planes.length === frame.planes.length &&
+        rendered.planes.every((plane, index) => plane.key === frame.planes[index].key) &&
+        monthAt(timeline, rendered.timeMs, durationMs) ===
+          monthAt(timeline, frame.timeMs, durationMs)
+      )
+        return false
+      rendered = frame
+      return true
+    },
+  }
+}
+
 export function useReplay(
   timeline: TimelineItem[],
   durationMs: number,
@@ -34,12 +69,15 @@ export function useReplay(
 ) {
   const schedule = useMemo(() => createReplaySchedule(timeline, durationMs), [timeline, durationMs])
   const clock = useMemo(() => createClock(schedule), [schedule])
-  const initialFrame = useMemo(() => schedule.advance(0), [schedule])
+  const frames = useMemo(
+    () => createFrames(schedule, timeline, durationMs),
+    [schedule, timeline, durationMs],
+  )
   const admitted = useRef(isCurrent)
   useEffect(() => {
     admitted.current = isCurrent
   }, [isCurrent])
-  const [state, setState] = useState({ schedule, frame: initialFrame })
+  const [state, setState] = useState({ frames, frame: frames.initial })
   const [visible, setVisible] = useState(true)
   const [hidden, setHidden] = useState(false)
   useEffect(() => {
@@ -65,7 +103,7 @@ export function useReplay(
       if (retired || !admitted.current()) return
       const frame = clock.advance(previous === null ? 0 : time - previous)
       previous = time
-      if (frame) setState({ schedule, frame })
+      if (frame && frames.publish(frame)) setState({ frames, frame })
       raf = requestAnimationFrame(tick)
     }
     const stop = () => {
@@ -78,13 +116,20 @@ export function useReplay(
       stop()
       window.removeEventListener('kuuki:identity-reset', stop)
     }
-  }, [schedule, clock, paused, reduced, hidden, visible, fullscreen, timeline.length])
+  }, [frames, clock, paused, reduced, hidden, visible, fullscreen, timeline.length])
   const seek = useCallback(
     (time: number, phase: 'preview' | 'commit' | 'cancel') => {
       if (!admitted.current()) return
-      setState({ schedule, frame: clock.seek(time, phase) })
+      const frame = clock.seek(time, phase)
+      frames.publish(frame, true)
+      setState({ frames, frame })
     },
-    [schedule, clock],
+    [frames, clock],
   )
-  return { ...(state.schedule === schedule ? state.frame : initialFrame), seek }
+  return {
+    ...(state.frames === frames ? state.frame : frames.initial),
+    seek,
+    getFrame: frames.getFrame,
+    subscribe: frames.subscribe,
+  }
 }

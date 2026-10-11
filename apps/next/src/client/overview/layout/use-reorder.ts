@@ -40,6 +40,7 @@ type Gesture = {
   coarse: boolean
   active: boolean
   index: number
+  needsMeasure: boolean
   anchor?: { x: number; y: number }
 }
 /** A drag from activation until the ghost has settled. The gesture ends at release; the session outlives it while the ghost glides home. */
@@ -62,6 +63,7 @@ export function useReorder(options: Options) {
   const suppressClick = useRef<SectionId | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const raf = useRef<number | undefined>(undefined)
+  const resize = useRef<ResizeObserver | undefined>(undefined)
   const detach = useRef<(() => void) | undefined>(undefined)
   const [activeId, setActiveId] = useState<SectionId | null>(null)
   useEffect(() => {
@@ -77,6 +79,8 @@ export function useReorder(options: Options) {
     timer.current = undefined
     if (raf.current !== undefined) cancelAnimationFrame(raf.current)
     raf.current = undefined
+    resize.current?.disconnect()
+    resize.current = undefined
     detach.current?.()
     detach.current = undefined
     if (current?.handle.hasPointerCapture?.(current.pointerId))
@@ -135,7 +139,8 @@ export function useReorder(options: Options) {
   /** Drop target among the other cards as they are laid out now (placeholder included, slides ignored). Only the pointer decides; a change needs the pointer past the neighbour's midpoint and some travel since the last change. */
   function measure(force = false) {
     const current = gesture.current
-    if (!current?.active) return
+    if (!current?.active || (!force && !current.needsMeasure)) return
+    current.needsMeasure = false
     const measured = latest.current.ids.flatMap((id) => {
       const node = nodes.current.get(id)
       return node ? [{ id, ...layoutRect(node, flips.current) }] : []
@@ -165,8 +170,12 @@ export function useReorder(options: Options) {
     const current = gesture.current
     if (!current?.active) return
     const step = current.pointerY < 64 ? -12 : current.pointerY > window.innerHeight - 64 ? 12 : 0
-    if (step) window.scrollBy({ top: step, behavior: 'instant' })
     measure()
+    if (step) {
+      const before = window.scrollY
+      window.scrollBy({ top: step, behavior: 'instant' })
+      if (window.scrollY !== before) current.needsMeasure = true
+    }
     if (session.current) moveGhost(session.current.ghost, current.pointerX, current.pointerY)
     raf.current = requestAnimationFrame(frame)
   }
@@ -190,6 +199,13 @@ export function useReorder(options: Options) {
       node,
       parent,
       ghost: createGhost(node, layoutRect(node, flips.current), current.pointerX, current.pointerY),
+    }
+    if (typeof ResizeObserver === 'function') {
+      resize.current = new ResizeObserver(() => {
+        if (gesture.current) gesture.current.needsMeasure = true
+      })
+      for (const card of nodes.current.values()) resize.current.observe(card)
+      resize.current.observe(parent)
     }
     setActiveId(current.id)
     raf.current = requestAnimationFrame(frame)
@@ -229,11 +245,14 @@ export function useReorder(options: Options) {
       pointerY: event.clientY,
       coarse,
       active: false,
+      needsMeasure: true,
       index: latest.current.ids.indexOf(id),
     }
     const move = (e: PointerEvent) => {
       const current = gesture.current
       if (!current || e.pointerId !== current.pointerId) return
+      if (current.pointerX !== e.clientX || current.pointerY !== e.clientY)
+        current.needsMeasure = true
       current.pointerY = e.clientY
       current.pointerX = e.clientX
       const distance = Math.hypot(e.clientX - current.x, e.clientY - current.y)
@@ -272,7 +291,9 @@ export function useReorder(options: Options) {
         cancel()
       }
     }
-    const scroll = () => measure()
+    const scroll = () => {
+      if (gesture.current) gesture.current.needsMeasure = true
+    }
     // Once active, the finger drags the card instead of the page. Before activation a touch move is a scroll and cancels the long-press.
     const block = (e: TouchEvent) => {
       if (gesture.current?.active && e.cancelable) e.preventDefault()
@@ -282,6 +303,7 @@ export function useReorder(options: Options) {
     window.addEventListener('pointercancel', end)
     window.addEventListener('keydown', escape)
     window.addEventListener('scroll', scroll, true)
+    window.addEventListener('resize', scroll)
     window.addEventListener('touchmove', block, { passive: false })
     event.currentTarget.addEventListener('lostpointercapture', cancel)
     const handle = event.currentTarget
@@ -291,6 +313,7 @@ export function useReorder(options: Options) {
       window.removeEventListener('pointercancel', end)
       window.removeEventListener('keydown', escape)
       window.removeEventListener('scroll', scroll, true)
+      window.removeEventListener('resize', scroll)
       window.removeEventListener('touchmove', block)
       handle.removeEventListener('lostpointercapture', cancel)
     }

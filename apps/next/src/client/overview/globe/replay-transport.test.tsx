@@ -23,7 +23,7 @@ const props = {
 
 it('previews month starts, commits release and cancels to the actual drag origin with Escape focus return', () => {
   const seek = vi.fn()
-  render(<ReplayTransport {...props} timeMs={123} seek={seek} />)
+  render(<ReplayTransport {...props} timeMs={123} getFrame={() => ({ timeMs: 456 })} seek={seek} />)
   fireEvent.click(screen.getByRole('button', { name: 'JAN 2019' }))
   const range = screen.getByRole('slider', { name: 'Replay month' })
   fireEvent.pointerDown(range)
@@ -34,7 +34,7 @@ it('previews month starts, commits release and cancels to the actual drag origin
   fireEvent.pointerDown(range)
   fireEvent.change(range, { target: { value: '2' } })
   fireEvent.keyDown(range, { key: 'Escape' })
-  expect(seek).toHaveBeenLastCalledWith(123, 'cancel')
+  expect(seek).toHaveBeenLastCalledWith(456, 'cancel')
   expect(screen.getByRole('button', { name: 'JAN 2019' })).toHaveFocus()
 })
 

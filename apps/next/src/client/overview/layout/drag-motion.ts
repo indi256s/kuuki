@@ -122,8 +122,11 @@ export function createGhost(
   return { layer, card, grabX, grabY, x: rect.left, y: rect.top }
 }
 export function moveGhost(ghost: Ghost, pointerX: number, pointerY: number) {
-  ghost.x = pointerX - ghost.grabX
-  ghost.y = pointerY - ghost.grabY
+  const x = pointerX - ghost.grabX,
+    y = pointerY - ghost.grabY
+  if (ghost.x === x && ghost.y === y) return
+  ghost.x = x
+  ghost.y = y
   ghost.layer.style.transform = `translate3d(${ghost.x}px, ${ghost.y}px, 0)`
 }
 /** Glides the ghost from its current spot into the slot, then calls done. Instant under reduced motion or without WAAPI. */

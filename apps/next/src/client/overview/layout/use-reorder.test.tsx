@@ -121,3 +121,74 @@ it('Escape reverts the preview without committing and removes the ghost', () => 
   fireEvent.pointerUp(window, { pointerId: 1 })
   expect(onCommit).not.toHaveBeenCalled()
 })
+
+it('remeasures only changed drag geometry and refreshes targets after autoscroll', () => {
+  stack()
+  reduced()
+  let nextFrame: FrameRequestCallback | undefined
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    nextFrame = callback
+    return 1
+  })
+  vi.stubGlobal('cancelAnimationFrame', vi.fn())
+  const frame = () => nextFrame!(0)
+  let resized: (() => void) | undefined
+  const disconnect = vi.fn()
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: () => void) {
+        resized = callback
+      }
+      observe() {}
+      disconnect = disconnect
+    },
+  )
+  let scrollY = 0
+  vi.spyOn(window, 'scrollY', 'get').mockImplementation(() => scrollY)
+  const reads: number[] = []
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement,
+  ) {
+    reads.push(scrollY)
+    const row = Number(this.dataset.row ?? 0)
+    const top = row * 100 - scrollY
+    return {
+      left: 0,
+      right: 400,
+      top,
+      bottom: top + 90,
+      width: 400,
+      height: 90,
+      x: 0,
+      y: top,
+      toJSON() {},
+    } as DOMRect
+  })
+  const scroll = vi.spyOn(window, 'scrollBy').mockImplementation(() => {
+    scrollY += 12
+  })
+  const onCommit = vi.fn()
+  const { container } = render(<Flow onCommit={onCommit} announce={vi.fn()} />)
+  drag(container.querySelector('header')!, 130)
+  reads.length = 0
+  frame()
+  frame()
+  expect(reads).toEqual([])
+  expect(scroll).not.toHaveBeenCalled()
+  resized!()
+  frame()
+  expect(reads).toEqual([0, 0, 0])
+
+  vi.stubGlobal('innerHeight', 200)
+  fireEvent.pointerMove(window, { pointerId: 1, clientX: 12, clientY: 170 })
+  reads.length = 0
+  frame()
+  expect(scroll).toHaveBeenCalledOnce()
+  expect(reads).toEqual([])
+  frame()
+  expect(reads).toEqual([12, 12, 12])
+  fireEvent.pointerUp(window, { pointerId: 1, clientX: 12, clientY: 170 })
+  expect(onCommit).toHaveBeenCalledWith('rankings', 1)
+  expect(disconnect).toHaveBeenCalledOnce()
+})

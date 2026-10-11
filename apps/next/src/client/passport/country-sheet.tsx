@@ -205,6 +205,7 @@ export function CountrySheet({
         if (!open) onClose()
       }}
       side={mobile ? 'bottom' : 'right'}
+      initialDetent={1}
       title={title}
       closeLabel={ru ? 'Закрыть' : 'Close'}
       className="passport-sheet-panel"

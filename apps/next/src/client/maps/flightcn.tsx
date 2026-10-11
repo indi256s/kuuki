@@ -161,10 +161,14 @@ export function FlightPlane({
   from,
   to,
   progress,
+  getProgress,
+  subscribe,
 }: {
   from: [number, number]
   to: [number, number]
   progress: number
+  getProgress?: () => number
+  subscribe?: (listener: () => void) => () => void
 }) {
   const { map, ready } = useMap()
   const current = useRef(progress)
@@ -196,7 +200,7 @@ export function FlightPlane({
       .setLngLat(normalizeLngLat(path[0]))
       .addTo(map)
     const update = () => {
-      const t = Math.max(0, Math.min(1, current.current))
+      const t = Math.max(0, Math.min(1, getProgress?.() ?? current.current))
       const position = interpolatePosition(path, t)
       const next = interpolatePosition(path, Math.min(1, t + 0.005))
       const previous = interpolatePosition(path, Math.max(0, t - 0.005))
@@ -210,14 +214,16 @@ export function FlightPlane({
     update()
     map.on('move', update)
     map.on('projectiontransition', update)
+    const unsubscribe = subscribe?.(update)
     refresh.current = update
     return () => {
+      unsubscribe?.()
       map.off('move', update)
       map.off('projectiontransition', update)
       refresh.current = null
       marker.remove()
     }
-  }, [map, ready, path])
+  }, [map, ready, path, getProgress, subscribe])
   useEffect(() => {
     refresh.current?.()
   }, [progress])

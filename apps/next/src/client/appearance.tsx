@@ -37,18 +37,11 @@ export function setTheme(theme: Theme) {
 
 let switchToken = 0
 
-/**
- * Applies a theme change as one sweep. `html[data-theme-painting]` stops each control's own color transition, so the
- * page changes together instead of controls lagging behind it. It restyles every element, so with the View Transition
- * it is set in the update, after the old page is captured, rather than in the click. `html[data-theme-switching]` sets
- * the direction: `dusk` brings the dark theme down from the top, `dawn` raises the light theme from the bottom (styles.css). The browser bar
- * (`meta[name=theme-color]`) changes when the sweep reaches the top of the viewport: at the start of dusk, at the end of
- * dawn, and at once for the reduced-motion fade. Without the API, or while a route transition runs, the theme swaps at once.
- */
+/** Controls skip color transitions while the new theme snapshot crossfades; the Horizon sun keeps moving. */
 function switchTheme(theme: Theme) {
   const root = document.documentElement
   const effective = resolveTheme(theme)
-  // Dark to System on a dark device changes only the stored choice; a sweep would announce a change that isn't there.
+  // Dark to System on a dark device changes only the stored choice; a fade would announce a change that isn't there.
   if (root.dataset.theme === effective && root.dataset.themeSwitching === undefined) return
   const token = ++switchToken
   const direction = effective === 'dark' ? 'dusk' : 'dawn'
@@ -69,13 +62,11 @@ function switchTheme(theme: Theme) {
     requestAnimationFrame(() => requestAnimationFrame(done))
     return
   }
-  const barAtStart =
-    direction === 'dusk' || window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const transition = document.startViewTransition(() => {
     // A skipped switch still paints its theme; the next switch captures that page, so the bar follows it.
     root.dataset.themePainting = ''
     paintTheme(effective)
-    if (barAtStart) setBrowserBar(effective)
+    setBrowserBar(effective)
   })
   // `ready` rejects with "Transition was skipped" when a later switch or a hidden tab skips this one; that is expected, not an error.
   transition.ready.catch(() => {})

@@ -544,8 +544,7 @@ h2 {
     transform: none;
   }
 }
-/* Theme switch: controls skip their own color transitions so everything changes together; the Horizon sun keeps its motion. The old theme stays still while the new one sweeps over it with the sun: dusk from the top down, dawn from the bottom up.
-   The mask is 7/3 of the viewport tall: a viewport of opaque, a feathered band of a third of the viewport, and a viewport of clear. Moving mask-position between 0% and 100% slides the band from fully clear to fully covered. */
+/* Theme snapshots crossfade without repainting a viewport-sized mask on every frame; the Horizon sun keeps its directional motion. */
 :root[data-theme-painting] *:not(.auth-horizon svg, .auth-horizon-sun),
 :root[data-theme-painting] *::before,
 :root[data-theme-painting] *::after {
@@ -557,15 +556,9 @@ h2 {
   animation: none;
 }
 :root[data-theme-switching]::view-transition-new(root) {
-  mask: linear-gradient(#000 calc(300%/7), transparent calc(400%/7)) 0 0/100% calc(700%/3) no-repeat;
-  animation: theme-dusk var(--dur-horizon) var(--ease-horizon);
+  animation: theme-fade var(--dur-horizon) var(--ease-horizon);
 }
-:root[data-theme-switching='dawn']::view-transition-new(root) {
-  mask-image: linear-gradient(transparent calc(300%/7), #000 calc(400%/7));
-  mask-position: 0 100%;
-  animation-name: theme-dawn;
-}
-/* Dawn sweeps up from the bottom and reaches the corner controls last, which would hide the Horizon sunrise. The button becomes its own layer instead: the old one fades out over --dur-fast and the live one, mid-sunrise, shows through. */
+/* Keep the live sunrise visible while the rest of the new theme fades in. */
 @media (prefers-reduced-motion: no-preference) {
   :root[data-theme-switching='dawn'] .auth-horizon {
     view-transition-name: auth-horizon;
@@ -582,16 +575,6 @@ h2 {
     opacity: 0;
   }
 }
-@keyframes theme-dusk {
-  from {
-    mask-position: 0 100%;
-  }
-}
-@keyframes theme-dawn {
-  from {
-    mask-position: 0 0;
-  }
-}
 @keyframes theme-fade {
   from {
     opacity: 0;
@@ -599,7 +582,6 @@ h2 {
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme-switching]::view-transition-new(root) {
-    mask: none;
     animation: theme-fade var(--dur-fast) linear;
   }
 }

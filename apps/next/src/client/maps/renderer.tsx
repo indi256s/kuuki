@@ -4,7 +4,7 @@ import type * as GL from 'maplibre-gl'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Map as MapCanvas, MapGeoJSON, useMap } from './mapcn'
 import { WORLD_BOUNDS, routeGeometry, wrappedBounds } from './geometry'
-import { LABEL_SIZE, placeLabels, type PlacedLabel } from './labels'
+import { LABEL_MIN_ZOOM, LABEL_SIZE, placeLabels, type PlacedLabel } from './labels'
 import type { CountryVisit, MapLocale } from './preview'
 import type { ProjectedRoute } from './types'
 import { resolveColor } from './resolve-color'
@@ -283,6 +283,8 @@ export function AirportLayer({ routes, layer }: { routes: ProjectedRoute[]; laye
     [airports],
   )
   const [labels, setLabels] = useState<PlacedLabel[]>([])
+  const labelNodes = useRef(new Map<string, HTMLSpanElement>())
+  const placed = useRef<PlacedLabel[]>([])
   useEffect(() => {
     if (!map || !ready) return
     map.addSource('airports-source', { type: 'geojson', data: data as never })
@@ -315,6 +317,7 @@ export function AirportLayer({ routes, layer }: { routes: ProjectedRoute[]; laye
   }, [map, ready, themeRevision, layer])
   useEffect(() => {
     if (!map || !ready || layer === 'countries') {
+      placed.current = []
       setLabels([])
       return
     }
@@ -323,16 +326,28 @@ export function AirportLayer({ routes, layer }: { routes: ProjectedRoute[]; laye
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
         const container = map.getContainer()
-        setLabels(
-          placeLabels(
-            airports.map((a) => {
-              const p = map.project(a.coordinates)
-              return { id: a.id, x: p.x, y: p.y, priority: a.flights }
-            }),
-            map.getZoom(),
-            { width: container.clientWidth, height: container.clientHeight },
-          ),
-        )
+        const zoom = map.getZoom()
+        const next =
+          zoom < LABEL_MIN_ZOOM
+            ? []
+            : placeLabels(
+                airports.map((a) => {
+                  const p = map.project(a.coordinates)
+                  return { id: a.id, x: p.x, y: p.y, priority: a.flights }
+                }),
+                zoom,
+                { width: container.clientWidth, height: container.clientHeight },
+              )
+        const changed =
+          next.length !== placed.current.length ||
+          next.some((label, index) => label.id !== placed.current[index].id)
+        placed.current = next
+        if (changed) setLabels(next)
+        else
+          for (const label of next) {
+            const node = labelNodes.current.get(label.id)
+            if (node) node.style.transform = `translate(${label.x}px, ${label.y}px)`
+          }
       })
     }
     update()
@@ -347,6 +362,13 @@ export function AirportLayer({ routes, layer }: { routes: ProjectedRoute[]; laye
       {labels.map((label) => (
         <span
           key={label.id}
+          ref={(node) => {
+            if (node) {
+              labelNodes.current.set(label.id, node)
+              const position = placed.current.find((item) => item.id === label.id) ?? label
+              node.style.transform = `translate(${position.x}px, ${position.y}px)`
+            } else labelNodes.current.delete(label.id)
+          }}
           style={{
             transform: `translate(${label.x}px, ${label.y}px)`,
             width: LABEL_SIZE.width,

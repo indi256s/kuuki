@@ -233,6 +233,7 @@ export function MultiSelect({
   if (mobile)
     return (
       <Sheet
+        initialDetent={1}
         open={open}
         onOpenChange={setOpen}
         title={label}

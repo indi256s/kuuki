@@ -3,7 +3,6 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import {
-  useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -11,6 +10,7 @@ import {
   type Ref,
   type RefObject,
 } from 'react'
+import { BottomSheet, type BottomSheetProps } from './bottom-sheet'
 import './ui.css'
 
 /** Release past this share of the sheet's size dismisses it. */
@@ -37,7 +37,7 @@ export function rubberBand(overshoot: number, limit = 80): number {
   return (1 - 1 / ((overshoot * 0.55) / limit + 1)) * limit
 }
 
-export type SheetProps = {
+export type SheetProps = Pick<BottomSheetProps, 'detents' | 'initialDetent' | 'onDetentChange'> & {
   initialFocusRef?: RefObject<HTMLElement | null>
   onCloseAutoFocus?: (event: Event) => void
   className?: string
@@ -57,6 +57,11 @@ export type SheetProps = {
 type Sample = { t: number; p: number }
 
 export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetProps) {
+  if (contentProps.side !== 'right') {
+    return (
+      <BottomSheet {...contentProps} open={open} onOpenChange={onOpenChange} trigger={trigger} />
+    )
+  }
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
@@ -93,7 +98,10 @@ function MountedSheetContent({
   const drag = useRef<{ id: number; start: number; samples: Sample[] } | null>(null)
   const axis = side === 'bottom' ? 'clientY' : 'clientX'
 
-  const setOffset = (px: number) => contentRef.current?.style.setProperty('--sheet-drag', `${px}px`)
+  const setOffset = (px: number) => {
+    if (contentRef.current)
+      contentRef.current.style.transform = `translate${side === 'bottom' ? 'Y' : 'X'}(${px}px)`
+  }
   const setDragging = (on: boolean) => {
     if (contentRef.current) contentRef.current.dataset.dragging = String(on)
   }
@@ -132,34 +140,6 @@ function MountedSheetContent({
     if (!cancelled && shouldDismiss({ distance, height: size, velocity })) onOpenChange(false) // exit animation starts from the dragged offset
     else setOffset(0) // transition settles it back with --ease-drawer
   }
-
-  const updateKeyboard = () => {
-    const viewport = window.visualViewport
-    const node = contentRef.current
-    if (!node || !viewport || viewport.scale !== 1) return
-    const inset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop))
-    node.style.setProperty('--sheet-kb', `${inset}px`)
-    node.dataset.keyboard = String(inset > 80)
-  }
-  // The first read waits until the opening frame has painted: reading the visual viewport while the sheet mounts
-  // forces a layout of the page and the new sheet mid-commit. A keyboard that opens later reports through the events.
-  useEffect(() => {
-    if (side !== 'bottom') return
-    const viewport = window.visualViewport
-    if (!viewport) return
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const frame = requestAnimationFrame(() => {
-      timer = setTimeout(updateKeyboard)
-    })
-    viewport.addEventListener('resize', updateKeyboard)
-    viewport.addEventListener('scroll', updateKeyboard)
-    return () => {
-      cancelAnimationFrame(frame)
-      clearTimeout(timer)
-      viewport.removeEventListener('resize', updateKeyboard)
-      viewport.removeEventListener('scroll', updateKeyboard)
-    }
-  }, [side])
 
   return (
     <RadixDialog.Content
