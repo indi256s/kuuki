@@ -141,6 +141,28 @@ describe('POST /api/import/jobs', () => {
     })
   })
 
+  it('fails closed without a checker binding, ignores model verification and permits a member selection', async () => {
+    answer([providerFlight({ verification: 'verified' })])
+    const { body } = await postJob(db, {}, USER, {}, { AI: undefined })
+    expect(body.batch.status).toBe('review')
+    const draft = body.drafts[0]
+    expect(draft).toMatchObject({ selected: false, fields: { verification: 'failed' } })
+    const selected = await patchDraft(db, draft.id, { version: draft.version, selected: true })
+    expect(selected.body.draft).toMatchObject({
+      selected: true,
+      fields: { verification: 'failed' },
+    })
+  })
+
+  it('invalidates verification after a field edit, retaining it for a selection-only patch', async () => {
+    const created = await seed([providerFlight()])
+    const draft = created.drafts[0]
+    const selection = await patchDraft(db, draft.id, { version: 1, selected: false })
+    expect(selection.body.draft.fields.verification).toBe('verified')
+    const edited = await patchDraft(db, draft.id, { version: 2, fields: { flight_number: '999' } })
+    expect(edited.body.draft.fields.verification).toBe('not_verified')
+  })
+
   it('is idempotent on the submission operation id: a replay returns the stored batch and never calls the provider again', async () => {
     answer([providerFlight()])
     const submissionOperationId = opId()

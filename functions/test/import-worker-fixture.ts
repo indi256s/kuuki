@@ -1,6 +1,7 @@
 // Local-only transport: identity is injected; real API handlers, D1 and DO execute in workerd.
 import { ImportJob, type ImportEnv } from '../../workers/import/ImportJob'
 import { importJobRequest } from '../api/import/jobs'
+import { onRequestPatch as patch } from '../api/import/drafts/[id]'
 import { onRequestGet as events } from '../api/import/batches/[id]/events'
 import { onRequestPost as cancel } from '../api/import/batches/[id]/cancel'
 import { onRequestGet as snapshot, onRequestDelete as discard } from '../api/import/batches/[id]'
@@ -11,8 +12,20 @@ import { normalizeFlights } from '../api/import/_extract'
 import { configureProvider } from './import-fake-provider'
 
 export class TestImportJob extends ImportJob {
-  constructor(ctx: DurableObjectState, env: ImportEnv & { FAKE: Fetcher }) {
-    super(ctx, env)
+  constructor(ctx: DurableObjectState, env: ImportEnv & { FAKE: Fetcher; CHECKER: Fetcher }) {
+    super(ctx, {
+      ...env,
+      AI: {
+        run: async (_model: string, input: unknown) => {
+          const response = await env.CHECKER.fetch('https://checker.test', {
+            method: 'POST',
+            body: JSON.stringify(input),
+          })
+          if (!response.ok) throw new Error('Fixture checker failure')
+          return response.json()
+        },
+      } as unknown as Ai,
+    })
     configureProvider(env.FAKE)
   }
   override async fetch(request: Request) {
@@ -86,6 +99,8 @@ export default {
       )
       return Response.json(event)
     }
+    const draft = url.pathname.match(/^\/api\/import\/drafts\/([^/]+)$/)
+    if (draft) return patch({ request, env, data, params: { id: draft[1] } } as never)
     const match = url.pathname.match(/^\/api\/import\/batches\/([^/]+)(?:\/(events|cancel))?$/)
     if (!match) return new Response(null, { status: 404 })
     const context = { request, env, data, params: { id: match[1] } } as never

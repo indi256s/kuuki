@@ -86,6 +86,34 @@ beforeEach(() => {
 })
 
 describe('ImportClient journeys', () => {
+  it('explains an unverified draft and lets the member select it for review', async () => {
+    const row = draft({
+      id: 'unverified',
+      selected: false,
+      fields: {
+        date: '2026-03-01',
+        origin: 'JFK',
+        destination: 'BOS',
+        airline_iata: 'AA',
+        verification: 'failed',
+      },
+    })
+    const { api } = serverWith([row])
+    patchDraft.mockResolvedValue({ ...row, selected: true, version: 2 })
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api} />)
+    const note = await screen.findByText(/not verified against the source/i)
+    const checkbox = screen.getByRole('checkbox', { name: /include in import/i })
+    expect(checkbox).not.toBeChecked()
+    expect(checkbox).toHaveAccessibleDescription(note.textContent!)
+    await userEvent.click(checkbox)
+    await waitFor(() =>
+      expect(patchDraft).toHaveBeenCalledWith(
+        'unverified',
+        expect.objectContaining({ selected: true, version: 1 }),
+      ),
+    )
+  })
+
   it('resumes a stored batch URL into review without submitting', async () => {
     const { api } = serverWith(ids.map((id, ordinal) => draft({ id, ordinal })))
     render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api} />)
