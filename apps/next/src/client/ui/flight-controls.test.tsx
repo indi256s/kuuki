@@ -190,6 +190,20 @@ function Probe({ locale, initial = '' }: { locale: Locale; initial?: string }) {
   )
 }
 describe('combobox free text', () => {
+  it('keeps an optional value cleared when the mobile search closes', async () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+    })
+    render(<Probe locale="en" initial="JFK" />)
+    await userEvent.click(screen.getByRole('combobox', { name: 'Airport' }))
+    const dialog = await screen.findByRole('dialog')
+    const search = within(dialog).getByRole('combobox')
+    fireEvent.change(search, { target: { value: 'JFK' } })
+    fireEvent.change(search, { target: { value: '' } })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close search' }))
+    expect(screen.getByRole('combobox', { name: 'Airport' })).toHaveValue('')
+  })
   it.each([{ isComposing: true }, { keyCode: 229 }])(
     'leaves IME navigation and confirmation keys to composition (%j)',
     async (composition) => {

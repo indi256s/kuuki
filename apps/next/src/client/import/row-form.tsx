@@ -4,6 +4,8 @@ import clsx from 'clsx'
 import { useId } from 'react'
 import type { Locale } from '../../lib/format'
 import { Field } from '../ui/field'
+import { Combobox } from '../ui/combobox'
+import { airlineChoices } from '../capture/reference-choices'
 import { FIELD_ERROR, FIELD_HINT, FIELD_LABEL, S } from './copy'
 import { FIELDS, type FieldError, type FieldName, type FieldValues } from './review-model'
 
@@ -40,6 +42,19 @@ export function RowForm({
 }) {
   const yearId = useId()
   const optional = locale === 'ru' ? 'необязательно' : 'optional'
+  const airlineCode = values.airline_iata.trim().toUpperCase()
+  // Preserve manual codes for historical airlines missing from the reference.
+  const airlines =
+    /^[A-Z0-9]{2}$/.test(airlineCode) &&
+    !airlineChoices.some((choice) => choice.code === airlineCode)
+      ? [
+          ...airlineChoices,
+          {
+            code: airlineCode,
+            label: locale === 'ru' ? 'Нет в справочнике' : 'Not in the directory',
+          },
+        ]
+      : airlineChoices
   return (
     <div className="import-form">
       {FIELDS.map((name) => {
@@ -60,27 +75,40 @@ export function RowForm({
             className={clsx('import-form-field', unsure && 'is-unsure')}
             data-field={name}
           >
-            <Field
-              id={`${idPrefix}-${name}`}
-              label={FIELD_LABEL[name][locale]}
-              optionalLabel={OPTIONAL.includes(name) ? ` · ${optional}` : undefined}
-              type={name === 'date' ? 'date' : 'text'}
-              value={values[name]}
-              disabled={disabled}
-              hint={hint || undefined}
-              autoCapitalize={CODES.includes(name) ? 'characters' : 'off'}
-              autoComplete="off"
-              spellCheck={false}
-              error={errors[name] ? FIELD_ERROR[errors[name]!][locale] : undefined}
-              onChange={(event) =>
-                onChange({
-                  ...values,
-                  [name]: CODES.includes(name)
-                    ? event.target.value.toUpperCase()
-                    : event.target.value,
-                })
-              }
-            />
+            {name === 'airline_iata' ? (
+              <Combobox
+                label={`${FIELD_LABEL[name][locale]} · ${optional}`}
+                value={values[name]}
+                onChange={(airline_iata) => onChange({ ...values, airline_iata })}
+                choices={airlines}
+                locale={locale}
+                disabled={disabled}
+                hint={hint || undefined}
+                error={errors[name] ? FIELD_ERROR[errors[name]!][locale] : undefined}
+              />
+            ) : (
+              <Field
+                id={`${idPrefix}-${name}`}
+                label={FIELD_LABEL[name][locale]}
+                optionalLabel={OPTIONAL.includes(name) ? ` · ${optional}` : undefined}
+                type={name === 'date' ? 'date' : 'text'}
+                value={values[name]}
+                disabled={disabled}
+                hint={hint || undefined}
+                autoCapitalize={CODES.includes(name) ? 'characters' : 'off'}
+                autoComplete="off"
+                spellCheck={false}
+                error={errors[name] ? FIELD_ERROR[errors[name]!][locale] : undefined}
+                onChange={(event) =>
+                  onChange({
+                    ...values,
+                    [name]: CODES.includes(name)
+                      ? event.target.value.toUpperCase()
+                      : event.target.value,
+                  })
+                }
+              />
+            )}
             {name === 'date' && year ? (
               <div className="import-year">
                 <p className="import-hint">

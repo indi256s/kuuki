@@ -688,7 +688,7 @@ export const FIELD_LABEL: Record<FieldName, Pair> = {
   date: p('Date', 'Дата'),
   origin: p('From (airport code)', 'Откуда (код аэропорта)'),
   destination: p('To (airport code)', 'Куда (код аэропорта)'),
-  airline_iata: p('Airline code', 'Код авиакомпании'),
+  airline_iata: p('Airline', 'Авиакомпания'),
   flight_number: p('Flight number', 'Номер рейса'),
   aircraft_icao: p('Aircraft code', 'Код самолёта'),
   departure_time: p('Departure time', 'Время вылета'),
@@ -697,7 +697,10 @@ export const FIELD_LABEL: Record<FieldName, Pair> = {
 export const FIELD_HINT: Partial<Record<FieldName, Pair>> = {
   origin: p('Three letters, for example JFK', 'Три буквы, например JFK'),
   destination: p('Three letters, for example BOS', 'Три буквы, например BOS'),
-  airline_iata: p('Two characters, for example AA', 'Два символа, например AA'),
+  airline_iata: p(
+    'Search by name or code, for example Turkish Airlines or TK',
+    'Ищите по названию или коду, например Turkish Airlines или TK',
+  ),
   aircraft_icao: p('For example B738', 'Например B738'),
   departure_time: p(
     '24-hour time, for example 09:30',

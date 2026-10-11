@@ -44,6 +44,7 @@ export function Combobox({
   choices,
   locale,
   error,
+  hint,
   disabled,
   recents = [],
   onSelect,
@@ -56,6 +57,7 @@ export function Combobox({
   choices: Choice[]
   locale: Locale
   error?: string
+  hint?: string
   disabled?: boolean
   recents?: string[]
   onSelect?: (code: string) => void
@@ -171,7 +173,10 @@ export function Combobox({
       aria-activedescendant={open && matches[active] ? `${id}-option-${active}` : undefined}
       aria-autocomplete="list"
       aria-invalid={!!error}
-      aria-describedby={error ? `${id}-error` : undefined}
+      aria-describedby={
+        [error ? `${id}-error` : '', hint ? `${id}-hint` : ''].filter(Boolean).join(' ') ||
+        undefined
+      }
       autoComplete="off"
       disabled={disabled}
       value={query ?? (search ? '' : value)}
@@ -239,6 +244,7 @@ export function Combobox({
     >
       <label htmlFor={id}>{label}</label>
       {input(false)}
+      {hint && <small id={`${id}-hint`}>{hint}</small>}
       {!open && selected && (
         <small>
           {selected.label}
@@ -258,7 +264,10 @@ export function Combobox({
           open={open}
           onOpenChange={(next) => {
             setOpen(next)
-            if (!next) revert()
+            if (!next) {
+              if (query !== null && !query.trim()) settle()
+              else revert()
+            }
           }}
           title={label}
           initialFocusRef={searchRef}
