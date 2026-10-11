@@ -523,17 +523,48 @@
   overflow-wrap: anywhere;
 }
 
+/* Review header and action bar */
+.import-review-discard {
+  display: flex;
+  justify-content: flex-end;
+}
+/* Text-like buttons keep their text-sized look; min-height keeps a 44px target. */
+.import-text-action {
+  padding-inline: var(--space-3);
+  margin-inline: calc(-1 * var(--space-3));
+  font-size: 13px;
+}
+.import-text-action[aria-disabled='true'] {
+  background: transparent;
+  border-color: transparent;
+}
+.import-lead {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+}
+.import-bar-text {
+  display: grid;
+  min-width: 0;
+}
+.import-bar-text > .import-hint {
+  font-weight: 400;
+}
+.import-bar-saving {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.import-spinner {
+  flex: none;
+  color: var(--accent-text);
+  animation: import-spin 1s linear infinite;
+}
+
 /* Questions: one answer for every row with the same cause */
 .import-questions {
   display: grid;
   gap: var(--space-3);
-}
-.import-questions-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-1) var(--space-4);
 }
 .import-questions h3:focus-visible,
 .import-question h4:focus-visible {
@@ -549,34 +580,50 @@
 }
 .import-question {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   padding: var(--space-4);
   border: 1px solid var(--hairline);
-  border-left: 3px solid var(--warning-fill);
   border-radius: var(--radius-md);
   background: var(--surface);
   min-width: 0;
 }
+.import-question-head {
+  display: grid;
+  gap: var(--space-1);
+}
+.import-question-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
 .import-question h4 {
   margin: 0;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 24px;
   font-weight: 600;
   text-wrap: balance;
 }
-.import-question-ask {
+.import-question-count {
+  flex: none;
+  color: var(--warning-text);
+  font-size: 13px;
+  line-height: 20px;
   font-weight: 600;
+}
+.import-question-dates,
+.import-question-flights {
+  font-size: 13px;
+  line-height: 20px;
+}
+.import-question-dates {
+  color: var(--text-muted);
 }
 .import-question-flights {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  display: grid;
 }
 .import-question-items {
   list-style: none;
@@ -588,16 +635,76 @@
 .import-question-items > li {
   display: grid;
   gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--hairline);
   min-width: 0;
 }
-.import-question-items .ui-button {
+.import-question-what {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+.import-question-route {
+  flex-basis: 100%;
+  font-size: 15px;
+  line-height: 22px;
+}
+.import-question-meta {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.import-question-meta[data-tone='warning'] {
+  color: var(--warning-text);
+}
+.import-question-city {
+  font-size: 15px;
+  line-height: 22px;
+}
+/* Answers are equal outlined secondary buttons, at least 8px apart. */
+.import-question-answers {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.import-question-answers[data-columns='3'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: stretch;
+}
+.import-question-answers[data-pair='true'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: stretch;
+}
+.import-question-answers[data-choices='true'] {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  justify-items: stretch;
+}
+.import-question-answers .ui-button {
   max-width: 100%;
   overflow-wrap: anywhere;
-  text-align: start;
+}
+.import-question-answers[data-pair='true'] .ui-button {
+  padding-inline: var(--space-3);
+}
+.import-airport-choice {
+  display: grid;
+  justify-items: center;
+}
+.import-airport-code {
+  font-weight: 600;
+}
+.import-airport-name {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+.import-question .ui-button[aria-disabled='true'] {
+  background: transparent;
+  border-color: var(--hairline);
 }
 .import-question-year {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -612,12 +719,34 @@
 .import-question-year > .ui-button {
   margin-top: calc(24px + var(--space-1));
 }
+/* "I'll set each one": always on its own line under the answers. */
+.import-each {
+  justify-self: start;
+  color: var(--text);
+  font-size: 15px;
+}
+.import-each[aria-disabled='true'] {
+  color: var(--text-muted);
+}
+.import-question .ui-disclosure-trigger {
+  padding-inline: 0;
+  color: var(--accent-text);
+  font-size: 15px;
+}
+.import-question .ui-disclosure-trigger .ui-disclosure-chevron {
+  color: inherit;
+}
+/* Room for focus rings inside the clipped panel. */
+.import-question .ui-disclosure-inner {
+  padding: 3px;
+  margin: -3px;
+}
 .import-question-done {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
   font-size: 13px;
   line-height: 20px;
   font-variant-numeric: tabular-nums;
@@ -628,37 +757,97 @@
   align-items: center;
   gap: var(--space-1) var(--space-2);
 }
+.import-question-done > .import-skipped {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+}
+.import-skipped-what {
+  display: grid;
+  min-width: 0;
+}
+.import-skipped-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.import-skipped .import-code {
+  color: var(--text-muted);
+}
 .import-question-failed {
   color: var(--danger-text);
 }
 
 /* Done */
-.import-summary {
+.import-hero {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  font-size: 22px;
-  line-height: 28px;
+  align-items: baseline;
+  gap: 0 var(--space-3);
   font-variant-numeric: tabular-nums;
 }
-.import-summary-chunk {
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  min-width: 0;
+.import-hero-count {
+  font-size: 80px;
+  line-height: 80px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
 }
-.import-stamp-grid {
+.import-hero-label {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+}
+.import-summary {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.import-done-summary {
+  font-size: 17px;
+  line-height: 26px;
+}
+.import-done-note {
+  font-size: 15px;
+  line-height: 24px;
+}
+.import-stamps {
+  display: grid;
+  gap: var(--space-3);
+}
+/* A scroll-snap rail that bleeds to the page edge, so the last stamp peeks. */
+.import-stamp-rail {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  scroll-padding-inline: var(--page-gutter);
+  padding-block: 2px;
 }
-/* Passport-sized, so the actions stay near the fold: Open Passport prefetches only once it nears the viewport, and the hero needs that prefetch. */
-.import-stamp-grid > .stamp {
-  width: 160px;
+.import-stamp-rail > .stamp {
+  flex: none;
+  width: 150px;
+  scroll-snap-align: start;
+}
+.import-final-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
 }
 .import-final-actions .ui-button {
+  min-height: 48px;
   text-decoration: none;
+}
+.import-final-actions > :first-child {
+  grid-column: 1 / -1;
+}
+.import-remaining {
+  display: grid;
+  justify-items: start;
 }
 .import-aircraft {
   padding-top: var(--space-4);
@@ -706,7 +895,8 @@
   .import-check input {
     transition: none;
   }
-  .import-stages li[data-state='active'] .import-stage-marker svg {
+  .import-stages li[data-state='active'] .import-stage-marker svg,
+  .import-spinner {
     animation: none;
   }
 }

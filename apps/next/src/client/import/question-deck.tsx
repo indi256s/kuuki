@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
+import { Disclosure } from '../ui/disclosure'
 import { Field } from '../ui/field'
 import { S, count } from './copy'
 import type { DraftChange, SaveState } from './draft-saver'
@@ -28,8 +29,6 @@ export interface QuestionDeckProps {
   /** Review rows as shown: the stored drafts with unsent changes laid over them. */
   drafts: Draft[]
   saveStates: Record<string, SaveState>
-  /** Rows chosen for import right now, for the header line. */
-  readyCount: number
   /** The import is being saved: answers wait, like row edits. */
   frozen: boolean
   /** The member's calendar day, YYYY-MM-DD; tests pin it. */
@@ -51,7 +50,7 @@ export function formatMonthDay(locale: Locale, monthDay: { month: number; day: n
   )
 }
 
-const localToday = () => {
+export const localToday = () => {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
@@ -60,7 +59,6 @@ export function QuestionDeck({
   locale,
   drafts,
   saveStates,
-  readyCount,
   frozen,
   today = localToday(),
   onChange,
@@ -112,7 +110,6 @@ export function QuestionDeck({
       const state = saveStates[rowId]
       return state && state.status !== 'saving'
     })
-  const remaining = shown.reduce((total, question) => total + questionDrafts(question).length, 0)
 
   const apply = (
     index: number,
@@ -138,77 +135,82 @@ export function QuestionDeck({
   const flightList = (rows: Draft[]) => (
     <ul className="import-question-flights">
       {rows.map((draft) => (
-        <li key={draft.id}>
-          <span className="import-code">{route(draft)}</span> <span>{when(draft)}</span>
+        <li key={draft.id} className="import-code">
+          {route(draft)} · {when(draft)}
         </li>
       ))}
     </ul>
   )
 
+  /** The first rows stay in view; the rest open in place, and stay answerable while a save runs. */
+  const withMore = (rows: ReactNode[], visible: number) =>
+    rows.length <= visible ? (
+      <ul className="import-question-items">{rows}</ul>
+    ) : (
+      <>
+        <ul className="import-question-items">{rows.slice(0, visible)}</ul>
+        <Disclosure summary={count(locale, 'showMore', rows.length - visible)}>
+          <ul className="import-question-items">{rows.slice(visible)}</ul>
+        </Disclosure>
+      </>
+    )
+
   const card = (question: Question, index: number) => {
     const titleId = `${id}-${question.key}`
     const rows = questionDrafts(question)
     const busy = frozen || saving(rows)
-    const each = (
+    const each = (label: string) => (
       <Button
         variant="ghost"
-        dense
+        className="import-text-action import-each"
         disabled={busy}
         onClick={() => {
           focusAt.current = index
           setDeferred((current) => new Set(current).add(question.key))
         }}
       >
-        {S.questionsEach[locale]}
+        {label}
       </Button>
     )
-    const heading = (text: string) => (
-      <h4 id={titleId} tabIndex={-1} data-question-heading>
-        {text}
-      </h4>
+    const head = (title: string, body: string) => (
+      <div className="import-question-head">
+        <div className="import-question-title">
+          <h4 id={titleId} tabIndex={-1} data-question-heading>
+            {title}
+          </h4>
+          <span className="import-question-count">{count(locale, 'flightsN', rows.length)}</span>
+        </div>
+        <p className="import-hint">{body}</p>
+      </div>
     )
 
     if (question.kind === 'year') {
+      const setYear = (year: number) =>
+        apply(
+          index,
+          question.drafts.map((draft) => ({ draft, change: answerYear(draft, year) })),
+          { key: question.key, label: S.yearDone[locale].replace('{year}', String(year)) },
+        )
       return (
         <li key={question.key} className="import-question" role="group" aria-labelledby={titleId}>
-          {heading(count(locale, 'yearTitle', question.drafts.length))}
-          <p className="import-question-ask">{S.yearQuestion[locale]}</p>
-          <p className="import-hint">{S.yearBody[locale]}</p>
-          {flightList(question.drafts)}
-          <div className="import-actions">
+          {head(S.yearQuestion[locale], S.yearBody[locale])}
+          <p className="import-question-dates import-code">
+            {question.drafts.map(when).join(' · ')}
+          </p>
+          <div className="import-question-answers" data-columns="3">
             {question.years.map((year) => (
-              <Button
-                key={year}
-                dense
-                disabled={busy}
-                onClick={() =>
-                  apply(
-                    index,
-                    question.drafts.map((draft) => ({ draft, change: answerYear(draft, year) })),
-                    {
-                      key: question.key,
-                      label: S.yearDone[locale].replace('{year}', String(year)),
-                    },
-                  )
-                }
-              >
-                {year}
+              <Button key={year} disabled={busy} onClick={() => setYear(year)}>
+                <span className="import-code">{year}</span>
               </Button>
             ))}
             <OtherYear
               locale={locale}
               max={question.years[0] + 1}
               disabled={busy}
-              onApply={(year) =>
-                apply(
-                  index,
-                  question.drafts.map((draft) => ({ draft, change: answerYear(draft, year) })),
-                  { key: question.key, label: S.yearDone[locale].replace('{year}', String(year)) },
-                )
-              }
+              onApply={setYear}
             />
-            {each}
           </div>
+          {each(S.questionsEach[locale])}
         </li>
       )
     }
@@ -216,13 +218,10 @@ export function QuestionDeck({
     if (question.kind === 'airline') {
       return (
         <li key={question.key} className="import-question" role="group" aria-labelledby={titleId}>
-          {heading(count(locale, 'airlineTitle', question.drafts.length))}
-          <p className="import-question-ask">{S.airlineQuestion[locale]}</p>
-          <p className="import-hint">{S.airlineBody[locale]}</p>
+          {head(S.airlineQuestion[locale], S.airlineBody[locale])}
           {flightList(question.drafts)}
-          <div className="import-actions">
+          <div className="import-question-answers">
             <Button
-              dense
               disabled={busy}
               onClick={() =>
                 apply(
@@ -234,8 +233,8 @@ export function QuestionDeck({
             >
               {S.airlineAnswer[locale]}
             </Button>
-            {each}
           </div>
+          {each(S.questionsEach[locale])}
         </li>
       )
     }
@@ -244,23 +243,33 @@ export function QuestionDeck({
       const city = cityOf(question.options[0])
       return (
         <li key={question.key} className="import-question" role="group" aria-labelledby={titleId}>
-          {heading(S.airportTitle[locale].replace('{city}', city))}
-          <p className="import-hint">{S.airportBody[locale]}</p>
-          <ul className="import-question-items">
-            {question.items.map(({ draft, endpoint }) => {
+          {head(S.airportTitle[locale].replace('{city}', city), S.airportBody[locale])}
+          {withMore(
+            question.items.map(({ draft, endpoint }) => {
               const itemId = `${titleId}-${draft.id}-${endpoint}`
               const rowBusy = frozen || saving([draft])
+              const cityName = <span className="import-question-city">{city}</span>
+              const other = (code: string) => <span className="import-code">{code || '—'}</span>
               return (
                 <li key={`${draft.id}:${endpoint}`} role="group" aria-labelledby={itemId}>
-                  <p id={itemId}>
-                    <span className="import-code">{route(draft, endpoint)}</span>{' '}
-                    <span>{when(draft)}</span>
+                  <p id={itemId} className="import-question-what">
+                    <span>
+                      {endpoint === 'origin' ? (
+                        <>
+                          {cityName} → {other(draft.fields.destination)}
+                        </>
+                      ) : (
+                        <>
+                          {other(draft.fields.origin)} → {cityName}
+                        </>
+                      )}
+                    </span>
+                    <span className="import-question-meta">{when(draft)}</span>
                   </p>
-                  <div className="import-actions">
+                  <div className="import-question-answers" data-choices="true">
                     {question.options.map((code) => (
                       <Button
                         key={code}
-                        dense
                         disabled={rowBusy}
                         aria-label={`${code}, ${findAirport(code)?.name ?? code}`}
                         onClick={() =>
@@ -272,43 +281,60 @@ export function QuestionDeck({
                           )
                         }
                       >
-                        <span className="import-code">{code}</span> {findAirport(code)?.name ?? ''}
+                        <span className="import-airport-choice">
+                          <span className="import-code import-airport-code">{code}</span>
+                          <span className="import-airport-name">
+                            {findAirport(code)?.name ?? ''}
+                          </span>
+                        </span>
                       </Button>
                     ))}
                   </div>
                 </li>
               )
-            })}
-          </ul>
-          <div className="import-actions">{each}</div>
+            }),
+            1,
+          )}
+          {each(S.questionsEachAirport[locale])}
         </li>
       )
     }
 
     return (
       <li key={question.key} className="import-question" role="group" aria-labelledby={titleId}>
-        {heading(count(locale, 'statusTitle', question.drafts.length))}
-        <p className="import-question-ask">{S.statusQuestion[locale]}</p>
-        <p className="import-hint">{S.statusBody[locale]}</p>
-        <ul className="import-question-items">
-          {question.drafts.map((draft) => {
+        {head(S.statusQuestion[locale], S.statusBody[locale])}
+        {withMore(
+          question.drafts.map((draft) => {
             const itemId = `${titleId}-${draft.id}`
             const rowBusy = frozen || saving([draft])
+            const issue = !draft.fields.origin
+              ? S.issueNoOrigin[locale]
+              : !draft.fields.destination
+                ? S.issueNoDestination[locale]
+                : null
             return (
               <li key={draft.id} role="group" aria-labelledby={itemId}>
-                <p id={itemId}>
-                  <span className="import-code">{route(draft)}</span> <span>{when(draft)}</span>
-                  {draft.fields.flight_number ? (
-                    <span className="import-code">
-                      {' '}
-                      {draft.fields.airline_iata}
-                      {draft.fields.flight_number}
-                    </span>
-                  ) : null}
+                <p id={itemId} className="import-question-what">
+                  <span className="import-code import-question-route">{route(draft)}</span>
+                  <span
+                    className="import-question-meta"
+                    data-tone={issue || !draft.fields.date ? 'warning' : undefined}
+                  >
+                    {when(draft)}
+                    {draft.fields.flight_number ? (
+                      <>
+                        {' · '}
+                        <span className="import-code">
+                          {draft.fields.airline_iata}
+                          {draft.fields.flight_number}
+                        </span>
+                      </>
+                    ) : null}
+                    {issue ? ` · ${issue}` : null}
+                  </span>
                 </p>
-                <div className="import-actions">
+                <div className="import-question-answers" data-pair="true">
                   <Button
-                    dense
                     disabled={rowBusy}
                     onClick={() =>
                       apply(
@@ -322,8 +348,6 @@ export function QuestionDeck({
                     {S.statusFlew[locale]}
                   </Button>
                   <Button
-                    dense
-                    variant="ghost"
                     disabled={rowBusy}
                     onClick={() => {
                       setSkipped((current) => [...current, draft.id])
@@ -340,25 +364,18 @@ export function QuestionDeck({
                 </div>
               </li>
             )
-          })}
-        </ul>
+          }),
+          3,
+        )}
       </li>
     )
   }
 
   return (
     <section ref={root} className="import-questions" aria-labelledby={`${id}-title`}>
-      <div className="import-questions-head">
-        <h3 id={`${id}-title`} tabIndex={-1}>
-          {S.questionsTitle[locale]}
-        </h3>
-        <p className="import-hint import-count">
-          {count(locale, 'readyN', readyCount)}
-          {shown.length > 0
-            ? ` · ${count(locale, 'questionsN', shown.length)} ${count(locale, 'forFlights', remaining)}`
-            : ''}
-        </p>
-      </div>
+      <h3 id={`${id}-title`} className="sr-only" tabIndex={-1}>
+        {S.questionsTitle[locale]}
+      </h3>
       {shown.length > 0 ? <ol className="import-question-list">{shown.map(card)}</ol> : null}
       {resolved.length > 0 || skippedRows.length > 0 ? (
         <ul className="import-question-done">
@@ -381,7 +398,6 @@ export function QuestionDeck({
                     {' '}
                     · {count(locale, 'notApplied', failed.length)}{' '}
                     <Button
-                      dense
                       disabled={frozen}
                       onClick={() => failed.forEach((rowId) => onRetry(rowId))}
                     >
@@ -393,14 +409,16 @@ export function QuestionDeck({
             )
           })}
           {skippedRows.map((draft) => (
-            <li key={draft.id}>
-              <span>
-                <span className="import-code">{route(draft)}</span> {when(draft)} ·{' '}
-                {S.statusSkipped[locale]}
-              </span>{' '}
+            <li key={draft.id} className="import-skipped">
+              <span className="import-skipped-what">
+                <span className="import-skipped-label">{S.statusSkipped[locale]}</span>
+                <span className="import-code">
+                  {route(draft)} · {when(draft)}
+                </span>
+              </span>
               <Button
-                dense
                 variant="ghost"
+                className="import-text-action"
                 disabled={frozen || saving([draft])}
                 onClick={() => {
                   onChange(draft, answerRestore())
@@ -440,7 +458,7 @@ function OtherYear({
   }, [open])
   if (!open)
     return (
-      <Button dense disabled={disabled} aria-expanded={false} onClick={() => setOpen(true)}>
+      <Button disabled={disabled} aria-expanded={false} onClick={() => setOpen(true)}>
         {S.yearOther[locale]}
       </Button>
     )
@@ -474,7 +492,7 @@ function OtherYear({
         }}
         disabled={disabled}
       />
-      <Button dense type="submit" disabled={disabled}>
+      <Button type="submit" disabled={disabled}>
         {S.yearApply[locale]}
       </Button>
     </form>

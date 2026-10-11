@@ -242,7 +242,8 @@ ${PROMPT_EXAMPLE.ru}
   ),
 
   questionsTitle: p('Questions', 'Вопросы'),
-  questionsEach: p('I will set each one', 'Укажу в каждом'),
+  questionsEach: p("I'll set each one", 'Укажу для каждого'),
+  questionsEachAirport: p('Set them in the list', 'Укажу в списке'),
   questionsApplying: p('Applying…', 'Применяем…'),
   questionsRetry: p('Try again', 'Повторить'),
   yearQuestion: p('Which year did you fly?', 'В каком году вы летели?'),
@@ -258,7 +259,7 @@ ${PROMPT_EXAMPLE.ru}
   airlineQuestion: p('Save them without an airline?', 'Сохранить их без авиакомпании?'),
   airlineBody: p(
     'The source does not name it. You can add it later in the journal.',
-    'В источнике её нет. Её можно добавить позже в журнале.',
+    'В источнике её нет — добавите позже в журнале.',
   ),
   airlineAnswer: p('Save without airline', 'Сохранить без авиакомпании'),
   airlineDone: p('Without an airline', 'Без авиакомпании'),
@@ -276,6 +277,8 @@ ${PROMPT_EXAMPLE.ru}
   statusNotFlew: p('Did not fly', 'Не летали'),
   statusSkipped: p('Skipped', 'Пропущен'),
   statusRestore: p('Bring back', 'Вернуть'),
+  issueNoOrigin: p('departure missing', 'нет аэропорта вылета'),
+  issueNoDestination: p('arrival missing', 'нет аэропорта прилёта'),
   issueUnknownAirport: p(
     'One of the airports is not in our list.',
     'Одного из аэропортов нет в нашем списке.',
@@ -289,14 +292,15 @@ ${PROMPT_EXAMPLE.ru}
   barLabel: p('Import actions', 'Действия импорта'),
   importCount: p('Import', 'Импортировать'),
   importing: p('Saving flights…', 'Сохраняем перелёты…'),
+  readyNote: p('Answered flights join as you go.', 'Отвеченные сразу попадают в готовые.'),
   nothingChosen: p('Select at least one flight to import.', 'Выберите хотя бы один перелёт.'),
   unsavedBlock: p(
     'Some edits are not saved yet. Use “Save changes” on the flight you edited, or discard them first.',
     'Некоторые правки ещё не сохранены. Нажмите «Сохранить изменения» у изменённого рейса или отмените их.',
   ),
   pausedWhileSaving: p(
-    'Saving your flights. Editing is paused until it finishes.',
-    'Сохраняем перелёты. Правки приостановлены до завершения.',
+    'Editing is paused until it finishes. Your answers are safe.',
+    'Правки на паузе до конца сохранения. Ответы не потеряются.',
   ),
   heldDone: p(
     'Your flights were saved, but some corrections are not saved yet. Save or discard them to see the summary.',
@@ -312,7 +316,7 @@ ${PROMPT_EXAMPLE.ru}
   ),
   retention: p(
     'Kept until {date}. Flights you have not saved by then are removed.',
-    'Хранится до {date}. Несохранённые к этому дню перелёты будут удалены.',
+    'Импорт хранится до {date}. Несохранённые к этому дню перелёты будут удалены.',
   ),
   sourceAgain: p(
     'Your document is not kept, so choose the file or paste the text again to try again.',
@@ -326,7 +330,7 @@ ${PROMPT_EXAMPLE.ru}
     'Recognition was cancelled, but the flights found so far could not be loaded. Reload the page to see them.',
     'Распознавание отменено, но найденные перелёты не удалось загрузить. Обновите страницу, чтобы увидеть их.',
   ),
-  reviewRemaining: p('Review the remaining flights', 'Проверить оставшиеся перелёты'),
+  retentionDone: p('Kept until {date}, then removed.', 'Хранятся до {date}, затем удаляются.'),
   retryOriginal: p('Retry original save', 'Повторить исходное сохранение'),
   checkedJournal: p(
     'I checked the journal — start a new save',
@@ -377,6 +381,11 @@ ${PROMPT_EXAMPLE.ru}
   savedHeading: p('Import finished', 'Импорт завершён'),
   partialSaved: p('Some flights were not saved', 'Не все перелёты сохранены'),
   newCountries: p('New stamps', 'Новые штампы'),
+  doneNote: p(
+    'The paperwork took longer than some of the flights.',
+    'Бумажная волокита заняла больше времени, чем некоторые перелёты.',
+  ),
+  summaryAnd: p('and', 'и'),
   stampsWaiting: p(
     'Totals are still updating. New stamps appear once they are ready.',
     'Итоги ещё обновляются. Новые штампы появятся, когда будут готовы.',
@@ -579,16 +588,61 @@ export const COUNTS = {
       other: '{count} пропущено',
     },
   },
-  remaining: {
+  stillInReview: {
+    en: { one: '{count} still in review →', other: '{count} still in review →' },
+    ru: {
+      one: 'В проверке ещё {count} →',
+      few: 'В проверке ещё {count} →',
+      many: 'В проверке ещё {count} →',
+      other: 'В проверке ещё {count} →',
+    },
+  },
+  flightsAdded: {
+    en: { one: 'flight added', other: 'flights added' },
+    ru: {
+      one: 'перелёт добавлен',
+      few: 'перелёта добавлено',
+      many: 'перелётов добавлено',
+      other: 'перелёта добавлено',
+    },
+  },
+  needYou: {
+    en: { one: '{count} needs you.', other: '{count} need you.' },
+    ru: {
+      one: 'Вам — {count}.',
+      few: 'Вам — {count}.',
+      many: 'Вам — {count}.',
+      other: 'Вам — {count}.',
+    },
+  },
+  readyRest: {
     en: {
-      one: '{count} flight is still waiting in review.',
-      other: '{count} flights are still waiting in review.',
+      one: '{count} is ready. The rest need an answer or two.',
+      other: '{count} are ready. The rest need an answer or two.',
     },
     ru: {
-      one: 'В проверке остался {count} перелёт.',
-      few: 'В проверке осталось {count} перелёта.',
-      many: 'В проверке осталось {count} перелётов.',
-      other: 'В проверке осталось {count} перелёта.',
+      one: '{count} готов. Остальным нужен ответ-другой.',
+      few: '{count} готовы. Остальным нужен ответ-другой.',
+      many: '{count} готовы. Остальным нужен ответ-другой.',
+      other: '{count} готовы. Остальным нужен ответ-другой.',
+    },
+  },
+  showMore: {
+    en: { one: 'Show {count} more', other: 'Show {count} more' },
+    ru: {
+      one: 'Показать ещё {count}',
+      few: 'Показать ещё {count}',
+      many: 'Показать ещё {count}',
+      other: 'Показать ещё {count}',
+    },
+  },
+  savingN: {
+    en: { one: 'Saving {count} flight…', other: 'Saving {count} flights…' },
+    ru: {
+      one: 'Сохраняем {count} перелёт…',
+      few: 'Сохраняем {count} перелёта…',
+      many: 'Сохраняем {count} перелётов…',
+      other: 'Сохраняем {count} перелёта…',
     },
   },
   flightsN: {
@@ -607,51 +661,6 @@ export const COUNTS = {
       few: 'Готово к импорту: {count}',
       many: 'Готово к импорту: {count}',
       other: 'Готово к импорту: {count}',
-    },
-  },
-  questionsN: {
-    en: { one: '{count} question', other: '{count} questions' },
-    ru: {
-      one: '{count} вопрос',
-      few: '{count} вопроса',
-      many: '{count} вопросов',
-      other: '{count} вопроса',
-    },
-  },
-  forFlights: {
-    en: { one: 'for {count} flight', other: 'for {count} flights' },
-    ru: {
-      one: 'на {count} перелёт',
-      few: 'на {count} перелёта',
-      many: 'на {count} перелётов',
-      other: 'на {count} перелёта',
-    },
-  },
-  yearTitle: {
-    en: { one: '{count} flight shows no year', other: '{count} flights show no year' },
-    ru: {
-      one: 'У {count} перелёта не виден год',
-      few: 'У {count} перелётов не виден год',
-      many: 'У {count} перелётов не виден год',
-      other: 'У {count} перелёта не виден год',
-    },
-  },
-  airlineTitle: {
-    en: { one: '{count} flight has no airline', other: '{count} flights have no airline' },
-    ru: {
-      one: 'У {count} перелёта не указана авиакомпания',
-      few: 'У {count} перелётов не указана авиакомпания',
-      many: 'У {count} перелётов не указана авиакомпания',
-      other: 'У {count} перелёта не указана авиакомпания',
-    },
-  },
-  statusTitle: {
-    en: { one: 'Check the status of {count} flight', other: 'Check the status of {count} flights' },
-    ru: {
-      one: 'Проверьте статус {count} перелёта',
-      few: 'Проверьте статус {count} перелётов',
-      many: 'Проверьте статус {count} перелётов',
-      other: 'Проверьте статус {count} перелёта',
     },
   },
   notApplied: {

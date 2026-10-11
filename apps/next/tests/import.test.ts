@@ -284,7 +284,7 @@ test('a partial save lists the failed row and retries only that row', async ({ p
   expect(server.confirms).toHaveLength(2)
   expect(server.confirms[1].items.map((item) => item.draftId)).toEqual(['d2'])
   expect(server.confirms[1].items[0].key).toBe(server.confirms[0].items[1].key)
-  await expect(page.getByTestId('import-summary')).toContainText('Added 3 flights')
+  await expect(page.getByTestId('import-summary')).toContainText('3 flights added')
   await expect(page.getByRole('link', { name: 'Open Passport' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Go to Journal' })).toBeVisible()
 })

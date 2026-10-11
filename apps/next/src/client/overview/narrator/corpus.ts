@@ -24,8 +24,8 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'В журнале пока нет завершённых перелётов.',
     },
     {
-      en: 'There are no completed flights in your overview yet.',
-      ru: 'Завершённых перелётов пока нет.',
+      en: 'A whole planet, and not one route on it. Bold of you.',
+      ru: 'Целая планета — и ни одного маршрута. Смело.',
     },
     {
       en: 'Your overview is waiting for its first completed flight.',

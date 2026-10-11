@@ -240,7 +240,6 @@ function PageContent({ name }: { name: string }) {
                 data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}
               >
                 <OverviewGlobe topLeft={<FilterBar />} />
-                {firstRun ? <FirstRun /> : null}
               </section>
               {!firstRun ? (
                 <>
@@ -251,6 +250,7 @@ function PageContent({ name }: { name: string }) {
                 </>
               ) : null}
             </div>
+            {firstRun ? <FirstRun /> : null}
           </div>
           {!firstRun && !zero ? <NextUp goals={scope.goals} /> : null}
           {zero ? (

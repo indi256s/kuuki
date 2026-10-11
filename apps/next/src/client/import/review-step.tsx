@@ -1,5 +1,6 @@
 'use client'
 
+import { LoaderCircle } from 'lucide-react'
 import { Plus } from '../ui/animated-icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatInstantDate, type Locale } from '../../lib/format'
@@ -12,7 +13,8 @@ import type { DraftChange, SaveState } from './draft-saver'
 import type { Failure } from './import-errors'
 import type { Draft } from './import-types'
 import { ManualRow } from './manual-row'
-import { QuestionDeck } from './question-deck'
+import { QuestionDeck, localToday } from './question-deck'
+import { buildQuestions, questionDrafts } from './questions'
 import { flightIdentity, newManualRow, type ManualRowState } from './manual-save'
 import { ReviewRow } from './review-row'
 import {
@@ -108,9 +110,25 @@ export function ReviewStep(props: ReviewStepProps) {
   const total = chosenActive.length + chosenDuplicates.length + validManual.length
   const unsaved = Object.keys(saveStates).length > 0 || dirty.size > 0
   const everySelected = selectable.length > 0 && selectable.every(isChosen)
+  // Flights still waiting on a question: skipped and answered ones have no open cause left.
+  const need = useMemo(
+    () =>
+      new Set(
+        buildQuestions(shown, today ?? localToday()).flatMap((question) =>
+          questionDrafts(question).map((draft) => draft.id),
+        ),
+      ).size,
+    [shown, today],
+  )
+  const inReview = groups.active.length + groups.duplicates.length
+  const asking = !partial && need > 0
   useEffect(() => {
     if (all.current) all.current.indeterminate = chosenActive.length > 0 && !everySelected
   }, [chosenActive.length, everySelected])
+
+  // The count the save started with: rows leave the chosen set as they are saved, and the bar should not count down.
+  const [savingCount, setSavingCount] = useState(total)
+  if (!confirming && savingCount !== total) setSavingCount(total)
 
   const reason = confirming
     ? undefined
@@ -143,7 +161,24 @@ export function ReviewStep(props: ReviewStepProps) {
 
   return (
     <section className="import-review" aria-labelledby="import-review-title">
-      <h2 id="import-review-title">{partial ? S.partialTitle[locale] : S.reviewTitle[locale]}</h2>
+      <div className="import-review-discard">
+        <Button
+          variant="ghost"
+          className="import-text-action"
+          disabled={confirming}
+          onClick={() => setDiscard(true)}
+        >
+          {S.cancelImport[locale]}
+        </Button>
+      </div>
+      <h2 id="import-review-title">
+        {partial
+          ? S.partialTitle[locale]
+          : asking
+            ? `${count(locale, 'flightsN', inReview)}. ${count(locale, 'needYou', need)}`
+            : S.reviewTitle[locale]}
+      </h2>
+      {asking ? <p className="import-lead">{count(locale, 'readyRest', total)}</p> : null}
       {partial ? (
         <p className="import-note" role="status">
           {cancelled ? (
@@ -166,11 +201,6 @@ export function ReviewStep(props: ReviewStepProps) {
           {notice}
         </p>
       ) : null}
-      {confirming ? (
-        <p className="import-hint" role="status">
-          {S.pausedWhileSaving[locale]}
-        </p>
-      ) : null}
       {groups.saved.length > 0 || groups.skipped.length > 0 ? (
         <p className="import-hint">
           {[
@@ -186,7 +216,6 @@ export function ReviewStep(props: ReviewStepProps) {
         locale={locale}
         drafts={shown}
         saveStates={saveStates}
-        readyCount={total}
         frozen={confirming}
         today={today}
         onChange={(draft, change) => onChange(originalOf(draft.id), change)}
@@ -278,18 +307,33 @@ export function ReviewStep(props: ReviewStepProps) {
         </Disclosure>
       ) : null}
 
-      <FloatingActionBar label={S.barLabel[locale]} countLabel={count(locale, 'selected', total)}>
-        <Button variant="secondary" disabled={confirming} onClick={() => setDiscard(true)}>
-          {S.cancelImport[locale]}
-        </Button>
-        <Button
-          variant="primary"
-          loading={confirming}
-          loadingLabel={S.importing[locale]}
-          disabledReason={reason}
-          onClick={onConfirm}
-        >
-          {count(locale, 'importN', total)}
+      <FloatingActionBar
+        label={S.barLabel[locale]}
+        countLabel={
+          confirming ? (
+            <span className="import-bar-saving">
+              <LoaderCircle
+                className="import-spinner"
+                size={20}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              <span className="import-bar-text">
+                <span>{count(locale, 'savingN', savingCount)}</span>
+                <span className="import-hint">{S.pausedWhileSaving[locale]}</span>
+              </span>
+            </span>
+          ) : (
+            <span className="import-bar-text">
+              <span>{count(locale, 'readyN', total)}</span>
+              <span className="import-hint">{S.readyNote[locale]}</span>
+            </span>
+          )
+        }
+      >
+        {/* Stays mounted while saving so focus does not drop to the page. */}
+        <Button variant="primary" loading={confirming} disabledReason={reason} onClick={onConfirm}>
+          {count(locale, 'importN', confirming ? savingCount : total)}
         </Button>
       </FloatingActionBar>
 

@@ -320,6 +320,10 @@ export const S = {
     'Import a booking or boarding pass, or add a flight by hand.',
     'Импортируйте бронь или посадочный талон либо добавьте перелёт вручную.',
   ),
+  firstRunNote: p(
+    'Nothing reaches your journal until you confirm it.',
+    'В журнал ничего не попадёт без вашего подтверждения.',
+  ),
   import: p('Import flights', 'Импортировать перелёты'),
   add: p('Add manually', 'Добавить вручную'),
   sampleLabel: p(

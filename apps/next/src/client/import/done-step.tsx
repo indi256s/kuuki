@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 import Link from 'next/link'
-import { formatDateOnly, formatNumber, type Locale } from '../../lib/format'
+import { formatDateOnly, formatInstantDate, formatNumber, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Stamp } from '../signature/stamp'
 import { S, count } from './copy'
@@ -38,6 +38,7 @@ export function DoneStep({
   checking,
   checkFailed,
   remaining,
+  expiresAt = null,
   aircraftTargets,
   aircraftApi,
   theme,
@@ -63,6 +64,8 @@ export function DoneStep({
   checkFailed: boolean
   /** Flights (rows in review and manual rows) still waiting after this save; the member can return to them. */
   remaining: number
+  /** When the stored batch is removed; the line about it is left out without it. */
+  expiresAt?: string | null
   aircraftTargets: AircraftTarget[]
   aircraftApi?: AircraftApi
   theme: 'light' | 'dark'
@@ -82,37 +85,43 @@ export function DoneStep({
   // The Passport hero carries at most MAX_STAMPS stamps; with more, Passport opens without it.
   const hero = stamps.length > 0 && stamps.length <= MAX_STAMPS
   const total = requested || savedCount + failures.length
-  const chunks: ReactNode[] = [
-    <strong key="added">
-      {partial
-        ? `${count(locale, 'savedOf', savedCount)} ${locale === 'ru' ? 'из' : 'of'} ${formatNumber(locale, total)}`
-        : count(locale, 'added', savedCount)}
-    </strong>,
-    ...(newCountries !== null && newCountries > 0
-      ? [<span key="countries">{count(locale, 'newCountries', newCountries)}</span>]
-      : []),
-    ...(totalKm > 0
-      ? [
-          <span key="km" className="import-code">
-            {formatNumber(locale, Math.round(totalKm))} {locale === 'ru' ? 'км' : 'km'}
-          </span>,
-        ]
-      : []),
-  ]
+  const km =
+    totalKm > 0
+      ? `${formatNumber(locale, Math.round(totalKm))}\u00a0${locale === 'ru' ? 'км' : 'km'}`
+      : null
+  const countries =
+    newCountries !== null && newCountries > 0 ? count(locale, 'newCountries', newCountries) : null
+  const summary = [km, countries].filter(Boolean).join(` ${S.summaryAnd[locale]} `)
+  // Long localized names (United Arab Emirates) use the short form the locale data offers (UAE / ОАЭ).
+  const shortNames = new Intl.DisplayNames([locale], { type: 'region', style: 'short' })
+  const stampName = ({ code, name }: NewStamp) => {
+    const short = name.length > 14 ? shortNames.of(code) : undefined
+    return short && short.length < name.length ? short : name
+  }
   return (
     <section className="import-done" aria-labelledby="import-done-title">
-      <h2 id="import-done-title" ref={heading} tabIndex={-1}>
+      {/* Static results as saved, with no count-up. */}
+      <h2
+        id="import-done-title"
+        ref={heading}
+        tabIndex={-1}
+        className={partial ? undefined : 'sr-only'}
+      >
         {partial ? S.partialSaved[locale] : S.savedHeading[locale]}
       </h2>
-      {/* Static metric tiles: the real results as saved, with no count-up. The separator keeps the spoken summary one sentence. */}
-      <p className="import-summary" data-testid="import-summary">
-        {chunks.map((chunk, index) => (
-          <span key={index} className="import-summary-chunk">
-            {index > 0 ? <span className="sr-only"> · </span> : null}
-            {chunk}
-          </span>
-        ))}
-      </p>
+      {partial ? (
+        <p className="import-summary" data-testid="import-summary">
+          {count(locale, 'savedOf', savedCount)} {locale === 'ru' ? 'из' : 'of'}{' '}
+          {formatNumber(locale, total)}
+        </p>
+      ) : (
+        <p className="import-hero" data-testid="import-summary">
+          <span className="import-hero-count">{formatNumber(locale, savedCount)}</span>{' '}
+          <span className="import-hero-label">{count(locale, 'flightsAdded', savedCount)}</span>
+        </p>
+      )}
+      {summary ? <p className="import-done-summary">{summary}.</p> : null}
+      {partial ? null : <p className="import-hint import-done-note">{S.doneNote[locale]}</p>}
       {checking ? (
         <p className="import-hint" role="status">
           {S.checkingSaved[locale]}
@@ -137,12 +146,12 @@ export function DoneStep({
       {shown.length > 0 ? (
         <div className="import-stamps">
           <h3>{S.newCountries[locale]}</h3>
-          <div className="import-stamp-grid">
+          <div className="import-stamp-rail">
             {shown.map((stamp) => (
               <Stamp
                 key={stamp.code}
                 countryCode={stamp.code}
-                nativeName={stamp.name}
+                nativeName={stampName(stamp)}
                 kind="air"
                 theme={theme}
                 locale={locale}
@@ -183,19 +192,6 @@ export function DoneStep({
         </div>
       ) : null}
 
-      {remaining > 0 ? (
-        <div className="import-remaining">
-          <p className="import-hint" role="status">
-            {count(locale, 'remaining', remaining)}
-          </p>
-          <div className="import-actions">
-            <Button onClick={onReview}>
-              {partial ? S.backToReview[locale] : S.reviewRemaining[locale]}
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
       {aircraftTargets.length > 0 ? (
         <AircraftPanel
           locale={locale}
@@ -220,6 +216,22 @@ export function DoneStep({
         </a>
         <Button onClick={onImportMore}>{S.importMore[locale]}</Button>
       </div>
+
+      {remaining > 0 ? (
+        <div className="import-remaining">
+          <Button variant="ghost" className="import-text-action import-each" onClick={onReview}>
+            {partial ? S.backToReview[locale] : count(locale, 'stillInReview', remaining)}
+          </Button>
+          {expiresAt && !Number.isNaN(Date.parse(expiresAt)) ? (
+            <p className="import-hint">
+              {S.retentionDone[locale].replace(
+                '{date}',
+                formatInstantDate(locale, expiresAt, 'medium'),
+              )}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   )
 }

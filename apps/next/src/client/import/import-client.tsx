@@ -838,6 +838,7 @@ export function ImportClient({
           checking={checking}
           checkFailed={checkFailed}
           remaining={groups.active.length + groups.duplicates.length + manualRows.length}
+          expiresAt={batch.batch?.expiresAt ?? null}
           aircraftTargets={aircraftTargets}
           aircraftApi={aircraftApi}
           theme={themeNow()}
