@@ -5,8 +5,10 @@ import { X } from 'lucide-react'
 import {
   useEffect,
   useRef,
+  useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from 'react'
 import './ui.css'
@@ -54,8 +56,20 @@ export type SheetProps = {
 
 type Sample = { t: number; p: number }
 
-export function Sheet({
-  open,
+export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetProps) {
+  return (
+    <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
+      {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay className="ui-overlay" />
+        <MountedSheetContent {...contentProps} trigger={trigger} onOpenChange={onOpenChange} />
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
+  )
+}
+
+function MountedSheetContent({
+  ref,
   onOpenChange,
   title,
   description,
@@ -67,8 +81,14 @@ export function Sheet({
   className = '',
   initialFocusRef,
   onCloseAutoFocus,
-}: SheetProps) {
+}: Omit<SheetProps, 'open'> & { ref?: Ref<HTMLDivElement> }) {
   const contentRef = useRef<HTMLDivElement>(null)
+  // Capture each Portal mount before a child autoFocus can replace the opener, as Dialog does.
+  const [opener] = useState(() => {
+    if (typeof document === 'undefined') return null
+    const active = document.activeElement
+    return active instanceof HTMLElement && active !== document.body ? active : null
+  })
   const titleRef = useRef<HTMLHeadingElement>(null)
   const drag = useRef<{ id: number; start: number; samples: Sample[] } | null>(null)
   const axis = side === 'bottom' ? 'clientY' : 'clientX'
@@ -121,67 +141,74 @@ export function Sheet({
     node.style.setProperty('--sheet-kb', `${inset}px`)
     node.dataset.keyboard = String(inset > 80)
   }
-  // Portal content may mount after this effect; its ref also applies the current inset.
+  // The first read waits until the opening frame has painted: reading the visual viewport while the sheet mounts
+  // forces a layout of the page and the new sheet mid-commit. A keyboard that opens later reports through the events.
   useEffect(() => {
-    if (!open || side !== 'bottom') return
+    if (side !== 'bottom') return
     const viewport = window.visualViewport
     if (!viewport) return
-    updateKeyboard()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const frame = requestAnimationFrame(() => {
+      timer = setTimeout(updateKeyboard)
+    })
     viewport.addEventListener('resize', updateKeyboard)
     viewport.addEventListener('scroll', updateKeyboard)
     return () => {
+      cancelAnimationFrame(frame)
+      clearTimeout(timer)
       viewport.removeEventListener('resize', updateKeyboard)
       viewport.removeEventListener('scroll', updateKeyboard)
     }
-  }, [open, side])
+  }, [side])
 
   return (
-    <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
-      {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
-      <RadixDialog.Portal>
-        <RadixDialog.Overlay className="ui-overlay" />
-        <RadixDialog.Content
-          ref={(node) => {
-            contentRef.current = node
-            if (node && side === 'bottom') updateKeyboard()
-          }}
-          className={`ui-sheet ${className}`}
-          data-side={side}
-          {...(description ? {} : { 'aria-describedby': undefined })}
-          onCloseAutoFocus={onCloseAutoFocus}
-          onOpenAutoFocus={(event) => {
-            event.preventDefault()
-            ;(initialFocusRef?.current ?? titleRef.current)?.focus()
-          }}
-        >
-          <div
-            className="ui-sheet-handle"
-            data-testid="sheet-handle"
-            aria-hidden="true"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={(event) => finish(event, false)}
-            onPointerCancel={(event) => finish(event, true)}
-          />
-          <div className="ui-panel-header">
-            <div>
-              <RadixDialog.Title ref={titleRef} tabIndex={-1} className="ui-panel-title">
-                {title}
-              </RadixDialog.Title>
-              {description ? (
-                <RadixDialog.Description className="ui-panel-description">
-                  {description}
-                </RadixDialog.Description>
-              ) : null}
-            </div>
-            <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}>
-              <X size={20} strokeWidth={2} aria-hidden="true" />
-            </RadixDialog.Close>
-          </div>
-          <div className="ui-panel-body">{children}</div>
-          {footer ? <div className="ui-panel-footer">{footer}</div> : null}
-        </RadixDialog.Content>
-      </RadixDialog.Portal>
-    </RadixDialog.Root>
+    <RadixDialog.Content
+      ref={(node) => {
+        contentRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) ref.current = node
+      }}
+      className={`ui-sheet ${className}`}
+      data-side={side}
+      {...(description ? {} : { 'aria-describedby': undefined })}
+      onCloseAutoFocus={(event) => {
+        onCloseAutoFocus?.(event)
+        if (!event.defaultPrevented && !trigger && opener?.isConnected) {
+          event.preventDefault()
+          opener.focus()
+        }
+      }}
+      onOpenAutoFocus={(event) => {
+        event.preventDefault()
+        ;(initialFocusRef?.current ?? titleRef.current)?.focus()
+      }}
+    >
+      <div
+        className="ui-sheet-handle"
+        data-testid="sheet-handle"
+        aria-hidden="true"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={(event) => finish(event, false)}
+        onPointerCancel={(event) => finish(event, true)}
+      />
+      <div className="ui-panel-header">
+        <div>
+          <RadixDialog.Title ref={titleRef} tabIndex={-1} className="ui-panel-title">
+            {title}
+          </RadixDialog.Title>
+          {description ? (
+            <RadixDialog.Description className="ui-panel-description">
+              {description}
+            </RadixDialog.Description>
+          ) : null}
+        </div>
+        <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}>
+          <X size={20} strokeWidth={2} aria-hidden="true" />
+        </RadixDialog.Close>
+      </div>
+      <div className="ui-panel-body">{children}</div>
+      {footer ? <div className="ui-panel-footer">{footer}</div> : null}
+    </RadixDialog.Content>
   )
 }

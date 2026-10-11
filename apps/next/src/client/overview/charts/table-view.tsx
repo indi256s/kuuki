@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppearance } from '../../preferences'
+import { useLocale } from '../../preferences'
 import { Disclosure } from '../../ui/disclosure'
 import { t } from '../copy'
 import './chart-theme.css'
@@ -12,7 +12,7 @@ export type ChartTable = {
 }
 
 export function TableView({ table }: { table: ChartTable }) {
-  const { locale } = useAppearance()
+  const locale = useLocale()
   return (
     <div className="kc-table">
       <Disclosure summary={t({ en: 'View as table', ru: 'Показать таблицу' }, locale)}>

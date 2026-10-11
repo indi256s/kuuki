@@ -16,6 +16,7 @@ import {
   MenuRadioItem,
   MenuSeparator,
 } from './ui/menu'
+import { useToast } from './ui/toast'
 import { ProfileAvatar } from './profile/avatar'
 
 type Theme = 'system' | 'light' | 'dark'
@@ -40,7 +41,7 @@ export function AvatarMenu({
   const ru = appearance.locale === 'ru'
   const [publicProfile, setPublicProfile] = useState(isPublic)
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const toast = useToast()
   const mounted = useRef(true)
   useEffect(() => {
     mounted.current = true
@@ -56,7 +57,6 @@ export function AvatarMenu({
   async function toggleVisibility(next: boolean) {
     if (busy) return
     setBusy(true)
-    setError('')
     setPublicProfile(next)
     const controller = new AbortController(),
       release = trackPrivateOperation(controller),
@@ -72,7 +72,10 @@ export function AvatarMenu({
     } catch {
       if (!controller.signal.aborted && generation === getAuthGeneration() && mounted.current) {
         setPublicProfile(!next)
-        setError(ru ? 'Не удалось изменить видимость.' : 'Could not change visibility.')
+        toast.show({
+          kind: 'error',
+          message: ru ? 'Не удалось изменить видимость.' : 'Could not change visibility.',
+        })
       }
     } finally {
       release()
@@ -86,7 +89,8 @@ export function AvatarMenu({
         '/signin',
       )
     } catch {
-      if (mounted.current) setError(ru ? 'Не удалось выйти.' : 'Could not sign out.')
+      if (mounted.current)
+        toast.show({ kind: 'error', message: ru ? 'Не удалось выйти.' : 'Could not sign out.' })
     }
   }
 
@@ -127,11 +131,6 @@ export function AvatarMenu({
       >
         {ru ? 'Публичный профиль' : 'Public profile'}
       </MenuCheckboxItem>
-      {error ? (
-        <p className="avatar-error" role="alert">
-          {error}
-        </p>
-      ) : null}
       <MenuItem asChild>
         <Link href="/settings">{ru ? 'Настройки' : 'Settings'}</Link>
       </MenuItem>

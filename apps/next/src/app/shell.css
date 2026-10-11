@@ -152,12 +152,6 @@ a.ui-menu-item {
   font-size: 13px;
   color: var(--text-muted);
 }
-.avatar-error {
-  margin: 0;
-  padding: var(--space-1) var(--space-3);
-  font-size: 13px;
-  color: var(--danger-text);
-}
 
 .queue-summary {
   position: relative;

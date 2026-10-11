@@ -11,6 +11,7 @@ export function YearStrip() {
   const rows = scope?.figures.byYear ?? []
   const peak = Math.max(0, ...rows.map((row) => row.flights))
   if (!rows.length) return null
+  const selectedYears = filter.period && 'years' in filter.period ? filter.period.years : []
   return (
     <div
       className="ov3-years"
@@ -26,10 +27,18 @@ export function YearStrip() {
             key={row.key}
             type="button"
             aria-label={`${row.year} · ${formatCount(locale, row.flights, forms.flights)} · ${t(S.period, locale)}`}
-            aria-pressed={
-              !!filter.period && 'years' in filter.period && filter.period.years.includes(row.year)
-            }
-            onClick={() => actions.setPeriod({ years: [row.year] })}
+            aria-pressed={selectedYears.includes(row.year)}
+            onClick={() => {
+              // A pressed year releases only itself; an unpressed one becomes the whole period, as before.
+              const rest = selectedYears.filter((year) => year !== row.year)
+              actions.setPeriod(
+                rest.length === selectedYears.length
+                  ? { years: [row.year] }
+                  : rest.length
+                    ? { years: rest }
+                    : null,
+              )
+            }}
           >
             {row.flights > 0 ? (
               <span className="ov3-year-count" aria-hidden="true">

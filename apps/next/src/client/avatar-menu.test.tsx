@@ -1,8 +1,11 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from '@testing-library/react'
+import { render as baseRender, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AvatarMenu } from './avatar-menu'
+import { withIdentityMutation } from './activity'
+import { ToastProvider } from './ui/toast'
 
 const patch = vi.fn()
 const refresh = vi.fn()
@@ -15,6 +18,8 @@ vi.mock('./activity', () => ({
   trackPrivateOperation: () => () => undefined,
   withIdentityMutation: vi.fn(),
 }))
+
+const render = (ui: ReactElement) => baseRender(<ToastProvider>{ui}</ToastProvider>)
 
 describe('AvatarMenu', () => {
   beforeEach(() => {
@@ -69,12 +74,23 @@ describe('AvatarMenu', () => {
     const toggle = await screen.findByRole('menuitemcheckbox', { name: 'Public profile' })
     await user.click(toggle)
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not change visibility.')
+    expect(within(screen.getByRole('menu')).queryByRole('alert')).toBeNull()
     expect(toggle).toHaveAttribute('aria-checked', 'true')
     expect(patch).toHaveBeenCalledWith(
       '/api/profiles/me',
       { is_public: false, show_on_leaderboards: false },
       expect.anything(),
     )
+  })
+
+  it('reports a failed sign-out after the menu has closed', async () => {
+    vi.mocked(withIdentityMutation).mockRejectedValue(new Error('x'))
+    const user = userEvent.setup()
+    render(<AvatarMenu username="ana" isPublic />)
+    await user.click(screen.getByRole('button', { name: 'Account menu' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not sign out.')
   })
 
   it('offers theme and language radios', async () => {

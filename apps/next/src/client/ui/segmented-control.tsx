@@ -8,9 +8,14 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
+import { flushSync } from 'react-dom'
 import './ui.css'
 
 export type SegmentOption<T extends string> = { value: T; label: ReactNode; icon?: ReactNode }
+
+type Box = { x: number; y: number; w: number; h: number }
+const sameBox = (a: Box | null, b: Box) =>
+  !!a && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h
 
 export type SegmentedControlProps<T extends string> = {
   value: T
@@ -31,7 +36,11 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const root = useRef<HTMLDivElement>(null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
-  const [thumb, setThumb] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  // Every option's box, read whenever the control changes size. With equal cells the boxes depend only on that size
+  // and the option count, so a new selection reuses them instead of forcing a layout while its commit is applied.
+  const boxes = useRef<(Box | null)[]>([])
+  const current = useRef(0)
+  const [thumb, setThumb] = useState<Box | null>(null)
   const [ready, setReady] = useState(false)
   const selected = Math.max(
     0,
@@ -39,30 +48,38 @@ export function SegmentedControl<T extends string>({
   )
 
   useLayoutEffect(() => {
+    current.current = selected
+    const box = boxes.current[selected]
+    if (box) setThumb((prev) => (sameBox(prev, box) ? prev : box))
+  }, [selected])
+
+  useLayoutEffect(() => {
+    const node = root.current
+    if (!node) return
     const measure = () => {
-      const node = refs.current[selected]
-      if (!node) return
-      setThumb((prev) => {
-        const next = {
-          x: node.offsetLeft,
-          y: node.offsetTop,
-          w: node.offsetWidth,
-          h: node.offsetHeight,
-        }
-        return prev &&
-          prev.x === next.x &&
-          prev.y === next.y &&
-          prev.w === next.w &&
-          prev.h === next.h
-          ? prev
-          : next
-      })
+      boxes.current = refs.current.slice(0, options.length).map((option) =>
+        option
+          ? {
+              x: option.offsetLeft,
+              y: option.offsetTop,
+              w: option.offsetWidth,
+              h: option.offsetHeight,
+            }
+          : null,
+      )
+      const box = boxes.current[current.current]
+      if (box) setThumb((prev) => (sameBox(prev, box) ? prev : box))
     }
-    measure()
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
-    if (root.current) observer?.observe(root.current)
-    return () => observer?.disconnect()
-  }, [selected, options.length])
+    if (typeof ResizeObserver === 'undefined') {
+      measure()
+      return
+    }
+    // The first report arrives after layout and before paint: the thumb lands in the opening frame, and reading the
+    // boxes there costs nothing because layout is already clean.
+    const observer = new ResizeObserver(() => flushSync(measure))
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [options.length])
 
   // Enable the slide only after the first measurement so mounting never animates.
   useLayoutEffect(() => {

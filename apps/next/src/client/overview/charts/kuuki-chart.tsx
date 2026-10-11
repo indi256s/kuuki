@@ -12,7 +12,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../ui/button'
-import { useAppearance } from '../../preferences'
+import { useLocale } from '../../preferences'
 import { t } from '../copy'
 import { DEFAULT_PALETTE, type ChartPalette } from './palettes'
 import { TableView, type ChartTable } from './table-view'
@@ -69,7 +69,7 @@ export function KuukiChart<T>({
   const id = useId(),
     host = useRef<SVGSVGElement>(null),
     portal = useRef<HTMLDivElement>(null)
-  const { locale } = useAppearance()
+  const locale = useLocale()
   const [measure, available] = useMeasuredWidth<HTMLDivElement>()
   const root = useRef<HTMLDivElement | null>(null)
   const bindRoot = useCallback(

@@ -20,9 +20,14 @@ function themeSnapshot(): 'system' | 'light' | 'dark' {
   return selected === 'light' || selected === 'dark' ? selected : 'system'
 }
 
+/** Live locale only, so components that never show the theme don't re-render during a theme switch. */
+export function useLocale(initialLocale: 'en' | 'ru' = 'en') {
+  return useSyncExternalStore(subscribe, localeSnapshot, () => initialLocale)
+}
+
 /** Live locale and theme selection; the same cookie/attribute sources the first-paint bootstrap writes. */
 export function useAppearance(initialLocale: 'en' | 'ru' = 'en') {
-  const locale = useSyncExternalStore(subscribe, localeSnapshot, () => initialLocale)
+  const locale = useLocale(initialLocale)
   const theme = useSyncExternalStore(subscribe, themeSnapshot, () => 'system' as const)
   return { locale, theme }
 }

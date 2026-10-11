@@ -365,13 +365,13 @@
   animation: ui-sheet-in-b var(--dur-sheet) var(--ease-drawer);
 }
 .ui-sheet[data-side='bottom'][data-state='closed'] {
-  animation: ui-sheet-out-b var(--dur-sheet) var(--ease-drawer) forwards;
+  animation: ui-sheet-out-b calc(var(--dur-sheet) * 0.8) var(--ease-drawer) forwards;
 }
 .ui-sheet[data-side='right'][data-state='open'] {
   animation: ui-sheet-in-r var(--dur-sheet) var(--ease-drawer);
 }
 .ui-sheet[data-side='right'][data-state='closed'] {
-  animation: ui-sheet-out-r var(--dur-sheet) var(--ease-drawer) forwards;
+  animation: ui-sheet-out-r calc(var(--dur-sheet) * 0.8) var(--ease-drawer) forwards;
 }
 @keyframes ui-sheet-in-b {
   from {
@@ -454,8 +454,16 @@
 }
 
 /* ---------- Menu ---------- */
+/* Catches presses outside an open menu (menu.tsx MenuShield). It sits under the menu and over toasts, sheets and the
+   page, so a press anywhere else only closes the menu, as the modal menu did. */
+.ui-menu-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 71;
+  pointer-events: auto;
+}
 .ui-menu {
-  z-index: 60;
+  z-index: 72;
   min-width: 200px;
   max-width: min(320px, calc(100vw - 16px));
   max-height: var(--radix-dropdown-menu-content-available-height);
@@ -1110,6 +1118,9 @@
 .ui-popover[data-state='open'] {
   animation: ui-pop-in var(--dur-fast) var(--ease-out);
 }
+.ui-popover[data-state='closed'] {
+  animation: ui-pop-out 120ms var(--ease-out) forwards;
+}
 .ui-skeleton {
   width: 100%;
   flex: none;
@@ -1119,6 +1130,9 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-popover[data-state='open'] {
     animation: ui-fade-in var(--dur-fast) linear;
+  }
+  .ui-popover[data-state='closed'] {
+    animation: ui-fade-out var(--dur-fast) linear forwards;
   }
 }
 

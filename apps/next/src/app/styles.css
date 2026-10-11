@@ -546,11 +546,13 @@ h2 {
 }
 /* Theme switch: controls skip their own color transitions so everything changes together; the Horizon sun keeps its motion. The old theme stays still while the new one sweeps over it with the sun: dusk from the top down, dawn from the bottom up.
    The mask is 7/3 of the viewport tall: a viewport of opaque, a feathered band of a third of the viewport, and a viewport of clear. Moving mask-position between 0% and 100% slides the band from fully clear to fully covered. */
-:root[data-theme-switching] *:not(.auth-horizon svg, .auth-horizon-sun),
-:root[data-theme-switching] *::before,
-:root[data-theme-switching] *::after {
+:root[data-theme-painting] *:not(.auth-horizon svg, .auth-horizon-sun),
+:root[data-theme-painting] *::before,
+:root[data-theme-painting] *::after {
   transition: none !important;
 }
+/* The root keeps its size, so the default group morph would only re-lay out a full-viewport box for 250ms. */
+:root[data-theme-switching]::view-transition-group(root),
 :root[data-theme-switching]::view-transition-old(root) {
   animation: none;
 }
@@ -600,6 +602,13 @@ h2 {
     mask: none;
     animation: theme-fade var(--dur-fast) linear;
   }
+}
+/* Radix's modal scroll lock writes this variable on body at every sheet and dialog open and close. Nothing reads it;
+   registered as non-inherited, the write restyles body alone instead of every element on the page. */
+@property --removed-body-scroll-bar-size {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
 }
 .locale-ru {
   display: none;

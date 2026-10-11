@@ -118,6 +118,31 @@ describe('Sheet', () => {
     expect(screen.getByRole('dialog', { name: 'Rankings' })).toBeInTheDocument()
   })
 
+  it('an outside press closes only the menu, and the next one closes the sheet', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    render(
+      <Sheet open onOpenChange={onOpenChange} title="Rankings">
+        <Menu trigger={<button type="button">Section options</button>}>
+          <MenuItem>Move up</MenuItem>
+        </Menu>
+      </Sheet>,
+    )
+    screen.getByRole('button', { name: 'Section options' }).focus()
+    await user.keyboard('{Enter}')
+    await screen.findByRole('menu')
+    // Radix starts listening for outside presses a task after the menu mounts.
+    await new Promise((resolve) => setTimeout(resolve))
+    const shield = document.querySelector('.ui-menu-shield')!
+    fireEvent.pointerDown(shield)
+    fireEvent.pointerUp(shield)
+    fireEvent.click(shield)
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+    expect(onOpenChange).not.toHaveBeenCalled()
+    fireEvent.pointerDown(document.querySelector('.ui-overlay')!)
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
   it('dismisses on a fast drag of the handle', async () => {
     const onChange = vi.fn()
     render(<Harness onChange={onChange} />)
