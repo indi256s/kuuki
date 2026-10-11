@@ -1,13 +1,8 @@
 name: CI/CD
 
-# Verification only. Production deploys are manual: see docs/skills/deploy-kuuki/SKILL.md.
+# Manual fallback for the same verification used by Cloudflare Workers Builds.
+# Production deploys remain manual: docs/skills/deploy-kuuki/SKILL.md.
 on:
-  push:
-    branches: [main, dev]
-    paths-ignore: ['**/*.md', 'docs/**', '.scratch/**']
-  pull_request:
-    branches: [main, dev]
-    paths-ignore: ['**/*.md', 'docs/**', '.scratch/**']
   workflow_dispatch:
 
 concurrency:
@@ -19,68 +14,13 @@ env:
   NODE_VERSION: 24
 
 jobs:
-  checks:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
           pnpm-version: ${{ env.PNPM_VERSION }}
           node-version: ${{ env.NODE_VERSION }}
-      - run: pnpm turbo run build --filter='./packages/*'
-      - parallel:
-          - run: pnpm lint
-          - run: pnpm format:check
-      - name: Check api-routes.generated.ts is current (run node scripts/build-next.mjs --inventory-only and commit the file)
-        run: node scripts/build-next.mjs --inventory-only && git diff --exit-code apps/next/api-routes.generated.ts
-      # Two typecheck lanes keep CPU and memory use bounded on hosted runners.
-      - run: pnpm typecheck --concurrency=1
-        id: workspace-types
-        background: true
-      - run: pnpm typecheck:api
-      - run: pnpm typecheck:scripts
-      - run: pnpm typecheck:maintenance
-      - run: pnpm typecheck:import
-      - wait: workspace-types
-      # Match the API job: use two isolated workers on the hosted runner.
-      - run: pnpm --filter @kuuki/next run test --maxWorkers=2
-        id: next-tests
-        background: true
-      - run: node --test scripts/check-preview-config.test.mjs scripts/dependency-patches.test.mjs scripts/oxlint-design.test.mjs
-      - run: pnpm exec tsx scripts/map-geometry.test.ts
-      - run: node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
-      - run: WRANGLER_SEND_METRICS=false pnpm build:import
-      - run: WRANGLER_SEND_METRICS=false pnpm build:import:release
-      - wait: next-tests
-
-  api:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-          node-version: ${{ env.NODE_VERSION }}
-      - run: pnpm turbo run build --filter='./packages/*'
-      # Vitest defaults to CPUs - 1 workers, which is one on a 2-vCPU runner; each test spends most of its time in workerd.
-      - run: pnpm test:api --shard=${{ matrix.shard }}/3 --maxWorkers=2
-
-  e2e:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-        with:
-          pnpm-version: ${{ env.PNPM_VERSION }}
-          node-version: ${{ env.NODE_VERSION }}
-      - run: pnpm turbo run build --filter='./packages/*'
-      - run: pnpm next:build
-      - run: pnpm --filter @kuuki/next typecheck:worker
-      - run: pnpm next:smoke
+      - run: pnpm verify:cloudflare

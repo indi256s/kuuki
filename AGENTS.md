@@ -17,7 +17,7 @@ Use `gh-axi` for GitHub. Browser work follows the global `agent-browser` policy.
 - **Domain work:** read `GLOSSARY.md`, then only the sections of `docs/adr/` that your task touches.
 - **Writing or reviewing code:** read `CODING_STANDARDS.md`.
 - **Plans, specs or handoffs:** read `docs/agents/issue-tracker.md`.
-- **Deploying:** CI only verifies; deploys are manual through the `deploy-kuuki` skill.
+- **Deploying:** Cloudflare Workers Builds runs `pnpm verify:cloudflare` and uploads only preview candidates; production deploys are manual through the `deploy-kuuki` skill. GitHub Actions is a manual verification fallback.
 - **Runtime or release work:** read `docs/skills/deploy-kuuki/SKILL.md`; for D1 migration/cutover gates, read `docs/runbooks/audit-remediation-release.md`. The 4 October Next candidate runbook is historical evidence.
 
 ## Guardrails

@@ -12,7 +12,7 @@ Production is two Workers built from one Next build, both configured in `apps/ne
 | `kuuki-next`       | top level    | `kuuki.marchstudio.uk/*` route          | `kuuki-db` |
 | `kuuki-activation` | `activation` | `kuuki-activation.indi256s.workers.dev` | `kuuki-db` |
 
-CI only verifies; every deploy is this procedure, run by hand. Run commands from the workspace root; `wrangler` below means `pnpm --filter @kuuki/next exec wrangler`, which runs inside `apps/next` and picks up that config.
+Cloudflare Workers Builds verifies and uploads preview candidates only to `kuuki-next-preview`; every production deploy is this procedure, run by hand. Run commands from the workspace root; `wrangler` below means `pnpm --filter @kuuki/next exec wrangler`, which runs inside `apps/next` and picks up that config.
 
 A request to deploy Kuuki authorizes production deployment of that release. Proceed directly to production after the candidate, migration and build checks pass; do not deploy preview or ask for a second production confirmation. Remote D1 migrations remain a separate task with their own authorization.
 
@@ -20,7 +20,7 @@ The source tree no longer builds a Vite frontend. The 6 October release handoff 
 
 ## Steps
 
-1. **Candidate.** `main` checked out at `origin/main`, `git status --short` empty, and the CI/CD run for that SHA succeeded: `gh-axi run list --workflow ci.yml --commit "$(git rev-parse HEAD)"`. CI skips commits that only touch `*.md`, `docs/` or `.scratch/`; for those, use the run of the last commit that touched code and confirm `git diff --name-only <that-sha> HEAD` lists only such paths.
+1. **Candidate.** `main` checked out at `origin/main` and `git status --short` empty. Require a successful Cloudflare Workers Build for the exact candidate SHA: `cf builds list --external-script-id 5961020fff90472c9460a1697b10f587 --per-page 50` (the script tag for `kuuki-next-preview`). Inspect the returned commit SHA, final success status and logs confirming `pnpm verify:cloudflare` completed before preview upload. Record the build UUID and candidate SHA in release notes. If the Worker is recreated, resolve its new script tag before using this command. A preview upload is not production approval; retain the migration, import and production gates below. GitHub Actions is a manual verification fallback, not the release evidence gate.
 2. **Migrations.** Both production Workers use `kuuki-db`. Read its ledger without writing:
    `wrangler d1 execute kuuki-db --remote --json --command "SELECT name FROM d1_migrations ORDER BY id"`
    Compare against `ls db/migrations/*.sql`. Done when every file is listed: nothing to migrate, continue. Any file missing from the ledger: stop and tell the user. Remote migrations follow `docs/runbooks/audit-remediation-release.md` (backup, writer hold, schema admission, explicit authorization), a separate task from this deploy.

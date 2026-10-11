@@ -31,7 +31,8 @@
     "verify:import:provider": "tsx scripts/verify-import-provider.ts",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "generate:fleet-geometry": "node scripts/generate-fleet-geometry.mjs"
+    "generate:fleet-geometry": "node scripts/generate-fleet-geometry.mjs",
+    "verify:cloudflare": "bash scripts/verify-cloudflare.sh"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261009.1",
