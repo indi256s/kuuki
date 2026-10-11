@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleAlert } from 'lucide-react'
+import { CircleAlert } from '@keyline-icons/react'
 import { useEffect, useRef } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'

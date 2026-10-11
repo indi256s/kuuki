@@ -3,7 +3,7 @@
 import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type ComponentType, type ReactNode, type SVGProps } from 'react'
-import { BookOpen, CircleUser } from 'lucide-react'
+import { BookOpen, CircleUser } from '@keyline-icons/react'
 import { LayoutGrid, Plus, Stamp } from './ui/animated-icons'
 import { AddActions } from './add-actions'
 import { Sheet } from './ui/sheet'

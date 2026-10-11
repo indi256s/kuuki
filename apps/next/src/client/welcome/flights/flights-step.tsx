@@ -2,7 +2,7 @@
 
 import { findAirport } from '@kuuki/data/airport-lookup'
 import type { Flight } from '@kuuki/client/flights'
-import { Check, CircleAlert, ClipboardCheck, Clock, Copy, PenLine } from 'lucide-react'
+import { Check, CircleAlert, ClipboardCheck, Clock, Copy, PenLine } from '@keyline-icons/react'
 import {
   useCallback,
   useEffect,

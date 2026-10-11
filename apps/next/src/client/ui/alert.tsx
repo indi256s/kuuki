@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react'
+import { CircleCheck, CircleX, Info, TriangleAlert } from '@keyline-icons/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import './alert.css'
 

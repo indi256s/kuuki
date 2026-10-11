@@ -7,7 +7,7 @@
 // the URL). The spec's "Status → To confirm" route: ticking that filter only filters; a row opened while the Status filter is
 // exactly To confirm opens in review mode, as does an awaiting row opened while review mode is already on.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Trash2 } from 'lucide-react'
+import { Check, Bin2 as Trash2 } from '@keyline-icons/react'
 import type { Locale } from '../../server/locale'
 import { HistoricalReview } from '../reads/historical-review'
 import { useAwaiting } from '../awaiting'

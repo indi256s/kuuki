@@ -8,7 +8,7 @@ import {
   normalizeAddress,
   normalizeName,
 } from '@kuuki/shared/address'
-import { CircleAlert, Lock, Pencil } from 'lucide-react'
+import { CircleAlert, Lock, Pen as Pencil } from '@keyline-icons/react'
 import {
   useEffect,
   useMemo,

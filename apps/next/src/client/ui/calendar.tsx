@@ -1,5 +1,5 @@
 'use client'
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight } from '@keyline-icons/react'
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type Ref } from 'react'
 import { addDays } from '@kuuki/shared/calendar'
 import { DAY_MS, dayToEpoch, epochToDay } from '@kuuki/shared/overview/range'

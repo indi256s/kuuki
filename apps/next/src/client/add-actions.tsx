@@ -3,7 +3,7 @@
 import { NavigationLink as Link } from './navigation-link'
 import { useAwaiting } from './awaiting'
 import { formatNumber } from '../lib/format'
-import { ClipboardCheck, ClipboardPaste, PenLine, Upload } from 'lucide-react'
+import { ClipboardCheck, ClipboardPaste, PenLine, Upload } from '@keyline-icons/react'
 import type { ReactNode } from 'react'
 import { MenuItem } from './ui/menu'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { Check } from '@keyline-icons/react'
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { setAccent } from '../appearance'
 import { ACCENTS, isAccent, type Accent } from '../../lib/theme-colors'

@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from '@keyline-icons/react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'

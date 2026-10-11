@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import { CircleHelp, Globe } from 'lucide-react'
+import { CircleQuestion as CircleHelp, Globe } from '@keyline-icons/react'
 import { setLocale } from '../appearance'
 import { useAppearance } from '../preferences'
 import { Dialog } from '../ui/dialog'

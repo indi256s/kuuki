@@ -1,7 +1,7 @@
 'use client'
 
 import * as RadixDialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import { X } from '@keyline-icons/react'
 import { useRef, useState, type ReactNode, type Ref, type RefObject } from 'react'
 import './ui.css'
 

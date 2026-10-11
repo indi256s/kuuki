@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
-import { ChevronLeft, ChevronRight, MoreHorizontal, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MoreHorizontal, X } from '@keyline-icons/react'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { Sheet } from '../../ui/sheet'
 import { Button } from '../../ui/button'

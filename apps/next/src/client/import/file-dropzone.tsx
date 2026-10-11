@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUp, FileImage, FileText, X } from 'lucide-react'
+import { ArrowUp, FileImage, FileText, X } from '@keyline-icons/react'
 import { useEffect, useId, useRef, useState, type DragEvent } from 'react'
 import type { Locale } from '../../lib/format'
 import { S } from './copy'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useId } from 'react'
-import { Check } from 'lucide-react'
+import { Check } from '@keyline-icons/react'
 import { formatCount, formatNumber } from '../../../lib/format'
 import { BUCKET_TOKENS, visitBucket } from '../../../lib/map-buckets'
 import { forms, S, t } from '../copy'

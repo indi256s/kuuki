@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
+import { X } from '@keyline-icons/react'
 import { formatCount, formatNumber, type Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
 import { forms } from '../copy'

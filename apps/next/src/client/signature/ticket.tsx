@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Check, Plane } from 'lucide-react'
+import { Check, Plane } from '@keyline-icons/react'
 import type { ReactNode } from 'react'
 import { formatDateOnly, formatDistanceKm, type Locale } from '../../lib/format'
 import './signature.css'

@@ -10,7 +10,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, X } from '@keyline-icons/react'
 import { Button } from './button'
 import './arc-interactions.css'
 

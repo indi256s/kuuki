@@ -130,15 +130,27 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-/* Horizon: the sun sets by half the viewBox in dark, and the icon shifts up so the half-set sun keeps the globe's and help icon's centre line. Both are CSS on html[data-theme], so first paint needs no script. */
-.auth-horizon svg {
+/* Move the Keyline sun below the clipped sky; the horizon stays in place. */
+.auth-horizon-icon {
+  position: relative;
+  width: 16px;
+  height: 16px;
   translate: 0 -1px;
   transition: translate var(--dur-horizon) var(--ease-horizon);
+}
+.auth-horizon-sky {
+  position: absolute;
+  inset: 0 0 1px;
+  overflow: hidden;
 }
 .auth-horizon-sun {
   transition: translate var(--dur-horizon) var(--ease-horizon);
 }
-:root[data-theme='dark'] .auth-horizon svg {
+.auth-horizon-line {
+  position: absolute;
+  inset: 7px 0 auto;
+}
+:root[data-theme='dark'] .auth-horizon-icon {
   translate: 0 -4px;
 }
 :root[data-theme='dark'] .auth-horizon-sun {
@@ -465,7 +477,7 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-corner-control,
   .auth-card-reveal,
-  .auth-horizon svg,
+  .auth-horizon-icon,
   .auth-horizon-sun {
     transition: none;
   }

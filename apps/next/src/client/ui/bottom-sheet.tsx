@@ -20,7 +20,7 @@ import {
   useReducedMotion,
   useTransform,
 } from 'motion/react'
-import { X } from 'lucide-react'
+import { X } from '@keyline-icons/react'
 // Adapted from Arc Bottom sheet (MIT, see ARC-LICENSE.txt).
 import styles from './bottom-sheet.module.css'
 import './ui.css'

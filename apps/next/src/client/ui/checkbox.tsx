@@ -1,6 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
+import { Check, Minus } from '@keyline-icons/react'
 import {
   forwardRef,
   useEffect,
@@ -12,7 +13,7 @@ import {
 } from 'react'
 import './checkbox.css'
 
-// Adapted from Arc "checkbox" (uiarc.dev, MIT, see ARC-LICENSE.txt): the 18px square with the check that morphs into the dash, the label and the description beside it.
+// Adapted from Arc "checkbox" (uiarc.dev, MIT, see ARC-LICENSE.txt): the 18px square with the Keyline check that crossfades into the dash, the label and the description beside it.
 // Dropped: Radix Checkbox and `motion`. The control is a native `<input type="checkbox">` (form value, label, keyboard and `:indeterminate` for free); the square is drawn beside it and the state comes from CSS.
 // Added: a 44px hit area on coarse pointers, `--control-border` and an accent fill, and a visible `:focus-visible` ring. Arc's checkbox has a hard-coded English fallback name; this one needs a label or an `aria-label`.
 
@@ -25,9 +26,6 @@ type CheckboxBase = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'>
 /** A visible label, or an accessible name for a checkbox that has none (a row selector). */
 export type CheckboxProps = CheckboxBase &
   ({ label: ReactNode } | { label?: undefined; 'aria-label': string })
-
-const CHECK = 'M4.25 9.25 L7.25 12.25 L13.75 5.75'
-const DASH = 'M4.75 9 L9 9 L13.25 9'
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
   {
@@ -64,24 +62,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           aria-describedby={describedIds}
         />
         <span className="ui-checkbox-mark" aria-hidden="true">
-          <svg viewBox="0 0 18 18" fill="none" focusable="false">
-            <path
-              className="ui-checkbox-check"
-              d={CHECK}
-              stroke="currentColor"
-              strokeWidth={1.75}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              className="ui-checkbox-dash"
-              d={DASH}
-              stroke="currentColor"
-              strokeWidth={1.75}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Check size={18} strokeWidth={1.75} className="ui-checkbox-check" />
+          <Minus size={18} strokeWidth={1.75} className="ui-checkbox-dash" />
         </span>
       </span>
       {label != null || description ? (

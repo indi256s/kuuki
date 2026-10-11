@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, type ReactNode, type PointerEventHandler, type Ref } from 'react'
-import { GripVertical, MoreHorizontal } from 'lucide-react'
+import { GripVertical, MoreHorizontal } from '@keyline-icons/react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { Button } from '../../ui/button'
 import { Menu, MenuItem } from '../../ui/menu'

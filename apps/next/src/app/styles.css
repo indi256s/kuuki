@@ -545,7 +545,7 @@ h2 {
   }
 }
 /* Theme snapshots crossfade without repainting a viewport-sized mask on every frame; the Horizon sun keeps its directional motion. */
-:root[data-theme-painting] *:not(.auth-horizon svg, .auth-horizon-sun),
+:root[data-theme-painting] *:not(.auth-horizon-icon, .auth-horizon-sun),
 :root[data-theme-painting] *::before,
 :root[data-theme-painting] *::after {
   transition: none !important;

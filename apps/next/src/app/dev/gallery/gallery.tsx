@@ -1,7 +1,7 @@
 'use client'
 
 import './gallery.css'
-import { Archive, CircleCheck, Plane, Trash2 } from 'lucide-react'
+import { Archive, CircleCheck, Plane, Bin2 as Trash2 } from '@keyline-icons/react'
 import { useEffect, useState } from 'react'
 import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { ALLIANCES } from '@kuuki/data/alliance-membership'
