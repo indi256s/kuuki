@@ -202,3 +202,37 @@ describe('FlightsStep silent clipboard read (O16)', () => {
     await waitFor(() => expect(m.submit).toHaveBeenCalledTimes(1))
   })
 })
+
+describe('FlightsStep keep exploring', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it.each([
+    ['bound', { batchId: 'b1' }, true],
+    ['unbound', snapshot([], { status: 'processing', stage: 'recognizing' }), false],
+  ] as const)(
+    'offers "Keep exploring" after 20 s of reading only when the job worker is bound: %s',
+    async (_name, answer, offered) => {
+      vi.useFakeTimers()
+      m.submit.mockResolvedValue(answer)
+      const { onSkip } = setup({ jobs: true })
+      pasteOn(document, V2)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(19_900)
+      })
+      expect(m.submit).toHaveBeenCalledTimes(1)
+      expect(screen.queryByRole('button', { name: 'Keep exploring' })).not.toBeInTheDocument()
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200)
+      })
+      const button = screen.queryByRole('button', { name: 'Keep exploring' })
+      if (!offered) {
+        expect(button).not.toBeInTheDocument()
+        return
+      }
+      fireEvent.click(button!)
+      expect(onSkip).toHaveBeenCalledTimes(1)
+    },
+  )
+})

@@ -34,6 +34,8 @@ import { COPY, countryForms, reviewForms, stoppedForms } from './copy'
 import './flights.css'
 
 const LIST_ROWS = 4
+/** How long a bound read runs before the step offers to carry on elsewhere; the member shell's dock picks it up. */
+const KEEP_EXPLORING_MS = 20_000
 const ACCEPT = 'application/pdf,image/png,image/jpeg'
 
 type Notice =
@@ -210,6 +212,9 @@ export function FlightsStep({
   // This mount saw the batch being read (or sent it): only then does ready move on by itself. A batch that is already
   // ready on arrival (Back from review, a reload) waits for the member (17.13).
   const [observed, setObserved] = useState(false)
+  // Each submission counts its own 20 s; `lingered` names the submission that reached them.
+  const [submission, setSubmission] = useState(0)
+  const [lingered, setLingered] = useState<number | null>(null)
 
   const api = useMemo<BatchApi>(
     () => ({
@@ -234,6 +239,7 @@ export function FlightsStep({
     setNotice(null)
     setBound(false)
     setObserved(true)
+    setSubmission((value) => value + 1)
     void start(source, id)
   }
   const submitText = (value: string) => {
@@ -270,6 +276,7 @@ export function FlightsStep({
   const resend = () => {
     if (kept && operation.current) {
       setObserved(true)
+      setSubmission((value) => value + 1)
       void start(kept, operation.current)
     }
   }
@@ -305,6 +312,13 @@ export function FlightsStep({
     }
     setSkip('idle')
   }
+
+  useEffect(() => {
+    if (!reading || !bound) return
+    const timer = window.setTimeout(() => setLingered(submission), KEEP_EXPLORING_MS)
+    return () => window.clearTimeout(timer)
+  }, [reading, bound, submission])
+  const keepExploring = reading && bound && lingered === submission
 
   // The prompt text is selected for manual copying whenever the write failed.
   useEffect(() => {
@@ -637,6 +651,15 @@ export function FlightsStep({
             <Clock size={18} strokeWidth={1.75} aria-hidden="true" />
             <span>{t(COPY.safe)}</span>
           </p>
+        ) : null}
+        {keepExploring ? (
+          <Button
+            className="flights-outline"
+            aria-busy={skip === 'busy' ? true : undefined}
+            onClick={() => void later()}
+          >
+            {t(COPY.keepExploring)}
+          </Button>
         ) : null}
         {truncated && reviewId ? (
           <>

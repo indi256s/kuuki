@@ -22,6 +22,7 @@ export const COPY = {
   copyAgain: p('Copy again', 'Скопировать ещё раз'),
   typeIn: p('Type a flight in', 'Ввести перелёт вручную'),
   later: p('I’ll do this later', 'Сделаю это позже'),
+  keepExploring: p('Keep exploring', 'Пока осмотрюсь'),
   laterFailed: p(
     'We couldn’t wrap up just now. Nothing is lost: try again.',
     'Сейчас не получилось завершить. Ничего не потеряно: повторите.',
