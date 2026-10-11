@@ -1,9 +1,11 @@
 name: React Doctor
 on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Base revision for changed-scope diagnostics
+        required: true
+        default: HEAD^
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,5 +21,5 @@ jobs:
           fetch-depth: 0
       - name: Run React Doctor
         env:
-          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          BASE_REF: ${{ inputs.base_ref }}
         run: npx -y react-doctor@0.9.17 . --scope changed --base "$BASE_REF" --no-score

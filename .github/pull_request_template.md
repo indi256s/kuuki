@@ -12,7 +12,7 @@
 
 ## Labels
 
-<!-- For AI agent PRs: Add `ci:approved` label to run CI -->
+<!-- Cloudflare Workers Builds verifies candidates; GitHub Actions is manual fallback. -->
 <!-- For code review request: Add `needs-review` label -->
 
 ## Testing

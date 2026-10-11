@@ -6,7 +6,7 @@ The app is `apps/next`: Next.js App Router and React, built with OpenNext for Cl
 
 The Next app uses TypeScript, Tailwind CSS, Radix controls, TanStack Query, React Hook Form and Zod. Route maps use MapLibre with local assets. UI tokens and conventions live in [DESIGN.md](DESIGN.md) and [styles.css](apps/next/src/app/styles.css). Dependency ranges are in [the app manifest](apps/next/package.json); resolved versions are in [pnpm-lock.yaml](pnpm-lock.yaml).
 
-Supabase files are retained migration history. The checked-in [CI workflow](.github/workflows/ci.yml) only verifies; production runs Next on Workers and is deployed by hand with the [deploy-kuuki skill](docs/skills/deploy-kuuki/SKILL.md). Removing Vite source does not remove the previously deployed, held Pages fallback; verify its hosted state before relying on it.
+Supabase files are retained migration history. Cloudflare Workers Builds verifies with `pnpm verify:cloudflare` and uploads candidates only to `kuuki-next-preview`; the checked-in [CI workflow](.github/workflows/ci.yml) is a manual verification fallback; production runs Next on Workers and is deployed by hand with the [deploy-kuuki skill](docs/skills/deploy-kuuki/SKILL.md). Removing Vite source does not remove the previously deployed, held Pages fallback; verify its hosted state before relying on it.
 
 ## Development
 
@@ -70,9 +70,9 @@ pnpm test:next:navigation
 
 The full navigation suite is required for UI changes. `pnpm next:smoke` includes the boundary checks; `pnpm next:smoke:boundary` is a shorter diagnostic alternative. After changing API paths or exported HTTP methods, regenerate and include `apps/next/api-routes.generated.ts` with `node scripts/build-next.mjs --inventory-only`; edit the handlers or generator rather than generated output.
 
-Browser journeys run manually with `pnpm test:next:navigation`; GitHub CI runs API and Next unit tests, builds, type checks, lint and compiled Worker smoke.
+Browser journeys run manually with `pnpm test:next:navigation`. `pnpm verify:cloudflare` runs API tests unsharded with two workers, Next unit tests, builds, type checks, lint, format, generated inventory and script regressions, preview isolation checks, import dry-run builds and compiled Worker smoke. Each gate must pass before the next starts. Cloudflare Workers Builds runs this command automatically; GitHub Actions and React Doctor are manual fallbacks.
 
-See [CODING_STANDARDS.md](CODING_STANDARDS.md) for checks by change type and [CI](.github/workflows/ci.yml) for the verification pipeline. `pnpm smoke:runtime` checks the compiled Pages Functions transport locally. `pnpm next:build` builds that API and OpenNext output, including activation and old service-worker retirement assets; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
+See [CODING_STANDARDS.md](CODING_STANDARDS.md) for checks by change type and [verification script](scripts/verify-cloudflare.sh) for the verification pipeline. `pnpm smoke:runtime` checks the compiled Pages Functions transport locally. `pnpm next:build` builds that API and OpenNext output, including activation and old service-worker retirement assets; it does not deploy. The preview/smoke scripts and `pnpm build:maintenance` use Wrangler dry-run builds.
 
 ## Structure
 
