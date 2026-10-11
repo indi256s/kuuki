@@ -79,11 +79,21 @@ for (const [name, app, cron, accepted] of [
     try {
       const appPath = join(directory, 'app.toml')
       const cronPath = join(directory, 'cron.toml')
+      const importPath = join(directory, 'import.toml')
       writeFileSync(appPath, app)
       writeFileSync(cronPath, cron)
+      writeFileSync(importPath, databases)
       const result = spawnSync(
         process.execPath,
-        ['scripts/check-preview-config.mjs', '--config', appPath, '--maintenance-config', cronPath],
+        [
+          'scripts/check-preview-config.mjs',
+          '--config',
+          appPath,
+          '--maintenance-config',
+          cronPath,
+          '--import-config',
+          importPath,
+        ],
         { encoding: 'utf8' },
       )
       assert.equal(result.status, accepted ? 0 : 1, result.stderr || result.stdout)
