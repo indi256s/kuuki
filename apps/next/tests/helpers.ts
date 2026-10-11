@@ -18,7 +18,10 @@ export async function signIn(page: Page, baseURL: string, email = 'a@example.tes
   expect(response.status()).toBe(200)
 }
 
-/** Fresh sign-ups have no username, and member pages send them to onboarding; claim one for flows past that gate. */
+/**
+ * Fresh sign-ups haven't onboarded, and member pages send them back to the card; give them an address and finish
+ * onboarding for flows past that gate.
+ */
 export async function claimUsername(page: Page, baseURL: string) {
   const cookies = await page.context().cookies()
   const csrf = decodeURIComponent(
@@ -30,4 +33,8 @@ export async function claimUsername(page: Page, baseURL: string) {
     data: { username },
   })
   expect(response.status()).toBe(200)
+  const onboarded = await page.request.post('/api/profiles/me/onboarded', {
+    headers: { Origin: baseURL, 'X-CSRF-Token': csrf },
+  })
+  expect(onboarded.status()).toBe(200)
 }

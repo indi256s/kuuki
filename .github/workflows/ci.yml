@@ -51,6 +51,7 @@ jobs:
       - run: pnpm exec tsx scripts/map-geometry.test.ts
       - run: node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
       - run: WRANGLER_SEND_METRICS=false pnpm build:import
+      - run: WRANGLER_SEND_METRICS=false pnpm build:import:release
       - wait: next-tests
 
   api:

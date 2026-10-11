@@ -15,7 +15,9 @@ import { airportCandidates } from '../import/_text'
 import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
 
-export const MAX_DRAFTS_PER_BATCH = 100
+/** Drafts one batch may hold: a locally parsed `KUUKI FLIGHTS` list is exact, model extraction is not. */
+export const MAX_DRAFTS_DETERMINISTIC = 500
+export const MAX_DRAFTS_MODEL = 100
 /** Open batches (processing, review, partial) an owner may hold; finished ones no longer count. */
 export const MAX_OPEN_BATCHES = 10
 export const BATCH_TTL_DAYS = 30
@@ -273,13 +275,13 @@ export async function persistDraftRows(
   rows: DraftRowInput[],
   final: FinalState | null,
   now: Date = new Date(),
-  options: { ordinalStart?: number; stage?: 'recognizing' | 'validating' } = {},
+  options: { ordinalStart?: number; stage?: 'recognizing' | 'validating'; limit?: number } = {},
 ): Promise<{ sequence: number; rowIds: string[] } | null> {
   const instant = now.toISOString()
   const live = `EXISTS (SELECT 1 FROM import_batches WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?)`
   const fenceBinds = [fence.batchId, fence.userId, fence.generation]
   const ids: string[] = []
-  const statements = rows.slice(0, MAX_DRAFTS_PER_BATCH).map((row, ordinal) => {
+  const statements = rows.slice(0, options.limit ?? rows.length).map((row, ordinal) => {
     const id = crypto.randomUUID()
     ids.push(id)
     return db

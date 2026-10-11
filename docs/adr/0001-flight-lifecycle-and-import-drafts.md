@@ -557,6 +557,17 @@ persisted ordinal. Normalization receives a clone so placeholder-airline default
 A terminal or fenced write re-reads D1, closes subscriptions and clears the heartbeat, alarm and DO storage. `/start`
 always re-checks D1 before accepting work. The maintenance timeout increments both generation and sequence.
 
+**Production wiring (onboarding morph, 2026-10-11).** The architecture-owner items above are configured in source:
+`workers/import/wrangler.toml` defines `kuuki-import` (on `kuuki-db`) and `[env.preview]` `kuuki-import-preview` (on
+`kuuki-preview`) with compatibility date `2026-10-01`, both request-signal flags, the `import-job-v1` SQLite migration,
+`workers_dev`/`preview_urls` off, no routes and a required `GEMINI_API_KEY`. `apps/next/wrangler.toml` binds `IMPORT_JOBS`
+(`class_name = "ImportJob"`) to `kuuki-import` at the top level and to `kuuki-import-preview` under `[env.preview]`;
+`[env.activation]` stays unbound. `kuuki-next` adds both request-signal flags and keeps `2026-08-06` (the flags have no
+date requirement). `scripts/check-preview-config.mjs` checks that the import Worker shares each environment's D1 and that
+each binding targets its environment's Worker; CI runs `pnpm build:import:release` (dry-runs of both environments) beside
+`build:import`. The local Next fixture stays unbound. Deploying the two import Workers and the bound `kuuki-next`, and the
+hosted release gate below, each still need explicit authorization (`docs/skills/deploy-kuuki/SKILL.md`, step 4).
+
 #### T11 SSE contract
 
 D1 is authoritative; event payloads contain no source or extracted field content. Responses send
@@ -698,11 +709,11 @@ No down-migration exists and no rollback deletes user data.
 
 ## Open items
 
-1. **H5 runtime (§9): decided.** The owner chose option (a) on 2026-10-05: a local DO with a Miniflare proof in `workers/import`. Production binding and wiring are handed to the architecture owner. Without them the runtime falls back to (c) with no rework.
+1. **H5 runtime (§9): decided.** The owner chose option (a) on 2026-10-05: a local DO with a Miniflare proof in `workers/import`. Production binding and wiring were configured with the onboarding morph (2026-10-11, §9 "Production wiring"); deployment and the hosted release gate await authorization. Without the binding the runtime falls back to (c) with no rework.
 2. **D1 support for triggers and the migration assertion table** is assumed and proven by A1. If triggers fail, the invariants become application-only and old-writer adaptation is lost. The deploy order would then need a short write hold, which is an owner decision.
 3. **Migration ledger:** confirm `0006`/`0007` with the architecture owner before T07.
 4. **DO compatibility date and keep-alive** (C5 citation) are unverified and must be proven in T11.
-5. **Production enablement** of the cron and the job bindings stays in the architecture release procedure.
+5. **Production enablement** of the cron stays in the architecture release procedure. The job binding is configured (§9 "Production wiring") and is enabled by the authorized deploy order in the deploy skill.
 6. **Transit-only production estimate:** `docs/research/2026-10-05-transit-validation-proposal.md`. It runs only with authorization.
 7. **Review test 5, the "add D" case: resolved by controller ruling (fix round 2).** An unrelated later departure D from the hub country may count that country. A's suppressed evidence (its destination and the stored `arrival_transit_leg_id` origin) never reappears or moves. A5 tests exactly this.
 8. **The Overview `'all'` period now includes legacy evidence** (§4). The figure can rise for accounts with legacy-only countries. W4 labels it accordingly.

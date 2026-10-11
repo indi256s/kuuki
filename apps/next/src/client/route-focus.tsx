@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
 /** Query keys whose change is a real mode/step change that deserves a new heading focus, by pathname. */
-const MODE_KEYS: Record<string, string> = { '/onboarding': 'step', '/passport': 'view' }
+const MODE_KEYS: Record<string, string> = { '/passport': 'view' }
 
 /**
  * Moves focus to the page heading after navigation. Fires for a pathname change or a change of the

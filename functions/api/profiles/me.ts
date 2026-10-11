@@ -10,9 +10,19 @@ import type { ProfileRow } from '../_lib/profiles'
 import { nowIso } from '../_lib/time'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
 import { firstOf } from '../_services/stats'
+import {
+  ADDRESS_PATTERN,
+  NAME_MAX,
+  deriveAddress,
+  normalizeAddress,
+  normalizeName,
+  withSuffix,
+} from '../../../packages/shared/src/address'
 
 interface UpdateBody {
   username?: string | null
+  /** Request flag only (never stored): the client derived `username` from the name, so collisions get a silent suffix. */
+  username_derived?: boolean
   display_name?: string | null
   bio?: string | null
   avatar_url?: string | null
@@ -25,7 +35,6 @@ interface UpdateBody {
 }
 
 const TEXT_FIELDS = [
-  'username',
   'display_name',
   'bio',
   'avatar_url',
@@ -34,6 +43,38 @@ const TEXT_FIELDS = [
   'locale',
   'theme_color',
 ] as const
+
+/** Highest numeric suffix tried before falling back to a random pilot address. */
+const MAX_SUFFIX = 50
+
+function isUniqueViolation(error: unknown): boolean {
+  for (
+    let e = error as { message?: unknown; cause?: unknown } | undefined, i = 0;
+    e && i < 4;
+    i++
+  ) {
+    if (typeof e.message === 'string' && e.message.includes('UNIQUE constraint failed')) return true
+    e = e.cause as typeof e
+  }
+  return false
+}
+
+/** Candidate addresses for a derived base: the base, then `-2`…`-MAX_SUFFIX`, then random pilot ones. */
+async function* addressCandidates(db: D1Database, userId: string, base: string) {
+  const like = `${base.replace(/[\\%_]/g, '\\$&')}%`
+  const { results } = await db
+    .prepare(
+      "SELECT lower(username) AS username FROM profiles WHERE lower(username) LIKE ? ESCAPE '\\' AND id != ?",
+    )
+    .bind(like, userId)
+    .all<{ username: string }>()
+  const taken = new Set(results.map((r) => r.username))
+  for (let n = 1; n <= MAX_SUFFIX; n++) {
+    const candidate = n === 1 ? base : withSuffix(base, n)
+    if (!taken.has(candidate)) yield candidate
+  }
+  for (let i = 0; i < 5; i++) yield deriveAddress('')
+}
 
 export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
   updateProfileRequest(context.request, context.env, context.data)
@@ -72,6 +113,24 @@ export function updateProfileRequest(
       throw new HttpError(400, 'Invalid theme_color', 'BAD_REQUEST')
     }
 
+    if ('display_name' in body && typeof body.display_name === 'string') {
+      body.display_name = normalizeName(body.display_name)
+      if (body.display_name.length < 1 || body.display_name.length > NAME_MAX) {
+        throw new HttpError(400, `Name must be 1 to ${NAME_MAX} characters`, 'INVALID_NAME')
+      }
+    }
+    let requested: string | undefined
+    if ('username' in body) {
+      requested = typeof body.username === 'string' ? normalizeAddress(body.username) : ''
+      if (!ADDRESS_PATTERN.test(requested)) {
+        throw new HttpError(
+          400,
+          'Username must be 3 to 30 characters: a-z, 0-9, _ or -',
+          'INVALID_USERNAME',
+        )
+      }
+    }
+
     const sets: string[] = []
     const binds: unknown[] = []
 
@@ -90,30 +149,70 @@ export function updateProfileRequest(
       binds.push(body.show_on_leaderboards ? 1 : 0)
     }
 
-    if ('username' in body && body.username) {
+    // Lazy address (O26): an onboarded member without one gets it derived from their name.
+    let derivedBase: string | undefined = body.username_derived === true ? requested : undefined
+    if (requested === undefined) {
+      const stored = await env.DB.prepare(
+        'SELECT username, display_name, onboarded_at FROM profiles WHERE id = ?',
+      )
+        .bind(user.id)
+        .first<Pick<ProfileRow, 'username' | 'display_name' | 'onboarded_at'>>()
+      if (stored && !stored.username && stored.onboarded_at) {
+        const name = 'display_name' in body ? body.display_name : stored.display_name
+        derivedBase = deriveAddress(typeof name === 'string' ? name : '')
+      }
+    }
+
+    if (requested !== undefined && derivedBase === undefined) {
       const taken = await env.DB.prepare(
         'SELECT id FROM profiles WHERE lower(username) = lower(?) AND id != ? LIMIT 1',
       )
-        .bind(body.username, user.id)
+        .bind(requested, user.id)
         .first<{ id: string }>()
       if (taken) throw new HttpError(409, 'Username already taken', 'CONFLICT')
     }
 
-    if (sets.length === 0) throw new HttpError(400, 'No fields to update', 'BAD_REQUEST')
+    if (sets.length === 0 && requested === undefined && derivedBase === undefined) {
+      throw new HttpError(400, 'No fields to update', 'BAD_REQUEST')
+    }
 
-    sets.push('updated_at = ?')
-    binds.push(nowIso())
-    binds.push(user.id)
-
-    const statement = env.DB.prepare(
-      `UPDATE profiles SET ${sets.join(', ')} WHERE id = ? RETURNING *`,
-    ).bind(...binds)
     const editsHome = 'home_airport' in body
-    const row = editsHome
-      ? firstOf<ProfileRow>(
-          (await env.DB.batch([statement, dirtyUserStatement(env.DB, user.id, true)]))[0],
-        )
-      : await statement.first<ProfileRow>()
+    // A lazy address never replaces one another request saved since the read above.
+    const lazy = requested === undefined && derivedBase !== undefined
+    const usernameSet = lazy ? 'username = COALESCE(username, ?)' : 'username = ?'
+    const update = async (username: string | undefined) => {
+      const statement = env.DB.prepare(
+        `UPDATE profiles SET ${[...sets, ...(username === undefined ? [] : [usernameSet]), 'updated_at = ?'].join(', ')} WHERE id = ? RETURNING *`,
+      ).bind(...binds, ...(username === undefined ? [] : [username]), nowIso(), user.id)
+      return editsHome
+        ? firstOf<ProfileRow>(
+            (await env.DB.batch([statement, dirtyUserStatement(env.DB, user.id, true)]))[0],
+          )
+        : await statement.first<ProfileRow>()
+    }
+
+    let row: ProfileRow | null | undefined
+    if (derivedBase === undefined) {
+      try {
+        row = await update(requested)
+      } catch (error) {
+        // Lost a race with another writer of the same address.
+        if (requested !== undefined && isUniqueViolation(error)) {
+          throw new HttpError(409, 'Username already taken', 'CONFLICT')
+        }
+        throw error
+      }
+    } else {
+      for await (const candidate of addressCandidates(env.DB, user.id, derivedBase)) {
+        try {
+          row = await update(candidate)
+          break
+        } catch (error) {
+          if (!isUniqueViolation(error)) throw error
+        }
+      }
+      if (row === undefined) throw new HttpError(409, 'Username already taken', 'CONFLICT')
+    }
 
     if (!row) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
     if (editsHome) await repairUserDerivedState(env.DB, user.id)

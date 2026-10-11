@@ -1,0 +1,135 @@
+/* The reveal (boards 15.6, 15.10, 19.x). Tokens only. Desktop shows the passport's stamp; mobile prints its own. */
+.ready-step {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+.ready-text {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.ready-eyebrow {
+  margin: 0;
+  color: var(--accent-text);
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.18em;
+}
+.ready-line {
+  margin: 0;
+  color: var(--text);
+  font: 600 34px/42px var(--font-sans);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.ready-line:focus-visible {
+  outline: none;
+}
+.ready-stats {
+  margin: 0;
+  color: var(--text-muted);
+  font: 400 15px/24px var(--font-sans);
+}
+.ready-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ready-error {
+  margin: 0;
+  color: var(--danger-text);
+  font: 400 13px/20px var(--font-sans);
+}
+.ui-button.auth-primary .ready-arrow-icon {
+  margin-inline-start: 8px;
+  flex: none;
+}
+.ready-arrow-glyph,
+.ready-caption,
+.ready-stamp {
+  display: none;
+}
+.ready-caption {
+  margin: 0;
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-sans);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .ready-step {
+    gap: 28px;
+  }
+  .ready-stamp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    inline-size: fit-content;
+    padding: 10px 16px;
+    border: 2px solid var(--accent-text);
+    border-radius: 6px;
+    color: var(--accent-text);
+    rotate: -6deg;
+    animation: ready-stamp-in var(--dur-moment) var(--ease-out);
+  }
+  .ready-stamp-kicker,
+  .ready-stamp-date {
+    font: 400 10px/14px var(--font-mono);
+    letter-spacing: 0.14em;
+  }
+  .ready-stamp-word {
+    font: 700 18px/22px var(--font-sans);
+    letter-spacing: 0.06em;
+  }
+  .ready-text {
+    gap: 12px;
+  }
+  .ready-eyebrow {
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+  .ready-line {
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.02em;
+  }
+  .ready-actions {
+    position: sticky;
+    inset-block-end: 0;
+    margin-inline: calc(-1 * var(--welcome-bleed));
+    padding: 14px var(--welcome-bleed) 34px;
+    background: var(--surface);
+  }
+  .ui-button.auth-primary .ready-arrow-icon {
+    display: none;
+  }
+  .ready-arrow-glyph {
+    display: inline;
+  }
+  .ready-caption {
+    display: block;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+@keyframes ready-stamp-in {
+  from {
+    opacity: 0;
+    scale: 1.06;
+    filter: blur(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ready-stamp {
+    animation: ready-stamp-fade var(--dur-base) linear;
+  }
+  @keyframes ready-stamp-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

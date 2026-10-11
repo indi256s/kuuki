@@ -89,7 +89,10 @@ test('fresh documents, RSC and API reads isolate account data without response c
 })
 
 test.describe('entry behavior', () => {
-  test('a member without a username is sent to onboarding first', async ({ page, baseURL }) => {
+  test('a named member who hasn’t onboarded resumes the card at the flights step', async ({
+    page,
+    baseURL,
+  }) => {
     const email = `nousername-${Date.now()}@example.test`
     const created = await page.request.post('/api/auth/sign-up/email', {
       headers: fixtureHeaders(baseURL!),
@@ -108,10 +111,12 @@ test.describe('entry behavior', () => {
       '/settings',
     ]) {
       await page.goto(path)
-      await page.waitForURL((url) => url.pathname === '/onboarding' && url.search === '?step=name')
+      await page.waitForURL((url) => url.pathname === '/welcome/flights' && url.search === '')
     }
-    await page.goto('/onboarding?step=reveal')
-    await page.waitForURL((url) => url.pathname === '/onboarding' && url.search === '?step=name')
+    for (const path of ['/onboarding?step=reveal', '/welcome/ready', '/welcome/review']) {
+      await page.goto(path)
+      await page.waitForURL((url) => url.pathname === '/welcome/flights' && url.search === '')
+    }
     await expect(page.locator('main h1')).toBeVisible()
   })
 })

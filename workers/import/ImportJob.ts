@@ -16,7 +16,8 @@ import type { ExtractedFlight, ParseRequest } from '../../functions/api/import/_
 import { HttpError, readJson, runHandler } from '../../functions/api/_lib/http'
 import {
   interruptBatch,
-  MAX_DRAFTS_PER_BATCH,
+  MAX_DRAFTS_DETERMINISTIC,
+  MAX_DRAFTS_MODEL,
   ownedBatch,
   persistDraftRows,
   type BatchFence,
@@ -32,6 +33,9 @@ import {
 } from '../../functions/api/_services/importRuntime'
 import { FlightScanner } from './scanner'
 import { parseStructuredText } from '../../functions/api/import/_text'
+
+/** Rows per fenced D1 batch when a deterministic parse is written in runs. */
+const LOCAL_RUN = 50
 
 export interface ImportEnv {
   DB: D1Database
@@ -164,6 +168,7 @@ export class ImportJob {
     controller.signal.addEventListener('abort', onAbort, { once: true })
     const scanner = new FlightScanner()
     let valid = 0
+    let limit = MAX_DRAFTS_MODEL
     let truncated = false
     let finalized = false
     const emitted = new Map<number, string>()
@@ -180,7 +185,7 @@ export class ImportJob {
         rejectedOrdinals.add(ordinal)
         return true
       }
-      if (valid >= MAX_DRAFTS_PER_BATCH) {
+      if (valid >= limit) {
         truncated = true
         return true
       }
@@ -196,6 +201,50 @@ export class ImportJob {
       this.notify(event)
       return true
     }
+    const persistLocal = async (values: unknown[]) => {
+      let run: { ordinal: number; value: unknown; flight: ExtractedFlight }[] = []
+      const flush = async () => {
+        if (!run.length) return true
+        if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
+        const event = await persistDraftRows(
+          this.env.DB,
+          fence,
+          run.map((row) => rowOf(row.flight)),
+          null,
+          new Date(),
+          { ordinalStart: run[0].ordinal },
+        )
+        if (!event) {
+          finalized = true
+          return false
+        }
+        for (const row of run) emitted.set(row.ordinal, JSON.stringify(row.value))
+        valid += run.length
+        this.notify(event)
+        run = []
+        return true
+      }
+      for (let ordinal = 0; ordinal < values.length; ordinal++) {
+        if (valid + run.length >= limit) {
+          truncated = true
+          break
+        }
+        let flight: ExtractedFlight
+        try {
+          flight = normalizeFlights(
+            { flights: [structuredClone(values[ordinal]) as ExtractedFlight] },
+            ordinal,
+          ).flights[0]
+        } catch {
+          rejectedOrdinals.add(ordinal)
+          if (!(await flush())) return false
+          continue
+        }
+        run.push({ ordinal, value: values[ordinal], flight })
+        if (run.length === LOCAL_RUN && !(await flush())) return false
+      }
+      return flush()
+    }
     try {
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
       const started = await persistDraftRows(this.env.DB, fence, [], null)
@@ -205,17 +254,21 @@ export class ImportJob {
       }
       this.notify(started)
       const local = source.type === 'text' ? parseStructuredText(source.content) : null
-      const stream = local
-        ? (async function* () {
-            yield JSON.stringify({ flights: local.flights })
-          })()
-        : await Promise.race([this.providerStream(source, controller.signal), aborted])
-      iterator = stream[Symbol.asyncIterator]()
-      for (;;) {
-        const chunk = await Promise.race([iterator.next(), aborted])
-        if (chunk.done) break
-        for (const row of scanner.push(chunk.value))
-          if (!(await persist(row.value, row.ordinal))) return
+      if (local) {
+        // A deterministic parse has every row up front: write contiguous runs in one fenced batch each, so up to
+        // MAX_DRAFTS_DETERMINISTIC rows cost a few D1 batches. It never passes through the provider scanner, whose
+        // output cap a long paste would exceed after truncation.
+        limit = MAX_DRAFTS_DETERMINISTIC
+        if (!(await persistLocal(local.flights))) return
+      } else {
+        const stream = await Promise.race([this.providerStream(source, controller.signal), aborted])
+        iterator = stream[Symbol.asyncIterator]()
+        for (;;) {
+          const chunk = await Promise.race([iterator.next(), aborted])
+          if (chunk.done) break
+          for (const row of scanner.push(chunk.value))
+            if (!(await persist(row.value, row.ordinal))) return
+        }
       }
       const validating = await persistDraftRows(this.env.DB, fence, [], null, new Date(), {
         stage: 'validating',
@@ -225,16 +278,24 @@ export class ImportJob {
         return
       }
       this.notify(validating)
-      const final = scanner.finish()
-      // Source ordinals survive rejected rows; existing drafts (including member edits) are never overwritten.
-      for (const [ordinal, value] of emitted) {
-        if (JSON.stringify(final[ordinal]) !== value)
-          throw new HttpError(502, 'Extraction changed at completion', 'PROVIDER_INVALID_RESPONSE')
+      let seen = local?.flights.length ?? 0
+      if (!local) {
+        const final = scanner.finish()
+        // Source ordinals survive rejected rows; existing drafts (including member edits) are never overwritten.
+        for (const [ordinal, value] of emitted) {
+          if (JSON.stringify(final[ordinal]) !== value)
+            throw new HttpError(
+              502,
+              'Extraction changed at completion',
+              'PROVIDER_INVALID_RESPONSE',
+            )
+        }
+        for (let ordinal = 0; ordinal < final.length; ordinal++)
+          if (!(await persist(final[ordinal], ordinal))) return
+        seen = final.length
       }
-      for (let ordinal = 0; ordinal < final.length; ordinal++)
-        if (!(await persist(final[ordinal], ordinal))) return
       const rejected = rejectedOrdinals.size + (local?.rejected?.length ?? 0)
-      logValidation(valid, final.length + (local?.rejected?.length ?? 0), rejected)
+      logValidation(valid, seen + (local?.rejected?.length ?? 0), rejected)
       const errorCode = !valid
         ? 'NO_FLIGHTS_FOUND'
         : truncated

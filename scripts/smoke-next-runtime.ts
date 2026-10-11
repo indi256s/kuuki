@@ -381,7 +381,9 @@ async function main() {
         throw new Error(`Synthetic signup failed: ${signup.status} ${await signup.text()}`)
       const result = (await signup.json()) as { user: { id: string } }
       await db
-        .prepare('UPDATE profiles SET username = ?, display_name = ? WHERE id = ?')
+        .prepare(
+          'UPDATE profiles SET username = ?, display_name = ?, onboarded_at = created_at WHERE id = ?',
+        )
         .bind(username, username, result.user.id)
         .run()
     }
@@ -396,8 +398,8 @@ async function main() {
         )
         .bind(legacyId, 'legacy@example.test', legacyHash, 'legacy-fixture', 1, now),
       db
-        .prepare('INSERT INTO profiles(id,username,display_name) VALUES(?,?,?)')
-        .bind(legacyId, 'legacy-fixture', 'legacy-fixture'),
+        .prepare('INSERT INTO profiles(id,username,display_name,onboarded_at) VALUES(?,?,?,?)')
+        .bind(legacyId, 'legacy-fixture', 'legacy-fixture', now),
       db
         .prepare(
           'INSERT INTO auth_accounts(id,accountId,providerId,userId,password,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?)',
@@ -489,7 +491,7 @@ async function main() {
           "INSERT INTO users(id,email,password_hash) VALUES('ranked-fixture','ranked@example.test','RESET_REQUIRED')",
         ),
         db.prepare(
-          "INSERT INTO profiles(id,username,display_name,is_public,show_on_leaderboards) VALUES('ranked-fixture','fixture-ranked','Ranked',1,1)",
+          "INSERT INTO profiles(id,username,display_name,is_public,show_on_leaderboards,onboarded_at) VALUES('ranked-fixture','fixture-ranked','Ranked',1,1,'2026-01-01T00:00:00.000Z')",
         ),
         db.prepare(
           "INSERT INTO user_stats(user_id,total_flights,total_distance_km,airports_count,countries_count) VALUES('ranked-fixture',5,1000,2,1)",

@@ -1,9 +1,17 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
+import { ADDRESS_PATTERN, NAME_MAX, normalizeAddress, normalizeName } from '@kuuki/shared/address'
 import { trackPrivateOperation, withIdentityMutation } from '../activity'
 import { useAppearance } from '../preferences'
 import { setLocale, setTheme } from '../appearance'
@@ -27,6 +35,7 @@ import './settings.css'
 type Profile = ReturnType<typeof toOwnProfile>
 const values = (profile: Profile) => ({
   display_name: profile.display_name ?? '',
+  username: profile.username ?? '',
   bio: profile.bio ?? '',
   home_airport: profile.home_airport ?? '',
   avatar_url: profile.avatar_url ?? '',
@@ -43,6 +52,10 @@ const flightsLeft = {
     other: 'Нужно ещё {count} перелёта.',
   },
 }
+type AddressCheck = 'ok' | 'taken' | 'invalid'
+const subscribeNothing = () => () => {}
+const readHost = () => window.location.host
+const serverHost = () => ''
 
 export function SettingsForm({
   ownerId,
@@ -87,9 +100,54 @@ export function SettingsForm({
     setError('')
   }
   const [keyboardText, setKeyboardText] = useState(false)
+  const host = useSyncExternalStore(subscribeNothing, readHost, serverHost)
+  const [editingAddress, setEditingAddress] = useState(false),
+    [check, setCheck] = useState<{ value: string; state: AddressCheck } | null>(null),
+    [serverTaken, setServerTaken] = useState<string | null>(null),
+    [serverInvalid, setServerInvalid] = useState<string | null>(null),
+    [nameInvalid, setNameInvalid] = useState(false)
+  const savedAddress = baseline.username,
+    candidate = draft.username
+  const addressState: 'ok' | 'invalid' | 'taken' | 'checking' =
+    candidate === savedAddress
+      ? 'ok'
+      : !ADDRESS_PATTERN.test(candidate) || serverInvalid === candidate
+        ? 'invalid'
+        : serverTaken === candidate
+          ? 'taken'
+          : check?.value === candidate
+            ? check.state
+            : 'checking'
+  useEffect(() => {
+    if (candidate === savedAddress || !ADDRESS_PATTERN.test(candidate)) return
+    const controller = new AbortController(),
+      release = trackPrivateOperation(controller)
+    const timer = setTimeout(async () => {
+      try {
+        const reply = await api.get<{ available: boolean; valid: boolean }>(
+          '/api/profiles/check-username',
+          { username: candidate },
+          { signal: controller.signal },
+        )
+        if (!controller.signal.aborted)
+          setCheck({
+            value: candidate,
+            state: reply?.valid === false ? 'invalid' : reply?.available ? 'ok' : 'taken',
+          })
+      } catch {
+        // The server is authoritative on save; an unreachable check must not block the member.
+        if (!controller.signal.aborted) setCheck({ value: candidate, state: 'ok' })
+      }
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+      release()
+    }
+  }, [candidate, savedAddress])
   async function save(event: FormEvent) {
     event.preventDefault()
-    if (running.current || !dirty) return
+    if (running.current || !dirty || addressState !== 'ok') return
     running.current = true
     setSaving(true)
     setError('')
@@ -98,9 +156,16 @@ export function SettingsForm({
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
     try {
+      const { username, display_name, ...fields } = draft
+      const sentUsername = username !== baseline.username ? username : null
       const payload = {
-        ...draft,
-        display_name: draft.display_name.trim() || null,
+        ...fields,
+        // Without a chosen address the server derives one from the name on the first save.
+        ...(sentUsername ? { username: sentUsername } : {}),
+        // An unchanged name stays out: a name saved before the 40-character limit must not block other edits.
+        ...(display_name !== baseline.display_name
+          ? { display_name: normalizeName(display_name) || null }
+          : {}),
         bio: draft.bio.trim() || null,
         home_airport: draft.home_airport.trim() || null,
         avatar_url: draft.avatar_url.trim() || null,
@@ -116,20 +181,33 @@ export function SettingsForm({
           : { ...draft, show_on_leaderboards: payload.show_on_leaderboards }
         setDraft(next)
         setBaseline(next)
+        setEditingAddress(false)
         setMessage(ru ? 'Сохранено.' : 'Saved.')
         router.refresh()
       }
     } catch (cause) {
-      if (!controller.signal.aborted && generation === getAuthGeneration())
-        setError(
-          cause instanceof ApiError && cause.status === 400
-            ? ru
-              ? 'Проверьте данные профиля. Изменения не сохранены.'
-              : 'Check your profile details. Changes were not saved.'
-            : ru
-              ? 'Не удалось сохранить изменения. Повторите попытку.'
-              : 'Could not save changes. Try again.',
+      if (!controller.signal.aborted && generation === getAuthGeneration()) {
+        const code = cause instanceof ApiError ? cause.code : undefined
+        if (
+          cause instanceof ApiError &&
+          cause.status === 409 &&
+          draft.username !== baseline.username
         )
+          setServerTaken(draft.username)
+        else if (code === 'INVALID_NAME') setNameInvalid(true)
+        else if (code === 'INVALID_USERNAME' && draft.username !== baseline.username)
+          setServerInvalid(draft.username)
+        else
+          setError(
+            cause instanceof ApiError && cause.status === 400
+              ? ru
+                ? 'Проверьте данные профиля. Изменения не сохранены.'
+                : 'Check your profile details. Changes were not saved.'
+              : ru
+                ? 'Не удалось сохранить изменения. Повторите попытку.'
+                : 'Could not save changes. Try again.',
+          )
+      }
     } finally {
       running.current = false
       setSaving(false)
@@ -273,10 +351,19 @@ export function SettingsForm({
           </div>
           <Field
             label={text('Display name', 'Имя')}
-            maxLength={80}
+            name="name"
+            autoComplete="name"
+            dir="auto"
+            maxLength={NAME_MAX}
             value={draft.display_name}
             disabled={busy}
-            onChange={(event) => edit('display_name', event.target.value)}
+            error={
+              nameInvalid ? text('Use 1 to 40 characters.', 'От 1 до 40 символов.') : undefined
+            }
+            onChange={(event) => {
+              setNameInvalid(false)
+              edit('display_name', event.target.value)
+            }}
           />
           <div className="ui-field settings-bio">
             <label className="ui-field-label" htmlFor="settings-bio">
@@ -296,15 +383,51 @@ export function SettingsForm({
               {draft.bio.length}/140
             </p>
           </div>
-          <p>
-            {profile.username
-              ? `@${profile.username}`
-              : text('No username yet', 'Имя пользователя не указано')}{' '}
-            ·{' '}
-            <Link prefetch={false} href="/onboarding">
-              {text('Change username', 'Изменить имя пользователя')}
-            </Link>
-          </p>
+          {editingAddress ? (
+            <Field
+              label={text('Address', 'Адрес')}
+              name="address"
+              dir="ltr"
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={60}
+              value={draft.username}
+              disabled={busy}
+              hint={<span dir="ltr">{host}/fly/</span>}
+              error={
+                addressState === 'invalid'
+                  ? text(
+                      'Use letters, numbers and hyphens, 3 to 30 characters.',
+                      'Латинские буквы, цифры и дефисы, от 3 до 30 символов.',
+                    )
+                  : addressState === 'taken'
+                    ? text('That address is taken.', 'Этот адрес занят.')
+                    : undefined
+              }
+              onChange={(event) => edit('username', normalizeAddress(event.target.value))}
+            />
+          ) : (
+            <div className="settings-address">
+              <span className="ui-field-label">{text('Address', 'Адрес')}</span>
+              <p>
+                {baseline.username ? (
+                  <span dir="ltr">
+                    {host}/fly/{baseline.username}
+                  </span>
+                ) : (
+                  text(
+                    'Your address is set from your name when you save.',
+                    'Адрес появится из вашего имени, когда вы сохраните.',
+                  )
+                )}
+              </p>
+              <Button dense disabled={busy} onClick={() => setEditingAddress(true)}>
+                {text('Edit', 'Изменить')}
+              </Button>
+            </div>
+          )}
           <Field
             label={text('Home airport', 'Домашний аэропорт')}
             maxLength={10}
@@ -473,14 +596,13 @@ export function SettingsForm({
       <p role={error ? 'alert' : undefined} className="ui-field-error">
         {error}
       </p>
-      <p>
-        <Link
-          prefetch={false}
-          href={profile.username ? `/fly/${encodeURIComponent(profile.username)}` : '/onboarding'}
-        >
-          {text('View my profile', 'Мой профиль')}
-        </Link>
-      </p>
+      {profile.username ? (
+        <p>
+          <Link prefetch={false} href={`/fly/${encodeURIComponent(profile.username)}`}>
+            {text('View my profile', 'Мой профиль')}
+          </Link>
+        </p>
+      ) : null}
       {dirty ? (
         <div
           className="settings-savebar"
@@ -492,6 +614,8 @@ export function SettingsForm({
             disabled={busy}
             onClick={() => {
               setDraft(baseline)
+              setEditingAddress(false)
+              setNameInvalid(false)
               setError('')
               setMessage('')
             }}
@@ -503,6 +627,18 @@ export function SettingsForm({
             type="submit"
             form="settings-profile-form"
             disabled={exporting || identityBusy}
+            disabledReason={
+              addressState === 'invalid'
+                ? text('Fix the address to save.', 'Исправьте адрес, чтобы сохранить.')
+                : addressState === 'taken'
+                  ? text(
+                      'Pick a free address to save.',
+                      'Выберите свободный адрес, чтобы сохранить.',
+                    )
+                  : addressState === 'checking'
+                    ? text('Checking the address…', 'Проверяем адрес…')
+                    : undefined
+            }
             morphText
             instantText={keyboardText}
             onPointerDown={() => setKeyboardText(false)}

@@ -9,6 +9,31 @@ import type { BatchStage } from './import-types'
 type Pair = { en: string; ru: string }
 const p = (en: string, ru: string): Pair => ({ en, ru })
 
+/**
+ * The reply shape the prompt asks for, kept as one string so the prompt and the parser grammar
+ * (functions/api/import/_text.ts) are tested against the same text (prompt-contract.test.ts).
+ */
+export const PROMPT_EXAMPLE = p(
+  [
+    'KUUKI FLIGHTS v2',
+    '2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30 → 11:45',
+    '2024-03-22 | LAX → JFK | Delta DL 409 | 22:10 → 06:35+1',
+    '2024-06-02 (calendar entry) | LHR → AMS | KLM KL 1000',
+    '2025-01-10 | JFK → LHR | British Airways BA 178 | 19:00 → 07:00+1 [maybe cancelled]',
+    'Partial dates / incomplete records (1)',
+    'Undated | SVO → LED | Aeroflot SU 6',
+  ].join('\n'),
+  [
+    'KUUKI FLIGHTS v2',
+    '2024-03-15 | SVO → LED | Aeroflot SU 6 | 08:30 → 10:00',
+    '2024-03-22 | LED → TBS | Georgian Airways A9 638 | 23:40 → 03:05+1',
+    '2024-06-02 (calendar entry) | LED → SVO | Pobeda DP 402',
+    '2025-01-10 | SVO → IST | Turkish Airlines TK 416 | 18:00 → 21:30 [maybe cancelled]',
+    'Partial dates / incomplete records (1)',
+    'Undated | LED → AER | Aeroflot SU 1190',
+  ].join('\n'),
+)
+
 export const S = {
   eyebrow: p('Journal', 'Журнал'),
   title: p('Import flights', 'Импорт перелётов'),
@@ -80,8 +105,48 @@ export const S = {
   // The reply format is the one the server extraction reads most reliably (functions/api/import/_shared.ts):
   // a written year, IATA codes, one segment per line, no private booking details.
   prompt: p(
-    'Search my email and calendar for all my flights, past and upcoming, across all years: booking confirmations, e-tickets, itineraries, check-in and boarding pass emails, and flight events in my calendar.\n\nIf you cannot access my email or calendar, say so in one sentence and stop. Do not guess or make up flights.\n\nWrite one line per flight in this format:\nYYYY-MM-DD | origin → destination | airline and flight number | departure-arrival\n\nExamples:\n2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30-11:45\n2024-03-22 | LAX → JFK | Delta DL 409 | 22:10-06:35+1\n\nRules:\n- Always write the full date with a four-digit year.\n- Use 3-letter IATA airport codes. If you do not know the code, write the city name.\n- Times are local at each airport, 24-hour, as shown in the booking. Add +1 when the arrival is on the next day.\n- Write ? for anything you cannot find.\n- Each leg of a connection and each direction of a return trip goes on a separate line.\n- List each flight once, even if it appears in several emails or in the calendar. If a flight was changed, use the latest details.\n- Leave out cancelled or refunded flights.\n- Sort from oldest to newest.\n- Do not include passenger names, booking references, ticket numbers, email addresses, frequent flyer numbers, prices or payment details.\n\nReply with only the list in one plain-text code block, with no other text.',
-    'Найдите в моей почте и календаре все мои перелёты, прошедшие и предстоящие, за все годы: подтверждения бронирований, электронные билеты, маршрутные квитанции, письма о регистрации и посадочные талоны, а также события перелётов в календаре.\n\nЕсли у вас нет доступа к моей почте или календарю, скажите об этом одним предложением и остановитесь. Не угадывайте и не придумывайте перелёты.\n\nПишите по одному перелёту на строку в таком формате:\nГГГГ-ММ-ДД | откуда → куда | авиакомпания и номер рейса | вылет-прилёт\n\nПримеры:\n2024-03-15 | SVO → LED | Aeroflot SU 6 | 08:30-10:00\n2024-03-22 | LED → TBS | Georgian Airways A9 638 | 23:40-03:05+1\n\nПравила:\n- Всегда пишите полную дату с годом из четырёх цифр.\n- Используйте трёхбуквенные коды аэропортов IATA. Если код неизвестен, напишите название города.\n- Время местное для каждого аэропорта, в 24-часовом формате, как в брони. Если прилёт на следующий день, добавьте +1.\n- Если чего-то не удалось найти, ставьте ? на это место.\n- Каждый отрезок с пересадкой и каждое направление поездки туда и обратно — отдельная строка.\n- Указывайте каждый перелёт один раз, даже если он встречается в нескольких письмах или в календаре. Если рейс меняли, используйте последние данные.\n- Не включайте отменённые перелёты и перелёты с возвратом билета.\n- Сортируйте от самых ранних к самым поздним.\n- Не указывайте имена пассажиров, номера бронирований, номера билетов, адреса почты, номера бонусных карт, цены и платёжные данные.\n\nОтветьте только списком в одном блоке кода с обычным текстом, без других пояснений.',
+    `Find every flight I have taken or booked, across all years, in my email and calendar: booking confirmations, e-tickets, itineraries, check-in and boarding pass emails, and flight events in the calendar.
+
+If you cannot access my email or calendar, say so in one sentence and stop; do not guess.
+
+Otherwise reply with one plain-text code block and nothing else. Its first line is exactly KUUKI FLIGHTS v2. Each line after it is one flight leg:
+YYYY-MM-DD | ORIGIN → DESTINATION | Airline FL 123 | 08:30 → 11:45
+
+Example (the shape only, not my flights):
+${PROMPT_EXAMPLE.en}
+
+Rules:
+- Write the date as YYYY-MM-DD with the full year. When the only source is a calendar event, write (calendar entry) right after the date.
+- Write airports as 3-letter IATA codes, or the city name when you do not know the code.
+- Write times as local 24-hour times. Put +1 right after an arrival on the next day (06:35+1). Leave out a time or flight number you cannot find.
+- Put a flight with no known date on a line starting with Undated, and group such lines under the heading "Partial dates / incomplete records (N)", where N is the number of lines below it.
+- Put flights booked for someone else, or whose ownership you cannot settle, under the heading "Other-passenger bookings or conflicting ownership (N)" after the main list.
+- Add a short note in square brackets at the end of a line when something about that flight is in doubt, for example [maybe cancelled].
+- Leave out flights that were cancelled or refunded. List a flight you cannot confirm either way with [maybe cancelled].
+- Give each flight once, with its latest details if it was changed, one leg per line (each leg of a connection, each direction of a return trip).
+- Sort from oldest to newest.
+- Keep each line to what the format shows: no passenger names, booking references, ticket numbers, email addresses, frequent flyer numbers, prices or payment details.`,
+    `Найдите в моей почте и календаре все перелёты, которые я совершил или забронировал, за все годы: подтверждения бронирований, электронные билеты, маршрутные квитанции, письма о регистрации и посадочные талоны, а также события перелётов в календаре.
+
+Если у вас нет доступа к моей почте или календарю, скажите об этом одним предложением и остановитесь; не угадывайте.
+
+Иначе ответьте одним блоком кода с обычным текстом и ничем больше. Его первая строка ровно KUUKI FLIGHTS v2. Каждая следующая строка — один перелёт:
+ГГГГ-ММ-ДД | ОТКУДА → КУДА | Авиакомпания FL 123 | 08:30 → 11:45
+
+Пример (только формат, это не мои перелёты):
+${PROMPT_EXAMPLE.ru}
+
+Правила:
+- Пишите дату как ГГГГ-ММ-ДД, с полным годом. Если единственный источник — событие в календаре, сразу после даты добавьте (calendar entry).
+- Пишите аэропорты трёхбуквенными кодами IATA или названием города, если код вам неизвестен.
+- Пишите время местное, в 24-часовом формате. Если прилёт на следующий день, сразу после времени прилёта добавьте +1 (06:35+1). Время или номер рейса, которых вы не нашли, опустите.
+- Перелёт без известной даты пишите в строке, которая начинается со слова Undated, и собирайте такие строки под заголовком «Partial dates / incomplete records (N)», где N — число строк под ним.
+- Перелёты, забронированные для другого человека или с неясной принадлежностью, соберите после основного списка под заголовком «Other-passenger bookings or conflicting ownership (N)».
+- Если что-то в перелёте вызывает сомнение, добавьте в конец строки короткую заметку в квадратных скобках, например [maybe cancelled].
+- Отменённые и возвращённые перелёты не включайте. Перелёт, судьбу которого вы не можете подтвердить, укажите с пометкой [maybe cancelled].
+- Указывайте каждый перелёт один раз, с последними данными, если рейс меняли, по одному отрезку на строку (каждый отрезок пересадки, каждое направление поездки туда и обратно).
+- Сортируйте от самых ранних к самым поздним.
+- Оставляйте в строке только то, что требует формат: без имён пассажиров, номеров бронирований, номеров билетов, адресов почты, номеров бонусных карт, цен и платёжных данных.`,
   ),
 
   recognizing: p('Finding your flights', 'Ищем ваши перелёты'),

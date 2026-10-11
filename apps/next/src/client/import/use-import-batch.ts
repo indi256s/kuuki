@@ -201,8 +201,9 @@ export function useImportBatch({
     }
     if (!current() || snapshot.batch.id !== id) return null
     setState(fromSnapshot(snapshot))
+    if (state.phase === 'failed' && snapshot.batch.status === 'processing') watch(id)
     return snapshot
-  }, [state.batch?.id, initialBatchId])
+  }, [state.batch?.id, state.phase, initialBatchId, watch])
 
   const setDraft = useCallback((next: Draft) => {
     setState((previous) => ({

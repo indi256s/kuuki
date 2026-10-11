@@ -59,6 +59,25 @@ const pagesDb = databases(config, 'Pages')
 const cronDb = databases(maintenance, 'Maintenance')
 if (pagesDb.prod !== cronDb.prod || pagesDb.prev !== cronDb.prev)
   problems.push('Maintenance DB bindings must align with Pages in each environment')
+// The import job Worker writes drafts straight to D1, so it must share each environment's database, and each
+// environment's IMPORT_JOBS binding must reach that environment's import Worker.
+const importWorker = readFileSync(
+  argument('--import-config', new URL('../workers/import/wrangler.toml', import.meta.url)),
+  'utf8',
+)
+const importDb = databases(importWorker, 'Import')
+if (pagesDb.prod !== importDb.prod || pagesDb.prev !== importDb.prev)
+  problems.push('Import job DB bindings must align with Pages in each environment')
+const importName = /^name\s*=\s*"([^"]+)"/m.exec(importWorker)?.[1]
+const importPreviewName = sections(importWorker, 'env.preview')[0]?.name
+for (const [label, section, script] of [
+  ['production', 'durable_objects.bindings', importName],
+  ['preview', 'env.preview.durable_objects.bindings', importPreviewName],
+]) {
+  const bound = sections(config, section).filter((row) => row.name === 'IMPORT_JOBS')
+  if (bound.length && (bound.length !== 1 || !script || bound[0].script_name !== script))
+    problems.push(`Pages: the ${label} IMPORT_JOBS binding must target the ${label} import Worker`)
+}
 const origin = (value) => {
   try {
     const url = new URL(value)

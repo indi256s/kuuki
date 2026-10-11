@@ -1,0 +1,396 @@
+/*
+ * The passport on the brand side (boards 15.1 to 15.10, 16.14 to 16.18). Colours are tokens only; stamp inks are the
+ * five accent swatches, which already carry dark-theme values. The whole object is decorative: the card owns the facts.
+ */
+.welcome-passport {
+  --wp-ink-on-cover: var(--accent-foreground);
+  --wp-gutter: color-mix(in srgb, var(--surface-inset) 55%, var(--surface));
+  --wp-slot-line: color-mix(in srgb, var(--hairline) 55%, var(--control-border));
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  /* 40px panel padding + 36px wordmark + 8px. */
+  padding: 84px 40px 40px;
+}
+.wp-desk {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.wp-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 100%;
+}
+.wp-caption {
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font: 400 13px/20px var(--font-sans);
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+.wp-label {
+  color: var(--text-muted);
+  font: 400 9px/12px var(--font-mono);
+  letter-spacing: 0.24em;
+}
+
+/* ---------- Closed cover (15.1) ---------- */
+.wp-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 216px;
+  height: 300px;
+  padding: 34px 22px 26px;
+  border-radius: 10px 14px 14px 10px;
+  background: var(--accent);
+  color: var(--wp-ink-on-cover);
+  box-shadow:
+    inset 6px 0 0 color-mix(in srgb, var(--text) 12%, transparent),
+    0 1px 0 color-mix(in srgb, var(--text) 8%, transparent),
+    0 18px 32px -18px color-mix(in srgb, var(--text) 45%, transparent);
+}
+.wp-cover-top,
+.wp-cover-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+.wp-cover-bottom {
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+.wp-cover-title {
+  font: 500 10px/14px var(--font-mono);
+  letter-spacing: 0.28em;
+}
+.wp-cover-kana {
+  font: 400 13px/16px var(--font-kana, var(--font-sans));
+  letter-spacing: 0.4em;
+  opacity: 0.85;
+}
+.wp-cover-holder {
+  font: 400 9px/12px var(--font-mono);
+  letter-spacing: 0.24em;
+  opacity: 0.7;
+}
+.wp-cover-name {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-align: center;
+  font: 600 20px/26px var(--font-sans);
+  letter-spacing: -0.01em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-overflow: ellipsis;
+}
+.wp-cover-name[data-size='sm'] {
+  font-size: 16px;
+  line-height: 22px;
+}
+.wp-cover-name[data-size='xs'] {
+  font-size: 14px;
+  line-height: 18px;
+}
+.wp-cover-name[data-empty] {
+  opacity: 0.55;
+}
+
+/* ---------- Open spread (15.2, 15.5, 15.6) ---------- */
+.wp-spread {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 330px;
+  height: 228px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 18px 32px -20px color-mix(in srgb, var(--text) 40%, transparent);
+}
+.wp-page {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  box-sizing: border-box;
+}
+.wp-gutter {
+  flex: 0 0 6px;
+  background: var(--wp-gutter);
+}
+.wp-page-left {
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 16px;
+}
+.wp-page-right {
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 12px;
+  padding: 16px;
+}
+.wp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.wp-value {
+  color: var(--text);
+  font: 500 22px/28px var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.wp-value[data-size='name'] {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 600 16px/22px var(--font-sans);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.wp-value[data-size='lg'] {
+  font-size: 26px;
+  line-height: 32px;
+}
+.wp-value[data-size='md'] {
+  font-size: 18px;
+  line-height: 24px;
+}
+.wp-spread:not([data-tall]) .wp-value[data-size='md'] {
+  font-size: 22px;
+  line-height: 28px;
+}
+.wp-mrz {
+  overflow: hidden;
+  color: var(--control-border);
+  font: 400 9px/12px var(--font-mono);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+/* Review: the spread grows with the card; the figure sticks while the list scrolls. */
+.wp-desk[data-tall] {
+  justify-content: flex-start;
+  padding-top: 56px;
+}
+.wp-desk[data-tall] .wp-figure {
+  position: sticky;
+  top: 32px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(760px + 80px);
+  padding-bottom: 40px;
+}
+.wp-spread[data-tall] {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 228px;
+}
+.wp-spread[data-tall] .wp-page-left {
+  justify-content: flex-start;
+  gap: 28px;
+  padding-block: 20px;
+}
+.wp-page-right[data-tall] {
+  align-content: flex-start;
+  justify-content: flex-start;
+  column-gap: 12px;
+  row-gap: 14px;
+  padding: 22px 14px;
+}
+
+/* ---------- Stamps (pending: decorative until publication) ---------- */
+.wp-stamp,
+.wp-slot {
+  flex: none;
+  box-sizing: border-box;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+}
+.wp-page-right[data-tall] :is(.wp-stamp, .wp-slot) {
+  width: 60px;
+  height: 60px;
+}
+.wp-stamp {
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  color: var(--text);
+  font: 600 13px/15px var(--font-mono);
+  rotate: var(--wp-rot, 0deg);
+}
+.wp-stamp[data-fresh] {
+  animation: wp-stamp-in var(--dur-moment) var(--ease-out) var(--wp-delay, 0ms) backwards;
+}
+.wp-stamp[data-ink='0'],
+.wp-stamp[data-ink='7'] {
+  color: var(--swatch-shu);
+}
+.wp-stamp[data-ink='1'],
+.wp-stamp[data-ink='6'] {
+  color: var(--swatch-ai);
+}
+.wp-stamp[data-ink='2'],
+.wp-stamp[data-ink='8'] {
+  color: var(--swatch-matcha);
+}
+.wp-stamp[data-ink='3'] {
+  color: var(--swatch-asagi);
+}
+.wp-stamp[data-ink='4'] {
+  color: var(--swatch-sakura);
+}
+.wp-slot {
+  border: 1.25px dashed var(--wp-slot-line);
+}
+/* The product's stamp press (DESIGN Motion): from 1.06 with a 2px blur, settling onto the page. */
+@keyframes wp-stamp-in {
+  from {
+    opacity: 0;
+    scale: 1.06;
+    filter: blur(2px);
+  }
+}
+
+/* ---------- Entry stamp (15.6) ---------- */
+.wp-entry {
+  position: absolute;
+  left: 62px;
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border: 2.5px solid var(--accent-text);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  color: var(--accent-text);
+  rotate: -8deg;
+}
+.wp-entry[data-fresh] {
+  animation: wp-entry-in var(--dur-moment) var(--ease-out);
+}
+.wp-entry-kicker {
+  font: 600 10px/12px var(--font-mono);
+  letter-spacing: 0.3em;
+}
+.wp-entry-word {
+  font: 700 22px/26px var(--font-sans);
+  letter-spacing: 0.06em;
+}
+.wp-entry-date {
+  font: 400 10px/12px var(--font-mono);
+  letter-spacing: 0.2em;
+}
+@keyframes wp-entry-in {
+  from {
+    opacity: 0;
+    scale: 1.06;
+    filter: blur(2px);
+  }
+}
+
+/* ---------- Mobile strip (15.7 to 15.10) ---------- */
+.wp-strip {
+  display: none;
+}
+@media (max-width: 700px) {
+  .welcome-passport {
+    height: auto;
+    padding: 0;
+  }
+  .wp-desk {
+    display: none;
+  }
+  .wp-strip {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 20px 0;
+  }
+  .welcome-passport:is([data-step='review'], [data-step='ready']) .wp-strip {
+    padding-top: 0;
+  }
+  .wp-mini {
+    flex: none;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 44px;
+    height: 60px;
+    border-radius: 4px 6px 6px 4px;
+    background: var(--accent);
+    color: var(--wp-ink-on-cover);
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--text) 12%, transparent);
+  }
+  .wp-strip-holder,
+  .wp-strip-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .wp-strip-holder {
+    flex: 1 1 auto;
+  }
+  .wp-strip-stat {
+    flex: none;
+    align-items: flex-end;
+    margin-inline-start: auto;
+  }
+  .wp-strip-name {
+    overflow: hidden;
+    color: var(--text);
+    font: 600 18px/24px var(--font-sans);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .wp-strip-name[data-empty] {
+    color: var(--text-muted);
+  }
+  .wp-strip-count {
+    color: var(--text);
+    font: 500 18px/24px var(--font-mono);
+    white-space: nowrap;
+  }
+}
+/* Below 360px the labels go; the name keeps one line. */
+@media (max-width: 359px) {
+  .wp-strip .wp-label {
+    display: none;
+  }
+  .wp-strip {
+    gap: 12px;
+  }
+}
+
+/* Reduced motion: the stamp press becomes a 200ms fade (DESIGN), with no ripple. */
+@media (prefers-reduced-motion: reduce) {
+  .wp-stamp[data-fresh],
+  .wp-entry[data-fresh] {
+    animation: wp-press-fade var(--dur-base) linear;
+  }
+  @keyframes wp-press-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

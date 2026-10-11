@@ -1,13 +1,8 @@
 import { redirect } from 'next/navigation'
-import { ONBOARDING_NAME_PATH } from '../../server/gates'
-import { getOwnProfile } from '../../server/profile'
+import { requireOnboardedMember } from '../../server/gates'
 
+/** The viewer's own profile; a member without an address yet sets one in Settings. */
 export default async function Me() {
-  const own = await getOwnProfile()
-  if (!own) redirect('/signin')
-  redirect(
-    own.profile.username
-      ? `/fly/${encodeURIComponent(own.profile.username)}`
-      : ONBOARDING_NAME_PATH,
-  )
+  const own = await requireOnboardedMember()
+  redirect(own.profile.username ? `/fly/${encodeURIComponent(own.profile.username)}` : '/settings')
 }

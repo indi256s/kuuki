@@ -1,0 +1,103 @@
+/* The name step (boards 15.1, 15.7, 16.x): the address line under the field, its inline editor and the notes. */
+.name-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.name-address {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 36px;
+  margin-top: -4px;
+  padding: 0 6px;
+  margin-inline-start: -6px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.name-address svg {
+  flex: none;
+}
+.name-address-url {
+  min-width: 0;
+  font: 400 12px/18px var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.name-address-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 2px 12px 0;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--auth-input-surface);
+  color: var(--text-muted);
+}
+.name-address-edit[data-invalid='true'] {
+  border-color: var(--danger-text);
+}
+.name-address-edit svg {
+  flex: none;
+}
+.name-address-prefix {
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  font: 400 12px/18px var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.name-address-input {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: 400 12px/18px var(--font-mono);
+}
+.name-address-input:focus {
+  outline: none;
+}
+.name-address-edit:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.name-note {
+  margin: 0;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning-fill) 14%, var(--surface));
+  color: var(--warning-text);
+  font: 400 14px/20px var(--font-sans);
+}
+@media (hover: hover) and (pointer: fine) {
+  .name-address:hover {
+    background: var(--surface-inset);
+  }
+}
+@media (pointer: coarse) {
+  .name-address {
+    min-height: 44px;
+  }
+}
+/* Mobile: the editor is a full 48px input (spec; board 16.13 drew 36px), and 16px text keeps iOS from zooming. */
+@media (max-width: 700px) {
+  .name-address-edit {
+    min-height: 48px;
+    padding-top: 0;
+  }
+  .name-address-prefix,
+  .name-address-input {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}

@@ -10,7 +10,8 @@ import { parseStructuredText } from '../import/_text'
 import type { ExtractedFlight, ParseRequest } from '../import/_shared'
 import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
 import {
-  MAX_DRAFTS_PER_BATCH,
+  MAX_DRAFTS_DETERMINISTIC,
+  MAX_DRAFTS_MODEL,
   batchByOperation,
   createProcessingBatch,
   ownedBatch,
@@ -156,11 +157,15 @@ export async function submitImport(
   }
   let rows: DraftRowInput[] = []
   let final: FinalState
+  const limit =
+    source.type === 'text' && parseStructuredText(source.content)
+      ? MAX_DRAFTS_DETERMINISTIC
+      : MAX_DRAFTS_MODEL
   try {
     const result = await extractFlights(env, source)
-    rows = result.flights.slice(0, MAX_DRAFTS_PER_BATCH).map(rowOf)
+    rows = result.flights.map(rowOf)
     if (result.flights.length === 0) final = { status: 'failed', errorCode: 'NO_FLIGHTS_FOUND' }
-    else if (result.flights.length > MAX_DRAFTS_PER_BATCH)
+    else if (result.flights.length > limit)
       final = { status: 'partial', errorCode: 'ROWS_TRUNCATED' }
     else if (result.rejected?.length) final = { status: 'partial', errorCode: 'ROWS_REJECTED' }
     else final = { status: 'review', errorCode: null }
@@ -173,7 +178,7 @@ export async function submitImport(
       errorCode: error instanceof HttpError && error.code ? error.code : 'INTERNAL',
     }
   }
-  await persistDraftRows(db, fence, rows, final, new Date())
+  await persistDraftRows(db, fence, rows, final, new Date(), { limit })
   const snapshot = await readBatchSnapshot(db, userId, batchId, new Date())
   if (!snapshot) throw discarded()
   return { created: true, snapshot }

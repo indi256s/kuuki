@@ -16,6 +16,7 @@ export interface ProfileRow {
   theme_color: string | null
   created_at: string | null
   updated_at: string | null
+  onboarded_at?: string | null
 }
 
 /** Full profile (own view) — booleans coerced; includes private fields. */
@@ -34,6 +35,7 @@ export function toOwnProfile(row: ProfileRow) {
     theme_color: row.theme_color,
     created_at: row.created_at,
     updated_at: row.updated_at,
+    onboarded_at: row.onboarded_at ?? null,
   }
 }
 

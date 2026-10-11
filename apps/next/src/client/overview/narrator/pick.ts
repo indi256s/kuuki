@@ -20,7 +20,7 @@ export function canonicalFilter(filter: OverviewFilter): string {
   return JSON.stringify(canonical(filter))
 }
 
-function fnv1a32(value: string): number {
+export function fnv1a32(value: string): number {
   let hash = 2166136261
   for (let i = 0; i < value.length; i++) hash = Math.imul(hash ^ value.charCodeAt(i), 16777619)
   return hash >>> 0
