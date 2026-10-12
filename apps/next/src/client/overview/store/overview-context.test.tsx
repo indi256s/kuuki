@@ -741,7 +741,9 @@ it('SSR and hydration begin with a stable null UI bus and no private requests', 
   container.innerHTML = html
   const errors = vi.spyOn(console, 'error')
   render(element, { container, hydrate: true })
-  expect(container.textContent).toBe('{"hoverRoute":null,"hoverGhost":null,"focusRoute":null}')
+  expect(container.textContent).toBe(
+    '{"hoverRoute":null,"hoverGhost":null,"focusRoute":null,"replayStarted":false}',
+  )
   expect(fetcher).not.toHaveBeenCalled()
   expect(api.put).not.toHaveBeenCalled()
   expect(errors).not.toHaveBeenCalled()

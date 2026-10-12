@@ -1,38 +1,48 @@
 'use client'
 
-import Link from 'next/link'
-import { useMemo, type ReactNode } from 'react'
-import { isEmptyFilter, previousPeriod } from '@kuuki/shared/overview/filter'
-import { calendarDay } from '@kuuki/shared/overview/next'
-import { overviewSeries } from '@kuuki/shared/overview/series'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useReducedMotion } from 'motion/react'
+import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import {
   formatCount,
-  formatDistanceKm,
   formatDuration,
-  formatDurationDays,
-  formatMonthYear,
-  formatPeriodDate,
   formatNumber,
   type CountForms,
   type Locale,
 } from '../../../lib/format'
 import { forms, S, t } from '../copy'
-import { useOverview } from '../store/overview-context'
-import { YearStrip } from './year-strip'
-import { OnThisDayLine } from './on-this-day-line'
-import { ArcSparkline } from '../charts/arc-sparkline'
+import { IsoFigure } from '../iso/iso-figure'
+import { heroGlyph, type HeroGlyph } from '../iso/hero-glyphs'
+import { fitBox, type IsoFigureData } from '../iso/scene'
+import { spike } from '../iso/spike'
+import { odometer } from '../iso/odometer'
+import { cabinWindow } from '../iso/cabin-window'
+import { suitcase } from '../iso/suitcase'
+import { carousel } from '../iso/carousel'
+import { pickLine, recordLine } from '../narrator/pick'
+import type { HeroRecord } from '../narrator/triggers'
+import { useOverview, useOverviewUI } from '../store/overview-context'
+import {
+  HERO_RECORDS,
+  odometerDigits,
+  pickStickers,
+  railValue,
+  stubBucket,
+  tagCode,
+} from './records'
+import { ENTER_MS, LEAVE_MS, useTakeover, type TakeoverState } from './use-takeover'
+import '../iso/spike.css'
+import '../iso/odometer.css'
+import '../iso/cabin-window.css'
+import '../iso/suitcase.css'
+import '../iso/carousel.css'
 import './hero.css'
 
 const copy = {
-  km: { en: 'Estimated kilometres', ru: 'Расчётные километры' },
-  air: { en: 'In the air', ru: 'В воздухе' },
+  km: { en: 'km · great-circle', ru: 'км · по дуге большого круга' },
+  air: { en: 'in the air', ru: 'в воздухе' },
   byAir: { en: 'by air', ru: 'по воздуху' },
   lastPublished: { en: 'last published total', ru: 'последний опубликованный итог' },
-  all: { en: 'of all', ru: 'от всех' },
-  since: { en: 'Flights since', ru: 'Перелёты с' },
-  equator: { en: 'round the equator', ru: 'вокруг экватора' },
-  mobileEquator: { en: 'the equator', ru: 'экватора' },
-  toReview: { en: 'to review', ru: 'на проверку' },
 }
 const estimatedForms: CountForms = {
   en: { one: '{count} estimated', other: '{count} estimated' },
@@ -43,255 +53,272 @@ const estimatedForms: CountForms = {
     other: '{count} оценённых',
   },
 }
-const awaitingForms: CountForms = {
-  en: { one: '{count} awaiting review', other: '{count} awaiting review' },
-  ru: {
-    one: '{count} ждёт проверки',
-    few: '{count} ждут проверки',
-    many: '{count} ждут проверки',
-    other: '{count} ждут проверки',
-  },
+const countryForms: CountForms = {
+  en: { one: '{count} country or territory', other: '{count} countries & territories' },
+  ru: forms.countries.ru,
 }
-function units(value: string): ReactNode {
-  // Formatters join number and unit with a no-break space; the unit is that space plus the non-digit run after it.
-  return value.split(/(\u00a0[^\d\s]+)/).map((part, index) =>
-    index % 2 ? (
-      <span className="ov3-hero-unit" key={index}>
-        {part}
-      </span>
-    ) : (
-      part
-    ),
+/** A count's noun in the form its number takes ("69 flights" → "flights", «69 перелётов» → «перелётов»), for a label under the value. */
+const noun = (locale: Locale, n: number, set: CountForms) =>
+  formatCount(locale, n, set).replace(formatNumber(locale, n), '').trim()
+
+const GLYPHS: Record<HeroRecord, HeroGlyph> = {
+  flights: 'flights',
+  km: 'km',
+  air: 'air',
+  countries: 'countries',
+  airports: 'airports',
+}
+// Glyphs never change, so they are built once, at their true size.
+const glyphs = Object.fromEntries(
+  HERO_RECORDS.map((record) => [record, heroGlyph(GLYPHS[record])]),
+) as Record<HeroRecord, IsoFigureData>
+const FIGURE_CLASS: Record<HeroRecord, string> = {
+  flights: 'iso-spike',
+  km: 'iso-odometer',
+  air: 'iso-cabin-window',
+  countries: 'iso-suitcase',
+  airports: 'iso-carousel',
+}
+/** Strokes stay 1px at any scale, so a figure is drawn at the stage's size up to this scale instead of stretched by CSS. */
+const MAX_K = 1.6
+
+/** The figures card: the five records as a list, each with its glyph, and the winning hero line at the foot. A row under the pointer (or a
+ * tap) hands the card to that record's drawing; the list folds into an index rail. The takeover is decoration over the same facts, so it
+ * is `aria-hidden` and the list keeps its semantics underneath. */
+export function HeroPanel() {
+  const { scope, all, payload, filter, locale, ownerKey } = useOverview()
+  const { replayStarted } = useOverviewUI()
+  const reduced = useReducedMotion() ?? false
+  const card = useRef<HTMLElement>(null)
+  const zero = scope ? scope.figures.flights === 0 && !isEmptyFilter(filter) : false
+  const { state, handlers } = useTakeover(card, !!scope && !zero && !replayStarted, reduced)
+  const stickers = useMemo(
+    () => (payload && scope ? pickStickers(payload, filter, scope) : { stickers: [], lit: null }),
+    [payload, filter, scope],
   )
-}
-function Delta({
-  value,
-  label,
-  locale,
-  format = formatNumber,
-}: {
-  value: number
-  label: string
-  locale: Locale
-  format?: (locale: Locale, value: number) => string
-}) {
+  if (!payload || !scope || !all) return <p role="status">{t(S.loading, locale)}</p>
+  const f = scope.figures
+  const value = (record: HeroRecord): string => {
+    if (zero) return '—'
+    switch (record) {
+      case 'flights':
+        return formatNumber(locale, f.flights)
+      case 'km':
+        return formatNumber(locale, Math.round(f.distanceKm))
+      case 'air':
+        return (f.durationApproximate ? '≈' : '') + formatDuration(locale, f.durationMinutes)
+      case 'countries':
+        return formatNumber(locale, f.countries.value)
+      case 'airports':
+        return formatNumber(locale, f.airports)
+    }
+  }
+  const label = (record: HeroRecord): string => {
+    switch (record) {
+      case 'flights':
+        return noun(locale, f.flights, forms.flights)
+      case 'km':
+        return t(copy.km, locale)
+      case 'air':
+        return (
+          t(copy.air, locale) +
+          (f.estimatedFlights > 0
+            ? ` · ${formatCount(locale, f.estimatedFlights, estimatedForms)}`
+            : '')
+        )
+      case 'countries':
+        return (
+          noun(locale, f.countries.value, countryForms) +
+          (f.countries.source === 'by_air'
+            ? ` · ${t(copy.byAir, locale)}`
+            : !payload.derivedReady
+              ? ` · ${t(copy.lastPublished, locale)}`
+              : '')
+        )
+      case 'airports':
+        return noun(locale, f.airports, forms.airports)
+    }
+  }
+  // Accessible names stay the record's plain name, so "Flights" still reads the flight count.
+  const names: Record<HeroRecord, string> = {
+    flights: t(S.flights, locale),
+    km: t(copy.km, locale),
+    air: t(copy.air, locale),
+    countries: t(S.countries, locale),
+    airports: t(S.airports, locale),
+  }
+  const footer = zero ? null : pickLine('hero', scope, all, ownerKey, locale)
   return (
-    <p className={`ov3-hero-delta${value < 0 ? ' negative' : ''}`}>
-      {value < 0 ? '↓ −' : '↑ +'}
-      {format(locale, Math.abs(value))} {locale === 'ru' ? 'к' : 'vs'} {label}
-    </p>
+    <section
+      ref={card}
+      className="ov3-hero-panel"
+      aria-label={t(S.figures, locale)}
+      data-takeover={state ? state.phase : undefined}
+      {...handlers}
+    >
+      <dl className="ov3-hero-list">
+        {HERO_RECORDS.map((record) => (
+          <div className="ov3-hero-row" data-record={record} key={record}>
+            <dt className="ov3-hero-label">{label(record)}</dt>
+            <dd className="ov3-hero-value" aria-label={names[record]}>
+              {value(record)}
+            </dd>
+            <span className="ov3-hero-glyph" aria-hidden="true">
+              <IsoFigure figure={glyphs[record]} />
+            </span>
+          </div>
+        ))}
+      </dl>
+      {footer ? <p className="ov3-hero-footer">{footer}</p> : null}
+      {state ? (
+        <Takeover
+          key={state.record}
+          state={state}
+          card={card}
+          reduced={reduced}
+          rail={HERO_RECORDS.map((record) => ({ record, value: railValue(locale, record, f) }))}
+          value={value(state.record)}
+          label={label(state.record)}
+          line={recordLine(state.record, scope, all, ownerKey, locale, state.turn)}
+          build={(k) => {
+            switch (state.record) {
+              case 'flights':
+                return spike(k, { stubs: stubBucket(f.flights) })
+              case 'km':
+                return odometer(k, { digits: odometerDigits(f.distanceKm) })
+              case 'air':
+                return cabinWindow(k)
+              case 'countries':
+                return suitcase(k, stickers)
+              case 'airports':
+                return carousel(k, { code: tagCode(scope) ?? '' })
+            }
+          }}
+          buildKey={`${state.record}|${f.flights}|${Math.round(f.distanceKm)}|${stickers.stickers.join()}|${stickers.lit}|${tagCode(scope)}`}
+        />
+      ) : null}
+    </section>
   )
 }
 
-/** Each sparkline renders twice: inline in its figure's column, and as a full-width row that only the docked wide band (page.css) shows. CSS picks one, so the server's first paint matches. */
-export function HeroPanel() {
-  const { scope, payload, filter, locale } = useOverview()
-  const trend = useMemo(
-    () => (payload ? overviewSeries(payload, filter).monthly : []),
-    [payload, filter],
-  )
-  const trendLabels = useMemo(() => {
-    const dates = trend.map((row) => formatPeriodDate(locale, row.date))
-    return {
-      flights: trend.map(
-        (row, i) => `${dates[i]}: ${formatCount(locale, row.flights, forms.flights)}`,
-      ),
-      km: trend.map((row, i) => `${dates[i]}: ${formatDistanceKm(locale, row.km)}`),
+function Takeover({
+  state,
+  card,
+  reduced,
+  rail,
+  value,
+  label,
+  line,
+  build,
+  buildKey,
+}: {
+  state: TakeoverState
+  card: React.RefObject<HTMLElement | null>
+  reduced: boolean
+  rail: { record: HeroRecord; value: string }[]
+  value: string
+  label: string
+  line: string | null
+  build: (k: number) => IsoFigureData
+  buildKey: string
+}) {
+  const root = useRef<HTMLDivElement>(null)
+  const drawing = useRef<HTMLDivElement>(null)
+  const [box, setBox] = useState<[number, number] | null>(null)
+  // The drawing is fitted to the box the stage leaves it, measured before paint so the first frame is already the right size.
+  useLayoutEffect(() => {
+    const node = drawing.current
+    if (!node) return
+    const measure = () => {
+      const { width, height } = node.getBoundingClientRect()
+      setBox((old) =>
+        old && Math.abs(old[0] - width) < 1 && Math.abs(old[1] - height) < 1
+          ? old
+          : [Math.floor(width), Math.floor(height)],
+      )
     }
-  }, [trend, locale])
-  if (!payload || !scope) return <p role="status">{t(S.loading, locale)}</p>
-  const f = scope.figures,
-    zero = f.flights === 0 && !isEmptyFilter(filter)
-  const trendLabel =
-    locale === 'ru' ? 'По месяцам выбранного периода' : 'By month in the selected period'
-  const previous = previousPeriod(filter)?.period
-  const label = previous
-    ? 'years' in previous
-      ? previous.years.length === 1
-        ? String(previous.years[0])
-        : `${previous.years[0]}–${previous.years.at(-1)}`
-      : `${formatPeriodDate(locale, previous.from)}–${formatPeriodDate(locale, previous.to)}`
-    : null
-  const deltas = !zero && label && f.deltas ? f.deltas : null
-  const share = !zero && !filter.period && !isEmptyFilter(filter) ? f.share : null
-  const percent = (ratio: number) =>
-    `${formatNumber(locale, Math.round(ratio * 100))}% ${t(copy.all, locale)}`
-  const firstDay = f.firstDate ? calendarDay(f.firstDate) : null
-  const since =
-    firstDay !== null
-      ? locale === 'ru'
-        ? new Intl.DateTimeFormat(locale, {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'UTC',
-          })
-            .format(new Date(firstDay))
-            .replace(/^\d+\s/, '')
-        : formatMonthYear(locale, new Date(firstDay))
-      : null
-  const airCaption =
-    t(copy.air, locale) +
-    (f.estimatedFlights > 0 ? ` · ${formatCount(locale, f.estimatedFlights, estimatedForms)}` : '')
-  const review = f.awaiting > 0 ? `${formatCount(locale, f.awaiting, awaitingForms)}\u00a0→` : null
-  const laps = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(f.equatorLaps)
-  const metrics = [
-    {
-      key: 'km',
-      name: t(copy.km, locale),
-      value: units(formatDistanceKm(locale, f.distanceKm)),
-      caption: `${laps}× ${t(copy.equator, locale)}`,
-      delta: deltas ? f.distanceKm - deltas.distanceKm : null,
-      format: formatDistanceKm,
-      share: share?.distanceKm,
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+  const figure = useMemo(
+    () => {
+      if (!box || box[0] < 40 || box[1] < 40) return null
+      return build(Math.min(MAX_K, fitBox(box[0], box[1], build)))
     },
-    {
-      key: 'duration',
-      name: t(copy.air, locale),
-      value: (
-        <>
-          {f.durationApproximate ? '≈ ' : ''}
-          {units(formatDurationDays(locale, f.durationMinutes))}
-        </>
-      ),
-      caption: airCaption,
-      delta: deltas ? f.durationMinutes - deltas.durationMinutes : null,
-      format: formatDuration,
-      share: share?.durationMinutes,
-    },
-    {
-      key: 'countries',
-      name: t(S.countries, locale),
-      value: formatNumber(locale, f.countries.value),
-      caption: `${t(S.countries, locale)}${f.countries.source === 'by_air' ? ` · ${t(copy.byAir, locale)}` : !payload.derivedReady ? ` · ${t(copy.lastPublished, locale)}` : ''}`,
-      delta: null,
-      share: share?.countries,
-    },
-    {
-      key: 'airports',
-      name: t(S.airports, locale),
-      value: formatNumber(locale, f.airports),
-      caption: t(S.airports, locale),
-      delta: null,
-      share: share?.airports,
-    },
-  ]
-  // Phones show both sparklines side by side under one period note, so each caption keeps only its name there.
-  const sparkCaption = (name: string) => (
-    <>
-      {name}
-      <span className="ov3-spark-period"> · {trendLabel}</span>
-    </>
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `build` is a fresh closure every render; `buildKey` carries everything it reads.
+    [box, buildKey],
   )
-  const flightSpark = (place: 'inline' | 'row') =>
-    !zero && trend.length > 0 ? (
-      <ArcSparkline
-        place={place}
-        values={trend.map((row) => row.flights)}
-        labels={trendLabels.flights}
-        summary={`${t(S.flights, locale)} · ${trendLabel}`}
-        caption={sparkCaption(t(S.flights, locale))}
-      />
-    ) : null
-  const kmSpark = (place: 'inline' | 'row') =>
-    !zero && trend.length > 0 ? (
-      <ArcSparkline
-        place={place}
-        values={trend.map((row) => row.km)}
-        labels={trendLabels.km}
-        summary={`${t(copy.km, locale)} · ${trendLabel}`}
-        caption={sparkCaption(t(copy.km, locale))}
-      />
-    ) : null
-  const metric = (item: (typeof metrics)[number]) => (
-    <div className={`ov3-hero-metric ov3-hero-${item.key}`} key={item.key}>
-      <dt className="ov3-hero-caption">
-        {item.key === 'km' ? (
-          <>
-            <span className="ov3-desktop-caption">{item.caption}</span>
-            <span className="ov3-mobile-caption">
-              {item.name} · {laps}× {t(copy.mobileEquator, locale)}
-            </span>
-          </>
-        ) : (
-          item.caption
-        )}
-      </dt>
-      <dd className="ov3-hero-value" aria-label={item.name}>
-        {zero ? '—' : item.value}
-      </dd>
-      {item.delta !== null && label ? (
-        <Delta value={item.delta} label={label} locale={locale} format={item.format} />
-      ) : null}
-      {item.share !== undefined ? <p className="ov3-hero-share">{percent(item.share)}</p> : null}
-      {item.key === 'km' ? (
-        <>
-          {kmSpark('inline')}
-          <p className="ov3-hero-caption">
-            {t(
-              {
-                en: 'Shortest airport arcs; actual routes may differ.',
-                ru: 'Кратчайшие дуги между аэропортами; реальные маршруты могут отличаться.',
-              },
-              locale,
-            )}
-          </p>
-        </>
-      ) : null}
-    </div>
-  )
+  // Values glide from their list rows to their rail slots; closing glides them back. Reduced motion swaps at once.
+  const glide = (direction: 'in' | 'out') => {
+    if (reduced || !root.current || !card.current) return
+    const easing =
+      getComputedStyle(root.current).getPropertyValue('--ease-out').trim() || 'ease-out'
+    for (const slot of root.current.querySelectorAll<HTMLElement>('[data-rail-value]')) {
+      const from = card.current.querySelector<HTMLElement>(
+        `.ov3-hero-row[data-record="${slot.dataset.railValue}"] .ov3-hero-value`,
+      )
+      if (!from) continue
+      const a = from.getBoundingClientRect(),
+        b = slot.getBoundingClientRect()
+      if (!b.height) continue
+      const listed = `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.height / b.height})`
+      slot.animate(
+        direction === 'in'
+          ? [{ transform: listed }, { transform: 'none' }]
+          : [{ transform: 'none' }, { transform: listed }],
+        { duration: direction === 'in' ? ENTER_MS : LEAVE_MS, easing, fill: 'both' },
+      )
+    }
+  }
+  const entered = state.entered
+  useLayoutEffect(() => {
+    if (entered) glide('in')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the glide runs once, when the takeover first opens from the list.
+  }, [])
+  const closing = state.phase === 'closing'
+  useLayoutEffect(() => {
+    if (closing) glide('out')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the phase turns to closing.
+  }, [closing])
   return (
-    <section className="ov3-hero-panel" aria-label={t(S.figures, locale)}>
-      <div className="ov3-hero-lead">
-        <div className="ov3-hero-flight">
-          <div className="ov3-hero-value" aria-label={t(S.flights, locale)}>
-            {zero ? '—' : formatNumber(locale, f.flights)}
+    <div
+      ref={root}
+      className="ov3-takeover"
+      aria-hidden="true"
+      data-phase={state.phase}
+      data-entered={entered ? '' : undefined}
+      data-posed={state.posed ? '' : undefined}
+    >
+      <div className="ov3-takeover-rail">
+        {rail.map(({ record, value: compact }) => (
+          <div
+            className="ov3-takeover-entry"
+            data-record={record}
+            data-active={record === state.record ? '' : undefined}
+            key={record}
+          >
+            <span className="ov3-takeover-tick" />
+            <span className="ov3-takeover-compact" data-rail-value={record}>
+              {compact}
+            </span>
           </div>
-          <p className="ov3-hero-caption ov3-desktop-caption">
-            {since ? `${t(copy.since, locale)} ${since}` : t(S.flights, locale)}
-          </p>
-          {/* Phones hide the desktop review link, so the count in the caption is the way to the queue. */}
-          <p className="ov3-hero-caption ov3-mobile-caption">
-            {t(S.flights, locale)}
-            {f.awaiting > 0 ? (
-              <>
-                {' '}
-                ·{' '}
-                <Link className="ov3-mobile-review" href="/journal?queue=awaiting">
-                  {formatNumber(locale, f.awaiting)} {t(copy.toReview, locale)}
-                </Link>
-              </>
-            ) : null}
-          </p>
-          {deltas && label ? (
-            <Delta value={f.flights - deltas.flights} label={label} locale={locale} />
-          ) : null}
-          {share ? (
-            <p className="ov3-hero-share">
-              {formatCount(locale, f.flights, forms.flights)} · {percent(share.flights)}
-            </p>
-          ) : null}
-          {flightSpark('inline')}
+        ))}
+      </div>
+      <div className="ov3-takeover-stage">
+        <div className="ov3-takeover-drawing" ref={drawing}>
+          {figure ? <IsoFigure figure={figure} className={FIGURE_CLASS[state.record]} /> : null}
         </div>
-        {review ? (
-          <Link className="ov3-hero-review" href="/journal?queue=awaiting">
-            {review}
-          </Link>
-        ) : null}
+        <div
+          className="ov3-takeover-value"
+          style={{ '--chars': value.length } as React.CSSProperties}
+        >
+          {value}
+        </div>
+        <p className="ov3-takeover-label">{label}</p>
+        {line ? <p className="ov3-takeover-line">{line}</p> : null}
       </div>
-      {flightSpark('row')}
-      <YearStrip />
-      <div className="ov3-hero-measures">
-        <dl className="ov3-hero-metrics">{metrics.slice(0, 2).map(metric)}</dl>
-        {kmSpark('row')}
-        <dl className="ov3-hero-metrics">{metrics.slice(2).map(metric)}</dl>
-      </div>
-      {!zero && trend.length > 0 ? (
-        <p className="ov3-hero-trend-note" aria-hidden="true">
-          {trendLabel}
-        </p>
-      ) : null}
-      <OnThisDayLine />
-    </section>
+    </div>
   )
 }

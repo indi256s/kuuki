@@ -133,7 +133,10 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
             timeMs={replay.timeMs}
             getFrame={replay.getFrame}
             paused={replayPaused}
-            setPaused={setReplayPaused}
+            setPaused={(paused) => {
+              setReplayPaused(paused)
+              bus.setReplayStarted(!paused)
+            }}
             seek={replay.seek}
             reduced={reduced}
             locale={locale}

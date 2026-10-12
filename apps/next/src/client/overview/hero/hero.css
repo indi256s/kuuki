@@ -1,11 +1,13 @@
+/* The figures card: five records as rows (value over label, glyph at the end) and the winning hero line. A takeover covers the same box, so
+   its height is always the list's. */
 .ov3-hero-panel {
+  position: relative;
   min-width: 0;
   min-height: 520px;
-  padding: 24px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
+  gap: 16px;
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
@@ -14,52 +16,163 @@
   border-color: transparent;
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
-.ov3-hero-lead {
+.ov3-hero-list {
+  margin: 0;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
 }
-.ov3-hero-flight {
-  min-width: 0;
+.ov3-hero-row {
+  display: grid;
+  grid-template: 'value glyph' auto 'label glyph' auto / minmax(0, 1fr) 44px;
+  column-gap: 16px;
+  row-gap: 4px;
+  align-items: center;
 }
 .ov3-hero-value {
+  grid-area: value;
   margin: 0;
+  color: var(--text);
   font-size: 32px;
   line-height: 36px;
-  font-weight: 600;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.ov3-hero-flight > .ov3-hero-value {
+.ov3-hero-row[data-record='flights'] {
+  align-items: end;
+}
+.ov3-hero-row[data-record='flights'] > .ov3-hero-value {
   font-size: 80px;
   line-height: 80px;
-  letter-spacing: -0.04em;
 }
-/* Each stat column is a size container: the widest figure (number plus unit, ~5em) must fit its column, so the size follows the column up to 32px. */
-.ov3-hero-metric {
-  container-type: inline-size;
-}
-.ov3-hero-metric > .ov3-hero-value {
-  font-size: clamp(20px, calc(100cqi / 5.2), 32px);
-  line-height: 1.125;
-}
-.ov3-hero-unit {
-  font-size: 0.5em;
-  letter-spacing: normal;
-}
-.ov3-hero-caption {
-  margin: 4px 0 0;
+.ov3-hero-label {
+  grid-area: label;
   color: var(--text-muted);
   font-size: 13px;
-  line-height: 18px;
-}
-.ov3-hero-flight > .ov3-hero-caption {
-  font-size: 14px;
   line-height: 20px;
 }
-.ov3-hero-review,
+.ov3-hero-glyph {
+  grid-area: glyph;
+  align-self: stretch;
+  height: 40px;
+  display: grid;
+  place-items: center;
+}
+.ov3-hero-row[data-record='flights'] > .ov3-hero-glyph {
+  align-self: end;
+}
+.ov3-hero-footer {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+}
+
+/* Takeover: an index rail of compact values beside the record's stage (drawing, value, label, line). */
+.ov3-takeover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 32px 32px 32px 20px;
+  display: flex;
+  gap: 24px;
+  background: var(--surface);
+  border-radius: inherit;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.ov3-takeover[data-phase='closing'] {
+  opacity: 0;
+}
+.ov3-takeover-rail {
+  flex: 0 0 64px;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.ov3-takeover-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ov3-takeover-tick {
+  flex: 0 0 2px;
+  height: 20px;
+  border-radius: 1px;
+}
+.ov3-takeover-entry[data-active] > .ov3-takeover-tick {
+  background: var(--accent);
+}
+.ov3-takeover-compact {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform-origin: 0 0;
+}
+.ov3-takeover-entry[data-active] > .ov3-takeover-compact {
+  color: var(--text);
+  font-weight: 600;
+}
+.ov3-takeover-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  container-type: inline-size;
+}
+.ov3-takeover-drawing {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+/* The drawing is the record lit; its pose plays once (`data-posed`), and only where motion is welcome. */
+.ov3-takeover-drawing .iso {
+  --iso-lit: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ov3-takeover[data-posed] .ov3-takeover-drawing .iso {
+    --iso-move: 1;
+    --iso-dur: var(--dur-base);
+  }
+  .ov3-takeover[data-entered] .ov3-takeover-stage {
+    animation: ov3-takeover-stage var(--dur-base) var(--ease-out) both;
+  }
+}
+@keyframes ov3-takeover-stage {
+  from {
+    opacity: 0;
+  }
+}
+/* As large as one line allows: about 0.6em per character of the value, between 40px and 80px. */
+.ov3-takeover-value {
+  color: var(--text);
+  font-size: clamp(40px, calc(100cqi / (var(--chars, 6) * 0.62)), 80px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ov3-takeover-label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.ov3-takeover-line {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+}
+
+/* Next flight strip (next-strip.tsx). */
 .ov3-next-review {
   min-height: 44px;
   display: inline-flex;
@@ -68,105 +181,7 @@
   font-size: 13px;
   font-weight: 600;
 }
-.ov3-hero-metrics {
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-}
-/* Two figure lists with room for the kilometres sparkline row between them; that row and the flights one only show in the docked wide band (page.css). */
-.ov3-hero-measures {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.ov3-sparkline[data-place='row'] {
-  display: none;
-}
-.ov3-hero-metric {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.ov3-hero-metric > dd {
-  order: -1;
-}
-.ov3-hero-delta,
-.ov3-hero-share {
-  margin: 4px 0 0;
-  font-size: 13px;
-  line-height: 20px;
-}
-.ov3-hero-delta {
-  color: var(--success-text);
-}
-.ov3-hero-delta.negative {
-  color: var(--warning-text);
-}
-.ov3-hero-share {
-  color: var(--text-muted);
-}
-.ov3-mobile-caption {
-  display: none;
-}
-.ov3-years {
-  min-width: 0;
-}
-.ov3-years-caption {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-.ov3-years-bars {
-  display: flex;
-  gap: 4px;
-}
-.ov3-years-bars > button {
-  flex: 1;
-  min-width: 0;
-  min-height: 120px;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-}
-/* --bar is the year's share of the peak year; the tallest bar is 96px unless the docked band lets the strip fill its card. */
-.ov3-year-mark {
-  display: block;
-  width: min(20px, 100%);
-  height: max(2px, calc(var(--bar, 0) * 96px));
-  border-radius: 3px;
-  background: var(--mark-rest);
-}
-.ov3-year-mark.peak {
-  background: var(--accent);
-}
-.ov3-year-mark.empty {
-  height: 2px;
-  background: var(--mark-ghost);
-  border-radius: 1px;
-}
-.ov3-year-label {
-  font: 12px/16px var(--font-mono);
-}
-.ov3-year-count {
-  display: none;
-}
-.ov3-years-bars > button[aria-pressed='true'] .ov3-year-label {
-  color: var(--text);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.ov3-years-bars > button:focus-visible,
 .ov3-next-flight:focus-visible,
-.ov3-hero-review:focus-visible,
 .ov3-next-review:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -218,110 +233,33 @@
 .ov3-next-more {
   margin-inline-start: auto;
 }
-@media (hover: hover) and (pointer: fine) {
-  .ov3-years-bars > button:hover .ov3-year-label {
-    color: var(--text);
-    text-decoration: underline;
-  }
-}
-@media (pointer: coarse) {
-  .ov3-years-bars {
-    overflow-x: auto;
-  }
-  .ov3-years-bars > button {
-    min-width: 44px;
-  }
-}
+
 @media (max-width: 700px) {
   .ov3-hero-panel {
     min-height: 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 16px;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
+    padding: 24px;
+    gap: 12px;
   }
-  :root[data-theme='dark'] .ov3-hero-panel {
-    box-shadow: none;
+  .ov3-hero-list {
+    gap: 12px;
   }
-  .ov3-hero-lead,
-  .ov3-hero-metrics,
-  .ov3-hero-measures {
-    display: contents;
+  .ov3-hero-value {
+    font-size: 24px;
+    line-height: 28px;
   }
-  .ov3-hero-flight {
-    order: 0;
-  }
-  .ov3-hero-km {
-    order: 1;
-  }
-  .ov3-hero-countries {
-    order: 2;
-  }
-  .ov3-hero-duration {
-    order: 3;
-  }
-  /* The four totals come first as one group; the two trends follow side by side under a single period note. */
-  .ov3-hero-panel .ov3-sparkline[data-place='inline'] {
-    display: none;
-  }
-  .ov3-hero-panel .ov3-sparkline[data-place='row'] {
-    display: block;
-    order: 4;
-    margin: 0;
-  }
-  .ov3-spark-period {
-    display: none;
-  }
-  .ov3-hero-panel .ov3-hero-trend-note {
-    display: block;
-    order: 5;
-    grid-column: 1 / -1;
-    margin: -12px 0 0;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 16px;
-  }
-  .ov3-hero-flight > .ov3-hero-value {
+  .ov3-hero-row[data-record='flights'] > .ov3-hero-value {
     font-size: 40px;
     line-height: 44px;
   }
-  .ov3-hero-metric > .ov3-hero-value {
-    font-size: clamp(24px, calc(100cqi / 5.2), 40px);
-    line-height: 1.1;
+  .ov3-takeover {
+    padding: 24px 20px 24px 12px;
+    gap: 16px;
   }
-  .ov3-hero-caption,
-  .ov3-hero-flight > .ov3-hero-caption {
-    font-size: 13px;
-    line-height: 20px;
+  .ov3-takeover-rail {
+    gap: 24px;
   }
-  .ov3-desktop-caption,
-  .ov3-hero-review,
-  .ov3-years,
-  .ov3-hero-airports {
-    display: none;
-  }
-  .ov3-mobile-caption {
-    display: inline;
-  }
-  p.ov3-mobile-caption {
-    display: block;
-  }
-  /* 44px tall hit area around the inline count without moving the caption's line. */
-  .ov3-mobile-review {
-    display: inline-block;
-    padding-block: 12px;
-    margin-block: -12px;
-    color: var(--accent-text);
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .ov3-mobile-review:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: var(--radius-xs);
+  .ov3-takeover-value {
+    font-size: clamp(40px, calc(100cqi / (var(--chars, 6) * 0.62)), 48px);
   }
   .ov3-next-strip {
     flex-wrap: wrap;
@@ -330,56 +268,5 @@
   .ov3-next-flight,
   .ov3-next-flight.ui-button > span {
     gap: 4px 8px;
-  }
-}
-
-.ov3-sparkline {
-  margin: 8px 0 0;
-  max-width: 100%;
-}
-.ov3-sparkline svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  aspect-ratio: 160 / 52;
-}
-.ov3-hero-trend-note {
-  display: none;
-}
-.ov3-sparkline figcaption {
-  color: var(--text-muted);
-  font: 12px/16px var(--font-sans);
-}
-
-/* "On this day": one quiet line, present on first paint, no motion. */
-.ov3-otd {
-  margin: 0;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  padding: 0;
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
-  text-align: start;
-}
-.ov3-otd.ui-button {
-  border: 0;
-  font-weight: 400;
-}
-.ov3-otd-route {
-  font-family: var(--font-mono);
-  color: var(--text);
-}
-@media (hover: hover) and (pointer: fine) {
-  .ov3-otd.ui-button:hover .ov3-otd-route {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-}
-@media (max-width: 700px) {
-  .ov3-otd {
-    grid-column: 1 / -1;
   }
 }

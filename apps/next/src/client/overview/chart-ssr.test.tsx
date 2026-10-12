@@ -7,7 +7,6 @@ import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../packages/shared/src/overview/__fixtures__/n10.json'
 import { ArcLine } from './charts/arc-line'
 import { ArcRidgeline } from './charts/arc-ridgeline'
-import { ArcSparkline } from './charts/arc-sparkline'
 import { KuukiChart } from './charts/kuuki-chart'
 import { ridgeProfile } from './sections/fleet/helpers'
 
@@ -80,13 +79,4 @@ it('engine rows server-render deterministic local Arc SVG without a DOM or brows
   )
   expect(ridge).not.toMatch(/NaN|Infinity/)
   expect(ridge).toContain('<path')
-  const sparkline = renderToString(
-    <ArcSparkline
-      values={series.monthly.map((row) => row.flights)}
-      labels={series.monthly.map((row) => row.date)}
-      summary="Flights by month"
-    />,
-  )
-  expect(sparkline).toContain('Flights by month')
-  expect(sparkline).not.toMatch(/NaN|Infinity/)
 })
