@@ -249,12 +249,12 @@ Objective: Evidence that the build matches the boards, plus independent reviews 
 
 Implementation:
 
-- Browser pass with the `dev-kuuki` skill and `agent-browser`:
+- **Skipped by the owner (2026-10-12): the owner verifies visually in prod.** Planned browser pass, kept for reference: `dev-kuuki` + `agent-browser`:
   - Viewports 390×844 and 1440×900; light and dark; accents shu and ai, plus matcha on the charts.
   - Fixture: the dev fixture owner with at least 3 continents.
   - Scenarios: open each sheet; pick a bar; tap the figure; tap "Only …" and remove the Chip; swipe between chapters; loading (throttled); empty (filter to below the gate); reduced motion (emulated).
   - Screenshots go to `.scratch/chapter-cards/qa/`, downscaled with `sips -Z 1200`.
-- One Opus (effort high) UI, design and motion review of the diff plus the screenshots.
+- One Opus (effort high) UI, design and motion review of the diff (no screenshots).
 - One GPT-6.1-Sol code review via `delegate_task` (providerInstanceId `codex`, model `gpt-6.1-sol`, `target.options {"reasoningEffort":"high"}`).
 - Fix the accepted findings; the primary reads the full diff.
 
@@ -272,7 +272,7 @@ Identity: final lanes validate the same immutable scoped patch identity: base `a
 | unit       | behavior and contrast       | `pnpm test`                           | only the 4 baseline `recovery.test.tsx` failures, or fewer | yes                                |
 | build      | Next build                  | `pnpm next:build`                     | exit 0                                                     | no (shares `.wrangler/next-build`) |
 | navigation | shared controls in journeys | `pnpm test:next:navigation`           | exit 0                                                     | no (after build)                   |
-| visual     | board match                 | the W4 browser scenarios              | screenshots reviewed                                       | no                                 |
+| visual     | board match                 | skipped by the owner; checked in prod | owner's prod check                                         | no                                 |
 
 Final acceptance (primary, serial):
 
