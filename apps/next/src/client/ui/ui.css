@@ -370,30 +370,11 @@
   border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   transform: translateX(0);
 }
-.ui-sheet[data-side='bottom'][data-state='open'] {
-  animation: ui-sheet-in-b var(--dur-sheet) var(--ease-drawer);
-}
-.ui-sheet[data-side='bottom'][data-state='closed'] {
-  animation: ui-sheet-out-b calc(var(--dur-sheet) * 0.8) var(--ease-drawer) forwards;
-}
 .ui-sheet[data-side='right'][data-state='open'] {
   animation: ui-sheet-in-r var(--dur-sheet) var(--ease-drawer);
 }
 .ui-sheet[data-side='right'][data-state='closed'] {
   animation: ui-sheet-out-r calc(var(--dur-sheet) * 0.8) var(--ease-drawer) forwards;
-}
-@keyframes ui-sheet-in-b {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-@keyframes ui-sheet-out-b {
-  to {
-    transform: translateY(100%);
-  }
 }
 @keyframes ui-sheet-in-r {
   from {
@@ -425,14 +406,6 @@
   display: block;
   border-radius: var(--radius-full);
   background: var(--control-border);
-}
-.ui-sheet[data-side='bottom'] .ui-sheet-handle {
-  height: 28px;
-  margin-bottom: -8px;
-}
-.ui-sheet[data-side='bottom'] .ui-sheet-handle::before {
-  width: 40px;
-  height: 4px;
 }
 .ui-sheet[data-side='right'] .ui-sheet-handle {
   position: absolute;

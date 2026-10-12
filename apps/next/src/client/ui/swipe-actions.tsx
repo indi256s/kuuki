@@ -13,7 +13,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { rubberBand } from './sheet'
+import { rubberBand } from './bottom-sheet'
 import './swipe-actions.css'
 
 // Adapted from Arc "swipe-actions" (uiarc.dev, MIT, see ARC-LICENSE.txt): the pointer swipe on a row that reveals leading and trailing actions,

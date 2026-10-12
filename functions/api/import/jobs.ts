@@ -10,7 +10,8 @@ import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { HttpError, json, readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
-import { isIdempotencyKey } from '../_services/flightCreate'
+import { BOARDING_PASS_MAX_LEGS } from '../../../packages/shared/src/constants'
+import { isIdempotencyKey, isRecord } from '../_services/flightCreate'
 import { sanitizeSourceLabel, type DraftRowInput } from '../_services/importDrafts'
 import { submitImport, type LocalLegs } from '../_services/importJob'
 
@@ -27,11 +28,7 @@ interface JobRequest extends Omit<Partial<ParseRequest>, 'type'> {
   incomplete?: unknown
 }
 
-const MAX_BOARDING_PASS_LEGS = 8
 const invalidPass = (message: string) => new HttpError(400, message, 'INVALID_BOARDING_PASS')
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 
 function onlyKeys(value: Record<string, unknown>, allowed: string[], what: string) {
   if (Object.keys(value).some((key) => !allowed.includes(key)))
@@ -89,9 +86,9 @@ function boardingPassLegs(body: JobRequest): LocalLegs {
   if (
     !Array.isArray(body.legs) ||
     body.legs.length < 1 ||
-    body.legs.length > MAX_BOARDING_PASS_LEGS
+    body.legs.length > BOARDING_PASS_MAX_LEGS
   )
-    throw invalidPass(`legs must hold 1 to ${MAX_BOARDING_PASS_LEGS} legs`)
+    throw invalidPass(`legs must hold 1 to ${BOARDING_PASS_MAX_LEGS} legs`)
   return {
     sourceType: body.source,
     rows: body.legs.map(legRow),

@@ -3,6 +3,8 @@
 // read past by offset and never copied out, so nothing else can leave this module. `null` means the text is not a
 // boarding pass the member can use, and the caller falls back to uploading the source.
 
+import { BOARDING_PASS_MAX_LEGS } from '@kuuki/shared/constants'
+
 /** The leg shape the server admits for `type: 'boarding_pass'`; optional keys are omitted, never empty strings. */
 export interface Leg {
   origin: string
@@ -17,7 +19,7 @@ export interface BcbpResult {
   incomplete: boolean
 }
 
-export const MAX_LEGS = 8
+export const MAX_LEGS = BOARDING_PASS_MAX_LEGS
 
 // The first leg is a 23-character header (format, leg count, name, e-ticket flag) followed by the same 37-character
 // block every later leg repeats: PNR 7, from 3, to 3, carrier 3, flight 5, day 3, compartment 1, seat 4, sequence 5,

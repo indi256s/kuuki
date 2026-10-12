@@ -30,6 +30,7 @@ function createFrames(
 ) {
   let current = schedule.advance(0)
   let rendered = current
+  let renderedMonth = monthAt(timeline, current.timeMs, durationMs)
   const listeners = new Set<() => void>()
   return {
     initial: current,
@@ -43,16 +44,17 @@ function createFrames(
     publish(frame: typeof current, force = false) {
       current = frame
       for (const listener of listeners) listener()
+      const month = monthAt(timeline, frame.timeMs, durationMs)
       if (
         !force &&
         rendered.arcs === frame.arcs &&
         rendered.planes.length === frame.planes.length &&
         rendered.planes.every((plane, index) => plane.key === frame.planes[index].key) &&
-        monthAt(timeline, rendered.timeMs, durationMs) ===
-          monthAt(timeline, frame.timeMs, durationMs)
+        renderedMonth === month
       )
         return false
       rendered = frame
+      renderedMonth = month
       return true
     },
   }

@@ -218,7 +218,7 @@ export function itemFailure(
   return { key, status: 'error', http_status: status, code, error }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 

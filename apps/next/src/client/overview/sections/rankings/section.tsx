@@ -400,47 +400,50 @@ export function Section({ span }: { span: Span }) {
               role="group"
               aria-label={copy(locale, 'Series visibility', 'Видимость рядов')}
             >
-              {entities.map((entity) => (
-                <button
-                  key={entity}
-                  type="button"
-                  aria-pressed={!hidden.includes(entity)}
-                  onPointerEnter={(event) => {
-                    if (event.pointerType !== 'touch') setLegendSeries(entity)
-                  }}
-                  onPointerLeave={() => setLegendSeries(null)}
-                  onFocus={() => setLegendSeries(entity)}
-                  onBlur={() => setLegendSeries(null)}
-                  onClick={() =>
-                    setHidden((current) =>
-                      current.includes(entity)
-                        ? current.filter((key) => key !== entity)
-                        : [...current, entity],
-                    )
-                  }
-                >
-                  <svg width="28" height="12" aria-hidden="true">
-                    <line
-                      x1="0"
-                      x2="28"
-                      y1="6"
-                      y2="6"
-                      stroke={seriesCue(entity).color}
-                      strokeWidth={2}
-                      strokeDasharray={seriesCue(entity).dash}
-                    />
-                    <path
-                      d={markerPath(seriesCue(entity).marker, 4.5)}
-                      transform="translate(14,6)"
-                      fill={seriesCue(entity).color}
-                      fillRule="evenodd"
-                      stroke="var(--surface)"
-                      strokeWidth={1}
-                    />
-                  </svg>
-                  {name(category, entity)}
-                </button>
-              ))}
+              {entities.map((entity) => {
+                const cue = seriesCue(entity)
+                return (
+                  <button
+                    key={entity}
+                    type="button"
+                    aria-pressed={!hidden.includes(entity)}
+                    onPointerEnter={(event) => {
+                      if (event.pointerType !== 'touch') setLegendSeries(entity)
+                    }}
+                    onPointerLeave={() => setLegendSeries(null)}
+                    onFocus={() => setLegendSeries(entity)}
+                    onBlur={() => setLegendSeries(null)}
+                    onClick={() =>
+                      setHidden((current) =>
+                        current.includes(entity)
+                          ? current.filter((key) => key !== entity)
+                          : [...current, entity],
+                      )
+                    }
+                  >
+                    <svg width="28" height="12" aria-hidden="true">
+                      <line
+                        x1="0"
+                        x2="28"
+                        y1="6"
+                        y2="6"
+                        stroke={cue.color}
+                        strokeWidth={2}
+                        strokeDasharray={cue.dash}
+                      />
+                      <path
+                        d={markerPath(cue.marker, 4.5)}
+                        transform="translate(14,6)"
+                        fill={cue.color}
+                        fillRule="evenodd"
+                        stroke="var(--surface)"
+                        strokeWidth={1}
+                      />
+                    </svg>
+                    {name(category, entity)}
+                  </button>
+                )
+              })}
               {scoped && baseline.length > 0 && (
                 <span>
                   <svg width="28" height="12" aria-hidden="true">

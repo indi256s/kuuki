@@ -7,10 +7,9 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
-  type Ref,
   type RefObject,
 } from 'react'
-import { BottomSheet, type BottomSheetProps } from './bottom-sheet'
+import { BottomSheet, rubberBand, type BottomSheetProps } from './bottom-sheet'
 import './ui.css'
 
 /** Release past this share of the sheet's size dismisses it. */
@@ -30,11 +29,6 @@ export function shouldDismiss({
 }): boolean {
   if (distance <= 0) return false
   return velocity > DISMISS_VELOCITY || (height > 0 && distance >= height * DISMISS_RATIO)
-}
-
-/** Resistance past the bounds (dragging against the open direction): approaches `limit` asymptotically. */
-export function rubberBand(overshoot: number, limit = 80): number {
-  return (1 - 1 / ((overshoot * 0.55) / limit + 1)) * limit
 }
 
 export type SheetProps = Pick<BottomSheetProps, 'detents' | 'initialDetent' | 'onDetentChange'> & {
@@ -67,18 +61,17 @@ export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetPro
       {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="ui-overlay" />
-        <MountedSheetContent {...contentProps} trigger={trigger} onOpenChange={onOpenChange} />
+        <SideSheetContent {...contentProps} trigger={trigger} onOpenChange={onOpenChange} />
       </RadixDialog.Portal>
     </RadixDialog.Root>
   )
 }
 
-function MountedSheetContent({
-  ref,
+/** The desktop `right` sheet. Every other side renders BottomSheet. */
+function SideSheetContent({
   onOpenChange,
   title,
   description,
-  side = 'bottom',
   trigger,
   children,
   footer,
@@ -86,7 +79,7 @@ function MountedSheetContent({
   className = '',
   initialFocusRef,
   onCloseAutoFocus,
-}: Omit<SheetProps, 'open'> & { ref?: Ref<HTMLDivElement> }) {
+}: Omit<SheetProps, 'open' | 'side'>) {
   const contentRef = useRef<HTMLDivElement>(null)
   // Capture each Portal mount before a child autoFocus can replace the opener, as Dialog does.
   const [opener] = useState(() => {
@@ -96,11 +89,9 @@ function MountedSheetContent({
   })
   const titleRef = useRef<HTMLHeadingElement>(null)
   const drag = useRef<{ id: number; start: number; samples: Sample[] } | null>(null)
-  const axis = side === 'bottom' ? 'clientY' : 'clientX'
 
   const setOffset = (px: number) => {
-    if (contentRef.current)
-      contentRef.current.style.transform = `translate${side === 'bottom' ? 'Y' : 'X'}(${px}px)`
+    if (contentRef.current) contentRef.current.style.transform = `translateX(${px}px)`
   }
   const setDragging = (on: boolean) => {
     if (contentRef.current) contentRef.current.dataset.dragging = String(on)
@@ -109,14 +100,14 @@ function MountedSheetContent({
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
     event.currentTarget.setPointerCapture?.(event.pointerId)
-    const p = event[axis]
+    const p = event.clientX
     drag.current = { id: event.pointerId, start: p, samples: [{ t: event.timeStamp, p }] }
     setDragging(true)
   }
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const d = drag.current
     if (!d || d.id !== event.pointerId) return
-    const p = event[axis]
+    const p = event.clientX
     d.samples.push({ t: event.timeStamp, p })
     if (d.samples.length > 8) d.samples.shift()
     const delta = p - d.start
@@ -128,28 +119,23 @@ function MountedSheetContent({
     drag.current = null
     event.currentTarget.releasePointerCapture?.(event.pointerId)
     setDragging(false)
-    const p = event[axis]
+    const p = event.clientX
     const distance = p - d.start
     // Velocity over roughly the last 100ms of movement.
     const last = { t: event.timeStamp, p }
     const from = d.samples.find((s) => last.t - s.t <= 100) ?? d.samples[d.samples.length - 1]
     const elapsed = from ? last.t - from.t : 0
     const velocity = from && elapsed > 0 ? (last.p - from.p) / elapsed : 0
-    const rect = contentRef.current?.getBoundingClientRect()
-    const size = (side === 'bottom' ? rect?.height : rect?.width) ?? 0
+    const size = contentRef.current?.getBoundingClientRect().width ?? 0
     if (!cancelled && shouldDismiss({ distance, height: size, velocity })) onOpenChange(false) // exit animation starts from the dragged offset
     else setOffset(0) // transition settles it back with --ease-drawer
   }
 
   return (
     <RadixDialog.Content
-      ref={(node) => {
-        contentRef.current = node
-        if (typeof ref === 'function') ref(node)
-        else if (ref) ref.current = node
-      }}
+      ref={contentRef}
       className={`ui-sheet ${className}`}
-      data-side={side}
+      data-side="right"
       {...(description ? {} : { 'aria-describedby': undefined })}
       onCloseAutoFocus={(event) => {
         onCloseAutoFocus?.(event)

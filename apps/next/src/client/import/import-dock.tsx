@@ -5,7 +5,7 @@
 // It announces transitions (reading started, ready, stopped, failed), never every found count.
 import { Check, Circle, CircleAlert, X } from '@keyline-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Locale } from '../../lib/format'
+import { formatNumber, type Locale } from '../../lib/format'
 import { NavigationLink } from '../navigation-link'
 import { BottomSheet } from '../ui/bottom-sheet'
 import { Button } from '../ui/button'
@@ -123,7 +123,7 @@ function DockMark({ kind, need, locale }: { kind: DockKind; need: number; locale
     <span className="import-dock-mark" data-kind={kind} aria-hidden="true">
       <span className="import-dock-mark-layer import-dock-spinner" data-on={kind === 'reading'} />
       <span className="import-dock-mark-layer import-dock-badge" data-on={kind === 'need'}>
-        <SlotText value={need} format={(value) => value.toLocaleString(locale)} />
+        <SlotText value={need} format={(value) => formatNumber(locale, value)} />
       </span>
       <span className="import-dock-mark-layer" data-on={kind === 'sorted'}>
         <Check size={18} strokeWidth={2} />

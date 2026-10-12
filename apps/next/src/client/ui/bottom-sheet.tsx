@@ -76,8 +76,11 @@ const LOW_DIM = 0.78
 const settle = { type: 'spring' as const, visualDuration: 0.3, bounce: 0.12 }
 const fade = { duration: 0.15, ease: 'linear' as const }
 
-/** iOS-style resistance: follows the finger at first, then approaches STRETCH. */
-const rubber = (distance: number) => (1 - 1 / ((distance * 0.55) / STRETCH + 1)) * STRETCH
+/** iOS-style resistance past the bounds: follows the finger at first, then approaches `limit` asymptotically. */
+export function rubberBand(overshoot: number, limit = 80): number {
+  return (1 - 1 / ((overshoot * 0.55) / limit + 1)) * limit
+}
+/** Inverse of `rubberBand(stretch, STRETCH)`. */
 const unrubber = (stretch: number) =>
   ((1 / (1 - Math.min(stretch, STRETCH - 1) / STRETCH) - 1) * STRETCH) / 0.55
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
@@ -375,7 +378,7 @@ function Sheet({
       }
       const raw = state.origin + delta
       // Down follows the finger 1:1 so it can dismiss; up past the tallest detent resists like a rubber band.
-      y.set(raw < 0 ? -rubber(-raw) : raw)
+      y.set(raw < 0 ? -rubberBand(-raw, STRETCH) : raw)
       state.samples.push({ t: time, y: clientY })
       if (state.samples.length > 12) state.samples.shift()
     },
@@ -733,7 +736,3 @@ function Sheet({
     </>
   )
 }
-
-export const BottomSheetClose = DialogPrimitive.Close
-
-export default BottomSheet

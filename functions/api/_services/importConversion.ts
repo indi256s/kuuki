@@ -202,13 +202,13 @@ function completionStatement(
 }
 
 /** A Quick Add row dated today or earlier needs the member's own "I flew it"; a future date converts as upcoming. */
-function flownUnconfirmed(draft: DraftRow, timezone: string | null, now: Date) {
+function flownUnconfirmed(draft: DraftRow, today: string) {
   const fields = JSON.parse(draft.fields_json) as DraftFields
   return (
     fields.flown_required === true &&
     fields.flown_confirmed !== true &&
     isCalendarDate(fields.date) &&
-    fields.date <= localToday(timezone ?? 'UTC', now)
+    fields.date <= today
   )
 }
 
@@ -221,6 +221,7 @@ export async function confirmBatch(
 ): Promise<ConfirmResponse> {
   const { items, timezone } = request
   const instant = now.toISOString()
+  const today = localToday(timezone ?? 'UTC', now)
   const digests = await Promise.all(
     items.map((item) => conversionDigest(item.draftId, item.version)),
   )
@@ -324,7 +325,7 @@ export async function confirmBatch(
             'YEAR_NOT_CONFIRMED',
             'Confirm the year of this flight before saving',
           )
-        } else if (flownUnconfirmed(draft, timezone, now)) {
+        } else if (flownUnconfirmed(draft, today)) {
           results[index] = failure(
             item,
             400,
