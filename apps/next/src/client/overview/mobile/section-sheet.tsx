@@ -1,19 +1,21 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
-import { ChevronLeft, ChevronRight, MoreHorizontal, X } from '@keyline-icons/react'
-import { isEmptyFilter } from '@kuuki/shared/overview/filter'
+import { ChevronLeft, ChevronRight, MoreHorizontal, SlidersHorizontal } from '@keyline-icons/react'
 import { Sheet } from '../../ui/sheet'
 import { Button } from '../../ui/button'
+import { Chip } from '../../ui/chip'
 import { Menu, MenuItem } from '../../ui/menu'
 import { SECTIONS } from '../sections/registry'
 import { Narrator } from '../narrator/narrator'
 import { useOverview } from '../store/overview-context'
 import { formatNumber } from '../../../lib/format'
 import { t } from '../copy'
-import { referenceLabels } from '../labels'
-import { scopeTitle } from '../page/scope-title'
+import type { FilterFacet } from '../filters/chip-label'
+import { useAppliedFacets } from '../filters/use-applied-facets'
+import { FilterPanel } from '../filters/filter-panel'
+import { ChapterContext, SHEET_ACTIVE, SHEET_IDLE } from '../layout/chapter-context'
 import { useChapterTrack } from './chapter-motion'
 import './mobile.css'
 
@@ -35,7 +37,7 @@ export function SectionSheet({
   onHide,
   onCloseAutoFocus,
 }: Props) {
-  const { locale, scope, filter, actions, isCurrent } = useOverview()
+  const { locale, scope } = useOverview()
   const { track, heading, previousLabel, nextLabel, shown, go } = useChapterTrack({
     openId,
     order,
@@ -157,27 +159,7 @@ export function SectionSheet({
               style={{ transform: `translateX(calc(${index} * (100% + 4px)))` }}
             />
           </div>
-          {/* A filter picked inside a chapter changes every chapter; the sheet covers the page's filter bar, so it says so here and can undo it. */}
-          <div className="ov3-sheet-scope" role="status">
-            {isEmptyFilter(filter) ? null : (
-              <>
-                <span className="ov3-sheet-scope-label">
-                  {t({ en: 'Filtered', ru: 'Фильтр' }, locale)}
-                  <b>{scopeTitle(filter, referenceLabels(locale), locale).slice(3)}</b>
-                </span>
-                <Button
-                  variant="ghost"
-                  className="ov3-sheet-scope-clear"
-                  onClick={() => {
-                    if (isCurrent()) actions.clear()
-                  }}
-                >
-                  <X size={16} aria-hidden="true" />
-                  {t({ en: 'Show all', ru: 'Показать все' }, locale)}
-                </Button>
-              </>
-            )}
-          </div>
+          <SheetFilterRow />
           {/* Every chapter is a snap slide; only the open one and its neighbours render content, the rest keep their width. */}
           <div ref={track} className="ov3-sheet-track">
             {order.map((id, at) => {
@@ -186,8 +168,10 @@ export function SectionSheet({
                 <div key={id} className="ov3-sheet-slide" inert={id !== openId}>
                   {Math.abs(at - index) <= 1 || id === openId ? (
                     <>
-                      <Section span="sheet" />
-                      {scope ? <Narrator slot={id} /> : null}
+                      <ChapterContext.Provider value={id === openId ? SHEET_ACTIVE : SHEET_IDLE}>
+                        <Section span="sheet" />
+                        {scope ? <Narrator slot={id} /> : null}
+                      </ChapterContext.Provider>
                     </>
                   ) : null}
                 </div>
@@ -197,5 +181,72 @@ export function SectionSheet({
         </>
       ) : null}
     </Sheet>
+  )
+}
+
+/**
+ * The filter row in the sheet's chrome: always 44px, so a filter turning on moves nothing. Scope is global, so it does not follow the
+ * slides. Unfiltered it is one "All flights" chip that opens the picker; filtered it lists the applied facets as the page's filter bar
+ * does. Facets that do not fit scroll sideways (the bar collapses them into "+N"; a 44px row has no second line to measure).
+ */
+function SheetFilterRow() {
+  const { locale, isCurrent } = useOverview()
+  const facets = useAppliedFacets()
+  const row = useRef<HTMLDivElement>(null)
+  const [panel, setPanel] = useState<{ anchor: HTMLElement; facet?: FilterFacet } | null>(null)
+  const open = (anchor: HTMLElement | null | undefined, facet?: FilterFacet) => {
+    if (anchor && isCurrent()) setPanel({ anchor, facet })
+  }
+  return (
+    <>
+      <div
+        ref={row}
+        className="ov3-sheet-filters"
+        role="group"
+        aria-label={t({ en: 'Overview filters', ru: 'Фильтры обзора' }, locale)}
+      >
+        {facets.length ? (
+          facets.map(({ facet, label, swatch, removeLabel, remove }) => (
+            <span key={facet} data-filter-chip={facet}>
+              <Chip
+                label={label}
+                swatch={swatch}
+                onOpen={() =>
+                  open(
+                    row.current?.querySelector<HTMLElement>(
+                      `[data-filter-chip="${facet}"] .ui-chip-body`,
+                    ),
+                    facet,
+                  )
+                }
+                onRemove={remove}
+                removeLabel={removeLabel}
+              />
+            </span>
+          ))
+        ) : (
+          <span className="ui-chip">
+            <button
+              type="button"
+              className="ui-chip-body"
+              onClick={(event) => open(event.currentTarget)}
+            >
+              <SlidersHorizontal size={16} aria-hidden="true" />
+              <span className="ui-chip-label">
+                {t({ en: 'All flights', ru: 'Все перелёты' }, locale)}
+              </span>
+            </button>
+          </span>
+        )}
+      </div>
+      {panel ? (
+        <FilterPanel
+          key={panel.facet ?? 'all'}
+          anchor={panel.anchor}
+          initialFacet={panel.facet}
+          onClose={() => setPanel(null)}
+        />
+      ) : null}
+    </>
   )
 }

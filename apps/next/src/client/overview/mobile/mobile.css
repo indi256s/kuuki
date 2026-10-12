@@ -109,6 +109,31 @@
     animation: ov3-pager-travel linear both;
     animation-timeline: --ov3-chapters;
   }
+  /* The figure stage lags its slide by 20% of its width and fades toward the edges (0.8x parallax, no per-frame script); the hero, chart and details move 1:1. Without this the figure moves 1:1 too. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ov3-sheet-slide {
+      view-timeline: --chapter inline;
+    }
+    .ov3-sheet-slide .ov3-card-figure {
+      animation: ov3-figure-lag linear both;
+      animation-timeline: --chapter;
+      animation-range: cover;
+    }
+  }
+}
+@keyframes ov3-figure-lag {
+  from {
+    transform: translateX(-20%);
+    opacity: 0.25;
+  }
+  50% {
+    transform: none;
+    opacity: 1;
+  }
+  to {
+    transform: translateX(20%);
+    opacity: 0.25;
+  }
 }
 @keyframes ov3-pager-travel {
   from {
@@ -176,6 +201,8 @@
   overscroll-behavior-y: contain;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  /* The figure stage translates sideways while the slide moves; it must not make the slide scroll sideways. */
+  overflow-x: clip;
   padding: 0 var(--space-6) var(--space-2);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -208,39 +235,32 @@
 .ov3-tile strong {
   overflow-wrap: anywhere;
 }
-/* Scope line under the pager: present only while a filter is on, so an unfiltered sheet keeps its full height for the chapter. */
-.ov3-sheet-scope {
+/* Filter row: part of the chrome between the pager and the track, always 44px so a filter turning on moves nothing. Facets that do not fit scroll sideways. */
+.ov3-sheet-filters {
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin: -12px var(--space-6) var(--space-2);
-  font-size: 13px;
-  color: var(--text-muted);
+  gap: var(--space-2);
+  /* Sideways scrolling clips vertically too, so the row is 12px taller than its 44px footprint on both sides (negative margins give the space back; the 8px gap below is already in them) and the chips keep their shadow. */
+  height: 68px;
+  margin-block: -12px -4px;
+  padding: 18px var(--space-6);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
-.ov3-sheet-scope:empty {
+.ov3-sheet-filters::-webkit-scrollbar {
   display: none;
 }
-.ov3-sheet-scope-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ov3-sheet-scope-label b {
-  margin-inline-start: 6px;
-  color: var(--text);
-  font-weight: 600;
-}
-.ov3-sheet-scope-clear.ui-button {
+.ov3-sheet-filters > * {
   flex: none;
-  display: inline-flex;
-  gap: 6px;
-  min-height: 44px;
-  padding-inline: 12px;
-  margin-inline-end: -12px;
-  font-size: 13px;
+  max-width: 280px;
+}
+.ov3-sheet-filters .ui-chip {
+  max-width: 100%;
+}
+.ov3-sheet-filters .ui-chip-body > svg {
+  flex: none;
 }
 /* A route reads as one unit in a tile preview; it moves to the next line whole. */
 .ov3-tile-route {

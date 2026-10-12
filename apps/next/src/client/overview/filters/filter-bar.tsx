@@ -1,31 +1,19 @@
 'use client'
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Plus } from '../../ui/animated-icons'
-import { formatPeriodDate, formatNumber } from '../../../lib/format'
-import { referenceLabels } from '../labels'
-import { scopeTitle } from '../page/scope-title'
+import { formatNumber } from '../../../lib/format'
 import { useOverview } from '../store/overview-context'
 import { Chip } from '../../ui/chip'
 import { Button } from '../../ui/button'
-import { MakerSwatch, AllianceMark } from '../../ui/category-mark'
-import { chipLabel, type FilterFacet } from './chip-label'
-import { buildFacetIndex, FACET_ORDER } from './facet-index'
+import type { FilterFacet } from './chip-label'
 import { FilterPanel } from './filter-panel'
+import { useAppliedFacets } from './use-applied-facets'
 import './filters.css'
 
 export function FilterBar() {
-  const { filter, payload, locale, actions, isCurrent } = useOverview()
-  const labels = useMemo(() => referenceLabels(locale), [locale])
-  const index = useMemo(
-    () => (payload ? buildFacetIndex(payload, labels, locale) : []),
-    [payload, labels, locale],
-  )
-  const facets = FACET_ORDER.filter((facet) =>
-    facet === 'period'
-      ? !!filter.period && (!('years' in filter.period) || filter.period.years.length > 0)
-      : !!filter[facet]?.length,
-  )
+  const { filter, locale, isCurrent } = useOverview()
+  const facets = useAppliedFacets()
   const bar = useRef<HTMLDivElement>(null),
     overflow = useRef<HTMLButtonElement>(null)
   const [shown, setShown] = useState(0)
@@ -110,51 +98,22 @@ export function FilterBar() {
             {locale === 'ru' ? 'Все перелёты за всё время' : 'All flights, all time'}
           </span>
         ) : null}
-        {facets.map((facet, position) => {
-          const values =
-            facet === 'period'
-              ? filter.period && 'years' in filter.period
-                ? filter.period.years
-                : filter.period && 'from' in filter.period
-                  ? [
-                      `${formatPeriodDate(locale, filter.period.from)} – ${formatPeriodDate(locale, filter.period.to)}`,
-                    ]
-                  : []
-              : (filter[facet] ?? [])
-          const label = chipLabel(facet, values, labels, locale)
-          const option =
-            values.length === 1
-              ? index.find((option) => option.facet === facet && option.value === String(values[0]))
-              : undefined
-          const mark =
-            option?.mark?.kind === 'maker' ? (
-              <MakerSwatch maker={option.mark.key} />
-            ) : option?.mark?.kind === 'alliance' ? (
-              <AllianceMark alliance={option.mark.key} />
-            ) : undefined
-          const removal = scopeTitle({ [facet]: filter[facet] }, labels, locale).slice(3)
-          return (
-            <span key={facet} data-filter-chip={facet} hidden={position >= visible}>
-              <Chip
-                label={`${label.name} · ${label.values}${label.more ? ` +${formatNumber(locale, label.more)}` : ''}`}
-                swatch={mark}
-                onOpen={() => {
-                  const anchor = bar.current?.querySelector<HTMLElement>(
-                    `[data-filter-chip="${facet}"] .ui-chip-body`,
-                  )
-                  if (anchor) open(anchor, facet)
-                }}
-                onRemove={() => {
-                  if (isCurrent()) {
-                    if (facet === 'period') actions.setPeriod(null)
-                    else actions.removeFacet(facet)
-                  }
-                }}
-                removeLabel={locale === 'ru' ? `Убрать ${removal}` : `Remove ${removal}`}
-              />
-            </span>
-          )
-        })}
+        {facets.map(({ facet, label, swatch, removeLabel, remove }, position) => (
+          <span key={facet} data-filter-chip={facet} hidden={position >= visible}>
+            <Chip
+              label={label}
+              swatch={swatch}
+              onOpen={() => {
+                const anchor = bar.current?.querySelector<HTMLElement>(
+                  `[data-filter-chip="${facet}"] .ui-chip-body`,
+                )
+                if (anchor) open(anchor, facet)
+              }}
+              onRemove={remove}
+              removeLabel={removeLabel}
+            />
+          </span>
+        ))}
         <Button
           ref={overflow}
           hidden={!remaining}

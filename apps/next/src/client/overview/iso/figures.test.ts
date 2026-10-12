@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { gateSign } from './gate-sign'
 import { hangars, shedSize } from './hangars'
 import { CONTINENT_IDS, puzzle, type ContinentId } from './puzzle'
 import type { IsoNode } from './scene'
@@ -57,5 +58,16 @@ describe('stamper', () => {
       flightsLabel: '11 FLIGHTS',
     })
     expect(parts(fig.nodes)).toEqual(expect.arrayContaining(['band', 'head', 'impression']))
+  })
+})
+
+describe('gateSign', () => {
+  it('puts the code on the sign part', () => {
+    const sign = gateSign(1, { code: 'ROV–VKO' }).nodes.find(
+      (node) => node.kind === 'group' && node.part === 'sign',
+    )
+    expect(sign?.kind === 'group' && sign.children).toContainEqual(
+      expect.objectContaining({ kind: 'text', text: 'ROV–VKO' }),
+    )
   })
 })

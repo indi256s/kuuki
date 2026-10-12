@@ -7,6 +7,7 @@ import { Button } from '../../ui/button'
 import { Menu, MenuItem } from '../../ui/menu'
 import { useOverview } from '../store/overview-context'
 import { t } from '../copy'
+import { ChapterContext, FULL_CARD } from './chapter-context'
 import './layout.css'
 
 type Props = {
@@ -74,7 +75,9 @@ export function SectionFrame({
           <MenuItem onSelect={() => onHide(id)}>{t({ en: 'Hide', ru: 'Скрыть' }, locale)}</MenuItem>
         </Menu>
       </header>
-      {children}
+      <div className="ov3-section-body">
+        <ChapterContext.Provider value={FULL_CARD}>{children}</ChapterContext.Provider>
+      </div>
       {narrator ? <div className="ov3-section-narrator">{narrator}</div> : null}
     </section>
   )
