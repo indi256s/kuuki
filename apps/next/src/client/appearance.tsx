@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from './activity'
 import {
@@ -81,7 +81,7 @@ function switchTheme(theme: Theme) {
   transition.finished.finally(done)
 }
 
-/** True while a public profile page shows its owner's accent (`OwnerAccent`); nothing is saved or adopted then. */
+/** True while a public profile page shows its owner's accent (`OwnerAccent`); nothing is adopted or reconciled then. */
 export function inOwnerScope() {
   return document.documentElement.dataset.accentScope === 'owner'
 }
@@ -105,6 +105,10 @@ export function deviceAccent(): Accent {
 
 /** Last accent this page session saw stored on the profile; wins over a stale server payload after soft navigation. */
 let savedAccent: Accent | null = null
+/** The sign-in `savedAccent` belongs to. */
+let savedGeneration = -1
+/** Latest accent pick across every picker on the page; only that pick may revert the device accent. */
+let latestAccentPick = 0
 
 /** Profile accent writes run one after another, so the server sees them in the order they were issued. */
 let queue: Promise<void> | null = null
@@ -118,7 +122,10 @@ export function persistAccent(accent: Accent, signal?: AbortSignal) {
   const generation = getAuthGeneration()
   const send = async () => {
     await api.patch('/api/profiles/me', { theme_color: accent }, { signal })
-    if (generation === getAuthGeneration()) savedAccent = accent
+    if (generation === getAuthGeneration()) {
+      savedAccent = accent
+      savedGeneration = generation
+    }
   }
   const result = queue ? queue.then(send) : send()
   const release = () => {
@@ -127,6 +134,53 @@ export function persistAccent(accent: Accent, signal?: AbortSignal) {
   const settled: Promise<void> = result.then(release, release)
   queue = settled
   return result
+}
+
+/**
+ * Saves an accent the caller has already applied with `setAccent`, on its own like theme and language. A failed save
+ * puts the last saved accent back and reports `failed`; `onFail` runs once per reverted pick.
+ */
+export function useAccentSave(profileAccent?: string | null, onFail?: () => void) {
+  const baseline = useRef<Accent | null>(null),
+    mounted = useRef(false),
+    fail = useRef(onFail),
+    [failed, setFailed] = useState(false)
+  useEffect(() => {
+    fail.current = onFail
+  })
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  useEffect(() => {
+    baseline.current ??=
+      recognizeAccent(profileAccent) ?? resolveAccent(document.documentElement.dataset.accent)
+  }, [profileAccent])
+  // An explicit pick saves even on a public profile: `setAccent` keeps the owner's accent on screen meanwhile.
+  const save = (accent: Accent) => {
+    // Writes are never aborted on a repick or unmount: an aborted PATCH may still commit after a newer one.
+    // They finish in order through `persistAccent`; only the latest pick on the page reverts, and only a mounted caller reports.
+    const pick = ++latestAccentPick,
+      controller = new AbortController(),
+      release = trackPrivateOperation(controller),
+      generation = getAuthGeneration()
+    setFailed(false)
+    persistAccent(accent, controller.signal)
+      .catch(() => {
+        // A newer pick, a later visit or a changed identity owns the device accent now.
+        if (!mounted.current || pick !== latestAccentPick || generation !== getAuthGeneration())
+          return
+        // The last write any picker landed under this sign-in, else what the profile held when this caller mounted.
+        const back = savedGeneration === generation && savedAccent ? savedAccent : baseline.current
+        if (back) setAccent(back)
+        setFailed(true)
+        fail.current?.()
+      })
+      .finally(release)
+  }
+  return { save, failed }
 }
 
 /**

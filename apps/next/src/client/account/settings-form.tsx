@@ -14,14 +14,13 @@ import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import { ADDRESS_PATTERN, NAME_MAX, normalizeAddress, normalizeName } from '@kuuki/shared/address'
 import { trackPrivateOperation, withIdentityMutation } from '../activity'
 import { useAppearance } from '../preferences'
-import { inOwnerScope, persistAccent, setAccent, setLocale, setTheme } from '../appearance'
+import { setLocale, setTheme, useAccentSave } from '../appearance'
 import { Button } from '../ui/button'
 import { Field } from '../ui/field'
 import { SwitchRow } from '../ui/switch-row'
 import { SegmentedControl } from '../ui/segmented-control'
 import { SwatchPicker } from '../ui/swatch-picker'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
-import { recognizeAccent, resolveAccent, type Accent } from '../../lib/theme-colors'
 import type { toOwnProfile } from '../../../../../functions/api/_lib/profiles'
 import {
   downloadSettingsData,
@@ -101,43 +100,7 @@ export function SettingsForm({
     setError('')
   }
   // The accent saves on its own, like theme and language: it is not part of the dirty form or its payload.
-  const savedAccent = useRef<Accent | null>(null),
-    accentPick = useRef(0),
-    mounted = useRef(false),
-    [accentError, setAccentError] = useState(false)
-  useEffect(() => {
-    mounted.current = true
-    return () => {
-      mounted.current = false
-    }
-  }, [])
-  useEffect(() => {
-    savedAccent.current ??=
-      recognizeAccent(profile.theme_color) ?? resolveAccent(document.documentElement.dataset.accent)
-  }, [profile.theme_color])
-  const saveAccent = (accent: Accent) => {
-    if (inOwnerScope()) return
-    // Writes are never aborted on a repick or unmount: an aborted PATCH may still commit after a newer one.
-    // They finish in order through `persistAccent`; only the latest pick of a still-mounted form reverts or reports.
-    const pick = ++accentPick.current,
-      controller = new AbortController(),
-      release = trackPrivateOperation(controller),
-      generation = getAuthGeneration()
-    setAccentError(false)
-    persistAccent(accent, controller.signal)
-      .then(() => {
-        // Writes land in order, so the last one to succeed is what the profile holds.
-        savedAccent.current = accent
-      })
-      .catch(() => {
-        // A newer pick, a later Settings visit or a changed identity owns the device accent now.
-        if (!mounted.current || pick !== accentPick.current || generation !== getAuthGeneration())
-          return
-        if (savedAccent.current) setAccent(savedAccent.current)
-        setAccentError(true)
-      })
-      .finally(release)
-  }
+  const { save: saveAccent, failed: accentError } = useAccentSave(profile.theme_color)
   const [keyboardText, setKeyboardText] = useState(false)
   const host = useSyncExternalStore(subscribeNothing, readHost, serverHost)
   const [editingAddress, setEditingAddress] = useState(false),

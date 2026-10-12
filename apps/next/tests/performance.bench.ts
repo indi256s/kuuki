@@ -393,6 +393,8 @@ test('local production read and map measurements', async ({ browser, baseURL }) 
     const setMenuTheme = async (target: typeof page, name: string) => {
       await target.getByRole('button', { name: 'Account menu' }).click()
       await target.getByRole('menuitemradio', { name }).click()
+      // A tray pick keeps the account menu open.
+      await target.keyboard.press('Escape')
     }
     for (const count of [50, 500, 5000]) {
       await page.route('**/api/flights/route-projection?*', (route) =>
