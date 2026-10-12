@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160" fill="none" role="presentation">
+<g transform="translate(-11 0)">
+<g stroke="var(--color-journal-dark-iso-line)" stroke-width="1" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="100.00,93.00 136.00,72.00 210.00,115.00 174.00,136.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="100.00,93.00 174.00,136.00 174.00,152.00 100.00,109.00" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="174.00,136.00 210.00,115.00 210.00,131.00 174.00,152.00" fill="var(--color-journal-dark-iso-glass)" stroke="var(--color-journal-dark-iso-line)"/>
+<path d="M 107 95 L 174 134 L 202 118" fill="none" stroke="var(--color-journal-dark-iso-detail)" stroke-width="1"/>
+<polygon points="144.00,83.00 152.00,79.00 160.00,84.00 152.00,89.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="144.00,83.00 152.00,89.00 152.00,111.00 144.00,107.00" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="152.00,89.00 160.00,84.00 160.00,106.00 152.00,111.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="130.95,82.00 170.78,59.00 122.29,16.00 112.76,19.50" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="130.95,80.00 170.78,57.00 122.29,14.00 112.76,17.50" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="112.76,17.50 112.76,9.50 122.29,9.00 122.29,14.00" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<path d="M 110.76 67.50 L 127.22 58.00 Q 136.22 63.00 131.22 68.00 L 114.76 77.50 Z" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)" stroke-width="1"/>
+<ellipse cx="112.76" cy="72.50" rx="4.2" ry="5.5" transform="rotate(30 112.76 72.50)" fill="var(--color-journal-dark-iso-glass)"/>
+<polygon points="195.03,43.00 212.35,33.00 194.17,15.50 188.11,18.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="200.23,46.00 217.55,36.00 247.86,46.50 243.53,50.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<path d="M 69.46 120.50 L 68.49 116.82 L 70.37 110.08 L 79.54 101.95 L 96.24 90.89 L 181.12 41.89 L 196.20 36.01 L 212.20 31.73 L 225.60 28.94 L 228.81 28.50 L 228.81 28.50 L 226.82 29.65 L 217.71 34.91 L 205.99 41.67 L 193.36 48.96 L 108.49 97.96 L 90.56 108.32 L 78.94 115.03 L 72.16 118.94 L 69.46 120.50 Z" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)" stroke-width="1"/>
+<path d="M 69.46 120.50 L 72.16 118.94 L 78.94 115.03 L 90.56 108.32 L 108.49 97.96 L 193.36 48.96 L 205.99 41.67 L 217.71 34.91 L 226.82 29.65 L 228.81 28.50 L 228.81 28.50 L 226.82 31.06 L 217.71 41.27 L 205.99 52.99 L 193.36 63.11 L 108.49 112.11 L 90.56 121.05 L 78.94 124.92 L 72.16 123.18 L 69.46 120.50 Z" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)" stroke-width="1"/>
+<polygon points="80.72,113.00 87.82,112.10 92.41,108.75 85.39,105.70" fill="var(--color-journal-dark-iso-glass)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="77.51,110.45 79.85,106.50 86.61,102.40 84.79,105.35" fill="var(--color-journal-dark-iso-glass)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="199.36,37.50 214.95,12.50 222.75,8.00 222.75,29.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="214.95,12.50 217.81,13.15 225.60,8.65 222.75,8.00" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="222.75,8.00 225.60,8.65 225.60,29.65 222.75,29.00" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<path d="M 162.72 97.50 L 179.18 88.00 Q 188.18 93.00 183.18 98.00 L 166.72 107.50 Z" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)" stroke-width="1"/>
+<ellipse cx="164.72" cy="102.50" rx="4.2" ry="5.5" transform="rotate(30 164.72 102.50)" fill="var(--color-journal-dark-iso-glass)"/>
+<polygon points="139.61,87.00 179.44,64.00 253.92,92.00 247.86,97.50" fill="var(--color-journal-dark-iso-side)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="139.61,85.00 179.44,62.00 253.92,90.00 247.86,95.50" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<polygon points="247.86,95.50 247.86,87.50 253.92,85.00 253.92,90.00" fill="var(--color-journal-dark-iso-front)" stroke="var(--color-journal-dark-iso-line)"/>
+<path d="M 178.58 66.50 L 243.53 88.00" fill="none" stroke="var(--color-journal-dark-iso-detail)" stroke-width="1"/>
+</g>
+<text x="111" y="113" transform="rotate(30 111 113)" fill="var(--color-journal-dark-muted)" font-family="Commissioner, sans-serif" font-size="13" font-weight="600" letter-spacing=".06em">AIRBUS</text>
+</g>
+</svg>
