@@ -10,7 +10,7 @@
 }
 
 /* Chapter card: a pick deals the picked route's pass onto the stack. It starts half a slide out and 6px up and settles over --dur-base, transform only.
-   Reduced motion swaps the print at once. `data-deal` alternates 1 and 2, so the same motion restarts for the next pick. */
+   Reduced motion swaps the print at once. `data-deal` alternates 1 and 2 for the next pick; a pick mid-deal keeps the running one (figure.tsx). */
 .ov3-passes {
   display: contents;
 }

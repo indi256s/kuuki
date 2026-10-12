@@ -17,7 +17,7 @@ const SIZING_ROUTE = 'AAA ↔ BBB'
 /**
  * The stack in the chapter card's figure stage (300 × 160). `route` is the reading. When it changes by a pick the top pass is dealt in
  * (passes.css); a change that is not a pick (first render, swipe, filter) swaps its print with no motion. `data-deal` alternates 1 and 2
- * so the same animation restarts on the next pick, and a new pick retargets instead of queueing.
+ * so the next pick deals again; a pick while a deal is still running swaps the print and the deal settles as it was, never restarting.
  */
 export function PassCardFigure({
   share,
@@ -37,14 +37,19 @@ export function PassCardFigure({
     [share],
   )
   const figure = useMemo(() => passStack(share, route, k), [share, route, k])
-  const [seen, setSeen] = useState({ route, deal: 0 })
+  const [seen, setSeen] = useState({ route, deal: 0, dealing: false })
   let deal = seen.deal
   if (seen.route !== route) {
-    deal = picked ? (seen.deal === 1 ? 2 : 1) : 0
-    setSeen({ route, deal })
+    // A pick mid-deal keeps the running deal (same part, new print) and lets it settle from where it is.
+    deal = !picked ? 0 : seen.dealing ? seen.deal : seen.deal === 1 ? 2 : 1
+    setSeen({ route, deal, dealing: deal !== 0 })
   }
   return (
-    <div className="ov3-passes" data-deal={deal || undefined}>
+    <div
+      className="ov3-passes"
+      data-deal={deal || undefined}
+      onAnimationEnd={() => setSeen((old) => ({ ...old, dealing: false }))}
+    >
       <IsoFigure figure={figure} className="iso-passes" />
     </div>
   )

@@ -14,17 +14,20 @@ export type StageRowsProps<T> = StageProps<T> & {
   swatch?: (point: ChartPoint<T>) => ReactNode
   /** Width reserved for the value column. Default 48. */
   valueWidth?: number
-  /** A CSS color for the row's bar (e.g. `var(--cat-maker-airbus)`), kept in every state: the picked row is not recolored and has no --mark-1 overlay. Default: --mark-rest, with the pick in --mark-1. */
+  /** A CSS color for the row's bar (e.g. `var(--cat-maker-airbus)`), kept in every state: the picked row is not recolored and has no --mark-peak overlay. Default: --mark-rest, with the pick in --mark-peak. */
   fill?: (point: ChartPoint<T>) => string
   /** Draw the bar as a 1px outline in its `fill` color with no fill (the Unknown maker). */
   outline?: (point: ChartPoint<T>) => boolean
 }
 
-const PITCH = 24,
-  LABEL = 160,
+const LABEL = 160,
   BAR_X = 172,
   BAR_H = 8,
   GAP = 8
+
+// The sheet keeps 24px rows. The desktop card's 206px plot gives up to 182px to rows, at most 36px each (5 rows fill it, 7 rows get 26).
+const rowPitch = (span: StageProps<unknown>['span'], count: number) =>
+  span === 'full' ? Math.min(36, Math.floor(182 / Math.max(1, count))) : 24
 
 // A bar is drawn at its full length and scaled from its start, so a changed value morphs by transform only.
 // The ends are elliptical (rx = r / scale) to look round once scaled.
@@ -39,12 +42,13 @@ function pill(x: number, y: number, length: number, width: number) {
 export function StageRows<T>(props: StageRowsProps<T>) {
   const { points, value, selectedKey, appliedKeys, span, name, mono, swatch, fill, outline } = props
   const valueWidth = props.valueWidth ?? 48,
-    max = stageMax(points, value)
+    max = stageMax(points, value),
+    pitch = rowPitch(span, points.length)
   const applied = (point: ChartPoint<T>) => !!appliedKeys?.includes(point.key)
   return (
     <KuukiChart
       points={points}
-      height={points.length * PITCH}
+      height={points.length * pitch}
       ariaLabel={props.ariaLabel}
       ariaDescription={props.ariaDescription}
       inView={props.inView}
@@ -61,14 +65,14 @@ export function StageRows<T>(props: StageRowsProps<T>) {
           <g className="stage" data-span={span}>
             {points.map((point, index) => {
               const amount = value(point),
-                y = index * PITCH,
+                y = index * pitch,
                 width = stageExtent(amount, max, room, 4, 5),
                 length = Math.max(room, width),
-                d = pill(BAR_X, y + (PITCH - BAR_H) / 2, length, width)
+                d = pill(BAR_X, y + (pitch - BAR_H) / 2, length, width)
               return (
                 <g key={point.key} {...mark(point)} data-zero={!(amount > 0) || undefined}>
-                  <rect x={0} y={y} width={size.width} height={PITCH} fill="transparent" />
-                  <foreignObject x={0} y={y} width={LABEL} height={PITCH} pointerEvents="none">
+                  <rect x={0} y={y} width={size.width} height={pitch} fill="transparent" />
+                  <foreignObject x={0} y={y} width={LABEL} height={pitch} pointerEvents="none">
                     <div className="stage-label" data-mono={mono || undefined}>
                       {swatch ? <span className="stage-swatch">{swatch(point)}</span> : null}
                       <span className="stage-name">
@@ -89,7 +93,12 @@ export function StageRows<T>(props: StageRowsProps<T>) {
                     <path d={d} data-kc-outline={outline?.(point) || undefined} />
                     {amount > 0 && !fill ? <path className="stage-peak" d={d} /> : null}
                   </g>
-                  <text className="stage-value" x={size.width} y={y + 16} textAnchor="end">
+                  <text
+                    className="stage-value"
+                    x={size.width}
+                    y={y + pitch / 2 + 4}
+                    textAnchor="end"
+                  >
                     {stageText(props, point)}
                   </text>
                 </g>

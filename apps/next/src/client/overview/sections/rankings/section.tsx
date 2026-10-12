@@ -758,7 +758,7 @@ export function Section({ span }: { span: Span }) {
             label={copy(locale, 'Rank by', 'Рейтинг по')}
             options={
               [
-                { value: 'airlines', label: copy(locale, 'Airlines', 'Авиакомпании') },
+                { value: 'airlines', label: copy(locale, 'Airlines', 'Компании') },
                 { value: 'airports', label: copy(locale, 'Airports', 'Аэропорты') },
                 { value: 'routes', label: copy(locale, 'Routes', 'Маршруты') },
               ] as const

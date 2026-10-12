@@ -67,3 +67,33 @@ it('rows with a fill keep it on the picked row and draw an outline row as a stro
   expect(bars[1]).not.toHaveAttribute('data-outline')
   expect(container.querySelector('.stage-peak')).toBeNull()
 })
+
+it('columns check every applied column, picked or not', () => {
+  const { container } = render(
+    <StageColumns
+      {...shared}
+      span="sheet"
+      appliedKeys={['a', 'c']}
+      ticks={[{ index: 0, text: 'A' }]}
+    />,
+  )
+  const checks = [...container.querySelectorAll('.stage-applied')].map((node) => node.textContent)
+  expect(checks).toEqual(['✓', '✓'])
+  expect(container.querySelector('.stage-reading')).toHaveTextContent('4')
+})
+
+it('rows use 36px rows on the full span while they fit and shrink to fit 182px', () => {
+  const pitchOf = (container: HTMLElement) =>
+    Number(container.querySelector('foreignObject')!.getAttribute('height'))
+  const five = Array.from({ length: 5 }, (_, i) => points[i % 3]).map((p, i) => ({
+    ...p,
+    key: `k${i}`,
+  }))
+  const seven = Array.from({ length: 7 }, (_, i) => ({ ...points[0], key: `s${i}` }))
+  const full = render(<StageRows {...shared} points={five} span="full" />)
+  expect(pitchOf(full.container)).toBe(36)
+  const dense = render(<StageRows {...shared} points={seven} span="full" />)
+  expect(pitchOf(dense.container)).toBe(26)
+  const sheet = render(<StageRows {...shared} points={five} span="sheet" />)
+  expect(pitchOf(sheet.container)).toBe(24)
+})

@@ -1,5 +1,5 @@
 /* Stage charts (chapter cards): columns and rows drawn in CSS pixels through KuukiChart.
-   Ordinary marks rest on --mark-rest; the picked mark is a --mark-1 copy (the v1 peak token) that crossfades in.
+   Ordinary marks rest on --mark-rest; the picked mark is a --mark-peak copy (the v1 peak token) that crossfades in.
    Hover, pin and filter contours come from chart-theme.css. */
 .kc-svg .stage text {
   font: 400 12px/16px var(--font-mono);
@@ -41,7 +41,7 @@
   vector-effect: non-scaling-stroke;
 }
 .stage-bar .stage-peak {
-  fill: var(--mark-1);
+  fill: var(--mark-peak);
   opacity: 0;
 }
 /* A row with its own fill keeps it in every state; an outline row is that color as a 1px stroke with no fill. */
@@ -61,12 +61,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 24px;
+  height: 100%;
   color: var(--text);
   font: 400 15px/20px var(--font-sans);
 }
 .stage-label[data-mono] {
   font-family: var(--font-mono);
+}
+/* The desktop card's taller rows: codes at 14/20, the value column at 15/20. */
+.kc-svg .stage[data-span='full'] .stage-label[data-mono] {
+  font-size: 14px;
+}
+.kc-svg .stage[data-span='full'] .stage-value {
+  font-size: 15px;
+  line-height: 20px;
 }
 [data-zero] .stage-label {
   color: var(--text-muted);

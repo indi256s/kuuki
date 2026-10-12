@@ -53,21 +53,28 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
   const picked = points.find((point) => point.key === selectedKey)
   const peak = max > 0 ? points.find((point) => value(point) === max) : undefined
   // Labels near either end stay inside the chart instead of centring past it.
-  const label = (point: ChartPoint<T>, className: string, gap: number) => {
-    const centre = left(points.indexOf(point)) + bar / 2,
-      text = stageText(props, point)
+  const label = (
+    point: ChartPoint<T>,
+    className: string,
+    gap: number,
+    text = stageText(props, point),
+  ) => {
+    const centre = left(points.indexOf(point)) + bar / 2
     return (
       <text
+        key={point.key}
         className={className}
         data-mono={(className === 'stage-reading' && mono) || undefined}
         x={centre < 24 ? centre - bar / 2 : centre > width - 24 ? centre + bar / 2 : centre}
         y={plot - heightOf(point) - gap}
         textAnchor={centre < 24 ? 'start' : centre > width - 24 ? 'end' : 'middle'}
       >
-        {applied(point) && className === 'stage-reading' ? `✓ ${text}` : text}
+        {applied(point) && className !== 'stage-applied' ? `✓ ${text}` : text}
       </text>
     )
   }
+  // The tallest and the picked bar carry their ✓ in their label; every other applied bar gets a bare ✓ over it.
+  const labelled = new Set([picked, tallest && peak !== picked ? peak : undefined])
   return (
     <KuukiChart
       points={points}
@@ -129,6 +136,9 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
           <g aria-hidden="true" pointerEvents="none">
             {tallest && peak && peak !== picked ? label(peak, 'stage-tallest', 4) : null}
             {picked ? label(picked, 'stage-reading', 5) : null}
+            {points.map((point) =>
+              applied(point) && !labelled.has(point) ? label(point, 'stage-applied', 4, '✓') : null,
+            )}
             {ticks.map((tick) =>
               points[tick.index] ? (
                 <text

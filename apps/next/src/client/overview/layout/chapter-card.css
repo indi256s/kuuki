@@ -64,12 +64,19 @@
   font-family: var(--font-mono);
 }
 .ov3-card-value-text {
+  /* The reading never shrinks for its unit; it ellipsizes only when it alone outgrows the line. */
+  flex: none;
   min-width: 0;
+  max-inline-size: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ov3-card-unit {
-  flex: none;
+  /* The unit gives way first. */
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--text-muted);
   font-size: 22px;
   line-height: 28px;
@@ -91,6 +98,23 @@
   display: flex;
   align-items: center;
 }
+/* The chip is capped, and the value line keeps its slot free, so a long reading never runs under it. */
+.ov3-card {
+  --only-max: 112px;
+  --only-slot: calc(var(--only-max) + 8px);
+}
+.ov3-card-value[data-only] {
+  padding-inline-end: var(--only-slot);
+}
+.ov3-card-only .ui-button {
+  max-inline-size: var(--only-max);
+}
+.ov3-card-only .ui-button > span:not(.ui-button-icon) {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Chart stage: header 32, gap 8, then the plot box with its axis. */
 .ov3-card-chart {
@@ -103,16 +127,44 @@
   justify-content: space-between;
   gap: 12px;
   height: 32px;
+  container-type: inline-size;
 }
+/* The caption takes what the toggle leaves and is its own container, so it can hide once squeezed below a word. */
 .ov3-card-chart-caption {
+  flex: 1 1 0;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  container-type: inline-size;
   color: var(--text-muted);
   font-size: 13px;
   line-height: 18px;
   font-weight: 600;
+}
+.ov3-card-chart-caption-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Squeezed by a long toggle (RU Rankings on a phone), the caption stays for screen readers only: the toggle names the view. */
+@container (max-width: 63px) {
+  .ov3-card-chart-caption-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+/* Under 300px the toggle's cells tighten so it fits the card. */
+@container (max-width: 299px) {
+  .ov3-card-chart-header .ui-segmented[data-dense='true'] {
+    max-inline-size: 100%;
+  }
+  .ov3-card-chart-header .ui-segmented[data-dense='true'] .ui-segment {
+    padding-inline: 8px;
+  }
 }
 .ov3-card-plot {
   margin-top: 8px;

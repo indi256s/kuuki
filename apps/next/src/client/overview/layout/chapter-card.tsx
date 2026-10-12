@@ -104,7 +104,11 @@ export function ChapterCard({
           </div>
         ) : (
           <div className="ov3-card-hero" aria-live="polite">
-            <div className="ov3-card-value" data-mono={hero.mono || undefined}>
+            <div
+              className="ov3-card-value"
+              data-mono={hero.mono || undefined}
+              data-only={hero.only ? '' : undefined}
+            >
               <span className="ov3-card-value-text">
                 <SlotText key={epoch} value={hero.value} />
               </span>
@@ -133,7 +137,9 @@ export function ChapterCard({
       ) : (
         <div className="ov3-card-chart">
           <div className="ov3-card-chart-header">
-            <span className="ov3-card-chart-caption">{chart.caption}</span>
+            <span className="ov3-card-chart-caption">
+              <span className="ov3-card-chart-caption-text">{chart.caption}</span>
+            </span>
             {chart.toggle}
           </div>
           <div className="ov3-card-plot">

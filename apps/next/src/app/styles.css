@@ -121,6 +121,8 @@
   --mark-3: var(--cmp-3);
   --mark-4: var(--cmp-4);
   --mark-rest: var(--heat-3);
+  /* The peak of a peak-vs-rest metric (a stage chart's picked reading): comparison slot 1 in light, per Color v1. */
+  --mark-peak: var(--mark-1);
   --mark-ghost: #978c7f;
   --brand-l-min: 0.4;
   --brand-l-max: 0.56;
@@ -216,6 +218,8 @@
   color-scheme: dark;
   --surface-highlight: rgb(255 255 255 / 5%);
   --mark-rest: var(--heat-3);
+  /* Dark comparison-1 sits on heat-3's lightness, so the peak takes the next ramp step to stand apart from the rest. */
+  --mark-peak: var(--heat-4);
   --mark-ghost: #897e70;
   --brand-l-min: 0.72;
   --brand-l-max: 0.86;

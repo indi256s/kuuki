@@ -125,6 +125,11 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
       ratio(hex('--mark-rest'), hex('--surface')),
       '--mark-rest on surface',
     ).toBeGreaterThanOrEqual(3)
+    expect(hex('--mark-peak')).toBe(mode === 'dark' ? theme.heat[3].color : theme.comparison[0])
+    expect(
+      ratio(hex('--mark-peak'), hex('--mark-rest')),
+      'peak against rest',
+    ).toBeGreaterThanOrEqual(1.4)
   })
 
   it('keeps text, muted and accent text readable on every surface and the tint', () => {
@@ -164,7 +169,7 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
 
   it('keeps the rest mark, peak mark, accent and control border at 3:1 on the floating sheet', () => {
     const floating = hex('--surface-floating')
-    for (const name of ['--mark-rest', '--mark-1', '--accent', '--control-border']) {
+    for (const name of ['--mark-rest', '--mark-peak', '--accent', '--control-border']) {
       expect(ratio(hex(name), floating), `${name} on floating`).toBeGreaterThanOrEqual(3)
     }
   })
