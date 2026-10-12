@@ -85,6 +85,15 @@ it('Fleet lights the maker of the picked type', () => {
   ).toContain('var(--lit-boeing, 1)')
 })
 
+it('marks time in the air ≈ only when the reading itself has estimated durations', () => {
+  render(<Section span="full" />)
+  const time = () => document.querySelector('.ov3-card-columns')?.textContent ?? ''
+  fireEvent.click(row('Embraer'))
+  expect(time()).not.toContain('≈')
+  fireEvent.click(stage().getByRole('radio', { name: 'Fleet' }))
+  expect(time()).toContain('≈')
+})
+
 it('hides "Only …" once the picked value is applied', () => {
   admit({ makers: ['boeing'] })
   render(<Section span="full" />)

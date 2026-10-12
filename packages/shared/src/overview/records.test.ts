@@ -120,3 +120,24 @@ it('lists the five longest distinct directed routes with their weighted flight c
     flights: 4,
   })
 })
+
+it('counts every flight on a longest route, including those without a distance', () => {
+  const leg = (id: number, origin: string, destination: string, distanceKm: number | null) => ({
+    ...row(id, '2025-01-01', null),
+    origin,
+    destination,
+    distanceKm,
+  })
+  const gate = records(
+    [
+      leg(1, 'TBS', 'IST', 1000),
+      leg(2, 'TBS', 'IST', null),
+      leg(3, 'TBS', 'IST', null),
+      leg(4, 'AAA', 'BBB', null),
+    ],
+    payload.refs,
+    'flights',
+  )
+  if (gate.status !== 'ready') throw new Error('Expected ready records')
+  expect(gate.value.longest5).toEqual([{ origin: 'TBS', destination: 'IST', km: 1000, flights: 3 }])
+})

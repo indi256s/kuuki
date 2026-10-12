@@ -166,7 +166,19 @@ export function Section({ span }: { span: Span }) {
     }
   }
 
-  // Flights, distance and time of the reading: a maker's from the makers figure, a type's from the journal's own rows.
+  // The journal rows behind the reading: a maker's flights or a type's.
+  const behind =
+    reading && payload
+      ? payload.rows.filter(
+          (row) =>
+            (row.state === 'logged' || row.state === 'awaiting') &&
+            (view === 'makers'
+              ? makerOf(row.aircraft) === reading.key
+              : row.aircraft === reading.key) &&
+            matches(row, filter, payload.refs),
+        )
+      : []
+  // Flights, distance and time of the reading: a maker's from the makers figure, a type's from its rows.
   const sum = (() => {
     if (!reading) return null
     if (view === 'makers') {
@@ -174,17 +186,19 @@ export function Section({ span }: { span: Span }) {
       return row ? { flights: row.flights, km: row.km, minutes: row.minutes } : null
     }
     if (!payload) return null
-    const mine = totals(
-      payload.rows.filter(
-        (row) =>
-          (row.state === 'logged' || row.state === 'awaiting') &&
-          row.aircraft === reading.key &&
-          matches(row, filter, payload.refs),
-      ),
-    )
+    const mine = totals(behind)
     return { flights: mine.flights, km: mine.distanceKm, minutes: mine.durationMinutes }
   })()
-  const approximate = view === 'makers' && makers?.totals.minutesApproximate ? '≈ ' : ''
+  // "≈" only when an estimated duration is part of this reading's time.
+  const approximate = behind.some(
+    (row) =>
+      row.durationSource === 'estimate' &&
+      row.durationMinutes !== null &&
+      Number.isFinite(row.durationMinutes) &&
+      row.durationMinutes >= 0,
+  )
+    ? '≈ '
+    : ''
   const columns = sum
     ? [
         { value: number(locale, sum.flights), label: copy(locale, 'Flights', 'Перелёты') },
