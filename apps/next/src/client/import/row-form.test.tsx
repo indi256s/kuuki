@@ -30,11 +30,11 @@ it.each(['en', 'ru'] as const)(
       name: locale === 'ru' ? 'Авиакомпания · необязательно' : 'Airline · optional',
     })
     fireEvent.change(airline, { target: { value: 'Turkish' } })
-    fireEvent.click(screen.getByRole('option', { name: /TK Turkish Airlines/ }))
+    fireEvent.click(screen.getByRole('option', { name: /^Turkish Airlines.* TK$/ }))
     expect(airline).toHaveValue('TK')
     expect(changed).toHaveBeenLastCalledWith(expect.objectContaining({ airline_iata: 'TK' }))
     fireEvent.change(airline, { target: { value: 'ba' } })
-    fireEvent.click(screen.getByRole('option', { name: /BA British Airways/ }))
+    fireEvent.click(screen.getByRole('option', { name: /^British Airways.* BA$/ }))
     expect(changed).toHaveBeenLastCalledWith(expect.objectContaining({ airline_iata: 'BA' }))
     fireEvent.change(airline, { target: { value: ' q0 ' } })
     fireEvent.blur(airline)

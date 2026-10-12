@@ -5,8 +5,12 @@ import { airportAliases } from '@kuuki/shared'
 import type { Choice } from '../ui/combobox'
 import type { Locale } from '../../lib/format'
 
+const airportCache = new Map<Locale, Choice[]>()
+/** Built once per locale: the list is large, and a stable array lets searches memoise on it. */
 export function airportChoices(locale: Locale): Choice[] {
-  return airports
+  const cached = airportCache.get(locale)
+  if (cached) return cached
+  const choices = airports
     .filter((row) => row.iata)
     .map((row) => {
       const alias = airportAliases[row.iata]
@@ -18,6 +22,8 @@ export function airportChoices(locale: Locale): Choice[] {
         fallback: locale === 'ru' && !alias,
       }
     })
+  airportCache.set(locale, choices)
+  return choices
 }
 export const airlineChoices: Choice[] = airlines
   .filter((row) => row.iata)

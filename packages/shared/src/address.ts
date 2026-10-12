@@ -65,9 +65,14 @@ function pilotAddress(random: () => number): string {
   return `pilot-${tail}`
 }
 
+/** Lowercase Latin spelling of a name: Cyrillic by the ICAO 9303 table, Latin left as typed. */
+export function transliterate(name: string): string {
+  return Array.from(name.toLowerCase(), (char) => TRANSLITERATION[char] ?? char).join('')
+}
+
 /** Derive a public address from a display name; always matches ADDRESS_PATTERN. */
 export function deriveAddress(name: string, random: () => number = Math.random): string {
-  const latin = Array.from(name.toLowerCase(), (char) => TRANSLITERATION[char] ?? char).join('')
+  const latin = transliterate(name)
   const base = cut(
     latin
       .normalize('NFKD')

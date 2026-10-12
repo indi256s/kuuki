@@ -161,3 +161,13 @@ export async function getAllFlights(userId: string, options?: CallOptions): Prom
   const rows = await api.get<ApiFlight[]>('/api/flights/all', undefined, options)
   return rows.map((f) => toFlight(f, userId))
 }
+
+/** The member's most recent completed flights (awaiting or logged), newest date first. */
+export async function getRecentFlights(
+  userId: string,
+  limit: number,
+  options?: CallOptions,
+): Promise<Flight[]> {
+  const rows = await api.get<ApiFlight[]>('/api/flights/recent', { limit }, options)
+  return rows.map((f) => toFlight(f, userId))
+}

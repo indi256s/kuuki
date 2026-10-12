@@ -39,6 +39,8 @@ export function Calendar({
   locale,
   error,
   disabled,
+  defaultOpen = false,
+  inline = false,
 }: {
   label: string
   value: string
@@ -48,9 +50,13 @@ export function Calendar({
   locale: Locale
   error?: string
   disabled?: boolean
+  /** Shows the month grid on mount (the member just chose to pick a day). */
+  defaultOpen?: boolean
+  /** The grid flows in the page instead of floating over it. */
+  inline?: boolean
 }) {
   const id = useId()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [month, setMonth] = useState(() =>
     valid(value)
       ? value.slice(0, 7)
@@ -103,6 +109,7 @@ export function Calendar({
   return (
     <div
       className="flight-calendar"
+      data-inline={inline ? 'true' : undefined}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
       }}

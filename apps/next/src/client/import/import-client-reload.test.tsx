@@ -13,6 +13,7 @@ const discardBatch = vi.fn(async () => ({ deleted: true }))
 vi.mock('@kuuki/client/flights', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@kuuki/client/flights')>()),
   checkDuplicateFlight: vi.fn(async () => null),
+  getRecentFlights: vi.fn(async () => []),
 }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 vi.mock('../write-feedback', () => ({
@@ -441,9 +442,17 @@ describe('R4 recovery continuation', () => {
   it('an actual add-form lost save holds the identical Import row despite absent enrichment defaults', async () => {
     const user = userEvent.setup()
     const form = render(<FlightForm ownerId="u1" locale="en" />)
-    fireEvent.change(screen.getByRole('combobox', { name: 'From' }), { target: { value: 'JFK' } })
-    fireEvent.change(screen.getByRole('combobox', { name: 'To' }), { target: { value: 'BOS' } })
-    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '03/01/2026' } })
+    await user.click(screen.getByRole('button', { name: 'From: city or airport' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'From airport' }), {
+      target: { value: 'JFK' },
+    })
+    await user.click(screen.getAllByRole('option')[0])
+    fireEvent.change(screen.getByRole('combobox', { name: 'To airport' }), {
+      target: { value: 'BOS' },
+    })
+    await user.click(screen.getAllByRole('option')[0])
+    await user.click(screen.getByRole('radio', { name: /^Other/ }))
+    fireEvent.change(screen.getByLabelText('Other date'), { target: { value: '03/01/2026' } })
     post.mockImplementationOnce(async () => {
       throw new TypeError('Lost response')
     })

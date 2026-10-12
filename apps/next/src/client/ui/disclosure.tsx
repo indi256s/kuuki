@@ -10,6 +10,10 @@ export type DisclosureProps = {
   defaultOpen?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  /** `row`: a full-width row with the chevron at the end. The default stays a fit-content trigger. */
+  layout?: 'inline' | 'row'
+  /** One line under the summary on a `row`, shown only while closed (what is inside, or what was filled). */
+  description?: ReactNode
 }
 
 /** Layout snaps before the content fades in. Collapsed content is inert and hidden. */
@@ -19,6 +23,8 @@ export function Disclosure({
   defaultOpen = false,
   open: controlled,
   onOpenChange,
+  layout = 'inline',
+  description,
 }: DisclosureProps) {
   const [own, setOwn] = useState(defaultOpen)
   const open = controlled ?? own
@@ -29,18 +35,33 @@ export function Disclosure({
     onOpenChange?.(next)
   }
   return (
-    <div className="ui-disclosure">
+    <div className="ui-disclosure" data-layout={layout}>
       <button
         type="button"
         className="ui-disclosure-trigger"
         id={`${id}-t`}
         aria-expanded={open}
         aria-controls={id}
+        aria-labelledby={layout === 'row' ? `${id}-s` : undefined}
+        aria-describedby={layout === 'row' && description && !open ? `${id}-d` : undefined}
         onClick={toggle}
       >
-        {summary}
+        {layout === 'row' ? (
+          <span className="ui-disclosure-text">
+            <span id={`${id}-s`} className="ui-disclosure-summary">
+              {summary}
+            </span>
+            {description && !open ? (
+              <span id={`${id}-d`} className="ui-disclosure-description">
+                {description}
+              </span>
+            ) : null}
+          </span>
+        ) : (
+          summary
+        )}
         <span className="ui-disclosure-chevron" aria-hidden="true">
-          <ChevronIcon state={open} size={18} strokeWidth={2} />
+          <ChevronIcon state={open} size={layout === 'row' ? 20 : 18} strokeWidth={2} />
         </span>
       </button>
       <div className="ui-disclosure-panel" data-open={open ? 'true' : 'false'}>

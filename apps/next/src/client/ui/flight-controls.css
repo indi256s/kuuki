@@ -53,10 +53,20 @@
 }
 .flight-combobox li,
 .flight-search-sheet li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   min-height: 44px;
   padding: var(--space-3);
   cursor: pointer;
   border-radius: var(--radius-sm);
+}
+.flight-choice-text {
+  min-width: 0;
+}
+.flight-choice-label {
+  font-weight: 500;
 }
 .flight-combobox li[aria-selected='true'],
 .flight-search-sheet li[aria-selected='true'] {
@@ -68,12 +78,20 @@
   color: var(--text-muted);
 }
 .flight-choice-code {
+  flex: none;
   font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--text-muted);
 }
 .flight-combobox mark,
 .flight-search-sheet mark {
   background: var(--surface-inset);
   color: var(--info-text);
+}
+/* Codes stay muted mono even when they match; only names take the match colour. */
+.flight-choice-code mark {
+  background: none;
+  color: inherit;
 }
 .flight-search-input {
   position: sticky;
@@ -159,7 +177,7 @@
   background: transparent;
   gap: var(--space-6);
 }
-.flight-editor fieldset {
+.flight-editor > fieldset {
   display: grid;
   gap: var(--space-6);
   padding: 0;
@@ -191,12 +209,6 @@
 }
 .flight-field p[role='alert'] {
   margin: 0;
-}
-.flight-duplicate {
-  color: var(--warning-text);
-}
-.flight-duplicate .button {
-  margin: var(--space-1);
 }
 .flight-danger {
   border-block-start: 1px solid var(--hairline);

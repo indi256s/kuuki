@@ -72,10 +72,13 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
   await routes.getByRole('button').first().click()
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
-  await page.setViewportSize({ width: 1280, height: 800 }) // theme lives in the desktop avatar menu
+  await page.setViewportSize({ width: 1280, height: 800 })
   await page.getByRole('button', { name: 'Account menu' }).click()
   await page.getByRole('menuitemradio', { name: 'Dark' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  // A tray pick keeps the account menu open; close it before using the page.
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toBeHidden()
   await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Fit routes' }).click()
   expect(assets.some((url) => url.endsWith('maplibre-gl-worker.mjs'))).toBe(true)

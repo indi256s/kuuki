@@ -169,6 +169,22 @@ These are estimates, not evidence of actual aircraft trajectories. Missing
 coordinates reduce weighted `locatedFlights` coverage; they do not establish zero.
 The internal `dateLine` name denotes the antimeridian, not the International Date Line.
 
+## Profile vocabulary
+
+### Profile
+
+A traveler's identity page, presented as the holder page of their passport:
+who they are, a curated summary of their journal, and badges. Visitors read
+it; its owner sees the same page with owner controls. Analysis belongs to
+Overview, not the profile.
+_Avoid_: Flight profile, account page
+
+### Profile visibility
+
+Whether a profile is **public** (readable by anyone with its link) or
+**private** (others see only that it is hidden). Public Records are a separate
+consent on top of a public profile.
+
 ## Overview vocabulary
 
 ### Maker slot

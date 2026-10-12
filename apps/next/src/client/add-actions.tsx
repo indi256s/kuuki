@@ -1,9 +1,8 @@
 'use client'
 
 import { NavigationLink as Link } from './navigation-link'
-import { useAwaiting } from './awaiting'
-import { formatNumber } from '../lib/format'
-import { ClipboardCheck, ClipboardPaste, PenLine, ScanLine, Upload } from '@keyline-icons/react'
+import { QueueMenuItem } from './queue-summary'
+import { ClipboardPaste, PenLine, ScanLine, Upload } from '@keyline-icons/react'
 import type { ReactNode } from 'react'
 import { MenuItem } from './ui/menu'
 
@@ -15,7 +14,7 @@ type Action = {
   icon: ReactNode
 }
 
-/** The capture entry points. One list feeds the desktop split-Add menu and the mobile action sheet. */
+/** The capture entry points. One list feeds the desktop Add menu and the mobile Add card. */
 export const ADD_ACTIONS: readonly Action[] = [
   {
     id: 'pass',
@@ -58,61 +57,19 @@ function Label({ action }: { action: Action }) {
   )
 }
 
-/** `menu` renders Radix menu items (inside a Menu); `sheet` renders a plain list of links for the action sheet. */
-export function AddActions({
-  variant,
-  onNavigate,
-}: {
-  variant: 'menu' | 'sheet'
-  onNavigate?: () => void
-}) {
-  const { data } = useAwaiting()
-  const queueLink =
-    data && data.actionableCount > 0 ? (
-      <Link
-        href="/journal?queue=awaiting"
-        className={variant === 'sheet' ? 'add-action' : undefined}
-        data-add-action="queue"
-        onClick={onNavigate}
-      >
-        <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
-        <span className="locale-en">
-          Awaiting action: {formatNumber('en', data.actionableCount)}
-        </span>
-        <span className="locale-ru">Ждут действия: {formatNumber('ru', data.actionableCount)}</span>
-      </Link>
-    ) : null
-  if (variant === 'menu') {
-    return (
-      <>
-        {ADD_ACTIONS.map((action) => (
-          <MenuItem key={action.id} asChild>
-            <Link href={action.href} data-add-action={action.id}>
-              {action.icon}
-              <Label action={action} />
-            </Link>
-          </MenuItem>
-        ))}
-        {queueLink ? <MenuItem asChild>{queueLink}</MenuItem> : null}
-      </>
-    )
-  }
+/** Radix menu items for the desktop Add menu and the mobile Add card; the queue row comes last, only with work in it. */
+export function AddActions({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
   return (
-    <ul className="add-actions">
+    <>
       {ADD_ACTIONS.map((action) => (
-        <li key={action.id}>
-          <Link
-            href={action.href}
-            className="add-action"
-            data-add-action={action.id}
-            onClick={onNavigate}
-          >
+        <MenuItem key={action.id} asChild>
+          <Link href={action.href} data-add-action={action.id}>
             {action.icon}
             <Label action={action} />
           </Link>
-        </li>
+        </MenuItem>
       ))}
-      {queueLink ? <li>{queueLink}</li> : null}
-    </ul>
+      <QueueMenuItem locale={locale} showUnavailable={false} />
+    </>
   )
 }

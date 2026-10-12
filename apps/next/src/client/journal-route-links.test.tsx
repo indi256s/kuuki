@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ROUTE_LINK_EVENT } from './navigation-link'
 import { PrimaryNav, TabBar } from './nav'
-import { QueueSummarySlot } from './queue-summary'
+import { QueueMenuItem } from './queue-summary'
 import { AddActions } from './add-actions'
 import { Menu } from './ui/menu'
 
@@ -36,6 +36,11 @@ afterEach(() => {
   awaiting.value = { data: null, error: false, reload: () => {} }
 })
 
+const inMenu = (row: ReactNode) => (
+  <Menu open trigger={<button type="button">x</button>}>
+    {row}
+  </Menu>
+)
 const isJournal = (href: string) => new URL(href, window.location.href).pathname === '/journal'
 const journalLinks = () =>
   [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].filter(
@@ -47,23 +52,12 @@ describe('shell links to /journal announce their destination on the route link e
   const cases: Array<[string, () => ReactNode, number]> = [
     ['desktop navigation', () => <PrimaryNav />, 1],
     ['mobile tab bar', () => <TabBar />, 1],
-    ['queue summary count', () => <QueueSummarySlot count={2} />, 1],
+    ['queue menu row count', () => inMenu(<QueueMenuItem count={2} />), 1],
     [
-      'queue summary unavailable',
+      'queue menu row unavailable',
       () => {
         awaiting.value = { ...awaiting.value, error: true }
-        return <QueueSummarySlot />
-      },
-      1,
-    ],
-    [
-      'Awaiting action in the add sheet',
-      () => {
-        awaiting.value = {
-          ...awaiting.value,
-          data: { actionableCount: 2, awaitingFlightCount: 2, draftRowCount: 0 },
-        }
-        return <AddActions variant="sheet" />
+        return inMenu(<QueueMenuItem />)
       },
       1,
     ],
@@ -83,7 +77,7 @@ describe('shell links to /journal announce their destination on the route link e
     }
     render(
       <Menu trigger={<button type="button">More</button>}>
-        <AddActions variant="menu" />
+        <AddActions />
       </Menu>,
     )
     await userEvent.click(screen.getByRole('button', { name: 'More' }))

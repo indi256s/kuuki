@@ -111,7 +111,7 @@ export function calculateFlightDuration(
  * Convert a local date+time in a given IANA timezone to UTC milliseconds.
  * Uses the Intl API (no external libraries needed).
  */
-function localTimeToUtcMs(
+export function localTimeToUtcMs(
   date: string, // "YYYY-MM-DD"
   hours: number,
   minutes: number,

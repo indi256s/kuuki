@@ -13,6 +13,7 @@ vi.mock('../../server/profile', () => ({
   getOwnProfile: vi.fn(),
   getOwnProfileStats: vi.fn(),
   getOwnBadges: vi.fn(),
+  getOwnStamps: () => Promise.resolve([]),
   getProfileShareUrl: () => Promise.resolve('https://configured.example/fly/B'),
 }))
 vi.mock('../route-transitions', () => ({
@@ -61,9 +62,17 @@ it.each(['public', 'private', 'missing'] as const)(
               stats: null,
               badges: [],
               rankings: [],
+              countries: [],
               derivedState: 'private',
             }
-          : { profile, stats: null, badges: [], rankings: [], derivedState: 'ready' },
+          : {
+              profile,
+              stats: null,
+              badges: [],
+              rankings: [],
+              countries: [],
+              derivedState: 'ready',
+            },
     )
     render(await PublicLayout({ children: await ProfileData({ username: 'B' }) }))
     expect(screen.getAllByTestId('notification-account')).toHaveLength(1)
@@ -77,6 +86,7 @@ it('does not duplicate notifications on own public profile or mount private noti
     stats: null,
     badges: [],
     rankings: [],
+    countries: [],
     derivedState: 'ready',
   })
   vi.mocked(getOptionalPublicViewer).mockResolvedValue({

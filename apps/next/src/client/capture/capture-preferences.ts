@@ -7,9 +7,18 @@ export function readCapturePreference<T>(ownerId: string, key: string, fallback:
     return fallback
   }
 }
+/** Returns whether the value was stored; most callers can ignore it, since storage is optional. */
 export function writeCapturePreference(ownerId: string, key: string, value: unknown) {
   try {
     localStorage.setItem(`${PREFIX}${ownerId}:${key}`, JSON.stringify(value))
+    return true
+  } catch {
+    return false
+  }
+}
+export function removeCapturePreference(ownerId: string, key: string) {
+  try {
+    localStorage.removeItem(`${PREFIX}${ownerId}:${key}`)
   } catch {
     /* storage is optional */
   }

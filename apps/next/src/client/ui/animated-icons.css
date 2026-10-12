@@ -1,41 +1,17 @@
-/* Keyline draws each glyph as one path; hover motion moves the complete icon. */
+/* Keyline draws each glyph as one path; hover motion moves the complete icon. Navigation and Add do not animate on hover; only buttons that opt in through .ui-button do. */
 .animated-icon {
   flex-shrink: 0;
   transform-origin: center;
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  :where(.tab, .split-add-main, .ui-button):not([aria-disabled='true']):hover .animated-icon-plus {
+  .ui-button:not([aria-disabled='true']):hover .animated-icon-plus {
     animation: icon-plus-turn var(--dur-base) var(--ease-out) forwards;
-  }
-  .tab:hover .animated-icon-grid {
-    animation: icon-grid-turn var(--dur-moment) var(--ease-out);
-  }
-  .tab:hover .animated-icon-stamp {
-    animation: icon-stamp-press var(--dur-moment) var(--ease-out);
   }
 }
 
 @keyframes icon-plus-turn {
   to {
     transform: rotate(180deg);
-  }
-}
-@keyframes icon-grid-turn {
-  0% {
-    transform: rotate(0);
-  }
-  100% {
-    transform: rotate(90deg);
-  }
-}
-@keyframes icon-stamp-press {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  35%,
-  65% {
-    transform: translateY(4px);
   }
 }
