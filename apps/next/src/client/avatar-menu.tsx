@@ -35,6 +35,7 @@ export function AvatarMenu({
   const router = useRouter()
   const appearance = useAppearance(locale)
   const ru = appearance.locale === 'ru'
+  const text = (en: string, ruText: string) => (ru ? ruText : en)
   const [publicProfile, setPublicProfile] = useState(isPublic)
   const [busy, setBusy] = useState(false)
   const toast = useToast()
@@ -56,7 +57,7 @@ export function AvatarMenu({
   const accentSave = useAccentSave(profileAccent, () =>
     toast.show({
       kind: 'error',
-      message: ru ? 'Не удалось сохранить акцент.' : 'Could not save the accent.',
+      message: text('Could not save the accent.', 'Не удалось сохранить акцент.'),
     }),
   )
   // The server value wins again after router.refresh() re-renders the shell.
@@ -84,7 +85,7 @@ export function AvatarMenu({
         setPublicProfile(!next)
         toast.show({
           kind: 'error',
-          message: ru ? 'Не удалось изменить видимость.' : 'Could not change visibility.',
+          message: text('Could not change visibility.', 'Не удалось изменить видимость.'),
         })
       }
     } finally {
@@ -100,12 +101,11 @@ export function AvatarMenu({
       )
     } catch {
       if (mounted.current)
-        toast.show({ kind: 'error', message: ru ? 'Не удалось выйти.' : 'Could not sign out.' })
+        toast.show({ kind: 'error', message: text('Could not sign out.', 'Не удалось выйти.') })
     }
   }
 
   const profileHref = `/fly/${encodeURIComponent(username)}`
-  const text = (en: string, ruText: string) => (ru ? ruText : en)
   return (
     <Menu
       align="end"
@@ -116,7 +116,7 @@ export function AvatarMenu({
         <button
           type="button"
           className="avatar-button"
-          aria-label={ru ? 'Меню аккаунта' : 'Account menu'}
+          aria-label={text('Account menu', 'Меню аккаунта')}
         >
           <span aria-hidden="true">
             <ProfileAvatar

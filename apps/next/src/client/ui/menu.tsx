@@ -27,7 +27,6 @@ export type MenuProps = {
   onOpenChange?: (open: boolean) => void
   sideOffset?: number
   alignOffset?: number
-  collisionPadding?: number
   /** Added to the content's `ui-menu` class. */
   className?: string
   /** Tints the shield with the sheet scrim: always, or only at the mobile breakpoint (700px and below). */
@@ -55,7 +54,6 @@ export function Menu({
   onOpenChange,
   sideOffset = 6,
   alignOffset,
-  collisionPadding = 8,
   className,
   scrim,
   hideWhenDetached,
@@ -114,7 +112,7 @@ export function Menu({
           side={side}
           sideOffset={sideOffset}
           alignOffset={alignOffset}
-          collisionPadding={collisionPadding}
+          collisionPadding={8}
           hideWhenDetached={hideWhenDetached}
           avoidCollisions
           // The shield's own click closes the menu, so it stays up until the press ends.

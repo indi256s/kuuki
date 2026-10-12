@@ -77,9 +77,13 @@ export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
     const header = nav.current?.closest('.site-header')
     if (!header || typeof ResizeObserver !== 'function') return
     const root = document.documentElement.style
-    const observer = new ResizeObserver(() =>
-      root.setProperty('--header-block', `${header.getBoundingClientRect().height}px`),
-    )
+    let height = 0
+    const observer = new ResizeObserver(([entry]) => {
+      const next = entry.borderBoxSize[0]?.blockSize ?? 0
+      if (next === height) return
+      height = next
+      root.setProperty('--header-block', `${next}px`)
+    })
     observer.observe(header)
     return () => {
       observer.disconnect()

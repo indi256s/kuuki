@@ -108,9 +108,6 @@
   font-weight: 500;
   line-height: 20px;
 }
-.add-menu .ui-menu-item svg {
-  flex-shrink: 0;
-}
 
 .avatar-button {
   display: inline-grid;
@@ -148,9 +145,6 @@ a.ui-menu-item {
   gap: 12px;
   padding-inline: 12px;
   font-weight: 500;
-}
-.account-menu .ui-menu-item svg {
-  flex-shrink: 0;
 }
 .account-menu .ui-menu-check {
   display: none;
@@ -380,9 +374,6 @@ a.ui-menu-item {
     border-radius: 18px;
     font-weight: 500;
     line-height: 20px;
-  }
-  .add-card .ui-menu-item svg {
-    flex-shrink: 0;
   }
   /* Content, floating bars and toasts clear the rail, its gap and the safe area. Toasts add the safe area themselves. */
   :root:has(.tab-bar) {

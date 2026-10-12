@@ -442,25 +442,22 @@
   pointer-events: none;
 }
 /* The tinted shield is the scrim behind a card-like menu (mobile Add, account): opacity only, and a drag on it never
-   scrolls the page under the menu. */
-.ui-menu-shield[data-scrim='always'] {
+   scrolls the page under the menu. A 'mobile' scrim is a plain shield above 700px. */
+.ui-menu-shield[data-scrim] {
   background: var(--scrim);
   touch-action: none;
   overscroll-behavior: contain;
   animation: ui-fade-in var(--dur-fast) var(--ease-out);
 }
-.ui-menu-shield[data-scrim='always'][data-state='closed'] {
+.ui-menu-shield[data-scrim][data-state='closed'] {
   animation: ui-fade-out 120ms var(--ease-out) forwards;
 }
-@media (max-width: 700px) {
-  .ui-menu-shield[data-scrim='mobile'] {
-    background: var(--scrim);
-    touch-action: none;
-    overscroll-behavior: contain;
-    animation: ui-fade-in var(--dur-fast) var(--ease-out);
-  }
-  .ui-menu-shield[data-scrim='mobile'][data-state='closed'] {
-    animation: ui-fade-out 120ms var(--ease-out) forwards;
+@media (min-width: 701px) {
+  .ui-menu-shield[data-scrim='mobile'][data-state] {
+    background: none;
+    touch-action: auto;
+    overscroll-behavior: auto;
+    animation: none;
   }
 }
 .ui-menu-shield[data-instant],
@@ -506,6 +503,9 @@
     opacity: 0;
     transform: scale(0.97);
   }
+}
+.ui-menu-item svg {
+  flex-shrink: 0;
 }
 /* 14px container - 4px padding = 10px concentric item radius. */
 .ui-menu-item {
@@ -613,15 +613,6 @@
   box-shadow:
     inset 0 0 0 2px var(--focus),
     0 1px 2px rgb(0 0 0/10%);
-}
-.ui-menu-tray-dot {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  background: var(--swatch);
-  color: var(--background);
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-menu-tray-cell:hover {
@@ -824,7 +815,8 @@
 .ui-swatch:active {
   transform: scale(0.96);
 }
-.ui-swatch-dot {
+.ui-swatch-dot,
+.ui-menu-tray-dot {
   display: inline-grid;
   place-items: center;
   width: 28px;
@@ -832,6 +824,10 @@
   border-radius: var(--radius-full);
   background: var(--swatch);
   color: var(--background);
+}
+.ui-menu-tray-dot {
+  width: 20px;
+  height: 20px;
 }
 .ui-swatch[aria-checked='true'] {
   border-color: var(--text);
