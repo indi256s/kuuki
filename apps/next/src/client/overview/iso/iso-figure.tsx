@@ -184,10 +184,10 @@ export function IsoFigure({
           <filter
             id={`${base}-sh`}
             filterUnits="userSpaceOnUse"
-            x={bx}
-            y={by}
-            width={bw}
-            height={bh}
+            x={figure.shadowBounds?.x ?? bx}
+            y={figure.shadowBounds?.y ?? by}
+            width={figure.shadowBounds?.width ?? bw}
+            height={figure.shadowBounds?.height ?? bh}
           >
             <feGaussianBlur stdDeviation={figure.shadowBlur} />
           </filter>

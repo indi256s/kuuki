@@ -1,9 +1,13 @@
+// @vitest-environment jsdom
+import { createElement } from 'react'
+import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { gateSign } from './gate-sign'
 import { hangars, shedSize } from './hangars'
 import { passStack } from './passes'
 import { CONTINENT_IDS, puzzle, type ContinentId } from './puzzle'
-import type { IsoNode } from './scene'
+import { fitBox, type IsoNode } from './scene'
+import { IsoFigure } from './iso-figure'
 import { stamper } from './stamper'
 import { bladeLength, tape } from './tape'
 
@@ -154,5 +158,33 @@ describe('puzzle weight', () => {
     expect(
       count(puzzle(1, { flown: all, lit: 'asia', label: '7 OF 7 PIECES' }).nodes),
     ).toBeLessThan(520)
+  })
+})
+
+describe('tile figure sizing', () => {
+  it('fits the rendered object to the tile while preserving its feathered shadow', () => {
+    const build = (k: number) => passStack(0.5, 'ROV ↔ VKO', k)
+    const figure = build(fitBox(137, 112, build))
+    const { container } = render(createElement(IsoFigure, { figure }))
+    const svg = container.querySelector('svg')!
+    expect(Number(svg.getAttribute('width'))).toBeLessThanOrEqual(137)
+    expect(Number(svg.getAttribute('height'))).toBeLessThanOrEqual(112)
+    const shadow = svg.querySelector('polygon[filter]')!
+    const filterId = shadow.getAttribute('filter')!.slice(5, -1)
+    const filter = document.getElementById(filterId)!
+    const x = Number(filter.getAttribute('x'))
+    const y = Number(filter.getAttribute('y'))
+    const right = x + Number(filter.getAttribute('width'))
+    const bottom = y + Number(filter.getAttribute('height'))
+    const reach = 2 * Number(filter.querySelector('feGaussianBlur')!.getAttribute('stdDeviation'))
+    for (const point of shadow.getAttribute('points')!.split(' ')) {
+      const [px, py] = point.split(',').map(Number)
+      expect(x).toBeLessThanOrEqual(px - reach)
+      expect(y).toBeLessThanOrEqual(py - reach)
+      expect(right).toBeGreaterThanOrEqual(px + reach)
+      expect(bottom).toBeGreaterThanOrEqual(py + reach)
+    }
+    const [vx, , vw] = svg.getAttribute('viewBox')!.split(' ').map(Number)
+    expect(right).toBeGreaterThan(vx + vw)
   })
 })

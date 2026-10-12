@@ -81,8 +81,8 @@ export type IsoNode =
 export type IsoFigureData = {
   width: number
   height: number
-  /** Size of the solid ink plus glow (no cast shadows): what `fitK`/`fitBox` size by, so shadows spill into the margin instead of shrinking the object. */
-  fit?: { width: number; height: number }
+  /** Filter region including cast shadows, which spill outside the ink-and-glow viewport. */
+  shadowBounds?: { x: number; y: number; width: number; height: number }
   /** stdDeviation in px of the feather on cast shadows; 0 when the figure has none. */
   shadowBlur?: number
   viewBox: string
@@ -470,7 +470,7 @@ export class Scene {
     return out
   }
 
-  /** Closes the figure. `pad` is the margin around the solid ink (it only has to cover anti-aliasing and strokes). Glow halos extend the box by 3 sigma around the part they blur and cast shadows by 2 sigma of their feather (the tail beyond is under 3% opacity), so neither depends on `overflow: visible`; only the glow counts toward `fit`. */
+  /** Closes the ink-and-glow viewport with stroke padding. Glow adds 3 sigma; cast shadows spill through overflow: visible into a separate filter region with 2 sigma of feather (the tail beyond is under 3% opacity). */
   done(pad = 3): IsoFigureData {
     const box = (pts: readonly Pt[]) => {
       let minX = Infinity,
@@ -496,31 +496,25 @@ export class Scene {
       width: Math.ceil(b.maxX - b.minX + 2 * pad),
       height: Math.ceil(b.maxY - b.minY + 2 * pad),
     })
-    const { width, height } = size(all)
+    const { width, height } = size(fitBox)
     return {
       width,
       height,
-      fit: size(fitBox),
+      shadowBounds: this.sigma
+        ? { x: r1(all.minX - pad), y: r1(all.minY - pad), ...size(all) }
+        : undefined,
       shadowBlur: this.sigma ? r3(this.sigma) : undefined,
-      viewBox: `${r1(all.minX - pad)} ${r1(all.minY - pad)} ${width} ${height}`,
+      viewBox: `${r1(fitBox.minX - pad)} ${r1(fitBox.minY - pad)} ${width} ${height}`,
       nodes: this.stack[0],
     }
   }
 }
 
-type Sized = { width: number; height: number; fit?: { width: number; height: number } }
-/** The size a figure is fitted by: its solid ink and glow, not its cast shadows. */
-const inkSize = (f: Sized) => f.fit ?? f
+type Sized = { width: number; height: number }
 
 /** The largest scale (to 0.005) at which `build(k)` is at most `width` px wide, so a tile can draw a figure at the width its box has (sized by ink and glow, not cast shadows) instead of CSS shrinking it. Width is near-linear in k below the scales where detail switches on: two probes place the guess and a few steps settle it. */
-export function fitK(
-  width: number,
-  build: (k: number) => { width: number; fit?: { width: number } },
-): number {
-  const wide = (k: number) => {
-    const f = build(k)
-    return f.fit?.width ?? f.width
-  }
+export function fitK(width: number, build: (k: number) => { width: number }): number {
+  const wide = (k: number) => build(k).width
   const w1 = wide(0.8),
     w2 = wide(0.4)
   const slope = (w1 - w2) / 0.4
@@ -534,7 +528,7 @@ export function fitK(
 export function fitBox(width: number, height: number, build: (k: number) => Sized): number {
   return Math.min(
     fitK(width, build),
-    fitK(width, (k) => ({ width: (inkSize(build(k)).height * width) / height })),
+    fitK(width, (k) => ({ width: (build(k).height * width) / height })),
   )
 }
 

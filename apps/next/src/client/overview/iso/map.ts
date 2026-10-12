@@ -252,7 +252,7 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
   const land = sheet ? landOn(sheet.cLon, sheet.plan) : []
   // Graticule: lines of longitude and latitude are straight in the equirectangular plan, so each is one segment clipped to the sheet and ends on its edge.
   const graticule: [Plan, Plan][] = []
-  let scaleBar: { km: number; len: number } | null = null
+  let scaleBar = 32
   if (sheet) {
     const want = 22 / sheet.scale,
       step = NICE.find((n) => n >= want) ?? 45
@@ -260,12 +260,12 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
       const seg = clipSeg(sheet.plan([l, -85]), sheet.plan([l, 85]))
       if (seg) graticule.push(seg)
     }
-    for (let f = -85; f <= 85; f += step) {
+    for (let f = Math.ceil(-85 / step) * step; f <= 85; f += step) {
       const seg = clipSeg(sheet.plan([sheet.cLon - 260, f]), sheet.plan([sheet.cLon + 260, f]))
       if (seg) graticule.push(seg)
     }
     const km = [...KM].reverse().find((n) => (n / 111.2) * sheet.scale <= 34) ?? KM[0]
-    scaleBar = { km, len: (km / 111.2) * sheet.scale }
+    scaleBar = (km / 111.2) * sheet.scale
   } else {
     for (const x of [23, 69, 115, 161])
       graticule.push([
@@ -277,7 +277,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
         [0, y],
         [X[4], y],
       ])
-    scaleBar = { km: 0, len: 32 }
   }
   // The equator is a line of latitude, so on a turned sheet it runs at the same angle; sampled every 2° and kept where it lies on the paper.
   const equatorLines: Plan[][] = sheet
@@ -324,8 +323,8 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
       return [{ panel: panelOf((p0[0] + p1[0]) / 2), pts: [p0, p1] }]
     })
   })
-  // Scale bar on the last panel's front edge: banded strip, ticks hanging from it, its length in km above.
-  const legend = ({ km, len }: { km: number; len: number }) => {
+  // Scale bar on the last panel's front edge: banded strip with ticks hanging from it.
+  const legend = (len: number) => {
     const x0 = X[4] - 8 - len,
       y0 = D - 9,
       y1 = D - 6,
@@ -352,19 +351,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
       'line',
       0.5,
     )
-    if (km)
-      s.text(
-        `${km} KM`,
-        [x0, y0 - 2.2, zAt(x0) + 0.05],
-        [1, 0, (Z[4] - Z[3]) / (X[4] - X[3])],
-        [0, 1, 0],
-        {
-          size: 5,
-          fill: 'muted',
-          weight: 600,
-          mono: true,
-        },
-      )
   }
 
   for (let i = 0; i < 4; i++)
@@ -449,7 +435,7 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
             undefined,
             0.7,
           )
-        if (i === 3 && scaleBar) legend(scaleBar)
+        if (i === 3) legend(scaleBar)
         s.poly(panel, 'none')
       },
       { vars: folds[i] },

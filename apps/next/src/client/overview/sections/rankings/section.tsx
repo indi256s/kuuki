@@ -726,7 +726,7 @@ export function Section({ span }: { span: Span }) {
         <GateSignFigure
           code={code}
           picked={r.picked}
-          note={reading ? `#${top.indexOf(reading) + 1} ×${reading.count}` : ''}
+          note={reading ? `#${rank} ×${number(locale, reading.count)}` : ''}
         />
       }
       figureButton={

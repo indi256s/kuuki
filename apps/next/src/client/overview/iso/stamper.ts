@@ -1,5 +1,5 @@
 import { MON, X, Y, Zd, flat, flatText, onPlan } from './flat'
-import { Scene, hull, type IsoFigureData, type P3 } from './scene'
+import { Scene, hull, labelSize, type IsoFigureData, type P3 } from './scene'
 
 /** How far a pick pushes the head down, and how far the month band rolls per month, in iso units. */
 const PRESS_TRAVEL = 3,
@@ -131,7 +131,9 @@ export function stamper(
     s.poly(frame(24, 14), 'none', 'accent', undefined, ink)
     s.poly(frame(21.5, 11.5), 'none', 'accent', undefined, ink)
     flatText(s, onPlan, 0, monthLabel, 76, 22, ZP, { size: 11, fill: 'accent', weight: 700 })
-    flatText(s, onPlan, 0, flightsLabel, 76, 31, ZP, { size: 5.4, fill: 'accent', weight: 600 })
+    // The minimum readable font can outgrow the inner frame at smaller scales.
+    if (flightsLabel.length * labelSize(5.4, k) * 0.62 <= 41)
+      flatText(s, onPlan, 0, flightsLabel, 76, 31, ZP, { size: 5.4, fill: 'accent', weight: 600 })
   })
 
   // A ruler along the front edge: ticks grow from its front edge.
