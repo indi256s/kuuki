@@ -113,7 +113,8 @@ export function useTakeover(
     })
     observer.observe(node)
     return () => observer.disconnect()
-  }, [card])
+    // `enabled` turns true once the card has data, which is when the section (not the loading line) is mounted.
+  }, [card, enabled])
 
   const isOpen = state !== null
   useEffect(() => {

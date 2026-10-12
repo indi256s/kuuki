@@ -87,12 +87,12 @@
 }
 .ov3-takeover-rail {
   flex: 0 0 64px;
-  padding-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
 }
+/* 48px rows (the board's 20px entry plus its 28px gap), so a tap anywhere along the rail lands on an entry. */
 .ov3-takeover-entry {
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -127,7 +127,7 @@
 }
 .ov3-takeover-drawing {
   flex: 1;
-  min-height: 0;
+  min-height: 80px;
   display: grid;
   place-items: center;
 }
@@ -255,11 +255,12 @@
     padding: 24px 20px 24px 12px;
     gap: 16px;
   }
-  .ov3-takeover-rail {
-    gap: 24px;
+  .ov3-takeover-entry {
+    min-height: 44px;
   }
+  /* A phone stage is about 230px wide, so long Russian durations need a lower floor to stay on one line. */
   .ov3-takeover-value {
-    font-size: clamp(40px, calc(100cqi / (var(--chars, 6) * 0.62)), 48px);
+    font-size: clamp(28px, calc(100cqi / (var(--chars, 6) * 0.62)), 48px);
   }
   .ov3-next-strip {
     flex-wrap: wrap;

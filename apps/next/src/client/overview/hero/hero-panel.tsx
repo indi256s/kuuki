@@ -262,8 +262,11 @@ function Takeover({
       if (!from) continue
       const a = from.getBoundingClientRect(),
         b = slot.getBoundingClientRect()
-      if (!b.height) continue
-      const listed = `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.height / b.height})`
+      const scale =
+        parseFloat(getComputedStyle(from).fontSize) / parseFloat(getComputedStyle(slot).fontSize)
+      if (!Number.isFinite(scale)) continue
+      // Text scales with its font size, not its line box; the slot's origin is its top-left corner.
+      const listed = `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${scale})`
       slot.animate(
         direction === 'in'
           ? [{ transform: listed }, { transform: 'none' }]
@@ -279,7 +282,11 @@ function Takeover({
   }, [])
   const closing = state.phase === 'closing'
   useLayoutEffect(() => {
-    if (closing) glide('out')
+    if (!closing) return
+    glide('out')
+    // Reopened before the close finished: drop the held "out" frames so the values return to the rail.
+    const node = root.current
+    return () => node?.getAnimations({ subtree: true }).forEach((animation) => animation.cancel())
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs when the phase turns to closing.
   }, [closing])
   return (
