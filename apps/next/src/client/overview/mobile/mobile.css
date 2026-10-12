@@ -190,7 +190,8 @@
   overscroll-behavior-x: none;
   scrollbar-width: none;
 }
-.ov3-sheet-track::-webkit-scrollbar {
+.ov3-sheet-track::-webkit-scrollbar,
+.ov3-sheet-slide::-webkit-scrollbar {
   display: none;
 }
 /* Each chapter scrolls on its own; its vertical overscroll stays inside the sheet. */
@@ -198,6 +199,7 @@
   flex: 0 0 100%;
   min-width: 0;
   overflow-y: auto;
+  scrollbar-width: none;
   overscroll-behavior-y: contain;
   scroll-snap-align: start;
   scroll-snap-stop: always;

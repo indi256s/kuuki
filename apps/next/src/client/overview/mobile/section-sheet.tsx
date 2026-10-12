@@ -68,6 +68,7 @@ export function SectionSheet({
   return (
     <Sheet
       open={!!entry}
+      initialDetent={1}
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
