@@ -339,7 +339,7 @@ async function main() {
           normalized = parsed.flights
           rejected = parsed.rejected ?? []
         }
-        const drafts = normalized.map(rowOf)
+        const drafts = normalized.map((flight) => rowOf(flight))
         const metrics = manifest[fixture]
           ? score(manifest[fixture], normalized, drafts, providerOnly ? raw : undefined)
           : undefined
@@ -400,7 +400,7 @@ async function main() {
             /* Retain complete raw rows even if none normalize. */
           }
         }
-        const drafts = normalized.map(rowOf)
+        const drafts = normalized.map((flight) => rowOf(flight))
         const metrics = manifest[fixture]
           ? score(manifest[fixture], normalized, drafts, raw)
           : undefined

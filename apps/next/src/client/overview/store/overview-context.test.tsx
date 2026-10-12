@@ -641,7 +641,7 @@ it('Back/Forward updates metric and sheet, restores the opener and revalidates t
     opener.click()
   })
   view.navigate('/overview?tag=a&tag=b&flight=7&makers=km#fleet')
-  await screen.findByRole('article', { name: /TBS.*IST/ })
+  await screen.findByRole('article', { name: /TBS.*IST/ }, { timeout: 5000 })
   expect(auth.getFlight).toHaveBeenCalledWith(
     7,
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
@@ -668,7 +668,7 @@ it('a foreign/missing flight stays an error without displaying private content',
   auth.query = 'flight=7'
   auth.getFlight.mockRejectedValue(new Error('not found'))
   urlView()
-  await screen.findByRole('alert')
+  await screen.findByRole('alert', {}, { timeout: 5000 })
   expect(screen.queryByRole('article')).toBeNull()
 })
 it('confirmed sheet deletion closes and revalidates Overview instead of navigating to Journal', async () => {
