@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
 import { signIn, fixtureHeaders } from './helpers'
 
-test('generated avatars blink unless reduced motion is requested', async ({ page, baseURL }) => {
-  await page.setViewportSize({ width: 1280, height: 800 })
+test('generated avatars look around and blink unless reduced motion is requested', async ({
+  page,
+  baseURL,
+}) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await signIn(page, baseURL!)
   await page.goto('/overview')
@@ -21,9 +23,20 @@ test('generated avatars blink unless reduced motion is requested', async ({ page
           ).length,
     )
   await expect.poll(blinkingEyes).toBe(2)
+  const eyes = face.locator('svg')
+  const eyePosition = () =>
+    eyes.evaluate(
+      (element) =>
+        element.getBoundingClientRect().x - element.parentElement!.getBoundingClientRect().x,
+    )
+  const initialPosition = await eyePosition()
+  await expect
+    .poll(async () => Math.abs((await eyePosition()) - initialPosition))
+    .toBeGreaterThan(0.5)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect.poll(blinkingEyes).toBe(0)
   await expect(face).toHaveCSS('transform', 'none')
+  await expect(eyes).toHaveCSS('transform', 'none')
 })
 
 test('read-route navigation settles on authorized content', async ({ page, baseURL }) => {

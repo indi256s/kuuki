@@ -255,7 +255,7 @@ The Fleet figure (planes drawn to one scale from manufacturer type data) is no l
 
 ## Motion
 
-Generated Facehash avatars blink at the library's per-avatar intervals and retain their subtle hover rotation. Uploaded photos stay static. Reduced motion disables blinking and rotation.
+Generated Facehash avatars blink at the library's per-avatar intervals, gently look around on an eight-second loop (including on touch), and retain their subtle hover rotation. Uploaded photos stay static. Reduced motion disables blinking, looking around and rotation.
 
 The Plus wrapper in `client/ui/animated-icons.tsx` renders Keyline Plus, which turns once on `.ui-button` fine-pointer hover (Overview filters, import manual rows). It stays static on touch and with reduced motion, and preserves existing sizes and text labels. Navigation has colour and surface hover feedback only: the tab icons, the Add flight button and the + key have no decorative icon motion. Static icons also use `@keyline-icons/react`; the isolated activation controls embed the same Keyline SVG geometry.
 

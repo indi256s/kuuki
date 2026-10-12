@@ -899,11 +899,32 @@
 .profile-avatar [data-facehash-face] {
   transition: transform var(--dur-base) var(--ease-out) !important;
 }
+@media (prefers-reduced-motion: no-preference) {
+  .profile-avatar [data-facehash-face] svg {
+    animation: profile-avatar-look 8s var(--ease-in-out) infinite;
+  }
+}
+@keyframes profile-avatar-look {
+  0%,
+  20%,
+  100% {
+    transform: translate(0, 0);
+  }
+  35%,
+  50% {
+    transform: translate(8%, -1px);
+  }
+  65%,
+  80% {
+    transform: translate(-5%, 1px);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .profile-avatar [data-facehash-face] {
     transform: none !important;
     transition: none !important;
   }
+  .profile-avatar [data-facehash-face] svg,
   .profile-avatar [data-facehash-face] svg * {
     animation: none !important;
   }
