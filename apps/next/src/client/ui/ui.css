@@ -546,7 +546,7 @@
   padding: 3px;
   border-radius: var(--radius-md);
   background: var(--surface-inset);
-  width: min(100%, calc(var(--n, 2)*128px));
+  width: min(100%, calc(var(--n, 2) * 128px));
 }
 .ui-segmented-thumb {
   position: absolute;
@@ -805,6 +805,49 @@
     color: var(--text);
   }
 }
+.ui-disclosure[data-layout='row'] .ui-disclosure-trigger {
+  inline-size: 100%;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: var(--space-2) 0;
+  border-radius: 0;
+}
+.ui-disclosure-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.ui-disclosure-summary {
+  font-size: 16px;
+  line-height: 20px;
+}
+.ui-disclosure-description {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-disclosure[data-layout='row'] .ui-disclosure-chevron {
+  color: var(--text);
+}
+/* Full-width rows press with a grey wash on touch only; no scale. */
+@media (hover: none) {
+  .ui-disclosure[data-layout='row'] .ui-disclosure-trigger:active {
+    background: var(--surface-inset);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-disclosure[data-layout='row'] .ui-disclosure-trigger:hover {
+    color: var(--text);
+  }
+  .ui-disclosure[data-layout='row'] .ui-disclosure-trigger:hover .ui-disclosure-summary {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
 .ui-disclosure-panel {
   display: grid;
   grid-template-rows: 0fr;
@@ -867,11 +910,10 @@
   color: var(--text);
   box-shadow: var(--shadow-floating), var(--ring-floating);
 }
-.ui-toast[data-kind='error'] {
-  border-left: 4px solid var(--danger-fill);
-}
-.ui-toast[data-kind='success'] {
-  border-left: 4px solid var(--success-fill);
+/* Neutral outline only: no coloured rail. Status reads from the round glyph. */
+.ui-toast:has(.ui-toast-copy) {
+  align-items: flex-start;
+  padding: 14px 14px 14px 16px;
 }
 .ui-toast[data-state='open'] {
   animation: ui-toast-in var(--dur-sheet) var(--ease-out);
@@ -889,6 +931,36 @@
 }
 .ui-toast-icon[data-kind='error'] {
   color: var(--danger-text);
+}
+.ui-toast-icon:is([data-kind='success'], [data-kind='error']) {
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: color-mix(in oklab, currentColor 14%, transparent);
+}
+.ui-toast-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+.ui-toast-copy .ui-toast-message {
+  font-weight: 600;
+  line-height: 20px;
+}
+.ui-toast-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+.ui-toast-copy .ui-toast-action {
+  margin: var(--space-1) 0 0 calc(-1 * var(--space-2));
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .ui-toast-message {
   flex: 1;

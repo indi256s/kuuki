@@ -13,7 +13,10 @@ export { awaitPublication }
 export function useWriteFeedback(ownerId: string) {
   const router = useRouter()
   const [status, setStatus] = useState<'idle' | 'ready' | 'pending' | 'delayed'>('idle')
-  const operation = useRef<{ controller: AbortController; release: () => void } | null>(null)
+  const operation = useRef<{
+    controller: AbortController
+    release: () => void
+  } | null>(null)
   useEffect(
     () => () => {
       operation.current?.controller.abort()
@@ -56,4 +59,22 @@ export function useWriteFeedback(ownerId: string) {
     [router],
   )
   return { acknowledge, status }
+}
+
+/**
+ * Follows totals publication after the writer is gone (a form that closed on its confirmed save) and calls `onReady`
+ * once totals are published. Stops on sign-out or account switch.
+ */
+export function followPublication(ack: DerivedAck, onReady: () => void) {
+  if (ack.derived_state === 'ready') return onReady()
+  if (ack.derived_state !== 'pending' || typeof ack.revision !== 'number') return
+  const controller = new AbortController()
+  const release = trackPrivateOperation(controller)
+  const generation = getAuthGeneration()
+  const current = () => !controller.signal.aborted && generation === getAuthGeneration()
+  void awaitPublication(ack.revision, controller.signal, current)
+    .then((result) => {
+      if (result === 'ready' && current()) onReady()
+    })
+    .finally(release)
 }

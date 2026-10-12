@@ -37,7 +37,8 @@ export function validateFlightValues(
 ): Partial<Record<FlightField, string>> {
   const errors: Partial<Record<FlightField, string>> = {}
   const date = realDate(values.date)
-  if (date === 'malformed')
+  if (!values.date) errors.date = say(locale, 'Choose a date.', 'Выберите дату.')
+  else if (date === 'malformed')
     errors.date = say(locale, 'Enter a date as MM/DD/YYYY.', 'Введите дату в формате ДД.ММ.ГГГГ.')
   else if (date === 'missing')
     errors.date = say(

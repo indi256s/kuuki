@@ -8,6 +8,7 @@ import { Preferences } from './preferences'
 import { QueueSummarySlot } from './queue-summary'
 import { SplitAdd } from './split-add'
 import { ShellNotices } from './shell-notices'
+import { AddOriginTracker } from './capture/add-origin'
 import { ImportDock } from './import/import-dock'
 import { ImportRunsProvider } from './import/import-runs'
 import { getGateProfile } from '../server/gates'
@@ -72,6 +73,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
     <AwaitingProvider key={own.profile.id} ownerId={own.profile.id}>
       <AccentSync profileAccent={own.profile.theme_color} />
       <ShellNotices ownerId={own.profile.id} locale={locale}>
+        <AddOriginTracker />
         <ImportRuns jobs={jobs} ownerId={own.profile.id} locale={locale}>
           <header className="site-header member-header">
             <div className="site-header-inner">

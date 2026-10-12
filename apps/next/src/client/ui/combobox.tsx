@@ -35,6 +35,82 @@ function highlight(text: string, query: string) {
   )
 }
 
+/** Filters by code, name and aliases; an exact code ranks first, and an empty query lists recents first. */
+export function searchChoices(choices: Choice[], query: string, recents: string[] = []) {
+  const needle = query.trim().toLocaleLowerCase()
+  const all = choices.filter(
+    (choice) =>
+      !needle ||
+      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`
+        .toLocaleLowerCase()
+        .includes(needle),
+  )
+  const ordered = needle
+    ? [...all].sort(
+        (a, b) =>
+          Number(b.code.toLocaleLowerCase() === needle) -
+          Number(a.code.toLocaleLowerCase() === needle),
+      )
+    : [
+        ...all
+          .filter((choice) => recents.includes(choice.code))
+          .sort((a, b) => recents.indexOf(a.code) - recents.indexOf(b.code)),
+        ...all.filter((choice) => !recents.includes(choice.code)),
+      ]
+  return { needle, all, matches: ordered.slice(0, 50) }
+}
+
+/** The shared result list: a count status and a listbox. A place (city in `detail`) leads with the city; the code sits at the end in muted mono. */
+export function ChoiceOptions({
+  id,
+  label,
+  locale,
+  count,
+  matches,
+  needle,
+  active,
+  onChoose,
+}: {
+  id: string
+  label: string
+  locale: Locale
+  count: number
+  matches: Choice[]
+  needle: string
+  active: number
+  onChoose: (choice: Choice) => void
+}) {
+  return (
+    <>
+      <p role="status">{formatCount(locale, count, counts)}</p>
+      <ul id={`${id}-list`} role="listbox" aria-label={label}>
+        {matches.map((choice, index) => (
+          <li
+            ref={
+              index === active ? (node) => node?.scrollIntoView?.({ block: 'nearest' }) : undefined
+            }
+            key={choice.code}
+            id={`${id}-option-${index}`}
+            role="option"
+            aria-selected={active === index}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => onChoose(choice)}
+          >
+            <span className="flight-choice-text">
+              <span className="flight-choice-label">
+                {highlight(choice.detail ?? choice.label, needle)}
+              </span>{' '}
+              {choice.detail && <small>{highlight(choice.label, needle)}</small>}
+              {choice.fallback && locale === 'ru' && <small>Название на английском</small>}
+            </span>{' '}
+            <span className="flight-choice-code">{highlight(choice.code, needle)}</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
 export function Combobox({
   label,
   value,
@@ -76,27 +152,7 @@ export function Combobox({
   // A value changed from outside (swap, reset) while text was being typed: show the new value, not the stale text.
   else if (value !== typed.current) setQuery(null)
   const selected = choices.find((choice) => choice.code === value)
-  const needle = (query ?? '').trim().toLocaleLowerCase()
-  const all = choices.filter(
-    (choice) =>
-      !needle ||
-      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`
-        .toLocaleLowerCase()
-        .includes(needle),
-  )
-  const ordered = needle
-    ? [...all].sort(
-        (a, b) =>
-          Number(b.code.toLocaleLowerCase() === needle) -
-          Number(a.code.toLocaleLowerCase() === needle),
-      )
-    : [
-        ...all
-          .filter((choice) => recents.includes(choice.code))
-          .sort((a, b) => recents.indexOf(a.code) - recents.indexOf(b.code)),
-        ...all.filter((choice) => !recents.includes(choice.code)),
-      ]
-  const matches = ordered.slice(0, 50)
+  const { needle, all, matches } = searchChoices(choices, query ?? '', recents)
   const choose = (choice: Choice) => {
     onChange(choice.code)
     onSelect?.(choice.code)
@@ -206,31 +262,16 @@ export function Combobox({
     />
   )
   const list = (
-    <>
-      <p role="status">{formatCount(locale, all.length, counts)}</p>
-      <ul id={`${id}-list`} role="listbox" aria-label={label}>
-        {matches.map((choice, index) => (
-          <li
-            ref={
-              index === active ? (node) => node?.scrollIntoView?.({ block: 'nearest' }) : undefined
-            }
-            key={choice.code}
-            id={`${id}-option-${index}`}
-            role="option"
-            aria-selected={active === index}
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => choose(choice)}
-          >
-            <span className="flight-choice-code">{highlight(choice.code, needle)}</span>{' '}
-            {highlight(choice.label, needle)}
-            {choice.detail && <small>{highlight(choice.detail, needle)}</small>}
-            {choice.fallback && locale === 'ru' && (
-              <small>{locale === 'ru' ? 'Название на английском' : 'English reference name'}</small>
-            )}
-          </li>
-        ))}
-      </ul>
-    </>
+    <ChoiceOptions
+      id={id}
+      label={label}
+      locale={locale}
+      count={all.length}
+      matches={matches}
+      needle={needle}
+      active={active}
+      onChoose={choose}
+    />
   )
   return (
     <div

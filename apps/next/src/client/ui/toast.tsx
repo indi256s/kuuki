@@ -18,6 +18,8 @@ export type ToastKind = 'info' | 'success' | 'error'
 export type ToastInput = {
   /** State the outcome («Ссылка скопирована»), not the action. */
   message: string
+  /** Detail under the outcome, one line each (the saved route and date, then the totals state). */
+  description?: string
   kind?: ToastKind
   /** ms; default 5000 (8000 for errors). 0 keeps it until dismissed. */
   duration?: number
@@ -25,7 +27,10 @@ export type ToastInput = {
   onAction?: () => void
 }
 type Item = ToastInput & { id: number; kind: ToastKind; leaving: boolean }
-type ToastApi = { show: (toast: ToastInput) => number; dismiss: (id: number) => void }
+type ToastApi = {
+  show: (toast: ToastInput) => number
+  dismiss: (id: number) => void
+}
 
 const ToastContext = createContext<ToastApi | null>(null)
 /** The provider's notice slot; `undefined` when no provider is mounted. */
@@ -49,7 +54,11 @@ export function ToastSlot({ children }: { children: ReactNode }) {
 }
 
 type KindLabels = Record<ToastKind, string>
-const DEFAULT_KIND_LABELS: KindLabels = { info: 'Notice', success: 'Success', error: 'Error' }
+const DEFAULT_KIND_LABELS: KindLabels = {
+  info: 'Notice',
+  success: 'Success',
+  error: 'Error',
+}
 const ICONS = { info: Info, success: CircleCheck, error: CircleAlert } as const
 
 export function ToastProvider({
@@ -216,21 +225,38 @@ function ToastView({
         })()}
         <span className="sr-only">{kindLabels[item.kind]}: </span>
       </span>
-      <p className="ui-toast-message">{item.message}</p>
-      {item.actionLabel ? (
-        <button
-          type="button"
-          className="ui-button ui-toast-action"
-          data-variant="ghost"
-          data-dense="true"
-          onClick={() => {
-            item.onAction?.()
-            onDismiss(item.id)
-          }}
-        >
-          <span>{item.actionLabel}</span>
-        </button>
-      ) : null}
+      {(() => {
+        const action = item.actionLabel ? (
+          <button
+            type="button"
+            className="ui-button ui-toast-action"
+            data-variant="ghost"
+            data-dense="true"
+            onClick={() => {
+              item.onAction?.()
+              onDismiss(item.id)
+            }}
+          >
+            <span>{item.actionLabel}</span>
+          </button>
+        ) : null
+        return item.description ? (
+          <div className="ui-toast-copy">
+            <p className="ui-toast-message">{item.message}</p>
+            {item.description.split('\n').map((line) => (
+              <p className="ui-toast-description" key={line}>
+                {line}
+              </p>
+            ))}
+            {action}
+          </div>
+        ) : (
+          <>
+            <p className="ui-toast-message">{item.message}</p>
+            {action}
+          </>
+        )
+      })()}
       <button
         type="button"
         className="ui-icon-button"
