@@ -116,9 +116,8 @@ export function UvPrint({ stamp }: { stamp: string | null }) {
         <circle cx="100" cy="100" r="96" />
         <circle cx="100" cy="100" r="90" />
         <circle cx="100" cy="100" r="62" />
-        <g transform="scale(10)">
-          <path d={EMBLEM} />
-        </g>
+        {/* Top-down airliner, nose up; the scaled ring emblem read as a peace sign at this size. */}
+        <path d="M100 46C104 46 106 52 106 60V88L150 112V120L106 108L105 136L122 148V154L102 148L100 152L98 148L78 154V148L95 136L94 108L50 120V112L94 88V60C94 52 96 46 100 46Z" />
       </svg>
       {stamp && (
         <svg className="profile-uv-stamp" viewBox="0 0 80 80" focusable="false">
