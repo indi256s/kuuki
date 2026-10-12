@@ -14,6 +14,10 @@ export type StageRowsProps<T> = StageProps<T> & {
   swatch?: (point: ChartPoint<T>) => ReactNode
   /** Width reserved for the value column. Default 48. */
   valueWidth?: number
+  /** A CSS color for the row's bar (e.g. `var(--cat-maker-airbus)`), kept in every state: the picked row is not recolored and has no --mark-1 overlay. Default: --mark-rest, with the pick in --mark-1. */
+  fill?: (point: ChartPoint<T>) => string
+  /** Draw the bar as a 1px outline in its `fill` color with no fill (the Unknown maker). */
+  outline?: (point: ChartPoint<T>) => boolean
 }
 
 const PITCH = 24,
@@ -33,7 +37,7 @@ function pill(x: number, y: number, length: number, width: number) {
 }
 
 export function StageRows<T>(props: StageRowsProps<T>) {
-  const { points, value, selectedKey, appliedKeys, span, name, mono, swatch } = props
+  const { points, value, selectedKey, appliedKeys, span, name, mono, swatch, fill, outline } = props
   const valueWidth = props.valueWidth ?? 48,
     max = stageMax(points, value)
   const applied = (point: ChartPoint<T>) => !!appliedKeys?.includes(point.key)
@@ -76,10 +80,14 @@ export function StageRows<T>(props: StageRowsProps<T>) {
                   <g
                     className="stage-bar"
                     data-axis="x"
-                    style={{ transform: `scaleX(${num(width / length)})` }}
+                    data-outline={outline?.(point) || undefined}
+                    style={{
+                      transform: `scaleX(${num(width / length)})`,
+                      ...(fill ? { '--stage-fill': fill(point) } : null),
+                    }}
                   >
-                    <path d={d} />
-                    {amount > 0 ? <path className="stage-peak" d={d} /> : null}
+                    <path d={d} data-kc-outline={outline?.(point) || undefined} />
+                    {amount > 0 && !fill ? <path className="stage-peak" d={d} /> : null}
                   </g>
                   <text className="stage-value" x={size.width} y={y + 16} textAnchor="end">
                     {stageText(props, point)}

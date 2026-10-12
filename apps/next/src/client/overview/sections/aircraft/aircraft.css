@@ -1,6 +1,7 @@
-.ov3-aircraft {
+/* Details of the Aircraft card: the manufacturer key, the body-class bands and the review stack by space alone. */
+.ov3-aircraft-more {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
+  gap: var(--space-5);
 }

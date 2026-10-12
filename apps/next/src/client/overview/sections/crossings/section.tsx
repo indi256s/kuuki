@@ -1,152 +1,278 @@
 'use client'
 
-import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
+import { useState } from 'react'
+import { SECTION_GATES } from '@kuuki/shared/overview/goals'
+import { Button } from '../../../ui/button'
+import { SegmentedControl } from '../../../ui/segmented-control'
+import { StageRows } from '../../charts/stage-rows'
 import { LazyChart } from '../../charts/lazy-chart'
+import { ChapterCard } from '../../layout/chapter-card'
+import { reducedMotion } from '../../layout/drag-motion'
+import { useReading } from '../../layout/use-reading'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, filterLabel, number } from '../rankings/display'
-import { CrossingBars, barsWidth, type ShiftYear } from './bars'
-import { GlobeSheetFigure } from './figure'
-import './crossings.css'
+import { copy, flights, number } from '../rankings/display'
+import {
+  TOTAL,
+  byFlights,
+  continentName,
+  displayOrder,
+  flightsUnit,
+  type ContinentId,
+} from './continents'
+import { ContinentsFigure } from './figure'
+import { ShiftYears } from './shift-years'
 
-export function CrossingDots({ count }: { count: number }) {
-  return (
-    <div className="ov3-crossing-dots" aria-hidden="true">
-      {Array.from({ length: Math.min(12, count) }, (_, i) => (
-        <i key={i} />
-      ))}
-      {count > 12 && <span>+{count - 12}</span>}
-    </div>
-  )
+type View = 'flights' | 'firsts'
+type Datum = { id: ContinentId; name: string; flights: number; firstYear: number | null }
+
+const NONE: Record<ContinentId, boolean> = {
+  europe: false,
+  asia: false,
+  africa: false,
+  'north-america': false,
+  'south-america': false,
+  oceania: false,
+  antarctica: false,
 }
+
 export function Section({ span }: { span: Span }) {
   const { scope, all, locale, actions, isCurrent } = useOverview()
-  if (!scope || !all) return null
-  const gate = scope.crossings
-  if (gate.status !== 'ready') return null
-  const data = gate.value,
-    baseline = all.crossings.status === 'ready' ? all.crossings.value : data
-  const ghosts = baseline.shiftByYear
-  const points: ChartPoint<ShiftYear>[] = data.shiftByYear
-    .filter((row) => row.flights > 0 && ghosts.some((base) => base.year === row.year))
-    .map((row) => ({
-      key: row.key,
-      datum: row,
-      label: `${row.year} · +${number(locale, row.forward)} / −${number(locale, row.back)} ${copy(locale, 'h', 'ч')}`,
-    }))
-  const rows = ghosts.map(
-    (base) =>
-      data.shiftByYear.find((row) => row.year === base.year) ?? {
-        ...base,
-        forward: 0,
-        back: 0,
-        flights: 0,
-      },
+  const [view, setView] = useState<View>('flights')
+  const [year] = useState(() => new Date().getFullYear())
+  const gate = scope?.continents
+  const data = gate?.status === 'ready' ? gate.value : null
+  const rows = data?.rows ?? []
+  const order = displayOrder(rows, view)
+  const headline = byFlights(rows)[0]?.id ?? null
+  const r = useReading(
+    order.map((row) => row.id),
+    headline,
   )
-  const pick = (year: number) => {
-    if (isCurrent()) actions.setPeriod({ years: [year] })
+  const state = !scope || !all ? 'loading' : data ? 'ready' : 'empty'
+  const name = (id: ContinentId) => continentName(id, locale)
+
+  const flown = rows.reduce((set, row) => ({ ...set, [row.id]: row.flights > 0 }), NONE)
+  const count = data?.flown ?? 0
+  const label = copy(locale, `${count} OF ${TOTAL} PIECES`, `${count} ИЗ ${TOTAL} ЧАСТЕЙ`)
+  const reading = rows.find((row) => row.id === r.reading) ?? null
+
+  // The caption: the headline reads like a sentence about the whole tray, a pick about its own continent.
+  const holes = TOTAL - count
+  const dry =
+    holes === 0
+      ? copy(locale, 'Every socket is filled. Show-off.', 'Все гнёзда заняты. Хвастун.')
+      : copy(
+          locale,
+          holes === 1
+            ? 'The tray still has a hole in it.'
+            : `The tray still has ${holes} holes in it.`,
+          holes === 1
+            ? 'В лотке осталась одна дырка.'
+            : `В лотке ещё ${holes} ${new Intl.PluralRules('ru').select(holes) === 'few' ? 'дырки' : 'дырок'}.`,
+        )
+  const newest = byFlights(rows)
+    .filter((row) => row.id !== headline && row.firstYear !== null)
+    .reduce<(typeof rows)[number] | null>(
+      (best, row) => (best && best.firstYear! >= row.firstYear! ? best : row),
+      null,
+    )
+  let value = '—',
+    unit: string | undefined,
+    caption = ''
+  if (data && reading && headline) {
+    if (r.isHeadline) {
+      value = number(locale, data.flown)
+      unit = copy(locale, `of ${TOTAL} continents`, `из ${TOTAL} континентов`)
+      caption = [
+        copy(locale, `${name(headline)} most`, `Чаще всего — ${name(headline)}`),
+        newest
+          ? copy(
+              locale,
+              `${name(newest.id)} since ${newest.firstYear}`,
+              `${name(newest.id)} с ${newest.firstYear}`,
+            )
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+        .concat('. ', dry)
+    } else {
+      value = number(locale, reading.flights)
+      unit = flightsUnit(locale, reading.flights)
+      caption =
+        reading.flights === 0
+          ? copy(
+              locale,
+              `${name(reading.id)} · not flown. An empty socket, outlined so you can't pretend otherwise.`,
+              `${name(reading.id)} · не бывали. Пустое гнездо обведено, чтобы не делать вид, что всё в порядке.`,
+            )
+          : reading.firstYear === null
+            ? copy(
+                locale,
+                `${name(reading.id)} · first flight undated`,
+                `${name(reading.id)} · дата первого перелёта неизвестна`,
+              )
+            : copy(
+                locale,
+                `${name(reading.id)} · first reached in ${reading.firstYear}`,
+                `${name(reading.id)} · впервые — в ${reading.firstYear}`,
+              )
+    }
   }
-  const route = (record: typeof data.lastEquator) =>
-    record
-      ? `${record.origin} → ${record.destination}`
-      : copy(locale, 'No crossing recorded', 'Пересечений пока нет')
-  const hit = data.offsets.filter((row) => row.hit).length
-  const caption = copy(locale, 'Clock change per year · hours', 'Сдвиг часов по годам · часы')
+
+  // Chart: flights, or the year each continent was first reached (the bar is the years since).
+  const firsts = view === 'firsts'
+  const held = (row: Datum) =>
+    row.flights > 0 && row.firstYear !== null ? Math.max(1, year - row.firstYear + 1) : 0
+  const chartCaption = firsts
+    ? copy(locale, 'First reached', 'Впервые на континенте')
+    : copy(locale, 'Flights by continent', 'Перелёты по континентам')
+  const points = order.map((row) => {
+    const datum: Datum = { ...row, name: name(row.id) }
+    return {
+      key: row.id,
+      datum,
+      label: firsts
+        ? `${datum.name}, ${row.flights > 0 && row.firstYear !== null ? row.firstYear : copy(locale, 'not flown', 'не бывали')}`
+        : `${datum.name}, ${flights(locale, row.flights)}`,
+    }
+  })
+
+  // The tray counts flights per airport, so a flight between continents is in both rows.
+  const unplaced = data?.unplaced ?? 0
+  const coverage = copy(
+    locale,
+    `Counted per airport, so a flight between two continents counts for both.${unplaced > 0 ? ` ${flights(locale, unplaced)} had no airport to place.` : ''}`,
+    `Считаем по аэропортам, поэтому перелёт между двумя континентами идёт в оба.${unplaced > 0 ? ` ${flights(locale, unplaced)} без аэропорта, который можно разместить.` : ''}`,
+  )
+  const lines = scope?.crossings.status === 'ready' ? scope.crossings.value : null
+  const baseline = all?.crossings.status === 'ready' ? all.crossings.value : lines
+  const hit = lines?.offsets.filter((row) => row.hit).length ?? 0
+  const route = (record: { origin: string; destination: string } | null) =>
+    record ? ` · ${copy(locale, 'last', 'последний')} ${record.origin} → ${record.destination}` : ''
+
+  const missing = scope && SECTION_GATES.crossings.gate(scope)
+  const below = missing?.status === 'below' ? missing : null
   return (
-    <div className="ov3-crossings" data-span={span}>
-      <GlobeSheetFigure />
-      <div className="ov3-crossing-tiles">
-        <div className="ov3-crossing-tile">
-          <p>{copy(locale, 'Clocks shifted', 'Сдвиг часов')}</p>
-          <div className="ov3-crossing-figure">
-            <strong>
-              {number(locale, data.clockShiftHours)} {copy(locale, 'h', 'ч')}
-            </strong>
-            <div className="ov3-shift-split" aria-hidden="true">
-              <i style={{ flexGrow: data.forwardHours }} />
-              <i style={{ flexGrow: data.backHours }} />
-            </div>
-          </div>
-          <small>
-            {number(locale, data.forwardHours)} {copy(locale, 'h forward', 'ч вперёд')} ·{' '}
-            {number(locale, data.backHours)} {copy(locale, 'h back', 'ч назад')}
-          </small>
-        </div>
-        <div className="ov3-crossing-tile">
-          <p>{copy(locale, 'UTC offsets', 'Смещения UTC')}</p>
-          <div className="ov3-crossing-figure">
-            <strong>{hit}</strong>
-            <div className="ov3-offset-ticks" aria-hidden="true">
-              {data.offsets.map((row) => (
-                <i
-                  key={row.key}
-                  style={{ background: row.hit ? 'var(--mark-1)' : 'var(--mark-ghost)' }}
-                />
-              ))}
-            </div>
-          </div>
-          <small>
-            {hit} {copy(locale, 'of the 24 hourly offsets reached', 'из 24 часовых смещений')}
-          </small>
-        </div>
-        <div className="ov3-crossing-tile">
-          <p>{copy(locale, 'Equator', 'Экватор')}</p>
-          <div className="ov3-crossing-figure">
-            <strong>{data.equator}</strong>
-            <CrossingDots count={data.equator} />
-          </div>
-          <small>{route(data.lastEquator)}</small>
-        </div>
-        <div className="ov3-crossing-tile">
-          <p>{copy(locale, 'Arctic Circle', 'Полярный круг')}</p>
-          <div className="ov3-crossing-figure">
-            <strong>{data.arcticCircle}</strong>
-            <CrossingDots count={data.arcticCircle} />
-          </div>
-          <small>{route(data.lastArctic)}</small>
-        </div>
-      </div>
-      <h3 className="ov3-chart-caption">{caption}</h3>
-      <LazyChart height={284} label={caption}>
-        {(inView) => (
-          <KuukiChart
-            points={points}
-            height={220}
-            fit={(available) => barsWidth(ghosts.length, available)}
-            inView={inView}
-            ariaLabel={caption}
-            onPick={(point) => pick(point.datum.year)}
-            actions={(point) => [{ label: filterLabel(locale), run: () => pick(point.datum.year) }]}
-            tip={(points) => <span>{points[0].label}</span>}
-            table={{
-              caption,
-              columns: [
-                { key: 'year', label: copy(locale, 'Year', 'Год') },
-                { key: 'forward', label: copy(locale, 'Forward', 'Вперёд'), numeric: true },
-                { key: 'back', label: copy(locale, 'Back', 'Назад'), numeric: true },
-                { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
-              ],
-              rows: rows.map((row) => ({
-                year: row.year,
-                forward: row.flights ? row.forward : '–',
-                back: row.flights ? row.back : '–',
-                flights: row.flights,
-              })),
-            }}
-          >
-            {(mark, { width }) => (
-              <CrossingBars
+    <ChapterCard
+      state={state}
+      figure={
+        <ContinentsFigure
+          flown={flown}
+          lit={state === 'ready' ? (reading?.id ?? null) : null}
+          label={label}
+          picked={r.picked && !reducedMotion()}
+        />
+      }
+      figureButton={{
+        label: copy(locale, 'Show next continent', 'Показать следующий континент'),
+        onPress: r.next,
+      }}
+      hero={{ value, unit, caption, only: null }}
+      rollValue={r.picked}
+      chart={{
+        table: {
+          caption: chartCaption,
+          columns: [
+            { key: 'continent', label: copy(locale, 'Continent', 'Континент') },
+            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+            { key: 'first', label: copy(locale, 'First reached', 'Впервые'), numeric: true },
+          ],
+          rows: order.map((row) => ({
+            continent: name(row.id),
+            flights: row.flights,
+            first: row.flights > 0 && row.firstYear !== null ? row.firstYear : '—',
+          })),
+        },
+        caption: chartCaption,
+        toggle: (
+          <SegmentedControl
+            dense
+            value={view}
+            onChange={setView}
+            label={copy(locale, 'Continents', 'Континенты')}
+            options={[
+              { value: 'flights', label: copy(locale, 'Flights', 'Перелёты') },
+              { value: 'firsts', label: copy(locale, 'Firsts', 'Впервые') },
+            ]}
+          />
+        ),
+        plot: (
+          <LazyChart height={TOTAL * 24} label={chartCaption}>
+            {(inView) => (
+              <StageRows
+                span={span}
                 points={points}
-                ghosts={ghosts}
-                width={width}
-                height={220}
-                format={(value) => number(locale, value)}
-                mark={mark}
+                value={(point) => (firsts ? held(point.datum) : point.datum.flights)}
+                format={(point) =>
+                  firsts ? String(point.datum.firstYear) : number(locale, point.datum.flights)
+                }
+                name={(point) => point.datum.name}
+                valueWidth={44}
+                selectedKey={reading?.id ?? null}
+                inView={inView}
+                ariaLabel={chartCaption}
+                onPick={(point) => r.pick(point.key as ContinentId)}
+                tip={(selected) => <span>{selected[0].label}</span>}
               />
             )}
-          </KuukiChart>
-        )}
-      </LazyChart>
-    </div>
+          </LazyChart>
+        ),
+      }}
+      details={{
+        heading: copy(locale, 'Lines you crossed', 'Пересечённые линии'),
+        columns: lines
+          ? [
+              {
+                value: `${number(locale, lines.clockShiftHours)} ${copy(locale, 'h', 'ч')}`,
+                label: copy(locale, 'Clocks shifted', 'Сдвиг часов'),
+              },
+              {
+                value: copy(locale, `${hit} of 24`, `${hit} из 24`),
+                label: copy(locale, 'UTC offsets reached', 'Достигнуто смещений UTC'),
+              },
+              {
+                value: number(locale, lines.equator),
+                label: `${copy(locale, 'Equator', 'Экватор')}${route(lines.lastEquator)}`,
+              },
+              {
+                value: number(locale, lines.arcticCircle),
+                label: `${copy(locale, 'Arctic Circle', 'Полярный круг')}${route(lines.lastArctic)}`,
+              },
+            ]
+          : [],
+        coverage,
+        more:
+          lines && baseline
+            ? [
+                {
+                  summary: copy(locale, 'Clock shift by year', 'Сдвиг часов по годам'),
+                  content: <ShiftYears data={lines} baseline={baseline} />,
+                },
+              ]
+            : undefined,
+      }}
+      empty={{
+        title: copy(locale, 'Too few flights to place', 'Слишком мало перелётов'),
+        line: below
+          ? copy(
+              locale,
+              `Continents need ${flights(locale, below.need)} with a known airport, and this filter leaves ${number(locale, below.have)}. The tray stays empty.`,
+              `Для континентов нужно ${flights(locale, below.need)} с известным аэропортом, а фильтр оставил ${number(locale, below.have)}. Лоток пуст.`,
+            )
+          : '',
+        action: (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (isCurrent()) actions.clear()
+            }}
+          >
+            {copy(locale, 'Clear filter', 'Сбросить фильтр')}
+          </Button>
+        ),
+      }}
+    />
   )
 }

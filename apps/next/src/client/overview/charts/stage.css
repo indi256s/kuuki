@@ -36,13 +36,19 @@
   transform-origin: 0 50%;
 }
 .stage-bar path {
-  fill: var(--mark-rest);
+  fill: var(--stage-fill, var(--mark-rest));
   /* The bar is scaled; the contour keeps its 2px. */
   vector-effect: non-scaling-stroke;
 }
 .stage-bar .stage-peak {
   fill: var(--mark-1);
   opacity: 0;
+}
+/* A row with its own fill keeps it in every state; an outline row is that color as a 1px stroke with no fill. */
+.stage-bar[data-outline] path {
+  fill: none;
+  stroke: var(--stage-fill);
+  stroke-width: 1px;
 }
 [data-zero] > .stage-bar path {
   fill: var(--zero);

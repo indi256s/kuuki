@@ -40,12 +40,27 @@ describe('puzzle', () => {
     CONTINENT_IDS.map((id) => [id, id !== 'oceania' && id !== 'antarctica']),
   ) as Record<ContinentId, boolean>
 
-  it('draws the lit piece last', () => {
-    const fig = puzzle(1, { flown, lit: 'north-america', label: '5 OF 7 PIECES' })
-    const groups = fig.nodes.filter((n) => n.kind === 'group').map((n) => n.part)
-    expect(groups.at(-1)).toBe('piece-north-america')
-    expect(groups).toContain('socket-north-america')
-    expect(groups).toContain('piece-oceania')
+  it('keeps every part in one order and draws the accent overlays after every rest piece', () => {
+    const draw = (lit: ContinentId | null) =>
+      puzzle(1, { flown, lit, label: '5 OF 7 PIECES' }).nodes.filter((n) => n.kind === 'group')
+    const names = (lit: ContinentId | null) => draw(lit).map((n) => n.part)
+    const a = names('north-america'),
+      b = names('europe')
+    expect(a).toEqual(b)
+    expect(a).toContain('socket-north-america')
+    expect(a).toContain('piece-oceania')
+    expect(a).toContain('lit-oceania')
+    expect(Math.min(...a.flatMap((p, i) => (p.startsWith('lit-') ? [i] : [])))).toBeGreaterThan(
+      a.lastIndexOf('piece-north-america'),
+    )
+    expect(names(null).some((p) => p.startsWith('lit-'))).toBe(false)
+    const lits = (lit: ContinentId) =>
+      draw(lit).flatMap((n) =>
+        n.kind === 'group' && n.part.startsWith('lit-') ? [[n.part, n.vars?.['--lit']]] : [],
+      )
+    expect(lits('north-america').filter(([, on]) => on === '1')).toEqual([
+      ['lit-north-america', '1'],
+    ])
   })
 })
 

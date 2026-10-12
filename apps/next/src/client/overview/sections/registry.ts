@@ -43,7 +43,7 @@ export const SECTIONS: Record<SectionId, Entry> = {
     Tile: recordsTile,
   },
   crossings: {
-    title: { en: 'Crossings', ru: 'Пересечения' },
+    title: { en: 'Continents', ru: 'Континенты' },
     Section: dynamic(() => import('./crossings/section').then((module) => module.Section), {
       loading: SectionLoading,
     }),

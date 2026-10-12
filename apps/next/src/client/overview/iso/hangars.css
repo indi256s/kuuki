@@ -1,0 +1,9 @@
+/* Hangars (Aircraft card): no hover pose, and nothing moves. A pick only moves the light: the picked maker's doors, painted name and
+   stand marking crossfade between their unlit and lit drawings (sibling parts whose opacity reads --lit-<key>, see hangars.ts).
+   The fade is enabled only once a pick has happened (data-picked on the host), so first render, a swipe and a reset to the headline
+   change the lighting at once. Opacity only, and a new pick retargets from wherever the fade is. Reduced motion swaps at once. */
+@media (prefers-reduced-motion: no-preference) {
+  .iso-hangars-host[data-picked] .iso-hangars [data-part^='shed-'] {
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+}

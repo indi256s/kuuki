@@ -26,8 +26,8 @@ const PAINT_ORDER: readonly ContinentId[] = [
   'antarctica',
 ]
 
-/** How far a pick lifts a piece out of the tray, in iso units. */
-const LIFT = 5,
+/** How far a pick lifts a piece out of the tray, in px (not scaled by k: the card's motion is a fixed 4px). */
+const LIFT_PX = 4,
   SC = 0.6,
   LAT0 = 84,
   LAT1 = -84,
@@ -45,8 +45,12 @@ const plan = (id: ContinentId): Pt[][] =>
 
 /**
  * Continents: a world-map jigsaw in its tray. A flown continent is a raised piece in place; one not flown is an empty socket.
- * Parts: `piece-<id>` for every continent (the raised piece, or for one not flown its empty socket), plus `socket-<id>` for a flown one (the hole under its piece, which stays when the piece lifts). A flown piece's group carries `--lift-y`, the lift in px (negative: up).
- * Painter's order: sockets, then raised pieces far to near, the lit one last. The lit piece takes the accent and glow; a lit continent not flown outlines its socket in the accent instead.
+ * Parts, in a fixed order whatever is lit, so no element ever moves in the DOM (a moved element loses its CSS transitions):
+ * `socket-<id>` (the hole under a flown piece, which stays when the piece lifts) or `piece-<id>` (an unflown continent's empty socket);
+ * `piece-<id>` for a flown one (the raised piece at rest); then, when `lit` is set, one `lit-<id>` per continent on top of everything.
+ * A flown `lit-<id>` is the accent copy of its piece with the glow; an unflown one is the socket outline in the accent. The lit one has `--lit: 1`
+ * and the rest 0 (puzzle.css fades the overlays on it, and lifts the lit flown piece and its overlay together by `--lift-y`).
+ * Painting the overlays after every rest piece is what makes the lit piece pass over its neighbours as it lifts.
  */
 export function puzzle(
   k: number,
@@ -79,34 +83,47 @@ export function puzzle(
     for (const r of rings) s.poly(flat(r, z), fill, stroke, undefined, width)
     for (const r of rings) s.poly(flat(r, z), fill, 'none')
   }
-  const socket = (id: ContinentId) =>
-    layer(id, T, 'glass', id === lit && !flown[id] ? 'accent' : 'detail', 1.6)
-  const [, liftY] = s.vector(0, 0, LIFT)
+  const vars = (id: ContinentId, lifts: boolean) => ({
+    ...(lifts ? { '--lift-y': `${-LIFT_PX}px` } : {}),
+    '--lit': id === lit ? '1' : '0',
+  })
 
-  // Sockets first, the lit empty one last among them so its outline is not overdrawn.
-  const sockets = CONTINENT_IDS.filter((id) => id !== lit || flown[id]).concat(
-    lit && !flown[lit] ? [lit] : [],
-  )
-  for (const id of sockets) s.group(flown[id] ? `socket-${id}` : `piece-${id}`, () => socket(id))
-  // Raised pieces, the lit one last so it passes over its neighbours as it lifts.
-  const raised = PAINT_ORDER.filter((id) => flown[id] && id !== lit).concat(
-    lit && flown[lit] ? [lit] : [],
-  )
-  for (const id of raised) {
-    const hot = id === lit
+  for (const id of CONTINENT_IDS)
+    s.group(flown[id] ? `socket-${id}` : `piece-${id}`, () => layer(id, T, 'glass', 'detail', 1.6))
+  const raised = PAINT_ORDER.filter((id) => flown[id])
+  for (const id of raised)
     s.group(
       `piece-${id}`,
       () => {
-        layer(id, T, hot ? 'accent-side' : 'side', 'line', 1.8)
-        if (hot)
+        layer(id, T, 'side', 'line', 1.8)
+        layer(id, R, 'detail', 'line', 1.6)
+      },
+      { vars: vars(id, true) },
+    )
+  if (lit)
+    for (const id of PAINT_ORDER) {
+      if (!flown[id]) {
+        s.group(
+          `lit-${id}`,
+          () => {
+            for (const r of plan(id)) s.poly(flat(r, T), 'none', 'accent', undefined, 1.6)
+          },
+          { vars: vars(id, false) },
+        )
+        continue
+      }
+      s.group(
+        `lit-${id}`,
+        () => {
+          layer(id, T, 'accent-side', 'line', 1.8)
           s.glow(4, () => {
             for (const r of plan(id)) s.poly(flat(r, R), 'accent', 'none')
           })
-        layer(id, R, hot ? 'accent' : 'detail', hot ? 'accent' : 'line', 1.6)
-      },
-      { vars: { '--lift-y': `${liftY}px` } },
-    )
-  }
+          layer(id, R, 'accent', 'accent', 1.6)
+        },
+        { vars: vars(id, true) },
+      )
+    }
   // A frame label, and the count where a tray would print its contents.
   s.text(label, [W + 4, D + 9, T], X, Y, {
     size: 6,

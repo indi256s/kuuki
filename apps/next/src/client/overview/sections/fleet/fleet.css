@@ -4,46 +4,6 @@
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
-.ov3-fleet > .ov3-chart-caption {
-  margin-top: var(--space-5);
-}
-.ov3-fleet > .ov3-cookie-head {
-  margin-bottom: calc(var(--space-5) - var(--space-3));
-}
-.ov3-fleet-types {
-  display: grid;
-  gap: var(--space-1);
-}
-.ov3-fleet-types button {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-height: 32px;
-  padding: var(--space-1) 0;
-  border: 0;
-  background: none;
-  color: var(--text-muted);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-.ov3-fleet-types strong {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.ov3-fleet-code {
-  font-family: var(--font-mono);
-}
-.ov3-fleet-types button:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-@media (pointer: coarse) {
-  .ov3-fleet-types button {
-    min-height: 44px;
-  }
-}
 .ov3-body-split {
   display: flex;
   gap: var(--space-2);

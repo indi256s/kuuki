@@ -1,29 +1,12 @@
 .ov3-manufacturers {
-  container: manufacturers / inline-size;
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
-.ov3-manufacturers > * {
-  margin: 0;
-}
-.ov3-maker-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-.ov3-maker-heading strong {
-  font-size: 28px;
-}
-.ov3-maker-heading p {
-  margin: 4px 0;
-}
 .ov3-maker-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: var(--space-2) var(--space-6);
 }
 .ov3-maker-legend button {
@@ -44,52 +27,4 @@
 .ov3-maker-legend button:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-}
-/* Waffle and key stack on a narrow card; wide cards seat the key beside the waffle. */
-.ov3-maker-body {
-  display: grid;
-  gap: var(--space-3);
-  min-width: 0;
-}
-.ov3-maker-side {
-  display: grid;
-  gap: var(--space-3);
-  align-content: start;
-  min-width: 0;
-}
-@container manufacturers (min-width: 720px) {
-  .ov3-maker-body {
-    grid-template-columns: minmax(0, 360px) minmax(0, 40ch);
-    gap: var(--space-8);
-    align-items: start;
-  }
-}
-
-/* Hover, keyboard focus and pinned touch actions isolate a maker by a stronger contour on its whole group. Data colours and the other groups are untouched; the focus ring itself comes from the chart. */
-.ov3-manufacturers
-  .kc:has([data-waffle-group='airbus'][data-selected='true'])
-  [data-waffle-group='airbus']
-  rect,
-.ov3-manufacturers
-  .kc:has([data-waffle-group='boeing'][data-selected='true'])
-  [data-waffle-group='boeing']
-  rect,
-.ov3-manufacturers
-  .kc:has([data-waffle-group='embraer'][data-selected='true'])
-  [data-waffle-group='embraer']
-  rect,
-.ov3-manufacturers
-  .kc:has([data-waffle-group='atr'][data-selected='true'])
-  [data-waffle-group='atr']
-  rect,
-.ov3-manufacturers
-  .kc:has([data-waffle-group='other'][data-selected='true'])
-  [data-waffle-group='other']
-  rect,
-.ov3-manufacturers
-  .kc:has([data-waffle-group='unknown'][data-selected='true'])
-  [data-waffle-group='unknown']
-  rect {
-  stroke: var(--text);
-  stroke-width: 2px;
 }

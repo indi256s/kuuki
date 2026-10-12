@@ -10,8 +10,10 @@ export type StamperInput = {
   month: number
   /** The count behind `flightsLabel`; the lettering itself is the caller's. */
   flights: number
-  /** Localized short month, upper-case: the band's current line and the impression. */
+  /** Localized short month, upper-case: the impression's lettering (and the band's current line, unless `bandLabel` says otherwise). */
   monthLabel: string
+  /** The band's current line when it differs from the impression: mid-pick the band has rolled on and the impression has not been stamped yet. A year works as well as a month. */
+  bandLabel?: string
   /** The impression's count line, pre-formatted by the caller ("11 FLIGHTS"). */
   flightsLabel: string
   /** Twelve localized short months, upper-case, January first, for the band's neighbours; English when omitted. */
@@ -29,14 +31,22 @@ export type StamperInput = {
  */
 export function stamper(
   k: number,
-  { month, monthLabel, flightsLabel, monthLabels, press = 0, ink = 0.9 }: StamperInput,
+  {
+    month,
+    monthLabel,
+    bandLabel = monthLabel,
+    flightsLabel,
+    monthLabels,
+    press = 0,
+    ink = 0.9,
+  }: StamperInput,
 ): IsoFigureData {
   const s = new Scene(k)
   const Z = 0.6,
     H = Z - press,
     F = 34
   const labels = monthLabels ?? MON
-  const name = (m: number) => (m === month ? monthLabel : labels[((m % 12) + 12) % 12])
+  const name = (m: number) => (m === month ? bandLabel : labels[((m % 12) + 12) % 12])
   const [, pressY] = s.vector(0, 0, -PRESS_TRAVEL),
     [, rollY] = s.vector(0, 0, ROLL_STEP)
 

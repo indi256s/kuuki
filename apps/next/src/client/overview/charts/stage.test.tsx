@@ -50,3 +50,20 @@ it('rows show a dash for zero, check the applied row and scale bars from their s
   expect(bars[0].style.transform).toBe('scaleX(1)')
   expect(bars[1].style.transform).toBe('scaleX(0.5)')
 })
+
+it('rows with a fill keep it on the picked row and draw an outline row as a stroke', () => {
+  const { container } = render(
+    <StageRows
+      {...shared}
+      span="sheet"
+      fill={(point) => `var(--cat-maker-${point.key})`}
+      outline={(point) => point.key === 'a'}
+    />,
+  )
+  const bars = container.querySelectorAll<SVGGElement>('.stage-bar')
+  expect(bars[0].style.getPropertyValue('--stage-fill')).toBe('var(--cat-maker-a)')
+  expect(bars[0]).toHaveAttribute('data-outline', 'true')
+  expect(bars[1].style.getPropertyValue('--stage-fill')).toBe('var(--cat-maker-b)')
+  expect(bars[1]).not.toHaveAttribute('data-outline')
+  expect(container.querySelector('.stage-peak')).toBeNull()
+})
