@@ -10,7 +10,11 @@
 //   5. every attempted item is classified from what the database now holds, never from the batch's own results.
 import { HttpError } from '../_lib/http'
 import { toOwnFlight, FLIGHT_COLUMNS, type FlightRow } from '../_lib/flights'
-import { FLIGHT_BULK_CREATE_MAX } from '../../../packages/shared/src/flightValidation'
+import { localToday } from '../../../packages/shared/src/calendar'
+import {
+  FLIGHT_BULK_CREATE_MAX,
+  isCalendarDate,
+} from '../../../packages/shared/src/flightValidation'
 import {
   bulkCreate,
   conversionDigest,
@@ -197,6 +201,17 @@ function completionStatement(
     .bind(instant, batchId, userId, userId, batchId, JSON.stringify(keys))
 }
 
+/** A Quick Add row dated today or earlier needs the member's own "I flew it"; a future date converts as upcoming. */
+function flownUnconfirmed(draft: DraftRow, timezone: string | null, now: Date) {
+  const fields = JSON.parse(draft.fields_json) as DraftFields
+  return (
+    fields.flown_required === true &&
+    fields.flown_confirmed !== true &&
+    isCalendarDate(fields.date) &&
+    fields.date <= localToday(timezone ?? 'UTC', now)
+  )
+}
+
 export async function confirmBatch(
   db: D1Database,
   userId: string,
@@ -308,6 +323,13 @@ export async function confirmBatch(
             400,
             'YEAR_NOT_CONFIRMED',
             'Confirm the year of this flight before saving',
+          )
+        } else if (flownUnconfirmed(draft, timezone, now)) {
+          results[index] = failure(
+            item,
+            400,
+            'FLIGHT_NOT_CONFIRMED',
+            'Confirm you took this flight before saving',
           )
         } else if (duplicates.has(draft.id) && draft.duplicate_acknowledged !== 1) {
           results[index] = failure(

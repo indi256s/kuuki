@@ -8,6 +8,7 @@ import { Button } from '../ui/button'
 import { DestructiveConfirm } from '../ui/destructive-confirm'
 import { Disclosure } from '../ui/disclosure'
 import { FloatingActionBar } from '../ui/floating-action-bar'
+import { NavigationLink } from '../navigation-link'
 import { FAILURE, S, count } from './copy'
 import type { DraftChange, SaveState } from './draft-saver'
 import type { Failure } from './import-errors'
@@ -20,7 +21,7 @@ import { ReviewRow } from './review-row'
 import {
   emptyValues,
   hasValues,
-  isChosen,
+  isChosenOn,
   partition,
   readiness,
   validateValues,
@@ -100,7 +101,9 @@ export function ReviewStep(props: ReviewStepProps) {
   const [discard, setDiscard] = useState(false)
   const all = useRef<HTMLInputElement>(null)
 
-  const selectable = groups.active.filter((draft) => readiness(draft).length === 0)
+  const day = today ?? localToday()
+  const isChosen = (draft: Draft) => isChosenOn(draft, day)
+  const selectable = groups.active.filter((draft) => readiness(draft, day).length === 0)
   const chosenActive = groups.active.filter(isChosen)
   const chosenDuplicates = groups.duplicates.filter(isChosen)
   // An untouched manual row is ignored; a row with any value must pass the same validation as a draft edit.
@@ -111,7 +114,7 @@ export function ReviewStep(props: ReviewStepProps) {
   const unsaved = Object.keys(saveStates).length > 0 || dirty.size > 0
   const everySelected = selectable.length > 0 && selectable.every(isChosen)
   // Flights still waiting on a question: skipped and answered ones have no open cause left.
-  const need = useMemo(() => needCount(shown, today ?? localToday()), [shown, today])
+  const need = useMemo(() => needCount(shown, day), [shown, day])
   const inReview = groups.active.length + groups.duplicates.length
   const asking = !partial && need > 0
   useEffect(() => {
@@ -131,6 +134,13 @@ export function ReviewStep(props: ReviewStepProps) {
         : total === 0
           ? S.nothingChosen[locale]
           : undefined
+  // Finish later promises only what the server holds: nothing typed, pending or unsaved may be waiting behind it.
+  const retained = Boolean(expiresAt) && !Number.isNaN(Date.parse(expiresAt!))
+  const finishLaterBlock = confirming
+    ? S.pausedWhileSaving[locale]
+    : unsaved || touched.length > 0
+      ? S.finishLaterBlocked[locale]
+      : undefined
   const addManual = () =>
     onManualRows([...manualRows, makeManualRow ? makeManualRow() : newManualRow(emptyValues())])
   const originalOf = (id: string) => drafts.find((draft) => draft.id === id)!
@@ -143,6 +153,7 @@ export function ReviewStep(props: ReviewStepProps) {
       stored={originalOf(draft.id)}
       state={saveStates[draft.id]}
       mobile={mobile}
+      today={day}
       frozen={confirming}
       onDirty={onDirty}
       onChange={(change) => onChange(originalOf(draft.id), change)}
@@ -209,7 +220,7 @@ export function ReviewStep(props: ReviewStepProps) {
         drafts={shown}
         saveStates={saveStates}
         frozen={confirming}
-        today={today}
+        today={day}
         onChange={(draft, change) => onChange(originalOf(draft.id), change)}
         onRetry={onRetry}
       />
@@ -284,7 +295,28 @@ export function ReviewStep(props: ReviewStepProps) {
         <Button onClick={addManual} disabled={confirming}>
           <Plus size={16} strokeWidth={2} aria-hidden="true" /> {S.addManual[locale]}
         </Button>
+        {inReview > 0 && retained ? (
+          finishLaterBlock ? (
+            <Button disabledReason={finishLaterBlock}>{S.finishLater[locale]}</Button>
+          ) : (
+            <NavigationLink
+              href="/journal?queue=awaiting"
+              className="ui-button"
+              data-variant="secondary"
+            >
+              <span>{S.finishLater[locale]}</span>
+            </NavigationLink>
+          )
+        ) : null}
       </div>
+      {inReview > 0 && retained && !finishLaterBlock ? (
+        <p className="import-hint">
+          {S.finishLaterNote[locale].replace(
+            '{date}',
+            formatInstantDate(locale, expiresAt!, 'medium'),
+          )}
+        </p>
+      ) : null}
 
       {groups.duplicates.length > 0 ? (
         <Disclosure

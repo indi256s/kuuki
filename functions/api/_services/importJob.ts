@@ -29,6 +29,15 @@ export interface ImportSubmission {
   userId: string
   operationId: string
   sourceLabel: string | null
+  /** Quick Add online fallback: every draft of this batch carries the `flown_required` marker. */
+  requireFlownConfirmation?: boolean
+}
+
+/** Boarding-pass legs the browser decoded: already normalized draft rows that skip extraction and the job. */
+export interface LocalLegs {
+  sourceType: 'pdf' | 'image'
+  rows: DraftRowInput[]
+  incomplete: boolean
 }
 
 const SCORE_KEYS = [
@@ -42,7 +51,10 @@ const SCORE_KEYS = [
   'arrival_time',
 ] as const
 
-export function rowOf(flight: ExtractedFlight): DraftRowInput {
+export function rowOf(
+  flight: ExtractedFlight,
+  { flownRequired = false }: { flownRequired?: boolean } = {},
+): DraftRowInput {
   const yearExplicit = flight.field_confidence?.date_year_explicit === true
   const scores: Record<string, number> = {}
   for (const key of SCORE_KEYS) {
@@ -50,8 +62,10 @@ export function rowOf(flight: ExtractedFlight): DraftRowInput {
     if (typeof value === 'number' && Number.isFinite(value))
       scores[key] = Math.min(1, Math.max(0, value))
   }
+  const fields = draftFieldsOf(flight)
+  if (flownRequired) fields.flown_required = true
   return {
-    fields: draftFieldsOf(flight),
+    fields,
     confidence:
       typeof flight.confidence === 'number' && Number.isFinite(flight.confidence)
         ? Math.min(1, Math.max(0, flight.confidence))
@@ -83,22 +97,26 @@ async function stillWaitingForStart(db: D1Database, fence: BatchFence) {
 
 const discarded = () => new HttpError(410, 'This import was discarded', 'IMPORT_BATCH_DISCARDED')
 
-/** Replay, refuse at a limit, or extract and persist. `created` is false for a replayed submission. */
+/**
+ * Replay, refuse at a limit, or extract and persist. `created` is false for a replayed submission. Local legs are
+ * persisted synchronously with no provider call and no job, so they need neither a credential nor `IMPORT_JOBS`.
+ */
 export async function submitImport(
   env: Env,
-  source: ParseRequest,
-  { userId, operationId, sourceLabel }: ImportSubmission,
+  source: ParseRequest | LocalLegs,
+  { userId, operationId, sourceLabel, requireFlownConfirmation }: ImportSubmission,
   now: Date,
 ): Promise<{ created: boolean; snapshot: BatchSnapshot }> {
   const db = env.DB
+  const parse = 'rows' in source ? null : source
   const accept = async (fence: BatchFence) => {
-    if (!env.IMPORT_JOBS) return
+    if (!env.IMPORT_JOBS || !parse) return
     try {
       const response = await jobStub(env.IMPORT_JOBS, fence).fetch(
         'https://import.internal/start',
         {
           method: 'POST',
-          body: JSON.stringify({ fence, source }),
+          body: JSON.stringify({ fence, source: parse, requireFlownConfirmation }),
         },
       )
       // A refused handshake is not an outage when the batch has moved on: the original job may have finished or been
@@ -129,9 +147,10 @@ export async function submitImport(
   const replayed = await replay()
   if (replayed) return replayed
   if (
+    parse &&
     !env.IMPORT_JOBS &&
     !env.GEMINI_API_KEY &&
-    !(source.type === 'text' && parseStructuredText(source.content))
+    !(parse.type === 'text' && parseStructuredText(parse.content))
   )
     throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
 
@@ -139,7 +158,13 @@ export async function submitImport(
   if (
     !(await createProcessingBatch(
       db,
-      { id: batchId, userId, sourceType: source.type, sourceLabel, operationId },
+      {
+        id: batchId,
+        userId,
+        sourceType: 'rows' in source ? source.sourceType : source.type,
+        sourceLabel,
+        operationId,
+      },
       now,
     ))
   ) {
@@ -149,7 +174,7 @@ export async function submitImport(
   }
   const fence: BatchFence = { userId, batchId, generation: 1 }
 
-  if (env.IMPORT_JOBS) {
+  if (env.IMPORT_JOBS && parse) {
     await accept(fence)
     const snapshot = await readBatchSnapshot(db, userId, batchId, new Date())
     if (!snapshot) throw discarded()
@@ -158,26 +183,34 @@ export async function submitImport(
   let rows: DraftRowInput[] = []
   let final: FinalState
   const limit =
-    source.type === 'text' && parseStructuredText(source.content)
+    parse?.type === 'text' && parseStructuredText(parse.content)
       ? MAX_DRAFTS_DETERMINISTIC
       : MAX_DRAFTS_MODEL
-  try {
-    const result = await extractFlights(env, source)
-    rows = result.flights.map(rowOf)
-    if (result.flights.length === 0) final = { status: 'failed', errorCode: 'NO_FLIGHTS_FOUND' }
-    else if (result.flights.length > limit)
-      final = { status: 'partial', errorCode: 'ROWS_TRUNCATED' }
-    else if (result.rejected?.length) final = { status: 'partial', errorCode: 'ROWS_REJECTED' }
-    else final = { status: 'review', errorCode: null }
-  } catch (error) {
-    rows = []
-    if (!(error instanceof HttpError))
-      console.error(JSON.stringify({ event: 'import_job_error', code: 'INTERNAL' }))
-    final = {
-      status: 'failed',
-      errorCode: error instanceof HttpError && error.code ? error.code : 'INTERNAL',
+  if ('rows' in source) {
+    rows = source.rows
+    final = source.incomplete
+      ? { status: 'partial', errorCode: 'ROWS_REJECTED' }
+      : { status: 'review', errorCode: null }
+  } else
+    try {
+      const result = await extractFlights(env, source)
+      rows = result.flights.map((flight) =>
+        rowOf(flight, { flownRequired: requireFlownConfirmation }),
+      )
+      if (result.flights.length === 0) final = { status: 'failed', errorCode: 'NO_FLIGHTS_FOUND' }
+      else if (result.flights.length > limit)
+        final = { status: 'partial', errorCode: 'ROWS_TRUNCATED' }
+      else if (result.rejected?.length) final = { status: 'partial', errorCode: 'ROWS_REJECTED' }
+      else final = { status: 'review', errorCode: null }
+    } catch (error) {
+      rows = []
+      if (!(error instanceof HttpError))
+        console.error(JSON.stringify({ event: 'import_job_error', code: 'INTERNAL' }))
+      final = {
+        status: 'failed',
+        errorCode: error instanceof HttpError && error.code ? error.code : 'INTERNAL',
+      }
     }
-  }
   await persistDraftRows(db, fence, rows, final, new Date(), { limit })
   const snapshot = await readBatchSnapshot(db, userId, batchId, new Date())
   if (!snapshot) throw discarded()

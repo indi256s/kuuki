@@ -89,6 +89,7 @@ export class ImportJob {
         )
           throw new HttpError(400, 'Invalid job fence')
         const source = validateImportSource(input.source)
+        const flownRequired = input.requireFlownConfirmation === true
         const fence: BatchFence = {
           userId: input.fence.userId,
           batchId: input.fence.batchId,
@@ -112,7 +113,7 @@ export class ImportJob {
           await this.ctx.storage.setAlarm(Date.now() + 120_000)
           this.controller = new AbortController()
           this.ctx.waitUntil(
-            this.recognize(source, fence, this.controller).catch(() => {
+            this.recognize(source, fence, this.controller, flownRequired).catch(() => {
               // No exception payload is logged: database errors may contain extracted values.
               console.error(JSON.stringify({ event: 'import_job_error', code: 'INTERNAL' }))
             }),
@@ -152,7 +153,12 @@ export class ImportJob {
     })()
   }
 
-  private async recognize(source: ParseRequest, fence: BatchFence, controller: AbortController) {
+  private async recognize(
+    source: ParseRequest,
+    fence: BatchFence,
+    controller: AbortController,
+    flownRequired: boolean,
+  ) {
     let timedOut = false
     const timeout = setTimeout(() => {
       timedOut = true
@@ -189,9 +195,16 @@ export class ImportJob {
         truncated = true
         return true
       }
-      const event = await persistDraftRows(this.env.DB, fence, [rowOf(flight)], null, new Date(), {
-        ordinalStart: ordinal,
-      })
+      const event = await persistDraftRows(
+        this.env.DB,
+        fence,
+        [rowOf(flight, { flownRequired })],
+        null,
+        new Date(),
+        {
+          ordinalStart: ordinal,
+        },
+      )
       if (!event) {
         finalized = true
         return false
@@ -209,7 +222,7 @@ export class ImportJob {
         const event = await persistDraftRows(
           this.env.DB,
           fence,
-          run.map((row) => rowOf(row.flight)),
+          run.map((row) => rowOf(row.flight, { flownRequired })),
           null,
           new Date(),
           { ordinalStart: run[0].ordinal },

@@ -39,6 +39,7 @@ import {
   type UnconfirmedSave,
 } from './manual-save'
 import { ProgressStep } from './progress-step'
+import { QuickAddSource, UploadFallback, uploadSource } from './quick-add-source'
 import {
   emptyValues,
   hasValues,
@@ -118,7 +119,7 @@ export function ImportClient({
   ownerId: string
   locale: Locale
   initialBatchId?: string | null
-  initialSource?: 'file' | 'text' | null
+  initialSource?: 'file' | 'text' | 'pass' | null
   batchApi?: BatchApi
   aircraftApi?: AircraftApi
   onBatchId?: (id: string | null) => void
@@ -181,7 +182,20 @@ export function ImportClient({
   const [cancelError, setCancelError] = useState<string | null>(null)
   const cancelOperation = useRef<symbol | null>(null)
   const [sourceName, setSourceName] = useState<string | null>(null)
-  const [sourceMode, setSourceMode] = useState<'file' | 'text' | null>(initialSource)
+  const [sourceMode, setSourceMode] = useState<'file' | 'text' | 'pass' | null>(initialSource)
+  // Quick Add keeps the chosen pass in memory only (never stored) while its reading is partial, so the member can still
+  // send it for online recognition. Any other submission, and leaving the flow, drops it.
+  const [passFile, setPassFile] = useState<File | null>(null)
+  const [passUploading, setPassUploading] = useState(false)
+  const passUploadOperation = useRef<string | null>(null)
+  // Names the one pending pass read; leaving the flow clears it, so a read that lands afterwards is dropped.
+  const passUploadFence = useRef<symbol | null>(null)
+  useEffect(
+    () => () => {
+      passUploadFence.current = null
+    },
+    [],
+  )
   const [sourceKey, setSourceKey] = useState(0)
   const [aircraftSaved, setAircraftSaved] = useState<Set<number>>(new Set())
   // A manual row is labelled with the batch on screen, or `solo` once the member has left it.
@@ -253,6 +267,7 @@ export function ImportClient({
         : batch.phase === 'processing' || batch.phase === 'starting'
           ? 'processing'
           : 'source'
+  const quickSource = step === 'source' && sourceMode === 'pass'
   const failure =
     step === 'source' &&
     (batch.phase === 'failed' ||
@@ -289,6 +304,20 @@ export function ImportClient({
     [batch, clearCancel],
   )
 
+  const startPass = useCallback(
+    (source: ImportSource, operationId: string, file: File) => {
+      setPassFile(source.type === 'boarding_pass' ? file : null)
+      start(source, operationId)
+    },
+    [start],
+  )
+  const openGeneralImport = () => {
+    window.history.replaceState(window.history.state, '', '/import?source=file')
+    setNotice(null)
+    setSourceMode('file')
+    setSourceKey((key) => key + 1)
+  }
+
   const reset = useCallback(() => {
     clearCancel()
     batch.reset()
@@ -312,6 +341,9 @@ export function ImportClient({
     stampsFor.current = -1
     lastSource.current = null
     settledOperations.current.clear()
+    setPassFile(null)
+    passUploadOperation.current = null
+    passUploadFence.current = null
     setSourceKey((key) => key + 1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batch, saver, clearCancel])
@@ -325,8 +357,9 @@ export function ImportClient({
       }
       // After a reload the document is gone (it is never stored): ask for it again instead of replaying the stored failure.
       const type = batch.batch?.sourceType
+      const quick = sourceMode === 'pass'
       reset()
-      setSourceMode(type === 'text' ? 'text' : 'file')
+      setSourceMode(quick ? 'pass' : type === 'text' ? 'text' : 'file')
       setNotice(S.sourceAgain[locale])
     } else if (action === 'manual') {
       clearCancel()
@@ -336,8 +369,9 @@ export function ImportClient({
       setManualOnly(true)
       setManualRows([newManualRow(emptyValues(), 'solo')])
     } else if (action === 'otherFile' || action === 'pasteText') {
+      const quick = sourceMode === 'pass' && action === 'otherFile'
       reset()
-      setSourceMode(action === 'otherFile' ? 'file' : 'text')
+      setSourceMode(quick ? 'pass' : action === 'otherFile' ? 'file' : 'text')
     } else if (action === 'newImport') reset()
     else {
       try {
@@ -394,6 +428,26 @@ export function ImportClient({
     const id = batch.batch?.id
     if (id) await discardBatch(id)
     reset()
+  }
+
+  /** The pass was read only in part: send the same file for online recognition, replacing this partial review. */
+  const uploadPartialPass = async () => {
+    if (!passFile || passUploading || confirming || unsent) return
+    const fence = Symbol('pass upload')
+    passUploadFence.current = fence
+    setPassUploading(true)
+    try {
+      const source = await uploadSource(passFile)
+      if (passUploadFence.current !== fence) return
+      passUploadOperation.current ??= crypto.randomUUID()
+      resetEdits()
+      setPassFile(null)
+      start(source, passUploadOperation.current)
+    } catch {
+      if (passUploadFence.current === fence) setNotice(S.fileRead[locale])
+    } finally {
+      setPassUploading(false)
+    }
   }
 
   const acknowledgeWrites = (
@@ -748,8 +802,8 @@ export function ImportClient({
     <div className={clsx('import-page', mobile && 'is-mobile')}>
       <div className="page-heading">
         <p className="eyebrow">{S.eyebrow[locale]}</p>
-        <h1>{S.title[locale]}</h1>
-        <p className="lead">{S.lead[locale]}</p>
+        <h1>{quickSource ? S.qaTitle[locale] : S.title[locale]}</h1>
+        <p className="lead">{quickSource ? S.qaLead[locale] : S.lead[locale]}</p>
       </div>
       <Stepper locale={locale} step={step} />
       <UnconfirmedSaves
@@ -772,14 +826,24 @@ export function ImportClient({
               unfinished={unfinished}
             />
           ) : null}
-          <SourceStep
-            key={sourceKey}
-            locale={locale}
-            busy={false}
-            initialMode={sourceMode}
-            onSubmit={start}
-            notice={notice}
-          />
+          {sourceMode === 'pass' ? (
+            <QuickAddSource
+              key={sourceKey}
+              locale={locale}
+              onSubmit={startPass}
+              onGeneral={openGeneralImport}
+              notice={notice}
+            />
+          ) : (
+            <SourceStep
+              key={sourceKey}
+              locale={locale}
+              busy={false}
+              initialMode={sourceMode}
+              onSubmit={start}
+              notice={notice}
+            />
+          )}
         </>
       ) : null}
       {step === 'processing' ? (
@@ -792,6 +856,17 @@ export function ImportClient({
           cancelling={cancelling}
           error={cancelError}
         />
+      ) : null}
+      {step === 'review' && batch.partial && !batch.cancelled && passFile && rows.size === 0 ? (
+        <section className="import-source" aria-label={S.qaUpload[locale]}>
+          <UploadFallback
+            locale={locale}
+            intro={S.qaPartialNote[locale]}
+            uploading={passUploading}
+            disabled={confirming || unsent}
+            onUpload={() => void uploadPartialPass()}
+          />
+        </section>
       ) : null}
       {step === 'review' ? (
         <ReviewStep

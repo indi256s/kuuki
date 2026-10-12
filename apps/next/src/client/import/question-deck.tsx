@@ -15,10 +15,12 @@ import {
   answerNoAirline,
   answerNotFlown,
   answerRestore,
+  answerTookFlight,
   answerYear,
   buildQuestions,
   localToday,
   monthDayOf,
+  ordinalOf,
   questionDrafts,
   type Endpoint,
   type Question,
@@ -61,8 +63,18 @@ export function QuestionDeck({
   onRetry,
 }: QuestionDeckProps) {
   const id = useId()
-  const questions = useMemo(() => buildQuestions(drafts, today), [drafts, today])
   const [deferred, setDeferred] = useState<ReadonlySet<string>>(new Set())
+  // "Not yet" is this session's only memory: nothing is written, and the row stays in the review queue.
+  const [notYet, setNotYet] = useState<ReadonlySet<string>>(new Set())
+  const questions = useMemo(
+    () =>
+      buildQuestions(drafts, today).flatMap((question): Question[] => {
+        if (question.kind !== 'flown') return [question]
+        const waiting = question.drafts.filter((draft) => !notYet.has(draft.id))
+        return waiting.length > 0 ? [{ ...question, drafts: waiting }] : []
+      }),
+    [drafts, today, notYet],
+  )
   const [resolved, setResolved] = useState<Resolved[]>([])
   const [skipped, setSkipped] = useState<string[]>([])
   const [notice, setNotice] = useState('')
@@ -94,11 +106,14 @@ export function QuestionDeck({
     `${gap === 'origin' ? '?' : draft.fields.origin || '—'} → ${gap === 'destination' ? '?' : draft.fields.destination || '—'}`
   const when = (draft: Draft) => {
     const monthDay = monthDayOf(draft)
+    const ordinal = ordinalOf(draft)
     return draft.fields.date
       ? formatDateOnly(locale, draft.fields.date, 'medium')
       : monthDay
         ? formatMonthDay(locale, monthDay)
-        : S.noDate[locale]
+        : ordinal !== null
+          ? S.ordinalDay[locale].replace('{day}', String(ordinal))
+          : S.noDate[locale]
   }
   const saving = (rows: Draft[]) => rows.some((draft) => saveStates[draft.id]?.status === 'saving')
   const failedIds = (ids: string[]) =>
@@ -181,15 +196,31 @@ export function QuestionDeck({
     )
 
     if (question.kind === 'year') {
-      const setYear = (year: number) =>
-        apply(
-          index,
-          question.drafts.map((draft) => ({ draft, change: answerYear(draft, year) })),
-          { key: question.key, label: S.yearDone[locale].replace('{year}', String(year)) },
-        )
+      // False when no row has that day in that year (29 February, or day 366, in a non-leap year): nothing is applied.
+      const setYear = (year: number) => {
+        const entries = question.drafts.map((draft) => ({
+          draft,
+          change: answerYear(draft, year, today),
+        }))
+        if (entries.every((entry) => entry.change === null)) return false
+        apply(index, entries, {
+          key: question.key,
+          label: S.yearDone[locale].replace('{year}', String(year)),
+        })
+        return true
+      }
       return (
         <li key={question.key} className="import-question" role="group" aria-labelledby={titleId}>
-          {head(S.yearQuestion[locale], S.yearBody[locale])}
+          {head(
+            S.yearQuestion[locale],
+            [
+              question.evidence === 'ordinal' ? S.yearOrdinalBody[locale] : S.yearBody[locale],
+              // One flight has no "all of them" to speak for.
+              question.drafts.length > 1 ? S.yearForAll[locale] : '',
+            ]
+              .filter(Boolean)
+              .join(' '),
+          )}
           <p className="import-question-dates import-code">
             {question.drafts.map(when).join(' · ')}
           </p>
@@ -201,12 +232,70 @@ export function QuestionDeck({
             ))}
             <OtherYear
               locale={locale}
-              max={question.years[0] + 1}
+              max={Number(today.slice(0, 4)) + 1}
               disabled={busy}
               onApply={setYear}
             />
           </div>
           {each(S.questionsEach[locale])}
+        </li>
+      )
+    }
+
+    if (question.kind === 'flown') {
+      return (
+        <li key={question.key} className="import-question" role="group" aria-labelledby={titleId}>
+          {head(S.flownQuestion[locale], S.flownBody[locale])}
+          {withMore(
+            question.drafts.map((draft) => {
+              const itemId = `${titleId}-${draft.id}`
+              const rowBusy = frozen || saving([draft])
+              return (
+                <li key={draft.id} role="group" aria-labelledby={itemId}>
+                  <p id={itemId} className="import-question-what">
+                    <span className="import-code import-question-route">{route(draft)}</span>
+                    <span className="import-question-meta">
+                      {when(draft)}
+                      {draft.fields.flight_number ? (
+                        <>
+                          {' · '}
+                          <span className="import-code">
+                            {draft.fields.airline_iata}
+                            {draft.fields.flight_number}
+                          </span>
+                        </>
+                      ) : null}
+                    </span>
+                  </p>
+                  <div className="import-question-answers" data-pair="true">
+                    <Button
+                      disabled={rowBusy}
+                      onClick={() =>
+                        apply(
+                          index,
+                          [{ draft, change: answerTookFlight(draft, today) }],
+                          null,
+                          `${route(draft)}: ${S.flownYes[locale]}.`,
+                        )
+                      }
+                    >
+                      {S.flownYes[locale]}
+                    </Button>
+                    <Button
+                      disabled={rowBusy}
+                      onClick={() => {
+                        setNotYet((current) => new Set(current).add(draft.id))
+                        apply(index, [], null, `${route(draft)}: ${S.flownNotYetNote[locale]}`)
+                      }}
+                    >
+                      {S.flownNotYet[locale]}
+                    </Button>
+                  </div>
+                </li>
+              )
+            }),
+            3,
+          )}
         </li>
       )
     }
@@ -222,7 +311,10 @@ export function QuestionDeck({
               onClick={() =>
                 apply(
                   index,
-                  question.drafts.map((draft) => ({ draft, change: answerNoAirline(draft) })),
+                  question.drafts.map((draft) => ({
+                    draft,
+                    change: answerNoAirline(draft, today),
+                  })),
                   { key: question.key, label: S.airlineDone[locale] },
                 )
               }
@@ -271,7 +363,7 @@ export function QuestionDeck({
                         onClick={() =>
                           apply(
                             index,
-                            [{ draft, change: answerAirport(draft, endpoint, code) }],
+                            [{ draft, change: answerAirport(draft, endpoint, code, today) }],
                             null,
                             `${route({ ...draft, fields: { ...draft.fields, [endpoint]: code } })}.`,
                           )
@@ -443,7 +535,8 @@ function OtherYear({
   locale: Locale
   max: number
   disabled: boolean
-  onApply: (year: number) => void
+  /** Returns false when the year does not hold the document's day, so the form can say so. */
+  onApply: (year: number) => boolean
 }) {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState('')
@@ -464,7 +557,7 @@ function OtherYear({
       setError(S.yearInvalid[locale].replace('{max}', String(max)))
       return
     }
-    onApply(year)
+    if (!onApply(year)) setError(S.yearNoSuchDay[locale].replace('{year}', String(year)))
   }
   return (
     <form

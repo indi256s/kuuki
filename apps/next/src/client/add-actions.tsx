@@ -3,12 +3,12 @@
 import { NavigationLink as Link } from './navigation-link'
 import { useAwaiting } from './awaiting'
 import { formatNumber } from '../lib/format'
-import { ClipboardCheck, ClipboardPaste, PenLine, Upload } from 'lucide-react'
+import { ClipboardCheck, ClipboardPaste, PenLine, ScanLine, Upload } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { MenuItem } from './ui/menu'
 
 type Action = {
-  id: 'upload' | 'paste' | 'manual'
+  id: 'pass' | 'upload' | 'paste' | 'manual'
   href: string
   en: string
   ru: string
@@ -18,10 +18,17 @@ type Action = {
 /** The capture entry points. One list feeds the desktop split-Add menu and the mobile action sheet. */
 export const ADD_ACTIONS: readonly Action[] = [
   {
+    id: 'pass',
+    href: '/import?source=pass',
+    en: 'Add boarding pass',
+    ru: 'Добавить посадочный',
+    icon: <ScanLine size={20} strokeWidth={2} aria-hidden="true" />,
+  },
+  {
     id: 'upload',
     href: '/import?source=file',
-    en: 'Upload a boarding pass or PDF',
-    ru: 'Загрузить посадочный или PDF',
+    en: 'Upload a booking or PDF',
+    ru: 'Загрузить бронь или PDF',
     icon: <Upload size={20} strokeWidth={2} aria-hidden="true" />,
   },
   {

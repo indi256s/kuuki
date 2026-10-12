@@ -14,12 +14,13 @@ import type { DraftChange, SaveState } from './draft-saver'
 import type { Draft } from './import-types'
 import { RowForm } from './row-form'
 import { formatMonthDay } from './question-deck'
-import { monthDayOf } from './questions'
+import { monthDayOf, ordinalOf } from './questions'
 import {
   changedFields,
   FIELDS,
-  isChosen,
+  isChosenOn,
   isDuplicate,
+  localToday,
   lowFields,
   percent,
   readiness,
@@ -39,6 +40,8 @@ export interface ReviewRowProps {
   stored: Draft
   state?: SaveState
   mobile: boolean
+  /** The member's calendar day (YYYY-MM-DD), what "already flown" is judged against; tests pin it. */
+  today?: string
   /** The import is being saved: corrections and selection are paused so nothing typed now is lost when the review closes. */
   frozen?: boolean
   onChange: (change: DraftChange) => void
@@ -57,6 +60,7 @@ export function ReviewRow({
   stored,
   state,
   mobile,
+  today,
   frozen = false,
   onChange,
   onDirty,
@@ -65,8 +69,9 @@ export function ReviewRow({
 }: ReviewRowProps) {
   const id = useId()
   const duplicate = isDuplicate(draft)
-  const blocked = readiness(draft)
-  const chosen = isChosen(draft)
+  const day = today ?? localToday()
+  const blocked = readiness(draft, day)
+  const chosen = isChosenOn(draft, day)
   const confidence = rowConfidence(draft)
   const low = lowFields(draft)
   const [values, setValues] = useState(() => toValues(draft.fields))
@@ -102,9 +107,17 @@ export function ReviewRow({
     ? (airlineName(draft.fields.airline_iata) ?? draft.fields.airline_iata)
     : undefined
   const routeLabel = `${draft.fields.origin || '—'} → ${draft.fields.destination || '—'}`
+  // An ordinal day is never shown as a month and day: without the year it is only a day to confirm.
+  const yearToConfirm = !draft.fields.date && ordinalOf(draft) !== null
   const dateText = draft.fields.date
     ? formatDateOnly(locale, draft.fields.date, 'medium')
-    : S.noDate[locale]
+    : yearToConfirm
+      ? S.yearToConfirm[locale]
+      : S.noDate[locale]
+  // A locally read barcode has no recognition score, so it says where it came from instead.
+  const unscored = draft.fields.flown_required
+    ? S.readFromBarcode[locale]
+    : S.confidenceUnknown[locale]
   const flightNumber = draft.fields.flight_number
     ? `${draft.fields.airline_iata}${draft.fields.flight_number}`.trim()
     : undefined
@@ -184,7 +197,7 @@ export function ReviewRow({
           {S.confidence[locale]} {percent(draft.confidence!)}%
         </span>
       ) : (
-        <span className="import-chip">{S.confidenceUnknown[locale]}</span>
+        <span className="import-chip">{unscored}</span>
       )}
       {low.length > 0 ? (
         <span className="import-chip" data-tone="warning">
@@ -207,6 +220,7 @@ export function ReviewRow({
           {S.monthDayNote[locale].replace('{date}', formatMonthDay(locale, monthDayOf(draft)!))}
         </p>
       ) : null}
+      {yearToConfirm ? <p className="import-note">{S.ordinalNote[locale]}</p> : null}
       {issueText ? <p className="import-note">{issueText}</p> : null}
       <p
         className="import-note"
@@ -278,11 +292,15 @@ export function ReviewRow({
           state="upcoming"
           locale={locale}
           statusLabel={
-            confidence === 'check'
+            // The ticket has no date to show here, and never a made-up one, so the unresolved year goes in its status.
+            (!draft.fields.date && (yearToConfirm || monthDayOf(draft))
+              ? `${S.yearToConfirm[locale]} · `
+              : '') +
+            (confidence === 'check'
               ? S.check[locale]
               : draft.confidence !== null
                 ? `${S.confidence[locale]} ${percent(draft.confidence)}%`
-                : S.confidenceUnknown[locale]
+                : unscored)
           }
           origin={{
             iata: draft.fields.origin || '—',

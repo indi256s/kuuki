@@ -17,6 +17,12 @@ export interface DraftFields {
   airline_was_placeholder?: boolean
   /** Day and month printed without a year (MM-DD); kept only while `date` is empty. */
   date_month_day?: string
+  /** The barcode's flight day of the year (1–366); kept only while `date` is empty, until the member chooses a year. */
+  date_ordinal_day?: number
+  /** Quick Add row: a today/past date needs `flown_confirmed` before it can be saved (set at admission). */
+  flown_required?: true
+  /** The member said they took the flight; written only by the `flownConfirmed` patch. */
+  flown_confirmed?: true
   /** Catalog airports for a city with several, when the source did not say which one. */
   origin_options?: string[]
   destination_options?: string[]
@@ -79,6 +85,8 @@ export interface DraftPatchBody {
   fields?: Record<string, string | null>
   selected?: boolean
   yearConfirmed?: boolean
+  /** Only for `flown_required` rows; `false` withdraws the confirmation. */
+  flownConfirmed?: boolean
   duplicateAcknowledged?: boolean
   dismissed?: boolean
 }

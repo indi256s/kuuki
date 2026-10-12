@@ -119,13 +119,13 @@ export function normalizePassportQuery(
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-export type ImportState = { source: 'file' | 'text' | null; batch: string | null }
+export type ImportState = { source: 'file' | 'text' | 'pass' | null; batch: string | null }
 export function normalizeImportQuery(raw: RawQuery): Normalized<ImportState> {
   const entries = toEntries(raw)
   const source = first(entries, 'source')
   const batch = first(entries, 'batch')
   const state: ImportState = {
-    source: source === 'file' || source === 'text' ? source : null,
+    source: source === 'file' || source === 'text' || source === 'pass' ? source : null,
     batch: batch && UUID.test(batch) ? batch.toLowerCase() : null,
   }
   const known: Entries = []

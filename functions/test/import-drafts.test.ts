@@ -71,6 +71,27 @@ const draftRows = (batchId: string) =>
     .all<Record<string, any>>()
     .then((r) => r.results)
 
+/** A Quick Add admission body. `content: undefined` drops the text default `postJob` adds. */
+const postPass = (
+  over: Record<string, unknown> = {},
+  user: Parameters<typeof postJob>[2] = USER,
+  headers: Record<string, string> = {},
+  env: Record<string, unknown> = {},
+) =>
+  postJob(
+    db,
+    {
+      type: 'boarding_pass',
+      source: 'image',
+      content: undefined,
+      legs: [{ origin: 'JFK', destination: 'LHR' }],
+      ...over,
+    },
+    user,
+    headers,
+    env,
+  )
+
 describe('POST /api/import/jobs', () => {
   it('refuses file recognition without a provider credential before creating a batch', async () => {
     const { status, body } = await postJob(
@@ -167,6 +188,8 @@ describe('POST /api/import/jobs', () => {
     expect((await postJob(db, { type: 'video' })).status).toBe(400)
     expect((await postJob(db, { content: '' })).status).toBe(400)
     expect((await postJob(db, { submissionOperationId: 'short' })).status).toBe(400)
+    expect((await postPass({}, null)).status).toBe(401)
+    expect((await postPass({}, USER, { 'X-CSRF-Token': 'forged' })).status).toBe(403)
     expect(provider.generateContent).not.toHaveBeenCalled()
     expect(await count(db, 'import_batches')).toBe(0)
 
@@ -179,6 +202,7 @@ describe('POST /api/import/jobs', () => {
     const limited = await postJob(db, {})
     expect(limited.status).toBe(429)
     expect(limited.body.code).toBe('RATE_LIMITED')
+    expect((await postPass()).status).toBe(429)
     expect(provider.generateContent).not.toHaveBeenCalled()
   })
 
@@ -294,6 +318,7 @@ describe('POST /api/import/jobs', () => {
     const eleventh = await postJob(db, {})
     expect(eleventh.status).toBe(409)
     expect(eleventh.body.code).toBe('IMPORT_BATCH_LIMIT')
+    expect((await postPass()).body.code).toBe('IMPORT_BATCH_LIMIT')
     expect(await count(db, 'import_batches')).toBe(10)
     const replay = await postJob(db, { submissionOperationId: replayId })
     expect(replay.status).toBe(200)
@@ -405,6 +430,141 @@ describe('POST /api/import/jobs', () => {
     for (const secret of [canary, 'CANARY-provider-field', 'CANARY-raw-text', 'CANARY', pdf])
       expect(dump).not.toContain(secret)
     expect(dump).not.toContain('raw_text')
+  })
+})
+
+describe('POST /api/import/jobs with boarding pass legs', () => {
+  it('admits decoded legs as unverified drafts without a provider call, a credential or a job, and replays', async () => {
+    clock()
+    const dispatch = vi.fn()
+    const env = { GEMINI_API_KEY: undefined, IMPORT_JOBS: { idFromName: dispatch, get: dispatch } }
+    const submissionOperationId = opId()
+    const first = await postPass(
+      {
+        source: 'pdf',
+        sourceLabel: 'trips/pass.pdf',
+        submissionOperationId,
+        legs: [
+          { origin: 'JFK', destination: 'LHR', airline: 'BA', flightNumber: '178', dayOfYear: 280 },
+          { origin: 'LHR', destination: 'IST' },
+        ],
+      },
+      USER,
+      {},
+      env,
+    )
+    expect(first.status).toBe(201)
+    expect(first.body.batch).toMatchObject({
+      status: 'review',
+      stage: 'review_ready',
+      sourceType: 'pdf',
+      sourceLabel: 'pass.pdf',
+      errorCode: null,
+      sequence: 1,
+    })
+    expect(first.body.drafts.map((draft: any) => draft.fields)).toEqual([
+      {
+        date: '',
+        origin: 'JFK',
+        destination: 'LHR',
+        airline_iata: 'BA',
+        flight_number: '178',
+        date_ordinal_day: 280,
+        flown_required: true,
+      },
+      {
+        date: '',
+        origin: 'LHR',
+        destination: 'IST',
+        airline_iata: 'ZZ',
+        airline_was_placeholder: true,
+        flown_required: true,
+      },
+    ])
+    expect(await draftRows(first.body.batch.id)).toMatchObject([
+      { confidence: null, field_confidence_json: null, year_explicit: 0, selected: 0, edited: 0 },
+      { confidence: null, field_confidence_json: null, year_explicit: 0, selected: 0, edited: 0 },
+    ])
+
+    const replay = await postPass(
+      { submissionOperationId, legs: [{ origin: 'DXB', destination: 'TBS' }] },
+      USER,
+      {},
+      env,
+    )
+    expect(replay.status).toBe(200)
+    expect(replay.body.batch.id).toBe(first.body.batch.id)
+    expect(replay.body.drafts).toHaveLength(2)
+    expect(await count(db, 'import_batches')).toBe(1)
+    expect(dispatch).not.toHaveBeenCalled()
+    expect(provider.generateContent).not.toHaveBeenCalled()
+  })
+
+  it('finalizes an incomplete itinerary as partial with ROWS_REJECTED and keeps the legs read', async () => {
+    const { status, body } = await postPass({ incomplete: true })
+    expect(status).toBe(201)
+    expect(body.batch).toMatchObject({ status: 'partial', errorCode: 'ROWS_REJECTED' })
+    expect(body.drafts).toHaveLength(1)
+  })
+
+  const SECRET = 'SECRET'
+  const leg = (over: Record<string, unknown>) => ({ origin: 'JFK', destination: 'LHR', ...over })
+  it.each([
+    ['an unknown body key', { [`${SECRET}KEY`]: 1 }],
+    ['the text content key', { content: `${SECRET} pasted text` }],
+    ['a text source', { source: 'text' }],
+    ['no source', { source: undefined }],
+    ['no legs', { legs: [] }],
+    ['nine legs', { legs: Array.from({ length: 9 }, () => leg({})) }],
+    ['legs that are not a list', { legs: leg({}) }],
+    ['a leg that is not an object', { legs: [`${SECRET}`] }],
+    ['an unknown leg key', { legs: [leg({ [`${SECRET}KEY`]: '12A' })] }],
+    ['a lowercase origin', { legs: [leg({ origin: SECRET.toLowerCase() })] }],
+    ['a long destination', { legs: [leg({ destination: SECRET })] }],
+    ['a missing destination', { legs: [{ origin: 'JFK' }] }],
+    ['a null airline', { legs: [leg({ airline: null })] }],
+    ['a three-character airline', { legs: [leg({ airline: 'BAA' })] }],
+    ['a five-digit flight number', { legs: [leg({ flightNumber: '12345' })] }],
+    ['a letter-first flight number', { legs: [leg({ flightNumber: 'A123' })] }],
+    ['day 0', { legs: [leg({ dayOfYear: 0 })] }],
+    ['day 367', { legs: [leg({ dayOfYear: 367 })] }],
+    ['a fractional day', { legs: [leg({ dayOfYear: 1.5 })] }],
+    ['a numeric-string day', { legs: [leg({ dayOfYear: '12' })] }],
+    ['a non-boolean incomplete', { incomplete: SECRET }],
+    ['a short operation id', { submissionOperationId: 'short' }],
+  ])('refuses %s with a 400 and persists nothing', async (_name, over) => {
+    const { status, body } = await postPass(over)
+    expect(status).toBe(400)
+    expect(body.code).toMatch(/^INVALID_(BOARDING_PASS|OPERATION_ID)$/)
+    expect(JSON.stringify(body)).not.toContain(SECRET)
+    expect(await count(db, 'import_batches')).toBe(0)
+    expect(await count(db, 'import_drafts')).toBe(0)
+  })
+
+  it('marks provider drafts flown_required only when the file import asks, and refuses a bad flag', async () => {
+    answer([providerFlight()])
+    const file = { type: 'pdf', content: 'JVBERi0x' }
+    const marked = await postJob(db, { ...file, requireFlownConfirmation: true })
+    const plain = await postJob(db, { ...file, requireFlownConfirmation: false })
+    expect(marked.body.drafts[0].fields).toMatchObject({ flown_required: true })
+    expect(plain.body.drafts[0].fields).not.toHaveProperty('flown_required')
+    for (const over of [
+      { ...file, requireFlownConfirmation: 'yes' },
+      { type: 'text', requireFlownConfirmation: true },
+    ]) {
+      const refused = await postJob(db, over)
+      expect(refused.status).toBe(400)
+      expect(refused.body.code).toBe('INVALID_BODY')
+    }
+    expect(await count(db, 'import_batches')).toBe(2)
+    // false is a plain "no" on a text import: accepted and ignored.
+    const text = await postJob(db, {
+      type: 'text',
+      content: 'Flight details',
+      requireFlownConfirmation: false,
+    })
+    expect(text.status).toBe(201)
+    expect(text.body.drafts[0].fields).not.toHaveProperty('flown_required')
   })
 })
 
@@ -535,6 +695,58 @@ describe('PATCH /api/import/drafts/:id', () => {
       { version: 3, edited: 1, year_confirmed: 1, duplicate_acknowledged: 1, selected: 1 },
     ])
     expect((await batchRow(created.batch.id))!.sequence).toBe(created.batch.sequence + 2)
+  })
+
+  it("records the flown confirmation as the member's answer: no edit mark, metadata kept, never settable through fields", async () => {
+    const pass = await postPass({ legs: [{ origin: 'JFK', destination: 'LHR', dayOfYear: 280 }] })
+    const id = pass.body.drafts[0].id
+    const on = await patchDraft(db, id, { version: 1, flownConfirmed: true })
+    expect(on.status).toBe(200)
+    expect(on.body.draft).toMatchObject({
+      version: 2,
+      edited: false,
+      fields: { flown_required: true, flown_confirmed: true, date_ordinal_day: 280 },
+    })
+    const dated = await patchDraft(db, id, {
+      version: 2,
+      fields: { date: '2026-10-07' },
+      yearConfirmed: true,
+    })
+    expect(dated.body.draft).toMatchObject({
+      version: 3,
+      edited: true,
+      fields: { date: '2026-10-07', date_ordinal_day: 280, flown_required: true },
+    })
+    // A new date voids the earlier answer, so the row asks again.
+    expect(dated.body.draft.fields).not.toHaveProperty('flown_confirmed')
+    // An explicit answer in the same patch as a date change wins over the clearing.
+    const answered = await patchDraft(db, id, {
+      version: 3,
+      fields: { date: '2026-10-09' },
+      flownConfirmed: true,
+    })
+    expect(answered.body.draft).toMatchObject({ version: 4, fields: { flown_confirmed: true } })
+    const off = await patchDraft(db, id, { version: 4, flownConfirmed: false })
+    expect(off.body.draft).toMatchObject({ version: 5, edited: true })
+    expect(off.body.draft.fields).not.toHaveProperty('flown_confirmed')
+    expect(off.body.draft.fields).toMatchObject({ flown_required: true, date_ordinal_day: 280 })
+    for (const body of [
+      { version: 5, fields: { flown_confirmed: true } },
+      { version: 5, fields: { flown_required: true } },
+      { version: 5, fields: { date_ordinal_day: 9 } },
+      { version: 5, flownConfirmed: 'yes' },
+    ])
+      expect((await patchDraft(db, id, body)).status, JSON.stringify(body)).toBe(400)
+
+    // A row the import never marked cannot be answered.
+    const plain = await seed([providerFlight()])
+    const refused = await patchDraft(db, plain.drafts[0].id, { version: 1, flownConfirmed: true })
+    expect(refused.status).toBe(400)
+    expect(refused.body.code).toBe('INVALID_DRAFT')
+    expect(refused.body.error).toMatch(/flown confirmation/)
+    const [stored] = await draftRows(plain.batch.id)
+    expect(stored.version).toBe(1)
+    expect(stored.fields_json).not.toContain('flown')
   })
 
   it('refuses a stale version with the current draft and changes nothing', async () => {

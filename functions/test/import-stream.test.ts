@@ -69,6 +69,27 @@ it('hands acceptance to the bound job once and returns the same batch on replay'
   })
   expect((await fixture.db.prepare('SELECT COUNT(*) AS n FROM import_drafts').first())?.n).toBe(0)
 })
+it('forwards the flown requirement to the bound job with the source, and nothing else new', async () => {
+  const fixture = await importAccount()
+  dispose = fixture.dispose
+  const fetch = vi.fn(
+    async (_url: string, _init: RequestInit) => new Response(null, { status: 202 }),
+  )
+  const namespace = { idFromName: (name: string) => name, get: () => ({ fetch }) }
+  const result = await postJob(
+    fixture.db,
+    { type: 'pdf', content: 'JVBERi0x', requireFlownConfirmation: true },
+    undefined,
+    {},
+    { IMPORT_JOBS: namespace },
+  )
+  expect(result.status).toBe(202)
+  expect(JSON.parse(fetch.mock.calls[0][1].body as string)).toEqual({
+    fence: { userId: 'u1', batchId: result.body.batchId, generation: 1 },
+    source: { type: 'pdf', content: 'JVBERi0x' },
+    requireFlownConfirmation: true,
+  })
+})
 it('does not require an API-side provider secret when the bound worker owns extraction', async () => {
   const fixture = await importAccount()
   dispose = fixture.dispose
@@ -746,7 +767,7 @@ describe('bound job draft caps by source', () => {
       ),
     ].join('\n')
 
-  async function run(content: string) {
+  async function start(source: Record<string, unknown>, extra: Record<string, unknown> = {}) {
     const fixture = await importAccount()
     dispose = fixture.dispose
     const batchId = crypto.randomUUID()
@@ -779,11 +800,17 @@ describe('bound job draft caps by source', () => {
         method: 'POST',
         body: JSON.stringify({
           fence: { userId: 'u1', batchId, generation: 1 },
-          source: { type: 'text', content },
+          source,
+          ...extra,
         }),
       }),
     )
     await Promise.all(pending)
+    return { fixture, batchId }
+  }
+
+  async function run(content: string) {
+    const { fixture, batchId } = await start({ type: 'text', content })
     return {
       batch: await fixture.db
         .prepare('SELECT status,error_code FROM import_batches WHERE id = ?')
@@ -847,5 +874,25 @@ describe('bound job draft caps by source', () => {
       batch: { status: 'partial', error_code: 'ROWS_TRUNCATED' },
       drafts: 100,
     })
+  })
+
+  it('persists the flown requirement on every row the bound job writes', async () => {
+    provider.stream.mockResolvedValueOnce(
+      (async function* () {
+        yield { text: providerText([providerFlight(), providerFlight({ origin: 'LHR' })]) }
+      })(),
+    )
+    const { fixture, batchId } = await start(
+      { type: 'pdf', content: 'JVBERi0x' },
+      { requireFlownConfirmation: true },
+    )
+    const rows = await fixture.db
+      .prepare('SELECT fields_json FROM import_drafts WHERE batch_id = ? ORDER BY ordinal')
+      .bind(batchId)
+      .all<{ fields_json: string }>()
+    expect(rows.results.map((row) => JSON.parse(row.fields_json).flown_required)).toEqual([
+      true,
+      true,
+    ])
   })
 })

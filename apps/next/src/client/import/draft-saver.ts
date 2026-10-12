@@ -8,6 +8,7 @@ export interface DraftChange {
   fields?: Record<string, string | null>
   selected?: boolean
   yearConfirmed?: boolean
+  flownConfirmed?: boolean
   duplicateAcknowledged?: boolean
   dismissed?: boolean
 }

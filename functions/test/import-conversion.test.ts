@@ -356,6 +356,84 @@ describe('conversion', () => {
     expect(await count(db, 'flights')).toBe(0)
   })
 
+  describe('Quick Add rows that need the flown confirmation', () => {
+    /** Admit one boarding-pass leg per date and give each the explicit year decision; NOW is 2026-10-05 UTC. */
+    async function admit(dates: string[]) {
+      const admitted = await postJob(db, {
+        type: 'boarding_pass',
+        source: 'image',
+        content: undefined,
+        legs: dates.map(() => ({ origin: 'JFK', destination: 'LHR' })),
+      })
+      expect(admitted.status).toBe(201)
+      const drafts: Array<{ id: string; version: number }> = []
+      for (const [index, draft] of admitted.body.drafts.entries()) {
+        const dated = await patchDraft(db, draft.id, {
+          version: draft.version,
+          fields: { date: dates[index] },
+          yearConfirmed: true,
+        })
+        expect(dated.status).toBe(200)
+        drafts.push(dated.body.draft)
+      }
+      return { batchId: admitted.body.batch.id as string, drafts }
+    }
+
+    it('refuses today and past rows until the member confirms the flight, and lets a future row convert as upcoming', async () => {
+      clock()
+      const { batchId, drafts } = await admit(['2026-03-10', '2026-10-05', '2026-12-01'])
+      const [past, today, future] = drafts
+      const first = await confirm(db, batchId, {
+        items: [item(past), item(today), item(future)],
+        timezone: 'UTC',
+      })
+      expect(codes(first.body.results)).toEqual([
+        'FLIGHT_NOT_CONFIRMED',
+        'FLIGHT_NOT_CONFIRMED',
+        'created',
+      ])
+      expect(first.body.results[0]).toMatchObject({ http_status: 400 })
+      expect((await flightRows()).map((row) => row.lifecycle_state)).toEqual(['upcoming'])
+      expect((await draftRow(past.id))?.status).toBe('review')
+
+      // Selecting the row is not the answer; only `flownConfirmed` is.
+      const selected = await patchDraft(db, past.id, { version: past.version, selected: true })
+      expect(
+        codes(
+          (await confirm(db, batchId, { items: [item(selected.body.draft)], timezone: 'UTC' })).body
+            .results,
+        ),
+      ).toEqual(['FLIGHT_NOT_CONFIRMED'])
+
+      const confirmed = await patchDraft(db, past.id, {
+        version: selected.body.draft.version,
+        flownConfirmed: true,
+      })
+      const second = await confirm(db, batchId, {
+        items: [item(confirmed.body.draft)],
+        timezone: 'UTC',
+      })
+      expect(codes(second.body.results)).toEqual(['created'])
+      expect((await flightRows()).map((row) => row.lifecycle_state)).toEqual(['upcoming', 'logged'])
+    })
+
+    it('judges "today" in the request timezone, like the lifecycle rule', async () => {
+      clock()
+      // 2026-10-06 is still tomorrow in UTC but already today at UTC+14.
+      const { batchId, drafts } = await admit(['2026-10-06'])
+      const [row] = drafts
+      const kiritimati = await confirm(db, batchId, {
+        items: [item(row)],
+        timezone: 'Pacific/Kiritimati',
+      })
+      expect(codes(kiritimati.body.results)).toEqual(['FLIGHT_NOT_CONFIRMED'])
+      expect(await count(db, 'flights')).toBe(0)
+      const utc = await confirm(db, batchId, { items: [item(row)], timezone: 'UTC' })
+      expect(codes(utc.body.results)).toEqual(['created'])
+      expect((await flightRows())[0].lifecycle_state).toBe('upcoming')
+    })
+  })
+
   it('refuses a key reused for another draft or another version, writing nothing for it', async () => {
     clock()
     const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11' })])

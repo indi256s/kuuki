@@ -135,6 +135,11 @@ export function withUnsent(draft: Draft, change: DraftChange | null | undefined)
     if (value === null) delete fields[key]
     else fields[key] = value
   }
+  // Mirrors the server: a changed date voids the flown confirmation unless the same patch states it afresh.
+  if (change.flownConfirmed === undefined && fields.date !== draft.fields.date)
+    delete fields.flown_confirmed
+  else if (change.flownConfirmed === true) fields.flown_confirmed = true
+  else if (change.flownConfirmed === false) delete fields.flown_confirmed
   return {
     ...draft,
     fields: fields as unknown as DraftFields,
@@ -159,13 +164,27 @@ export function withSaved(drafts: Draft[], outcomes: ReadonlyMap<string, RowOutc
   })
 }
 
-export type Readiness = 'date' | 'year' | 'issue'
+/** The member's calendar day (YYYY-MM-DD), the anchor for year suggestions and for what counts as already flown. */
+export const localToday = () => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
 
-/** Why a review row cannot be saved as it stands. Empty means it can. */
-export function readiness(draft: Draft): Readiness[] {
+/** A Quick Add row dated today or earlier that the member has not yet said they flew. Future dates convert as upcoming. */
+export const needsFlown = (draft: Draft, today: string) =>
+  draft.fields.flown_required === true &&
+  draft.fields.flown_confirmed !== true &&
+  /^\d{4}-\d{2}-\d{2}$/.test(draft.fields.date ?? '') &&
+  draft.fields.date <= today
+
+export type Readiness = 'date' | 'year' | 'flown' | 'issue'
+
+/** Why a review row cannot be saved as it stands. Empty means it can. `today` is the member's local YYYY-MM-DD. */
+export function readiness(draft: Draft, today: string = localToday()): Readiness[] {
   const blocked: Readiness[] = []
   if (!draft.fields.date) blocked.push('date')
   else if (!draft.yearExplicit && !draft.yearConfirmed) blocked.push('year')
+  if (needsFlown(draft, today)) blocked.push('flown')
   if (draft.issue) blocked.push('issue')
   return blocked
 }
@@ -173,11 +192,13 @@ export function readiness(draft: Draft): Readiness[] {
 export const isDuplicate = (draft: Draft) => draft.duplicateFlightId !== null
 
 /** Selected as far as saving goes: a duplicate counts only once the member acknowledged it. */
-export const isChosen = (draft: Draft) =>
+export const isChosenOn = (draft: Draft, today: string) =>
   draft.status === 'review' &&
   draft.selected &&
-  readiness(draft).length === 0 &&
+  readiness(draft, today).length === 0 &&
   (!isDuplicate(draft) || draft.duplicateAcknowledged)
+/** `isChosenOn` for today's local date; takes only the draft so it can be passed straight to `filter`. */
+export const isChosen = (draft: Draft) => isChosenOn(draft, localToday())
 
 export interface Partitioned {
   active: Draft[]

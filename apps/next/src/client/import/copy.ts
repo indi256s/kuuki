@@ -85,6 +85,43 @@ export const S = {
     'The document is sent to a recognition service to find flights. Kuuki keeps only the flight details it finds, for 30 days, so you can come back to them. The file and pasted text are not kept.',
     'Документ отправляется в сервис распознавания, чтобы найти перелёты. Kuuki хранит только найденные данные перелётов, 30 дней, чтобы вы могли вернуться к ним. Файл и вставленный текст не сохраняются.',
   ),
+  qaTitle: p('Add a boarding pass', 'Добавить посадочный'),
+  qaLead: p(
+    'Take a photo or choose a screenshot or PDF. Kuuki reads the barcode and shows the flight for you to check.',
+    'Сфотографируйте талон или выберите скриншот или PDF. Kuuki прочитает штрихкод и покажет рейс, чтобы вы его проверили.',
+  ),
+  qaPhoto: p('Take photo', 'Сфотографировать'),
+  qaChoose: p('Choose screenshot or PDF', 'Выбрать скриншот или PDF'),
+  qaActionsLabel: p('Boarding pass source', 'Источник посадочного талона'),
+  qaReading: p('Reading the barcode…', 'Читаем штрихкод…'),
+  qaLocalNote: p(
+    'Kuuki reads the barcode on this device first. If it can, only the flight details are saved for your review. The photo or file is not uploaded.',
+    'Сначала Kuuki читает штрихкод на этом устройстве. Если получится, для проверки сохраняются только данные рейса, а фото или файл не загружаются.',
+  ),
+  qaNoBarcode: p(
+    'We could not find a boarding pass barcode in this file.',
+    'Мы не нашли в этом файле штрихкод посадочного талона.',
+  ),
+  qaNotPass: p(
+    'This file has a code, but it is not a boarding pass.',
+    'В этом файле есть код, но это не посадочный талон.',
+  ),
+  qaUnsupported: p(
+    'This browser could not read the barcode here.',
+    'Этот браузер не смог прочитать штрихкод здесь.',
+  ),
+  qaUploadNote: p(
+    'If you continue, this document is uploaded to Kuuki’s online recognition to find your flights. The file is not stored. The flight details it finds wait for your review for up to 30 days, then unsaved ones are removed.',
+    'Если продолжить, документ будет загружен в онлайн-распознавание Kuuki, чтобы найти ваши перелёты. Файл не сохраняется. Найденные данные перелётов ждут вашей проверки до 30 дней, затем несохранённые удаляются.',
+  ),
+  qaPartialNote: p(
+    'Some flights on this pass could not be read from the barcode. You can upload the document to look for the rest.',
+    'Не все рейсы на этом талоне удалось прочитать со штрихкода. Чтобы поискать остальные, можно загрузить документ.',
+  ),
+  qaUpload: p('Upload for recognition', 'Отправить на распознавание'),
+  qaUploading: p('Preparing…', 'Готовим…'),
+  qaManual: p('Enter manually', 'Ввести вручную'),
+  qaGeneral: p('Upload a booking or PDF', 'Загрузить бронь или PDF'),
   emailHelp: p('How to export flights from your email', 'Как выгрузить перелёты из почты'),
   // Provider-neutral: assistants rename their mail and calendar features often, so the help names the assistants, not the features.
   emailHelpBody: p(
@@ -206,6 +243,7 @@ ${PROMPT_EXAMPLE.ru}
   check: p('Check', 'Проверьте'),
   confidence: p('Confidence', 'Уверенность'),
   confidenceUnknown: p('Confidence unknown', 'Уверенность неизвестна'),
+  readFromBarcode: p('Read from the barcode', 'Прочитано со штрихкода'),
   fieldUnsure: p('Unsure', 'Не уверены'),
   snippetTitle: p('Found in the document', 'Найдено в документе'),
   saving: p('Saving…', 'Сохраняем…'),
@@ -239,7 +277,17 @@ ${PROMPT_EXAMPLE.ru}
     'Confirm the year to include this flight.',
     'Подтвердите год, чтобы включить этот рейс.',
   ),
+  blockedFlown: p(
+    'Confirm that you took this flight to include it.',
+    'Подтвердите, что вы летели этим рейсом, чтобы включить его.',
+  ),
   blockedIssue: p('Fix this flight to include it.', 'Исправьте этот рейс, чтобы включить его.'),
+  yearToConfirm: p('Year to confirm', 'Нужно указать год'),
+  ordinalDay: p('Day {day} of the year', '{day}-й день года'),
+  ordinalNote: p(
+    'The pass gives only the day of the year, so the year needs your confirmation.',
+    'В талоне указан только день года, поэтому год нужно подтвердить.',
+  ),
   monthDayNote: p(
     'The document shows {date} without the year.',
     'В документе указано {date}, без года.',
@@ -251,9 +299,15 @@ ${PROMPT_EXAMPLE.ru}
   questionsApplying: p('Applying…', 'Применяем…'),
   questionsRetry: p('Try again', 'Повторить'),
   yearQuestion: p('Which year did you fly?', 'В каком году вы летели?'),
-  yearBody: p(
-    'The document shows only the day and month. One answer sets the year for all of them.',
-    'В документе только день и месяц. Один ответ задаст год для всех.',
+  yearBody: p('The document shows only the day and month.', 'В документе только день и месяц.'),
+  yearOrdinalBody: p(
+    'The pass records the day of the year, not the year itself.',
+    'В талоне записан день года, а самого года нет.',
+  ),
+  yearForAll: p('One answer sets the year for all of them.', 'Один ответ задаст год для всех.'),
+  yearNoSuchDay: p(
+    'There is no such day in {year}. Try another year.',
+    'В {year} году такого дня нет. Попробуйте другой год.',
   ),
   yearOther: p('Another year', 'Другой год'),
   yearLabel: p('Year', 'Год'),
@@ -271,6 +325,26 @@ ${PROMPT_EXAMPLE.ru}
   airportBody: p(
     'The source names the city, not the airport. Choose for each flight.',
     'В источнике указан город, а не аэропорт. Выберите для каждого перелёта.',
+  ),
+  flownQuestion: p('Have you taken this flight?', 'Вы уже летели этим рейсом?'),
+  flownBody: p(
+    'A pass does not prove you flew. Only a yes lets this flight be saved to your journal.',
+    'Талон не доказывает, что вы летели. Сохранить рейс в журнал можно только после ответа «да».',
+  ),
+  flownYes: p('Yes, I flew', 'Да, летел(а)'),
+  flownNotYet: p('Not yet', 'Ещё нет'),
+  flownNotYetNote: p(
+    'Not yet. It stays in review for later.',
+    'Ещё нет. Рейс остаётся в проверке — вернётесь к нему позже.',
+  ),
+  finishLater: p('Finish later', 'Закончить позже'),
+  finishLaterNote: p(
+    'Your flights stay in review until {date}. Open them from your journal to finish.',
+    'Рейсы остаются в проверке до {date}. Откройте их в журнале, чтобы закончить.',
+  ),
+  finishLaterBlocked: p(
+    'Save or discard your edits first, so nothing is lost.',
+    'Сначала сохраните или отмените правки, чтобы ничего не потерялось.',
   ),
   statusQuestion: p('Did you take these flights?', 'Вы летели этими рейсами?'),
   statusBody: p(
@@ -786,6 +860,7 @@ export const FIELD_ERROR: Record<FieldError, Pair> = {
 export const BLOCK: Record<Readiness, Key> = {
   date: 'blockedDate',
   year: 'blockedYear',
+  flown: 'blockedFlown',
   issue: 'blockedIssue',
 }
 

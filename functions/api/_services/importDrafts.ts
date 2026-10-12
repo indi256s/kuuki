@@ -45,6 +45,12 @@ export interface DraftFields {
   origin_options?: string[]
   destination_options?: string[]
   review_required?: boolean
+  /** Boarding-pass flight day (1–366) kept while `date` is empty. */
+  date_ordinal_day?: number
+  /** Quick Add rows: a today/past date needs the member's `flown_confirmed` before conversion. Set only at admission. */
+  flown_required?: true
+  /** Set only by the draft patch `flownConfirmed`; never through `fields`. */
+  flown_confirmed?: true
 }
 
 const OPTIONAL_TEXT = ['flight_number', 'aircraft_icao', 'departure_time', 'arrival_time'] as const
@@ -520,6 +526,7 @@ export interface DraftPatch {
   yearConfirmed?: boolean
   duplicateAcknowledged?: boolean
   dismissed?: boolean
+  flownConfirmed?: boolean
 }
 
 const invalidDraft = (message: string) => new HttpError(400, message, 'INVALID_DRAFT')
@@ -535,6 +542,7 @@ export function parseDraftPatch(body: unknown): DraftPatch {
     'yearConfirmed',
     'duplicateAcknowledged',
     'dismissed',
+    'flownConfirmed',
   ])
   for (const key of Object.keys(input))
     if (!allowed.has(key)) throw invalidDraft(`Unknown field: ${key}`)
@@ -545,7 +553,13 @@ export function parseDraftPatch(body: unknown): DraftPatch {
   )
     throw invalidDraft('version must be a positive integer')
   const patch: DraftPatch = { version: input.version }
-  for (const key of ['selected', 'yearConfirmed', 'duplicateAcknowledged', 'dismissed'] as const) {
+  for (const key of [
+    'selected',
+    'yearConfirmed',
+    'duplicateAcknowledged',
+    'dismissed',
+    'flownConfirmed',
+  ] as const) {
     if (input[key] === undefined) continue
     if (typeof input[key] !== 'boolean') throw invalidDraft(`${key} must be a boolean`)
     patch[key] = input[key] as boolean
@@ -595,7 +609,8 @@ export function mergeFields(current: DraftFields, patch: Record<string, unknown>
   return next as unknown as DraftFields
 }
 
-const canonical = (fields: DraftFields) =>
+/** The flown confirmation is the member's answer, not a correction, so it never marks a row `edited`. */
+const canonical = ({ flown_confirmed: _answer, ...fields }: DraftFields) =>
   JSON.stringify(
     Object.keys(fields)
       .sort()
@@ -640,8 +655,16 @@ export async function patchDraft(
   if (row.version !== patch.version || row.status === 'converted') throw await conflict()
 
   const current = fieldsOf(row)
-  const fields = patch.fields ? mergeFields(current, patch.fields) : current
-  const edited = row.edited === 1 || canonical(fields) !== canonical(current)
+  if (patch.flownConfirmed !== undefined && !current.flown_required)
+    throw invalidDraft('flownConfirmed applies only to rows that need a flown confirmation')
+  const corrected = patch.fields ? mergeFields(current, patch.fields) : current
+  const edited = row.edited === 1 || canonical(corrected) !== canonical(current)
+  const fields = { ...corrected }
+  // A new date voids a prior "I flew it" that may no longer fit it, unless the same patch answers again.
+  if (patch.flownConfirmed === undefined && corrected.date !== current.date)
+    delete fields.flown_confirmed
+  if (patch.flownConfirmed === true) fields.flown_confirmed = true
+  else if (patch.flownConfirmed === false) delete fields.flown_confirmed
   const status =
     patch.dismissed === undefined ? row.status : patch.dismissed ? 'dismissed' : 'review'
   const results = await db.batch([

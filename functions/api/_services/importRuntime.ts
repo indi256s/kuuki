@@ -5,6 +5,8 @@ import type { ParseRequest } from '../import/_shared'
 export interface StartImportJob {
   fence: BatchFence
   source: ParseRequest
+  /** Quick Add online fallback: persist `flown_required` on every draft this job writes. */
+  requireFlownConfirmation?: boolean
 }
 export interface ImportEvent {
   sequence: number

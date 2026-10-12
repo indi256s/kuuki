@@ -69,6 +69,30 @@
   align-items: flex-start;
 }
 
+/* Quick Add: two equal source actions that stack when two columns would not fit (320px). */
+.quick-add-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--space-3);
+}
+.quick-add-actions .ui-button {
+  width: 100%;
+}
+/* On a phone the two actions are the pickers; an empty dropzone only returns once a file is chosen. */
+@media (pointer: coarse) {
+  .quick-add-drop[data-empty='true'] {
+    display: none;
+  }
+}
+.quick-add-fallback {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
 /* Stepper: named steps, never bare dots. */
 .import-steps {
   list-style: none;

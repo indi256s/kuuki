@@ -32,11 +32,13 @@
     "maplibre-gl": "6.13.0",
     "motion": "^14.1.0",
     "next": "16.3.8",
+    "pdfjs-dist": "6.4.299",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "^7.89.0",
     "torph": "0.1.3",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "zxing-wasm": "3.1.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261009.1",

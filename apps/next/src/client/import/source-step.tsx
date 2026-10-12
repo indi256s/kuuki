@@ -13,7 +13,7 @@ import { ImportTextarea } from './import-textarea'
 import { FileDropzone } from './file-dropzone'
 
 export const MAX_FILE_BYTES = IMPORT_MAX_FILE_BYTES
-const ACCEPT = 'application/pdf,image/png,image/jpeg'
+export const ACCEPT = 'application/pdf,image/png,image/jpeg'
 
 /** Base64 of the file, built in memory for the request body only. It is never written to browser storage. */
 export async function fileToBase64(file: Blob): Promise<string> {

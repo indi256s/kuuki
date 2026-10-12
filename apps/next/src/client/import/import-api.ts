@@ -1,6 +1,7 @@
 // Thin typed calls to the import endpoints. No retries or copy here: callers classify failures (import-errors.ts).
 import { api, type CallOptions } from '@kuuki/client/apiClient'
 import { sendWithZone, withZone } from '../capture/flight-writes'
+import type { Leg } from './bcbp'
 import { importKey, type ConfirmItem } from './confirm-runner'
 import type { AircraftAccept, EnrichResult } from './aircraft-review'
 import type {
@@ -11,11 +12,24 @@ import type {
   UnfinishedImport,
 } from './import-types'
 
-export interface ImportSource {
+export interface DocumentSource {
   type: 'pdf' | 'image' | 'text'
   content: string
   sourceLabel?: string | null
+  /** Quick Add online fallback: a today/past row then needs the member's "I flew" before it can be saved. */
+  requireFlownConfirmation?: true
 }
+
+/** Flight fields read from a boarding pass barcode on this device: no file bytes and no decoded text. */
+export interface BoardingPassSource {
+  type: 'boarding_pass'
+  source: 'image' | 'pdf'
+  sourceLabel?: string | null
+  legs: Leg[]
+  incomplete?: boolean
+}
+
+export type ImportSource = DocumentSource | BoardingPassSource
 
 /** Source bytes and pasted text live only in this request body: nothing here touches browser storage. */
 export async function submitSource(
