@@ -40,22 +40,19 @@
   box-shadow: var(--shadow-floating), var(--ring-floating);
 }
 .flight-search-popover p,
-.flight-search-sheet p,
-.route-picker p[role='status'] {
+.flight-search-sheet p {
   margin: var(--space-2);
   font-size: 13px;
   color: var(--text-muted);
 }
 .flight-combobox ul,
-.flight-search-sheet ul,
-.route-picker ul {
+.flight-search-sheet ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .flight-combobox li,
-.flight-search-sheet li,
-.route-picker li {
+.flight-search-sheet li {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -72,13 +69,11 @@
   font-weight: 500;
 }
 .flight-combobox li[aria-selected='true'],
-.flight-search-sheet li[aria-selected='true'],
-.route-picker li[aria-selected='true'] {
+.flight-search-sheet li[aria-selected='true'] {
   background: var(--surface-inset);
 }
 .flight-combobox li small,
-.flight-search-sheet li small,
-.route-picker li small {
+.flight-search-sheet li small {
   display: block;
   color: var(--text-muted);
 }
@@ -89,8 +84,7 @@
   color: var(--text-muted);
 }
 .flight-combobox mark,
-.flight-search-sheet mark,
-.route-picker mark {
+.flight-search-sheet mark {
   background: var(--surface-inset);
   color: var(--info-text);
 }
@@ -183,7 +177,7 @@
   background: transparent;
   gap: var(--space-6);
 }
-.flight-editor fieldset {
+.flight-editor > fieldset {
   display: grid;
   gap: var(--space-6);
   padding: 0;
@@ -326,7 +320,6 @@
 @media (hover: hover) and (pointer: fine) {
   .flight-combobox li:hover,
   .flight-search-sheet li:hover,
-  .route-picker li:hover,
   .flight-calendar-grid [aria-selected='false'] button:hover:not([aria-current='date']) {
     background: var(--surface-inset);
   }

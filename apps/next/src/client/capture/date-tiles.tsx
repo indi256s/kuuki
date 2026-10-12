@@ -10,14 +10,20 @@ export function localDay(offset = 0, now = new Date()) {
 }
 
 /** "Sun 11 Oct" / «вс 11 окт», plus the year, from Intl parts so the order does not follow en-US. */
+const formatters = new Map<Locale, Intl.DateTimeFormat>()
 export function dayParts(locale: Locale, day: string) {
-  const parts = new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).formatToParts(new Date(`${day}T00:00:00Z`))
+  let formatter = formatters.get(locale)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    })
+    formatters.set(locale, formatter)
+  }
+  const parts = formatter.formatToParts(new Date(`${day}T00:00:00Z`))
   const part = (type: Intl.DateTimeFormatPartTypes) =>
     (parts.find((item) => item.type === type)?.value ?? '').replace(/\.$/, '')
   return {
@@ -33,7 +39,7 @@ const short = (locale: Locale, day: string) => {
 }
 const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value)
 
-type Choice = 'today' | 'yesterday' | 'other'
+type DateChoice = 'today' | 'yesterday' | 'other'
 
 /**
  * Departure date as three native radios: Today, Yesterday, Other. Nothing is checked until the member picks; a relative
@@ -62,7 +68,7 @@ export function DateTiles({
   const yesterday = localDay(-1)
   // Other picked before a day is chosen. Picking it also opens the month grid.
   const [pickedOther, setPickedOther] = useState(false)
-  const choice: Choice | null =
+  const choice: DateChoice | null =
     value === today
       ? 'today'
       : value === yesterday
@@ -71,7 +77,7 @@ export function DateTiles({
           ? 'other'
           : null
   const otherDay = choice === 'other' && validDay(value) ? dayParts(locale, value) : null
-  const tiles: { key: Choice; title: string; date: string }[] = [
+  const tiles: { key: DateChoice; title: string; date: string }[] = [
     {
       key: 'today',
       title: ru ? 'Сегодня' : 'Today',
@@ -82,19 +88,13 @@ export function DateTiles({
       title: ru ? 'Вчера' : 'Yesterday',
       date: short(locale, yesterday),
     },
-    otherDay
-      ? {
-          key: 'other',
-          title: `${otherDay.day} ${otherDay.month}`,
-          date: `${otherDay.weekday} ${otherDay.year}`,
-        }
-      : {
-          key: 'other',
-          title: ru ? 'Другая' : 'Other',
-          date: ru ? 'календарь' : 'calendar',
-        },
+    {
+      key: 'other',
+      title: otherDay ? `${otherDay.day} ${otherDay.month}` : ru ? 'Другая' : 'Other',
+      date: otherDay ? `${otherDay.weekday} ${otherDay.year}` : ru ? 'календарь' : 'calendar',
+    },
   ]
-  const pick = (key: Choice) => {
+  const pick = (key: DateChoice) => {
     if (key === 'other') {
       setPickedOther(true)
       // Leaving a relative day for Other starts the calendar empty rather than on that day.

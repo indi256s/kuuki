@@ -30,9 +30,6 @@
   background: var(--background);
   color: var(--text);
 }
-.capture-swap {
-  align-self: end;
-}
 .capture-card details {
   border-top: 1px solid var(--hairline);
   padding-top: 18px;
@@ -115,7 +112,6 @@
 
 /* ---------- Manual flight entry (Paper "Manual flight entry", board 04) ---------- */
 .flight-editor :is(.route-fieldset, .date-tiles, .flight-times) {
-  display: block;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -425,11 +421,7 @@
   background: transparent;
 }
 
-/* Optional details: fields, then times as one leg. The open panel gets 4px of room so edge focus rings are not clipped. */
-.flight-editor .ui-disclosure-panel[data-open='true'] > .ui-disclosure-inner {
-  margin: -4px;
-  padding: 4px;
-}
+/* Optional details: fields, then times as one leg. */
 .flight-details {
   display: grid;
   gap: var(--space-6);

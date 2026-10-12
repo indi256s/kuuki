@@ -4,6 +4,7 @@ import {
   useEffect,
   useId,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -14,7 +15,8 @@ import { Sheet } from '../ui/sheet'
 import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 
-export type RouteEnd = 'origin' | 'destination'
+const ENDS = ['origin', 'destination'] as const
+export type RouteEnd = (typeof ENDS)[number]
 /** Opens the search on one end, e.g. To after the Onward shortcut fills From. */
 export type RouteControl = { open: (end: RouteEnd) => void }
 
@@ -90,14 +92,20 @@ export function RouteCard({
       airport: choice?.detail ? choice.label : '',
     }
   }
-  const { needle, all, matches } = searchChoices(choices, query, recents)
+  const { needle, all, matches } = useMemo(
+    () =>
+      picking ? searchChoices(choices, query, recents) : { needle: '', all: choices, matches: [] },
+    [picking, choices, query, recents],
+  )
 
-  const open = (end: RouteEnd) => {
-    if (disabled) return
+  const pickEnd = (end: RouteEnd) => {
     last.current = end
     setPicking(end)
     setQuery('')
     setActive(0)
+  }
+  const open = (end: RouteEnd) => {
+    if (!disabled) pickEnd(end)
   }
   // Desktop focuses the search once it renders; the mobile sheet focuses it through initialFocusRef.
   useEffect(() => {
@@ -114,9 +122,7 @@ export function RouteCard({
     onPick(picking, choice.code)
     last.current = picking
     if (picking === 'origin' && !destination) {
-      setPicking('destination')
-      setQuery('')
-      setActive(0)
+      pickEnd('destination')
       searchRef.current?.focus()
     } else close(picking)
   }
@@ -142,16 +148,13 @@ export function RouteCard({
   const picker = picking && (
     <>
       <div className="route-picker-ends">
-        {(['origin', 'destination'] as const).map((end) => (
+        {ENDS.map((end) => (
           <button
             type="button"
             key={end}
             aria-pressed={picking === end}
             onClick={() => {
-              last.current = end
-              setPicking(end)
-              setQuery('')
-              setActive(0)
+              pickEnd(end)
               searchRef.current?.focus()
             }}
           >
@@ -204,7 +207,7 @@ export function RouteCard({
         <legend>{t.route}</legend>
         <div className="route-card">
           <span className="route-spine" aria-hidden="true" />
-          {(['origin', 'destination'] as const).map((end) => {
+          {ENDS.map((end) => {
             const code = values[end]
             const where = code ? place(code) : null
             return (
@@ -258,7 +261,7 @@ export function RouteCard({
           )}
         </div>
       </fieldset>
-      {(['origin', 'destination'] as const).map(
+      {ENDS.map(
         (end) =>
           errors[end] && (
             <p key={end} id={`${id}-${end}-error`} role="alert" className="route-error">
@@ -266,7 +269,9 @@ export function RouteCard({
             </p>
           ),
       )}
-      {!mobile && picking && <div className="flight-search-popover route-picker">{picker}</div>}
+      {!mobile && picking && (
+        <div className="flight-search-popover flight-search-sheet route-picker">{picker}</div>
+      )}
       {mobile && (
         <Sheet
           initialDetent={1}

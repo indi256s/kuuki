@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useOnline } from '../awaiting'
 import { useRouter } from 'next/navigation'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useController, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { validateFlightInput } from '@kuuki/shared'
@@ -14,7 +14,7 @@ import { Combobox } from '../ui/combobox'
 import { Disclosure } from '../ui/disclosure'
 import { RouteCard, type RouteControl } from './route-card'
 import { DateTiles, dayParts, localDay } from './date-tiles'
-import { arrivesNextDay } from './flight-leg'
+import { legSummary } from './flight-leg'
 import { Ticket } from '../signature/ticket'
 import { formatDateOnly, formatDuration } from '../../lib/format'
 import { airportChoices, airlineChoices, aircraftChoices } from './reference-choices'
@@ -222,18 +222,22 @@ export function FlightForm({
   const { control, register, handleSubmit, watch, setValue, reset, formState, setFocus } = form
   const values = watch()
   const { date, origin, destination } = values
+  const { field: from } = useController({ name: 'origin', control })
+  const { field: to } = useController({ name: 'destination', control })
   // Keep unfinished input across dismissal and reload. A failed write is said out loud; the input stays usable here.
   const [storageFailed, setStorageFailed] = useState(false)
   const savedOnce = useRef(false)
-  const snapshot = JSON.stringify(values)
   useEffect(() => {
-    if (editId || savedOnce.current) return
-    const current = JSON.parse(snapshot) as Values
-    if (!Object.values(current).some(Boolean)) {
-      removeCapturePreference(ownerId, UNFINISHED)
-      setStorageFailed(false)
-    } else setStorageFailed(!writeCapturePreference(ownerId, UNFINISHED, current))
-  }, [snapshot, editId, ownerId])
+    if (editId) return
+    const subscription = watch((current) => {
+      if (savedOnce.current) return
+      if (!Object.values(current).some(Boolean)) {
+        removeCapturePreference(ownerId, UNFINISHED)
+        setStorageFailed(false)
+      } else setStorageFailed(!writeCapturePreference(ownerId, UNFINISHED, current))
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, editId, ownerId])
   const discard = () => {
     removeCapturePreference(ownerId, UNFINISHED)
     reset(empty)
@@ -717,17 +721,17 @@ export function FlightForm({
         {fieldError(name)}
       </p>
     )
-  const optional = (name: 'number', label: string) => (
+  const flightNumber = (
     <div className="flight-field">
-      <label htmlFor={`${formId}-${name}`}>{label}</label>
+      <label htmlFor={`${formId}-number`}>{ru ? 'Номер рейса' : 'Flight number'}</label>
       <input
         className="ui-field-input"
-        id={`${formId}-${name}`}
-        {...register(name)}
-        aria-invalid={!!fieldError(name)}
-        aria-describedby={describe(name)}
+        id={`${formId}-number`}
+        {...register('number')}
+        aria-invalid={!!fieldError('number')}
+        aria-describedby={describe('number')}
       />
-      {fieldErrorLine(name)}
+      {fieldErrorLine('number')}
     </div>
   )
   const revalidate = {
@@ -735,28 +739,15 @@ export function FlightForm({
     shouldValidate: formState.isSubmitted,
   }
   // Times as one leg: Departs → Arrives, a "+1" on a next-day arrival, and the duration under the row.
-  const fromAirport = origin?.length === 3 ? findAirport(origin) : undefined
-  const toAirport = destination?.length === 3 ? findAirport(destination) : undefined
-  const legTimes = /^\d{2}:\d{2}$/.test(values.departure) && /^\d{2}:\d{2}$/.test(values.arrival)
-  const nextDay =
-    legTimes &&
-    arrivesNextDay(
-      date || localDay(0),
-      values.departure,
-      values.arrival,
-      fromAirport?.timezone,
-      toAirport?.timezone,
-    )
-  const legMinutes = legTimes
-    ? calculateFlightDuration(
-        values.departure,
-        values.arrival,
-        /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDay(0),
-        fromAirport?.timezone,
-        toAirport?.timezone,
-      )
-    : null
-  const time = (name: 'departure' | 'arrival', label: string) => (
+  const leg = legSummary(
+    /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDay(0),
+    values.departure,
+    values.arrival,
+    origin?.length === 3 ? findAirport(origin)?.timezone : undefined,
+    destination?.length === 3 ? findAirport(destination)?.timezone : undefined,
+  )
+  const nextDay = !!leg?.nextDay
+  const timeField = (name: 'departure' | 'arrival', label: string) => (
     <div className="flight-field">
       <label htmlFor={`${formId}-${name}`}>{label}</label>
       <div className="flight-time-input">
@@ -799,6 +790,7 @@ export function FlightForm({
     return choice?.detail ?? choice?.label ?? code
   }
   const lastFlight = last?.flight
+  const lastDay = lastFlight && dayParts(locale, lastFlight.date)
   const shortcuts = !editId && lastFlight && (
     <div className="route-shortcuts">
       <div className="route-shortcut-row">
@@ -848,10 +840,7 @@ export function FlightForm({
         </Button>
       </div>
       <p className="route-shortcut-caption">
-        {(() => {
-          const { day, month } = dayParts(locale, lastFlight.date)
-          return ru ? `С прошлого рейса, ${day} ${month}` : `From your last flight, ${day} ${month}`
-        })()}
+        {ru ? 'С прошлого рейса' : 'From your last flight'}, {lastDay?.day} {lastDay?.month}
       </p>
     </div>
   )
@@ -989,41 +978,29 @@ export function FlightForm({
       )}
       <fieldset disabled={busy}>
         <div className="flight-route">
-          <Controller
-            name="origin"
-            control={control}
-            render={({ field: from }) => (
-              <Controller
-                name="destination"
-                control={control}
-                render={({ field: to }) => (
-                  <RouteCard
-                    controlRef={routeControl}
-                    origin={from.value}
-                    destination={to.value}
-                    onPick={(end, code) => {
-                      ;(end === 'origin' ? from : to).onChange(code)
-                      remember('airports', code)
-                      if (end === 'origin' || applied === 'return') setApplied(null)
-                    }}
-                    onSwap={() => {
-                      setValue('origin', destination, revalidate)
-                      setValue('destination', origin, revalidate)
-                      setApplied(null)
-                    }}
-                    choices={choices}
-                    recents={recents.airports}
-                    locale={locale}
-                    errors={{
-                      origin: fieldError('origin'),
-                      destination: fieldError('destination'),
-                    }}
-                    disabled={busy}
-                    endRefs={{ origin: from.ref, destination: to.ref }}
-                  />
-                )}
-              />
-            )}
+          <RouteCard
+            controlRef={routeControl}
+            origin={from.value}
+            destination={to.value}
+            onPick={(end, code) => {
+              ;(end === 'origin' ? from : to).onChange(code)
+              remember('airports', code)
+              if (end === 'origin' || applied === 'return') setApplied(null)
+            }}
+            onSwap={() => {
+              setValue('origin', destination, revalidate)
+              setValue('destination', origin, revalidate)
+              setApplied(null)
+            }}
+            choices={choices}
+            recents={recents.airports}
+            locale={locale}
+            errors={{
+              origin: fieldError('origin'),
+              destination: fieldError('destination'),
+            }}
+            disabled={busy}
+            endRefs={{ origin: from.ref, destination: to.ref }}
           />
           {shortcuts}
         </div>
@@ -1055,23 +1032,23 @@ export function FlightForm({
           <div className="flight-details">
             <div className="capture-grid">
               {combo('airline', ru ? 'Авиакомпания' : 'Airline')}
-              {optional('number', ru ? 'Номер рейса' : 'Flight number')}
+              {flightNumber}
               {combo('aircraft', ru ? 'Самолёт' : 'Aircraft')}
             </div>
             <fieldset className="flight-times">
               <legend>{ru ? 'Местное время' : 'Local times'}</legend>
               <div className="flight-times-row">
-                {time('departure', ru ? 'Вылет' : 'Departs')}
+                {timeField('departure', ru ? 'Вылет' : 'Departs')}
                 <span className="flight-times-arrow" aria-hidden="true">
                   →
                 </span>
-                {time('arrival', ru ? 'Прилёт' : 'Arrives')}
+                {timeField('arrival', ru ? 'Прилёт' : 'Arrives')}
               </div>
-              {legMinutes != null && (
+              {leg && (
                 <p className="flight-times-duration">
                   {ru
-                    ? `В полёте ${formatDuration(locale, legMinutes)}`
-                    : `${formatDuration(locale, legMinutes)} flight`}
+                    ? `В полёте ${formatDuration(locale, leg.minutes)}`
+                    : `${formatDuration(locale, leg.minutes)} flight`}
                 </p>
               )}
             </fieldset>

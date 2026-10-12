@@ -864,7 +864,10 @@
     opacity var(--dur-fast) var(--ease-out),
     visibility 0s;
 }
+/* The open panel bleeds 4px on every side so focus rings at its edges are not clipped by the overflow. */
 .ui-disclosure-panel[data-open='true'] .ui-disclosure-inner {
+  margin: -4px;
+  padding: 4px;
   opacity: 1;
   visibility: visible;
   transition:
