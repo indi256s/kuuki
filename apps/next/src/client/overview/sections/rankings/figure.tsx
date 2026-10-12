@@ -1,28 +1,32 @@
-import type { RankRow } from '@kuuki/shared/overview/rankings'
-import { flapBoard } from '../../iso/board'
-import { useFigure, type FigureSize } from '../../iso/use-figure'
+import { useMemo } from 'react'
 import { IsoFigure } from '../../iso/iso-figure'
-import { useOverview } from '../../store/overview-context'
-import '../cookie.css'
+import { gateSign } from '../../iso/gate-sign'
+import { fitBox } from '../../iso/scene'
+import '../../iso/gate-sign.css'
 
-/** The Rankings flap board: the top three airlines, each bar a share of the leader's flights. */
-export function useBoardFigure(size: FigureSize, airlines: readonly RankRow[]) {
-  const top = airlines[0]?.count ?? 0
-  const rows = airlines
-    .slice(0, 3)
-    .map((row) => ({ code: row.key, share: top ? row.count / top : 0 }))
-  return useFigure(size, rows.map((row) => `${row.code}:${row.share}`).join(), (k) =>
-    flapBoard(rows, k),
-  )
-}
+let fitted: number | undefined
+// The sign's geometry never depends on its code, so one scale fits every reading in the card's 300 × 160 stage.
+const stageK = () =>
+  (fitted ??= Math.min(
+    1.8,
+    fitBox(300, 160, (k) => gateSign(k, { code: 'AAA' })),
+  ))
 
-/** The figure at the head of the Rankings sheet. */
-export function BoardSheetFigure() {
-  const { scope } = useOverview()
-  const figure = useBoardFigure('sheet', scope?.rankings.airlines ?? [])
+/**
+ * The gate sign in the chapter card's figure stage (300 × 160). `code` is the reading's: an airline code, an airport's IATA or a route (`ROV–VKO`).
+ * The wrapper is keyed by the code, so a new reading remounts the figure; only after a pick (`picked`) does it carry `iso-gate-relight`, which
+ * relights the sign face from dim (gate-sign.css). A first render, a swipe or a filter change swaps the code with no motion. An empty code is a dim sign.
+ */
+export function GateSignFigure({ code, picked }: { code: string; picked: boolean }) {
+  const k = stageK()
+  const figure = useMemo(() => gateSign(k, { code }), [k, code])
   return (
-    <div className="ov3-sheet-figure">
-      <IsoFigure figure={figure} className="iso-board" />
+    <div
+      key={code}
+      className={picked ? 'iso-gate-relight' : undefined}
+      data-blank={code ? undefined : ''}
+    >
+      <IsoFigure figure={figure} className="iso-gate-pick" />
     </div>
   )
 }

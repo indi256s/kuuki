@@ -15,3 +15,8 @@
     animation: iso-gate-relight var(--dur-fast) var(--ease-out);
   }
 }
+
+/* No code to show (an empty chapter, or no airline on file): the sign rests dim. Static; nothing animates in or out of it. */
+[data-blank] > .iso [data-part='sign'] {
+  opacity: 0.35;
+}

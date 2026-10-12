@@ -3,11 +3,9 @@
 import { useId, useState } from 'react'
 import { curveBumpX, line } from 'd3-shape'
 import { Check } from '@keyline-icons/react'
-import { isEmptyFilter, matches } from '@kuuki/shared/overview/filter'
-import { allianceAt } from '@kuuki/data/alliance-membership'
-import { AllianceMark } from '../../../ui/category-mark'
+import { isEmptyFilter } from '@kuuki/shared/overview/filter'
+import { Button } from '../../../ui/button'
 import { SegmentedControl } from '../../../ui/segmented-control'
-import { Disclosure } from '../../../ui/disclosure'
 import { ArcDonut } from '../../charts/arc-donut'
 import { ArcSlope } from '../../charts/arc-slope'
 import { markerPath, slotCue, useComparisonSlots } from '../../charts/comparison-slots'
@@ -16,11 +14,14 @@ import type { BumpRow } from '@kuuki/shared/overview/rankings'
 import { airlineComparison } from './comparison'
 import { KuukiChart } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
+import { StageRows } from '../../charts/stage-rows'
+import { ChapterCard } from '../../layout/chapter-card'
+import { useReading } from '../../layout/use-reading'
 import { referenceLabels } from '../../labels'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, flights, percent, filterLabel, moreAirlines, number } from './display'
-import { BoardSheetFigure } from './figure'
+import { GateSignFigure } from './figure'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
@@ -28,8 +29,12 @@ const LEGEND_TOP = 8,
   DONUT_SIZE = 240,
   // Whole-journal baseline: thin, round, sparse dots, apart from every slot's dash.
   BASELINE_DASH = '1 6'
+
+/** The routes' undirected key, `DOH-NRT`, as the sign prints it: `DOH–NRT`. */
+const signCode = (key: string) => key.replace('-', '–')
+
 export function Section({ span }: { span: Span }) {
-  const { scope, all, payload, locale, actions, isCurrent, ownerKey } = useOverview()
+  const { scope, all, payload, filter, locale, actions, isCurrent, ownerKey } = useOverview()
   const [category, setCategory] = useState<Category>('airlines')
   const [hidden, setHidden] = useState<string[]>([])
   const [legendSeries, setLegendSeries] = useState<string | null>(null)
@@ -53,22 +58,61 @@ export function Section({ span }: { span: Span }) {
     visibleKeys: comparisonKeys,
     seedOrder: all?.rankings.airlines.map((row) => row.key) ?? [],
   })
-  if (!scope || !all || !payload) return null
+  // The top five of the shown view, the leader first: the chart's rows, the reading's keys and the figure button's cycle.
+  const top = scope?.rankings[category].slice(0, 5) ?? []
+  const keys = top.map((row) => row.key)
+  const r = useReading(keys, keys[0] ?? null)
   const labels = referenceLabels(locale)
   const name = (kind: Category, key: string) =>
     kind === 'airlines'
       ? labels.airline(key)
       : kind === 'airports'
         ? labels.airport(key)
-        : key.replace('-', ' → ')
-  const pick = (kind: Category, key: string) => {
+        : key.replace('-', ' ↔ ')
+  const addFilter = (kind: Category, key: string) => {
     if (isCurrent()) actions.add(kind, key)
+  }
+  const scoped = !!scope && !isEmptyFilter(scope.filter)
+  const state =
+    !scope || !all || !payload ? 'loading' : top.length === 0 && scoped ? 'empty' : 'ready'
+  if (!scope || !all || !payload || state === 'empty') {
+    const noun = {
+      airlines: copy(locale, 'airlines', 'авиакомпаний'),
+      airports: copy(locale, 'airports', 'аэропортов'),
+      routes: copy(locale, 'routes', 'маршрутов'),
+    }[category]
+    return (
+      <ChapterCard
+        state={state}
+        figure={<GateSignFigure code="" picked={false} />}
+        hero={{ value: '', caption: null }}
+        chart={{ caption: '', plot: null }}
+        empty={{
+          title: copy(locale, 'Nothing left to rank', 'Ранжировать нечего'),
+          line: copy(
+            locale,
+            `This filter leaves no ${noun}. A podium needs someone standing on it.`,
+            `Фильтр не оставил ${noun}. Для пьедестала нужен хотя бы один участник.`,
+          ),
+          action: (
+            <Button
+              dense
+              variant="secondary"
+              onClick={() => {
+                if (isCurrent()) actions.clear()
+              }}
+            >
+              {copy(locale, 'Clear filter', 'Сбросить фильтр')}
+            </Button>
+          ),
+        }}
+      />
+    )
   }
   const years = [...new Set(rows.map((row) => String(row.year)))]
   const baseline = all.rankings.rankByYear[category].filter((row) =>
     years.includes(String(row.year)),
   )
-  const scoped = !isEmptyFilter(scope.filter)
   const applied = (kind: Category, key: string) => scope.filter[kind]?.includes(key) ?? false
   const shown = entities.filter((entity) => !hidden.includes(entity))
   const highlighted = legendSeries && shown.includes(legendSeries) ? legendSeries : null
@@ -142,610 +186,624 @@ export function Section({ span }: { span: Span }) {
     ],
     daytime: [copy(locale, 'Daytime', 'Дневные'), copy(locale, 'Red-eye', 'Ночные')],
   }
-  return (
-    <div className="ov3-rankings" data-span={span}>
-      <BoardSheetFigure />
-      <p className="ov3-fine-hint">
-        {copy(
+
+  // The reading: the leader until a row is picked. Its figure code, hero value and caption all come from the same row.
+  const leader = scope.rankings.leaders[category]
+  const reading = top.find((row) => row.key === r.reading) ?? top[0] ?? null
+  const rank = reading ? top.indexOf(reading) + 1 : 0
+  const tied = top.length > 1 && top[1].count === top[0].count ? top[1] : null
+  const readingName = reading ? name(category, reading.key) : ''
+  const share = reading && leader.total ? percent(reading.count / leader.total) : ''
+  const unit = (count: number) => flights(locale, count).replace(/^[\d\s.,  ]+/u, '')
+  const ordinal = (n: number) =>
+    locale === 'ru'
+      ? `${n}-${{ airlines: 'я', airports: 'й', routes: 'й' }[category]}`
+      : (['1st', '2nd', '3rd', '4th', '5th'][n - 1] ?? `${n}th`)
+  const nounOne = {
+    airlines: copy(locale, 'airline', 'авиакомпания'),
+    airports: copy(locale, 'airport', 'аэропорт'),
+    routes: copy(locale, 'route', 'маршрут'),
+  }[category]
+  const topLabel = {
+    airlines: copy(locale, 'Top airline', 'Главная авиакомпания'),
+    airports: copy(locale, 'Top airport', 'Главный аэропорт'),
+    routes: copy(locale, 'Top route', 'Главный маршрут'),
+  }[category]
+  const ofWhat =
+    category === 'airports'
+      ? copy(locale, 'of airport visits', 'посещений аэропортов')
+      : copy(locale, 'of your flights', 'ваших перелётов')
+  const dry = tied
+    ? copy(locale, 'Neither blinked.', 'Никто не моргнул.')
+    : {
+        airlines: copy(
           locale,
-          'Click any name to filter the page',
-          'Нажмите на название, чтобы отфильтровать страницу',
-        )}
-      </p>
-      <div className="ov3-leaders">
-        {(['airlines', 'airports', 'routes'] as const).map((kind) => {
-          const leader = scope.rankings.leaders[kind],
-            first = leader.top[0]
-          const context = first && kind === 'airports' ? payload.refs.airports[first.key] : null
-          const airlineDate =
-            first && kind === 'airlines'
-              ? payload.rows
-                  .filter(
-                    (row) =>
-                      row.airline === first.key &&
-                      row.state !== 'upcoming' &&
-                      matches(row, scope.filter, payload.refs),
-                  )
-                  .map((row) => row.date)
-                  .sort()
-                  .at(-1)
-              : null
-          const alliance = first && airlineDate ? allianceAt(first.key, airlineDate) : null
-          return (
-            <div className="ov3-leader" key={kind}>
-              <p>
-                {copy(
-                  locale,
-                  kind === 'airlines'
-                    ? 'Top airline'
-                    : kind === 'airports'
-                      ? 'Top airport'
-                      : 'Top route',
-                  kind === 'airlines'
-                    ? 'Главная авиакомпания'
-                    : kind === 'airports'
-                      ? 'Главный аэропорт'
-                      : 'Главный маршрут',
-                )}
-              </p>
-              {first ? (
-                <>
-                  <button className="ov3-leader-lockup" onClick={() => pick(kind, first.key)}>
-                    <span className="ov3-leader-badge">{kind === 'routes' ? '↔' : first.key}</span>
-                    <span className="ov3-leader-name">
-                      {name(kind, first.key)}
-                      <small>
-                        {alliance ? <AllianceMark alliance={alliance} decorative /> : null}
-                        {alliance
-                          ? { star: 'Star Alliance', oneworld: 'oneworld', skyteam: 'SkyTeam' }[
-                              alliance
-                            ]
-                          : context?.country
-                            ? labels.country(context.country)
-                            : kind === 'routes'
-                              ? first.key
-                                  .split('-')
-                                  .map((code) => payload.refs.airports[code]?.city ?? code)
-                                  .join(' → ')
-                              : ''}
-                        {kind === 'airports' && scope.home?.iata === first.key
-                          ? copy(locale, ' · home airport', ' · домашний аэропорт')
-                          : ''}
-                      </small>
-                    </span>
-                    <strong>
-                      {first.count}
-                      <small>{copy(locale, 'flights', 'перелёты')}</small>
-                    </strong>
-                  </button>
-                  <div className="ov3-leader-strip" aria-hidden="true">
-                    <i style={{ width: percent(leader.topShare) }} />
-                    <i style={{ width: percent(leader.top5Share - leader.topShare) }} />
-                  </div>
-                  <p className="ov3-leader-legend">
-                    <span>
-                      <i aria-hidden="true" />
-                      {percent(leader.topShare)}{' '}
-                      {copy(
-                        locale,
-                        kind === 'airports' ? 'of airport visits' : 'of your flights',
-                        kind === 'airports' ? 'посещений аэропортов' : 'ваших перелётов',
-                      )}
-                    </span>
-                    <span>
-                      <i aria-hidden="true" />
-                      {copy(locale, 'Top 5', 'Топ-5')}: {percent(leader.top5Share)}
-                    </span>
-                  </p>
-                  {leader.top.slice(1).map((row, i) => (
-                    <button
-                      className="ov3-rank-row"
-                      key={row.key}
-                      onClick={() => pick(kind, row.key)}
-                    >
-                      <span>{i + 2}</span>
-                      <span>{name(kind, row.key)}</span>
-                      <span>{row.count}</span>
-                    </button>
-                  ))}
-                </>
-              ) : (
-                <p>—</p>
-              )}
-            </div>
-          )
-        })}
-      </div>
-      {/* The leaders answer "who"; the analyses below are for digging, so each opens on request instead of lengthening every visit. */}
-      <Disclosure
-        summary={copy(locale, 'Rank by year and head to head', 'Рейтинг по годам и противостояния')}
-      >
-        <div className="ov3-rankings-bottom">
-          <div>
-            <h3 className="ov3-chart-caption">
-              {copy(locale, 'Rank by year', 'Рейтинг по годам')}
-            </h3>
-            <SegmentedControl
-              value={category}
-              onChange={(value) => {
-                setCategory(value)
-                setHidden([])
-                setLegendSeries(null)
-              }}
-              label={copy(locale, 'Rank by', 'Рейтинг по')}
-              options={
-                [
-                  { value: 'airlines', label: copy(locale, 'Airlines', 'Авиакомпании') },
-                  { value: 'airports', label: copy(locale, 'Airports', 'Аэропорты') },
-                  { value: 'routes', label: copy(locale, 'Routes', 'Маршруты') },
-                ] as const
-              }
-            />
-            <LazyChart height={314} label={copy(locale, 'Rank by year', 'Рейтинг по годам')}>
-              {(inView) => (
-                <KuukiChart
-                  key={category}
-                  points={points}
-                  height={270}
-                  inView={inView}
-                  ariaLabel={copy(locale, 'Rank by year', 'Рейтинг по годам')}
-                  onPick={(point) => pick(category, point.datum.entity)}
-                  applied={(point) => applied(category, point.datum.entity)}
-                  actions={(point) => [
-                    { label: filterLabel(locale), run: () => pick(category, point.datum.entity) },
-                  ]}
-                  tip={(selected) => <span>{selected[0].label}</span>}
-                  table={{
-                    caption: copy(locale, 'Rank by year', 'Рейтинг по годам'),
-                    columns: [
-                      { key: 'entity', label: copy(locale, 'Name', 'Название') },
-                      { key: 'year', label: copy(locale, 'Year', 'Год') },
-                      { key: 'rank', label: copy(locale, 'Rank', 'Место') },
-                      { key: 'count', label: copy(locale, 'Flights', 'Перелёты') },
-                    ],
-                    rows: rows.map((row) => ({ ...row, entity: name(category, row.entity) })),
-                  }}
-                >
-                  {(mark, { width }) => {
-                    const trace = tracer(width)
+          'Brand loyalty, or just the only gate nearby.',
+          'Верность бренду или просто единственный гейт рядом.',
+        ),
+        airports:
+          scope.home?.iata === reading?.key
+            ? copy(locale, 'Of course it is.', 'Ещё бы.')
+            : copy(
+                locale,
+                'Some people have a favourite café. You have this.',
+                'У кого-то любимое кафе. У вас вот это.',
+              ),
+        routes: copy(
+          locale,
+          'The same two airports again. Bold.',
+          'Опять те же два аэропорта. Смело.',
+        ),
+      }[category]
+  const fact = tied
+    ? copy(
+        locale,
+        `tied with ${name(category, tied.key)}`,
+        `на равных с ${name(category, tied.key)}`,
+      )
+    : category === 'airports' && scope.home?.iata === reading?.key
+      ? copy(locale, 'your home airport', 'ваш домашний аэропорт')
+      : `${share} ${ofWhat}`
+  const caption = !reading
+    ? copy(locale, `No ${nounOne} on file.`, 'Здесь пока пусто.')
+    : r.isHeadline
+      ? `${readingName} · ${topLabel} · ${fact}. ${dry}`
+      : `${ordinal(rank)} ${nounOne} · ${readingName} · ${share} ${ofWhat}`
+  const code = !reading ? '' : category === 'routes' ? signCode(reading.key) : reading.key
+  const shortName = !reading
+    ? ''
+    : category === 'airlines'
+      ? readingName
+      : category === 'airports'
+        ? reading.key
+        : readingName
+
+  const chartCaption = {
+    airlines: copy(locale, 'Top airlines', 'Топ авиакомпаний'),
+    airports: copy(locale, 'Top airports', 'Топ аэропортов'),
+    routes: copy(locale, 'Top routes', 'Топ маршрутов'),
+  }[category]
+  const stagePoints = top.map((row) => ({
+    key: row.key,
+    datum: row,
+    label: `${name(category, row.key)}, ${flights(locale, row.count)}`,
+  }))
+  const appliedKeys = keys.filter((key) => filter[category]?.includes(key))
+
+  const bump = (
+    <div className="ov3-rankings" data-span={span}>
+      <LazyChart height={314} label={copy(locale, 'Rank by year', 'Рейтинг по годам')}>
+        {(inView) => (
+          <KuukiChart
+            key={category}
+            points={points}
+            height={270}
+            inView={inView}
+            ariaLabel={copy(locale, 'Rank by year', 'Рейтинг по годам')}
+            onPick={(point) => addFilter(category, point.datum.entity)}
+            applied={(point) => applied(category, point.datum.entity)}
+            actions={(point) => [
+              { label: filterLabel(locale), run: () => addFilter(category, point.datum.entity) },
+            ]}
+            tip={(selected) => <span>{selected[0].label}</span>}
+            table={{
+              caption: copy(locale, 'Rank by year', 'Рейтинг по годам'),
+              columns: [
+                { key: 'entity', label: copy(locale, 'Name', 'Название') },
+                { key: 'year', label: copy(locale, 'Year', 'Год') },
+                { key: 'rank', label: copy(locale, 'Rank', 'Место') },
+                { key: 'count', label: copy(locale, 'Flights', 'Перелёты') },
+              ],
+              rows: rows.map((row) => ({ ...row, entity: name(category, row.entity) })),
+            }}
+          >
+            {(mark, { width }) => {
+              const trace = tracer(width)
+              return (
+                <g data-bump-highlight={highlighted ?? undefined}>
+                  <g aria-hidden="true" pointerEvents="none" fill="var(--text-muted)" fontSize={12}>
+                    {[1, 2, 3, 4, 5].map((rank) => (
+                      <text key={rank} x={18} y={yOf(rank)} dy=".32em" textAnchor="end">
+                        {rank}
+                      </text>
+                    ))}
+                    {years.map((year) => (
+                      <text key={year} x={xOf(Number(year), width)} y={245} textAnchor="middle">
+                        {year}
+                      </text>
+                    ))}
+                    {scoped
+                      ? entities.map((entity) => (
+                          <path
+                            key={entity}
+                            d={trace(baseline.filter((row) => row.entity === entity)) ?? ''}
+                            fill="none"
+                            stroke="var(--mark-ghost)"
+                            strokeWidth={1}
+                            strokeDasharray={BASELINE_DASH}
+                            strokeLinecap="round"
+                          />
+                        ))
+                      : null}
+                  </g>
+                  {shown.map((entity) => {
+                    const cue = seriesCue(entity)
                     return (
-                      <g data-bump-highlight={highlighted ?? undefined}>
-                        <g
-                          aria-hidden="true"
+                      <g
+                        key={entity}
+                        data-bump-series={entity}
+                        data-active={highlighted === entity || undefined}
+                      >
+                        <path
+                          d={trace(rows.filter((row) => row.entity === entity)) ?? ''}
+                          fill="none"
+                          stroke={cue.color}
+                          strokeWidth={2}
+                          strokeDasharray={cue.dash}
                           pointerEvents="none"
-                          fill="var(--text-muted)"
-                          fontSize={12}
-                        >
-                          {[1, 2, 3, 4, 5].map((rank) => (
-                            <text key={rank} x={18} y={yOf(rank)} dy=".32em" textAnchor="end">
-                              {rank}
-                            </text>
-                          ))}
-                          {years.map((year) => (
-                            <text
-                              key={year}
-                              x={xOf(Number(year), width)}
-                              y={245}
-                              textAnchor="middle"
-                            >
-                              {year}
-                            </text>
-                          ))}
-                          {scoped
-                            ? entities.map((entity) => (
-                                <path
-                                  key={entity}
-                                  d={trace(baseline.filter((row) => row.entity === entity)) ?? ''}
-                                  fill="none"
-                                  stroke="var(--mark-ghost)"
-                                  strokeWidth={1}
-                                  strokeDasharray={BASELINE_DASH}
-                                  strokeLinecap="round"
-                                />
-                              ))
-                            : null}
-                        </g>
-                        {shown.map((entity) => {
-                          const cue = seriesCue(entity)
-                          return (
-                            <g
-                              key={entity}
-                              data-bump-series={entity}
-                              data-active={highlighted === entity || undefined}
-                            >
-                              <path
-                                d={trace(rows.filter((row) => row.entity === entity)) ?? ''}
-                                fill="none"
-                                stroke={cue.color}
-                                strokeWidth={2}
-                                strokeDasharray={cue.dash}
-                                pointerEvents="none"
-                                aria-hidden="true"
+                          aria-hidden="true"
+                        />
+                        {points
+                          .filter((point) => point.datum.entity === entity)
+                          .map((point) => (
+                            <g key={point.key} {...mark(point)}>
+                              <circle
+                                cx={xOf(point.datum.year, width)}
+                                cy={yOf(point.datum.rank)}
+                                r={22}
+                                fill="transparent"
                               />
-                              {points
-                                .filter((point) => point.datum.entity === entity)
-                                .map((point) => (
-                                  <g key={point.key} {...mark(point)}>
-                                    <circle
-                                      cx={xOf(point.datum.year, width)}
-                                      cy={yOf(point.datum.rank)}
-                                      r={22}
-                                      fill="transparent"
-                                    />
-                                    <path
-                                      d={markerPath(cue.marker, 4.5)}
-                                      transform={`translate(${xOf(point.datum.year, width)},${yOf(point.datum.rank)})`}
-                                      fill={cue.color}
-                                      fillRule="evenodd"
-                                      stroke="var(--surface)"
-                                      strokeWidth={1}
-                                    />
-                                  </g>
-                                ))}
+                              <path
+                                d={markerPath(cue.marker, 4.5)}
+                                transform={`translate(${xOf(point.datum.year, width)},${yOf(point.datum.rank)})`}
+                                fill={cue.color}
+                                fillRule="evenodd"
+                                stroke="var(--surface)"
+                                strokeWidth={1}
+                              />
                             </g>
-                          )
-                        })}
+                          ))}
                       </g>
                     )
-                  }}
-                </KuukiChart>
-              )}
-            </LazyChart>
-            {/* These toggle lines in this chart only, unlike the names above, which filter the page. */}
-            <p className="ov3-bump-hint">
-              {copy(locale, 'Show or hide lines', 'Показать или скрыть линии')}
-            </p>
-            <div
-              className="ov3-bump-dashes"
-              role="group"
-              aria-label={copy(locale, 'Series visibility', 'Видимость рядов')}
-            >
-              {entities.map((entity) => {
-                const cue = seriesCue(entity)
-                return (
-                  <button
-                    key={entity}
-                    type="button"
-                    aria-pressed={!hidden.includes(entity)}
-                    onPointerEnter={(event) => {
-                      if (event.pointerType !== 'touch') setLegendSeries(entity)
-                    }}
-                    onPointerLeave={() => setLegendSeries(null)}
-                    onFocus={() => setLegendSeries(entity)}
-                    onBlur={() => setLegendSeries(null)}
-                    onClick={() =>
-                      setHidden((current) =>
-                        current.includes(entity)
-                          ? current.filter((key) => key !== entity)
-                          : [...current, entity],
-                      )
-                    }
-                  >
-                    <svg width="28" height="12" aria-hidden="true">
-                      <line
-                        x1="0"
-                        x2="28"
-                        y1="6"
-                        y2="6"
-                        stroke={cue.color}
-                        strokeWidth={2}
-                        strokeDasharray={cue.dash}
-                      />
-                      <path
-                        d={markerPath(cue.marker, 4.5)}
-                        transform="translate(14,6)"
-                        fill={cue.color}
-                        fillRule="evenodd"
-                        stroke="var(--surface)"
-                        strokeWidth={1}
-                      />
-                    </svg>
-                    {name(category, entity)}
-                  </button>
-                )
-              })}
-              {scoped && baseline.length > 0 && (
-                <span>
-                  <svg width="28" height="12" aria-hidden="true">
-                    <line
-                      x1="0"
-                      x2="28"
-                      y1="6"
-                      y2="6"
-                      stroke="var(--mark-ghost)"
-                      strokeWidth={1}
-                      strokeDasharray={BASELINE_DASH}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  {copy(locale, 'Whole journal', 'Вся история')}
-                </span>
-              )}
-              {hidden.length > 0 && (
-                <button type="button" onClick={() => setHidden([])}>
-                  {copy(locale, 'Show all', 'Показать все')}
-                </button>
-              )}
-            </div>
-            {shown.length === 0 && (
-              <p role="status">{copy(locale, 'No series shown', 'Все ряды скрыты')}</p>
-            )}
-          </div>
-          <div>
-            <h3 className="ov3-chart-caption">{copy(locale, 'Head to head', 'Лицом к лицу')}</h3>
-            {scope.rankings.versus.map((pair) =>
-              pair.left.count + pair.right.count === 0 ? (
-                <p key={pair.id}>{pairEmpty[pair.id]}</p>
-              ) : (
-                <div className="ov3-score" key={pair.id}>
-                  <button onClick={() => pairPick(pair.id, 'left')}>{pairNames[pair.id][0]}</button>
-                  <strong>
-                    {pair.left.count} : {pair.right.count}
-                  </strong>
-                  <button onClick={() => pairPick(pair.id, 'right')}>
-                    {pairNames[pair.id][1]}
-                  </button>
-                </div>
-              ),
-            )}
-            {daytime.left.count + daytime.right.count > 0 && daytime.excluded > 0 && (
-              <p>
-                {copy(locale, 'Daytime v red-eye leaves out', 'Дневные и ночные: не учтено')}{' '}
-                {flights(locale, daytime.excluded)} {copy(locale, 'without times', 'без времени')}
-              </p>
-            )}
-          </div>
-        </div>
-      </Disclosure>
-      <Disclosure
-        summary={
-          comparison
-            ? copy(
-                locale,
-                'Airline shares and change since the previous period',
-                'Доли авиакомпаний и сравнение с прошлым периодом',
-              )
-            : shareCaption
-        }
-      >
-        <div
-          className="ov3-rankings-bottom ov3-rankings-shares"
-          data-single={comparison ? undefined : 'true'}
-        >
-          <div>
-            <h3 className="ov3-chart-caption">{shareCaption}</h3>
-            <div className="ov3-shares">
-              <div className="ov3-share-donut">
-                <LazyChart height={284} label={shareCaption}>
-                  {(inView) => (
-                    <KuukiChart
-                      points={sharePoints}
-                      height={DONUT_SIZE}
-                      fit={() => DONUT_SIZE}
-                      inView={inView}
-                      ariaLabel={shareCaption}
-                      onPick={(point) => pick('airlines', point.datum.key)}
-                      applied={(point) => applied('airlines', point.datum.key)}
-                      actions={(point) => [
-                        {
-                          label: filterLabel(locale),
-                          run: () => pick('airlines', point.datum.key),
-                        },
-                      ]}
-                      tip={(selected) => <span>{selected[0].label}</span>}
-                      table={{
-                        caption: shareCaption,
-                        columns: [
-                          { key: 'airline', label: copy(locale, 'Airline', 'Авиакомпания') },
-                          {
-                            key: 'count',
-                            label: copy(locale, 'Flights', 'Перелёты'),
-                            numeric: true,
-                          },
-                          { key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true },
-                        ],
-                        rows: shares.map((row) => ({
-                          airline: name('airlines', row.key),
-                          count: row.count,
-                          share: percent(row.count / shareTotal),
-                        })),
-                      }}
-                    >
-                      {(mark, { width, height }) => (
-                        <ArcDonut
-                          width={width}
-                          height={height}
-                          rows={sharePoints.map((point) => ({
-                            point,
-                            value: point.datum.count,
-                            color: airlineColor(point.key),
-                          }))}
-                          mark={(point) => {
-                            // Sector and legend row light up together; neither filters until picked.
-                            const props = mark(point)
-                            return {
-                              ...props,
-                              onPointerEnter: (event) => {
-                                props.onPointerEnter?.(event)
-                                setLinkedShare(point.key)
-                              },
-                              onPointerLeave: (event) => {
-                                props.onPointerLeave?.(event)
-                                setLinkedShare(null)
-                              },
-                              onFocus: (event) => {
-                                props.onFocus?.(event)
-                                setLinkedShare(point.key)
-                              },
-                              onBlur: () => setLinkedShare(null),
-                            }
-                          }}
-                          highlightKey={linkedShare}
-                          totalLabel={copy(locale, 'Flights', 'Перелёты')}
-                          formatValue={(value) => number(locale, value)}
-                        />
-                      )}
-                    </KuukiChart>
-                  )}
-                </LazyChart>
-              </div>
-              <div className="ov3-share-key">
-                <div className="ov3-share-legend" id={legendId}>
-                  {legendRows.map((row) => {
-                    const active = applied('airlines', row.key)
-                    return (
-                      <button
-                        type="button"
-                        key={row.key}
-                        aria-pressed={active}
-                        data-linked={linkedShare === row.key || undefined}
-                        onPointerEnter={(event) => {
-                          if (event.pointerType !== 'touch') setLinkedShare(row.key)
-                        }}
-                        onPointerLeave={() => setLinkedShare(null)}
-                        onFocus={() => setLinkedShare(row.key)}
-                        onBlur={() => setLinkedShare(null)}
-                        onClick={() =>
-                          active && isCurrent()
-                            ? actions.remove('airlines', row.key)
-                            : pick('airlines', row.key)
-                        }
-                      >
-                        <i aria-hidden="true" style={{ background: airlineColor(row.key) }} />
-                        <span>
-                          {name('airlines', row.key)}
-                          {active ? (
-                            <Check
-                              className="ov3-share-check"
-                              size={14}
-                              strokeWidth={2}
-                              aria-hidden="true"
-                            />
-                          ) : null}
-                        </span>
-                        <strong>
-                          {number(locale, row.count)} · {percent(row.count / shareTotal)}
-                        </strong>
-                      </button>
-                    )
                   })}
-                </div>
-                {shares.length > LEGEND_TOP && (
-                  <button
-                    type="button"
-                    className="ov3-share-more"
-                    aria-expanded={allShares}
-                    aria-controls={legendId}
-                    onClick={() => setAllShares((open) => !open)}
-                  >
-                    {allShares
-                      ? copy(locale, 'Show fewer', 'Показать меньше')
-                      : moreAirlines(locale, shares.length - LEGEND_TOP)}
-                  </button>
-                )}
-              </div>
-            </div>
-            {scope.figures.flights > shareTotal && (
-              <p>
-                {copy(locale, 'Airline not recorded', 'Авиакомпания не указана')}:{' '}
-                {flights(locale, scope.figures.flights - shareTotal)}
-              </p>
-            )}
-            {!comparison && (
-              <p className="ov3-share-note" role="status">
-                {copy(
-                  locale,
-                  'Select a continuous period with available detail to compare with the previous period.',
-                  'Выберите непрерывный период с доступными данными для сравнения с прошлым периодом.',
-                )}
-              </p>
-            )}
+                </g>
+              )
+            }}
+          </KuukiChart>
+        )}
+      </LazyChart>
+      {/* These toggle lines in this chart only, unlike the names above, which filter the page. */}
+      <p className="ov3-bump-hint">
+        {copy(locale, 'Show or hide lines', 'Показать или скрыть линии')}
+      </p>
+      <div
+        className="ov3-bump-dashes"
+        role="group"
+        aria-label={copy(locale, 'Series visibility', 'Видимость рядов')}
+      >
+        {entities.map((entity) => {
+          const cue = seriesCue(entity)
+          return (
+            <button
+              key={entity}
+              type="button"
+              aria-pressed={!hidden.includes(entity)}
+              onPointerEnter={(event) => {
+                if (event.pointerType !== 'touch') setLegendSeries(entity)
+              }}
+              onPointerLeave={() => setLegendSeries(null)}
+              onFocus={() => setLegendSeries(entity)}
+              onBlur={() => setLegendSeries(null)}
+              onClick={() =>
+                setHidden((current) =>
+                  current.includes(entity)
+                    ? current.filter((key) => key !== entity)
+                    : [...current, entity],
+                )
+              }
+            >
+              <svg width="28" height="12" aria-hidden="true">
+                <line
+                  x1="0"
+                  x2="28"
+                  y1="6"
+                  y2="6"
+                  stroke={cue.color}
+                  strokeWidth={2}
+                  strokeDasharray={cue.dash}
+                />
+                <path
+                  d={markerPath(cue.marker, 4.5)}
+                  transform="translate(14,6)"
+                  fill={cue.color}
+                  fillRule="evenodd"
+                  stroke="var(--surface)"
+                  strokeWidth={1}
+                />
+              </svg>
+              {name(category, entity)}
+            </button>
+          )
+        })}
+        {scoped && baseline.length > 0 && (
+          <span>
+            <svg width="28" height="12" aria-hidden="true">
+              <line
+                x1="0"
+                x2="28"
+                y1="6"
+                y2="6"
+                stroke="var(--mark-ghost)"
+                strokeWidth={1}
+                strokeDasharray={BASELINE_DASH}
+                strokeLinecap="round"
+              />
+            </svg>
+            {copy(locale, 'Whole journal', 'Вся история')}
+          </span>
+        )}
+        {hidden.length > 0 && (
+          <button type="button" onClick={() => setHidden([])}>
+            {copy(locale, 'Show all', 'Показать все')}
+          </button>
+        )}
+      </div>
+      {shown.length === 0 && (
+        <p role="status">{copy(locale, 'No series shown', 'Все ряды скрыты')}</p>
+      )}
+    </div>
+  )
+  const headToHead = (
+    <div className="ov3-rankings" data-span={span}>
+      {scope.rankings.versus.map((pair) =>
+        pair.left.count + pair.right.count === 0 ? (
+          <p key={pair.id}>{pairEmpty[pair.id]}</p>
+        ) : (
+          <div className="ov3-score" key={pair.id}>
+            <button onClick={() => pairPick(pair.id, 'left')}>{pairNames[pair.id][0]}</button>
+            <strong>
+              {pair.left.count} : {pair.right.count}
+            </strong>
+            <button onClick={() => pairPick(pair.id, 'right')}>{pairNames[pair.id][1]}</button>
           </div>
-          {comparison && (
-            <div>
-              <h3 className="ov3-chart-caption">{comparisonCaption}</h3>
-              <LazyChart height={304} label={comparisonCaption}>
+        ),
+      )}
+      {daytime.left.count + daytime.right.count > 0 && daytime.excluded > 0 && (
+        <p>
+          {copy(locale, 'Daytime v red-eye leaves out', 'Дневные и ночные: не учтено')}{' '}
+          {flights(locale, daytime.excluded)} {copy(locale, 'without times', 'без времени')}
+        </p>
+      )}
+    </div>
+  )
+  const sharesBlock = (
+    <div className="ov3-rankings" data-span={span}>
+      <div
+        className="ov3-rankings-bottom ov3-rankings-shares"
+        data-single={comparison ? undefined : 'true'}
+      >
+        <div>
+          <h3 className="ov3-chart-caption">{shareCaption}</h3>
+          <div className="ov3-shares">
+            <div className="ov3-share-donut">
+              <LazyChart height={284} label={shareCaption}>
                 {(inView) => (
                   <KuukiChart
-                    points={comparisonPoints}
-                    height={260}
+                    points={sharePoints}
+                    height={DONUT_SIZE}
+                    fit={() => DONUT_SIZE}
                     inView={inView}
-                    ariaLabel={comparisonCaption}
-                    onPick={(point) => pick('airlines', point.datum.key)}
+                    ariaLabel={shareCaption}
+                    onPick={(point) => addFilter('airlines', point.datum.key)}
                     applied={(point) => applied('airlines', point.datum.key)}
                     actions={(point) => [
-                      { label: filterLabel(locale), run: () => pick('airlines', point.datum.key) },
+                      {
+                        label: filterLabel(locale),
+                        run: () => addFilter('airlines', point.datum.key),
+                      },
                     ]}
                     tip={(selected) => <span>{selected[0].label}</span>}
                     table={{
-                      caption: copy(
-                        locale,
-                        'All airline comparisons',
-                        'Сравнение всех авиакомпаний',
-                      ),
+                      caption: shareCaption,
                       columns: [
                         { key: 'airline', label: copy(locale, 'Airline', 'Авиакомпания') },
                         {
-                          key: 'start',
-                          label: copy(locale, 'Previous period', 'Прошлый период'),
+                          key: 'count',
+                          label: copy(locale, 'Flights', 'Перелёты'),
                           numeric: true,
                         },
-                        {
-                          key: 'end',
-                          label: copy(locale, 'Selected period', 'Выбранный период'),
-                          numeric: true,
-                        },
+                        { key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true },
                       ],
-                      rows: comparison.map((row) => ({
-                        ...row,
+                      rows: shares.map((row) => ({
                         airline: name('airlines', row.key),
+                        count: row.count,
+                        share: percent(row.count / shareTotal),
                       })),
                     }}
                   >
-                    {(mark, { width }) => (
-                      <ArcSlope
+                    {(mark, { width, height }) => (
+                      <ArcDonut
                         width={width}
-                        rows={comparisonPoints.map((point) => {
-                          const cue = slotCue(slopeSlots.get(point.key) ?? 0)
+                        height={height}
+                        rows={sharePoints.map((point) => ({
+                          point,
+                          value: point.datum.count,
+                          color: airlineColor(point.key),
+                        }))}
+                        mark={(point) => {
+                          // Sector and legend row light up together; neither filters until picked.
+                          const props = mark(point)
                           return {
-                            point,
-                            label: point.key,
-                            start: point.datum.start,
-                            end: point.datum.end,
-                            color: airlineColor(point.key),
-                            dash: cue.dash,
-                            marker: cue.marker,
+                            ...props,
+                            onPointerEnter: (event) => {
+                              props.onPointerEnter?.(event)
+                              setLinkedShare(point.key)
+                            },
+                            onPointerLeave: (event) => {
+                              props.onPointerLeave?.(event)
+                              setLinkedShare(null)
+                            },
+                            onFocus: (event) => {
+                              props.onFocus?.(event)
+                              setLinkedShare(point.key)
+                            },
+                            onBlur: () => setLinkedShare(null),
                           }
-                        })}
-                        mark={mark}
-                        maxValue={Math.max(
-                          0,
-                          ...comparisonPoints.flatMap((point) => [
-                            point.datum.start,
-                            point.datum.end,
-                          ]),
-                        )}
-                        startLabel={copy(locale, 'Previous period', 'Прошлый период')}
-                        endLabel={copy(locale, 'Selected period', 'Выбранный период')}
+                        }}
+                        highlightKey={linkedShare}
+                        totalLabel={copy(locale, 'Flights', 'Перелёты')}
                         formatValue={(value) => number(locale, value)}
                       />
                     )}
                   </KuukiChart>
                 )}
               </LazyChart>
-              {comparison.length === 0 && (
-                <p>
-                  {copy(
-                    locale,
-                    'No recorded airlines in either period.',
-                    'Ни в одном периоде нет указанных авиакомпаний.',
-                  )}
-                </p>
+            </div>
+            <div className="ov3-share-key">
+              <div className="ov3-share-legend" id={legendId}>
+                {legendRows.map((row) => {
+                  const active = applied('airlines', row.key)
+                  return (
+                    <button
+                      type="button"
+                      key={row.key}
+                      aria-pressed={active}
+                      data-linked={linkedShare === row.key || undefined}
+                      onPointerEnter={(event) => {
+                        if (event.pointerType !== 'touch') setLinkedShare(row.key)
+                      }}
+                      onPointerLeave={() => setLinkedShare(null)}
+                      onFocus={() => setLinkedShare(row.key)}
+                      onBlur={() => setLinkedShare(null)}
+                      onClick={() =>
+                        active && isCurrent()
+                          ? actions.remove('airlines', row.key)
+                          : addFilter('airlines', row.key)
+                      }
+                    >
+                      <i aria-hidden="true" style={{ background: airlineColor(row.key) }} />
+                      <span>
+                        {name('airlines', row.key)}
+                        {active ? (
+                          <Check
+                            className="ov3-share-check"
+                            size={14}
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                      </span>
+                      <strong>
+                        {number(locale, row.count)} · {percent(row.count / shareTotal)}
+                      </strong>
+                    </button>
+                  )
+                })}
+              </div>
+              {shares.length > LEGEND_TOP && (
+                <button
+                  type="button"
+                  className="ov3-share-more"
+                  aria-expanded={allShares}
+                  aria-controls={legendId}
+                  onClick={() => setAllShares((open) => !open)}
+                >
+                  {allShares
+                    ? copy(locale, 'Show fewer', 'Показать меньше')
+                    : moreAirlines(locale, shares.length - LEGEND_TOP)}
+                </button>
               )}
             </div>
+          </div>
+          {scope.figures.flights > shareTotal && (
+            <p>
+              {copy(locale, 'Airline not recorded', 'Авиакомпания не указана')}:{' '}
+              {flights(locale, scope.figures.flights - shareTotal)}
+            </p>
+          )}
+          {!comparison && (
+            <p className="ov3-share-note" role="status">
+              {copy(
+                locale,
+                'Select a continuous period with available detail to compare with the previous period.',
+                'Выберите непрерывный период с доступными данными для сравнения с прошлым периодом.',
+              )}
+            </p>
           )}
         </div>
-      </Disclosure>
+        {comparison && (
+          <div>
+            <h3 className="ov3-chart-caption">{comparisonCaption}</h3>
+            <LazyChart height={304} label={comparisonCaption}>
+              {(inView) => (
+                <KuukiChart
+                  points={comparisonPoints}
+                  height={260}
+                  inView={inView}
+                  ariaLabel={comparisonCaption}
+                  onPick={(point) => addFilter('airlines', point.datum.key)}
+                  applied={(point) => applied('airlines', point.datum.key)}
+                  actions={(point) => [
+                    {
+                      label: filterLabel(locale),
+                      run: () => addFilter('airlines', point.datum.key),
+                    },
+                  ]}
+                  tip={(selected) => <span>{selected[0].label}</span>}
+                  table={{
+                    caption: copy(locale, 'All airline comparisons', 'Сравнение всех авиакомпаний'),
+                    columns: [
+                      { key: 'airline', label: copy(locale, 'Airline', 'Авиакомпания') },
+                      {
+                        key: 'start',
+                        label: copy(locale, 'Previous period', 'Прошлый период'),
+                        numeric: true,
+                      },
+                      {
+                        key: 'end',
+                        label: copy(locale, 'Selected period', 'Выбранный период'),
+                        numeric: true,
+                      },
+                    ],
+                    rows: comparison.map((row) => ({
+                      ...row,
+                      airline: name('airlines', row.key),
+                    })),
+                  }}
+                >
+                  {(mark, { width }) => (
+                    <ArcSlope
+                      width={width}
+                      rows={comparisonPoints.map((point) => {
+                        const cue = slotCue(slopeSlots.get(point.key) ?? 0)
+                        return {
+                          point,
+                          label: point.key,
+                          start: point.datum.start,
+                          end: point.datum.end,
+                          color: airlineColor(point.key),
+                          dash: cue.dash,
+                          marker: cue.marker,
+                        }
+                      })}
+                      mark={mark}
+                      maxValue={Math.max(
+                        0,
+                        ...comparisonPoints.flatMap((point) => [
+                          point.datum.start,
+                          point.datum.end,
+                        ]),
+                      )}
+                      startLabel={copy(locale, 'Previous period', 'Прошлый период')}
+                      endLabel={copy(locale, 'Selected period', 'Выбранный период')}
+                      formatValue={(value) => number(locale, value)}
+                    />
+                  )}
+                </KuukiChart>
+              )}
+            </LazyChart>
+            {comparison.length === 0 && (
+              <p>
+                {copy(
+                  locale,
+                  'No recorded airlines in either period.',
+                  'Ни в одном периоде нет указанных авиакомпаний.',
+                )}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
+  )
+
+  return (
+    <ChapterCard
+      state="ready"
+      figure={<GateSignFigure code={code} picked={r.picked} />}
+      figureButton={
+        keys.length > 1
+          ? {
+              label: copy(locale, 'Show next in the ranking', 'Показать следующую строку рейтинга'),
+              onPress: r.next,
+            }
+          : undefined
+      }
+      hero={{
+        value: reading ? number(locale, reading.count) : '—',
+        unit: reading ? unit(reading.count) : undefined,
+        caption,
+        only:
+          r.isHeadline || !reading || applied(category, reading.key)
+            ? null
+            : {
+                label: copy(locale, `Only ${shortName}`, `Только ${shortName}`),
+                onPress: () => addFilter(category, reading.key),
+              },
+      }}
+      rollValue={r.picked}
+      chart={{
+        caption: chartCaption,
+        toggle: (
+          <SegmentedControl
+            dense
+            value={category}
+            onChange={(value) => {
+              setCategory(value)
+              setHidden([])
+              setLegendSeries(null)
+            }}
+            label={copy(locale, 'Rank by', 'Рейтинг по')}
+            options={
+              [
+                { value: 'airlines', label: copy(locale, 'Airlines', 'Авиакомпании') },
+                { value: 'airports', label: copy(locale, 'Airports', 'Аэропорты') },
+                { value: 'routes', label: copy(locale, 'Routes', 'Маршруты') },
+              ] as const
+            }
+          />
+        ),
+        table: {
+          caption: chartCaption,
+          columns: [
+            { key: 'name', label: copy(locale, 'Name', 'Название') },
+            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+          ],
+          rows: top.map((row) => ({ name: name(category, row.key), flights: row.count })),
+        },
+        plot: (
+          <LazyChart height={stagePoints.length * 24} label={chartCaption}>
+            {(inView) => (
+              <StageRows
+                key={category}
+                points={stagePoints}
+                value={(point) => point.datum.count}
+                format={(point) => number(locale, point.datum.count)}
+                name={(point) => name(category, point.key)}
+                mono={category !== 'airlines'}
+                span={span}
+                selectedKey={r.reading}
+                appliedKeys={appliedKeys}
+                inView={inView}
+                ariaLabel={chartCaption}
+                onPick={(point) => r.pick(point.key)}
+                actions={(point) => [
+                  { label: filterLabel(locale), run: () => addFilter(category, point.key) },
+                ]}
+                tip={(selected) => <span>{selected[0].label}</span>}
+              />
+            )}
+          </LazyChart>
+        ),
+      }}
+      details={{
+        heading: copy(locale, 'Head to head', 'Лицом к лицу'),
+        extra: headToHead,
+        more: [
+          { summary: copy(locale, 'Rank by year', 'Рейтинг по годам'), content: bump },
+          { summary: shareCaption, content: sharesBlock },
+        ],
+      }}
+    />
   )
 }
