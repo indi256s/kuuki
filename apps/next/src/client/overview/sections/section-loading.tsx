@@ -1,10 +1,15 @@
 'use client'
 
-import { Skeleton } from '../../ui/skeleton'
-import { S, t } from '../copy'
-import { useOverview } from '../store/overview-context'
+import { ChapterCard } from '../layout/chapter-card'
 
+/** While a chapter's code loads: the card's own loading bands, so nothing moves when the chapter arrives. */
 export function SectionLoading() {
-  const { locale } = useOverview()
-  return <Skeleton height={220} label={t(S.loading, locale)} />
+  return (
+    <ChapterCard
+      state="loading"
+      figure={null}
+      hero={{ value: '', caption: null }}
+      chart={{ caption: '', plot: null }}
+    />
+  )
 }
