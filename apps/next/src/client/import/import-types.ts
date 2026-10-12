@@ -28,6 +28,7 @@ export interface DraftFields {
   destination_options?: string[]
   /** The source's status or evidence is uncertain (possible refund, cancelled outbound, conflicting details). */
   review_required?: boolean
+  verification?: 'verified' | 'disagreed' | 'failed' | 'unsupported' | 'not_verified'
 }
 
 export interface Draft {

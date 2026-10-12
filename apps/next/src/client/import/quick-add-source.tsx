@@ -3,7 +3,7 @@
 // Quick Add source step: two equal ways to bring a boarding pass in, then a local barcode read. A readable pass goes to
 // the server as flight fields only; anything else is offered as an upload for online recognition, after the member has
 // been told the document will leave the device. The file lives in this component's state and is never stored.
-import { Camera, FileUp } from 'lucide-react'
+import { Camera, FileArrowUp } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
 import { NavigationLink as Link } from '../navigation-link'
@@ -205,7 +205,7 @@ export function QuickAddSource({
           {S.qaPhoto[locale]}
         </Button>
         <Button
-          icon={<FileUp size={18} strokeWidth={2} aria-hidden="true" />}
+          icon={<FileArrowUp size={18} strokeWidth={2} aria-hidden="true" />}
           onClick={() => fileInput.current?.click()}
         >
           {S.qaChoose[locale]}

@@ -1,7 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { Plane, Route, Globe, TowerControl, Building2, Medal } from 'lucide-react'
+import {
+  Plane,
+  Route,
+  Globe,
+  Radar as TowerControl,
+  Buildings as Building2,
+  Award as Medal,
+} from '@keyline-icons/react'
 import type {
   readPublicLeaderboard,
   readOwnLeaderboardEligibility,

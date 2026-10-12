@@ -121,6 +121,32 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('ReviewStep', () => {
+  it('keeps an unverified row unsure after the member supplies its missing date', async () => {
+    const row = draft({
+      id: 'date',
+      selected: false,
+      yearExplicit: false,
+      fields: fields({ date: '', verification: 'failed' }),
+    })
+    m.patch.mockResolvedValue({
+      ...row,
+      fields: fields({ verification: 'not_verified' }),
+      yearConfirmed: true,
+      version: 2,
+    })
+    setup(batchOf(1, [row]))
+    const input = await screen.findByRole('textbox', { name: /date.*TBS.*MUC/i })
+    fireEvent.change(input, { target: { value: '2025-08-30' } })
+    fireEvent.blur(input)
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
+    expect(m.patch).toHaveBeenCalledWith('date', {
+      version: 1,
+      fields: { date: '2025-08-30' },
+      yearConfirmed: true,
+    })
+    expect(screen.getByRole('button', { name: 'Save 1 flight' })).toBeTruthy()
+  })
+
   it('retries an unavailable read and resumes a processing batch', async () => {
     m.readBatch
       .mockRejectedValueOnce(new TypeError('Failed to fetch'))

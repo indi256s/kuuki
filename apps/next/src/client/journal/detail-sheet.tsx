@@ -23,7 +23,7 @@
  * (`[data-flight-row=<id>]`) on close; Escape inside it closes it. The overlay does the same through Radix.
  */
 import Link from 'next/link'
-import { X } from 'lucide-react'
+import { X } from '@keyline-icons/react'
 import {
   useCallback,
   useEffect,

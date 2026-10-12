@@ -1,6 +1,6 @@
 'use client'
 
-import { Sparkle } from 'lucide-react'
+import { Sparkle } from '@keyline-icons/react'
 import type { Locale } from '../../lib/format'
 import { Tooltip } from '../ui/tooltip'
 import type { FlightFirsts, JournalFlight, JournalRefs } from './model'

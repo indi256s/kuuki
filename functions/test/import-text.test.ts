@@ -64,13 +64,50 @@ describe('parseStructuredText', () => {
     expect(parsed?.flights).toHaveLength(1)
   })
 
-  it('reads the Undated and other-passenger sections', () => {
+  it.each([
+    '2024-03-15 (calendar entry) | JFK → LAX | AA 123',
+    '2024-03-15 | JFK → LAX | AA 123 [calendar only]',
+  ])('keeps calendar-only evidence for review: %s', (content) => {
+    expect(parseStructuredText(content)?.flights).toEqual([
+      expect.objectContaining({
+        date: '2024-03-15',
+        origin: 'JFK',
+        destination: 'LAX',
+        review_required: true,
+        confidence: 0.5,
+      }),
+    ])
+  })
+
+  it.each([
+    'KL 1000 | BA 1000',
+    'KL 1000 | KL 1001',
+    'KLM Royal Dutch Airlines | British Airways',
+    'KL 1000 | KLM Royal Dutch Airlines',
+  ])('falls back with the whole source when airline parts repeat: %s', (airlines) => {
+    expect(
+      parseStructuredText([ROWS[0], `2024-03-15 | AMS → LHR | ${airlines}`].join('\n')),
+    ).toBeNull()
+  })
+
+  it('falls back instead of discarding conflicting ownership under a mixed heading', () => {
+    expect(
+      parseStructuredText(
+        [
+          ROWS[0],
+          'Other-passenger bookings or conflicting ownership (1)',
+          '2024-05-01 | JFK → LHR | BA 178 [conflicting ownership]',
+        ].join('\n'),
+      ),
+    ).toBeNull()
+  })
+
+  it('reads Undated rows and skips explicitly other-passenger bookings', () => {
     const parsed = parseStructuredText(
       [
         'KUUKI FLIGHTS v2',
         ROWS[0],
-        'Other-passenger bookings or conflicting ownership (1)',
-        '2024-05-01 | JFK → LHR | BA 178',
+        '2024-05-01 | JFK → LHR | BA 178 [other passenger]',
         'Partial dates / incomplete records (1)',
         'Undated | SVO → LED | Aeroflot SU 6',
       ].join('\n'),

@@ -3,7 +3,7 @@
 // The floating import dock: the batches this tab follows while the member is elsewhere, in the shell's toast corner.
 // It only follows reading. Ready runs call the member back to /import, where review and saving stay (decision 1).
 // It announces transitions (reading started, ready, stopped, failed), never every found count.
-import { Check, Circle, CircleAlert, X } from 'lucide-react'
+import { Check, Circle, CircleAlert, X } from '@keyline-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Locale } from '../../lib/format'
 import { NavigationLink } from '../navigation-link'

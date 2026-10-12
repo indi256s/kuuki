@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { Calendar } from 'lucide-react'
+import { Calendar } from '@keyline-icons/react'
 import { useState } from 'react'
 import type { Locale } from '../../../lib/format'
 import type { DraftChange } from '../../import/draft-saver'

@@ -1,7 +1,7 @@
 'use client'
 
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal } from '@keyline-icons/react'
 import {
   createContext,
   useContext,

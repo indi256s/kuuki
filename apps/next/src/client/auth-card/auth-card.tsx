@@ -14,6 +14,7 @@ import type { Locale } from '../../lib/format'
 import { BrandPanel } from './brand-panel'
 import { ConcordeField } from './concorde/concorde-field'
 import { CornerControls } from './corner-controls'
+import { useMotionPause } from './motion-pause'
 import { FormStep } from './form-step'
 import { GetBackInStep, type RequestState } from './get-back-in-step'
 import { Tagline } from './taglines'
@@ -41,11 +42,23 @@ export function AuthCardFrame({
   welcomeStep?: string
   children: ReactNode
 }) {
-  // The brand field holds still while focus is anywhere in the form column; leaving the column (or the card) resumes it.
+  const [motionPaused, setMotionPaused] = useMotionPause()
+  // Form focus pauses temporarily; the explicit pause survives blur and later visits.
   return (
-    <div className="auth-card" ref={cardRef} data-welcome={welcomeStep}>
+    <div
+      className="auth-card"
+      ref={cardRef}
+      data-welcome={welcomeStep}
+      data-motion-paused={motionPaused ? 'true' : undefined}
+    >
       <BrandPanel field={brandField ?? <ConcordeField />} />
-      <CornerControls locale={locale} theme={theme} onLocaleChange={onLocaleChange} />
+      <CornerControls
+        locale={locale}
+        theme={theme}
+        onLocaleChange={onLocaleChange}
+        motionPaused={brandField ? undefined : motionPaused}
+        onMotionPauseChange={setMotionPaused}
+      />
       <section
         className="auth-form-panel"
         onFocus={(event) => {

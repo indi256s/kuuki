@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Circle, LoaderCircle } from 'lucide-react'
+import { Check, Circle, LoaderCircle } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { formatDateOnly, formatNumber, type Locale } from '../../lib/format'
 import { FeedbackText } from '../ui/feedback-text'

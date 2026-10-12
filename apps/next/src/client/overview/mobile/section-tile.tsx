@@ -7,7 +7,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from '@keyline-icons/react'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { SECTIONS } from '../sections/registry'
 import { useOverview } from '../store/overview-context'

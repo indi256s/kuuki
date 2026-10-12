@@ -25,8 +25,8 @@ const FAST = 9
  *
  * The figure and its runtime load after hydration so they never hold up the form, then fade in at their rest pose,
  * which is the frame the generator drew. The turn eases to a stop while the field is off screen, the page is hidden or
- * focus is inside the form (auth-card.tsx sets `data-form-focus` on the card), and eases back in after. Under reduced
- * motion the model stands still at its rest pose.
+ * focus is inside the form (auth-card.tsx sets `data-form-focus` on the card), or the user pauses it. It eases back in
+ * after the gates clear. Under reduced motion the model stands still at its rest pose.
  */
 export function ConcordeField() {
   const stage = useRef<HTMLDivElement>(null)
@@ -81,7 +81,11 @@ export function ConcordeField() {
       else if (cost < FAST) half = false
     }
     const wanted = () =>
-      onScreen && !document.hidden && !still.matches && !card?.hasAttribute('data-form-focus')
+      onScreen &&
+      !document.hidden &&
+      !still.matches &&
+      !card?.hasAttribute('data-form-focus') &&
+      !card?.hasAttribute('data-motion-paused')
     const tick = (now: number) => {
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0
       last = now
@@ -120,9 +124,13 @@ export function ConcordeField() {
       sync()
     })
     observer.observe(element)
-    // Focus leaving the form column clears the card's attribute: resume then.
+    // Resume after temporary gates clear only if the user's persistent pause is off.
     const focus = new MutationObserver(sync)
-    if (card) focus.observe(card, { attributes: true, attributeFilter: ['data-form-focus'] })
+    if (card)
+      focus.observe(card, {
+        attributes: true,
+        attributeFilter: ['data-form-focus', 'data-motion-paused'],
+      })
     document.addEventListener('visibilitychange', sync)
     still.addEventListener('change', sync)
     return () => {

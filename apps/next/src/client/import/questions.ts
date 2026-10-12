@@ -248,6 +248,8 @@ function readyAfter(
   stated: FieldName[],
   today: string,
 ): boolean {
+  // Field answers invalidate source verification; importing remains an explicit choice.
+  if (draft.fields.verification !== undefined) return false
   const after = withUnsent(draft, change)
   if (openCauses(after, today).length > 0) return false
   if (!after.fields.date || (!after.yearExplicit && !after.yearConfirmed)) return false

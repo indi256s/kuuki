@@ -1,7 +1,7 @@
 'use client'
 
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react'
-import { CircleAlert, Eye, EyeOff } from 'lucide-react'
+import { CircleAlert, Eye, EyeOff } from '@keyline-icons/react'
 import type { Locale } from '../../lib/format'
 import './auth-card.css'
 

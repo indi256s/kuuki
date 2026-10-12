@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from '@keyline-icons/react'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import { setLocale } from '../appearance'

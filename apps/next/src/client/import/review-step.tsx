@@ -1,6 +1,6 @@
 'use client'
 
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle } from '@keyline-icons/react'
 import { Plus } from '../ui/animated-icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatInstantDate, type Locale } from '../../lib/format'

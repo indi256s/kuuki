@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, type ReactNode } from 'react'
-import { Maximize } from 'lucide-react'
+import { Maximize } from '@keyline-icons/react'
 import type { Locale } from '../../../lib/format'
 import { BUCKET_LABELS, BUCKET_TOKENS } from '../../../lib/map-buckets'
 import { Button } from '../../ui/button'

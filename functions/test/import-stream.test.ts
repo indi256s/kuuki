@@ -123,63 +123,90 @@ it('refuses invalid file input with a structured code before dispatch', async ()
   expect(fetch).not.toHaveBeenCalled()
 })
 
-it('enforces 90 seconds and aborts even a provider that ignores the signal', async () => {
-  const fixture = await importAccount()
-  dispose = fixture.dispose
-  const batchId = crypto.randomUUID()
-  await createProcessingBatch(
-    fixture.db,
-    {
-      id: batchId,
-      userId: 'u1',
-      sourceType: 'text',
-      sourceLabel: null,
-      operationId: 'deadline-op-0001',
-    },
-    new Date(),
-  )
-  const pending: Promise<unknown>[] = []
-  const state = {
-    storage: {
-      get: async () => undefined,
-      put: async () => undefined,
-      setAlarm: async () => undefined,
-      deleteAlarm: async () => undefined,
-      deleteAll: async () => undefined,
-    },
-    blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn(),
-    waitUntil: (work: Promise<unknown>) => pending.push(work),
-  } as unknown as DurableObjectState
-  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
-  const started = Date.now()
-  const job = new ImportJob(state, { DB: fixture.db, GEMINI_API_KEY: 'fake' })
-  expect(
-    (
-      await job.fetch(
-        new Request('https://import.internal/start', {
-          method: 'POST',
-          body: JSON.stringify({
-            fence: { userId: 'u1', batchId, generation: 1 },
-            source: { type: 'text', content: 'private fixture' },
-          }),
-        }),
+it.each(['provider', 'checker'] as const)(
+  'enforces the shared 90-second deadline even when the %s ignores abort',
+  async (stage) => {
+    const fixture = await importAccount()
+    dispose = fixture.dispose
+    const batchId = crypto.randomUUID()
+    await createProcessingBatch(
+      fixture.db,
+      {
+        id: batchId,
+        userId: 'u1',
+        sourceType: 'text',
+        sourceLabel: null,
+        operationId: 'deadline-op-0001',
+      },
+      new Date(),
+    )
+    const pending: Promise<unknown>[] = []
+    const state = {
+      storage: {
+        get: async () => undefined,
+        put: async () => undefined,
+        setAlarm: async () => undefined,
+        deleteAlarm: async () => undefined,
+        deleteAll: async () => undefined,
+      },
+      blockConcurrencyWhile: (fn: () => Promise<unknown>) => fn(),
+      waitUntil: (work: Promise<unknown>) => pending.push(work),
+    } as unknown as DurableObjectState
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    const started = Date.now()
+    const check = vi.fn(() => new Promise(() => undefined))
+    if (stage === 'checker')
+      provider.stream.mockResolvedValueOnce(
+        (async function* () {
+          yield { text: providerText([providerFlight()]) }
+        })(),
       )
-    ).status,
-  ).toBe(202)
-  await vi.waitFor(() => expect(provider.stream).toHaveBeenCalledTimes(1))
-  const signal = provider.stream.mock.calls[0][0].config.abortSignal
-  await vi.advanceTimersByTimeAsync(90_000 - (Date.now() - started) - 1)
-  expect(signal.aborted).toBe(false)
-  await vi.advanceTimersByTimeAsync(1)
-  await Promise.all(pending)
-  expect(signal.aborted).toBe(true)
-  expect(
-    await fixture.db
-      .prepare('SELECT status,error_code FROM import_batches WHERE id = ?')
-      .bind(batchId)
-      .first(),
-  ).toEqual({ status: 'failed', error_code: 'PROVIDER_TIMEOUT' })
-})
+    const job = new ImportJob(state, {
+      DB: fixture.db,
+      GEMINI_API_KEY: 'fake',
+      AI: { run: check } as unknown as Ai,
+    })
+    expect(
+      (
+        await job.fetch(
+          new Request('https://import.internal/start', {
+            method: 'POST',
+            body: JSON.stringify({
+              fence: { userId: 'u1', batchId, generation: 1 },
+              source: { type: 'text', content: 'private fixture' },
+            }),
+          }),
+        )
+      ).status,
+    ).toBe(202)
+    await vi.waitFor(() => expect(provider.stream).toHaveBeenCalledTimes(1))
+    if (stage === 'checker') await vi.waitFor(() => expect(check).toHaveBeenCalledTimes(1))
+    const signal = provider.stream.mock.calls[0][0].config.abortSignal
+    await vi.advanceTimersByTimeAsync(90_000 - (Date.now() - started) - 1)
+    expect(signal.aborted).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    await Promise.all(pending)
+    expect(signal.aborted).toBe(true)
+    expect(
+      await fixture.db
+        .prepare('SELECT status,error_code FROM import_batches WHERE id = ?')
+        .bind(batchId)
+        .first(),
+    ).toEqual(
+      stage === 'provider'
+        ? { status: 'failed', error_code: 'PROVIDER_TIMEOUT' }
+        : { status: 'review', error_code: null },
+    )
+    if (stage === 'checker') {
+      const row = await fixture.db
+        .prepare('SELECT fields_json,selected FROM import_drafts WHERE batch_id = ?')
+        .bind(batchId)
+        .first<{ fields_json: string; selected: number }>()
+      expect(JSON.parse(row!.fields_json).verification).toBe('failed')
+      expect(row!.selected).toBe(0)
+    }
+  },
+)
 it('keeps the interruption alarm when a database outage prevents finalization', async () => {
   const fixture = await importAccount()
   dispose = fixture.dispose

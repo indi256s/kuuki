@@ -13,6 +13,7 @@ import {
 import { parseFlightBodies } from '../_lib/flightValidation'
 import { airportCandidates } from '../import/_text'
 import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
+import type { VerificationStatus } from '../import/_verify'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
 
 /** Drafts one batch may hold: a locally parsed `KUUKI FLIGHTS` list is exact, model extraction is not. */
@@ -40,6 +41,7 @@ export interface DraftFields {
   arrival_time?: string
   airline_was_placeholder?: boolean
   enrichment_status?: EnrichmentStatus
+  verification?: VerificationStatus
   // Question metadata for the review UI; never part of the flight input.
   date_month_day?: string
   origin_options?: string[]
@@ -76,6 +78,7 @@ export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
   if (arrival) fields.arrival_time = arrival
   if (flight.airline_was_placeholder === true) fields.airline_was_placeholder = true
   if (flight.enrichment_status) fields.enrichment_status = flight.enrichment_status
+  if (flight.verification) fields.verification = flight.verification
   if (!fields.date && /^\d{2}-\d{2}$/.test(flight.date_month_day ?? ''))
     fields.date_month_day = flight.date_month_day
   const originOptions =
@@ -339,6 +342,53 @@ export async function persistDraftRows(
   const sequence = (results.at(-1)?.results as Array<{ sequence: number }>)[0]?.sequence
   if (sequence === undefined) return null
   return { sequence, rowIds: ids.filter((_, index) => (results[index].meta.changes ?? 0) > 0) }
+}
+
+/** Only untouched drafts accept a checker result; a member patch always increments the version. */
+export async function persistDraftVerification(
+  db: D1Database,
+  fence: BatchFence,
+  rows: { ordinal: number; verification: VerificationStatus; selected: boolean }[],
+): Promise<{ sequence: number; rowIds: string[] } | null> {
+  if (!rows.length) return null
+  const instant = new Date().toISOString()
+  const fenceBinds = [fence.batchId, fence.userId, fence.generation]
+  const statements = rows.map((row) =>
+    db
+      .prepare(
+        `UPDATE import_drafts
+       SET fields_json = json_set(fields_json, '$.verification', ?), selected = ?, version = version + 1, updated_at = ?
+       WHERE batch_id = ? AND user_id = ? AND ordinal = ? AND version = 1 AND status = 'review'
+         AND EXISTS (SELECT 1 FROM import_batches WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?)
+       RETURNING id`,
+      )
+      .bind(
+        row.verification,
+        row.selected ? 1 : 0,
+        instant,
+        fence.batchId,
+        fence.userId,
+        row.ordinal,
+        ...fenceBinds,
+      ),
+  )
+  statements.push(
+    db
+      .prepare(
+        `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?
+       WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ? RETURNING sequence`,
+      )
+      .bind(instant, ...fenceBinds),
+  )
+  const results = await db.batch(statements)
+  const sequence = (results.at(-1)?.results as Array<{ sequence: number }>)[0]?.sequence
+  if (sequence === undefined) return null
+  return {
+    sequence,
+    rowIds: results
+      .slice(0, -1)
+      .flatMap((result) => (result.results as { id: string }[]).map((row) => row.id)),
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -658,8 +708,10 @@ export async function patchDraft(
   if (patch.flownConfirmed !== undefined && !current.flown_required)
     throw invalidDraft('flownConfirmed applies only to rows that need a flown confirmation')
   const corrected = patch.fields ? mergeFields(current, patch.fields) : current
-  const edited = row.edited === 1 || canonical(corrected) !== canonical(current)
+  const changed = canonical(corrected) !== canonical(current)
+  const edited = row.edited === 1 || changed
   const fields = { ...corrected }
+  if (changed && fields.verification) fields.verification = 'not_verified'
   // A new date voids a prior "I flew it" that may no longer fit it, unless the same patch answers again.
   if (patch.flownConfirmed === undefined && corrected.date !== current.date)
     delete fields.flown_confirmed

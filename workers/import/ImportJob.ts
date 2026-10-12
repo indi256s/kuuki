@@ -20,10 +20,12 @@ import {
   MAX_DRAFTS_MODEL,
   ownedBatch,
   persistDraftRows,
+  persistDraftVerification,
   type BatchFence,
   type BatchRow,
 } from '../../functions/api/_services/importDrafts'
 import { rowOf } from '../../functions/api/_services/importJob'
+import { verifyFlights, type VerificationStatus } from '../../functions/api/import/_verify'
 import {
   MAX_EVENT_QUEUE,
   MAX_REPLAY_EVENTS,
@@ -39,6 +41,7 @@ const LOCAL_RUN = 50
 
 export interface ImportEnv {
   DB: D1Database
+  AI?: Ai
   GEMINI_API_KEY: string
   GEMINI_IMPORT_MODEL?: string
 }
@@ -178,6 +181,7 @@ export class ImportJob {
     let truncated = false
     let finalized = false
     const emitted = new Map<number, string>()
+    const extracted = new Map<number, ExtractedFlight>()
     const rejectedOrdinals = new Set<number>() // the final pass revisits rows already refused while streaming
     let iterator: AsyncIterator<string> | undefined
     const persist = async (value: unknown, ordinal: number) => {
@@ -195,6 +199,7 @@ export class ImportJob {
         truncated = true
         return true
       }
+      flight.verification = 'not_verified'
       const event = await persistDraftRows(
         this.env.DB,
         fence,
@@ -210,6 +215,7 @@ export class ImportJob {
         return false
       }
       emitted.set(ordinal, JSON.stringify(value))
+      extracted.set(ordinal, flight)
       valid++
       this.notify(event)
       return true
@@ -306,6 +312,40 @@ export class ImportJob {
         for (let ordinal = 0; ordinal < final.length; ordinal++)
           if (!(await persist(final[ordinal], ordinal))) return
         seen = final.length
+      }
+      if (!local && extracted.size) {
+        const rows = [...extracted]
+        let verification: VerificationStatus[] | undefined
+        try {
+          verification = await Promise.race([
+            verifyFlights(
+              this.env.AI,
+              source,
+              rows.map(([, flight]) => flight),
+              controller.signal,
+            ),
+            aborted,
+          ])
+        } catch {
+          console.error(JSON.stringify({ event: 'import_verification_result', outcome: 'failed' }))
+        }
+        const checked = await persistDraftVerification(
+          this.env.DB,
+          fence,
+          rows.map(([ordinal, flight], index) => {
+            const status = verification?.[index] ?? 'failed'
+            return {
+              ordinal,
+              verification: status,
+              selected: rowOf({ ...flight, verification: status }).selected,
+            }
+          }),
+        )
+        if (!checked) {
+          finalized = true
+          return
+        }
+        this.notify(checked)
       }
       const rejected = rejectedOrdinals.size + (local?.rejected?.length ?? 0)
       logValidation(valid, seen + (local?.rejected?.length ?? 0), rejected)

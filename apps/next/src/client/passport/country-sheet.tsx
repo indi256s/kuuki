@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MoreHorizontal, PlaneLanding, PlaneTakeoff } from 'lucide-react'
+import { MoreHorizontal, PlaneLanding, PlaneTakeoff } from '@keyline-icons/react'
 import { useQuery } from '@tanstack/react-query'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import {

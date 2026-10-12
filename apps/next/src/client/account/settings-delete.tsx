@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, type FormEvent } from 'react'
-import { Check, Eye, EyeOff } from 'lucide-react'
+import { Check, Eye, EyeOff } from '@keyline-icons/react'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import { Dialog } from '../ui/dialog'

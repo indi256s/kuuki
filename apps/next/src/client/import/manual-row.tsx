@@ -1,6 +1,6 @@
 'use client'
 
-import { Trash2 } from 'lucide-react'
+import { Bin2 as Trash2 } from '@keyline-icons/react'
 import { useId, type ReactNode } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'

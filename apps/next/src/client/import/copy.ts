@@ -82,8 +82,8 @@ export const S = {
   needFile: p('Choose a file first.', 'Сначала выберите файл.'),
   needText: p('Paste some text first.', 'Сначала вставьте текст.'),
   privacy: p(
-    'The document is sent to a recognition service to find flights. Kuuki keeps only the flight details it finds, for 30 days, so you can come back to them. The file and pasted text are not kept.',
-    'Документ отправляется в сервис распознавания, чтобы найти перелёты. Kuuki хранит только найденные данные перелётов, 30 дней, чтобы вы могли вернуться к ним. Файл и вставленный текст не сохраняются.',
+    'The document is sent to recognition and checking services to find flights and check their details. Kuuki keeps only the flight details it finds, for 30 days, so you can come back to them. The file and pasted text are not kept.',
+    'Документ отправляется в сервисы распознавания и проверки, чтобы найти перелёты и проверить данные. Kuuki хранит только найденные данные перелётов, 30 дней, чтобы вы могли вернуться к ним. Файл и вставленный текст не сохраняются.',
   ),
   qaTitle: p('Add a boarding pass', 'Добавить посадочный'),
   qaLead: p(
@@ -244,6 +244,10 @@ ${PROMPT_EXAMPLE.ru}
   confidence: p('Confidence', 'Уверенность'),
   confidenceUnknown: p('Confidence unknown', 'Уверенность неизвестна'),
   readFromBarcode: p('Read from the barcode', 'Прочитано со штрихкода'),
+  notVerified: p(
+    'Not verified against the source. Check the details before selecting this flight.',
+    'Данные не подтверждены источником. Проверьте их, прежде чем выбрать перелёт.',
+  ),
   fieldUnsure: p('Unsure', 'Не уверены'),
   snippetTitle: p('Found in the document', 'Найдено в документе'),
   saving: p('Saving…', 'Сохраняем…'),

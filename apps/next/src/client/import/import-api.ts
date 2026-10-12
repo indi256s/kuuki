@@ -40,7 +40,7 @@ export async function submitSource(
   return api.post(
     '/api/import/jobs',
     { ...source, submissionOperationId },
-    { signal, timeoutMs: 90_000 },
+    { signal, timeoutMs: 120_000 },
   )
 }
 

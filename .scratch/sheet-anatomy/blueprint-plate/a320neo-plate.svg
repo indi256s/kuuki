@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160" viewBox="0 0 300 160" aria-label="Airbus A320neo with Sharklets, 37.57 metres long and 35.80 metres wingspan" style="display: inline-block; flex-shrink: 0">
+  <g>
+    <path d="M124 15H191 M124 141H191 M190 15V67 M190 96V141 M186 19L194 11 M186 145L194 137" fill="none" stroke="#C4BEB7" stroke-width="0.8" />
+    <path d="M42 83V154 M174 83V154 M42 153H72 M145 153H174 M38 157L46 149 M170 157L178 149" fill="none" stroke="#C4BEB7" stroke-width="0.8" />
+  </g>
+  <g>
+    <path d="M87.8 71.3L115.8 17.1Q117.7 15 123.1 15L126 15L121.5 15.8L107.7 70.8L107.7 85.2L121.5 140.2L126 141L123.1 141Q117.7 141 115.8 138.9L87.8 84.7Z" fill="#403D3A" stroke="#EA846F" stroke-linejoin="round" />
+    <path d="M153.6 73L167.1 57Q168.3 56.1 171.2 56.1L167.8 76L167.8 80L171.2 99.9Q168.3 99.9 167.1 99L153.6 83Z" fill="#403D3A" stroke="#EA846F" stroke-linejoin="round" />
+    <path d="M42 78Q47 72 56 71.3L134 71.3Q145 71.3 155.7 74.3L174 78L155.7 81.7Q145 84.7 134 84.7L56 84.7Q47 84 42 78Z" fill="#403D3A" stroke="#EA846F" stroke-linejoin="round" />
+    <path d="M82.2 57.3Q82 53.3 94.7 54.1L94.7 63.3Q82 64.1 82.2 60.2Z M82.2 95.8Q82 91.9 94.7 92.7L94.7 101.9Q82 102.7 82.2 98.7Z" fill="#403D3A" stroke="#EA846F" stroke-linejoin="round" />
+  </g>
+  <g>
+    <path d="M50 74.5L52.5 73L54.4 75.4L52.5 78L54.4 80.6L52.5 83L50 81.5" fill="none" stroke="#C4BEB7" stroke-width="0.7" stroke-linejoin="round" />
+    <path d="M159 78H170 M89 71L119.6 18 M89 85L119.6 138 M122.6 15L120 25 M122.6 141L120 131" fill="none" stroke="#C4BEB7" stroke-width="0.7" stroke-linejoin="round" />
+    <path d="M85 55.1V62.3 M85 93.7V100.9" fill="none" stroke="#C4BEB7" stroke-width="0.7" stroke-linejoin="round" />
+  </g>
+  <text x="204" y="24" font-family="Commissioner" font-size="14" font-weight="500" fill="#EA846F">
+    A320neo
+  </text>
+  <text x="204" y="43" font-family="Commissioner" font-size="13" fill="#C4BEB7">
+    Sharklets
+  </text>
+  <text x="204" y="82" font-family="JetBrains Mono" font-size="13" fill="#F1EFEB">
+    35.80 m
+  </text>
+  <text x="204" y="101" font-family="Commissioner" font-size="13" fill="#C4BEB7">
+    wingspan
+  </text>
+  <text x="108" y="157" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#F1EFEB">
+    37.57 m
+  </text>
+</svg>

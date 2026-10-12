@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from '@keyline-icons/react'
 import { useMemo, useState, useSyncExternalStore } from 'react'
 import { pickWelcomeLine, statsLine } from '../../overview/narrator/welcome'
 import { Button } from '../../ui/button'

@@ -2,7 +2,7 @@
 // The detail sheet's content: one flight, read first, with each editable value an inline field (spec "Detail sheet").
 // Presentational: the container (detail-sheet.tsx) owns writes, Undo, the lazily loaded editor catalogue and the layout.
 import { makerOf } from '@kuuki/data/aircraft-makers'
-import { Check, X } from 'lucide-react'
+import { Check, X } from '@keyline-icons/react'
 import {
   useCallback,
   useEffect,

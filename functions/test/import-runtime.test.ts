@@ -48,8 +48,13 @@ async function dispatch(
     ...(body === undefined ? {} : { body: await request.text() }),
   })
 }
-async function runtime(failAbort = false) {
+async function runtime(failAbort = false, checker: 'verified' | 'failed' | 'held' = 'verified') {
   let calls = 0
+  let checkerCalls = 0
+  let releaseChecker: () => void = () => undefined
+  const checkerGate = new Promise<void>((resolve) => {
+    releaseChecker = resolve
+  })
   let providerInput: Record<string, any> | undefined
   mkdirSync('.wrangler', { recursive: true })
   persistence = mkdtempSync('.wrangler/t11-runtime-')
@@ -69,6 +74,17 @@ async function runtime(failAbort = false) {
         FAIL_ABORT: failAbort,
       },
       serviceBindings: {
+        CHECKER: async (request: { json(): Promise<unknown> }) => {
+          checkerCalls++
+          const input = (await request.json()) as { questions: Record<string, unknown> }
+          if (checker === 'held') await checkerGate
+          if (checker === 'failed') return new Response(null, { status: 502 })
+          return Response.json({
+            answers: Object.fromEntries(
+              Object.keys(input.questions).map((key) => [key, { type: 'noul', noul: 1 }]),
+            ),
+          })
+        },
         FAKE: async (request: { json(): Promise<unknown> }) => {
           calls++
           providerInput = (await request.json()) as Record<string, any>
@@ -116,10 +132,17 @@ async function runtime(failAbort = false) {
   const rows = (id: string) =>
     db
       .prepare(
-        'SELECT id,ordinal,fields_json FROM import_drafts WHERE batch_id = ? ORDER BY ordinal',
+        'SELECT id,ordinal,fields_json,selected,version,confidence FROM import_drafts WHERE batch_id = ? ORDER BY ordinal',
       )
       .bind(id)
-      .all<{ id: string; ordinal: number; fields_json: string }>()
+      .all<{
+        id: string
+        ordinal: number
+        fields_json: string
+        selected: number
+        version: number
+        confidence: number
+      }>()
   const restart = async () => {
     await mf!.dispose()
     mf = new Miniflare(options)
@@ -133,6 +156,8 @@ async function runtime(failAbort = false) {
     batch,
     rows,
     restart,
+    checkerCalls: () => checkerCalls,
+    releaseChecker,
     calls: () => calls,
     input: () => providerInput,
   }
@@ -239,6 +264,88 @@ it('persists before notify, keeps provider I/O alive beyond 30 s without subscri
   expect(snapshot.drafts).toHaveLength(2)
   expect((await db.prepare('SELECT COUNT(*) AS n FROM flights').first())?.n).toBe(0)
 }, 60_000)
+
+it('streams unticked drafts, verifies after completion and preserves concurrent member edits and choices', async () => {
+  const { send, start, batch, rows, checkerCalls, releaseChecker } = await runtime(false, 'held')
+  const id = await start()
+  send(
+    '{"flights":[' +
+      [providerFlight(), providerFlight(), providerFlight()]
+        .map((flight) => JSON.stringify(flight))
+        .join(','),
+  )
+  await expect.poll(async () => (await rows(id)).results.length).toBe(3)
+  const early = (await rows(id)).results
+  expect(
+    early.map((row) => [JSON.parse(row.fields_json).verification, row.selected, row.version]),
+  ).toEqual([
+    ['not_verified', 0, 1],
+    ['not_verified', 0, 1],
+    ['not_verified', 0, 1],
+  ])
+  expect(checkerCalls()).toBe(0)
+  send(']}')
+  feed.close()
+  await expect.poll(checkerCalls).toBe(1)
+  const edit = await dispatch(`/api/import/drafts/${early[0].id}`, 'PATCH', {
+    version: 1,
+    fields: { flight_number: '999' },
+  })
+  const choice = await dispatch(`/api/import/drafts/${early[1].id}`, 'PATCH', {
+    version: 1,
+    selected: false,
+  })
+  expect(edit.status).toBe(200)
+  expect(choice.status).toBe(200)
+  releaseChecker()
+  await expect.poll(async () => (await batch(id))?.status).toBe('review')
+  const checked = (await rows(id)).results
+  expect(
+    checked.map((row) => [JSON.parse(row.fields_json).verification, row.selected, row.version]),
+  ).toEqual([
+    ['not_verified', 0, 2],
+    ['not_verified', 0, 2],
+    ['verified', 1, 2],
+  ])
+  expect(JSON.parse(checked[0].fields_json).flight_number).toBe('999')
+  expect(checked.map((row) => row.confidence)).toEqual([0.9, 0.9, 0.9])
+  const snapshot = (await (await dispatch(`/api/import/batches/${id}`)).json()) as {
+    drafts: { fields: { verification: string } }[]
+  }
+  expect(snapshot.drafts[2].fields.verification).toBe('verified')
+})
+
+it('keeps extracted drafts reviewable and unticked when the checker fails', async () => {
+  const { send, start, batch, rows } = await runtime(false, 'failed')
+  const id = await start()
+  send('{"flights":[' + JSON.stringify(providerFlight()) + ']}')
+  feed.close()
+  await expect.poll(async () => (await batch(id))?.status).toBe('review')
+  expect((await batch(id))?.error_code).toBeNull()
+  const [row] = (await rows(id)).results
+  expect(JSON.parse(row.fields_json).verification).toBe('failed')
+  expect(row.selected).toBe(0)
+})
+
+it('cancellation fences a checker result already in flight', async () => {
+  const { send, start, batch, rows, checkerCalls, releaseChecker } = await runtime(false, 'held')
+  const id = await start()
+  send('{"flights":[' + JSON.stringify(providerFlight()) + ']}')
+  feed.close()
+  await expect.poll(checkerCalls).toBe(1)
+  expect((await dispatch(`/api/import/batches/${id}/cancel`, 'POST')).status).toBe(200)
+  const cancelled = await batch(id)
+  releaseChecker()
+  const namespace = await mf!.getDurableObjectNamespace('IMPORT_JOBS')
+  await namespace
+    .get(namespace.idFromName(`u1:${id}`))
+    .fetch('https://import.internal/__test/storage')
+  expect(await batch(id)).toEqual(cancelled)
+  const [row] = (await rows(id)).results
+  expect(JSON.parse(row.fields_json).verification).toBe('not_verified')
+  expect(row.selected).toBe(0)
+  expect(row.version).toBe(1)
+})
 
 it('restart keeps extracted rows, requests reupload, stores only its fence and never restarts the provider', async () => {
   const { send, start, rows, calls, restart } = await runtime()
@@ -384,7 +491,7 @@ it('bounds drafts and event replay, instructs snapshots on gaps and scopes forei
   expect((await rows(id)).results).toHaveLength(100)
   const response = await dispatch(`/api/import/batches/${id}/events?after=0`)
   const replay = await response.text()
-  expect(replay.match(/event: rows/g)).toHaveLength(103)
+  expect(replay.match(/event: rows/g)).toHaveLength(104)
   expect(replay).toContain('event: end')
   // A revision owned by another mutation cannot be replayed from the DO's notifications.
   await db.prepare('UPDATE import_batches SET sequence = sequence + 2 WHERE id = ?').bind(id).run()

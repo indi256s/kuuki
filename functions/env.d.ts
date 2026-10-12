@@ -19,5 +19,6 @@ interface Env {
 
   // D1 Database (migration target)
   IMPORT_JOBS?: DurableObjectNamespace
+  AI?: Ai
   DB: D1Database
 }

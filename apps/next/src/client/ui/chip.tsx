@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { X } from '@keyline-icons/react'
 import type { ReactNode } from 'react'
 import './ui.css'
 

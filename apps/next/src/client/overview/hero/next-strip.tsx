@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from '@keyline-icons/react'
 import { calendarDay } from '@kuuki/shared/overview/next'
 import { formatCount, formatDateOnly, formatNumber } from '../../../lib/format'
 import { Button } from '../../ui/button'

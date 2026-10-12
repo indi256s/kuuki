@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;font:14px/1.45 var(--font-sans,system-ui);color:var(--foreground);background:transparent}
+nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+select{font:inherit;color:var(--foreground);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;max-width:100%;min-height:44px}
+a{color:var(--foreground);text-underline-offset:3px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+figure{margin:0;min-width:0}img{display:block;width:100%;height:auto;border-radius:12px}
+figcaption{margin-top:10px;color:var(--muted-foreground)}strong{display:block;color:var(--foreground);font-weight:600;margin-bottom:3px}
+.single{max-width:390px;margin:auto}.wide{max-width:none}
+.note{color:var(--muted-foreground);font-size:12px;margin-top:16px}
+@media(max-width:480px){.grid{grid-template-columns:1fr;max-width:390px;margin:auto}}
+</style>
+</head>
+<body>
+<nav><select aria-label="Choose a drawing" id="view"><option value="new">Revised figures</option><option value="routes">Routes · approved reference</option><option value="clock">Clock</option><option value="tapped">Clock · selected hour</option><option value="rhythm">Rhythm</option><option value="rankings">Rankings</option><option value="crossings">Crossings</option><option value="records">Records</option><option value="makers">Aircraft · Makers</option><option value="swipe">Swipe storyboard</option><option value="light">Light theme</option><option value="desktop">Desktop</option><option value="template">Annotated anatomy</option></select><a href="https://app.paper.design/file/01M48F4SHK61AZS2FH5P5JPRY7/p-3-0" target="_blank" rel="noreferrer">Open in Paper ↗</a></nav>
+<main id="drawings" class="grid"></main>
+<p class="note">Paper drawings only. Headline values use the supplied data; secondary distributions are illustrative. Routes is the approved reference. Motion is proposed in the storyboard.</p>
+<script>
+const frames={
+clock:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/01-clock-dark.png','Clock','Earliest departure: 00:20.'],
+tapped:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/01b-clock-tapped.png','Clock · selected hour','Selecting 21:00 updates the clock, hero and bar.'],
+rhythm:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/02-rhythm-dark.png','Rhythm','Calendar and month chart share the March selection.'],
+rankings:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/03-rankings-dark.png','Rankings','Pegasus and Qatar Airways are tied at four flights.'],
+routes:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/04-routes-dark.png','Routes','Boarding passes connect to the selected route.'],
+crossings:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/05-crossings-dark.png','Crossings','A travel sleep mask represents disrupted sleep. The chart measures clock shifts.'],
+records:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/06-records-dark.png','Records','The map shows the longest flight: DOH → NRT.'],
+makers:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/07-makers-dark.png','Aircraft · Makers','A maker plate links Airbus identity and flight share to the selected chart row.'],
+swipe:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/08-swipe.png','Swipe storyboard','Rest, 40% drag, past threshold and settled.'],
+light:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/09-clock-light.png','Light theme','The same Clock anatomy in light tokens.'],
+desktop:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/10-desktop.png','Desktop','A 640px chapter panel with figure beside the hero and a full-width chart.'],
+template:['/Users/indi256/Documents/kuuki/kuuki/.scratch/sheet-anatomy/screenshots/00-template.png','Annotated anatomy','Fixed figure, hero and chart stages keep adjacent sheets aligned.']
+};
+function draw(){const key=document.querySelector('#view').value;const keys=key==='new'?['rankings','crossings','makers']:[key];const main=document.querySelector('main');main.className=key==='new'?'grid':(['swipe','desktop','template'].includes(key)?'wide':'single');main.replaceChildren(...keys.map(k=>{const [file,title,caption]=frames[k];const fig=document.createElement('figure');const img=document.createElement('img');img.src=file;img.alt=title+' Paper drawing';const cap=document.createElement('figcaption');const strong=document.createElement('strong');strong.textContent=title;cap.append(strong,document.createTextNode(caption));fig.append(img,cap);return fig}));}
+document.querySelector('#view').addEventListener('change',draw);draw();
+</script>
+</body>
+</html>

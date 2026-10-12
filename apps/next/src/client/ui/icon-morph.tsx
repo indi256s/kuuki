@@ -1,79 +1,75 @@
-import type { ReactNode, SVGProps } from 'react'
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  Pause,
+  Play,
+  type IconProps as KeylineIconProps,
+} from '@keyline-icons/react'
 import './icon-morph.css'
 
-// Adapted from Arc icon-morph (uiarc.dev, MIT; see ARC-LICENSE.txt). CSS replaces Motion springs with Kuuki's timing tokens.
-type IconProps = Omit<SVGProps<SVGSVGElement>, 'ref' | 'children'> & {
-  state?: boolean
-  size?: number
+type IconProps = KeylineIconProps & { state?: boolean }
+
+export function ChevronIcon({
+  state = false,
+  strokeWidth = 1.75,
+  className = '',
+  ...props
+}: IconProps) {
+  return (
+    <ChevronDown
+      {...props}
+      strokeWidth={strokeWidth}
+      className={`icon-morph icon-morph-chevron ${className}`}
+      data-on={state ? 'true' : 'false'}
+    />
+  )
 }
 
-function Frame({
+export function PlayPauseIcon({
   state = false,
   size = 24,
   strokeWidth = 1.75,
   className = '',
-  children,
   ...props
-}: IconProps & { children: ReactNode }) {
+}: IconProps) {
   return (
     <svg
       {...props}
-      viewBox="0 0 24 24"
       width={size}
       height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
       className={`icon-morph ${className}`}
       data-on={state ? 'true' : 'false'}
     >
-      {children}
+      <Play size={24} strokeWidth={strokeWidth} className="icon-morph-off" />
+      <Pause size={24} strokeWidth={strokeWidth} className="icon-morph-on" />
     </svg>
   )
 }
 
-export function ChevronIcon({ className = '', ...props }: IconProps) {
+export function CopyCheckIcon({
+  state = false,
+  size = 24,
+  strokeWidth = 1.75,
+  className = '',
+  ...props
+}: IconProps) {
   return (
-    <Frame {...props} className={`icon-morph-chevron ${className}`}>
-      <path d="M6 9 L12 15 L18 9" />
-    </Frame>
-  )
-}
-
-export function PlayPauseIcon(props: IconProps) {
-  return (
-    <Frame {...props}>
-      <rect
-        width="24"
-        height="24"
-        fill="currentColor"
-        stroke="none"
-        className="icon-morph-play-left"
-      />
-      <rect
-        width="24"
-        height="24"
-        fill="currentColor"
-        stroke="none"
-        className="icon-morph-play-right"
-      />
-    </Frame>
-  )
-}
-
-export function CopyCheckIcon(props: IconProps) {
-  return (
-    <Frame {...props}>
-      <path
-        className="icon-morph-copy-back"
-        d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
-      />
-      <rect className="icon-morph-copy-front" x="8" y="8" width="14" height="14" rx="2" />
-      <path className="icon-morph-copy-check" d="M5 12.5 L9.5 17 L19 7.5" pathLength="1" />
-    </Frame>
+    <svg
+      {...props}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      className={`icon-morph ${className}`}
+      data-on={state ? 'true' : 'false'}
+    >
+      <Copy size={24} strokeWidth={strokeWidth} className="icon-morph-off" />
+      <Check size={24} strokeWidth={strokeWidth} className="icon-morph-on" />
+    </svg>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from '@keyline-icons/react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
@@ -72,6 +72,7 @@ export function ReviewRow({
   const day = today ?? localToday()
   const blocked = readiness(draft, day)
   const chosen = isChosenOn(draft, day)
+  const notVerified = draft.fields.verification && draft.fields.verification !== 'verified'
   const confidence = rowConfidence(draft)
   const low = lowFields(draft)
   const [values, setValues] = useState(() => toValues(draft.fields))
@@ -175,7 +176,11 @@ export function ReviewRow({
         type="checkbox"
         checked={duplicate ? draft.selected && draft.duplicateAcknowledged : chosen}
         disabled={blocked.length > 0 || frozen}
-        aria-describedby={blockText ? `${id}-block` : undefined}
+        aria-describedby={
+          [blockText && `${id}-block`, notVerified && `${id}-verification`]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
         onChange={(event) => toggle(event.target.checked)}
       />
       <span>
@@ -210,6 +215,11 @@ export function ReviewRow({
 
   const notes = (
     <>
+      {notVerified ? (
+        <p className="import-note" id={`${id}-verification`}>
+          {S.notVerified[locale]}
+        </p>
+      ) : null}
       {blockText ? (
         <p className="import-note" id={`${id}-block`}>
           {blockText}

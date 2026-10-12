@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { X } from '@keyline-icons/react'
 import type { ReactElement, ReactNode } from 'react'
 import type { Locale } from '../../lib/format'
 import './ui.css'

@@ -1,6 +1,12 @@
 'use client'
 
-import { Check, Download, Ellipsis, Search, SlidersHorizontal } from 'lucide-react'
+import {
+  Check,
+  Download,
+  MoreHorizontal as Ellipsis,
+  Search,
+  SlidersHorizontal,
+} from '@keyline-icons/react'
 import {
   useId,
   useMemo,

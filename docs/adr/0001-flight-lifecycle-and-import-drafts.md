@@ -707,6 +707,20 @@ No down-migration exists and no rollback deletes user data.
 
 **Release gate:** remote-D1 A1 (trigger creation through `wrangler d1 migrations apply`, `RAISE(ABORT)` batch rollback, and `meta.changes` with adapter writes) must be run against an isolated remote D1 before `0006` reaches production. Miniflare proves it locally only.
 
+## Source verification (owner, 11 October 2026)
+
+The owner requested the best evaluated ingest in production after the real, synthetic and image comparison. Keep Gemini 3.5 Flash-Lite extraction with the existing full prompt/schema, then check every model candidate against the whole source with Cloudflare Clef. The supported structured-list parser continues to bypass both providers. Compact extraction and Gemma are not adopted: with calendar-only journeys held uncertain, they added wrong preselected rows in the paired safety comparison. Clef added none and reduced wrong selections from 29 to 17 across three repetitions, at the cost of holding 31 additional correct rows for manual selection. This is a review aid, not proof that a journey occurred; calendar uncertainty remains unresolved. Private benchmark data and outputs stay outside Git.
+
+Clef checks date, endpoints, airline, flight number, departure and arrival times, plus status and passenger ownership. Every answer must be a finite probability in [0, 1], at least 0.5, and the existing explicit-year, confidence and review requirements must also pass before preselection. Extraction and checking share the existing 90-second deadline. Checker failure retains the drafts unchecked and emits only a sanitized checker summary separately from extraction failures.
+
+Model drafts stream immediately with server-owned `verification: not_verified` and no default selection. After extraction finishes, a generation-fenced update writes only the verification marker and default selection for untouched version-1 rows; it increments their versions and publishes the committed row ids. A member's edits or selection always win. Member field corrections invalidate a previously verified marker. Manual selection remains available. Structured-list drafts retain their existing behavior. No schema migration is needed: the marker lives in `fields_json`, and extraction output cannot set it.
+
+Field-question answers never auto-select model drafts: changing fields invalidates source verification, and the member selects the row explicitly. Local calendar-only rows remain unchecked for status confirmation. Mixed ownership headings and repeated airline fields fall back to full source extraction rather than silently dropping candidates or choosing the last claim.
+
+Clef can truncate state silently after reserving context for questions and media. Requests therefore keep the whole source and conservatively admit at most 32 KiB of UTF-8 serialized state plus questions, using smaller batches when needed (at most seven rows/63 questions). This is Kuuki's admission policy, not a provider token-limit guarantee. Long documents that cannot fit even one row are unverified. PDFs, unsupported images, and images beyond Clef's limits remain extractable but unchecked for manual review; this release adds no PDF conversion or source chunking. PNG/JPEG/WebP checks enforce the supported image bounds. The review row explains when source verification was unavailable or did not pass.
+
+Native `AI` bindings on both `kuuki-import` and `kuuki-next`, including their preview environments, supply Clef without an application API token. Activation serves no ingest APIs and remains unbound. Release proof requires the existing preview and production closed-tab import gates, with the resulting draft's verification marker observed as well as the batch's completion.
+
 ## Open items
 
 1. **H5 runtime (§9): decided.** The owner chose option (a) on 2026-10-05: a local DO with a Miniflare proof in `workers/import`. Production binding and wiring were configured with the onboarding morph (2026-10-11, §9 "Production wiring"); deployment and the hosted release gate await authorization. Without the binding the runtime falls back to (c) with no rework.
