@@ -9,7 +9,6 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { KuukiChart, type ChartPoint, type KuukiChartProps } from './kuuki-chart'
 import { ArcLine } from './arc-line'
 import { ArcBrush } from './arc-brush'
-import { ArcWaffle } from './arc-waffle'
 import { LazyChart } from './lazy-chart'
 import { TableView } from './table-view'
 import { MAKER_PALETTE } from './palettes'
@@ -369,17 +368,12 @@ it('hydrates the real SVG adapters without replacing server marks and keeps real
       >
         {(mark) => (
           <>
-            <ArcWaffle
-              cells={[{ key: flight.key, x: 0, y: 0, fill: 'var(--accent)', point: flight }]}
-              cellSize={20}
-              gap={4}
-              mark={mark}
-            />
             <ArcLine
               points={[{ ...flight, x: start, y: 1 }]}
               xDomain={[start, start + 86_400_000]}
               yDomain={[0, 1]}
               height={80}
+              mark={mark}
             />
           </>
         )}
