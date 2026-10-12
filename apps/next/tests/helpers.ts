@@ -8,6 +8,11 @@ export function fixtureHeaders(origin: string) {
   }
 }
 
+/** A route transition keeps the outgoing page (inert, `aria-hidden`) in the DOM until it settles. */
+export async function routeSettled(page: Page) {
+  await expect(page.locator('html')).not.toHaveAttribute('data-route-transition')
+}
+
 /** Sign in as a seeded fixture account; the default is the smoke fixture owner. */
 export async function signIn(page: Page, baseURL: string, email = 'a@example.test') {
   const response = await page.request.post('/api/auth/sign-in/email', {

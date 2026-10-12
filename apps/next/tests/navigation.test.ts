@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signIn, fixtureHeaders } from './helpers'
+import { signIn, fixtureHeaders, routeSettled } from './helpers'
 
 test('generated avatars blink unless reduced motion is requested', async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
@@ -39,6 +39,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
       .locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="/${route}"]:visible`)
       .click()
     await page.waitForURL((url) => url.pathname === `/${route}`)
+    await routeSettled(page)
     await expect(page.locator('h1')).toHaveText(route === 'overview' ? /^Hi(?:,| ·|$)/ : heading)
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
