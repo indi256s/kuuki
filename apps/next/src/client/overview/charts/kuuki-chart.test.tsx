@@ -182,6 +182,49 @@ it('touch pins portaled actions without direct selection and keeps focused actio
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: rows[0].route })).toHaveFocus()
 })
+it('hover, focus and pin only mark the point: colors stay, nothing is dimmed or filtered', () => {
+  const pick = vi.fn()
+  render(
+    <KuukiChart
+      points={points}
+      height={240}
+      ariaLabel="Routes"
+      table={table}
+      inView
+      onPick={pick}
+      applied={(point) => point.key === rows[1].route}
+      actions={() => [{ label: 'Add filter', run: pick }]}
+    >
+      {(mark) =>
+        points.map((point, index) => (
+          <g {...mark(point)} key={point.key}>
+            <rect width={40} height={40} fill={`var(--kc-chart-${index + 1})`} />
+          </g>
+        ))
+      }
+    </KuukiChart>,
+  )
+  const marks = () => rows.map((row) => screen.getByRole('button', { name: row.route }))
+  const look = () =>
+    marks().map((mark) => [mark.querySelector('rect')!.getAttribute('fill'), mark.style.opacity])
+  const before = look()
+  const [first, second] = marks()
+  expect(second).toHaveAttribute('aria-pressed', 'true')
+  expect(second).toHaveAttribute('data-filtered', 'true')
+  expect(first).toHaveAttribute('aria-pressed', 'false')
+  fireEvent.pointerEnter(first, { pointerType: 'mouse' })
+  expect(first).toHaveAttribute('data-selected', 'true')
+  expect(look()).toEqual(before)
+  fireEvent.pointerLeave(first)
+  fireEvent.focus(first)
+  expect(first).toHaveAttribute('data-selected', 'true')
+  expect(first).not.toHaveAttribute('data-pinned')
+  expect(look()).toEqual(before)
+  select(first, 'touch')
+  expect(first).toHaveAttribute('data-pinned', 'true')
+  expect(look()).toEqual(before)
+  expect(pick).not.toHaveBeenCalled()
+})
 it('pinned selection dismisses on Escape, outside input, and disappearing data', () => {
   const { rerender } = render(
     <>

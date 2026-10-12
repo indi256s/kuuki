@@ -13,7 +13,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
 }))
 
-it('isolates a legend series on hover and focus, clears it on exit or category change, and keeps hidden marks hidden', () => {
+it('emphasizes a legend series on hover and focus without dimming the others, clears it on exit or category change, keeps hidden marks hidden, and offers Show all', () => {
   const { container } = render(
     <OverviewProvider
       payload={board as OverviewPayload}
@@ -32,37 +32,37 @@ it('isolates a legend series on hover and focus, clears it on exit or category c
   const firstKey = groups()[0].getAttribute('data-bump-series')!
   expect(groups().length).toBeGreaterThan(1)
 
-  fireEvent.pointerEnter(buttons[0], { pointerType: 'mouse' })
-  expect(groups()[0].style.opacity).toBe('')
-  expect(
+  const emphasized = () =>
     groups()
-      .slice(1)
-      .every((group) => group.style.opacity === '0.22'),
-  ).toBe(true)
+      .filter((group) => group.hasAttribute('data-active'))
+      .map((group) => group.getAttribute('data-bump-series'))
+  const undimmed = () => groups().every((group) => group.style.opacity === '')
+  fireEvent.pointerEnter(buttons[0], { pointerType: 'mouse' })
+  expect(emphasized()).toEqual([firstKey])
+  expect(undimmed()).toBe(true)
   fireEvent.pointerLeave(buttons[0])
-  expect(groups().every((group) => group.style.opacity === '')).toBe(true)
+  expect(emphasized()).toEqual([])
 
   fireEvent.focus(buttons[1])
-  expect(groups()[1].style.opacity).toBe('')
-  expect(
-    groups()
-      .filter((_, index) => index !== 1)
-      .every((group) => group.style.opacity === '0.22'),
-  ).toBe(true)
+  expect(emphasized()).toEqual([groups()[1].getAttribute('data-bump-series')])
+  expect(undimmed()).toBe(true)
   fireEvent.blur(buttons[1])
-  expect(groups().every((group) => group.style.opacity === '')).toBe(true)
+  expect(emphasized()).toEqual([])
 
   fireEvent.click(buttons[0])
   fireEvent.pointerEnter(buttons[0], { pointerType: 'mouse' })
   expect(container.querySelector(`[data-bump-series="${firstKey}"]`)).toBeNull()
-  expect(groups().every((group) => group.style.opacity === '')).toBe(true)
+  expect(undimmed()).toBe(true)
   fireEvent.focus(buttons[0])
   expect(container.querySelector(`[data-bump-series="${firstKey}"]`)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Show all' }))
+  expect(container.querySelector(`[data-bump-series="${firstKey}"]`)).not.toBeNull()
+  expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull()
 
   fireEvent.focus(buttons[1])
   fireEvent.click(screen.getByRole('radio', { name: 'Airports' }))
   expect(container.querySelector('[data-bump-highlight]')).toBeNull()
-  expect(groups().every((group) => group.style.opacity === '')).toBe(true)
+  expect(undimmed()).toBe(true)
 })
 
 it('caps the airline share legend at eight rows with a plural-aware toggle, and shows the comparison prompt as a status line', () => {

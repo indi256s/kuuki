@@ -69,3 +69,62 @@ describe('early App Router history direction', () => {
     expect(event.stopImmediatePropagation).not.toHaveBeenCalled()
   })
 })
+
+describe('early accent from the cookie', () => {
+  const run = (cookie: string, stored: string | null = null) => {
+    const written: string[] = []
+    const dataset: Record<string, string> = {}
+    const document = {
+      get cookie() {
+        return cookie
+      },
+      set cookie(value: string) {
+        written.push(value)
+      },
+      documentElement: { dataset, style: {} },
+    }
+    vm.runInNewContext(source, {
+      history: { state: { __kuukiHistoryIndex: 0 }, replaceState() {}, pushState() {} },
+      location: { pathname: '/settings', hash: '' },
+      Event,
+      window: { dispatchEvent() {}, addEventListener() {} },
+      document,
+      localStorage: { getItem: (key: string) => (key === 'kuuki-accent-color' ? stored : null) },
+      navigator: { language: 'en' },
+      matchMedia: () => ({ matches: false }),
+    })
+    return {
+      accent: dataset.accent,
+      written: written.filter((row) => row.startsWith('kuuki_accent')),
+    }
+  }
+
+  it('maps every retired cookie name like the client table and rewrites the cookie', () => {
+    const table = {
+      blue: 'ai',
+      cyan: 'asagi',
+      teal: 'asagi',
+      purple: 'sakura',
+      coral: 'sakura',
+      red: 'shu',
+      orange: 'shu',
+      yellow: 'shu',
+    }
+    for (const [name, accent] of Object.entries(table)) {
+      const { accent: applied, written } = run(
+        `kuuki_theme=light; kuuki_locale=en; kuuki_accent=${name}`,
+      )
+      expect(applied, name).toBe(accent)
+      expect(written[0], name).toMatch(new RegExp(`^kuuki_accent=${accent};`))
+    }
+  })
+
+  it('keeps a canonical cookie untouched and falls back to storage, then Shu', () => {
+    const canonical = run('kuuki_theme=light; kuuki_locale=en; kuuki_accent=matcha')
+    expect(canonical).toEqual({ accent: 'matcha', written: [] })
+    expect(run('kuuki_theme=light; kuuki_locale=en', 'blue').accent).toBe('ai')
+    expect(run('kuuki_theme=light; kuuki_locale=en; kuuki_accent=toString', 'nope').accent).toBe(
+      'shu',
+    )
+  })
+})

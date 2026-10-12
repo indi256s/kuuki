@@ -12,6 +12,8 @@ export type ArcWaffleCell<T> = {
   fill: string
   group?: string
   ghost?: boolean
+  /** The Unknown role: `fill` becomes the outline colour on a transparent cell, with a «?» when the cell is large enough. */
+  outline?: boolean
   point?: ChartPoint<T>
 }
 export function ArcWaffle<T>({
@@ -37,14 +39,44 @@ export function ArcWaffle<T>({
             transform: `translate(${cell.x * (cellSize + gap)}px, ${cell.y * (cellSize + gap)}px)`,
           }}
         >
-          <rect
-            width={cellSize}
-            height={cellSize}
-            rx={cellSize * 0.2}
-            fill={cell.ghost ? 'none' : cell.fill}
-            stroke={cell.ghost ? 'var(--mark-ghost)' : undefined}
-            strokeWidth={cell.ghost ? 1 : undefined}
-          />
+          {cell.outline ? (
+            <>
+              <rect
+                x={1}
+                y={1}
+                width={Math.max(0, cellSize - 2)}
+                height={Math.max(0, cellSize - 2)}
+                rx={cellSize * 0.2}
+                fill="transparent"
+                data-kc-outline=""
+                stroke={cell.fill}
+                strokeWidth={2}
+              />
+              {cellSize >= 14 && (
+                <text
+                  x={cellSize / 2}
+                  y={cellSize / 2}
+                  dy="0.35em"
+                  textAnchor="middle"
+                  fontSize={Math.min(18, Math.round(cellSize * 0.6))}
+                  fontWeight={600}
+                  fill="var(--text-muted)"
+                  aria-hidden="true"
+                >
+                  ?
+                </text>
+              )}
+            </>
+          ) : (
+            <rect
+              width={cellSize}
+              height={cellSize}
+              rx={cellSize * 0.2}
+              fill={cell.ghost ? 'none' : cell.fill}
+              stroke={cell.ghost ? 'var(--mark-ghost)' : undefined}
+              strokeWidth={cell.ghost ? 1 : undefined}
+            />
+          )}
         </g>
       ))}
     </>

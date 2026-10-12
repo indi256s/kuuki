@@ -14,6 +14,7 @@
     "./calendar": "./src/calendar.ts",
     "./overview": "./src/overview.ts",
     "./overview/*": "./src/overview/*.ts",
+    "./theme/*": "./src/theme/*.ts",
     "./address": "./src/address.ts",
     "./geo": "./src/geo.ts",
     "./timezones": "./src/timezones.ts"

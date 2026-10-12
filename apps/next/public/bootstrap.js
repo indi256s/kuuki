@@ -98,28 +98,38 @@
       }
     }
   }
-  let accent = read('kuuki_accent')
-  // Removed accent names land on Shu; the cookie is rewritten below.
-  if (['terracotta', 'kincha', 'sumi', 'yellow'].includes(accent)) accent = 'shu'
-  if (!['shu', 'ai', 'matcha', 'asagi', 'sakura'].includes(accent)) {
+  // Same table as recognizeAccentKey in packages/shared/src/theme/palette.ts: removed names land on their successor.
+  const accents = ['shu', 'ai', 'matcha', 'asagi', 'sakura']
+  const retired = {
+    terracotta: 'shu',
+    kincha: 'shu',
+    sumi: 'shu',
+    yellow: 'shu',
+    red: 'shu',
+    orange: 'shu',
+    blue: 'ai',
+    cyan: 'asagi',
+    teal: 'asagi',
+    purple: 'sakura',
+    coral: 'sakura',
+  }
+  const recognize = (value) =>
+    accents.includes(value)
+      ? value
+      : Object.prototype.hasOwnProperty.call(retired, value)
+        ? retired[value]
+        : null
+  let accent = recognize(read('kuuki_accent'))
+  if (!accent) {
     let legacyAccent = null
     try {
       legacyAccent = localStorage.getItem('kuuki-accent-color')
     } catch {
       /* storage unavailable */
     }
-    accent = {
-      blue: 'ai',
-      cyan: 'asagi',
-      teal: 'asagi',
-      yellow: 'shu',
-      purple: 'sakura',
-      coral: 'sakura',
-      red: 'shu',
-      orange: 'shu',
-    }[legacyAccent]
+    accent = recognize(legacyAccent) ?? 'shu'
   }
-  if (!['shu', 'ai', 'matcha', 'asagi', 'sakura'].includes(accent)) accent = 'shu'
+  // The cookie is rewritten whenever it held a retired name or nothing usable.
   if (read('kuuki_accent') !== accent) {
     document.cookie = `kuuki_accent=${accent}; Path=/; Max-Age=31536000; SameSite=Lax`
   }

@@ -2,13 +2,15 @@
 
 import { useId, useState } from 'react'
 import { curveBumpX, line } from 'd3-shape'
-import { matches } from '@kuuki/shared/overview/filter'
+import { Check } from '@keyline-icons/react'
+import { isEmptyFilter, matches } from '@kuuki/shared/overview/filter'
 import { allianceAt } from '@kuuki/data/alliance-membership'
 import { AllianceMark } from '../../../ui/category-mark'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { Disclosure } from '../../../ui/disclosure'
 import { ArcDonut } from '../../charts/arc-donut'
 import { ArcSlope } from '../../charts/arc-slope'
+import { markerPath, slotCue, useComparisonSlots } from '../../charts/comparison-slots'
 import { airlineColor } from '../../../../lib/airline'
 import type { BumpRow } from '@kuuki/shared/overview/rankings'
 import { airlineComparison } from './comparison'
@@ -23,14 +25,34 @@ import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
 const LEGEND_TOP = 8,
-  DONUT_SIZE = 240
+  DONUT_SIZE = 240,
+  // Whole-journal baseline: thin, round, sparse dots, apart from every slot's dash.
+  BASELINE_DASH = '1 6'
 export function Section({ span }: { span: Span }) {
-  const { scope, all, payload, locale, actions, isCurrent } = useOverview()
+  const { scope, all, payload, locale, actions, isCurrent, ownerKey } = useOverview()
   const [category, setCategory] = useState<Category>('airlines')
   const [hidden, setHidden] = useState<string[]>([])
   const [legendSeries, setLegendSeries] = useState<string | null>(null)
+  const [linkedShare, setLinkedShare] = useState<string | null>(null)
   const [allShares, setAllShares] = useState(false)
   const legendId = useId()
+  const rows = scope?.rankings.rankByYear[category] ?? []
+  const entities = [...new Set(rows.map((row) => row.entity))]
+  const comparison = scope && payload ? airlineComparison(payload, scope.filter) : null
+  const comparisonKeys = comparison?.slice(0, 5).map((row) => row.key) ?? []
+  // Slots follow the key, not its rank in the current cohort. Airlines keep their brand color and take only the dash and marker.
+  const bumpSlots = useComparisonSlots({
+    analysis: category === 'airlines' ? 'airlines-cues' : category,
+    ownerId: ownerKey,
+    visibleKeys: entities,
+    seedOrder: all?.rankings[category].map((row) => row.key) ?? [],
+  })
+  const slopeSlots = useComparisonSlots({
+    analysis: 'airlines-cues',
+    ownerId: ownerKey,
+    visibleKeys: comparisonKeys,
+    seedOrder: all?.rankings.airlines.map((row) => row.key) ?? [],
+  })
   if (!scope || !all || !payload) return null
   const labels = referenceLabels(locale)
   const name = (kind: Category, key: string) =>
@@ -42,20 +64,12 @@ export function Section({ span }: { span: Span }) {
   const pick = (kind: Category, key: string) => {
     if (isCurrent()) actions.add(kind, key)
   }
-  const rows = scope.rankings.rankByYear[category]
   const years = [...new Set(rows.map((row) => String(row.year)))]
   const baseline = all.rankings.rankByYear[category].filter((row) =>
     years.includes(String(row.year)),
   )
-  const entities = [...new Set(rows.map((row) => row.entity))]
-  const palette = [
-    'var(--mark-1)',
-    'var(--mark-2)',
-    'var(--mark-3)',
-    'var(--mark-4)',
-    'var(--mark-ghost)',
-  ]
-  const dashes = ['', '', '6 4', '', '1 4']
+  const scoped = !isEmptyFilter(scope.filter)
+  const applied = (kind: Category, key: string) => scope.filter[kind]?.includes(key) ?? false
   const shown = entities.filter((entity) => !hidden.includes(entity))
   const highlighted = legendSeries && shown.includes(legendSeries) ? legendSeries : null
   const points = rows
@@ -75,14 +89,11 @@ export function Section({ span }: { span: Span }) {
       .x((row) => xOf(row.year, width))
       .y((row) => yOf(row.rank))
       .curve(curveBumpX)
-  const airlineSlot = (key: string) =>
-    Math.max(
-      0,
-      all.rankings.airlines.findIndex((row) => row.key === key),
-    ) % palette.length
-  // Airlines wear their own colour; airports and routes have none, so they keep the rank palette.
-  const seriesColor = (entity: string) =>
-    category === 'airlines' ? airlineColor(entity) : palette[entities.indexOf(entity)]
+  // Airlines wear their own brand color (neutral when unknown); airports and routes have none and take the slot's comparison color.
+  const seriesCue = (entity: string) => {
+    const cue = slotCue(bumpSlots.get(entity) ?? 0)
+    return category === 'airlines' ? { ...cue, color: airlineColor(entity) } : cue
+  }
   const shares = scope.rankings.airlines
   const legendRows = allShares ? shares : shares.slice(0, LEGEND_TOP)
   const shareTotal = shares.reduce((sum, row) => sum + row.count, 0)
@@ -91,7 +102,6 @@ export function Section({ span }: { span: Span }) {
     datum,
     label: `${name('airlines', datum.key)} · ${flights(locale, datum.count)} · ${percent(datum.count / shareTotal)}`,
   }))
-  const comparison = airlineComparison(payload, scope.filter)
   const comparisonPoints =
     comparison?.slice(0, 5).map((datum) => ({
       key: datum.key,
@@ -280,6 +290,7 @@ export function Section({ span }: { span: Span }) {
                   inView={inView}
                   ariaLabel={copy(locale, 'Rank by year', 'Рейтинг по годам')}
                   onPick={(point) => pick(category, point.datum.entity)}
+                  applied={(point) => applied(category, point.datum.entity)}
                   actions={(point) => [
                     { label: filterLabel(locale), run: () => pick(category, point.datum.entity) },
                   ]}
@@ -320,54 +331,60 @@ export function Section({ span }: { span: Span }) {
                               {year}
                             </text>
                           ))}
-                          {entities.map((entity) => (
-                            <path
-                              key={entity}
-                              d={trace(baseline.filter((row) => row.entity === entity)) ?? ''}
-                              fill="none"
-                              stroke="var(--mark-ghost)"
-                              strokeWidth={1}
-                            />
-                          ))}
+                          {scoped
+                            ? entities.map((entity) => (
+                                <path
+                                  key={entity}
+                                  d={trace(baseline.filter((row) => row.entity === entity)) ?? ''}
+                                  fill="none"
+                                  stroke="var(--mark-ghost)"
+                                  strokeWidth={1}
+                                  strokeDasharray={BASELINE_DASH}
+                                  strokeLinecap="round"
+                                />
+                              ))
+                            : null}
                         </g>
-                        {shown.map((entity) => (
-                          <g
-                            key={entity}
-                            data-bump-series={entity}
-                            style={{
-                              opacity:
-                                highlighted !== null && highlighted !== entity ? 0.22 : undefined,
-                            }}
-                          >
-                            <path
-                              d={trace(rows.filter((row) => row.entity === entity)) ?? ''}
-                              fill="none"
-                              stroke={seriesColor(entity)}
-                              strokeWidth={entities.indexOf(entity) === 0 ? 2.5 : 2}
-                              strokeDasharray={dashes[entities.indexOf(entity)]}
-                              pointerEvents="none"
-                              aria-hidden="true"
-                            />
-                            {points
-                              .filter((point) => point.datum.entity === entity)
-                              .map((point) => (
-                                <g key={point.key} {...mark(point)}>
-                                  <circle
-                                    cx={xOf(point.datum.year, width)}
-                                    cy={yOf(point.datum.rank)}
-                                    r={22}
-                                    fill="transparent"
-                                  />
-                                  <circle
-                                    cx={xOf(point.datum.year, width)}
-                                    cy={yOf(point.datum.rank)}
-                                    r={4}
-                                    fill={seriesColor(entity)}
-                                  />
-                                </g>
-                              ))}
-                          </g>
-                        ))}
+                        {shown.map((entity) => {
+                          const cue = seriesCue(entity)
+                          return (
+                            <g
+                              key={entity}
+                              data-bump-series={entity}
+                              data-active={highlighted === entity || undefined}
+                            >
+                              <path
+                                d={trace(rows.filter((row) => row.entity === entity)) ?? ''}
+                                fill="none"
+                                stroke={cue.color}
+                                strokeWidth={2}
+                                strokeDasharray={cue.dash}
+                                pointerEvents="none"
+                                aria-hidden="true"
+                              />
+                              {points
+                                .filter((point) => point.datum.entity === entity)
+                                .map((point) => (
+                                  <g key={point.key} {...mark(point)}>
+                                    <circle
+                                      cx={xOf(point.datum.year, width)}
+                                      cy={yOf(point.datum.rank)}
+                                      r={22}
+                                      fill="transparent"
+                                    />
+                                    <path
+                                      d={markerPath(cue.marker, 4.5)}
+                                      transform={`translate(${xOf(point.datum.year, width)},${yOf(point.datum.rank)})`}
+                                      fill={cue.color}
+                                      fillRule="evenodd"
+                                      stroke="var(--surface)"
+                                      strokeWidth={1}
+                                    />
+                                  </g>
+                                ))}
+                            </g>
+                          )
+                        })}
                       </g>
                     )
                   }}
@@ -383,7 +400,7 @@ export function Section({ span }: { span: Span }) {
               role="group"
               aria-label={copy(locale, 'Series visibility', 'Видимость рядов')}
             >
-              {entities.map((entity, i) => (
+              {entities.map((entity) => (
                 <button
                   key={entity}
                   type="button"
@@ -402,21 +419,50 @@ export function Section({ span }: { span: Span }) {
                     )
                   }
                 >
-                  <svg width="24" height="10" aria-hidden="true">
+                  <svg width="28" height="12" aria-hidden="true">
                     <line
                       x1="0"
-                      x2="24"
-                      y1="5"
-                      y2="5"
-                      stroke={seriesColor(entity)}
-                      strokeWidth={i === 0 ? 2.5 : 2}
-                      strokeDasharray={dashes[i]}
-                      strokeLinecap={i === 4 ? 'round' : undefined}
+                      x2="28"
+                      y1="6"
+                      y2="6"
+                      stroke={seriesCue(entity).color}
+                      strokeWidth={2}
+                      strokeDasharray={seriesCue(entity).dash}
+                    />
+                    <path
+                      d={markerPath(seriesCue(entity).marker, 4.5)}
+                      transform="translate(14,6)"
+                      fill={seriesCue(entity).color}
+                      fillRule="evenodd"
+                      stroke="var(--surface)"
+                      strokeWidth={1}
                     />
                   </svg>
                   {name(category, entity)}
                 </button>
               ))}
+              {scoped && baseline.length > 0 && (
+                <span>
+                  <svg width="28" height="12" aria-hidden="true">
+                    <line
+                      x1="0"
+                      x2="28"
+                      y1="6"
+                      y2="6"
+                      stroke="var(--mark-ghost)"
+                      strokeWidth={1}
+                      strokeDasharray={BASELINE_DASH}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  {copy(locale, 'Whole journal', 'Вся история')}
+                </span>
+              )}
+              {hidden.length > 0 && (
+                <button type="button" onClick={() => setHidden([])}>
+                  {copy(locale, 'Show all', 'Показать все')}
+                </button>
+              )}
             </div>
             {shown.length === 0 && (
               <p role="status">{copy(locale, 'No series shown', 'Все ряды скрыты')}</p>
@@ -476,6 +522,7 @@ export function Section({ span }: { span: Span }) {
                       inView={inView}
                       ariaLabel={shareCaption}
                       onPick={(point) => pick('airlines', point.datum.key)}
+                      applied={(point) => applied('airlines', point.datum.key)}
                       actions={(point) => [
                         {
                           label: filterLabel(locale),
@@ -510,7 +557,27 @@ export function Section({ span }: { span: Span }) {
                             value: point.datum.count,
                             color: airlineColor(point.key),
                           }))}
-                          mark={mark}
+                          mark={(point) => {
+                            // Sector and legend row light up together; neither filters until picked.
+                            const props = mark(point)
+                            return {
+                              ...props,
+                              onPointerEnter: (event) => {
+                                props.onPointerEnter?.(event)
+                                setLinkedShare(point.key)
+                              },
+                              onPointerLeave: (event) => {
+                                props.onPointerLeave?.(event)
+                                setLinkedShare(null)
+                              },
+                              onFocus: (event) => {
+                                props.onFocus?.(event)
+                                setLinkedShare(point.key)
+                              },
+                              onBlur: () => setLinkedShare(null),
+                            }
+                          }}
+                          highlightKey={linkedShare}
                           totalLabel={copy(locale, 'Flights', 'Перелёты')}
                           formatValue={(value) => number(locale, value)}
                         />
@@ -521,15 +588,44 @@ export function Section({ span }: { span: Span }) {
               </div>
               <div className="ov3-share-key">
                 <div className="ov3-share-legend" id={legendId}>
-                  {legendRows.map((row) => (
-                    <button type="button" key={row.key} onClick={() => pick('airlines', row.key)}>
-                      <i aria-hidden="true" style={{ background: airlineColor(row.key) }} />
-                      <span>{name('airlines', row.key)}</span>
-                      <strong>
-                        {number(locale, row.count)} · {percent(row.count / shareTotal)}
-                      </strong>
-                    </button>
-                  ))}
+                  {legendRows.map((row) => {
+                    const active = applied('airlines', row.key)
+                    return (
+                      <button
+                        type="button"
+                        key={row.key}
+                        aria-pressed={active}
+                        data-linked={linkedShare === row.key || undefined}
+                        onPointerEnter={(event) => {
+                          if (event.pointerType !== 'touch') setLinkedShare(row.key)
+                        }}
+                        onPointerLeave={() => setLinkedShare(null)}
+                        onFocus={() => setLinkedShare(row.key)}
+                        onBlur={() => setLinkedShare(null)}
+                        onClick={() =>
+                          active && isCurrent()
+                            ? actions.remove('airlines', row.key)
+                            : pick('airlines', row.key)
+                        }
+                      >
+                        <i aria-hidden="true" style={{ background: airlineColor(row.key) }} />
+                        <span>
+                          {name('airlines', row.key)}
+                          {active ? (
+                            <Check
+                              className="ov3-share-check"
+                              size={14}
+                              strokeWidth={2}
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                        </span>
+                        <strong>
+                          {number(locale, row.count)} · {percent(row.count / shareTotal)}
+                        </strong>
+                      </button>
+                    )
+                  })}
                 </div>
                 {shares.length > LEGEND_TOP && (
                   <button
@@ -573,6 +669,7 @@ export function Section({ span }: { span: Span }) {
                     inView={inView}
                     ariaLabel={comparisonCaption}
                     onPick={(point) => pick('airlines', point.datum.key)}
+                    applied={(point) => applied('airlines', point.datum.key)}
                     actions={(point) => [
                       { label: filterLabel(locale), run: () => pick('airlines', point.datum.key) },
                     ]}
@@ -605,14 +702,18 @@ export function Section({ span }: { span: Span }) {
                     {(mark, { width }) => (
                       <ArcSlope
                         width={width}
-                        rows={comparisonPoints.map((point) => ({
-                          point,
-                          label: point.key,
-                          start: point.datum.start,
-                          end: point.datum.end,
-                          color: airlineColor(point.key),
-                          dash: dashes[airlineSlot(point.key)],
-                        }))}
+                        rows={comparisonPoints.map((point) => {
+                          const cue = slotCue(slopeSlots.get(point.key) ?? 0)
+                          return {
+                            point,
+                            label: point.key,
+                            start: point.datum.start,
+                            end: point.datum.end,
+                            color: airlineColor(point.key),
+                            dash: cue.dash,
+                            marker: cue.marker,
+                          }
+                        })}
                         mark={mark}
                         maxValue={Math.max(
                           0,
@@ -624,7 +725,6 @@ export function Section({ span }: { span: Span }) {
                         startLabel={copy(locale, 'Previous period', 'Прошлый период')}
                         endLabel={copy(locale, 'Selected period', 'Выбранный период')}
                         formatValue={(value) => number(locale, value)}
-                        highlightKey={scope.filter.airlines?.[0]}
                       />
                     )}
                   </KuukiChart>

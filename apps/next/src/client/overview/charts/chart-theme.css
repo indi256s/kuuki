@@ -47,8 +47,54 @@
 .kc-svg g:focus-visible,
 .kc button:focus-visible,
 .kc-tooltip button:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+/* Mark states. Hover and a legend-linked highlight outline the mark, a pinned tooltip keeps that outline,
+   and an applied filter keeps a thinner one. Fill and stroke colors stay the data's own, and neighbours
+   are never dimmed. Keyboard focus is the outline ring above. */
+.kc-svg
+  [data-kc-key]:is([data-pinned], [data-highlight])
+  :is(circle, rect, path, polygon):not([fill='none'], [fill='transparent'], [data-no-contour]),
+.kc-svg
+  [data-kc-key][data-filtered]
+  :is(circle, rect, path, polygon):not([fill='none'], [fill='transparent'], [data-no-contour]) {
+  stroke: var(--text);
+  stroke-width: 2px;
+}
+/* Transparent outline marks (the Unknown maker cell) keep their fill and thicken the outline instead. */
+.kc-svg [data-kc-key]:is([data-pinned], [data-highlight], [data-filtered]) [data-kc-outline] {
+  stroke: var(--text);
+  stroke-width: 3px;
+}
+.kc-svg [data-kc-key]:is([data-pinned], [data-highlight]) [data-kc-line] {
+  stroke-width: 3.5px;
+}
+.kc-svg [data-kc-key][data-filtered] [data-kc-line] {
+  stroke-width: 3px;
+}
+.kc-svg [data-kc-key]:is([data-pinned], [data-highlight], [data-filtered]) [data-kc-edge] {
+  stroke: var(--text);
+  stroke-width: min(4px, var(--kc-edge-max, 4px));
+}
+@media (hover: hover) and (pointer: fine) {
+  .kc-svg
+    [data-kc-key]:hover
+    :is(circle, rect, path, polygon):not([fill='none'], [fill='transparent'], [data-no-contour]) {
+    stroke: var(--text);
+    stroke-width: 2px;
+  }
+  .kc-svg [data-kc-key]:hover [data-kc-outline] {
+    stroke: var(--text);
+    stroke-width: 3px;
+  }
+  .kc-svg [data-kc-key]:hover [data-kc-line] {
+    stroke-width: 3.5px;
+  }
+  .kc-svg [data-kc-key]:hover [data-kc-edge] {
+    stroke: var(--text);
+    stroke-width: min(4px, var(--kc-edge-max, 4px));
+  }
 }
 
 .kc-tip-actions {

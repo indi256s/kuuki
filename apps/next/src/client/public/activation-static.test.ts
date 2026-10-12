@@ -185,18 +185,30 @@ it('opens without a token on the expired state, and switching language keeps the
   expect(document.cookie).not.toContain('token')
 })
 
-it('follows the device theme until the Horizon toggle sets the opposite theme, and maps removed accents to terracotta', () => {
+it('follows the device theme until the Horizon toggle sets the opposite theme, and maps removed accents to their successors', () => {
   document.cookie = 'kuuki_accent=kincha; Path=/'
   boot(true, true)
   const root = document.documentElement
   expect(root.dataset.theme).toBe('dark')
-  expect(root.dataset.accent).toBe('terracotta')
+  expect(root.dataset.accent).toBe('shu')
   const toggle = screen.getByRole('button', { name: 'Dark theme' })
   expect(toggle).toHaveAttribute('aria-pressed', 'true')
   fireEvent.click(toggle)
   expect(root.dataset.theme).toBe('light')
   expect(toggle).toHaveAttribute('aria-pressed', 'false')
   expect(document.cookie).toContain('kuuki_theme=light')
+})
+
+it.each([
+  ['sakura', 'sakura'],
+  ['blue', 'ai'],
+  ['teal', 'asagi'],
+  ['coral', 'sakura'],
+  ['unknown', 'shu'],
+])('shows the %s cookie accent as %s', (saved, accent) => {
+  document.cookie = `kuuki_accent=${saved}; Path=/`
+  boot()
+  expect(document.documentElement.dataset.accent).toBe(accent)
 })
 
 it('opens localised help, focuses its heading and returns focus to its trigger without changing recovery state', () => {

@@ -4,6 +4,7 @@ import Script from 'next/script'
 import type { ReactNode } from 'react'
 import { ActivityBridge } from '../client/activity'
 import { AppearanceProvider } from '../client/appearance'
+import { FaviconSync } from '../client/favicon-sync'
 import { RouteFocus } from '../client/route-focus'
 import { RouteTransitions } from '../client/route-transitions'
 import { THEME_COLOR } from '../lib/theme-colors'
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <RouteFocus />
         </Suspense>
         <AppearanceProvider />
+        <FaviconSync />
         <ActivityBridge />
       </body>
     </html>

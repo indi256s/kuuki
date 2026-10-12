@@ -363,3 +363,85 @@ describe.each(['en', 'ru'] as const)('deletion (%s)', (locale) => {
     expect(m.identity.mock.calls[0][1]).toBe('/account-deleted')
   })
 })
+
+describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
+  const ru = locale === 'ru'
+  const root = document.documentElement
+  const swatch = (name: string) => screen.getByRole('radio', { name })
+  beforeEach(() => {
+    document.cookie = 'kuuki_accent=shu; Path=/'
+    root.dataset.accent = 'shu'
+  })
+  it('saves the choice on its own and keeps it out of the form save', async () => {
+    mount(locale)
+    await userEvent.click(swatch(ru ? 'Ай' : 'Ai'))
+    expect(m.patch).toHaveBeenCalledWith(
+      '/api/profiles/me',
+      { theme_color: 'ai' },
+      expect.anything(),
+    )
+    expect(root.dataset.accent).toBe('ai')
+    fireEvent.change(screen.getByLabelText(ru ? 'Имя' : 'Display name'), {
+      target: { value: 'Renamed' },
+    })
+    await userEvent.click(screen.getByRole('button', { name: ru ? 'Сохранить' : 'Save changes' }))
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(2))
+    expect(m.patch.mock.calls[1][1]).not.toHaveProperty('theme_color')
+  })
+  it('puts the previous accent back and says the save failed', async () => {
+    m.patch.mockRejectedValue(new TypeError('offline'))
+    mount(locale)
+    await userEvent.click(swatch(ru ? 'Сакура' : 'Sakura'))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      ru ? 'Не удалось сохранить акцентный цвет' : 'Could not save the accent color',
+    )
+    expect(root.dataset.accent).toBe('shu')
+    expect(swatch(ru ? 'Шу' : 'Shu')).toHaveAttribute('aria-checked', 'true')
+    expect(document.cookie).toContain('kuuki_accent=shu')
+  })
+  it('lets a superseded save finish in order and reports only the latest pick failing', async () => {
+    const sent: Array<{ accent: string; fail: () => void }> = []
+    m.patch.mockImplementation(
+      (_path: string, body: { theme_color: string }) =>
+        new Promise((_done, fail) =>
+          sent.push({ accent: body.theme_color, fail: () => fail(new TypeError('offline')) }),
+        ),
+    )
+    mount(locale)
+    await userEvent.click(swatch(ru ? 'Ай' : 'Ai'))
+    await userEvent.click(swatch(ru ? 'Сакура' : 'Sakura'))
+    // The second write waits behind the first instead of racing it to the server.
+    expect(sent.map((request) => request.accent)).toEqual(['ai'])
+    await act(async () => sent[0].fail())
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(root.dataset.accent).toBe('sakura')
+    await waitFor(() => expect(sent.map((request) => request.accent)).toEqual(['ai', 'sakura']))
+    await act(async () => sent[1].fail())
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      ru ? 'Не удалось сохранить акцентный цвет' : 'Could not save the accent color',
+    )
+    expect(root.dataset.accent).toBe('shu')
+  })
+  it('does not let an unmounted Settings revert the device after a later visit', async () => {
+    const sent: Array<{ accent: string; settle: (ok: boolean) => void }> = []
+    m.patch.mockImplementation(
+      (_path: string, body: { theme_color: string }) =>
+        new Promise((done, fail) =>
+          sent.push({
+            accent: body.theme_color,
+            settle: (ok) => (ok ? done({}) : fail(new TypeError('offline'))),
+          }),
+        ),
+    )
+    const first = mount(locale)
+    await userEvent.click(swatch(ru ? 'Ай' : 'Ai'))
+    first.unmount()
+    mount(locale)
+    await userEvent.click(swatch(ru ? 'Сакура' : 'Sakura'))
+    await act(async () => sent[0].settle(false))
+    await waitFor(() => expect(sent.map((request) => request.accent)).toEqual(['ai', 'sakura']))
+    await act(async () => sent[1].settle(true))
+    expect(root.dataset.accent).toBe('sakura')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+})

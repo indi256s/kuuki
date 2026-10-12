@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest'
 import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
-import { countryEvidence } from './country-evidence'
+import { countryEvidence, regionKey } from './country-evidence'
 
-it('counts weighted logged country evidence with transit suppression, domestic dedupe, scope and known regions', () => {
+it('counts weighted logged country evidence with transit suppression, domestic dedupe, scope, and an unnamed region as Unknown', () => {
   const base = (fixture as OverviewPayload).rows[0]
   const payload: OverviewPayload = {
     ...(fixture as OverviewPayload),
@@ -84,6 +84,23 @@ it('counts weighted logged country evidence with transit suppression, domestic d
   }
   expect(countryEvidence(payload, { airlines: ['AA'] })).toEqual([
     { region: 'asia', value: 10, countries: [{ code: 'GE', value: 10 }] },
+    { region: 'unknown', value: 9, countries: [{ code: 'ZZ', value: 9 }] },
     { region: 'europe', value: 3, countries: [{ code: 'FR', value: 3 }] },
+  ])
+})
+
+it('maps region codes onto the six palette regions; every Americas variant is americas and the rest is Unknown, not Other', () => {
+  expect(
+    ['africa', 'americas', 'antarctica', 'asia', 'europe', 'oceania', ' Europe '].map(regionKey),
+  ).toEqual(['africa', 'americas', 'antarctica', 'asia', 'europe', 'oceania', 'europe'])
+  expect(['north-america', 'south-america', 'central-america', 'Caribbean'].map(regionKey)).toEqual(
+    ['americas', 'americas', 'americas', 'americas'],
+  )
+  expect(['other', 'unknown', '', undefined, null].map(regionKey)).toEqual([
+    'unknown',
+    'unknown',
+    'unknown',
+    'unknown',
+    'unknown',
   ])
 })

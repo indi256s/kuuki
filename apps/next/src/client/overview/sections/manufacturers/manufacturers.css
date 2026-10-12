@@ -36,6 +36,11 @@
   cursor: pointer;
   white-space: normal;
 }
+.ov3-maker-check {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  vertical-align: -2px;
+}
 .ov3-maker-legend button:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
@@ -60,24 +65,31 @@
   }
 }
 
-/* Preserve maker isolation for hover, keyboard focus and pinned touch actions. */
+/* Hover, keyboard focus and pinned touch actions isolate a maker by a stronger contour on its whole group. Data colours and the other groups are untouched; the focus ring itself comes from the chart. */
 .ov3-manufacturers
   .kc:has([data-waffle-group='airbus'][data-selected='true'])
-  [data-waffle-group]:not([data-waffle-group='airbus']),
+  [data-waffle-group='airbus']
+  rect,
 .ov3-manufacturers
   .kc:has([data-waffle-group='boeing'][data-selected='true'])
-  [data-waffle-group]:not([data-waffle-group='boeing']),
+  [data-waffle-group='boeing']
+  rect,
 .ov3-manufacturers
   .kc:has([data-waffle-group='embraer'][data-selected='true'])
-  [data-waffle-group]:not([data-waffle-group='embraer']),
+  [data-waffle-group='embraer']
+  rect,
 .ov3-manufacturers
   .kc:has([data-waffle-group='atr'][data-selected='true'])
-  [data-waffle-group]:not([data-waffle-group='atr']),
+  [data-waffle-group='atr']
+  rect,
 .ov3-manufacturers
   .kc:has([data-waffle-group='other'][data-selected='true'])
-  [data-waffle-group]:not([data-waffle-group='other']),
+  [data-waffle-group='other']
+  rect,
 .ov3-manufacturers
   .kc:has([data-waffle-group='unknown'][data-selected='true'])
-  [data-waffle-group]:not([data-waffle-group='unknown']) {
-  opacity: 0.22;
+  [data-waffle-group='unknown']
+  rect {
+  stroke: var(--text);
+  stroke-width: 2px;
 }

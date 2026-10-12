@@ -183,10 +183,9 @@
 .ov3-bump-dashes button[aria-pressed='false'] {
   text-decoration: line-through;
 }
-.ov3-rankings
-  .kc-svg:has([data-selected='true']):not(:has([data-bump-highlight]))
-  [data-bump-series]:not(:has([data-selected='true'])) {
-  opacity: 0.22;
+/* A series under the pointer, in keyboard focus, pinned or named by the legend gets a heavier line; the others stay as drawn. */
+.ov3-rankings [data-bump-series]:is([data-active], :has([data-selected='true'])) > path {
+  stroke-width: 3.5px;
 }
 .ov3-share-legend {
   display: grid;
@@ -261,6 +260,14 @@
   width: 8px;
   height: 8px;
   border-radius: 2px;
+}
+.ov3-share-legend button[data-linked] i {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+.ov3-share-check {
+  margin-inline-start: var(--space-2);
+  vertical-align: -2px;
 }
 .ov3-share-legend strong {
   font-size: 13px;

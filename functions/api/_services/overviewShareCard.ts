@@ -1,10 +1,47 @@
 import { ImageResponse, cache } from '@cf-wasm/og/workerd'
 import type { OverviewScope } from '../../../packages/shared/src/overview/figures'
+import {
+  recognizeAccentKey,
+  SURFACES,
+  THEMES,
+  type AccentKey,
+  type Mode,
+} from '../../../packages/shared/src/theme/palette'
 
 cache.disable()
 
+export interface ShareCardTheme {
+  mode: Mode
+  accent: AccentKey
+}
+
+// New writes store canonical names only; legacy rows may still hold the pre-v1 names.
+/** Canonical accent for a stored profile `theme_color`; unknown or missing values fall back to shu. */
+export function resolveShareAccent(stored: string | null | undefined): AccentKey {
+  return recognizeAccentKey(stored) ?? 'shu'
+}
+
+/** The one color snapshot the card background, text and chart SVG all draw from. */
+export function shareCardSnapshot({ mode, accent }: ShareCardTheme) {
+  const surfaces = SURFACES[mode]
+  const { comparison, heat } = THEMES[accent][mode]
+  return {
+    background: surfaces.background,
+    text: surfaces.text,
+    muted: surfaces.muted,
+    // Same roles as the Clock dial: the peak hour takes comparison slot 1, every other hour `--mark-rest` (heat level 3).
+    peak: comparison[0],
+    bar: heat[2].color,
+  }
+}
+
 /** Temporary renderer fixture; the design thread owns the card's visual layout. */
-export function shareCardTree(scope: OverviewScope) {
+export function shareCardTree(
+  scope: OverviewScope,
+  theme: ShareCardTheme = { mode: 'light', accent: 'shu' },
+) {
+  const colors = shareCardSnapshot(theme)
+  const peakHour = scope.clock.status === 'ready' ? scope.clock.value.peakHour?.hour : undefined
   const rows = scope.clock.status === 'ready' ? scope.clock.value.byHour : []
   const max = Math.max(1, ...rows.map((row) => row.flights))
   const left = 40,
@@ -16,7 +53,12 @@ export function shareCardTree(scope: OverviewScope) {
     .map((row, index) => {
       const x = left + index * step,
         barHeight = (row.flights / max) * height
-      return `<g><rect data-hour="${row.hour}" data-flights="${row.flights}" x="${x}" y="${top + height - barHeight}" width="${step}" height="${barHeight}" fill="#2563eb"/><text x="${x + step / 2}" y="294" text-anchor="middle">${String(row.hour).padStart(2, '0')}</text></g>`
+      // An hour without flights draws no bar; only the label marks it.
+      const bar =
+        row.flights > 0
+          ? `<rect x="${x}" y="${top + height - barHeight}" width="${step}" height="${barHeight}" fill="${row.hour === peakHour ? colors.peak : colors.bar}"/>`
+          : ''
+      return `<g data-hour="${row.hour}" data-flights="${row.flights}">${bar}<text x="${x + step / 2}" y="294" text-anchor="middle">${String(row.hour).padStart(2, '0')}</text></g>`
     })
     .join('')
   const ticks = [0, 0.25, 0.5, 0.75, 1]
@@ -26,7 +68,7 @@ export function shareCardTree(scope: OverviewScope) {
     )
     .join('')
   // Keep this existing static share-card fixture DOM-free; the application dial owns radial rendering.
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300" role="img" aria-label="Clock" font-family="sans-serif" font-size="11" fill="#000"><path d="M40,10V277H596" fill="none" stroke="#000" opacity=".28"/>${bars}${ticks}</svg>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300" role="img" aria-label="Clock" font-family="sans-serif" font-size="11" fill="${colors.muted}"><path d="M40,10V277H596" fill="none" stroke="${colors.text}" opacity=".28"/>${bars}${ticks}</svg>`
   const figures = scope.figures
   return {
     type: 'div',
@@ -36,7 +78,8 @@ export function shareCardTree(scope: OverviewScope) {
         flexDirection: 'column',
         width: 1200,
         height: 1500,
-        backgroundColor: '#fbfaf8',
+        backgroundColor: colors.background,
+        color: colors.text,
       },
       children: [
         ...[
@@ -57,9 +100,10 @@ export function shareCardTree(scope: OverviewScope) {
 export async function renderShareCard(
   scope: OverviewScope,
   context: { waitUntil(promise: Promise<unknown>): void },
+  theme: ShareCardTheme,
 ): Promise<Response> {
   cache.setExecutionContext(context)
-  return ImageResponse.async(shareCardTree(scope), {
+  return ImageResponse.async(shareCardTree(scope, theme), {
     width: 1200,
     height: 1500,
     headers: { 'Cache-Control': 'no-store' },

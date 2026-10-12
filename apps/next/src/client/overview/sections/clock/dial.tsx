@@ -79,7 +79,7 @@ export function ClockDial({ points, ghosts, peakHour, centerLabel, centerCaption
           <path d={wedge(item.datum.hour, OUTER)} fill="transparent" />
           <path
             d={wedge(item.datum.hour, radius(item.datum.flights))}
-            fill={item.datum.hour === peakHour ? 'var(--mark-1)' : 'var(--mark-2)'}
+            fill={item.datum.hour === peakHour ? 'var(--mark-1)' : 'var(--mark-rest)'}
           />
         </g>
       ))}

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { expect, it } from 'vitest'
 import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
@@ -37,4 +37,38 @@ it('drills the country hierarchy without changing scope; an explicit region acti
   expect(screen.getByLabelText('Current filters')).toHaveTextContent('"regions":["asia"]')
   fireEvent.click(screen.getByRole('button', { name: 'All regions' }))
   expect(screen.getByLabelText('Current filters')).toHaveTextContent('"regions":["asia"]')
+  // The applied region keeps its colour and takes the standing filtered cue.
+  const applied = screen.getByRole('button', { name: /^Asia:/ })
+  expect(applied).toHaveAttribute('data-filtered', 'true')
+  expect(applied).toHaveAttribute('aria-pressed', 'true')
+  const legend = screen.getByRole('list', { name: 'Regions' })
+  expect(legend.querySelectorAll('.country-treemap-check')).toHaveLength(1)
+  expect(
+    within(legend).getByText(/Asia/).closest('li')?.querySelector('.country-treemap-check'),
+  ).not.toBeNull()
+})
+
+it('paints each region in its fixed colour, lets countries inherit it, and names the regions in a legend', () => {
+  const { container } = render(
+    <OverviewProvider
+      payload={fixture as OverviewPayload}
+      prefs={DEFAULT_PREFS}
+      ownerKey="owner"
+      locale="en"
+      live={false}
+    >
+      <CountryTreemap />
+    </OverviewProvider>,
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Countries from completed flights' }))
+  const legend = screen.getByRole('list', { name: 'Regions' })
+  expect(within(legend).getByText(/Asia/)).toBeInTheDocument()
+  expect(within(legend).getByText(/Europe/)).toBeInTheDocument()
+  expect(container.querySelector('rect[fill="var(--cat-region-asia)"]')).not.toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /^Asia:/ }))
+  expect(container.querySelector('rect[fill="var(--cat-region-asia)"]')).not.toBeNull()
+  expect(container.querySelector('rect[fill="var(--cat-region-europe)"]')).toBeNull()
+  expect(
+    within(screen.getByRole('list', { name: 'Regions' })).getAllByRole('listitem'),
+  ).toHaveLength(1)
 })

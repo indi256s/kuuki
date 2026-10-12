@@ -141,3 +141,24 @@ it('check-username reports pattern validity separately from availability', async
     await dispose()
   }
 })
+
+it('stores only canonical accent names in theme_color and keeps the stored one on rejection', async () => {
+  const { dispose, users, patch } = await setup(1)
+  try {
+    const saved = await patch(users[0], { theme_color: 'sakura' })
+    expect(saved.status).toBe(200)
+    expect(await saved.json()).toMatchObject({ theme_color: 'sakura' })
+    // Retired names, other colours and the empty string are all refused; the client maps legacy names before writing.
+    for (const theme_color of ['terracotta', 'blue', '#c23417', 'Shu', '', 7]) {
+      const res = await patch(users[0], { theme_color })
+      expect(res.status).toBe(400)
+      expect(await res.json()).toMatchObject({ code: 'BAD_REQUEST', error: 'Invalid theme_color' })
+    }
+    const unrelated = await patch(users[0], { bio: 'hello' })
+    expect(await unrelated.json()).toMatchObject({ theme_color: 'sakura' })
+    const cleared = await patch(users[0], { theme_color: null })
+    expect(await cleared.json()).toMatchObject({ theme_color: null })
+  } finally {
+    await dispose()
+  }
+})
