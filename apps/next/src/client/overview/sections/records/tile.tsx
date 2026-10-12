@@ -1,10 +1,9 @@
 'use client'
-import { useMemo } from 'react'
 import { formatDuration } from '../../../../lib/format'
 import { IsoFigure } from '../../iso/iso-figure'
-import { fitK } from '../../iso/scene'
 import { foldedMap, mapPin } from '../../iso/map'
-import { TILE_FIGURE_WIDTH, type TileSpan } from '../../mobile/tiles'
+import { useFigure } from '../../iso/use-figure'
+import type { TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { copy, number } from '../rankings/display'
 import '../cookie.css'
@@ -14,29 +13,18 @@ export function Tile({ span }: { span: TileSpan }) {
   const lead = scope?.records.status === 'ready' ? scope.records.value.longest : null
   const origin = lead ? payload?.refs.airports[lead.origin] : undefined
   const destination = lead ? payload?.refs.airports[lead.destination] : undefined
-  const figure = useMemo(
-    () => {
-      if (!lead) return null
-      const from = mapPin(lead.origin, origin),
-        to = mapPin(lead.destination, destination)
-      return foldedMap(
-        from,
-        to,
-        fitK(TILE_FIGURE_WIDTH[span], (k) => foldedMap(from, to, k)),
-      )
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `lead` and the refs are rebuilt every render; the route and its coordinates are the key.
-    [
-      lead?.origin,
-      lead?.destination,
-      origin?.lat,
-      origin?.lon,
-      destination?.lat,
-      destination?.lon,
-      span,
-    ],
+  // The map at rest: the headline route pinned, unlit until the tile is touched.
+  const figure = useFigure(
+    span,
+    `${lead?.origin}|${lead?.destination}|${origin?.lat}|${origin?.lon}|${destination?.lat}|${destination?.lon}`,
+    (k) =>
+      foldedMap(
+        mapPin(lead?.origin ?? '', origin),
+        mapPin(lead?.destination ?? '', destination),
+        k,
+      ),
   )
-  if (!lead || !figure) return <p>—</p>
+  if (!lead) return <p>—</p>
   const route = `${lead.origin} → ${lead.destination}`
   const detail =
     lead.durationMinutes === null

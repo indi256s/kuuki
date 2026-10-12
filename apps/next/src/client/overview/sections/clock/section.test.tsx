@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
-import { aggregateRows } from '@kuuki/shared/overview/aggregate'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
@@ -12,7 +11,9 @@ const context = vi.hoisted(() => ({
 }))
 vi.mock('../../store/overview-context', () => ({ useOverview: () => context.current }))
 
-it('keeps the latest reading and segment selection aligned through filtering and data restoration', () => {
+const add = vi.fn(),
+  clear = vi.fn()
+const admit = (filter: OverviewFilter = {}) => {
   const payload = structuredClone(fixture) as OverviewPayload
   payload.rows = [365, 370, 375, 378, 380, 1385].map((depMinute, i) => ({
     ...payload.rows[0],
@@ -24,60 +25,65 @@ it('keeps the latest reading and segment selection aligned through filtering and
     date: '2025-01-03',
     depMinute,
   }))
-  const admit = (data: OverviewPayload, filter: OverviewFilter = {}) => {
-    context.current = {
-      scope: computeOverview(data, filter),
-      all: computeOverview(data, {}),
-      locale: 'en',
-      actions: { add: vi.fn() },
-      isCurrent: () => true,
-    } as unknown as typeof context.current
-  }
-  admit(payload)
+  context.current = {
+    scope: computeOverview(payload, filter),
+    all: computeOverview(payload, {}),
+    filter,
+    locale: 'en',
+    actions: { add, clear },
+    isCurrent: () => true,
+  } as unknown as typeof context.current
+}
+const hero = (view: { container: HTMLElement }) =>
+  view.container.querySelector('.ov3-card-value-text')
+
+beforeEach(() => {
+  add.mockClear()
+  clear.mockClear()
+  admit()
+})
+afterEach(cleanup)
+
+it('a pick on the chart moves the hero and the display and does not filter', () => {
   const view = render(<Section span="full" />)
-  const expectReading = (time: string, description: string, latest: boolean | null) => {
-    expect(view.container.querySelector('.ov3-cookie-value')).toHaveTextContent(time)
-    expect(view.container.querySelector('.ov3-cookie-sub')).toHaveTextContent(description)
-    const toggle = screen.queryByRole('button', { name: 'Show latest departure' })
-    if (latest === null) {
-      expect(toggle).toBeNull()
-      expect(view.container.querySelector('[data-part="lit-b"] path')).toBeNull()
-      expect(view.container.querySelector('[data-part="lit-a"] path')).toBeNull()
-    } else {
-      expect(toggle).toHaveAttribute('aria-pressed', String(latest))
-      // This selector owns the CSS swap between the two segment readings.
-      expect(view.container.querySelector('.ov3-clock-toggle[aria-pressed="true"]')).toBe(
-        latest ? toggle : null,
-      )
-      expect(toggle?.querySelector('[data-part="lit-b"] path')).not.toBeNull()
-      expect(toggle?.querySelector('[data-part="lit-a"] path')).not.toBeNull()
-    }
-    expect(view.container.querySelector('.iso-clock [data-part="lit-both"] path')).not.toBeNull()
-  }
-  expectReading('06:05', 'Earliest departure · IST → CDG', false)
-  fireEvent.click(screen.getByRole('button', { name: 'Show latest departure' }))
-  expectReading('23:05', 'Latest departure · IST → NRT', true)
-  const latestSegments = view.container.querySelector('[data-part="lit-b"] path')!.getAttribute('d')
+  expect(hero(view)).toHaveTextContent('06:05')
+  expect(screen.queryByRole('button', { name: /^Only/ })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /^23:00–23:59/ }))
+  expect(hero(view)).toHaveTextContent('23:00')
+  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent('1 flight at 23:00')
+  expect(view.container.querySelector('.ov3-clock-figure')).toHaveAttribute('data-side', 'b')
+  expect(add).not.toHaveBeenCalled()
+})
 
-  admit(payload, { depHours: [6] })
-  view.rerender(<Section span="full" />)
-  expectReading('06:20', 'Latest departure · IST → FRA', true)
-  expect(view.container.querySelector('[data-part="lit-b"] path')).not.toHaveAttribute(
-    'd',
-    latestSegments,
+it('"Only …" applies the departure hour facet', () => {
+  render(<Section span="full" />)
+  fireEvent.click(screen.getByRole('button', { name: /^23:00–23:59/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Only 23:00' }))
+  expect(add).toHaveBeenCalledWith('depHours', 23)
+})
+
+it('the figure button steps earliest, latest, busiest hour and back', () => {
+  const view = render(<Section span="full" />)
+  const next = () =>
+    fireEvent.click(screen.getByRole('button', { name: 'Show next clock reading' }))
+  next()
+  expect(hero(view)).toHaveTextContent('23:05')
+  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
+    'Latest departure · IST → NRT · busiest hour 06:00',
   )
-
-  admit({ ...payload, mode: 'aggregate', rows: aggregateRows(payload.rows) }, { depHours: [6] })
-  view.rerender(<Section span="full" />)
-  expectReading('06:05', 'Earliest departure · IST → CDG', null)
-
-  admit(payload)
-  view.rerender(<Section span="full" />)
-  expectReading('23:05', 'Latest departure · IST → NRT', true)
-  expect(view.container.querySelector('[data-part="lit-b"] path')).toHaveAttribute(
-    'd',
-    latestSegments,
+  next()
+  expect(hero(view)).toHaveTextContent('06:00')
+  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
+    'Busiest hour · 5 flights',
   )
-  fireEvent.click(screen.getByRole('button', { name: 'Show latest departure' }))
-  expectReading('06:05', 'Earliest departure · IST → CDG', false)
+  next()
+  expect(hero(view)).toHaveTextContent('06:05')
+})
+
+it('shows the empty state when the filter leaves too few timed flights', () => {
+  admit({ depHours: [23] })
+  render(<Section span="full" />)
+  expect(screen.getByText('Too few departure times')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
+  expect(clear).toHaveBeenCalled()
 })

@@ -11,11 +11,11 @@ export type ChartTable = {
   rows: readonly Record<string, string | number>[]
 }
 
-export function TableView({ table }: { table: ChartTable }) {
+export function TableView({ table, summary }: { table: ChartTable; summary?: string }) {
   const locale = useLocale()
   return (
     <div className="kc-table">
-      <Disclosure summary={t({ en: 'View as table', ru: 'Показать таблицу' }, locale)}>
+      <Disclosure summary={summary ?? t({ en: 'View as table', ru: 'Показать таблицу' }, locale)}>
         <div className="kc-table-scroll">
           <table>
             <caption>{table.caption}</caption>

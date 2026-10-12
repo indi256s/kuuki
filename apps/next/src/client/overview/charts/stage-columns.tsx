@@ -78,7 +78,6 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
       onPick={props.onPick}
       actions={props.actions}
       tip={props.tip}
-      table={props.table}
       selected={(point) => point.key === selectedKey}
       applied={appliedKeys ? applied : undefined}
       tapPicks

@@ -40,7 +40,8 @@ export type KuukiChartProps<T> = {
   tapPicks?: boolean
   tip?: (points: readonly ChartPoint<T>[]) => ReactNode
   actions?: (point: ChartPoint<T>) => readonly TipAction[]
-  table: ChartTable
+  /** The data as a "View as table" disclosure under the chart. Stage charts leave it to the card's Details, outside their fixed stage. */
+  table?: ChartTable
   /** Count-driven charts: the SVG's natural width for the measured host width (left-aligned, scrolls when wider). Default fills the host. */
   fit?: (available: number) => number
   /** With `fit`: when the chart is wider than its host, open scrolled to the far end (the latest data). */
@@ -388,7 +389,7 @@ export function KuukiChart<T>({
             portalOwner,
           )
         : null}
-      <TableView table={table} />
+      {table ? <TableView table={table} /> : null}
     </div>
   )
 }

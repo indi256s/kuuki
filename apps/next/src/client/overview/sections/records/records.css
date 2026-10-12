@@ -1,11 +1,6 @@
 .ov3-records {
   min-width: 0;
 }
-.ov3-record-cabinet {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-  gap: 24px;
-}
 .ov3-record-inset {
   position: relative;
   background: var(--surface-inset);
@@ -21,10 +16,7 @@
   font-weight: 600;
   display: block;
 }
-.ov3-record-inset .ov3-record-value {
-  font-size: clamp(40px, 5vw, 64px);
-}
-.ov3-record-value small {
+.ov3-record-inset strong small {
   font-size: 20px;
 }
 .ov3-record-route {
@@ -122,17 +114,11 @@
   flex: 1;
   border-radius: 2px;
 }
-.ov3-records[data-span='sheet'] .ov3-record-cabinet {
+.ov3-records[data-span='sheet'] .ov3-record-small-grid {
   grid-template-columns: 1fr;
 }
 .ov3-record-inset .ov3-record-link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-}
-
-.ov3-record-map {
-  display: flex;
-  justify-content: center;
-  margin: var(--space-4) 0;
 }

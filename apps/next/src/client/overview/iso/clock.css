@@ -1,13 +1,13 @@
-/* Earliest departure clock: the snooze bar dips on hover and presses on click, and hover raises the display backlight; the display morphs segment by segment between two readings. */
+/* Alarm clock. Tiles dip the snooze bar and raise the backlight on hover. The chapter figure has no hover pose: on a pick its display morphs segment by segment, and the wrapper's data-side says which of the two readings (lit-a, lit-b) is shown. */
 /* The backlight rises by 0.3 (0.4 → 0.7 in light; dark passes 1 and clamps). */
 .iso-clock [data-part='backlight'] .iso-glow {
   opacity: calc(var(--iso-glow) + 0.3 * var(--iso-lit));
 }
 .iso-clock [data-part='lit-b'],
-.ov3-clock-toggle[aria-pressed='true'] .iso-clock [data-part='lit-a'] {
+[data-side='b'] .iso-clock [data-part='lit-a'] {
   opacity: 0;
 }
-.ov3-clock-toggle[aria-pressed='true'] .iso-clock [data-part='lit-b'] {
+[data-side='b'] .iso-clock [data-part='lit-b'] {
   opacity: 1;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -18,17 +18,8 @@
   .iso-clock [data-part='backlight'] .iso-glow {
     transition: opacity var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
+  /* A new pick retargets the fade from wherever it is. */
   .iso-clock :is([data-part='lit-a'], [data-part='lit-b']) {
-    transition: opacity var(--dur-fast) var(--ease-out);
+    transition: opacity var(--dur-base) var(--ease-out);
   }
-  /* A click presses the bar at once, whatever the hover timing was. */
-  .ov3-clock-toggle:active:not(:focus-visible) .iso-clock [data-part='snooze'] {
-    transform: translateY(var(--press-y));
-    transition-duration: var(--dur-press);
-    transition-delay: 0ms;
-  }
-}
-/* Keyboard toggles swap the reading instantly. */
-.ov3-clock-toggle:focus-visible .iso-clock [data-part] {
-  transition: none;
 }

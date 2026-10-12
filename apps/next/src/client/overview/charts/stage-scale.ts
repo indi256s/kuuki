@@ -4,7 +4,7 @@ export type StageSpan = 'sheet' | 'full'
 /** What both stage charts take from the chapter: KuukiChart's interaction props plus the numbers to draw. */
 export type StageProps<T> = Pick<
   KuukiChartProps<T>,
-  'points' | 'onPick' | 'actions' | 'tip' | 'table' | 'ariaLabel' | 'ariaDescription' | 'inView'
+  'points' | 'onPick' | 'actions' | 'tip' | 'ariaLabel' | 'ariaDescription' | 'inView'
 > & {
   /** The number a mark is drawn from. Zero is a known zero (a stub); unknown values do not belong in `points`. */
   value: (point: ChartPoint<T>) => number

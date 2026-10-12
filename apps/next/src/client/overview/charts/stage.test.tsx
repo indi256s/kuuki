@@ -18,7 +18,6 @@ const shared = {
   points,
   value: (point: (typeof points)[number]) => point.datum.flights,
   ariaLabel: 'Flights',
-  table: { caption: 'Flights', columns: [{ key: 'key', label: 'Key' }], rows },
   inView: true,
   selectedKey: 'b',
   appliedKeys: ['a'],

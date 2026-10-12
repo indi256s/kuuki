@@ -1,46 +1,13 @@
-.ov3-routes {
-  min-width: 0;
+/* Routes: route codes in the hero caption, and the per-year chart inside its Disclosure. */
+.ov3-routes-code {
+  font-family: var(--font-mono);
+  font-size: 0.93em;
+  color: var(--text);
+}
+.ov3-routes-years {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
-}
-.ov3-routes-headline {
-  margin: 0 0 var(--space-3);
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 600;
-  text-wrap: balance;
-}
-.ov3-routes-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: var(--space-6);
-}
-.ov3-routes-tile {
-  background: var(--surface-inset);
-  border-radius: 10px;
-  padding: var(--space-5);
   min-width: 0;
-}
-.ov3-routes-tile p {
-  font-size: 13px;
-  margin: 0 0 12px;
-}
-.ov3-routes-tile strong {
-  display: block;
-  margin-bottom: 12px;
-  font-size: 32px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-.ov3-routes-tile small {
-  display: block;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-.ov3-routes > .ov3-chart-caption {
-  margin-top: var(--space-5);
 }
 .ov3-routes-legend {
   display: flex;

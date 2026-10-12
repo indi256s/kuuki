@@ -8,3 +8,27 @@
     transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
 }
+
+/* Chapter card: a pick deals the picked route's pass onto the stack. It starts half a slide out and 6px up and settles over --dur-base, transform only.
+   Reduced motion swaps the print at once. `data-deal` alternates 1 and 2, so the same motion restarts for the next pick. */
+.ov3-passes {
+  display: contents;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ov3-passes[data-deal='1'] .iso-passes [data-part='top-pass'] {
+    animation: pass-deal-1 var(--dur-base) var(--ease-out);
+  }
+  .ov3-passes[data-deal='2'] .iso-passes [data-part='top-pass'] {
+    animation: pass-deal-2 var(--dur-base) var(--ease-out);
+  }
+  @keyframes pass-deal-1 {
+    from {
+      transform: translate(calc(var(--slide-x) * 0.5), calc(var(--slide-y) * 0.5 - 6px));
+    }
+  }
+  @keyframes pass-deal-2 {
+    from {
+      transform: translate(calc(var(--slide-x) * 0.5), calc(var(--slide-y) * 0.5 - 6px));
+    }
+  }
+}

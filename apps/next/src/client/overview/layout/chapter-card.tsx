@@ -9,6 +9,7 @@ import { SlotText } from '../../ui/slot-text'
 import { Skeleton } from '../../ui/skeleton'
 import { S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
+import { TableView, type ChartTable } from '../charts/table-view'
 import { useChapter } from './chapter-context'
 import './chapter-card.css'
 
@@ -36,7 +37,8 @@ export type ChapterCardProps = {
   }
   /** Roll the value on change: pass `picked` from `useReading`. Without it a changed value swaps at once. */
   rollValue?: boolean
-  chart: { caption: string; toggle?: ReactNode; plot: ReactNode }
+  /** `table` is the plot's data; its "View as table" disclosure sits in Details, since the stage has a fixed height. */
+  chart: { caption: string; toggle?: ReactNode; plot: ReactNode; table?: ChartTable }
   details?: ChapterCardDetails
   empty?: { title: string; line: string; action: ReactNode }
 }
@@ -143,12 +145,12 @@ export function ChapterCard({
         <div className="ov3-card-details">
           {span === 'sheet' ? (
             <Disclosure summary={<span className="ov3-card-heading">{details.heading}</span>}>
-              <DetailsBody details={details} />
+              <DetailsBody details={details} table={chart.table} />
             </Disclosure>
           ) : (
             <>
               <h3 className="ov3-card-heading">{details.heading}</h3>
-              <DetailsBody details={details} />
+              <DetailsBody details={details} table={chart.table} />
             </>
           )}
         </div>
@@ -165,7 +167,8 @@ function CardEmpty({ title, line, action }: NonNullable<ChapterCardProps['empty'
   )
 }
 
-function DetailsBody({ details }: { details: ChapterCardDetails }) {
+function DetailsBody({ details, table }: { details: ChapterCardDetails; table?: ChartTable }) {
+  const { locale } = useOverview()
   const { columns, coverage, more, extra } = details
   return (
     <div className="ov3-card-details-body">
@@ -180,12 +183,18 @@ function DetailsBody({ details }: { details: ChapterCardDetails }) {
         </dl>
       ) : null}
       {coverage ? <p className="ov3-card-coverage">{coverage}</p> : null}
+      {extra}
+      {table ? (
+        <TableView
+          table={table}
+          summary={t({ en: `Table: ${table.caption}`, ru: `Таблица: ${table.caption}` }, locale)}
+        />
+      ) : null}
       {more?.map(({ summary, content }) => (
         <Disclosure key={summary} summary={<span className="ov3-card-more">{summary}</span>}>
           {content}
         </Disclosure>
       ))}
-      {extra}
     </div>
   )
 }
