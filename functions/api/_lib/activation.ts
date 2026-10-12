@@ -84,7 +84,7 @@ export async function completeActivation(
       .bind(claimId, tokenHash, now),
     db
       .prepare(
-        `UPDATE users SET password_hash = ?, updated_at = ? WHERE password_hash = 'RESET_REQUIRED'
+        `UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE password_hash = 'RESET_REQUIRED'
        AND id = (SELECT user_id FROM account_activation_tokens WHERE token_hash = ? AND claim_id = ?)`,
       )
       .bind(passwordHash, now, tokenHash, claimId),

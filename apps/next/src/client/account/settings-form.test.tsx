@@ -303,6 +303,35 @@ describe('Settings name and address', () => {
 })
 describe.each(['en', 'ru'] as const)('deletion (%s)', (locale) => {
   const ru = locale === 'ru'
+  it('requires email password setup before deleting an account without a password', async () => {
+    render(
+      <SettingsForm
+        ownerId="a"
+        profile={profile}
+        locale={locale}
+        counts={counts}
+        hasPassword={false}
+      />,
+    )
+    await userEvent.click(
+      screen.getByRole('button', { name: ru ? 'Удалить аккаунт' : 'Delete account' }),
+    )
+    const dialog = screen.getByRole('dialog')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: ru ? 'Продолжить' : 'Continue' }),
+    )
+    await userEvent.click(within(dialog).getByRole('button', { name: ru ? 'Пропустить' : 'Skip' }))
+    expect(
+      within(dialog).getByRole('link', { name: ru ? 'Задать пароль' : 'Set a password' }),
+    ).toHaveAttribute('href', '/forgot-password')
+    expect(within(dialog).queryByLabelText(ru ? 'Текущий пароль' : 'Current password')).toBeNull()
+    expect(
+      within(dialog).queryByRole('button', {
+        name: ru ? 'Удалить навсегда' : 'Delete permanently',
+      }),
+    ).toBeNull()
+    expect(m.remove).not.toHaveBeenCalled()
+  })
   async function passwordStep() {
     mount(locale)
     await userEvent.click(

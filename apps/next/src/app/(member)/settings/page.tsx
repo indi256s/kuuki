@@ -5,13 +5,17 @@ import { SettingsForm } from '../../../client/account/settings-form'
 import { getRequestEnv } from '../../../server/identity'
 import type { SettingsCounts } from '../../../client/account/settings-data'
 import { getRequestLocale } from '../../../server/locale'
+import { getPasswordHashById } from '../../../../../../functions/api/_lib/users'
 
 export const generateMetadata = () => pageMetadata('Settings', 'Настройки')
 export default async function Settings() {
   const [own, locale] = await Promise.all([requireOnboardedMember(), getRequestLocale()])
   let counts: SettingsCounts | null = null
+  let hasPassword: boolean | null = null
   try {
     const env = await getRequestEnv()
+    const hash = await getPasswordHashById(env.DB, own.ownerId)
+    hasPassword = !!hash && hash !== 'RESET_REQUIRED'
     counts = await env.DB.prepare(`SELECT
       (SELECT COUNT(*) FROM flights WHERE user_id = ?) AS flights,
       COALESCE((SELECT total_flights FROM user_stats WHERE user_id = ?), 0) AS completed,
@@ -31,6 +35,7 @@ export default async function Settings() {
         profile={own.profile}
         locale={locale}
         counts={counts}
+        hasPassword={hasPassword}
       />
     </IdentitySnapshot>
   )

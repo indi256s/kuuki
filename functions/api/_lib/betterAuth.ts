@@ -32,6 +32,23 @@ export function createAuth(env: Env) {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: origin,
     trustedOrigins: [origin],
+    socialProviders:
+      env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+        ? {
+            google: {
+              clientId: env.GOOGLE_CLIENT_ID,
+              clientSecret: env.GOOGLE_CLIENT_SECRET,
+              mapProfileToUser: (profile) => ({
+                // Google only owns Gmail and Workspace email addresses, not third-party mailboxes.
+                emailVerified:
+                  profile.email_verified === true &&
+                  (/@(?:gmail|googlemail)\.com$/i.test(profile.email) ||
+                    (typeof profile.hd === 'string' && profile.hd.length > 0)),
+              }),
+            },
+          }
+        : {},
+    onAPIError: { errorURL: `${origin}/signin` },
     emailAndPassword: {
       enabled: true,
       // Kuuki provisions the user, profile and credential together in one D1 batch.
@@ -47,10 +64,35 @@ export function createAuth(env: Env) {
       modelName: 'users',
       fields: { createdAt: 'created_at', updatedAt: 'updated_at', emailVerified: 'email_verified' },
       additionalFields: {
-        password_hash: { type: 'string', input: false, returned: false, required: false },
+        password_hash: {
+          type: 'string',
+          input: false,
+          returned: false,
+          required: false,
+          defaultValue: 'RESET_REQUIRED',
+        },
       },
     },
-    account: { modelName: 'auth_accounts' },
+    account: { modelName: 'auth_accounts', updateAccountOnSignIn: false },
+    databaseHooks: {
+      account: {
+        create: {
+          // Sign-in needs the stable provider identity, not reusable Google API credentials.
+          before: async (account) => ({
+            data: { ...account, accessToken: null, refreshToken: null, idToken: null },
+          }),
+        },
+      },
+      session: {
+        create: {
+          before: async (session) => {
+            await env.DB.prepare('INSERT INTO profiles (id) VALUES (?) ON CONFLICT(id) DO NOTHING')
+              .bind(session.userId)
+              .run()
+          },
+        },
+      },
+    },
     session: {
       modelName: 'auth_sessions',
       expiresIn: SESSION_TTL_SECONDS,

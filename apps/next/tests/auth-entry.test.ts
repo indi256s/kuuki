@@ -26,6 +26,45 @@ async function ownIp(page: Page, baseURL: string) {
 
 const newEmail = () => `new-${crypto.randomUUID()}@example.test`
 
+test('Google sign-in leaves the empty password form through the configured callback', async ({
+  page,
+  baseURL,
+}) => {
+  await ownIp(page, baseURL!)
+  await page.route('https://accounts.google.com/**', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<h1>Google authorization fixture</h1>' }),
+  )
+  await page.goto('/signin')
+  const request = page.waitForRequest('**/api/auth/sign-in/social')
+  await page.getByRole('button', { name: 'Continue with Google', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  expect((await request).postDataJSON()).toEqual({ provider: 'google' })
+  await expect(page).toHaveURL(/^https:\/\/accounts\.google\.com\//)
+  const authorization = new URL(page.url())
+  expect(authorization.searchParams.get('redirect_uri')).toBe(`${baseURL}/api/auth/callback/google`)
+  expect(authorization.searchParams.get('state')).toBeTruthy()
+})
+
+test('a failed Google callback offers a retry and an unlinked account offers email recovery', async ({
+  page,
+}) => {
+  await page.goto('/signin?error=access_denied')
+  await expect(page.locator('main').getByRole('alert')).toHaveText(
+    'Google sign-in was not completed. Please try again.',
+  )
+  await expect(
+    page.getByRole('button', { name: 'Continue with Google', exact: true }),
+  ).toBeEnabled()
+  await page.goto('/signin?error=account_not_linked')
+  await expect(page.locator('main').getByRole('alert')).toHaveText(
+    'Use “Can’t sign in?” to verify your email and sign in with a password.',
+  )
+  await page.getByRole('link', { name: 'Can’t sign in?', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { name: 'Get back into Kuuki', exact: true }),
+  ).toBeVisible()
+})
+
 /** The create step (board 1.2), located by role and accessible name. */
 function createStep(page: Page) {
   return {

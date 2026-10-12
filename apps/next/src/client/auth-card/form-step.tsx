@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type FormEvent, type ReactNode, type Ref } from 'react'
+import Image from 'next/image'
 import { CircleAlert, CircleCheck, LoaderCircle, Mail } from '@keyline-icons/react'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
@@ -16,6 +17,8 @@ export const formWords = {
     cantSignIn: 'Can’t sign in?',
     continue: 'Continue',
     checking: 'Checking…',
+    google: 'Continue with Google',
+    googleOpening: 'Opening Google…',
     createHeading: 'Start your journal',
     createSubtitle: 'Your flights stay private until you share them.',
     noJournal: ['No Kuuki journal uses', 'yet.'],
@@ -34,6 +37,8 @@ export const formWords = {
     cantSignIn: 'Не получается войти?',
     continue: 'Продолжить',
     checking: 'Проверяем…',
+    google: 'Продолжить с Google',
+    googleOpening: 'Открываем Google…',
     createHeading: 'Начните свой журнал',
     createSubtitle: 'Ваши перелёты видны только вам, пока вы ими не поделитесь.',
     noJournal: ['Журнала Kuuki для', 'пока нет.'],
@@ -58,6 +63,8 @@ export const formMessages = {
     taken: 'This email just got a journal. Continue to sign in.',
     created: 'Your account was created. Continue to sign in.',
     'password-saved': 'Password saved. Sign in with it now.',
+    google: 'Google sign-in was not completed. Please try again.',
+    'google-link': 'Use “Can’t sign in?” to verify your email and sign in with a password.',
   },
   ru: {
     email: 'Введите действительный адрес почты.',
@@ -69,6 +76,8 @@ export const formMessages = {
     taken: 'Для этой почты только что создали журнал. Нажмите «Продолжить», чтобы войти.',
     created: 'Аккаунт создан. Нажмите «Продолжить», чтобы войти.',
     'password-saved': 'Пароль сохранён. Теперь войдите с ним.',
+    google: 'Вход через Google не завершён. Попробуйте ещё раз.',
+    'google-link': 'Подтвердите почту через «Не получается войти?» и войдите с паролем.',
   },
 }
 
@@ -112,7 +121,7 @@ export function Spinner() {
 export type FormStepProps = {
   locale: Locale
   /** `form` and `checking` draw board 1.1 / 1.3 / 1.4; `create` and `creating` draw board 1.2 in place. */
-  step: 'form' | 'checking' | 'create' | 'creating'
+  step: 'form' | 'checking' | 'create' | 'creating' | 'google'
   email: string
   password: string
   error?: FormError
@@ -129,6 +138,7 @@ export type FormStepProps = {
   onChangeEmail: () => void
   /** Wrong password: the secondary action that emails a link to get back in. */
   onGetBackIn: () => void
+  onGoogle?: () => void
 }
 
 const FIELD_ERRORS: Partial<Record<FormError, 'email' | 'password'>> = {
@@ -158,11 +168,12 @@ export function FormStep({
   onSubmit,
   onChangeEmail,
   onGetBackIn,
+  onGoogle,
 }: FormStepProps) {
   const t = formWords[locale]
   const m = formMessages[locale]
   const creating = step === 'create' || step === 'creating'
-  const busy = step === 'checking' || step === 'creating'
+  const busy = step === 'checking' || step === 'creating' || step === 'google'
   const field = error ? FIELD_ERRORS[error] : undefined
   // Keep the last checked email mounted while the status is collapsed.
   const [checked, setChecked] = useState('')
@@ -178,6 +189,18 @@ export function FormStep({
         title={creating ? t.createHeading : t.heading}
         subtitle={creating ? t.createSubtitle : t.subtitle}
       />
+      {onGoogle ? (
+        <Button
+          className="auth-secondary auth-google"
+          onClick={onGoogle}
+          disabled={busy && step !== 'google'}
+          loading={step === 'google'}
+          loadingLabel={t.googleOpening}
+          icon={<Image src="/google-g.png" alt="" width={20} height={20} unoptimized />}
+        >
+          {t.google}
+        </Button>
+      ) : null}
       {/* Always rendered: create reveals it and Change collapses it. Inert and hidden while closed. */}
       <div className="auth-status" inert={!creating} aria-hidden={!creating || undefined}>
         <div className="auth-status-clip">
@@ -263,7 +286,8 @@ export function FormStep({
           variant="primary"
           type="submit"
           className="auth-primary"
-          loading={busy}
+          disabled={step === 'google'}
+          loading={busy && step !== 'google'}
           loadingLabel={
             <span className="auth-button-row">
               <Spinner />

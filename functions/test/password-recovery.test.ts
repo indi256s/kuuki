@@ -70,16 +70,21 @@ it('uses a one-use fragment token, changes both credential hashes, and revokes b
       identifier: `password-reset:${user.id}`,
       value: tokenHash,
     })
+    expect(
+      await db.prepare('SELECT email_verified FROM users WHERE id = ?').bind(user.id).first(),
+    ).toEqual({ email_verified: 0 })
     const results = await Promise.all([
       completePasswordRecovery(db, token, 'new-password-1', SECRET),
       completePasswordRecovery(db, token, 'new-password-2', SECRET),
     ])
     expect(results.sort()).toEqual([false, true])
     expect(await completePasswordRecovery(db, token, 'third-password', SECRET)).toBe(false)
-    const userHash = (await db
-      .prepare('SELECT password_hash FROM users WHERE id = ?')
+    const recovered = (await db
+      .prepare('SELECT id, email, password_hash, email_verified FROM users WHERE id = ?')
       .bind(user.id)
-      .first<{ password_hash: string }>())!.password_hash
+      .first<{ id: string; email: string; password_hash: string; email_verified: number }>())!
+    expect(recovered).toMatchObject({ id: user.id, email: user.email, email_verified: 1 })
+    const userHash = recovered.password_hash
     const authHash = (await db
       .prepare(`SELECT password FROM auth_accounts WHERE userId = ? AND providerId = 'credential'`)
       .bind(user.id)
@@ -142,9 +147,10 @@ it('does not issue links to unknown or activation-only users and never changes e
     await db.prepare('UPDATE auth_verifications SET expiresAt = ?').bind('2000-01-01').run()
     expect(await completePasswordRecovery(db, token, 'new-password', SECRET)).toBe(false)
     const row = await db
-      .prepare('SELECT password_hash FROM users WHERE id = ?')
+      .prepare('SELECT password_hash, email_verified FROM users WHERE id = ?')
       .bind(user.id)
-      .first<{ password_hash: string }>()
+      .first<{ password_hash: string; email_verified: number }>()
+    expect(row?.email_verified).toBe(0)
     expect(await verifyPassword('old-password', row!.password_hash, SECRET)).toBe(true)
     expect(
       (

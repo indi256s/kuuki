@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, type FormEvent } from 'react'
+import Link from 'next/link'
 import { Check, Eye, EyeOff } from '@keyline-icons/react'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
@@ -21,6 +22,7 @@ export function SettingsDelete({
   exportInfo,
   onBusy,
   allowDocumentExit,
+  hasPassword,
 }: {
   open: boolean
   onClose: () => void
@@ -32,6 +34,7 @@ export function SettingsDelete({
   exportInfo: string
   onBusy: (busy: boolean) => void
   allowDocumentExit: () => void
+  hasPassword: boolean | null
 }) {
   const ru = locale === 'ru'
   const [step, setStep] = useState(1),
@@ -50,7 +53,7 @@ export function SettingsDelete({
   }
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (sending.current || !password || step !== 3) return
+    if (sending.current || !password || step !== 3 || !hasPassword) return
     sending.current = true
     setBusy(true)
     onBusy(true)
@@ -104,6 +107,7 @@ export function SettingsDelete({
   const titles = ru
     ? ['Что будет удалено', 'Сохранить данные?', 'Подтвердите паролем']
     : ['What will be deleted', 'Keep your data?', 'Confirm with your password']
+  if (hasPassword === false) titles[2] = ru ? 'Задайте пароль' : 'Set a password'
   // Arc Stepper/password-field presentation (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md), driven by the existing three-step deletion.
   return (
     <Dialog
@@ -196,7 +200,24 @@ export function SettingsDelete({
             </Button>
           </>
         ) : null}
-        {step === 3 ? (
+        {step === 3 && hasPassword === false ? (
+          <>
+            <p>
+              {ru
+                ? 'Перед удалением аккаунта задайте пароль по ссылке из письма.'
+                : 'Before deleting your account, set a password using an email link.'}
+            </p>
+            <Link href="/forgot-password">{ru ? 'Задать пароль' : 'Set a password'}</Link>
+          </>
+        ) : null}
+        {step === 3 && hasPassword === null ? (
+          <p role="alert">
+            {ru
+              ? 'Не удалось проверить пароль аккаунта. Обновите страницу и повторите.'
+              : 'Could not check your account’s password. Refresh the page and try again.'}
+          </p>
+        ) : null}
+        {step === 3 && hasPassword === true ? (
           <form onSubmit={submit}>
             <div className="settings-password-field">
               <Field

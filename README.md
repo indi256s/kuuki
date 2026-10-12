@@ -31,20 +31,33 @@ Bindings and non-secret variables belong to the relevant configuration: [Next Wo
 
 Configure server secrets in Cloudflare or a gitignored local `.dev.vars` for the corresponding Wrangler project. Keep secrets out of browser-exposed variables such as `NEXT_PUBLIC_*`. The synthetic fixtures supply their own settings.
 
-| Setting                      | Purpose                                                                                                                                      |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BETTER_AUTH_SECRET`         | Independent Better Auth signing/encryption secret; generate with `openssl rand -base64 32`                                                   |
-| `AUTH_SECRET`                | Password pepper; preserve the existing production value                                                                                      |
-| `PAGES_ORIGIN`               | Exact canonical origin for auth and CSRF, including the Next Worker                                                                          |
-| `GEMINI_API_KEY`             | Server-side ticket parsing and aircraft enrichment; required separately on the production and preview API Workers, not the activation Worker |
-| `MAINTENANCE_MODE`           | Request hold before private database access                                                                                                  |
-| `ACTIVATION_ORIGIN`          | Separate HTTPS origin for legacy account activation                                                                                          |
-| `ACTIVATION_MAIL`            | Native Email Sending binding on each Next Worker, restricted to the verified sender                                                          |
-| `ACTIVATION_MAIL_ACCOUNT_ID` | Account ID for the REST fallback when the native binding is absent                                                                           |
-| `ACTIVATION_MAIL_FROM`       | Verified Email Sending sender address                                                                                                        |
-| `ACTIVATION_MAIL_AUTH_TOKEN` | Email Sending server secret for the REST fallback; unused by the native binding                                                              |
+Google sign-in appears when both `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are configured on the Next Worker. Create a Google OAuth **Web application** client and register `${PAGES_ORIGIN}/api/auth/callback/google` as an authorized redirect URI. Use the origin alone for the authorized JavaScript origin. Production uses `https://kuuki.marchstudio.uk`; a local server on port 8800 can use `http://127.0.0.1:8800`, with that exact value in `PAGES_ORIGIN`. See [Better Auth's Google setup](https://better-auth.com/docs/authentication/google).
 
-Better Auth uses the same origin as the app. The application supports migrated-account activation and password recovery; social login is not configured. Preserve user IDs, password pepper, signing secrets and compatible sessions during migration or frontend rollback. Follow the release runbooks for schema admission and additive migrations rather than applying SQL from setup instructions.
+To test live Google authorization locally, copy [`.dev.vars.example`](.dev.vars.example) to the ignored `apps/next/.dev.vars`, fill its secrets, build, and run the composed Worker with local D1:
+
+```bash
+pnpm next:build
+pnpm --filter @kuuki/next exec wrangler d1 migrations apply DB --local
+pnpm --filter @kuuki/next exec wrangler dev --local --port 8800
+```
+
+Use the same hostname in the browser, `PAGES_ORIGIN`, and Google's redirect URI. This local Wrangler server permits the Google token exchange; `pnpm next:preview` uses synthetic Google credentials and blocks it. Google only requests identity scopes. Returning members resume their journal, and new members enter the welcome flow. Existing accounts link implicitly only when both the local email and Google's authoritative Gmail/Workspace email are verified; an unlinked account can use the existing email-link flow to establish a password and verify the local email. Google-only accounts use that same flow to set a password before account deletion.
+
+| Setting                                     | Purpose                                                                                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET`                        | Independent Better Auth signing/encryption secret; generate with `openssl rand -base64 32`                                                   |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional Google OAuth Web application credentials; both enable Google sign-in. Server-only.                                                  |
+| `AUTH_SECRET`                               | Password pepper; preserve the existing production value                                                                                      |
+| `PAGES_ORIGIN`                              | Exact canonical origin for auth and CSRF, including the Next Worker                                                                          |
+| `GEMINI_API_KEY`                            | Server-side ticket parsing and aircraft enrichment; required separately on the production and preview API Workers, not the activation Worker |
+| `MAINTENANCE_MODE`                          | Request hold before private database access                                                                                                  |
+| `ACTIVATION_ORIGIN`                         | Separate HTTPS origin for legacy account activation                                                                                          |
+| `ACTIVATION_MAIL`                           | Native Email Sending binding on each Next Worker, restricted to the verified sender                                                          |
+| `ACTIVATION_MAIL_ACCOUNT_ID`                | Account ID for the REST fallback when the native binding is absent                                                                           |
+| `ACTIVATION_MAIL_FROM`                      | Verified Email Sending sender address                                                                                                        |
+| `ACTIVATION_MAIL_AUTH_TOKEN`                | Email Sending server secret for the REST fallback; unused by the native binding                                                              |
+
+Better Auth uses the same origin as the app. The application supports migrated-account activation, password recovery and optional Google sign-in. Preserve user IDs, password pepper, signing secrets and compatible sessions during migration or frontend rollback. Follow the release runbooks for schema admission and additive migrations rather than applying remote SQL from setup instructions.
 
 ## Checks
 

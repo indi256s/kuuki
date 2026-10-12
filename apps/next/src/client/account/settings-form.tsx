@@ -62,11 +62,13 @@ export function SettingsForm({
   profile,
   locale,
   counts = null,
+  hasPassword = true,
 }: {
   ownerId: string
   profile: Profile
   locale: Locale
   counts?: SettingsCounts | null
+  hasPassword?: boolean | null
 }) {
   const ru = locale === 'ru',
     router = useRouter()
@@ -661,6 +663,7 @@ export function SettingsForm({
       ) : null}
       {guard.dialog}
       <SettingsDelete
+        hasPassword={hasPassword}
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         counts={counts}

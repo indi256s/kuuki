@@ -277,6 +277,13 @@
   line-height: 24px;
   background: transparent;
 }
+.ui-button.auth-google:has(> .ui-button-icon) {
+  grid-template-columns: 20px minmax(0, 1fr) 20px;
+}
+.ui-button.auth-google[aria-busy='true'] {
+  border-color: var(--control-border);
+  color: var(--text);
+}
 .auth-button-row {
   display: inline-flex;
   align-items: center;

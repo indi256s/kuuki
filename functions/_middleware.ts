@@ -32,11 +32,13 @@ async function handleRequest(
   if (!url.pathname.startsWith('/api/') || !env.DB) {
     return next()
   }
-  // Recovery is a pre-auth token operation; it must never refresh an old session.
+  // Recovery and OAuth own the authentication transition; never refresh an old identity here.
   if (
     url.pathname === '/api/auth/password-reset/request' ||
     url.pathname === '/api/auth/password-reset/complete' ||
-    url.pathname === '/api/auth/link/request'
+    url.pathname === '/api/auth/link/request' ||
+    url.pathname === '/api/auth/sign-in/social' ||
+    url.pathname === '/api/auth/callback/google'
   )
     return next()
 
