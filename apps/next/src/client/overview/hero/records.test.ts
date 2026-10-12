@@ -75,12 +75,13 @@ describe('record lines', () => {
   const all = computeOverview(board, {})
 
   it('falls back to the small-number line below the bar, and has no footer then', () => {
-    const small = withRows(board.rows.slice(0, 3))
+    const small = {
+      ...withRows([1, 2, 3].map((id) => flight(id, '2024-02-01', 'TBS', 'IST'))),
+      passport: { countries: 0, regions: 0, countryCodes: [] },
+    }
     const scope = computeOverview(small, {})
     expect(recordLine('flights', scope, scope, 'owner', 'en', 0)).toMatch(/^Flights: 3\./)
-    expect(pickLine('hero', computeOverview(board, { airlines: ['ZZ'] }), all, 'owner', 'en')).toBe(
-      null,
-    )
+    expect(pickLine('hero', scope, scope, 'owner', 'en')).toBe(null)
   })
 
   it('reads the footer line on first opening, then rotates through all three', () => {

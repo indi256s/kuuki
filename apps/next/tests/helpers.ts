@@ -38,3 +38,17 @@ export async function claimUsername(page: Page, baseURL: string) {
   })
   expect(onboarded.status()).toBe(200)
 }
+
+/** Fill the manual capture fields through the route picker and explicit calendar date. */
+export async function fillManualFlight(page: Page) {
+  await page.getByRole('radio', { name: 'Other calendar', exact: true }).check()
+  await page.getByLabel('Other date', { exact: true }).fill('2025-06-01')
+  await page.getByRole('button', { name: 'From: city or airport', exact: true }).click()
+  for (const [label, code] of [
+    ['From airport', 'JFK'],
+    ['To airport', 'BOS'],
+  ]) {
+    await page.getByRole('combobox', { name: label, exact: true }).fill(code)
+    await page.getByRole('option', { name: new RegExp(` ${code}$`) }).click()
+  }
+}

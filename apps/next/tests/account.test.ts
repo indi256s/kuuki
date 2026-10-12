@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { claimUsername, signIn, fixtureHeaders } from './helpers'
+import { claimUsername, signIn, fixtureHeaders, fillManualFlight } from './helpers'
 import { readFile } from 'node:fs/promises'
 
 test('settings saves owned profile and privacy on a fresh account', async ({ page, baseURL }) => {
@@ -157,16 +157,7 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
       : route.continue(),
   )
   await newTab.goto('/add')
-  await newTab.getByLabel('Date').fill('2025-06-01')
-  for (const [label, code] of [
-    ['From', 'JFK'],
-    ['To', 'BOS'],
-  ]) {
-    await newTab.getByRole('combobox', { name: label }).click()
-    const search = newTab.getByRole('dialog', { name: label, exact: true })
-    await search.getByRole('combobox', { name: label }).fill(code)
-    await search.getByRole('option', { name: new RegExp(`^${code} `) }).click()
-  }
+  await fillManualFlight(newTab)
   await newTab.getByRole('button', { name: 'Save flight' }).click()
   await expect(newTab.getByRole('button', { name: 'Retry original save' })).toBeVisible()
 

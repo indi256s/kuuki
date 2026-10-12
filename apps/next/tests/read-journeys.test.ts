@@ -119,8 +119,10 @@ test('withdrawing public visibility blocks new document, RSC and API statistics'
     expect(rsc.headers()['cache-control']).toContain('no-store')
     expect(await rsc.text()).not.toContain('a@example.test')
     await visitorPage.goto('/fly/fixture-a')
-    await expect(visitorPage.locator('main')).toContainText('This profile is private.')
-    await expect(visitorPage.locator('.profile-hero, .profile-metrics')).toHaveCount(0)
+    await expect(visitorPage.locator('main')).toContainText('This passport is private.')
+    await expect(visitorPage.getByRole('heading', { name: 'Statistics', exact: true })).toHaveCount(
+      0,
+    )
   } finally {
     await update(true)
     await visitor.close()

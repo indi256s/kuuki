@@ -27,16 +27,36 @@
 - [x] `hero/records.ts` + tests: stub buckets, odometer digits, sticker pick, tag, rail values (k/M/h; тыс./млн/ч).
 - [x] Narrator `hero`/`heroSmall` triggers, EN/RU triples (glados-copy), `recordLine` rotation in `pick.ts`.
 - [x] Hero card rewrite + takeover (timers, glide, pose, touch, scroll-out, Replay, mobile height lock) at `ab9e72b7`. Year strip, sparklines, On this day and `ArcSparkline` deleted (no other users).
-- [ ] DESIGN.md (Illustration table, Overview hero, Motion) and docs/README entry points.
+- [x] DESIGN.md (Illustration table, Overview hero, Motion) and docs/README entry points at `7a0c9609`; mobile value floor corrected to 28px on resumption.
 - [x] Gates at `ab9e72b7`: typecheck, lint, `pnpm test` (1418), `format:check`, `next:build`, `test:next:navigation` (44) all pass.
-- [ ] Opus-high UI/SVG/motion review; then the single Sol-high code review.
-- [ ] Land on main by CAS.
+- [x] Owner substituted Sonnet for the UI/SVG/motion review; four findings fixed at `9fb65b2e`. Final GPT-6.1-Sol high code review completed with no blocking findings.
+- [x] Land locally on main by CAS from `af6195b7` to the finalization commit containing this handoff. The containing feature/main merge is `6c0a036b`; the root checkout index and files are untouched.
 
 ## Checks so far
 
 - `vitest run src/client/overview/narrator src/client/overview/hero/records.test.ts`: pass (corpus lint covers the new triples; snapshot gained only hero/heroSmall winners).
 - `tsc --noEmit`, `oxlint src/client/overview`: clean. Pre-commit (lint, typecheck): pass at `b665fe2d`.
 
+## Resumption and final review
+
+- Recovered the completed final review (`hero-figures-final-review-r1`). No Critical or Should-fix findings.
+- Corrected the below-threshold footer fixture: a nonzero three-flight journal with no passport countries, below all five bars, must have no footer.
+- Added one closing/reopen regression through the real pointer handlers. It passes with cancellation and fails when the old close timer is left active (mutation log: `/tmp/hero-reopen-regression.log`, checkout-local).
+- Latest main (`af6195b7`) merged; the only conflict was docs/README.md. Preserved main's new navigation entry points and this feature's Overview entry points.
+- Optional unused aggregate-field cleanup is outside this feature's finalization; follow-up recorded under `.scratch/hero-figures/issues/`.
+- Updated stale navigation journeys brought in from main: manual capture now uses date tiles and From/To airport search; the private-profile journey checks the current passport copy and absence of Statistics.
+- One full-suite context assertion timed out waiting for a cold lazy import; its test, complete file and full 1,449-test rerun pass without changing production or weakening the assertion.
+- Browser animation interruption and physical touch/narrow-screen visual checks remain unverified. The automated navigation suite is the required journey gate.
+
+## Final checks (merged main + final source)
+
+- `pnpm typecheck`: pass. `pnpm lint`: pass, one inherited React Hook Form incompatible-library warning in capture/flight-form.tsx.
+- `pnpm format:check`: pass; changed docs/tests also checked after final edits. `git diff --check`: pass.
+- `pnpm next:build`: pass. Log: `/tmp/hero-final-build.log` (checkout-local).
+- API/shared: 67 files, 809 tests pass (`/tmp/hero-final-test.log`). Next: 165 files, 1,449 tests pass on full rerun (`/tmp/hero-final-next-unit-rerun.log`).
+- Navigation: full suite passes 43 journeys; its sole remaining stale capture assertion repaired and the complete capture retry/edit/delete journey passes in isolation on port 8817 (`/tmp/hero-capture-final-rerun.log`). Combined coverage: all 44 journeys. The other server occupying 8800 was not stopped.
+- Final code review: GPT-6.1-Sol high, no blocking findings. Review's two test gaps addressed; optional aggregate cleanup tracked locally.
+
 ## Next action
 
-Docs (DESIGN.md, docs/README) and the Opus-high UI/motion review are running; apply its fixes, then the Sol-high code review, then land by CAS.
+Feature complete and landed on local main. No deployment or remote publication. Any production release remains separately authorized through deploy-kuuki.

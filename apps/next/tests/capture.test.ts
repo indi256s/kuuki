@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { claimUsername, fixtureHeaders } from './helpers'
+import { claimUsername, fixtureHeaders, fillManualFlight } from './helpers'
 
 async function freshAccount(page: Page, origin: string) {
   const email = `capture-${crypto.randomUUID()}@example.test`
@@ -11,26 +11,13 @@ async function freshAccount(page: Page, origin: string) {
   await claimUsername(page, origin)
 }
 
-async function fillFlight(page: Page) {
-  await page.getByLabel('Date').fill('2025-06-01')
-  for (const [label, code] of [
-    ['From', 'JFK'],
-    ['To', 'BOS'],
-  ]) {
-    await page.getByRole('combobox', { name: label }).click()
-    const search = page.getByRole('dialog', { name: label, exact: true })
-    await search.getByRole('combobox', { name: label }).fill(code)
-    await search.getByRole('option', { name: new RegExp(`^${code} `) }).click()
-  }
-}
-
 test('manual capture retries the original uncertain save, then edits and deletes the flight', async ({
   page,
   baseURL,
 }) => {
   await freshAccount(page, baseURL!)
   await page.goto('/add')
-  await fillFlight(page)
+  await fillManualFlight(page)
   let firstKey = ''
   let writes = 0
   await page.route('**/api/flights', async (route) => {
@@ -54,7 +41,8 @@ test('manual capture retries the original uncertain save, then edits and deletes
   await page.getByRole('button', { name: 'Save flight' }).click()
   await expect(page.getByRole('button', { name: 'Retry original save' })).toBeVisible()
   await page.getByRole('button', { name: 'Retry original save' }).click()
-  await expect(page.getByRole('heading', { name: 'Flight saved' })).toBeVisible()
+  await page.waitForURL('**/journal')
+  await expect(page.getByText('Flight saved', { exact: true })).toBeVisible()
   expect(writes).toBe(2)
 
   const listing = await page.request.get('/api/flights/all')
@@ -63,7 +51,7 @@ test('manual capture retries the original uncertain save, then edits and deletes
   expect(flights).toHaveLength(1)
   await page.goto(`/journal/${flights[0].id}/edit`)
   await page.getByRole('button', { name: 'Optional details', exact: true }).click()
-  await page.getByLabel('Flight number (optional)').fill('AA123')
+  await page.getByLabel('Flight number', { exact: true }).fill('AA123')
   await page.getByRole('button', { name: 'Save flight' }).click()
   await expect(page.getByRole('heading', { name: 'Flight saved' })).toBeVisible()
   const edited = await page.request.get(`/api/flights/${flights[0].id}`)
