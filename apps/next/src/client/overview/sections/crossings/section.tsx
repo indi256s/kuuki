@@ -4,7 +4,7 @@ import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, filterLabel, number } from '../rankings/display'
+import { copy, CoverageNote, filterLabel, number } from '../rankings/display'
 import { CrossingBars, barsWidth, type ShiftYear } from './bars'
 import { GlobeSheetFigure } from './figure'
 import './crossings.css'
@@ -46,10 +46,14 @@ export function Section({ span }: { span: Span }) {
   const pick = (year: number) => {
     if (isCurrent()) actions.setPeriod({ years: [year] })
   }
-  const route = (record: typeof data.lastEquator) =>
+  const route = (record: typeof data.lastEquator, count: number) =>
     record
       ? `${record.origin} → ${record.destination}`
-      : copy(locale, 'No crossing recorded', 'Пересечений пока нет')
+      : count > 0
+        ? copy(locale, 'Route unavailable', 'Маршрут неизвестен')
+        : copy(locale, 'No estimated crossing', 'Расчётных пересечений нет')
+  const located = data.locatedFlights > 0
+  const unavailable = copy(locale, 'Coordinates unavailable', 'Координаты неизвестны')
   const hit = data.offsets.filter((row) => row.hit).length
   const caption = copy(locale, 'Clock change per year · hours', 'Сдвиг часов по годам · часы')
   return (
@@ -86,26 +90,39 @@ export function Section({ span }: { span: Span }) {
             </div>
           </div>
           <small>
-            {hit} {copy(locale, 'of the 24 hourly offsets reached', 'из 24 часовых смещений')}
+            {hit} {copy(locale, 'of 24 hourly endpoint bins', 'из 24 часовых бинов аэропортов')}
           </small>
         </div>
         <div className="ov3-crossing-tile">
           <p>{copy(locale, 'Equator', 'Экватор')}</p>
           <div className="ov3-crossing-figure">
-            <strong>{data.equator}</strong>
-            <CrossingDots count={data.equator} />
+            <strong>{located ? data.equator : '—'}</strong>
+            {located && <CrossingDots count={data.equator} />}
           </div>
-          <small>{route(data.lastEquator)}</small>
+          <small>{located ? route(data.lastEquator, data.equator) : unavailable}</small>
         </div>
         <div className="ov3-crossing-tile">
           <p>{copy(locale, 'Arctic Circle', 'Полярный круг')}</p>
           <div className="ov3-crossing-figure">
-            <strong>{data.arcticCircle}</strong>
-            <CrossingDots count={data.arcticCircle} />
+            <strong>{located ? data.arcticCircle : '—'}</strong>
+            {located && <CrossingDots count={data.arcticCircle} />}
           </div>
-          <small>{route(data.lastArctic)}</small>
+          <small>{located ? route(data.lastArctic, data.arcticCircle) : unavailable}</small>
         </div>
       </div>
+      <CoverageNote
+        have={data.locatedFlights}
+        total={scope.figures.flights}
+        en="Coordinates available for {n} of {m} flights"
+        ru="Координаты известны: {n} из {m} перелётов"
+      />
+      <p className="ov3-sample">
+        {copy(
+          locale,
+          'Crossings estimate shortest airport arcs; actual routes may differ.',
+          'Пересечения рассчитаны по кратчайшим дугам между аэропортами; реальные маршруты могут отличаться.',
+        )}
+      </p>
       <h3 className="ov3-chart-caption">{caption}</h3>
       <LazyChart height={284} label={caption}>
         {(inView) => (

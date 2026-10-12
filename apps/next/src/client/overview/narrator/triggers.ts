@@ -126,7 +126,7 @@ export const TRIGGERS: Trigger[] = [
         : null
     },
   },
-  // Ready Crossings; dateLine exactly zero. Claim limited to crossings recorded by this card in the current view.
+  // Ready Crossings; antimeridian count zero, with complete coordinate coverage.
   // A fallback: Crossings often ends the page, and an absence is a weak last line when the clocks did move.
   {
     id: 'crossings:no-date-line',
@@ -135,7 +135,9 @@ export const TRIGGERS: Trigger[] = [
     when: (scope) => {
       if (scope.crossings.status !== 'ready') return null
       const v = scope.crossings.value
-      return v.dateLine === 0 ? { count: v.dateLine } : null
+      return v.locatedFlights === scope.figures.flights && v.dateLine === 0
+        ? { count: v.dateLine }
+        : null
     },
   },
   // Ready Crossings; dateLine positive. Count is route crossing total, not distinct flights or dates.
@@ -180,7 +182,7 @@ export const TRIGGERS: Trigger[] = [
       return count >= 1 ? { count } : null
     },
   },
-  // Ready Crossings; the route crossed the equator at least once. Count is crossings, not flights.
+  // Ready Crossings; the modeled arc crossed the equator at least once. Count is crossings, not flights.
   {
     id: 'crossings:equator',
     slot: 'crossings',
@@ -191,7 +193,7 @@ export const TRIGGERS: Trigger[] = [
       return count >= 1 ? { count } : null
     },
   },
-  // Ready Crossings; between 4 and 22 of the 24 hourly UTC offsets reached, so both counts are plural in EN. `left` is what the globe still shows unlit.
+  // Ready Crossings; between 4 and 22 of the 24 hourly endpoint UTC bins occupied, so both counts are plural in EN. `left` is what the globe still shows unlit.
   {
     id: 'crossings:zones',
     slot: 'crossings',
@@ -202,14 +204,17 @@ export const TRIGGERS: Trigger[] = [
       return zones >= 4 && zones <= 22 ? { zones, left: 24 - zones } : null
     },
   },
-  // Ready Crossings; no equator crossing, so every flight stayed in one hemisphere. Fallback below the date-line lines.
+  // Ready Crossings; no estimated equator crossing, with complete coordinate coverage. Fallback below the date-line lines.
   {
     id: 'crossings:no-equator',
     slot: 'crossings',
     priority: 68,
     when: (scope) => {
       if (scope.crossings.status !== 'ready') return null
-      return scope.crossings.value.equator === 0 ? {} : null
+      return scope.crossings.value.locatedFlights === scope.figures.flights &&
+        scope.crossings.value.equator === 0
+        ? {}
+        : null
     },
   },
   // Ready Makers; Airbus positive, strictly above every other known maker; Boeing positive. Unknown excluded only from leader comparison, not recast as known.

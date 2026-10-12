@@ -150,7 +150,7 @@ Absent when duration is unknown.
 
 ### Zones overflown
 
-The count of UTC-offset changes along the great-circle route at the departure
+The approximate count of UTC-offset changes along 50 km samples of the shortest spherical airport arc at the departure
 instant. Returning to an earlier offset counts another change. Unknown when
 either endpoint lacks coordinates. _Avoid_: number of distinct IANA zones.
 
@@ -158,6 +158,16 @@ either endpoint lacks coordinates. _Avoid_: number of distinct IANA zones.
 
 The difference between the destination and origin UTC offsets, accounting for
 daylight saving at the departure instant. Separate from zones overflown.
+
+### Geographic crossings
+
+Internal side changes of the shortest spherical arc
+between airport coordinates: equator, polar circles at ±66.5634°, and the
+antimeridian. Boundary contacts, tangencies, coincident boundaries and longitude
+changes at a pole are excluded. Antipodes retain the deterministic arc fallback.
+These are estimates, not evidence of actual aircraft trajectories. Missing
+coordinates reduce weighted `locatedFlights` coverage; they do not establish zero.
+The internal `dateLine` name denotes the antimeridian, not the International Date Line.
 
 ## Overview vocabulary
 

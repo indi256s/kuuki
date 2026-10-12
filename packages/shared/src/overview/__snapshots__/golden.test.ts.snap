@@ -304,6 +304,7 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 6,
       "offsets": [
         {
           "hit": false,
@@ -1109,6 +1110,7 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
       "lastArctic": null,
       "lastDateLine": null,
       "lastEquator": null,
+      "locatedFlights": 4,
       "offsets": [
         {
           "hit": false,
@@ -2554,6 +2556,7 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 10,
       "offsets": [
         {
           "hit": false,
@@ -4068,6 +4071,7 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 455,
       "offsets": [
         {
           "hit": false,
@@ -18292,6 +18296,7 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 4547,
       "offsets": [
         {
           "hit": false,
@@ -31088,6 +31093,7 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 6,
       "offsets": [
         {
           "hit": false,
@@ -32225,6 +32231,7 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
       "lastArctic": null,
       "lastDateLine": null,
       "lastEquator": null,
+      "locatedFlights": 10,
       "offsets": [
         {
           "hit": false,

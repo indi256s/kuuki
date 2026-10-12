@@ -219,3 +219,19 @@ it('keeps signed clock jumps absolute and departure times ungrouped at their thr
   records.latestDeparture.depMinute = 1319
   expect(params('records:latest-departure', candidate)).toBeNull()
 })
+
+// Unknown coordinates must not turn into an absence claim, even when clocks are ready.
+it.each([0, 1])(
+  'suppresses geographic absence claims with coordinate coverage %s',
+  (locatedFlights) => {
+    const candidate = structuredClone(scope)
+    const data = ready(candidate.crossings)
+    data.equator = data.dateLine = 0
+    data.locatedFlights = locatedFlights
+    expect(params('crossings:no-equator', candidate)).toBeNull()
+    expect(params('crossings:no-date-line', candidate)).toBeNull()
+    data.locatedFlights = candidate.figures.flights
+    expect(params('crossings:no-equator', candidate)).toEqual({})
+    expect(params('crossings:no-date-line', candidate)).toEqual({ count: 0 })
+  },
+)

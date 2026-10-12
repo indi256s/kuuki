@@ -24,7 +24,7 @@ import { ArcSparkline } from '../charts/arc-sparkline'
 import './hero.css'
 
 const copy = {
-  km: { en: 'Kilometres', ru: 'Километры' },
+  km: { en: 'Estimated kilometres', ru: 'Расчётные километры' },
   air: { en: 'In the air', ru: 'В воздухе' },
   byAir: { en: 'by air', ru: 'по воздуху' },
   lastPublished: { en: 'last published total', ru: 'последний опубликованный итог' },
@@ -224,7 +224,20 @@ export function HeroPanel() {
         <Delta value={item.delta} label={label} locale={locale} format={item.format} />
       ) : null}
       {item.share !== undefined ? <p className="ov3-hero-share">{percent(item.share)}</p> : null}
-      {item.key === 'km' ? kmSpark('inline') : null}
+      {item.key === 'km' ? (
+        <>
+          {kmSpark('inline')}
+          <p className="ov3-hero-caption">
+            {t(
+              {
+                en: 'Shortest airport arcs; actual routes may differ.',
+                ru: 'Кратчайшие дуги между аэропортами; реальные маршруты могут отличаться.',
+              },
+              locale,
+            )}
+          </p>
+        </>
+      ) : null}
     </div>
   )
   return (
