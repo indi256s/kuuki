@@ -38,6 +38,7 @@ export async function readPublicProfile(db: D1Database, username: string) {
       stats: null,
       badges: [],
       rankings: [],
+      countries: [] as string[],
       derivedState: 'private' as const,
     }
 
@@ -51,6 +52,17 @@ export async function readPublicProfile(db: D1Database, username: string) {
     db
       .prepare('SELECT revision, published_revision FROM user_derived_state WHERE user_id = ?')
       .bind(profile.id),
+    // Profile stamps: flight countries (the countries_count set) whose airports are in the public route set, so
+    // the profile names no country the public Overview globe does not already show. No dates, counts, claims
+    // or ground visits leave the owner (spec: no new disclosure).
+    db
+      .prepare(`SELECT e.country_code FROM country_visit_evidence e
+      WHERE e.user_id = ? AND e.logged_visit_count + e.awaiting_visit_count > 0
+      AND e.country_code IN (SELECT a.country_code FROM flights f JOIN airports_reference a
+        ON a.iata IN (f.origin, f.destination)
+        WHERE f.user_id = ? AND f.lifecycle_state IN ('logged', 'awaiting'))
+      ORDER BY e.country_code`)
+      .bind(profile.id, profile.id),
   ]
   const results = await db.batch(statements)
   assertRows(results, 'Public profile read failed', statements.length)
@@ -112,6 +124,7 @@ export async function readPublicProfile(db: D1Database, username: string) {
           stats: null,
           badges: [],
           rankings: [],
+          countries: [] as string[],
           derivedState: 'private' as const,
         }
       : null
@@ -120,6 +133,9 @@ export async function readPublicProfile(db: D1Database, username: string) {
     stats: stats ? toUserStats(stats) : null,
     badges,
     rankings: current.show_on_leaderboards ? rankings : [],
+    countries: (results[3].results as Array<{ country_code: string }>).map(
+      (row) => row.country_code,
+    ),
     derivedState: pending ? ('pending' as const) : ('ready' as const),
   }
 }

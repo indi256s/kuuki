@@ -1,31 +1,75 @@
-/* Arc avatar, badge, disclosure and static metric composition (MIT; ../ui/ARC-LICENSE.txt); Facehash and journal-derived values stay authoritative. */
-.editorial-profile {
-  max-width: 720px;
+/* Profile: the passport holder page (spec .scratch/profile-redesign, boards 21.x). Desktop is an open spread with a
+   sticky holder page; tablet and mobile put the holder card on top. Arc avatar and badge composition (MIT;
+   ../ui/ARC-LICENSE.txt); Facehash and journal-derived values stay authoritative. */
+.profile-spread {
+  max-width: 1120px;
   margin-inline: auto;
-  position: relative;
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  column-gap: 72px;
+  align-items: start;
+  padding-block-end: var(--space-8);
+}
+
+/* Holder page. The spread's one shadow: an elevated page whose inline-end edge creases into the spine (DESIGN.md
+   "Profile" exception). Radii are concentric with the book: round outside, tight at the spine. */
+.profile-holder {
+  position: sticky;
+  inset-block-start: calc(var(--header-h) + var(--space-6));
   isolation: isolate;
-}
-.editorial-profile section {
-  margin-block: var(--space-12);
-}
-.profile-watermark {
-  position: absolute;
-  inset-inline-end: 0;
-  inset-block-start: 160px;
-  writing-mode: vertical-rl;
-  font: 600 80px var(--font-kana);
-  color: var(--hairline);
-  z-index: -1;
-  pointer-events: none;
-}
-.editorial-profile .profile-head {
+  overflow: clip;
   display: flex;
-  align-items: center;
-  gap: var(--space-6);
+  flex-direction: column;
+  gap: 28px;
+  padding: 36px 36px 28px;
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-xs) var(--radius-xs) var(--radius-lg);
+  box-shadow: var(--holder-shadow);
+  animation: profile-rise 240ms var(--ease-out) both;
 }
-.editorial-profile .profile-head > div,
-.profile-hero dd {
+.profile-holder-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.profile-holder-head .eyebrow {
+  margin: 0;
+}
+.profile-holder-kana {
+  font: 500 14px/18px var(--font-kana);
+  letter-spacing: 0.2em;
+  color: var(--accent-text);
+}
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.profile-identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   min-inline-size: 0;
+}
+.profile-identity h1 {
+  margin: 0;
+  font-size: 44px;
+  line-height: 46px;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.profile-handle-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) 10px;
+  margin: 0;
+}
+.profile-handle {
+  font: 15px/18px var(--font-mono);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 .profile-avatar {
@@ -33,109 +77,787 @@
   border-radius: var(--radius-full);
   overflow: hidden;
   outline: 1px solid var(--outline-media);
+  outline-offset: -1px;
   flex-shrink: 0;
 }
-.editorial-profile .handle,
-.profile-hero dd,
-.profile-metrics dd {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-.profile-meta {
+.profile-fields {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+}
+.profile-fields > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.profile-field-bio {
+  flex-basis: 100%;
+}
+.profile-fields dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.profile-field-issued dd {
+  font: 15px/18px var(--font-mono);
+}
+.profile-remarks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.profile-remarks p {
+  margin: 0;
+}
+.profile-remarks-line {
+  font-size: 15px;
+  line-height: 22px;
+  text-wrap: pretty;
+}
+.profile-remarks-note {
+  padding-block-start: 2px;
+  font-size: 12px;
+  line-height: 16px;
   color: var(--text-muted);
 }
-.profile-name {
+.profile-owner-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  margin-block-end: var(--space-2);
-}
-.profile-name h1 {
-  margin: 0;
-}
-.editorial-profile .profile-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-}
-.editorial-profile .profile-actions a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-}
-.profile-share input {
-  width: 100%;
-  font-family: var(--font-mono);
-}
-.profile-hero {
-  margin-bottom: var(--space-6);
-}
-.profile-hero dd {
-  font-size: clamp(48px, 9vw, 80px);
-  line-height: 1.1;
-  margin: 0;
-}
-.profile-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-6);
-}
-.profile-metrics dd {
-  margin: 0;
-  font-size: 24px;
-}
-.profile-metrics > div {
-  min-width: 0;
-  display: grid;
   gap: var(--space-2);
 }
-.profile-metrics dt {
+.profile-owner-actions .profile-share {
+  flex: 1;
+  min-inline-size: 0;
+}
+.profile-share .ui-button {
+  inline-size: 100%;
+}
+.profile-share .ui-field {
+  margin-block-start: var(--space-2);
+}
+.profile-share input {
+  inline-size: 100%;
+  font-family: var(--font-mono);
+}
+.profile-visibility {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-block-size: 44px;
+  padding-inline: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.profile-visibility[data-private] {
+  align-self: flex-start;
+  color: var(--text);
+  font-weight: 600;
+}
+.profile-visibility:active {
+  transform: scale(0.96);
+}
+.profile-owner-private {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.profile-owner-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 19px;
   color: var(--text-muted);
 }
-.profile-badges {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
+.profile-owner-note a,
+.profile-inline-link {
+  color: var(--accent-text);
+  font-weight: 600;
+  text-decoration: none;
 }
-.profile-badges details {
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--surface-inset);
+.profile-owner-note a {
+  display: inline-block;
 }
-.profile-badges summary {
-  min-height: 44px;
-  cursor: pointer;
+.profile-mrz {
   display: flex;
-  gap: var(--space-3);
-  align-items: center;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) 14px;
+  border-radius: 8px;
+  background: var(--surface-inset);
+  overflow: clip;
+  font: 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: pre;
 }
-.profile-badges summary:focus-visible {
+/* Owner-private: a diagonal ink stamp across the photo corner (decorative; the note says it in words). */
+.profile-private-stamp {
+  position: absolute;
+  inset-block-start: 96px;
+  inset-inline-end: 28px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 10px 18px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  rotate: -12deg;
+  pointer-events: none;
+}
+.profile-private-stamp span:first-child {
+  font-size: 28px;
+  line-height: 32px;
+}
+.profile-private-stamp span:last-child {
+  font-size: 10px;
+  line-height: 12px;
+}
+
+/* Right page. */
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  padding-block-start: var(--space-2);
+  min-inline-size: 0;
+}
+.profile-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-inline-size: 0;
+  animation: profile-rise 240ms var(--ease-out) both;
+  animation-delay: calc(60ms + var(--block-i, 0) * 60ms);
+}
+.profile-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}
+.profile-block-head h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.02em;
+}
+.profile-block-aside {
+  margin: 0;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--text-muted);
+}
+.profile-inline-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  margin-block: -13px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.profile-quiet {
+  margin: 0;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* Headline numbers: Commissioner with tabular figures (Paper Mono splits "412,580" at the comma). */
+.profile-numbers {
+  gap: var(--space-8);
+}
+.profile-distance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.profile-distance p {
+  margin: 0;
+}
+.profile-distance-value {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+}
+.profile-distance-value > span:first-child {
+  font-size: 80px;
+  line-height: 84px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.profile-distance-unit {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.profile-earth {
+  font-size: 15px;
+  line-height: 18px;
+  color: var(--text-muted);
+}
+.profile-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) 56px;
+  margin: 0;
+}
+.profile-totals > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+}
+.profile-totals dd {
+  margin: 0;
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.profile-totals dt {
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--text-muted);
+}
+
+/* Stamps: pressed ink rings, no opacity on the ink; dates are owner-only. */
+.profile-stamps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-stamp {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  inline-size: 64px;
+  block-size: 64px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-full);
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  rotate: var(--stamp-rot, 0deg);
+}
+.profile-stamp-code {
+  font-size: 15px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.profile-stamp-date {
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.08em;
+}
+.profile-stamps-more {
+  flex-shrink: 0;
+  padding-inline: var(--space-1);
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--text-muted);
+}
+
+/* Badge cabinet: earned only. */
+.profile-badges {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-6) 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-badges li {
+  display: flex;
+  justify-content: center;
+  min-inline-size: 0;
+}
+.profile-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.profile-badge:active {
+  transform: scale(0.96);
+}
+.profile-badge:focus-visible,
+.profile-gate:focus-visible,
+.profile-visibility:focus-visible,
+.profile-badges-more:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-.profile-badges small {
-  display: block;
+.profile-badge strong {
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.profile-badge small {
+  margin-block-start: -8px;
+  font-size: 12px;
+  line-height: 16px;
   color: var(--text-muted);
 }
-.badge-shape {
-  font-size: 32px;
+.profile-badge-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: var(--radius-full);
+  background: var(--accent-tint);
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+  color: var(--accent-on-tint);
 }
-.badge-shape[data-tier='gold'] {
-  color: var(--rank-gold);
+.profile-badge-mark svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
 }
-.badge-shape[data-tier='silver'] {
-  color: var(--rank-silver);
+.profile-badge-mark .profile-glyph-fill {
+  fill: currentColor;
+  stroke: none;
 }
-.badge-shape[data-tier='bronze'] {
-  color: var(--rank-bronze);
+/* Unboxing (owner): the badge presses into its slot and the ink settles; the New tag is pinned to the corner,
+   out of flow, so the grid never moves when it clears. */
+.profile-badges [data-fresh] .profile-badge-mark {
+  box-shadow: 0 0 0 2px var(--accent);
+  animation: badge-press 320ms var(--ease-out) both;
+  animation-delay: calc(var(--fresh-i, 0) * 80ms);
 }
+.profile-badges [data-fresh] .profile-badge-mark svg {
+  animation: badge-ink 320ms var(--ease-out) both;
+  animation-delay: calc(var(--fresh-i, 0) * 80ms);
+}
+.profile-badge-new {
+  position: absolute;
+  inset-block-start: -8px;
+  inset-inline-end: -18px;
+  display: flex;
+  align-items: center;
+  block-size: 20px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+@keyframes badge-press {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes badge-ink {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.profile-badges-more {
+  align-self: center;
+  display: none;
+  min-block-size: 44px;
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.profile-badge-sheet .profile-badge-mark {
+  margin-block-end: var(--space-3);
+}
+.profile-badge-earned {
+  color: var(--text-muted);
+}
+
+/* Ranks: gate signs, static. Light hangs ink signs; dark raises slabs. */
+.profile-gates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-gates li {
+  min-inline-size: 0;
+}
+.profile-gate {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  block-size: 104px;
+  padding: var(--space-4) 18px 14px;
+  border-radius: var(--radius-md);
+  background: var(--gate-surface);
+  box-shadow: var(--gate-edge);
+  text-decoration: none;
+}
+.profile-gate-label {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gate-label);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.profile-gate-rank {
+  font: 600 36px/40px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--gate-rank);
+}
+
+.profile-join {
+  gap: var(--space-4);
+  padding: 28px 22px 22px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-inset);
+}
+.profile-join h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.profile-join p {
+  margin: 0;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.profile-join .ui-button {
+  align-self: flex-start;
+}
+
+/* Closed covers: private (accent) and not found (neutral). Spine on the left. */
+.profile-closed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 420px;
+  margin-inline: auto;
+  padding-block: var(--space-6) var(--space-12);
+  text-align: center;
+  animation: profile-rise 240ms var(--ease-out) both;
+}
+.profile-cover {
+  --cover-fill: var(--accent);
+  --cover-ink: var(--accent-foreground);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  inline-size: 280px;
+  block-size: 385px;
+  margin-block-end: var(--space-8);
+  padding: var(--space-8) 28px;
+  border-radius: var(--radius-xs) var(--radius-lg) var(--radius-lg) var(--radius-xs);
+  background: var(--cover-fill);
+  color: var(--cover-ink);
+  box-shadow: var(--holder-shadow);
+}
+.profile-closed[data-kind='missing'] .profile-cover {
+  --cover-fill: var(--text-muted);
+  --cover-ink: var(--background);
+}
+.profile-cover-title {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+.profile-cover-emblem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+}
+.profile-cover-emblem svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.profile-cover-emblem .profile-cover-plane {
+  fill: var(--cover-fill);
+}
+.profile-cover-kana {
+  font: 500 44px/52px var(--font-kana);
+}
+.profile-cover-foot {
+  font: 12px/16px var(--font-mono);
+  letter-spacing: 0.2em;
+}
+.profile-closed h1 {
+  margin: 0 0 var(--space-2);
+  font-size: 22px;
+  line-height: 28px;
+}
+.profile-closed p {
+  margin: 0 0 var(--space-6);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.profile-closed-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--accent-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Quiet entrance: the holder rises first, then the right page's blocks, 60ms apart. No scroll reveals, no count-ups. */
+@keyframes profile-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-visibility:hover,
+  .profile-badge:hover strong {
+    color: var(--text);
+  }
+  .profile-inline-link:hover,
+  .profile-owner-note a:hover,
+  .profile-closed-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* Tablet: holder card on top, blocks in two columns. */
+@media (max-width: 1023px) {
+  .profile-spread {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-12);
+    max-width: 760px;
+  }
+  .profile-holder {
+    position: relative;
+    inset-block-start: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 0 0 1px var(--hairline);
+  }
+  :root[data-theme='dark'] .profile-holder {
+    box-shadow: inset 0 1px 0 var(--surface-highlight);
+  }
+  .profile-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-12) var(--space-8);
+  }
+  .profile-page > * {
+    grid-column: 1 / -1;
+  }
+  .profile-page > .profile-cabinet,
+  .profile-page > .profile-ranks {
+    grid-column: auto;
+  }
+  .profile-badges {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .profile-gates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Mobile: plain scroll. The holder is an in-flow card; rails scroll edge to edge. */
+@media (max-width: 700px) {
+  .profile-spread {
+    row-gap: var(--space-8);
+  }
+  .profile-holder {
+    gap: 22px;
+    padding: var(--space-6) 22px 22px;
+  }
+  .profile-identity {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  /* The 88px avatar (photo or Facehash, drawn at its own size) scales to the card's 72px. */
+  .profile-identity-photo {
+    flex-shrink: 0;
+    inline-size: 72px;
+    block-size: 72px;
+  }
+  .profile-identity-photo .profile-avatar {
+    transform: scale(calc(72 / 88));
+    transform-origin: 0 0;
+  }
+  .profile-identity h1 {
+    font-size: 32px;
+    line-height: 36px;
+  }
+  .profile-handle {
+    font-size: 14px;
+  }
+  .profile-private-stamp {
+    inset-block-start: 88px;
+    inset-inline-end: 12px;
+    scale: 0.8;
+  }
+  .profile-page {
+    display: flex;
+    gap: 36px;
+  }
+  .profile-distance-value > span:first-child {
+    font-size: 56px;
+    line-height: 62px;
+  }
+  .profile-distance-unit {
+    font-size: 18px;
+    line-height: 22px;
+  }
+  .profile-numbers {
+    gap: 28px;
+  }
+  .profile-totals {
+    gap: var(--space-4) var(--space-6);
+  }
+  .profile-totals dd {
+    font-size: 28px;
+    line-height: 34px;
+  }
+  .profile-stamps {
+    margin-inline: calc(var(--page-gutter) * -1);
+    padding: var(--space-2) var(--page-gutter);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--page-gutter);
+    scrollbar-width: none;
+  }
+  .profile-stamp {
+    scroll-snap-align: start;
+  }
+  .profile-badges {
+    gap: var(--space-5) 0;
+  }
+  .profile-badges[data-collapsed] li:nth-child(n + 7) {
+    display: none;
+  }
+  .profile-badges-more {
+    display: inline-flex;
+    align-items: center;
+  }
+  .profile-gates {
+    gap: var(--space-2);
+  }
+  .profile-gate {
+    flex-direction: row;
+    align-items: center;
+    block-size: 52px;
+    padding-block: 0;
+    background: var(--surface-inset);
+    box-shadow: none;
+  }
+  .profile-gate-label {
+    color: var(--text-muted);
+  }
+  .profile-gate-rank {
+    font-size: 24px;
+    line-height: 30px;
+    color: var(--accent-text);
+  }
+  :root[data-theme='dark'] .profile-gate {
+    block-size: 64px;
+    background: var(--surface-floating);
+    box-shadow: var(--gate-edge);
+  }
+  :root[data-theme='dark'] .profile-gate-rank {
+    font-size: 30px;
+    line-height: 36px;
+    color: var(--accent);
+  }
+  .profile-ranks .profile-block-head {
+    flex-direction: column;
+  }
+  .profile-ranks-all {
+    order: 2;
+  }
+  .profile-join .ui-button {
+    align-self: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-holder,
+  .profile-block,
+  .profile-closed {
+    animation-name: achievement-fade;
+  }
+  .profile-badges [data-fresh] .profile-badge-mark,
+  .profile-badges [data-fresh] .profile-badge-mark svg {
+    animation: none;
+  }
+  .profile-badge:active,
+  .profile-visibility:active {
+    transform: none;
+  }
+}
+
+/* Achievement toast (shell-wide; see badge-notifications.tsx). */
 .badge-notice {
   position: fixed;
   inset-block-end: calc(var(--tabbar-offset, 0px) + var(--space-6));
@@ -172,23 +894,6 @@
   }
   to {
     opacity: 1;
-  }
-}
-@media (max-width: 700px) {
-  .editorial-profile section {
-    margin-block: var(--space-8);
-  }
-  .profile-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .profile-badges {
-    grid-template-columns: 1fr;
-  }
-  .editorial-profile .profile-head {
-    gap: var(--space-4);
-  }
-  .profile-watermark {
-    font-size: 64px;
   }
 }
 .profile-avatar [data-facehash-face] {

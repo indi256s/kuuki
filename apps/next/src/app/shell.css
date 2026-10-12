@@ -1,14 +1,11 @@
-/* Arc split-button, user-menu and tabs presentation (MIT; client/ui/ARC-LICENSE.txt).
+/* Arc user-menu and tabs presentation (MIT; client/ui/ARC-LICENSE.txt).
    Current route links, Radix menus and Facehash keep their behavior.
-   Member shell: header, split Add, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
+   Member shell: header, Add flight menu, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
 @media (min-width: 701px) {
   .member-header .site-header-inner {
     flex-wrap: wrap;
-    column-gap: clamp(var(--space-2), calc(4vw - 1.25rem), var(--space-8));
+    column-gap: 40px;
     row-gap: var(--space-2);
-  }
-  .member-header .main-nav a {
-    padding-inline: clamp(var(--space-2), calc(2vw - 0.375rem), 14px);
   }
 }
 /* Overview is the one wide route: header, page shell and workspace share a single fluid width and gutter (24px, easing up to 48px on very wide screens; 16px at <=700px comes from styles.css). */
@@ -24,12 +21,12 @@
   margin-inline-start: auto;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 .header-desktop-only {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 .desktop-nav {
   display: block;
@@ -38,86 +35,78 @@
   display: none;
 }
 
-/* Active state: weight, colour and an underline bar, so it never relies on colour alone. */
+/* Routes: soft tint pill for the current page (weight and tint, never colour alone). */
 .main-nav a {
-  position: relative;
-  border-radius: var(--radius-sm);
-  transition: background-color var(--dur-fast) var(--ease-out);
+  padding: 8px 16px;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--text-muted);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .main-nav a:hover {
     background: var(--surface-inset);
+    color: var(--text);
   }
 }
-.main-nav a[aria-current='page']::after {
-  content: '';
-  position: absolute;
-  inset-inline: var(--space-3);
-  inset-block-end: 0;
-  height: 2px;
-  border-radius: var(--radius-full);
-  background: var(--accent);
+.main-nav a[aria-current='page'] {
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+  font-weight: 600;
 }
 
-.split-add {
-  transition: transform var(--dur-press) var(--ease-out);
+.add-button {
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 12px 0 14px;
+  border: 0;
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--accent-foreground);
-}
-.split-add-main,
-.split-add-more {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: inherit;
+  font-size: 15px;
+  line-height: 20px;
   font-weight: 600;
-  text-decoration: none;
   white-space: nowrap;
+  transition: transform var(--dur-press) var(--ease-out);
 }
-.split-add-main {
-  padding-block: 0;
-  padding-inline: var(--space-4) var(--space-3);
-  border-radius: 0;
-  border-start-start-radius: var(--radius-sm);
-  border-end-start-radius: var(--radius-sm);
+.add-button .icon-morph-chevron {
+  margin-inline-start: 6px;
 }
-.split-add-more {
-  min-width: 44px;
-  padding: 0;
-  border-radius: 0;
-  border-start-end-radius: var(--radius-sm);
-  border-end-end-radius: var(--radius-sm);
-  border-inline-start: 1px solid color-mix(in oklch, var(--accent-foreground) 40%, transparent);
-}
-.split-add :focus-visible {
-  outline-color: var(--focus);
+.add-button:focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-.split-add:has(.split-add-main:active) {
+.add-button:active {
   transform: scale(0.96);
 }
-.split-add-more:active,
-.split-add-more[data-state='open'] {
+.add-button[data-state='open'] {
   background: var(--accent-hover);
 }
-.split-add-more svg {
-  transition: transform var(--dur-base) var(--ease-out);
-}
-.split-add-more[data-state='open'] svg {
+/* ChevronIcon turns on its own data-on flag; the menu trigger reports data-state instead. */
+.add-button[data-state='open'] .icon-morph-chevron {
   transform: rotate(180deg);
 }
 @media (hover: hover) and (pointer: fine) {
-  .split-add-main:hover,
-  .split-add-more:hover {
+  .add-button:hover {
     background: var(--accent-hover);
   }
+}
+.add-menu {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.add-menu .ui-menu-item {
+  min-height: 52px;
+  gap: 12px;
+  padding-inline: 12px;
+  font-weight: 500;
+  line-height: 20px;
 }
 
 .avatar-button {
@@ -145,34 +134,83 @@ a.ui-menu-item {
   color: inherit;
   text-decoration: none;
 }
-.avatar-profile-link {
-  justify-content: space-between;
+.account-menu {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.avatar-status {
+.account-menu .ui-menu-item {
+  min-height: 44px;
+  gap: 12px;
+  padding-inline: 12px;
+  font-weight: 500;
+}
+.account-menu .ui-menu-check {
+  display: none;
+}
+.account-menu .ui-menu-radio {
+  padding-left: 12px;
+}
+.account-menu .avatar-profile {
+  min-height: 60px;
+}
+.avatar-profile-text {
+  display: grid;
+  min-width: 0;
+}
+.avatar-profile-title {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.avatar-profile-sub {
   font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
   color: var(--text-muted);
 }
-
-.queue-summary {
-  position: relative;
+.account-menu [data-signout] {
+  color: var(--text-muted);
+}
+.avatar-box {
   display: inline-grid;
   place-items: center;
-  min-width: var(--badge-size);
-  height: var(--badge-size);
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-full);
-  background: var(--accent);
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--control-border);
   color: var(--accent-foreground);
+}
+.avatar-box[data-checked] {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.queue-label {
+  flex: 1;
+  min-width: 0;
+}
+.queue-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 22px;
+  padding-inline: 7px;
+  border-radius: 6px;
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
   font-size: 13px;
-  line-height: 16px;
+  line-height: 18px;
   font-weight: 600;
-  text-decoration: none;
   font-variant-numeric: tabular-nums;
 }
-.queue-summary::after {
-  content: '';
-  position: absolute;
-  inset: -10px;
+.queue-unavailable {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--warning-text);
 }
 
 .loading-screen {
@@ -191,30 +229,10 @@ a.ui-menu-item {
   font-size: 24px;
 }
 
-.add-actions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-1);
-}
-.add-action {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--action-row-h);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  font-weight: 500;
-}
-.add-action:active {
-  background: var(--surface-inset);
-}
-@media (hover: hover) and (pointer: fine) {
-  .add-action:hover {
-    background: var(--surface-inset);
-  }
+/* With work in the queue, its row follows Manual after a gap, so the four capture rows never move. */
+.add-menu [data-add-action='manual']:not(:last-child),
+.add-card [data-add-action='manual']:not(:last-child) {
+  margin-block-end: var(--space-2);
 }
 
 @media (max-width: 700px) {
@@ -222,94 +240,184 @@ a.ui-menu-item {
   .header-desktop-only {
     display: none;
   }
+  .member-header .site-header-inner {
+    padding-inline: 20px 16px;
+  }
+  /* Floating rail: three labeled destinations and the + key, 12px in from the edges and above the home indicator. */
+  :root:has(.tab-bar) {
+    --rail-inset: 12px;
+    --rail-bottom: max(var(--rail-inset), env(safe-area-inset-bottom));
+    --rail-h: calc(var(--tabbar-h) + 12px);
+  }
   .tab-bar {
     display: block;
     position: fixed;
     z-index: var(--z-tabbar);
-    inset-inline: 0;
-    inset-block-end: 0;
-    padding-block-end: env(safe-area-inset-bottom);
-    background: var(--background);
+    inset-inline: var(--rail-inset);
+    inset-block-end: var(--rail-bottom);
+    padding: 6px;
+    border-radius: 24px;
+    background: var(--surface-floating);
+    box-shadow: var(--shadow-floating), var(--ring-floating);
     transition: transform var(--dur-base) var(--ease-out);
   }
   .tab-bar ul {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    display: flex;
+    gap: 4px;
     list-style: none;
     margin: 0;
     padding: 0;
   }
+  .tab-bar li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  /* The key is set apart from the destinations: it is an action, never the current page. */
+  .tab-bar .tab-add-slot {
+    flex: none;
+    margin-inline-start: 6px;
+  }
   .tab {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     width: 100%;
     min-width: 0;
     min-height: var(--tabbar-h);
-    padding: var(--space-1) 2px;
-    border: 0;
-    background: transparent;
+    padding: 0 2px;
+    border-radius: 18px;
     color: var(--text-muted);
     text-decoration: none;
     font-size: 12px;
     line-height: 16px;
+    font-weight: 500;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
   }
   .tab-label {
     max-width: 100%;
     white-space: nowrap;
   }
   .tab[aria-current='page'] {
-    color: var(--accent-text);
+    background: var(--accent-tint);
+    color: var(--accent-on-tint);
     font-weight: 600;
-  }
-  .tab[aria-current='page']::before {
-    content: '';
-    position: absolute;
-    inset-block-start: -1px;
-    inset-inline: 25%;
-    height: 2px;
-    border-radius: var(--radius-full);
-    background: var(--accent);
   }
   .tab:active {
     background: var(--surface-inset);
   }
-  /* Content, floating bars and toasts clear the tab bar plus the safe area. */
+  .tab-add {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 18px;
+    background: var(--accent);
+    color: var(--accent-foreground);
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+  .tab-add:active {
+    transform: scale(0.96);
+  }
+  .tab-add:focus-visible,
+  .tab:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  /* + turns into × (the same glyph at 45°); a transition, so a quick reopen reverses mid-turn. */
+  .tab-add-icon {
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .tab-add[data-state='open'] .tab-add-icon {
+    transform: rotate(45deg);
+  }
+  /* Stacking while a scrimmed menu is open: the menu, then the rail, then the scrim, then toasts and the import dock. */
+  :root:has(.ui-menu-shield[data-scrim][data-state='open']) .tab-bar {
+    z-index: 73;
+  }
+  .ui-menu.add-card,
+  .ui-menu.account-menu {
+    z-index: 74;
+  }
+  /* Doubled class: outranks the base menu's 320px cap, so the card spans the rail. */
+  .ui-menu.add-card {
+    width: calc(100vw - 2 * var(--rail-inset));
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border: 0;
+    border-radius: 24px;
+    background: var(--surface-floating);
+    box-shadow: var(--shadow-modal), var(--ring-floating);
+  }
+  .add-card-title {
+    margin: 0;
+    padding: 12px 14px 8px;
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .add-card .ui-menu-item {
+    min-height: var(--action-row-h);
+    gap: 12px;
+    padding-inline: 14px;
+    border-radius: 18px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  /* Content, floating bars and toasts clear the rail, its gap and the safe area. Toasts add the safe area themselves. */
   :root:has(.tab-bar) {
-    --tabbar-offset: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-    --toast-bottom-offset: var(--tabbar-h);
+    --tabbar-offset: calc(var(--rail-bottom) + var(--rail-h));
+    --toast-bottom-offset: calc(var(--rail-bottom) + var(--rail-h) - env(safe-area-inset-bottom));
     --action-bar-bottom: calc(var(--tabbar-offset) + var(--space-4));
   }
   :root:has(.tab-bar) .page-shell {
     padding-block-end: calc(var(--tabbar-offset) + var(--space-6));
   }
-  /* Keyboard open: the bar slides off-screen but stays in the DOM and focus order. */
+  /* Keyboard open: the rail slides off-screen past its gap but stays in the DOM and focus order. */
   :root[data-keyboard='true']:has(.tab-bar) {
     --tabbar-offset: 0px;
     --toast-bottom-offset: 0px;
     --action-bar-bottom: max(var(--space-4), env(safe-area-inset-bottom));
   }
   :root[data-keyboard='true'] .tab-bar {
-    transform: translateY(100%);
+    transform: translateY(calc(100% + var(--rail-bottom)));
   }
 }
-@media (max-width: 360px) {
-  .tab {
-    font-size: 11px;
+@media (max-width: 700px) and (hover: hover) and (pointer: fine) {
+  .tab:not([aria-current='page']):hover {
+    background: var(--surface-inset);
+    color: var(--text);
+  }
+  .tab-add:hover {
+    background: var(--accent-hover);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tab-bar {
+  .tab-bar,
+  .tab-add-icon {
     transition: none;
   }
-  .split-add:has(.split-add-main:active) {
+  .tab-add:active {
     transform: none;
   }
-  .split-add,
-  .split-add-more svg {
+  .add-button {
+    transition: none;
+  }
+  .add-button:active {
+    transform: none;
+  }
+  .add-button .icon-morph-chevron {
     transition: none;
   }
 }

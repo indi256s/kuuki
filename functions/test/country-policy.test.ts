@@ -425,11 +425,16 @@ describe('public readers (ADR I3)', () => {
   it('show the published countries_count from the same calculation and stay gated on revision only', async () => {
     const { db, dispose } = await accountWith([F1, F2], (db) => [
       db.prepare("UPDATE profiles SET username = 'trav', is_public = 1 WHERE id = ?").bind(USER.id),
+      db
+        .prepare("INSERT INTO country_claims (user_id, country_code) VALUES (?, 'FR')")
+        .bind(USER.id),
     ])
     try {
+      // Profile stamps name only flight countries: not the TR connection, not the FR claim.
       expect(await readPublicProfile(db, 'trav')).toMatchObject({
         derivedState: 'ready',
         stats: { countries_count: 2, airports_count: 3 },
+        countries: ['GE', 'US'],
       })
       // A build below the floor publishes the revision without the stamp: the owner reads `updating`, public readers keep serving.
       await db

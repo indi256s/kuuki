@@ -1,8 +1,11 @@
 'use client'
 
+import { ClipboardCheck } from '@keyline-icons/react'
 import { useAwaiting } from './awaiting'
 import { NavigationLink as Link } from './navigation-link'
 import { formatCount, formatNumber, type Locale } from '../lib/format'
+import { MenuItem } from './ui/menu'
+import type { ReactNode } from 'react'
 
 const QUEUE_HREF = '/journal?queue=awaiting'
 const FLIGHTS = {
@@ -26,36 +29,46 @@ const ROWS = {
     other: '{count} строки для проверки',
   },
 }
-const TOTAL = {
-  en: { one: '{count} awaiting action', other: '{count} awaiting action' },
-  ru: {
-    one: '{count} в очереди',
-    few: '{count} в очереди',
-    many: '{count} в очереди',
-    other: '{count} в очереди',
-  },
-}
+const LABEL = { en: 'To review', ru: 'На проверку' }
+const UNAVAILABLE = { en: 'Unavailable', ru: 'Недоступно' }
 
 /**
- * Header slot for the confirmation queue. Hides a zero count; an initial transport failure has an explicit unavailable state.
- * C4 supplies actionableCount; transport failures remain unknown rather than empty.
+ * Account-menu row for the confirmation queue. Hides a zero count; an initial transport failure has an explicit
+ * unavailable state unless `showUnavailable` is off. C4 supplies actionableCount; transport failures remain unknown
+ * rather than empty. The accessible name starts with the visible label.
  */
-export function QueueSummarySlot({
+export function QueueMenuItem({
   count,
   locale = 'en',
+  showUnavailable = true,
 }: {
   count?: number | null
   locale?: Locale
+  showUnavailable?: boolean
 }) {
   const queue = useAwaiting()
   const waiting = queue.data
   count ??= waiting?.actionableCount
-  if (queue.error && !waiting && count == null)
-    return (
-      <Link href={QUEUE_HREF} className="queue-summary">
-        {locale === 'ru' ? 'Очередь недоступна' : 'Queue unavailable'}
+  const label = LABEL[locale]
+  const row = (trailing: ReactNode, name?: string) => (
+    <MenuItem asChild>
+      <Link href={QUEUE_HREF} aria-label={name}>
+        <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
+        <span className="queue-label" lang={locale === 'ru' ? 'ru' : undefined}>
+          {label}
+        </span>
+        {trailing}
       </Link>
-    )
+    </MenuItem>
+  )
+  if (queue.error && !waiting && count == null)
+    return showUnavailable
+      ? row(
+          <span className="queue-unavailable" lang={locale === 'ru' ? 'ru' : undefined}>
+            {UNAVAILABLE[locale]}
+          </span>,
+        )
+      : null
   if (typeof count !== 'number' || !Number.isFinite(count) || count < 1) return null
   const whole = Math.floor(count)
   const parts = waiting
@@ -64,15 +77,13 @@ export function QueueSummarySlot({
         [waiting.draftRowCount, ROWS],
       ] as const)
     : []
-  const detail = parts
-    .filter(([n]) => n > 0)
-    .map(([n, forms]) => formatCount(locale, n, forms))
-    .join(', ')
-  const total = formatCount(locale, whole, TOTAL)
-  const label = detail ? `${total}: ${detail}` : total
-  return (
-    <Link href={QUEUE_HREF} className="queue-summary" aria-label={label} title={label}>
-      {formatNumber(locale, whole)}
-    </Link>
+  const detail =
+    parts
+      .filter(([n]) => n > 0)
+      .map(([n, forms]) => formatCount(locale, n, forms))
+      .join(', ') || formatNumber(locale, whole)
+  return row(
+    <span className="queue-count">{formatNumber(locale, whole)}</span>,
+    `${label}: ${detail}`,
   )
 }

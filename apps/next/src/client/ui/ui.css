@@ -438,6 +438,32 @@
   z-index: 71;
   pointer-events: auto;
 }
+.ui-menu-shield[data-state='closed'] {
+  pointer-events: none;
+}
+/* The tinted shield is the scrim behind a card-like menu (mobile Add, account): opacity only, and a drag on it never
+   scrolls the page under the menu. A 'mobile' scrim is a plain shield above 700px. */
+.ui-menu-shield[data-scrim] {
+  background: var(--scrim);
+  touch-action: none;
+  overscroll-behavior: contain;
+  animation: ui-fade-in var(--dur-fast) var(--ease-out);
+}
+.ui-menu-shield[data-scrim][data-state='closed'] {
+  animation: ui-fade-out 120ms var(--ease-out) forwards;
+}
+@media (min-width: 701px) {
+  .ui-menu-shield[data-scrim='mobile'][data-state] {
+    background: none;
+    touch-action: auto;
+    overscroll-behavior: auto;
+    animation: none;
+  }
+}
+.ui-menu-shield[data-instant],
+.ui-menu[data-instant] {
+  animation: none !important;
+}
 .ui-menu {
   z-index: 72;
   min-width: 200px;
@@ -478,6 +504,9 @@
     transform: scale(0.97);
   }
 }
+.ui-menu-item svg {
+  flex-shrink: 0;
+}
 /* 14px container - 4px padding = 10px concentric item radius. */
 .ui-menu-item {
   min-width: 0;
@@ -514,10 +543,86 @@
   place-items: center;
   width: 18px;
 }
+.ui-menu-group {
+  display: grid;
+  gap: 2px;
+}
 .ui-menu-separator {
   height: 1px;
   margin: var(--space-1) var(--space-2);
   background: var(--hairline);
+}
+.ui-menu-tray-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: 0 var(--space-1) 0 var(--space-3);
+}
+.ui-menu-tray-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.ui-menu-tray {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+}
+.ui-menu-tray-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding-inline: 10px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.ui-menu-tray[data-kind='swatch'] .ui-menu-tray-cell {
+  width: 40px;
+  padding: 0;
+}
+/* Selected: raised on the surface. Text cells add a 1px control outline, so the pick never relies on colour; the
+   swatch's cue is its check. */
+.ui-menu-tray-cell[aria-checked='true'] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0/10%);
+}
+.ui-menu-tray[data-kind='text'] .ui-menu-tray-cell[aria-checked='true'] {
+  box-shadow:
+    inset 0 0 0 1px var(--control-border),
+    0 1px 2px rgb(0 0 0/10%);
+}
+/* Only the selected cell takes focus; the 2px inset ring replaces its outline while focused. */
+.ui-menu-tray .ui-menu-tray-cell[aria-checked]:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--focus),
+    0 1px 2px rgb(0 0 0/10%);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-menu-tray-cell:hover {
+    color: var(--text);
+  }
+}
+@media (pointer: coarse) {
+  .ui-menu-tray-cell {
+    height: 44px;
+  }
 }
 .ui-menu-label {
   padding: 8px 12px 4px;
@@ -749,7 +854,8 @@
 .ui-swatch:active {
   transform: scale(0.96);
 }
-.ui-swatch-dot {
+.ui-swatch-dot,
+.ui-menu-tray-dot {
   display: inline-grid;
   place-items: center;
   width: 28px;
@@ -757,6 +863,10 @@
   border-radius: var(--radius-full);
   background: var(--swatch);
   color: var(--background);
+}
+.ui-menu-tray-dot {
+  width: 20px;
+  height: 20px;
 }
 .ui-swatch[aria-checked='true'] {
   border-color: var(--text);

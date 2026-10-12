@@ -2,11 +2,10 @@ import { NavigationLink as Link } from './navigation-link'
 import type { ReactNode } from 'react'
 import { AccentSync } from './appearance'
 import { AwaitingProvider } from './awaiting'
+import { AddMenu } from './add-menu'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
-import { QueueSummarySlot } from './queue-summary'
-import { SplitAdd } from './split-add'
 import { ShellNotices } from './shell-notices'
 import { AddOriginTracker } from './capture/add-origin'
 import { ImportDock } from './import/import-dock'
@@ -59,8 +58,8 @@ function ImportRuns({
 }
 
 /**
- * Member shell: 56px desktop header (wordmark, nav, queue slot, split Add, avatar menu) or 48px mobile header
- * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
+ * Member shell: sticky 64px desktop header (wordmark, nav, Add flight menu, avatar menu), or a 56px mobile header
+ * (page title, avatar menu) that scrolls away above the fixed floating rail. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
  * and, where the import job worker is bound, one import dock.
  */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
@@ -81,25 +80,25 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
               <MobilePageTitle />
               <PrimaryNav locale={locale} />
               <div className="header-end">
-                <QueueSummarySlot locale={locale} />
                 <div className="header-desktop-only">
-                  <SplitAdd locale={locale} />
-                  {username && own ? (
-                    <AvatarMenu
-                      id={own.profile.id}
-                      avatarUrl={own.profile.avatar_url}
-                      username={username}
-                      displayName={own.profile.display_name}
-                      isPublic={own.profile.is_public}
-                      locale={locale}
-                    />
-                  ) : null}
+                  <AddMenu locale={locale} />
                 </div>
+                {username ? (
+                  <AvatarMenu
+                    id={own.profile.id}
+                    avatarUrl={own.profile.avatar_url}
+                    username={username}
+                    displayName={own.profile.display_name}
+                    isPublic={own.profile.is_public}
+                    profileAccent={own.profile.theme_color}
+                    locale={locale}
+                  />
+                ) : null}
               </div>
             </div>
           </header>
           <Main>{children}</Main>
-          <TabBar locale={locale} username={username} />
+          <TabBar locale={locale} />
         </ImportRuns>
       </ShellNotices>
     </AwaitingProvider>

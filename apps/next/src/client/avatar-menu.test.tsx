@@ -23,6 +23,14 @@ const render = (ui: ReactElement) => baseRender(<ToastProvider>{ui}</ToastProvid
 
 describe('AvatarMenu', () => {
   beforeEach(() => {
+    // jsdom has no layout: without a real box the trigger counts as scrolled out of view and `hideWhenDetached` hides the menu.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(100, 100, 40, 40),
+    )
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(1024)
+    vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(768)
+    document.cookie = 'kuuki_accent=; Path=/; Max-Age=0'
+    delete document.documentElement.dataset.accent
     patch.mockReset()
     refresh.mockReset()
     patch.mockResolvedValue({})
@@ -46,7 +54,7 @@ describe('AvatarMenu', () => {
     expect(profile).toHaveAttribute('href', '/fly/ana')
     await waitFor(() => expect(profile).toHaveFocus())
     await user.keyboard('{ArrowDown}')
-    expect(screen.getByRole('menuitemcheckbox', { name: 'Public profile' })).toHaveFocus()
+    expect(screen.getByRole('menuitem', { name: 'Leaderboard' })).toHaveFocus()
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
     expect(trigger).toHaveFocus()
@@ -93,11 +101,55 @@ describe('AvatarMenu', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not sign out.')
   })
 
-  it('offers theme and language radios', async () => {
+  it('lists the groups in order with no separators', async () => {
     const user = userEvent.setup()
     render(<AvatarMenu username="ana" isPublic />)
     await user.click(screen.getByRole('button', { name: 'Account menu' }))
-    expect(await screen.findAllByRole('menuitemradio')).toHaveLength(5)
-    expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeInTheDocument()
+    const menu = await screen.findByRole('menu')
+    expect(within(menu).queryByRole('separator')).toBeNull()
+    const stops = [
+      ...menu.querySelectorAll(
+        '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"][aria-checked="true"]',
+      ),
+    ].map((node) => node.getAttribute('aria-label') ?? node.textContent)
+    expect(stops).toEqual([
+      'My profile@ana · Public',
+      'Leaderboard',
+      'Settings',
+      'Public profile',
+      'System',
+      'Shu',
+      'EN',
+      'Sign out',
+    ])
+  })
+
+  it('picks an accent from the tray, saves it and keeps the menu open', async () => {
+    const user = userEvent.setup()
+    render(<AvatarMenu username="ana" isPublic />)
+    await user.click(screen.getByRole('button', { name: 'Account menu' }))
+    const shu = await screen.findByRole('menuitemradio', { name: 'Shu' })
+    shu.focus()
+    await user.keyboard('{ArrowRight}')
+    await waitFor(() =>
+      expect(patch).toHaveBeenCalledWith(
+        '/api/profiles/me',
+        { theme_color: expect.any(String) },
+        expect.anything(),
+      ),
+    )
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(document.documentElement.dataset.accent).not.toBe('shu')
+  })
+
+  it('reports a failed accent save', async () => {
+    patch.mockRejectedValue(new Error('x'))
+    const user = userEvent.setup()
+    render(<AvatarMenu username="ana" isPublic />)
+    await user.click(screen.getByRole('button', { name: 'Account menu' }))
+    const shu = await screen.findByRole('menuitemradio', { name: 'Shu' })
+    shu.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save the accent.')
   })
 })
