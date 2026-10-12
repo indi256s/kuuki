@@ -80,7 +80,7 @@ export function StageRows<T>(props: StageRowsProps<T>) {
                     style={{ transform: `scaleX(${num(width / length)})` }}
                   >
                     <path d={d} />
-                    {amount > 0 ? <path className="stage-accent" d={d} /> : null}
+                    {amount > 0 ? <path className="stage-peak" d={d} /> : null}
                   </g>
                   <text className="stage-value" x={size.width} y={y + 16} textAnchor="end">
                     {stageText(props, point)}

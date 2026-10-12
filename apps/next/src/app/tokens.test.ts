@@ -162,9 +162,9 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     }
   })
 
-  it('keeps the rest mark, accent and control border at 3:1 on the floating sheet', () => {
+  it('keeps the rest mark, peak mark, accent and control border at 3:1 on the floating sheet', () => {
     const floating = hex('--surface-floating')
-    for (const name of ['--mark-rest', '--accent', '--control-border']) {
+    for (const name of ['--mark-rest', '--mark-1', '--accent', '--control-border']) {
       expect(ratio(hex(name), floating), `${name} on floating`).toBeGreaterThanOrEqual(3)
     }
   })

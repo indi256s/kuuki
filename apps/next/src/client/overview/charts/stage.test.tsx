@@ -35,7 +35,7 @@ it('columns scale from the baseline, mark the pick and show a known zero as a st
   expect(b).toHaveAttribute('data-picked', 'true')
   expect(a).toHaveAttribute('data-filtered', 'true')
   expect(c).toHaveAttribute('data-zero', 'true')
-  expect(c.querySelector('.stage-accent')).toBeNull()
+  expect(c.querySelector('.stage-peak')).toBeNull()
   const scale = (mark: Element) => mark.querySelector<SVGGElement>('.stage-bar')!.style.transform
   expect(scale(a)).toBe('scaleY(1)')
   expect(scale(b)).toBe('scaleY(0.5)')

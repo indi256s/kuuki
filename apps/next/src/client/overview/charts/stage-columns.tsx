@@ -122,7 +122,7 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
                 />
                 <g className="stage-bar" style={{ transform: `scaleY(${num(height / room)})` }}>
                   <path d={d} />
-                  {amount > 0 ? <path className="stage-accent" d={d} /> : null}
+                  {amount > 0 ? <path className="stage-peak" d={d} /> : null}
                 </g>
               </g>
             )

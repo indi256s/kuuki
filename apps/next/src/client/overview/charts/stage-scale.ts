@@ -8,7 +8,7 @@ export type StageProps<T> = Pick<
 > & {
   /** The number a mark is drawn from. Zero is a known zero (a stub); unknown values do not belong in `points`. */
   value: (point: ChartPoint<T>) => number
-  /** The picked reading (`data-picked`, accent). */
+  /** The picked reading (`data-picked`, --mark-1). */
   selectedKey?: string | null
   /** Keys the page is filtered by (the v1 contour; rows also get a "✓ " before the label). */
   appliedKeys?: readonly string[]
