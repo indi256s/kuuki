@@ -1,0 +1,9 @@
+@media (prefers-reduced-motion: no-preference) {
+  .iso-spike [data-part='top-stub'] {
+    transform: translate(
+      calc(var(--lift-x) * var(--iso-move)),
+      calc(var(--lift-y) * var(--iso-move))
+    );
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+}

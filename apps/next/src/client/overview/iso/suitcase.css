@@ -1,0 +1,9 @@
+@media (prefers-reduced-motion: no-preference) {
+  .iso-suitcase [data-part='handle'] {
+    transform: translate(
+      calc(var(--extend-x) * var(--iso-move)),
+      calc(var(--extend-y) * var(--iso-move))
+    );
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+}

@@ -886,6 +886,161 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: '{route} возглавляет список: перелётов {count}, туда и обратно.',
     },
   ],
+  // Hero card: the footer reads the winning `hero` trigger; a record's takeover rotates through its own triple.
+  'hero:flights': [
+    {
+      en: '{flights} flights. The spike has stopped taking new stubs gracefully.',
+      ru: 'Перелётов: {flights}. Новые корешки штырь принимает уже без энтузиазма.',
+    },
+    {
+      en: '{flights} boarding passes, and every one of them asked for ID.',
+      ru: 'Посадочных: {flights}. Документы проверили при каждом.',
+    },
+    {
+      en: '{flights} flights. That is a lot of safety demonstrations sat through.',
+      ru: 'Перелётов: {flights}. Инструктаж по безопасности прослушан столько же раз.',
+    },
+  ],
+  'hero:km-belt': [
+    {
+      en: 'A car would be due a new timing belt by now.',
+      ru: 'Автомобилю с таким пробегом уже меняли бы ремень ГРМ.',
+    },
+    {
+      en: 'On the road, this mileage would have outlived the warranty.',
+      ru: 'На дороге с таким пробегом гарантия давно бы закончилась.',
+    },
+    {
+      en: 'A car with this mileage would be advertised as one careful owner.',
+      ru: 'Машину с таким пробегом продавали бы с пометкой «один владелец».',
+    },
+  ],
+  'hero:km-equators': [
+    {
+      en: 'Equators, laid end to end: {laps}. The equator was not consulted.',
+      ru: 'Экваторов в пересчёте: {laps}. Мнение экватора не запрашивалось.',
+    },
+    {
+      en: 'Equators by great circle: {laps}. The real path was longer and less tidy.',
+      ru: 'По дуге большого круга экваторов: {laps}. Реальный путь длиннее и запутаннее.',
+    },
+    {
+      en: 'Equators on the counter: {laps}. The drums kept up without complaint.',
+      ru: 'Экваторов на счётчике: {laps}. Барабаны справились, замечаний нет.',
+    },
+  ],
+  'hero:air-days': [
+    {
+      en: '{days} days aloft, and not one of them had a proper night.',
+      ru: 'В воздухе — {days} сут. Ни одной полноценной ночи.',
+    },
+    {
+      en: '{days} days in the air. Spent mostly with the shade half down.',
+      ru: 'В воздухе — {days} сут. Преимущественно при полуопущенной шторке.',
+    },
+    {
+      en: '{days} days aloft. Time well spent, by airline standards.',
+      ru: 'В воздухе — {days} сут. По меркам авиакомпании время проведено с пользой.',
+    },
+  ],
+  'hero:countries': [
+    {
+      en: 'Countries and territories: {countries}. The suitcase ran out of sticker room long ago.',
+      ru: 'Стран и территорий: {countries}. Место для наклеек на чемодане закончилось давно.',
+    },
+    {
+      en: 'Countries and territories: {countries}. Each with its own idea of a queue.',
+      ru: 'Стран и территорий: {countries}. И в каждой свои представления об очереди.',
+    },
+    {
+      en: 'Countries and territories: {countries}. The suitcase shows only the highlights.',
+      ru: 'Стран и территорий: {countries}. На чемодане — только избранное.',
+    },
+  ],
+  'hero:airports': [
+    {
+      en: 'Airports: {airports}. Each carousel had a bag that looked like yours.',
+      ru: 'Аэропортов: {airports}. И на каждой ленте был чемодан, похожий на ваш.',
+    },
+    {
+      en: 'Airports: {airports}. In every one, your gate was the furthest.',
+      ru: 'Аэропортов: {airports}. И везде ваш выход оказывался самым дальним.',
+    },
+    {
+      en: 'Airports: {airports}. Your belt has come off at security in all of them.',
+      ru: 'Аэропортов: {airports}. И в каждом вы снимали ремень на досмотре.',
+    },
+  ],
+  'heroSmall:flights': [
+    {
+      en: 'Flights: {flights}. The spike is still mostly spike.',
+      ru: 'Перелётов: {flights}. Штырь пока в основном штырь.',
+    },
+    {
+      en: 'Flights: {flights}. A short stack, filed neatly.',
+      ru: 'Перелётов: {flights}. Стопка невысокая, подшита аккуратно.',
+    },
+    {
+      en: 'Flights: {flights}. Not many, but every stub is accounted for.',
+      ru: 'Перелётов: {flights}. Немного, но каждый корешок на учёте.',
+    },
+  ],
+  'heroSmall:km': [
+    {
+      en: '{pct}% of one equator. The drums have barely warmed up.',
+      ru: '{pct}% экватора. Барабаны счётчика только прогреваются.',
+    },
+    {
+      en: '{pct}% of an equator. A modest reading for an instrument this size.',
+      ru: '{pct}% экватора. Скромные показания для прибора такого размера.',
+    },
+    {
+      en: '{pct}% of an equator. Short enough to remember every leg.',
+      ru: '{pct}% экватора. Каждый отрезок пути пока можно помнить наизусть.',
+    },
+  ],
+  'heroSmall:air': [
+    {
+      en: '{hours} h in the air. The window shade has hardly been touched.',
+      ru: 'В воздухе — {hours} ч. Шторку почти не трогали.',
+    },
+    {
+      en: '{hours} h aloft. The seat has not formed an opinion yet.',
+      ru: 'В воздухе — {hours} ч. Кресло пока не составило мнения.',
+    },
+    {
+      en: '{hours} h in the air. Not quite enough for a film festival.',
+      ru: 'В воздухе — {hours} ч. На кинофестиваль пока не набирается.',
+    },
+  ],
+  'heroSmall:countries': [
+    {
+      en: 'Countries and territories: {countries}. Plenty of sticker room left.',
+      ru: 'Стран и территорий: {countries}. Место для наклеек ещё есть.',
+    },
+    {
+      en: 'Countries and territories: {countries}. Border guards are yet to recognise you.',
+      ru: 'Стран и территорий: {countries}. Пограничники вас пока не узнают.',
+    },
+    {
+      en: 'Countries and territories: {countries}. A shortlist, not yet a collection.',
+      ru: 'Стран и территорий: {countries}. Пока список, а не коллекция.',
+    },
+  ],
+  'heroSmall:airports': [
+    {
+      en: 'Airports: {airports}. Few enough to remember where the toilets are.',
+      ru: 'Аэропортов: {airports}. Пока можно помнить, где в каждом туалет.',
+    },
+    {
+      en: 'Airports: {airports}. Not yet enough to get lost in.',
+      ru: 'Аэропортов: {airports}. Заблудиться пока негде.',
+    },
+    {
+      en: 'Airports: {airports}. The same bag keeps coming out on the belt.',
+      ru: 'Аэропортов: {airports}. Лента выдаёт всё тот же чемодан.',
+    },
+  ],
   'globe:filtered-total': [
     {
       en: 'Your filters show {selected} of {total} all-time flights. The map is reading the selected file.',

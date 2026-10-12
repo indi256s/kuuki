@@ -1,0 +1,10 @@
+/* The shade rises into the reveal's top, hiding behind the pane clip as it goes. */
+@media (prefers-reduced-motion: no-preference) {
+  .iso-cabin-window [data-part='shade'] {
+    transform: translate(
+      calc(var(--rise-x) * var(--iso-move)),
+      calc(var(--rise-y) * var(--iso-move))
+    );
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+}

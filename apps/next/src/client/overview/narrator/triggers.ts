@@ -1,16 +1,24 @@
+import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
 import { isEmptyFilter, routeArrow } from '@kuuki/shared/overview/filter'
 import type { OverviewScope } from '@kuuki/shared/overview/figures'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import { calendarDay } from '@kuuki/shared/overview/next'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 
-export type NarratorSlot = SectionId | 'globe' | 'firstRun' | 'zero'
+export type NarratorSlot = SectionId | 'globe' | 'hero' | 'heroSmall' | 'firstRun' | 'zero'
+/** The hero card's five records, in card order. */
+export type HeroRecord = 'flights' | 'km' | 'air' | 'countries' | 'airports'
 export interface Trigger {
   id: string
   slot: NarratorSlot
   priority: number
+  /** Hero triggers name the record whose takeover shows their line. */
+  record?: HeroRecord
   when(scope: OverviewScope, all: OverviewScope): Record<string, string | number> | null
 }
+
+const EQUATOR_KM = EARTH_CIRCUMFERENCE_KM,
+  WEEK_MINUTES = 7 * 24 * 60
 
 export const TRIGGERS: Trigger[] = [
   // Ready Records; longestDuration destination AKL and positive minutes. Hours rounded to one decimal, explicitly approximate.
@@ -834,6 +842,120 @@ export const TRIGGERS: Trigger[] = [
     when: (scope) => {
       const countries = scope.figures.countries.value
       return countries >= 2 && countries <= 4 ? { countries } : null
+    },
+  },
+
+  // The hero card: one trigger per record that clears its bar. The footer shows the winner; a record's takeover shows its own
+  // trigger's line, or its `heroSmall` line when no hero trigger of that record fires. Nothing fires on a filtered zero.
+  // Under 25 flights the spike holds its smallest stack, so the bar sits there.
+  {
+    id: 'hero:flights',
+    slot: 'hero',
+    record: 'flights',
+    priority: 40,
+    when: (scope) => (scope.figures.flights >= 25 ? { flights: scope.figures.flights } : null),
+  },
+  // A timing belt is due at roughly 100,000 km on most cars; the line states no number, so the bar carries it.
+  {
+    id: 'hero:km-belt',
+    slot: 'hero',
+    record: 'km',
+    priority: 70,
+    when: (scope) => (scope.figures.distanceKm >= 100_000 ? {} : null),
+  },
+  // Great-circle total of at least one equator, in equators to one decimal.
+  {
+    id: 'hero:km-equators',
+    slot: 'hero',
+    record: 'km',
+    priority: 60,
+    when: (scope) => {
+      const km = scope.figures.distanceKm
+      return km >= EQUATOR_KM && km < 100_000
+        ? { laps: Math.floor((km / EQUATOR_KM) * 10) / 10 }
+        : null
+    },
+  },
+  // At least a week aloft, in days to one decimal. Estimated durations count, as in the hero's own total.
+  {
+    id: 'hero:air-days',
+    slot: 'hero',
+    record: 'air',
+    priority: 55,
+    when: (scope) => {
+      const minutes = scope.figures.durationMinutes
+      return minutes >= WEEK_MINUTES ? { days: Math.floor(minutes / 144) / 10 } : null
+    },
+  },
+  {
+    id: 'hero:countries',
+    slot: 'hero',
+    record: 'countries',
+    priority: 50,
+    when: (scope) =>
+      scope.figures.countries.value >= 10 ? { countries: scope.figures.countries.value } : null,
+  },
+  {
+    id: 'hero:airports',
+    slot: 'hero',
+    record: 'airports',
+    priority: 45,
+    when: (scope) => (scope.figures.airports >= 10 ? { airports: scope.figures.airports } : null),
+  },
+  // Below each bar: a deadpan line about the small number. Never a footer; only the record's own takeover reads it.
+  {
+    id: 'heroSmall:flights',
+    slot: 'heroSmall',
+    record: 'flights',
+    priority: 0,
+    when: (scope) => {
+      const flights = scope.figures.flights
+      return flights > 0 && flights < 25 ? { flights } : null
+    },
+  },
+  // Percent of one equator, floored, so a total just short of it never reads 100.
+  {
+    id: 'heroSmall:km',
+    slot: 'heroSmall',
+    record: 'km',
+    priority: 0,
+    when: (scope) => {
+      const km = scope.figures.distanceKm
+      return scope.figures.flights > 0 && km < EQUATOR_KM
+        ? { pct: Math.floor((km / EQUATOR_KM) * 100) }
+        : null
+    },
+  },
+  {
+    id: 'heroSmall:air',
+    slot: 'heroSmall',
+    record: 'air',
+    priority: 0,
+    when: (scope) => {
+      const minutes = scope.figures.durationMinutes
+      return scope.figures.flights > 0 && minutes < WEEK_MINUTES
+        ? { hours: Math.floor(minutes / 60) }
+        : null
+    },
+  },
+  {
+    id: 'heroSmall:countries',
+    slot: 'heroSmall',
+    record: 'countries',
+    priority: 0,
+    when: (scope) => {
+      const countries = scope.figures.countries.value
+      return scope.figures.flights > 0 && countries < 10 ? { countries } : null
+    },
+  },
+  {
+    id: 'heroSmall:airports',
+    slot: 'heroSmall',
+    record: 'airports',
+    priority: 0,
+    when: (scope) => {
+      const airports = scope.figures.airports
+      return scope.figures.flights > 0 && airports < 10 ? { airports } : null
     },
   },
 

@@ -3,7 +3,7 @@ import type { OverviewFilter } from '@kuuki/shared/overview/model'
 import { formatNumber, type Locale } from '../../../lib/format'
 import { fill, t } from '../copy'
 import { CORPUS } from './corpus'
-import { TRIGGERS, type NarratorSlot } from './triggers'
+import { TRIGGERS, type HeroRecord, type NarratorSlot, type Trigger } from './triggers'
 
 export function canonicalFilter(filter: OverviewFilter): string {
   const canonical = (value: unknown): unknown => {
@@ -26,6 +26,26 @@ export function fnv1a32(value: string): number {
   return hash >>> 0
 }
 
+function lineOf(
+  trigger: Trigger,
+  params: Record<string, string | number>,
+  scope: OverviewScope,
+  seed: string,
+  locale: Locale,
+  turn = 0,
+): string {
+  const variant = (fnv1a32(`${seed}|${trigger.slot}|${canonicalFilter(scope.filter)}`) + turn) % 3
+  const formatted = Object.fromEntries(
+    Object.entries(params).map(([key, value]) => [
+      key,
+      typeof value === 'number' ? formatNumber(locale, value) : value,
+    ]),
+  )
+  return fill(t(CORPUS[trigger.id][variant], locale), formatted)
+}
+
+const byPriority = (a: Trigger, b: Trigger) => b.priority - a.priority
+
 export function pickLine(
   slot: NarratorSlot,
   scope: OverviewScope,
@@ -33,20 +53,29 @@ export function pickLine(
   seed: string,
   locale: Locale,
 ): string | null {
-  const triggers = TRIGGERS.filter((trigger) => trigger.slot === slot).sort(
-    (a, b) => b.priority - a.priority,
-  )
-  for (const trigger of triggers) {
+  for (const trigger of TRIGGERS.filter((trigger) => trigger.slot === slot).sort(byPriority)) {
     const params = trigger.when(scope, all)
-    if (params === null) continue
-    const variant = fnv1a32(`${seed}|${slot}|${canonicalFilter(scope.filter)}`) % 3
-    const formatted = Object.fromEntries(
-      Object.entries(params).map(([key, value]) => [
-        key,
-        typeof value === 'number' ? formatNumber(locale, value) : value,
-      ]),
-    )
-    return fill(t(CORPUS[trigger.id][variant], locale), formatted)
+    if (params !== null) return lineOf(trigger, params, scope, seed, locale)
   }
+  return null
+}
+
+/** A hero record's takeover line: its best firing `hero` trigger, else its `heroSmall` one. `turn` counts the record's openings, so
+ * the first opening reads the footer's line when this record won it, and each later one steps to the next line of the triple. */
+export function recordLine(
+  record: HeroRecord,
+  scope: OverviewScope,
+  all: OverviewScope,
+  seed: string,
+  locale: Locale,
+  turn: number,
+): string | null {
+  for (const slot of ['hero', 'heroSmall'] as const)
+    for (const trigger of TRIGGERS.filter(
+      (trigger) => trigger.slot === slot && trigger.record === record,
+    ).sort(byPriority)) {
+      const params = trigger.when(scope, all)
+      if (params !== null) return lineOf(trigger, params, scope, seed, locale, turn)
+    }
   return null
 }
