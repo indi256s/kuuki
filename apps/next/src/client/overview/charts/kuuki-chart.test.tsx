@@ -182,6 +182,26 @@ it('touch pins portaled actions without direct selection and keeps focused actio
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: rows[0].route })).toHaveFocus()
 })
+it('with tapPicks a touch tap picks the point and opens no pinned tooltip; the context menu still pins', () => {
+  const pick = vi.fn()
+  render(
+    <Chart
+      onPick={pick}
+      tapPicks
+      selected={(point) => point.key === rows[1].route}
+      actions={() => [{ label: 'Add filter', run: vi.fn() }]}
+    />,
+  )
+  const [first, second] = rows.map((row) => screen.getByRole('button', { name: row.route }))
+  expect(second).toHaveAttribute('aria-current', 'true')
+  expect(second).toHaveAttribute('data-picked', 'true')
+  expect(first).not.toHaveAttribute('data-picked')
+  select(first, 'touch')
+  expect(pick).toHaveBeenCalledWith(points[0])
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  fireEvent.contextMenu(first)
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+})
 it('hover, focus and pin only mark the point: colors stay, nothing is dimmed or filtered', () => {
   const pick = vi.fn()
   render(

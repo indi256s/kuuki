@@ -1,0 +1,100 @@
+/* Stage charts (chapter cards): columns and rows drawn in CSS pixels through KuukiChart.
+   Ordinary marks rest on --mark-rest; the picked mark is an accent copy that crossfades in.
+   Hover, pin and filter contours come from chart-theme.css. */
+.kc-svg .stage text {
+  font: 400 12px/16px var(--font-mono);
+  fill: var(--text-muted);
+}
+.kc-svg .stage .stage-reading {
+  font: 600 13px/18px var(--font-sans);
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.kc-svg .stage .stage-reading[data-mono] {
+  font-family: var(--font-mono);
+}
+.kc-svg .stage .stage-tick[data-picked] {
+  fill: var(--text);
+}
+.kc-svg .stage .stage-value {
+  font: 600 13px/18px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.kc-svg .stage [data-picked] .stage-value {
+  fill: var(--text);
+}
+.stage-band {
+  fill: var(--surface-inset);
+}
+
+.stage-bar {
+  transform-box: fill-box;
+  /* Columns grow from the baseline, rows from their start. */
+  transform-origin: 50% 100%;
+}
+.stage-bar[data-axis='x'] {
+  transform-origin: 0 50%;
+}
+.stage-bar path {
+  fill: var(--mark-rest);
+  /* The bar is scaled; the contour keeps its 2px. */
+  vector-effect: non-scaling-stroke;
+}
+.stage-bar .stage-accent {
+  fill: var(--accent);
+  opacity: 0;
+}
+[data-zero] > .stage-bar path {
+  fill: var(--zero);
+}
+[data-picked] > .stage-bar .stage-accent {
+  opacity: 1;
+}
+
+.stage-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  color: var(--text);
+  font: 400 15px/20px var(--font-sans);
+}
+.stage-label[data-mono] {
+  font-family: var(--font-mono);
+}
+[data-zero] .stage-label {
+  color: var(--text-muted);
+}
+[data-picked] .stage-label {
+  font-weight: 600;
+}
+.stage-swatch {
+  display: inline-flex;
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.stage-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A changed value (a view toggle) morphs by transform only, and only while the chart is on screen. */
+.kc[data-in-view='true'] .kc-svg .stage-bar {
+  transition: transform var(--dur-sheet) var(--ease-out);
+}
+.kc[data-in-view='true'] .kc-svg .stage-bar .stage-accent {
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.kc[data-resizing] .kc-svg .stage-bar,
+.kc[data-resizing] .kc-svg .stage-bar .stage-accent {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kc[data-in-view='true'] .kc-svg .stage-bar,
+  .kc[data-in-view='true'] .kc-svg .stage-bar .stage-accent {
+    transition: none;
+  }
+}

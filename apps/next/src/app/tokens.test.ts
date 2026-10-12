@@ -162,6 +162,13 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     }
   })
 
+  it('keeps the rest mark, accent and control border at 3:1 on the floating sheet', () => {
+    const floating = hex('--surface-floating')
+    for (const name of ['--mark-rest', '--accent', '--control-border']) {
+      expect(ratio(hex(name), floating), `${name} on floating`).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   it('labels every heat cell at 4.5:1 and keeps the ramp monotonic', () => {
     const cells = [1, 2, 3, 4].map((n) => hex(`--heat-${n}`))
     ;[1, 2, 3, 4].forEach((n) => {
@@ -203,6 +210,14 @@ describe.each(MODES)('%s mode tokens', (mode) => {
     expect(hex('--heat-0')).toBe(hex('--surface-inset'))
     for (const accent of ACCENT_KEYS) {
       expect(THEMES[accent][mode].contour).toBe(THEMES.shu[mode].contour)
+    }
+  })
+
+  it('keeps the skeleton fill visible on the surface and the floating sheet', () => {
+    for (const name of ['--surface', '--surface-floating']) {
+      expect(ratio(hex('--skeleton'), hex(name)), `--skeleton on ${name}`).toBeGreaterThanOrEqual(
+        1.3,
+      )
     }
   })
 

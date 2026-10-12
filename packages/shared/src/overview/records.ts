@@ -27,6 +27,8 @@ export interface Records {
       })
     | null
   shortest: (RecordRef & { date: string | null; shareOfLongest: number }) | null
+  /** The five longest distinct directed routes, longest first. */
+  longest5: { origin: string; destination: string; km: number; flights: number }[]
   longestDuration: RecordRef | null
   shortestDuration: RecordRef | null
   biggestClockJump: RecordRef | null
@@ -252,6 +254,31 @@ function latestDeparture(
   return best
 }
 
+function longestRoutes(rows: OverviewRow[]): Records['longest5'] {
+  const routes = new Map<string, Records['longest5'][number]>()
+  for (const row of rows) {
+    // Aggregate rows sum distance over their flights; a route's per-flight distance is constant.
+    if (!(row.weight > 0) || row.distanceKm === null || !(row.distanceKm >= 0)) continue
+    const km = row.distanceKm / row.weight
+    if (!Number.isFinite(km)) continue
+    const key = `${row.origin}>${row.destination}`
+    const route = routes.get(key)
+    if (route) {
+      route.flights += row.weight
+      route.km = Math.max(route.km, km)
+    } else
+      routes.set(key, { origin: row.origin, destination: row.destination, km, flights: row.weight })
+  }
+  return [...routes.values()]
+    .sort(
+      (a, b) =>
+        b.km - a.km ||
+        (a.origin < b.origin ? -1 : a.origin > b.origin ? 1 : 0) ||
+        (a.destination < b.destination ? -1 : a.destination > b.destination ? 1 : 0),
+    )
+    .slice(0, 5)
+}
+
 export function records(
   rows: OverviewRow[],
   refs: OverviewPayload['refs'],
@@ -363,6 +390,7 @@ export function records(
             equatorShare: winner.value / 40075,
           }
         : null,
+      longest5: longestRoutes(rows),
       shortest: extrema.shortest
         ? {
             ...project(extrema.shortest)!,

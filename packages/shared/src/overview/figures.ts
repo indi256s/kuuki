@@ -5,6 +5,7 @@ import type { Records } from './records'
 import type { Routes } from './routes'
 import type { Goal } from './goals'
 import type { Crossings } from './crossings'
+import type { Continents } from './continents'
 import type { Fleet } from './fleet'
 import type { Makers } from './makers'
 import type { Clock } from './clock'
@@ -52,6 +53,7 @@ export interface OverviewScope {
   routes: Gate<Routes>
   records: Gate<Records>
   crossings: Gate<Crossings>
+  continents: Gate<Continents>
   fleet: Gate<Fleet>
   makers: Gate<Makers>
   clock: Gate<Clock>

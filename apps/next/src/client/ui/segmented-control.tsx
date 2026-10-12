@@ -14,8 +14,10 @@ import './ui.css'
 export type SegmentOption<T extends string> = { value: T; label: ReactNode; icon?: ReactNode }
 
 type Box = { x: number; y: number; w: number; h: number }
-const sameBox = (a: Box | null, b: Box) =>
-  !!a && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h
+// `base` is the first cell's width: the dense thumb keeps that width and scales to `w`, so it only ever animates its transform.
+type Thumb = Box & { base: number }
+const sameThumb = (a: Thumb | null, b: Thumb) =>
+  !!a && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h && a.base === b.base
 
 export type SegmentedControlProps<T extends string> = {
   value: T
@@ -23,16 +25,20 @@ export type SegmentedControlProps<T extends string> = {
   options: readonly SegmentOption<T>[]
   /** Accessible name of the group. */
   label: string
+  /** 32px outlined control with content-sized cells; the hit area extends to 44px on coarse pointers. */
+  dense?: boolean
 }
 
 // Radio-group semantics: one tab stop (the selected option), arrows move and select, Home/End jump.
 // Options share equal cells (auto-fit grid) so the thumb has one size and only translates; at 320px the
-// grid wraps into rows instead of clipping. The thumb transition is a plain CSS transition, so re-selecting mid-slide retargets it.
+// grid wraps into rows instead of clipping. Dense cells size to their content, so the thumb also scales
+// horizontally to the selected cell. The thumb transition is a plain CSS transition, so re-selecting mid-slide retargets it.
 export function SegmentedControl<T extends string>({
   value,
   onChange,
   options,
   label,
+  dense,
 }: SegmentedControlProps<T>) {
   const root = useRef<HTMLDivElement>(null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
@@ -40,17 +46,23 @@ export function SegmentedControl<T extends string>({
   // and the option count, so a new selection reuses them instead of forcing a layout while its commit is applied.
   const boxes = useRef<(Box | null)[]>([])
   const current = useRef(0)
-  const [thumb, setThumb] = useState<Box | null>(null)
+  const [thumb, setThumb] = useState<Thumb | null>(null)
   const [ready, setReady] = useState(false)
   const selected = Math.max(
     0,
     options.findIndex((option) => option.value === value),
   )
 
+  const place = () => {
+    const box = boxes.current[current.current]
+    if (!box) return
+    const next = { ...box, base: boxes.current[0]?.w ?? box.w }
+    setThumb((prev) => (sameThumb(prev, next) ? prev : next))
+  }
+
   useLayoutEffect(() => {
     current.current = selected
-    const box = boxes.current[selected]
-    if (box) setThumb((prev) => (sameBox(prev, box) ? prev : box))
+    place()
   }, [selected])
 
   useLayoutEffect(() => {
@@ -67,8 +79,7 @@ export function SegmentedControl<T extends string>({
             }
           : null,
       )
-      const box = boxes.current[current.current]
-      if (box) setThumb((prev) => (sameBox(prev, box) ? prev : box))
+      place()
     }
     if (typeof ResizeObserver === 'undefined') {
       measure()
@@ -113,6 +124,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={label}
       data-ready={ready ? 'true' : undefined}
+      data-dense={dense ? 'true' : undefined}
       style={{ '--n': options.length } as CSSProperties}
       onKeyDown={onKeyDown}
     >
@@ -121,9 +133,9 @@ export function SegmentedControl<T extends string>({
           className="ui-segmented-thumb"
           aria-hidden="true"
           style={{
-            width: thumb.w,
+            width: dense ? thumb.base : thumb.w,
             height: thumb.h,
-            transform: `translate(${thumb.x}px, ${thumb.y}px)`,
+            transform: `translate(${thumb.x}px, ${thumb.y}px)${dense ? ` scaleX(${thumb.base ? thumb.w / thumb.base : 1})` : ''}`,
           }}
         />
       ) : null}

@@ -8,7 +8,8 @@ import { figures as r2 } from './figures2'
 import { figures as r3 } from './figures3'
 import { figures as r4 } from './figures4'
 import { figures as r5 } from './figures5'
-const figures = { ...r1, ...r2, ...r3, ...r4, ...r5 }
+import { figures as r6 } from './figures6'
+const figures = { ...r1, ...r2, ...r3, ...r4, ...r5, ...r6 }
 
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
 const mix = (a: string, b: string, t: number) =>

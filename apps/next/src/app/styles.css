@@ -178,6 +178,8 @@
   --cat-region-europe: #558cb9;
   --cat-region-oceania: #487a6d;
   --zero: var(--surface-inset);
+  /* Loading placeholder fill: its own role, so it reads on both surface and floating sheets. */
+  --skeleton: var(--hairline);
   --missing: #837b74;
   --brand-neutral: #8a8076;
 }

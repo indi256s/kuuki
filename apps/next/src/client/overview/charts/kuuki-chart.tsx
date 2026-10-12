@@ -34,6 +34,10 @@ export type KuukiChartProps<T> = {
   onPick?: (point: ChartPoint<T>) => void
   /** Points the page is already filtered by: they carry `aria-pressed` and a standing outline (the filter chips live in the toolbar). */
   applied?: (point: ChartPoint<T>) => boolean
+  /** The chapter's current reading: `data-picked` and `aria-current`, separate from `applied` (a filter) and from the tooltip subject. Enter then reads as "selects". */
+  selected?: (point: ChartPoint<T>) => boolean
+  /** A touch tap calls `onPick` instead of pinning the tooltip; long-press, the context menu and Shift+F10 still pin it with its actions. */
+  tapPicks?: boolean
   tip?: (points: readonly ChartPoint<T>[]) => ReactNode
   actions?: (point: ChartPoint<T>) => readonly TipAction[]
   table: ChartTable
@@ -60,6 +64,8 @@ export function KuukiChart<T>({
   inView,
   onPick,
   applied,
+  selected,
+  tapPicks,
   tip,
   actions,
   table,
@@ -188,6 +194,7 @@ export function KuukiChart<T>({
     'data-selected'?: string
     'data-pinned'?: string
     'data-filtered'?: string
+    'data-picked'?: string
   } => ({
     ref: (node) => {
       if (node) marks.current.set(item.key, node)
@@ -206,6 +213,8 @@ export function KuukiChart<T>({
     'data-pinned': selection?.pinned && selection.key === item.key ? 'true' : undefined,
     'data-filtered': applied?.(item) ? 'true' : undefined,
     'aria-pressed': applied ? !!applied(item) : undefined,
+    'data-picked': selected?.(item) ? 'true' : undefined,
+    'aria-current': selected?.(item) ? 'true' : undefined,
     onFocus: (event) => {
       setActive(item.key)
       if (!selection?.pinned) show(item.key, event.currentTarget, false)
@@ -228,7 +237,7 @@ export function KuukiChart<T>({
     },
     onClick: (event) => {
       event.stopPropagation()
-      if (pointer.current === 'touch') show(item.key, event.currentTarget, true)
+      if (pointer.current === 'touch' && !tapPicks) show(item.key, event.currentTarget, true)
       else {
         dismiss()
         onPick?.(points.find((current) => current.key === item.key) ?? item)
@@ -320,12 +329,17 @@ export function KuukiChart<T>({
       {/* The keys are otherwise undiscoverable: one point is a tab stop and the others are reached with arrows. */}
       <span id={`${id}-keys`} className="sr-only">
         {t(
-          onPick
+          onPick && (selected || tapPicks)
             ? {
-                en: 'Arrow keys move between points. Enter filters the page by the focused point.',
-                ru: 'Стрелки переключают точки. Enter фильтрует страницу по выбранной точке.',
+                en: 'Arrow keys move between points. Enter selects the focused point.',
+                ru: 'Стрелки переключают точки. Enter выбирает точку в фокусе.',
               }
-            : { en: 'Arrow keys move between points.', ru: 'Стрелки переключают точки.' },
+            : onPick
+              ? {
+                  en: 'Arrow keys move between points. Enter filters the page by the focused point.',
+                  ru: 'Стрелки переключают точки. Enter фильтрует страницу по выбранной точке.',
+                }
+              : { en: 'Arrow keys move between points.', ru: 'Стрелки переключают точки.' },
           locale,
         )}
         {actions

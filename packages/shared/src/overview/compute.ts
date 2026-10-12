@@ -5,6 +5,7 @@ import { records } from './records'
 import { routes } from './routes'
 import { goals } from './goals'
 import { crossings } from './crossings'
+import { continents } from './continents'
 import { fleet } from './fleet'
 import { makers } from './makers'
 import { clock } from './clock'
@@ -29,6 +30,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     routes: routes(rows, counted, homeAirport?.iata ?? null),
     records: records(rows, payload.refs, payload.mode),
     crossings: crossings(rows, payload.refs, payload.mode, counted),
+    continents: continents(rows, payload.refs),
     fleet: fleet(rows, payload.refs, payload.mode),
     makers: makers(rows, payload.refs, payload.mode),
     clock: clock(rows),
