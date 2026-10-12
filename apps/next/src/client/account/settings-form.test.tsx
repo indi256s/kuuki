@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsForm } from './settings-form'
-import { ApiError } from '@kuuki/client/apiClient'
+import { ApiError, advanceAuthGeneration } from '@kuuki/client/apiClient'
 
 const m = vi.hoisted(() => ({
   patch: vi.fn(),
@@ -369,6 +369,8 @@ describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
   const root = document.documentElement
   const swatch = (name: string) => screen.getByRole('radio', { name })
   beforeEach(() => {
+    // Each test is a fresh sign-in, so no earlier test's saved accent becomes this one's rollback target.
+    advanceAuthGeneration()
     document.cookie = 'kuuki_accent=shu; Path=/'
     root.dataset.accent = 'shu'
   })
@@ -398,6 +400,25 @@ describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
     expect(root.dataset.accent).toBe('shu')
     expect(swatch(ru ? 'Шу' : 'Shu')).toHaveAttribute('aria-checked', 'true')
     expect(document.cookie).toContain('kuuki_accent=shu')
+  })
+  it('reverts a failed save to the accent another picker saved, not a stale profile payload', async () => {
+    const first = mount(locale)
+    await userEvent.click(swatch(ru ? 'Ай' : 'Ai'))
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
+    first.unmount()
+    m.patch.mockRejectedValue(new TypeError('offline'))
+    // A soft navigation can hand the next picker the profile as it was before the save.
+    render(
+      <SettingsForm
+        ownerId="a"
+        profile={{ ...profile, theme_color: 'shu' }}
+        locale={locale}
+        counts={counts}
+      />,
+    )
+    await userEvent.click(swatch(ru ? 'Сакура' : 'Sakura'))
+    await screen.findByRole('alert')
+    expect(root.dataset.accent).toBe('ai')
   })
   it('lets a superseded save finish in order and reports only the latest pick failing', async () => {
     const sent: Array<{ accent: string; fail: () => void }> = []

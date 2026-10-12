@@ -5,6 +5,7 @@ import { Check } from '@keyline-icons/react'
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ComponentProps,
@@ -107,7 +108,8 @@ export function Menu({
         <DropdownMenu.Content
           className={className ? `ui-menu ${className}` : 'ui-menu'}
           data-instant={still}
-          aria-labelledby={labelledBy}
+          // Radix names the menu after its trigger; an explicit undefined would erase that.
+          {...(labelledBy ? { 'aria-labelledby': labelledBy } : {})}
           align={align}
           side={side}
           sideOffset={sideOffset}
@@ -295,6 +297,11 @@ export function MenuTray<T extends string>({
     setSeen(value)
     setCurrent(value)
   }
+  // A value the caller puts back (a failed save) swaps the focused cell for a span; focus moves to the new item.
+  const focused = useRef(false)
+  useLayoutEffect(() => {
+    if (focused.current && document.activeElement === document.body) selected.current?.focus()
+  }, [current])
   const pick = (next: T) => {
     if (next === current) return
     setCurrent(next)
@@ -346,6 +353,12 @@ export function MenuTray<T extends string>({
               aria-label={name}
               onSelect={(event) => event.preventDefault()}
               onKeyDown={step}
+              onFocus={() => {
+                focused.current = true
+              }}
+              onBlur={(event) => {
+                if (event.relatedTarget) focused.current = false
+              }}
             >
               {content}
             </DropdownMenu.RadioItem>

@@ -46,7 +46,7 @@
 /* The desktop site header is sticky, so the column header sticks below it; the mobile header scrolls away. */
 @media (min-width: 701px) {
   .journal-ledger {
-    --ledger-sticky-top: var(--header-h);
+    --ledger-sticky-top: var(--header-block, var(--header-h));
   }
 }
 

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   useEffect,
   useId,
+  useRef,
   useState,
   type ComponentType,
   type ReactNode,
@@ -70,8 +71,27 @@ export function MobilePageTitle() {
 
 export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
   const pathname = usePathname()
+  const nav = useRef<HTMLElement>(null)
+  // The sticky header wraps on narrow desktops and long labels; sticky content below reads its real height.
+  useEffect(() => {
+    const header = nav.current?.closest('.site-header')
+    if (!header || typeof ResizeObserver !== 'function') return
+    const root = document.documentElement.style
+    const observer = new ResizeObserver(() =>
+      root.setProperty('--header-block', `${header.getBoundingClientRect().height}px`),
+    )
+    observer.observe(header)
+    return () => {
+      observer.disconnect()
+      root.removeProperty('--header-block')
+    }
+  }, [])
   return (
-    <nav aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'} className="desktop-nav">
+    <nav
+      ref={nav}
+      aria-label={locale === 'ru' ? 'Основная навигация' : 'Primary'}
+      className="desktop-nav"
+    >
       <ul className="main-nav">
         {NAV_ITEMS.map((item) => (
           <li key={item.href}>
