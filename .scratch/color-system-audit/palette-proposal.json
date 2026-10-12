@@ -1,0 +1,518 @@
+{
+  "status": "final agent recommendation; not applied to app",
+  "version": 1,
+  "library": "colorjs.io@0.7.1",
+  "modes": {
+    "light": {
+      "background": "#fbfaf8",
+      "surface": "#ffffff",
+      "inset": "#f2f0ed",
+      "text": "#302d2a",
+      "muted": "#66605b"
+    },
+    "dark": {
+      "background": "#292827",
+      "surface": "#353331",
+      "inset": "#403d3a",
+      "text": "#f1efeb",
+      "muted": "#c4beb7"
+    }
+  },
+  "accents": {
+    "shu": {
+      "name": "Shu",
+      "light": "#c23417",
+      "dark": "#ea846f"
+    },
+    "ai": {
+      "name": "Ai",
+      "light": "#4e5ea2",
+      "dark": "#acbbef"
+    },
+    "matcha": {
+      "name": "Matcha",
+      "light": "#59702a",
+      "dark": "#b7ce92"
+    },
+    "asagi": {
+      "name": "Asagi",
+      "light": "#0c747d",
+      "dark": "#85cfd8"
+    },
+    "sakura": {
+      "name": "Sakura",
+      "light": "#964969",
+      "dark": "#e8a9c0"
+    }
+  },
+  "makers": {
+    "light": [
+      {
+        "key": "airbus",
+        "name": "Airbus",
+        "color": "#568db2"
+      },
+      {
+        "key": "boeing",
+        "name": "Boeing",
+        "color": "#487a6b"
+      },
+      {
+        "key": "embraer",
+        "name": "Embraer",
+        "color": "#988451"
+      },
+      {
+        "key": "atr",
+        "name": "ATR",
+        "color": "#8457a8"
+      },
+      {
+        "key": "other",
+        "name": "Other",
+        "color": "#5e574f"
+      }
+    ],
+    "dark": [
+      {
+        "key": "airbus",
+        "name": "Airbus",
+        "color": "#a2cae7"
+      },
+      {
+        "key": "boeing",
+        "name": "Boeing",
+        "color": "#71bca5"
+      },
+      {
+        "key": "embraer",
+        "name": "Embraer",
+        "color": "#dec179"
+      },
+      {
+        "key": "atr",
+        "name": "ATR",
+        "color": "#bd99dd"
+      },
+      {
+        "key": "other",
+        "name": "Other",
+        "color": "#9b9084"
+      }
+    ]
+  },
+  "regions": {
+    "light": [
+      {
+        "key": "africa",
+        "name": "Африка",
+        "color": "#9f8151"
+      },
+      {
+        "key": "americas",
+        "name": "Америка",
+        "color": "#844333"
+      },
+      {
+        "key": "antarctica",
+        "name": "Антарктида",
+        "color": "#4e586c"
+      },
+      {
+        "key": "asia",
+        "name": "Азия",
+        "color": "#945198"
+      },
+      {
+        "key": "europe",
+        "name": "Европа",
+        "color": "#558cb9"
+      },
+      {
+        "key": "oceania",
+        "name": "Океания",
+        "color": "#487a6d"
+      }
+    ],
+    "dark": [
+      {
+        "key": "africa",
+        "name": "Африка",
+        "color": "#e7bd7a"
+      },
+      {
+        "key": "americas",
+        "name": "Америка",
+        "color": "#d5725a"
+      },
+      {
+        "key": "antarctica",
+        "name": "Антарктида",
+        "color": "#8892a8"
+      },
+      {
+        "key": "asia",
+        "name": "Азия",
+        "color": "#d48dd8"
+      },
+      {
+        "key": "europe",
+        "name": "Европа",
+        "color": "#a6c9e7"
+      },
+      {
+        "key": "oceania",
+        "name": "Океания",
+        "color": "#71bca8"
+      }
+    ]
+  },
+  "brands": {
+    "light": [
+      {
+        "key": "TK",
+        "source": "#C70A0C",
+        "color": "#ad4d42"
+      },
+      {
+        "key": "EK",
+        "source": "#D71A21",
+        "color": "#ac4d45"
+      }
+    ],
+    "dark": [
+      {
+        "key": "TK",
+        "source": "#C70A0C",
+        "color": "#df958a"
+      },
+      {
+        "key": "EK",
+        "source": "#D71A21",
+        "color": "#df948c"
+      }
+    ]
+  },
+  "themes": {
+    "light:shu": {
+      "accent": "#c23417",
+      "foreground": "#ffffff",
+      "tint": "#f3edec",
+      "text": "#a55140",
+      "comparison": [
+        "#864132",
+        "#6b7542",
+        "#386061",
+        "#767ece",
+        "#9a4e8f"
+      ],
+      "heat": [
+        {
+          "color": "#e8dad7",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#daafa6",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#c87b6a",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#a3503f",
+          "foreground": "#ffffff"
+        }
+      ],
+      "border": "#886842"
+    },
+    "light:ai": {
+      "accent": "#4e5ea2",
+      "foreground": "#ffffff",
+      "tint": "#edeef3",
+      "text": "#5264b6",
+      "comparison": [
+        "#5567ba",
+        "#c26287",
+        "#846a42",
+        "#508967",
+        "#385f67"
+      ],
+      "heat": [
+        {
+          "color": "#dadee8",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#b0b9d8",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#7d8ece",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#5465b1",
+          "foreground": "#ffffff"
+        }
+      ],
+      "border": "#886842"
+    },
+    "light:matcha": {
+      "accent": "#59702a",
+      "foreground": "#ffffff",
+      "tint": "#eaf2e0",
+      "text": "#5f713f",
+      "comparison": [
+        "#647742",
+        "#385f66",
+        "#8677ce",
+        "#c76174",
+        "#6f5133"
+      ],
+      "heat": [
+        {
+          "color": "#d8e3c7",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#b0c392",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#859c5e",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#617441",
+          "foreground": "#ffffff"
+        }
+      ],
+      "border": "#886842"
+    },
+    "light:asagi": {
+      "accent": "#0c747d",
+      "foreground": "#ffffff",
+      "tint": "#e5f1f2",
+      "text": "#437277",
+      "comparison": [
+        "#386064",
+        "#7a6bc1",
+        "#c76175",
+        "#645733",
+        "#477e49"
+      ],
+      "heat": [
+        {
+          "color": "#c7e5e8",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#90c6cc",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#649da4",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#45757a",
+          "foreground": "#ffffff"
+        }
+      ],
+      "border": "#886842"
+    },
+    "light:sakura": {
+      "accent": "#964969",
+      "foreground": "#ffffff",
+      "tint": "#f3edef",
+      "text": "#a64b72",
+      "comparison": [
+        "#863a5b",
+        "#75603a",
+        "#50886b",
+        "#3e6886",
+        "#8d74cb"
+      ],
+      "heat": [
+        {
+          "color": "#e8d9de",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#daacbc",
+          "foreground": "#302d2a"
+        },
+        {
+          "color": "#c37895",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#a04b6f",
+          "foreground": "#ffffff"
+        }
+      ],
+      "border": "#886842"
+    },
+    "dark:shu": {
+      "accent": "#ea846f",
+      "foreground": "#292827",
+      "tint": "#4f3e3a",
+      "text": "#e2a193",
+      "comparison": [
+        "#d6725d",
+        "#a5b469",
+        "#609fa1",
+        "#bcc1e7",
+        "#db8bce"
+      ],
+      "heat": [
+        {
+          "color": "#6a4d47",
+          "foreground": "#f1efeb"
+        },
+        {
+          "color": "#966257",
+          "foreground": "#ffffff"
+        },
+        {
+          "color": "#c87b6a",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#e2a294",
+          "foreground": "#000000"
+        }
+      ],
+      "border": "#d1a168"
+    },
+    "dark:ai": {
+      "accent": "#acbbef",
+      "foreground": "#292827",
+      "tint": "#3d4250",
+      "text": "#a2b0df",
+      "comparison": [
+        "#99a8dd",
+        "#e8b3c5",
+        "#cba468",
+        "#79cc9c",
+        "#5f9daa"
+      ],
+      "heat": [
+        {
+          "color": "#4d546c",
+          "foreground": "#f1efeb"
+        },
+        {
+          "color": "#636f9b",
+          "foreground": "#ffffff"
+        },
+        {
+          "color": "#7d8ece",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#a5b2e0",
+          "foreground": "#000000"
+        }
+      ],
+      "border": "#d1a168"
+    },
+    "dark:matcha": {
+      "accent": "#b7ce92",
+      "foreground": "#292827",
+      "tint": "#3f4537",
+      "text": "#9fbc6c",
+      "comparison": [
+        "#9bb769",
+        "#5f9ea9",
+        "#c3bfe7",
+        "#e8b5bb",
+        "#b78758"
+      ],
+      "heat": [
+        {
+          "color": "#515944",
+          "foreground": "#f1efeb"
+        },
+        {
+          "color": "#6a7852",
+          "foreground": "#ffffff"
+        },
+        {
+          "color": "#859c5e",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#a4c16f",
+          "foreground": "#000000"
+        }
+      ],
+      "border": "#d1a168"
+    },
+    "dark:asagi": {
+      "accent": "#85cfd8",
+      "foreground": "#292827",
+      "tint": "#394546",
+      "text": "#74bec6",
+      "comparison": [
+        "#5f9ea5",
+        "#b6b1e2",
+        "#e8b5bb",
+        "#a59059",
+        "#74c076"
+      ],
+      "heat": [
+        {
+          "color": "#47595b",
+          "foreground": "#f1efeb"
+        },
+        {
+          "color": "#56797c",
+          "foreground": "#ffffff"
+        },
+        {
+          "color": "#649da4",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#77c3cb",
+          "foreground": "#000000"
+        }
+      ],
+      "border": "#d1a168"
+    },
+    "dark:sakura": {
+      "accent": "#e8a9c0",
+      "foreground": "#292827",
+      "tint": "#4e3d43",
+      "text": "#e29cb6",
+      "comparison": [
+        "#cf6e95",
+        "#ba9960",
+        "#7acca2",
+        "#66a6d3",
+        "#c7bde7"
+      ],
+      "heat": [
+        {
+          "color": "#684c56",
+          "foreground": "#f1efeb"
+        },
+        {
+          "color": "#936073",
+          "foreground": "#ffffff"
+        },
+        {
+          "color": "#c37895",
+          "foreground": "#000000"
+        },
+        {
+          "color": "#e29db7",
+          "foreground": "#000000"
+        }
+      ],
+      "border": "#d1a168"
+    }
+  }
+}

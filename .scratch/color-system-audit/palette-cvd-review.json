@@ -1,0 +1,3774 @@
+{
+  "model": "Machado 2009, author matrices at severity 1.0; linear RGB, channel clipping, rounded sRGB output",
+  "matrices": {
+    "protan": [
+      [
+        0.152286,
+        1.052583,
+        -0.204868
+      ],
+      [
+        0.114503,
+        0.786281,
+        0.099216
+      ],
+      [
+        -0.003882,
+        -0.048116,
+        1.051998
+      ]
+    ],
+    "deutan": [
+      [
+        0.367322,
+        0.860646,
+        -0.227968
+      ],
+      [
+        0.280085,
+        0.672501,
+        0.047413
+      ],
+      [
+        -0.01182,
+        0.04294,
+        0.968881
+      ]
+    ],
+    "tritan": [
+      [
+        1.255528,
+        -0.076749,
+        -0.178779
+      ],
+      [
+        -0.078411,
+        0.930809,
+        0.147602
+      ],
+      [
+        0.004733,
+        0.691367,
+        0.3039
+      ]
+    ]
+  },
+  "sources": [
+    "https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html",
+    "https://search.r-project.org/CRAN/refmans/colorspace/html/simulate_cvd.html"
+  ],
+  "metric": "Euclidean OKLab distance ×100, relative design comparison only; no accessibility pass threshold",
+  "limitations": "Tritan is the published approximation; simulations do not predict each person’s perception. Labels/patterns remain necessary.",
+  "summary": [
+    {
+      "set": "makers",
+      "before": 0.315,
+      "after": 7.683
+    },
+    {
+      "set": "regions",
+      "before": 0.555,
+      "after": 6.785
+    },
+    {
+      "set": "comparison:shu",
+      "before": 1.115,
+      "after": 6.779
+    },
+    {
+      "set": "comparison:ai",
+      "before": 1.577,
+      "after": 5.003
+    },
+    {
+      "set": "comparison:matcha",
+      "before": 0.471,
+      "after": 6.186
+    },
+    {
+      "set": "comparison:asagi",
+      "before": 1.164,
+      "after": 6.787
+    },
+    {
+      "set": "comparison:sakura",
+      "before": 0.397,
+      "after": 6.845
+    }
+  ],
+  "heatChecks": 40,
+  "rows": [
+    {
+      "mode": "light",
+      "set": "makers",
+      "type": "normal",
+      "closest": {
+        "a": "boeing",
+        "b": "other",
+        "distance": 10.157
+      },
+      "pairs": [
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 10.157
+        },
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 11.308
+        },
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 12.026
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 14.926
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 14.943
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 16.019
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 16.925
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 17.755
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 18.611
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 20.833
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "makers",
+      "type": "protan",
+      "closest": {
+        "a": "boeing",
+        "b": "embraer",
+        "distance": 7.731
+      },
+      "pairs": [
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 7.731
+        },
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 10.158
+        },
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 11.5
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 13.014
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 13.346
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 14.155
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 14.33
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 16.315
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 20.082
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 20.474
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "makers",
+      "type": "deutan",
+      "closest": {
+        "a": "boeing",
+        "b": "other",
+        "distance": 7.683
+      },
+      "pairs": [
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 7.683
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 8.412
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 10.242
+        },
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 10.705
+        },
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 11.138
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 13.425
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 14.713
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 17.207
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 17.476
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 19.46
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "makers",
+      "type": "tritan",
+      "closest": {
+        "a": "airbus",
+        "b": "boeing",
+        "distance": 8.234
+      },
+      "pairs": [
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 8.234
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 8.241
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 9.402
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 10.879
+        },
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 11.394
+        },
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 14.248
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 14.446
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 15.457
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 16.384
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 18.997
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "regions",
+      "type": "normal",
+      "closest": {
+        "a": "antarctica",
+        "b": "oceania",
+        "distance": 10.491
+      },
+      "pairs": [
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 10.491
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 11.918
+        },
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 11.937
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 12.86
+        },
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 14.285
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 15.399
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 16.36
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 16.366
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 16.609
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 17.126
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 17.238
+        },
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 18.305
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 19.155
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 19.484
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 23.861
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "regions",
+      "type": "protan",
+      "closest": {
+        "a": "antarctica",
+        "b": "asia",
+        "distance": 7.235
+      },
+      "pairs": [
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 7.235
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 7.362
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 9.037
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 10.448
+        },
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 11.516
+        },
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 12.147
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 13.759
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 14.412
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 15.147
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 16.143
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 17.267
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 18.403
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 18.554
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 18.706
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 25.482
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "regions",
+      "type": "deutan",
+      "closest": {
+        "a": "asia",
+        "b": "oceania",
+        "distance": 6.785
+      },
+      "pairs": [
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 6.785
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 7.539
+        },
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 8.767
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 9.055
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 9.191
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 9.782
+        },
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 11.299
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 11.66
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 14.473
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 15.899
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 16.243
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 16.282
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 16.846
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 20.363
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 20.497
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "regions",
+      "type": "tritan",
+      "closest": {
+        "a": "europe",
+        "b": "oceania",
+        "distance": 8.525
+      },
+      "pairs": [
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 8.525
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 8.912
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 8.992
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 9.121
+        },
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 13.739
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 14.626
+        },
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 15.317
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 15.562
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 16.468
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 16.737
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 17.441
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 18.761
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 19.881
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 20.103
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 26.722
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:shu",
+      "type": "normal",
+      "closest": {
+        "a": "1",
+        "b": "2",
+        "distance": 11.356
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 11.356
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 14.229
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.233
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 14.244
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 14.342
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 18.448
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 19.648
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 20.179
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 20.761
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 24.575
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:shu",
+      "type": "protan",
+      "closest": {
+        "a": "2",
+        "b": "4",
+        "distance": 7.584
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 7.584
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 8.078
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 10.138
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 13.152
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.477
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 14.947
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 15.432
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 18.905
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 20.705
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 26.918
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:shu",
+      "type": "deutan",
+      "closest": {
+        "a": "0",
+        "b": "1",
+        "distance": 7.524
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 7.524
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 7.86
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 8.932
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 9.95
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 11.273
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 11.662
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 13.268
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 18.473
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 19.456
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 22.996
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:shu",
+      "type": "tritan",
+      "closest": {
+        "a": "0",
+        "b": "4",
+        "distance": 8.518
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 8.518
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 9.648
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 10.607
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 10.695
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 14.865
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 16.086
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 17.401
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 18.531
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 18.694
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 23.762
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:ai",
+      "type": "normal",
+      "closest": {
+        "a": "2",
+        "b": "3",
+        "distance": 10.19
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 10.19
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 13.057
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.8
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 14.02
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 15.629
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 18.534
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 19.305
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 19.473
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 20.985
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 23.268
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:ai",
+      "type": "protan",
+      "closest": {
+        "a": "1",
+        "b": "3",
+        "distance": 7.806
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 7.806
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 8.157
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 9.248
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 9.375
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 10.105
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 10.209
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 13.561
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.996
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 17.613
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 19.204
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:ai",
+      "type": "deutan",
+      "closest": {
+        "a": "1",
+        "b": "3",
+        "distance": 5.003
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 5.003
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 5.193
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 10.021
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 12.86
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 12.932
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.505
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 17.075
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 17.124
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 17.132
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 20.035
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:ai",
+      "type": "tritan",
+      "closest": {
+        "a": "0",
+        "b": "3",
+        "distance": 5.907
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 5.907
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 8.131
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 12.12
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 12.449
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 13.041
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 13.842
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 14.825
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 22.071
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 24.272
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 26.803
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:matcha",
+      "type": "normal",
+      "closest": {
+        "a": "1",
+        "b": "4",
+        "distance": 10.037
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 10.037
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 10.794
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 11.987
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 16.688
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 19.361
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 19.65
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 20.634
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 22.19
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 23.683
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 23.882
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:matcha",
+      "type": "protan",
+      "closest": {
+        "a": "0",
+        "b": "3",
+        "distance": 7.188
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 7.188
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 7.628
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 8.827
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 10.746
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 11.326
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.085
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 13.891
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 18.092
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 20.813
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 25.05
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:matcha",
+      "type": "deutan",
+      "closest": {
+        "a": "0",
+        "b": "4",
+        "distance": 7.829
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 7.829
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 8.223
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 8.975
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 12.316
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 15.693
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 16.482
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 18.017
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 18.181
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 19.456
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 22.814
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:matcha",
+      "type": "tritan",
+      "closest": {
+        "a": "0",
+        "b": "2",
+        "distance": 8.352
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 8.352
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 9.84
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 10.968
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 12.639
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 16.594
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 17.694
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 18.599
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 19.103
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 19.567
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 28.19
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:asagi",
+      "type": "normal",
+      "closest": {
+        "a": "0",
+        "b": "3",
+        "distance": 8.447
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 8.447
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 11.435
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 11.711
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 17.118
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 17.921
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 20.827
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 21.807
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 22.224
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 22.817
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 23.664
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:asagi",
+      "type": "protan",
+      "closest": {
+        "a": "2",
+        "b": "4",
+        "distance": 6.816
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 6.816
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 7.329
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 8.51
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 11.022
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 11.501
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 12.465
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 12.701
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 15.273
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 19.309
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 22.156
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:asagi",
+      "type": "deutan",
+      "closest": {
+        "a": "3",
+        "b": "4",
+        "distance": 7.756
+      },
+      "pairs": [
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 7.756
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 7.843
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 8.76
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 11.318
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 15.023
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 16.44
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 16.575
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 17.66
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 17.863
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 20.566
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:asagi",
+      "type": "tritan",
+      "closest": {
+        "a": "1",
+        "b": "4",
+        "distance": 6.787
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 6.787
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 8.168
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 9.71
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 12.269
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 12.761
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 13.104
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 19.334
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 20.693
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 24.073
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 28.022
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:sakura",
+      "type": "normal",
+      "closest": {
+        "a": "1",
+        "b": "2",
+        "distance": 11.718
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 11.718
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 12.209
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 12.588
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 12.93
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 15.627
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 16.024
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 19.48
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 19.981
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 21.846
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 21.939
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:sakura",
+      "type": "protan",
+      "closest": {
+        "a": "0",
+        "b": "3",
+        "distance": 10.687
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 10.687
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 11.515
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 11.56
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 11.568
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 11.828
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 11.93
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 15.787
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 19.625
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 22.082
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 22.147
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:sakura",
+      "type": "deutan",
+      "closest": {
+        "a": "0",
+        "b": "3",
+        "distance": 6.845
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 6.845
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 7.348
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 8.508
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 11.689
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 11.994
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 12.375
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 12.927
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 13.997
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 18.637
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 20.54
+        }
+      ]
+    },
+    {
+      "mode": "light",
+      "set": "comparison:sakura",
+      "type": "tritan",
+      "closest": {
+        "a": "2",
+        "b": "4",
+        "distance": 8.471
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 8.471
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 8.728
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 8.867
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 12.578
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 12.834
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 13.906
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.453
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 20.063
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 20.447
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 22.691
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "makers",
+      "type": "normal",
+      "closest": {
+        "a": "airbus",
+        "b": "boeing",
+        "distance": 11.432
+      },
+      "pairs": [
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 11.432
+        },
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 12.044
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 12.676
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 14.12
+        },
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 14.497
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 15.142
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 17.244
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 17.78
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 17.964
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 20.446
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "makers",
+      "type": "protan",
+      "closest": {
+        "a": "boeing",
+        "b": "embraer",
+        "distance": 8.472
+      },
+      "pairs": [
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 8.472
+        },
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 9.724
+        },
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 11.369
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 11.74
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 11.805
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 13.204
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 14.75
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 16.887
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 19.538
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 20.105
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "makers",
+      "type": "deutan",
+      "closest": {
+        "a": "boeing",
+        "b": "other",
+        "distance": 7.765
+      },
+      "pairs": [
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 7.765
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 8.182
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 8.208
+        },
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 9.654
+        },
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 12.319
+        },
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 12.935
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 15.412
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 17.001
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 18.141
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 19.801
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "makers",
+      "type": "tritan",
+      "closest": {
+        "a": "atr",
+        "b": "other",
+        "distance": 8.043
+      },
+      "pairs": [
+        {
+          "a": "atr",
+          "b": "other",
+          "distance": 8.043
+        },
+        {
+          "a": "airbus",
+          "b": "boeing",
+          "distance": 8.446
+        },
+        {
+          "a": "embraer",
+          "b": "atr",
+          "distance": 9.906
+        },
+        {
+          "a": "boeing",
+          "b": "atr",
+          "distance": 12.434
+        },
+        {
+          "a": "airbus",
+          "b": "atr",
+          "distance": 12.534
+        },
+        {
+          "a": "airbus",
+          "b": "embraer",
+          "distance": 13.215
+        },
+        {
+          "a": "boeing",
+          "b": "other",
+          "distance": 13.88
+        },
+        {
+          "a": "embraer",
+          "b": "other",
+          "distance": 16.931
+        },
+        {
+          "a": "boeing",
+          "b": "embraer",
+          "distance": 17.802
+        },
+        {
+          "a": "airbus",
+          "b": "other",
+          "distance": 18.085
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "regions",
+      "type": "normal",
+      "closest": {
+        "a": "europe",
+        "b": "oceania",
+        "distance": 11.371
+      },
+      "pairs": [
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 11.371
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 12.011
+        },
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 14.147
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 15.312
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 15.392
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 15.573
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 15.601
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 16.344
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 16.907
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 18.462
+        },
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 20.441
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 20.783
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 20.86
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 21.475
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 24.232
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "regions",
+      "type": "protan",
+      "closest": {
+        "a": "antarctica",
+        "b": "asia",
+        "distance": 7.299
+      },
+      "pairs": [
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 7.299
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 8.248
+        },
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 9.521
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 11.174
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 11.454
+        },
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 12.34
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 13.605
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 14.631
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 17
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 17.332
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 18.406
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 18.419
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 19.794
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 20.482
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 25.779
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "regions",
+      "type": "deutan",
+      "closest": {
+        "a": "asia",
+        "b": "oceania",
+        "distance": 6.949
+      },
+      "pairs": [
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 6.949
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 7.98
+        },
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 8.86
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 9
+        },
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 9.517
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 10.631
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 11.957
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 13.308
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 15.108
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 15.956
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 16.147
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 16.558
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 18.928
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 19.934
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 21.885
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "regions",
+      "type": "tritan",
+      "closest": {
+        "a": "europe",
+        "b": "oceania",
+        "distance": 8.667
+      },
+      "pairs": [
+        {
+          "a": "europe",
+          "b": "oceania",
+          "distance": 8.667
+        },
+        {
+          "a": "africa",
+          "b": "asia",
+          "distance": 9.249
+        },
+        {
+          "a": "antarctica",
+          "b": "oceania",
+          "distance": 10.913
+        },
+        {
+          "a": "americas",
+          "b": "asia",
+          "distance": 11.699
+        },
+        {
+          "a": "antarctica",
+          "b": "asia",
+          "distance": 13.674
+        },
+        {
+          "a": "africa",
+          "b": "europe",
+          "distance": 14.514
+        },
+        {
+          "a": "antarctica",
+          "b": "europe",
+          "distance": 16.462
+        },
+        {
+          "a": "asia",
+          "b": "europe",
+          "distance": 16.534
+        },
+        {
+          "a": "africa",
+          "b": "americas",
+          "distance": 18.106
+        },
+        {
+          "a": "asia",
+          "b": "oceania",
+          "distance": 18.108
+        },
+        {
+          "a": "americas",
+          "b": "antarctica",
+          "distance": 19.282
+        },
+        {
+          "a": "africa",
+          "b": "oceania",
+          "distance": 19.67
+        },
+        {
+          "a": "africa",
+          "b": "antarctica",
+          "distance": 19.963
+        },
+        {
+          "a": "americas",
+          "b": "oceania",
+          "distance": 27.257
+        },
+        {
+          "a": "americas",
+          "b": "europe",
+          "distance": 27.555
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:shu",
+      "type": "normal",
+      "closest": {
+        "a": "3",
+        "b": "4",
+        "distance": 13.282
+      },
+      "pairs": [
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.282
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 13.597
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 15.21
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.138
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 17.641
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 17.651
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 19.358
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 19.76
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 21.961
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 22.45
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:shu",
+      "type": "protan",
+      "closest": {
+        "a": "2",
+        "b": "4",
+        "distance": 6.779
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 6.779
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 10.635
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 12.234
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 12.242
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 14.492
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 14.86
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 16.585
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 16.901
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 17.652
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 24.7
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:shu",
+      "type": "deutan",
+      "closest": {
+        "a": "0",
+        "b": "1",
+        "distance": 7.421
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 7.421
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 7.581
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 8.721
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 10.566
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 13.614
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 14.062
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 14.823
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 15.507
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 16.14
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 19.671
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:shu",
+      "type": "tritan",
+      "closest": {
+        "a": "1",
+        "b": "3",
+        "distance": 8.14
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 8.14
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 10.363
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 10.913
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 12.319
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.749
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 17.383
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 18.671
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 20.966
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 24.5
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 25.807
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:ai",
+      "type": "normal",
+      "closest": {
+        "a": "0",
+        "b": "4",
+        "distance": 10.857
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 10.857
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 12.639
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 12.976
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 13.314
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.907
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 16.242
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 16.69
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 16.766
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.537
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 20.427
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:ai",
+      "type": "protan",
+      "closest": {
+        "a": "1",
+        "b": "3",
+        "distance": 6.913
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 6.913
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 7.722
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 8.189
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 9.437
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 11.263
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 12.018
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 12.788
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 14.183
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.728
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 16.61
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:ai",
+      "type": "deutan",
+      "closest": {
+        "a": "1",
+        "b": "3",
+        "distance": 5.512
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 5.512
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 6.378
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 8.691
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 11.596
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 12.285
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 12.388
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.415
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 15.982
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 17.091
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 17.315
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:ai",
+      "type": "tritan",
+      "closest": {
+        "a": "0",
+        "b": "3",
+        "distance": 7.119
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 7.119
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 7.98
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 9.294
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 12.251
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 12.506
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 14.88
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 17.488
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.653
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 19.095
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 23.576
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:matcha",
+      "type": "normal",
+      "closest": {
+        "a": "2",
+        "b": "3",
+        "distance": 7.497
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 7.497
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 12.809
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 14.553
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 14.611
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 16.489
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 17.572
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 17.858
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 18.198
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 20.263
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 20.83
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:matcha",
+      "type": "protan",
+      "closest": {
+        "a": "2",
+        "b": "3",
+        "distance": 6.186
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 6.186
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 10.692
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 11.225
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 11.334
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 11.994
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 13.707
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 13.855
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 16.836
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 17.995
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 22.995
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:matcha",
+      "type": "deutan",
+      "closest": {
+        "a": "2",
+        "b": "3",
+        "distance": 6.821
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 6.821
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 7.756
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 10.464
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 12.019
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 15.247
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 15.519
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 16.188
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 16.879
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.576
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 20.039
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:matcha",
+      "type": "tritan",
+      "closest": {
+        "a": "0",
+        "b": "2",
+        "distance": 8.221
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 8.221
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 8.635
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 11.345
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 12.621
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 13.484
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 16.073
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 18.243
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 18.405
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 18.648
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 23.682
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:asagi",
+      "type": "normal",
+      "closest": {
+        "a": "1",
+        "b": "2",
+        "distance": 9.301
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 9.301
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 12.141
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.328
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 13.78
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 15.198
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 18.372
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 18.92
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 19.376
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 19.456
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 20.358
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:asagi",
+      "type": "protan",
+      "closest": {
+        "a": "1",
+        "b": "2",
+        "distance": 7.066
+      },
+      "pairs": [
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 7.066
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 9.129
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 10.498
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 10.861
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 11.386
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 11.977
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 13.46
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 15.554
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 16.835
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 19.872
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:asagi",
+      "type": "deutan",
+      "closest": {
+        "a": "3",
+        "b": "4",
+        "distance": 7.836
+      },
+      "pairs": [
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 7.836
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 9.348
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 9.629
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 11.057
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 12.579
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 13.349
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 13.796
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 17.006
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 17.467
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 18.145
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:asagi",
+      "type": "tritan",
+      "closest": {
+        "a": "0",
+        "b": "4",
+        "distance": 8.455
+      },
+      "pairs": [
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 8.455
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 8.541
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 9.975
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 13.378
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 14.085
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 14.643
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 15.02
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 16.225
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 17.91
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 23.593
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:sakura",
+      "type": "normal",
+      "closest": {
+        "a": "3",
+        "b": "4",
+        "distance": 14.307
+      },
+      "pairs": [
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 14.307
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 14.493
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 14.946
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 15.319
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 15.455
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.536
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 18.221
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 19.332
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 19.563
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 25.886
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:sakura",
+      "type": "protan",
+      "closest": {
+        "a": "3",
+        "b": "4",
+        "distance": 9.302
+      },
+      "pairs": [
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 9.302
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 10.209
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 12.588
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 13.375
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 13.545
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 14.399
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 16.079
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 19.483
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 21.209
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 21.62
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:sakura",
+      "type": "deutan",
+      "closest": {
+        "a": "2",
+        "b": "4",
+        "distance": 8.807
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 8.807
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 9.117
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 9.347
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 9.448
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 12.039
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 13.134
+        },
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 14.668
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 16.149
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.165
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 17.559
+        }
+      ]
+    },
+    {
+      "mode": "dark",
+      "set": "comparison:sakura",
+      "type": "tritan",
+      "closest": {
+        "a": "2",
+        "b": "3",
+        "distance": 8.824
+      },
+      "pairs": [
+        {
+          "a": "2",
+          "b": "3",
+          "distance": 8.824
+        },
+        {
+          "a": "0",
+          "b": "1",
+          "distance": 8.846
+        },
+        {
+          "a": "2",
+          "b": "4",
+          "distance": 10.457
+        },
+        {
+          "a": "1",
+          "b": "4",
+          "distance": 13.599
+        },
+        {
+          "a": "3",
+          "b": "4",
+          "distance": 16.461
+        },
+        {
+          "a": "1",
+          "b": "3",
+          "distance": 17.888
+        },
+        {
+          "a": "1",
+          "b": "2",
+          "distance": 17.959
+        },
+        {
+          "a": "0",
+          "b": "4",
+          "distance": 21.335
+        },
+        {
+          "a": "0",
+          "b": "3",
+          "distance": 25.602
+        },
+        {
+          "a": "0",
+          "b": "2",
+          "distance": 26.689
+        }
+      ]
+    }
+  ]
+}
