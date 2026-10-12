@@ -5,40 +5,12 @@ import { IdentitySnapshot, trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { badgeEventId, badgeName, type EarnedBadge } from './achievements'
 import { notificationStorage } from './storage'
+import { unseenBadges } from './unseen'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
 import './profile.css'
 
-const memory = new Map<string, string[]>()
-/** First successful snapshot on a device is a baseline. Future deltas are one immutable batch. */
-export function unseenBadges(
-  ownerId: string,
-  badges: EarnedBadge[],
-  storage: Pick<Storage, 'getItem' | 'setItem'>,
-) {
-  const key = `kuuki:badge-events:${ownerId}`
-  let previous = memory.get(key)
-  try {
-    const raw = storage.getItem(key)
-    if (raw) {
-      const value: unknown = JSON.parse(raw)
-      if (Array.isArray(value) && value.every((id) => typeof id === 'string'))
-        previous = previous ? [...new Set([...previous, ...value])] : value
-    }
-  } catch {
-    /* blocked storage keeps the tab baseline */
-  }
-  const ids = badges.map(badgeEventId)
-  const fresh = previous ? badges.filter((item) => !previous.includes(badgeEventId(item))) : []
-  const seen = [...new Set([...(previous ?? []), ...ids])]
-  memory.set(key, seen)
-  try {
-    storage.setItem(key, JSON.stringify(seen))
-  } catch {
-    /* memory prevents remount replay */
-  }
-  return { badges: fresh, first: !!previous && previous.length === 0 && fresh.length > 0 }
-}
+export { unseenBadges }
 export function BadgeNotifications({ ownerId, locale }: { ownerId: string; locale: Locale }) {
   const [notice, setNotice] = useState<{
     ownerId: string

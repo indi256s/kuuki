@@ -48,6 +48,31 @@ it('baselines a new device, aggregates actual deltas and persists them per accou
   expect(unseenBadges('first-account', [award(1), award(2)], device).first).toBe(true)
   expect(unseenBadges('first-account', [award(1), award(2)], device).badges).toEqual([])
 })
+it('keeps the cabinet unboxing baseline separate from the toast, so a toast never spends the unboxing', () => {
+  const storage = new Map<string, string>()
+  const device = {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      storage.set(key, value)
+    },
+  }
+  // First profile visit: baseline only, no replay of badges earned before.
+  expect(unseenBadges('cabinet-owner', [award(1)], device, 'badge-cabinet').badges).toEqual([])
+  // The toast notices a new award first (its own first snapshot is a baseline too).
+  unseenBadges('cabinet-owner', [award(1)], device)
+  expect(unseenBadges('cabinet-owner', [award(1), award(2)], device).badges).toEqual([award(2)])
+  // The next profile visit still presses it into its slot, once.
+  expect(
+    unseenBadges('cabinet-owner', [award(1), award(2)], device, 'badge-cabinet').badges,
+  ).toEqual([award(2)])
+  expect(
+    unseenBadges('cabinet-owner', [award(1), award(2)], device, 'badge-cabinet').badges,
+  ).toEqual([])
+  expect([...storage.keys()].sort()).toEqual([
+    'kuuki:badge-cabinet:cabinet-owner',
+    'kuuki:badge-events:cabinet-owner',
+  ])
+})
 it('announces a single batch, clears on identity reset and rejects late account data', async () => {
   vi.mocked(api.get)
     .mockResolvedValueOnce([])
