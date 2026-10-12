@@ -52,7 +52,7 @@ export function QueueMenuItem({
   const label = LABEL[locale]
   const row = (trailing: ReactNode, name?: string) => (
     <MenuItem asChild>
-      <Link href={QUEUE_HREF} aria-label={name} title={name}>
+      <Link href={QUEUE_HREF} aria-label={name}>
         <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
         <span className="queue-label" lang={locale === 'ru' ? 'ru' : undefined}>
           {label}
