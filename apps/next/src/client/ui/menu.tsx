@@ -74,6 +74,15 @@ export function Menu({
     if (open === undefined) setUncontrolledOpen(next)
     onOpenChange?.(next)
   }
+  // Radix closes on Escape from a document capture listener, so a key is recorded on window first: the close renders
+  // without motion from the start instead of cancelling a running exit, which would leave the menu mounted. A pointer
+  // never clears the flag while open, so a keyboard-opened menu does not replay its entrance.
+  useEffect(() => {
+    if (!isOpen) return
+    const key = () => setKeyboard(true)
+    window.addEventListener('keydown', key, true)
+    return () => window.removeEventListener('keydown', key, true)
+  }, [isOpen])
   const still = keyboard || instant ? '' : undefined
   return (
     <DropdownMenu.Root modal={false} open={isOpen} onOpenChange={setOpen}>
@@ -83,10 +92,7 @@ export function Menu({
           open={isOpen}
           scrim={scrim}
           instant={still}
-          onDismiss={() => {
-            setKeyboard(false)
-            setOpen(false)
-          }}
+          onDismiss={() => setOpen(false)}
           onExited={() => setShieldUp(false)}
         />
       ) : null}
@@ -109,11 +115,8 @@ export function Menu({
           collisionPadding={collisionPadding}
           hideWhenDetached={hideWhenDetached}
           avoidCollisions
-          onKeyDown={() => setKeyboard(true)}
-          onPointerDown={() => setKeyboard(false)}
           // The shield's own click closes the menu, so it stays up until the press ends.
           onPointerDownOutside={(event) => {
-            setKeyboard(false)
             if (event.target === shield.current) event.preventDefault()
           }}
         >

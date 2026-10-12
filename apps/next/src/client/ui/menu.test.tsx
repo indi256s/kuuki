@@ -64,6 +64,8 @@ describe('MenuTray', () => {
       'true',
     )
     expect(screen.getByRole('menu')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
   })
 
   it('opens without motion from the keyboard', async () => {
