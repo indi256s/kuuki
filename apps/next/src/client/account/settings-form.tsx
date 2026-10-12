@@ -331,12 +331,6 @@ export function SettingsForm({
       >
         <section aria-labelledby="settings-profile-heading">
           <h2 id="settings-profile-heading">{text('Profile', 'Профиль')}</h2>
-          <p className="settings-note">
-            {text(
-              'Profile and privacy changes are saved together.',
-              'Изменения профиля и приватности сохраняются вместе.',
-            )}
-          </p>
           <div
             className="settings-avatar"
             role="img"
@@ -453,10 +447,6 @@ export function SettingsForm({
               value={draft.gemini_api_key}
               disabled={busy}
               onChange={(event) => edit('gemini_api_key', event.target.value)}
-              hint={text(
-                'Saved only with your account settings.',
-                'Сохраняется только в настройках вашего аккаунта.',
-              )}
             />
           </div>
         </section>
@@ -474,8 +464,8 @@ export function SettingsForm({
               }))
             }
             consequence={text(
-              'Anyone can view a public profile. Turning it off also removes you from leaderboards when saved.',
-              'Публичный профиль виден всем. При сохранении закрытого профиля участие в рейтинге тоже отключится.',
+              'Turning it off removes you from leaderboards.',
+              'Если закрыть профиль, вы пропадёте из рейтинга.',
             )}
           />
           <SwitchRow
@@ -485,20 +475,14 @@ export function SettingsForm({
             disabledReason={leaderboardReason}
             onCheckedChange={(value) => edit('show_on_leaderboards', value)}
             consequence={text(
-              'A public profile and five completed flights are required. Rankings refresh periodically.',
-              'Нужны публичный профиль и пять завершённых перелётов. Рейтинг обновляется периодически.',
+              'A public profile and five completed flights are required.',
+              'Нужны публичный профиль и пять завершённых перелётов.',
             )}
           />
         </section>
       </form>
       <section aria-labelledby="settings-appearance-heading">
         <h2 id="settings-appearance-heading">{text('Appearance', 'Внешний вид')}</h2>
-        <p>
-          {text(
-            'Theme and language apply on this device. Your accent color also colors your public profile.',
-            'Тема и язык меняются на этом устройстве. Акцентный цвет также окрашивает ваш публичный профиль.',
-          )}
-        </p>
         <SegmentedControl
           label={text('Theme', 'Тема')}
           value={appearance.theme}
@@ -537,12 +521,6 @@ export function SettingsForm({
       </section>
       <section aria-labelledby="settings-data-heading">
         <h2 id="settings-data-heading">{text('Data', 'Данные')}</h2>
-        <p>
-          {text(
-            'Portable CSV files of your records, including upcoming flights and ground-visit notes.',
-            'CSV-файлы ваших записей, включая будущие перелёты и заметки о наземных посещениях.',
-          )}
-        </p>
         {(['flights', 'claims', 'ground'] as const).map((kind) => (
           <div className="settings-export-row" key={kind}>
             <div>
@@ -576,16 +554,12 @@ export function SettingsForm({
             </Button>
           </div>
         ))}
-        <p>
-          {text(
-            'Limit: 5 CSV files per day on this device.',
-            'Лимит: 5 CSV-файлов в день на этом устройстве.',
-          )}{' '}
-          {limit.remaining === null
-            ? text('Checking allowance…', 'Проверяем лимит…')
-            : `${text('Remaining', 'Осталось')}: ${limit.remaining}.`}{' '}
-          {text('Resets', 'Обновится')}: {resetTime} UTC.
-        </p>
+        {limit.remaining !== null && limit.remaining <= 1 ? (
+          <p>
+            {`${text('Remaining', 'Осталось')}: ${limit.remaining}.`} {text('Resets', 'Обновится')}:{' '}
+            {resetTime} UTC.
+          </p>
+        ) : null}
       </section>
       <section aria-labelledby="settings-account-heading">
         <h2 id="settings-account-heading">{text('Account', 'Аккаунт')}</h2>

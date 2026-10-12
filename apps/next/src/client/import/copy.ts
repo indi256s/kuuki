@@ -37,10 +37,6 @@ export const PROMPT_EXAMPLE = p(
 export const S = {
   eyebrow: p('Journal', 'Журнал'),
   title: p('Import flights', 'Импорт перелётов'),
-  lead: p(
-    'Turn a boarding pass, booking or screenshot into flights, and check each one before it is saved.',
-    'Превратите посадочный талон, бронь или скриншот в перелёты и проверьте каждый до сохранения.',
-  ),
   stepsLabel: p('Import steps', 'Шаги импорта'),
   stepSource: p('Source', 'Источник'),
   stepReview: p('Review', 'Проверка'),

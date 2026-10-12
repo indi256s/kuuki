@@ -416,12 +416,12 @@ export function ReviewStep({
       : mode === 'offline'
         ? t(COPY.offlineSub)
         : mode === 'empty'
-          ? t(COPY.journalEmpty)
+          ? null
           : unsure > 0
             ? t(COPY.savingLeavesOut)
             : left > 0
               ? t(COPY.savingSkips)
-              : t(COPY.allGoodSub)
+              : null
 
   return (
     <div className="review-step">
@@ -508,7 +508,7 @@ export function ReviewStep({
       <div className="review-bar" data-mode={mode} ref={bar}>
         <div className="review-bar-text" aria-live="polite">
           <p className="review-bar-title">{barTitle}</p>
-          <p className="review-bar-sub">{barSub}</p>
+          {barSub ? <p className="review-bar-sub">{barSub}</p> : null}
         </div>
         {mode === 'empty' ? (
           <div className="review-bar-action">

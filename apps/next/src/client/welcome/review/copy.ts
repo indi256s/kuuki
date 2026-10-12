@@ -44,10 +44,8 @@ export const COPY = {
   leftOutCount: p('{count} left out', 'Исключено: {count}'),
   savingSkips: p('Saving skips them.', 'При сохранении они не войдут.'),
   allGood: p('Everything looks right', 'Всё выглядит верно'),
-  allGoodSub: p('Ready when you are.', 'Можно сохранять.'),
   saving: p('Saving…', 'Сохраняем…'),
   nothingToSave: p('Nothing to save', 'Нечего сохранять'),
-  journalEmpty: p('Your journal starts empty.', 'Журнал начнётся с нуля.'),
   startEmpty: p('Start empty', 'Начать с нуля'),
   startEmptyFailed: p(
     'We couldn’t wrap up just now. Nothing is lost: try again.',
