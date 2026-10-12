@@ -1,6 +1,6 @@
 # Boarding-pass Quick Add implementation handoff
 
-Status: implemented locally and uncommitted; final review done and repaired; release acceptance blocked by the phone pilot (OQ4).
+Status: landed on local `main` (feature commit `e5cdea51`, merged at `e0393ba9`; not pushed). Release acceptance blocked by the phone pilot (OQ4).
 Updated: 2026-10-12 (Asia/Tbilisi).
 
 ## Owning thread and workspace
@@ -25,7 +25,7 @@ Updated: 2026-10-12 (Asia/Tbilisi).
 - Ticket 05: the "Add boarding pass" entry, `QuickAddSource` with equal Take photo / Choose screenshot or PDF actions, the disclosed upload fallback, and the partial-batch upload.
 - Polish from the primary agent-browser pass (upload-note retention, announced fallback reason, mobile year cue, singular copy).
 
-## Latest checks (primary, stable tree)
+## Checks before landing (feature tree)
 
 - `pnpm typecheck:api` passed (exit 0). `pnpm test:api`: 731/731 passed. `workers/import` tsc passed (exit 0).
 - Next typecheck and lint passed (exit 0). `pnpm format:check` passed (exit 0).
@@ -46,7 +46,9 @@ The final read-only review (codex `gpt-6.1-sol`, high) raised 3 major findings a
 
 One was declined: a replay that reuses a local batch's operation id with a different source. The UI never does this, so it would take a hand-crafted request against the member's own account; it is listed under residual risks.
 
-Next: the owner decides on commit/PR. No commit, push, PR or deploy has been made.
+Landed on local `main` with a compare-and-swap after merging the latest `main` (Keyline icons, Clef verification #55–#57, color system v1). Gates on the merged tree: `test:api` 787/787, Next vitest 1318 passed (the same 4 baseline recovery failures), `next:build` passed, full navigation 44/44. Not pushed, not deployed.
+
+Next: run the phone pilot (ticket 06).
 
 OQ4 is still open. There was no phone pilot or representative corpus (30 passes; iPhone and Android), so release acceptance is blocked. Do not report the pilot or release readiness as passing.
 

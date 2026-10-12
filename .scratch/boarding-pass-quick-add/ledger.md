@@ -85,6 +85,8 @@ Profiles: orchestrator claudeAgent/claude-opus-5-5 (thread metadata); workers re
 
 - 2026-10-12: review repair accepted after inspection (duplicates get the flown question and are never auto-selected; partial upload fenced by a ref token cleared on reset/unmount; other-year max = today's year + 1). Fail-before shown by worker for A. Primary re-ran: next typecheck/lint 0, vitest 1164 pass + same 4 baseline recovery failures, format 0, next:build 0, full navigation 44 passed. API untouched since API gates. No lifecycle test for B (no import-client seam for partial-pass); covered by inspection.
 
+- 2026-10-12: committed e5cdea51; merged main twice (44ce74b9: 6 conflicts resolved keeping both sides, lucide → Keyline in quick-add-source; c872982c: clean). Merged-tree gates: test:api 787, typecheck api/import/next 0, lint 0, vitest 1318 + 4 baseline, format 0, next:build 0, navigation 44. main moved c872982c → e0393ba9 by update-ref compare-and-swap; root checkout working tree untouched.
+
 ## Checkpoint
 
-Live writer: none. Implementation, gates and final review complete; locally uncommitted, awaiting owner commit/PR decision. 06 (OQ4 phone pilot) blocked on hardware/corpus → release acceptance blocked.
+Landed on local main (not pushed). Only 06 (OQ4 phone pilot) remains, blocked on hardware/corpus.
