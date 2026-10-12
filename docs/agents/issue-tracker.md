@@ -36,3 +36,17 @@ Plans live in `docs/plans/`; specs live in `.scratch/<feature>/`.
 
 - Resuming a plan: read its adjacent `*-handoff.md` first and locate the owning checkout with `git worktree list` before creating progress files.
 - At a session handoff, update `docs/plans/<plan>-handoff.md` with the owning branch/checkout, scope, accepted progress, latest checks and next action or blocker; include it in the handoff commit. Detailed `.superpowers/sdd/<plan>/progress.md` ledgers stay local. Reconcile the note with current Git and review evidence before acting.
+
+The adjacent handoff owns execution status; plans and specs describe intent and link to it for progress. Distinguish source implementation, local checks, release acceptance and deployment. On landing, record the containing commit and the remaining gate in the handoff, then remove conflicting status claims from the plan/spec.
+
+### Inputs needed to resume
+
+Include an input inventory in the handoff when work needs more than the checked-in source:
+
+- **Committed:** relative path and the commit containing it; verify with `git ls-files --error-unmatch -- <path>` in the destination checkout.
+- **Reproducible:** setup or generation instructions and any pinned dependency. Generated previews need their generator and inputs, not a saved HTML file.
+- **Checkout-local:** exact source checkout, relative paths, and retrieval steps. Copy only the listed inputs into an isolated destination; keep private corpora and raw operational evidence out of Git and tool output.
+
+Before resuming, verify required inputs in the destination checkout. If a local input is unavailable, report the missing input and its owner; preserve the recorded conclusions instead of substituting a new corpus or inferring acceptance. Commit non-private inputs needed by future checkouts with their handoff, or provide a reproducible source. Local-only evidence must be labeled as such.
+
+Examples: [Concorde generation](../../scripts/concorde/README.md) uses tracked drivers and a pinned external kit; [ingest evaluation](../plans/2026-10-11-ingest-evaluation-handoff.md) separates source contracts from its private, checkout-local corpus.

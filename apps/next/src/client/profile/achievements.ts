@@ -23,8 +23,7 @@ const aliases: Record<string, string> = {
   'aircraft-3': 'fleetMaster',
 }
 export function badgeName(item: EarnedBadge, locale: Locale) {
-  if (item.badge.code === 'founding-user')
-    return locale === 'ru' ? 'Первый экипаж' : 'Founding crew'
+  if (item.badge.code === 'founding-user') return 'Founding crew'
   const geographic: Record<string, [string, string]> = {
     'continent-europe': ['Europhile', 'Любитель Европы'],
     'continent-asia': ['Asianaut', 'Исследователь Азии'],
@@ -53,8 +52,11 @@ export function badgeTier(tier: string | null, locale: Locale) {
     : { label: locale === 'ru' ? 'Особая награда' : 'Special award', shape: '☆' }
 }
 export function badgeDescription(item: EarnedBadge, locale: Locale) {
+  if (item.badge.code === 'founding-user')
+    return locale === 'ru'
+      ? 'Спасибо, что были с нами с самого начала.'
+      : 'Thank you for being here from the start.'
   if (locale === 'en') return item.badge.description
-  if (item.badge.code === 'founding-user') return 'Вы присоединились к Kuuki на раннем этапе.'
   const criteria = item.badge.criteria as Record<string, unknown> | null
   const labels: Record<string, string> = {
     flights: 'Перелёты',

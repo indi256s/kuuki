@@ -103,3 +103,18 @@ Remote operations follow the [audit remediation release gates](../runbooks/audit
 explicit target, writer hold, Time Travel bookmark, export and restore proof,
 and schema admission. Each production write requires separate owner
 authorization; local rehearsal grants no remote authority.
+
+## Geographic estimates
+
+Distance retains the 6,371 km spherical model, integer-kilometre rounding and
+existing cap. It estimates the shortest airport arc, not the flown trajectory.
+Overview geographic Crossings use the same arc, including its deterministic
+antipodal fallback, and exact latitude extrema/antimeridian roots. Only internal
+side changes count; endpoint contacts, tangencies, coincident boundaries and
+longitude changes at poles do not. `locatedFlights` is weighted coordinate
+coverage, separate from the existing timezone gate. Unavailable geometry is
+displayed as unknown; absence narrator claims require complete coverage.
+
+The existing `zonesOverflown` metric remains an approximate count of timezone
+changes along 50 km samples. Endpoint clock-dial bins floor offset minutes to
+hours and wrap modulo 24; they are neither distinct IANA zones nor visited zones.

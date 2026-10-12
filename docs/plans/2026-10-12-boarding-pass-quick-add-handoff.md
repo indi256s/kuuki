@@ -13,9 +13,17 @@ Updated: 2026-10-12 (Asia/Tbilisi).
 
 ## Where the state lives
 
-- [Spec](../../.scratch/boarding-pass-quick-add/spec.md): `ready-for-agent`. Its "Engineering resolution" section records OQ1–OQ3 (resolved) and OQ4 (open).
+- [Spec](../../.scratch/boarding-pass-quick-add/spec.md): accepted product decisions. Its "Engineering resolution" section records OQ1–OQ3 (resolved) and OQ4 (open).
 - [Execution ledger](../../.scratch/boarding-pass-quick-add/ledger.md): execution map, requirements → evidence, agents, events, checks and checkpoint.
 - Tickets: `.scratch/boarding-pass-quick-add/issues/01`–`05` are resolved. `06-phone-pilot-evidence.md` is `ready-for-human`.
+
+## Inputs needed to resume
+
+- **Committed:** the spec, execution ledger and issue files above are included in local `main` at merge `e0393ba9`. Use a checkout containing that commit; their `.scratch/` location does not make these inputs disposable.
+- **Committed concept:** [visuals/kuuki-quick-add.html](../../.scratch/boarding-pass-quick-add/visuals/kuuki-quick-add.html) is a simulated UI reference, not decoder evidence.
+- **Still required:** ticket 06 needs a representative pass corpus and target iPhone/Android hardware. No accepted phone-pilot results are recorded. Source commits and the simulated concept cannot supply that evidence.
+
+Locate the current owning checkout with `git worktree list`; the feature checkout above records the implementation location and may have been removed after landing. Verify the committed input paths in the destination before starting ticket 06. Use the repository's [handoff input conventions](../agents/issue-tracker.md#inputs-needed-to-resume) for any private pilot corpus.
 
 ## Accepted progress
 

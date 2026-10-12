@@ -11,7 +11,7 @@ import { reducedMotion } from '../../layout/drag-motion'
 import { useReading } from '../../layout/use-reading'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, flights, number } from '../rankings/display'
+import { copy, CoverageNote, flights, number } from '../rankings/display'
 import {
   TOTAL,
   byFlights,
@@ -149,8 +149,17 @@ export function Section({ span }: { span: Span }) {
   const lines = scope?.crossings.status === 'ready' ? scope.crossings.value : null
   const baseline = all?.crossings.status === 'ready' ? all.crossings.value : lines
   const hit = lines?.offsets.filter((row) => row.hit).length ?? 0
-  const route = (record: { origin: string; destination: string } | null) =>
-    record ? ` · ${copy(locale, 'last', 'последний')} ${record.origin} → ${record.destination}` : ''
+  // Geographic counts are estimates on shortest airport arcs; with no coordinates they are unknown, not zero.
+  const located = (lines?.locatedFlights ?? 0) > 0
+  const crossed = (count: number) => (located ? number(locale, count) : '—')
+  const route = (count: number, record: { origin: string; destination: string } | null) =>
+    !located
+      ? ` · ${copy(locale, 'coordinates unavailable', 'координаты неизвестны')}`
+      : record
+        ? ` · ${copy(locale, 'last', 'последний')} ${record.origin} → ${record.destination}`
+        : count > 0
+          ? ` · ${copy(locale, 'route unavailable', 'маршрут неизвестен')}`
+          : ''
 
   const missing = scope && SECTION_GATES.crossings.gate(scope)
   const below = missing?.status === 'below' ? missing : null
@@ -230,19 +239,40 @@ export function Section({ span }: { span: Span }) {
               },
               {
                 value: copy(locale, `${hit} of 24`, `${hit} из 24`),
-                label: copy(locale, 'UTC offsets reached', 'Достигнуто смещений UTC'),
+                label: copy(
+                  locale,
+                  'Hourly UTC offsets at your airports',
+                  'Часовых смещений UTC в ваших аэропортах',
+                ),
               },
               {
-                value: number(locale, lines.equator),
-                label: `${copy(locale, 'Equator crossings', 'Пересечения экватора')}${route(lines.lastEquator)}`,
+                value: crossed(lines.equator),
+                label: `${copy(locale, 'Equator crossings', 'Пересечения экватора')}${route(lines.equator, lines.lastEquator)}`,
               },
               {
-                value: number(locale, lines.arcticCircle),
-                label: `${copy(locale, 'Arctic Circle crossings', 'Пересечения полярного круга')}${route(lines.lastArctic)}`,
+                value: crossed(lines.arcticCircle),
+                label: `${copy(locale, 'Arctic Circle crossings', 'Пересечения полярного круга')}${route(lines.arcticCircle, lines.lastArctic)}`,
               },
             ]
           : [],
         coverage,
+        extra: lines ? (
+          <>
+            <CoverageNote
+              have={lines.locatedFlights}
+              total={scope?.figures.flights ?? 0}
+              en="Coordinates available for {n} of {m} flights"
+              ru="Координаты известны: {n} из {m} перелётов"
+            />
+            <p className="ov3-sample">
+              {copy(
+                locale,
+                'Crossings are estimated on the shortest arcs between airports; the actual route may have done something else entirely.',
+                'Пересечения рассчитаны по кратчайшим дугам между аэропортами; реальный маршрут мог вести себя как угодно.',
+              )}
+            </p>
+          </>
+        ) : undefined,
         more:
           lines && baseline
             ? [

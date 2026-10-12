@@ -1,6 +1,6 @@
 # Boarding-pass Quick Add
 
-Status: Product direction accepted on 2026-10-12 and consolidated in the [final spec](../../.scratch/boarding-pass-quick-add/spec.md). The spec selects reuse of the existing UI controls; decoder/admission feasibility and the local-decoder pilot remain pending. The T3 concept uses simulated recognition; the feature is not implemented.
+Product direction accepted on 2026-10-12 and consolidated in the [final spec](../../.scratch/boarding-pass-quick-add/spec.md). Current implementation, local verification and the remaining phone-pilot acceptance gate are recorded in the [implementation handoff](2026-10-12-boarding-pass-quick-add-handoff.md). This document records the product decisions; the T3 concept remains simulated evidence.
 
 ## Purpose
 
@@ -41,13 +41,11 @@ The T3 controls for “before takeoff / after landing” and “readable / unrea
 - Persist extracted fields through the existing draft/save authorities. The current privacy contract does not store original pass bytes or provider responses. Keeping original passes as souvenirs remains undecided.
 - Preserve EN/RU, keyboard access, visible focus, labelled touch targets and truthful recognition/save status. Follow [DESIGN.md](../../DESIGN.md), including Commissioner, Paper Mono and Kuuki's semantic tokens.
 
-## Reuse and remaining implementation questions
+## Implementation references
 
 Reuse the current Add entry, import file selection, review questions, review queue and save authority. The [Arc UI research](../research/2026-10-12-boarding-pass-arc-ui.md) recommends existing Sheet, Button, FileDropzone, ReviewRow/Ticket, QuestionDeck, RowForm and Disclosure. These are component recommendations; the accepted behavior above remains the product decision.
 
-The implementation still needs a bounded feasibility check for admitting locally decoded fields into owned, validated import drafts. The existing recognition endpoint takes a document or text; this plan does not claim it already accepts local barcode results.
-
-The decoder, PDF rasterization, phone-image formats/orientation, first-load cost and device support are not selected or verified. Avoid promising a universal built-in browser decoder, offline launch or durable offline capture. The local-reading pilot decides whether this path deserves priority.
+Decoder selection, PDF handling, owned draft admission and the flown guard are documented in the [handoff](2026-10-12-boarding-pass-quick-add-handoff.md#accepted-progress) and the spec's Engineering resolution. The [phone pilot](2026-10-12-boarding-pass-quick-add-handoff.md#next-action) remains the device and performance acceptance gate. Source implementation does not establish universal decoder support, offline launch or durable offline capture.
 
 ## Cheapest pilot and rejection criteria
 

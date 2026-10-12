@@ -39,12 +39,7 @@ function vector(p: LatLon): number[] {
   return [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)]
 }
 
-/** Shortest spherical arc, including endpoints. Antipodes use a deterministic perpendicular. */
-export function greatCirclePoints(a: LatLon, b: LatLon, maxStepKm = 50): LatLon[] {
-  if (!Number.isFinite(maxStepKm) || maxStepKm <= 0)
-    throw new RangeError('maxStepKm must be positive and finite')
-  const km = greatCircleKm(a, b),
-    n = Math.max(1, Math.ceil(km / maxStepKm))
+function greatCircleArc(a: LatLon, b: LatLon) {
   const start = vector(a),
     end = vector(b)
   const dot = Math.min(
@@ -63,6 +58,16 @@ export function greatCirclePoints(a: LatLon, b: LatLon, maxStepKm = 50): LatLon[
     norm = Math.hypot(...tangent)
   }
   tangent = tangent.map((v) => v / norm)
+  return { start, tangent, angle }
+}
+
+/** Shortest spherical arc, including endpoints. Antipodes use a deterministic perpendicular. */
+export function greatCirclePoints(a: LatLon, b: LatLon, maxStepKm = 50): LatLon[] {
+  if (!Number.isFinite(maxStepKm) || maxStepKm <= 0)
+    throw new RangeError('maxStepKm must be positive and finite')
+  const km = greatCircleKm(a, b),
+    n = Math.max(1, Math.ceil(km / maxStepKm))
+  const { start, tangent, angle } = greatCircleArc(a, b)
   return Array.from({ length: n + 1 }, (_, i) => {
     if (i === 0) return { lat: a.lat, lon: longitude(a.lon) }
     if (i === n) return { lat: b.lat, lon: longitude(b.lon) }
@@ -73,6 +78,53 @@ export function greatCirclePoints(a: LatLon, b: LatLon, maxStepKm = 50): LatLon[
       lon: longitude(Math.atan2(p[1], p[0]) / RAD),
     }
   })
+}
+
+/** Internal side changes on the same arc as greatCirclePoints; boundary contact is excluded. */
+export function greatCircleCrossings(a: LatLon, b: LatLon) {
+  const { start, tangent, angle } = greatCircleArc(a, b)
+  // Suppress floating-point boundary noise, including indeterminate longitude at a pole.
+  const epsilon = 1e-12
+  const extrema: number[] = []
+  const phase = Math.atan2(tangent[2], start[2])
+  for (let k = -1; k <= 1; k++) {
+    const theta = phase + k * Math.PI
+    if (theta > 0 && theta < angle) extrema.push(theta)
+  }
+  const heights = [
+    start[2],
+    ...extrema.map((theta) => start[2] * Math.cos(theta) + tangent[2] * Math.sin(theta)),
+    Math.sin(b.lat * RAD),
+  ]
+  function latitudeCrossings(latitude: number): number {
+    const boundary = Math.sin(latitude * RAD)
+    let previous = 0,
+      count = 0
+    for (const height of heights) {
+      const delta = height - boundary
+      const sign = Math.abs(delta) <= epsilon ? 0 : Math.sign(delta)
+      if (!sign) continue
+      if (previous && sign !== previous) count++
+      previous = sign
+    }
+    return count
+  }
+  let dateLine = 0
+  if (Math.hypot(start[1], tangent[1]) > epsilon) {
+    const phase = Math.atan2(-start[1], tangent[1])
+    for (let k = -1; k <= 1; k++) {
+      const theta = phase + k * Math.PI
+      if (theta <= epsilon || theta >= angle - epsilon) continue
+      const x = start[0] * Math.cos(theta) + tangent[0] * Math.sin(theta)
+      if (x < -epsilon) dateLine++
+    }
+  }
+  return {
+    equator: latitudeCrossings(0),
+    arcticCircle: latitudeCrossings(66.5634),
+    antarcticCircle: latitudeCrossings(-66.5634),
+    dateLine,
+  }
 }
 
 export function eastwardShare(a: LatLon, b: LatLon): number {
