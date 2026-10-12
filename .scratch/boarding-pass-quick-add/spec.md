@@ -1,6 +1,6 @@
 # Boarding-pass Quick Add
 
-Status: ready-for-agent
+Execution status: [implementation handoff](../../docs/plans/2026-10-12-boarding-pass-quick-add-handoff.md).
 
 Product decisions accepted: 2026-10-12. Implementation is authorized by the owner. Technical questions OQ1–OQ3 were resolved in the implementation thread on 2026-10-12 (see Engineering resolution); they did not reopen the agreed experience. Hardware evidence OQ4 remains a feature-acceptance gate.
 
@@ -127,7 +127,7 @@ Let the traveler finish now or keep the extracted rows in the existing review qu
 - **OQ3 — Durable review evidence.** Choose the minimal allowlisted metadata and review/convert contract for ordinal-day/year ambiguity and explicit today/past flew confirmation. Preserve these through generic batch reopening, corrections and retries. Inspect downstream normalization, field merging and conversion guards before consumers implement the contract. Do not silently weaken general import behavior to make Quick Add work.
 - **OQ4 — Pilot evidence.** Locate representative, authorized pass samples and target iPhone/Android access; neither is established by the simulated prototype. Choose capture/read timestamps and report a repeatable comparison. If unavailable, record the missing hardware/corpus proof in a dedicated local issue and do not claim the feature has passed its pilot or is release-ready. Continue independent authorized implementation and checks.
 
-**Readiness:** observable product behavior is settled. Technical selection/admission/review contracts require initial investigation, so this publication is `needs-triage`, not `ready-for-agent`. The authorized implementation thread resolves and records OQ1–OQ3, creates the execution map and individual local tickets, and then advances readiness. OQ4 remains explicit in final acceptance rather than being erased by code completion.
+**Execution and acceptance:** OQ1–OQ3 are resolved in the Engineering resolution below. The [implementation handoff](../../docs/plans/2026-10-12-boarding-pass-quick-add-handoff.md) owns current progress and verification. OQ4 remains the phone-pilot acceptance gate; code completion does not close it.
 
 **Source decisions and evidence:**
 

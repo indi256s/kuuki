@@ -4,6 +4,8 @@ Personal flight journal on Cloudflare.
 
 Use `gh-axi` for GitHub. Browser work follows the global `agent-browser` policy. When screenshots are needed, downscale before reading: `sips -Z 1200 <file>.png`.
 
+Resolve named skills from the catalog's advertised path. Before reporting one unavailable, search for its exact `SKILL.md` in the configured skill roots; resolve supporting files relative to that skill.
+
 ## Where things live
 
 - `apps/next` is the current app: Next App Router, built with OpenNext, running on Workers.
@@ -13,6 +15,7 @@ Use `gh-axi` for GitHub. Browser work follows the global `agent-browser` policy.
 
 ## Read first
 
+- **Feature changes:** use the behavioral entry points in `docs/README.md` to locate the owning code and tests.
 - **UI work:** read `DESIGN.md`.
 - **Domain work:** read `GLOSSARY.md`, then only the sections of `docs/adr/` that your task touches.
 - **Writing or reviewing code:** read `CODING_STANDARDS.md`.

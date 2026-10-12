@@ -1,6 +1,13 @@
 # Kuuki Documentation
 
-**For AI agents: Start with [DESIGN.md](../DESIGN.md) (UI), [GLOSSARY.md](../GLOSSARY.md) (domain terms) and [plans/](./plans/) before exploring the codebase.**
+For resumed work, read the task's handoff first, then verify its named sources and
+open work using the [issue tracker contract](agents/issue-tracker.md). For new
+work, use the ownership map below to reach the relevant behavior before design.
+Read [GLOSSARY.md](../GLOSSARY.md) for domain changes. UI work follows
+[DESIGN.md](../DESIGN.md): [states](../DESIGN.md#interaction-and-states) for
+loading, empty or error behavior; [shell](../DESIGN.md#shell-and-navigation) for
+navigation; [Overview](../DESIGN.md#overview-redesign) for dashboard changes;
+[copy and trust](../DESIGN.md#copy-and-trust) for claims about saved data.
 
 ## Canonical Documentation
 
@@ -31,92 +38,34 @@
 | Check current release procedure                         | [Deploy Kuuki](./skills/deploy-kuuki/SKILL.md)                                                            |
 | Check the merged redesign and deferred release evidence | [Redesign handoff](./plans/2026-10-04-redesign-2.0-implementation-handoff.md)                             |
 
-## Additional Documentation
+## Task and research lookup
 
 | Document                                                                        | Purpose                                                                   |
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | [SPEC.md](./SPEC.md)                                                            | Original interview-derived specification (archival)                       |
-| [SITEMAP.md](./SITEMAP.md)                                                      | Route inventory                                                           |
+| [SITEMAP.md](./SITEMAP.md)                                                      | Pointer to the canonical route inventory                                  |
 | [tasks/](./tasks/)                                                              | Historical MVP implementation tasks per phase                             |
-| [plans/](./plans/)                                                              | Ad-hoc design documents                                                   |
+| [plans/](./plans/)                                                              | Plans and adjacent handoffs; resume from the handoff                      |
 | [Flight enrichment sources](./research/2026-10-07-flight-enrichment-sources.md) | Historical aircraft sources, storage limits and local Gemini source audit |
 
-## Current Status
+For ingest evaluation resumption and checkout-local inputs, read the
+[ingest handoff](plans/2026-10-11-ingest-evaluation-handoff.md).
 
-**Current surface:** the Next app in `apps/next`. The MVP phases below describe the former Vite build.
+## Behavioral ownership
 
-| Phase                     | Status   |
-| ------------------------- | -------- |
-| Phase 0.5: Reference Data | Complete |
-| Phase 1: Foundation       | Complete |
-| Phase 1.5: Onboarding     | Complete |
-| Phase 2: Core Flights     | Complete |
-| Phase 3: AI Import        | Complete |
-| Phase 3.5: UI Redesign    | Complete |
-| Phase 4: Social           | Complete |
-| Phase 4.5: Passport       | Complete |
-| Phase 5: Advanced Stats   | Complete |
-| Phase 6: Polish           | Complete |
+Follow these connections before proposing behavior changes; UI rules explain the
+server contract but do not replace it. Backend services live under
+`functions/api/_services`.
 
-## Project Structure
+- **Import questions, review and save:** [questions.ts](../apps/next/src/client/import/questions.ts) groups needs using [review-model.ts](../apps/next/src/client/import/review-model.ts); [question-deck.tsx](../apps/next/src/client/import/question-deck.tsx) applies answers inside [review-step.tsx](../apps/next/src/client/import/review-step.tsx). [import-client.tsx](../apps/next/src/client/import/import-client.tsx) connects [draft-saver.ts](../apps/next/src/client/import/draft-saver.ts), [confirm-runner.ts](../apps/next/src/client/import/confirm-runner.ts) and [import-api.ts](../apps/next/src/client/import/import-api.ts). The server owns [draft edits](../functions/api/_services/importDrafts.ts), [conversion](../functions/api/_services/importConversion.ts) and [flight creation](../functions/api/_services/flightCreate.ts); [manual-save.ts](../apps/next/src/client/import/manual-save.ts) uses the shared flight writes. Check [question rules](../apps/next/src/client/import/questions.test.ts), [confirm recovery](../apps/next/src/client/import/confirm-runner.test.ts), [import journey](../apps/next/tests/import.test.ts) and [server conversion](../functions/test/import-conversion.test.ts). For presentation, read DESIGN's [Import dock](../DESIGN.md#import-dock) and [states](../DESIGN.md#interaction-and-states).
+- **Shell, navigation and Add:** [shell.tsx](../apps/next/src/client/shell.tsx) composes [nav.tsx](../apps/next/src/client/nav.tsx), [split-add.tsx](../apps/next/src/client/split-add.tsx) and the import dock; [add-actions.tsx](../apps/next/src/client/add-actions.tsx) supplies desktop and mobile capture entries. [navigation-link.tsx](../apps/next/src/client/navigation-link.tsx) announces route intent; [gates.ts](../apps/next/src/server/gates.ts) owns member admission. Check the [navigation suite](../apps/next/tests/navigation.test.ts) and [navigation link tests](../apps/next/src/client/navigation-link.test.tsx).
+- **Overview data and charts:** [server/overview.ts](../apps/next/src/server/overview.ts) and the [data endpoint](../functions/api/me/overview/data.ts) share [overviewData.ts](../functions/api/_services/overviewData.ts). [overview-context.tsx](../apps/next/src/client/overview/store/overview-context.tsx) connects filters and preferences to [overview-page.tsx](../apps/next/src/client/overview/page/overview-page.tsx) and its [section registry](../apps/next/src/client/overview/sections/registry.ts). [kuuki-chart.tsx](../apps/next/src/client/overview/charts/kuuki-chart.tsx) owns shared chart interaction and table access. Check [data tests](../functions/test/overview-data.test.ts), [context tests](../apps/next/src/client/overview/store/overview-context.test.tsx) and [chart tests](../apps/next/src/client/overview/charts/kuuki-chart.test.tsx).
+- **Auth and Concorde:** [auth-card.tsx](../apps/next/src/client/auth-card/auth-card.tsx) connects form, recovery and welcome steps, and renders [concorde-field.tsx](../apps/next/src/client/auth-card/concorde/concorde-field.tsx). [continue.ts](../functions/api/auth/continue.ts) owns the continue decision; [auth.ts](../functions/api/_lib/auth.ts) owns request authentication. For regeneration or previews, use the pinned [Concorde setup](../scripts/concorde/README.md). Check [auth entry](../apps/next/tests/auth-entry.test.ts), [recovery](../apps/next/tests/auth-recovery.test.ts), [Concorde](../apps/next/src/client/auth-card/concorde/concorde-field.test.tsx) and [server auth](../functions/test/auth.test.ts). Read DESIGN's [Auth card](../DESIGN.md#auth-card) and [Motion](../DESIGN.md#motion) for changes to that surface.
+- **Profile and privacy:** [profile route](<../apps/next/src/app/(public)/fly/[username]/page.tsx>) chooses owner/public reads; [server/profile.ts](../apps/next/src/server/profile.ts) owns private profile data, and [publicProfiles.ts](../functions/api/_services/publicProfiles.ts) gates public data by visibility. [settings-form.tsx](../apps/next/src/client/account/settings-form.tsx) writes profile/privacy changes through [profiles/me.ts](../functions/api/profiles/me.ts); [settings-guard.tsx](../apps/next/src/client/account/settings-guard.tsx) protects unsaved edits. Check [private read tests](../apps/next/src/client/profile/private-reads.test.ts), [settings guards](../apps/next/src/client/account/settings-guard.test.tsx) and the [settings journey](../apps/next/tests/settings.test.ts).
 
-Current code is in `apps/next` (Next app and composed Worker), `functions/api` (shared API handlers), `db/migrations` (D1) and `workers/maintenance` (scheduled recovery). See the [root README](../README.md#structure) for the current structure. The tree below records the former Vite layout and is archival.
+## Historical reference
 
-```
-kuuki/
-├── apps/web/src/           # React SPA source
-│   ├── components/
-│   │   ├── ui/             # shadcn/ui components
-│   │   ├── auth/           # Login and signup
-│   │   ├── dashboard/      # Dashboard, stats cards
-│   │   ├── flights/        # Flight list, forms
-│   │   ├── import/         # AI import flow
-│   │   ├── passport/       # Country stamps
-│   │   └── social/         # Profiles, leaderboards
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Utilities, supabase client
-│   ├── routes/             # Route components
-│   └── stores/             # Zustand stores
-├── packages/
-│   ├── shared/             # Shared code, i18n translations
-│   └── data/               # Static reference data
-├── functions/              # Cloudflare Workers (Gemini proxy)
-├── supabase/migrations/    # Database migrations
-└── docs/                   # You are here
-```
-
-## Available Tools
-
-### Skills (Claude Code)
-
-**Design:**
-
-- `/frontend-design` - Creative UI (landing pages, profiles)
-- `/interface-design` - App interfaces (dashboards, forms)
-
-**Cloudflare:**
-
-- `/cloudflare:cloudflare` - Platform overview
-- `/cloudflare:wrangler` - Deployment
-
-**Workflow:**
-
-- [Reconcile documentation](./skills/update-docs-after-feature/SKILL.md) - Correct affected docs after features, fixes or structural changes
-- `/superpowers:brainstorming` - Before feature work
-- `/superpowers:test-driven-development` - Before implementation
-- `/superpowers:verification-before-completion` - Before claiming done
-
-### MCP Servers
-
-| Server            | Use For                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------ |
-| `supabase`        | Historical schema/migration context; current data uses D1 and application ownership checks |
-| `context7`        | Library docs                                                                               |
-| `shadcn`          | Component registry                                                                         |
-| `cloudflare-docs` | Cloudflare documentation                                                                   |
-
-## Do Not
-
-- Scan the entire repo when docs answer the question
-- Add features that violate the PRD non-goals
-- Ignore the design system in `DESIGN.md`
+The [former documentation index](archive/2026-10-12-documentation-index.md)
+preserves the MVP phase table, Vite project tree and obsolete tool catalogs.
+Former screen flows and routes are in the [Vite flow archive](archive/2026-10-12-vite-app-flow.md)
+and [Vite sitemap archive](archive/2026-10-12-vite-sitemap.md).
