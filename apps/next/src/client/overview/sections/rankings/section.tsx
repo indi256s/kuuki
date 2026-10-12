@@ -722,7 +722,13 @@ export function Section({ span }: { span: Span }) {
   return (
     <ChapterCard
       state="ready"
-      figure={<GateSignFigure code={code} picked={r.picked} />}
+      figure={
+        <GateSignFigure
+          code={code}
+          picked={r.picked}
+          note={reading ? `#${top.indexOf(reading) + 1} ×${reading.count}` : ''}
+        />
+      }
       figureButton={
         keys.length > 1
           ? {

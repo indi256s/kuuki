@@ -13,7 +13,8 @@ export function Tile({ span }: { span: TileSpan }) {
   const top = scope?.rankings.airlines[0]
   // The sign at rest, showing the top airline's code; with no airline on file it stays dim.
   const code = top?.key ?? ''
-  const figure = useFigure(span, code, (k) => gateSign(k, { code }))
+  const note = top ? `#1 ×${top.count}` : ''
+  const figure = useFigure(span, `${code}|${note}`, (k) => gateSign(k, { code, note }))
   if (!scope) return null
   const name = top ? referenceLabels(locale).airline(top.key) : null
   return (

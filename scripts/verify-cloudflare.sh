@@ -16,6 +16,7 @@ pnpm typecheck:import
 pnpm --filter @kuuki/next run test --maxWorkers=2
 node --test scripts/verify-cloudflare.test.mjs scripts/check-preview-config.test.mjs scripts/dependency-patches.test.mjs scripts/oxlint-design.test.mjs
 pnpm exec tsx scripts/map-geometry.test.ts
+pnpm exec tsx scripts/generate-continent-pieces.test.ts
 node scripts/check-preview-config.mjs --config apps/next/wrangler.toml --maintenance-config workers/maintenance/wrangler.toml
 pnpm build:import
 pnpm build:import:release

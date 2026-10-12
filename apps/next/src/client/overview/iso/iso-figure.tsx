@@ -8,6 +8,7 @@ const PAINT: Record<Exclude<Paint, `maker${string}`>, string> = {
   front: 'var(--iso-front)',
   side: 'var(--iso-side)',
   line: 'var(--iso-line)',
+  crease: 'var(--iso-crease)',
   detail: 'var(--iso-detail)',
   glass: 'var(--iso-glass)',
   ghost: 'var(--iso-ghost)',
@@ -16,6 +17,7 @@ const PAINT: Record<Exclude<Paint, `maker${string}`>, string> = {
   // Mixed toward the text colour, so it darkens in light and lightens in dark: on-accent text keeps 4.5:1 on it for every accent.
   'accent-plate': 'color-mix(in oklab, var(--accent) 80%, var(--text))',
   shadow: 'var(--iso-shadow)',
+  shade: 'var(--iso-shadow)',
   land: 'color-mix(in oklab, var(--iso-detail) 35%, transparent)',
   'on-accent': 'var(--accent-foreground)',
   ink: 'var(--text)',
@@ -68,6 +70,12 @@ export function IsoFigure({
               points={node.points}
               strokeWidth={node.width ?? 1}
               strokeLinejoin="round"
+              // A cast shadow is feathered by the figure's one shared filter.
+              filter={
+                node.fill === 'shadow' && node.stroke === 'none' && figure.shadowBlur
+                  ? `url(#${base}-sh)`
+                  : undefined
+              }
               style={{
                 fill: paint(node.fill),
                 stroke: paint(node.stroke),
@@ -172,6 +180,18 @@ export function IsoFigure({
             <feGaussianBlur stdDeviation={blur} />
           </filter>
         ))}
+        {figure.shadowBlur ? (
+          <filter
+            id={`${base}-sh`}
+            filterUnits="userSpaceOnUse"
+            x={bx}
+            y={by}
+            width={bw}
+            height={bh}
+          >
+            <feGaussianBlur stdDeviation={figure.shadowBlur} />
+          </filter>
+        ) : null}
         {clipDefs}
       </defs>
       {body}

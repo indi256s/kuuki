@@ -7,6 +7,7 @@ import { SegmentedControl } from '../../../ui/segmented-control'
 import { MonthRange } from '../../../ui/month-range'
 import { Button } from '../../../ui/button'
 import { IsoFigure } from '../../iso/iso-figure'
+import { fitBox } from '../../iso/scene'
 import { tape } from '../../iso/tape'
 import { formatDistanceKm } from '../../../../lib/format'
 import { KuukiChart } from '../../charts/kuuki-chart'
@@ -44,7 +45,17 @@ export function TimelineContent({ span }: { span: Span }) {
   const [cumulativeMetric, setCumulativeMetric] = useState<'km' | 'flights'>('km')
   const distanceKm = scope?.figures.distanceKm ?? 0
   const tapeLabel = formatDistanceKm(locale, distanceKm)
-  const tapeFigure = useMemo(() => tape(tapeLabel, 1), [tapeLabel])
+  // The tag names the unit (the head already reads the total); the blade's length is the distance. The scale is fitted to the 300 x 160 stage at full length, so it doesn't change with the distance.
+  const tapeUnit = copy(locale, 'km', 'км')
+  const tapeK = useMemo(
+    () =>
+      Math.min(
+        1.4,
+        fitBox(300, 160, (k) => tape(tapeUnit, k)),
+      ),
+    [tapeUnit],
+  )
+  const tapeFigure = useMemo(() => tape(tapeUnit, tapeK, distanceKm), [tapeUnit, tapeK, distanceKm])
   if (!scope || !all || !payload) return null
   const gate = scope.rhythm
   if (gate.status === 'below') return null

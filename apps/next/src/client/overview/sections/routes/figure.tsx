@@ -7,8 +7,10 @@ import '../cookie.css'
 import '../../iso/passes.css'
 
 /** The Routes boarding-pass stack for a tile: `share` of its passes carry a red stub; the top pass prints `route`. */
-export function usePassFigure(size: FigureSize, share: number, route: string) {
-  return useFigure(size, `${share}|${route}`, (k) => passStack(share, route, k))
+export function usePassFigure(size: FigureSize, share: number, route: string, topRepeat?: boolean) {
+  return useFigure(size, `${share}|${route}|${topRepeat}`, (k) =>
+    passStack(share, route, k, topRepeat),
+  )
 }
 
 // Any route prints at the same width, so the scale never depends on which route is on top.
@@ -23,10 +25,13 @@ export function PassCardFigure({
   share,
   route,
   picked,
+  topRepeat,
 }: {
   share: number
   route: string
   picked: boolean
+  /** Whether the route on the top pass is a repeat; only then does its stub light. */
+  topRepeat?: boolean
 }) {
   const k = useMemo(
     () =>
@@ -36,7 +41,7 @@ export function PassCardFigure({
       ),
     [share],
   )
-  const figure = useMemo(() => passStack(share, route, k), [share, route, k])
+  const figure = useMemo(() => passStack(share, route, k, topRepeat), [share, route, k, topRepeat])
   const [seen, setSeen] = useState({ route, deal: 0, dealing: false })
   let deal = seen.deal
   if (seen.route !== route) {

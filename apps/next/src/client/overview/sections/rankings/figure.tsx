@@ -13,13 +13,21 @@ const stageK = () =>
   ))
 
 /**
- * The gate sign in the chapter card's figure stage (300 × 160). `code` is the reading's: an airline code, an airport's IATA or a route (`ROV–VKO`).
+ * The gate sign in the chapter card's figure stage (300 × 160). `code` is the reading's and `note` the small line under it (rank and flights): an airline code, an airport's IATA or a route (`ROV–VKO`).
  * The wrapper is keyed by the code, so a new reading remounts the figure; only after a pick (`picked`) does it carry `iso-gate-relight`, which
  * relights the sign face from dim (gate-sign.css). A first render, a swipe or a filter change swaps the code with no motion. An empty code is a dim sign.
  */
-export function GateSignFigure({ code, picked }: { code: string; picked: boolean }) {
+export function GateSignFigure({
+  code,
+  picked,
+  note = '',
+}: {
+  code: string
+  picked: boolean
+  note?: string
+}) {
   const k = stageK()
-  const figure = useMemo(() => gateSign(k, { code }), [k, code])
+  const figure = useMemo(() => gateSign(k, { code, note }), [k, code, note])
   return (
     <div
       key={code}

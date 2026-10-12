@@ -6,6 +6,13 @@
 .iso-puzzle-host {
   --up: 0;
 }
+/* An empty socket's floor: the card's shadow colour is only ~1.4:1 on the bed, which reads as a smudge, so the floor is a darker, opaque recess in both themes. */
+.iso-puzzle {
+  --puzzle-floor: color-mix(in oklab, var(--iso-line) 38%, var(--iso-side));
+}
+:root[data-theme='dark'] .iso-puzzle {
+  --puzzle-floor: color-mix(in oklab, black 50%, var(--iso-front));
+}
 .iso-puzzle-host[data-up] {
   --up: 1;
 }
@@ -15,16 +22,28 @@
 .iso-puzzle :is([data-part^='piece-'], [data-part^='lit-']) {
   transform: translateY(calc(var(--lift-y, 0px) * var(--lit, 0) * var(--up)));
 }
+/* The lifted piece's shadow stays on the bed, fades in with the lift and slips toward the light's far side as the piece rises. */
+.iso-puzzle [data-part^='shadow-'] {
+  opacity: calc(var(--lit, 0) * var(--up));
+  transform: translate(
+    calc(var(--lit, 0) * var(--up) * 2px),
+    calc(var(--lit, 0) * var(--up) * 3px)
+  );
+}
 @media (prefers-reduced-motion: no-preference) {
-  .iso-puzzle-host[data-pick] .iso-puzzle [data-part^='piece-'] {
-    transition: transform var(--dur-base) var(--ease-out);
+  .iso-puzzle-host[data-pick] .iso-puzzle :is([data-part^='piece-'], [data-part^='shadow-']) {
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      opacity var(--dur-base) var(--ease-out);
   }
   .iso-puzzle-host[data-pick] .iso-puzzle [data-part^='lit-'] {
     transition:
       opacity var(--dur-fast) var(--ease-out),
       transform var(--dur-base) var(--ease-out);
   }
-  .iso-puzzle-host[data-pick][data-up] .iso-puzzle [data-part^='piece-'] {
+  .iso-puzzle-host[data-pick][data-up]
+    .iso-puzzle
+    :is([data-part^='piece-'], [data-part^='shadow-']) {
     transition-duration: var(--dur-press);
   }
   .iso-puzzle-host[data-pick][data-up] .iso-puzzle [data-part^='lit-'] {

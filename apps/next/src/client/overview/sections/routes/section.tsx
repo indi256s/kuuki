@@ -307,6 +307,7 @@ export function Section({ span }: { span: Span }) {
           share={state === 'ready' && data ? data.repeatShare : 0}
           route={state === 'ready' ? arrow : ''}
           picked={r.picked}
+          topRepeat={row ? row.count > 1 : false}
         />
       }
       figureButton={{
