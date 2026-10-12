@@ -3,13 +3,26 @@ import { DAY_MS, dayToEpoch, epochToDay } from '@kuuki/shared/overview/range'
 import { formatDateOnly, formatNumber, type Locale } from '../../../lib/format'
 import type { ChartPoint } from './kuuki-chart'
 
-type ActivityDay = { date: string; count: number }
+/** `missing` marks a day the journal has no evidence for (see `activityPoints`); its `count` of 0 is then not a known zero. */
+type ActivityDay = { date: string; count: number; missing: boolean }
+/** Absolute daily levels: 0 flights, then 1, 2, 3 and 4 or more, whatever the year or filter. */
+export type DailyLevel = 0 | 1 | 2 | 3 | 4
+export const dailyLevel = (count: number): DailyLevel =>
+  count > 0 ? (Math.min(4, Math.ceil(count)) as 1 | 2 | 3 | 4) : 0
+/** Levels 1 and 2 sit under 3:1 on the card surface in every theme and accent, so their cells carry `--heat-contour`. A known zero is the quiet `--heat-0` fill and a missing day is the dashed outline, so neither is contoured. */
+export const heatIsWeak = (level: number) => level === 1 || level === 2
 
-// Arc Activity heatmap calendar model and level rules, MIT; see the source inventory and ui/ARC-LICENSE.txt.
+// Arc Activity heatmap calendar model, MIT; see the source inventory and ui/ARC-LICENSE.txt. Levels are Kuuki's own absolute scale.
+/**
+ * One point per day of `year`. A day inside `known` (first dated flight of the whole journal through today, inclusive)
+ * with no completed flight is a known zero. A day outside it is missing: the journal does not say whether anything
+ * happened. A day with a completed flight is never missing. `known: null` treats every empty day as missing.
+ */
 export function activityPoints(
   year: number,
-  days: readonly ActivityDay[],
+  days: readonly Pick<ActivityDay, 'date' | 'count'>[],
   locale: Locale,
+  known: { from: string; to: string } | null,
 ): ChartPoint<ActivityDay>[] {
   const start = dayToEpoch(`${String(year).padStart(4, '0')}-01-01`)
   const end = dayToEpoch(`${String(year).padStart(4, '0')}-12-31`)
@@ -17,11 +30,12 @@ export function activityPoints(
   const counts = new Map(days.map((day) => [day.date, day.count]))
   return Array.from({ length: Math.round((end - start) / DAY_MS) + 1 }, (_, index) => {
     const date = epochToDay(start + index * DAY_MS)!,
-      count = counts.get(date) ?? 0
+      count = counts.get(date) ?? 0,
+      missing = count <= 0 && (!known || date < known.from || date > known.to)
     return {
       key: date,
-      datum: { date, count },
-      label: `${formatDateOnly(locale, date, 'medium')} · ${formatNumber(locale, count)}`,
+      datum: { date, count, missing },
+      label: `${formatDateOnly(locale, date, 'medium')} · ${missing ? (locale === 'ru' ? 'нет данных' : 'no data') : formatNumber(locale, count)}`,
     }
   })
 }
@@ -61,29 +75,14 @@ export function ArcActivityHeatmap({
     lead = leadDays(points, locale)
   const pitch = calendarPitch(calendarColumns(points, locale), width),
     cell = pitch - calendarGap(pitch)
-  const max = points.reduce((highest, point) => Math.max(highest, point.datum.count), 0)
-  const bounds = [
-    Math.max(1, Math.ceil(max * 0.25)),
-    Math.max(2, Math.ceil(max * 0.5)),
-    Math.max(3, Math.ceil(max * 0.75)),
-  ]
   const monthName = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' })
   return (
     <g>
       {points.map((point, index) => {
         const x = Math.floor((lead + index) / 7) * pitch + CAL.left,
           y = ((lead + index) % 7) * pitch + CAL.top
-        const count = point.datum.count,
-          level =
-            count <= 0
-              ? 0
-              : count <= bounds[0]
-                ? 1
-                : count <= bounds[1]
-                  ? 2
-                  : count <= bounds[2]
-                    ? 3
-                    : 4
+        const { count, missing } = point.datum,
+          level = dailyLevel(count)
         const props = mark(point),
           date = new Date(start + index * DAY_MS)
         return (
@@ -115,7 +114,29 @@ export function ArcActivityHeatmap({
                 } else props.onKeyDown?.(event)
               }}
             >
-              <rect x={x} y={y} width={cell} height={cell} rx={3} fill={`var(--heat-${level})`} />
+              {/* Missing days are an empty dashed outline (transparent, not none, so the cell keeps its hit area); known zeros are filled. */}
+              {missing ? (
+                <rect
+                  x={x}
+                  y={y}
+                  width={cell}
+                  height={cell}
+                  rx={3}
+                  fill="transparent"
+                  stroke="var(--missing)"
+                  strokeDasharray="2 2"
+                />
+              ) : (
+                <rect
+                  x={x}
+                  y={y}
+                  width={cell}
+                  height={cell}
+                  rx={3}
+                  fill={`var(--heat-${level})`}
+                  stroke={heatIsWeak(level) ? 'var(--heat-contour)' : undefined}
+                />
+              )}
               <title>{point.label}</title>
             </g>
           </g>

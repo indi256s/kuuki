@@ -18,6 +18,7 @@ import {
   normalizeName,
   withSuffix,
 } from '../../../packages/shared/src/address'
+import { ACCENT_KEYS } from '../../../packages/shared/src/theme/palette'
 
 interface UpdateBody {
   username?: string | null
@@ -105,10 +106,11 @@ export function updateProfileRequest(
     ) {
       throw new HttpError(400, 'avatar_url must be an https:// or data:image/ URL', 'BAD_REQUEST')
     }
+    // Only canonical accent names are stored. null still clears the choice, kept for compatibility with earlier clients. Retired names are mapped by readers, never written.
     if (
-      typeof body.theme_color === 'string' &&
-      body.theme_color.length > 0 &&
-      !/^[a-zA-Z0-9#_-]{1,32}$/.test(body.theme_color)
+      body.theme_color !== undefined &&
+      body.theme_color !== null &&
+      !(ACCENT_KEYS as readonly unknown[]).includes(body.theme_color)
     ) {
       throw new HttpError(400, 'Invalid theme_color', 'BAD_REQUEST')
     }

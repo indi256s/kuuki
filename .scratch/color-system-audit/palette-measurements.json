@@ -1,0 +1,3534 @@
+{
+  "status": "declared opaque sRGB pairs only",
+  "summary": {
+    "pairs": 366,
+    "minRatio": 3.1569,
+    "exceptions": "Heat fill/background ratios are reported separately; visible contours and numerals carry the level."
+  },
+  "measurements": [
+    {
+      "role": "light:text",
+      "foreground": "#302d2a",
+      "background": "#fbfaf8",
+      "ratio": 13.1196,
+      "target": 4.5
+    },
+    {
+      "role": "light:muted",
+      "foreground": "#66605b",
+      "background": "#fbfaf8",
+      "ratio": 5.9399,
+      "target": 4.5
+    },
+    {
+      "role": "light:text",
+      "foreground": "#302d2a",
+      "background": "#ffffff",
+      "ratio": 13.6855,
+      "target": 4.5
+    },
+    {
+      "role": "light:muted",
+      "foreground": "#66605b",
+      "background": "#ffffff",
+      "ratio": 6.1962,
+      "target": 4.5
+    },
+    {
+      "role": "light:text",
+      "foreground": "#302d2a",
+      "background": "#f2f0ed",
+      "ratio": 12.0318,
+      "target": 4.5
+    },
+    {
+      "role": "light:muted",
+      "foreground": "#66605b",
+      "background": "#f2f0ed",
+      "ratio": 5.4474,
+      "target": 4.5
+    },
+    {
+      "role": "light:control-and-heat-contour",
+      "foreground": "#886842",
+      "background": "#fbfaf8",
+      "ratio": 4.9033,
+      "target": 3
+    },
+    {
+      "role": "light:control-and-heat-contour",
+      "foreground": "#886842",
+      "background": "#ffffff",
+      "ratio": 5.1148,
+      "target": 3
+    },
+    {
+      "role": "light:control-and-heat-contour",
+      "foreground": "#886842",
+      "background": "#f2f0ed",
+      "ratio": 4.4967,
+      "target": 3
+    },
+    {
+      "role": "light:category:airbus",
+      "foreground": "#568db2",
+      "background": "#fbfaf8",
+      "ratio": 3.4423,
+      "target": 3
+    },
+    {
+      "role": "light:category:airbus",
+      "foreground": "#568db2",
+      "background": "#ffffff",
+      "ratio": 3.5908,
+      "target": 3
+    },
+    {
+      "role": "light:category:airbus",
+      "foreground": "#568db2",
+      "background": "#f2f0ed",
+      "ratio": 3.1569,
+      "target": 3
+    },
+    {
+      "role": "light:category:boeing",
+      "foreground": "#487a6b",
+      "background": "#fbfaf8",
+      "ratio": 4.7129,
+      "target": 3
+    },
+    {
+      "role": "light:category:boeing",
+      "foreground": "#487a6b",
+      "background": "#ffffff",
+      "ratio": 4.9162,
+      "target": 3
+    },
+    {
+      "role": "light:category:boeing",
+      "foreground": "#487a6b",
+      "background": "#f2f0ed",
+      "ratio": 4.3222,
+      "target": 3
+    },
+    {
+      "role": "light:category:embraer",
+      "foreground": "#988451",
+      "background": "#fbfaf8",
+      "ratio": 3.4984,
+      "target": 3
+    },
+    {
+      "role": "light:category:embraer",
+      "foreground": "#988451",
+      "background": "#ffffff",
+      "ratio": 3.6493,
+      "target": 3
+    },
+    {
+      "role": "light:category:embraer",
+      "foreground": "#988451",
+      "background": "#f2f0ed",
+      "ratio": 3.2083,
+      "target": 3
+    },
+    {
+      "role": "light:category:atr",
+      "foreground": "#8457a8",
+      "background": "#fbfaf8",
+      "ratio": 5.1489,
+      "target": 3
+    },
+    {
+      "role": "light:category:atr",
+      "foreground": "#8457a8",
+      "background": "#ffffff",
+      "ratio": 5.371,
+      "target": 3
+    },
+    {
+      "role": "light:category:atr",
+      "foreground": "#8457a8",
+      "background": "#f2f0ed",
+      "ratio": 4.722,
+      "target": 3
+    },
+    {
+      "role": "light:category:other",
+      "foreground": "#5e574f",
+      "background": "#fbfaf8",
+      "ratio": 6.8193,
+      "target": 3
+    },
+    {
+      "role": "light:category:other",
+      "foreground": "#5e574f",
+      "background": "#ffffff",
+      "ratio": 7.1135,
+      "target": 3
+    },
+    {
+      "role": "light:category:other",
+      "foreground": "#5e574f",
+      "background": "#f2f0ed",
+      "ratio": 6.2539,
+      "target": 3
+    },
+    {
+      "role": "light:category:africa",
+      "foreground": "#9f8151",
+      "background": "#fbfaf8",
+      "ratio": 3.5114,
+      "target": 3
+    },
+    {
+      "role": "light:category:africa",
+      "foreground": "#9f8151",
+      "background": "#ffffff",
+      "ratio": 3.6629,
+      "target": 3
+    },
+    {
+      "role": "light:category:africa",
+      "foreground": "#9f8151",
+      "background": "#f2f0ed",
+      "ratio": 3.2202,
+      "target": 3
+    },
+    {
+      "role": "light:category:americas",
+      "foreground": "#844333",
+      "background": "#fbfaf8",
+      "ratio": 7.1088,
+      "target": 3
+    },
+    {
+      "role": "light:category:americas",
+      "foreground": "#844333",
+      "background": "#ffffff",
+      "ratio": 7.4155,
+      "target": 3
+    },
+    {
+      "role": "light:category:americas",
+      "foreground": "#844333",
+      "background": "#f2f0ed",
+      "ratio": 6.5194,
+      "target": 3
+    },
+    {
+      "role": "light:category:antarctica",
+      "foreground": "#4e586c",
+      "background": "#fbfaf8",
+      "ratio": 6.856,
+      "target": 3
+    },
+    {
+      "role": "light:category:antarctica",
+      "foreground": "#4e586c",
+      "background": "#ffffff",
+      "ratio": 7.1517,
+      "target": 3
+    },
+    {
+      "role": "light:category:antarctica",
+      "foreground": "#4e586c",
+      "background": "#f2f0ed",
+      "ratio": 6.2875,
+      "target": 3
+    },
+    {
+      "role": "light:category:asia",
+      "foreground": "#945198",
+      "background": "#fbfaf8",
+      "ratio": 5.1756,
+      "target": 3
+    },
+    {
+      "role": "light:category:asia",
+      "foreground": "#945198",
+      "background": "#ffffff",
+      "ratio": 5.3989,
+      "target": 3
+    },
+    {
+      "role": "light:category:asia",
+      "foreground": "#945198",
+      "background": "#f2f0ed",
+      "ratio": 4.7465,
+      "target": 3
+    },
+    {
+      "role": "light:category:europe",
+      "foreground": "#558cb9",
+      "background": "#fbfaf8",
+      "ratio": 3.4484,
+      "target": 3
+    },
+    {
+      "role": "light:category:europe",
+      "foreground": "#558cb9",
+      "background": "#ffffff",
+      "ratio": 3.5972,
+      "target": 3
+    },
+    {
+      "role": "light:category:europe",
+      "foreground": "#558cb9",
+      "background": "#f2f0ed",
+      "ratio": 3.1625,
+      "target": 3
+    },
+    {
+      "role": "light:category:oceania",
+      "foreground": "#487a6d",
+      "background": "#fbfaf8",
+      "ratio": 4.7035,
+      "target": 3
+    },
+    {
+      "role": "light:category:oceania",
+      "foreground": "#487a6d",
+      "background": "#ffffff",
+      "ratio": 4.9064,
+      "target": 3
+    },
+    {
+      "role": "light:category:oceania",
+      "foreground": "#487a6d",
+      "background": "#f2f0ed",
+      "ratio": 4.3136,
+      "target": 3
+    },
+    {
+      "role": "light:brand:TK",
+      "foreground": "#ad4d42",
+      "background": "#fbfaf8",
+      "ratio": 5.1391,
+      "target": 3
+    },
+    {
+      "role": "light:brand:TK",
+      "foreground": "#ad4d42",
+      "background": "#ffffff",
+      "ratio": 5.3608,
+      "target": 3
+    },
+    {
+      "role": "light:brand:TK",
+      "foreground": "#ad4d42",
+      "background": "#f2f0ed",
+      "ratio": 4.713,
+      "target": 3
+    },
+    {
+      "role": "light:brand:EK",
+      "foreground": "#ac4d45",
+      "background": "#fbfaf8",
+      "ratio": 5.1594,
+      "target": 3
+    },
+    {
+      "role": "light:brand:EK",
+      "foreground": "#ac4d45",
+      "background": "#ffffff",
+      "ratio": 5.382,
+      "target": 3
+    },
+    {
+      "role": "light:brand:EK",
+      "foreground": "#ac4d45",
+      "background": "#f2f0ed",
+      "ratio": 4.7317,
+      "target": 3
+    },
+    {
+      "role": "light:shu:heat-1:label",
+      "foreground": "#302d2a",
+      "background": "#e8dad7",
+      "ratio": 10.0628,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:heat-2:label",
+      "foreground": "#302d2a",
+      "background": "#daafa6",
+      "ratio": 6.9496,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:heat-3:label",
+      "foreground": "#000000",
+      "background": "#c87b6a",
+      "ratio": 6.4975,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:heat-4:label",
+      "foreground": "#ffffff",
+      "background": "#a3503f",
+      "ratio": 5.5603,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:action",
+      "foreground": "#ffffff",
+      "background": "#c23417",
+      "ratio": 5.5295,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:accent-text",
+      "foreground": "#a55140",
+      "background": "#fbfaf8",
+      "ratio": 5.2275,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:accent-text",
+      "foreground": "#a55140",
+      "background": "#ffffff",
+      "ratio": 5.453,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:accent-text",
+      "foreground": "#a55140",
+      "background": "#f2f0ed",
+      "ratio": 4.794,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:accent-text",
+      "foreground": "#a55140",
+      "background": "#f3edec",
+      "ratio": 4.7093,
+      "target": 4.5
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#864132",
+      "background": "#fbfaf8",
+      "ratio": 7.149,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#864132",
+      "background": "#ffffff",
+      "ratio": 7.4574,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#864132",
+      "background": "#f2f0ed",
+      "ratio": 6.5563,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#6b7542",
+      "background": "#fbfaf8",
+      "ratio": 4.7387,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#6b7542",
+      "background": "#ffffff",
+      "ratio": 4.9431,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#6b7542",
+      "background": "#f2f0ed",
+      "ratio": 4.3458,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#386061",
+      "background": "#fbfaf8",
+      "ratio": 6.6797,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#386061",
+      "background": "#ffffff",
+      "ratio": 6.9678,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#386061",
+      "background": "#f2f0ed",
+      "ratio": 6.1258,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#767ece",
+      "background": "#fbfaf8",
+      "ratio": 3.5657,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#767ece",
+      "background": "#ffffff",
+      "ratio": 3.7196,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#767ece",
+      "background": "#f2f0ed",
+      "ratio": 3.2701,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#9a4e8f",
+      "background": "#fbfaf8",
+      "ratio": 5.2147,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#9a4e8f",
+      "background": "#ffffff",
+      "ratio": 5.4396,
+      "target": 3
+    },
+    {
+      "role": "light:shu:comparison",
+      "foreground": "#9a4e8f",
+      "background": "#f2f0ed",
+      "ratio": 4.7823,
+      "target": 3
+    },
+    {
+      "role": "light:shu:focus",
+      "foreground": "#c23417",
+      "background": "#fbfaf8",
+      "ratio": 5.3008,
+      "target": 3
+    },
+    {
+      "role": "light:shu:focus",
+      "foreground": "#c23417",
+      "background": "#ffffff",
+      "ratio": 5.5295,
+      "target": 3
+    },
+    {
+      "role": "light:shu:focus",
+      "foreground": "#c23417",
+      "background": "#f2f0ed",
+      "ratio": 4.8613,
+      "target": 3
+    },
+    {
+      "role": "light:ai:heat-1:label",
+      "foreground": "#302d2a",
+      "background": "#dadee8",
+      "ratio": 10.163,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:heat-2:label",
+      "foreground": "#302d2a",
+      "background": "#b0b9d8",
+      "ratio": 7.0234,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:heat-3:label",
+      "foreground": "#000000",
+      "background": "#7d8ece",
+      "ratio": 6.6323,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:heat-4:label",
+      "foreground": "#ffffff",
+      "background": "#5465b1",
+      "ratio": 5.4218,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:action",
+      "foreground": "#ffffff",
+      "background": "#4e5ea2",
+      "ratio": 6.0928,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:accent-text",
+      "foreground": "#5264b6",
+      "background": "#fbfaf8",
+      "ratio": 5.2194,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:accent-text",
+      "foreground": "#5264b6",
+      "background": "#ffffff",
+      "ratio": 5.4446,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:accent-text",
+      "foreground": "#5264b6",
+      "background": "#f2f0ed",
+      "ratio": 4.7867,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:accent-text",
+      "foreground": "#5264b6",
+      "background": "#edeef3",
+      "ratio": 4.6992,
+      "target": 4.5
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#5567ba",
+      "background": "#fbfaf8",
+      "ratio": 4.9889,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#5567ba",
+      "background": "#ffffff",
+      "ratio": 5.2041,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#5567ba",
+      "background": "#f2f0ed",
+      "ratio": 4.5752,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#c26287",
+      "background": "#fbfaf8",
+      "ratio": 3.7342,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#c26287",
+      "background": "#ffffff",
+      "ratio": 3.8953,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#c26287",
+      "background": "#f2f0ed",
+      "ratio": 3.4246,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#846a42",
+      "background": "#fbfaf8",
+      "ratio": 4.8846,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#846a42",
+      "background": "#ffffff",
+      "ratio": 5.0953,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#846a42",
+      "background": "#f2f0ed",
+      "ratio": 4.4796,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#508967",
+      "background": "#fbfaf8",
+      "ratio": 3.9357,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#508967",
+      "background": "#ffffff",
+      "ratio": 4.1055,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#508967",
+      "background": "#f2f0ed",
+      "ratio": 3.6094,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#385f67",
+      "background": "#fbfaf8",
+      "ratio": 6.7087,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#385f67",
+      "background": "#ffffff",
+      "ratio": 6.9981,
+      "target": 3
+    },
+    {
+      "role": "light:ai:comparison",
+      "foreground": "#385f67",
+      "background": "#f2f0ed",
+      "ratio": 6.1524,
+      "target": 3
+    },
+    {
+      "role": "light:ai:focus",
+      "foreground": "#4e5ea2",
+      "background": "#fbfaf8",
+      "ratio": 5.8409,
+      "target": 3
+    },
+    {
+      "role": "light:ai:focus",
+      "foreground": "#4e5ea2",
+      "background": "#ffffff",
+      "ratio": 6.0928,
+      "target": 3
+    },
+    {
+      "role": "light:ai:focus",
+      "foreground": "#4e5ea2",
+      "background": "#f2f0ed",
+      "ratio": 5.3566,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:heat-1:label",
+      "foreground": "#302d2a",
+      "background": "#d8e3c7",
+      "ratio": 10.2525,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:heat-2:label",
+      "foreground": "#302d2a",
+      "background": "#b0c392",
+      "ratio": 7.2123,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:heat-3:label",
+      "foreground": "#000000",
+      "background": "#859c5e",
+      "ratio": 6.9143,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:heat-4:label",
+      "foreground": "#ffffff",
+      "background": "#617441",
+      "ratio": 5.1436,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:action",
+      "foreground": "#ffffff",
+      "background": "#59702a",
+      "ratio": 5.5617,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:accent-text",
+      "foreground": "#5f713f",
+      "background": "#fbfaf8",
+      "ratio": 5.1351,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:accent-text",
+      "foreground": "#5f713f",
+      "background": "#ffffff",
+      "ratio": 5.3566,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:accent-text",
+      "foreground": "#5f713f",
+      "background": "#f2f0ed",
+      "ratio": 4.7093,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:accent-text",
+      "foreground": "#5f713f",
+      "background": "#eaf2e0",
+      "ratio": 4.6617,
+      "target": 4.5
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#647742",
+      "background": "#fbfaf8",
+      "ratio": 4.7266,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#647742",
+      "background": "#ffffff",
+      "ratio": 4.9305,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#647742",
+      "background": "#f2f0ed",
+      "ratio": 4.3347,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#385f66",
+      "background": "#fbfaf8",
+      "ratio": 6.7176,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#385f66",
+      "background": "#ffffff",
+      "ratio": 7.0074,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#385f66",
+      "background": "#f2f0ed",
+      "ratio": 6.1606,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#8677ce",
+      "background": "#fbfaf8",
+      "ratio": 3.6315,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#8677ce",
+      "background": "#ffffff",
+      "ratio": 3.7881,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#8677ce",
+      "background": "#f2f0ed",
+      "ratio": 3.3304,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#c76174",
+      "background": "#fbfaf8",
+      "ratio": 3.7344,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#c76174",
+      "background": "#ffffff",
+      "ratio": 3.8955,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#c76174",
+      "background": "#f2f0ed",
+      "ratio": 3.4248,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#6f5133",
+      "background": "#fbfaf8",
+      "ratio": 6.9401,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#6f5133",
+      "background": "#ffffff",
+      "ratio": 7.2395,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:comparison",
+      "foreground": "#6f5133",
+      "background": "#f2f0ed",
+      "ratio": 6.3647,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:focus",
+      "foreground": "#59702a",
+      "background": "#fbfaf8",
+      "ratio": 5.3317,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:focus",
+      "foreground": "#59702a",
+      "background": "#ffffff",
+      "ratio": 5.5617,
+      "target": 3
+    },
+    {
+      "role": "light:matcha:focus",
+      "foreground": "#59702a",
+      "background": "#f2f0ed",
+      "ratio": 4.8896,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:heat-1:label",
+      "foreground": "#302d2a",
+      "background": "#c7e5e8",
+      "ratio": 10.2975,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:heat-2:label",
+      "foreground": "#302d2a",
+      "background": "#90c6cc",
+      "ratio": 7.2567,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:heat-3:label",
+      "foreground": "#000000",
+      "background": "#649da4",
+      "ratio": 6.9006,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:heat-4:label",
+      "foreground": "#ffffff",
+      "background": "#45757a",
+      "ratio": 5.149,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:action",
+      "foreground": "#ffffff",
+      "background": "#0c747d",
+      "ratio": 5.5121,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:accent-text",
+      "foreground": "#437277",
+      "background": "#fbfaf8",
+      "ratio": 5.1463,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:accent-text",
+      "foreground": "#437277",
+      "background": "#ffffff",
+      "ratio": 5.3683,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:accent-text",
+      "foreground": "#437277",
+      "background": "#f2f0ed",
+      "ratio": 4.7196,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:accent-text",
+      "foreground": "#437277",
+      "background": "#e5f1f2",
+      "ratio": 4.6514,
+      "target": 4.5
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#386064",
+      "background": "#fbfaf8",
+      "ratio": 6.6545,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#386064",
+      "background": "#ffffff",
+      "ratio": 6.9416,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#386064",
+      "background": "#f2f0ed",
+      "ratio": 6.1027,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#7a6bc1",
+      "background": "#fbfaf8",
+      "ratio": 4.2827,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#7a6bc1",
+      "background": "#ffffff",
+      "ratio": 4.4675,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#7a6bc1",
+      "background": "#f2f0ed",
+      "ratio": 3.9276,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#c76175",
+      "background": "#fbfaf8",
+      "ratio": 3.7312,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#c76175",
+      "background": "#ffffff",
+      "ratio": 3.8921,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#c76175",
+      "background": "#f2f0ed",
+      "ratio": 3.4218,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#645733",
+      "background": "#fbfaf8",
+      "ratio": 6.8174,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#645733",
+      "background": "#ffffff",
+      "ratio": 7.1115,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#645733",
+      "background": "#f2f0ed",
+      "ratio": 6.2521,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#477e49",
+      "background": "#fbfaf8",
+      "ratio": 4.6297,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#477e49",
+      "background": "#ffffff",
+      "ratio": 4.8294,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:comparison",
+      "foreground": "#477e49",
+      "background": "#f2f0ed",
+      "ratio": 4.2458,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:focus",
+      "foreground": "#0c747d",
+      "background": "#fbfaf8",
+      "ratio": 5.2842,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:focus",
+      "foreground": "#0c747d",
+      "background": "#ffffff",
+      "ratio": 5.5121,
+      "target": 3
+    },
+    {
+      "role": "light:asagi:focus",
+      "foreground": "#0c747d",
+      "background": "#f2f0ed",
+      "ratio": 4.846,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:heat-1:label",
+      "foreground": "#302d2a",
+      "background": "#e8d9de",
+      "ratio": 10.0433,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:heat-2:label",
+      "foreground": "#302d2a",
+      "background": "#daacbc",
+      "ratio": 6.9135,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:heat-3:label",
+      "foreground": "#000000",
+      "background": "#c37895",
+      "ratio": 6.4413,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:heat-4:label",
+      "foreground": "#ffffff",
+      "background": "#a04b6f",
+      "ratio": 5.6287,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:action",
+      "foreground": "#ffffff",
+      "background": "#964969",
+      "ratio": 6.0799,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:accent-text",
+      "foreground": "#a64b72",
+      "background": "#fbfaf8",
+      "ratio": 5.2006,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:accent-text",
+      "foreground": "#a64b72",
+      "background": "#ffffff",
+      "ratio": 5.4249,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:accent-text",
+      "foreground": "#a64b72",
+      "background": "#f2f0ed",
+      "ratio": 4.7694,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:accent-text",
+      "foreground": "#a64b72",
+      "background": "#f3edef",
+      "ratio": 4.6941,
+      "target": 4.5
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#863a5b",
+      "background": "#fbfaf8",
+      "ratio": 7.2675,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#863a5b",
+      "background": "#ffffff",
+      "ratio": 7.581,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#863a5b",
+      "background": "#f2f0ed",
+      "ratio": 6.6649,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#75603a",
+      "background": "#fbfaf8",
+      "ratio": 5.7672,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#75603a",
+      "background": "#ffffff",
+      "ratio": 6.016,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#75603a",
+      "background": "#f2f0ed",
+      "ratio": 5.289,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#50886b",
+      "background": "#fbfaf8",
+      "ratio": 3.9668,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#50886b",
+      "background": "#ffffff",
+      "ratio": 4.138,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#50886b",
+      "background": "#f2f0ed",
+      "ratio": 3.6379,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#3e6886",
+      "background": "#fbfaf8",
+      "ratio": 5.7044,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#3e6886",
+      "background": "#ffffff",
+      "ratio": 5.9505,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#3e6886",
+      "background": "#f2f0ed",
+      "ratio": 5.2315,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#8d74cb",
+      "background": "#fbfaf8",
+      "ratio": 3.6649,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#8d74cb",
+      "background": "#ffffff",
+      "ratio": 3.823,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:comparison",
+      "foreground": "#8d74cb",
+      "background": "#f2f0ed",
+      "ratio": 3.361,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:focus",
+      "foreground": "#964969",
+      "background": "#fbfaf8",
+      "ratio": 5.8285,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:focus",
+      "foreground": "#964969",
+      "background": "#ffffff",
+      "ratio": 6.0799,
+      "target": 3
+    },
+    {
+      "role": "light:sakura:focus",
+      "foreground": "#964969",
+      "background": "#f2f0ed",
+      "ratio": 5.3452,
+      "target": 3
+    },
+    {
+      "role": "dark:text",
+      "foreground": "#f1efeb",
+      "background": "#292827",
+      "ratio": 12.8137,
+      "target": 4.5
+    },
+    {
+      "role": "dark:muted",
+      "foreground": "#c4beb7",
+      "background": "#292827",
+      "ratio": 7.9857,
+      "target": 4.5
+    },
+    {
+      "role": "dark:text",
+      "foreground": "#f1efeb",
+      "background": "#353331",
+      "ratio": 10.9548,
+      "target": 4.5
+    },
+    {
+      "role": "dark:muted",
+      "foreground": "#c4beb7",
+      "background": "#353331",
+      "ratio": 6.8272,
+      "target": 4.5
+    },
+    {
+      "role": "dark:text",
+      "foreground": "#f1efeb",
+      "background": "#403d3a",
+      "ratio": 9.394,
+      "target": 4.5
+    },
+    {
+      "role": "dark:muted",
+      "foreground": "#c4beb7",
+      "background": "#403d3a",
+      "ratio": 5.8545,
+      "target": 4.5
+    },
+    {
+      "role": "dark:control-and-heat-contour",
+      "foreground": "#d1a168",
+      "background": "#292827",
+      "ratio": 6.3129,
+      "target": 3
+    },
+    {
+      "role": "dark:control-and-heat-contour",
+      "foreground": "#d1a168",
+      "background": "#353331",
+      "ratio": 5.3971,
+      "target": 3
+    },
+    {
+      "role": "dark:control-and-heat-contour",
+      "foreground": "#d1a168",
+      "background": "#403d3a",
+      "ratio": 4.6282,
+      "target": 3
+    },
+    {
+      "role": "dark:category:airbus",
+      "foreground": "#a2cae7",
+      "background": "#292827",
+      "ratio": 8.5055,
+      "target": 3
+    },
+    {
+      "role": "dark:category:airbus",
+      "foreground": "#a2cae7",
+      "background": "#353331",
+      "ratio": 7.2716,
+      "target": 3
+    },
+    {
+      "role": "dark:category:airbus",
+      "foreground": "#a2cae7",
+      "background": "#403d3a",
+      "ratio": 6.2356,
+      "target": 3
+    },
+    {
+      "role": "dark:category:boeing",
+      "foreground": "#71bca5",
+      "background": "#292827",
+      "ratio": 6.6138,
+      "target": 3
+    },
+    {
+      "role": "dark:category:boeing",
+      "foreground": "#71bca5",
+      "background": "#353331",
+      "ratio": 5.6543,
+      "target": 3
+    },
+    {
+      "role": "dark:category:boeing",
+      "foreground": "#71bca5",
+      "background": "#403d3a",
+      "ratio": 4.8487,
+      "target": 3
+    },
+    {
+      "role": "dark:category:embraer",
+      "foreground": "#dec179",
+      "background": "#292827",
+      "ratio": 8.4158,
+      "target": 3
+    },
+    {
+      "role": "dark:category:embraer",
+      "foreground": "#dec179",
+      "background": "#353331",
+      "ratio": 7.1949,
+      "target": 3
+    },
+    {
+      "role": "dark:category:embraer",
+      "foreground": "#dec179",
+      "background": "#403d3a",
+      "ratio": 6.1698,
+      "target": 3
+    },
+    {
+      "role": "dark:category:atr",
+      "foreground": "#bd99dd",
+      "background": "#292827",
+      "ratio": 6.1414,
+      "target": 3
+    },
+    {
+      "role": "dark:category:atr",
+      "foreground": "#bd99dd",
+      "background": "#353331",
+      "ratio": 5.2505,
+      "target": 3
+    },
+    {
+      "role": "dark:category:atr",
+      "foreground": "#bd99dd",
+      "background": "#403d3a",
+      "ratio": 4.5024,
+      "target": 3
+    },
+    {
+      "role": "dark:category:other",
+      "foreground": "#9b9084",
+      "background": "#292827",
+      "ratio": 4.7062,
+      "target": 3
+    },
+    {
+      "role": "dark:category:other",
+      "foreground": "#9b9084",
+      "background": "#353331",
+      "ratio": 4.0235,
+      "target": 3
+    },
+    {
+      "role": "dark:category:other",
+      "foreground": "#9b9084",
+      "background": "#403d3a",
+      "ratio": 3.4503,
+      "target": 3
+    },
+    {
+      "role": "dark:category:africa",
+      "foreground": "#e7bd7a",
+      "background": "#292827",
+      "ratio": 8.3793,
+      "target": 3
+    },
+    {
+      "role": "dark:category:africa",
+      "foreground": "#e7bd7a",
+      "background": "#353331",
+      "ratio": 7.1637,
+      "target": 3
+    },
+    {
+      "role": "dark:category:africa",
+      "foreground": "#e7bd7a",
+      "background": "#403d3a",
+      "ratio": 6.1431,
+      "target": 3
+    },
+    {
+      "role": "dark:category:americas",
+      "foreground": "#d5725a",
+      "background": "#292827",
+      "ratio": 4.4735,
+      "target": 3
+    },
+    {
+      "role": "dark:category:americas",
+      "foreground": "#d5725a",
+      "background": "#353331",
+      "ratio": 3.8246,
+      "target": 3
+    },
+    {
+      "role": "dark:category:americas",
+      "foreground": "#d5725a",
+      "background": "#403d3a",
+      "ratio": 3.2797,
+      "target": 3
+    },
+    {
+      "role": "dark:category:antarctica",
+      "foreground": "#8892a8",
+      "background": "#292827",
+      "ratio": 4.7115,
+      "target": 3
+    },
+    {
+      "role": "dark:category:antarctica",
+      "foreground": "#8892a8",
+      "background": "#353331",
+      "ratio": 4.028,
+      "target": 3
+    },
+    {
+      "role": "dark:category:antarctica",
+      "foreground": "#8892a8",
+      "background": "#403d3a",
+      "ratio": 3.4541,
+      "target": 3
+    },
+    {
+      "role": "dark:category:asia",
+      "foreground": "#d48dd8",
+      "background": "#292827",
+      "ratio": 6.027,
+      "target": 3
+    },
+    {
+      "role": "dark:category:asia",
+      "foreground": "#d48dd8",
+      "background": "#353331",
+      "ratio": 5.1527,
+      "target": 3
+    },
+    {
+      "role": "dark:category:asia",
+      "foreground": "#d48dd8",
+      "background": "#403d3a",
+      "ratio": 4.4186,
+      "target": 3
+    },
+    {
+      "role": "dark:category:europe",
+      "foreground": "#a6c9e7",
+      "background": "#292827",
+      "ratio": 8.4996,
+      "target": 3
+    },
+    {
+      "role": "dark:category:europe",
+      "foreground": "#a6c9e7",
+      "background": "#353331",
+      "ratio": 7.2666,
+      "target": 3
+    },
+    {
+      "role": "dark:category:europe",
+      "foreground": "#a6c9e7",
+      "background": "#403d3a",
+      "ratio": 6.2313,
+      "target": 3
+    },
+    {
+      "role": "dark:category:oceania",
+      "foreground": "#71bca8",
+      "background": "#292827",
+      "ratio": 6.6293,
+      "target": 3
+    },
+    {
+      "role": "dark:category:oceania",
+      "foreground": "#71bca8",
+      "background": "#353331",
+      "ratio": 5.6676,
+      "target": 3
+    },
+    {
+      "role": "dark:category:oceania",
+      "foreground": "#71bca8",
+      "background": "#403d3a",
+      "ratio": 4.8601,
+      "target": 3
+    },
+    {
+      "role": "dark:brand:TK",
+      "foreground": "#df958a",
+      "background": "#292827",
+      "ratio": 6.1691,
+      "target": 3
+    },
+    {
+      "role": "dark:brand:TK",
+      "foreground": "#df958a",
+      "background": "#353331",
+      "ratio": 5.2741,
+      "target": 3
+    },
+    {
+      "role": "dark:brand:TK",
+      "foreground": "#df958a",
+      "background": "#403d3a",
+      "ratio": 4.5227,
+      "target": 3
+    },
+    {
+      "role": "dark:brand:EK",
+      "foreground": "#df948c",
+      "background": "#292827",
+      "ratio": 6.1331,
+      "target": 3
+    },
+    {
+      "role": "dark:brand:EK",
+      "foreground": "#df948c",
+      "background": "#353331",
+      "ratio": 5.2434,
+      "target": 3
+    },
+    {
+      "role": "dark:brand:EK",
+      "foreground": "#df948c",
+      "background": "#403d3a",
+      "ratio": 4.4964,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:heat-1:label",
+      "foreground": "#f1efeb",
+      "background": "#6a4d47",
+      "ratio": 6.6125,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:heat-2:label",
+      "foreground": "#ffffff",
+      "background": "#966257",
+      "ratio": 5.0219,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:heat-3:label",
+      "foreground": "#000000",
+      "background": "#c87b6a",
+      "ratio": 6.4975,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:heat-4:label",
+      "foreground": "#000000",
+      "background": "#e2a294",
+      "ratio": 9.8298,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:action",
+      "foreground": "#292827",
+      "background": "#ea846f",
+      "ratio": 5.6261,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:accent-text",
+      "foreground": "#e2a193",
+      "background": "#292827",
+      "ratio": 6.8344,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:accent-text",
+      "foreground": "#e2a193",
+      "background": "#353331",
+      "ratio": 5.8429,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:accent-text",
+      "foreground": "#e2a193",
+      "background": "#403d3a",
+      "ratio": 5.0105,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:accent-text",
+      "foreground": "#e2a193",
+      "background": "#4f3e3a",
+      "ratio": 4.6832,
+      "target": 4.5
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#d6725d",
+      "background": "#292827",
+      "ratio": 4.5019,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#d6725d",
+      "background": "#353331",
+      "ratio": 3.8488,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#d6725d",
+      "background": "#403d3a",
+      "ratio": 3.3004,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#a5b469",
+      "background": "#292827",
+      "ratio": 6.5394,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#a5b469",
+      "background": "#353331",
+      "ratio": 5.5907,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#a5b469",
+      "background": "#403d3a",
+      "ratio": 4.7942,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#609fa1",
+      "background": "#292827",
+      "ratio": 4.8848,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#609fa1",
+      "background": "#353331",
+      "ratio": 4.1761,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#609fa1",
+      "background": "#403d3a",
+      "ratio": 3.5812,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#bcc1e7",
+      "background": "#292827",
+      "ratio": 8.3527,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#bcc1e7",
+      "background": "#353331",
+      "ratio": 7.1409,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#bcc1e7",
+      "background": "#403d3a",
+      "ratio": 6.1236,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#db8bce",
+      "background": "#292827",
+      "ratio": 6.0238,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#db8bce",
+      "background": "#353331",
+      "ratio": 5.1499,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:comparison",
+      "foreground": "#db8bce",
+      "background": "#403d3a",
+      "ratio": 4.4162,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:focus",
+      "foreground": "#ea846f",
+      "background": "#292827",
+      "ratio": 5.6261,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:focus",
+      "foreground": "#ea846f",
+      "background": "#353331",
+      "ratio": 4.8099,
+      "target": 3
+    },
+    {
+      "role": "dark:shu:focus",
+      "foreground": "#ea846f",
+      "background": "#403d3a",
+      "ratio": 4.1246,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:heat-1:label",
+      "foreground": "#f1efeb",
+      "background": "#4d546c",
+      "ratio": 6.5304,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:heat-2:label",
+      "foreground": "#ffffff",
+      "background": "#636f9b",
+      "ratio": 4.9093,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:heat-3:label",
+      "foreground": "#000000",
+      "background": "#7d8ece",
+      "ratio": 6.6323,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:heat-4:label",
+      "foreground": "#000000",
+      "background": "#a5b2e0",
+      "ratio": 10.0443,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:action",
+      "foreground": "#292827",
+      "background": "#acbbef",
+      "ratio": 7.784,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:accent-text",
+      "foreground": "#a2b0df",
+      "background": "#292827",
+      "ratio": 6.8754,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:accent-text",
+      "foreground": "#a2b0df",
+      "background": "#353331",
+      "ratio": 5.878,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:accent-text",
+      "foreground": "#a2b0df",
+      "background": "#403d3a",
+      "ratio": 5.0405,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:accent-text",
+      "foreground": "#a2b0df",
+      "background": "#3d4250",
+      "ratio": 4.6867,
+      "target": 4.5
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#99a8dd",
+      "background": "#292827",
+      "ratio": 6.3062,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#99a8dd",
+      "background": "#353331",
+      "ratio": 5.3913,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#99a8dd",
+      "background": "#403d3a",
+      "ratio": 4.6232,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#e8b3c5",
+      "background": "#292827",
+      "ratio": 8.1884,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#e8b3c5",
+      "background": "#353331",
+      "ratio": 7.0005,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#e8b3c5",
+      "background": "#403d3a",
+      "ratio": 6.0031,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#cba468",
+      "background": "#292827",
+      "ratio": 6.3413,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#cba468",
+      "background": "#353331",
+      "ratio": 5.4213,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#cba468",
+      "background": "#403d3a",
+      "ratio": 4.6489,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#79cc9c",
+      "background": "#292827",
+      "ratio": 7.6588,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#79cc9c",
+      "background": "#353331",
+      "ratio": 6.5478,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#79cc9c",
+      "background": "#403d3a",
+      "ratio": 5.6149,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#5f9daa",
+      "background": "#292827",
+      "ratio": 4.8277,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#5f9daa",
+      "background": "#353331",
+      "ratio": 4.1274,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:comparison",
+      "foreground": "#5f9daa",
+      "background": "#403d3a",
+      "ratio": 3.5393,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:focus",
+      "foreground": "#acbbef",
+      "background": "#292827",
+      "ratio": 7.784,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:focus",
+      "foreground": "#acbbef",
+      "background": "#353331",
+      "ratio": 6.6548,
+      "target": 3
+    },
+    {
+      "role": "dark:ai:focus",
+      "foreground": "#acbbef",
+      "background": "#403d3a",
+      "ratio": 5.7066,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:heat-1:label",
+      "foreground": "#f1efeb",
+      "background": "#515944",
+      "ratio": 6.3888,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:heat-2:label",
+      "foreground": "#ffffff",
+      "background": "#6a7852",
+      "ratio": 4.7498,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:heat-3:label",
+      "foreground": "#000000",
+      "background": "#859c5e",
+      "ratio": 6.9143,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:heat-4:label",
+      "foreground": "#000000",
+      "background": "#a4c16f",
+      "ratio": 10.436,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:action",
+      "foreground": "#292827",
+      "background": "#b7ce92",
+      "ratio": 8.5887,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:accent-text",
+      "foreground": "#9fbc6c",
+      "background": "#292827",
+      "ratio": 6.9259,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:accent-text",
+      "foreground": "#9fbc6c",
+      "background": "#353331",
+      "ratio": 5.9212,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:accent-text",
+      "foreground": "#9fbc6c",
+      "background": "#403d3a",
+      "ratio": 5.0776,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:accent-text",
+      "foreground": "#9fbc6c",
+      "background": "#3f4537",
+      "ratio": 4.6672,
+      "target": 4.5
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#9bb769",
+      "background": "#292827",
+      "ratio": 6.5665,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#9bb769",
+      "background": "#353331",
+      "ratio": 5.6139,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#9bb769",
+      "background": "#403d3a",
+      "ratio": 4.8141,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#5f9ea9",
+      "background": "#292827",
+      "ratio": 4.8701,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#5f9ea9",
+      "background": "#353331",
+      "ratio": 4.1636,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#5f9ea9",
+      "background": "#403d3a",
+      "ratio": 3.5704,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#c3bfe7",
+      "background": "#292827",
+      "ratio": 8.3573,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#c3bfe7",
+      "background": "#353331",
+      "ratio": 7.1449,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#c3bfe7",
+      "background": "#403d3a",
+      "ratio": 6.1269,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#e8b5bb",
+      "background": "#292827",
+      "ratio": 8.2395,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#e8b5bb",
+      "background": "#353331",
+      "ratio": 7.0442,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#e8b5bb",
+      "background": "#403d3a",
+      "ratio": 6.0406,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#b78758",
+      "background": "#292827",
+      "ratio": 4.6389,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#b78758",
+      "background": "#353331",
+      "ratio": 3.9659,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:comparison",
+      "foreground": "#b78758",
+      "background": "#403d3a",
+      "ratio": 3.4009,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:focus",
+      "foreground": "#b7ce92",
+      "background": "#292827",
+      "ratio": 8.5887,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:focus",
+      "foreground": "#b7ce92",
+      "background": "#353331",
+      "ratio": 7.3428,
+      "target": 3
+    },
+    {
+      "role": "dark:matcha:focus",
+      "foreground": "#b7ce92",
+      "background": "#403d3a",
+      "ratio": 6.2966,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:heat-1:label",
+      "foreground": "#f1efeb",
+      "background": "#47595b",
+      "ratio": 6.421,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:heat-2:label",
+      "foreground": "#ffffff",
+      "background": "#56797c",
+      "ratio": 4.7494,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:heat-3:label",
+      "foreground": "#000000",
+      "background": "#649da4",
+      "ratio": 6.9006,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:heat-4:label",
+      "foreground": "#000000",
+      "background": "#77c3cb",
+      "ratio": 10.4525,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:action",
+      "foreground": "#292827",
+      "background": "#85cfd8",
+      "ratio": 8.3482,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:accent-text",
+      "foreground": "#74bec6",
+      "background": "#292827",
+      "ratio": 6.9534,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:accent-text",
+      "foreground": "#74bec6",
+      "background": "#353331",
+      "ratio": 5.9446,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:accent-text",
+      "foreground": "#74bec6",
+      "background": "#403d3a",
+      "ratio": 5.0977,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:accent-text",
+      "foreground": "#74bec6",
+      "background": "#394546",
+      "ratio": 4.6948,
+      "target": 4.5
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#5f9ea5",
+      "background": "#292827",
+      "ratio": 4.8493,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#5f9ea5",
+      "background": "#353331",
+      "ratio": 4.1458,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#5f9ea5",
+      "background": "#403d3a",
+      "ratio": 3.5552,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#b6b1e2",
+      "background": "#292827",
+      "ratio": 7.2707,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#b6b1e2",
+      "background": "#353331",
+      "ratio": 6.216,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#b6b1e2",
+      "background": "#403d3a",
+      "ratio": 5.3303,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#e8b5bb",
+      "background": "#292827",
+      "ratio": 8.2395,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#e8b5bb",
+      "background": "#353331",
+      "ratio": 7.0442,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#e8b5bb",
+      "background": "#403d3a",
+      "ratio": 6.0406,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#a59059",
+      "background": "#292827",
+      "ratio": 4.7183,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#a59059",
+      "background": "#353331",
+      "ratio": 4.0338,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#a59059",
+      "background": "#403d3a",
+      "ratio": 3.4591,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#74c076",
+      "background": "#292827",
+      "ratio": 6.6876,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#74c076",
+      "background": "#353331",
+      "ratio": 5.7174,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:comparison",
+      "foreground": "#74c076",
+      "background": "#403d3a",
+      "ratio": 4.9028,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:focus",
+      "foreground": "#85cfd8",
+      "background": "#292827",
+      "ratio": 8.3482,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:focus",
+      "foreground": "#85cfd8",
+      "background": "#353331",
+      "ratio": 7.1371,
+      "target": 3
+    },
+    {
+      "role": "dark:asagi:focus",
+      "foreground": "#85cfd8",
+      "background": "#403d3a",
+      "ratio": 6.1203,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:heat-1:label",
+      "foreground": "#f1efeb",
+      "background": "#684c56",
+      "ratio": 6.6332,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:heat-2:label",
+      "foreground": "#ffffff",
+      "background": "#936073",
+      "ratio": 5.0463,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:heat-3:label",
+      "foreground": "#000000",
+      "background": "#c37895",
+      "ratio": 6.4413,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:heat-4:label",
+      "foreground": "#000000",
+      "background": "#e29db7",
+      "ratio": 9.7406,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:action",
+      "foreground": "#292827",
+      "background": "#e8a9c0",
+      "ratio": 7.6153,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:accent-text",
+      "foreground": "#e29cb6",
+      "background": "#292827",
+      "ratio": 6.7724,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:accent-text",
+      "foreground": "#e29cb6",
+      "background": "#353331",
+      "ratio": 5.7899,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:accent-text",
+      "foreground": "#e29cb6",
+      "background": "#403d3a",
+      "ratio": 4.965,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:accent-text",
+      "foreground": "#e29cb6",
+      "background": "#4e3d43",
+      "ratio": 4.6634,
+      "target": 4.5
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#cf6e95",
+      "background": "#292827",
+      "ratio": 4.427,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#cf6e95",
+      "background": "#353331",
+      "ratio": 3.7848,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#cf6e95",
+      "background": "#403d3a",
+      "ratio": 3.2456,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#ba9960",
+      "background": "#292827",
+      "ratio": 5.475,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#ba9960",
+      "background": "#353331",
+      "ratio": 4.6807,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#ba9960",
+      "background": "#403d3a",
+      "ratio": 4.0139,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#7acca2",
+      "background": "#292827",
+      "ratio": 7.6982,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#7acca2",
+      "background": "#353331",
+      "ratio": 6.5814,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#7acca2",
+      "background": "#403d3a",
+      "ratio": 5.6437,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#66a6d3",
+      "background": "#292827",
+      "ratio": 5.5776,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#66a6d3",
+      "background": "#353331",
+      "ratio": 4.7685,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#66a6d3",
+      "background": "#403d3a",
+      "ratio": 4.0891,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#c7bde7",
+      "background": "#292827",
+      "ratio": 8.3115,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#c7bde7",
+      "background": "#353331",
+      "ratio": 7.1058,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:comparison",
+      "foreground": "#c7bde7",
+      "background": "#403d3a",
+      "ratio": 6.0934,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:focus",
+      "foreground": "#e8a9c0",
+      "background": "#292827",
+      "ratio": 7.6153,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:focus",
+      "foreground": "#e8a9c0",
+      "background": "#353331",
+      "ratio": 6.5106,
+      "target": 3
+    },
+    {
+      "role": "dark:sakura:focus",
+      "foreground": "#e8a9c0",
+      "background": "#403d3a",
+      "ratio": 5.583,
+      "target": 3
+    }
+  ],
+  "heatFillObservations": [
+    {
+      "role": "light:shu:heat-1:fill",
+      "foreground": "#e8dad7",
+      "background": "#fbfaf8",
+      "ratio": 1.3038,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-1:fill",
+      "foreground": "#e8dad7",
+      "background": "#ffffff",
+      "ratio": 1.36,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-1:fill",
+      "foreground": "#e8dad7",
+      "background": "#f2f0ed",
+      "ratio": 1.1957,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-2:fill",
+      "foreground": "#daafa6",
+      "background": "#fbfaf8",
+      "ratio": 1.8878,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-2:fill",
+      "foreground": "#daafa6",
+      "background": "#ffffff",
+      "ratio": 1.9693,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-2:fill",
+      "foreground": "#daafa6",
+      "background": "#f2f0ed",
+      "ratio": 1.7313,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-3:fill",
+      "foreground": "#c87b6a",
+      "background": "#fbfaf8",
+      "ratio": 3.0984,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-3:fill",
+      "foreground": "#c87b6a",
+      "background": "#ffffff",
+      "ratio": 3.232,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-3:fill",
+      "foreground": "#c87b6a",
+      "background": "#f2f0ed",
+      "ratio": 2.8415,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-4:fill",
+      "foreground": "#a3503f",
+      "background": "#fbfaf8",
+      "ratio": 5.3304,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-4:fill",
+      "foreground": "#a3503f",
+      "background": "#ffffff",
+      "ratio": 5.5603,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:shu:heat-4:fill",
+      "foreground": "#a3503f",
+      "background": "#f2f0ed",
+      "ratio": 4.8884,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-1:fill",
+      "foreground": "#dadee8",
+      "background": "#fbfaf8",
+      "ratio": 1.2909,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-1:fill",
+      "foreground": "#dadee8",
+      "background": "#ffffff",
+      "ratio": 1.3466,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-1:fill",
+      "foreground": "#dadee8",
+      "background": "#f2f0ed",
+      "ratio": 1.1839,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-2:fill",
+      "foreground": "#b0b9d8",
+      "background": "#fbfaf8",
+      "ratio": 1.868,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-2:fill",
+      "foreground": "#b0b9d8",
+      "background": "#ffffff",
+      "ratio": 1.9486,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-2:fill",
+      "foreground": "#b0b9d8",
+      "background": "#f2f0ed",
+      "ratio": 1.7131,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-3:fill",
+      "foreground": "#7d8ece",
+      "background": "#fbfaf8",
+      "ratio": 3.0354,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-3:fill",
+      "foreground": "#7d8ece",
+      "background": "#ffffff",
+      "ratio": 3.1663,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-3:fill",
+      "foreground": "#7d8ece",
+      "background": "#f2f0ed",
+      "ratio": 2.7837,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-4:fill",
+      "foreground": "#5465b1",
+      "background": "#fbfaf8",
+      "ratio": 5.1976,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-4:fill",
+      "foreground": "#5465b1",
+      "background": "#ffffff",
+      "ratio": 5.4218,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:ai:heat-4:fill",
+      "foreground": "#5465b1",
+      "background": "#f2f0ed",
+      "ratio": 4.7667,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-1:fill",
+      "foreground": "#d8e3c7",
+      "background": "#fbfaf8",
+      "ratio": 1.2796,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-1:fill",
+      "foreground": "#d8e3c7",
+      "background": "#ffffff",
+      "ratio": 1.3349,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-1:fill",
+      "foreground": "#d8e3c7",
+      "background": "#f2f0ed",
+      "ratio": 1.1735,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-2:fill",
+      "foreground": "#b0c392",
+      "background": "#fbfaf8",
+      "ratio": 1.819,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-2:fill",
+      "foreground": "#b0c392",
+      "background": "#ffffff",
+      "ratio": 1.8975,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-2:fill",
+      "foreground": "#b0c392",
+      "background": "#f2f0ed",
+      "ratio": 1.6682,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-3:fill",
+      "foreground": "#859c5e",
+      "background": "#fbfaf8",
+      "ratio": 2.9116,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-3:fill",
+      "foreground": "#859c5e",
+      "background": "#ffffff",
+      "ratio": 3.0372,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-3:fill",
+      "foreground": "#859c5e",
+      "background": "#f2f0ed",
+      "ratio": 2.6702,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-4:fill",
+      "foreground": "#617441",
+      "background": "#fbfaf8",
+      "ratio": 4.9309,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-4:fill",
+      "foreground": "#617441",
+      "background": "#ffffff",
+      "ratio": 5.1436,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:matcha:heat-4:fill",
+      "foreground": "#617441",
+      "background": "#f2f0ed",
+      "ratio": 4.5221,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-1:fill",
+      "foreground": "#c7e5e8",
+      "background": "#fbfaf8",
+      "ratio": 1.2741,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-1:fill",
+      "foreground": "#c7e5e8",
+      "background": "#ffffff",
+      "ratio": 1.329,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-1:fill",
+      "foreground": "#c7e5e8",
+      "background": "#f2f0ed",
+      "ratio": 1.1684,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-2:fill",
+      "foreground": "#90c6cc",
+      "background": "#fbfaf8",
+      "ratio": 1.8079,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-2:fill",
+      "foreground": "#90c6cc",
+      "background": "#ffffff",
+      "ratio": 1.8859,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-2:fill",
+      "foreground": "#90c6cc",
+      "background": "#f2f0ed",
+      "ratio": 1.658,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-3:fill",
+      "foreground": "#649da4",
+      "background": "#fbfaf8",
+      "ratio": 2.9174,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-3:fill",
+      "foreground": "#649da4",
+      "background": "#ffffff",
+      "ratio": 3.0432,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-3:fill",
+      "foreground": "#649da4",
+      "background": "#f2f0ed",
+      "ratio": 2.6755,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-4:fill",
+      "foreground": "#45757a",
+      "background": "#fbfaf8",
+      "ratio": 4.936,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-4:fill",
+      "foreground": "#45757a",
+      "background": "#ffffff",
+      "ratio": 5.149,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:asagi:heat-4:fill",
+      "foreground": "#45757a",
+      "background": "#f2f0ed",
+      "ratio": 4.5268,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-1:fill",
+      "foreground": "#e8d9de",
+      "background": "#fbfaf8",
+      "ratio": 1.3063,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-1:fill",
+      "foreground": "#e8d9de",
+      "background": "#ffffff",
+      "ratio": 1.3626,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-1:fill",
+      "foreground": "#e8d9de",
+      "background": "#f2f0ed",
+      "ratio": 1.198,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-2:fill",
+      "foreground": "#daacbc",
+      "background": "#fbfaf8",
+      "ratio": 1.8977,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-2:fill",
+      "foreground": "#daacbc",
+      "background": "#ffffff",
+      "ratio": 1.9795,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-2:fill",
+      "foreground": "#daacbc",
+      "background": "#f2f0ed",
+      "ratio": 1.7403,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-3:fill",
+      "foreground": "#c37895",
+      "background": "#fbfaf8",
+      "ratio": 3.1254,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-3:fill",
+      "foreground": "#c37895",
+      "background": "#ffffff",
+      "ratio": 3.2602,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-3:fill",
+      "foreground": "#c37895",
+      "background": "#f2f0ed",
+      "ratio": 2.8663,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-4:fill",
+      "foreground": "#a04b6f",
+      "background": "#fbfaf8",
+      "ratio": 5.3959,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-4:fill",
+      "foreground": "#a04b6f",
+      "background": "#ffffff",
+      "ratio": 5.6287,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "light:sakura:heat-4:fill",
+      "foreground": "#a04b6f",
+      "background": "#f2f0ed",
+      "ratio": 4.9485,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-1:fill",
+      "foreground": "#6a4d47",
+      "background": "#292827",
+      "ratio": 1.9378,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-1:fill",
+      "foreground": "#6a4d47",
+      "background": "#353331",
+      "ratio": 1.6567,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-1:fill",
+      "foreground": "#6a4d47",
+      "background": "#403d3a",
+      "ratio": 1.4206,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-2:fill",
+      "foreground": "#966257",
+      "background": "#292827",
+      "ratio": 2.9302,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-2:fill",
+      "foreground": "#966257",
+      "background": "#353331",
+      "ratio": 2.5051,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-2:fill",
+      "foreground": "#966257",
+      "background": "#403d3a",
+      "ratio": 2.1482,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-3:fill",
+      "foreground": "#c87b6a",
+      "background": "#292827",
+      "ratio": 4.5529,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-3:fill",
+      "foreground": "#c87b6a",
+      "background": "#353331",
+      "ratio": 3.8924,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-3:fill",
+      "foreground": "#c87b6a",
+      "background": "#403d3a",
+      "ratio": 3.3379,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-4:fill",
+      "foreground": "#e2a294",
+      "background": "#292827",
+      "ratio": 6.888,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-4:fill",
+      "foreground": "#e2a294",
+      "background": "#353331",
+      "ratio": 5.8887,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:shu:heat-4:fill",
+      "foreground": "#e2a294",
+      "background": "#403d3a",
+      "ratio": 5.0497,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-1:fill",
+      "foreground": "#4d546c",
+      "background": "#292827",
+      "ratio": 1.9622,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-1:fill",
+      "foreground": "#4d546c",
+      "background": "#353331",
+      "ratio": 1.6775,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-1:fill",
+      "foreground": "#4d546c",
+      "background": "#403d3a",
+      "ratio": 1.4385,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-2:fill",
+      "foreground": "#636f9b",
+      "background": "#292827",
+      "ratio": 2.9974,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-2:fill",
+      "foreground": "#636f9b",
+      "background": "#353331",
+      "ratio": 2.5626,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-2:fill",
+      "foreground": "#636f9b",
+      "background": "#403d3a",
+      "ratio": 2.1975,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-3:fill",
+      "foreground": "#7d8ece",
+      "background": "#292827",
+      "ratio": 4.6474,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-3:fill",
+      "foreground": "#7d8ece",
+      "background": "#353331",
+      "ratio": 3.9732,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-3:fill",
+      "foreground": "#7d8ece",
+      "background": "#403d3a",
+      "ratio": 3.4071,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-4:fill",
+      "foreground": "#a5b2e0",
+      "background": "#292827",
+      "ratio": 7.0383,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-4:fill",
+      "foreground": "#a5b2e0",
+      "background": "#353331",
+      "ratio": 6.0172,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:ai:heat-4:fill",
+      "foreground": "#a5b2e0",
+      "background": "#403d3a",
+      "ratio": 5.1599,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-1:fill",
+      "foreground": "#515944",
+      "background": "#292827",
+      "ratio": 2.0057,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-1:fill",
+      "foreground": "#515944",
+      "background": "#353331",
+      "ratio": 1.7147,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-1:fill",
+      "foreground": "#515944",
+      "background": "#403d3a",
+      "ratio": 1.4704,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-2:fill",
+      "foreground": "#6a7852",
+      "background": "#292827",
+      "ratio": 3.0981,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-2:fill",
+      "foreground": "#6a7852",
+      "background": "#353331",
+      "ratio": 2.6486,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-2:fill",
+      "foreground": "#6a7852",
+      "background": "#403d3a",
+      "ratio": 2.2713,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-3:fill",
+      "foreground": "#859c5e",
+      "background": "#292827",
+      "ratio": 4.845,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-3:fill",
+      "foreground": "#859c5e",
+      "background": "#353331",
+      "ratio": 4.1421,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-3:fill",
+      "foreground": "#859c5e",
+      "background": "#403d3a",
+      "ratio": 3.552,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-4:fill",
+      "foreground": "#a4c16f",
+      "background": "#292827",
+      "ratio": 7.3127,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-4:fill",
+      "foreground": "#a4c16f",
+      "background": "#353331",
+      "ratio": 6.2518,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:matcha:heat-4:fill",
+      "foreground": "#a4c16f",
+      "background": "#403d3a",
+      "ratio": 5.3611,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-1:fill",
+      "foreground": "#47595b",
+      "background": "#292827",
+      "ratio": 1.9956,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-1:fill",
+      "foreground": "#47595b",
+      "background": "#353331",
+      "ratio": 1.7061,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-1:fill",
+      "foreground": "#47595b",
+      "background": "#403d3a",
+      "ratio": 1.463,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-2:fill",
+      "foreground": "#56797c",
+      "background": "#292827",
+      "ratio": 3.0983,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-2:fill",
+      "foreground": "#56797c",
+      "background": "#353331",
+      "ratio": 2.6488,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-2:fill",
+      "foreground": "#56797c",
+      "background": "#403d3a",
+      "ratio": 2.2715,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-3:fill",
+      "foreground": "#649da4",
+      "background": "#292827",
+      "ratio": 4.8354,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-3:fill",
+      "foreground": "#649da4",
+      "background": "#353331",
+      "ratio": 4.1339,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-3:fill",
+      "foreground": "#649da4",
+      "background": "#403d3a",
+      "ratio": 3.5449,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-4:fill",
+      "foreground": "#77c3cb",
+      "background": "#292827",
+      "ratio": 7.3243,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-4:fill",
+      "foreground": "#77c3cb",
+      "background": "#353331",
+      "ratio": 6.2618,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:asagi:heat-4:fill",
+      "foreground": "#77c3cb",
+      "background": "#403d3a",
+      "ratio": 5.3696,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-1:fill",
+      "foreground": "#684c56",
+      "background": "#292827",
+      "ratio": 1.9318,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-1:fill",
+      "foreground": "#684c56",
+      "background": "#353331",
+      "ratio": 1.6515,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-1:fill",
+      "foreground": "#684c56",
+      "background": "#403d3a",
+      "ratio": 1.4162,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-2:fill",
+      "foreground": "#936073",
+      "background": "#292827",
+      "ratio": 2.916,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-2:fill",
+      "foreground": "#936073",
+      "background": "#353331",
+      "ratio": 2.493,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-2:fill",
+      "foreground": "#936073",
+      "background": "#403d3a",
+      "ratio": 2.1378,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-3:fill",
+      "foreground": "#c37895",
+      "background": "#292827",
+      "ratio": 4.5135,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-3:fill",
+      "foreground": "#c37895",
+      "background": "#353331",
+      "ratio": 3.8587,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-3:fill",
+      "foreground": "#c37895",
+      "background": "#403d3a",
+      "ratio": 3.309,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-4:fill",
+      "foreground": "#e29db7",
+      "background": "#292827",
+      "ratio": 6.8255,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-4:fill",
+      "foreground": "#e29db7",
+      "background": "#353331",
+      "ratio": 5.8353,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    },
+    {
+      "role": "dark:sakura:heat-4:fill",
+      "foreground": "#e29db7",
+      "background": "#403d3a",
+      "ratio": 5.0039,
+      "target": null,
+      "cue": "visible contour, numeral, legend"
+    }
+  ]
+}

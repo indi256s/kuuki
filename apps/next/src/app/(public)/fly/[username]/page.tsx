@@ -14,7 +14,9 @@ import { pageMetadata } from '../../../../server/metadata'
 import { IdentitySnapshot } from '../../../../client/activity'
 import { Achievements, ShareProfile } from '../../../../client/profile/profile'
 import { ProfileAvatar } from '../../../../client/profile/avatar'
+import { OwnerAccent } from '../../../../client/owner-accent'
 import { formatDistanceKm, formatMonthYear, formatNumber } from '../../../../lib/format'
+import { resolveAccent } from '../../../../lib/theme-colors'
 import { categoryName } from '../../../../client/leaderboard/categories'
 import '../../../../client/profile/profile.css'
 
@@ -58,6 +60,7 @@ export async function ProfileData({ username }: { username: string }) {
       : 'Private profile'
   const content = (
     <article className="editorial-profile">
+      {data.profile.is_public && <OwnerAccent accent={resolveAccent(data.profile.theme_color)} />}
       <span className="profile-watermark" aria-hidden="true">
         くうき
       </span>

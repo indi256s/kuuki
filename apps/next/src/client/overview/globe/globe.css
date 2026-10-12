@@ -331,6 +331,20 @@
   block-size: auto !important;
   min-block-size: 280px;
 }
+.country-treemap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text);
+}
+.country-treemap-check {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  vertical-align: -2px;
+}
 
 /* Wide Overview: the card height follows --ov-globe-h (set on .ov3-globe-band) and the map canvas fills the card width; the globe still fits the shorter side. Fullscreen is untouched. */
 @media (min-width: 1280px) {

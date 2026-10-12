@@ -32,6 +32,8 @@ export type KuukiChartProps<T> = {
   palette?: ChartPalette
   inView: boolean
   onPick?: (point: ChartPoint<T>) => void
+  /** Points the page is already filtered by: they carry `aria-pressed` and a standing outline (the filter chips live in the toolbar). */
+  applied?: (point: ChartPoint<T>) => boolean
   tip?: (points: readonly ChartPoint<T>[]) => ReactNode
   actions?: (point: ChartPoint<T>) => readonly TipAction[]
   table: ChartTable
@@ -57,6 +59,7 @@ export function KuukiChart<T>({
   palette = DEFAULT_PALETTE,
   inView,
   onPick,
+  applied,
   tip,
   actions,
   table,
@@ -183,6 +186,8 @@ export function KuukiChart<T>({
     'data-chart-key': string
     'data-kc-key': string
     'data-selected'?: string
+    'data-pinned'?: string
+    'data-filtered'?: string
   } => ({
     ref: (node) => {
       if (node) marks.current.set(item.key, node)
@@ -196,7 +201,11 @@ export function KuukiChart<T>({
       .join(' '),
     'data-chart-key': item.key,
     'data-kc-key': item.key,
+    // Hover, focus and pin only describe the tooltip's subject; none of them filters, recolors or hides data.
     'data-selected': selection?.key === item.key ? 'true' : undefined,
+    'data-pinned': selection?.pinned && selection.key === item.key ? 'true' : undefined,
+    'data-filtered': applied?.(item) ? 'true' : undefined,
+    'aria-pressed': applied ? !!applied(item) : undefined,
     onFocus: (event) => {
       setActive(item.key)
       if (!selection?.pinned) show(item.key, event.currentTarget, false)

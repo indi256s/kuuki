@@ -1,10 +1,11 @@
 import { computeOverview } from '../../../../packages/shared/src/overview/compute'
 import type { OverviewFilter } from '../../../../packages/shared/src/overview/model'
 import { overviewPrefsSchema, parsePrefs } from '../../../../packages/shared/src/overview/prefs'
+import { MODES, type Mode } from '../../../../packages/shared/src/theme/palette'
 import { requireUser, type RequestData } from '../../_lib/auth'
 import { HttpError, runHandler } from '../../_lib/http'
 import { readOverviewData } from '../../_services/overviewData'
-import { renderShareCard } from '../../_services/overviewShareCard'
+import { renderShareCard, resolveShareAccent } from '../../_services/overviewShareCard'
 
 export function shareFilter(raw: string): OverviewFilter {
   try {
@@ -22,18 +23,34 @@ export function shareFilter(raw: string): OverviewFilter {
   }
 }
 
+/** Missing means light, the card's original background; anything but a known mode is rejected. */
+function shareMode(raw: string | null): Mode {
+  if (raw === null) return 'light'
+  if (!(MODES as readonly string[]).includes(raw))
+    throw new HttpError(400, 'Invalid mode', 'BAD_REQUEST')
+  return raw as Mode
+}
+
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
     const user = requireUser(context.data)
-    const raw = new URL(context.request.url).searchParams.get('filter')
+    const params = new URL(context.request.url).searchParams
+    const mode = shareMode(params.get('mode'))
+    const raw = params.get('filter')
     const explicit = raw === null ? null : shareFilter(raw)
-    const profile = await context.env.DB.prepare('SELECT overview_prefs FROM profiles WHERE id = ?')
+    // The accent is the owner's own stored choice; no request parameter can supply a color.
+    const profile = await context.env.DB.prepare(
+      'SELECT overview_prefs, theme_color FROM profiles WHERE id = ?',
+    )
       .bind(user.id)
-      .first<{ overview_prefs: string | null }>()
+      .first<{ overview_prefs: string | null; theme_color: string | null }>()
     if (!profile) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
     const filter = explicit ?? parsePrefs(profile.overview_prefs).filter
     const payload = await readOverviewData(context.env.DB, user.id)
     if (!payload.derivedReady)
       throw new HttpError(503, 'Overview is updating. Please try again.', 'DERIVED_PENDING')
-    return renderShareCard(computeOverview(payload, filter), context)
+    return renderShareCard(computeOverview(payload, filter), context, {
+      mode,
+      accent: resolveShareAccent(profile.theme_color),
+    })
   })

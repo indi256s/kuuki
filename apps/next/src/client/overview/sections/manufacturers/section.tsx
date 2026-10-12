@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Check } from '@keyline-icons/react'
 import { type MakerKey } from '@kuuki/data/aircraft-makers'
 import type { Makers } from '@kuuki/shared/overview/makers'
 import { MakerSwatch } from '../../../ui/category-mark'
@@ -104,6 +105,7 @@ export function MakersContent({ span }: { span: Span }) {
       ...point.datum,
       group: point.datum.maker,
       fill: `var(--cat-maker-${point.datum.maker})`,
+      outline: point.datum.maker === 'unknown',
       point,
     })),
   ]
@@ -166,6 +168,7 @@ export function MakersContent({ span }: { span: Span }) {
                 palette={MAKER_PALETTE}
                 ariaLabel={copy(locale, 'Flights by manufacturer', 'Перелёты по производителям')}
                 onPick={(point) => pick(point.datum.maker)}
+                applied={(point) => scope.filter.makers?.includes(point.datum.maker) ?? false}
                 actions={(point) => [
                   { label: filterLabel(locale), run: () => pick(point.datum.maker) },
                   ...(!aggregate && ownerKey !== 'dev' && point.datum.flight
@@ -232,29 +235,45 @@ export function MakersContent({ span }: { span: Span }) {
           <div className="ov3-maker-legend">
             {data.rows
               .filter((row) => row.flights > 0)
-              .map((row) => (
-                <div key={row.key}>
-                  <button onClick={() => pick(row.key)}>
-                    <MakerSwatch maker={row.key} /> {makerName(row.key, locale)}{' '}
-                    <strong>{displayValue(row)}</strong> ·{' '}
-                    {percent(total ? valueOf(row, metric) / total : 0)}
-                  </button>
-                  {row.key === 'other' && data.other.length > 0 && (
-                    <Disclosure summary={copy(locale, 'Other families', 'Другие семейства')}>
-                      {data.other.map((family) => (
-                        <button
-                          key={family.key}
-                          onClick={() => {
-                            if (isCurrent()) actions.add('families', family.family)
-                          }}
-                        >
-                          {family.family} · {displayValue({ ...family, key: 'other' })}
-                        </button>
-                      ))}
-                    </Disclosure>
-                  )}
-                </div>
-              ))}
+              .map((row) => {
+                const active = scope.filter.makers?.includes(row.key) ?? false
+                return (
+                  <div key={row.key}>
+                    <button
+                      aria-pressed={active}
+                      onClick={() =>
+                        active && isCurrent() ? actions.remove('makers', row.key) : pick(row.key)
+                      }
+                    >
+                      <MakerSwatch maker={row.key} /> {makerName(row.key, locale)}
+                      {active ? (
+                        <Check
+                          className="ov3-maker-check"
+                          size={14}
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                      ) : null}{' '}
+                      <strong>{displayValue(row)}</strong> ·{' '}
+                      {percent(total ? valueOf(row, metric) / total : 0)}
+                    </button>
+                    {row.key === 'other' && data.other.length > 0 && (
+                      <Disclosure summary={copy(locale, 'Other families', 'Другие семейства')}>
+                        {data.other.map((family) => (
+                          <button
+                            key={family.key}
+                            onClick={() => {
+                              if (isCurrent()) actions.add('families', family.family)
+                            }}
+                          >
+                            {family.family} · {displayValue({ ...family, key: 'other' })}
+                          </button>
+                        ))}
+                      </Disclosure>
+                    )}
+                  </div>
+                )
+              })}
           </div>
           <PayloadAircraftReview />
         </div>

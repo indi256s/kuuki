@@ -277,7 +277,8 @@ export function Section({ span }: { span: Span }) {
                   key={month.key}
                   style={{
                     height: `${Math.max(2, (month.flights / Math.max(1, ...busy.months.map((row) => row.flights))) * 48)}px`,
-                    background: month.month === busy.peakMonth ? 'var(--mark-1)' : 'var(--mark-2)',
+                    background:
+                      month.month === busy.peakMonth ? 'var(--mark-1)' : 'var(--mark-rest)',
                   }}
                 />
               ))}

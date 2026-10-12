@@ -1,5 +1,6 @@
 import { NavigationLink as Link } from './navigation-link'
 import type { ReactNode } from 'react'
+import { AccentSync } from './appearance'
 import { AwaitingProvider } from './awaiting'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
@@ -69,6 +70,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
   const username = own.profile.username ?? null
   return (
     <AwaitingProvider key={own.profile.id} ownerId={own.profile.id}>
+      <AccentSync profileAccent={own.profile.theme_color} />
       <ShellNotices ownerId={own.profile.id} locale={locale}>
         <ImportRuns jobs={jobs} ownerId={own.profile.id} locale={locale}>
           <header className="site-header member-header">

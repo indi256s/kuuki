@@ -64,7 +64,21 @@ const words = {
     helpRecovery: 'Нужна новая ссылка? Вернитесь ко входу и выберите «Не получается войти?».',
   },
 }
-const accents = ['terracotta', 'ai', 'matcha', 'asagi', 'sakura']
+const accents = ['shu', 'ai', 'matcha', 'asagi', 'sakura']
+// Retired names land on their successors, as resolveAccent in lib/theme-colors.ts does; anything else is Shu.
+const retiredAccents = {
+  terracotta: 'shu',
+  kincha: 'shu',
+  sumi: 'shu',
+  yellow: 'shu',
+  red: 'shu',
+  orange: 'shu',
+  blue: 'ai',
+  cyan: 'asagi',
+  teal: 'asagi',
+  purple: 'sakura',
+  coral: 'sakura',
+}
 const root = document.documentElement
 const readCookie = (name) =>
   document.cookie
@@ -91,9 +105,12 @@ const applyTheme = () => {
     ?.setAttribute('aria-pressed', String(root.dataset.theme === 'dark'))
 }
 applyTheme()
-// kincha and sumi were removed; anything outside the five accents renders terracotta.
 const accent = readCookie('kuuki_accent')
-root.dataset.accent = accents.includes(accent) ? accent : 'terracotta'
+root.dataset.accent = accents.includes(accent)
+  ? accent
+  : Object.hasOwn(retiredAccents, accent)
+    ? retiredAccents[accent]
+    : 'shu'
 root.lang = locale
 
 function setup() {

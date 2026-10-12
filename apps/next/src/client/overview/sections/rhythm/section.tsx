@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { overviewSeries } from '@kuuki/shared/overview/series'
+import { matches } from '@kuuki/shared/overview/filter'
+import { dayToEpoch } from '@kuuki/shared/overview/range'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { KuukiChart } from '../../charts/kuuki-chart'
 import {
@@ -10,13 +12,15 @@ import {
   calendarColumns,
   calendarHeight,
   calendarWidth,
+  heatIsWeak,
 } from '../../charts/arc-activity-heatmap'
 import { LazyChart } from '../../charts/lazy-chart'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, filterLabel, number, flights } from '../rankings/display'
 import { TimelineContent } from '../timeline/section'
-import { heatBucket, monthStart } from './helpers'
+import { HEAT_MISSING, heatBucket, measuredMonths, monthStart } from './helpers'
+import { HeatKey, type HeatKeyEntry } from './heat-key'
 import { CalendarSheetFigure } from './figure'
 import './rhythm.css'
 
@@ -67,12 +71,31 @@ function CalendarContent({
   }
   const max = baseline.max[metric],
     gridHeight = years.length * 36 + 48
+  const noData = copy(locale, 'No data', 'Нет данных')
+  // Totals read a missing distance or duration as 0; a month with flights but no measurement is unknown, not a zero.
+  const measured =
+    metric === 'flights'
+      ? null
+      : measuredMonths(
+          payload.rows.filter(
+            (row) =>
+              (row.state === 'logged' || row.state === 'awaiting') &&
+              matches(row, filter, payload.refs),
+          ),
+          metric,
+        )
+  const bucketOf = (row: (typeof rows)[number]) =>
+    row.key > today || (measured && row.flights > 0 && !measured.has(row.key))
+      ? HEAT_MISSING
+      : heatBucket(row[metric], max)
+  const valueOf = (row: (typeof rows)[number]) =>
+    metric === 'durationMinutes' ? row[metric] / 60 : row[metric]
   const gridPoints = rows
     .filter((row) => row.key <= today)
     .map((row) => ({
       key: row.key,
       datum: row,
-      label: `${row.key} · ${number(locale, metric === 'durationMinutes' ? row[metric] / 60 : row[metric])}`,
+      label: `${row.key} · ${bucketOf(row) === HEAT_MISSING ? noData : number(locale, valueOf(row))}`,
     }))
   const pointOf = new Map(gridPoints.map((point) => [point.key, point]))
   const cellY = (year: number) => 8 + years.indexOf(year) * 36
@@ -82,9 +105,64 @@ function CalendarContent({
     activityYear !== null && baseline.years.includes(activityYear)
       ? activityYear
       : baseline.years[0]
-  const days = activityPoints(selectedYear, series.daily, locale),
+  // Days are known from the first dated flight of the whole journal (not the filter) through today; outside that range the journal has no evidence either way.
+  const dated = payload.rows
+    .filter((row) => row.state !== 'upcoming' && dayToEpoch(row.date) !== null)
+    .map((row) => row.date)
+  const known = dated.length
+    ? {
+        from: dated.reduce((first, date) => (date < first ? date : first)),
+        to: dated.reduce(
+          (last, date) => (date > last ? date : last),
+          payload.generatedAt.slice(0, 10),
+        ),
+      }
+    : null
+  const days = activityPoints(selectedYear, series.daily, locale, known),
     dayColumns = calendarColumns(days, locale)
   const dailyCaption = copy(locale, 'Completed flights by day', 'Завершённые перелёты по дням')
+  const baseText =
+    metric === 'flights'
+      ? flights(locale, max)
+      : metric === 'distanceKm'
+        ? `${number(locale, max)} ${copy(locale, 'km', 'км')}`
+        : `${number(locale, max / 60)} ${copy(locale, 'h', 'ч')}`
+  const monthlyBase = `${
+    metric === 'flights'
+      ? copy(locale, 'Share of your busiest month', 'Доля от вашего самого активного месяца')
+      : metric === 'distanceKm'
+        ? copy(
+            locale,
+            'Share of your busiest month by distance',
+            'Доля от вашего самого активного месяца по расстоянию',
+          )
+        : copy(
+            locale,
+            'Share of your busiest month by hours',
+            'Доля от вашего самого активного месяца по часам',
+          )
+  }: ${baseText}`
+  const monthlyKey: HeatKeyEntry[] = [
+    { level: 0, label: '0' },
+    ...([1, 2, 3, 4] as const).map((level) => ({ level, label: `≤${level * 25}%` })),
+    ...(rows.some((row) => bucketOf(row) === HEAT_MISSING)
+      ? [{ level: HEAT_MISSING, label: noData }]
+      : []),
+  ]
+  const dailyKey: HeatKeyEntry[] = [
+    ...([0, 1, 2, 3, 4] as const).map((level) => ({
+      level,
+      label: `${number(locale, level)}${level === 4 ? '+' : ''}`,
+    })),
+    ...(days.some((point) => point.datum.missing)
+      ? [
+          {
+            level: HEAT_MISSING,
+            label: `${noData} (${copy(locale, 'before the journal or after today', 'до начала журнала или после сегодняшнего дня')})`,
+          },
+        ]
+      : []),
+  ]
   return (
     <>
       <CalendarSheetFigure />
@@ -133,7 +211,7 @@ function CalendarContent({
                 ],
                 rows: rows.map((row) => ({
                   key: row.key,
-                  value: metric === 'durationMinutes' ? row[metric] / 60 : row[metric],
+                  value: bucketOf(row) === HEAT_MISSING ? noData : valueOf(row),
                 })),
               }}
             >
@@ -157,15 +235,10 @@ function CalendarContent({
                       />
                     ))}
                     {rows.map((row) => {
+                      // A future month, an unmeasured one, or a value the scale cannot place is missing: a dashed empty outline, never a zero.
                       const point = pointOf.get(row.key),
-                        future = row.key > today,
-                        text = future
-                          ? '–'
-                          : number(
-                              locale,
-                              metric === 'durationMinutes' ? row[metric] / 60 : row[metric],
-                            ),
-                        bucket = heatBucket(row[metric], max)
+                        bucket = bucketOf(row),
+                        text = bucket === HEAT_MISSING ? '–' : number(locale, valueOf(row))
                       return (
                         <g key={row.key} {...(point && mark(point))}>
                           <rect
@@ -174,9 +247,15 @@ function CalendarContent({
                             width={cellW}
                             height={30}
                             rx={6}
-                            fill={future ? 'none' : `var(--heat-${bucket})`}
-                            stroke={future ? 'var(--mark-ghost)' : 'none'}
-                            strokeDasharray={future ? '3 3' : undefined}
+                            fill={bucket === HEAT_MISSING ? 'transparent' : `var(--heat-${bucket})`}
+                            stroke={
+                              bucket === HEAT_MISSING
+                                ? 'var(--missing)'
+                                : heatIsWeak(bucket)
+                                  ? 'var(--heat-contour)'
+                                  : 'none'
+                            }
+                            strokeDasharray={bucket === HEAT_MISSING ? '3 3' : undefined}
                           />
                           {
                             /* Values that cannot fit the band stay in the tooltip and table. */ cellW >=
@@ -185,7 +264,11 @@ function CalendarContent({
                                 x={cellX(row.month) + cellW / 2}
                                 y={cellY(row.year) + 23}
                                 textAnchor="middle"
-                                fill={future ? 'var(--mark-ghost)' : `var(--heat-${bucket}-text)`}
+                                fill={
+                                  bucket === HEAT_MISSING
+                                    ? 'var(--text-muted)'
+                                    : `var(--heat-${bucket}-text)`
+                                }
                                 fontSize={12}
                                 data-sans
                               >
@@ -237,18 +320,8 @@ function CalendarContent({
             ))}
         </div>
         <div className="ov3-rhythm-key">
-          <p className="ov3-chart-caption">
-            {copy(locale, 'Share of the maximum month', 'Доля от максимума за месяц')}:{' '}
-            {number(locale, metric === 'durationMinutes' ? max / 60 : max)}
-          </p>
-          <div className="ov3-heat-legend">
-            {[0, 1, 2, 3, 4].map((bucket) => (
-              <span key={bucket}>
-                <i style={{ background: `var(--heat-${bucket})` }} />
-                {bucket === 0 ? '0' : `${bucket * 25}%`}
-              </span>
-            ))}
-          </div>
+          <p className="ov3-chart-caption">{monthlyBase}</p>
+          <HeatKey entries={monthlyKey} />
         </div>
         {baseline.years.length > 6 && (
           <button className="ov3-rhythm-more" onClick={() => setShowAll(!showAll)}>
@@ -290,8 +363,9 @@ function CalendarContent({
                   ]}
                   tip={(points) => (
                     <span>
-                      {points[0].label} ·{' '}
-                      {copy(locale, 'completed flights', 'завершённых перелётов')}
+                      {points[0].label}
+                      {!points[0].datum.missing &&
+                        ` · ${copy(locale, 'completed flights', 'завершённых перелётов')}`}
                     </span>
                   )}
                   table={{
@@ -304,7 +378,10 @@ function CalendarContent({
                         numeric: true,
                       },
                     ],
-                    rows: days.map((point) => point.datum),
+                    rows: days.map(({ datum }) => ({
+                      date: datum.date,
+                      count: datum.missing ? '—' : datum.count,
+                    })),
                   }}
                 >
                   {(mark, { width }) => (
@@ -313,6 +390,12 @@ function CalendarContent({
                 </KuukiChart>
               )}
             </LazyChart>
+            <div className="ov3-rhythm-key">
+              <p className="ov3-chart-caption">
+                {copy(locale, 'Completed flights per day', 'Завершённых перелётов в день')}
+              </p>
+              <HeatKey entries={dailyKey} />
+            </div>
           </>
         ) : (
           <p>

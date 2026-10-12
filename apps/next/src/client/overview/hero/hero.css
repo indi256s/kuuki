@@ -142,7 +142,7 @@
   width: min(20px, 100%);
   height: max(2px, calc(var(--bar, 0) * 96px));
   border-radius: 3px;
-  background: var(--mark-2);
+  background: var(--mark-rest);
 }
 .ov3-year-mark.peak {
   background: var(--accent);

@@ -1,5 +1,6 @@
 import type { SVGProps } from 'react'
 import type { ChartPoint } from './kuuki-chart'
+import { markerPath, type SlotMarker } from './comparison-slots'
 
 // Adapted from Arc Slope, MIT; license: ../../ui/ARC-LICENSE.txt; hashes: docs/research/2026-10-08-arc-source-inventory.md.
 // Upstream slope-chart.tsx SHA256: 84f25522305d5120df73b0455e95720b7588d4d29afe95c6f46caa969e3d7ae1.
@@ -11,6 +12,8 @@ export type ArcSlopeRow<T> = {
   end: number
   color: string
   dash?: string
+  /** With the dash, tells similar series apart without color. */
+  marker?: SlotMarker
 }
 export type ArcSlopeProps<T> = {
   rows: readonly ArcSlopeRow<T>[]
@@ -21,7 +24,6 @@ export type ArcSlopeProps<T> = {
   formatValue: (value: number) => string
   width?: number
   height?: number
-  highlightKey?: string | null
 }
 
 function spread(wanted: number[], gap: number, low: number, high: number): number[] {
@@ -68,7 +70,6 @@ export function ArcSlope<T>({
   formatValue,
   width = 600,
   height = 260,
-  highlightKey,
 }: ArcSlopeProps<T>) {
   const narrow = width < 400
   const x0 = Math.min(160, width * 0.32),
@@ -111,11 +112,7 @@ export function ArcSlope<T>({
         const y0 = yOf(row.start),
           y1 = yOf(row.end)
         return (
-          <g
-            key={row.point.key}
-            {...mark(row.point)}
-            data-highlight={row.point.key === highlightKey || undefined}
-          >
+          <g key={row.point.key} {...mark(row.point)}>
             <line x1={x0} x2={x1} y1={y0} y2={y1} stroke="transparent" strokeWidth={44} />
             <line x1={x0 - 6} x2={x0} y1={left[index]} y2={y0} stroke="var(--text-muted)" />
             <line x1={x1} x2={x1 + 6} y1={y1} y2={right[index]} stroke="var(--text-muted)" />
@@ -125,11 +122,36 @@ export function ArcSlope<T>({
               y1={y0}
               y2={y1}
               stroke={row.color}
-              strokeWidth={row.point.key === highlightKey ? 3 : 2}
+              strokeWidth={2}
               strokeDasharray={row.dash}
+              data-kc-line=""
             />
-            <circle cx={x0} cy={y0} r={4} fill={row.color} />
-            <circle cx={x1} cy={y1} r={4} fill={row.color} />
+            {[
+              [x0, y0],
+              [x1, y1],
+            ].map(([cx, cy]) =>
+              row.marker && row.marker !== 'circle' ? (
+                <path
+                  key={cx}
+                  d={markerPath(row.marker, 4.5)}
+                  transform={`translate(${cx},${cy})`}
+                  fill={row.color}
+                  fillRule="evenodd"
+                  stroke="var(--surface)"
+                  strokeWidth={1}
+                />
+              ) : (
+                <circle
+                  key={cx}
+                  cx={cx}
+                  cy={cy}
+                  r={4}
+                  fill={row.color}
+                  stroke="var(--surface)"
+                  strokeWidth={1}
+                />
+              ),
+            )}
             <text
               x={x0 - 10}
               y={left[index]}
