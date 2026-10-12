@@ -36,13 +36,16 @@
   stroke: currentColor;
   stroke-width: 1.4;
 }
-/* FC-9 paper stub. Mask layers, top first: perforation holes (xor), top notch half, bottom notch half. */
+/* FC-9 paper stub. The mask sits on the torn stub and on the trigger's ::before (so the button's hit area stays unclipped). Mask layers, top first: perforation holes (xor), top notch half, bottom notch half. */
 .founding-crew-stub {
   --stub-x: 36px;
   --stub-r: 4.5px;
   --stub-holes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='22'%3E%3Cg fill='%23000'%3E%3Ccircle cx='2' cy='3' r='1.15'/%3E%3Ccircle cx='2' cy='7' r='1.15'/%3E%3Ccircle cx='2' cy='11' r='1.15'/%3E%3Ccircle cx='2' cy='15' r='1.15'/%3E%3Ccircle cx='2' cy='19' r='1.15'/%3E%3C/g%3E%3C/svg%3E")
     calc(var(--stub-x) - 2px) center / 4px 22px no-repeat;
   position: relative;
+}
+.founding-crew-stub-torn,
+.ui-button.founding-crew-trigger::before {
   -webkit-mask:
     var(--stub-holes),
     radial-gradient(circle var(--stub-r) at var(--stub-x) 0, #0000 97%, #000) top / 100% 51%
@@ -78,13 +81,24 @@
   padding: 0 15px 0 calc(var(--stub-x) + 12px);
   border: 0;
   border-radius: 7px;
-  background: var(--accent-tint);
+  background: transparent;
+  isolation: isolate;
   color: var(--accent-text);
   font: 500 15px / 20px var(--font-sans);
 }
-/* The mask clips the house outer ring, so keyboard focus draws inside the stub. */
+.ui-button.founding-crew-trigger::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--accent-tint);
+}
+/* Keyboard focus is an inset ring on the stub shape (FC-9), not the house outer ring. */
 .ui-button.founding-crew-trigger:focus-visible {
   outline: none;
+}
+.ui-button.founding-crew-trigger:focus-visible::before {
   box-shadow: inset 0 0 0 2px var(--focus);
 }
 /* Torn-off: the perforation is the right edge, so holes and corner bites become half cuts. */
@@ -164,8 +178,12 @@
   color: var(--accent-on-tint);
 }
 @media (hover: hover) and (pointer: fine) {
+  /* The house hover fill would show through the stub's holes and notches, so only ::before tints. */
   .ui-button.founding-crew-trigger:hover:not([aria-disabled='true']) {
-    background: color-mix(in oklab, var(--accent-tint), var(--accent) 7%);
+    background: transparent;
+  }
+  .ui-button.founding-crew-trigger:hover:not([aria-disabled='true'])::before {
+    background: color-mix(in oklab, var(--accent-tint), var(--accent) 2%);
   }
 }
 /* Punch on hover (fine pointers) and keyboard focus only; never on tap or card open. */
