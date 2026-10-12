@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { ProfileData } from '../../app/(public)/fly/[username]/page'
 import { getPublicProfile } from '../../server/public'
@@ -85,6 +86,42 @@ it('visitor sees public identity, headings, real metrics and signup; missing air
   )
   expect(getOwnProfileStats).not.toHaveBeenCalled()
   expect(screen.queryByText('Founding crew')).not.toBeInTheDocument()
+})
+it.each([
+  ['en', 'Founding crew', 'Thank you for being here from the start.'],
+  ['ru', 'Founding crew', 'Спасибо, что были с нами с самого начала.'],
+] as const)('opens the earned founding crew keepsake in %s', async (locale, label, thanks) => {
+  vi.mocked(getRequestLocale).mockResolvedValue(locale)
+  vi.mocked(getPublicProfile).mockResolvedValue({
+    profile,
+    stats,
+    rankings: [],
+    derivedState: 'ready',
+    badges: [
+      {
+        id: 1,
+        user_id: 'owner',
+        badge_id: 63,
+        earned_at: '2026-10-12T00:00:00.000Z',
+        badge: {
+          id: 63,
+          code: 'founding-user',
+          name: 'Founding User',
+          description: null,
+          category: 'special',
+          tier: null,
+          icon: 'sparkles',
+          points: 75,
+          criteria: { beta_invite: true },
+        },
+      },
+    ],
+  })
+  const user = userEvent.setup()
+  render(await ProfileData({ username: 'traveler' }))
+  await user.click(screen.getByRole('button', { name: label }))
+  const keepsake = screen.getByRole('dialog', { name: label })
+  expect(within(keepsake).getByText(thanks)).toBeVisible()
 })
 it('private visitor has one privacy message and no identity, stats, badges, signup or private reads', async () => {
   vi.mocked(getPublicProfile).mockResolvedValue({

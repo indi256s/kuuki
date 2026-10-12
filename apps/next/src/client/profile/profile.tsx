@@ -4,6 +4,7 @@ import { Field } from '../ui/field'
 import { Button } from '../ui/button'
 import { CopyCheckIcon } from '../ui/icon-morph'
 import { badgeName, badgeTier, badgeDescription, type EarnedBadge } from './achievements'
+import { FoundingStub } from './founding-crew'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import './profile.css'
 
@@ -66,7 +67,7 @@ function BadgeDetails({ item, locale }: { item: EarnedBadge; locale: Locale }) {
     >
       <summary tabIndex={0}>
         <span aria-hidden="true" className="badge-shape" data-tier={item.badge.tier}>
-          {tier.shape}
+          {item.badge.code === 'founding-user' ? <FoundingStub /> : tier.shape}
         </span>
         <span>
           <strong>{badgeName(item, locale)}</strong>

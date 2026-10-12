@@ -1,0 +1,200 @@
+.founding-crew-wing {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+  fill: none;
+  stroke: var(--iso-line);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.founding-crew-wing-paper {
+  fill: var(--iso-front);
+}
+.founding-crew-wing-keel {
+  fill: var(--iso-side);
+}
+.founding-crew-wing-underfold {
+  fill: var(--iso-side);
+}
+.founding-crew-wing-keel-edge {
+  fill: var(--accent-tint);
+}
+.founding-crew-wing-edge {
+  fill: var(--iso-detail);
+  stroke-width: 0.6;
+}
+.founding-crew-wing-front {
+  fill: var(--iso-top);
+}
+.founding-crew-wing-crease {
+  stroke: var(--iso-detail);
+  stroke-width: 0.7;
+}
+.founding-crew-wing-fold {
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+/* FC-9 paper stub. Mask layers, top first: perforation holes (xor), top notch half, bottom notch half. */
+.founding-crew-stub {
+  --stub-x: 36px;
+  --stub-r: 4.5px;
+  --stub-holes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='22'%3E%3Cg fill='%23000'%3E%3Ccircle cx='2' cy='3' r='1.15'/%3E%3Ccircle cx='2' cy='7' r='1.15'/%3E%3Ccircle cx='2' cy='11' r='1.15'/%3E%3Ccircle cx='2' cy='15' r='1.15'/%3E%3Ccircle cx='2' cy='19' r='1.15'/%3E%3C/g%3E%3C/svg%3E")
+    calc(var(--stub-x) - 2px) center / 4px 22px no-repeat;
+  position: relative;
+  -webkit-mask:
+    var(--stub-holes),
+    radial-gradient(circle var(--stub-r) at var(--stub-x) 0, #0000 97%, #000) top / 100% 51%
+      no-repeat,
+    radial-gradient(circle var(--stub-r) at var(--stub-x) 100%, #0000 97%, #000) bottom / 100% 51%
+      no-repeat;
+  -webkit-mask-composite: xor, source-over;
+  mask:
+    var(--stub-holes),
+    radial-gradient(circle var(--stub-r) at var(--stub-x) 0, #0000 97%, #000) top / 100% 51%
+      no-repeat,
+    radial-gradient(circle var(--stub-r) at var(--stub-x) 100%, #0000 97%, #000) bottom / 100% 51%
+      no-repeat;
+  mask-composite: exclude, add;
+}
+.founding-crew-punch {
+  position: absolute;
+  inset-inline-start: calc(var(--stub-x) / 2 - 6px);
+  inset-block-start: calc(50% - 6px);
+  inline-size: 12px;
+  block-size: 12px;
+  color: var(--accent);
+}
+.founding-crew-punch svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  fill: currentColor;
+}
+.ui-button.founding-crew-trigger {
+  min-height: 36px;
+  block-size: 36px;
+  padding: 0 15px 0 calc(var(--stub-x) + 12px);
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font: 500 15px / 20px var(--font-sans);
+}
+/* The mask clips the house outer ring, so keyboard focus draws inside the stub. */
+.ui-button.founding-crew-trigger:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+/* Torn-off: the perforation is the right edge, so holes and corner bites become half cuts. */
+.founding-crew-stub-torn {
+  --stub-x: 40px;
+  --stub-r: 5px;
+  display: block;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 9px 0 0 9px;
+  background: var(--surface);
+}
+:root[data-theme='dark'] .founding-crew-stub-torn {
+  background: var(--accent-tint);
+}
+.founding-crew-stub-torn .founding-crew-punch {
+  inset-inline-start: 13px;
+  inset-block-start: calc(50% - 6.5px);
+  inline-size: 13px;
+  block-size: 13px;
+}
+@media (max-width: 700px) {
+  .ui-button.founding-crew-trigger {
+    display: none;
+  }
+}
+.ui-popover.founding-crew-card {
+  inline-size: 320px;
+  padding: var(--space-6);
+}
+.founding-crew-emblem {
+  display: grid;
+  place-items: center;
+  block-size: 156px;
+  margin-block: var(--space-2) var(--space-6);
+  color: var(--accent-text);
+}
+.founding-crew-emblem .founding-crew-wing {
+  inline-size: 208px;
+  max-inline-size: 100%;
+}
+.founding-crew-card h2 {
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.02em;
+  margin-block: 0 var(--space-2);
+}
+.founding-crew-dedication {
+  font-size: 17px;
+  line-height: 24px;
+  margin-block: 0 var(--space-3);
+}
+.founding-crew-thanks {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+  margin: 0;
+}
+.founding-crew-signature {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: var(--space-8);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 20px;
+}
+.founding-crew-wordmark {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.founding-crew-wordmark > span {
+  color: var(--accent-on-tint);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-button.founding-crew-trigger:hover:not([aria-disabled='true']) {
+    background: color-mix(in oklab, var(--accent-tint), var(--accent) 7%);
+  }
+}
+/* Punch on hover (fine pointers) and keyboard focus only; never on tap or card open. */
+@media (prefers-reduced-motion: no-preference) {
+  @media (hover: hover) and (pointer: fine) {
+    :is(.founding-crew-trigger, .profile-badges summary):hover .founding-crew-punch svg {
+      animation: founding-crew-punch 300ms var(--ease-out);
+    }
+  }
+  :is(.founding-crew-trigger, .profile-badges summary):focus-visible .founding-crew-punch svg {
+    animation: founding-crew-punch 300ms var(--ease-out);
+  }
+}
+@keyframes founding-crew-punch {
+  30% {
+    transform: scale(0.55);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .founding-crew-card[data-state='open'] .founding-crew-wing-back {
+    transform-origin: 196px 38px;
+    animation: founding-crew-unfold var(--dur-moment) var(--ease-out);
+  }
+}
+@keyframes founding-crew-unfold {
+  from {
+    transform: rotate(-4deg) scaleY(0.92);
+  }
+  to {
+    transform: rotate(0deg) scaleY(1);
+  }
+}

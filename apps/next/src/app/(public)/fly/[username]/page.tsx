@@ -14,6 +14,7 @@ import { pageMetadata } from '../../../../server/metadata'
 import { IdentitySnapshot } from '../../../../client/activity'
 import { Achievements, ShareProfile } from '../../../../client/profile/profile'
 import { ProfileAvatar } from '../../../../client/profile/avatar'
+import { FoundingCrew } from '../../../../client/profile/founding-crew'
 import { OwnerAccent } from '../../../../client/owner-accent'
 import { formatDistanceKm, formatMonthYear, formatNumber } from '../../../../lib/format'
 import { resolveAccent } from '../../../../lib/theme-colors'
@@ -68,7 +69,12 @@ export async function ProfileData({ username }: { username: string }) {
         {visible && <ProfileAvatar id={profile.id} url={profile.avatar_url} name={name} />}
         <div>
           <p className="eyebrow">{ru ? 'Профиль путешественника' : 'Flight profile'}</p>
-          <h1>{name}</h1>
+          <div className="profile-name">
+            <h1>{name}</h1>
+            {visible && badges.some((item) => item.badge.code === 'founding-user') && (
+              <FoundingCrew locale={locale} />
+            )}
+          </div>
           {visible && <p className="handle">@{profile.username}</p>}
         </div>
       </header>
@@ -82,9 +88,6 @@ export async function ProfileData({ username }: { username: string }) {
                   {formatMonthYear(locale, profile.created_at)}
                 </time>
               </span>
-            )}
-            {badges.some((item) => item.badge.code === 'founding-user') && (
-              <span className="profile-founding">{ru ? 'Первый экипаж' : 'Founding crew'}</span>
             )}
           </p>
           {profile.bio && <p>{profile.bio}</p>}
