@@ -208,8 +208,8 @@ export function TabBar({ locale = 'en' }: { locale?: Locale }) {
             }}
             side="top"
             align="end"
-            sideOffset={8}
-            // The card spans the rail, whose inner edge is the rail padding (6px) past the key.
+            // 8px above the rail: the key sits inside the rail's 6px padding on both axes.
+            sideOffset={14}
             alignOffset={-6}
             className="add-card"
             scrim="always"

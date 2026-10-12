@@ -352,7 +352,8 @@ a.ui-menu-item {
   .ui-menu.account-menu {
     z-index: 74;
   }
-  .add-card {
+  /* Doubled class: outranks the base menu's 320px cap, so the card spans the rail. */
+  .ui-menu.add-card {
     width: calc(100vw - 2 * var(--rail-inset));
     max-width: none;
     display: flex;
