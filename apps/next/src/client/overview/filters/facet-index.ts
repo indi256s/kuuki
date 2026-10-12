@@ -1,6 +1,6 @@
 import { allianceAt, formerAlliance, type Alliance } from '@kuuki/data/alliance-membership'
 import { makerOf, type MakerKey } from '@kuuki/data/aircraft-makers'
-import { bandOf, haulOf, routeKey, rowCountries } from '@kuuki/shared/overview/filter'
+import { bandOf, haulOf, monthOfYear, routeKey, rowCountries } from '@kuuki/shared/overview/filter'
 import { calendarDay } from '@kuuki/shared/overview/next'
 import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import type { Locale } from '../../../lib/format'
@@ -32,10 +32,12 @@ export const FACET_ORDER: readonly FilterFacet[] = [
   'departureBands',
   'depHours',
   'arrHours',
+  'months',
   'regions',
 ]
 const ranked = (a: FacetOption, b: FacetOption) =>
   b.count - a.count || a.value.localeCompare(b.value, 'en')
+const calendar = (a: FacetOption, b: FacetOption) => Number(a.value) - Number(b.value)
 
 export function buildFacetIndex(
   payload: OverviewPayload,
@@ -116,6 +118,7 @@ export function buildFacetIndex(
       destination = refs.airports[row.destination]?.country
     if (origin && destination)
       add('domestic', origin === destination ? 'domestic' : 'international')
+    add('months', monthOfYear(row.date))
     for (const [facet, minute] of [
       ['depHours', row.depMinute],
       ['arrHours', row.arrMinute],
@@ -142,7 +145,9 @@ export function buildFacetIndex(
       option.sublabel = `${option.value} · ${membership} · ${locale === 'ru' ? 'на дату рейса' : 'as of flight'} ${date}`
   }
   return FACET_ORDER.flatMap((facet) =>
-    [...options.values()].filter((option) => option.facet === facet).sort(ranked),
+    [...options.values()]
+      .filter((option) => option.facet === facet)
+      .sort(facet === 'months' ? calendar : ranked),
   )
 }
 export function searchFacets(index: FacetOption[], query: string, locale: Locale) {

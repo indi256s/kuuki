@@ -25,6 +25,7 @@ const valid: OverviewPrefs = {
     bodies: ['narrow'],
     depHours: [0, 23],
     arrHours: [6],
+    months: [3, 12],
   },
   layout: {
     order: ['aircraft', 'records', 'crossings', 'clock', 'rhythm', 'rankings', 'routes'],
@@ -162,6 +163,9 @@ it('rejects malformed, oversize and invalid-field writes with INVALID_PREFS, pre
         { alliances: ['unknown'] },
         { depHours: [-1] },
         { depHours: [24] },
+        { months: [0] },
+        { months: [13] },
+        { months: [3, 3] },
         { arrHours: [6.5] },
         { arrHours: ['6'] },
         { families: [42] },

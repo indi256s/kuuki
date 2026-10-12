@@ -99,6 +99,11 @@ export function FilterPanel({
       if (!Number.isInteger(hour) || hour < 0 || hour > 23) return
       if (selected(option)) actions.remove(key, hour)
       else actions.add(key, hour)
+    } else if (key === 'months') {
+      const month = Number(option.value)
+      if (!Number.isInteger(month) || month < 1 || month > 12) return
+      if (selected(option)) actions.remove(key, month)
+      else actions.add(key, month)
     } else {
       if (selected(option)) actions.remove(key, option.value)
       else actions.add(key, option.value)

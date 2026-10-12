@@ -40,6 +40,12 @@ function monthIndex(month: string): number | null {
   return Number(month.slice(0, 4)) * 12 + Number(month.slice(5)) - 1
 }
 
+/** Calendar month (1–12) of a `YYYY-MM-DD` day; legacy month rows may carry `YYYY-MM`. Null when unparseable. */
+export function monthOfYear(date: string): number | null {
+  if (monthIndex(date) !== null) return Number(date.slice(5))
+  return dayToEpoch(date) === null ? null : Number(date.slice(5, 7))
+}
+
 const has = <T>(values: readonly T[] | undefined, value: T | null | undefined) =>
   !values?.length || (value != null && values.includes(value))
 
@@ -100,6 +106,10 @@ export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): b
         !hours.includes(Math.floor(minute / 60)))
     )
       return false
+  }
+  if (filter.months?.length) {
+    const month = monthOfYear(row.date)
+    if (month === null || !filter.months.includes(month)) return false
   }
   if (filter.haul?.length) {
     const km = row.distanceKm === null ? null : row.distanceKm / row.weight

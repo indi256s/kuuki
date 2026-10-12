@@ -52,8 +52,14 @@ export function IsoFigure({
   const base = `iso${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   let clips = 0
   const clipDefs: ReactNode[] = []
-  const render = (nodes: readonly IsoNode[]): ReactNode[] =>
-    nodes.map((node, index) => {
+  const render = (nodes: readonly IsoNode[]): ReactNode[] => {
+    // A part keeps its key across rebuilds and reorders (a picked piece paints last), so its element, and any transition on it, survives a pick.
+    const seen = new Map<string, number>()
+    return nodes.map((node, index) => {
+      const key =
+        node.kind === 'group'
+          ? `${node.part}:${seen.set(node.part, (seen.get(node.part) ?? -1) + 1).get(node.part)}`
+          : index
       switch (node.kind) {
         case 'polygon':
           return (
@@ -120,7 +126,7 @@ export function IsoFigure({
           }
           const part = (
             <g
-              key={clipPath ? undefined : index}
+              key={clipPath ? undefined : key}
               data-part={node.part}
               style={node.vars as CSSProperties | undefined}
             >
@@ -129,7 +135,7 @@ export function IsoFigure({
           )
           // The clip sits on a still wrapper so it stays put while the part moves inside it.
           return clipPath ? (
-            <g key={index} clipPath={clipPath}>
+            <g key={key} clipPath={clipPath}>
               {part}
             </g>
           ) : (
@@ -138,6 +144,7 @@ export function IsoFigure({
         }
       }
     })
+  }
   // A glow's region is the figure's box plus 3 sigma of blur. Builders include motion travel in the box, and a moving part carries its user space (and so the region) along, so nothing the glow reaches gets clipped.
   const [bx, by, bw, bh] = figure.viewBox.split(' ').map(Number)
   const body = render(figure.nodes)

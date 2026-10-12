@@ -114,6 +114,14 @@ it('stored invalid known facets default independently and stale string values su
   })
 })
 
+it('stored months survive tolerant parsing unless out of range or repeated', () => {
+  const filter = (months: unknown) =>
+    parsePrefs(JSON.stringify({ version: 1, filter: { months } })).filter
+  expect(filter([3, 12])).toEqual({ months: [3, 12] })
+  expect(filter([13])).toEqual({})
+  expect(filter([3, 3])).toEqual({})
+})
+
 it('persisted filter insertion order survives tolerant parsing without admitting invalid or unknown facets', () => {
   const prefs = parsePrefs(
     JSON.stringify({

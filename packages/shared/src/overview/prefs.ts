@@ -50,6 +50,11 @@ const filterSchema = z.strictObject({
   bodies: z.array(z.enum(['narrow', 'wide'])).optional(),
   depHours: z.array(z.number().int().min(0).max(23)).optional(),
   arrHours: z.array(z.number().int().min(0).max(23)).optional(),
+  months: z
+    .array(z.number().int().min(1).max(12))
+    .max(12)
+    .refine((values) => new Set(values).size === values.length)
+    .optional(),
   haul: z.array(z.enum(['short', 'medium', 'long'])).optional(),
   domestic: z.array(z.enum(['domestic', 'international'])).optional(),
   departureBands: z.array(z.enum(['night', 'morning', 'afternoon', 'evening'])).optional(),

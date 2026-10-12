@@ -19,6 +19,8 @@ export interface OverviewFilter {
   makers?: MakerKey[]
   bodies?: Array<'narrow' | 'wide'>
   depHours?: number[]
+  /** Calendar month of the flight's local date, 1–12. */
+  months?: number[]
   arrHours?: number[]
   haul?: Haul[]
   domestic?: Array<'domestic' | 'international'>
