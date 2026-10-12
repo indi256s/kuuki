@@ -16,6 +16,8 @@
 - **Rotation:** an opening's line is `(hash variant + openings) % 3`, so the first opening of the record that won the footer reads the footer's line (as on the board).
 - **Stickers:** up to four of the most-visited countries' most-used airports, ordered by first visit; the newest country replaces the fourth when it is not already among them, so the lit sticker always exists.
 - **Hero stays right of the globe**; the board's left placement is Globe v2.
+- **Durations at full size** ("≈216h 42m", as on the board): the old half-size unit span is gone.
+- **UI bus snapshot** gained `replayStarted`; `overview-context.test.tsx` pins the new initial snapshot.
 
 ## Progress
 
@@ -24,9 +26,9 @@
 - [x] `iso/hero-glyphs.ts`: five 26–30px glyphs, line-only, no glow.
 - [x] `hero/records.ts` + tests: stub buckets, odometer digits, sticker pick, tag, rail values (k/M/h; тыс./млн/ч).
 - [x] Narrator `hero`/`heroSmall` triggers, EN/RU triples (glados-copy), `recordLine` rotation in `pick.ts`.
-- [ ] Hero card rewrite + takeover (timers, glide, pose, touch, scroll-out, Replay, mobile height lock).
+- [x] Hero card rewrite + takeover (timers, glide, pose, touch, scroll-out, Replay, mobile height lock) at `ab9e72b7`. Year strip, sparklines, On this day and `ArcSparkline` deleted (no other users).
 - [ ] DESIGN.md (Illustration table, Overview hero, Motion) and docs/README entry points.
-- [ ] Gates: `pnpm typecheck`, `pnpm test`, `pnpm lint`, `pnpm next:build`, `pnpm test:next:navigation`.
+- [x] Gates at `ab9e72b7`: typecheck, lint, `pnpm test` (1418), `format:check`, `next:build`, `test:next:navigation` (44) all pass.
 - [ ] Opus-high UI/SVG/motion review; then the single Sol-high code review.
 - [ ] Land on main by CAS.
 
@@ -37,4 +39,4 @@
 
 ## Next action
 
-Build the hero card and takeover in `hero/hero-panel.tsx` / `hero.css`.
+Docs (DESIGN.md, docs/README) and the Opus-high UI/motion review are running; apply its fixes, then the Sol-high code review, then land by CAS.
