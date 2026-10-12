@@ -67,6 +67,7 @@ export function ConcordeField() {
     const write = (at: number) => {
       const start = performance.now()
       controller.set({ model: at })
+      controller.events()
       scriptMs = performance.now() - start
     }
     const after = new MessageChannel()
