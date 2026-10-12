@@ -89,8 +89,8 @@ export function Section({ span }: { span: Span }) {
                 )
               : copy(
                   locale,
-                  'No flight with a known distance yet. A record needs somewhere to go.',
-                  'Нет перелёта с известным расстоянием. Чтобы побить рекорд, нужно куда-то долететь.',
+                  'No flight in this filter has a known distance. Hard to set a record without a ruler.',
+                  'Ни у одного перелёта в выборке нет известного расстояния. Без линейки рекорд не ставится.',
                 ),
           action: (
             <Button
@@ -181,15 +181,15 @@ export function Section({ span }: { span: Span }) {
   const caption: ReactNode = r.isHeadline
     ? copy(
         locale,
-        `Longest flight · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} of the way round the equator, with snacks.`,
-        `Самый длинный перелёт · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} длины экватора, и ни одной очереди на посадку.`,
+        `Longest flight · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} of the way round the equator, in one sitting.`,
+        `Самый длинный перелёт · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} длины экватора за один присест.`,
       )
     : copy(
         locale,
-        `${ordinal(rank + 1)} longest · ${arrow(reading)} · ×${number(locale, reading.flights)}`,
-        `${ordinal(rank + 1)} по длине · ${arrow(reading)} · ×${number(locale, reading.flights)}`,
+        `${ordinal(rank + 1)} longest · ${arrow(reading)} · ${flights(locale, reading.flights)}`,
+        `${ordinal(rank + 1)} по длине · ${arrow(reading)} · ${flights(locale, reading.flights)}`,
       )
-  const chartCaption = copy(locale, 'Longest flights · km', 'Самые длинные перелёты · км')
+  const chartCaption = copy(locale, 'Longest routes · km', 'Самые длинные маршруты · км')
   const points = routes.map((row) => ({
     key: keyOf(row),
     datum: row,
@@ -345,7 +345,7 @@ export function Section({ span }: { span: Span }) {
           </span>
           {lead.speedKmh !== null && (
             <span>
-              {copy(locale, 'Average ground speed', 'Средняя путевая скорость')}
+              {copy(locale, 'Straight-line speed', 'Скорость по прямой')}
               <strong>
                 {number(locale, Math.round(lead.speedKmh))} {copy(locale, 'km/h', 'км/ч')}
               </strong>
@@ -381,7 +381,7 @@ export function Section({ span }: { span: Span }) {
         <RecordMapFigure legs={legs} reading={r.reading} picked={r.picked && !reducedMotion()} />
       }
       figureButton={{
-        label: copy(locale, 'Show next longest flight', 'Показать следующий по длине перелёт'),
+        label: copy(locale, 'Show next longest route', 'Показать следующий по длине маршрут'),
         onPress: r.next,
       }}
       hero={{

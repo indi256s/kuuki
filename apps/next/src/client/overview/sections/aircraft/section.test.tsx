@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/board.json'
 import { Section } from './section'
 import { Tile } from './tile'
+
+// Queries scoped to the card's bands: whole-card role queries walk every Details node and are slow in jsdom.
+const stage = () => within(document.querySelector('.ov3-card-chart') as HTMLElement)
+const top = () => within(document.querySelector('.ov3-card-top') as HTMLElement)
 
 const context = vi.hoisted(() => ({
   current: {} as ReturnType<typeof import('../../store/overview-context').useOverview>,
@@ -34,7 +38,7 @@ const hero = (view: { container: HTMLElement }) => ({
   unit: view.container.querySelector('.ov3-card-unit'),
   caption: view.container.querySelector('.ov3-card-caption'),
 })
-const row = (name: string) => screen.getByRole('button', { name: new RegExp(`^${name},`) })
+const row = (name: string) => stage().getByRole('button', { name: new RegExp(`^${name},`) })
 
 beforeEach(() => {
   add.mockClear()
@@ -47,7 +51,7 @@ it("a pick moves the hero and lights that maker's hangar, and does not filter", 
   const view = render(<Section span="full" />)
   expect(hero(view).value).toHaveTextContent('59%')
   expect(hero(view).unit).toHaveTextContent('Airbus')
-  expect(screen.queryByRole('button', { name: /^Only/ })).toBeNull()
+  expect(top().queryByRole('button', { name: /^Only/ })).toBeNull()
   const opacity = (key: string, part: 'lit' | 'unlit') =>
     (view.container.querySelector(`[data-part="shed-${key}-${part}"]`) as SVGElement).style.opacity
   expect(opacity('airbus', 'lit')).toContain('var(--lit-airbus, 1)')
@@ -62,17 +66,17 @@ it("a pick moves the hero and lights that maker's hangar, and does not filter", 
 it('"Only …" applies the makers facet in Makers and the aircraft facet in Fleet', () => {
   render(<Section span="full" />)
   fireEvent.click(row('Boeing'))
-  fireEvent.click(screen.getByRole('button', { name: 'Only Boeing' }))
+  fireEvent.click(top().getByRole('button', { name: 'Only Boeing' }))
   expect(add).toHaveBeenLastCalledWith('makers', 'boeing')
-  fireEvent.click(screen.getByRole('radio', { name: 'Fleet' }))
+  fireEvent.click(stage().getByRole('radio', { name: 'Fleet' }))
   fireEvent.click(row('B738'))
-  fireEvent.click(screen.getByRole('button', { name: 'Only B738' }))
+  fireEvent.click(top().getByRole('button', { name: 'Only B738' }))
   expect(add).toHaveBeenLastCalledWith('aircraft', 'B738')
 })
 
 it('Fleet lights the maker of the picked type', () => {
   const view = render(<Section span="full" />)
-  fireEvent.click(screen.getByRole('radio', { name: 'Fleet' }))
+  fireEvent.click(stage().getByRole('radio', { name: 'Fleet' }))
   expect(hero(view).unit).toHaveTextContent('× A320')
   fireEvent.click(row('B738'))
   expect(hero(view).value).toHaveTextContent('16')
@@ -85,13 +89,13 @@ it('hides "Only …" once the picked value is applied', () => {
   admit({ makers: ['boeing'] })
   render(<Section span="full" />)
   fireEvent.click(row('Boeing'))
-  expect(screen.queryByRole('button', { name: 'Only Boeing' })).toBeNull()
+  expect(top().queryByRole('button', { name: 'Only Boeing' })).toBeNull()
 })
 
 it('below the gate under a filter, the card says so and offers to clear it', () => {
   admit({ airlines: ['ZZ'] })
   render(<Section span="full" />)
-  expect(screen.getByText('No aircraft on file')).toBeInTheDocument()
+  expect(screen.getByText('The hangars are shut')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(clear).toHaveBeenCalled()
 })

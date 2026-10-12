@@ -26,14 +26,14 @@ exports[`trigger simulation > records which line wins each card > winning line p
   "dateLine": {
     "aircraft": "aircraft:full — Every flight has its aircraft. Suspiciously thorough.",
     "clock": "clock:long-haul — 100% of flights are long-haul. You and the seat have history.",
-    "crossings": "crossings:date-line — Recorded date-line crossings here: 6. The map has a calendar boundary.",
+    "crossings": "crossings:continent-majority — 100% of flights start or end on the same continent. The rest of the tray is for visits.",
     "globe": "globe:few-countries — Countries and territories: 2. The rest of the world is on standby.",
     "rankings": "rankings:route-leader — NRT-SFO heads the route list: flights 6, outbound and return counted together. A recurring connection.",
     "records": "records:biggest-clock-jump — 17 h in one go. Local time won on points.",
     "routes": "routes:home — The home airport features in 100% of flights. It will take that as a compliment.",
   },
   "microstate": {
-    "crossings": "crossings:no-date-line — Date-line crossings recorded in this view: 0. That boundary stayed out of the report.",
+    "crossings": "crossings:continent-majority — 75% of flights start or end on the same continent. The rest of the tray is for visits.",
     "globe": "globe:few-countries — Countries and territories: 4. The rest of the world is on standby.",
     "rankings": "rankings:airport-leader — BAH heads the airport list: 2 of 8 endpoint entries. This denominator has both ends.",
     "records": "records:biggest-clock-jump — 7 h in one go. Local time won on points.",
@@ -80,7 +80,7 @@ exports[`trigger simulation > records which line wins each card > winning line p
   "polar": {
     "aircraft": "aircraft:full — Every flight has its aircraft. Suspiciously thorough.",
     "clock": "clock:long-haul — 100% of flights are long-haul. You and the seat have history.",
-    "crossings": "crossings:arctic-circle — Arctic Circle crossings: 12. The penguins are at the other end.",
+    "crossings": "crossings:continent-majority — 100% of flights start or end on the same continent. The rest of the tray is for visits.",
     "globe": "globe:few-countries — Countries and territories: 3. The rest of the world is on standby.",
     "rankings": "rankings:airport-leader — DXB heads the airport list: 3 of 12 endpoint entries. This denominator has both ends.",
     "records": "records:biggest-clock-jump — 13 h in one go. Local time won on points.",
@@ -136,7 +136,7 @@ exports[`trigger simulation > records which line wins each card > winning line p
   "redEyeDst": {
     "aircraft": "aircraft:full — Every flight has its aircraft. Suspiciously thorough.",
     "clock": "clock:long-haul — 100% of flights are long-haul. You and the seat have history.",
-    "crossings": "crossings:forward — Clock shifts in this view: forward 50 h, back 0 h. Forward wins the ledger.",
+    "crossings": "crossings:continent-majority — 100% of flights start or end on the same continent. The rest of the tray is for visits.",
     "globe": "globe:few-countries — Countries and territories: 2. The rest of the world is on standby.",
     "rankings": "rankings:route-leader — JFK-LHR heads the route list: flights 10, outbound and return counted together. A recurring connection.",
     "records": "records:biggest-clock-jump — 5 h in one go. Local time won on points.",

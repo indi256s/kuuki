@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import { aggregateRows } from '@kuuki/shared/overview/aggregate'
 import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
 import { Section } from './section'
+
+// Queries scoped to the card's bands: whole-card role queries walk every Details node and are slow in jsdom.
+const stage = () => within(document.querySelector('.ov3-card-chart') as HTMLElement)
+const top = () => within(document.querySelector('.ov3-card-top') as HTMLElement)
 
 const context = vi.hoisted(() => ({
   current: {} as ReturnType<typeof import('../../store/overview-context').useOverview>,
@@ -147,8 +151,8 @@ it('a pick on the chart moves the hero and the stamper and does not filter', () 
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
     'Busiest month · longest gap 11 months, which the passport took personally',
   )
-  expect(screen.queryByRole('button', { name: /^Only/ })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: /^May ·/ }))
+  expect(top().queryByRole('button', { name: /^Only/ })).toBeNull()
+  fireEvent.click(stage().getByRole('button', { name: /^May ·/ }))
   expect(hero(view)).toHaveTextContent('May')
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent('2nd busiest month')
   expect(view.container.querySelector('.iso-stamper-host')).toHaveAttribute('data-stamp', 'set')
@@ -159,18 +163,18 @@ it('a pick on the chart moves the hero and the stamper and does not filter', () 
 it('"Only …" adds the month in Calendar and sets the year in Over time, and hides once applied', () => {
   const setPeriod = admit(marches())
   const view = render(<Section span="full" />)
-  fireEvent.click(screen.getByRole('button', { name: /^May ·/ }))
-  fireEvent.click(screen.getByRole('button', { name: 'Only May' }))
+  fireEvent.click(stage().getByRole('button', { name: /^May ·/ }))
+  fireEvent.click(top().getByRole('button', { name: 'Only May' }))
   expect(add).toHaveBeenCalledWith('months', 5)
-  fireEvent.click(screen.getByRole('radio', { name: 'Over time' }))
+  fireEvent.click(stage().getByRole('radio', { name: 'Over time' }))
   expect(hero(view)).toHaveTextContent('2020')
-  fireEvent.click(screen.getByRole('button', { name: /^2021 ·/ }))
+  fireEvent.click(stage().getByRole('button', { name: /^2021 ·/ }))
   expect(hero(view)).toHaveTextContent('2021')
-  fireEvent.click(screen.getByRole('button', { name: 'Only 2021' }))
+  fireEvent.click(top().getByRole('button', { name: 'Only 2021' }))
   expect(setPeriod).toHaveBeenCalledWith({ years: [2021] })
   admit(marches(), 'owner-a', { period: { years: [2021] } })
   view.rerender(<Section span="full" />)
-  expect(screen.queryByRole('button', { name: /^Only/ })).toBeNull()
+  expect(top().queryByRole('button', { name: /^Only/ })).toBeNull()
 })
 
 it('shows the empty state when the filter leaves too few months, and clears the filter', () => {

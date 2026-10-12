@@ -197,6 +197,28 @@ Aircraft and Clock open on a sample and print "Based on N of M". In prod most jo
 - {zones} time zones in, {left} left. The wristwatch has stopped keeping score. / Часовых поясов: {zones}, впереди ещё: {left}. Наручные часы претензий не предъявляют.
 - {zones} zones down, {left} to go before the planet runs out of hours. / Поясов пройдено: {zones}. До исчерпания суток планеты осталось: {left}.
 
+### Continents
+
+The `crossings` slot now shows Continents; the crossings lines above stay, since their facts sit in the card's Details. A flight counts for each continent it starts or ends on. Names are not params (they would not localise), so the lines never name the leader; the hero does.
+
+**Continent majority** — flown ≥ 2, the most-flown continent on ≥ 75% of all scoped flights; `{percent}`.
+
+- {percent}% of flights start or end on the same continent. The rest of the tray is for visits. / {percent}% перелётов начинаются или заканчиваются на одном континенте. Остальные — для визитов.
+- One continent is on {percent}% of flights. The others get the occasional turn. / Один континент — в {percent}% перелётов. Остальным перепадает изредка.
+- {percent}% of flights touch one continent. Home turf, statistically speaking. / На один континент приходится {percent}% перелётов. Домашняя территория, по статистике.
+
+**No new continent** — flown ≥ 2, every flown continent dated, flights at least two years after the newest first year; `{year}` (string). Claims about every flight say "after {year}": the new continent itself arrived during {year}.
+
+- No new continent since {year}. The flying carried on; the tray stopped growing. / После {year} года новых континентов не поступало. Полёты продолжаются, лоток — нет.
+- The last new continent arrived in {year}. Since then, reruns. / Последний новый континент добавлен в {year} году. Дальше — только повторы.
+- Every flight after {year} kept to continents already reached. The tray is in maintenance mode. / После {year} года — только знакомые континенты. Лоток в режиме обслуживания.
+
+**No Antarctica** — flown ≥ 2, no flight touches Antarctica; `{flown}`. A fallback.
+
+- {flown} continents, Antarctica not among them. The ice can wait. / Континентов: {flown}, Антарктиды среди них нет. Лёд подождёт.
+- Continents reached: {flown}. Antarctica is still holding out. / Освоено континентов: {flown}. Антарктида пока держит оборону.
+- {flown} continents in the tray. Antarctica stays in the box. / Континентов в лотке: {flown}. Антарктида остаётся в коробке.
+
 ### Aircraft: makers
 
 **Leader** — leader ≥ 2 flights ahead; `{leader}`, `{runnerUp}`, `{n}` (pinned: "Airbus has carried you 38 times. Boeing is still auditioning.").

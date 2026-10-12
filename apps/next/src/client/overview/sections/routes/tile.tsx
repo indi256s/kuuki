@@ -26,7 +26,8 @@ export function Tile({ span }: { span: TileSpan }) {
           {formatCount(locale, data.distinct, forms.routes)}
         </strong>
         <p className="ov3-cookie-label">
-          {percent(data.repeatShare)} {copy(locale, 'repeats', 'повторов')}
+          {percent(data.repeatShare)}{' '}
+          {copy(locale, 'on repeat routes', 'на повторяющихся маршрутах')}
         </p>
         {data.top && (
           <p className="ov3-cookie-detail">

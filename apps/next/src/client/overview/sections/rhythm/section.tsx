@@ -127,7 +127,7 @@ export function Section({ span }: { span: Span }) {
         ? copy(
             locale,
             `Busiest month · longest gap ${formatCount('en', gap.months, MONTHS)}, which the passport took personally`,
-            `Самый активный месяц · перерыв до ${formatCount('ru', gap.months, MONTHS)}, паспорт обиделся`,
+            `Самый активный месяц · самый долгий перерыв — ${formatCount('ru', gap.months, MONTHS)}, паспорт обиделся`,
           )
         : copy(
             locale,
@@ -136,8 +136,8 @@ export function Section({ span }: { span: Span }) {
           )
       : copy(
           locale,
-          `Busiest year · ${share} of your flights, give or take a layover`,
-          `Самый активный год · ${share} перелётов, плюс-минус пересадка`,
+          `Busiest year · ${share} of your flights, and the calendar is still recovering`,
+          `Самый активный год · ${share} перелётов, календарь до сих пор приходит в себя`,
         )
   } else if (reading) {
     caption = calendar
@@ -270,7 +270,7 @@ export function Section({ span }: { span: Span }) {
         ),
       }}
       details={{
-        heading: copy(locale, 'Rhythm', 'Ритм'),
+        heading: copy(locale, 'Peaks and gaps', 'Пики и перерывы'),
         columns,
         more: [
           ...(calendar
@@ -308,7 +308,11 @@ export function Section({ span }: { span: Span }) {
               `This filter leaves ${formatCount('en', missing.have, MONTHS)} with flights, and the stamper wants ${formatCount('en', missing.need, MONTHS)}. Clear the filter and it gets back to work.`,
               `Фильтр оставил ${formatCount('ru', missing.have, MONTHS)} с перелётами, а штампу нужно ${formatCount('ru', missing.need, MONTHS)}. Сбросьте фильтр, и он снова застучит.`,
             )
-          : '',
+          : copy(
+              locale,
+              'This filter leaves too few months with flights. The stamper has nothing to keep time to.',
+              'Фильтр оставил слишком мало месяцев с перелётами. Штампу не под что отбивать ритм.',
+            ),
         action: (
           <Button
             variant="secondary"

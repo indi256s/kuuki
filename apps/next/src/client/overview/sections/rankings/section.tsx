@@ -212,7 +212,9 @@ export function Section({ span }: { span: Span }) {
   const ofWhat =
     category === 'airports'
       ? copy(locale, 'of airport visits', 'посещений аэропортов')
-      : copy(locale, 'of your flights', 'ваших перелётов')
+      : category === 'airlines'
+        ? copy(locale, 'of flights with an airline', 'перелётов с указанной авиакомпанией')
+        : copy(locale, 'of your flights', 'ваших перелётов')
   const dry = tied
     ? copy(locale, 'Neither blinked.', 'Никто не моргнул.')
     : {
@@ -239,7 +241,7 @@ export function Section({ span }: { span: Span }) {
     ? copy(
         locale,
         `tied with ${name(category, tied.key)}`,
-        `на равных с ${name(category, tied.key)}`,
+        `${name(category, tied.key)} — столько же`,
       )
     : category === 'airports' && scope.home?.iata === reading?.key
       ? copy(locale, 'your home airport', 'ваш домашний аэропорт')
@@ -470,7 +472,7 @@ export function Section({ span }: { span: Span }) {
       )}
       {daytime.left.count + daytime.right.count > 0 && daytime.excluded > 0 && (
         <p>
-          {copy(locale, 'Daytime v red-eye leaves out', 'Дневные и ночные: не учтено')}{' '}
+          {copy(locale, 'Daytime v red-eye leaves out', 'Дневные и ночные: вне подсчёта —')}{' '}
           {flights(locale, daytime.excluded)} {copy(locale, 'without times', 'без времени')}
         </p>
       )}

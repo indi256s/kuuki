@@ -61,7 +61,7 @@ export function Section({ span }: { span: Span }) {
   const holes = TOTAL - count
   const dry =
     holes === 0
-      ? copy(locale, 'Every socket is filled. Show-off.', 'Все гнёзда заняты. Хвастун.')
+      ? copy(locale, 'Every socket is filled. Show-off.', 'Все гнёзда заняты. Есть чем хвастаться.')
       : copy(
           locale,
           holes === 1
@@ -143,8 +143,8 @@ export function Section({ span }: { span: Span }) {
   const unplaced = data?.unplaced ?? 0
   const coverage = copy(
     locale,
-    `Counted per airport, so a flight between two continents counts for both.${unplaced > 0 ? ` ${flights(locale, unplaced)} had no airport to place.` : ''}`,
-    `Считаем по аэропортам, поэтому перелёт между двумя континентами идёт в оба.${unplaced > 0 ? ` ${flights(locale, unplaced)} без аэропорта, который можно разместить.` : ''}`,
+    `Counted per airport, so a flight between two continents counts for both.${unplaced > 0 ? ` ${flights(locale, unplaced)} couldn't be placed on any continent.` : ''}`,
+    `Считаем по аэропортам, поэтому перелёт между двумя континентами идёт в оба.${unplaced > 0 ? ` ${flights(locale, unplaced)} не удалось отнести ни к одному континенту.` : ''}`,
   )
   const lines = scope?.crossings.status === 'ready' ? scope.crossings.value : null
   const baseline = all?.crossings.status === 'ready' ? all.crossings.value : lines
@@ -234,11 +234,11 @@ export function Section({ span }: { span: Span }) {
               },
               {
                 value: number(locale, lines.equator),
-                label: `${copy(locale, 'Equator', 'Экватор')}${route(lines.lastEquator)}`,
+                label: `${copy(locale, 'Equator crossings', 'Пересечения экватора')}${route(lines.lastEquator)}`,
               },
               {
                 value: number(locale, lines.arcticCircle),
-                label: `${copy(locale, 'Arctic Circle', 'Полярный круг')}${route(lines.lastArctic)}`,
+                label: `${copy(locale, 'Arctic Circle crossings', 'Пересечения полярного круга')}${route(lines.lastArctic)}`,
               },
             ]
           : [],
@@ -254,14 +254,18 @@ export function Section({ span }: { span: Span }) {
             : undefined,
       }}
       empty={{
-        title: copy(locale, 'Too few flights to place', 'Слишком мало перелётов'),
+        title: copy(locale, 'Too few flights to place', 'Мало перелётов для раскладки'),
         line: below
           ? copy(
               locale,
               `Continents need ${flights(locale, below.need)} with a known airport, and this filter leaves ${number(locale, below.have)}. The tray stays empty.`,
               `Для континентов нужно ${flights(locale, below.need)} с известным аэропортом, а фильтр оставил ${number(locale, below.have)}. Лоток пуст.`,
             )
-          : '',
+          : copy(
+              locale,
+              'This filter leaves no flight with an airport to place. The tray stays empty.',
+              'Фильтр не оставил перелётов с известным аэропортом. Лоток пуст.',
+            ),
         action: (
           <Button
             variant="secondary"

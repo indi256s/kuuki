@@ -89,8 +89,8 @@ export function Section({ span }: { span: Span }) {
 
   const title =
     view === 'makers'
-      ? copy(locale, 'Share of flights', 'Доля перелётов')
-      : copy(locale, 'Most-flown types', 'Чаще всего летали')
+      ? copy(locale, 'Share of known-maker flights', 'Доля среди известных производителей')
+      : copy(locale, 'Most-flown types', 'Самые частые типы')
   const spoken = (row: Row) =>
     view === 'makers'
       ? row.maker === 'unknown'
@@ -106,7 +106,7 @@ export function Section({ span }: { span: Span }) {
     const rank = keys.indexOf(reading.key) + 1
     if (view === 'makers' && reading.maker === 'unknown') {
       value = number(locale, reading.flights)
-      unit = copy(locale, 'unknown', 'неизвестно')
+      unit = copy(locale, 'unknown', 'без производителя')
       caption = copy(
         locale,
         'Flights with no maker on file. The hangars have no door for them.',
@@ -282,10 +282,16 @@ export function Section({ span }: { span: Span }) {
                   view === 'fleet'
                     ? number(locale, point.datum.flights)
                     : point.datum.maker === 'unknown'
-                      ? `×${number(locale, point.datum.flights)}`
+                      ? flights(locale, point.datum.flights)
                       : shareText(point.datum.share)
                 }
                 name={(point) => point.datum.name}
+                // Unknown reads as a count ("5 flights", «5 перелётов»), wider than a share.
+                valueWidth={
+                  view !== 'fleet' && points.some((point) => point.datum.maker === 'unknown')
+                    ? 88
+                    : undefined
+                }
                 mono={view === 'fleet'}
                 swatch={(point) => <MakerSwatch maker={point.datum.maker} />}
                 fill={(point) => `var(--cat-maker-${point.datum.maker})`}
@@ -324,18 +330,18 @@ export function Section({ span }: { span: Span }) {
         ],
       }}
       empty={{
-        title: copy(locale, 'No aircraft on file', 'Самолёты не указаны'),
+        title: copy(locale, 'The hangars are shut', 'Ангары закрыты'),
         line:
           gate?.status === 'below' && gate.have > 0
             ? copy(
                 locale,
-                `Only ${number(locale, gate.have)} of the ${number(locale, gate.need)} flights with an aircraft the hangars need. Clear the filter and the doors open.`,
-                `Самолёт указан лишь у ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных перелётов. Сбросьте фильтр, и ворота откроются.`,
+                `This filter leaves ${flights(locale, gate.have)} with a known aircraft. The hangars open at ${number(locale, gate.need)} and don't haggle.`,
+                `Самолёт в выборке указан лишь у ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных перелётов. Ангары не торгуются.`,
               )
             : copy(
                 locale,
-                'Your flights flew on something. Add the type and the hangars open.',
-                'Ваши перелёты на чём-то летели. Укажите тип, и ангары откроются.',
+                'No flight in this filter has a known maker. The hangars admit no strangers.',
+                'Ни у одного перелёта в выборке производитель не известен. Посторонним вход в ангар воспрещён.',
               ),
         action: (
           <Button

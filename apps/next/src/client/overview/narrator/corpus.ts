@@ -172,6 +172,48 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Вылет в {time}. Отбой перенесён.',
     },
   ],
+  'crossings:continent-majority': [
+    {
+      en: '{percent}% of flights start or end on the same continent. The rest of the tray is for visits.',
+      ru: '{percent}% перелётов начинаются или заканчиваются на одном континенте. Остальные — для визитов.',
+    },
+    {
+      en: 'One continent is on {percent}% of flights. The others get the occasional turn.',
+      ru: 'Один континент — в {percent}% перелётов. Остальным перепадает изредка.',
+    },
+    {
+      en: '{percent}% of flights touch one continent. Home turf, statistically speaking.',
+      ru: 'На один континент приходится {percent}% перелётов. Домашняя территория, по статистике.',
+    },
+  ],
+  'crossings:no-new-continent': [
+    {
+      en: 'No new continent since {year}. The flying carried on; the tray stopped growing.',
+      ru: 'После {year} года новых континентов не поступало. Полёты продолжаются, лоток — нет.',
+    },
+    {
+      en: 'The last new continent arrived in {year}. Since then, reruns.',
+      ru: 'Последний новый континент добавлен в {year} году. Дальше — только повторы.',
+    },
+    {
+      en: 'Every flight after {year} kept to continents already reached. The tray is in maintenance mode.',
+      ru: 'После {year} года — только знакомые континенты. Лоток в режиме обслуживания.',
+    },
+  ],
+  'crossings:no-antarctica': [
+    {
+      en: '{flown} continents, Antarctica not among them. The ice can wait.',
+      ru: 'Континентов: {flown}, Антарктиды среди них нет. Лёд подождёт.',
+    },
+    {
+      en: 'Continents reached: {flown}. Antarctica is still holding out.',
+      ru: 'Освоено континентов: {flown}. Антарктида пока держит оборону.',
+    },
+    {
+      en: '{flown} continents in the tray. Antarctica stays in the box.',
+      ru: 'Континентов в лотке: {flown}. Антарктида остаётся в коробке.',
+    },
+  ],
   'crossings:no-date-line': [
     {
       en: 'Date-line crossings recorded in this view: {count}. That boundary stayed out of the report.',

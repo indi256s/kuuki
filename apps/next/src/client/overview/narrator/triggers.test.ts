@@ -48,14 +48,14 @@ it('describes clock refunds without calling eastbound date-line flights westboun
   const crossings = ready(candidate.crossings)
   expect(crossings.eastboundShare).toBe(1)
   expect(crossings.backHours).toBeGreaterThan(2 * crossings.forwardHours)
+  // A Continents line may win the slot; the clock-refund trigger must still fire and never say west.
+  expect(params('crossings:mostly-backwards', candidate, candidate)).toEqual({
+    back: crossings.backHours,
+  })
   for (const locale of ['en', 'ru'] as const) {
-    const line = pickLine('crossings', candidate, candidate, 'owner', locale)
-    expect(line).not.toMatch(/west|запад/i)
-    expect(
-      CORPUS['crossings:mostly-backwards'].some(
-        (variant) => variant[locale].replace('{back}', String(crossings.backHours)) === line,
-      ),
-    ).toBe(true)
+    expect(pickLine('crossings', candidate, candidate, 'owner', locale)).not.toMatch(/west|запад/i)
+    for (const variant of CORPUS['crossings:mostly-backwards'])
+      expect(variant[locale]).not.toMatch(/west|запад/i)
   }
 })
 

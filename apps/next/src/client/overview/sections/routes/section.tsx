@@ -129,7 +129,10 @@ const PROFILE = {
   mixed: { en: 'Mixed', ru: 'Вперемешку' },
 } as const
 const DRY = {
-  commuter: { en: 'Commuter, with extra steps.', ru: 'Челнок, только с лишними шагами.' },
+  commuter: {
+    en: 'Commuter: the boarding pass could be laminated.',
+    ru: 'Челнок: посадочный можно ламинировать.',
+  },
   explorer: {
     en: 'Explorer: the map is not a loyalty scheme.',
     ru: 'Исследователь: карта — не программа лояльности.',
@@ -235,8 +238,8 @@ export function Section({ span }: { span: Span }) {
     if (r.isHeadline) {
       const repeats = copy(
         locale,
-        `${percent(data.repeatShare)} repeats`,
-        `${percent(data.repeatShare)} повторов`,
+        `${percent(data.repeatShare)} on repeat routes`,
+        `${percent(data.repeatShare)} — на повторяющихся маршрутах`,
       )
       hero = {
         value: number(locale, data.distinct),
@@ -265,8 +268,8 @@ export function Section({ span }: { span: Span }) {
             <Code>{arrow}</Code>
             {copy(
               locale,
-              ` · ${percent(row.count / data.flights)} of all flights, number ${place} on the board.`,
-              ` · ${percent(row.count / data.flights)} всех перелётов, ${place}-е место.`,
+              ` · ${percent(row.count / data.flights)} of flights, number ${place} on the board.`,
+              ` · ${percent(row.count / data.flights)} перелётов, ${place}-е место в списке.`,
             )}
           </>
         ),
@@ -398,7 +401,11 @@ export function Section({ span }: { span: Span }) {
                 `This filter leaves ${flights(locale, gate.have)}. Too few to call it a network.`,
                 `Фильтр оставляет ${flights(locale, gate.have)}. Для сети маловато.`,
               )
-            : '',
+            : copy(
+                locale,
+                'This filter leaves no route to draw. The network is a blank page.',
+                'Фильтр не оставил ни одного маршрута. Сеть пока чистый лист.',
+              ),
         action: (
           <Button
             variant="secondary"

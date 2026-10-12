@@ -42,7 +42,7 @@ it('a pick moves the hero to that route and does not filter', () => {
   pick('NRT → DOH')
   expect(value()).toHaveTextContent('8,207')
   expect(container.querySelector('.ov3-card-caption')).toHaveTextContent(
-    '2nd longest · NRT → DOH · ×1',
+    '2nd longest · NRT → DOH · 1 flight',
   )
   expect(actions.add).not.toHaveBeenCalled()
 })

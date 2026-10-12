@@ -116,7 +116,13 @@ export function Section({ span }: { span: Span }) {
     : copy(locale, 'arrivals', 'прилётов')
   const tail = (count: number) =>
     hour !== null && isNight(hour)
-      ? copy(locale, 'a red-eye hour, sleep optional', 'ночной час, сон по желанию')
+      ? departing
+        ? copy(locale, 'a red-eye hour, sleep optional', 'ночной час, сон по желанию')
+        : copy(
+            locale,
+            'a night arrival, bed still a rumour',
+            'ночной прилёт, кровать пока в планах',
+          )
       : copy(
           locale,
           `${percent(count / Math.max(1, timed))} of timed ${noun}`,
@@ -289,8 +295,8 @@ export function Section({ span }: { span: Span }) {
         line: missing
           ? copy(
               locale,
-              `Only ${number(locale, missing.have)} of the ${number(locale, missing.need)} timed flights the clock needs. Clear the filter and it starts ticking again.`,
-              `Время есть лишь у ${number(locale, missing.have)} из ${number(locale, missing.need)} нужных перелётов. Сбросьте фильтр, и часы пойдут снова.`,
+              `This filter leaves ${flights(locale, missing.have)} with a departure time, and the clock needs ${number(locale, missing.need)}. Not enough to wind it.`,
+              `Перелётов со временем вылета в выборке: ${number(locale, missing.have)}, а часам нужно ${number(locale, missing.need)}. Заводить их нечем.`,
             )
           : '',
         action: (
