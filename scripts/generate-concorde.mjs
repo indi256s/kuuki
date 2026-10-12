@@ -10,18 +10,37 @@
 //   concorde.generated.css   the kit's figure CSS, scoped under .auth-concorde (colours come from concorde.css)
 //   turn.generated.js        the kit's turn runtime (MIT; the licence is in its header), with turn.generated.d.ts
 //
-// The kit is read from ANATOMY_KIT, or ~/.claude/skills/anatomy/kit. World units are model millimetres. The airframe
+// Setup and pinned anatomy kit provenance: scripts/concorde/README.md. World units are model millimetres. The airframe
 // comes from Concorde's published dimensions: 61.66 m long, 25.6 m span, 2.87 m fuselage, 358.25 m² ogee wing, two
 // twin Olympus 593 nacelles.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { createHash } from 'node:crypto'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
-const KIT = process.env.ANATOMY_KIT ?? join(homedir(), '.claude/skills/anatomy/kit')
-const k = await import(join(KIT, 'iso-kit.mjs'))
-const G = await import(join(KIT, 'lathe.mjs'))
-const A = await import(join(KIT, 'audit.mjs'))
-const { turning } = await import(join(KIT, 'turn-build.mjs'))
+const pin = JSON.parse(
+  readFileSync(new URL('./concorde/anatomy.lock.json', import.meta.url), 'utf8'),
+)
+const KIT = resolve(process.env.ANATOMY_KIT ?? '.scratch/concorde/anatomy/kit')
+// Validate every consumed file before imports or writes, including transitive dependencies and the licence.
+for (const [file, expected] of Object.entries(pin.sha256)) {
+  let actual
+  try {
+    actual = createHash('sha256')
+      .update(readFileSync(join(KIT, file)))
+      .digest('hex')
+  } catch {
+    throw new Error(`Missing anatomy kit file ${file}. See scripts/concorde/README.md for setup.`)
+  }
+  if (actual !== expected)
+    throw new Error(
+      `Anatomy kit ${file} differs from pinned commit ${pin.commit}. See scripts/concorde/README.md.`,
+    )
+}
+const k = await import(pathToFileURL(join(KIT, 'iso-kit.mjs')))
+const G = await import(pathToFileURL(join(KIT, 'lathe.mjs')))
+const A = await import(pathToFileURL(join(KIT, 'audit.mjs')))
+const { turning } = await import(pathToFileURL(join(KIT, 'turn-build.mjs')))
 const argv = process.argv.slice(2)
 const OUT = 'apps/next/src/client/auth-card/concorde'
 
@@ -539,7 +558,7 @@ const BACK = [
   ...layerOf('back'),
 ]
 if (argv.includes('--audit')) {
-  const TA = await import(join(KIT, 'turn-audit.mjs'))
+  const TA = await import(pathToFileURL(join(KIT, 'turn-audit.mjs')))
   A.auditOrExit(R, P, { argv: ['--audit'] })
   TA.orbitOrExit(T, R, P, {
     sweep: { at: (x) => ({ model: x }), from: 0, to: 360, frame: 0.3 },
@@ -629,7 +648,7 @@ writeFileSync(
 writeFileSync(
   join(OUT, 'turn.generated.d.ts'),
   `${header}// The part of the turn runtime's API the sign-in figure uses.\n` +
-    `export const TURN: {\n  mount(stage: HTMLElement, data: unknown): { set(values: Record<string, number>): unknown; destroy(): void }\n}\n`,
+    `export const TURN: {\n  mount(stage: HTMLElement, data: unknown): { set(values: Record<string, number>): unknown; events(): unknown[]; destroy(): void }\n}\n`,
 )
 
 let area = 0
@@ -643,7 +662,7 @@ console.log(
 
 if (argv.includes('--preview')) {
   const theme = argv.includes('--light') ? 'light' : 'dark'
-  const live = `const DATA = ${JSON.stringify(out.data)};\n${readFileSync('.scratch/concorde/live.js', 'utf8').split('\n').slice(1).join('\n')}`
+  const live = `const DATA = ${JSON.stringify(out.data)};\n${readFileSync(new URL('./concorde/preview.js', import.meta.url), 'utf8')}`
   const stage = `<div class="iso-stage iso-turn cn-stage">${back}${liveSvg}${front}</div>`
   const body = k.plateHtml({
     fig: 'Fig 1',
@@ -661,5 +680,6 @@ if (argv.includes('--preview')) {
     script: runtime.replace(/^export /gm, '') + live,
     width: WIDTH + 40,
   })
+  mkdirSync('.scratch/concorde', { recursive: true })
   writeFileSync(`.scratch/concorde/concorde${theme === 'light' ? '-light' : ''}.html`, page)
 }

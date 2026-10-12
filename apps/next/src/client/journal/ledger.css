@@ -132,14 +132,14 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   content-visibility: auto;
-  contain-intrinsic-size: auto 72px;
+  contain-intrinsic-block-size: auto 48px;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 .journal-ledger .jr-row[data-kind='connector'] {
   min-height: 0;
   padding-block: var(--space-1);
   cursor: default;
-  contain-intrinsic-size: auto 32px;
+  contain-intrinsic-block-size: auto 20px;
 }
 .journal-ledger .jr-row:is([data-active], [data-selected]) {
   background: var(--accent-tint);
@@ -324,7 +324,7 @@
 }
 
 /* Selection: the checkbox lives in the row's leading padding and shows on hover, focus, or once anything is selected. */
-.journal-ledger .jr-select {
+.journal-ledger .jr-row .jr-select {
   position: absolute;
   inset-inline-start: var(--space-2);
   top: 50%;
@@ -352,6 +352,7 @@
     padding-block-start: 0;
   }
   .journal-ledger .jr-row[data-kind='flight'] {
+    contain-intrinsic-block-size: auto 124px;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: 'route date' 'airline aircraft' 'distance distance';
     gap: var(--space-2) var(--space-3);

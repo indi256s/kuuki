@@ -211,6 +211,7 @@ export function InlineEdit({
     if (
       event.key === 'Enter' &&
       !event.nativeEvent.isComposing &&
+      event.nativeEvent.keyCode !== 229 &&
       !(event.target as HTMLElement).closest('button')
     ) {
       if (saving) {
@@ -230,7 +231,12 @@ export function InlineEdit({
     }
   }
   const bubbleKeys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.defaultPrevented || event.nativeEvent.isComposing) return
+    if (
+      event.defaultPrevented ||
+      event.nativeEvent.isComposing ||
+      event.nativeEvent.keyCode === 229
+    )
+      return
     // The field consumes Enter and Escape while its suggestion list is open; whatever reaches here is the deliberate second press.
     if (event.key === 'Enter' && !(event.target as HTMLElement).closest('button')) {
       event.preventDefault()

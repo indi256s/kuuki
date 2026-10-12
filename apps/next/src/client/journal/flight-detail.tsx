@@ -492,6 +492,7 @@ function DetailField({
     if (
       event.key === 'Enter' &&
       !event.nativeEvent.isComposing &&
+      event.nativeEvent.keyCode !== 229 &&
       !(event.target as HTMLElement).closest('button')
     ) {
       if (inFlight.current) {
@@ -510,7 +511,12 @@ function DetailField({
     }
   }
   const bubbleKeys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.defaultPrevented || event.nativeEvent.isComposing) return
+    if (
+      event.defaultPrevented ||
+      event.nativeEvent.isComposing ||
+      event.nativeEvent.keyCode === 229
+    )
+      return
     // A picker consumes Enter and Escape while its list is open; whatever reaches here is the deliberate press.
     if (event.key === 'Enter' && !(event.target as HTMLElement).closest('button')) {
       event.preventDefault()

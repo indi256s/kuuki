@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import { AuthCardFrame } from './auth-card'
 
-const model = vi.hoisted(() => ({ set: vi.fn(), destroy: vi.fn() }))
+const model = vi.hoisted(() => ({ set: vi.fn(), events: () => [], destroy: vi.fn() }))
 vi.mock('./concorde/concorde.generated', () => ({ CONCORDE: { html: '<svg />', data: {} } }))
 vi.mock('./concorde/turn.generated.js', () => ({ TURN: { mount: () => model } }))
 afterEach(() => {

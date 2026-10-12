@@ -1,8 +1,10 @@
 // Reads a boarding pass barcode from a chosen file entirely in the browser. The decoder (zxing-wasm, self-hosted wasm)
-// and pdf.js load only once a file is chosen. Decoded text lives inside one readBoardingPass call: it goes straight
+// and pdf.js load only once a file is chosen. Decoded text stays in a dedicated worker: it goes straight
 // into the BCBP projection and is never logged, stored or returned, so only allowlisted legs leave this module.
-import type { ReaderOptions, ZXingModuleOverrides } from 'zxing-wasm/reader'
-import { combineLegs, parseBcbp, type BcbpResult, type Leg } from './bcbp'
+import type { ZXingModuleOverrides } from 'zxing-wasm/reader'
+import type { RenderTask } from 'pdfjs-dist'
+import type { Leg } from './bcbp'
+import type { DecodeRequest } from './barcode-decode'
 
 export type NoneReason = 'no-barcode' | 'not-boarding-pass' | 'unsupported' | 'failed'
 export type ReadOutcome =
@@ -23,16 +25,11 @@ export interface ReadOptions {
   signal?: AbortSignal
   /** Replaces canvas and pdf.js rasterization, for unit tests that have neither. */
   rasterize?: Rasterize
-  /** Replaces the self-hosted wasm location, for tests running outside a browser. Pass the same object every call. */
+  /** Supplies wasm bytes or a locateFile URL for tests running outside a browser. */
   moduleOverrides?: ZXingModuleOverrides
 }
 
 const SUPPORTED_TYPES = ['application/pdf', 'image/png', 'image/jpeg']
-const READER_OPTIONS = {
-  formats: ['PDF417', 'Aztec', 'QRCode', 'DataMatrix'],
-  maxNumberOfSymbols: 4,
-} satisfies ReaderOptions
-
 const FIRST_ATTEMPT_SIDE = 2000
 const RETRY_SIDE = 3000
 const PDF_PAGES = 2
@@ -43,12 +40,6 @@ const PDF_MAX_IMAGE_PIXELS = 25_000_000
 const PDF_CANVAS_MAX_BYTES = PDF_MAX_PIXELS * 4
 
 const wasmUrl = () => new URL('zxing-wasm/reader/zxing_reader.wasm', import.meta.url).href
-// One stable object: zxing-wasm reuses its instantiated module only while the overrides compare shallow-equal.
-const SELF_HOSTED_WASM: ZXingModuleOverrides = {
-  locateFile: (path: string, prefix: string) =>
-    path.endsWith('.wasm') ? wasmUrl() : prefix + path,
-}
-
 /** Warms the browser cache with the decoder's wasm so the first read does not wait for it. Never throws. */
 export async function prefetchReader(): Promise<void> {
   try {
@@ -102,17 +93,35 @@ async function rasterizePdf(
     'pdfjs-dist/build/pdf.worker.min.mjs',
     import.meta.url,
   ).href
+  signal?.throwIfAborted()
+  const data = new Uint8Array(await file.arrayBuffer())
+  signal?.throwIfAborted()
   const task = pdfjs.getDocument({
-    data: new Uint8Array(await file.arrayBuffer()),
+    data,
     maxImageSize: PDF_MAX_IMAGE_PIXELS,
     canvasMaxAreaInBytes: PDF_CANVAS_MAX_BYTES,
   })
+  let render: RenderTask | undefined
+  let destroyed: Promise<void> | undefined
+  const destroy = () => (destroyed ??= task.destroy())
+  let rejectAbort: ((reason: unknown) => void) | undefined
+  const aborted = new Promise<never>((_resolve, reject) => {
+    rejectAbort = reject
+  })
+  const abort = () => {
+    render?.cancel()
+    void destroy().catch(() => {})
+    rejectAbort?.(signal?.reason)
+  }
+  signal?.addEventListener('abort', abort, { once: true })
   try {
-    const pdf = await task.promise
+    signal?.throwIfAborted()
+    const pdf = await Promise.race([task.promise, aborted])
     const pages: ReaderInput[] = []
     for (let number = 1; number <= Math.min(pdf.numPages, PDF_PAGES); number++) {
       signal?.throwIfAborted()
-      const page = await pdf.getPage(number)
+      const page = await Promise.race([pdf.getPage(number), aborted])
+      signal?.throwIfAborted()
       const { width, height } = page.getViewport({ scale: 1 })
       // Pages are vector, so the scale may exceed 1: the barcode needs pixels, not the page's point size.
       const scale = Math.min(
@@ -123,13 +132,21 @@ async function rasterizePdf(
       const canvas = document.createElement('canvas')
       canvas.width = Math.max(1, Math.floor(viewport.width))
       canvas.height = Math.max(1, Math.floor(viewport.height))
-      await page.render({ canvas, viewport }).promise
-      pages.push(takePixels(canvas))
-      page.cleanup()
+      try {
+        render = page.render({ canvas, viewport })
+        await Promise.race([render.promise, aborted])
+        signal?.throwIfAborted()
+        pages.push(takePixels(canvas))
+      } finally {
+        render = undefined
+        canvas.width = canvas.height = 0
+        page.cleanup()
+      }
     }
     return pages
   } finally {
-    await task.destroy()
+    signal?.removeEventListener('abort', abort)
+    await destroy()
   }
 }
 
@@ -140,6 +157,45 @@ const rasterizeInBrowser: Rasterize = (file, maxSide, signal) =>
 
 const none = (reason: NoneReason): ReadOutcome => ({ kind: 'none', reason })
 
+/** Runs one decode attempt off-thread and retires its worker on every completion path. */
+function decodeInWorker(request: DecodeRequest, signal?: AbortSignal): Promise<ReadOutcome> {
+  signal?.throwIfAborted()
+  const worker = new Worker(new URL('./barcode-decoder.worker.ts', import.meta.url), {
+    type: 'module',
+  })
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      signal?.removeEventListener('abort', abort)
+      worker.onmessage = worker.onerror = worker.onmessageerror = null
+      worker.terminate()
+    }
+    const abort = () => {
+      cleanup()
+      reject(signal?.reason)
+    }
+    worker.onmessage = (event: MessageEvent<ReadOutcome>) => {
+      cleanup()
+      resolve(event.data)
+    }
+    worker.onerror = worker.onmessageerror = () => {
+      cleanup()
+      reject(new Error('barcode worker failed'))
+    }
+    signal?.addEventListener('abort', abort, { once: true })
+    try {
+      worker.postMessage(
+        request,
+        request.inputs.flatMap((input) =>
+          input instanceof Blob ? [] : [input.data.buffer as ArrayBuffer],
+        ),
+      )
+    } catch (error) {
+      cleanup()
+      reject(error)
+    }
+  })
+}
+
 /**
  * Looks for a boarding pass barcode in a PDF, PNG or JPEG and returns its legs. Images get one retry at a larger size
  * when nothing is found. A file whose barcodes are not boarding passes is told apart from one with no barcode.
@@ -148,15 +204,12 @@ export async function readBoardingPass(
   file: Blob,
   options: ReadOptions = {},
 ): Promise<ReadOutcome> {
-  const { signal, rasterize = rasterizeInBrowser, moduleOverrides = SELF_HOSTED_WASM } = options
+  const { signal, rasterize = rasterizeInBrowser, moduleOverrides } = options
   if (!SUPPORTED_TYPES.includes(file.type) || typeof WebAssembly === 'undefined')
     return none('unsupported')
 
   try {
     signal?.throwIfAborted()
-    const { prepareZXingModule, readBarcodes } = await import('zxing-wasm/reader')
-    signal?.throwIfAborted()
-    prepareZXingModule({ overrides: moduleOverrides })
 
     const sides =
       file.type === 'application/pdf' ? [FIRST_ATTEMPT_SIDE] : [FIRST_ATTEMPT_SIDE, RETRY_SIDE]
@@ -164,26 +217,22 @@ export async function readBoardingPass(
       const inputs = await rasterize(file, maxSide, signal)
       signal?.throwIfAborted()
 
-      const passes: BcbpResult[] = []
-      let sawBarcode = false
-      for (const input of inputs) {
-        for (const barcode of await readBarcodes(input, READER_OPTIONS)) {
-          sawBarcode = true
-          const pass = parseBcbp(barcode.text)
-          if (pass) passes.push(pass)
-        }
-        signal?.throwIfAborted()
-      }
-
-      const combined = combineLegs(passes)
-      if (combined) return { kind: 'legs', ...combined }
-      if (sawBarcode) return none('not-boarding-pass')
+      const outcome = await decodeInWorker(
+        {
+          inputs,
+          wasmUrl: moduleOverrides?.locateFile?.('zxing_reader.wasm', '') ?? wasmUrl(),
+          wasmBinary: moduleOverrides?.wasmBinary,
+        },
+        signal,
+      )
+      signal?.throwIfAborted()
+      if (outcome.kind === 'legs' || outcome.reason !== 'no-barcode') return outcome
       // The file went to the decoder untouched, so a larger render would change nothing.
       if (inputs.every((input) => input instanceof Blob)) break
     }
     return none('no-barcode')
-  } catch (error) {
-    if (signal?.aborted) throw error
+  } catch {
+    if (signal?.aborted) throw signal.reason
     return none('failed')
   }
 }

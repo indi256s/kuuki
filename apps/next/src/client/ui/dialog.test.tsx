@@ -75,7 +75,7 @@ describe('Dialog', () => {
       if (element.classList.contains('ui-dialog'))
         Object.defineProperties(style, {
           animationName: {
-            value: element.getAttribute('data-state') === 'open' ? 'dialog-in' : 'dialog-out',
+            get: () => (element.getAttribute('data-state') === 'open' ? 'dialog-in' : 'dialog-out'),
           },
           display: { value: 'block' },
         })

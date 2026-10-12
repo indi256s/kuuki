@@ -1,9 +1,55 @@
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { prepareZXingModule as prepareWriter, writeBarcode } from 'zxing-wasm/writer'
 import type { ZXingModuleOverrides } from 'zxing-wasm/reader'
-import { readBoardingPass, type Rasterize, type ReaderInput } from './barcode-reader'
+import {
+  readBoardingPass,
+  type Rasterize,
+  type ReaderInput,
+  type ReadOutcome,
+} from './barcode-reader'
+import { decodeBoardingPass, type DecodeRequest } from './barcode-decode'
+
+const pdfjs = vi.hoisted(() => ({
+  GlobalWorkerOptions: { workerSrc: '' },
+  getDocument: vi.fn(),
+}))
+vi.mock('pdfjs-dist', () => pdfjs)
+
+// Node has no browser Worker. Keep the real WASM decode and projection behind a cloned message boundary.
+class DecoderWorker {
+  static instances: DecoderWorker[] = []
+  onmessage: ((event: { data: ReadOutcome }) => void) | null = null
+  onerror: (() => void) | null = null
+  onmessageerror: (() => void) | null = null
+  messages: ReadOutcome[] = []
+  terminate = vi.fn()
+
+  constructor() {
+    DecoderWorker.instances.push(this)
+  }
+
+  postMessage(request: DecodeRequest, transfer: ArrayBuffer[]) {
+    const cloned = structuredClone(request, { transfer })
+    void decodeBoardingPass(cloned).then(
+      (data) => {
+        this.messages.push(data)
+        this.onmessage?.({ data: structuredClone(data) })
+      },
+      () => this.onerror?.(),
+    )
+  }
+}
+
+beforeEach(() => {
+  DecoderWorker.instances = []
+  vi.stubGlobal('Worker', DecoderWorker)
+})
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 const FIRST_LEG = 'ABC123 YULFRAAC 0834 326J001A0025 100'
 const SECOND_LEG = 'ABC123 FRASINSQ 0025 327J002B0030 100'
@@ -62,6 +108,14 @@ describe('readBoardingPass', () => {
       legs: [YUL_FRA],
       incomplete: false,
     })
+    expect(DecoderWorker.instances[0].messages).toEqual([
+      {
+        kind: 'legs',
+        legs: [YUL_FRA],
+        incomplete: false,
+      },
+    ])
+    expect(DecoderWorker.instances[0].terminate).toHaveBeenCalledOnce()
   })
 
   it('reads an Aztec pass', async () => {
@@ -162,4 +216,66 @@ describe('readBoardingPass', () => {
       name: 'AbortError',
     })
   })
+
+  it('terminates an in-flight decoder on abort and rejects before its late result', async () => {
+    const started = Promise.withResolvers<void>()
+    vi.spyOn(DecoderWorker.prototype, 'postMessage').mockImplementation(() => {
+      started.resolve()
+    })
+    const controller = new AbortController()
+    const pending = read(new File([], 'pass.png', { type: 'image/png' }), asIs, controller.signal)
+    await started.promise
+    const worker = DecoderWorker.instances[0]
+    const lateMessage = worker.onmessage
+    controller.abort(new Error('replaced selection'))
+    await expect(pending).rejects.toThrow('replaced selection')
+    expect(worker.terminate).toHaveBeenCalledOnce()
+    expect(worker.onmessage).toBeNull()
+    lateMessage?.({ data: { kind: 'legs', legs: [YUL_FRA], incomplete: false } })
+    await expect(pending).rejects.toThrow('replaced selection')
+  })
+
+  it.each(['loading', 'rendering'] as const)(
+    'aborts an in-flight PDF %s task and frees its resources',
+    async (phase) => {
+      const started = Promise.withResolvers<void>()
+      const stalled = Promise.withResolvers<never>()
+      const canvas = { width: 0, height: 0 }
+      const render = { promise: stalled.promise, cancel: vi.fn() }
+      const page = {
+        getViewport: () => ({ width: 600, height: 800 }),
+        render: vi.fn(() => {
+          started.resolve()
+          return render
+        }),
+        cleanup: vi.fn(),
+      }
+      const document = { numPages: 1, getPage: async () => page }
+      const task = {
+        promise: phase === 'loading' ? stalled.promise : Promise.resolve(document),
+        destroy: vi.fn(async () => {}),
+      }
+      pdfjs.getDocument.mockImplementation(() => {
+        if (phase === 'loading') started.resolve()
+        return task
+      })
+      vi.stubGlobal('document', { createElement: () => canvas })
+      const controller = new AbortController()
+      const removed = vi.spyOn(controller.signal, 'removeEventListener')
+      const pending = readBoardingPass(new File([], 'pass.pdf', { type: 'application/pdf' }), {
+        signal: controller.signal,
+      })
+      await started.promise
+      controller.abort(new Error('replaced PDF'))
+      await expect(pending).rejects.toThrow('replaced PDF')
+      expect(task.destroy).toHaveBeenCalledOnce()
+      expect(removed).toHaveBeenCalledWith('abort', expect.any(Function))
+      expect(DecoderWorker.instances).toHaveLength(0)
+      if (phase === 'rendering') {
+        expect(render.cancel).toHaveBeenCalledOnce()
+        expect(page.cleanup).toHaveBeenCalledOnce()
+        expect(canvas).toEqual({ width: 0, height: 0 })
+      }
+    },
+  )
 })

@@ -474,7 +474,7 @@ The approved [Journal spec](.scratch/journal-redesign/spec.md) takes precedence 
 - Journal loading uses a static skeleton in the final header, toolbar and ledger layout rather than LoadingScreen. Empty, no matches, offline, failed refresh and pending publication remain distinct states; failed refresh preserves loaded rows.
 - Selection uses hover/focus checkboxes on desktop and a menu on mobile. The floating action bar supports all matching flights, export, protected aircraft filling, confirmation and deferred deletion without DestructiveConfirm. Manual flight and Passport deletion retain their existing mechanics.
 
-Rows remain real DOM with `content-visibility: auto`. The server renders the first 60 rows; the remainder mount in transitions in batches of 150 under the measured performance fallback in the spec. This is progressive mounting, with no virtualizer or offline persistence.
+Rows remain real DOM with `content-visibility: auto`. Their remembered intrinsic block sizes estimate inner content, with separate desktop flight, connector and mobile card estimates. The server renders the first 60 rows; the remainder mount in transitions in batches of 150 under the measured performance fallback in the spec. This is progressive mounting, with no virtualizer or offline persistence.
 
 ## Copy and trust
 
@@ -503,6 +503,8 @@ Capture, auth, privacy, settings, errors, validation and destructive flows are c
 ## Integrated journeys and evidence
 
 Import's file source uses a selection-only adaptation of [Arc FileDropzone](https://uiarc.dev/components/file-dropzone), with a thumbnail, file size and labelled removal action. Members can choose, drop or paste one PDF/PNG/JPEG document up to 10 MB; clipboard ingestion accepts images through Cmd/Ctrl+V while the file source is active, and ignores text fields and pending recognition. Removal returns focus to the picker; previews remain local and their object URLs are revoked on replacement or unmount. Selection alone never submits a document.
+
+Quick Add decodes a selected boarding pass in a dedicated local worker using self-hosted WASM. Only allowlisted flight fields return to the UI; raw barcode text stays in the worker. Replacing or removing the selection terminates decoding and cancels active PDF loading/rendering. Overview keeps tile previews eager and loads full chapter components when they mount, including adjacent chapters in the mobile sheet, with a localized loading skeleton.
 
 Import aircraft review distinguishes AI claims about operated aircraft from scheduled equipment. Each offered model needs a matching dated flight identity and a source from search metadata; retrieved links are not independent verification. Scheduled proposals start unchecked. Source date, registration and operator are review context; accepting a proposal saves the aircraft type through the existing import flow.
 

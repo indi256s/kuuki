@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/wheresryan22/anatomy",
+  "commit": "0fad5b674b09b496d425c10f117c061dfd0c8bdc",
+  "sha256": {
+    "iso-kit.mjs": "6d3ecc725d30c3b0346da309cf61dfa5a65017c23620bbd4093009d4fb104018",
+    "lathe.mjs": "a4e7e974b1a37e603ad2b76363b6f9815cc101dfff0ad277a5d4e8f1dc56fccb",
+    "audit.mjs": "126bd52c5f8dcf13749198125ebb2597c44dc1c566848cfd1fdb53ad19824122",
+    "tube.mjs": "bcb3cc360f6d83e6a5753f4c464b4587ab7965028b05a5d58e285abce58667c9",
+    "turn-build.mjs": "b95d76f9181703508b5bb758973bf004eb92d298a01e0e5ff5457f830c183888",
+    "turn-audit.mjs": "e118b838c00621eb5d86409552b75b50d02c303eaedefc008146a7c62c2eaefd",
+    "turn.mjs": "cb4b530b5e1750ba0e4fd2367d5f25e00195c0136672aa2ecd665c0622ffd1a2",
+    "iso.css": "ef19bac5a42ba9be42b56b2c1cf7fc7e21d332a8060765e9ca1d987b8ab23924",
+    "../LICENSE": "87c078ab9d90a3044f359e6b563d4e6afea7aa060897cf4f21618687b3856796"
+  }
+}

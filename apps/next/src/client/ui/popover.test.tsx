@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createRef, useState, type ComponentProps } from 'react'
+import { createRef, useCallback, useState, type ComponentProps } from 'react'
 import { expect, it, vi } from 'vitest'
 import { Chip } from './chip'
 import { PopoverContent, PopoverRoot, PopoverTrigger } from './popover'
@@ -36,6 +36,7 @@ function ChipExample({
   initialFocus?: 'ordinary' | 'autoFocus' | 'ref'
 } & ComponentProps<typeof PopoverContent>) {
   const [open, setOpen] = useState(false)
+  const focusOnAttach = useCallback((node: HTMLInputElement | null) => node?.focus(), [])
   return (
     <>
       <div>Blank outside</div>
@@ -55,13 +56,7 @@ function ChipExample({
             <input
               aria-label="Year"
               autoFocus={initialFocus === 'autoFocus'}
-              ref={
-                initialFocus === 'ref'
-                  ? (node) => {
-                      node?.focus()
-                    }
-                  : undefined
-              }
+              ref={initialFocus === 'ref' ? focusOnAttach : undefined}
             />
           )}
         </PopoverContent>

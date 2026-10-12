@@ -15,6 +15,8 @@ vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
   api: { post },
 }))
 vi.mock('../activity', () => ({ withIdentityMutation: identity }))
+// The turning model loads after hydration and may mount once a test's globals are restored.
+vi.mock('../auth-card/concorde/concorde-field', () => ({ ConcordeField: () => null }))
 beforeEach(() => {
   sessionStorage.clear()
   localStorage.clear()
