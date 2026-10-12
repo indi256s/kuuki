@@ -82,34 +82,36 @@ export function SectionSheet({
               {t({ en: `${position} of ${count}`, ru: `${position} из ${count}` }, locale)}
             </span>
           </span>
-          {entry && openId ? (
-            <Menu
-              align="end"
-              trigger={
-                <Button
-                  variant="ghost"
-                  className="ov3-options"
-                  aria-label={t({ en: `${title} options`, ru: `Настройки: ${title}` }, locale)}
-                >
-                  <MoreHorizontal size={18} aria-hidden="true" />
-                </Button>
-              }
-            >
-              <MenuItem disabled={openIndex === 0} onSelect={() => onMove(openId, openIndex - 1)}>
-                {t({ en: 'Move up', ru: 'Выше' }, locale)}
-              </MenuItem>
-              <MenuItem
-                disabled={openIndex === order.length - 1}
-                onSelect={() => onMove(openId, openIndex + 1)}
-              >
-                {t({ en: 'Move down', ru: 'Ниже' }, locale)}
-              </MenuItem>
-              <MenuItem onSelect={() => onHide(openId)}>
-                {t({ en: 'Hide', ru: 'Скрыть' }, locale)}
-              </MenuItem>
-            </Menu>
-          ) : null}
         </span>
+      }
+      titleAction={
+        entry && openId ? (
+          <Menu
+            align="end"
+            trigger={
+              <Button
+                variant="ghost"
+                className="ov3-options"
+                aria-label={t({ en: `${title} options`, ru: `Настройки: ${title}` }, locale)}
+              >
+                <MoreHorizontal size={18} aria-hidden="true" />
+              </Button>
+            }
+          >
+            <MenuItem disabled={openIndex === 0} onSelect={() => onMove(openId, openIndex - 1)}>
+              {t({ en: 'Move up', ru: 'Выше' }, locale)}
+            </MenuItem>
+            <MenuItem
+              disabled={openIndex === order.length - 1}
+              onSelect={() => onMove(openId, openIndex + 1)}
+            >
+              {t({ en: 'Move down', ru: 'Ниже' }, locale)}
+            </MenuItem>
+            <MenuItem onSelect={() => onHide(openId)}>
+              {t({ en: 'Hide', ru: 'Скрыть' }, locale)}
+            </MenuItem>
+          </Menu>
+        ) : null
       }
       footer={
         entry ? (

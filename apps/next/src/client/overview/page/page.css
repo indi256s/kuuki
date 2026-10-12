@@ -164,7 +164,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
-.ov3-sections[data-surface='tiles'] h2 {
+.ov3-sections[data-surface='tiles'] .ov3-tile-title {
   margin: 0 0 16px;
 }
 .ov3-hidden {
@@ -241,7 +241,7 @@
   .ov3-sections[data-surface='tiles'] .ov3-section {
     padding: 16px;
   }
-  .ov3-sections[data-surface='tiles'] h2 {
+  .ov3-sections[data-surface='tiles'] .ov3-tile-title {
     font-size: 17px;
   }
 }

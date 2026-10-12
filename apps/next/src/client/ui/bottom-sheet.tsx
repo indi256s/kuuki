@@ -37,6 +37,8 @@ export interface BottomSheetProps {
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
   title: ReactNode
+  /** A control that belongs beside the title (a menu, say), outside the heading so it stays out of the heading's accessible name. */
+  titleAction?: ReactNode
   description?: ReactNode
   /** Resting heights as fractions of the viewport height. The sheet opens at `initialDetent` and never grows past the largest. */
   detents?: number[]
@@ -128,6 +130,7 @@ export function BottomSheet({
 
 function Sheet({
   title,
+  titleAction,
   description,
   detents = [0.45, 0.92],
   initialDetent = 0,
@@ -706,6 +709,7 @@ function Sheet({
                   </DialogPrimitive.Description>
                 ) : null}
               </div>
+              {titleAction}
               <DialogPrimitive.Close className="ui-icon-button" aria-label={closeLabel}>
                 <X size={16} strokeWidth={1.75} aria-hidden="true" />
               </DialogPrimitive.Close>
