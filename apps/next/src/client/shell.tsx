@@ -57,8 +57,8 @@ function ImportRuns({
 }
 
 /**
- * Member shell: sticky 64px desktop header (wordmark, nav, Add flight menu, avatar menu) or 48px mobile header
- * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
+ * Member shell: sticky 64px desktop header (wordmark, nav, Add flight menu, avatar menu), or a 56px mobile header
+ * (page title, avatar menu) that scrolls away above the fixed floating rail. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
  * and, where the import job worker is bound, one import dock.
  */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
@@ -80,23 +80,23 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
               <div className="header-end">
                 <div className="header-desktop-only">
                   <AddMenu locale={locale} />
-                  {username && own ? (
-                    <AvatarMenu
-                      id={own.profile.id}
-                      avatarUrl={own.profile.avatar_url}
-                      username={username}
-                      displayName={own.profile.display_name}
-                      isPublic={own.profile.is_public}
-                      profileAccent={own.profile.theme_color}
-                      locale={locale}
-                    />
-                  ) : null}
                 </div>
+                {username ? (
+                  <AvatarMenu
+                    id={own.profile.id}
+                    avatarUrl={own.profile.avatar_url}
+                    username={username}
+                    displayName={own.profile.display_name}
+                    isPublic={own.profile.is_public}
+                    profileAccent={own.profile.theme_color}
+                    locale={locale}
+                  />
+                ) : null}
               </div>
             </div>
           </header>
           <Main>{children}</Main>
-          <TabBar locale={locale} username={username} />
+          <TabBar locale={locale} />
         </ImportRuns>
       </ShellNotices>
     </AwaitingProvider>

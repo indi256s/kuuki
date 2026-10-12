@@ -61,17 +61,6 @@ describe('shell links to /journal announce their destination on the route link e
       },
       1,
     ],
-    [
-      'Awaiting action in the add sheet',
-      () => {
-        awaiting.value = {
-          ...awaiting.value,
-          data: { actionableCount: 2, awaitingFlightCount: 2, draftRowCount: 0 },
-        }
-        return <AddActions variant="sheet" />
-      },
-      1,
-    ],
   ]
   it.each(cases)('%s', (_name, ui, expected) => {
     render(<>{ui()}</>)
@@ -88,7 +77,7 @@ describe('shell links to /journal announce their destination on the route link e
     }
     render(
       <Menu trigger={<button type="button">More</button>}>
-        <AddActions variant="menu" />
+        <AddActions />
       </Menu>,
     )
     await userEvent.click(screen.getByRole('button', { name: 'More' }))

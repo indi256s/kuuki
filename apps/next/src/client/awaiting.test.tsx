@@ -10,7 +10,10 @@ import { AddActions } from './add-actions'
 vi.mock('./activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('@kuuki/client/apiClient', () => ({ api: { get: vi.fn() }, getAuthGeneration: () => 0 }))
 
-const sheetLink = () => document.querySelector('[data-add-action="queue"]')
+const queueRows = () =>
+  screen.queryAllByRole('menuitem', {
+    name: 'To review: 2 flights awaiting confirmation, 3 draft rows to review',
+  })
 
 it('shares distinct C4 counts with navigation/capture, retains cached counts on failure, and hides zero', async () => {
   vi.mocked(api.get)
@@ -21,29 +24,20 @@ it('shares distinct C4 counts with navigation/capture, retains cached counts on 
     <AwaitingProvider ownerId="owner">
       <Menu open trigger={<button type="button">x</button>}>
         <QueueMenuItem />
+        <AddActions />
       </Menu>
-      <AddActions variant="sheet" />
     </AwaitingProvider>,
   )
-  expect(
-    await screen.findByRole('menuitem', {
-      name: 'To review: 2 flights awaiting confirmation, 3 draft rows to review',
-    }),
-  ).toHaveTextContent('5')
-  expect(sheetLink()).toHaveTextContent(/To review.*5/)
-  expect(sheetLink()).toHaveClass('add-action')
+  // The account-menu row and the Add chooser's last row read the same count.
+  await waitFor(() => expect(queueRows()).toHaveLength(2))
+  for (const row of queueRows()) expect(row).toHaveTextContent('5')
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
-  expect(
-    screen.getByRole('menuitem', {
-      name: 'To review: 2 flights awaiting confirmation, 3 draft rows to review',
-    }),
-  ).toHaveTextContent('5')
+  expect(queueRows()).toHaveLength(2)
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await waitFor(() =>
     expect(screen.queryByRole('menuitem', { name: /To review/ })).not.toBeInTheDocument(),
   )
-  expect(sheetLink()).toBeNull()
 })
 
 const cases: Array<[number, number, string, string]> = [

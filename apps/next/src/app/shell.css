@@ -235,30 +235,10 @@ a.ui-menu-item {
   font-size: 24px;
 }
 
-.add-actions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-1);
-}
-.add-action {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--action-row-h);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  font-weight: 500;
-}
-.add-action:active {
-  background: var(--surface-inset);
-}
-@media (hover: hover) and (pointer: fine) {
-  .add-action:hover {
-    background: var(--surface-inset);
-  }
+/* With work in the queue, its row follows Manual after a gap, so the four capture rows never move. */
+.add-menu [data-add-action='manual']:not(:last-child),
+.add-card [data-add-action='manual']:not(:last-child) {
+  margin-block-end: var(--space-2);
 }
 
 @media (max-width: 700px) {
@@ -266,88 +246,178 @@ a.ui-menu-item {
   .header-desktop-only {
     display: none;
   }
+  .member-header .site-header-inner {
+    padding-inline: 20px 16px;
+  }
+  /* Floating rail: three labeled destinations and the + key, 12px in from the edges and above the home indicator. */
+  :root:has(.tab-bar) {
+    --rail-inset: 12px;
+    --rail-bottom: max(var(--rail-inset), env(safe-area-inset-bottom));
+    --rail-h: calc(var(--tabbar-h) + 12px);
+  }
   .tab-bar {
     display: block;
     position: fixed;
     z-index: var(--z-tabbar);
-    inset-inline: 0;
-    inset-block-end: 0;
-    padding-block-end: env(safe-area-inset-bottom);
-    background: var(--background);
+    inset-inline: var(--rail-inset);
+    inset-block-end: var(--rail-bottom);
+    padding: 6px;
+    border-radius: 24px;
+    background: var(--surface-floating);
+    box-shadow: var(--shadow-floating), var(--ring-floating);
     transition: transform var(--dur-base) var(--ease-out);
   }
   .tab-bar ul {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    display: flex;
+    gap: 4px;
     list-style: none;
     margin: 0;
     padding: 0;
   }
+  .tab-bar li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  /* The key is set apart from the destinations: it is an action, never the current page. */
+  .tab-bar .tab-add-slot {
+    flex: none;
+    margin-inline-start: 6px;
+  }
   .tab {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     width: 100%;
     min-width: 0;
     min-height: var(--tabbar-h);
-    padding: var(--space-1) 2px;
-    border: 0;
-    background: transparent;
+    padding: 0 2px;
+    border-radius: 18px;
     color: var(--text-muted);
     text-decoration: none;
     font-size: 12px;
     line-height: 16px;
+    font-weight: 500;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
   }
   .tab-label {
     max-width: 100%;
     white-space: nowrap;
   }
   .tab[aria-current='page'] {
-    color: var(--accent-text);
+    background: var(--accent-tint);
+    color: var(--accent-on-tint);
     font-weight: 600;
-  }
-  .tab[aria-current='page']::before {
-    content: '';
-    position: absolute;
-    inset-block-start: -1px;
-    inset-inline: 25%;
-    height: 2px;
-    border-radius: var(--radius-full);
-    background: var(--accent);
   }
   .tab:active {
     background: var(--surface-inset);
   }
-  /* Content, floating bars and toasts clear the tab bar plus the safe area. */
+  .tab-add {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 18px;
+    background: var(--accent);
+    color: var(--accent-foreground);
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+  .tab-add:active {
+    transform: scale(0.96);
+  }
+  .tab-add:focus-visible,
+  .tab:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  /* + turns into × (the same glyph at 45°); a transition, so a quick reopen reverses mid-turn. */
+  .tab-add-icon {
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .tab-add[data-state='open'] .tab-add-icon {
+    transform: rotate(45deg);
+  }
+  /* Stacking while a scrimmed menu is open: the menu, then the rail, then the scrim, then toasts and the import dock. */
+  :root:has(.ui-menu-shield[data-scrim][data-state='open']) .tab-bar {
+    z-index: 73;
+  }
+  .ui-menu.add-card,
+  .ui-menu.account-menu {
+    z-index: 74;
+  }
+  .add-card {
+    width: calc(100vw - 2 * var(--rail-inset));
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border: 0;
+    border-radius: 24px;
+    background: var(--surface-floating);
+    box-shadow: var(--shadow-modal), var(--ring-floating);
+  }
+  .add-card-title {
+    margin: 0;
+    padding: 12px 14px 8px;
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .add-card .ui-menu-item {
+    min-height: var(--action-row-h);
+    gap: 12px;
+    padding-inline: 14px;
+    border-radius: 18px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  .add-card .ui-menu-item svg {
+    flex-shrink: 0;
+  }
+  /* Content, floating bars and toasts clear the rail, its gap and the safe area. Toasts add the safe area themselves. */
   :root:has(.tab-bar) {
-    --tabbar-offset: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-    --toast-bottom-offset: var(--tabbar-h);
+    --tabbar-offset: calc(var(--rail-bottom) + var(--rail-h));
+    --toast-bottom-offset: calc(var(--rail-bottom) + var(--rail-h) - env(safe-area-inset-bottom));
     --action-bar-bottom: calc(var(--tabbar-offset) + var(--space-4));
   }
   :root:has(.tab-bar) .page-shell {
     padding-block-end: calc(var(--tabbar-offset) + var(--space-6));
   }
-  /* Keyboard open: the bar slides off-screen but stays in the DOM and focus order. */
+  /* Keyboard open: the rail slides off-screen past its gap but stays in the DOM and focus order. */
   :root[data-keyboard='true']:has(.tab-bar) {
     --tabbar-offset: 0px;
     --toast-bottom-offset: 0px;
     --action-bar-bottom: max(var(--space-4), env(safe-area-inset-bottom));
   }
   :root[data-keyboard='true'] .tab-bar {
-    transform: translateY(100%);
+    transform: translateY(calc(100% + var(--rail-bottom)));
   }
 }
-@media (max-width: 360px) {
-  .tab {
-    font-size: 11px;
+@media (max-width: 700px) and (hover: hover) and (pointer: fine) {
+  .tab:not([aria-current='page']):hover {
+    background: var(--surface-inset);
+    color: var(--text);
+  }
+  .tab-add:hover {
+    background: var(--accent-hover);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tab-bar {
+  .tab-bar,
+  .tab-add-icon {
     transition: none;
+  }
+  .tab-add:active {
+    transform: none;
   }
   .add-button {
     transition: none;

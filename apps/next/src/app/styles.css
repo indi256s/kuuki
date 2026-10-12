@@ -668,7 +668,7 @@ h2 {
 @media (max-width: 700px) {
   body {
     --page-gutter: 16px;
-    --header-h: 48px;
+    --header-h: 56px;
   }
   .site-header-inner {
     gap: 10px;

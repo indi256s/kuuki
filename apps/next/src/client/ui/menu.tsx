@@ -35,6 +35,8 @@ export type MenuProps = {
   hideWhenDetached?: boolean
   /** Skips the content's enter and exit motion, for a close that a navigation causes. */
   instant?: boolean
+  /** Names the menu by one of its own elements instead of its trigger (whose name may change while open). */
+  labelledBy?: string
 }
 
 /**
@@ -57,6 +59,7 @@ export function Menu({
   scrim,
   hideWhenDetached,
   instant,
+  labelledBy,
 }: MenuProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   // A menu opened or closed from the keyboard skips its motion: people do that many times a day.
@@ -98,6 +101,7 @@ export function Menu({
         <DropdownMenu.Content
           className={className ? `ui-menu ${className}` : 'ui-menu'}
           data-instant={still}
+          aria-labelledby={labelledBy}
           align={align}
           side={side}
           sideOffset={sideOffset}

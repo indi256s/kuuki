@@ -21,7 +21,7 @@ export function AddMenu({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
         </button>
       }
     >
-      <AddActions variant="menu" locale={locale} />
+      <AddActions locale={locale} />
     </Menu>
   )
 }
