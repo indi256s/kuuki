@@ -43,6 +43,13 @@
   text-align: start;
 }
 
+/* The desktop site header is sticky, so the column header sticks below it; the mobile header scrolls away. */
+@media (min-width: 701px) {
+  .journal-ledger {
+    --ledger-sticky-top: var(--header-h);
+  }
+}
+
 /* Header: sticky, an inset strip, one sort cue (the arrow on the active column). */
 .journal-ledger .jr-head {
   position: sticky;

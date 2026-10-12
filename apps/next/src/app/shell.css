@@ -1,14 +1,11 @@
-/* Arc split-button, user-menu and tabs presentation (MIT; client/ui/ARC-LICENSE.txt).
+/* Arc user-menu and tabs presentation (MIT; client/ui/ARC-LICENSE.txt).
    Current route links, Radix menus and Facehash keep their behavior.
-   Member shell: header, split Add, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
+   Member shell: header, Add flight menu, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
 @media (min-width: 701px) {
   .member-header .site-header-inner {
     flex-wrap: wrap;
-    column-gap: clamp(var(--space-2), calc(4vw - 1.25rem), var(--space-8));
+    column-gap: 40px;
     row-gap: var(--space-2);
-  }
-  .member-header .main-nav a {
-    padding-inline: clamp(var(--space-2), calc(2vw - 0.375rem), 14px);
   }
 }
 /* Overview is the one wide route: header, page shell and workspace share a single fluid width and gutter (24px, easing up to 48px on very wide screens; 16px at <=700px comes from styles.css). */
@@ -24,12 +21,12 @@
   margin-inline-start: auto;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 .header-desktop-only {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 .desktop-nav {
   display: block;
@@ -38,86 +35,81 @@
   display: none;
 }
 
-/* Active state: weight, colour and an underline bar, so it never relies on colour alone. */
+/* Routes: soft tint pill for the current page (weight and tint, never colour alone). */
 .main-nav a {
-  position: relative;
-  border-radius: var(--radius-sm);
-  transition: background-color var(--dur-fast) var(--ease-out);
+  padding: 8px 16px;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--text-muted);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .main-nav a:hover {
     background: var(--surface-inset);
+    color: var(--text);
   }
 }
-.main-nav a[aria-current='page']::after {
-  content: '';
-  position: absolute;
-  inset-inline: var(--space-3);
-  inset-block-end: 0;
-  height: 2px;
-  border-radius: var(--radius-full);
-  background: var(--accent);
+.main-nav a[aria-current='page'] {
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+  font-weight: 600;
 }
 
-.split-add {
-  transition: transform var(--dur-press) var(--ease-out);
+.add-button {
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 12px 0 14px;
+  border: 0;
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--accent-foreground);
-}
-.split-add-main,
-.split-add-more {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: inherit;
+  font-size: 15px;
+  line-height: 20px;
   font-weight: 600;
-  text-decoration: none;
   white-space: nowrap;
+  transition: transform var(--dur-press) var(--ease-out);
 }
-.split-add-main {
-  padding-block: 0;
-  padding-inline: var(--space-4) var(--space-3);
-  border-radius: 0;
-  border-start-start-radius: var(--radius-sm);
-  border-end-start-radius: var(--radius-sm);
+.add-button .icon-morph-chevron {
+  margin-inline-start: 6px;
 }
-.split-add-more {
-  min-width: 44px;
-  padding: 0;
-  border-radius: 0;
-  border-start-end-radius: var(--radius-sm);
-  border-end-end-radius: var(--radius-sm);
-  border-inline-start: 1px solid color-mix(in oklch, var(--accent-foreground) 40%, transparent);
-}
-.split-add :focus-visible {
-  outline-color: var(--focus);
+.add-button:focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-.split-add:has(.split-add-main:active) {
+.add-button:active {
   transform: scale(0.96);
 }
-.split-add-more:active,
-.split-add-more[data-state='open'] {
+.add-button[data-state='open'] {
   background: var(--accent-hover);
 }
-.split-add-more svg {
-  transition: transform var(--dur-base) var(--ease-out);
-}
-.split-add-more[data-state='open'] svg {
+/* ChevronIcon turns on its own data-on flag; the menu trigger reports data-state instead. */
+.add-button[data-state='open'] .icon-morph-chevron {
   transform: rotate(180deg);
 }
 @media (hover: hover) and (pointer: fine) {
-  .split-add-main:hover,
-  .split-add-more:hover {
+  .add-button:hover {
     background: var(--accent-hover);
   }
+}
+.add-menu {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.add-menu .ui-menu-item {
+  min-height: 52px;
+  gap: 12px;
+  padding-inline: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+.add-menu .ui-menu-item svg {
+  flex-shrink: 0;
 }
 
 .avatar-button {
@@ -357,11 +349,13 @@ a.ui-menu-item {
   .tab-bar {
     transition: none;
   }
-  .split-add:has(.split-add-main:active) {
+  .add-button {
+    transition: none;
+  }
+  .add-button:active {
     transform: none;
   }
-  .split-add,
-  .split-add-more svg {
+  .add-button .icon-morph-chevron {
     transition: none;
   }
 }

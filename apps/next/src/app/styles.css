@@ -46,9 +46,10 @@
   --badge-size: 24px;
   --content-width: 1200px;
   --page-gutter: 24px;
-  --header-h: 56px;
+  --header-h: 64px;
   --tabbar-h: 56px;
   --z-tabbar: 30;
+  --z-header: 20;
   --background: #fbfaf8;
   --surface: #fff;
   --surface-inset: #f2f0ed;
@@ -525,6 +526,13 @@ h2 {
 .site-header {
   background: var(--background);
 }
+@media (min-width: 701px) {
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+  }
+}
 .site-header-inner {
   max-width: var(--content-width);
   margin: auto;
@@ -771,15 +779,6 @@ h2 {
   color: var(--text);
   cursor: pointer;
 }
-.main-nav a[aria-current='page'] {
-  color: var(--accent-text);
-  font-weight: 600;
-}
-@media (hover: hover) and (pointer: fine) {
-  :root[data-theme='dark'] .main-nav a[aria-current='page']:hover {
-    color: var(--text);
-  }
-}
 :root[data-theme='dark'] .tab[aria-current='page']:active {
   color: var(--text);
 }
@@ -815,11 +814,6 @@ h2 {
 .field .error {
   font-size: 13px;
   color: var(--danger-text);
-}
-@media (hover: hover) and (pointer: fine) {
-  .main-nav a:hover {
-    background: var(--surface-inset);
-  }
 }
 /* Auth card surfaces (DESIGN.md "Auth card"): the brand panel, the inputs and the mobile band each have their own fill, and the mobile sheet its own edge. */
 :root {

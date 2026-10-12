@@ -2,10 +2,10 @@ import { NavigationLink as Link } from './navigation-link'
 import type { ReactNode } from 'react'
 import { AccentSync } from './appearance'
 import { AwaitingProvider } from './awaiting'
+import { AddMenu } from './add-menu'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
-import { SplitAdd } from './split-add'
 import { ShellNotices } from './shell-notices'
 import { ImportDock } from './import/import-dock'
 import { ImportRunsProvider } from './import/import-runs'
@@ -57,7 +57,7 @@ function ImportRuns({
 }
 
 /**
- * Member shell: 56px desktop header (wordmark, nav, queue slot, split Add, avatar menu) or 48px mobile header
+ * Member shell: sticky 64px desktop header (wordmark, nav, Add flight menu, avatar menu) or 48px mobile header
  * plus the bottom tab bar. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
  * and, where the import job worker is bound, one import dock.
  */
@@ -79,7 +79,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
               <PrimaryNav locale={locale} />
               <div className="header-end">
                 <div className="header-desktop-only">
-                  <SplitAdd locale={locale} />
+                  <AddMenu locale={locale} />
                   {username && own ? (
                     <AvatarMenu
                       id={own.profile.id}

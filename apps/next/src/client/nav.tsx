@@ -13,7 +13,6 @@ export const NAV_ITEMS = [
   { href: '/overview', label: 'Overview', ru: 'Обзор' },
   { href: '/journal', label: 'Journal', ru: 'Журнал' },
   { href: '/passport', label: 'Passport', ru: 'Паспорт' },
-  { href: '/leaderboard', label: 'Leaderboard', ru: 'Рейтинг' },
 ] as const
 
 /** Active for the route itself and anything nested under it (`/journal/<id>/edit`); the query string never matters (`/overview?year=`). */
@@ -57,6 +56,7 @@ export function MobilePageTitle() {
   const pathname = usePathname()
   const item = [
     ...NAV_ITEMS,
+    { href: '/leaderboard', label: 'Leaderboard', ru: 'Рейтинг' },
     { href: '/settings', label: 'Settings', ru: 'Настройки' },
     { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
     { href: '/import', label: 'Import', ru: 'Импорт' },
@@ -79,7 +79,7 @@ export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
           <li key={item.href}>
             <Link
               href={item.href}
-              prefetch={item.href === '/leaderboard' ? undefined : true}
+              prefetch
               aria-current={isActive(pathname, item.href) ? 'page' : undefined}
             >
               <NavLabel en={item.label} ru={item.ru} />
