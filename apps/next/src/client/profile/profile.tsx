@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, type CSSProperties } from 'react'
-import { Check, Share } from '@keyline-icons/react'
+// Keyline Upload is the platform share glyph (tray and arrow) the boards draw.
+import { Check, Upload as ShareGlyph } from '@keyline-icons/react'
 import { Field } from '../ui/field'
 import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
@@ -40,7 +41,7 @@ export function ShareProfile({
           result === 'copied' ? (
             <Check size={16} strokeWidth={1.75} aria-hidden="true" />
           ) : (
-            <Share size={16} strokeWidth={1.75} aria-hidden="true" />
+            <ShareGlyph size={16} strokeWidth={1.75} aria-hidden="true" />
           )
         }
         textAlternatives={[idle, copied]}

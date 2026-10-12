@@ -83,7 +83,7 @@
   --gate-edge: 0 0 0 0 transparent;
   --holder-shadow:
     0 0 0 1px rgb(48 45 42/6%), 0 1px 2px rgb(48 45 42/4%), 0 12px 32px -12px rgb(48 45 42/12%),
-    inset -14px 0 14px -14px rgb(48 45 42/16%);
+    inset -10px 0 12px -12px rgb(48 45 42/10%);
   --map-land: var(--surface-inset);
   --map-border: var(--hairline);
   --map-route: var(--accent);
@@ -226,7 +226,7 @@
   --gate-edge: inset 0 1px 0 rgb(255 255 255/5%), 0 0 0 1px rgb(0 0 0/25%);
   --holder-shadow:
     inset 0 1px 0 rgb(255 255 255/5%), 0 0 0 1px rgb(0 0 0/25%),
-    inset -14px 0 14px -14px rgb(0 0 0/45%);
+    inset -10px 0 12px -12px rgb(0 0 0/30%);
   --swatch-shu: #ea846f;
   --swatch-ai: #acbbef;
   --swatch-matcha: #b7ce92;

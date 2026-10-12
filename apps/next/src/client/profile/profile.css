@@ -523,14 +523,14 @@
 
 /* Ranks: gate signs, static. Light hangs ink signs; dark raises slabs. */
 .profile-gates {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
   gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .profile-gates li {
-  flex: 1 1 0;
   min-inline-size: 0;
 }
 .profile-gate {
@@ -551,7 +551,8 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--gate-label);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 .profile-gate-rank {
   font: 600 36px/40px var(--font-mono);
@@ -725,7 +726,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .profile-gates {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -792,6 +793,7 @@
     padding: var(--space-2) var(--page-gutter);
     overflow-x: auto;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--page-gutter);
     scrollbar-width: none;
   }
   .profile-stamp {
