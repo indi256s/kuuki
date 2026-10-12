@@ -1,34 +1,48 @@
 'use client'
+import { hangars } from '../../iso/hangars'
 import { IsoFigure } from '../../iso/iso-figure'
-import { useFleetFigure } from '../fleet/figure'
-import { TILE_FIGURE_WIDTH } from '../../mobile/tiles'
+import { useFigure } from '../../iso/use-figure'
 import { useOverview } from '../../store/overview-context'
-import { CoverageNote, copy, number, types } from '../rankings/display'
+import { CoverageNote, copy } from '../rankings/display'
+import { makerName } from '../manufacturers/section'
+import { labelOf } from './figure'
+import { makerRows, planSheds, shareText } from './model'
 import '../cookie.css'
-import '../../iso/fleet.css'
+import '../../iso/hangars.css'
+
 export function Tile() {
-  const { scope, payload, locale } = useOverview()
-  const data = scope?.fleet.status === 'ready' ? scope.fleet.value : null
-  const figure = useFleetFigure(TILE_FIGURE_WIDTH.full, 'podium')
-  if (!scope || !data) return <p>—</p>
-  const top = data.topTypes[0]
+  const { scope, locale } = useOverview()
+  const data = scope?.makers.status === 'ready' ? scope.makers.value : null
+  const rows = data ? makerRows(data).rows : []
+  const plan = planSheds(rows, (key) => makerName(key, locale), locale)
+  const top = rows.find((row) => row.key !== 'unknown')
+  // The hangars at rest with the headline maker lit; nothing moves in a tile.
+  const lit = top && !plan.blank ? plan.shedOf(top.key) : null
+  const figure = useFigure(
+    'full',
+    `${lit}|${plan.sheds.map((shed) => `${shed.key}:${shed.name}:${shed.share}`).join(',')}`,
+    (k) => hangars(k, { sheds: plan.sheds, lit, shareLabel: labelOf(plan) }),
+  )
+  if (!scope || !top || plan.blank) return <p>—</p>
+  const others = rows
+    .filter((row) => row.key !== top.key && row.key !== 'unknown')
+    .slice(0, 2)
+    .map((row) => `${makerName(row.key, locale)} ${shareText(row.share)}`)
+    .join(', ')
   return (
     <div className="ov3-cookie">
       <div className="ov3-cookie-figure">
-        <IsoFigure figure={figure} className="iso-fleet" />
+        <IsoFigure figure={figure} className="iso-hangars" />
       </div>
       <div className="ov3-cookie-text">
         <strong className="ov3-cookie-value">
-          {top ? `${top.key} ×${number(locale, top.flights)}` : '—'}
+          {shareText(top.share)} {makerName(top.key, locale)}
         </strong>
         <p className="ov3-cookie-label ov3-cookie-full">
-          {copy(locale, 'Most flown type', 'Самый частый тип')}
-        </p>
-        <p className="ov3-cookie-label ov3-cookie-half">
-          {copy(locale, 'Most flown', 'Самый частый')} · {types(locale, data.types)}
+          {copy(locale, 'Most flown maker', 'Самый частый производитель')}
         </p>
         <p className="ov3-cookie-detail">
-          {top && (payload?.refs.aircraft[top.key]?.name ?? top.key)} · {types(locale, data.types)}
+          {others || copy(locale, 'The only maker on file', 'Единственный производитель в данных')}
         </p>
         <CoverageNote
           have={scope.coverage.typed}

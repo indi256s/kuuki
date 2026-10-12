@@ -1,0 +1,341 @@
+/* One chapter, the same bands in the sheet (342 wide) and the desktop card (636 wide): figure stage, hero, chart stage, details.
+   Every band has a fixed box, so a swipe lines two chapters up and loading, empty and ready never move what is below. Spacing groups; there are no rules between rows. */
+.ov3-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ov3-card-top {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Figure stage: the figure box sits 8px under the top and on the fill of whatever holds the card. */
+.ov3-card-figure {
+  position: relative;
+  flex: none;
+  height: 176px;
+}
+.ov3-card-figure-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  max-width: 100%;
+  height: 160px;
+  margin: 8px auto 0;
+}
+.ov3-card-figure-button {
+  position: absolute;
+  inset: 0;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.ov3-card-figure-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+/* Hero. The value line and the "Only …" slot share one box, so the slot appearing reflows nothing. */
+.ov3-card-hero {
+  position: relative;
+  min-width: 0;
+}
+.ov3-card-value {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.ov3-card-value[data-mono] {
+  font-family: var(--font-mono);
+}
+.ov3-card-value-text {
+  /* The reading never shrinks for its unit; it ellipsizes only when it alone outgrows the line. */
+  flex: none;
+  min-width: 0;
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ov3-card-unit {
+  /* The unit gives way first. */
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.ov3-card-caption {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+.ov3-card-only {
+  position: absolute;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+}
+/* The chip is capped, and the value line keeps its slot free, so a long reading never runs under it. */
+.ov3-card {
+  --only-max: 112px;
+  --only-slot: calc(var(--only-max) + 8px);
+}
+.ov3-card-value[data-only] {
+  padding-inline-end: var(--only-slot);
+}
+.ov3-card-only .ui-button {
+  max-inline-size: var(--only-max);
+}
+.ov3-card-only .ui-button > span:not(.ui-button-icon) {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Chart stage: header 32, gap 8, then the plot box with its axis. */
+.ov3-card-chart {
+  flex: none;
+  min-width: 0;
+}
+.ov3-card-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 32px;
+  container-type: inline-size;
+}
+/* The caption takes what the toggle leaves and is its own container, so it can hide once squeezed below a word. */
+.ov3-card-chart-caption {
+  flex: 1 1 0;
+  min-width: 0;
+  container-type: inline-size;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+.ov3-card-chart-caption-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Squeezed by a long toggle (RU Rankings on a phone), the caption stays for screen readers only: the toggle names the view. */
+@container (max-width: 63px) {
+  .ov3-card-chart-caption-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+/* Under 300px the toggle's cells tighten so it fits the card. */
+@container (max-width: 299px) {
+  .ov3-card-chart-header .ui-segmented[data-dense='true'] {
+    max-inline-size: 100%;
+  }
+  .ov3-card-chart-header .ui-segmented[data-dense='true'] .ui-segment {
+    padding-inline: 8px;
+  }
+}
+.ov3-card-plot {
+  margin-top: 8px;
+  min-width: 0;
+}
+
+/* Empty: the hero and the chart stage give way to one message of the same height. */
+.ov3-card-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Details: the sheet closes them behind a Disclosure; the desktop card shows them up front. */
+.ov3-card-details {
+  min-width: 0;
+}
+.ov3-card-heading {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.ov3-card-more {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+}
+.ov3-card-details .ui-disclosure-trigger {
+  margin-inline-start: -4px;
+}
+.ov3-card-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.ov3-card-columns {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+}
+.ov3-card-columns > div {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+.ov3-card-columns dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.ov3-card-columns dt {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.ov3-card-coverage {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* Sheet: 176 figure stage, 96 hero, 16, 216 chart stage, details 4 under it. */
+.ov3-card[data-span='sheet'] .ov3-card-hero {
+  height: 96px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-value {
+  height: 44px;
+  margin-top: 4px;
+  font-size: 40px;
+  line-height: 44px;
+  gap: 4px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-caption {
+  position: absolute;
+  inset: 52px 0 auto;
+  min-height: 48px;
+  max-height: 48px;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.ov3-card[data-span='sheet'] .ov3-card-only {
+  top: 4px;
+  height: 44px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-chart {
+  height: 216px;
+  margin-top: 16px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-plot {
+  height: 176px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-empty {
+  height: 328px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-details {
+  margin-top: 4px;
+}
+.ov3-card[data-span='sheet'] .ov3-card-details-body {
+  padding: 4px 0 var(--space-2);
+}
+
+/* Full: row A is 192 (176 stage, 16 below), then the 246 chart stage and the details. */
+.ov3-card[data-span='full'] .ov3-card-top {
+  flex-direction: row;
+  gap: 24px;
+  height: 192px;
+  padding-bottom: 16px;
+}
+.ov3-card[data-span='full'] .ov3-card-figure {
+  width: 300px;
+}
+.ov3-card[data-span='full'] .ov3-card-hero {
+  flex: 1;
+  height: 176px;
+  padding-top: 8px;
+}
+.ov3-card[data-span='full'] .ov3-card-value {
+  height: 52px;
+  font-size: 48px;
+  line-height: 52px;
+  gap: 6px;
+}
+.ov3-card[data-span='full'] .ov3-card-caption {
+  height: 72px;
+  margin-top: 4px;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+.ov3-card[data-span='full'] .ov3-card-only {
+  top: 8px;
+  height: 52px;
+}
+.ov3-card[data-span='full'] .ov3-card-chart {
+  height: 246px;
+}
+.ov3-card[data-span='full'] .ov3-card-plot {
+  height: 206px;
+}
+.ov3-card[data-span='full'] .ov3-card-plot > .ui-skeleton {
+  width: 592px;
+  max-width: 100%;
+}
+.ov3-card[data-span='full'] .ov3-card-empty {
+  height: 246px;
+}
+.ov3-card[data-span='full'] .ov3-card-details {
+  padding-top: 24px;
+}
+.ov3-card[data-span='full'] .ov3-card-details > .ov3-card-heading {
+  margin-bottom: 12px;
+}
+.ov3-card[data-span='full'] .ov3-card-coverage {
+  padding-top: 12px;
+}
+.ov3-card[data-span='full'] .ov3-card-hero:has(> .ui-skeleton) {
+  padding-top: 0;
+}
+.ov3-card[data-span='full'] .ov3-card-figure-box:has(> .ui-skeleton) {
+  height: 176px;
+  margin-top: 0;
+}

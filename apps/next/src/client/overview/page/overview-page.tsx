@@ -54,10 +54,11 @@ function PageContent({ name }: { name: string }) {
     payload.passport.countryCodes.length === 0 &&
     payload.passport.regions === 0
   const zero = scope?.figures.flights === 0 && !isEmptyFilter(filter)
-  // A locked section leaves the grid and the tiles; it stays in the saved order and hidden lists.
-  const locked = scope
+  // A section below its gate with no filter leaves the grid and the tiles; it stays in the saved order and hidden lists.
+  // The gate reads the unfiltered scope: a filter that drops a chapter below it leaves the chapter in place, and the chapter says so itself.
+  const locked = all
     ? layout.order.filter(
-        (id) => id !== 'rankings' && SECTION_GATES[id].gate(scope).status === 'below',
+        (id) => id !== 'rankings' && SECTION_GATES[id].gate(all).status === 'below',
       )
     : []
   const shown = ({ order, hidden }: typeof layout) =>

@@ -25,7 +25,7 @@ it('emphasizes a legend series on hover and focus without dimming the others, cl
       <Section span="full" />
     </OverviewProvider>,
   )
-  fireEvent.click(screen.getByRole('button', { name: 'Rank by year and head to head' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Rank by year' }))
   const legend = container.querySelector('.ov3-bump-dashes')!
   const buttons = within(legend as HTMLElement).getAllByRole('button')
   const groups = () => Array.from(container.querySelectorAll<SVGGElement>('[data-bump-series]'))

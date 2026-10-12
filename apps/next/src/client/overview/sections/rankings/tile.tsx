@@ -1,29 +1,35 @@
 'use client'
 import { IsoFigure } from '../../iso/iso-figure'
+import { gateSign } from '../../iso/gate-sign'
+import { useFigure } from '../../iso/use-figure'
 import type { TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { referenceLabels } from '../../labels'
-import { copy } from './display'
-import { useBoardFigure } from './figure'
+import { copy, flights } from './display'
 import '../cookie.css'
+import '../../iso/gate-sign.css'
 export function Tile({ span }: { span: TileSpan }) {
   const { scope, locale } = useOverview()
-  const figure = useBoardFigure(span, scope?.rankings.airlines ?? [])
+  const top = scope?.rankings.airlines[0]
+  // The sign at rest, showing the top airline's code; with no airline on file it stays dim.
+  const code = top?.key ?? ''
+  const figure = useFigure(span, code, (k) => gateSign(k, { code }))
   if (!scope) return null
-  const top = scope.rankings.airlines[0],
-    route = scope.rankings.routes[0]
-  const routeText = route ? `${route.key.replace('-', ' → ')} ×${route.count}` : null
+  const name = top ? referenceLabels(locale).airline(top.key) : null
   return (
     <div className="ov3-cookie">
-      <div className="ov3-cookie-figure">
-        <IsoFigure figure={figure} className="iso-board" />
+      <div className="ov3-cookie-figure" data-blank={top ? undefined : ''}>
+        <IsoFigure figure={figure} className="iso-gate" />
       </div>
       <div className="ov3-cookie-text">
-        <strong className="ov3-cookie-value">
-          {top ? `${referenceLabels(locale).airline(top.key)} ×${top.count}` : '—'}
-        </strong>
-        <p className="ov3-cookie-label">{copy(locale, 'Top airline', 'Главная авиакомпания')}</p>
-        {routeText && <p className="ov3-cookie-detail">{routeText}</p>}
+        <strong className="ov3-cookie-value">{top ? flights(locale, top.count) : '—'}</strong>
+        <p className="ov3-cookie-label ov3-cookie-full">
+          {copy(locale, 'Top airline', 'Главная авиакомпания')}
+        </p>
+        <p className="ov3-cookie-label ov3-cookie-half">
+          {copy(locale, 'Top', 'Главная')} · {top?.key ?? '—'}
+        </p>
+        {name && <p className="ov3-cookie-detail">{name}</p>}
       </div>
     </div>
   )

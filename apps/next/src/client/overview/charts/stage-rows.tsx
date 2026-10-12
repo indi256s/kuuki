@@ -1,0 +1,112 @@
+'use client'
+
+import type { ReactNode } from 'react'
+import { KuukiChart, type ChartPoint } from './kuuki-chart'
+import { num, stageExtent, stageMax, stageText, type StageProps } from './stage-scale'
+import './stage.css'
+
+export type StageRowsProps<T> = StageProps<T> & {
+  /** The row's visible name (`point.label` is the longer spoken one). */
+  name?: (point: ChartPoint<T>) => string
+  /** Mono name, for codes. */
+  mono?: boolean
+  /** 16px leading slot, e.g. a maker swatch. */
+  swatch?: (point: ChartPoint<T>) => ReactNode
+  /** Width reserved for the value column. Default 48. */
+  valueWidth?: number
+  /** A CSS color for the row's bar (e.g. `var(--cat-maker-airbus)`), kept in every state: the picked row is not recolored and has no --mark-peak overlay. Default: --mark-rest, with the pick in --mark-peak. */
+  fill?: (point: ChartPoint<T>) => string
+  /** Draw the bar as a 1px outline in its `fill` color with no fill (the Unknown maker). */
+  outline?: (point: ChartPoint<T>) => boolean
+}
+
+const LABEL = 160,
+  BAR_X = 172,
+  BAR_H = 8,
+  GAP = 8
+
+// The sheet keeps 24px rows. The desktop card's 206px plot gives up to 182px to rows, at most 36px each (5 rows fill it, 7 rows get 26).
+const rowPitch = (span: StageProps<unknown>['span'], count: number) =>
+  span === 'full' ? Math.min(36, Math.floor(182 / Math.max(1, count))) : 24
+
+// A bar is drawn at its full length and scaled from its start, so a changed value morphs by transform only.
+// The ends are elliptical (rx = r / scale) to look round once scaled.
+function pill(x: number, y: number, length: number, width: number) {
+  const r = Math.min(BAR_H / 2, width / 2),
+    rx = (r * length) / width,
+    right = x + length,
+    bottom = y + BAR_H
+  return `M${num(x + rx)} ${y}H${num(right - rx)}A${num(rx)} ${r} 0 0 1 ${right} ${y + r}V${bottom - r}A${num(rx)} ${r} 0 0 1 ${num(right - rx)} ${bottom}H${num(x + rx)}A${num(rx)} ${r} 0 0 1 ${x} ${bottom - r}V${y + r}A${num(rx)} ${r} 0 0 1 ${num(x + rx)} ${y}Z`
+}
+
+export function StageRows<T>(props: StageRowsProps<T>) {
+  const { points, value, selectedKey, appliedKeys, span, name, mono, swatch, fill, outline } = props
+  const valueWidth = props.valueWidth ?? 48,
+    max = stageMax(points, value),
+    pitch = rowPitch(span, points.length)
+  const applied = (point: ChartPoint<T>) => !!appliedKeys?.includes(point.key)
+  return (
+    <KuukiChart
+      points={points}
+      height={points.length * pitch}
+      ariaLabel={props.ariaLabel}
+      ariaDescription={props.ariaDescription}
+      inView={props.inView}
+      onPick={props.onPick}
+      actions={props.actions}
+      tip={props.tip}
+      selected={(point) => point.key === selectedKey}
+      applied={appliedKeys ? applied : undefined}
+      tapPicks
+    >
+      {(mark, size) => {
+        const room = Math.max(0, size.width - BAR_X - valueWidth - GAP)
+        return (
+          <g className="stage" data-span={span}>
+            {points.map((point, index) => {
+              const amount = value(point),
+                y = index * pitch,
+                width = stageExtent(amount, max, room, 4, 5),
+                length = Math.max(room, width),
+                d = pill(BAR_X, y + (pitch - BAR_H) / 2, length, width)
+              return (
+                <g key={point.key} {...mark(point)} data-zero={!(amount > 0) || undefined}>
+                  <rect x={0} y={y} width={size.width} height={pitch} fill="transparent" />
+                  <foreignObject x={0} y={y} width={LABEL} height={pitch} pointerEvents="none">
+                    <div className="stage-label" data-mono={mono || undefined}>
+                      {swatch ? <span className="stage-swatch">{swatch(point)}</span> : null}
+                      <span className="stage-name">
+                        {applied(point) ? '✓ ' : ''}
+                        {name?.(point) ?? point.label}
+                      </span>
+                    </div>
+                  </foreignObject>
+                  <g
+                    className="stage-bar"
+                    data-axis="x"
+                    data-outline={outline?.(point) || undefined}
+                    style={{
+                      transform: `scaleX(${num(width / length)})`,
+                      ...(fill ? { '--stage-fill': fill(point) } : null),
+                    }}
+                  >
+                    <path d={d} data-kc-outline={outline?.(point) || undefined} />
+                    {amount > 0 && !fill ? <path className="stage-peak" d={d} /> : null}
+                  </g>
+                  <text
+                    className="stage-value"
+                    x={size.width}
+                    y={y + pitch / 2 + 4}
+                    textAnchor="end"
+                  >
+                    {stageText(props, point)}
+                  </text>
+                </g>
+              )
+            })}
+          </g>
+        )
+      }}
+    </KuukiChart>
+  )
+}

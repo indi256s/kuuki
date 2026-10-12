@@ -1,16 +1,23 @@
 'use client'
 
-import type { SVGProps } from 'react'
+import type { ReactNode, SVGProps } from 'react'
+import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import { routeArrow } from '@kuuki/shared/overview/filter'
+import type { RankRow } from '@kuuki/shared/overview/rankings'
+import type { Routes } from '@kuuki/shared/overview/routes'
+import { Button } from '../../../ui/button'
 import { KuukiChart, type ChartPoint } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
+import { StageRows } from '../../charts/stage-rows'
 import { forms } from '../../copy'
+import { ChapterCard } from '../../layout/chapter-card'
+import { useReading } from '../../layout/use-reading'
 import { useOverview } from '../../store/overview-context'
 import { formatCount, type Locale } from '../../../../lib/format'
 import { copy, filterLabel, flights, number, percent } from '../rankings/display'
 import type { Span } from '../registry'
 import { BAR_MARGIN, barsWidth } from '../crossings/bars'
-import { PassSheetFigure } from './figure'
+import { PassCardFigure } from './figure'
 import './routes.css'
 
 type YearRow = { key: string; year: number; flights: number; newRoutes: number }
@@ -112,15 +119,34 @@ function YearBars({
   )
 }
 
-export function Section({ span }: { span: Span }) {
-  const { scope, payload, locale, actions, isCurrent } = useOverview()
-  if (!scope) return null
-  const gate = scope.routes
-  if (gate.status !== 'ready') return null
-  const data = gate.value,
-    home = scope.home?.iata ?? null
-  const city = (code: string) => payload?.refs.airports[code]?.city ?? code
-  const topName = data.top ? routeArrow(data.top.key) : null
+/** The unit beside a count ("routes", "flights"), in the plural form the count takes. */
+const unitOf = (locale: Locale, n: number, set: typeof forms.routes) =>
+  formatCount(locale, n, set).replace(number(locale, n), '').trim()
+
+const PROFILE = {
+  commuter: { en: 'Commuter', ru: 'Челнок' },
+  explorer: { en: 'Explorer', ru: 'Исследователь' },
+  mixed: { en: 'Mixed', ru: 'Вперемешку' },
+} as const
+const DRY = {
+  commuter: {
+    en: 'Commuter: the boarding pass could be laminated.',
+    ru: 'Челнок: посадочный можно ламинировать.',
+  },
+  explorer: {
+    en: 'Explorer: the map is not a loyalty scheme.',
+    ru: 'Исследователь: карта — не программа лояльности.',
+  },
+  mixed: { en: 'Mixed: neither loyal nor lost.', ru: 'Вперемешку: ни верности, ни потерянности.' },
+} as const
+
+function Code({ children }: { children: string }) {
+  return <span className="ov3-routes-code">{children}</span>
+}
+
+/** The per-year chart: flights and new routes by year. A year pick sets the page's period, as it always did. */
+function YearChart({ data }: { data: Routes }) {
+  const { locale, actions, isCurrent } = useOverview()
   const points: ChartPoint<YearRow>[] = data.byYear
     .filter((row) => row.flights > 0)
     .map((row) => ({
@@ -138,46 +164,7 @@ export function Section({ span }: { span: Span }) {
     'Перелёты и новые маршруты по годам',
   )
   return (
-    <div className="ov3-routes" data-span={span}>
-      <PassSheetFigure />
-      <p className="ov3-routes-headline">
-        {headline(locale, data.profile, data.distinct, data.flights, topName)}
-      </p>
-      <div className="ov3-routes-tiles">
-        <div className="ov3-routes-tile">
-          <p>{copy(locale, 'Distinct routes', 'Разных маршрутов')}</p>
-          <strong>{number(locale, data.distinct)}</strong>
-          <small>{flights(locale, data.flights)}</small>
-        </div>
-        <div className="ov3-routes-tile">
-          <p>{copy(locale, 'Repeat share', 'Доля повторов')}</p>
-          <strong>{percent(data.repeatShare)}</strong>
-          <small>
-            {copy(
-              locale,
-              "flights on routes you've flown before",
-              'перелётов по уже знакомым маршрутам',
-            )}
-          </small>
-        </div>
-        {data.top && topName && (
-          <div className="ov3-routes-tile">
-            <p>{copy(locale, 'Top route', 'Главный маршрут')}</p>
-            <strong>{topName}</strong>
-            <small>
-              {data.top.key.split('-').map(city).join(' ↔ ')} · ×{number(locale, data.top.count)}
-            </small>
-          </div>
-        )}
-        {data.homeShare !== null && home && (
-          <div className="ov3-routes-tile">
-            <p>{copy(locale, 'Home share', 'Доля дома')}</p>
-            <strong>{percent(data.homeShare)}</strong>
-            <small>{copy(locale, `from or to ${home}`, `из ${home} или в ${home}`)}</small>
-          </div>
-        )}
-      </div>
-      <h3 className="ov3-chart-caption">{caption}</h3>
+    <div className="ov3-routes-years">
       <p className="ov3-routes-legend" aria-hidden="true">
         <span>
           <i />
@@ -227,5 +214,209 @@ export function Section({ span }: { span: Span }) {
         )}
       </LazyChart>
     </div>
+  )
+}
+
+export function Section({ span }: { span: Span }) {
+  const { scope, filter, locale, actions, isCurrent } = useOverview()
+  const gate = scope ? SECTION_GATES.routes.gate(scope) : null
+  const data = scope?.routes.status === 'ready' ? scope.routes.value : null
+  const rows: RankRow[] = scope ? scope.rankings.routes.slice(0, 5) : []
+  const keys = rows.map((row) => row.key)
+  const r = useReading(keys, keys[0] ?? null)
+  const state = !scope ? 'loading' : gate?.status === 'below' || !data ? 'empty' : 'ready'
+  const reading = r.reading
+  const row = rows.find((candidate) => candidate.key === reading)
+  const arrow = reading ? routeArrow(reading) : ''
+  const caption = copy(locale, 'Most-flown routes', 'Самые частые маршруты')
+  const add = (key: string) => {
+    if (isCurrent()) actions.add('routes', key)
+  }
+
+  let hero: { value: string; unit?: string; caption: ReactNode } = { value: '', caption: null }
+  if (data && row) {
+    if (r.isHeadline) {
+      const repeats = copy(
+        locale,
+        `${percent(data.repeatShare)} on repeat routes`,
+        `${percent(data.repeatShare)} — на повторяющихся маршрутах`,
+      )
+      hero = {
+        value: number(locale, data.distinct),
+        unit: unitOf(locale, data.distinct, forms.routes),
+        caption: (
+          <>
+            {repeats}
+            {data.top ? (
+              <>
+                {' · '}
+                <Code>{routeArrow(data.top.key)}</Code> ×{number(locale, data.top.count)}
+              </>
+            ) : null}
+            {'. '}
+            {copy(locale, DRY[data.profile].en, DRY[data.profile].ru)}
+          </>
+        ),
+      }
+    } else {
+      const place = rows.indexOf(row) + 1
+      hero = {
+        value: number(locale, row.count),
+        unit: unitOf(locale, row.count, forms.flights),
+        caption: (
+          <>
+            <Code>{arrow}</Code>
+            {copy(
+              locale,
+              ` · ${percent(row.count / data.flights)} of flights, number ${place} on the board.`,
+              ` · ${percent(row.count / data.flights)} перелётов, ${place}-е место в списке.`,
+            )}
+          </>
+        ),
+      }
+    }
+  }
+
+  const points: ChartPoint<RankRow>[] = rows.map((datum) => ({
+    key: datum.key,
+    datum,
+    label: `${routeArrow(datum.key)}, ${flights(locale, datum.count)}`,
+  }))
+  const home = scope?.home?.iata ?? null
+  const columns = data
+    ? [
+        {
+          value: copy(locale, PROFILE[data.profile].en, PROFILE[data.profile].ru),
+          label: copy(locale, 'Profile', 'Профиль'),
+        },
+        ...(data.homeShare !== null && home
+          ? [
+              {
+                value: percent(data.homeShare),
+                label: copy(locale, `Home share, ${home}`, `Доля дома, ${home}`),
+              },
+            ]
+          : []),
+      ]
+    : []
+  return (
+    <ChapterCard
+      state={state}
+      figure={
+        <PassCardFigure
+          share={state === 'ready' && data ? data.repeatShare : 0}
+          route={state === 'ready' ? arrow : ''}
+          picked={r.picked}
+        />
+      }
+      figureButton={{
+        label: copy(locale, 'Show next route', 'Показать следующий маршрут'),
+        onPress: r.next,
+      }}
+      hero={{
+        ...hero,
+        only:
+          !r.isHeadline && reading && !filter.routes?.includes(reading)
+            ? {
+                label: copy(locale, `Only ${arrow}`, `Только ${arrow}`),
+                onPress: () => add(reading),
+              }
+            : null,
+      }}
+      rollValue={r.picked}
+      chart={{
+        table: {
+          caption,
+          columns: [
+            { key: 'route', label: copy(locale, 'Route', 'Маршрут') },
+            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+          ],
+          rows: rows.map((datum) => ({
+            route: routeArrow(datum.key),
+            flights: datum.count,
+          })),
+        },
+        caption,
+        plot: (
+          <LazyChart height={rows.length * 24} label={caption}>
+            {(inView) => (
+              <StageRows
+                points={points}
+                span={span}
+                value={(point) => point.datum.count}
+                selectedKey={reading}
+                appliedKeys={filter.routes}
+                mono
+                name={(point) => routeArrow(point.datum.key)}
+                inView={inView}
+                ariaLabel={caption}
+                onPick={(point) => r.pick(point.datum.key)}
+                actions={(point) => [
+                  { label: filterLabel(locale), run: () => add(point.datum.key) },
+                ]}
+                tip={(items) => <span>{items[0].label}</span>}
+              />
+            )}
+          </LazyChart>
+        ),
+      }}
+      details={
+        data
+          ? {
+              heading: copy(locale, 'Route habits', 'Привычки по маршрутам'),
+              columns,
+              coverage: headline(
+                locale,
+                data.profile,
+                data.distinct,
+                data.flights,
+                data.top ? routeArrow(data.top.key) : null,
+              ),
+              more: [
+                {
+                  summary: copy(
+                    locale,
+                    'Flights and new routes per year',
+                    'Перелёты и новые маршруты по годам',
+                  ),
+                  content: <YearChart data={data} />,
+                },
+              ],
+            }
+          : undefined
+      }
+      empty={{
+        title:
+          gate?.status === 'below'
+            ? copy(
+                locale,
+                `Routes need ${number(locale, gate.need)} flights`,
+                `Для маршрутов нужно ${flights(locale, gate.need)}`,
+              )
+            : copy(locale, 'No routes yet', 'Маршрутов пока нет'),
+        line:
+          gate?.status === 'below'
+            ? copy(
+                locale,
+                `This filter leaves ${flights(locale, gate.have)}. Too few to call it a network.`,
+                `Фильтр оставляет ${flights(locale, gate.have)}. Для сети маловато.`,
+              )
+            : copy(
+                locale,
+                'This filter leaves no route to draw. The network is a blank page.',
+                'Фильтр не оставил ни одного маршрута. Сеть пока чистый лист.',
+              ),
+        action: (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (isCurrent()) actions.clear()
+            }}
+          >
+            {copy(locale, 'Clear filter', 'Сбросить фильтр')}
+          </Button>
+        ),
+      }}
+    />
   )
 }

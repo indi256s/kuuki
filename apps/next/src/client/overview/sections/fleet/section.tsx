@@ -10,19 +10,55 @@ import { LazyChart } from '../../charts/lazy-chart'
 import { MAKER_PALETTE } from '../../charts/palettes'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, filterLabel, flights, number, types } from '../rankings/display'
-import { PayloadAircraftReview } from '../manufacturers/aircraft-review'
+import { copy, filterLabel, flights, number } from '../rankings/display'
 import { ridgeProfile } from './helpers'
-import { hasDims } from '../../iso/fleet'
-import { useFleetFigure } from './figure'
-import { IsoFigure } from '../../iso/iso-figure'
-import '../cookie.css'
-import '../../iso/fleet.css'
 import './fleet.css'
 
-export function FleetContent({ span }: { span: Span }) {
-  const { scope, all, payload, locale, actions, isCurrent } = useOverview()
-  const figure = useFleetFigure(201, 'lineup')
+/** Narrowbody and widebody flights as bands by manufacturer; a band filters by that body class and maker. */
+export function FleetBodies() {
+  const { scope, locale, actions, isCurrent } = useOverview()
+  if (!scope || scope.fleet.status !== 'ready') return null
+  const data = scope.fleet.value
+  return (
+    <div className="ov3-body-split">
+      {(['narrow', 'wide'] as const).map((body) => {
+        const rows = data.bodies.filter((row) => row.body === body),
+          total = rows.reduce((sum, row) => sum + row.flights, 0)
+        return (
+          <div key={body} style={{ '--n': total } as CSSProperties}>
+            <div className="ov3-body-bands">
+              {rows.map((row) => (
+                <button
+                  key={row.key}
+                  style={{ flexGrow: row.flights, background: `var(--cat-maker-${row.maker})` }}
+                  aria-label={`${copy(locale, body === 'narrow' ? 'Narrowbody' : 'Widebody', body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные')} · ${row.maker} · ${flights(locale, row.flights)}`}
+                  onClick={() => {
+                    if (isCurrent()) {
+                      actions.add('bodies', body)
+                      actions.add('makers', row.maker)
+                    }
+                  }}
+                />
+              ))}
+            </div>
+            <p>
+              {copy(
+                locale,
+                body === 'narrow' ? 'Narrowbody' : 'Widebody',
+                body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные',
+              )}{' '}
+              {total}
+            </p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Details of the Aircraft card: the flight length of every type family (ridgelines). */
+export function FleetRidgelines({ span }: { span: Span }) {
+  const { scope, all, locale, actions, isCurrent } = useOverview()
   if (!scope || !all) return null
   const gate = scope.fleet
   if (gate.status === 'below') return null
@@ -91,95 +127,10 @@ export function FleetContent({ span }: { span: Span }) {
   const pick = (family: string) => {
     if (isCurrent()) actions.add('families', family)
   }
-  const top = data.topTypes[0]
-  const unsupported = data.topTypes.filter(({ key }) => !hasDims(key))
   const slots = ridges.reduce((count, row, i) => count + (row.gapBefore && i > 0 ? 2 : 1), 0)
   const height = Math.max(200, slots * 42 + 66)
   return (
     <div className="ov3-fleet" data-span={span}>
-      <div className="ov3-cookie-head">
-        <div className="ov3-cookie-copy">
-          <strong className="ov3-cookie-value">
-            {top ? `${top.key} ×${number(locale, top.flights)}` : '—'}
-          </strong>
-          <p className="ov3-cookie-sub">
-            {copy(locale, 'Most flown type', 'Самый частый тип')} · {types(locale, data.types)}
-            {data.topTypes.length > 0 &&
-              unsupported.length === 0 &&
-              ` · ${copy(locale, 'drawn to scale', 'в одном масштабе')}`}
-          </p>
-          {unsupported.length > 0 && (
-            <p className="ov3-cookie-sub">
-              {copy(locale, 'Body-class silhouette:', 'Силуэт класса самолёта:')}{' '}
-              {unsupported.map(({ key }) => key).join(', ')}
-            </p>
-          )}
-        </div>
-        <IsoFigure figure={figure} className="iso-fleet" />
-      </div>
-      <div className="ov3-fleet-types">
-        {data.topTypes.map(({ key, flights: count }) => {
-          const name = payload?.refs.aircraft[key]?.name ?? key
-          return (
-            <button
-              key={key}
-              type="button"
-              aria-label={`${filterLabel(locale)} · ${name} · ${key} · ${flights(locale, count)}`}
-              onClick={() => {
-                if (isCurrent()) actions.add('aircraft', key)
-              }}
-            >
-              <span>
-                {name}
-                {name !== key && (
-                  <>
-                    {' '}
-                    · <span className="ov3-fleet-code">{key}</span>
-                  </>
-                )}
-              </span>
-              <strong>×{number(locale, count)}</strong>
-            </button>
-          )
-        })}
-      </div>
-      <div className="ov3-body-split">
-        {(['narrow', 'wide'] as const).map((body) => {
-          const rows = data.bodies.filter((row) => row.body === body),
-            total = rows.reduce((sum, row) => sum + row.flights, 0)
-          return (
-            <div key={body} style={{ '--n': total } as CSSProperties}>
-              <div className="ov3-body-bands">
-                {rows.map((row) => (
-                  <button
-                    key={row.key}
-                    style={{ flexGrow: row.flights, background: `var(--cat-maker-${row.maker})` }}
-                    aria-label={`${copy(locale, body === 'narrow' ? 'Narrowbody' : 'Widebody', body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные')} · ${row.maker} · ${flights(locale, row.flights)}`}
-                    onClick={() => {
-                      if (isCurrent()) {
-                        actions.add('bodies', body)
-                        actions.add('makers', row.maker)
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-              <p>
-                {copy(
-                  locale,
-                  body === 'narrow' ? 'Narrowbody' : 'Widebody',
-                  body === 'narrow' ? 'Узкофюзеляжные' : 'Широкофюзеляжные',
-                )}{' '}
-                {total}
-              </p>
-            </div>
-          )
-        })}
-      </div>
-      <PayloadAircraftReview />
-      <h3 className="ov3-chart-caption">
-        {copy(locale, 'Flight length by type', 'Длительность по типам')}
-      </h3>
       {points.length === 0 && (
         <p>
           {data.familyRows.some((row) => row.minutes.length > 0)

@@ -138,3 +138,31 @@ it('drops a locked section from the grid and lists its gate in Next up, keeping 
   expect(container.querySelector('[data-section="records"]')).not.toBeNull()
   expect(save).not.toHaveBeenCalled()
 })
+
+it('keeps a chapter in the grid when only the filter drops it below its gate', async () => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    })),
+  )
+  const { container } = render(
+    <OverviewPage
+      payload={payload}
+      prefs={{ ...DEFAULT_PREFS, filter: { airlines: ['BA'] } }}
+      ownerKey="gate-owner"
+      name=""
+      locale="en"
+      live={true}
+      saver={saver}
+    />,
+  )
+  await screen.findByRole('heading', { level: 1 })
+  const order = [...container.querySelectorAll('[data-surface="sections"] > [data-section]')].map(
+    (node) => node.getAttribute('data-section'),
+  )
+  expect(order).toEqual(DEFAULT_PREFS.layout.order)
+})

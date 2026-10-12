@@ -697,6 +697,45 @@
     color: var(--text);
   }
 }
+/* Dense: 32px outlined control, content-sized cells. The thumb keeps its transform-only slide: its width is the first cell's, and scaleX stretches it to the selected cell. The ::after lifts each option's hit area to 44px on coarse pointers (vertical only, so neighbours never overlap). */
+.ui-segmented[data-dense='true'] {
+  display: inline-flex;
+  gap: 0;
+  width: auto;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+}
+.ui-segmented[data-dense='true'] .ui-segmented-thumb {
+  border-radius: 8px;
+  background: var(--surface-inset);
+  box-shadow: none;
+  transform-origin: 0 0;
+}
+.ui-segmented[data-dense='true'] .ui-segment {
+  flex: none;
+  min-height: 0;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.ui-segmented[data-dense='true']:not([data-ready='true']) .ui-segment[aria-checked='true'] {
+  background: var(--surface-inset);
+  box-shadow: none;
+}
+@media (pointer: coarse) {
+  .ui-segmented[data-dense='true'] .ui-segment::after {
+    content: '';
+    position: absolute;
+    inset: -9px 0;
+  }
+}
 
 /* ---------- Switch row ---------- */
 .ui-switch-row {
@@ -1205,7 +1244,7 @@
   width: 100%;
   flex: none;
   border-radius: var(--radius-md);
-  background: var(--surface-inset);
+  background: var(--skeleton);
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-popover[data-state='open'] {

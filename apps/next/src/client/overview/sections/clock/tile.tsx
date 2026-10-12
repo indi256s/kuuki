@@ -16,14 +16,14 @@ export function Tile({ span }: { span: TileSpan }) {
   const earliest = found?.earliest,
     peak = found?.peak
   const time = found?.time ?? null
-  const figure = useMemo(
-    () =>
-      clock(
-        time ?? '--:--',
-        fitK(TILE_FIGURE_WIDTH[span], (k) => clock(time ?? '--:--', k)),
-      ),
-    [time, span],
-  )
+  // At rest, showing the hero's headline time; with no time the display stays dark.
+  const figure = useMemo(() => {
+    const shown = time ?? '    '
+    return clock(
+      shown,
+      fitK(TILE_FIGURE_WIDTH[span], (k) => clock(shown, k)),
+    )
+  }, [time, span])
   if (!scope) return null
   if (scope.clock.status !== 'ready')
     return <p>{copy(locale, 'Not enough times yet', 'Пока мало данных о времени')}</p>

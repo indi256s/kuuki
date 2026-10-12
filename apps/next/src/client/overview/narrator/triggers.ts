@@ -126,7 +126,52 @@ export const TRIGGERS: Trigger[] = [
         : null
     },
   },
-  // Ready Crossings; dateLine exactly zero. Claim limited to crossings recorded by this card in the current view.
+  // The crossings slot shows Continents; its time-zone and line facts sit in the card's Details, so both kinds of line belong here.
+  // Ready Continents; two or more continents flown and the most-flown one is on at least 75% of every scoped flight (unplaced
+  // flights stay in the denominator). A flight counts for each continent it starts or ends on, as the tray does. No name: the hero prints it.
+  {
+    id: 'crossings:continent-majority',
+    slot: 'crossings',
+    priority: 97,
+    when: (scope) => {
+      if (scope.continents.status !== 'ready') return null
+      const v = scope.continents.value
+      const flights = v.placed + v.unplaced
+      const top = Math.max(...v.rows.map((row) => row.flights))
+      return v.flown >= 2 && flights > 0 && top >= flights * 0.75
+        ? { percent: Math.round((top / flights) * 100) }
+        : null
+    },
+  },
+  // Ready Continents; two or more continents flown, each with a dated first flight, and scoped flights at least two calendar years
+  // after the newest first year. Every later flight touched only continents already reached. Below the line facts: the hero already
+  // prints the newest continent's year, so this adds only the drought after it.
+  {
+    id: 'crossings:no-new-continent',
+    slot: 'crossings',
+    priority: 89,
+    when: (scope) => {
+      if (scope.continents.status !== 'ready') return null
+      const flown = scope.continents.value.rows.filter((row) => row.flights > 0)
+      if (flown.length < 2 || flown.some((row) => row.firstYear === null)) return null
+      const newest = Math.max(...flown.map((row) => row.firstYear!))
+      const latest = scope.figures.byYear.filter((row) => row.flights > 0).at(-1)?.year
+      return latest !== undefined && latest >= newest + 2 ? { year: String(newest) } : null
+    },
+  },
+  // Ready Continents; two or more continents flown and no flight starts or ends in Antarctica. A fallback: true of nearly every journal.
+  {
+    id: 'crossings:no-antarctica',
+    slot: 'crossings',
+    priority: 72,
+    when: (scope) => {
+      if (scope.continents.status !== 'ready') return null
+      const v = scope.continents.value
+      const antarctica = v.rows.find((row) => row.id === 'antarctica')?.flights ?? 0
+      return v.flown >= 2 && antarctica === 0 ? { flown: v.flown } : null
+    },
+  },
+  // Ready Crossings; antimeridian count zero, with complete coordinate coverage.
   // A fallback: Crossings often ends the page, and an absence is a weak last line when the clocks did move.
   {
     id: 'crossings:no-date-line',
@@ -135,7 +180,9 @@ export const TRIGGERS: Trigger[] = [
     when: (scope) => {
       if (scope.crossings.status !== 'ready') return null
       const v = scope.crossings.value
-      return v.dateLine === 0 ? { count: v.dateLine } : null
+      return v.locatedFlights === scope.figures.flights && v.dateLine === 0
+        ? { count: v.dateLine }
+        : null
     },
   },
   // Ready Crossings; dateLine positive. Count is route crossing total, not distinct flights or dates.
@@ -180,7 +227,7 @@ export const TRIGGERS: Trigger[] = [
       return count >= 1 ? { count } : null
     },
   },
-  // Ready Crossings; the route crossed the equator at least once. Count is crossings, not flights.
+  // Ready Crossings; the modeled arc crossed the equator at least once. Count is crossings, not flights.
   {
     id: 'crossings:equator',
     slot: 'crossings',
@@ -191,7 +238,7 @@ export const TRIGGERS: Trigger[] = [
       return count >= 1 ? { count } : null
     },
   },
-  // Ready Crossings; between 4 and 22 of the 24 hourly UTC offsets reached, so both counts are plural in EN. `left` is what the globe still shows unlit.
+  // Ready Crossings; between 4 and 22 of the 24 hourly endpoint UTC bins occupied, so both counts are plural in EN. `left` is what the globe still shows unlit.
   {
     id: 'crossings:zones',
     slot: 'crossings',
@@ -202,14 +249,17 @@ export const TRIGGERS: Trigger[] = [
       return zones >= 4 && zones <= 22 ? { zones, left: 24 - zones } : null
     },
   },
-  // Ready Crossings; no equator crossing, so every flight stayed in one hemisphere. Fallback below the date-line lines.
+  // Ready Crossings; no estimated equator crossing, with complete coordinate coverage. Fallback below the date-line lines.
   {
     id: 'crossings:no-equator',
     slot: 'crossings',
     priority: 68,
     when: (scope) => {
       if (scope.crossings.status !== 'ready') return null
-      return scope.crossings.value.equator === 0 ? {} : null
+      return scope.crossings.value.locatedFlights === scope.figures.flights &&
+        scope.crossings.value.equator === 0
+        ? {}
+        : null
     },
   },
   // Ready Makers; Airbus positive, strictly above every other known maker; Boeing positive. Unknown excluded only from leader comparison, not recast as known.

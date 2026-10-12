@@ -38,7 +38,7 @@ export const SECTION_GATES: Record<
 > = {
   routes: { gate: (scope) => scope.routes, unit: 'flights' },
   records: { gate: (scope) => scope.records, unit: 'flights' },
-  crossings: { gate: (scope) => scope.crossings, unit: 'flights' },
+  crossings: { gate: (scope) => scope.continents, unit: 'flights' },
   rhythm: { gate: (scope) => scope.rhythm, unit: 'months' },
   clock: { gate: (scope) => scope.clock, unit: 'times' },
   aircraft: { gate: (scope) => scope.fleet, unit: 'aircraft' },

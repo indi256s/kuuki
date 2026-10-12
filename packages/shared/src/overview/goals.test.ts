@@ -15,6 +15,7 @@ function scope(overrides: Partial<Omit<OverviewScope, 'goals'>> = {}, flights = 
     },
     routes: ready,
     records: ready,
+    continents: ready,
     crossings: ready,
     rhythm: ready,
     clock: ready,
@@ -51,7 +52,7 @@ it('emits one unlock goal per locked section with the unit its gate counts', () 
 
 it('orders unlocks by progress, then milestones by progress', () => {
   const result = goals(
-    scope({ records: below(1, 3), crossings: below(2, 3), rhythm: below(1, 2) }, 8),
+    scope({ records: below(1, 3), continents: below(2, 3), rhythm: below(1, 2) }, 8),
   )
   expect(result.map((goal) => goal.id)).toEqual([
     'unlock:crossings',
@@ -108,7 +109,7 @@ it('caps the list at four, keeping unlocks ahead of milestones', () => {
     scope({
       routes: below(1, 5),
       records: below(1, 3),
-      crossings: below(1, 3),
+      continents: below(1, 3),
       rhythm: below(1, 2),
       clock: below(1, 5),
       fleet: below(1, 5),

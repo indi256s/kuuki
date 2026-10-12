@@ -276,6 +276,51 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
       "withDepartureTime": 6,
     },
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 2,
+      "placed": 6,
+      "rows": [
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "europe",
+        },
+        {
+          "firstYear": 2025,
+          "flights": 6,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": 2025,
+          "flights": 6,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 6,
     "total": 6,
@@ -304,6 +349,7 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 6,
       "offsets": [
         {
           "hit": false,
@@ -961,6 +1007,20 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
         "speedKmh": 4113,
         "value": 8226,
       },
+      "longest5": [
+        {
+          "destination": "SFO",
+          "flights": 3,
+          "km": 8226,
+          "origin": "NRT",
+        },
+        {
+          "destination": "NRT",
+          "flights": 3,
+          "km": 8226,
+          "origin": "SFO",
+        },
+      ],
       "longestDuration": {
         "destination": "SFO",
         "flightId": 1,
@@ -1087,6 +1147,51 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
     "need": 5,
     "status": "below",
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 2,
+      "placed": 4,
+      "rows": [
+        {
+          "firstYear": 2025,
+          "flights": 3,
+          "id": "europe",
+        },
+        {
+          "firstYear": 2025,
+          "flights": 3,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 4,
     "total": 4,
@@ -1109,6 +1214,7 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
       "lastArctic": null,
       "lastDateLine": null,
       "lastEquator": null,
+      "locatedFlights": 4,
       "offsets": [
         {
           "hit": false,
@@ -1724,6 +1830,32 @@ exports[`microstate matches its generated fixture and known snapshot values 1`] 
         "speedKmh": 5225.5,
         "value": 10451,
       },
+      "longest5": [
+        {
+          "destination": "SIN",
+          "flights": 1,
+          "km": 10451,
+          "origin": "LUX",
+        },
+        {
+          "destination": "BAH",
+          "flights": 1,
+          "km": 6331,
+          "origin": "SIN",
+        },
+        {
+          "destination": "MLA",
+          "flights": 1,
+          "km": 3582,
+          "origin": "BAH",
+        },
+        {
+          "destination": "LUX",
+          "flights": 1,
+          "km": 1671,
+          "origin": "MLA",
+        },
+      ],
       "longestDuration": {
         "destination": "BAH",
         "flightId": 1,
@@ -1815,6 +1947,11 @@ exports[`n0 matches its generated fixture and known snapshot values 1`] = `
   "clock": {
     "have": 0,
     "need": 5,
+    "status": "below",
+  },
+  "continents": {
+    "have": 0,
+    "need": 3,
     "status": "below",
   },
   "coverage": {
@@ -1963,6 +2100,11 @@ exports[`n1 matches its generated fixture and known snapshot values 1`] = `
   "clock": {
     "have": 1,
     "need": 5,
+    "status": "below",
+  },
+  "continents": {
+    "have": 1,
+    "need": 3,
     "status": "below",
   },
   "coverage": {
@@ -2526,6 +2668,51 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
       "withDepartureTime": 10,
     },
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 3,
+      "placed": 10,
+      "rows": [
+        {
+          "firstYear": 2020,
+          "flights": 6,
+          "id": "europe",
+        },
+        {
+          "firstYear": 2020,
+          "flights": 7,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": 2020,
+          "flights": 6,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 8,
     "total": 10,
@@ -2554,6 +2741,7 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 10,
       "offsets": [
         {
           "hit": false,
@@ -3440,6 +3628,26 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
         "speedKmh": 2742,
         "value": 8226,
       },
+      "longest5": [
+        {
+          "destination": "SFO",
+          "flights": 3,
+          "km": 8226,
+          "origin": "NRT",
+        },
+        {
+          "destination": "LHR",
+          "flights": 3,
+          "km": 5540,
+          "origin": "JFK",
+        },
+        {
+          "destination": "IST",
+          "flights": 4,
+          "km": 1349,
+          "origin": "TBS",
+        },
+      ],
       "longestDuration": {
         "destination": "IST",
         "flightId": 7,
@@ -4040,6 +4248,51 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
       "withDepartureTime": 455,
     },
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 3,
+      "placed": 455,
+      "rows": [
+        {
+          "firstYear": 2020,
+          "flights": 280,
+          "id": "europe",
+        },
+        {
+          "firstYear": 2020,
+          "flights": 303,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": 2020,
+          "flights": 291,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 364,
     "total": 455,
@@ -4068,6 +4321,7 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 455,
       "offsets": [
         {
           "hit": false,
@@ -10919,6 +11173,26 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
         "speedKmh": 2742,
         "value": 8226,
       },
+      "longest5": [
+        {
+          "destination": "SFO",
+          "flights": 151,
+          "km": 8226,
+          "origin": "NRT",
+        },
+        {
+          "destination": "LHR",
+          "flights": 152,
+          "km": 5540,
+          "origin": "JFK",
+        },
+        {
+          "destination": "IST",
+          "flights": 152,
+          "km": 1349,
+          "origin": "TBS",
+        },
+      ],
       "longestDuration": {
         "destination": "IST",
         "flightId": 7,
@@ -18264,6 +18538,51 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
       "withDepartureTime": 4547,
     },
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 3,
+      "placed": 4547,
+      "rows": [
+        {
+          "firstYear": 2020,
+          "flights": 2797,
+          "id": "europe",
+        },
+        {
+          "firstYear": 2020,
+          "flights": 3031,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": 2020,
+          "flights": 2915,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 3636,
     "total": 4547,
@@ -18292,6 +18611,7 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 4547,
       "offsets": [
         {
           "hit": false,
@@ -25911,6 +26231,26 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
         "speedKmh": 2742,
         "value": 8226,
       },
+      "longest5": [
+        {
+          "destination": "SFO",
+          "flights": 1515,
+          "km": 8226,
+          "origin": "NRT",
+        },
+        {
+          "destination": "LHR",
+          "flights": 1516,
+          "km": 5540,
+          "origin": "JFK",
+        },
+        {
+          "destination": "IST",
+          "flights": 1516,
+          "km": 1349,
+          "origin": "TBS",
+        },
+      ],
       "longestDuration": {
         "destination": "IST",
         "flightId": null,
@@ -31054,6 +31394,51 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
       "withDepartureTime": 6,
     },
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 2,
+      "placed": 6,
+      "rows": [
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "europe",
+        },
+        {
+          "firstYear": 2025,
+          "flights": 6,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": 2025,
+          "flights": 6,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 6,
     "total": 6,
@@ -31088,6 +31473,7 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
         "value": 1,
       },
       "lastEquator": null,
+      "locatedFlights": 6,
       "offsets": [
         {
           "hit": false,
@@ -31808,6 +32194,20 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
         "speedKmh": 6700,
         "value": 13400,
       },
+      "longest5": [
+        {
+          "destination": "LAX",
+          "flights": 3,
+          "km": 13400,
+          "origin": "DXB",
+        },
+        {
+          "destination": "HKG",
+          "flights": 3,
+          "km": 12970,
+          "origin": "JFK",
+        },
+      ],
       "longestDuration": {
         "destination": "HKG",
         "flightId": 1,
@@ -32203,6 +32603,51 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
       "withDepartureTime": 10,
     },
   },
+  "continents": {
+    "status": "ready",
+    "value": {
+      "flown": 2,
+      "placed": 10,
+      "rows": [
+        {
+          "firstYear": 2026,
+          "flights": 10,
+          "id": "europe",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "asia",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "africa",
+        },
+        {
+          "firstYear": 2026,
+          "flights": 10,
+          "id": "north-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "south-america",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "oceania",
+        },
+        {
+          "firstYear": null,
+          "flights": 0,
+          "id": "antarctica",
+        },
+      ],
+      "unplaced": 0,
+    },
+  },
   "coverage": {
     "preciseDuration": 10,
     "total": 10,
@@ -32225,6 +32670,7 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
       "lastArctic": null,
       "lastDateLine": null,
       "lastEquator": null,
+      "locatedFlights": 10,
       "offsets": [
         {
           "hit": false,
@@ -32926,6 +33372,14 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
         "speedKmh": 791.4285714285714,
         "value": 5540,
       },
+      "longest5": [
+        {
+          "destination": "LHR",
+          "flights": 10,
+          "km": 5540,
+          "origin": "JFK",
+        },
+      ],
       "longestDuration": {
         "destination": "LHR",
         "flightId": 1,
@@ -33082,6 +33536,11 @@ exports[`transit matches its generated fixture and known snapshot values 1`] = `
   "clock": {
     "have": 2,
     "need": 5,
+    "status": "below",
+  },
+  "continents": {
+    "have": 2,
+    "need": 3,
     "status": "below",
   },
   "coverage": {

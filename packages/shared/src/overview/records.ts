@@ -27,6 +27,8 @@ export interface Records {
       })
     | null
   shortest: (RecordRef & { date: string | null; shareOfLongest: number }) | null
+  /** The five longest distinct directed routes, longest first. */
+  longest5: { origin: string; destination: string; km: number; flights: number }[]
   longestDuration: RecordRef | null
   shortestDuration: RecordRef | null
   biggestClockJump: RecordRef | null
@@ -252,6 +254,41 @@ function latestDeparture(
   return best
 }
 
+function longestRoutes(rows: OverviewRow[]): Records['longest5'] {
+  // A route counts every flight on it; its distance comes from the flights that have one, and a route with none is left out.
+  const routes = new Map<
+    string,
+    { origin: string; destination: string; km: number | null; flights: number }
+  >()
+  for (const row of rows) {
+    if (!(row.weight > 0)) continue
+    // Aggregate rows sum distance over their flights; a route's per-flight distance is constant.
+    const km = row.distanceKm !== null && row.distanceKm >= 0 ? row.distanceKm / row.weight : null
+    const known = km !== null && Number.isFinite(km) ? km : null
+    const key = `${row.origin}>${row.destination}`
+    const route = routes.get(key)
+    if (route) {
+      route.flights += row.weight
+      if (known !== null) route.km = Math.max(route.km ?? 0, known)
+    } else
+      routes.set(key, {
+        origin: row.origin,
+        destination: row.destination,
+        km: known,
+        flights: row.weight,
+      })
+  }
+  return [...routes.values()]
+    .flatMap((route) => (route.km === null ? [] : [{ ...route, km: route.km }]))
+    .sort(
+      (a, b) =>
+        b.km - a.km ||
+        (a.origin < b.origin ? -1 : a.origin > b.origin ? 1 : 0) ||
+        (a.destination < b.destination ? -1 : a.destination > b.destination ? 1 : 0),
+    )
+    .slice(0, 5)
+}
+
 export function records(
   rows: OverviewRow[],
   refs: OverviewPayload['refs'],
@@ -363,6 +400,7 @@ export function records(
             equatorShare: winner.value / 40075,
           }
         : null,
+      longest5: longestRoutes(rows),
       shortest: extrema.shortest
         ? {
             ...project(extrema.shortest)!,

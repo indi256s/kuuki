@@ -50,9 +50,9 @@ const SNOOZE_DIP = 2,
   SNOOZE_PRESS = 3.25
 
 /**
- * Earliest departure: an alarm clock whose seven-segment display shows `time` ("HH:MM").
+ * An alarm clock whose seven-segment display shows `time` ("HH:MM"; blanks leave it dark).
  * With `alt`, the display holds both readings: segments lit in both stay in `lit-both`, the rest split into `lit-a` (only `time`) and `lit-b` (only `alt`), so CSS can morph one reading into the other segment by segment.
- * The colon belongs to `lit-both`. Each lit part holds a `backlight` (its glow) that CSS can raise; from k = 1 the display sits recessed behind a rim.
+ * The chapter figure keeps `lit-a` and `lit-b` mounted and swaps which one is shown, so a pick morphs the display. The colon belongs to `lit-both`. Each lit part holds a `backlight` (its glow) that CSS can raise; from k = 1 the display sits recessed behind a rim.
  * Parts: `body`, `snooze` (carries --dip-y/--press-y), `display`, `lit-both`, `lit-a`, `lit-b`, `backlight`.
  */
 export function clock(time: string, k = 1, alt?: string) {
@@ -152,7 +152,8 @@ export function clock(time: string, k = 1, alt?: string) {
       },
       { clip },
     )
-  lit('lit-both', both, dots)
+  // A blank display (no digits) is unlit, colon included.
+  lit('lit-both', both, (a + b).trim() ? dots : [])
   lit('lit-a', onlyA)
   lit('lit-b', onlyB)
   return s.done()

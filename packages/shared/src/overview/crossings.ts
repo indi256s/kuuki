@@ -1,10 +1,11 @@
-import { coordinates, greatCirclePoints, type LatLon } from '../geo'
+import { coordinates, greatCircleCrossings } from '../geo'
 import type { Gate } from './figures'
 import type { OverviewPayload, OverviewRow, RecordRef } from './model'
 import { clockJump, dateInstant, recordFlights } from './records'
 import { utcOffsetMinutes } from '../timezones'
 
 export interface Crossings {
+  locatedFlights: number
   zonesOverflown: number
   clockShiftHours: number
   equator: number
@@ -43,18 +44,6 @@ export function crossingTime(row: OverviewRow): OverviewRow['crossingTime'] {
   }
 }
 
-function latitudeCrossings(points: LatLon[], latitude: number): number {
-  let previous = 0,
-    count = 0
-  for (const point of points) {
-    const sign = Math.sign(point.lat - latitude)
-    if (!sign) continue
-    if (previous && sign !== previous) count++
-    previous = sign
-  }
-  return count
-}
-
 export function crossings(
   rows: OverviewRow[],
   refs: OverviewPayload['refs'],
@@ -69,6 +58,7 @@ export function crossings(
   const first = years.length ? years.reduce((a, b) => Math.min(a, b)) : 0,
     last = years.length ? years.reduce((a, b) => Math.max(a, b)) : -1
   const value: Crossings = {
+    locatedFlights: 0,
     zonesOverflown: 0,
     clockShiftHours: 0,
     equator: 0,
@@ -126,14 +116,7 @@ export function crossings(
     const key = `${row.origin}-${row.destination}`
     let path = paths.get(key)
     if (!path) {
-      const points = greatCirclePoints(a, b, 50)
-      path = {
-        equator: latitudeCrossings(points, 0),
-        arcticCircle: latitudeCrossings(points, 66.5634),
-        antarcticCircle: latitudeCrossings(points, -66.5634),
-        dateLine: points.slice(1).filter((point, i) => Math.abs(point.lon - points[i].lon) > 180)
-          .length,
-      }
+      path = greatCircleCrossings(a, b)
       paths.set(key, path)
     }
     const latest = recordFlights([row], mode).latest
@@ -171,6 +154,7 @@ export function crossings(
   value.forwardHours = Math.round(forward / 60)
   value.backHours = Math.round(back / 60)
   value.clockShiftHours = value.forwardHours + value.backHours
+  value.locatedFlights = located
   value.eastboundShare = located ? east / located : 0
   return { status: 'ready', value }
 }

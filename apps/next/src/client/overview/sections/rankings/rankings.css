@@ -1,112 +1,11 @@
 .ov3-rankings {
-  container: rankings / inline-size;
   min-width: 0;
-}
-/* Three leaders in a row or one per row, never two and an orphan. */
-.ov3-leaders {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-6);
-}
-@container rankings (min-width: 800px) {
-  .ov3-leaders {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-.ov3-leader {
-  background: var(--surface-inset);
-  padding: 20px;
-  border-radius: 10px;
-  min-width: 0;
-}
-.ov3-leader p {
-  margin: 0 0 16px;
-}
-.ov3-leader button,
-.ov3-score button {
-  background: none;
-  color: var(--text);
-  border: 0;
-  cursor: pointer;
-  text-align: left;
-  min-height: 44px;
-}
-.ov3-leader-lockup {
-  width: 100%;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 0;
-}
-.ov3-leader-badge {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  background: var(--accent-tint);
-  color: var(--accent-on-tint);
-  font-family: var(--font-mono);
-  border-radius: 10px;
-}
-.ov3-leader-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 24px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.ov3-leader-lockup small {
-  display: block;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 20px;
-}
-.ov3-leader-lockup strong {
-  font-size: 28px;
-  text-align: right;
-}
-.ov3-leader-strip {
-  display: flex;
-  height: 8px;
-  background: var(--surface);
-  margin: 16px 0 8px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-.ov3-leader-strip i:first-child {
-  background: var(--accent);
-}
-.ov3-leader-strip i:last-child {
-  background: var(--map-bucket-2);
-}
-.ov3-leader-legend {
-  color: var(--text);
-  font-size: 12px;
-}
-.ov3-rank-row {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
-  width: 100%;
-  gap: 8px;
-  padding: 4px 0;
-}
-.ov3-rank-row span:nth-child(2) {
-  min-width: 0;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 .ov3-rankings-bottom {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
   gap: 48px;
-  margin-top: 32px;
+  margin-top: 0;
 }
 .ov3-rankings-bottom > div {
   min-width: 0;
@@ -131,21 +30,20 @@
   padding: 12px;
   margin-bottom: 12px;
 }
+.ov3-score button {
+  background: none;
+  color: var(--text);
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  min-height: 44px;
+}
 .ov3-score strong {
   text-align: center;
   font-family: var(--font-mono);
 }
 .ov3-score button:last-child {
   text-align: right;
-}
-.ov3-fine-hint {
-  display: none;
-}
-@media (pointer: fine) {
-  .ov3-fine-hint {
-    display: block;
-    color: var(--text-muted);
-  }
 }
 .ov3-rankings button:focus-visible {
   outline: 2px solid var(--focus);
@@ -274,34 +172,6 @@
   font-weight: 500;
 }
 
-.ov3-leader-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-.ov3-leader-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.ov3-leader-legend i {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-.ov3-leader-legend span:last-child i {
-  background: var(--map-bucket-2);
-}
-.ov3-rankings > .ui-disclosure {
-  margin-top: 32px;
-}
-.ov3-rankings > .ui-disclosure + .ui-disclosure {
-  margin-top: var(--space-2);
-}
-.ov3-rankings > .ui-disclosure .ov3-rankings-bottom {
-  margin-top: var(--space-4);
-}
 .ov3-bump-hint {
   margin: var(--space-3) 0 0;
   color: var(--text-muted);

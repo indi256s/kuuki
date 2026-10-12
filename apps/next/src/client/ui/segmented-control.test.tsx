@@ -41,4 +41,25 @@ describe('SegmentedControl', () => {
     await user.keyboard('{ArrowLeft}{ArrowLeft}')
     expect(onChange).toHaveBeenLastCalledWith('system') // wraps
   })
+
+  it('keeps radio semantics and keyboard selection when dense', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(
+      <SegmentedControl
+        dense
+        label="Chapter"
+        value="light"
+        options={options}
+        onChange={onChange}
+      />,
+    )
+    expect(screen.getByRole('radiogroup', { name: 'Chapter' })).toHaveAttribute(
+      'data-dense',
+      'true',
+    )
+    await user.tab()
+    await user.keyboard('{End}')
+    expect(onChange).toHaveBeenLastCalledWith('system')
+  })
 })

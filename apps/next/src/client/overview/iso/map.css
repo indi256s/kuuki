@@ -23,3 +23,41 @@
       calc(var(--iso-delay) + var(--t) * var(--iso-stagger));
   }
 }
+
+/* Chapter figure (Records card): no hover pose; the route rests lit. A pick sinks the pins over --dur-press, the figure swaps routes while they are under,
+   then the pins rise over 160ms and the dashes relight from origin to destination with the built 160ms stagger. Opacity and transform only.
+   Reduced motion never sets data-pins (use-repin.ts swaps at once), and the transitions below don't exist for it. */
+.iso-map-pick {
+  --pick-sink: 14px;
+  /* The built route stagger (iso.css), also the rise. */
+  --pick-rise: 160ms;
+}
+.iso-map-pick [data-part='dash'] {
+  opacity: 1;
+}
+.iso-map-host[data-pins='down'] .iso-map-pick [data-part='pin'] {
+  transform: translateY(var(--pick-sink));
+  opacity: 0;
+}
+.iso-map-host[data-pins='down'] .iso-map-pick [data-part='dash'],
+.iso-map-host[data-blank] .iso-map-pick :is([data-part='pin'], [data-part='dash']) {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iso-map-pick [data-part='pin'] {
+    transition:
+      transform var(--pick-rise) var(--ease-out),
+      opacity var(--pick-rise) var(--ease-out);
+  }
+  .iso-map-pick [data-part='dash'] {
+    transition: opacity var(--pick-rise) var(--ease-out) calc(var(--t) * var(--pick-rise));
+  }
+  .iso-map-host[data-pins='down'] .iso-map-pick [data-part='pin'] {
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      opacity var(--dur-press) var(--ease-out);
+  }
+  .iso-map-host[data-pins='down'] .iso-map-pick [data-part='dash'] {
+    transition: opacity var(--dur-press) var(--ease-out);
+  }
+}

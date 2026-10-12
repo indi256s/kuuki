@@ -1,0 +1,22 @@
+/* Rankings gate sign: when the leader changes, the sign face dims, the code swaps and the face relights. Opacity only, nothing moves.
+   Contract: the chapter wraps the figure in an element keyed by the code (so it remounts with the new code) and gives it `.iso-gate-relight`
+   only after a user pick, never on first render. On mount, its `[data-part='sign']` starts dim and relights over --dur-fast with --ease-out.
+   Reduced motion swaps the code with no fade. */
+@keyframes iso-gate-relight {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iso-gate-relight [data-part='sign'] {
+    animation: iso-gate-relight var(--dur-fast) var(--ease-out);
+  }
+}
+
+/* No code to show (an empty chapter, or no airline on file): the sign rests dim. Static; nothing animates in or out of it. */
+[data-blank] > .iso [data-part='sign'] {
+  opacity: 0.35;
+}

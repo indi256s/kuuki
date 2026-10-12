@@ -172,32 +172,74 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Вылет в {time}. Отбой перенесён.',
     },
   ],
+  'crossings:continent-majority': [
+    {
+      en: '{percent}% of flights start or end on the same continent. The rest of the tray is for visits.',
+      ru: '{percent}% перелётов начинаются или заканчиваются на одном континенте. Остальные — для визитов.',
+    },
+    {
+      en: 'One continent is on {percent}% of flights. The others get the occasional turn.',
+      ru: 'Один континент — в {percent}% перелётов. Остальным перепадает изредка.',
+    },
+    {
+      en: '{percent}% of flights touch one continent. Home turf, statistically speaking.',
+      ru: 'На один континент приходится {percent}% перелётов. Домашняя территория, по статистике.',
+    },
+  ],
+  'crossings:no-new-continent': [
+    {
+      en: 'No new continent since {year}. The flying carried on; the tray stopped growing.',
+      ru: 'После {year} года новых континентов не поступало. Полёты продолжаются, лоток — нет.',
+    },
+    {
+      en: 'The last new continent arrived in {year}. Since then, reruns.',
+      ru: 'Последний новый континент добавлен в {year} году. Дальше — только повторы.',
+    },
+    {
+      en: 'Every flight after {year} kept to continents already reached. The tray is in maintenance mode.',
+      ru: 'После {year} года — только знакомые континенты. Лоток в режиме обслуживания.',
+    },
+  ],
+  'crossings:no-antarctica': [
+    {
+      en: '{flown} continents, Antarctica not among them. The ice can wait.',
+      ru: 'Континентов: {flown}, Антарктиды среди них нет. Лёд подождёт.',
+    },
+    {
+      en: 'Continents reached: {flown}. Antarctica is still holding out.',
+      ru: 'Освоено континентов: {flown}. Антарктида пока держит оборону.',
+    },
+    {
+      en: '{flown} continents in the tray. Antarctica stays in the box.',
+      ru: 'Континентов в лотке: {flown}. Антарктида остаётся в коробке.',
+    },
+  ],
   'crossings:no-date-line': [
     {
-      en: 'Date-line crossings recorded in this view: {count}. That boundary stayed out of the report.',
-      ru: 'Пересечений линии перемены дат: {count}. Граница в отчёт не попала.',
+      en: 'Estimated antimeridian crossings recorded in this view: {count}. That boundary stayed out of the report.',
+      ru: 'Расчётных пересечений антимеридиана: {count}. Граница в отчёт не попала.',
     },
     {
-      en: 'This view records {count} date-line crossings. The calendar kept its side of the line.',
-      ru: 'Линия перемены дат, пересечений: {count}. Календарь не пострадал.',
+      en: 'Estimated antimeridian crossings: {count}. The estimate stays on this side.',
+      ru: 'Антимеридиан, расчётных пересечений: {count}. Расчёт остался по эту сторону.',
     },
     {
-      en: 'Recorded date-line crossings: {count}. No entry for that boundary here.',
-      ru: 'По линии перемены дат: {count}. Замечаний нет.',
+      en: 'Estimated antimeridian crossings: {count}. No entry for that boundary here.',
+      ru: 'Расчётных пересечений антимеридиана: {count}. Замечаний нет.',
     },
   ],
   'crossings:date-line': [
     {
-      en: 'Recorded date-line crossings here: {count}. The map has a calendar boundary.',
-      ru: 'Пересечений линии перемены дат: {count}. Календарь подал жалобу.',
+      en: 'Estimated antimeridian crossings here: {count}. An estimated arc, not a flight track.',
+      ru: 'Расчётных пересечений антимеридиана: {count}. Расчётная дуга, не трек самолёта.',
     },
     {
-      en: 'Date-line crossing total in this view: {count}. A boundary with paperwork.',
-      ru: 'Линия перемены дат, пересечений: {count}. Календарь сверяет показания.',
+      en: 'Estimated antimeridian crossing total in this view: {count}. A boundary with paperwork.',
+      ru: 'Антимеридиан, расчётных пересечений: {count}. Расчёт сверяет показания.',
     },
     {
-      en: 'Your routes record date-line crossings: {count}. Filed separately from clock shifts.',
-      ru: 'По линии перемены дат: {count}. Учтено отдельно от сдвигов часов.',
+      en: 'Estimated arc antimeridian crossings: {count}. Filed separately from clock shifts.',
+      ru: 'Расчётных пересечений антимеридиана: {count}. Учтено отдельно от сдвигов часов.',
     },
   ],
   'crossings:forward': [
@@ -230,58 +272,58 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
   ],
   'crossings:arctic-circle': [
     {
-      en: 'Arctic Circle crossings: {count}. The penguins are at the other end.',
-      ru: 'Пересечений Полярного круга: {count}. Пингвины, напомним, на другом конце.',
+      en: 'Estimated Arctic Circle crossings: {count}. The penguins are at the other end.',
+      ru: 'Расчётных пересечений Полярного круга: {count}. Пингвины, напомним, на другом конце.',
     },
     {
-      en: 'Times past the Arctic Circle: {count}. Polar bears were not informed.',
-      ru: 'Полярный круг, пересечений: {count}. Белых медведей не уведомляли.',
+      en: 'Estimated Arctic Circle crossings: {count}. Polar bears were not informed.',
+      ru: 'Полярный круг, расчётных пересечений: {count}. Белых медведей не уведомляли.',
     },
     {
-      en: 'Arctic Circle: {count}. The line is invisible from above.',
-      ru: 'Полярный круг, пересечений: {count}. С высоты линия не видна.',
+      en: 'Estimated Arctic Circle crossings: {count}. The line is invisible from above.',
+      ru: 'Полярный круг, расчётных пересечений: {count}. С высоты линия не видна.',
     },
   ],
   'crossings:equator': [
     {
-      en: 'Equator crossings: {count}. The water in the sink was not consulted.',
-      ru: 'Пересечений экватора: {count}. Мнение воды в раковине не учитывалось.',
+      en: 'Estimated equator crossings: {count}. The water in the sink was not consulted.',
+      ru: 'Расчётных пересечений экватора: {count}. Мнение воды в раковине не учитывалось.',
     },
     {
-      en: 'Equator: {count}. The seasons have stopped making sense.',
-      ru: 'Экватор, пересечений: {count}. Времена года утратили логику.',
+      en: 'Estimated equator crossings: {count}. The seasons have stopped making sense.',
+      ru: 'Экватор, расчётных пересечений: {count}. Времена года утратили логику.',
     },
     {
-      en: 'Equator crossings: {count}. No ceremony was held, presumably.',
-      ru: 'Экватор пересечён, раз: {count}. Церемоний, по-видимому, не проводилось.',
+      en: 'Estimated equator crossings: {count}. No ceremony was held, presumably.',
+      ru: 'Экватор, расчётных пересечений: {count}. Церемоний, по-видимому, не проводилось.',
     },
   ],
   'crossings:zones': [
     {
-      en: 'Clocks set to {zones} different hours. {left} zones have not met you yet.',
-      ru: 'Часовых поясов освоено: {zones}, не охвачено: {left}. Работа продолжается.',
+      en: 'Hourly UTC bins: {zones} used, {left} empty. The endpoints submitted their hours.',
+      ru: 'Часовых бинов UTC: {zones}, пустых: {left}. Аэропорты сдали показания.',
     },
     {
-      en: '{zones} time zones in, {left} left. The wristwatch has stopped keeping score.',
-      ru: 'Часовых поясов: {zones}, впереди ещё: {left}. Наручные часы претензий не предъявляют.',
+      en: 'Endpoint UTC bins: {zones} filled, {left} empty. The clock face keeps score.',
+      ru: 'UTC по аэропортам: бинов {zones}, пустых {left}. Циферблат ведёт учёт.',
     },
     {
-      en: '{zones} zones down, {left} to go before the planet runs out of hours.',
-      ru: 'Поясов пройдено: {zones}. До исчерпания суток планеты осталось: {left}.',
+      en: 'Hourly endpoint bins: {zones} occupied, {left} vacant. Space on the clock remains.',
+      ru: 'Часовых бинов по аэропортам: {zones}, пустых: {left}. На циферблате есть место.',
     },
   ],
   'crossings:no-equator': [
     {
-      en: 'Never crossed the equator. The other hemisphere is taking it personally.',
-      ru: 'Экватор вы не пересекали. Другое полушарие принимает это на свой счёт.',
+      en: 'No estimated arc crosses the equator. The other hemisphere awaits paperwork.',
+      ru: 'Расчётные дуги не пересекают экватор. Второе полушарие ждёт документов.',
     },
     {
-      en: 'The equator remains uncrossed. Summer still happens in summer.',
-      ru: 'Экватор не пересечён. Лето по-прежнему наступает летом.',
+      en: 'The estimated arcs leave the equator alone. No ceremony required.',
+      ru: 'По расчётным дугам экватор не пересечён. Церемония не требуется.',
     },
     {
-      en: 'One hemisphere, fully committed. The other one is still there.',
-      ru: 'Одно полушарие, полная преданность. Второе по-прежнему на месте.',
+      en: 'No equator crossings in the estimated arcs. The line has the day off.',
+      ru: 'По расчётным дугам пересечений экватора нет. У линии выходной.',
     },
   ],
   'manufacturers:airbus-boeing': [

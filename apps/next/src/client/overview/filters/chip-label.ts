@@ -20,6 +20,7 @@ const NAMES: Record<FilterFacet, { en: string; ru: string }> = {
   departureBands: { en: 'Departure time', ru: 'Время вылета' },
   depHours: { en: 'Departure hour', ru: 'Час вылета' },
   arrHours: { en: 'Arrival hour', ru: 'Час прилёта' },
+  months: { en: 'Month', ru: 'Месяц' },
   regions: { en: 'Region', ru: 'Регион' },
 }
 export const facetName = (facet: FilterFacet, locale: Locale): string => NAMES[facet][locale]

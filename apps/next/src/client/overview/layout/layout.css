@@ -15,16 +15,19 @@
 .ov3-bento[data-lanes='2'] > .ov3-frame {
   grid-row: span var(--ov-span, 1);
 }
-.ov3-frame {
+/* The card shell keeps the page's level-1 surface (page.css); only the padding changes. The header and the chapter body carry the 24px inline inset, so the card content is 636 wide in a 684 card. */
+.ov3-frame.ov3-section {
   position: relative;
-  padding: 16px 20px;
+  padding: 20px 0 24px;
 }
 .ov3-section-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  height: 44px;
   margin-bottom: 16px;
+  padding: 0 12px 0 24px;
   cursor: grab;
   touch-action: none;
 }
@@ -103,7 +106,9 @@
   margin: 0;
   font-size: 18px;
   line-height: 24px;
+  font-weight: 600;
   letter-spacing: -0.01em;
+  color: var(--text);
 }
 .ov3-section-title p {
   margin: 4px 0 0;
@@ -116,11 +121,15 @@
   color: var(--text-muted);
   visibility: hidden;
 }
-.ov3-frame:focus-within .ov3-grip {
+.ov3-section-header:focus-within .ov3-grip {
   visibility: visible;
+}
+.ov3-section-body {
+  padding-inline: 24px;
 }
 .ov3-section-narrator {
   margin-top: 24px;
+  padding-inline: 24px;
 }
 .ov3-section-narrator .narrator {
   margin: 0;
@@ -153,7 +162,7 @@
   outline-offset: 2px;
 }
 @media (hover: hover) and (pointer: fine) {
-  .ov3-frame:hover .ov3-grip {
+  .ov3-section-header:hover .ov3-grip {
     visibility: visible;
   }
 }

@@ -7,5 +7,6 @@ it('has one entry per section id, in the default order', () => {
   expect(Object.keys(SECTIONS)).toEqual([...DEFAULT_ORDER])
   expect(SECTIONS.routes.title).toEqual({ en: 'Routes', ru: 'Маршруты' })
   expect(SECTIONS.aircraft.title).toEqual({ en: 'Aircraft', ru: 'Самолёты' })
+  expect(SECTIONS.crossings.title).toEqual({ en: 'Continents', ru: 'Континенты' })
   expect(SECTIONS.rhythm.title).toEqual({ en: 'Rhythm', ru: 'Ритм' })
 })

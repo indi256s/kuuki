@@ -1,0 +1,33 @@
+/* Continents card figure: no hover pose. Nothing moves in the DOM (puzzle.ts keeps one part order), so these transitions survive a pick.
+   A pick fades the accent overlay of the new continent in and the old one out over --dur-fast, and lifts the lit piece together with its overlay
+   by --lift-y (4px up) over --dur-press, then seats it over --dur-base; --up is the lift phase, set by the host while it lasts.
+   An unflown pick only fades its accent socket outline in: it has no --lift-y. Opacity and transform only.
+   Transitions exist only for a pick (the host's data-pick) and only without reduced motion; otherwise the same end state is set at once. */
+.iso-puzzle-host {
+  --up: 0;
+}
+.iso-puzzle-host[data-up] {
+  --up: 1;
+}
+.iso-puzzle [data-part^='lit-'] {
+  opacity: var(--lit, 0);
+}
+.iso-puzzle :is([data-part^='piece-'], [data-part^='lit-']) {
+  transform: translateY(calc(var(--lift-y, 0px) * var(--lit, 0) * var(--up)));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iso-puzzle-host[data-pick] .iso-puzzle [data-part^='piece-'] {
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .iso-puzzle-host[data-pick] .iso-puzzle [data-part^='lit-'] {
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
+  }
+  .iso-puzzle-host[data-pick][data-up] .iso-puzzle [data-part^='piece-'] {
+    transition-duration: var(--dur-press);
+  }
+  .iso-puzzle-host[data-pick][data-up] .iso-puzzle [data-part^='lit-'] {
+    transition-duration: var(--dur-fast), var(--dur-press);
+  }
+}
