@@ -543,6 +543,10 @@
   place-items: center;
   width: 18px;
 }
+.ui-menu-group {
+  display: grid;
+  gap: 2px;
+}
 .ui-menu-separator {
   height: 1px;
   margin: var(--space-1) var(--space-2);

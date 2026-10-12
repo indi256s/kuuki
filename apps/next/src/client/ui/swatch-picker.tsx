@@ -7,7 +7,7 @@ import { ACCENTS, isAccent, type Accent } from '../../lib/theme-colors'
 import type { Locale } from '../../lib/format'
 import './ui.css'
 
-const NAMES: Record<Accent, { en: string; ru: string }> = {
+export const NAMES: Record<Accent, { en: string; ru: string }> = {
   shu: { en: 'Shu', ru: 'Шу' },
   ai: { en: 'Ai', ru: 'Ай' },
   matcha: { en: 'Matcha', ru: 'Матча' },

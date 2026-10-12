@@ -5,7 +5,6 @@ import { AwaitingProvider } from './awaiting'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
-import { QueueSummarySlot } from './queue-summary'
 import { SplitAdd } from './split-add'
 import { ShellNotices } from './shell-notices'
 import { ImportDock } from './import/import-dock'
@@ -79,7 +78,6 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
               <MobilePageTitle />
               <PrimaryNav locale={locale} />
               <div className="header-end">
-                <QueueSummarySlot locale={locale} />
                 <div className="header-desktop-only">
                   <SplitAdd locale={locale} />
                   {username && own ? (
@@ -89,6 +87,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
                       username={username}
                       displayName={own.profile.display_name}
                       isPublic={own.profile.is_public}
+                      profileAccent={own.profile.theme_color}
                       locale={locale}
                     />
                   ) : null}

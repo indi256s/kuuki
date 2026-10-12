@@ -37,7 +37,7 @@ export function SplitAdd({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
           </button>
         }
       >
-        <AddActions variant="menu" />
+        <AddActions variant="menu" locale={locale} />
       </Menu>
     </div>
   )

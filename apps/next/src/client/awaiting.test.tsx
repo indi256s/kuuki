@@ -3,11 +3,14 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import { api } from '@kuuki/client/apiClient'
 import { AwaitingProvider } from './awaiting'
-import { QueueSummarySlot } from './queue-summary'
+import { QueueMenuItem } from './queue-summary'
+import { Menu } from './ui/menu'
 import { AddActions } from './add-actions'
 
 vi.mock('./activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('@kuuki/client/apiClient', () => ({ api: { get: vi.fn() }, getAuthGeneration: () => 0 }))
+
+const sheetLink = () => document.querySelector('[data-add-action="queue"]')
 
 it('shares distinct C4 counts with navigation/capture, retains cached counts on failure, and hides zero', async () => {
   vi.mocked(api.get)
@@ -16,68 +19,65 @@ it('shares distinct C4 counts with navigation/capture, retains cached counts on 
     .mockResolvedValueOnce({ actionableCount: 0, awaitingFlightCount: 0, draftRowCount: 0 })
   render(
     <AwaitingProvider ownerId="owner">
-      <QueueSummarySlot />
+      <Menu open trigger={<button type="button">x</button>}>
+        <QueueMenuItem />
+      </Menu>
       <AddActions variant="sheet" />
     </AwaitingProvider>,
   )
   expect(
-    await screen.findByRole('link', {
-      name: '5 awaiting action: 2 flights awaiting confirmation, 3 draft rows to review',
+    await screen.findByRole('menuitem', {
+      name: 'To review: 2 flights awaiting confirmation, 3 draft rows to review',
     }),
   ).toHaveTextContent('5')
-  expect(screen.getByText('Awaiting action: 5')).toBeInTheDocument()
-  expect(screen.getByText('Awaiting action: 5').closest('a')).toHaveClass('add-action')
+  expect(sheetLink()).toHaveTextContent(/To review.*5/)
+  expect(sheetLink()).toHaveClass('add-action')
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
   expect(
-    screen.getByRole('link', {
-      name: '5 awaiting action: 2 flights awaiting confirmation, 3 draft rows to review',
+    screen.getByRole('menuitem', {
+      name: 'To review: 2 flights awaiting confirmation, 3 draft rows to review',
     }),
   ).toHaveTextContent('5')
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   await waitFor(() =>
-    expect(screen.queryByRole('link', { name: /awaiting/ })).not.toBeInTheDocument(),
+    expect(screen.queryByRole('menuitem', { name: /To review/ })).not.toBeInTheDocument(),
   )
-  expect(screen.queryByText('Awaiting action: 5')).not.toBeInTheDocument()
+  expect(sheetLink()).toBeNull()
 })
 
 const cases: Array<[number, number, string, string]> = [
-  [
-    1,
-    0,
-    '1 awaiting action: 1 flight awaiting confirmation',
-    '1 в очереди: 1 перелёт ждёт подтверждения',
-  ],
+  [1, 0, 'To review: 1 flight awaiting confirmation', 'На проверку: 1 перелёт ждёт подтверждения'],
   [
     2,
     0,
-    '2 awaiting action: 2 flights awaiting confirmation',
-    '2 в очереди: 2 перелёта ждут подтверждения',
+    'To review: 2 flights awaiting confirmation',
+    'На проверку: 2 перелёта ждут подтверждения',
   ],
   [
     5,
     0,
-    '5 awaiting action: 5 flights awaiting confirmation',
-    '5 в очереди: 5 перелётов ждут подтверждения',
+    'To review: 5 flights awaiting confirmation',
+    'На проверку: 5 перелётов ждут подтверждения',
   ],
-  [0, 1, '1 awaiting action: 1 draft row to review', '1 в очереди: 1 строка для проверки'],
-  [0, 2, '2 awaiting action: 2 draft rows to review', '2 в очереди: 2 строки для проверки'],
-  [0, 5, '5 awaiting action: 5 draft rows to review', '5 в очереди: 5 строк для проверки'],
+  [0, 1, 'To review: 1 draft row to review', 'На проверку: 1 строка для проверки'],
+  [0, 2, 'To review: 2 draft rows to review', 'На проверку: 2 строки для проверки'],
+  [0, 5, 'To review: 5 draft rows to review', 'На проверку: 5 строк для проверки'],
   [
     1,
     5,
-    '6 awaiting action: 1 flight awaiting confirmation, 5 draft rows to review',
-    '6 в очереди: 1 перелёт ждёт подтверждения, 5 строк для проверки',
+    'To review: 1 flight awaiting confirmation, 5 draft rows to review',
+    'На проверку: 1 перелёт ждёт подтверждения, 5 строк для проверки',
   ],
   [
     21,
     2,
-    '23 awaiting action: 21 flights awaiting confirmation, 2 draft rows to review',
-    '23 в очереди: 21 перелёт ждёт подтверждения, 2 строки для проверки',
+    'To review: 21 flights awaiting confirmation, 2 draft rows to review',
+    'На проверку: 21 перелёт ждёт подтверждения, 2 строки для проверки',
   ],
 ]
 it.each(cases)(
-  'names the badge with real plurals, only non-zero parts and the visible number first (%i flights, %i rows)',
+  'names the row with real plurals, only non-zero parts and the visible label first (%i flights, %i rows)',
   async (flights, rows, en, ru) => {
     for (const [locale, name] of [
       ['en', en],
@@ -92,12 +92,18 @@ it.each(cases)(
         })
       const { unmount } = render(
         <AwaitingProvider ownerId={`owner-${locale}`}>
-          <QueueSummarySlot locale={locale} />
+          <Menu open trigger={<button type="button">x</button>}>
+            <QueueMenuItem locale={locale} />
+          </Menu>
         </AwaitingProvider>,
       )
-      const link = await screen.findByRole('link', { name })
+      const link = await screen.findByRole('menuitem', { name })
       expect(link).toHaveTextContent(String(flights + rows))
-      expect(link.getAttribute('aria-label')!.startsWith(link.textContent!)).toBe(true)
+      expect(
+        link
+          .getAttribute('aria-label')!
+          .startsWith(link.querySelector('.queue-label')!.textContent!),
+      ).toBe(true)
       expect(link.getAttribute('aria-label')).not.toMatch(/\b0 /)
       unmount()
     }

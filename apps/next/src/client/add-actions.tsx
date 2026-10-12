@@ -3,6 +3,7 @@
 import { NavigationLink as Link } from './navigation-link'
 import { useAwaiting } from './awaiting'
 import { formatNumber } from '../lib/format'
+import { QueueMenuItem } from './queue-summary'
 import { ClipboardCheck, ClipboardPaste, PenLine, ScanLine, Upload } from '@keyline-icons/react'
 import type { ReactNode } from 'react'
 import { MenuItem } from './ui/menu'
@@ -62,26 +63,13 @@ function Label({ action }: { action: Action }) {
 export function AddActions({
   variant,
   onNavigate,
+  locale = 'en',
 }: {
   variant: 'menu' | 'sheet'
   onNavigate?: () => void
+  locale?: 'en' | 'ru'
 }) {
   const { data } = useAwaiting()
-  const queueLink =
-    data && data.actionableCount > 0 ? (
-      <Link
-        href="/journal?queue=awaiting"
-        className={variant === 'sheet' ? 'add-action' : undefined}
-        data-add-action="queue"
-        onClick={onNavigate}
-      >
-        <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
-        <span className="locale-en">
-          Awaiting action: {formatNumber('en', data.actionableCount)}
-        </span>
-        <span className="locale-ru">Ждут действия: {formatNumber('ru', data.actionableCount)}</span>
-      </Link>
-    ) : null
   if (variant === 'menu') {
     return (
       <>
@@ -93,10 +81,26 @@ export function AddActions({
             </Link>
           </MenuItem>
         ))}
-        {queueLink ? <MenuItem asChild>{queueLink}</MenuItem> : null}
+        <QueueMenuItem locale={locale} showUnavailable={false} />
       </>
     )
   }
+  const queueLink =
+    data && data.actionableCount > 0 ? (
+      <Link
+        href="/journal?queue=awaiting"
+        className="add-action"
+        data-add-action="queue"
+        onClick={onNavigate}
+      >
+        <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
+        <span className="locale-en queue-label">To review</span>
+        <span className="locale-ru queue-label" lang="ru">
+          На проверку
+        </span>
+        <span className="queue-count">{formatNumber(locale, data.actionableCount)}</span>
+      </Link>
+    ) : null
   return (
     <ul className="add-actions">
       {ADD_ACTIONS.map((action) => (

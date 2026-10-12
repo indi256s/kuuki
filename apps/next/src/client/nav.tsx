@@ -202,7 +202,7 @@ export function TabBar({ locale = 'en', username }: { locale?: Locale; username?
               </button>
             }
           >
-            <AddActions variant="sheet" onNavigate={() => setAddOpen(false)} />
+            <AddActions variant="sheet" locale={locale} onNavigate={() => setAddOpen(false)} />
           </Sheet>
         </li>
         <Tab

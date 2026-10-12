@@ -242,6 +242,10 @@ export function MenuCheckboxItem({
   )
 }
 
+export function MenuGroup(props: ComponentProps<typeof DropdownMenu.Group>) {
+  return <DropdownMenu.Group {...props} className="ui-menu-group" />
+}
+
 export function MenuSeparator() {
   return <DropdownMenu.Separator className="ui-menu-separator" />
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from './activity'
 import {
@@ -127,6 +127,56 @@ export function persistAccent(accent: Accent, signal?: AbortSignal) {
   const settled: Promise<void> = result.then(release, release)
   queue = settled
   return result
+}
+
+/**
+ * Saves an accent the caller has already applied with `setAccent`, on its own like theme and language. A failed save
+ * puts the last saved accent back and reports `failed`; `onFail` runs once per reverted pick.
+ */
+export function useAccentSave(profileAccent?: string | null, onFail?: () => void) {
+  const savedAccent = useRef<Accent | null>(null),
+    accentPick = useRef(0),
+    mounted = useRef(false),
+    fail = useRef(onFail),
+    [failed, setFailed] = useState(false)
+  useEffect(() => {
+    fail.current = onFail
+  })
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  useEffect(() => {
+    savedAccent.current ??=
+      recognizeAccent(profileAccent) ?? resolveAccent(document.documentElement.dataset.accent)
+  }, [profileAccent])
+  const save = (accent: Accent) => {
+    if (inOwnerScope()) return
+    // Writes are never aborted on a repick or unmount: an aborted PATCH may still commit after a newer one.
+    // They finish in order through `persistAccent`; only the latest pick of a still-mounted caller reverts or reports.
+    const pick = ++accentPick.current,
+      controller = new AbortController(),
+      release = trackPrivateOperation(controller),
+      generation = getAuthGeneration()
+    setFailed(false)
+    persistAccent(accent, controller.signal)
+      .then(() => {
+        // Writes land in order, so the last one to succeed is what the profile holds.
+        savedAccent.current = accent
+      })
+      .catch(() => {
+        // A newer pick, a later visit or a changed identity owns the device accent now.
+        if (!mounted.current || pick !== accentPick.current || generation !== getAuthGeneration())
+          return
+        if (savedAccent.current) setAccent(savedAccent.current)
+        setFailed(true)
+        fail.current?.()
+      })
+      .finally(release)
+  }
+  return { save, failed }
 }
 
 /**
