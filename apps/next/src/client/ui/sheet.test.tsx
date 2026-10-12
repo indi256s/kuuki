@@ -142,7 +142,7 @@ describe('Sheet', () => {
     fireEvent.click(shield)
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
     expect(onOpenChange).not.toHaveBeenCalled()
-    fireEvent.pointerDown(document.querySelector('.ui-overlay')!)
+    await user.click(document.querySelector('.ui-overlay')!)
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 

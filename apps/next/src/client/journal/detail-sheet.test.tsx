@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -165,6 +165,28 @@ afterEach(() => {
 })
 
 describe('Journal detail sheet', () => {
+  it.each([{ isComposing: true }, { keyCode: 229 }])(
+    'keeps IME confirmation in the field until a deliberate Enter saves (%j)',
+    async (composition) => {
+      const user = userEvent.setup()
+      mount([flight(1)])
+      const dialog = await screen.findByRole('dialog')
+      await user.click(
+        within(dialog).getByRole('button', { name: 'Change flight number, now TK381' }),
+      )
+      const input = await within(dialog).findByRole('textbox', { name: 'Flight number' })
+      fireEvent.keyDown(input, { key: 'Enter', ...composition })
+      expect(input).toBeInTheDocument()
+      fireEvent.change(input, { target: { value: 'TK382' } })
+      fireEvent.keyDown(input, { key: 'Enter', ...composition })
+      expect(api.patch).not.toHaveBeenCalled()
+      expect(input).toHaveValue('TK382')
+      fireEvent.keyDown(input, { key: 'Enter' })
+      await within(dialog).findByRole('button', { name: 'Change flight number, now TK382' })
+      expect(api.patch).toHaveBeenCalledTimes(1)
+    },
+  )
+
   it('saves a field inline, confirms it in place, applies the server row and offers Undo inside the overlay that restores the server snapshot', async () => {
     const user = userEvent.setup()
     const base = flight(1)

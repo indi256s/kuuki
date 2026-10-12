@@ -107,16 +107,13 @@ function GlobeLayers({
     const ref = coordinates(props.airports[iata])
     return ref ? [ref.lon, ref.lat] : null
   }
-  const data = useMemo(() => {
+  const routeFeatures = useMemo(() => {
     const point = (iata: string): [number, number] | null => {
       const ref = coordinates(props.airports[iata])
       return ref ? [ref.lon, ref.lat] : null
     }
-    const selected = new Set(props.globe.routes.map((route) => route.key))
-    const scopedRoutes = new Map(props.globe.routes.map((route) => [route.key, route]))
     const routes = props.all.routes.flatMap((route) => {
       const geometry = routeGeometry({ from: point(route.a), to: point(route.b) })
-      const scoped = scopedRoutes.get(route.key)
       return geometry
         ? [
             {
@@ -124,8 +121,8 @@ function GlobeLayers({
               id: route.key,
               properties: {
                 key: route.key,
-                selected: selected.has(route.key),
-                bucket: visitBucket(scoped?.count ?? route.count),
+                selected: false,
+                bucket: visitBucket(route.count),
                 upcoming: false,
               },
               geometry: {
@@ -158,6 +155,26 @@ function GlobeLayers({
             },
           ]
         : []
+    })
+    return [...routes, ...ghosts]
+  }, [props.all.routes, props.all.ghosts, props.airports])
+  const data = useMemo(() => {
+    const point = (iata: string): [number, number] | null => {
+      const ref = coordinates(props.airports[iata])
+      return ref ? [ref.lon, ref.lat] : null
+    }
+    const scopedRoutes = new Map(props.globe.routes.map((route) => [route.key, route]))
+    const routes = routeFeatures.map((feature) => {
+      if (feature.properties.upcoming) return feature
+      const scoped = scopedRoutes.get(feature.properties.key)
+      return {
+        ...feature,
+        properties: {
+          ...feature.properties,
+          selected: !!scoped,
+          bucket: scoped ? visitBucket(scoped.count) : feature.properties.bucket,
+        },
+      }
     })
     const airports = props.globe.airports.flatMap((airport) => {
       const position = point(airport.iata)
@@ -193,11 +210,11 @@ function GlobeLayers({
       },
     )
     return {
-      routes: { type: 'FeatureCollection' as const, features: [...routes, ...ghosts] },
+      routes: { type: 'FeatureCollection' as const, features: routes },
       airports: { type: 'FeatureCollection' as const, features: airports },
       microstates: { type: 'FeatureCollection' as const, features: microstates },
     }
-  }, [props.all, props.globe, props.airports, land])
+  }, [routeFeatures, props.globe, props.airports, land])
   const latestData = useRef(data)
   useEffect(() => {
     latestData.current = data

@@ -145,6 +145,7 @@ export function FilterPanel({
           setActive(0)
         }}
         onKeyDown={(event) => {
+          if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
           if (!searching && (facet || browse)) return
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
             event.preventDefault()

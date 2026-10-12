@@ -1,6 +1,6 @@
 # Shared control lifecycle checks remain failing
 
-Status: needs-triage
+Status: verified in current tree (2026-10-12 modern-web remediation)
 
 Observed in the shared `main` checkout during motion-reference verification on 2026-10-12. These failures are outside the pause implementation. The checkout already contains concurrent edits to the shared dialog, sheet and other controls; their cause has not been established, and those edits were preserved.
 
@@ -19,3 +19,10 @@ KUUKI_NEXT_PORT=8894 pnpm test:next:navigation
 ```
 
 Inspect current concurrent control edits before proposing fixes. Do not revert them or infer a cause from the motion-reference audit. Logs from this run are `/tmp/kuuki-motion-unrelated-recheck.log` and `/tmp/kuuki-motion-navigation-port.log`.
+
+
+## Verification follow-up
+
+The modern-web remediation repaired the three unit fixtures without changing production controls: Dialog now exposes live animation styles, Popover uses a stable focus ref, and Sheet sends the complete outside click. The full Next suite passes all 1,335 tests. The compiled navigation suite passes all 44 cases, including capture Escape restoring focus to Delete flight. Its earlier browser failure is no longer reproducible in the current dirty tree; no historical root cause is claimed.
+
+Evidence: [modern-web follow-up](../../../docs/research/2026-10-12-modern-web-guidance-audit.md#remediation-follow-up--12-october-2026), `/tmp/kuuki-modern-web-fixes-tests.log` and `/tmp/kuuki-modern-web-fixes-navigation.log`. Earlier observations above remain historical evidence.
