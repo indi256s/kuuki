@@ -11,48 +11,227 @@
   padding-block-end: var(--space-8);
 }
 
-/* Holder page. The spread's one shadow: an elevated page whose inline-end edge creases into the spine (DESIGN.md
-   "Profile" exception). Radii are concentric with the book: round outside, tight at the spine. */
+/* Holder column: the laminated data page with the owner's controls below it, off the page. The column is sticky on
+   desktop and carries the entrance; the page itself carries the tilt. */
 .profile-holder {
   position: sticky;
   inset-block-start: calc(var(--header-h) + var(--space-6));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  perspective: 1200px;
+  animation: profile-rise 240ms var(--ease-out) both;
+}
+
+/* The data page (boards 23.1/23.4). The spread's one shadow: an elevated page whose inline-end edge creases into the
+   spine (DESIGN.md "Profile" exception). Radii are concentric with the book: round outside, tight at the spine.
+   --tilt-x / --tilt-y (degrees, unitless) come from data-page.tsx; at rest they are 0. */
+.profile-data-page {
+  --inner-radius: 14px 2px 2px 14px;
+  --tilt-x: 0;
+  --tilt-y: 0;
+  position: relative;
   isolation: isolate;
   overflow: clip;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 36px 36px 28px;
+  gap: var(--space-8);
   background: var(--surface);
   border-radius: var(--radius-lg) var(--radius-xs) var(--radius-xs) var(--radius-lg);
   box-shadow: var(--holder-shadow);
-  animation: profile-rise 240ms var(--ease-out) both;
+  transform: rotateX(calc(var(--tilt-x) * -1deg)) rotateY(calc(var(--tilt-y) * 1deg));
 }
-.profile-holder-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
+.profile-guilloche {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  fill: none;
+  stroke: var(--holder-guilloche);
+  stroke-width: 0.75;
+  /* Fades toward the page edges and toward the fields below: no curve cuts off hard. */
+  mask-image:
+    linear-gradient(to right, transparent, #000 30%, #000 70%, transparent),
+    linear-gradient(to bottom, transparent 15%, #000 35%, #000 60%, transparent 75%);
+  mask-composite: intersect;
+  pointer-events: none;
 }
-.profile-holder-head .eyebrow {
-  margin: 0;
+.profile-laminate {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--holder-rule);
+  border-radius: var(--inner-radius);
+  pointer-events: none;
 }
-.profile-holder-kana {
-  font: 500 14px/18px var(--font-kana);
-  letter-spacing: 0.2em;
-  color: var(--accent-text);
+/* Binding: 1.5 × 4 stitch slots about every 10px, punched through to the page behind; whole slots only. */
+.profile-stitches {
+  position: absolute;
+  inset-block: 11px 7px;
+  inset-inline-start: 2px;
+  inline-size: 1.5px;
+  background: linear-gradient(var(--background), var(--background)) 0 0 / 1.5px 4px no-repeat space;
+  pointer-events: none;
 }
-.profile-identity {
+.profile-perforation {
+  position: absolute;
+  inset-block-start: 70px;
+  inset-inline-end: 8px;
+  fill: none;
+  stroke: var(--holder-perforation);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+/* The dots catch light on the side tilted toward the viewer (the right edge lifts with --tilt-y). */
+.profile-perforation-glint {
+  stroke: var(--text-muted);
+  opacity: clamp(0, calc(var(--tilt-y) / 3), 0.9);
+}
+/* Ghost portrait: the holder's initials at 15%, 2px of parallax at full tilt. */
+.profile-ghost {
+  position: absolute;
+  inset-block-start: 204px;
+  inset-inline-end: 60px;
+  display: grid;
+  place-items: center;
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+  color: var(--surface);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+  opacity: 0.15;
+  transform: translate(calc(var(--tilt-y) * 0.67px), calc(var(--tilt-x) * -0.67px));
+  pointer-events: none;
+}
+.profile-data-content {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  padding: 36px 52px 0 36px;
 }
-.profile-identity-text {
+.profile-holder-head {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.profile-holder-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-inline-start: -5px;
   min-inline-size: 0;
 }
-.profile-identity h1 {
+.profile-holder-head .eyebrow {
+  margin: 0;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+.profile-doc-number {
+  flex-shrink: 0;
+  font: 11px/14px var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+/* The chip mark doubles as the UV lamp switch: a 24px target around the 14px mark. */
+.profile-uv-toggle {
+  display: grid;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--control-border);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.profile-uv-toggle svg {
+  fill: none;
+  stroke: currentColor;
+}
+.profile-uv-toggle[aria-pressed='true'] {
+  color: var(--holder-uv);
+}
+.profile-uv-toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.profile-photo-window {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 104px;
+  block-size: 104px;
+  border: 1px solid var(--holder-rule);
+  border-radius: 4px;
+  background: var(--surface-inset);
+}
+/* OVI patch: the page's one accent part. Its ink shifts toward a lighter mix and a sheen band slides with the tilt;
+   at rest (touch, reduced motion) it holds the mid-angle look. */
+.profile-ovi {
+  position: absolute;
+  inset-block-end: -10px;
+  inset-inline-end: -22px;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 28px;
+  overflow: clip;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  background: var(--accent-tint);
+}
+.profile-ovi::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      105deg,
+      transparent 38%,
+      color-mix(in oklch, var(--holder-ovi-shift) 55%, transparent) 50%,
+      transparent 62%
+    )
+    calc(50% + var(--tilt-y) * 15%) 0 / 300% 100% no-repeat;
+}
+.profile-ovi svg {
+  grid-area: 1 / 1;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.profile-ovi-ink {
+  stroke: var(--accent);
+}
+.profile-ovi-shift {
+  stroke: var(--holder-ovi-shift);
+  opacity: clamp(0, calc(0.5 + (var(--tilt-x) + var(--tilt-y)) / 12), 1);
+}
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.profile-field-name {
+  margin-block-start: 2px;
+}
+.profile-label {
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.profile-data-content h1 {
   margin: 0;
   font-size: 44px;
   line-height: 46px;
@@ -68,7 +247,7 @@
   margin: 0;
 }
 .profile-handle {
-  font: 15px/18px var(--font-mono);
+  font: 14px/18px var(--font-mono);
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
@@ -82,18 +261,12 @@
 }
 .profile-fields {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-6);
+  flex-direction: column;
+  gap: var(--space-5);
   margin: 0;
 }
-.profile-fields > div {
+.profile-fields dt {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-inline-size: 0;
-}
-.profile-field-bio {
-  flex-basis: 100%;
 }
 .profile-fields dd {
   margin: 0;
@@ -103,7 +276,7 @@
   overflow-wrap: anywhere;
 }
 .profile-field-issued dd {
-  font: 15px/18px var(--font-mono);
+  font: 14px/18px var(--font-mono);
 }
 .profile-remarks {
   display: flex;
@@ -189,18 +362,125 @@
 .profile-owner-note a {
   display: inline-block;
 }
+/* MRZ: the OCR band, edge to edge inside the laminate line, with the booklet's page number. */
+.profile-mrz-wrap {
+  padding: 0 6px 6px;
+}
 .profile-mrz {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-3) 14px;
-  border-radius: 8px;
-  background: var(--surface-inset);
+  padding: var(--space-3) 30px;
+  border-radius: 0 0 2px 14px;
+  background: var(--holder-band);
   overflow: clip;
-  font: 12px/16px var(--font-mono);
+  font: 11px/16px var(--font-mono);
   letter-spacing: 0.08em;
   color: var(--text-muted);
   white-space: pre;
+}
+.profile-mrz > span:not([class]) {
+  inline-size: max-content;
+}
+.profile-page-number {
+  position: absolute;
+  inset-block-end: 8px;
+  inset-inline-end: 12px;
+  font-size: 9px;
+  line-height: 12px;
+  letter-spacing: 0;
+  color: var(--control-border);
+}
+/* The reader's scan line: one pass, transform only, while data-page.tsx resolves the characters it crosses. */
+.profile-mrz-scan {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.profile-mrz-scan::before {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  inline-size: 1px;
+  background: var(--text-muted);
+}
+.profile-mrz[data-reading] .profile-mrz-scan {
+  animation: profile-mrz-scan 900ms linear both;
+}
+@keyframes profile-mrz-scan {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  8%,
+  92% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+/* UV inspection: the lamp shades the page, the guilloche fluoresces and the hidden crest (and ring stamp) appear.
+   One opacity crossfade; text stays above it at full contrast (tokens.test.ts checks it on the shaded page). */
+.profile-uv {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--holder-uv-shade);
+  opacity: 0;
+  transition: opacity 250ms var(--ease-out);
+  pointer-events: none;
+}
+.profile-data-page[data-uv] .profile-uv {
+  opacity: 1;
+}
+.profile-uv-guilloche {
+  z-index: auto;
+  stroke: var(--holder-uv);
+}
+:root[data-theme='dark'] .profile-uv-guilloche,
+:root[data-theme='dark'] .profile-uv-crest,
+:root[data-theme='dark'] .profile-uv-stamp {
+  filter: drop-shadow(0 0 2px var(--holder-uv));
+}
+.profile-uv-crest,
+.profile-uv-stamp {
+  position: absolute;
+  fill: none;
+  stroke: var(--holder-uv);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.profile-uv-crest {
+  inset-block-start: 150px;
+  inset-inline-start: 50%;
+  inline-size: 280px;
+  block-size: 280px;
+  margin-inline-start: -140px;
+  opacity: 0.55;
+}
+.profile-uv-crest *,
+.profile-uv-stamp * {
+  vector-effect: non-scaling-stroke;
+}
+.profile-uv-stamp {
+  inset-block-end: 96px;
+  inset-inline-end: 40px;
+  inline-size: 80px;
+  block-size: 80px;
+  rotate: -12deg;
+  opacity: 0.6;
+}
+.profile-uv-stamp text {
+  fill: var(--holder-uv);
+  stroke: none;
+  font: 600 16px var(--font-mono);
+  letter-spacing: 0.12em;
 }
 /* Owner-private: a diagonal ink stamp across the photo corner (decorative; the note says it in words). */
 .profile-private-stamp {
@@ -696,11 +976,17 @@
   .profile-holder {
     position: relative;
     inset-block-start: auto;
+  }
+  .profile-data-page {
+    --inner-radius: 14px;
     border-radius: var(--radius-lg);
     box-shadow: 0 0 0 1px var(--hairline);
   }
-  :root[data-theme='dark'] .profile-holder {
+  :root[data-theme='dark'] .profile-data-page {
     box-shadow: inset 0 1px 0 var(--surface-highlight);
+  }
+  .profile-mrz {
+    border-radius: 0 0 14px 14px;
   }
   .profile-page {
     display: grid;
@@ -727,31 +1013,19 @@
   .profile-spread {
     row-gap: var(--space-8);
   }
-  .profile-holder {
-    gap: 22px;
-    padding: var(--space-6) 22px 22px;
+  /* Same data page at full width: stitches and perforation stay, the tilt never starts (data-page.tsx). */
+  .profile-data-content {
+    padding: 28px 44px 0 24px;
   }
-  .profile-identity {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-4);
+  .profile-ghost {
+    inset-inline-end: 48px;
   }
-  /* The 88px avatar (photo or Facehash, drawn at its own size) scales to the card's 72px. */
-  .profile-identity-photo {
-    flex-shrink: 0;
-    inline-size: 72px;
-    block-size: 72px;
-  }
-  .profile-identity-photo .profile-avatar {
-    transform: scale(calc(72 / 88));
-    transform-origin: 0 0;
-  }
-  .profile-identity h1 {
+  .profile-data-content h1 {
     font-size: 32px;
     line-height: 36px;
   }
-  .profile-handle {
-    font-size: 14px;
+  .profile-mrz {
+    padding-inline: 16px;
   }
   .profile-private-stamp {
     inset-block-start: 88px;
@@ -854,6 +1128,17 @@
   .profile-badge:active,
   .profile-visibility:active {
     transform: none;
+  }
+  /* The page lies flat with the OVI at its mid-angle look; UV switches at once; the MRZ never scans. */
+  .profile-data-page,
+  .profile-ghost {
+    transform: none;
+  }
+  .profile-uv {
+    transition: none;
+  }
+  .profile-mrz-scan {
+    display: none;
   }
 }
 
