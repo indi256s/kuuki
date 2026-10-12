@@ -2,10 +2,12 @@
 
 import { useMemo } from 'react'
 import { hangars } from '../../iso/hangars'
+import { fleet } from '../../iso/fleet'
 import { IsoFigure } from '../../iso/iso-figure'
 import { fitBox } from '../../iso/scene'
 import { shareText, type ShedPlan } from './model'
 import '../../iso/hangars.css'
+import '../../iso/fleet.css'
 
 const key = (plan: ShedPlan) =>
   `${plan.blank}|${plan.sheds.map((shed) => `${shed.key}:${shed.name}:${shed.share}`).join(',')}`
@@ -49,4 +51,10 @@ export function HangarsFigure({
       <IsoFigure figure={figure} className="iso-hangars" />
     </div>
   )
+}
+
+/** Reuse the measured airframe drawing for the selected ICAO type. */
+export function FleetFigure({ icao, body }: { icao: string; body: string | null }) {
+  const figure = useMemo(() => fleet([{ icao, body }], 300, 'lineup'), [icao, body])
+  return <IsoFigure figure={figure} className="iso-fleet iso-aircraft-type" />
 }

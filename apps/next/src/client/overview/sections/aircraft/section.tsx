@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { makerOf, type MakerKey } from '@kuuki/data/aircraft-makers'
 import { matches } from '@kuuki/shared/overview/filter'
 import { totals } from '@kuuki/shared/overview/figures'
@@ -19,7 +19,8 @@ import { FleetBodies, FleetRidgelines } from '../fleet/section'
 import { ManufacturersDetails, makerName } from '../manufacturers/section'
 import type { Span } from '../registry'
 import { copy, filterLabel, flights, number } from '../rankings/display'
-import { HangarsFigure } from './figure'
+import { FleetFigure, HangarsFigure } from './figure'
+import { hasDims } from '../../iso/fleet'
 import { makerRows, planSheds, shareText } from './model'
 import './aircraft.css'
 
@@ -98,6 +99,7 @@ export function Section({ span }: { span: Span }) {
         : `${row.name}, ${shareText(row.share)} · ${flights(locale, row.flights)}`
       : `${row.key}, ${flights(locale, row.flights)}`
   const points = rows.map((row) => ({ key: row.key, datum: row, label: spoken(row) }))
+  const plotHeight = span === 'sheet' ? 176 : 206
 
   let value = '—',
     unit: string | undefined,
@@ -151,7 +153,9 @@ export function Section({ span }: { span: Span }) {
       value = number(locale, reading.flights)
       unit = `× ${reading.key}`
       const share = shareText(reading.share)
-      const who = typeName(reading.key)
+      const who = hasDims(reading.key)
+        ? typeName(reading.key)
+        : `${typeName(reading.key)} (${copy(locale, 'body-class silhouette', 'силуэт класса самолёта')})`
       caption = r.isHeadline
         ? copy(
             locale,
@@ -226,150 +230,165 @@ export function Section({ span }: { span: Span }) {
       : null
 
   return (
-    <ChapterCard
-      state={state}
-      figure={<HangarsFigure plan={plan} lit={state === 'ready' ? lit : null} picked={r.picked} />}
-      figureButton={
-        rows.length > 1
-          ? {
-              label:
-                view === 'makers'
-                  ? copy(locale, 'Show next maker', 'Показать следующего производителя')
-                  : copy(locale, 'Show next type', 'Показать следующий тип'),
-              onPress: r.next,
-            }
-          : undefined
-      }
-      hero={{
-        value,
-        unit,
-        caption,
-        only:
-          reading && !r.isHeadline && !applied.includes(reading.key)
+    <div
+      className="ov3-aircraft"
+      style={{ '--aircraft-plot-height': `${plotHeight}px` } as CSSProperties}
+    >
+      <ChapterCard
+        state={state}
+        figure={
+          view === 'fleet' && reading ? (
+            <FleetFigure
+              icao={reading.key}
+              body={payload?.refs.aircraft[reading.key]?.type ?? null}
+            />
+          ) : (
+            <HangarsFigure plan={plan} lit={state === 'ready' ? lit : null} picked={r.picked} />
+          )
+        }
+        figureButton={
+          rows.length > 1
             ? {
-                label: copy(locale, `Only ${reading.name}`, `Только ${reading.name}`),
-                onPress: () => only(reading.key),
+                label:
+                  view === 'makers'
+                    ? copy(locale, 'Show next maker', 'Показать следующего производителя')
+                    : copy(locale, 'Show next type', 'Показать следующий тип'),
+                onPress: r.next,
               }
-            : null,
-      }}
-      rollValue={r.picked}
-      chart={{
-        caption: title,
-        toggle: (
-          <SegmentedControl
-            dense
-            value={view}
-            onChange={setView}
-            label={copy(locale, 'Aircraft view', 'Вид самолётов')}
-            options={[
-              { value: 'makers', label: copy(locale, 'Makers', 'Производители') },
-              { value: 'fleet', label: copy(locale, 'Fleet', 'Парк') },
-            ]}
-          />
-        ),
-        table: {
+            : undefined
+        }
+        hero={{
+          value,
+          unit,
+          caption,
+          only:
+            reading && !r.isHeadline && !applied.includes(reading.key)
+              ? {
+                  label: copy(locale, `Only ${reading.name}`, `Только ${reading.name}`),
+                  onPress: () => only(reading.key),
+                }
+              : null,
+        }}
+        rollValue={r.picked}
+        chart={{
           caption: title,
-          columns: [
+          toggle: (
+            <SegmentedControl
+              dense
+              value={view}
+              onChange={setView}
+              label={copy(locale, 'Aircraft view', 'Вид самолётов')}
+              options={[
+                { value: 'makers', label: copy(locale, 'Makers', 'Производители') },
+                { value: 'fleet', label: copy(locale, 'Fleet', 'Парк') },
+              ]}
+            />
+          ),
+          table: {
+            caption: title,
+            columns: [
+              {
+                key: 'name',
+                label:
+                  view === 'makers'
+                    ? copy(locale, 'Maker', 'Производитель')
+                    : copy(locale, 'Type', 'Тип'),
+              },
+              { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+              { key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true },
+            ],
+            rows: rows.map((row) => ({
+              name: view === 'makers' ? row.name : `${row.key} · ${typeName(row.key)}`,
+              flights: row.flights,
+              share: row.maker === 'unknown' && view === 'makers' ? '—' : shareText(row.share),
+            })),
+          },
+          plot: (
+            <LazyChart height={plotHeight} label={title}>
+              {(inView) => (
+                <StageRows
+                  rowHeight={plotHeight / Math.max(1, points.length)}
+                  points={points}
+                  value={(point) => point.datum.value}
+                  format={(point) =>
+                    view === 'fleet'
+                      ? number(locale, point.datum.flights)
+                      : point.datum.maker === 'unknown'
+                        ? flights(locale, point.datum.flights)
+                        : shareText(point.datum.share)
+                  }
+                  name={(point) => point.datum.name}
+                  // Unknown reads as a count ("5 flights", «5 перелётов»), wider than a share.
+                  valueWidth={
+                    view !== 'fleet' && points.some((point) => point.datum.maker === 'unknown')
+                      ? 88
+                      : undefined
+                  }
+                  mono={view === 'fleet'}
+                  swatch={(point) => <MakerSwatch maker={point.datum.maker} />}
+                  fill={(point) => `var(--cat-maker-${point.datum.maker})`}
+                  outline={(point) => point.datum.maker === 'unknown'}
+                  span={span}
+                  selectedKey={r.reading}
+                  appliedKeys={applied}
+                  inView={inView}
+                  ariaLabel={title}
+                  onPick={(point) => r.pick(point.key)}
+                  actions={(point) => [{ label: filterLabel(locale), run: () => only(point.key) }]}
+                  tip={(selected) => <span>{selected[0].label}</span>}
+                />
+              )}
+            </LazyChart>
+          ),
+        }}
+        details={{
+          heading: copy(locale, 'Makers and fleet', 'Производители и парк'),
+          columns,
+          coverage,
+          more: [
             {
-              key: 'name',
-              label:
-                view === 'makers'
-                  ? copy(locale, 'Maker', 'Производитель')
-                  : copy(locale, 'Type', 'Тип'),
-            },
-            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
-            { key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true },
-          ],
-          rows: rows.map((row) => ({
-            name: view === 'makers' ? row.name : `${row.key} · ${typeName(row.key)}`,
-            flights: row.flights,
-            share: row.maker === 'unknown' && view === 'makers' ? '—' : shareText(row.share),
-          })),
-        },
-        plot: (
-          <LazyChart height={points.length * 24} label={title}>
-            {(inView) => (
-              <StageRows
-                points={points}
-                value={(point) => point.datum.value}
-                format={(point) =>
-                  view === 'fleet'
-                    ? number(locale, point.datum.flights)
-                    : point.datum.maker === 'unknown'
-                      ? flights(locale, point.datum.flights)
-                      : shareText(point.datum.share)
-                }
-                name={(point) => point.datum.name}
-                // Unknown reads as a count ("5 flights", «5 перелётов»), wider than a share.
-                valueWidth={
-                  view !== 'fleet' && points.some((point) => point.datum.maker === 'unknown')
-                    ? 88
-                    : undefined
-                }
-                mono={view === 'fleet'}
-                swatch={(point) => <MakerSwatch maker={point.datum.maker} />}
-                fill={(point) => `var(--cat-maker-${point.datum.maker})`}
-                outline={(point) => point.datum.maker === 'unknown'}
-                span={span}
-                selectedKey={r.reading}
-                appliedKeys={applied}
-                inView={inView}
-                ariaLabel={title}
-                onPick={(point) => r.pick(point.key)}
-                actions={(point) => [{ label: filterLabel(locale), run: () => only(point.key) }]}
-                tip={(selected) => <span>{selected[0].label}</span>}
-              />
-            )}
-          </LazyChart>
-        ),
-      }}
-      details={{
-        heading: copy(locale, 'Makers and fleet', 'Производители и парк'),
-        columns,
-        coverage,
-        more: [
-          {
-            summary: copy(locale, 'Manufacturers and types', 'Производители и типы'),
-            content: (
-              <div className="ov3-aircraft-more">
-                <ManufacturersDetails />
-                <FleetBodies />
-              </div>
-            ),
-          },
-          {
-            summary: copy(locale, 'Flight length by type', 'Длительность по типам'),
-            content: <FleetRidgelines span={span} />,
-          },
-        ],
-      }}
-      empty={{
-        title: copy(locale, 'The hangars are shut', 'Ангары закрыты'),
-        line:
-          gate?.status === 'below' && gate.have > 0
-            ? copy(
-                locale,
-                `This filter leaves ${flights(locale, gate.have)} with a known aircraft. The hangars open at ${number(locale, gate.need)} and don't haggle.`,
-                `Самолёт в выборке указан лишь у ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных перелётов. Ангары не торгуются.`,
-              )
-            : copy(
-                locale,
-                'No flight in this filter has a known maker. The hangars admit no strangers.',
-                'Ни у одного перелёта в выборке производитель не известен. Посторонним вход в ангар воспрещён.',
+              summary: copy(locale, 'Manufacturers and types', 'Производители и типы'),
+              content: (
+                <div className="ov3-aircraft-more">
+                  <ManufacturersDetails />
+                  <FleetBodies />
+                </div>
               ),
-        action: (
-          <Button
-            dense
-            variant="secondary"
-            onClick={() => {
-              if (isCurrent()) actions.clear()
-            }}
-          >
-            {copy(locale, 'Clear filter', 'Сбросить фильтр')}
-          </Button>
-        ),
-      }}
-    />
+            },
+            {
+              summary: copy(locale, 'Flight length by type', 'Длительность по типам'),
+              content: <FleetRidgelines span={span} />,
+            },
+          ],
+        }}
+        empty={{
+          title: copy(locale, 'The hangars are shut', 'Ангары закрыты'),
+          line:
+            gate?.status === 'below' && gate.have > 0
+              ? copy(
+                  locale,
+                  `This filter leaves ${flights(locale, gate.have)} with a known aircraft. The hangars open at ${number(locale, gate.need)} and don't haggle.`,
+                  `Самолёт в выборке указан лишь у ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных перелётов. Ангары не торгуются.`,
+                )
+              : copy(
+                  locale,
+                  'No flight in this filter has a known maker. The hangars admit no strangers.',
+                  'Ни у одного перелёта в выборке производитель не известен. Посторонним вход в ангар воспрещён.',
+                ),
+          action: (
+            <Button
+              dense
+              variant="secondary"
+              onClick={() => {
+                if (isCurrent()) actions.clear()
+              }}
+            >
+              {copy(locale, 'Clear filter', 'Сбросить фильтр')}
+            </Button>
+          ),
+        }}
+      />
+    </div>
   )
 }
 

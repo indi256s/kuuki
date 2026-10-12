@@ -1,4 +1,9 @@
 /* The next bag pushes out through the flaps; the portal clip stays put, so it only shows what has cleared the face. */
+[data-blank] > .iso-carousel {
+  --accent: var(--iso-detail);
+  --accent-foreground: var(--text);
+  --iso-glow: 0;
+}
 @media (prefers-reduced-motion: no-preference) {
   .iso-carousel [data-part='incoming'] {
     transform: translate(

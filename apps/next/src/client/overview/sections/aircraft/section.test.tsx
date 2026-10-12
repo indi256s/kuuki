@@ -74,15 +74,17 @@ it('"Only …" applies the makers facet in Makers and the aircraft facet in Flee
   expect(add).toHaveBeenLastCalledWith('aircraft', 'B738')
 })
 
-it('Fleet lights the maker of the picked type', () => {
+it('Fleet shows five types and changes the airplane to the picked type', () => {
   const view = render(<Section span="full" />)
   fireEvent.click(stage().getByRole('radio', { name: 'Fleet' }))
+  expect(stage().getAllByRole('button', { name: /, \d+ flights$/ })).toHaveLength(5)
   expect(hero(view).unit).toHaveTextContent('× A320')
+  const airplane = () => view.container.querySelector('.ov3-card-figure svg')?.innerHTML
+  const first = airplane()
   fireEvent.click(row('B738'))
   expect(hero(view).value).toHaveTextContent('16')
-  expect(
-    (view.container.querySelector('[data-part="shed-boeing-lit"]') as SVGElement).style.opacity,
-  ).toContain('var(--lit-boeing, 1)')
+  expect(airplane()).not.toBe(first)
+  expect(view.container.querySelector('.iso-hangars')).toBeNull()
 })
 
 it('marks time in the air ≈ only when the reading itself has estimated durations', () => {

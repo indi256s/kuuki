@@ -1,0 +1,1401 @@
+// Generated geometry from packages/data/src/aircraft-geometry/*.json, restored from commit 22313ee5.
+// To regenerate after changing the JSON, restore scripts/generate-fleet-geometry.mjs from that commit.
+// Lengths in metres, angles in degrees. x runs aft from the nose; y outward from the centreline; z up from the fuselage bottom.
+
+type Vertex = { x: number; y: number }
+export type Geometry = {
+  dims: { length: number; span: number; height: number; fuselageWidth: number; fuselageHeight: number }
+  fuselage: {
+    end?: number
+    noseLength: number
+    tailconeLength: number
+    tailUpsweep: number
+    cockpitWindowX: number
+    decks: 1 | 2
+    mainDeckWindowZ?: number
+    upperDeckWindowZ?: number
+    noseExponent?: number
+    tailEnd?: 'cone' | 'blade'
+    cockpit?: { aftX?: number; foreX?: number; lowDeg?: number; highDeg?: number }
+  }
+  wing: {
+    position: 'low' | 'high'
+    rootLEx: number
+    rootChord: number
+    kinkY?: number
+    tipChord: number
+    sweepLE: number
+    dihedral: number
+    leBreakY?: number
+    sweepLEInboard?: number
+  }
+  wingtip: {
+    type: 'none' | 'fence' | 'sharklet' | 'blended' | 'raked' | 'at-winglet' | 'curved'
+    height: number
+    below: number
+    cant: number
+    rakeSpan: number
+    rootY?: number
+    rakeLE?: Vertex[]
+    rakeTE?: Vertex[]
+    rakeSweepLE?: number
+  }
+  htail: {
+    position: 'fuselage' | 't-tail'
+    rootLEx: number
+    span: number
+    rootChord: number
+    tipChord: number
+    sweepLE: number
+    dihedral: number
+    rootY?: number
+    zBelowFinTop?: number
+  }
+  vtail: {
+    rootLEx: number
+    height: number
+    rootChord: number
+    tipChord: number
+    sweepLE: number
+    dorsalFin: boolean
+    dorsalLength?: number
+    dorsalHeight?: number
+  }
+  engines: {
+    y: number
+    fanX: number
+    nacelleDiameter: number
+    nacelleLength: number
+    dropBelowWing: number
+    section: 'round' | 'flat-bottom'
+    exhaustLength?: number
+    prop?: { diameter: number }
+  }[]
+}
+
+export const GEOMETRY: Record<string, Geometry> = {
+  "A319": {
+    "dims": {
+      "length": 33.84,
+      "span": 34.1,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 11.3,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.5,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 0.6,
+      "below": 0.35,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 28.37,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "rootY": 1.4
+    },
+    "vtail": {
+      "rootLEx": 26.27,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 9.59,
+        "nacelleDiameter": 2.1,
+        "nacelleLength": 3.43,
+        "dropBelowWing": 1.3,
+        "section": "round",
+        "exhaustLength": 1.5
+      }
+    ]
+  },
+  "A320": {
+    "dims": {
+      "length": 37.57,
+      "span": 34.1,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 12.9,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.5,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 0.6,
+      "below": 0.35,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 32.1,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "rootY": 1.4
+    },
+    "vtail": {
+      "rootLEx": 30,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 11.19,
+        "nacelleDiameter": 2.1,
+        "nacelleLength": 3.43,
+        "dropBelowWing": 1.3,
+        "section": "round",
+        "exhaustLength": 1.5
+      }
+    ]
+  },
+  "A20N": {
+    "dims": {
+      "length": 37.57,
+      "span": 35.8,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 12.9,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.64,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "sharklet",
+      "height": 2.43,
+      "below": 0,
+      "cant": 7,
+      "rakeSpan": 0,
+      "rootY": 16.29
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 32.1,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "rootY": 1.4
+    },
+    "vtail": {
+      "rootLEx": 30,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 11.14,
+        "nacelleDiameter": 2.6,
+        "nacelleLength": 4.23,
+        "dropBelowWing": 1.2,
+        "section": "round",
+        "exhaustLength": 1
+      }
+    ]
+  },
+  "A321": {
+    "dims": {
+      "length": 44.51,
+      "span": 34.1,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 17.2,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.5,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 0.6,
+      "below": 0.35,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 39.04,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "rootY": 1.4
+    },
+    "vtail": {
+      "rootLEx": 36.94,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 15.46,
+        "nacelleDiameter": 2.1,
+        "nacelleLength": 3.43,
+        "dropBelowWing": 1.3,
+        "section": "round",
+        "exhaustLength": 1.5
+      }
+    ]
+  },
+  "A21N": {
+    "dims": {
+      "length": 44.51,
+      "span": 35.8,
+      "height": 11.76,
+      "fuselageWidth": 3.95,
+      "fuselageHeight": 4.14
+    },
+    "fuselage": {
+      "noseLength": 5.9,
+      "tailconeLength": 8.7,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 17.2,
+      "rootChord": 6.07,
+      "kinkY": 4.87,
+      "tipChord": 1.64,
+      "sweepLE": 27,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "sharklet",
+      "height": 2.43,
+      "below": 0,
+      "cant": 7,
+      "rakeSpan": 0,
+      "rootY": 16.29
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 39.04,
+      "span": 12.45,
+      "rootChord": 3.31,
+      "tipChord": 1.24,
+      "sweepLE": 35.2,
+      "dihedral": 6.5,
+      "rootY": 1.4
+    },
+    "vtail": {
+      "rootLEx": 36.94,
+      "height": 5.87,
+      "rootChord": 5.5,
+      "tipChord": 2,
+      "sweepLE": 39,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 5.75,
+        "fanX": 15.4,
+        "nacelleDiameter": 2.6,
+        "nacelleLength": 4.23,
+        "dropBelowWing": 1.2,
+        "section": "round",
+        "exhaustLength": 1
+      }
+    ]
+  },
+  "A332": {
+    "dims": {
+      "length": 58.82,
+      "span": 60.3,
+      "height": 17.39,
+      "fuselageWidth": 5.64,
+      "fuselageHeight": 5.64
+    },
+    "fuselage": {
+      "noseLength": 9.5,
+      "tailconeLength": 20.2,
+      "tailUpsweep": 2.7,
+      "cockpitWindowX": 3.2,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 19.7,
+      "rootChord": 10.1,
+      "kinkY": 8.4,
+      "tipChord": 2.2,
+      "sweepLE": 32.2,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.5,
+      "below": 0,
+      "cant": 42,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 51.5,
+      "span": 19.4,
+      "rootChord": 4.6,
+      "tipChord": 2.01,
+      "sweepLE": 32.3,
+      "dihedral": 5,
+      "rootY": 2
+    },
+    "vtail": {
+      "rootLEx": 47.09,
+      "height": 8.8,
+      "rootChord": 8.58,
+      "tipChord": 3.1,
+      "sweepLE": 44.4,
+      "dorsalFin": true,
+      "dorsalLength": 1.85,
+      "dorsalHeight": 0.5
+    },
+    "engines": [
+      {
+        "y": 9.3,
+        "fanX": 18.08,
+        "nacelleDiameter": 3.08,
+        "nacelleLength": 7.32,
+        "dropBelowWing": 1.95,
+        "section": "round"
+      }
+    ]
+  },
+  "A333": {
+    "dims": {
+      "length": 63.67,
+      "span": 60.3,
+      "height": 16.79,
+      "fuselageWidth": 5.64,
+      "fuselageHeight": 5.64
+    },
+    "fuselage": {
+      "noseLength": 9.5,
+      "tailconeLength": 20.2,
+      "tailUpsweep": 2.7,
+      "cockpitWindowX": 3.2,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 22.9,
+      "rootChord": 10.1,
+      "kinkY": 8.4,
+      "tipChord": 2.2,
+      "sweepLE": 32.2,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.5,
+      "below": 0,
+      "cant": 42,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 56.8,
+      "span": 19.4,
+      "rootChord": 4.6,
+      "tipChord": 2.03,
+      "sweepLE": 32.1,
+      "dihedral": 5,
+      "rootY": 2
+    },
+    "vtail": {
+      "rootLEx": 52.43,
+      "height": 8.3,
+      "rootChord": 7.79,
+      "tipChord": 3.1,
+      "sweepLE": 44.4,
+      "dorsalFin": true,
+      "dorsalLength": 1.5,
+      "dorsalHeight": 0.5
+    },
+    "engines": [
+      {
+        "y": 9.3,
+        "fanX": 21.28,
+        "nacelleDiameter": 3.08,
+        "nacelleLength": 7.32,
+        "dropBelowWing": 1.95,
+        "section": "round"
+      }
+    ]
+  },
+  "A359": {
+    "dims": {
+      "length": 66.8,
+      "span": 64.75,
+      "height": 17.05,
+      "fuselageWidth": 5.96,
+      "fuselageHeight": 6.09
+    },
+    "fuselage": {
+      "end": 65.26,
+      "noseLength": 10,
+      "tailconeLength": 15.96,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.84,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 22.4,
+      "rootChord": 13.5,
+      "kinkY": 10.1,
+      "tipChord": 1.7,
+      "sweepLE": 35,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "curved",
+      "height": 2.4,
+      "below": 0,
+      "cant": 25,
+      "rakeSpan": 0,
+      "rootY": 29.495
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 58.3,
+      "span": 18.79,
+      "rootChord": 5.6,
+      "tipChord": 2.46,
+      "sweepLE": 39.2,
+      "dihedral": 5,
+      "rootY": 2
+    },
+    "vtail": {
+      "rootLEx": 54.48,
+      "height": 9.42,
+      "rootChord": 7.79,
+      "tipChord": 3.04,
+      "sweepLE": 44,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 10.4,
+        "fanX": 21.97,
+        "nacelleDiameter": 4,
+        "nacelleLength": 6.4,
+        "dropBelowWing": 2.1,
+        "section": "round"
+      }
+    ]
+  },
+  "A35K": {
+    "dims": {
+      "length": 73.79,
+      "span": 64.75,
+      "height": 17.05,
+      "fuselageWidth": 5.96,
+      "fuselageHeight": 6.09
+    },
+    "fuselage": {
+      "end": 72.25,
+      "noseLength": 10,
+      "tailconeLength": 15.76,
+      "tailUpsweep": 1.5,
+      "cockpitWindowX": 3.84,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 26.2,
+      "rootChord": 13.6,
+      "kinkY": 10.1,
+      "tipChord": 1.7,
+      "sweepLE": 35,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "curved",
+      "height": 2.4,
+      "below": 0,
+      "cant": 25,
+      "rakeSpan": 0,
+      "rootY": 29.495
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 65.3,
+      "span": 18.79,
+      "rootChord": 5.7,
+      "tipChord": 2.46,
+      "sweepLE": 39.1,
+      "dihedral": 5,
+      "rootY": 2
+    },
+    "vtail": {
+      "rootLEx": 61.46,
+      "height": 9.42,
+      "rootChord": 7.79,
+      "tipChord": 3.04,
+      "sweepLE": 44,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 10.4,
+        "fanX": 25.78,
+        "nacelleDiameter": 4,
+        "nacelleLength": 6.4,
+        "dropBelowWing": 2.1,
+        "section": "round"
+      }
+    ]
+  },
+  "A388": {
+    "dims": {
+      "length": 72.73,
+      "span": 79.75,
+      "height": 24.09,
+      "fuselageWidth": 7.14,
+      "fuselageHeight": 8.41
+    },
+    "fuselage": {
+      "end": 70.4,
+      "noseLength": 13,
+      "tailconeLength": 23.87,
+      "tailUpsweep": 1.7,
+      "cockpitWindowX": 3.8,
+      "decks": 2,
+      "mainDeckWindowZ": 3.9,
+      "upperDeckWindowZ": 6.7
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 19.2,
+      "rootChord": 17.67,
+      "kinkY": 12,
+      "tipChord": 3.98,
+      "sweepLE": 36.6,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "fence",
+      "height": 1.2,
+      "below": 1.1,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 59,
+      "span": 30.37,
+      "rootChord": 9.2,
+      "tipChord": 3.72,
+      "sweepLE": 38.7,
+      "dihedral": 5.5,
+      "rootY": 2.9
+    },
+    "vtail": {
+      "rootLEx": 53.94,
+      "height": 14.59,
+      "rootChord": 12.06,
+      "tipChord": 4.7,
+      "sweepLE": 44,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 14.8,
+        "fanX": 22.23,
+        "nacelleDiameter": 3.9,
+        "nacelleLength": 8.06,
+        "dropBelowWing": 2.2,
+        "section": "round"
+      },
+      {
+        "y": 25.7,
+        "fanX": 29.94,
+        "nacelleDiameter": 3.9,
+        "nacelleLength": 8.06,
+        "dropBelowWing": 2.5,
+        "section": "round"
+      }
+    ]
+  },
+  "B733": {
+    "dims": {
+      "length": 33.4,
+      "span": 28.88,
+      "height": 11.1,
+      "fuselageWidth": 3.76,
+      "fuselageHeight": 4.01
+    },
+    "fuselage": {
+      "end": 32.18,
+      "noseLength": 5.5,
+      "tailconeLength": 12.7,
+      "tailUpsweep": 1,
+      "cockpitWindowX": 2.9,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 12.1,
+      "rootChord": 6.25,
+      "kinkY": 5.5,
+      "tipChord": 1,
+      "sweepLE": 30,
+      "dihedral": 6
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 27.9,
+      "span": 12.7,
+      "rootChord": 3.9,
+      "tipChord": 2.24,
+      "sweepLE": 32.5,
+      "dihedral": 6,
+      "rootY": 1.25
+    },
+    "vtail": {
+      "rootLEx": 26.2,
+      "height": 5.9,
+      "rootChord": 5.3,
+      "tipChord": 1.6,
+      "sweepLE": 40.5,
+      "dorsalFin": true,
+      "dorsalLength": 2.55,
+      "dorsalHeight": 1.5
+    },
+    "engines": [
+      {
+        "y": 4.83,
+        "fanX": 11,
+        "nacelleDiameter": 2.18,
+        "nacelleLength": 4,
+        "dropBelowWing": 0.9,
+        "section": "flat-bottom"
+      }
+    ]
+  },
+  "B738": {
+    "dims": {
+      "length": 39.47,
+      "span": 35.79,
+      "height": 12.55,
+      "fuselageWidth": 3.76,
+      "fuselageHeight": 4.01
+    },
+    "fuselage": {
+      "end": 38.02,
+      "noseLength": 5.8,
+      "tailconeLength": 12.1,
+      "tailUpsweep": 1,
+      "cockpitWindowX": 3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 15,
+      "rootChord": 6.4,
+      "kinkY": 5.5,
+      "tipChord": 1.1,
+      "sweepLE": 27.3,
+      "dihedral": 5.5,
+      "leBreakY": 5.5,
+      "sweepLEInboard": 37
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 2.35,
+      "below": 0,
+      "cant": 20,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 33.7,
+      "span": 14.35,
+      "rootChord": 3.9,
+      "tipChord": 1.47,
+      "sweepLE": 36.1,
+      "dihedral": 7,
+      "rootY": 1.3
+    },
+    "vtail": {
+      "rootLEx": 31.65,
+      "height": 7,
+      "rootChord": 5.4,
+      "tipChord": 1.6,
+      "sweepLE": 40,
+      "dorsalFin": true,
+      "dorsalLength": 2.85,
+      "dorsalHeight": 1.5
+    },
+    "engines": [
+      {
+        "y": 4.83,
+        "fanX": 13.36,
+        "nacelleDiameter": 2.13,
+        "nacelleLength": 4,
+        "dropBelowWing": 0.9,
+        "section": "flat-bottom"
+      }
+    ]
+  },
+  "B38M": {
+    "dims": {
+      "length": 39.47,
+      "span": 35.92,
+      "height": 12.3,
+      "fuselageWidth": 3.76,
+      "fuselageHeight": 4.01
+    },
+    "fuselage": {
+      "end": 39.12,
+      "noseLength": 5.8,
+      "tailconeLength": 12,
+      "tailUpsweep": 1.6,
+      "cockpitWindowX": 3.1,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 14.6,
+      "rootChord": 6.55,
+      "kinkY": 5,
+      "tipChord": 1.5,
+      "sweepLE": 28.5,
+      "dihedral": 4.5,
+      "leBreakY": 5.5,
+      "sweepLEInboard": 38
+    },
+    "wingtip": {
+      "type": "at-winglet",
+      "height": 2.1,
+      "below": 0.77,
+      "cant": 32,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 34.5,
+      "span": 14.35,
+      "rootChord": 3.4,
+      "tipChord": 0.67,
+      "sweepLE": 35.2,
+      "dihedral": 6,
+      "rootY": 1.1
+    },
+    "vtail": {
+      "rootLEx": 31.65,
+      "height": 6.9,
+      "rootChord": 5.4,
+      "tipChord": 1.5,
+      "sweepLE": 40,
+      "dorsalFin": true,
+      "dorsalLength": 2.85,
+      "dorsalHeight": 1.5
+    },
+    "engines": [
+      {
+        "y": 4.82,
+        "fanX": 13,
+        "nacelleDiameter": 2.4,
+        "nacelleLength": 4.2,
+        "dropBelowWing": 1.2,
+        "section": "round"
+      }
+    ]
+  },
+  "B763": {
+    "dims": {
+      "length": 54.94,
+      "span": 47.57,
+      "height": 15.85,
+      "fuselageWidth": 5.03,
+      "fuselageHeight": 5.41
+    },
+    "fuselage": {
+      "end": 53.7,
+      "noseLength": 6.6,
+      "tailconeLength": 14.5,
+      "tailUpsweep": 0.9,
+      "cockpitWindowX": 3,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 18.3,
+      "rootChord": 10.9,
+      "kinkY": 7.5,
+      "tipChord": 2.29,
+      "sweepLE": 35.6,
+      "dihedral": 3.9
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 46.8,
+      "span": 18.62,
+      "rootChord": 5.6,
+      "tipChord": 1.81,
+      "sweepLE": 37.5,
+      "dihedral": 10,
+      "rootY": 1.9
+    },
+    "vtail": {
+      "rootLEx": 41.9,
+      "height": 8.7,
+      "rootChord": 9.7,
+      "tipChord": 2.4,
+      "sweepLE": 44.3,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 7.92,
+        "fanX": 18.54,
+        "nacelleDiameter": 2.8,
+        "nacelleLength": 6.5,
+        "dropBelowWing": 1.8,
+        "section": "round"
+      }
+    ]
+  },
+  "B788": {
+    "dims": {
+      "length": 56.72,
+      "span": 60.12,
+      "height": 16.92,
+      "fuselageWidth": 5.77,
+      "fuselageHeight": 5.94
+    },
+    "fuselage": {
+      "end": 55.91,
+      "noseLength": 9.5,
+      "tailconeLength": 15.9,
+      "tailUpsweep": 1.3,
+      "cockpitWindowX": 3.1,
+      "decks": 1,
+      "tailEnd": "cone"
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 18.8,
+      "rootChord": 12,
+      "kinkY": 9.5,
+      "tipChord": 0.1,
+      "sweepLE": 34.9,
+      "dihedral": 4
+    },
+    "wingtip": {
+      "type": "raked",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 2.38,
+      "rakeLE": [
+        {
+          "x": 36.14,
+          "y": 27.68
+        },
+        {
+          "x": 37.05,
+          "y": 28.51
+        },
+        {
+          "x": 37.69,
+          "y": 28.9
+        },
+        {
+          "x": 38.58,
+          "y": 29.46
+        },
+        {
+          "x": 39.53,
+          "y": 29.94
+        },
+        {
+          "x": 40.36,
+          "y": 30.06
+        }
+      ],
+      "rakeTE": [
+        {
+          "x": 38.22,
+          "y": 27.68
+        },
+        {
+          "x": 38.76,
+          "y": 28.51
+        },
+        {
+          "x": 39.17,
+          "y": 28.99
+        },
+        {
+          "x": 39.65,
+          "y": 29.46
+        },
+        {
+          "x": 40.04,
+          "y": 29.82
+        },
+        {
+          "x": 40.36,
+          "y": 30.06
+        }
+      ]
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 48,
+      "span": 20,
+      "rootChord": 5.6,
+      "tipChord": 1.55,
+      "sweepLE": 41.1,
+      "dihedral": 5.6,
+      "rootY": 1.8
+    },
+    "vtail": {
+      "rootLEx": 42.7,
+      "height": 9,
+      "rootChord": 9.6,
+      "tipChord": 2,
+      "sweepLE": 41.6,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 9.73,
+        "fanX": 17.76,
+        "nacelleDiameter": 3.95,
+        "nacelleLength": 6.5,
+        "dropBelowWing": 2.1,
+        "section": "round"
+      }
+    ]
+  },
+  "B77W": {
+    "dims": {
+      "length": 73.86,
+      "span": 64.8,
+      "height": 18.85,
+      "fuselageWidth": 6.2,
+      "fuselageHeight": 6.2
+    },
+    "fuselage": {
+      "end": 73.08,
+      "noseLength": 9,
+      "tailconeLength": 18.6,
+      "tailUpsweep": 2.3,
+      "cockpitWindowX": 3.05,
+      "decks": 1,
+      "tailEnd": "blade"
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 26.89,
+      "rootChord": 13.3,
+      "kinkY": 11,
+      "tipChord": 0.61,
+      "sweepLE": 34.4,
+      "dihedral": 5
+    },
+    "wingtip": {
+      "type": "raked",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 1.1,
+      "rakeLE": [
+        {
+          "x": 46.2,
+          "y": 31.3
+        },
+        {
+          "x": 48.5,
+          "y": 32.4
+        }
+      ],
+      "rakeTE": [
+        {
+          "x": 47.36,
+          "y": 29.86
+        },
+        {
+          "x": 49.11,
+          "y": 32.4
+        }
+      ]
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 64.25,
+      "span": 21.8,
+      "rootChord": 6.3,
+      "tipChord": 2.28,
+      "sweepLE": 39.1,
+      "dihedral": 5.6,
+      "rootY": 1.9
+    },
+    "vtail": {
+      "rootLEx": 57.8,
+      "height": 9.8,
+      "rootChord": 11.1,
+      "tipChord": 2.4,
+      "sweepLE": 44.7,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 9.61,
+        "fanX": 25.76,
+        "nacelleDiameter": 3.8,
+        "nacelleLength": 6.4,
+        "dropBelowWing": 1.9,
+        "section": "round"
+      }
+    ]
+  },
+  "E170": {
+    "dims": {
+      "length": 29.9,
+      "span": 26,
+      "height": 9.86,
+      "fuselageWidth": 3.01,
+      "fuselageHeight": 3.35
+    },
+    "fuselage": {
+      "noseLength": 5.45,
+      "tailconeLength": 9.5,
+      "tailUpsweep": 0.93,
+      "cockpitWindowX": 3.36,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 10.99,
+      "rootChord": 4.95,
+      "kinkY": 4.6,
+      "tipChord": 1.47,
+      "sweepLE": 27.6,
+      "dihedral": 4.1
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.45,
+      "below": 0,
+      "cant": 15.6,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 24.9,
+      "span": 10,
+      "rootChord": 3.18,
+      "tipChord": 1.29,
+      "sweepLE": 35.8,
+      "dihedral": 6.3,
+      "rootY": 1
+    },
+    "vtail": {
+      "rootLEx": 23.32,
+      "height": 5.13,
+      "rootChord": 5,
+      "tipChord": 1.66,
+      "sweepLE": 42.9,
+      "dorsalFin": true,
+      "dorsalLength": 1.67,
+      "dorsalHeight": 0.74
+    },
+    "engines": [
+      {
+        "y": 3.98,
+        "fanX": 9.38,
+        "nacelleDiameter": 1.62,
+        "nacelleLength": 3.45,
+        "dropBelowWing": 0.82,
+        "section": "round"
+      }
+    ]
+  },
+  "E195": {
+    "dims": {
+      "length": 38.67,
+      "span": 28.72,
+      "height": 10.55,
+      "fuselageWidth": 3.01,
+      "fuselageHeight": 3.35
+    },
+    "fuselage": {
+      "noseLength": 5,
+      "tailconeLength": 9.2,
+      "tailUpsweep": 0.9,
+      "cockpitWindowX": 3.24,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 14.59,
+      "rootChord": 5.42,
+      "kinkY": 5.1,
+      "tipChord": 1.65,
+      "sweepLE": 26.8,
+      "dihedral": 3.2
+    },
+    "wingtip": {
+      "type": "blended",
+      "height": 1.6,
+      "below": 0,
+      "cant": 18.8,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 34.1,
+      "span": 12.08,
+      "rootChord": 2.96,
+      "tipChord": 0.83,
+      "sweepLE": 34.8,
+      "dihedral": 5.9,
+      "rootY": 1
+    },
+    "vtail": {
+      "rootLEx": 32.28,
+      "height": 5.1,
+      "rootChord": 4.59,
+      "tipChord": 1.4,
+      "sweepLE": 40.6,
+      "dorsalFin": true,
+      "dorsalLength": 1.7,
+      "dorsalHeight": 0.87
+    },
+    "engines": [
+      {
+        "y": 4.5,
+        "fanX": 12.86,
+        "nacelleDiameter": 2,
+        "nacelleLength": 3.55,
+        "dropBelowWing": 0.93,
+        "section": "round"
+      }
+    ]
+  },
+  "SU95": {
+    "dims": {
+      "length": 29.94,
+      "span": 27.8,
+      "height": 10.28,
+      "fuselageWidth": 3.45,
+      "fuselageHeight": 3.46
+    },
+    "fuselage": {
+      "noseLength": 5,
+      "tailconeLength": 7.3,
+      "tailUpsweep": 0.7,
+      "cockpitWindowX": 3.76,
+      "decks": 1
+    },
+    "wing": {
+      "position": "low",
+      "rootLEx": 10.85,
+      "rootChord": 5.04,
+      "kinkY": 5,
+      "tipChord": 1.4,
+      "sweepLE": 27.5,
+      "dihedral": 4.1
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "fuselage",
+      "rootLEx": 26.1,
+      "span": 10.1,
+      "rootChord": 2.5,
+      "tipChord": 0.82,
+      "sweepLE": 33.6,
+      "dihedral": 2.5,
+      "rootY": 1.2
+    },
+    "vtail": {
+      "rootLEx": 23.1,
+      "height": 5,
+      "rootChord": 4.3,
+      "tipChord": 1.3,
+      "sweepLE": 41.8,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 4.48,
+        "fanX": 9.4,
+        "nacelleDiameter": 1.85,
+        "nacelleLength": 4.25,
+        "dropBelowWing": 1.15,
+        "section": "round"
+      }
+    ]
+  },
+  "DH8B": {
+    "dims": {
+      "length": 22.25,
+      "span": 25.89,
+      "height": 7.49,
+      "fuselageWidth": 2.69,
+      "fuselageHeight": 2.57
+    },
+    "fuselage": {
+      "end": 20.78,
+      "noseLength": 4.3,
+      "tailconeLength": 6.03,
+      "tailUpsweep": 0.8,
+      "cockpitWindowX": 3.46,
+      "decks": 1
+    },
+    "wing": {
+      "position": "high",
+      "rootLEx": 8.4,
+      "rootChord": 2.64,
+      "tipChord": 1.37,
+      "sweepLE": 4.3,
+      "dihedral": 2
+    },
+    "wingtip": {
+      "type": "none",
+      "height": 0,
+      "below": 0,
+      "cant": 0,
+      "rakeSpan": 0
+    },
+    "htail": {
+      "position": "t-tail",
+      "rootLEx": 19.85,
+      "span": 7.93,
+      "rootChord": 2.14,
+      "tipChord": 1.55,
+      "sweepLE": 8.5,
+      "dihedral": 0,
+      "rootY": 0,
+      "zBelowFinTop": 0.25
+    },
+    "vtail": {
+      "rootLEx": 16.54,
+      "height": 4.3,
+      "rootChord": 4,
+      "tipChord": 2.8,
+      "sweepLE": 33.6,
+      "dorsalFin": false
+    },
+    "engines": [
+      {
+        "y": 3.94,
+        "fanX": 5.82,
+        "nacelleDiameter": 0.88,
+        "nacelleLength": 7.2,
+        "dropBelowWing": 0.15,
+        "section": "round",
+        "prop": {
+          "diameter": 3.96
+        }
+      }
+    ]
+  }
+}

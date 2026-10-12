@@ -75,6 +75,18 @@ it('the sign relights only after a pick, never on first render or when the view 
   expect(relit()).toBeNull()
 })
 
+it('Airports uses the baggage belt and changes its tag with the selected airport', () => {
+  admit()
+  const { container } = render(<Section span="full" />)
+  view('Airports')
+  const belt = () => container.querySelector('.iso-carousel')
+  expect(belt()).not.toBeNull()
+  expect(belt()).toHaveTextContent('IST')
+  row('TBS')
+  expect(belt()).toHaveTextContent('TBS')
+  expect(container.querySelector('.ov3-card-caption')).toHaveTextContent('Tbilisi')
+})
+
 it('a filter that leaves nothing to rank says so and offers to clear it', () => {
   const actions = admit({ airlines: ['ZZ'] })
   render(<Section span="full" />)

@@ -100,7 +100,7 @@ export function fleet(
     status: 'ready',
     value: {
       topType: top ? { icao: top.key, share: top.flights / typed } : null,
-      topTypes: ranked.slice(0, 3),
+      topTypes: ranked.slice(0, 5),
       byBodyType: shares(bodyTypes),
       byManufacturer: shares(manufacturers),
       families: families.size,

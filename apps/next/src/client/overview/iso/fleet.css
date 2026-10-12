@@ -1,0 +1,29 @@
+.iso-fleet [data-part='window'] {
+  opacity: var(--iso-lit);
+}
+.iso-fleet [data-part='shadow'] {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .iso-fleet :is([data-part='plane'], [data-part='rod']) {
+    transform: translateY(calc(var(--lift-y) * var(--iso-move)));
+    transition: transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+  .iso-fleet [data-part='shadow'] {
+    opacity: calc(1 - 0.45 * var(--iso-move));
+    transform: scale(calc(1 - 0.08 * var(--iso-move)));
+    transition:
+      opacity var(--iso-dur) var(--iso-ease) var(--iso-delay),
+      transform var(--iso-dur) var(--iso-ease) var(--iso-delay);
+  }
+  /* The windows go dark together on the way out; only switching on runs nose to tail. */
+  .iso-fleet [data-part='window'] {
+    transition: opacity var(--iso-dur) var(--iso-ease)
+      calc(var(--iso-delay) + var(--t) * var(--iso-stagger));
+  }
+}
+/* Stand-in outlines for types without measured geometry: faint strokes, no accents. */
+.iso-fleet [data-part='generic'] :is(polygon, path) {
+  stroke-opacity: 0.5;
+}

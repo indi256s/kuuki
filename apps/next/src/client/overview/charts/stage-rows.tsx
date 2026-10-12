@@ -6,6 +6,8 @@ import { num, stageExtent, stageMax, stageText, type StageProps } from './stage-
 import './stage.css'
 
 export type StageRowsProps<T> = StageProps<T> & {
+  /** Row height when the chapter gives its list more room. */
+  rowHeight?: number
   /** The row's visible name (`point.label` is the longer spoken one). */
   name?: (point: ChartPoint<T>) => string
   /** Mono name, for codes. */
@@ -43,7 +45,7 @@ export function StageRows<T>(props: StageRowsProps<T>) {
   const { points, value, selectedKey, appliedKeys, span, name, mono, swatch, fill, outline } = props
   const valueWidth = props.valueWidth ?? 48,
     max = stageMax(points, value),
-    pitch = rowPitch(span, points.length)
+    pitch = props.rowHeight ?? rowPitch(span, points.length)
   const applied = (point: ChartPoint<T>) => !!appliedKeys?.includes(point.key)
   return (
     <KuukiChart

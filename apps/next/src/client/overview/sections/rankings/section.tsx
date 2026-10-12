@@ -21,7 +21,7 @@ import { referenceLabels } from '../../labels'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, flights, percent, filterLabel, moreAirlines, number } from './display'
-import { GateSignFigure } from './figure'
+import { AirportFigure, GateSignFigure } from './figure'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
@@ -84,7 +84,13 @@ export function Section({ span }: { span: Span }) {
     return (
       <ChapterCard
         state={state}
-        figure={<GateSignFigure code="" picked={false} />}
+        figure={
+          category === 'airports' ? (
+            <AirportFigure code="" />
+          ) : (
+            <GateSignFigure code="" picked={false} />
+          )
+        }
         hero={{ value: '', caption: null }}
         chart={{ caption: '', plot: null }}
         empty={{
@@ -722,7 +728,13 @@ export function Section({ span }: { span: Span }) {
   return (
     <ChapterCard
       state="ready"
-      figure={<GateSignFigure code={code} picked={r.picked} />}
+      figure={
+        category === 'airports' ? (
+          <AirportFigure code={code} />
+        ) : (
+          <GateSignFigure code={code} picked={r.picked} />
+        )
+      }
       figureButton={
         keys.length > 1
           ? {

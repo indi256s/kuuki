@@ -1,8 +1,10 @@
 import { useMemo } from 'react'
 import { IsoFigure } from '../../iso/iso-figure'
 import { gateSign } from '../../iso/gate-sign'
+import { carousel } from '../../iso/carousel'
 import { fitBox } from '../../iso/scene'
 import '../../iso/gate-sign.css'
+import '../../iso/carousel.css'
 
 let fitted: number | undefined
 // The sign's geometry never depends on its code, so one scale fits every reading in the card's 300 × 160 stage.
@@ -27,6 +29,17 @@ export function GateSignFigure({ code, picked }: { code: string; picked: boolean
       data-blank={code ? undefined : ''}
     >
       <IsoFigure figure={figure} className="iso-gate-pick" />
+    </div>
+  )
+}
+
+const carouselK = fitBox(300, 160, (k) => carousel(k, { code: 'AAA' }))
+
+export function AirportFigure({ code }: { code: string }) {
+  const figure = useMemo(() => carousel(carouselK, { code }), [code])
+  return (
+    <div data-blank={code ? undefined : ''}>
+      <IsoFigure figure={figure} className="iso-carousel" />
     </div>
   )
 }
