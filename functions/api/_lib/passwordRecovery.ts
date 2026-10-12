@@ -96,7 +96,7 @@ export async function completePasswordRecovery(
       .bind(claim, now, id, hash, now),
     db
       .prepare(
-        `UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ${owner} AND password_hash <> 'RESET_REQUIRED'`,
+        `UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE id = ${owner} AND password_hash <> 'RESET_REQUIRED'`,
       )
       .bind(passwordHash, now, id, claim),
     db

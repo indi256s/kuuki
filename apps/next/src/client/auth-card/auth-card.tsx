@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
-import { api, ApiError } from '@kuuki/client/apiClient'
+import { api, ApiError, beginIdentityOperation } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import { markOnboarded } from '../welcome/api'
 import { dissolve } from '../welcome/dissolve'
@@ -85,10 +85,19 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export type CardState =
   | {
       step: 'form'
-      error?: 'email' | 'password' | 'invalid' | 'rate' | 'network' | 'taken'
+      error?:
+        | 'email'
+        | 'password'
+        | 'invalid'
+        | 'rate'
+        | 'network'
+        | 'taken'
+        | 'google'
+        | 'google-link'
       notice?: 'created' | 'password-saved'
     }
   | { step: 'checking' }
+  | { step: 'google' }
   | { step: 'create'; email: string; error?: 'short' | 'rate' | 'network' }
   | { step: 'creating'; email: string }
   | { step: 'welcome'; init: WelcomeInit }
@@ -155,6 +164,8 @@ export function AuthCard({
   initialEmail = '',
   initialStep = 'form',
   initialNotice,
+  initialError,
+  googleEnabled = false,
   tagline,
   welcome,
 }: {
@@ -162,6 +173,8 @@ export function AuthCard({
   initialEmail?: string
   initialStep?: 'form' | 'request'
   initialNotice?: 'password-saved'
+  initialError?: 'google' | 'google-link'
+  googleEnabled?: boolean
   tagline: number
   /** Set on `/welcome/*`: the card opens at this onboarding step. */
   welcome?: WelcomeInit
@@ -171,7 +184,7 @@ export function AuthCard({
       ? { step: 'welcome', init: welcome }
       : initialStep === 'request'
         ? { step: 'request', email: initialEmail }
-        : { step: 'form', notice: initialNotice },
+        : { step: 'form', notice: initialNotice, error: initialError },
   )
   const card = useRef<HTMLDivElement>(null)
   const [passport, setPassport] = useState<Preview | null>(null)
@@ -197,6 +210,7 @@ export function AuthCard({
   const emailInput = useRef<HTMLInputElement>(null)
   const passwordInput = useRef<HTMLInputElement>(null)
   const primary = useRef<HTMLButtonElement>(null)
+  const googleStarting = useRef(false)
 
   const go = (next: CardState, target: FocusTarget = 'heading') => {
     focus.current = target
@@ -252,6 +266,31 @@ export function AuthCard({
         return go({ step: 'form', error: 'email' })
       if (code === 'MISSING_PASSWORD') return go({ step: 'form', error: 'password' })
       go({ step: 'form', error: statusOf(error) === 429 ? 'rate' : 'network' })
+    }
+  }
+
+  const signInWithGoogle = async () => {
+    if (googleStarting.current || (state.step !== 'form' && state.step !== 'create')) return
+    googleStarting.current = true
+    go({ step: 'google' })
+    let operation: ReturnType<typeof beginIdentityOperation> | undefined
+    try {
+      // Drain older cookie writes before creating OAuth state; identity changes on the callback.
+      operation = beginIdentityOperation()
+      await operation.ready
+      const result = await api.post<{ url: string }>(
+        '/api/auth/sign-in/social',
+        { provider: 'google' },
+        { identityToken: operation.token },
+      )
+      const target = new URL(result.url)
+      if (target.origin !== 'https://accounts.google.com') throw new Error('Invalid Google URL')
+      window.location.assign(target.href)
+    } catch (error) {
+      googleStarting.current = false
+      go({ step: 'form', error: statusOf(error) === 429 ? 'rate' : 'google' })
+    } finally {
+      operation?.release()
     }
   }
 
@@ -383,12 +422,13 @@ export function AuthCard({
             emailRef={emailInput}
             passwordRef={passwordInput}
             primaryRef={primary}
+            onGoogle={googleEnabled ? () => void signInWithGoogle() : undefined}
             onEmailChange={changeEmail}
             onPasswordChange={changePassword}
             onSubmit={submit}
             onChangeEmail={() => go({ step: 'form' }, 'email-selected')}
             onGetBackIn={() => {
-              if (state.step !== 'checking' && state.step !== 'creating')
+              if (state.step !== 'checking' && state.step !== 'creating' && state.step !== 'google')
                 go({ step: 'request', email })
             }}
           />
@@ -396,6 +436,7 @@ export function AuthCard({
       </div>
       {state.step === 'form' ||
       state.step === 'checking' ||
+      state.step === 'google' ||
       state.step === 'create' ||
       state.step === 'creating' ? (
         <Tagline locale={locale} index={tagline} />

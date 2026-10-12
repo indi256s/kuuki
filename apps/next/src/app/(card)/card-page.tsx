@@ -20,17 +20,22 @@ export async function cardMetadata({ canonical }: { canonical: boolean }): Promi
 export async function CardPage({
   initialEmail = '',
   initialNotice,
+  initialError,
 }: {
   initialEmail?: string
   initialNotice?: 'password-saved'
+  initialError?: 'google' | 'google-link'
 }) {
   const landing = await getMemberLanding()
   if (landing) redirect(landing)
+  const env = await getRequestEnv()
   return (
     <AuthCard
       locale={await getRequestLocale()}
       initialEmail={initialEmail}
       initialNotice={initialNotice}
+      initialError={initialError}
+      googleEnabled={Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)}
       tagline={pickTagline()}
     />
   )

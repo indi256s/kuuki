@@ -2,6 +2,33 @@ import { test, expect } from '@playwright/test'
 import { claimUsername, signIn, fixtureHeaders, fillManualFlight } from './helpers'
 import { readFile } from 'node:fs/promises'
 
+test('a document landing after a server-side sign-in refreshes another visible account window', async ({
+  page: oldTab,
+  context,
+  baseURL,
+}) => {
+  await signIn(oldTab, baseURL!)
+  await oldTab.goto('/overview')
+  await expect(oldTab.locator('.ov-globe')).toBeVisible()
+  await oldTab.evaluate(() =>
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => 'visible',
+    }),
+  )
+  const bootstrap = oldTab.waitForResponse('**/api/auth/me')
+  await oldTab.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await (await bootstrap).finished()
+  const newTab = await context.newPage()
+  // Like an OAuth callback, the server changes the shared cookie without the old window's client action.
+  await signIn(newTab, baseURL!, 'b@example.test')
+  const reload = oldTab.waitForEvent('domcontentloaded')
+  await newTab.goto('/overview')
+  await reload
+  await expect(oldTab).toHaveURL(/\/overview$/)
+  await expect(oldTab.getByRole('heading', { level: 1 })).toBeVisible()
+})
+
 test('settings saves owned profile and privacy on a fresh account', async ({ page, baseURL }) => {
   const email = `settings-${crypto.randomUUID()}@example.test`
   const signup = await page.request.post('/api/auth/sign-up/email', {

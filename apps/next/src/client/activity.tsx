@@ -255,6 +255,8 @@ export function ActivityBridge() {
     }
     const channel = 'BroadcastChannel' in window ? new BroadcastChannel('kuuki-identity') : null
     channel?.addEventListener('message', onFocus)
+    // A document load can follow an OAuth callback that changed the shared cookie outside this tab's client.
+    channel?.postMessage({ tabId })
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onFocus)
     const interval = window.setInterval(

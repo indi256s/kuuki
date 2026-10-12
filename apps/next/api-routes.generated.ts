@@ -19,6 +19,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/auth/callback/google",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/auth/continue",
     "methods": [
       "POST"
@@ -62,6 +68,12 @@ export const apiRoutes = [
   },
   {
     "route": "/api/auth/sign-in/email",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/auth/sign-in/social",
     "methods": [
       "POST"
     ]

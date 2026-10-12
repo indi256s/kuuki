@@ -32,6 +32,8 @@ function scan(dir) {
 scan(apiDir)
 routes.push(
   { route: '/api/auth/sign-in/email', methods: ['POST'] },
+  { route: '/api/auth/sign-in/social', methods: ['POST'] },
+  { route: '/api/auth/callback/google', methods: ['GET'] },
   { route: '/api/auth/sign-up/email', methods: ['POST'] },
   { route: '/api/auth/sign-out', methods: ['POST'] },
   { route: '/api/auth/get-session', methods: ['GET'] },

@@ -72,6 +72,8 @@ const mf = new Miniflare({
   bindings: {
     AUTH_SECRET: 'synthetic-browser-pepper',
     BETTER_AUTH_SECRET: 'synthetic-better-auth-secret-for-runtime-proof',
+    GOOGLE_CLIENT_ID: 'synthetic-google-client',
+    GOOGLE_CLIENT_SECRET: 'synthetic-google-secret',
     PAGES_ORIGIN: origin,
     MAINTENANCE_MODE: 'false',
     ...(check

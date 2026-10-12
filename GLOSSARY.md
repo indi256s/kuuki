@@ -7,7 +7,7 @@ details, no plans. Started 2026-06-23 during the Phase 8 prod-login grilling.
 
 ### Login enablement
 
-Establishing a usable credential in a migrated account after its owner proves email ownership through a get-back-in link, preserving the original journal identity. Distinct from replacing an already usable credential through password reset.
+Establishing a usable password credential in a migrated or Google-only account after its owner proves email ownership through a get-back-in link, preserving the original journal identity. Distinct from replacing an already usable credential through password reset.
 
 ### Password reset (flow)
 

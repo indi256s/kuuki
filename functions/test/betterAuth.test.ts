@@ -28,6 +28,7 @@ async function call(
   body?: object,
   cookie = '',
   headers: Record<string, string> = {},
+  environment: Partial<Env> = {},
 ) {
   const csrf = /(?:^|; )kuuki_csrf=([^;]+)/.exec(cookie)?.[1]
   const request = new Request(`${ORIGIN}${path}`, {
@@ -41,7 +42,7 @@ async function call(
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
-  const context = { ...apiContext(db, request), env: { DB: db, ...env } }
+  const context = { ...apiContext(db, request), env: { DB: db, ...env, ...environment } }
   const handler =
     path === '/api/auth/me'
       ? meRoute
@@ -53,7 +54,10 @@ async function call(
   return middleware({ ...context, next: () => handler(context as never) } as never)
 }
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 it('reports session creation failure as unavailable rather than bad credentials on both sign-in paths', async () => {
   const { db, dispose } = await createApiDatabase()
@@ -490,6 +494,286 @@ it('keeps signup provisioning atomic and makes a failed session recoverable by s
       password: 'password-123',
     })
     expect(recovered.status).toBe(200)
+  } finally {
+    await dispose()
+  }
+}, 30_000)
+
+const googleEnv = {
+  GOOGLE_CLIENT_ID: 'synthetic-google-client',
+  GOOGLE_CLIENT_SECRET: 'synthetic-google-secret',
+}
+
+function mockGoogle(profile: Record<string, unknown>) {
+  const fetch = vi.fn(async (input: string | URL | Request) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    if (url !== 'https://oauth2.googleapis.com/token') throw new Error(`Unexpected fetch: ${url}`)
+    const claims = { sub: 'google-subject', email_verified: true, name: 'Google name', ...profile }
+    // The trusted token endpoint is the network boundary; Better Auth consumes its ID token.
+    const idToken = `${btoa(JSON.stringify({ alg: 'RS256' }))}.${btoa(JSON.stringify(claims))}.signature`
+    return Response.json({
+      access_token: 'synthetic-access-token',
+      refresh_token: 'synthetic-refresh-token',
+      id_token: idToken,
+      token_type: 'Bearer',
+      expires_in: 3600,
+    })
+  })
+  vi.stubGlobal('fetch', fetch)
+  return fetch
+}
+
+async function startGoogle(db: D1Database, cookie = '') {
+  const start = await call(
+    db,
+    '/api/auth/sign-in/social',
+    'POST',
+    {
+      provider: 'google',
+      callbackURL: 'https://foreign.test/steal',
+      newUserCallbackURL: 'https://foreign.test/new',
+      errorCallbackURL: 'https://foreign.test/error',
+    },
+    cookie,
+    {},
+    googleEnv,
+  )
+  expect(start.status).toBe(200)
+  const body = (await start.json()) as { url: string; redirect: boolean }
+  const authorization = new URL(body.url)
+  expect(authorization.origin).toBe('https://accounts.google.com')
+  expect(authorization.searchParams.get('redirect_uri')).toBe(`${ORIGIN}/api/auth/callback/google`)
+  expect(authorization.searchParams.get('code_challenge')).toBeTruthy()
+  expect(body.redirect).toBe(false)
+  return { state: authorization.searchParams.get('state')!, cookie: responseCookies(start) }
+}
+
+it('creates a private Google profile before the session, discards provider tokens and rejects replayed state', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    mockGoogle({ email: 'new@gmail.com' })
+    const flow = await startGoogle(db)
+    const callbackPath = `/api/auth/callback/google?code=synthetic-code&state=${flow.state}`
+    const callback = await call(db, callbackPath, 'GET', undefined, flow.cookie, {}, googleEnv)
+    expect(callback.status).toBe(302)
+    expect(callback.headers.get('Location')).toBe(`${ORIGIN}/welcome/name`)
+    expect(responseCookies(callback)).toContain('kuuki_csrf=')
+    const cookie = responseCookies(callback)
+    const me = await call(db, '/api/auth/me', 'GET', undefined, cookie)
+    const own = (await me.json()) as { user: { id: string }; profile: Record<string, unknown> }
+    expect(own.user.id).toBeTruthy()
+    expect(own.profile).toMatchObject({ id: own.user.id, is_public: false })
+    expect(
+      await db
+        .prepare('SELECT password_hash, email_verified FROM users WHERE id = ?')
+        .bind(own.user.id)
+        .first(),
+    ).toMatchObject({ password_hash: 'RESET_REQUIRED', email_verified: 1 })
+    expect(
+      await db
+        .prepare('SELECT accessToken, refreshToken, idToken FROM auth_accounts WHERE userId = ?')
+        .bind(own.user.id)
+        .first(),
+    ).toEqual({ accessToken: null, refreshToken: null, idToken: null })
+    const replay = await call(db, callbackPath, 'GET', undefined, flow.cookie, {}, googleEnv)
+    expect(replay.headers.get('Location')).toContain(`${ORIGIN}/signin?`)
+    expect(responseCookies(replay)).not.toContain('kuuki_auth_session=')
+    expect(
+      (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
+    ).toBe(1)
+  } finally {
+    await dispose()
+  }
+}, 30_000)
+
+it('links an authoritative Google email to a verified local identity without changing its journal profile', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    const previous = await call(db, '/api/auth/sign-up/email', 'POST', {
+      email: 'previous@example.test',
+      password: 'password-123',
+    })
+    const previousCookie = responseCookies(previous)
+    await db.batch([
+      db.prepare(
+        "INSERT INTO users(id,email,password_hash,email_verified) VALUES('existing','existing@gmail.com','RESET_REQUIRED',1)",
+      ),
+      db.prepare(
+        "INSERT INTO profiles(id,display_name,username,is_public) VALUES('existing','Chosen name','chosen',1)",
+      ),
+    ])
+    const legacy = await createSession(db, 'existing')
+    mockGoogle({ email: 'existing@gmail.com' })
+    const legacyCookie = `kuuki_session=${legacy.token}`
+    const flow = await startGoogle(db, legacyCookie)
+    expect(flow.cookie).not.toContain('kuuki_session=')
+    const callback = await call(
+      db,
+      `/api/auth/callback/google?code=code&state=${flow.state}`,
+      'GET',
+      undefined,
+      `${previousCookie}; ${legacyCookie}; ${flow.cookie}`,
+      {},
+      googleEnv,
+    )
+    expect(callback.headers.get('Location')).toBe(`${ORIGIN}/overview`)
+    expect(responseCookies(callback)).toContain('kuuki_session=;')
+    const me = await call(db, '/api/auth/me', 'GET', undefined, responseCookies(callback))
+    expect(await me.json()).toMatchObject({
+      user: { id: 'existing' },
+      profile: { display_name: 'Chosen name', username: 'chosen', is_public: true },
+    })
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM users').first<{ n: number }>())?.n).toBe(2)
+    expect(await (await call(db, '/api/auth/me', 'GET', undefined, previousCookie)).json()).toEqual(
+      {
+        user: null,
+        profile: null,
+      },
+    )
+    expect(
+      (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
+    ).toBe(1)
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n).toBe(
+      0,
+    )
+  } finally {
+    await dispose()
+  }
+}, 30_000)
+
+it.each([
+  ['unverified local identity', 'existing@gmail.com', 0],
+  ['third-party Google mailbox', 'existing@example.test', 1],
+])(
+  'refuses implicit Google linking for %s',
+  async (_reason, email, verified) => {
+    const { db, dispose } = await createApiDatabase()
+    try {
+      await db.batch([
+        db
+          .prepare('INSERT INTO users(id,email,password_hash,email_verified) VALUES(?,?,?,?)')
+          .bind('existing', email, 'RESET_REQUIRED', verified),
+        db.prepare("INSERT INTO profiles(id,display_name) VALUES('existing','Existing journal')"),
+      ])
+      mockGoogle({ email })
+      const flow = await startGoogle(db)
+      const callback = await call(
+        db,
+        `/api/auth/callback/google?code=code&state=${flow.state}`,
+        'GET',
+        undefined,
+        flow.cookie,
+        {},
+        googleEnv,
+      )
+      expect(new URL(callback.headers.get('Location')!).searchParams.get('error')).toBe(
+        'account_not_linked',
+      )
+      expect(responseCookies(callback)).not.toContain('kuuki_auth_session=')
+      expect(
+        (await db.prepare('SELECT COUNT(*) AS n FROM auth_accounts').first<{ n: number }>())?.n,
+      ).toBe(0)
+      expect(
+        (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
+      ).toBe(0)
+    } finally {
+      await dispose()
+    }
+  },
+  30_000,
+)
+
+it('rejects unsafe social starts and routes Google cancellation to the local sign-in page', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    for (const body of [
+      { provider: 'github' },
+      { provider: 'google', idToken: { token: 'bypass' } },
+    ]) {
+      expect(
+        (await call(db, '/api/auth/sign-in/social', 'POST', body, '', {}, googleEnv)).status,
+      ).toBe(400)
+    }
+    expect(
+      (
+        await call(
+          db,
+          '/api/auth/sign-in/social',
+          'POST',
+          { provider: 'google' },
+          '',
+          { Origin: 'https://foreign.test' },
+          googleEnv,
+        )
+      ).status,
+    ).toBe(403)
+    expect(
+      (await call(db, '/api/auth/sign-in/social', 'POST', { provider: 'google' })).status,
+    ).toBe(503)
+    const flow = await startGoogle(db)
+    const cancelled = await call(
+      db,
+      `/api/auth/callback/google?error=access_denied&state=${flow.state}`,
+      'GET',
+      undefined,
+      flow.cookie,
+      {},
+      googleEnv,
+    )
+    expect(cancelled.headers.get('Location')).toContain(`${ORIGIN}/signin?`)
+    expect(new URL(cancelled.headers.get('Location')!).searchParams.get('error')).toBe(
+      'access_denied',
+    )
+    expect(responseCookies(cancelled)).not.toContain('kuuki_auth_session=')
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM users').first<{ n: number }>())?.n).toBe(0)
+  } finally {
+    await dispose()
+  }
+}, 30_000)
+
+it('withholds a Google session when profile provisioning fails and recovers on the next sign-in', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await db
+      .prepare(
+        "CREATE TRIGGER fail_profile BEFORE INSERT ON profiles BEGIN SELECT RAISE(ABORT, 'synthetic profile failure'); END",
+      )
+      .run()
+    mockGoogle({ email: 'recover@gmail.com' })
+    const failedFlow = await startGoogle(db)
+    const failed = await call(
+      db,
+      `/api/auth/callback/google?code=code&state=${failedFlow.state}`,
+      'GET',
+      undefined,
+      failedFlow.cookie,
+      {},
+      googleEnv,
+    )
+    expect(responseCookies(failed)).not.toContain('kuuki_auth_session=')
+    expect(
+      (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
+    ).toBe(0)
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM profiles').first<{ n: number }>())?.n).toBe(
+      0,
+    )
+    await db.prepare('DROP TRIGGER fail_profile').run()
+    const retryFlow = await startGoogle(db)
+    const retry = await call(
+      db,
+      `/api/auth/callback/google?code=code&state=${retryFlow.state}`,
+      'GET',
+      undefined,
+      retryFlow.cookie,
+      {},
+      googleEnv,
+    )
+    expect(retry.headers.get('Location')).toBe(`${ORIGIN}/overview`)
+    expect(responseCookies(retry)).toContain('kuuki_auth_session=')
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM profiles').first<{ n: number }>())?.n).toBe(
+      1,
+    )
+    expect((await db.prepare('SELECT COUNT(*) AS n FROM users').first<{ n: number }>())?.n).toBe(1)
   } finally {
     await dispose()
   }

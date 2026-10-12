@@ -54,6 +54,10 @@ it('activates only a RESET_REQUIRED user once and keeps an active account unchan
   const { db, dispose } = await createApiDatabase()
   try {
     await seedUser(db, 'legacy', 'legacy@example.test')
+    await db
+      .prepare(`INSERT INTO auth_accounts (id, accountId, providerId, userId, createdAt, updatedAt)
+        VALUES ('google-account', 'google-subject', 'google', 'legacy', '2026-01-01', '2026-01-01')`)
+      .run()
     const activeHash = await hashPassword('old-password', SECRET)
     await seedUser(db, 'active', 'active@example.test', activeHash)
     const activeSession = await createSession(db, 'active')
@@ -70,6 +74,9 @@ it('activates only a RESET_REQUIRED user once and keeps an active account unchan
     expect(links).toHaveLength(1)
     expect(new URL(links[0]).pathname).toBe('/activate')
     const token = new URL(links[0]).hash.slice('#token='.length)
+    expect(
+      await db.prepare("SELECT email_verified FROM users WHERE id = 'legacy'").first(),
+    ).toEqual({ email_verified: 0 })
     const results = await Promise.all([
       completeActivation(db, token, 'new-password-1', SECRET),
       completeActivation(db, token, 'new-password-2', SECRET),
@@ -77,19 +84,38 @@ it('activates only a RESET_REQUIRED user once and keeps an active account unchan
     expect(results.sort()).toEqual([false, true])
     expect(await completeActivation(db, token, 'new-password-3', SECRET)).toBe(false)
     const legacy = await db
-      .prepare('SELECT password_hash FROM users WHERE id = ?')
+      .prepare('SELECT id, email, password_hash, email_verified FROM users WHERE id = ?')
       .bind('legacy')
-      .first<{ password_hash: string }>()
+      .first<{ id: string; email: string; password_hash: string; email_verified: number }>()
+    expect(legacy).toMatchObject({
+      id: 'legacy',
+      email: 'legacy@example.test',
+      email_verified: 1,
+    })
     expect(legacy?.password_hash).not.toBe('RESET_REQUIRED')
+    expect(
+      await db
+        .prepare(
+          'SELECT accountId, providerId, password FROM auth_accounts WHERE userId = ? ORDER BY providerId',
+        )
+        .bind('legacy')
+        .all(),
+    ).toMatchObject({
+      results: [
+        { accountId: 'legacy', providerId: 'credential', password: legacy!.password_hash },
+        { accountId: 'google-subject', providerId: 'google', password: null },
+      ],
+    })
     expect(
       (await verifyPassword('new-password-1', legacy!.password_hash, SECRET)) ||
         (await verifyPassword('new-password-2', legacy!.password_hash, SECRET)),
     ).toBe(true)
     const active = await db
-      .prepare('SELECT password_hash FROM users WHERE id = ?')
+      .prepare('SELECT password_hash, email_verified FROM users WHERE id = ?')
       .bind('active')
-      .first<{ password_hash: string }>()
+      .first<{ password_hash: string; email_verified: number }>()
     expect(active?.password_hash).toBe(activeHash)
+    expect(active?.email_verified).toBe(0)
     expect(
       await db
         .prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?')
@@ -123,6 +149,9 @@ it('rejects expired and stale tokens without revoking sessions', async () => {
       .bind('2000-01-01T00:00:00.000Z')
       .run()
     expect(await completeActivation(db, token, 'new-password', SECRET)).toBe(false)
+    expect(
+      await db.prepare("SELECT email_verified FROM users WHERE id = 'legacy'").first(),
+    ).toEqual({ email_verified: 0 })
     const hash = await hashPassword('existing-password', SECRET)
     await db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(hash, 'legacy').run()
     await createSession(db, 'legacy')
@@ -370,6 +399,9 @@ it('rolls back activation claim, password change, and session revocation on a D1
       BEGIN SELECT RAISE(ABORT, 'synthetic update failure'); END`)
       .run()
     await expect(completeActivation(db, token, 'new-password', SECRET)).rejects.toThrow()
+    expect(
+      await db.prepare("SELECT email_verified FROM users WHERE id = 'legacy'").first(),
+    ).toEqual({ email_verified: 0 })
     expect(
       (
         await db
