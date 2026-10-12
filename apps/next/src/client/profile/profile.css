@@ -672,14 +672,6 @@
     transform: none;
   }
 }
-@keyframes profile-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 
 @media (hover: hover) and (pointer: fine) {
   .profile-visibility:hover,
@@ -722,7 +714,7 @@
   .profile-page > .profile-ranks {
     grid-column: auto;
   }
-  .profile-cabinet .profile-badges {
+  .profile-badges {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .profile-gates {
@@ -799,9 +791,7 @@
   .profile-stamp {
     scroll-snap-align: start;
   }
-  .profile-badges,
-  .profile-cabinet .profile-badges {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .profile-badges {
     gap: var(--space-5) 0;
   }
   .profile-badges[data-collapsed] li:nth-child(n + 7) {
@@ -855,7 +845,7 @@
   .profile-holder,
   .profile-block,
   .profile-closed {
-    animation-name: profile-fade;
+    animation-name: achievement-fade;
   }
   .profile-badges [data-fresh] .profile-badge-mark,
   .profile-badges [data-fresh] .profile-badge-mark svg {

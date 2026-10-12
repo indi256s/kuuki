@@ -276,21 +276,17 @@ export function HeadlineNumbers({
 }) {
   const ru = locale === 'ru'
   const flights = stats.total_flights
-  const distance =
-    Number.isFinite(stats.total_distance_km) && (stats.total_distance_km > 0 || flights === 0)
-      ? Math.round(stats.total_distance_km)
-      : null
+  const shown = (value: number) => Number.isFinite(value) && (value > 0 || flights === 0)
+  const distance = shown(stats.total_distance_km) ? Math.round(stats.total_distance_km) : null
   const laps = distance === null ? 0 : distance / EARTH_CIRCUMFERENCE_KM
-  const hours =
-    Number.isFinite(stats.total_duration_minutes) &&
-    (stats.total_duration_minutes > 0 || flights === 0)
-      ? Math.round(stats.total_duration_minutes / 60)
-      : null
+  const hours = shown(stats.total_duration_minutes)
+    ? Math.round(stats.total_duration_minutes / 60)
+    : null
   const totals: [keyof typeof totalsForms, number][] = [
     ['flights', flights],
     ['countries', stats.countries_count],
-    ...(hours === null ? [] : [['hours', hours] as [keyof typeof totalsForms, number]]),
   ]
+  if (hours !== null) totals.push(['hours', hours])
   return (
     <Block index={index} className="profile-numbers" label="profile-numbers-title">
       <h2 className="sr-only" id="profile-numbers-title">

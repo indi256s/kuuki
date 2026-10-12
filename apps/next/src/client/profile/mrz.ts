@@ -35,9 +35,9 @@ export function mrzLines({
   const surname = words.at(-1) ?? ''
   const given = words.slice(0, -1).join('<')
   const first = pad(`P<KUU<${surname}${given ? `<<${given}` : ''}`)
-  const tail = `${String(Math.min(Math.max(0, Math.round(flights)), 9999)).padStart(4, '0')}FL<${String(
-    Math.min(Math.max(0, Math.round(countries)), 999),
-  ).padStart(2, '0')}CC`
+  const count = (value: number, max: number) =>
+    String(Math.min(Math.max(0, Math.round(value)), max))
+  const tail = `${count(flights, 9999).padStart(4, '0')}FL<${count(countries, 999).padStart(2, '0')}CC`
   const date =
     issued && /^\d{4}-\d{2}/.test(issued) ? `${issued.slice(2, 4)}${issued.slice(5, 7)}` : '<<<<'
   const id = mrzText(handle)

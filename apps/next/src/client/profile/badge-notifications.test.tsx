@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { BadgeNotifications, unseenBadges } from './badge-notifications'
+import { BadgeNotifications } from './badge-notifications'
+import { unseenBadges } from './unseen'
 import { api } from '@kuuki/client/apiClient'
 import type { EarnedBadge } from './achievements'
 vi.mock('../activity', () => ({

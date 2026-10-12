@@ -91,7 +91,7 @@ export async function ProfileData({ username }: { username: string }) {
         owner={
           owner
             ? {
-                visibility: privateOwner ? 'private' : 'public',
+                visibility: state.visibility,
                 shareUrl,
                 remarks: stats ? remarksLine(profile.id, stats, locale) : null,
               }

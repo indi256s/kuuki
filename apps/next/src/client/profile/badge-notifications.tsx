@@ -10,7 +10,6 @@ import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
 import './profile.css'
 
-export { unseenBadges }
 export function BadgeNotifications({ ownerId, locale }: { ownerId: string; locale: Locale }) {
   const [notice, setNotice] = useState<{
     ownerId: string
