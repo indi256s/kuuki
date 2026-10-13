@@ -10,6 +10,7 @@ import { Guilloche, OviPatch, Perforation, UvPrint, initials } from './data-page
 import { FoundingCrew } from './founding-crew'
 import { ShareProfile } from './profile'
 import type { ProfileStamp } from './stamps'
+import './data-page.css'
 import { categoryName } from '../leaderboard/categories'
 import { formatCount, formatNumber, type CountForms, type Locale } from '../../lib/format'
 

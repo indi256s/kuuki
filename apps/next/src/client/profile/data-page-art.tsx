@@ -50,7 +50,7 @@ function perforationPath(number: string) {
   return d
 }
 
-/** Base dots plus a glint copy whose opacity follows the tilt (profile.css). */
+/** Base dots plus a glint copy whose opacity follows the tilt (data-page.css). */
 export function Perforation({ number }: { number: string }) {
   const d = perforationPath(number)
   return (
