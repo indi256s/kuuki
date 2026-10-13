@@ -240,6 +240,10 @@ export type GroundOperationStatus =
 // Owner DTOs
 // ---------------------------------------------------------------------------
 
+/**
+ * `durationMinutes` is the stored effective duration. An editor must send it back only when
+ * `durationSource` is 'manual'; echoing a 'schedule' value would turn it into a manual one.
+ */
 export interface RailLegDto extends RailLegInput {
   durationSource: 'manual' | 'schedule' | null
   distanceKm: number | null
