@@ -2,14 +2,13 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createApiDatabase, apiContext } from './harness'
 import { requestActivation, completeActivation } from '../api/_lib/activation'
 import type { MailSender } from '../api/_lib/activationSender'
-import { hashPassword, verifyPassword, sha256Hex } from '../api/_lib/crypto'
-import { createSession } from '../api/_lib/session'
+import { hashPassword, verifyPassword } from '../api/_lib/crypto'
 import { rateLimit } from '../api/_lib/ratelimit'
 import { onRequest as middleware } from '../_middleware'
 import { onRequestPost as requestRoute } from '../api/auth/activation/request'
 import { onRequestPost as completeRoute } from '../api/auth/activation/complete'
 import { onRequestPost as signoutRoute } from '../api/auth/signout'
-import { setSessionCookies } from '../api/_lib/authCookies'
+import { BETTER_AUTH_COOKIE } from '../api/_lib/betterAuth'
 
 const ORIGIN = 'https://kuuki.test'
 const ACTIVATION_ORIGIN = 'https://activate.kuuki.test'
@@ -60,7 +59,11 @@ it('activates only a RESET_REQUIRED user once and keeps an active account unchan
       .run()
     const activeHash = await hashPassword('old-password', SECRET)
     await seedUser(db, 'active', 'active@example.test', activeHash)
-    const activeSession = await createSession(db, 'active')
+    await db
+      .prepare(
+        `INSERT INTO auth_sessions (id, expiresAt, token, createdAt, updatedAt, userId) VALUES ('active-session', '2999-01-01', 'active-session-token', '2026-01-01', '2026-01-01', 'active')`,
+      )
+      .run()
     const links: string[] = []
     const sender: MailSender = {
       async send(_to, link) {
@@ -118,11 +121,10 @@ it('activates only a RESET_REQUIRED user once and keeps an active account unchan
     expect(active?.email_verified).toBe(0)
     expect(
       await db
-        .prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?')
+        .prepare('SELECT COUNT(*) AS n FROM auth_sessions WHERE userId = ?')
         .bind('active')
         .first<{ n: number }>(),
     ).toEqual({ n: 1 })
-    expect(activeSession.token).toBeTruthy()
     expect(
       await db
         .prepare('SELECT COUNT(*) AS n FROM account_activation_tokens')
@@ -154,7 +156,11 @@ it('rejects expired and stale tokens without revoking sessions', async () => {
     ).toEqual({ email_verified: 0 })
     const hash = await hashPassword('existing-password', SECRET)
     await db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(hash, 'legacy').run()
-    await createSession(db, 'legacy')
+    await db
+      .prepare(
+        `INSERT INTO auth_sessions (id, expiresAt, token, createdAt, updatedAt, userId) VALUES ('legacy-session', '2999-01-01', 'legacy-session-token', '2026-01-01', '2026-01-01', 'legacy')`,
+      )
+      .run()
     await db
       .prepare('UPDATE account_activation_tokens SET expires_at = ?')
       .bind('2999-01-01T00:00:00.000Z')
@@ -171,7 +177,7 @@ it('rejects expired and stale tokens without revoking sessions', async () => {
     expect(
       (
         await db
-          .prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?')
+          .prepare('SELECT COUNT(*) AS n FROM auth_sessions WHERE userId = ?')
           .bind('legacy')
           .first<{ n: number }>()
       )?.n,
@@ -384,7 +390,11 @@ it('rolls back activation claim, password change, and session revocation on a D1
   const { db, dispose } = await createApiDatabase()
   try {
     await seedUser(db, 'legacy', 'legacy@example.test')
-    await createSession(db, 'legacy')
+    await db
+      .prepare(
+        `INSERT INTO auth_sessions (id, expiresAt, token, createdAt, updatedAt, userId) VALUES ('legacy-session', '2999-01-01', 'legacy-session-token', '2026-01-01', '2026-01-01', 'legacy')`,
+      )
+      .run()
     const links: string[] = []
     const sender: MailSender = {
       async send(_to, link) {
@@ -413,7 +423,7 @@ it('rolls back activation claim, password change, and session revocation on a D1
     expect(
       (
         await db
-          .prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?')
+          .prepare('SELECT COUNT(*) AS n FROM auth_sessions WHERE userId = ?')
           .bind('legacy')
           .first<{ n: number }>()
       )?.n,
@@ -450,121 +460,6 @@ it('atomically counts concurrent auth attempts within a fixed window', async () 
       )?.count,
     ).toBe(21)
   } finally {
-    await dispose()
-  }
-})
-
-it('renews session and existing CSRF together, while a handler-owned session wins', async () => {
-  const { db, dispose } = await createApiDatabase()
-  try {
-    await seedUser(db, 'a', 'a@example.test', await hashPassword('password-a', SECRET))
-    await seedUser(db, 'b', 'b@example.test', await hashPassword('password-b', SECRET))
-    const a = await createSession(db, 'a')
-    await db
-      .prepare('UPDATE sessions SET last_seen_at = ? WHERE user_id = ?')
-      .bind('2000-01-01T00:00:00.000Z', 'a')
-      .run()
-    const cookie = `kuuki_session=${a.token}; kuuki_csrf=existing-csrf`
-    const request = new Request(`${ORIGIN}/api/auth/me`, { headers: { Cookie: cookie } })
-    const renewed = await middleware({
-      ...apiContext(db, request),
-      next: async () => new Response('ok'),
-    } as never)
-    const setCookies = renewed.headers.get('Set-Cookie') ?? ''
-    expect(setCookies).toContain(`kuuki_session=${a.token}`)
-    expect(setCookies).toContain('kuuki_csrf=existing-csrf')
-
-    const b = await createSession(db, 'b')
-    await db
-      .prepare('UPDATE sessions SET last_seen_at = ? WHERE user_id = ?')
-      .bind('2000-01-01T00:00:00.000Z', 'a')
-      .run()
-    const switched = await middleware({
-      ...apiContext(db, request),
-      next: async () => {
-        const response = new Response('switched')
-        setSessionCookies(response.headers, b.token)
-        return response
-      },
-    } as never)
-    const switchedCookies = switched.headers.get('Set-Cookie') ?? ''
-    expect(switchedCookies).toContain(`kuuki_session=${b.token}`)
-    expect(switchedCookies).not.toContain(`kuuki_session=${a.token}`)
-  } finally {
-    await dispose()
-  }
-})
-
-it('renews a missing CSRF on day 29, permits signout on day 31, and expires an inactive session', async () => {
-  const { db, dispose } = await createApiDatabase()
-  try {
-    await seedUser(
-      db,
-      'active',
-      'active@example.test',
-      await hashPassword('active-password', SECRET),
-    )
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'))
-    const live = await createSession(db, 'active')
-    const inactive = await createSession(db, 'active')
-    const liveHash = await sha256Hex(live.token)
-    // Only Date is controlled; Miniflare's timers and D1 runtime remain real.
-    vi.setSystemTime(new Date('2026-01-30T00:00:00.000Z'))
-    const liveRequest = new Request(`${ORIGIN}/api/auth/me`, {
-      headers: { Cookie: `kuuki_session=${live.token}` },
-    })
-    const recovered = await middleware({
-      ...apiContext(db, liveRequest),
-      next: async () => new Response('ok'),
-    } as never)
-    const setCookies = recovered.headers.get('Set-Cookie') ?? ''
-    expect(setCookies).toContain(`kuuki_session=${live.token}`)
-    expect(setCookies).toContain('kuuki_csrf=')
-    const csrf = /kuuki_csrf=([^;]+)/.exec(setCookies)?.[1]
-    expect(csrf).toBeTruthy()
-    const renewed = await db
-      .prepare('SELECT expires_at FROM sessions WHERE token_hash = ?')
-      .bind(liveHash)
-      .first<{ expires_at: string }>()
-    expect(renewed?.expires_at).toBe('2026-03-01T00:00:00.000Z')
-
-    vi.setSystemTime(new Date('2026-02-01T00:00:00.000Z'))
-    const signoutRequest = new Request(`${ORIGIN}/api/auth/signout`, {
-      method: 'POST',
-      headers: {
-        Origin: ORIGIN,
-        Cookie: `kuuki_session=${live.token}; kuuki_csrf=${csrf}`,
-        'X-CSRF-Token': csrf!,
-      },
-    })
-    const signoutContext = apiContext(db, signoutRequest)
-    const signedOut = await middleware({
-      ...signoutContext,
-      next: () => signoutRoute(signoutContext as never),
-    } as never)
-    expect(signedOut.status).toBe(200)
-    expect((await signedOut.json()) as unknown).toEqual({ ok: true })
-    expect(
-      (
-        await db
-          .prepare('SELECT COUNT(*) AS n FROM sessions WHERE token_hash = ?')
-          .bind(liveHash)
-          .first<{ n: number }>()
-      )?.n,
-    ).toBe(0)
-
-    const expiredRequest = new Request(`${ORIGIN}/api/auth/me`, {
-      headers: { Cookie: `kuuki_session=${inactive.token}` },
-    })
-    const expired = await middleware({
-      ...apiContext(db, expiredRequest),
-      next: async () => new Response('anonymous'),
-    } as never)
-    expect(expired.headers.get('Set-Cookie')).toBeNull()
-    expect(await expired.text()).toBe('anonymous')
-  } finally {
-    vi.useRealTimers()
     await dispose()
   }
 })
@@ -630,7 +525,7 @@ it('leaves cookies intact when signout fails to revoke the session', async () =>
     method: 'POST',
     headers: {
       Origin: ORIGIN,
-      Cookie: 'kuuki_session=token; kuuki_csrf=csrf',
+      Cookie: `${BETTER_AUTH_COOKIE}=token.signature; kuuki_csrf=csrf`,
       'X-CSRF-Token': 'csrf',
     },
   })

@@ -42,6 +42,7 @@ export function useRepin(target: string, animate: boolean) {
   useLayoutEffect(() => {
     if (!landed) return
     void host.current?.getBoundingClientRect()
+    // oxlint-disable-next-line react/set-state-in-effect -- the pins rise only after the forced layout above
     setDown(false)
   }, [landed])
   return { shown, down, host }

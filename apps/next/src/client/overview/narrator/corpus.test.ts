@@ -6,8 +6,7 @@ import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/mod
 import { formatNumber, type Locale } from '../../../lib/format'
 import { fill } from '../copy'
 import { CORPUS } from './corpus'
-import { pickLine } from './pick'
-import { TRIGGERS, type NarratorSlot } from './triggers'
+import { TRIGGERS } from './triggers'
 
 const fixtures = join(__dirname, '../../../../../../packages/shared/src/overview/__fixtures__')
 const load = (name: string) =>
@@ -107,7 +106,6 @@ const journals: Record<string, { payload: OverviewPayload; filter: OverviewFilte
   },
 }
 
-const slots = [...new Set(TRIGGERS.map((trigger) => trigger.slot))].sort()
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(([, key]) => key).sort()
 // A full stop after an abbreviation (мес., сут.) is followed by lowercase, so it does not end a sentence.
 const sentences = (text: string) => text.match(/[.!?…](?=\s+[A-ZА-ЯЁ{«"]|\s*$)/gu)?.length ?? 1
@@ -173,25 +171,11 @@ describe('trigger simulation', () => {
       }
   })
 
-  it('records which line wins each card', () => {
-    const winners: Record<string, Record<string, string>> = {}
+  it('fires every trigger for some journal', () => {
     const fired = new Set<string>()
-    for (const [name, { scope, all }] of Object.entries(scopes)) {
-      winners[name] = {}
-      for (const slot of slots) {
-        const winner = TRIGGERS.filter((trigger) => trigger.slot === slot)
-          .sort((a, b) => b.priority - a.priority)
-          .find((trigger) => trigger.when(scope, all) !== null)
-        for (const trigger of TRIGGERS)
-          if (trigger.slot === slot && trigger.when(scope, all) !== null) fired.add(trigger.id)
-        if (winner)
-          winners[name][slot] =
-            `${winner.id} — ${pickLine(slot as NarratorSlot, scope, all, 'owner', 'en')}`
-      }
-    }
-    expect(winners).toMatchSnapshot('winning line per journal and slot')
-    expect(TRIGGERS.map((trigger) => trigger.id).filter((id) => !fired.has(id))).toMatchSnapshot(
-      'triggers no journal fires',
-    )
+    for (const { scope, all } of Object.values(scopes))
+      for (const trigger of TRIGGERS) if (trigger.when(scope, all) !== null) fired.add(trigger.id)
+    const unfired = TRIGGERS.map((trigger) => trigger.id).filter((id) => !fired.has(id))
+    expect(unfired).toEqual([])
   })
 })

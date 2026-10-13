@@ -99,29 +99,6 @@ describe('applyDueTransitions', () => {
     }
   })
 
-  it('A6: the auto-confirm boundary is exact to the millisecond', async () => {
-    const { db, dispose } = await accountWith([upcoming(1, { state: 'awaiting', autoAfter: T })])
-    try {
-      const before = await applyDueTransitions(db, {
-        userId: USER.id,
-        now: new Date(NOW.getTime() - 1),
-      })
-      expect(before).toMatchObject({ autoConfirmed: 0, synced: 0 })
-      expect((await lifecycleOf(db, 1))!.lifecycle_state).toBe('awaiting')
-      expect(await applyDueTransitions(db, { userId: USER.id, now: NOW })).toMatchObject({
-        autoConfirmed: 1,
-        synced: 1,
-      })
-      expect(await lifecycleOf(db, 1)).toMatchObject({
-        lifecycle_state: 'logged',
-        confirmation_source: 'automatic',
-        confirmed_at: T,
-      })
-    } finally {
-      await dispose()
-    }
-  })
-
   it('A6: stored deadlines in DST-midnight and extreme zones decide the boundary, not the server clock', async () => {
     const zones = [
       'America/Santiago',
@@ -167,10 +144,11 @@ describe('applyDueTransitions', () => {
           `${label} 1 ms before auto-confirm`,
         ).toBe('awaiting')
         await step(at(flight.autoAfter!))
-        expect(
-          (await lifecycleOf(db, flight.id))!.lifecycle_state,
-          `${label} on auto-confirm`,
-        ).toBe('logged')
+        expect(await lifecycleOf(db, flight.id), `${label} on auto-confirm`).toMatchObject({
+          lifecycle_state: 'logged',
+          confirmation_source: 'automatic',
+          confirmed_at: flight.autoAfter,
+        })
       }
     } finally {
       await dispose()

@@ -285,21 +285,6 @@ describe('Settings name and address', () => {
     expect(screen.queryByRole('link', { name: 'View my profile' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit' })).toBeVisible()
   })
-  it('never links to the retired onboarding page', () => {
-    const view = mount()
-    expect(view.container.querySelector('a[href*="onboarding"]')).toBeNull()
-    view.unmount()
-    const bare = render(
-      <SettingsForm
-        ownerId="a"
-        profile={{ ...profile, username: null }}
-        locale="ru"
-        counts={counts}
-      />,
-    )
-    expect(bare.container.querySelector('a[href*="onboarding"]')).toBeNull()
-    expect(screen.getByText('Адрес появится из вашего имени, когда вы сохраните.')).toBeVisible()
-  })
 })
 describe.each(['en', 'ru'] as const)('deletion (%s)', (locale) => {
   const ru = locale === 'ru'

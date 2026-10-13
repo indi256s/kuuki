@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { normalizeJournalQuery, journalHref, resetJournalFilters } from './url-state'
+import { normalizeJournalQuery, journalHref } from './url-state'
 const now = new Date('2026-10-05T00:00:00Z')
 const qs = (value: string) => new URLSearchParams(value)
 
@@ -21,7 +21,6 @@ it('Journal exact-day bookmarks supersede years, normalize invalid periods and c
       airport: 'TBS',
     })
   }
-  expect(resetJournalFilters(normalized.query + '&page=2&order=asc')).toBe('order=asc')
   expect(journalHref({ from: '2024-02-29', to: '2024-03-01', year: 2025 })).toBe(
     '/journal?from=2024-02-29&to=2024-03-01',
   )

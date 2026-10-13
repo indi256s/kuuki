@@ -333,10 +333,13 @@ it('line geometry spaces actual UTC dates and renders a finite zero-valued area 
       />
     </svg>,
   )
-  expect(container.querySelector('path[stroke]')).toHaveAttribute('d', 'M0,80H60V80H600V80')
-  expect(
-    [...container.querySelectorAll('circle')].map((circle) => Number(circle.getAttribute('cx'))),
-  ).toEqual([0, 0, 60, 60, 600, 600])
+  const positions = [...container.querySelectorAll('g')].map((point) =>
+    Number(point.querySelector('circle')!.getAttribute('cx')),
+  )
+  // One day must occupy one tenth of the full ten-day interval, rather than index spacing.
+  expect(positions[1] - positions[0]).toBeCloseTo((positions[2] - positions[0]) / 10)
+  expect(positions[2]).toBeGreaterThan(positions[1])
+  expect(container.querySelector('path[stroke]')).not.toHaveAttribute('d', '')
   const markup = renderToString(
     <svg>
       <ArcLine
@@ -473,7 +476,7 @@ it.each([
   expect(screen.queryByRole('table')).not.toBeInTheDocument()
 })
 
-it('lazy mounting reserves height, uses the preload margin, tracks actual visibility and cleans observers', () => {
+it('lazy charts mount near the viewport but animate only while visible, and clean observers', () => {
   const observers: {
     callback: IntersectionObserverCallback
     options?: IntersectionObserverInit
@@ -498,9 +501,8 @@ it('lazy mounting reserves height, uses the preload margin, tracks actual visibi
     'aria-busy',
     'true',
   )
-  expect(screen.getByRole('region', { name: 'Loading routes' })).toHaveStyle({ height: '240px' })
-  const preload = observers.find((observer) => observer.options?.rootMargin === '200px')!
-  const visibility = observers.find((observer) => observer.options?.rootMargin !== '200px')!
+  const preload = observers.find((observer) => observer.options?.rootMargin !== undefined)!
+  const visibility = observers.find((observer) => observer.options?.rootMargin === undefined)!
   const notify = (observer: typeof preload, isIntersecting: boolean) =>
     act(() =>
       observer.callback(
@@ -511,8 +513,6 @@ it('lazy mounting reserves height, uses the preload margin, tracks actual visibi
   notify(preload, true)
   expect(screen.queryByRole('region')).not.toBeInTheDocument()
   expect(screen.getByText('Snapped')).toBeInTheDocument()
-  expect(container.firstElementChild).toHaveStyle({ minHeight: '240px' })
-  expect((container.firstElementChild as HTMLElement).style.height).toBe('')
   notify(visibility, true)
   expect(screen.getByText('Animating')).toBeInTheDocument()
   notify(visibility, false)
@@ -532,45 +532,15 @@ it('mounts a visible chart when IntersectionObserver is unavailable', () => {
   expect(screen.queryByRole('region')).not.toBeInTheDocument()
 })
 
-it('draws in CSS pixels: the viewBox follows the measured host, count-driven charts keep their natural width and scroll when it overflows', () => {
-  let host = 1200
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => host)
-  const sizes: number[] = []
-  const view = render(<Chart height={(width) => width / 10} />)
-  const svg = () => screen.getByRole('group', { name: 'Routes' })
-  expect(svg()).toHaveAttribute('viewBox', '0 0 1200 120')
-  expect(svg().closest('.kc')).not.toHaveAttribute('data-scroll')
-  view.rerender(
-    <KuukiChart
-      points={points}
-      height={240}
-      ariaLabel="Routes"
-      table={table}
-      inView
-      fit={(available) => Math.min(300, available)}
-    >
-      {(mark, size) => {
-        sizes.push(size.width)
-        return null
-      }}
-    </KuukiChart>,
-  )
-  expect(svg()).toHaveAttribute('viewBox', '0 0 300 240')
-  expect(svg().style.width).toBe('300px')
-  expect(sizes.at(-1)).toBe(300)
-  host = 200
+it('scrolls overflowing count-driven charts to the latest data when requested', () => {
+  const hostWidth = 200,
+    naturalWidth = 300
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(hostWidth)
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(naturalWidth)
+  const view = render(<Chart fit={() => naturalWidth} scrollEnd />)
+  const host = screen.getByRole('group', { name: 'Routes' }).parentElement!
+  expect(host.scrollLeft).toBe(naturalWidth)
   view.unmount()
-  render(
-    <KuukiChart
-      points={points}
-      height={240}
-      ariaLabel="Routes"
-      table={table}
-      inView
-      fit={() => 300}
-    >
-      {() => null}
-    </KuukiChart>,
-  )
-  expect(svg().closest('.kc')).toHaveAttribute('data-scroll')
+  render(<Chart fit={() => hostWidth} scrollEnd />)
+  expect(screen.getByRole('group', { name: 'Routes' }).parentElement!.scrollLeft).toBe(0)
 })

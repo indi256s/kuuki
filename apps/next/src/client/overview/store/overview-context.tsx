@@ -115,8 +115,10 @@ function useController({
     if (!lifetime?.active) return null
     const generation = getAuthGeneration()
     if (lifetime.generation !== generation) {
+      // oxlint-disable-next-line react/immutability -- runtime is a mutable box created once; written only in callbacks and effects
       lifetime.generation = generation
       clearTimeout(runtime.timer)
+      // oxlint-disable-next-line react/immutability -- runtime is a mutable box created once; written only in callbacks and effects
       runtime.pending = null
       runtime.eligible = false
       for (const controller of lifetime.controllers) controller.abort()
@@ -206,6 +208,7 @@ function useController({
   }, [initial, store, live, currentLifetime])
 
   useEffect(() => {
+    // oxlint-disable-next-line react/immutability -- runtime is a mutable box created once; written only in callbacks and effects
     runtime.saver = saver
     runtime.locale = locale
     runtime.incoming = initialPrefs
@@ -216,6 +219,7 @@ function useController({
       generation: getAuthGeneration(),
       controllers: new Set(),
     }
+    // oxlint-disable-next-line react/immutability -- runtime is a mutable box created once; written only in callbacks and effects
     runtime.lifetime = lifetime
     const active = () => lifetime.active && runtime.lifetime === lifetime
     async function send() {
@@ -376,9 +380,6 @@ export function useOverview() {
   const value = useContext(Context)
   if (!value) throw new Error('OverviewProvider is required')
   return value
-}
-export function useFilterActions() {
-  return useOverview().actions
 }
 export function useOverviewUIBus() {
   return useOverview().bus

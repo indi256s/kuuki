@@ -7,7 +7,11 @@
 
 import { parseCookies, CSRF_COOKIE } from './cookies'
 import { HttpError } from './http'
-import type { SessionUser } from './session'
+
+export interface SessionUser {
+  id: string
+  email: string
+}
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 

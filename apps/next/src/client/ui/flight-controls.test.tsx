@@ -190,6 +190,39 @@ function Probe({ locale, initial = '' }: { locale: Locale; initial?: string }) {
   )
 }
 describe('combobox free text', () => {
+  it('discards typed text on an external reset or replacement and reverts to the new code', async () => {
+    function ExternalValue() {
+      const [value, setValue] = useState('JFK')
+      return (
+        <>
+          <Combobox
+            label="Airport"
+            locale="en"
+            choices={airportChoices('en')}
+            value={value}
+            onChange={setValue}
+          />
+          <button onClick={() => setValue('SVO')}>Replace</button>
+          <button onClick={() => setValue('')}>Reset</button>
+        </>
+      )
+    }
+    render(<ExternalValue />)
+    const input = screen.getByRole('combobox', { name: 'Airport' })
+    await userEvent.click(input)
+    fireEvent.change(input, { target: { value: 'Moscow' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Replace' }))
+    expect(input).toHaveValue('SVO')
+    fireEvent.change(input, { target: { value: 'zzz' } })
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(input).toHaveValue('SVO')
+    await userEvent.click(input)
+    fireEvent.change(input, { target: { value: 'Moscow' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+    expect(input).toHaveValue('')
+    fireEvent.blur(input)
+    expect(input).toHaveValue('')
+  })
   it('keeps an optional value cleared when the mobile search closes', async () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,

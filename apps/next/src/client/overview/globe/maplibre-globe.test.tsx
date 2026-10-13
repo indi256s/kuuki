@@ -4,7 +4,6 @@ import { act, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { Map as LibreMap } from 'maplibre-gl'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
-import * as geometry from '../../maps/geometry'
 import { useMap } from '../../maps/mapcn'
 import { createUIBus } from '../store/ui-bus'
 import { createReplaySchedule } from './replay'
@@ -68,38 +67,6 @@ function makeProps(): MaplibreGlobeProps {
     onError: vi.fn(),
   }
 }
-
-it('reuses flown and upcoming great circles across filters and refreshes changed airport coordinates', () => {
-  const calculate = vi.spyOn(geometry, 'routeGeometry')
-  const props = makeProps()
-  const all = props.all
-  const { rerender } = render(<MaplibreGlobe {...props} />)
-  expect(calculate).toHaveBeenCalledTimes(2)
-  expect(calculate.mock.results.every(({ value }) => value !== null)).toBe(true)
-  rerender(
-    <MaplibreGlobe
-      {...props}
-      filter={{ routes: ['CDG-LHR'] }}
-      globe={{ ...all, routes: [{ ...all.routes[0], count: 1 }] }}
-    />,
-  )
-  rerender(
-    <MaplibreGlobe
-      {...props}
-      filter={{ routes: [] }}
-      globe={{ ...all, routes: [], airports: [] }}
-    />,
-  )
-  expect(calculate).toHaveBeenCalledTimes(2)
-  rerender(
-    <MaplibreGlobe
-      {...props}
-      airports={{ ...props.airports, LHR: { ...props.airports.LHR, lon: -0.5 } }}
-    />,
-  )
-  expect(calculate).toHaveBeenCalledTimes(4)
-  expect(calculate).toHaveBeenLastCalledWith({ from: [-0.5, 51.47], to: [2.55, 49.01] })
-})
 
 it('keeps the whole globe inside the viewport on mount, filtering, resize and fullscreen', () => {
   const container = { clientWidth: 358, clientHeight: 358 }

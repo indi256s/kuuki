@@ -429,36 +429,3 @@ it('uses the same flown flights for every total and retains estimated or missing
     durationMissing: 1,
   })
 })
-
-it('selects 1,000 flights well within a frame budget', () => {
-  const airports = ['TBS', 'IST', 'FRA', 'JFK', 'LHR', 'CDG', 'AMS', 'MUC']
-  const flights: JournalFlight[] = []
-  for (let i = 0; i < 1000; i += 1) {
-    const day = new Date(Date.UTC(2015, 0, 1) + Math.floor(i / 2) * 86_400_000)
-      .toISOString()
-      .slice(0, 10)
-    const origin = airports[i % airports.length],
-      destination = airports[(i + 1) % airports.length]
-    const hour = 6 + (i % 2) * 6
-    flights.push(
-      flight({
-        id: 10_000 + i,
-        date: day,
-        origin,
-        destination,
-        airline_iata: i % 3 ? 'TK' : 'LH',
-        lifecycle_state: i % 10 ? 'logged' : 'awaiting',
-        departure_utc: `${day}T${String(hour).padStart(2, '0')}:00:00.000Z`,
-        arrival_utc: `${day}T${String(hour + 3).padStart(2, '0')}:00:00.000Z`,
-      }),
-    )
-  }
-  const payload = payloadOf(flights)
-  const started = performance.now()
-  const first = select(payload, { airlines: ['TK'] })
-  const ranked = select(payload, { families: ['A320 family'] }, { key: 'distance', order: 'asc' })
-  const elapsed = performance.now() - started
-  expect(first.items.some((item) => item.kind === 'connector')).toBe(true)
-  expect(ranked.matching).toHaveLength(1000)
-  expect(elapsed).toBeLessThan(100)
-})

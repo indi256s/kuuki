@@ -44,7 +44,6 @@ export function HistoricalReview({
     if (!requested) return
     const read = new AbortController()
     const release = trackPrivateOperation(read)
-    setLoading(true)
     void api
       .get<NonNullable<typeof data>>('/api/me/transit-review', undefined, { signal: read.signal })
       .then((value) => {
@@ -123,12 +122,14 @@ export function HistoricalReview({
             : 'Review saved.',
       )
       setRequest(null)
+      setLoading(true)
       setVersion((value) => value + 1)
       window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
     } catch (cause) {
       if (!write.signal.aborted) {
         if (cause instanceof ApiError && cause.status < 500 && cause.status !== 408) {
           setRequest(null)
+          setLoading(true)
           setVersion((value) => value + 1)
         }
         setError(true)

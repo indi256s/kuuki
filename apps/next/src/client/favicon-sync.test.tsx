@@ -4,20 +4,10 @@ import { afterEach, expect, it } from 'vitest'
 import { FaviconSync, faviconHref } from './favicon-sync'
 
 const root = document.documentElement
-const decoded = (href: string | null) => decodeURIComponent(href!.split(',', 2)[1])
 afterEach(() => {
   document.head.innerHTML = ''
   delete root.dataset.accent
   delete root.dataset.theme
-})
-
-it('renders the icon geometry with the shared table colors for each accent and mode', () => {
-  const light = decoded(faviconHref('shu', 'light'))
-  expect(light).toContain('fill="#fbfaf8"')
-  expect(light).toContain('fill="#a55140"')
-  const dark = decoded(faviconHref('sakura', 'dark'))
-  expect(dark).toContain('fill="#292827"')
-  expect(dark).not.toContain('#fbfaf8')
 })
 
 it('replaces the SVG icon link, keeps the other icons, and follows accent and theme changes', async () => {

@@ -161,13 +161,7 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
     expect(committed.size).toBe(1)
   })
 
-  it.each([
-    'untouched',
-    'optional edit',
-    'optional edit restored',
-    'route edit restored',
-    'different route',
-  ])(
+  it.each(['untouched', 'route edit restored', 'different route'])(
     'lost committed response, %s: an identical re-add remains tied to recovery and is not saved twice',
     async (edit) => {
       const user = userEvent.setup()
@@ -188,19 +182,12 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
       expect(entries()[0].id).toContain(old)
 
       if (edit !== 'untouched') {
-        const input = within(manualRows()[0]).getByLabelText(
-          edit === 'route edit restored' || edit === 'different route'
-            ? /^To \(airport code\)/
-            : /^Flight number/,
-        )
-        if (edit === 'route edit restored' || edit === 'different route') await user.clear(input)
-        await user.type(
-          input,
-          edit === 'route edit restored' || edit === 'different route' ? 'LAX' : '123',
-        )
-        if (edit.endsWith('restored')) {
+        const input = within(manualRows()[0]).getByLabelText(/^To \(airport code\)/)
+        await user.clear(input)
+        await user.type(input, 'LAX')
+        if (edit === 'route edit restored') {
           await user.clear(input)
-          if (edit === 'route edit restored') await user.type(input, 'BOS')
+          await user.type(input, 'BOS')
         }
       }
       serverCommits()

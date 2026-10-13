@@ -1,40 +1,18 @@
 import { expect, it } from 'vitest'
-import { DEFAULT_ORDER, type SectionId } from '@kuuki/shared/overview/prefs'
+import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { packTiles } from './tiles'
 
-const order = [...DEFAULT_ORDER] as SectionId[]
+const ids = (...names: string[]) => names as SectionId[]
 const spans = (tiles: ReturnType<typeof packTiles>) => tiles.map(({ id, span }) => `${id}:${span}`)
 
-it('pairs tiles as halves, gives Aircraft a full row and widens an odd tile out', () => {
-  expect(spans(packTiles(order))).toEqual([
-    'rankings:half',
-    'routes:half',
-    'records:half',
-    'crossings:half',
-    'rhythm:half',
-    'clock:half',
-    'aircraft:full',
+it('pairs tiles as halves, widens an odd half tile to full and gives Aircraft a full row', () => {
+  expect(spans(packTiles(ids('a', 'b', 'c', 'd')))).toEqual([
+    'a:half',
+    'b:half',
+    'c:half',
+    'd:half',
   ])
-  expect(spans(packTiles(order.filter((id) => id !== 'clock')))).toEqual([
-    'rankings:half',
-    'routes:half',
-    'records:half',
-    'crossings:half',
-    'rhythm:full',
-    'aircraft:full',
-  ])
-})
-
-it('packs only the ids it is given, in their order', () => {
-  expect(spans(packTiles(['crossings', 'rankings', 'aircraft']))).toEqual([
-    'crossings:half',
-    'rankings:half',
-    'aircraft:full',
-  ])
-  expect(spans(packTiles(['rhythm', 'aircraft', 'routes']))).toEqual([
-    'rhythm:full',
-    'aircraft:full',
-    'routes:full',
-  ])
+  expect(spans(packTiles(ids('a', 'b', 'c')))).toEqual(['a:half', 'b:half', 'c:full'])
+  expect(spans(packTiles(ids('a', 'aircraft', 'b')))).toEqual(['a:full', 'aircraft:full', 'b:full'])
   expect(packTiles([])).toEqual([])
 })

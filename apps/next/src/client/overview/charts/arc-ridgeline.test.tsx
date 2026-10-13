@@ -33,8 +33,8 @@ it('gives every ridge sample its own keyed target with the rounded minute, and n
       )}
     </KuukiChart>,
   )
-  expect(markup.match(/data-chart-key="a320:\d+"/g)).toHaveLength(128)
-  expect(markup).toContain('data-chart-key="a320:127"')
-  expect(markup).toContain(`A320 · ${Math.round(profile[127]!.x)} min`)
+  const targets = [...markup.matchAll(/data-chart-key="([^"]+)"/g)].map((match) => match[1])
+  expect(targets).toEqual(samplePoints.map((sample) => sample.point.key))
+  for (const sample of samplePoints) expect(markup).toContain(sample.point.label)
   expect(markup).not.toMatch(/role="button"[^>]*><g[^>]*role="button"/)
 })

@@ -10,7 +10,6 @@ import { onRequestPost as continueRoute } from '../api/auth/continue'
 import { onRequestGet as meRoute } from '../api/auth/me'
 import { onRequestDelete as deleteRoute } from '../api/auth/account'
 import { hashPassword } from '../api/_lib/crypto'
-import { createSession } from '../api/_lib/session'
 import { completeActivation, requestActivation } from '../api/_lib/activation'
 
 const ORIGIN = 'https://kuuki.test'
@@ -129,9 +128,6 @@ it('uses a signed Better Auth session for signup, private profile bootstrap and 
     const cookie = responseCookies(signup)
     expect(signup.headers.get('Set-Cookie')).toContain('__Secure-kuuki_auth_session=')
     expect(signup.headers.get('Set-Cookie')).toContain('HttpOnly')
-    expect((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n).toBe(
-      0,
-    )
     expect((await call(db, '/api/auth/me', 'GET', undefined, cookie)).status).toBe(200)
     const session = await call(db, '/api/auth/get-session', 'GET', undefined, cookie)
     expect(session.status).toBe(200)
@@ -355,60 +351,21 @@ it('preserves migrated user IDs, profiles and peppered passwords and activates p
   }
 }, 30_000)
 
-it('replaces a legacy session and refuses to fall back from an invalid Better Auth cookie', async () => {
+it('treats an invalid Better Auth cookie as signed out', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
-    const signup = await call(db, '/api/auth/sign-up/email', 'POST', {
-      email: 'a@example.test',
-      password: 'password-123',
+    const invalid = '__Secure-kuuki_auth_session=invalid.signature'
+    expect(await (await call(db, '/api/auth/me', 'GET', undefined, invalid)).json()).toEqual({
+      user: null,
+      profile: null,
     })
-    const { user } = (await signup.json()) as { user: { id: string } }
-    const legacy = await createSession(db, user.id)
-    const legacyCookie = `kuuki_session=${legacy.token}; kuuki_csrf=legacy-csrf`
     expect(
-      await (await call(db, '/api/auth/me', 'GET', undefined, legacyCookie)).json(),
-    ).toMatchObject({ user: { id: user.id } })
-    const invalid = await call(
-      db,
-      '/api/auth/me',
-      'GET',
-      undefined,
-      `${legacyCookie}; __Secure-kuuki_auth_session=invalid.signature`,
-    )
-    expect(await invalid.json()).toEqual({ user: null, profile: null })
-    expect(await (await call(db, '/api/auth/me', 'GET', undefined, legacyCookie)).json()).toEqual({
-      user: null,
-      profile: null,
-    })
-    const secondLegacy = await createSession(db, user.id)
-    const sessionCookie = `kuuki_session=${secondLegacy.token}; kuuki_csrf=legacy-csrf`
-    const invalidSession = await call(
-      db,
-      '/api/auth/get-session',
-      'GET',
-      undefined,
-      `${sessionCookie}; __Secure-kuuki_auth_session=invalid.signature`,
-    )
-    expect(await invalidSession.json()).toBeNull()
-    expect(await (await call(db, '/api/auth/me', 'GET', undefined, sessionCookie)).json()).toEqual({
-      user: null,
-      profile: null,
-    })
-    const signin = await call(
-      db,
-      '/api/auth/sign-in/email',
-      'POST',
-      { email: 'a@example.test', password: 'password-123' },
-      sessionCookie,
-    )
-    expect(signin.status).toBe(200)
-    expect((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n).toBe(
-      0,
-    )
+      await (await call(db, '/api/auth/get-session', 'GET', undefined, invalid)).json(),
+    ).toBeNull()
   } finally {
     await dispose()
   }
-}, 30_000)
+})
 
 it('requires the password for account deletion and revokes every Better Auth session', async () => {
   const { db, dispose } = await createApiDatabase()
@@ -611,9 +568,8 @@ it.each([
           "INSERT INTO profiles(id,display_name,username,is_public) VALUES('existing','Chosen name','chosen',1)",
         ),
       ])
-      const legacy = await createSession(db, 'existing')
       mockGoogle({ email, ...claims })
-      const legacyCookie = `kuuki_session=${legacy.token}`
+      const legacyCookie = 'kuuki_session=stale-token'
       const flow = await startGoogle(db, legacyCookie)
       expect(flow.cookie).not.toContain('kuuki_session=')
       const callback = await call(
@@ -673,9 +629,6 @@ it.each([
       expect(
         (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
       ).toBe(2)
-      expect(
-        (await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n,
-      ).toBe(0)
     } finally {
       await dispose()
     }

@@ -20,7 +20,6 @@ import {
 import { deleteGroundVisitRequest } from '../../functions/api/passport/ground-visits/[id]'
 import { updateProfileRequest } from '../../functions/api/profiles/me'
 import { deleteAccountRequest } from '../../functions/api/auth/account'
-import { parseImportRequest } from '../../functions/api/import/parse'
 import { requestPasswordReset } from '../../functions/api/auth/password-reset/request'
 import { completePasswordReset } from '../../functions/api/auth/password-reset/complete'
 
@@ -66,7 +65,6 @@ export function captureHandler(
   else if (path === '/api/profiles/me' && method === 'PATCH')
     handler = () => updateProfileRequest(request, env, data)
   else if (path === '/api/auth/account') handler = () => deleteAccountRequest(request, env, data)
-  else if (path === '/api/import/parse') handler = () => parseImportRequest(request, env, data)
   // Pre-auth recovery: the shared middleware skips session handling for these paths.
   else if (path === '/api/auth/password-reset/request')
     handler = () => requestPasswordReset(request, env, (task) => ctx.waitUntil(task))

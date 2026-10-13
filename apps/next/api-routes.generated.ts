@@ -109,12 +109,6 @@ export const apiRoutes = [
     ]
   },
   {
-    "route": "/api/auth/verify-password",
-    "methods": [
-      "POST"
-    ]
-  },
-  {
     "route": "/api/badges",
     "methods": [
       "GET"
@@ -300,12 +294,6 @@ export const apiRoutes = [
   },
   {
     "route": "/api/import/jobs",
-    "methods": [
-      "POST"
-    ]
-  },
-  {
-    "route": "/api/import/parse",
     "methods": [
       "POST"
     ]

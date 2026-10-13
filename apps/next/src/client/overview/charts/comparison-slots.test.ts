@@ -1,143 +1,101 @@
 // @vitest-environment jsdom
-import { act } from '@testing-library/react'
+import { act, cleanup, renderHook } from '@testing-library/react'
 import { createElement } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, expect, it } from 'vitest'
-import {
-  SLOT_CUES,
-  assignSlots,
-  slotCue,
-  slotStorageKey,
-  useComparisonSlots,
-  type SlotStorage,
-} from './comparison-slots'
+import { afterEach, expect, it, vi } from 'vitest'
+import { SLOT_CUES, slotCue, slotStorageKey, useComparisonSlots } from './comparison-slots'
 
-function memoryStorage(): SlotStorage & { dump: () => string | null } {
-  const items = new Map<string, string>()
-  return {
-    getItem: (key) => items.get(key) ?? null,
-    setItem: (key, value) => void items.set(key, value),
-    dump: () => items.get(slotStorageKey('me', 'airports')) ?? null,
+const seedOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+  localStorage.clear()
+  delete document.documentElement.dataset.accent
+})
+
+it('keeps rendered keys on their slot and cue through reorder, filters, new entities, reload and exhaustion', () => {
+  const view = renderHook(
+    (visibleKeys: string[]) =>
+      useComparisonSlots({ analysis: 'airports', ownerId: 'me', visibleKeys, seedOrder }),
+    { initialProps: ['A', 'B', 'C'] },
+  )
+  const at = (keys: string[]) => {
+    view.rerender(keys)
+    return new Map(view.result.current)
   }
-}
-
-it('keeps a key on its slot and cue through reorder, filter, new entities, reload, exhaustion and accent changes', () => {
-  const storage = memoryStorage()
-  const seedOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-  const at = (visibleKeys: string[], store: SlotStorage | null = storage) =>
-    assignSlots({ analysis: 'airports', ownerId: 'me', visibleKeys, seedOrder, storage: store })
-  const cues = (slots: Map<string, number>, key: string) => JSON.stringify(slotCue(slots.get(key)!))
-
-  // Without storage the server and the first client render both come from the seed.
-  expect([...at(['A', 'B', 'C'], null)]).toEqual([
-    ['A', 0],
-    ['B', 1],
-    ['C', 2],
-  ])
-  expect(storage.dump()).toBeNull()
-
-  const first = at(['A', 'B', 'C'])
-  expect([...first]).toEqual([
-    ['A', 0],
-    ['B', 1],
-    ['C', 2],
-  ])
-  // Reorder and top-N change nothing.
-  const reordered = at(['C', 'A', 'B'])
-  for (const key of 'ABC') expect(reordered.get(key)).toBe(first.get(key))
-  // A different visible set (filter/year): the new key takes a slot no stored key uses.
-  const filtered = at(['D', 'B'])
-  expect(filtered.get('B')).toBe(1)
-  expect(filtered.get('D')).toBe(3)
-  // New entity: the last free slot, and nobody moves.
-  const grown = at(['E', 'A', 'D'])
-  expect(grown.get('E')).toBe(4)
-  expect(grown.get('A')).toBe(0)
-  expect(grown.get('D')).toBe(3)
-  // A sixth entity finds every stored slot taken and avoids the slots on screen.
+  const first = new Map(view.result.current)
+  expect(Object.fromEntries(first)).toEqual({ A: 0, B: 1, C: 2 })
+  expect(Object.fromEntries(at(['C', 'A', 'B']))).toEqual({ C: 2, A: 0, B: 1 })
+  expect(Object.fromEntries(at(['D', 'B']))).toEqual({ D: 3, B: 1 })
+  expect(Object.fromEntries(at(['E', 'A', 'D']))).toEqual({ E: 4, A: 0, D: 3 })
   expect(at(['F', 'A', 'C', 'D', 'E']).get('F')).toBe(1)
-
-  // Reload: a fresh call over the same storage returns the same assignments, ignoring the seed.
-  const reloaded = assignSlots({
-    analysis: 'airports',
-    ownerId: 'me',
-    visibleKeys: ['F', 'E', 'D', 'C', 'B', 'A'],
-    seedOrder: ['G', 'F', 'E', 'D', 'C', 'B', 'A'],
-    storage,
-  })
-  expect(Object.fromEntries(reloaded)).toMatchObject({ A: 0, B: 1, C: 2, D: 3, E: 4, F: 1 })
-
-  // Exhaustion: a seventh key repeats the least-used slot; earlier keys keep slot and cue.
   const before = at(['A', 'B', 'C', 'D', 'E', 'F'])
   const exhausted = at(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
   expect(exhausted.get('G')).toBe(0)
-  for (const key of 'ABCDEF') {
-    expect(exhausted.get(key)).toBe(before.get(key))
-    expect(cues(exhausted, key)).toBe(cues(before, key))
-  }
-
-  // Accent: the slot index is untouched and the colour is a token, never a cached value.
+  for (const key of 'ABCDEF') expect(exhausted.get(key)).toBe(before.get(key))
   document.documentElement.dataset.accent = 'ai'
-  const accented = at(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
-  expect([...accented]).toEqual([...exhausted])
-  for (const cue of SLOT_CUES) expect(cue.color).toMatch(/^var\(--cmp-[1-5]\)$/)
-  expect(new Set(SLOT_CUES.map((cue) => `${cue.dash}|${cue.marker}`)).size).toBe(5)
-  delete document.documentElement.dataset.accent
-
-  // Unavailable or corrupt storage falls back to the seed instead of throwing.
-  const corrupt: SlotStorage = { getItem: () => '{"A":9,"B":"x"', setItem: () => {} }
-  expect(at(['A', 'B'], corrupt).get('B')).toBe(1)
-  const blocked: SlotStorage = {
-    getItem: () => {
-      throw new Error('blocked')
-    },
-    setItem: () => {
-      throw new Error('blocked')
-    },
-  }
-  expect(at(['A', 'B'], blocked).get('A')).toBe(0)
-})
-
-it('gives a new key the first slot the stored keys leave free, never the seed slot', () => {
-  const storage = memoryStorage()
-  const key = slotStorageKey('stored', 'airports')
-  storage.setItem(key, '{"X":0}')
-  const slots = assignSlots({
-    analysis: 'airports',
-    ownerId: 'stored',
-    visibleKeys: ['X', 'A'],
-    seedOrder: ['A', 'B', 'X'],
-    storage,
-  })
-  expect([...slots]).toEqual([
-    ['X', 0],
-    ['A', 1],
-  ])
-  expect(JSON.parse(storage.getItem(key)!)).toEqual({ X: 0, A: 1 })
-})
-
-it('keeps slots stable when storage refuses writes', () => {
-  const refusing: SlotStorage = {
-    getItem: () => null,
-    setItem: () => {
-      throw new Error('quota')
-    },
-  }
-  const at = (visibleKeys: string[]) =>
-    assignSlots({
+  expect([...at(['A', 'B', 'C', 'D', 'E', 'F', 'G'])]).toEqual([...exhausted])
+  for (const key of 'ABCDEF')
+    expect(slotCue(view.result.current.get(key)!)).toEqual(slotCue(before.get(key)!))
+  view.unmount()
+  const reloaded = renderHook(() =>
+    useComparisonSlots({
       analysis: 'airports',
-      ownerId: 'quota',
-      visibleKeys,
-      seedOrder: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
-      storage: refusing,
-    })
-  const first = at(['F', 'G'])
-  expect(at(['G']).get('G')).toBe(first.get('G'))
-  expect(at(['G', 'F']).get('F')).toBe(first.get('F'))
+      ownerId: 'me',
+      visibleKeys: ['G', 'F', 'E', 'D', 'C', 'B', 'A'],
+      seedOrder: [...seedOrder].reverse(),
+    }),
+  )
+  expect(Object.fromEntries(reloaded.result.current)).toEqual({
+    A: 0,
+    B: 1,
+    C: 2,
+    D: 3,
+    E: 4,
+    F: 1,
+    G: 0,
+  })
+  // Color alone must never be the only distinction between comparison series.
+  expect(new Set(SLOT_CUES.map((cue) => `${cue.dash}|${cue.marker}`)).size).toBe(5)
+  for (const cue of SLOT_CUES) expect(cue.color).toMatch(/^var\(--cmp-[1-5]\)$/)
 })
 
-afterEach(() => localStorage.clear())
+it.each(['corrupt', 'blocked'])(
+  '%s storage falls back to the seed without crashing a chart',
+  (ownerId) => {
+    if (ownerId === 'corrupt')
+      localStorage.setItem(slotStorageKey(ownerId, 'airports'), '{"A":9,"B":"x"')
+    else {
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new Error('blocked')
+      })
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('blocked')
+      })
+    }
+    const { result } = renderHook(() =>
+      useComparisonSlots({ analysis: 'airports', ownerId, visibleKeys: ['A', 'B'], seedOrder }),
+    )
+    expect(Object.fromEntries(result.current)).toEqual({ A: 0, B: 1 })
+  },
+)
+
+it('keeps rendered slots stable when storage refuses writes', () => {
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new Error('quota')
+  })
+  const view = renderHook(
+    (visibleKeys: string[]) =>
+      useComparisonSlots({ analysis: 'airports', ownerId: 'quota', visibleKeys, seedOrder }),
+    { initialProps: ['F', 'G'] },
+  )
+  const first = new Map(view.result.current)
+  view.rerender(['G'])
+  expect(view.result.current.get('G')).toBe(first.get('G'))
+  view.rerender(['G', 'F'])
+  expect(view.result.current.get('F')).toBe(first.get('F'))
+})
 
 it('hydrates from the seed, then stores new keys beside the keys already stored', async () => {
   localStorage.setItem(slotStorageKey('hydrate', 'airports'), '{"X":0}')
@@ -152,14 +110,15 @@ it('hydrates from the seed, then stores new keys beside the keys already stored'
   }
   const container = document.createElement('div')
   container.innerHTML = renderToString(createElement(Probe))
-  // The server render knows only the seed.
   expect(container.textContent).toBe('[["X",2],["A",0]]')
+  let root: ReturnType<typeof hydrateRoot> | undefined
   await act(async () => {
-    hydrateRoot(container, createElement(Probe))
+    root = hydrateRoot(container, createElement(Probe))
   })
   expect(container.textContent).toBe('[["X",0],["A",1]]')
   expect(JSON.parse(localStorage.getItem(slotStorageKey('hydrate', 'airports'))!)).toEqual({
     X: 0,
     A: 1,
   })
+  act(() => root?.unmount())
 })

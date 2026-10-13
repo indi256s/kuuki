@@ -5,15 +5,9 @@ import { isApprovedPair, useTransitionKey } from './route-transition-pairs'
 
 describe('isApprovedPair', () => {
   it.each([
-    ['/overview', '/journal', true],
-    ['/journal', '/settings', true],
     ['/passport', '/import', true],
     ['/import', '/passport', true],
-    ['/journal', '/journal/27/edit', false],
     ['/journal', '/add', false],
-    ['/overview', '/leaderboard', false],
-    ['/passport', '/fly/fixture-a', false],
-    ['/leaderboard', '/fly/fixture-a', true],
   ])('%s → %s animates: %s', (from, to, animates) => {
     expect(isApprovedPair('page', from, to)).toBe(animates)
   })

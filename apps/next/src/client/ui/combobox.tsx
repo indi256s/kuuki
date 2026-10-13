@@ -141,27 +141,29 @@ export function Combobox({
   const id = useId()
   const mobile = useMobile() === true
   const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState<string | null>(null)
+  const [editing, setEditing] = useState<{
+    text: string
+    value: string
+    committed: string
+  } | null>(null)
   const [active, setActive] = useState(0)
   const originRef = useRef<HTMLInputElement>(null)
   const restoringFocus = useRef(false)
   const searchRef = useRef<HTMLInputElement>(null)
-  const committed = useRef(value)
-  const typed = useRef<string | null>(null)
-  if (query === null) committed.current = value
   // A value changed from outside (swap, reset) while text was being typed: show the new value, not the stale text.
-  else if (value !== typed.current) setQuery(null)
+  if (editing !== null && value !== editing.value) setEditing(null)
+  const query = editing?.text ?? null
   const selected = choices.find((choice) => choice.code === value)
   const { needle, all, matches } = searchChoices(choices, query ?? '', recents)
   const choose = (choice: Choice) => {
     onChange(choice.code)
     onSelect?.(choice.code)
-    setQuery(null)
+    setEditing(null)
     setOpen(false)
   }
   const revert = () => {
-    onChange(committed.current)
-    setQuery(null)
+    onChange(editing?.committed ?? value)
+    setEditing(null)
   }
   // Leaving the field without a choice: take the exact code or the single match, otherwise go back to the last chosen code.
   const settle = () => {
@@ -169,7 +171,7 @@ export function Combobox({
     const text = foldSearchText(query.trim())
     if (!text) {
       onChange('')
-      setQuery(null)
+      setEditing(null)
       return
     } // clearing the field is deliberate
     const exact = choices.find((choice) => choice.code.toLocaleLowerCase() === text)
@@ -177,7 +179,7 @@ export function Combobox({
     if (found) {
       onChange(found.code)
       onSelect?.(found.code)
-      setQuery(null)
+      setEditing(null)
     } else revert()
   }
   const keydown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -237,9 +239,10 @@ export function Combobox({
       disabled={disabled}
       value={query ?? (search ? '' : value)}
       onChange={(event) => {
-        setQuery(event.target.value)
-        typed.current = event.target.value.toUpperCase()
-        onChange(typed.current)
+        const text = event.target.value
+        const typedValue = text.toUpperCase()
+        setEditing({ text, value: typedValue, committed: editing?.committed ?? value })
+        onChange(typedValue)
         setActive(0)
         setOpen(true)
       }}
@@ -247,14 +250,14 @@ export function Combobox({
         if (!disabled && !open) {
           setOpen(true)
           setActive(0)
-          setQuery(null)
+          setEditing(null)
         }
       }}
       onFocus={() => {
         if (!disabled && !restoringFocus.current) {
           setOpen(true)
           setActive(0)
-          if (!search) setQuery(null)
+          if (!search) setEditing(null)
         }
       }}
       onBlur={onBlur}
