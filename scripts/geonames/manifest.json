@@ -1,0 +1,77 @@
+{
+  "generator": "scripts/generate-geonames-places.ts",
+  "catalogVersion": "geonames-cities500-20261013",
+  "sources": {
+    "cities500.zip": {
+      "url": "https://download.geonames.org/export/dump/cities500.zip",
+      "bytes": 13876544,
+      "sha256": "f92aa55f4a60db8cda449f67bce1b3b5ceb4dc4f767ab0ee491c18aaabb0cfd4",
+      "lastModified": "2026-10-13T01:57:19.000Z"
+    },
+    "alternateNamesV2.zip": {
+      "url": "https://download.geonames.org/export/dump/alternateNamesV2.zip",
+      "bytes": 204831254,
+      "sha256": "3c4e5e5e317aefc84b7b639be2db63dab940de72192789c84ee9b796ba82c1f4",
+      "lastModified": "2026-10-13T02:02:37.000Z"
+    },
+    "admin1CodesASCII.txt": {
+      "url": "https://download.geonames.org/export/dump/admin1CodesASCII.txt",
+      "bytes": 151583,
+      "sha256": "1da92a6323a5fec3176f3f743bf4cf4040fd56a876da55e46fbca23c863aa60a",
+      "lastModified": "2026-10-13T01:57:19.000Z"
+    }
+  },
+  "rules": [
+    "cities500 rows with feature class P, ISO-2 country, valid WGS84 coordinates and a non-empty name",
+    "display names nameRu/nameEn: alternateNamesV2 isolanguage ru/en, not isHistoric, not isColloquial; isPreferredName first, then non-short names, then lowest alternateNameId; absent stays NULL (asciiname is not a translation)",
+    "region: admin1CodesASCII name for country.admin1; region_ru: its ru alias from alternateNamesV2 by the admin1 geonameid, same selection rule",
+    "search keys: placeNameKey of name, asciiname and every ru/en alias of the place including historic/colloquial/short ones; prefix = first 3 key characters",
+    "population and timezone are copied from the cities500 row"
+  ],
+  "output": {
+    "places": 236112,
+    "names": 327696,
+    "aliasRowsScanned": 19220706,
+    "skipped": {},
+    "sqlBytes": 47619846,
+    "chunkBytes": 10485760,
+    "files": [
+      {
+        "name": "001-catalog.sql",
+        "bytes": 10496548,
+        "sha256": "18ca74d9d7bda600a0846967410b54616092e7e4604c164eb62c616df235ae06",
+        "statements": 706
+      },
+      {
+        "name": "002-catalog.sql",
+        "bytes": 10487896,
+        "sha256": "da19dce2c6ab8a5c0735055d95ded0af0b467f08aa6debaddbba90a085b75d00",
+        "statements": 694
+      },
+      {
+        "name": "003-catalog.sql",
+        "bytes": 10494788,
+        "sha256": "34b56413d5d956da208c9347cfc3b663c4bd24ee8f619a61c564c928a4bf7cc3",
+        "statements": 689
+      },
+      {
+        "name": "004-catalog.sql",
+        "bytes": 10486669,
+        "sha256": "d20fcfe6b8fef573dae79f624542def7a310aef414e3e5c16f1e334ece9f51e2",
+        "statements": 2080
+      },
+      {
+        "name": "005-catalog.sql",
+        "bytes": 5653945,
+        "sha256": "1650edea5777fde96e6a87eda4d8312b1963dcada5fdec03e0f8a81e3b4ee367",
+        "statements": 1470
+      }
+    ]
+  },
+  "lastRun": {
+    "seconds": 172.3,
+    "localLoadSeconds": 91.686,
+    "node": "v24.18.0"
+  },
+  "attribution": "Contains data from GeoNames (https://www.geonames.org), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)."
+}
