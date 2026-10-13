@@ -6,6 +6,7 @@ import { formatNumber } from '../../../lib/format'
 import { referenceLabels } from '../labels'
 import { useOverview } from '../store/overview-context'
 import { Button } from '../../ui/button'
+import { Checkbox } from '../../ui/checkbox'
 import { PopoverRoot, PopoverContent } from '../../ui/popover'
 import { Sheet } from '../../ui/sheet'
 import { periodDays } from '@kuuki/shared/overview/range'
@@ -238,10 +239,13 @@ export function FilterPanel({
           {index
             .filter((option) => option.facet === facet)
             .map((option) => (
-              <label className="ov-filter-option" key={option.value}>
-                <input type="checkbox" checked={selected(option)} onChange={() => toggle(option)} />
-                {details(option)}
-              </label>
+              <Checkbox
+                className="ov-filter-option"
+                key={option.value}
+                label={details(option)}
+                checked={selected(option)}
+                onChange={() => toggle(option)}
+              />
             ))}
           {facet === 'period' ? (
             <>

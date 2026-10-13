@@ -97,7 +97,8 @@
   inset-inline: var(--page-gutter);
   max-width: 720px;
   margin-inline: auto;
-  box-shadow: var(--shadow-floating);
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
   z-index: 1;
 }
 .leaderboard-eligibility {

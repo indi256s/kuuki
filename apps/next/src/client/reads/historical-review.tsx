@@ -12,6 +12,7 @@ import { trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { awaitPublication } from '../publication'
 import { Button } from '../ui/button'
+import { Checkbox } from '../ui/checkbox'
 import { Disclosure } from '../ui/disclosure'
 import type { Locale } from '../../server/locale'
 
@@ -207,37 +208,40 @@ export function HistoricalReview({
                   : 'Changes apply only to selected connections. The stamp preview assumes all suggestions are selected.'}
               </p>
               {data.candidates.map((row) => (
-                <label className="connection-row" key={row.flight.id}>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(row.flight.id)}
-                    disabled={busy || loading || !!request || !online}
-                    {...offline}
-                    onChange={(event) =>
-                      setSelected((ids) =>
-                        event.target.checked
-                          ? [...ids, row.flight.id]
-                          : ids.filter((id) => id !== row.flight.id),
-                      )
-                    }
-                  />
-                  {row.flight.origin} → {row.flight.destination} → {row.candidate.leg?.destination}{' '}
-                  ·{' '}
-                  {row.candidate.label === 'estimated'
-                    ? ru
-                      ? 'Оценка по датам'
-                      : 'Estimated from dates'
-                    : ru
-                      ? 'Определено по времени рейсов'
-                      : 'Based on flight times'}{' '}
-                  ·{' '}
-                  {row.affectedCountries
-                    .map(
-                      (code) =>
-                        `${countryName(code)}: ${data.wouldRemoveStamp[code] ? (ru ? 'отметка будет удалена' : 'stamp will be removed') : ru ? 'отметка останется' : 'stamp stays'}`,
+                <Checkbox
+                  className="connection-row"
+                  key={row.flight.id}
+                  checked={selected.includes(row.flight.id)}
+                  disabled={busy || loading || !!request || !online}
+                  {...offline}
+                  onChange={(event) =>
+                    setSelected((ids) =>
+                      event.target.checked
+                        ? [...ids, row.flight.id]
+                        : ids.filter((id) => id !== row.flight.id),
                     )
-                    .join(', ')}
-                </label>
+                  }
+                  label={
+                    <>
+                      {row.flight.origin} → {row.flight.destination} →{' '}
+                      {row.candidate.leg?.destination} ·{' '}
+                      {row.candidate.label === 'estimated'
+                        ? ru
+                          ? 'Оценка по датам'
+                          : 'Estimated from dates'
+                        : ru
+                          ? 'Определено по времени рейсов'
+                          : 'Based on flight times'}{' '}
+                      ·{' '}
+                      {row.affectedCountries
+                        .map(
+                          (code) =>
+                            `${countryName(code)}: ${data.wouldRemoveStamp[code] ? (ru ? 'отметка будет удалена' : 'stamp will be removed') : ru ? 'отметка останется' : 'stamp stays'}`,
+                        )
+                        .join(', ')}
+                    </>
+                  }
+                />
               ))}
               <Button
                 disabled={busy || loading || !selected.length || !!request || !online}
