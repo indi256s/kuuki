@@ -29,27 +29,38 @@ const isNight = (hour: number) => hour >= 22 || hour < 6
 const TICKS = [0, 6, 12, 18, 23].map((index) => ({ index, text: pad(index) }))
 
 /**
- * The two readings the display holds. A pick writes the new time into the slot that is not shown and flips `side`, so CSS fades
- * the old segments out and the new ones in (iso/clock.css). Anything that is not a pick rewrites both slots: the display changes without moving.
+ * The two readings the display holds. A pick writes the new time into the slot that is not shown, flips `side` and sets `pressed`, so CSS
+ * presses the snooze bar and sets the clock: the old segments go dark and the new ones light (iso/clock.css). Anything that is not a pick
+ * rewrites both slots: the display changes without moving.
  */
 function useMorph(time: string, picked: boolean) {
-  const [slots, setSlots] = useState({ a: time, b: time, side: 'a' as 'a' | 'b' })
+  const [slots, setSlots] = useState({ a: time, b: time, side: 'a' as 'a' | 'b', pressed: false })
   if (slots[slots.side] === time) return slots
   const next = !picked
-    ? { a: time, b: time, side: slots.side }
+    ? { ...slots, a: time, b: time }
     : slots.side === 'a'
-      ? { ...slots, b: time, side: 'b' as const }
-      : { ...slots, a: time, side: 'a' as const }
+      ? { ...slots, b: time, side: 'b' as const, pressed: true }
+      : { ...slots, a: time, side: 'a' as const, pressed: true }
   setSlots(next)
   return next
 }
 
-/** The clock in the card's figure box: its face shows `a` and `b`, and `side` names the one in front (the digit morph, clock.css). */
-function ClockFigure({ a, b, side }: { a: string; b: string; side: 'a' | 'b' }) {
+/** The clock in the card's figure box: its face shows `a` and `b`, `side` names the one in front, and `pressed` says a pick has set it (clock.css). */
+function ClockFigure({
+  a,
+  b,
+  side,
+  pressed,
+}: {
+  a: string
+  b: string
+  side: 'a' | 'b'
+  pressed: boolean
+}) {
   const k = useFigureK('', (k) => clock('00:00', k))
   const figure = useMemo(() => clock(a, k, b), [a, b, k])
   return (
-    <div className="ov3-clock-figure" data-side={side}>
+    <div className="ov3-clock-figure" data-side={side} data-press={pressed ? side : undefined}>
       <IsoFigure figure={figure} className="iso-clock" />
     </div>
   )
@@ -193,7 +204,7 @@ export function Section({ span }: { span: Span }) {
   return (
     <ChapterCard
       state={state}
-      figure={<ClockFigure a={slots.a} b={slots.b} side={slots.side} />}
+      figure={<ClockFigure a={slots.a} b={slots.b} side={slots.side} pressed={slots.pressed} />}
       figureButton={
         cycle.length > 1
           ? {

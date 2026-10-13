@@ -17,9 +17,10 @@ export function usePassFigure(size: FigureSize, share: number, route: string, to
 const SIZING_ROUTE = 'AAA ↔ BBB'
 
 /**
- * The stack in the chapter card's figure box (figure-box.ts). `route` is the reading. When it changes by a pick the top pass is dealt in
- * (passes.css); a change that is not a pick (first render, swipe, filter) swaps its print with no motion. `data-deal` alternates 1 and 2
- * so the next pick deals again; a pick while a deal is still running swaps the print and the deal settles as it was, never restarting.
+ * The stack in the chapter card's figure box (figure-box.ts). `route` is the reading. When it changes by a pick the old top pass is dealt
+ * off and the new one rises into place (passes.css); a change that is not a pick (first render, swipe, filter) swaps its print with no
+ * motion. `data-deal` alternates 1 and 2 so the next pick deals again; a pick while a deal is still running swaps the new print and the deal
+ * settles as it was, never restarting. The leaving pass is drawn only while a deal runs.
  */
 export function PassCardFigure({
   share,
@@ -34,19 +35,34 @@ export function PassCardFigure({
   topRepeat?: boolean
 }) {
   const k = useFigureK(String(share), (k) => passStack(share, SIZING_ROUTE, k))
-  const figure = useMemo(() => passStack(share, route, k, topRepeat), [share, route, k, topRepeat])
-  const [seen, setSeen] = useState({ route, deal: 0, dealing: false })
+  const [seen, setSeen] = useState<{
+    route: string
+    repeat: boolean
+    deal: number
+    dealing: boolean
+    leaving: { route: string; repeat: boolean } | null
+  }>({ route, repeat: !!topRepeat, deal: 0, dealing: false, leaving: null })
   let deal = seen.deal
   if (seen.route !== route) {
-    // A pick mid-deal keeps the running deal (same part, new print) and lets it settle from where it is.
+    // A pick mid-deal keeps the running deal (same part, new print, same leaving pass) and lets it settle from where it is.
     deal = !picked ? 0 : seen.dealing ? seen.deal : seen.deal === 1 ? 2 : 1
-    setSeen({ route, deal, dealing: deal !== 0 })
+    const leaving = !picked
+      ? null
+      : seen.dealing
+        ? seen.leaving
+        : { route: seen.route, repeat: seen.repeat }
+    setSeen({ route, repeat: !!topRepeat, deal, dealing: deal !== 0, leaving })
   }
+  const leaving = seen.dealing ? seen.leaving : null
+  const figure = useMemo(
+    () => passStack(share, route, k, topRepeat, leaving ?? undefined),
+    [share, route, k, topRepeat, leaving],
+  )
   return (
     <div
       className="ov3-passes"
       data-deal={deal || undefined}
-      onAnimationEnd={() => setSeen((old) => ({ ...old, dealing: false }))}
+      onAnimationEnd={() => setSeen((old) => ({ ...old, dealing: false, leaving: null }))}
     >
       <IsoFigure figure={figure} className="iso-passes" />
     </div>

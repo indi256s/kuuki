@@ -54,7 +54,8 @@ const SNOOZE_DIP = 2,
  * With `alt`, the display holds both readings: segments lit in both stay in `lit-both`, the rest split into `lit-a` (only `time`) and `lit-b` (only `alt`), so CSS can morph one reading into the other segment by segment.
  * The chapter figure keeps `lit-a` and `lit-b` mounted and swaps which one is shown, so a pick morphs the display. The colon belongs to `lit-both`. Each lit part holds a `backlight` (its glow) that CSS can raise; from k = 1 the display sits recessed behind a rim.
  * The body is a bedside alarm clock: feet, a bevelled bezel with screws round the display, a speaker grille and a set knob on its right wall, buttons on top, a mains cord with its plug.
- * Parts: `body`, `snooze` (carries --dip-y/--press-y), `display`, `lit-both`, `lit-a`, `lit-b`, `backlight`.
+ * `lit-a` and `lit-b` hold one `cell` per digit, carrying --t (0 for the first digit, 1 for the last), so a reading can light digit by digit.
+ * Parts: `body`, `snooze` (carries --dip-y/--press-y), `display`, `lit-both`, `lit-a`, `lit-b`, `cell`, `backlight`.
  */
 export function clock(time: string, k = 1, alt?: string) {
   const s = new Scene(k)
@@ -223,8 +224,8 @@ export function clock(time: string, k = 1, alt?: string) {
     b = (alt ?? time).replace(':', '')
   const ghost: P3[][] = [],
     both: P3[][] = [],
-    onlyA: P3[][] = [],
-    onlyB: P3[][] = []
+    onlyA: P3[][][] = cells.map(() => []),
+    onlyB: P3[][][] = cells.map(() => [])
   cells.forEach((cell, i) => {
     for (const key of Object.keys(SEG) as Seg[]) {
       const inA = DIGIT[a[i]]?.includes(key) ?? false,
@@ -233,8 +234,8 @@ export function clock(time: string, k = 1, alt?: string) {
       // Unlit segments stay visible as ghosts; a lit one covers its ghost exactly.
       ghost.push(path)
       if (inA && inB) both.push(path)
-      else if (inA) onlyA.push(path)
-      else if (inB) onlyB.push(path)
+      else if (inA) onlyA[i].push(path)
+      else if (inB) onlyB[i].push(path)
     }
   })
   const face = () => {
@@ -250,22 +251,29 @@ export function clock(time: string, k = 1, alt?: string) {
   })
   // The colon is lit in both readings, so it glows with the digits.
   const dots = [12, 20].map((v) => s.circle(O, U, V, 35.5, v, 1.3, 10))
-  const lit = (part: string, list: P3[][], colon: P3[][] = []) =>
+  const shine = (list: P3[][], colon: P3[][] = []) => {
+    if (!list.length && !colon.length) return
+    const draw = () => {
+      if (list.length) s.segs(list, 'accent', 2.4)
+      for (const dot of colon) s.poly(dot, 'accent', 'accent')
+    }
+    s.group('backlight', () => s.glow(2.9, draw))
+    draw()
+  }
+  const lit = (part: string, perCell: P3[][][]) =>
     s.group(
       part,
-      () => {
-        if (!list.length && !colon.length) return
-        const draw = () => {
-          if (list.length) s.segs(list, 'accent', 2.4)
-          for (const dot of colon) s.poly(dot, 'accent', 'accent')
-        }
-        s.group('backlight', () => s.glow(2.9, draw))
-        draw()
-      },
+      () =>
+        perCell.forEach((list, i) => {
+          if (list.length)
+            s.group('cell', () => shine(list), {
+              vars: { '--t': String(i / (cells.length - 1)) },
+            })
+        }),
       { clip },
     )
   // A blank display (no digits) is unlit, colon included.
-  lit('lit-both', both, (a + b).trim() ? dots : [])
+  s.group('lit-both', () => shine(both, (a + b).trim() ? dots : []), { clip })
   lit('lit-a', onlyA)
   lit('lit-b', onlyB)
   // The bezel closes the opening: four bevelled strips, with a screw in each corner.

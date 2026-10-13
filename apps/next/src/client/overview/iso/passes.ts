@@ -9,6 +9,9 @@ const L = 112,
 export const PASSES = 8
 /** How far the top pass slides out on hover, in iso units along its length. */
 const SLIDE = 14
+/** A dealt-away pass travels this far along its length and this high as it leaves (passes.css); the travel is outside the bounds, so the box never changes. */
+const LEAVE = 40,
+  LEAVE_Z = 12
 // Passes under the top one fan out past its stub end, FAN further each, so every stub shows as a step; each also lies a little askew (a turn in degrees and a sideways shift), fixed so the stack never reshuffles.
 const FAN = 3.4
 const SKEW: readonly [number, number][] = [
@@ -26,9 +29,17 @@ const SKEW: readonly [number, number][] = [
  * Any share above 0 shows at least one red stub and any share below 1 leaves at least one plain pass, so the stack never lies at the edges.
  * `topRepeat` says whether the route on the top pass is itself a repeat (default: any repeat exists); only then is the top stub lit, the one lit part. Red stubs below take a subdued accent, unlit.
  * At section size the top pass reads `route` (for example "ROV ↔ VKO").
- * Parts: `supporting-pass` (subdued repeat stubs), `top-pass` (carries --slide-x/--slide-y; slides out along its length on hover).
+ * `leaving` draws the pass a deal takes off the top, over the top pass and in the same place, with its own print.
+ * Parts: `supporting-pass` (subdued repeat stubs), `top-pass` (carries --slide-x/--slide-y for the hover slide and --rise-x/--rise-y, the
+ * offset back to the pass under it, for a deal), `leaving-pass` (carries --leave-x/--leave-y; hidden unless a deal animates it).
  */
-export function passStack(repeatShare: number, route: string, k = 1, topRepeat?: boolean) {
+export function passStack(
+  repeatShare: number,
+  route: string,
+  k = 1,
+  topRepeat?: boolean,
+  leaving?: { route: string; repeat: boolean },
+) {
   const s = new Scene(k)
   const n = PASSES,
     repeats =
@@ -103,102 +114,120 @@ export function passStack(repeatShare: number, route: string, k = 1, topRepeat?:
     })
   }
 
-  const [sx, sy] = s.vector(SLIDE, 0, 0)
+  /** The top pass at rest with its print: stub, barcode and body. */
+  const printed = (repeat: boolean, print: string) => {
+    const at = card(0, 0, 0, n * T, repeat)
+    const U: P3 = [1, 0, 0],
+      V: P3 = [0, 1, 0]
+    // The stub past a perforated tear line: lit when the top route is a repeat.
+    const stub = [at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)]
+    if (repeat) s.lit(stub, 3.5)
+    const holes: P3[][] = []
+    for (let v = 3; v < B - 1; v += 4) holes.push(s.circle(at(L - STUB, v), U, V, 0, 0, 0.6, 6))
+    for (const hole of holes) s.poly(hole, 'line', 'none')
+    // A barcode on the stub, bars of two widths.
+    const bars: P3[][] = [],
+      thick: P3[][] = []
+    for (let i = 0; i < 9; i++) {
+      const v = 8 + i * 3.3
+      ;(i % 3 === 1 ? thick : bars).push([at(L - 9, v), at(L - 4, v)])
+    }
+    s.segs(bars, repeat ? 'on-accent' : 'line', 0.8)
+    s.segs(thick, repeat ? 'on-accent' : 'line', 1.6)
+    // The body: airline mark, the route with a plane glyph, FROM / TO fields and seat, gate and class boxes. Small labels are printed rules.
+    s.poly([at(4, 3), at(16, 3), at(16, 8), at(4, 8)], 'detail', 'none')
+    s.segs(
+      [
+        [at(20, 4), at(40, 4)],
+        [at(20, 7), at(32, 7)],
+      ],
+      'detail',
+      0.8,
+    )
+    const glyph: Pt[] = [
+      [4, 0],
+      [1, 0.8],
+      [0.2, 4.2],
+      [-0.9, 4.2],
+      [-0.4, 0.9],
+      [-3, 0.9],
+      [-3.8, 2.2],
+      [-4.4, 2.2],
+      [-4, 0],
+      [-4.4, -2.2],
+      [-3.8, -2.2],
+      [-3, -0.9],
+      [-0.4, -0.9],
+      [-0.9, -4.2],
+      [0.2, -4.2],
+      [1, -0.8],
+    ]
+    s.poly(
+      glyph.map(([u, v]) => at(12 + u * 1.3, 16 + v * 1.3)),
+      'ink',
+      'ink',
+    )
+    if (k >= 0.9 && print)
+      s.text(print, at(22, 19.5), U, V, { size: 8, weight: 700, mono: true, fill: 'ink' })
+    else s.segs([[at(22, 16), at(58, 16)]], 'line', 1.6)
+    // FROM and TO: a tiny label rule over a longer value rule each.
+    s.segs(
+      [
+        [at(8, 25), at(15, 25)],
+        [at(46, 25), at(51, 25)],
+      ],
+      'detail',
+      0.8,
+    )
+    s.segs(
+      [
+        [at(8, 28.5), at(34, 28.5)],
+        [at(46, 28.5), at(72, 28.5)],
+      ],
+      'line',
+      1.4,
+    )
+    // Seat, gate and class boxes, each printed with a label rule and a value rule.
+    for (const [l, r] of [
+      [8, 26],
+      [30, 48],
+      [52, 76],
+    ]) {
+      s.poly([at(l, 33), at(r, 33), at(r, 41), at(l, 41)], 'none', 'detail', undefined, 0.8)
+      s.segs(
+        [
+          [at(l + 2, 35.2), at(l + 7, 35.2)],
+          [at(l + 2, 38.4), at(l + 11, 38.4)],
+        ],
+        'detail',
+        0.8,
+      )
+    }
+    return at
+  }
+
+  const [sx, sy] = s.vector(SLIDE, 0, 0),
+    [rx, ry] = s.vector(FAN, SKEW[0][1], -T)
   s.group(
     'top-pass',
     () => {
-      const z = n * T
-      const repeat = isRepeat(n - 1)
-      const at = card(0, 0, 0, z, repeat)
-      const U: P3 = [1, 0, 0],
-        V: P3 = [0, 1, 0]
-      // The stub past a perforated tear line: lit when the top route is a repeat.
-      const stub = [at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)]
-      if (repeat) s.lit(stub, 3.5)
-      const holes: P3[][] = []
-      for (let v = 3; v < B - 1; v += 4) holes.push(s.circle(at(L - STUB, v), U, V, 0, 0, 0.6, 6))
-      for (const hole of holes) s.poly(hole, 'line', 'none')
-      // A barcode on the stub, bars of two widths.
-      const bars: P3[][] = [],
-        thick: P3[][] = []
-      for (let i = 0; i < 9; i++) {
-        const v = 8 + i * 3.3
-        ;(i % 3 === 1 ? thick : bars).push([at(L - 9, v), at(L - 4, v)])
-      }
-      s.segs(bars, repeat ? 'on-accent' : 'line', 0.8)
-      s.segs(thick, repeat ? 'on-accent' : 'line', 1.6)
-      // The body: airline mark, the route with a plane glyph, FROM / TO fields and seat, gate and class boxes. Small labels are printed rules.
-      s.poly([at(4, 3), at(16, 3), at(16, 8), at(4, 8)], 'detail', 'none')
-      s.segs(
-        [
-          [at(20, 4), at(40, 4)],
-          [at(20, 7), at(32, 7)],
-        ],
-        'detail',
-        0.8,
-      )
-      const glyph: Pt[] = [
-        [4, 0],
-        [1, 0.8],
-        [0.2, 4.2],
-        [-0.9, 4.2],
-        [-0.4, 0.9],
-        [-3, 0.9],
-        [-3.8, 2.2],
-        [-4.4, 2.2],
-        [-4, 0],
-        [-4.4, -2.2],
-        [-3.8, -2.2],
-        [-3, -0.9],
-        [-0.4, -0.9],
-        [-0.9, -4.2],
-        [0.2, -4.2],
-        [1, -0.8],
-      ]
-      s.poly(
-        glyph.map(([u, v]) => at(12 + u * 1.3, 16 + v * 1.3)),
-        'ink',
-        'ink',
-      )
-      if (k >= 0.9 && route)
-        s.text(route, at(22, 19.5), U, V, { size: 8, weight: 700, mono: true, fill: 'ink' })
-      else s.segs([[at(22, 16), at(58, 16)]], 'line', 1.6)
-      // FROM and TO: a tiny label rule over a longer value rule each.
-      s.segs(
-        [
-          [at(8, 25), at(15, 25)],
-          [at(46, 25), at(51, 25)],
-        ],
-        'detail',
-        0.8,
-      )
-      s.segs(
-        [
-          [at(8, 28.5), at(34, 28.5)],
-          [at(46, 28.5), at(72, 28.5)],
-        ],
-        'line',
-        1.4,
-      )
-      // Seat, gate and class boxes, each printed with a label rule and a value rule.
-      for (const [l, r] of [
-        [8, 26],
-        [30, 48],
-        [52, 76],
-      ]) {
-        s.poly([at(l, 33), at(r, 33), at(r, 41), at(l, 41)], 'none', 'detail', undefined, 0.8)
-        s.segs(
-          [
-            [at(l + 2, 35.2), at(l + 7, 35.2)],
-            [at(l + 2, 38.4), at(l + 11, 38.4)],
-          ],
-          'detail',
-          0.8,
-        )
-      }
+      const at = printed(isRepeat(n - 1), route)
       s.include([at(L + SLIDE, 0), at(L + SLIDE, B)])
     },
-    { vars: { '--slide-x': `${sx}px`, '--slide-y': `${sy}px` } },
+    {
+      vars: {
+        '--slide-x': `${sx}px`,
+        '--slide-y': `${sy}px`,
+        '--rise-x': `${rx}px`,
+        '--rise-y': `${ry}px`,
+      },
+    },
   )
+  if (leaving) {
+    const [lx, ly] = s.vector(LEAVE, 0, LEAVE_Z)
+    s.group('leaving-pass', () => void printed(leaving.repeat, leaving.route), {
+      vars: { '--leave-x': `${lx}px`, '--leave-y': `${ly}px` },
+    })
+  }
   return s.done()
 }

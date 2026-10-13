@@ -16,26 +16,63 @@
   }
 }
 
-/* Chapter card: a pick deals the picked route's pass onto the stack. It starts half a slide out and 6px up and settles over --dur-base, transform only.
-   Reduced motion swaps the print at once. `data-deal` alternates 1 and 2 for the next pick; a pick mid-deal keeps the running one (figure.tsx). */
+/* Chapter card: a pick flips to the picked route's pass. The old top pass is pulled off along its length, lifting and fading, while the new one
+   rises from where the pass under it lies and its stub, when lit, glows up as it lands. All over --dur-sheet, transform and opacity only.
+   The leaving pass rests hidden, so reduced motion (no animation) swaps the print at once. `data-deal` alternates 1 and 2 for the next pick;
+   a pick mid-deal keeps the running one (figure.tsx). */
 .ov3-passes {
   display: contents;
 }
+.iso-passes [data-part='leaving-pass'] {
+  opacity: 0;
+}
 @media (prefers-reduced-motion: no-preference) {
   .ov3-passes[data-deal='1'] .iso-passes [data-part='top-pass'] {
-    animation: pass-deal-1 var(--dur-base) var(--ease-out);
+    animation: pass-rise-1 var(--dur-sheet) var(--ease-out);
   }
   .ov3-passes[data-deal='2'] .iso-passes [data-part='top-pass'] {
-    animation: pass-deal-2 var(--dur-base) var(--ease-out);
+    animation: pass-rise-2 var(--dur-sheet) var(--ease-out);
   }
-  @keyframes pass-deal-1 {
+  .ov3-passes[data-deal='1'] .iso-passes [data-part='top-pass'] .iso-glow {
+    animation: pass-glow-1 var(--dur-sheet) var(--ease-out);
+  }
+  .ov3-passes[data-deal='2'] .iso-passes [data-part='top-pass'] .iso-glow {
+    animation: pass-glow-2 var(--dur-sheet) var(--ease-out);
+  }
+  .ov3-passes[data-deal] .iso-passes [data-part='leaving-pass'] {
+    animation: pass-leave var(--dur-sheet) var(--ease-out);
+  }
+  @keyframes pass-rise-1 {
     from {
-      transform: translate(calc(var(--slide-x) * 0.5), calc(var(--slide-y) * 0.5 - 6px));
+      transform: translate(var(--rise-x), var(--rise-y));
     }
   }
-  @keyframes pass-deal-2 {
+  @keyframes pass-rise-2 {
     from {
-      transform: translate(calc(var(--slide-x) * 0.5), calc(var(--slide-y) * 0.5 - 6px));
+      transform: translate(var(--rise-x), var(--rise-y));
+    }
+  }
+  @keyframes pass-glow-1 {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes pass-glow-2 {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes pass-leave {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    35% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--leave-x), var(--leave-y));
     }
   }
 }

@@ -1,13 +1,17 @@
-/* Alarm clock. Tiles dip the snooze bar and raise the backlight on hover. The chapter figure has no hover pose: on a pick its display morphs segment by segment, and the wrapper's data-side says which of the two readings (lit-a, lit-b) is shown. */
+/* Alarm clock. Tiles dip the snooze bar and raise the backlight on hover.
+   The chapter figure has no hover pose; its wrapper's data-side says which of the two readings (lit-a, lit-b) is shown. A pick is a press of
+   the snooze bar that sets the clock: data-press (a or b, the side the pick turned to; absent until the first pick) presses the bar and lets
+   it spring back; as it bottoms out the changed segments of the old reading go dark, the new ones light digit by digit from the left, and the
+   backlight swells as the reading lands. Segments the two readings share stay lit. Reduced motion swaps the reading at once and nothing moves. */
 /* The backlight rises by 0.3 (0.4 → 0.7 in light; dark passes 1 and clamps). */
 .iso-clock [data-part='backlight'] .iso-glow {
   opacity: calc(var(--iso-glow) + 0.3 * var(--iso-lit));
 }
-.iso-clock [data-part='lit-b'],
-[data-side='b'] .iso-clock [data-part='lit-a'] {
+.iso-clock [data-part='lit-b'] [data-part='cell'],
+[data-side='b'] .iso-clock [data-part='lit-a'] [data-part='cell'] {
   opacity: 0;
 }
-[data-side='b'] .iso-clock [data-part='lit-b'] {
+[data-side='b'] .iso-clock [data-part='lit-b'] [data-part='cell'] {
   opacity: 1;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -18,9 +22,47 @@
   .iso-clock [data-part='backlight'] .iso-glow {
     transition: opacity var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
-  /* A new pick retargets the fade from wherever it is. */
-  .iso-clock :is([data-part='lit-a'], [data-part='lit-b']) {
-    transition: opacity var(--dur-base) var(--ease-out);
+  /* Going dark is quick and waits only for the press; lighting follows the press, one digit after another. A new pick retargets both from
+     wherever they are. */
+  .iso-clock [data-part='cell'] {
+    transition: opacity var(--dur-fast) var(--ease-out) 60ms;
+  }
+  [data-side='a'] .iso-clock [data-part='lit-a'] [data-part='cell'],
+  [data-side='b'] .iso-clock [data-part='lit-b'] [data-part='cell'] {
+    transition: opacity var(--dur-base) var(--ease-out) calc(120ms + var(--t) * 150ms);
+  }
+  [data-press='a'] .iso-clock [data-part='snooze'] {
+    animation: clock-press-a var(--dur-sheet) var(--ease-out);
+  }
+  [data-press='b'] .iso-clock [data-part='snooze'] {
+    animation: clock-press-b var(--dur-sheet) var(--ease-out);
+  }
+  [data-press='a'] .iso-clock [data-part='lit-both'] .iso-glow {
+    animation: clock-swell-a var(--dur-moment) var(--ease-out) 120ms;
+  }
+  [data-press='b'] .iso-clock [data-part='lit-both'] .iso-glow {
+    animation: clock-swell-b var(--dur-moment) var(--ease-out) 120ms;
+  }
+  /* Two names per animation, so each pick (which flips the side) starts it again. */
+  @keyframes clock-press-a {
+    25% {
+      transform: translateY(var(--press-y));
+    }
+  }
+  @keyframes clock-press-b {
+    25% {
+      transform: translateY(var(--press-y));
+    }
+  }
+  @keyframes clock-swell-a {
+    40% {
+      opacity: calc(var(--iso-glow) + 0.35);
+    }
+  }
+  @keyframes clock-swell-b {
+    40% {
+      opacity: calc(var(--iso-glow) + 0.35);
+    }
   }
 }
 /* Unlit segments: the shared ghost is 1.3:1 against the dark glass, which reads as a blank pane; here a blank clock still reads as a display. The lit segments stay the one lit part. */
