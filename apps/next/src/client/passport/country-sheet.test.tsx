@@ -311,6 +311,7 @@ describe('CountrySheet freshness and failures', () => {
           awaiting_visit_count: 0,
           claimed: 1,
           ground_visit_count: 0,
+          ground_journey_count: 0,
           first_visit: null,
           last_visit: null,
           region: 'europe',
