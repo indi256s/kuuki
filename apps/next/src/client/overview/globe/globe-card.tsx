@@ -88,9 +88,14 @@ export function GlobeCard({
     <>
       {surface(
         false,
-        <Button ref={openerRef} aria-label={fullscreenLabel} onClick={() => changeOpen(true)}>
+        <Button
+          ref={openerRef}
+          className="globe-fullscreen"
+          aria-label={fullscreenLabel}
+          onClick={() => changeOpen(true)}
+        >
           <Maximize size={16} strokeWidth={2} aria-hidden="true" />
-          <span>{fullscreenLabel}</span>
+          <span className="globe-fullscreen-label">{fullscreenLabel}</span>
         </Button>,
       )}
       {disclosure}

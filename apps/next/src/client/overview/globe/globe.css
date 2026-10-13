@@ -101,6 +101,15 @@
   border-radius: 0;
 }
 @media (max-width: 700px) {
+  .globe-fullscreen {
+    inline-size: 44px;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+  }
+  .globe-fullscreen-label {
+    display: none;
+  }
   .globe-card:not(.globe-card-fullscreen) {
     block-size: 460px;
   }

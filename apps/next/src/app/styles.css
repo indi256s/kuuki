@@ -95,7 +95,7 @@
   --holder-uv: #6a52b8;
   --holder-uv-shade: rgb(48 45 42/7%);
   --map-land: var(--surface-inset);
-  --map-water: #e4edf1;
+  --map-water: #d9e5eb;
   --map-border: #b1aaa2;
   --map-route: var(--accent);
   --globe-route: var(--text);
@@ -242,7 +242,7 @@
   --surface: #353331;
   --surface-inset: #403d3a;
   --map-land: #55504b;
-  --map-water: #26363f;
+  --map-water: #333c40;
   --map-border: #80766d;
   --text: #f1efeb;
   --text-muted: #c4beb7;
