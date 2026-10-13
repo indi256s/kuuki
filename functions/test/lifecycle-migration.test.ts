@@ -358,6 +358,8 @@ describe('0006 upgrade from 0005 with historical rows (A2)', () => {
       const seeded = await evidence(db)
       const visits = (await db.prepare(PRESERVED.visits).all()).results
       const badges = (await db.prepare(PRESERVED.user_badges).all()).results
+      // The repair also reads the ground-travel tables, so the later release is in place before it runs.
+      await applyMigrationAtomically(db, '0011_ground_travel.sql')
       await db.prepare('UPDATE user_derived_state SET revision = revision + 1').run()
       for (const user of [U1, U2])
         expect(await repairUserDerivedState(db, user)).toMatchObject({ derived_state: 'ready' })

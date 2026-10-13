@@ -268,6 +268,52 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/ground-journeys",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/ground-journeys/:id",
+    "methods": [
+      "GET",
+      "PATCH",
+      "DELETE"
+    ]
+  },
+  {
+    "route": "/api/ground-journeys/export",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "route": "/api/ground-journeys/ocr",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/ground-journeys/operations/:key",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "route": "/api/ground-places/manual",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/ground-places/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/import/batches/:id",
     "methods": [
       "GET",

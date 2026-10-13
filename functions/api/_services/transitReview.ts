@@ -14,6 +14,7 @@ import {
   prospectiveTransit,
   type CountryEvidenceRow,
   type EvidenceFlight,
+  journeyCountriesStatement,
 } from './countryEvidence'
 import {
   dirtyUserStatement,
@@ -132,6 +133,7 @@ const candidateSetDigest = (candidates: ReviewCandidate[]) =>
 interface EvidenceInputs {
   claims: string[]
   ground: Array<{ country_code: string; n: number }>
+  journeys: Array<{ country_code: string; n: number }>
   legacy: LegacyVisitSource[]
 }
 const evidenceInputsStatements = (db: D1Database, userId: string) => [
@@ -141,11 +143,13 @@ const evidenceInputsStatements = (db: D1Database, userId: string) => [
       'SELECT country_code, COUNT(*) AS n FROM ground_visits WHERE user_id = ? GROUP BY country_code',
     )
     .bind(userId),
+  journeyCountriesStatement(db, userId),
   legacyEvidenceStatement(db, userId),
 ]
-const evidenceInputsOf = ([claims, ground, legacy]: D1Result[]): EvidenceInputs => ({
+const evidenceInputsOf = ([claims, ground, journeys, legacy]: D1Result[]): EvidenceInputs => ({
   claims: rowsOf<{ country_code: string }>(claims).map((row) => row.country_code),
   ground: rowsOf<{ country_code: string; n: number }>(ground),
+  journeys: rowsOf<{ country_code: string; n: number }>(journeys),
   legacy: rowsOf<LegacyVisitSource>(legacy),
 })
 const pressedOf = (rows: CountryEvidenceRow[]) =>
