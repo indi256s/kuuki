@@ -219,15 +219,15 @@
   stroke-linejoin: round;
   paint-order: stroke;
 }
-.globe-route-card {
+.globe-route-anchor {
   position: absolute;
-  z-index: 2;
-  inline-size: min(280px, 100%);
+  inline-size: 0;
+  block-size: 0;
+  pointer-events: none;
+}
+.globe-route-card.ui-popover {
+  inline-size: min(280px, calc(100vw - 16px));
   padding: var(--space-3);
-  background: var(--surface-floating);
-  color: var(--text);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
 }
 .globe-route-heading {
   display: flex;

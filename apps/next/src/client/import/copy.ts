@@ -527,7 +527,6 @@ ${PROMPT_EXAMPLE.ru}
   ),
   aircraftSearchFailed: p('Aircraft search failed.', 'Поиск самолётов не удался.'),
   aircraftSearchRetry: p('Search again', 'Искать снова'),
-  aircraftClose: p('Close', 'Закрыть'),
   aircraftEvidence: p('Evidence', 'Основание'),
   aircraftUnsure: p('Unconfirmed', 'Не подтверждено'),
   aircraftActual: p(

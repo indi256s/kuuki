@@ -88,18 +88,19 @@
 }
 .leaderboard-own,
 .leaderboard-pin {
-  background: var(--surface-inset);
   border-inline-start: 2px solid var(--accent);
 }
+.leaderboard-own {
+  background: var(--surface-inset);
+}
+/* Your place sticks to the bottom of the list column while your row is off screen; it never leaves the list's flow. */
 .leaderboard-pin {
-  position: fixed;
+  position: sticky;
   bottom: calc(var(--tabbar-offset, 0px) + var(--space-4));
-  inset-inline: var(--page-gutter);
-  max-width: 720px;
-  margin-inline: auto;
+  z-index: 1;
+  margin-top: var(--space-1);
   background: var(--surface-floating);
   box-shadow: var(--shadow-floating), var(--ring-floating);
-  z-index: 1;
 }
 .leaderboard-eligibility {
   padding-block: var(--space-4);

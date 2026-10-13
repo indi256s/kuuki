@@ -343,8 +343,9 @@ function GlobeLayers({
               key: route.key,
               count: route.count,
               distanceKm: latest.current.routeDistances.get(route.key) ?? null,
-              x: Math.max(0, Math.min(event.point.x, (host.current?.clientWidth ?? 300) - 280)),
-              y: Math.max(0, Math.min(event.point.y, (host.current?.clientHeight ?? 300) - 160)),
+              // The popover flips and shifts at the edges itself; the anchor stays on the clicked arc.
+              x: event.point.x,
+              y: event.point.y,
             }
           : null,
       )
