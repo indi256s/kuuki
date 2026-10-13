@@ -166,3 +166,44 @@ it('keeps a chapter in the grid when only the filter drops it below its gate', a
   )
   expect(order).toEqual(DEFAULT_PREFS.layout.order)
 })
+
+it('reads mobile controls and facts before the map while upcoming bookings remain global in a filtered scope', () => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: query === '(max-width: 700px)',
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    })),
+  )
+  const { container } = render(
+    <OverviewPage
+      payload={payload}
+      prefs={{ ...DEFAULT_PREFS, filter: { period: { years: [2025] } } }}
+      ownerKey="mobile-order-owner"
+      name="Aviator"
+      locale="en"
+      live={false}
+      saver={saver}
+    />,
+  )
+  const heading = screen.getByRole('heading', { level: 1, name: 'Overview' })
+  expect(heading).toHaveAttribute('tabindex', '-1')
+  const next = screen.getByRole('button', { name: /^Open flight/ })
+  const controls = screen.getByLabelText('Overview filters')
+  const facts = screen.getByRole('region', { name: 'Totals for the period' })
+  const map = screen.getByRole('region', { name: 'Places by air' })
+  for (const [before, after] of [
+    [next, controls],
+    [controls, facts],
+    [facts, map],
+  ]) {
+    expect(before.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  }
+  expect(screen.getByRole('link', { name: /more booked/ })).toHaveAttribute(
+    'href',
+    '/journal?status=upcoming',
+  )
+  expect(container.querySelectorAll('[aria-label="Overview filters"]')).toHaveLength(1)
+})

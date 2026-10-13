@@ -142,7 +142,8 @@
   .globe-card:not(.globe-card-fullscreen) > .globe-card-content {
     grid-area: 2/1/3/-1;
     block-size: auto;
-    margin: var(--space-3) calc(-1 * var(--space-4));
+    margin: var(--space-3) auto;
+    inline-size: min(100%, 520px);
   }
   .globe-card:not(.globe-card-fullscreen) .globe-viewport {
     block-size: auto;
@@ -504,4 +505,10 @@
 }
 .globe-country-card h2 + .globe-country-note {
   margin-top: var(--space-1);
+}
+
+@media (max-width: 480px) {
+  .globe-card:not(.globe-card-fullscreen) > .globe-card-content {
+    inline-size: min(100%, 300px);
+  }
 }

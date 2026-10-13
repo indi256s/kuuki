@@ -27,7 +27,9 @@ export function FilterBar() {
     const node = bar.current
     if (!node) return
     const corner = node.parentElement,
-      right = node.closest('.globe-card')?.querySelector<HTMLElement>('.globe-top-right')
+      right = (
+        node.closest('.globe-card') ?? node.closest('.ov3-overview-workspace')
+      )?.querySelector<HTMLElement>('.globe-top-right')
     const measure = () => {
       corner?.style.setProperty(
         '--ov-filter-reserve',
@@ -44,7 +46,10 @@ export function FilterBar() {
       const tops = [
         ...new Set(
           [...node.children]
-            .filter((item) => item instanceof HTMLElement && !item.hidden)
+            .filter(
+              (item) =>
+                item instanceof HTMLElement && !item.hidden && item.getClientRects().length > 0,
+            )
             .map((item) => item.getBoundingClientRect().top),
         ),
       ].sort((a, b) => a - b)
@@ -89,6 +94,18 @@ export function FilterBar() {
         ref={bar}
         aria-label={locale === 'ru' ? 'Фильтры обзора' : 'Overview filters'}
       >
+        <Button
+          className="ov-filter-period"
+          onClick={(event) => open(event.currentTarget, 'period')}
+        >
+          {filter.period
+            ? locale === 'ru'
+              ? 'Период'
+              : 'Period'
+            : locale === 'ru'
+              ? 'За всё время'
+              : 'All time'}
+        </Button>
         <Button className="ov-filter-add" onClick={(event) => open(event.currentTarget)}>
           <Plus size={16} aria-hidden="true" />
           {locale === 'ru' ? 'Фильтр' : 'Filter'}

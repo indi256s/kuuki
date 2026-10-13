@@ -53,7 +53,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
       .click()
     await page.waitForURL((url) => url.pathname === `/${route}`)
     await routeSettled(page)
-    await expect(page.locator('h1')).toHaveText(route === 'overview' ? /^Hi(?:,| ·|$)/ : heading)
+    await expect(page.locator('h1')).toHaveText(heading)
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
     ).toBeVisible()
