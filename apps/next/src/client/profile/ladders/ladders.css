@@ -1,0 +1,37 @@
+/* Achievement ladder figures. Thumbs are line-only: faces take the background they sit on (--ladder-bg, set by the mark or the strip),
+   strokes are muted, and only the lit part keeps the accent. Locked rungs (next, later) restroke everything, accent included, in
+   --iso-ghost-line; later rungs sit at 40%. No figure animates: the only motion is the cabinet's unboxing (profile.css). */
+.ladder-figure {
+  display: grid;
+  place-items: center;
+}
+.ladder-figure[data-size='thumb'] {
+  width: 56px;
+  height: 56px;
+  --iso-top: var(--ladder-bg, var(--surface));
+  --iso-front: var(--ladder-bg, var(--surface));
+  --iso-side: var(--ladder-bg, var(--surface));
+  --iso-glass: var(--ladder-bg, var(--surface));
+  --iso-line: var(--text-muted);
+  --iso-crease: var(--text-muted);
+  --iso-detail: color-mix(in oklab, var(--text-muted) 50%, var(--ladder-bg, var(--surface)));
+  --iso-shadow: transparent;
+  --iso-glow: 0;
+}
+.ladder-figure[data-size='thumb']:is([data-state='next'], [data-state='later']) {
+  --iso-line: var(--iso-ghost-line);
+  --iso-crease: var(--iso-ghost-line);
+  --iso-detail: color-mix(in oklab, var(--iso-ghost-line) 50%, var(--ladder-bg, var(--surface)));
+  --accent: var(--iso-ghost-line);
+  --accent-foreground: var(--ladder-bg, var(--surface));
+}
+.ladder-figure[data-state='later'] {
+  opacity: 0.4;
+}
+.ladder-figure[data-size='hero'] {
+  inline-size: 100%;
+  block-size: 200px;
+}
+.ladder-figure .iso {
+  max-inline-size: 100%;
+}

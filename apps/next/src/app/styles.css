@@ -164,6 +164,8 @@
   --iso-detail: #cfc8c1;
   --iso-glass: var(--accent-tint);
   --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  /* Locked rung strokes in achievement ladder thumbnails (next and later rungs). */
+  --iso-ghost-line: #a39a91;
   --iso-glow: 0.4;
   --iso-shadow: rgb(48 45 42 / 14%);
   --accent: #c23417;
@@ -272,6 +274,7 @@
   --iso-detail: #5f5954;
   --iso-glass: #262423;
   --iso-ghost: #45403c;
+  --iso-ghost-line: #897e70;
   --iso-glow: 0.75;
   --iso-shadow: rgb(0 0 0 / 35%);
   --accent: #ea846f;
