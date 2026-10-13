@@ -160,30 +160,13 @@ function settle(
   return { slots, changed: true }
 }
 
-export type AssignSlots = {
+type ComparisonSlots = {
   /** Comparison family, e.g. `airports`, `routes`, `airlines-cues`. */
   analysis: string
   ownerId: string
   visibleKeys: readonly string[]
   /** Whole-journal ranking order for this analysis, unfiltered. */
   seedOrder: readonly string[]
-  /** Default: `localStorage`. `null` resolves from the seed alone and stores nothing. */
-  storage?: SlotStorage | null
-}
-
-/** Slot index per visible key; new assignments are stored. */
-export function assignSlots({
-  analysis,
-  ownerId,
-  visibleKeys,
-  seedOrder,
-  storage,
-}: AssignSlots): Map<string, number> {
-  const store = storage === undefined ? browserStorage() : storage
-  const key = slotStorageKey(ownerId, analysis)
-  return store
-    ? settle(store, key, seedOrder, visibleKeys).slots
-    : resolveSlots(EMPTY, seedOrder, visibleKeys)
 }
 
 const listeners = new Set<() => void>()
@@ -216,7 +199,7 @@ function snapshot(storage: SlotStorage, key: string): Stored {
  * Slots for a rendered chart. The server and the hydrating client render from the seed; stored
  * assignments are read right after mount, and new ones are written once they are on screen.
  */
-export function useComparisonSlots(args: Omit<AssignSlots, 'storage'>): Map<string, number> {
+export function useComparisonSlots(args: ComparisonSlots): Map<string, number> {
   const { analysis, ownerId, visibleKeys, seedOrder } = args
   const key = slotStorageKey(ownerId, analysis)
   const storage = browserStorage() ?? memoryStorage

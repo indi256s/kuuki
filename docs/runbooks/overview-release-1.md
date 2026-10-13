@@ -1,5 +1,7 @@
 # Overview Release 1
 
+> **Historical (2026-10-13).** The one-shot backfill tooling (`fit-block-time.ts`, `overview-backfill-proposal.ts`, `workers/release-operator`, `_services/flightBackfill.ts`) was removed after Release 1. Recover it from git history to rerun a step.
+
 This releases the server-authoritative flight metrics and additive `0008` schema
 before Release 2. Use the writer-hold, preservation and recovery requirements in
 [audit remediation release](audit-remediation-release.md), then deploy through

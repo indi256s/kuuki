@@ -4,7 +4,7 @@ Read this before changing code and apply it when reviewing a diff. Oxlint, Oxfmt
 
 Run `pnpm format` to format the repository and `pnpm format:check` to check it. Formatting uses single quotes and no semicolons; generated files, vendored maps and scratch work are excluded. The pre-commit hook checks formatting of staged paths.
 
-`pnpm lint` runs Oxlint for `apps/next`. Its config preserves the migrated Next, React, accessibility and TypeScript rules. JavaScript compatibility plugins retain Next's navigation checks, React's deprecated API check and React Compiler checks whose native equivalents differ from the existing policy. The local `kuuki/design-tokens` rule enforces semantic colors and explicit transition properties outside unit tests. JSX usage is handled by Oxlint's unused-variable analysis.
+`pnpm lint` runs Oxlint for `apps/next`. Its config preserves the migrated Next, React, accessibility and TypeScript rules. Native React rules check immutability, refs and state updates in effects; JavaScript compatibility plugins retain Next's navigation checks and React's deprecated API check. The local `kuuki/design-tokens` rule enforces semantic colors and explicit transition properties outside unit tests. JSX usage is handled by Oxlint's unused-variable analysis.
 
 ## Where code changes go
 

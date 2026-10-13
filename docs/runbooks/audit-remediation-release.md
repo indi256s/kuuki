@@ -1,5 +1,7 @@
 # Audit remediation release
 
+> **Historical import tooling (2026-10-13).** The cutover is done; the one-time Supabase importer and its checks (`sb-to-d1.ts`, `validate.ts`, `remote-migration-proposal.ts`, `migration-remote-validate.ts`) were removed. The writer-hold, backup/restore and schema-admission gates still apply; `restore-export-local.ts` and `migration-target.ts` remain. Recover the importer from git history if it is ever needed again.
+
 This runbook prepares the Cloudflare audit-remediation cutover. Local implementation does not authorize these release changes, production data writes, messages to users, or paid OCR calls. During cutover, keep the app on hold until the gates below have actual evidence. The separately authorized domain move uses the existing production deployment and does not satisfy the remediation release gates.
 
 ## Observed target and proposed changes

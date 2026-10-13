@@ -37,6 +37,12 @@ export function AvatarMenu({
   const ru = appearance.locale === 'ru'
   const text = (en: string, ruText: string) => (ru ? ruText : en)
   const [publicProfile, setPublicProfile] = useState(isPublic)
+  // The server value wins again after router.refresh() re-renders the shell.
+  const [serverPublic, setServerPublic] = useState(isPublic)
+  if (serverPublic !== isPublic) {
+    setServerPublic(isPublic)
+    setPublicProfile(isPublic)
+  }
   const [busy, setBusy] = useState(false)
   const toast = useToast()
   const mounted = useRef(true)
@@ -60,10 +66,6 @@ export function AvatarMenu({
       message: text('Could not save the accent.', 'Не удалось сохранить акцент.'),
     }),
   )
-  // The server value wins again after router.refresh() re-renders the shell.
-  useEffect(() => {
-    setPublicProfile(isPublic)
-  }, [isPublic])
 
   async function toggleVisibility(next: boolean) {
     if (busy) return

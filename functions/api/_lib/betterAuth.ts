@@ -11,7 +11,6 @@ import {
   clearCookie,
   parseCookies,
 } from './cookies'
-import { revokeSession } from './session'
 import { nowIso } from './time'
 import { requireCsrf, requireSameOrigin } from './auth'
 import { HttpError, jsonError } from './http'
@@ -184,7 +183,6 @@ export async function signInWithBetterAuth(
     return response
   }
   const result = new Response(response.body, response)
-  await revokeSession(env.DB, parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE])
   result.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE, { httpOnly: true }))
   appendCsrfCookie(result.headers, request)
   result.headers.set('Cache-Control', 'no-store')
@@ -193,7 +191,5 @@ export async function signInWithBetterAuth(
 
 export async function signOutWithBetterAuth(env: Env, request: Request): Promise<Response> {
   requireCsrf(request)
-  // Revoke the legacy cookie first so an old identity cannot reappear after signout.
-  await revokeSession(env.DB, parseCookies(request.headers.get('Cookie'))[SESSION_COOKIE])
   return createAuth(env).api.signOut({ headers: request.headers, asResponse: true })
 }

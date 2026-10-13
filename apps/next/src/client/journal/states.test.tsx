@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import { Crossfade } from './crossfade'
 import { LedgerSkeleton } from './ledger-skeleton'
 import { EmptyJournal, NoMatches, RefreshFailed } from './states'
 
@@ -33,37 +32,6 @@ it('refresh failure is an alert with a retry', () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Showing the last loaded flights.')
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
   expect(onRetry).toHaveBeenCalledTimes(1)
-})
-
-it('crossfade is still on first render and fades after the signature changes', () => {
-  const { container, rerender } = render(
-    <Crossfade signature="a">
-      <p>rows</p>
-    </Crossfade>,
-  )
-  const wrapper = container.firstElementChild!
-  expect(wrapper).not.toHaveAttribute('data-fade')
-
-  rerender(
-    <Crossfade signature="a">
-      <p>rows</p>
-    </Crossfade>,
-  )
-  expect(wrapper).not.toHaveAttribute('data-fade')
-
-  rerender(
-    <Crossfade signature="b">
-      <p>rows</p>
-    </Crossfade>,
-  )
-  expect(wrapper).toHaveAttribute('data-fade', 'a')
-  rerender(
-    <Crossfade signature="c">
-      <p>rows</p>
-    </Crossfade>,
-  )
-  expect(wrapper).toHaveAttribute('data-fade', 'b')
-  expect(container.firstElementChild).toBe(wrapper)
 })
 
 it('skeleton keeps a real heading and announces loading', () => {

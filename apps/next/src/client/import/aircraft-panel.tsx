@@ -10,7 +10,6 @@ import {
   countAircraftRun,
   diagnose,
   retryableAircraft,
-  summarizeAircraftRun,
   toggleAll,
   type AircraftAccept,
   type AircraftRunCounts,
@@ -24,6 +23,7 @@ import { FAILURE, S, count } from './copy'
 import { classifyRequestFailure, type Failure } from './import-errors'
 import { acceptAircraftBatch, enrichAircraft, type EnrichFlight } from './import-api'
 import { airlineName } from './reference'
+import { AircraftAnnouncement } from './aircraft-announcement'
 
 export interface AircraftApi {
   enrich: (
@@ -168,8 +168,6 @@ export function AircraftPanel({
   }
 
   const retryIds = retryableAircraft({ rows: outcomes, acks: [], uncertain: false })
-  // Nothing saved is a problem, so it is assertive; anything saved is polite. Both regions stay mounted so a change is announced.
-  const summary = summarizeAircraftRun(locale, last)
 
   const flightLine = (id: number) => {
     const target = byId.get(id)
@@ -407,12 +405,12 @@ export function AircraftPanel({
       ) : (
         <p className="import-empty">{S.aircraftNone[locale]}</p>
       )}
-      <p className="import-hint" role="status">
-        {last && last.saved > 0 ? summary : ''}
-      </p>
-      <p className="import-problem" role="alert">
-        {last && last.saved === 0 ? summary : ''}
-      </p>
+      <AircraftAnnouncement
+        locale={locale}
+        counts={last}
+        statusClassName="import-hint"
+        alertClassName="import-problem"
+      />
       {view.unidentified.length > 0 ? (
         <>
           <h4>{S.aircraftUnidentified[locale]}</h4>

@@ -31,6 +31,7 @@ const mf = new Miniflare({
   name: 'kuuki-fixture',
   log: new Log(LogLevel.WARN),
   modules: true,
+  modulesRules: [{ type: 'CompiledWasm', include: ['**/*.wasm'] }],
   scriptPath: resolve('.wrangler/functions-build/index.js'),
   compatibilityDate: '2025-09-23',
   compatibilityFlags: ['nodejs_compat'],
@@ -231,26 +232,31 @@ async function main() {
       ['image', '/9j/'],
       ['pdf', 'JVBERi0xLjQ='],
     ]) {
-      const response = await mf.dispatchFetch(`${origin}/api/import/parse`, {
+      const response = await mf.dispatchFetch(`${origin}/api/import/jobs`, {
         method: 'POST',
         headers: mutationHeaders,
-        body: JSON.stringify({ type, content }),
+        body: JSON.stringify({ type, content, submissionOperationId: `smoke-${type}-0001` }),
       })
-      const result = (await response.json()) as { flights?: unknown[] }
-      if (!response.ok || result.flights?.length !== 1)
+      const result = (await response.json()) as { drafts?: unknown[] }
+      if (!response.ok || result.drafts?.length !== 1)
         throw new Error(`Compiled ${type} import/SDK contract failed: ${response.status}`)
     }
     for (const [content, expectedCode] of [
       ['FAKE_PROVIDER_QUOTA', 'PROVIDER_QUOTA'],
       ['FAKE_MODEL_MISSING', 'MODEL_UNAVAILABLE'],
     ]) {
-      const response = await mf.dispatchFetch(`${origin}/api/import/parse`, {
+      const response = await mf.dispatchFetch(`${origin}/api/import/jobs`, {
         method: 'POST',
         headers: mutationHeaders,
-        body: JSON.stringify({ type: 'text', content }),
+        body: JSON.stringify({
+          type: 'text',
+          content,
+          submissionOperationId: `smoke-${expectedCode}`,
+        }),
       })
-      const result = (await response.json()) as { code?: string }
-      if (response.ok || result.code !== expectedCode)
+      // A provider failure is recorded on the batch, not answered as an HTTP error.
+      const result = (await response.json()) as { batch?: { errorCode?: string } }
+      if (!response.ok || result.batch?.errorCode !== expectedCode)
         throw new Error(`Compiled provider error contract failed: ${response.status}`)
     }
     const input = { date: '2026-01-03', origin: 'JFK', destination: 'LAX' }

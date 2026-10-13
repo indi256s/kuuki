@@ -12,7 +12,7 @@ export const ROUTE_SPRINGS = {
 export const SPRING_REST = { restDelta: 0.02, restSpeed: 0.5 }
 
 /** CSS `cubic-bezier(x1, y1, x2, y2)` as a function of linear progress; the curve's x is solved by bisection. */
-export function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
+function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
   const at = (a: number, b: number, t: number) =>
     3 * a * t * (1 - t) ** 2 + 3 * b * t ** 2 * (1 - t) + t ** 3
   return (x: number) => {

@@ -239,12 +239,6 @@ export function normalizeJournalQuery(
   )
 }
 
-export function resetJournalFilters(query: string): string {
-  const params = new URLSearchParams(query)
-  for (const key of [...JOURNAL_FILTER_KEYS, 'page']) params.delete(key)
-  return params.toString()
-}
-
 export type JournalLink = {
   airport?: string
   airline?: string

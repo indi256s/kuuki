@@ -19,7 +19,7 @@ import {
 } from '../../../../packages/shared/src/theme/palette'
 import { airlineColor } from '../lib/airline'
 import { contrast, oklchToRgb, parseHex, rgbToOklch, toHex, type Rgb } from '../lib/color'
-import { NEUTRAL_INK, SURFACE_COLOR, THEME_COLOR, resolveAccent } from '../lib/theme-colors'
+import { NEUTRAL_INK, SURFACE_COLOR, THEME_COLOR } from '../lib/theme-colors'
 
 // --- styles.css -> resolved token sets ---------------------------------------------------------
 
@@ -273,27 +273,6 @@ describe('non-CSS colour constants', () => {
     expect(THEME_COLOR[mode]).toBe(SURFACES[mode].background)
     expect(SURFACE_COLOR[mode]).toBe(SURFACES[mode].surface)
     expect(NEUTRAL_INK[mode]).toBe(SURFACES[mode].muted)
-  })
-
-  it('resolves legacy and unknown accent names', () => {
-    for (const accent of ACCENT_KEYS) expect(resolveAccent(accent)).toBe(accent)
-    const legacy = {
-      terracotta: 'shu',
-      kincha: 'shu',
-      sumi: 'shu',
-      yellow: 'shu',
-      red: 'shu',
-      orange: 'shu',
-      blue: 'ai',
-      cyan: 'asagi',
-      teal: 'asagi',
-      purple: 'sakura',
-      coral: 'sakura',
-    }
-    for (const [from, to] of Object.entries(legacy)) expect(resolveAccent(from)).toBe(to)
-    for (const bad of [undefined, null, 4, '', 'SHU', 'toString', '__proto__', 'green']) {
-      expect(resolveAccent(bad)).toBe('shu')
-    }
   })
 })
 

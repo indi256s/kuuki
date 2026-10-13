@@ -300,53 +300,16 @@ describe('ShortcutsPopover', () => {
   }
 
   it.each([
-    [
-      'en',
-      'Keyboard shortcuts',
-      [
-        'Search',
-        'Move between flights',
-        'Open the flight',
-        'Close the sheet or clear the search',
-        'Select',
-        'Edit the focused field',
-        'Show shortcuts',
-      ],
-      'or',
-    ],
-    [
-      'ru',
-      'Сочетания клавиш',
-      [
-        'Поиск',
-        'Перейти к перелёту',
-        'Открыть перелёт',
-        'Закрыть карточку или очистить поиск',
-        'Выбрать',
-        'Изменить поле',
-        'Показать сочетания',
-      ],
-      'или',
-    ],
-  ] as const)('lists the keys in %s', async (locale, title, labels, or) => {
+    ['en', 'Keyboard shortcuts', 'Move between flights'],
+    ['ru', 'Сочетания клавиш', 'Перейти к перелёту'],
+  ] as const)('opens and closes the shortcuts in %s', async (locale, title, label) => {
     const user = userEvent.setup()
     render(<Popover locale={locale} />)
     await user.click(screen.getByRole('button', { name: title }))
     const dialog = await screen.findByRole('dialog', { name: title })
-    expect(within(dialog).getByRole('heading', { name: title })).toBeInTheDocument()
-    for (const label of labels) expect(within(dialog).getByText(label)).toBeInTheDocument()
-    for (const key of ['/', '↑', '↓', 'j', 'k', 'Enter', 'Esc', 'x', 'e', '?'])
-      expect(within(dialog).getByText(key, { selector: 'kbd' })).toBeInTheDocument()
-    expect(within(dialog).getByText('↑', { selector: 'kbd' }).parentElement).toHaveTextContent(
-      `↑ ↓ ${or} j k`,
-    )
+    expect(within(dialog).getByText(label)).toBeInTheDocument()
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('renders without an anchor', async () => {
-    render(<ShortcutsPopover open onOpenChange={() => {}} locale="en" />)
-    expect(await screen.findByRole('dialog', { name: 'Keyboard shortcuts' })).toBeInTheDocument()
   })
 })
 

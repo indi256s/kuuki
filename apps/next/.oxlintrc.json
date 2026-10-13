@@ -104,21 +104,15 @@
         "react/use-memo": "error",
         "react/preserve-manual-memoization": "error",
         "react/incompatible-library": "warn",
-        "react/immutability": "off",
+        "react/immutability": "error",
         "react/globals": "error",
-        "react/refs": "off",
-        "react/set-state-in-effect": "off",
+        "react/refs": "error",
+        "react/set-state-in-effect": "error",
         "react/error-boundaries": "error",
         "react/purity": "error",
         "react/set-state-in-render": "error",
         "react/unsupported-syntax": "warn",
-        "react-compat/no-deprecated": "error",
-        "hooks-compat/immutability": "error",
-        "hooks-compat/refs": "error",
-        "hooks-compat/set-state-in-effect": "error",
-        "hooks-compat/component-hook-factories": "error",
-        "hooks-compat/config": "error",
-        "hooks-compat/gating": "error"
+        "react-compat/no-deprecated": "error"
       },
       "plugins": ["react", "import", "jsx-a11y"],
       "env": {
@@ -173,10 +167,6 @@
     {
       "name": "react-compat",
       "specifier": "eslint-plugin-react"
-    },
-    {
-      "name": "hooks-compat",
-      "specifier": "eslint-plugin-react-hooks"
     },
     "../../scripts/oxlint-design.mjs"
   ],

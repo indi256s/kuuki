@@ -1,7 +1,6 @@
 import { expect, it } from 'vitest'
 import { deleteAccountRequest } from '../api/auth/account'
 import { createUserWithProfile } from '../api/_lib/users'
-import { createSession, resolveSession } from '../api/_lib/session'
 import { createApiDatabase, csrfRequest, count } from './harness'
 
 it('the settings deletion boundary refuses CSRF and wrong passwords, then revokes every owner session and preserves another account', async () => {
@@ -18,9 +17,6 @@ it('the settings deletion boundary refuses CSRF and wrong passwords, then revoke
       { email: 'other@example.test', password: 'other-password' },
       secret,
     )
-    const first = await createSession(db, owner.id),
-      second = await createSession(db, owner.id),
-      kept = await createSession(db, other.id)
     for (const [id, userId] of [
       ['better-first', owner.id],
       ['better-second', owner.id],
@@ -60,8 +56,7 @@ it('the settings deletion boundary refuses CSRF and wrong passwords, then revoke
     )
     expect(wrong.status).toBe(401)
     expect(await wrong.json()).toMatchObject({ code: 'INVALID_CREDENTIALS' })
-    expect(await resolveSession(db, first.token)).not.toBeNull()
-    expect(await resolveSession(db, second.token)).not.toBeNull()
+    expect(await count(db, 'auth_sessions')).toBe(3)
     const deleted = await deleteAccountRequest(
       csrfRequest('/api/auth/account', 'DELETE', { password: 'current-password' }),
       env,
@@ -69,9 +64,6 @@ it('the settings deletion boundary refuses CSRF and wrong passwords, then revoke
     )
     expect(deleted.status).toBe(200)
     expect(deleted.headers.get('Set-Cookie')).toContain('Max-Age=0')
-    expect(await resolveSession(db, first.token)).toBeNull()
-    expect(await resolveSession(db, second.token)).toBeNull()
-    expect((await resolveSession(db, kept.token))?.user.id).toBe(other.id)
     expect(await count(db, 'users')).toBe(1)
     expect(await db.prepare('SELECT id FROM auth_sessions ORDER BY id').all()).toMatchObject({
       results: [{ id: 'better-kept' }],

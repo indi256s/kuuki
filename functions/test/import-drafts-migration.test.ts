@@ -1,6 +1,5 @@
 // ADR 0001 §6/§7 (T07): the additive import-draft schema, shipped separately from 0006 for a reviewable deploy order.
 import { describe, expect, it } from 'vitest'
-import { migrationFiles, migrationStatements } from '../../scripts/_migrations'
 import { databaseThrough } from './lifecycle-fixture'
 
 const USER = 'draft-user'
@@ -63,14 +62,6 @@ const draft = (
 }
 
 describe('0007 import drafts schema', () => {
-  it('is a separate additive migration with no destructive statements', () => {
-    const files = migrationFiles()
-    expect(files).toContain('0007_import_drafts.sql')
-    const sql = migrationStatements('0007_import_drafts.sql').join('\n')
-    expect(sql).not.toMatch(/\bDROP\s+(TABLE|INDEX|TRIGGER)\b|\bRENAME\b|\bDELETE\s+FROM\b/i)
-    expect(sql).not.toMatch(/\bALTER\s+TABLE\s+flights\b/i)
-  })
-
   it('creates the batch, draft and receipt tables with their indexes', async () => {
     const { db, dispose } = await databaseThrough()
     try {

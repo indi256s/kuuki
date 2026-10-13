@@ -18,7 +18,6 @@ import {
 import { aircraftChoices, airlineChoices, airportChoices } from '../capture/reference-choices'
 import { sendWithZone, withZone } from '../capture/flight-writes'
 import { airlineName } from '../import/reference'
-import type { InlineEditOutcome } from '../ui/inline-edit'
 import type { JournalFlight, JournalRefs } from './model'
 
 export { aircraftChoices, airlineChoices, airportChoices }
@@ -47,6 +46,12 @@ export const EDITABLE_FIELDS: readonly EditableField[] = [
 /** The PATCH answer: the own-flight DTO plus the derived-state acknowledgement. */
 export type FlightDto = Omit<JournalFlight, 'origin_country' | 'destination_country'> &
   DerivedAck & { undo_token?: string }
+
+/** Rejected: the server answered no (draft stays, field shows why). Unknown: the request may or may not have landed (draft stays, outcome is not claimed). */
+export type InlineEditOutcome =
+  | { status: 'saved' }
+  | { status: 'rejected'; message: string }
+  | { status: 'unknown'; message: string }
 
 export type FieldWrite = { outcome: InlineEditOutcome; flight?: FlightDto }
 

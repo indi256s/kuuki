@@ -36,6 +36,7 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
           .catch(() => {
             if (!retired && current.current()) setFailed(true)
           })
+        // oxlint-disable-next-line react/set-state-in-effect -- WebGL support is only knowable in the browser
       } else setFailed(true)
     } catch {
       setFailed(true)

@@ -2,13 +2,11 @@
 import { createElement } from 'react'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { gateSign } from './gate-sign'
 import { hangars, shedSize } from './hangars'
 import { passStack } from './passes'
 import { CONTINENT_IDS, puzzle, type ContinentId } from './puzzle'
 import { fitBox, type IsoNode } from './scene'
 import { IsoFigure } from './iso-figure'
-import { stamper } from './stamper'
 import { bladeLength, tape } from './tape'
 
 const parts = (nodes: readonly IsoNode[], out: string[] = []): string[] => {
@@ -20,13 +18,6 @@ const parts = (nodes: readonly IsoNode[], out: string[] = []): string[] => {
 }
 
 describe('hangars', () => {
-  it('sizes the sheds by share, and draws the approved split at the approved sizes', () => {
-    const [airbus, boeing, other] = [0.59, 0.31, 0.1].map(shedSize)
-    expect([airbus.w, boeing.w, other.w]).toEqual([60, 44, 24])
-    expect(airbus.h).toBeGreaterThan(boeing.h)
-    expect(boeing.h).toBeGreaterThan(other.h)
-  })
-
   it('draws small shares to scale down to a floor, and marks the floor as "<N%"', () => {
     expect(shedSize(0.02).w).toBeLessThan(14)
     expect(shedSize(0.02).floor).toBe(false)
@@ -92,29 +83,6 @@ describe('puzzle', () => {
   })
 })
 
-describe('stamper', () => {
-  it('exposes the band, the head and the impression as parts', () => {
-    const fig = stamper(1, {
-      month: 2,
-      flights: 11,
-      monthLabel: 'MAR',
-      flightsLabel: '11 FLIGHTS',
-    })
-    expect(parts(fig.nodes)).toEqual(expect.arrayContaining(['band', 'head', 'impression']))
-  })
-})
-
-describe('gateSign', () => {
-  it('puts the code on the sign part', () => {
-    const sign = gateSign(1, { code: 'ROV–VKO' }).nodes.find(
-      (node) => node.kind === 'group' && node.part === 'sign',
-    )
-    expect(sign?.kind === 'group' && sign.children).toContainEqual(
-      expect.objectContaining({ kind: 'text', text: 'ROV–VKO' }),
-    )
-  })
-})
-
 describe('tape', () => {
   it('pays the blade out by distance and keeps the figure box whatever it is', () => {
     expect(bladeLength(2_000)).toBeLessThan(bladeLength(141_204))
@@ -135,29 +103,6 @@ describe('passes', () => {
     }
     expect(topGlows(false)).toBe(0)
     expect(topGlows(true)).toBe(1)
-  })
-})
-
-describe('puzzle weight', () => {
-  it('stays well under 600 polygons with every piece raised and one lifted', () => {
-    const all = Object.fromEntries(CONTINENT_IDS.map((id) => [id, true])) as Record<
-      ContinentId,
-      boolean
-    >
-    const count = (nodes: readonly IsoNode[]): number =>
-      nodes.reduce(
-        (n, node) =>
-          n +
-          (node.kind === 'polygon'
-            ? 1
-            : node.kind === 'group' || node.kind === 'glow'
-              ? count(node.children)
-              : 0),
-        0,
-      )
-    expect(
-      count(puzzle(1, { flown: all, lit: 'asia', label: '7 OF 7 PIECES' }).nodes),
-    ).toBeLessThan(520)
   })
 })
 

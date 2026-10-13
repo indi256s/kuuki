@@ -103,14 +103,6 @@ export async function completeActivation(
       .bind(tokenHash, claimId, passwordHash),
     db
       .prepare(
-        `DELETE FROM sessions WHERE user_id = (
-         SELECT t.user_id FROM account_activation_tokens t JOIN users u ON u.id = t.user_id
-         WHERE t.token_hash = ? AND t.claim_id = ? AND u.password_hash = ?
-       )`,
-      )
-      .bind(tokenHash, claimId, passwordHash),
-    db
-      .prepare(
         `DELETE FROM account_activation_tokens WHERE user_id = (
          SELECT t.user_id FROM account_activation_tokens t JOIN users u ON u.id = t.user_id
          WHERE t.token_hash = ? AND t.claim_id = ? AND u.password_hash = ?

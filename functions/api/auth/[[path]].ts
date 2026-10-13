@@ -11,7 +11,6 @@ import {
 import { runHandler, jsonError, readJson } from '../_lib/http'
 import { requireStrictSameOrigin } from '../_lib/auth'
 import { parseCookies, CSRF_COOKIE, SESSION_COOKIE, clearCookie } from '../_lib/cookies'
-import { revokeSession } from '../_lib/session'
 import { rateLimit, clientIp } from '../_lib/ratelimit'
 
 export const onRequest: PagesFunction<Env> = (context) =>
@@ -67,10 +66,6 @@ export const onRequest: PagesFunction<Env> = (context) =>
               .bind(previous.session.id)
               .run()
         }
-        await revokeSession(
-          context.env.DB,
-          parseCookies(context.request.headers.get('Cookie'))[SESSION_COOKIE],
-        )
         result.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE, { httpOnly: true }))
         appendCsrfCookie(result.headers, context.request)
       }
@@ -94,10 +89,6 @@ export const onRequest: PagesFunction<Env> = (context) =>
           parseCookies(context.request.headers.get('Cookie'))[CSRF_COOKIE],
         )
       } else if (hasBetterAuthCookie(context.request)) {
-        await revokeSession(
-          context.env.DB,
-          parseCookies(context.request.headers.get('Cookie'))[SESSION_COOKIE],
-        )
         result.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE, { httpOnly: true }))
       }
       return result

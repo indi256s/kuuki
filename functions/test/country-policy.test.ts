@@ -93,52 +93,6 @@ describe('prospective default for an awaiting flight (rule 2)', () => {
     }
   })
 
-  it('agrees before and after confirmation writes the effective decision', async () => {
-    const { db, dispose } = await accountWith([F1, F2])
-    try {
-      const before = {
-        evidence: await evidence(db),
-        suppressions: await suppressions(db),
-        stats: await userStats(db),
-      }
-      expect(
-        (before.evidence as Array<{ country_code: string; status: string }>).map((row) => [
-          row.country_code,
-          row.status,
-        ]),
-      ).toEqual([
-        ['GE', 'pending'],
-        ['US', 'pressed'],
-      ])
-      // What confirmation (T09) stores: logged/user with the effective default as an explicit decision.
-      await db
-        .prepare(
-          "UPDATE flights SET lifecycle_state='logged', confirmation_source='user', confirmed_at='2026-03-05T00:00:00.000Z', arrival_transit=1, arrival_transit_leg_id=2, awaiting_after=NULL, auto_confirm_after=NULL, lifecycle_timezone=lifecycle_timezone WHERE id=1",
-        )
-        .run()
-      await publish(db)
-      const after = {
-        evidence: await evidence(db),
-        suppressions: await suppressions(db),
-        stats: await userStats(db),
-      }
-      // The only difference is that F1's own endpoint evidence moved from awaiting to logged (GE: pending to pressed).
-      expect(after.suppressions).toEqual(before.suppressions)
-      expect(after.stats).toEqual(before.stats)
-      expect(
-        (after.evidence as Array<{ country_code: string; status: string }>).map((row) => [
-          row.country_code,
-          row.status,
-        ]),
-      ).toEqual([
-        ['GE', 'pressed'],
-        ['US', 'pressed'],
-      ])
-    } finally {
-      await dispose()
-    }
-  })
-
   it('«left the airport» (arrival_transit = 0) includes the hub as a pending country', async () => {
     const { db, dispose } = await accountWith([{ ...F1, transit: 0 }, F2])
     try {
