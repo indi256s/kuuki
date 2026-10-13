@@ -25,7 +25,7 @@ function rawQuery(params: SearchParams) {
 async function JournalData({ initialQuery }: { initialQuery: string }) {
   const [owned, locale] = await Promise.all([getOwnJournalAll(), getRequestLocale()])
   if (!owned) redirect('/signin')
-  const { ownerId, data } = owned
+  const { ownerId, data, historicalReviewAvailable } = owned
   return (
     <IdentitySnapshot ownerId={ownerId}>
       <ReadFreshness
@@ -42,7 +42,11 @@ async function JournalData({ initialQuery }: { initialQuery: string }) {
         initial={data}
         initialQuery={initialQuery}
       >
-        <JournalShell ownerId={ownerId} locale={locale} />
+        <JournalShell
+          ownerId={ownerId}
+          locale={locale}
+          historicalReviewAvailable={historicalReviewAvailable}
+        />
       </JournalStoreProvider>
     </IdentitySnapshot>
   )

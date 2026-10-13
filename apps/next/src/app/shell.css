@@ -8,12 +8,12 @@
     row-gap: var(--space-2);
   }
 }
-/* Overview is the one wide route: header, page shell and workspace share a single fluid width and gutter (24px, easing up to 48px on very wide screens; 16px at <=700px comes from styles.css). */
-:root:has(.ov3-page) {
+/* The incoming pathname selects Overview's wide content before its fade; retained outgoing pages cannot resize the header or incoming route. */
+.page-shell[data-wide] {
   --content-width: 2560px;
 }
 @media (min-width: 701px) {
-  :root:has(.ov3-page) {
+  .page-shell[data-wide] {
     --page-gutter: clamp(24px, calc(24px + (100vw - 1280px) / 40), 48px);
   }
 }

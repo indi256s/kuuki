@@ -6,6 +6,7 @@ import { AddMenu } from './add-menu'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
 import { Preferences } from './preferences'
+import { PageShell } from './page-shell'
 import { ShellNotices } from './shell-notices'
 import { AddOriginTracker } from './capture/add-origin'
 import { ImportDock } from './import/import-dock'
@@ -28,14 +29,6 @@ function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
     </Link>
   )
 }
-function Main({ children }: { children: ReactNode }) {
-  return (
-    <main id="main" className="page-shell">
-      {children}
-    </main>
-  )
-}
-
 /** Background reading needs the import job worker; without it imports are read inside the request on /import. */
 function ImportRuns({
   jobs,
@@ -64,7 +57,7 @@ function ImportRuns({
  */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const own = await getGateProfile()
-  if (!own) return <Main>{children}</Main>
+  if (!own) return <PageShell>{children}</PageShell>
   const env = await getRequestEnv()
   const jobs = Boolean((env as { IMPORT_JOBS?: unknown }).IMPORT_JOBS)
   const username = own.profile.username ?? null
@@ -97,7 +90,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
               </div>
             </div>
           </header>
-          <Main>{children}</Main>
+          <PageShell>{children}</PageShell>
           <TabBar locale={locale} />
         </ImportRuns>
       </ShellNotices>
@@ -132,7 +125,7 @@ export function BrandShell({
           </div>
         </div>
       </header>
-      <Main>{children}</Main>
+      <PageShell>{children}</PageShell>
     </>
   )
 }

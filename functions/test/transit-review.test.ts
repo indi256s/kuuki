@@ -15,6 +15,8 @@ import {
 import { at, flightStatement, T0, type FixtureFlight } from './country-fixture'
 import { onRequestPost as transitPost } from '../api/me/transit-review'
 import { stateOf } from '../api/_services/derivedState'
+import { readJournalAll } from '../api/_services/journal'
+import { readTransitReviewAvailability } from '../api/_services/transitReview'
 
 /** Two historical logged flights joined at Istanbul (a precise third-country connection) plus an unrelated one. */
 const HISTORY: FixtureFlight[] = [
@@ -558,6 +560,12 @@ describe('POST /api/me/transit-review dismiss', () => {
   it('records the marker only: no flight, derived state or evidence changes', async () => {
     const { db, dispose } = await queueAccount(HISTORY)
     try {
+      const journal = await readJournalAll(db, USER.id)
+      const journalFlights = journal.flights.map((flight) => ({
+        ...flight,
+        arrival_transit: flight.arrival_transit === null ? null : flight.arrival_transit ? 1 : 0,
+      }))
+      expect(await readTransitReviewAvailability(db, USER.id, journalFlights)).toBe(true)
       const state = await stateOf(db, USER.id)
       const flights = JSON.stringify(
         (await db.prepare('SELECT * FROM flights ORDER BY id').all()).results,
@@ -588,6 +596,7 @@ describe('POST /api/me/transit-review dismiss', () => {
       const read = await getTransitReview(db)
       expect(read.body.marker).toEqual({ status: 'dismissed', matchesCandidates: true })
       expect(read.body.candidates).toHaveLength(1) // dismissing hides the banner, it does not remove the option
+      expect(await readTransitReviewAvailability(db, USER.id, journalFlights)).toBe(false)
     } finally {
       await dispose()
     }

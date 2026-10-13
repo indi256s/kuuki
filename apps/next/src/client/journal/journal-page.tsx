@@ -34,16 +34,36 @@ import './journal-page.css'
 const NEXT_UP = 3
 const OFFLINE_NOTE_ID = 'journal-offline-note'
 
-export function JournalShell({ ownerId, locale }: { ownerId: string; locale: Locale }) {
+export function JournalShell({
+  ownerId,
+  locale,
+  historicalReviewAvailable = false,
+}: {
+  ownerId: string
+  locale: Locale
+  historicalReviewAvailable?: boolean | null
+}) {
   const { hide, unhide, refresh } = useJournalStore()
   return (
     <JournalDeleteProvider locale={locale} hide={hide} unhide={unhide} refresh={refresh}>
-      <JournalContent ownerId={ownerId} locale={locale} />
+      <JournalContent
+        ownerId={ownerId}
+        locale={locale}
+        historicalReviewAvailable={historicalReviewAvailable}
+      />
     </JournalDeleteProvider>
   )
 }
 
-function JournalContent({ ownerId, locale }: { ownerId: string; locale: Locale }) {
+function JournalContent({
+  ownerId,
+  locale,
+  historicalReviewAvailable,
+}: {
+  ownerId: string
+  locale: Locale
+  historicalReviewAvailable: boolean | null
+}) {
   const {
     payload,
     view,
@@ -250,7 +270,7 @@ function JournalContent({ ownerId, locale }: { ownerId: string; locale: Locale }
         onReview={onReview}
         importHref={importHref}
       />
-      <HistoricalReview locale={locale} />
+      <HistoricalReview locale={locale} available={historicalReviewAvailable} />
       {!online && <OfflineNote locale={locale} id={OFFLINE_NOTE_ID} />}
       {isError && <RefreshFailed locale={locale} onRetry={onRetry} />}
       {payload.derivedState === 'pending' && <PublicationPending locale={locale} />}

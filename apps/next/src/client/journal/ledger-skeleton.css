@@ -1,7 +1,8 @@
-/* Static ledger placeholder. Lanes match the audited ledger: 96 + 204 + 182 + 152 + 90 + 98 + 44 with 8px gaps, 72px rows. No shimmer, no dividers. */
-.ledger-skeleton h1 {
-  margin: 0 0 var(--space-2);
-  font-weight: 500;
+/* Static placeholders follow the base Journal header, toolbar and ledger geometry. */
+.ledger-skeleton-content {
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
 }
 .ledger-skeleton-bar {
   display: block;
@@ -10,35 +11,50 @@
 }
 .ledger-skeleton-bar.is-summary {
   width: min(100%, 360px);
-  height: 20px;
-}
-.ledger-skeleton-summary {
-  margin-block-end: var(--space-5);
-}
-.ledger-skeleton-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-block-end: var(--space-5);
+  height: 24px;
 }
 .ledger-skeleton-bar.is-search {
-  width: min(100%, 280px);
+  width: 100%;
   height: 44px;
 }
 .ledger-skeleton-bar.is-chip {
   width: 96px;
-  height: 44px;
+  height: 32px;
+}
+.ledger-skeleton-bar.is-more {
+  width: 32px;
+  height: 32px;
+}
+.ledger-skeleton-bar.is-mobile-filter {
+  display: none;
+  width: 96px;
+  height: 32px;
 }
 .ledger-skeleton-rows {
   display: grid;
-  max-width: 914px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
 }
+.ledger-skeleton-head,
 .ledger-skeleton-row {
   display: grid;
-  grid-template-columns: 96px 204px 182px 152px 90px 98px 44px;
+  grid-template-columns: 96px minmax(104px, 204fr) minmax(72px, 182fr) minmax(72px, 152fr) 90px 98px;
   column-gap: var(--space-2);
   align-items: center;
+  padding-inline: 40px 12px;
+}
+.ledger-skeleton-head {
+  min-height: 40px;
+  margin-block-end: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+}
+.ledger-skeleton-head .ledger-skeleton-bar {
+  background: var(--surface);
+}
+.ledger-skeleton-row {
   min-height: 72px;
+  padding-block: var(--space-3);
 }
 .ledger-skeleton-row > div {
   display: grid;
@@ -61,26 +77,27 @@
   width: 55%;
   height: 12px;
 }
-@media (max-width: 960px) {
-  .ledger-skeleton-row {
-    grid-template-columns: 96px minmax(0, 204px) minmax(0, 182px) minmax(0, 152px);
+/* Phones use the ledger's route/date, airline/aircraft and distance card layout. */
+@media (max-width: 700px) {
+  .ledger-skeleton-content {
+    gap: var(--space-5);
   }
-  .ledger-skeleton-duration,
-  .ledger-skeleton-distance,
-  .ledger-skeleton-action {
+  .ledger-skeleton-chips,
+  .ledger-skeleton-head,
+  .ledger-skeleton-duration {
     display: none;
   }
-}
-/* Cards, as the real ledger on phones: date and distance, route, then airline and aircraft. */
-@media (max-width: 700px) {
+  .ledger-skeleton-bar.is-mobile-filter {
+    display: block;
+  }
   .ledger-skeleton-rows {
-    gap: var(--space-2);
-    max-width: none;
+    gap: var(--space-3);
   }
   .ledger-skeleton-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: 'date distance' 'route route' 'airline aircraft';
-    gap: var(--space-3) var(--space-2);
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'route date' 'airline aircraft' 'distance distance';
+    gap: var(--space-2) var(--space-3);
+    align-items: start;
     min-height: 0;
     padding: var(--space-4);
     border: 1px solid var(--hairline);
@@ -92,12 +109,12 @@
     box-shadow: inset 0 1px 0 var(--surface-highlight);
   }
   .ledger-skeleton-distance {
-    display: grid;
     grid-area: distance;
-    justify-items: end;
+    padding-inline-end: 44px;
   }
   .ledger-skeleton-date {
     grid-area: date;
+    justify-items: end;
   }
   .ledger-skeleton-route {
     grid-area: route;
@@ -108,8 +125,5 @@
   .ledger-skeleton-aircraft {
     grid-area: aircraft;
     justify-items: end;
-  }
-  .ledger-skeleton-bar.is-search {
-    width: 100%;
   }
 }
