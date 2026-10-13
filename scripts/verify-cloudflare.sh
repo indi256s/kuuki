@@ -6,6 +6,7 @@ export WRANGLER_SEND_METRICS=false
 pnpm turbo run build --filter='./packages/*'
 pnpm lint
 pnpm format:check
+pnpm check:stamps
 node scripts/build-next.mjs --inventory-only
 git diff --exit-code apps/next/api-routes.generated.ts
 pnpm typecheck --concurrency=1

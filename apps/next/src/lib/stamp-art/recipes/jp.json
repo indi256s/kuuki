@@ -1,0 +1,39 @@
+{
+  "iso2": "JP",
+  "tier": "engraved",
+  "shape": "oval",
+  "layers": [
+    {
+      "module": "platform",
+      "box": [61, 108, 78, 28],
+      "params": {
+        "batter": 12,
+        "flare": true,
+        "courses": 5,
+        "joints": 9
+      }
+    },
+    {
+      "module": "pagoda-tier",
+      "box": [63, 90, 26, 18],
+      "params": {
+        "tiers": 2
+      }
+    },
+    {
+      "module": "pagoda-tier",
+      "box": [111, 90, 26, 18],
+      "params": {
+        "tiers": 2
+      }
+    },
+    {
+      "module": "pagoda-tier",
+      "box": [74, 59, 52, 49],
+      "params": {
+        "tiers": 5,
+        "gables": [1, 3]
+      }
+    }
+  ]
+}

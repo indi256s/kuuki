@@ -1,0 +1,59 @@
+{
+  "iso2": "GE",
+  "tier": "engraved",
+  "shape": "oval",
+  "layers": [
+    {
+      "module": "mountains",
+      "box": [60, 56, 80, 70],
+      "params": {
+        "weight": "hair",
+        "peaks": [
+          [0.1, 0.8],
+          [0.5, 1],
+          [0.92, 0.75]
+        ],
+        "shade": "right",
+        "shadeDepth": 30
+      }
+    },
+    {
+      "module": "tower",
+      "box": [62, 70, 18, 56],
+      "params": {
+        "cap": "hip",
+        "openings": "loggia",
+        "loggia": 2,
+        "capH": 0.28
+      }
+    },
+    {
+      "module": "tower",
+      "box": [86, 54, 22, 72],
+      "params": {
+        "cap": "hip",
+        "openings": "loggia",
+        "loggia": 3,
+        "capH": 0.27
+      }
+    },
+    {
+      "module": "tower",
+      "box": [114, 74, 18, 52],
+      "params": {
+        "cap": "hip",
+        "openings": "loggia",
+        "loggia": 2,
+        "capH": 0.28
+      }
+    },
+    {
+      "module": "platform",
+      "box": [60, 116, 80, 10],
+      "params": {
+        "courses": 2,
+        "joints": 8
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "iso2": "TH",
+  "tier": "engraved",
+  "shape": "circle",
+  "layers": [
+    {
+      "module": "gable",
+      "box": [64, 66, 72, 56],
+      "params": {
+        "wallH": 0.3
+      }
+    },
+    {
+      "module": "stilts",
+      "box": [68, 122, 64, 22],
+      "params": {
+        "count": 4
+      }
+    },
+    {
+      "module": "steps",
+      "box": [47, 124, 23, 20],
+      "params": {
+        "dir": "right",
+        "count": 5
+      }
+    },
+    {
+      "module": "water",
+      "box": [47, 144, 106, 5],
+      "params": {
+        "rows": 2
+      }
+    }
+  ],
+  "signature": [
+    {
+      "part": "kalae-finial",
+      "box": [86, 50, 28, 20]
+    }
+  ]
+}

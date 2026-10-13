@@ -1,0 +1,18 @@
+{
+  "iso2": "DE",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "layers": [
+    {
+      "module": "triumphal-arch",
+      "box": [38, 88, 124, 38],
+      "params": { "bays": 5, "atticH": 0.3, "entH": 0.12, "hatchGap": 3.2 }
+    },
+    {
+      "module": "colonnade",
+      "box": [40, 102, 120, 24],
+      "params": { "count": 6, "centerBay": 1.4, "colW": 0.4, "shaft": "hair", "flutes": 0 }
+    }
+  ],
+  "signature": [{ "part": "quadriga", "box": [82, 72, 36, 16] }]
+}

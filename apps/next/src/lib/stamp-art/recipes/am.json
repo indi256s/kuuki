@@ -1,0 +1,55 @@
+{
+  "iso2": "AM",
+  "tier": "engraved",
+  "shape": "circle",
+  "layers": [
+    {
+      "module": "twin-peak",
+      "box": [45, 53, 109, 67],
+      "params": {
+        "weight": "hair",
+        "ratio": 0.8,
+        "bigX": 0.5,
+        "split": 0.74
+      }
+    },
+    {
+      "module": "cliff",
+      "box": [47, 118, 75, 16],
+      "params": {
+        "side": "left",
+        "wobble": [0, 0.8, -1.4, 0.4, -1.8, 0]
+      }
+    },
+    {
+      "module": "platform",
+      "box": [48, 113, 52, 5],
+      "params": {
+        "courses": 1
+      }
+    },
+    {
+      "module": "colonnade",
+      "box": [51, 94, 46, 19],
+      "params": {
+        "count": 6,
+        "entablature": 0.24,
+        "order": "ionic",
+        "shaft": "hair",
+        "colW": 0.42
+      }
+    },
+    {
+      "module": "pediment",
+      "box": [49, 85, 50, 9],
+      "params": {}
+    },
+    {
+      "module": "water",
+      "box": [47, 138, 106, 11],
+      "params": {
+        "rows": 3
+      }
+    }
+  ]
+}

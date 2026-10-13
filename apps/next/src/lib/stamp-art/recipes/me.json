@@ -1,0 +1,56 @@
+{
+  "iso2": "ME",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "layers": [
+    {
+      "module": "mountains",
+      "box": [36, 54, 126, 80],
+      "params": {
+        "peaks": [
+          [0.78, 1],
+          [0.5, 0.7],
+          [0.2, 0.45]
+        ],
+        "jag": 2.2,
+        "shadeGap": 2.8,
+        "shadeDepth": 46
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [35, 122, 50, 12],
+      "params": {
+        "merlons": 9,
+        "courses": 2,
+        "merlonH": 0.22
+      }
+    },
+    {
+      "module": "cliff",
+      "box": [145, 120, 17, 14],
+      "params": {
+        "side": "right",
+        "wobble": [0, 0.6, -1.2, 0.4, -1.6, 0]
+      }
+    },
+    {
+      "module": "water",
+      "box": [36, 136, 128, 13],
+      "params": {
+        "rows": 3
+      }
+    }
+  ],
+  "signature": [
+    {
+      "part": "kotor-walls",
+      "box": [46, 62, 96, 72],
+      "params": {
+        "wallH": 5,
+        "towerH": 28,
+        "towerW": 16
+      }
+    }
+  ]
+}
