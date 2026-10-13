@@ -17,6 +17,7 @@
     "./theme/*": "./src/theme/*.ts",
     "./address": "./src/address.ts",
     "./geo": "./src/geo.ts",
+    "./groundTravel": "./src/groundTravel.ts",
     "./timezones": "./src/timezones.ts"
   },
   "scripts": {
