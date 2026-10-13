@@ -53,7 +53,7 @@ const SNOOZE_DIP = 2,
  * An alarm clock whose seven-segment display shows `time` ("HH:MM"; blanks leave it dark).
  * With `alt`, the display holds both readings: segments lit in both stay in `lit-both`, the rest split into `lit-a` (only `time`) and `lit-b` (only `alt`), so CSS can morph one reading into the other segment by segment.
  * The chapter figure keeps `lit-a` and `lit-b` mounted and swaps which one is shown, so a pick morphs the display. The colon belongs to `lit-both`. Each lit part holds a `backlight` (its glow) that CSS can raise; from k = 1 the display sits recessed behind a rim.
- * The body is a bedside alarm clock: feet, a bevelled bezel with screws round the display, a speaker grille and a set knob on its right wall, buttons on top, a mains cord with its plug.
+ * The body is a battery-powered bedside alarm clock: feet, a bevelled bezel with screws round the display, a speaker grille and a set knob on its right wall, and buttons on top.
  * `lit-a` and `lit-b` hold one `cell` per digit, carrying --t (0 for the first digit, 1 for the last), so a reading can light digit by digit.
  * Parts: `body`, `snooze` (carries --dip-y/--press-y), `display`, `lit-both`, `lit-a`, `lit-b`, `cell`, `backlight`.
  */
@@ -121,8 +121,6 @@ export function clock(time: string, k = 1, alt?: string) {
       )
     // The set knob above it.
     axle(BX + BW, BX + BW + 3, 36, 38, 3.4, 1)
-    // The cord leaves through a grommet at the back of the right wall.
-    s.poly(s.circle([BX + BW, 0, 0], Y, Z, 28, 12, 2.4, 10), 'shade', 'detail')
     // Buttons along the back of the top.
     for (const x of [86, 96]) s.cylinder(x, 24, 2.8, ZT, ZT + 2.2, { n: 20 })
     // The slot: a recess with walls, exactly as wide as the bar's column, so the bar stands in it with a margin of 2.
@@ -149,33 +147,6 @@ export function clock(time: string, k = 1, alt?: string) {
       'side',
       'none',
     )
-    // The cord: out of the grommet, down to the floor and over to the plug, which lies on it.
-    const cord: P3[] = [
-      [108, 28, 12],
-      [112, 28, 12],
-      [115.5, 28.5, 10],
-      [117.5, 30, 6],
-      [118.5, 33, 2.4],
-      [119.5, 38, 1.4],
-      [122, 43, 1.3],
-      [124.5, 47, 1.3],
-      [125.5, 51, 1.3],
-    ]
-    s.line(cord, 'line', 3)
-    s.line(cord, 'front', 1.4)
-    s.box(122, 51, 0, 7, 7, 4)
-    s.box(123.6, 49.2, 0.4, 3.8, 1.8, 2.6, { stroke: 'crease' })
-    for (const x of [123.4, 127.2])
-      s.poly(
-        [
-          [x, 58, 2],
-          [x + 1.2, 58, 2],
-          [x + 1.2, 62, 2],
-          [x, 62, 2],
-        ],
-        'side',
-        'line',
-      )
   })
   // The clip is the bar's own column over the slot, so a press sinks it into the opening instead of sliding over the top.
   const column: P3[] = []
