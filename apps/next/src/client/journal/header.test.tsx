@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { JournalSummary } from './filter'
 import { JournalHeader, type JournalHeaderProps } from './header'
@@ -180,6 +181,38 @@ it('flips the count only when the day changes while open', () => {
   act(() => vi.advanceTimersByTime(2 * 60_000))
   expect(digits().map((node) => node.textContent)).toEqual(['1', '1'])
   expect(digits().map((node) => node.hasAttribute('data-flip'))).toEqual([false, true])
+})
+
+it('flips the tomorrow word in when it replaces the flaps while open, and paints it settled on mount', () => {
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+  vi.setSystemTime(new Date(2026, 9, 19, 23, 59))
+  const { container, unmount } = render(
+    <NextUp flights={[upcoming]} refs={refs} locale="en" onOpen={vi.fn()} />,
+  )
+  expect(container.querySelector('.journal-next-word')).toBeNull()
+  act(() => vi.advanceTimersByTime(2 * 60_000))
+  expect(screen.getByText('Tomorrow')).toHaveAttribute('data-flip')
+  unmount()
+
+  render(<NextUp flights={[upcoming]} refs={refs} locale="en" onOpen={vi.fn()} />)
+  expect(screen.getByText('Tomorrow')).not.toHaveAttribute('data-flip')
+})
+
+it('flips the count in when it arrives after hydration', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 9, 9, 12))
+  const ui = <NextUp flights={[upcoming]} refs={refs} locale="en" onOpen={vi.fn()} />
+  const container = document.createElement('div')
+  container.innerHTML = renderToString(ui)
+  document.body.appendChild(container)
+  // The server knows no today, so its markup has dates but no count.
+  expect(container.querySelector('.journal-next-flap')).toBeNull()
+  await act(async () => {
+    render(ui, { container, hydrate: true })
+  })
+  const digits = [...container.querySelectorAll('.journal-next-flap-digit')]
+  expect(digits.map((node) => node.textContent)).toEqual(['1', '2'])
+  expect(digits.every((node) => node.hasAttribute('data-flip'))).toBe(true)
 })
 
 it('says today instead of flaps', () => {

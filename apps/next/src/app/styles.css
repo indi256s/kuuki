@@ -97,6 +97,14 @@
   --holder-ovi-shift: color-mix(in oklch, var(--accent) 55%, var(--surface));
   --holder-uv: #6a52b8;
   --holder-uv-shade: rgb(48 45 42/7%);
+  /* Next up boarding pass (DESIGN.md "Journal redesign"): the same night-jade ticket in both themes. Hue 178° sits in the
+     gap between success (150°) and Asagi (206°). On it the flaps take the accent tuned for ink (the dark fill), so every
+     accent clears 3:1 on the paper in light too; dark keeps its own fill (tokens.test.ts). */
+  --pass-paper: #273d38;
+  --pass-ink: #ebf4f2;
+  --pass-ink-muted: #afdcd1;
+  --pass-flap: var(--accent-on-ink);
+  --pass-flap-foreground: #292827;
   --map-land: var(--surface-inset);
   --map-water: #d9e5eb;
   --map-border: #b1aaa2;
@@ -282,6 +290,8 @@
   --holder-ovi-shift: color-mix(in oklch, var(--accent) 55%, var(--text));
   --holder-uv: #b9a6ff;
   --holder-uv-shade: rgb(0 0 0/32%);
+  --pass-flap: var(--accent);
+  --pass-flap-foreground: var(--accent-foreground);
   --swatch-shu: #ea846f;
   --swatch-ai: #acbbef;
   --swatch-matcha: #b7ce92;
