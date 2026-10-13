@@ -32,8 +32,9 @@ password is **unrecoverable** (bcrypt hashes were not in the export).
 
 A deliberately _structurally-invalid_ value for `password_hash` (it contains no
 `$`, so `verifyPassword` bails before any crypto). Marks an account as
-intentionally **un-loginnable** until a real credential is seeded. The default
-state of every migrated account.
+intentionally **unable to sign in with a password** until a real credential is
+seeded. The default state of every migrated account; a verified authoritative
+Google identity can enable sign-in to the existing journal without a password.
 
 ### Pepper (AUTH_SECRET coupling)
 

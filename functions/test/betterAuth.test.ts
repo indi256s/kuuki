@@ -542,6 +542,7 @@ async function startGoogle(db: D1Database, cookie = '') {
   const body = (await start.json()) as { url: string; redirect: boolean }
   const authorization = new URL(body.url)
   expect(authorization.origin).toBe('https://accounts.google.com')
+  expect(authorization.searchParams.get('prompt')).toBe('select_account')
   expect(authorization.searchParams.get('redirect_uri')).toBe(`${ORIGIN}/api/auth/callback/google`)
   expect(authorization.searchParams.get('code_challenge')).toBeTruthy()
   expect(body.redirect).toBe(false)
@@ -586,76 +587,135 @@ it('creates a private Google profile before the session, discards provider token
   }
 }, 30_000)
 
-it('links an authoritative Google email to a verified local identity without changing its journal profile', async () => {
-  const { db, dispose } = await createApiDatabase()
-  try {
-    const previous = await call(db, '/api/auth/sign-up/email', 'POST', {
-      email: 'previous@example.test',
-      password: 'password-123',
-    })
-    const previousCookie = responseCookies(previous)
-    await db.batch([
-      db.prepare(
-        "INSERT INTO users(id,email,password_hash,email_verified) VALUES('existing','existing@gmail.com','RESET_REQUIRED',1)",
-      ),
-      db.prepare(
-        "INSERT INTO profiles(id,display_name,username,is_public) VALUES('existing','Chosen name','chosen',1)",
-      ),
-    ])
-    const legacy = await createSession(db, 'existing')
-    mockGoogle({ email: 'existing@gmail.com' })
-    const legacyCookie = `kuuki_session=${legacy.token}`
-    const flow = await startGoogle(db, legacyCookie)
-    expect(flow.cookie).not.toContain('kuuki_session=')
-    const callback = await call(
-      db,
-      `/api/auth/callback/google?code=code&state=${flow.state}`,
-      'GET',
-      undefined,
-      `${previousCookie}; ${legacyCookie}; ${flow.cookie}`,
-      {},
-      googleEnv,
-    )
-    expect(callback.headers.get('Location')).toBe(`${ORIGIN}/overview`)
-    expect(responseCookies(callback)).toContain('kuuki_session=;')
-    const me = await call(db, '/api/auth/me', 'GET', undefined, responseCookies(callback))
-    expect(await me.json()).toMatchObject({
-      user: { id: 'existing' },
-      profile: { display_name: 'Chosen name', username: 'chosen', is_public: true },
-    })
-    expect((await db.prepare('SELECT COUNT(*) AS n FROM users').first<{ n: number }>())?.n).toBe(2)
-    expect(await (await call(db, '/api/auth/me', 'GET', undefined, previousCookie)).json()).toEqual(
-      {
+it.each([
+  ['verified Gmail', 'existing@gmail.com', 1, {}],
+  ['migrated Gmail', 'existing@gmail.com', 0, {}],
+  ['migrated Workspace', 'existing@workspace.test', 0, { hd: 'workspace.test' }],
+])(
+  'links %s without changing its journal identity or profile',
+  async (_reason, email, verified, claims) => {
+    const { db, dispose } = await createApiDatabase()
+    try {
+      const previous = await call(db, '/api/auth/sign-up/email', 'POST', {
+        email: 'previous@example.test',
+        password: 'password-123',
+      })
+      const previousCookie = responseCookies(previous)
+      await db.batch([
+        db
+          .prepare(
+            "INSERT INTO users(id,email,password_hash,email_verified) VALUES('existing',?,'RESET_REQUIRED',?)",
+          )
+          .bind(email, verified),
+        db.prepare(
+          "INSERT INTO profiles(id,display_name,username,is_public) VALUES('existing','Chosen name','chosen',1)",
+        ),
+      ])
+      const legacy = await createSession(db, 'existing')
+      mockGoogle({ email, ...claims })
+      const legacyCookie = `kuuki_session=${legacy.token}`
+      const flow = await startGoogle(db, legacyCookie)
+      expect(flow.cookie).not.toContain('kuuki_session=')
+      const callback = await call(
+        db,
+        `/api/auth/callback/google?code=code&state=${flow.state}`,
+        'GET',
+        undefined,
+        `${previousCookie}; ${legacyCookie}; ${flow.cookie}`,
+        {},
+        googleEnv,
+      )
+      expect(callback.headers.get('Location')).toBe(`${ORIGIN}/overview`)
+      expect(responseCookies(callback)).toContain('kuuki_session=;')
+      const me = await call(db, '/api/auth/me', 'GET', undefined, responseCookies(callback))
+      expect(await me.json()).toMatchObject({
+        user: { id: 'existing' },
+        profile: { display_name: 'Chosen name', username: 'chosen', is_public: true },
+      })
+      expect((await db.prepare('SELECT COUNT(*) AS n FROM users').first<{ n: number }>())?.n).toBe(
+        2,
+      )
+      expect(
+        await db
+          .prepare('SELECT email_verified, password_hash FROM users WHERE id = ?')
+          .bind('existing')
+          .first(),
+      ).toMatchObject({ email_verified: 1, password_hash: 'RESET_REQUIRED' })
+      const repeat = await startGoogle(db)
+      const repeatedCallback = await call(
+        db,
+        `/api/auth/callback/google?code=code&state=${repeat.state}`,
+        'GET',
+        undefined,
+        repeat.cookie,
+        {},
+        googleEnv,
+      )
+      expect(repeatedCallback.headers.get('Location')).toBe(`${ORIGIN}/overview`)
+      expect(
+        await (
+          await call(db, '/api/auth/me', 'GET', undefined, responseCookies(repeatedCallback))
+        ).json(),
+      ).toMatchObject({ user: { id: 'existing' } })
+      expect(
+        (
+          await db
+            .prepare("SELECT COUNT(*) AS n FROM auth_accounts WHERE providerId = 'google'")
+            .first<{ n: number }>()
+        )?.n,
+      ).toBe(1)
+      expect(
+        await (await call(db, '/api/auth/me', 'GET', undefined, previousCookie)).json(),
+      ).toEqual({
         user: null,
         profile: null,
-      },
-    )
-    expect(
-      (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
-    ).toBe(1)
-    expect((await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n).toBe(
-      0,
-    )
-  } finally {
-    await dispose()
-  }
-}, 30_000)
+      })
+      expect(
+        (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
+      ).toBe(2)
+      expect(
+        (await db.prepare('SELECT COUNT(*) AS n FROM sessions').first<{ n: number }>())?.n,
+      ).toBe(0)
+    } finally {
+      await dispose()
+    }
+  },
+  30_000,
+)
 
 it.each([
-  ['unverified local identity', 'existing@gmail.com', 0],
-  ['third-party Google mailbox', 'existing@example.test', 1],
+  ['unverified password identity', 'existing@gmail.com', 0, 'password', {}, false],
+  ['third-party Google mailbox', 'existing@example.test', 1, 'RESET_REQUIRED', {}, false],
+  [
+    'unverified Google Gmail',
+    'existing@gmail.com',
+    0,
+    'RESET_REQUIRED',
+    { email_verified: false },
+    false,
+  ],
+  ['existing provider identity', 'existing@gmail.com', 0, 'RESET_REQUIRED', {}, true],
 ])(
   'refuses implicit Google linking for %s',
-  async (_reason, email, verified) => {
+  async (_reason, email, verified, password, claims, existingProvider) => {
     const { db, dispose } = await createApiDatabase()
     try {
       await db.batch([
         db
           .prepare('INSERT INTO users(id,email,password_hash,email_verified) VALUES(?,?,?,?)')
-          .bind('existing', email, 'RESET_REQUIRED', verified),
+          .bind('existing', email, password, verified),
         db.prepare("INSERT INTO profiles(id,display_name) VALUES('existing','Existing journal')"),
       ])
-      mockGoogle({ email })
+      if (existingProvider)
+        await db
+          .prepare(
+            "INSERT INTO auth_accounts (id,providerId,accountId,userId,createdAt,updatedAt) VALUES ('existing-provider','google','another-subject','existing',datetime('now'),datetime('now'))",
+          )
+          .run()
+      const previousAccounts = await db
+        .prepare('SELECT id, providerId, accountId, userId FROM auth_accounts')
+        .all()
+      mockGoogle({ email, ...claims })
       const flow = await startGoogle(db)
       const callback = await call(
         db,
@@ -671,8 +731,17 @@ it.each([
       )
       expect(responseCookies(callback)).not.toContain('kuuki_auth_session=')
       expect(
-        (await db.prepare('SELECT COUNT(*) AS n FROM auth_accounts').first<{ n: number }>())?.n,
-      ).toBe(0)
+        (
+          await db
+            .prepare('SELECT email_verified FROM users WHERE id = ?')
+            .bind('existing')
+            .first<{ email_verified: number }>()
+        )?.email_verified,
+      ).toBe(verified)
+      expect(
+        (await db.prepare('SELECT id, providerId, accountId, userId FROM auth_accounts').all())
+          .results,
+      ).toEqual(previousAccounts.results)
       expect(
         (await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{ n: number }>())?.n,
       ).toBe(0)
