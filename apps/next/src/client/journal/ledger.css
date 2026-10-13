@@ -129,6 +129,8 @@
 /* Rows: real DOM, skipped by the renderer when far off screen. */
 .journal-ledger .jr-body {
   display: grid;
+  /* Explicit shrinkable tracks (here and on the phone rows): implicit auto tracks grew to the rows' min-content and pushed them past the page. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
   padding-block-start: var(--space-1);
 }
@@ -424,6 +426,7 @@
 
 .jr-mobile-rows {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
 .jr-mobile-rows .ui-swipe-row {

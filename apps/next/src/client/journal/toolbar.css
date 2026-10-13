@@ -23,7 +23,8 @@
   inset-inline-end: var(--space-3);
   pointer-events: none;
 }
-@media (pointer: coarse) {
+/* The / shortcut is off on phones (the keyboard layer runs on desktop only), so its hint goes too. */
+@media (pointer: coarse), (max-width: 700px) {
   .journal-search[data-hint='true'] .ui-field-input {
     padding-inline-end: var(--space-3);
   }
@@ -78,6 +79,28 @@
   line-height: 20px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+/* Applied-filter count on the phone's Filters button and on More: a number, not a colour cue. */
+.journal-filter-count {
+  margin-inline-start: 0;
+}
+/* On More the count is a corner badge, so applying a filter never widens the button or shifts the row. */
+.journal-more .journal-filter-count {
+  position: absolute;
+  top: -6px;
+  inset-inline-end: -6px;
+  min-width: 18px;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 18px;
+  pointer-events: none;
+}
+.journal-facet-hint {
+  margin: 0 0 var(--space-1);
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+  text-wrap: pretty;
 }
 
 /* Period picker */
@@ -136,10 +159,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Up to the shell breakpoint: search on its own line, chips scroll sideways, the menu stays at the end of the row. */
+/* Up to the shell breakpoint: search shares its row with Filters and More while it keeps at least 9rem, else the actions wrap. */
 @media (max-width: 700px) {
   .journal-toolbar .ui-filter-toolbar-search {
-    flex-basis: 100%;
+    flex: 1 1 9rem;
+    min-width: 9rem;
   }
   .journal-toolbar .ui-filter-toolbar-actions {
     flex: none;

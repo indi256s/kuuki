@@ -30,7 +30,7 @@ import { Sheet } from '../ui/sheet'
 import { useMobile } from '../ui/use-mobile'
 import type { JournalFacetValues } from './filter'
 import { emptyFilters, type JournalFilters, type JournalRefs, type JournalStatus } from './model'
-import { MoreFiltersDrawer, activeDrawerFacets } from './more-filters'
+import { MoreFiltersDrawer, activeDrawerFacets, activeFacets } from './more-filters'
 import './toolbar.css'
 
 // Props only: the composition root owns the store, the URL and the data. Search, chips and the menu all write whole `JournalFilters` values.
@@ -482,6 +482,7 @@ export function JournalToolbar({
   const mobile = useMobile() === true
   const moreRef = useRef<HTMLButtonElement>(null)
   const drawerFacets = activeDrawerFacets(filters)
+  const facetCount = activeFacets(filters)
   const facet = { filters, onFiltersChange, facetValues, locale }
   const search = (
     <div className="journal-search" data-hint={filters.q === '' || undefined}>
@@ -524,9 +525,21 @@ export function JournalToolbar({
   const actions = (
     <>
       {mobile && (
-        <Button ref={moreRef} dense variant="secondary" onClick={() => setDrawerOpen(true)}>
+        <Button
+          ref={moreRef}
+          dense
+          variant="secondary"
+          aria-label={facetCount > 0 ? `${t.chips}, ${facetCount}` : undefined}
+          onClick={() => setDrawerOpen(true)}
+        >
           <SlidersHorizontal size={16} aria-hidden="true" />
           {t.chips}
+          {/* Applied filters stay visible after the sheet closes, and the count is part of the button's name. */}
+          {facetCount > 0 ? (
+            <span className="journal-menu-count journal-filter-count" aria-hidden="true">
+              {facetCount}
+            </span>
+          ) : null}
         </Button>
       )}
       {isFiltered(filters) ? (
@@ -542,9 +555,14 @@ export function JournalToolbar({
             dense
             variant="ghost"
             className="journal-more"
-            aria-label={t.more}
+            aria-label={!mobile && drawerFacets > 0 ? `${t.more}, ${drawerFacets}` : t.more}
           >
             <Ellipsis size={20} strokeWidth={2} aria-hidden="true" />
+            {!mobile && drawerFacets > 0 ? (
+              <span className="journal-menu-count journal-filter-count" aria-hidden="true">
+                {drawerFacets}
+              </span>
+            ) : null}
           </Button>
         }
       >

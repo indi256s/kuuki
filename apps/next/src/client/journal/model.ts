@@ -62,3 +62,12 @@ export const emptyFilters = (): JournalFilters => ({
   alliances: [],
 })
 export const defaultSort: JournalSort = { key: 'date', order: 'desc' }
+
+/** The flight's printed code, "AF 338": the airline code joins a bare number; a number that already carries it stays as stored. */
+export function flightCode(
+  flight: Pick<JournalFlight, 'airline_iata' | 'flight_number'>,
+): string | null {
+  const number = flight.flight_number?.trim()
+  if (!number) return null
+  return flight.airline_iata && /^\d/.test(number) ? `${flight.airline_iata} ${number}` : number
+}

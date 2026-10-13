@@ -35,7 +35,7 @@ import {
   type ReactNode,
 } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
-import type { Locale } from '../../lib/format'
+import { formatDateOnly, type Locale } from '../../lib/format'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { Button } from '../ui/button'
 import type { InlineEditOutcome } from '../ui/inline-edit'
@@ -46,7 +46,7 @@ import { useWriteFeedback } from '../write-feedback'
 import { Crossfade } from './crossfade'
 import { FlightDetail, type FlightEditor } from './flight-detail'
 import type { EditableField, EditRecord, FlightDto } from './flight-edits'
-import type { JournalFlight, JournalPayload } from './model'
+import { flightCode, type JournalFlight, type JournalPayload } from './model'
 import { OfflineNote } from './states'
 import { useJournalStore } from './store'
 import './detail-sheet.css'
@@ -458,6 +458,13 @@ export function JournalDetail({
       <span aria-hidden="true"> → </span>
       <span className="sr-only">{locale === 'ru' ? ' в ' : ' to '}</span>
       {flight.destination}
+      {/* Identity before any decision: repeated routes differ by date and flight number (the review question sits below). */}
+      <span className="sr-only">,</span>
+      <span className="jd-title-meta">
+        {[formatDateOnly(locale, flight.date, 'medium'), flightCode(flight)]
+          .filter(Boolean)
+          .join(' · ')}
+      </span>
     </>
   ) : (
     t.flight
