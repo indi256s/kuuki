@@ -198,7 +198,7 @@ it('the menu shows the drawer badge and exports only when something matches', as
   const { unmount } = render(
     <Harness initial={initial} onChange={() => {}} matchingCount={24} onExport={onExport} />,
   )
-  await user.click(screen.getByRole('button', { name: 'More' }))
+  await user.click(screen.getByRole('button', { name: 'More, 2' }))
   expect(await screen.findByRole('menuitem', { name: 'More filters, 2' })).toBeInTheDocument()
   await user.click(screen.getByRole('menuitem', { name: 'Export 24 flights' }))
   expect(onExport).toHaveBeenCalledTimes(1)

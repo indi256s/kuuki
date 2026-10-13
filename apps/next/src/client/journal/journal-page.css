@@ -20,6 +20,8 @@
 }
 .journal-main {
   display: grid;
+  /* An explicit shrinkable track: the implicit auto track grew to the ledger's min-content and slid under the docked pane. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
   min-width: 0;
 }

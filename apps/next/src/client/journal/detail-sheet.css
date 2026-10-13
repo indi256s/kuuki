@@ -113,3 +113,13 @@
     animation: none;
   }
 }
+
+/* The title's identity line: date and flight number under the route, so the flight is known before any decision. */
+.jd-title-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--text-muted);
+}

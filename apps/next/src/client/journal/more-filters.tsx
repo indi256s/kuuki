@@ -34,6 +34,7 @@ const copy = {
     airline: 'Airline',
     times: 'Times',
     flight_number: 'Flight number',
+    statusDefault: 'Without a choice, the list shows flown flights and those to confirm.',
   },
   ru: {
     title: 'Другие фильтры',
@@ -50,6 +51,8 @@ const copy = {
     airline: 'Авиакомпания',
     times: 'Время',
     flight_number: 'Номер рейса',
+    statusDefault:
+      'Если ничего не выбрать, в списке выполненные перелёты и те, что нужно подтвердить.',
   },
 }
 
@@ -75,6 +78,17 @@ const toggled = <T extends string>(values: readonly T[], value: T): T[] =>
   sortedUnique(
     values.includes(value) ? values.filter((item) => item !== value) : [...values, value],
   )
+
+/** How many facets are narrowing the list, search aside (for the count on the phone's Filters button). */
+export function activeFacets(filters: JournalFilters): number {
+  return (
+    Number(filters.years.length > 0 || filters.from !== '') +
+    Number(filters.airports.length > 0 || filters.countries.length > 0) +
+    Number(filters.airlines.length > 0) +
+    Number(filters.aircraft.length > 0 || filters.families.length > 0) +
+    activeDrawerFacets(filters)
+  )
+}
 
 /** How many drawer facets are narrowing the list (for the badge on "More filters"). */
 export function activeDrawerFacets(filters: JournalFilters): number {
@@ -156,6 +170,7 @@ export function MoreFiltersDrawer({
         {primaryFacets}
         <fieldset className="journal-facet-group">
           <legend>{t.status}</legend>
+          {filters.status.length === 0 && <p className="journal-facet-hint">{t.statusDefault}</p>}
           {STATUS_ROWS.map((row) => {
             const countId = `${base}-count-${row.value}`
             return (

@@ -25,6 +25,7 @@ import { Calendar } from '../ui/calendar'
 import { MakerSwatch } from '../ui/category-mark'
 import { Combobox, type Choice } from '../ui/combobox'
 import { Field } from '../ui/field'
+import { useMobile } from '../ui/use-mobile'
 import type { InlineEditOutcome } from '../ui/inline-edit'
 import { firstsLabels } from './firsts-glyph'
 import type { EditableField } from './flight-edits'
@@ -58,6 +59,7 @@ const copy = {
     change: (label: string, value: string) => `Change ${label.toLowerCase()}, now ${value}`,
     save: 'Save',
     cancel: 'Cancel editing',
+    cancelShort: 'Cancel',
     saving: 'Saving…',
     loading: 'Loading the editor…',
     loadFailed: 'Could not load the editor.',
@@ -111,6 +113,7 @@ const copy = {
     change: (label: string, value: string) => `Изменить: ${label.toLowerCase()}, сейчас ${value}`,
     save: 'Сохранить',
     cancel: 'Отменить редактирование',
+    cancelShort: 'Отменить',
     saving: 'Сохраняем…',
     loading: 'Загружаем редактор…',
     loadFailed: 'Не удалось загрузить редактор.',
@@ -398,6 +401,7 @@ function DetailField({
   const wanted = useRef<'field' | 'trigger' | null>(editing ? 'field' : null)
   const hintId = useId(),
     previewId = useId()
+  const mobile = useMobile() === true
 
   const inputRef = useCallback((node: HTMLInputElement | null) => {
     input.current = node
@@ -550,7 +554,10 @@ function DetailField({
             className="jd-editor"
             role="group"
             aria-label={label}
-            aria-describedby={[hintId, forecast ? previewId : null].filter(Boolean).join(' ')}
+            aria-describedby={
+              [mobile ? null : hintId, forecast ? previewId : null].filter(Boolean).join(' ') ||
+              undefined
+            }
             data-saving={saving || undefined}
             onKeyDownCapture={captureKeys}
             onKeyDown={bubbleKeys}
@@ -598,6 +605,7 @@ function DetailField({
                 }}
               >
                 <Check size={16} strokeWidth={2} aria-hidden="true" />
+                <span className="jd-action-text">{t.save}</span>
               </button>
               <button
                 type="button"
@@ -608,6 +616,7 @@ function DetailField({
                 onClick={cancel}
               >
                 <X size={16} strokeWidth={2} aria-hidden="true" />
+                <span className="jd-action-text">{t.cancelShort}</span>
               </button>
               {saving && (
                 <span role="status" className="jd-editor-status">
@@ -620,9 +629,12 @@ function DetailField({
                 {problem.message}
               </p>
             )}
-            <span id={hintId} className="sr-only">
-              {t.hint}
-            </span>
+            {/* Keyboard instructions only where a keyboard is the likely input; phones get the visible Save and Cancel. */}
+            {!mobile && (
+              <span id={hintId} className="sr-only">
+                {t.hint}
+              </span>
+            )}
           </div>
         ) : (
           <span className="jd-settled">

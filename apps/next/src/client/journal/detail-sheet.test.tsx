@@ -343,6 +343,10 @@ describe('Journal detail sheet', () => {
     const pane = await screen.findByRole('complementary', { name: 'Flight details' })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(within(pane).getByRole('heading', { level: 2 })).toHaveFocus()
+    // Identity before any decision: the title names the date and flight number, not only a route that may repeat.
+    expect(within(pane).getByRole('heading', { level: 2 })).toHaveAccessibleName(
+      /^TBS\s*to\s*IST\s*,\s*May 4, 2024 · TK381$/,
+    )
     // The connection's next leg swaps the pane and keeps focus inside it.
     expect(within(pane).getByText('2 h 40 min transfer in IST')).toBeInTheDocument()
     await user.click(within(pane).getByRole('button', { name: /^Open IST → JFK/ }))

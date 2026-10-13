@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { JournalSummary } from './filter'
@@ -113,21 +113,68 @@ it('counts down to the next flights and opens one', async () => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 9, 12))
   const onOpen = vi.fn()
-  const { unmount } = render(
-    <NextUp flights={[upcoming]} refs={refs} locale="en" onOpen={onOpen} />,
+  const later = [
+    { ...upcoming, id: 8, date: '2026-10-10', origin: 'IST', destination: 'JFK' },
+    { ...upcoming, id: 9, date: '2027-01-02', origin: 'JFK', destination: 'TBS' },
+  ] as JournalFlight[]
+  const { container, unmount } = render(
+    <NextUp flights={[upcoming, ...later]} refs={refs} locale="en" onOpen={onOpen} />,
   )
   expect(screen.getByRole('heading', { level: 2, name: 'Next up' })).toBeInTheDocument()
-  expect(screen.getByText('in 12 days')).toBeInTheDocument()
+  // The lead's split-flap count is settled on first render; the departure time is shown only when recorded.
+  const digits = [...container.querySelectorAll('.journal-next-flap-digit')]
+  expect(digits.map((node) => node.textContent)).toEqual(['1', '2'])
+  expect(digits.some((node) => node.hasAttribute('data-flip'))).toBe(false)
+  expect(screen.getByText('days')).toBeInTheDocument()
+  expect(screen.getByText('Tbilisi → IST')).toBeInTheDocument()
+  expect(screen.getByText(/Wed, Oct 21 · TK381$/)).toBeInTheDocument()
   expect(
     screen.getByRole('button', { name: /Tbilisi \(TBS\) to IST, Oct 21, 2026, TK381, in 12 days/ }),
   ).toBeInTheDocument()
-  screen.getByRole('button', { name: /TBS/ }).click()
+  // Later flights: quieter, one named button each; tomorrow is a word, a next-year date carries its year.
+  expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+  expect(screen.getByText(/JFK → TBS · .*2027/)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /IST to JFK.*tomorrow/ })).toBeInTheDocument()
+  screen.getByRole('button', { name: /^Tbilisi \(TBS\)/ }).click()
   expect(onOpen).toHaveBeenCalledWith(7)
   unmount()
 
-  render(<NextUp flights={[upcoming]} refs={refs} locale="ru" onOpen={onOpen} />)
+  render(
+    <NextUp
+      flights={[{ ...upcoming, departure_time: '05:30:00' }, later[1]]}
+      refs={refs}
+      locale="ru"
+      onOpen={onOpen}
+    />,
+  )
   expect(screen.getByRole('heading', { level: 2, name: 'Скоро' })).toBeInTheDocument()
-  expect(screen.getByText('через 12 дней')).toBeInTheDocument()
+  expect(screen.getByText('дней')).toBeInTheDocument()
+  expect(screen.getByText(/ · 05:30 · TK381$/)).toBeInTheDocument()
+  expect(screen.getByText('85 дней')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /через 12 дней/ })).toBeInTheDocument()
+})
+
+it('flips the count only when the day changes while open', () => {
+  vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+  vi.setSystemTime(new Date(2026, 9, 9, 23, 59))
+  const { container } = render(
+    <NextUp flights={[upcoming]} refs={refs} locale="en" onOpen={vi.fn()} />,
+  )
+  const digits = () => [...container.querySelectorAll('.journal-next-flap-digit')]
+  expect(digits().map((node) => node.textContent)).toEqual(['1', '2'])
+  act(() => vi.advanceTimersByTime(2 * 60_000))
+  expect(digits().map((node) => node.textContent)).toEqual(['1', '1'])
+  expect(digits().map((node) => node.hasAttribute('data-flip'))).toEqual([false, true])
+})
+
+it('says today instead of flaps', () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 9, 21, 8))
+  const { container } = render(
+    <NextUp flights={[upcoming]} refs={refs} locale="ru" onOpen={vi.fn()} />,
+  )
+  expect(screen.getByText('Сегодня')).toBeInTheDocument()
+  expect(container.querySelector('.journal-next-flap')).toBeNull()
 })
 
 it('renders nothing when no flight is upcoming', () => {

@@ -101,6 +101,30 @@
   align-items: center;
   gap: var(--space-2);
 }
+/* Touch: Save and Cancel carry their words, so the editor never relies on a keyboard. Fine pointers keep the 44px icons. */
+.jd-action-text {
+  display: none;
+}
+/* Press feedback like every other button (DESIGN: 0.96 over --dur-press); off when the action is unavailable. */
+.jd-editor-actions .arc-inline-icon {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.jd-editor-actions .arc-inline-icon:active:not([aria-disabled='true']) {
+  transform: scale(0.96);
+}
+@media (pointer: coarse) {
+  .jd-editor-actions .arc-inline-icon {
+    display: inline-flex;
+    gap: var(--space-2);
+    width: auto;
+    padding-inline: var(--space-3);
+    font: inherit;
+    font-weight: 500;
+  }
+  .jd-action-text {
+    display: inline;
+  }
+}
 .jd-editor-status,
 .jd-editor-note {
   margin: 0;
@@ -184,6 +208,12 @@
 @media (prefers-reduced-motion: reduce) {
   .jd-check {
     animation: none;
+  }
+  .jd-editor-actions .arc-inline-icon {
+    transition: none;
+  }
+  .jd-editor-actions .arc-inline-icon:active {
+    transform: none;
   }
   .jd-leg-open {
     transition: none;

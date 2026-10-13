@@ -1,4 +1,5 @@
-/* Next up: a compact block of the nearest upcoming flights. Tokens only; no eyebrow, no uppercase, no hairlines. */
+/* Next up (boards 22.1, 22.2, 22.6, 22.7): one card, the nearest flight leads with a split-flap day count, later flights stay quiet.
+   Tokens only; weights 400/500, no eyebrow, no hairlines inside the card, no press scale. */
 .journal-next {
   display: grid;
   gap: var(--space-2);
@@ -9,21 +10,18 @@
   line-height: 24px;
   font-weight: 500;
 }
-.journal-next ul {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.journal-next-item {
+.journal-next-card {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-4);
-  width: 100%;
-  min-height: 44px;
-  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  gap: var(--space-2) var(--space-12);
+  padding: var(--space-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.journal-next-lead,
+.journal-next-item {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -33,34 +31,225 @@
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
+.journal-next-lead {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-8);
+  min-width: 0;
+  min-height: 64px;
+  padding: var(--space-2) var(--space-4);
+}
+.journal-next-lead:focus-visible,
 .journal-next-item:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-.journal-next-date {
-  font: 400 13px/20px var(--font-mono);
+
+/* The day count: one tile per digit with the flap seam, or the word for today and tomorrow. */
+.journal-next-count {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.journal-next-flaps {
+  display: flex;
+  gap: var(--space-1);
+}
+.journal-next-flap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  background: var(--surface-inset);
+  /* On the digit's direct parent: perspective does not reach grandchildren. */
+  perspective: 240px;
+}
+.journal-next-flap::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% - 1px);
+  height: 2px;
+  background: var(--surface);
+}
+.journal-next-flap-digit {
+  font: 500 40px/60px var(--font-mono);
   font-variant-numeric: tabular-nums;
+  /* The digit fills the tile, so its centre line is the flap seam: the flip hinges there. */
+  transform-origin: 50% 50%;
 }
-.journal-next-route {
-  font: 400 15px/24px var(--font-mono);
+.journal-next-flap-digit[data-flip] {
+  animation: journal-next-flip 160ms var(--ease-out) backwards;
 }
-.journal-next-number {
-  font: 400 12px/16px var(--font-mono);
+@keyframes journal-next-flip {
+  from {
+    transform: rotateX(-90deg);
+  }
+}
+.journal-next-unit {
+  font-size: 15px;
+  line-height: 20px;
   color: var(--text-muted);
 }
-.journal-next-countdown {
-  margin-inline-start: auto;
-  font-size: 13px;
-  line-height: 20px;
+.journal-next-word {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
   color: var(--accent-text);
 }
+
+.journal-next-trip {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.journal-next-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-3);
+}
+.journal-next-cities {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+}
+.journal-next-codes {
+  font: 400 15px/20px var(--font-mono);
+  color: var(--text-muted);
+}
+.journal-next-cities + .journal-next-codes {
+  font-size: 13px;
+}
+.journal-next-meta {
+  font: 400 13px/20px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* Later flights: quieter, one line each. */
+.journal-next-later {
+  display: grid;
+  justify-items: end;
+  padding-inline-end: var(--space-2);
+  margin-inline-start: auto;
+}
+.journal-next-then {
+  padding-inline: var(--space-2);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.journal-next-later ul {
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.journal-next-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0 var(--space-2);
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
+}
+.journal-next-item-route {
+  font: 400 15px/20px var(--font-mono);
+}
+.journal-next-item-when {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
 @media (hover: hover) and (pointer: fine) {
+  .journal-next-lead:hover,
   .journal-next-item:hover {
     background: var(--surface-inset);
   }
 }
+
+/* Phones: a compact card that leaves room for the ledger. The flaps shrink and sit beside the trip; later flights stack below. */
+@media (max-width: 700px) {
+  .journal-next-card {
+    display: grid;
+    gap: 0;
+    padding: var(--space-1);
+  }
+  .journal-next-lead {
+    flex-wrap: nowrap;
+    gap: var(--space-3);
+    min-height: 0;
+    padding: var(--space-2) var(--space-3);
+  }
+  .journal-next-count {
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .journal-next-flap {
+    width: 30px;
+    height: 40px;
+  }
+  .journal-next-flap-digit {
+    font-size: 26px;
+    line-height: 40px;
+  }
+  .journal-next-unit {
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .journal-next-word {
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .journal-next-cities {
+    font-size: 17px;
+    line-height: 24px;
+  }
+  .journal-next-later {
+    display: flex;
+    align-items: flex-start;
+    justify-items: start;
+    gap: var(--space-2);
+    margin-inline-start: 0;
+    padding-inline: var(--space-3) 0;
+  }
+  .journal-next-then {
+    flex: none;
+    padding-block: var(--space-3);
+    padding-inline: 0;
+  }
+  .journal-next-later ul {
+    flex: 1;
+    justify-items: stretch;
+    min-width: 0;
+  }
+  .journal-next-item {
+    justify-content: flex-start;
+    width: 100%;
+    padding-inline: var(--space-1);
+  }
+  .journal-next-item-route {
+    font-size: 13px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .journal-next-lead,
   .journal-next-item {
     transition: none;
+  }
+  .journal-next-flap-digit[data-flip] {
+    animation: none;
   }
 }
