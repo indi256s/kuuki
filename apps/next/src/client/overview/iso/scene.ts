@@ -459,6 +459,21 @@ export class Scene {
     this.poly2(near, f.front ?? 'front', f.stroke ?? 'crease')
     this.poly2(outline, 'none', f.stroke ?? 'line')
   }
+  /** Upright cylinder centred at (cx, cy) from z0 to z1: the hull of its two rims, then the top disc. */
+  cylinder(
+    cx: number,
+    cy: number,
+    r: number,
+    z0: number,
+    z1: number,
+    f: { side?: Paint; top?: Paint; n?: number } = {},
+  ) {
+    const n = f.n ?? 32,
+      a = this.circle([cx, cy, z0], [1, 0, 0], [0, 1, 0], 0, 0, r, n),
+      b = this.circle([cx, cy, z1], [1, 0, 0], [0, 1, 0], 0, 0, r, n)
+    this.poly2(hull(this.pp([...a, ...b])), f.side ?? 'front', 'line')
+    this.poly(b, f.top ?? 'top', 'line')
+  }
   /** Circle on a plane, given its centre and radius in plane units. */
   circle(O: P3, U: P3, V: P3, cu: number, cv: number, rad: number, n = 28): P3[] {
     const at = this.on(O, U, V),
@@ -555,6 +570,19 @@ export function roundRect(
       out.push([cx + rad * Math.cos(a), cy + rad * Math.sin(a)])
     }
   return out
+}
+
+/** The run of a closed plan's outline the viewer sees (edges facing +x/+y on screen), as points from its first corner to its last. */
+export function visibleRun(plan: readonly Pt[]): Pt[] {
+  const n = plan.length,
+    seen = plan.map(([a0, b0], i) => {
+      const [a1, b1] = plan[(i + 1) % n]
+      return b1 - b0 + (a0 - a1) > 1e-6
+    })
+  const from = seen.findIndex((v, i) => v && !seen[(i + n - 1) % n])
+  const run: Pt[] = [plan[from]]
+  for (let j = from; seen[j % n]; j++) run.push(plan[(j + 1) % n])
+  return run
 }
 
 export function hull(points: readonly Pt[]): Pt[] {

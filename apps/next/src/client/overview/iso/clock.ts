@@ -1,4 +1,4 @@
-import { Scene, hull, roundRect, type P3 } from './scene'
+import { Scene, hull, roundRect, visibleRun, type P3 } from './scene'
 
 type Seg = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g'
 const SEG: Record<Seg, [readonly [number, number], readonly [number, number]]> = {
@@ -72,19 +72,6 @@ export function clock(time: string, k = 1, alt?: string) {
     YF = BY + BD
   // The bezel stands 1.4 proud of the front wall, so the opening (and the display's clip) lies on YB.
   const YB = YF + 1.4
-  const cyl = (
-    cx: number,
-    cy: number,
-    r: number,
-    z0: number,
-    z1: number,
-    side: 'front' | 'side' = 'front',
-  ) => {
-    const a = s.circle([cx, cy, z0], X, Y, 0, 0, r, 20),
-      b = s.circle([cx, cy, z1], X, Y, 0, 0, r, 20)
-    s.poly2(hull(s.pp([...a, ...b])), side, 'line')
-    s.poly(b, 'top', 'line')
-  }
   /** Cylinder lying along x from x0 to x1, centred at (y, z) of the wall it stands on; its ridges run along it. */
   const axle = (x0: number, x1: number, y: number, z: number, r: number, ridges = 0) => {
     const a = s.circle([x0, 0, 0], Y, Z, y, z, r, 24),
@@ -115,19 +102,12 @@ export function clock(time: string, k = 1, alt?: string) {
       [18, 48],
       [98, 48],
     ])
-      cyl(x, y, 4.4, 0, ZB, 'side')
+      s.cylinder(x, y, 4.4, 0, ZB, { side: 'side', n: 20 })
     s.rbox(BX, BY, ZB, BW, BD, ZT - ZB, 8)
     // The seam where the base shell meets the case: round the visible corners, edge to edge.
     const plan = roundRect(BX, BY, BW, BD, 8)
-    const faces = plan.map(([x0, y0], i) => {
-      const [x1, y1] = plan[(i + 1) % plan.length]
-      return y1 - y0 + (x0 - x1) > 1e-6
-    })
-    const first = faces.findIndex((f, i) => f && !faces[(i + plan.length - 1) % plan.length])
-    const run = [first]
-    while (faces[run[run.length - 1]]) run.push((run[run.length - 1] + 1) % plan.length)
     s.line(
-      run.map((i): P3 => [...plan[i], 12]),
+      visibleRun(plan).map(([x, y]): P3 => [x, y, 12]),
       'crease',
     )
     // Speaker grille on the right wall: a plate with closed slots.
@@ -144,7 +124,7 @@ export function clock(time: string, k = 1, alt?: string) {
     // The cord leaves through a grommet at the back of the right wall.
     s.poly(s.circle([BX + BW, 0, 0], Y, Z, 28, 12, 2.4, 10), 'shade', 'detail')
     // Buttons along the back of the top.
-    for (const x of [86, 96]) cyl(x, 24, 2.8, ZT, ZT + 2.2)
+    for (const x of [86, 96]) s.cylinder(x, 24, 2.8, ZT, ZT + 2.2, { n: 20 })
     // The slot: a recess with walls, exactly as wide as the bar's column, so the bar stands in it with a margin of 2.
     const slot = roundRect(42, 27, 32, 16, 1.5)
     s.poly(

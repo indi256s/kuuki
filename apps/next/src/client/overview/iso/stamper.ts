@@ -62,20 +62,6 @@ export function stamper(
     )
   const dot = (x: number, y: number, z: number, r = 0.55) =>
     s.poly(s.circle([x, y, z], X, Y, 0, 0, r, 8), 'detail', 'line')
-  /** Upright cylinder: the hull of its two rims, then the top disc. */
-  const cyl = (
-    cx: number,
-    cy: number,
-    r: number,
-    z0: number,
-    z1: number,
-    f: { side?: 'front' | 'side'; top?: 'top' | 'front' } = {},
-  ) => {
-    const a = s.circle([cx, cy, z0], X, Y, 0, 0, r, 32),
-      b = s.circle([cx, cy, z1], X, Y, 0, 0, r, 32)
-    s.poly2(hull(s.pp([...a, ...b])), f.side ?? 'front', 'line')
-    s.poly(b, f.top ?? 'top', 'line')
-  }
   /** The near half of a ring round an upright cylinder, `rise` climbing over it (a seam when 0, a coil turn otherwise). */
   const ring = (
     cx: number,
@@ -250,11 +236,11 @@ export function stamper(
       dot(7.5, 18, H + 42.6)
       dot(36.5, 18, H + 42.6)
       // The handle: a washer, the spring, a washer, then the cap with its seam.
-      cyl(22, 18, 4.3, H + 42.6, H + 43.4)
-      cyl(22, 18, 3.4, H + 43.4, H + 50, { side: 'side' })
+      s.cylinder(22, 18, 4.3, H + 42.6, H + 43.4)
+      s.cylinder(22, 18, 3.4, H + 43.4, H + 50, { side: 'side' })
       for (let j = 0; j < 4; j++) ring(22, 18, 3.4, H + 44.2 + j * 1.6, 1.2, 'line', 0.9)
-      cyl(22, 18, 4.3, H + 50, H + 50.8)
-      cyl(22, 18, 8, H + 50.8, H + 57)
+      s.cylinder(22, 18, 4.3, H + 50, H + 50.8)
+      s.cylinder(22, 18, 8, H + 50.8, H + 57)
       ring(22, 18, 8, H + 54)
       s.poly(s.circle([22, 18, H + 57], X, Y, 0, 0, 6.2, 32), 'none', 'crease')
       dot(22, 18, H + 57, 0.8)
@@ -265,7 +251,7 @@ export function stamper(
   // The ink pad in its tin, with the lid beside it: in front of the stamper, so they come last.
   s.poly(s.circle([16, 41, Z], X, Y, 0, 0, 8, 24), 'shadow', 'none')
   s.poly(s.circle([33, 41, Z], X, Y, 0, 0, 7, 24), 'shadow', 'none')
-  cyl(16, 41, 6, Z, Z + 4.2)
+  s.cylinder(16, 41, 6, Z, Z + 4.2)
   ring(16, 41, 6, Z + 3, 0, 'crease')
   s.poly(s.circle([16, 41, Z + 4.2], X, Y, 0, 0, 4.7, 28), 'shade', 'crease')
   s.line(
@@ -277,7 +263,7 @@ export function stamper(
     'crease',
     0.7,
   )
-  cyl(33, 41, 5, Z, Z + 1.8)
+  s.cylinder(33, 41, 5, Z, Z + 1.8)
   s.poly(s.circle([33, 41, Z + 1.8], X, Y, 0, 0, 3.6, 24), 'none', 'crease')
   dot(33, 41, Z + 1.8, 0.7)
   return s.done()
