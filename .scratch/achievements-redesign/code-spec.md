@@ -153,7 +153,7 @@ These go in `client/profile/profile.tsx` (`BadgeCabinet` is renamed `Achievement
 - Names come from `RUNG_NAME`.
 - Use the copy table instead of the inline ternaries the toast touches.
 
-## 5. Server: evaluator handlers (pending owner decision Q1)
+## 5. Server: evaluator handlers (Q1 answered 2026-10-13: add them)
 
 In `badgeStatements`, add three branches before `flight_minutes`:
 
@@ -195,7 +195,7 @@ The change is award-only and needs no schema change, no seed change and no migra
 | T0 | Contract, registry, stubs, harness, figure test | main thread (done) | `ladders/figures/{types,index,figures.test}.ts`, preview | – |
 | F1–F8 | One figure each (table §3) | Sonnet, parallel | `ladders/figures/<id>.ts` only | T0 |
 | T1 | Model + copy + model tests | Sonnet | `ladders/model.ts`, `ladders/copy.ts`, `ladders/model.test.ts` | T0 |
-| T2 | Evaluator handlers + test | Sonnet | `functions/api/_services/stats.ts`, `functions/test/derived.test.ts` | Q1 |
+| T2 | Evaluator handlers + test | Sonnet | `functions/api/_services/stats.ts`, `functions/test/derived.test.ts` | – |
 | T3 | LadderFigure + ladders.css + token + cabinet + sheet + toast integration | main thread | `ladders/ladder-figure.tsx`, `ladders/ladders.css`, `profile.tsx`, `profile.css`, `badge-notifications.tsx`, `achievements.ts`, `styles.css`, the page | T1, F* |
 | T4 | Docs (D10, GLOSSARY, DESIGN, README) | Sonnet | the docs above | T3 |
 | T5 | Verify: typecheck, lint, tests, browser (desktop dark and light, mobile 390, RU, reduced motion, console) | main thread | – | T3 |
@@ -214,7 +214,7 @@ The change is award-only and needs no schema change, no seed change and no migra
 - **Tokens.** Drawing tokens come from the app's `--iso-*` (DESIGN), not the brief's Paper hexes. They are close, and the app is the source of truth.
 - **Initials.** Initials come from the display name, then the handle.
 
-**Q1 (asked).** Should the evaluator start awarding countries, airports and time aloft (§5)?
+**Q1 (answered: add handlers).** Should the evaluator start awarding countries, airports and time aloft (§5)?
 
 - **Yes:** after the next deploy, each member's next derived-state repair awards the rungs they already qualify for, so returning members get one toast batch with several new rungs.
 - **No:** those three ladders stay empty in the cabinet. Their figures are still built.

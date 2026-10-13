@@ -185,6 +185,27 @@ Whether a profile is **public** (readable by anyone with its link) or
 **private** (others see only that it is hidden). Public Records are a separate
 consent on top of a public profile.
 
+### Achievement ladder
+
+One fact (flights, distance, time aloft, countries, airports, continents,
+airlines, aircraft types) drawn as one object whose rungs are its states. A
+member holds a ladder at its highest earned rung; the cabinet shows one tile
+per ladder.
+_Avoid_: Badge, medal, tier
+
+### Rung
+
+One step of an achievement ladder: a threshold, a localized rung name and a
+state of the ladder's object, shown as "Rung N of M". Earned, next or later;
+there are no metals.
+_Avoid_: Level, tier, badge
+
+### Founding crew
+
+The rare milestone for members who joined before launch. It is not a ladder, is
+never "next up", and keeps its English name in both locales.
+_Avoid_: Early adopter badge
+
 ## Overview vocabulary
 
 ### Maker slot
