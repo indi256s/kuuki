@@ -1,6 +1,6 @@
 // Preview harness for the ladder figures: `pnpm exec tsx .scratch/achievements-redesign/preview/build.ts [ladder-id] [--showcase N]`
 // Writes out/<id>.html: per theme (dark, then light), every rung's hero in a 320×200 box, every rung's own-fit 56px tile in a 72px mark,
-// and the rung strip at the showcase rung (earned / next ghost / later ghost 40%) with one shared k so growth reads.
+// and the rung strip at the showcase rung (earned / next ghost / later ghost 50%) with one shared k so growth reads.
 // The renderer mirrors apps/next/src/client/overview/iso/iso-figure.tsx and the thumb CSS mirrors ladders.css; keep them in step.
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -94,7 +94,7 @@ function ladderHtml(def: LadderFigureDef, showcase: number) {
   return `<h2>${def.id}</h2><div class="row">${heroes}</div><div class="row">${tiles}</div><div class="row strip">${strip}</div>`
 }
 
-const DARK = `--background:#292827;--surface:#353331;--surface-inset:#403d3a;--text:#f1efeb;--text-muted:#c4beb7;--iso-top:#4b4844;--iso-front:#393735;--iso-side:#292725;--iso-line:#a8a098;--iso-crease:#756f68;--iso-detail:#5f5954;--iso-glass:#262423;--iso-ghost:#45403c;--iso-glow:.75;--iso-shadow:rgb(0 0 0/35%);--accent:#ea846f;--accent-foreground:#292827;--iso-ghost-line:#897e70`
+const DARK = `--background:#292827;--surface:#353331;--surface-inset:#403d3a;--text:#f1efeb;--text-muted:#c4beb7;--iso-top:color-mix(in oklab,#4b4844 86%,#f1efeb);--iso-front:color-mix(in oklab,#393735 90%,#f1efeb);--iso-side:#292725;--iso-line:#a8a098;--iso-crease:#756f68;--iso-detail:#5f5954;--iso-glass:#262423;--iso-ghost:#45403c;--iso-glow:.75;--iso-shadow:rgb(0 0 0/35%);--accent:#ea846f;--accent-foreground:#292827;--iso-ghost-line:#897e70`
 const LIGHT = `--background:#fbfaf8;--surface:#fff;--surface-inset:#f2f0ed;--text:#302d2a;--text-muted:#66605b;--iso-top:#fff;--iso-front:#f1eeea;--iso-side:#dcd7d1;--iso-line:#5f5954;--iso-crease:#a9a199;--iso-detail:#cfc8c1;--iso-glass:#f8e1db;--iso-ghost:color-mix(in srgb,#c23417 18%,#fff);--iso-glow:.4;--iso-shadow:rgb(48 45 42/14%);--accent:#c23417;--accent-foreground:#fff;--iso-ghost-line:#a39a91`
 
 const CSS = `
@@ -113,7 +113,7 @@ figcaption{color:var(--text-muted);font-size:12px;text-align:center;white-space:
 /* Mirror of ladders.css: line-only thumbnails. */
 .ladder-thumb{--iso-top:var(--mark-bg);--iso-front:var(--mark-bg);--iso-side:var(--mark-bg);--iso-glass:var(--mark-bg);--iso-line:var(--text-muted);--iso-crease:var(--text-muted);--iso-detail:color-mix(in oklab,var(--text-muted) 50%,var(--mark-bg));--iso-shadow:transparent;--iso-glow:0}
 .ladder-thumb[data-state=next],.ladder-thumb[data-state=later]{--iso-line:var(--iso-ghost-line);--iso-crease:var(--iso-ghost-line);--iso-detail:color-mix(in oklab,var(--iso-ghost-line) 50%,var(--mark-bg));--accent:var(--iso-ghost-line);--accent-foreground:var(--mark-bg)}
-.ladder-thumb[data-state=later]{opacity:.4}
+.ladder-thumb[data-state=later]{opacity:.5}
 `
 
 const args = process.argv.slice(2)

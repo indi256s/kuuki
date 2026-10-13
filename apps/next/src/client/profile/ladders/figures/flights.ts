@@ -252,24 +252,32 @@ function shadowEll(s: Scene, cx: number, cy: number, rx: number, ry: number) {
 }
 
 /** Blades of a propeller in the plane facing +x. */
-function blades(s: Scene, cx: number, cy: number, cz: number, R: number, ang: number[]) {
+function blades(s: Scene, cx: number, cy: number, cz: number, R: number, ang: number[], bw = 1) {
   const at2 = s.on([cx, cy, cz], Y, NZ)
   const pts = (phi: number) => {
     const d = phi * D2R
     const p = (a: number, b: number) =>
       at2(a * Math.sin(d) + b * Math.cos(d), a * Math.cos(d) - b * Math.sin(d))
-    return [p(1.8, -1), p(R * 0.5, -2.2), p(R, -1), p(R, 1), p(R * 0.5, 2.2), p(1.8, 1)]
+    return [
+      p(1.8, -bw),
+      p(R * 0.5, -2.2 * bw),
+      p(R, -bw),
+      p(R, bw),
+      p(R * 0.5, 2.2 * bw),
+      p(1.8, bw),
+    ]
   }
   for (const phi of ang) s.poly(pts(phi), 'accent', 'accent')
 }
-function propLit(s: Scene, props: readonly P3[], R: number, hero: boolean) {
+/** `light` thins the disc (low wash, fine rim) and the blades, so a twin does not read as a quad. */
+function propLit(s: Scene, props: readonly P3[], R: number, hero: boolean, light = false) {
   s.group('lit', () => {
     for (const [cx, cy, cz] of props) {
       const rim = s.circle([cx, cy, cz], Y, NZ, 0, 0, R, 32)
-      s.poly(rim, 'accent', 'none', undefined, undefined, 0.14)
-      s.poly(rim, 'none', 'accent', 0.9, hero ? 1 : 1.6)
-      s.glow(4, () => blades(s, cx, cy, cz, R, [24, 204]))
-      blades(s, cx, cy, cz, R, [24, 204])
+      s.poly(rim, 'accent', 'none', undefined, undefined, light ? 0.05 : 0.14)
+      s.poly(rim, 'none', 'accent', light ? 0.6 : 0.9, light ? (hero ? 0.7 : 1.1) : hero ? 1 : 1.6)
+      if (!light) s.glow(4, () => blades(s, cx, cy, cz, R, [24, 204]))
+      blades(s, cx, cy, cz, R, [24, 204], light ? 0.6 : 1)
     }
   })
 }
@@ -362,7 +370,7 @@ function paper(s: Scene, hero: boolean) {
     lerp(a[1], b[1], t),
     lerp(a[2], b[2], t),
   ]
-  const folds = (T: P3) =>
+  const folds = (T: P3, paint: Paint = 'crease') =>
     hero
       ? s.segs(
           [
@@ -370,8 +378,8 @@ function paper(s: Scene, hero: boolean) {
             [mix(N, T, 0.8), mix(N, R, 0.9)],
             [mix(N, T, 0.2), mix(N, R, 0.25)],
           ],
-          'crease',
-          0.6,
+          paint,
+          paint === 'accent' ? 0.9 : 0.6,
         )
       : undefined
   s.poly([N, TF, R], 'top', 'line')
@@ -392,8 +400,10 @@ function paper(s: Scene, hero: boolean) {
       0.6,
     )
   s.group('lit', () => {
-    s.lit([N, TN, R])
-    folds(TN)
+    // Outline and a light wash, not a slab; the creases carry the accent.
+    s.glow(3, () => s.poly([N, TN, R], 'none', 'accent', 1, 1.6))
+    s.poly([N, TN, R], 'accent', 'accent', 1, hero ? 1.2 : 1.6, 0.22)
+    folds(TN, 'accent')
   })
 }
 
@@ -533,14 +543,14 @@ function turboprop(s: Scene, hero: boolean) {
     wheel(s, -2, y, 7, 4, 3, hero)
     s.rbox(-12, y - 3.2, 11.5, 16, 6.4, 8, 2.4)
     // nacelle and gearbox
-    cylX(s, -8, y, 22.5, 4.2, 32, { body: 'front', face: 'side' }, hero ? 24 : 14)
-    cylX(s, 24, y, 22.5, 3.2, 4.5, { body: 'top', face: 'front' }, 16)
+    cylX(s, -18, y, 22.5, 4.4, 42, { body: 'front', face: 'side' }, hero ? 24 : 14)
+    cylX(s, 24, y, 22.5, 3.4, 4.5, { body: 'top', face: 'front' }, 16)
     if (hero)
       s.line(
         [-30, -10, 10, 30, 50, 70, 90, 110, 135].map((a): P3 => [
           14,
-          y + 4.2 * Math.cos(a * D2R),
-          22.5 + 4.2 * Math.sin(a * D2R),
+          y + 4.4 * Math.cos(a * D2R),
+          22.5 + 4.4 * Math.sin(a * D2R),
         ]),
         'crease',
         0.6,
@@ -603,8 +613,9 @@ function turboprop(s: Scene, hero: boolean) {
       [28.9, -YN, 22.5],
       [28.9, YN, 22.5],
     ],
-    13,
+    11,
     hero,
+    true,
   )
   for (const sg of [-1, 1])
     cylX(s, 28.9, sg * YN, 22.5, 1.2, 1.6, { body: 'top', face: 'front' }, 10)
@@ -717,56 +728,55 @@ function narrowbody(s: Scene, hero: boolean) {
 
 // ---------------------------------------------------------------- rung 5: widebody
 const WIDE: Stn[] = [
-  [-70, 2, 2.6, 34],
-  [-62, 4.5, 6, 32.5],
-  [-46, 9, 10, 28.5],
-  [-30, 10.8, 11.3, 25.2],
-  [-12, 11, 11.5, 24],
-  [30, 11, 11.5, 24],
-  [46, 10.2, 10.8, 24.5],
-  [58, 8, 8.8, 25],
-  [66, 4.5, 5.2, 25],
-  [70, 2.6, 3, 24.8],
+  [-82, 2.4, 3, 37],
+  [-73, 5.4, 7, 35],
+  [-54, 11, 11.5, 31],
+  [-35, 13.2, 13, 28],
+  [-14, 13.4, 13.2, 27],
+  [36, 13.4, 13.2, 27],
+  [54, 12.4, 12.4, 27.4],
+  [68, 9.8, 10, 28],
+  [77, 5.5, 6, 28],
+  [82, 3.2, 3.4, 27.8],
 ]
-const WIDE_WING: Wing = { root: 0, tip: 60, le: [20, -20], te: [-22, -36], z: 15, t: 2.4 }
+const WIDE_WING: Wing = { root: 0, tip: 82, le: [24, -42], te: [-26, -54], z: 21, t: 2.6 }
 
 function widebody(s: Scene, hero: boolean, initials: string) {
   const st = WIDE,
     w = WIDE_WING
-  const rootY = sideY(st, 0, 16) - 0.3
-  apron(s, -78, 78, -44, 44, hero)
-  shadowEll(s, 0, 0, 66, 38)
-  const YE = 33,
-    ER = 7.2,
-    EZ = 10.8,
-    CL = 4
+  const rootY = sideY(st, 0, 22) - 0.3
+  apron(s, -92, 92, -60, 60, hero)
+  shadowEll(s, 0, 0, 78, 50)
+  const YE = 40,
+    ER = 10.6,
+    EZ = 14.6,
+    CL = 5.5
   const eRear = leX(w, YE) + 2,
-    eFront = eRear + 26
+    eFront = eRear + 38
   const engine = (sg: number) => engineBody(s, eRear, eFront - CL, sg * YE, EZ, ER, w.z + w.t, hero)
   const stab = (sg: number) =>
     plate(
       s,
       [
-        [-50, sg * 6, 32.2],
-        [-64, sg * 32, 32.2],
-        [-70, sg * 32, 32.2],
-        [-69.5, sg * 6, 32.2],
+        [-60, sg * 8, 35],
+        [-76, sg * 38, 35],
+        [-82, sg * 38, 35],
+        [-81.5, sg * 8, 35],
       ],
-      1.4,
+      1.6,
     )
   const mainGear = (sg: number) => {
-    const y = sg * 22
-    leg(s, [-1, y, 15], [-1, y, 7.8], 2.4)
+    const y = sg * 26
+    leg(s, [-1, y, 21], [-1, y, 8], 2.6)
     s.line(
       [
-        [-5.5, y, 7.8],
-        [3.5, y, 7.8],
+        [-6.5, y, 8],
+        [4.5, y, 8],
       ],
       'line',
       2,
     )
-    for (const x of [-5.5, 3.5])
-      for (const d of [-2.5, 2.5]) wheel(s, x, y + d, 7.6, 4.6, 2.4, hero)
+    for (const x of [-6.5, 4.5]) for (const d of [-2.8, 2.8]) wheel(s, x, y + d, 8, 5, 2.6, hero)
   }
   mainGear(-1)
   wing(s, w, -1)
@@ -774,37 +784,37 @@ function widebody(s: Scene, hero: boolean, initials: string) {
   engine(-1)
   loft(s, st, hero)
   if (hero) {
-    seams(s, st, [-56, -40, -24, -8, 8, 24, 40, 52])
-    belt(s, st, 0, -64, 64, 'crease')
-    for (let x = -42; x <= 40; x += 3.6) winRect(s, st, x, x + 1.8, 26.4, 28.9)
-    for (const x of [-52, -23, 12.5, 44]) door(s, st, x, x + 5.4, 15, 30)
-    for (const x of [58, 60.2, 62.4]) winRect(s, st, x, x + 1.7, 28.2, 30)
-  } else winRect(s, st, -42, 42, 26.4, 28.9)
-  s.poly(s.circle([70.02, 0, 24.8], Y, NZ, 0, 0, 2.8, 14), 'side', 'line')
-  leg(s, [56, 0, 16.6], [56, 0, 7.4], 2.2)
-  for (const d of [-2.4, 2.4]) wheel(s, 56, d, 7.2, 4.2, 2.2, hero)
+    seams(s, st, [-64, -46, -28, -10, 10, 28, 46, 60])
+    belt(s, st, 0, -74, 74, 'crease')
+    for (let x = -50; x <= 48; x += 3.9) winRect(s, st, x, x + 1.9, 31, 33.6)
+    for (const x of [-60, -26, 14, 52]) door(s, st, x, x + 5.8, 17, 36)
+    for (const x of [68, 70.4, 72.8]) winRect(s, st, x, x + 1.8, 32.2, 34)
+  } else winRect(s, st, -50, 50, 31, 33.6)
+  s.poly(s.circle([82.02, 0, 27.8], Y, NZ, 0, 0, 3.2, 14), 'side', 'line')
+  leg(s, [66, 0, 19], [66, 0, 8.2], 2.4)
+  for (const d of [-2.6, 2.6]) wheel(s, 66, d, 8, 5, 2.4, hero)
   mainGear(1)
   const FIN: Pt[] = [
-    [-34, 35.8],
-    [-55, 74],
-    [-66, 74],
-    [-68, 36],
+    [-40, 41],
+    [-64, 88],
+    [-77, 88],
+    [-80, 42],
   ]
-  vplate(s, -0.8, 1.6, FIN)
+  vplate(s, -0.9, 1.8, FIN)
   if (hero) {
     s.line(
       [
-        [-62, 0.85, 37],
-        [-63, 0.85, 73.6],
+        [-72, 0.95, 43],
+        [-73, 0.95, 87.6],
       ],
       'crease',
       0.6,
     )
-    dot(s, [-60, 0.9, 74.2], 1, 'detail')
+    dot(s, [-70, 1, 88.2], 1.1, 'detail')
   }
-  if (initials)
-    s.text(initials, [-55, 0.85, 52 - 4.2], [1, 0, 0], [0, 0, -1], {
-      size: 11.5,
+  if (initials && hero)
+    s.text(initials, [-60, 0.95, 66], [1, 0, 0], [0, 0, -1], {
+      size: 13,
       fill: 'ink',
       weight: 800,
       anchor: 'middle',
@@ -816,18 +826,18 @@ function widebody(s: Scene, hero: boolean, initials: string) {
     if (hero) {
       chordLine(s, w, sg, 0.74, rootY, w.tip)
       chordLine(s, w, sg, 0.1, rootY, w.tip)
-      spanLine(s, w, sg, 24, 0.1, 0.74)
-      spanLine(s, w, sg, 42, 0.1, 0.74)
+      spanLine(s, w, sg, 28, 0.1, 0.74)
       spanLine(s, w, sg, 50, 0.1, 0.74)
-      dot(s, [-35, sg * 59.2, w.z + w.t + 0.02], 1.1)
-      for (const y of [18, 30, 44]) {
+      spanLine(s, w, sg, 64, 0.1, 0.74)
+      dot(s, [-50, sg * 80.4, w.z + w.t + 0.02], 1.1)
+      for (const y of [22, 38, 58]) {
         const x = teX(w, y)
         s.rbox(x - 3, sg > 0 ? y - 1 : -y - 1, w.z - 1.2, 3.5, 2, 1.6, 0.8)
       }
     }
   }
   s.group('lit', () => {
-    for (const sg of [-1, 1]) cowl(s, eFront - CL, eFront, sg * YE, EZ, ER, hero, 12)
+    for (const sg of [-1, 1]) cowl(s, eFront - CL, eFront, sg * YE, EZ, ER, hero, 16)
   })
 }
 

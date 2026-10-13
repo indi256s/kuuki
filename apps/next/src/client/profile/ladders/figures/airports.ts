@@ -51,7 +51,7 @@ while (BLIPS.length < 30) {
   BLIPS.push({ x, y, dx: Math.cos(h), dy: Math.sin(h) })
 }
 /** Blips on the glass per rung, not counting the one in the holding pattern. */
-const COUNT = [1, 3, 5, 9, 26]
+const COUNT = [1, 4, 6, 10, 26]
 
 const SWEEP = (-52 * Math.PI) / 180
 
@@ -172,28 +172,26 @@ export const airports: LadderFigureDef = {
             'crease',
           )
       }
-    } else {
-      // A thumb frames the scope itself: a thin round lip under the bezel instead of the console.
-      const lip = (lift: number) => disc(lift, R_BEZEL + 2)
-      const lo = lip(-3),
-        hi = lip(0)
-      s.poly2(hull(s.pp([...lo, ...hi])), 'front', 'line')
-      s.poly(hi, 'top', 'line')
     }
 
     // The scope: bezel wall, bezel top, the dark inner wall, then the glass below it.
     const wall = (lo: P3[], up: P3[]) => s.poly2(hull(s.pp([...lo, ...up])), 'front', 'none')
     const lowRim = disc(0, R_BEZEL),
       upRim = disc(LIFT, R_BEZEL - 1.2)
-    wall(lowRim, upRim)
-    s.poly2(hull(s.pp([...lowRim, ...upRim])), 'none', 'line')
-    s.poly(upRim, 'top', 'line')
-    const inner = disc(LIFT, R_GLASS + 1.4, 48)
-    if (hero) s.poly(inner, 'none', 'crease', undefined, 0.7)
     const rimTop = disc(LIFT, R_GLASS, 48),
       rimLow = disc(1.4, R_GLASS, 48)
-    s.poly2(hull(s.pp([...rimTop, ...rimLow])), 'shade', 'none')
-    s.poly(rimTop, 'none', 'line')
+    if (hero) {
+      wall(lowRim, upRim)
+      s.poly2(hull(s.pp([...lowRim, ...upRim])), 'none', 'line')
+      s.poly(upRim, 'top', 'line')
+      s.poly(disc(LIFT, R_GLASS + 1.4, 48), 'none', 'crease', undefined, 0.7)
+      s.poly2(hull(s.pp([...rimTop, ...rimLow])), 'shade', 'none')
+      s.poly(rimTop, 'none', 'line')
+    } else {
+      // A thumb draws the bezel as two strokes only: its outline and the glass edge.
+      s.poly2(hull(s.pp([...lowRim, ...upRim])), 'front', 'line')
+      s.poly(upRim, 'top', 'none')
+    }
     s.poly(rimLow, 'glass', 'line')
 
     // On the glass.
@@ -231,7 +229,7 @@ export const airports: LadderFigureDef = {
         b = oval(-((i + 1) / N) * 0.96)
       const op = 0.9 * (1 - f) ** 1.15
       if (op < 0.02) return
-      s.poly([g(a[0], a[1]), g(b[0], b[1])], 'none', paint, op, (hero ? 1.3 : 3.2) * (1 - 0.55 * f))
+      s.poly([g(a[0], a[1]), g(b[0], b[1])], 'none', paint, op, (hero ? 1.3 : 1.7) * (1 - 0.55 * f))
     }
     if (holding) for (let i = headRuns; i < N; i++) run(i, 'line')
 
@@ -256,8 +254,8 @@ export const airports: LadderFigureDef = {
     const dot = (x: number, y: number, r: number, paint: 'ink' | 'accent' = 'ink') =>
       s.poly(s.circle([CU, CV, ZC + 1.6], X, DECK, x, y, r, 10), paint, 'none')
     const br = hero ? 1.5 : 3.8
-    const from = rung === 1 ? 0 : rung === 5 ? COUNT[4] : COUNT[rung - 2],
-      to = COUNT[rung - 1]
+    // Only the single newest blip is lit (rungs 1, 2, 4); rung 3 lights the holding pattern, rung 5 the note.
+    const litIdx = rung === 1 || rung === 2 || rung === 4 ? COUNT[rung - 1] - 1 : -1
     BLIPS.slice(0, COUNT[rung - 1]).forEach((b, i) => {
       if (hero && i % 2 === 0)
         for (let j = 0; j < 3; j++)
@@ -271,7 +269,7 @@ export const airports: LadderFigureDef = {
             0.55 - j * 0.2,
             0.8,
           )
-      if (i < from || i >= to) dot(b.x, b.y, br)
+      if (i !== litIdx) dot(b.x, b.y, br)
     })
     const [hx, hy] = oval(0)
     if (holding && rung !== 3) {
@@ -289,10 +287,10 @@ export const airports: LadderFigureDef = {
       s.group('lit', () => {
         if (rung === 3) for (let i = 0; i < headRuns; i++) run(i, 'accent')
         s.glow(hero ? 3 : 2, () => {
-          for (const b of BLIPS.slice(from, to)) dot(b.x, b.y, br + 0.5, 'accent')
+          if (litIdx >= 0) dot(BLIPS[litIdx].x, BLIPS[litIdx].y, br + 0.5, 'accent')
           if (rung === 3) dot(hx, hy, br + 1.1, 'accent')
         })
-        for (const b of BLIPS.slice(from, to)) dot(b.x, b.y, br + 0.5, 'accent')
+        if (litIdx >= 0) dot(BLIPS[litIdx].x, BLIPS[litIdx].y, br + 0.5, 'accent')
         if (rung === 3) {
           dot(hx, hy, br + 1.1, 'accent')
           if (hero)
@@ -387,16 +385,16 @@ export const airports: LadderFigureDef = {
         c = h - 4.2
       s.group('lit', () => {
         s.poly([sp(-h, -h), sp(h, -h), sp(h, h), sp(-h, h)], 'shadow', 'none')
-        s.glow(hero ? 3 : 2, () =>
-          s.poly([np(-h, -h), np(h, -h), np(h, c), np(c, h), np(-h, h)], 'accent', 'none'),
-        )
-        s.poly([np(-h, -h), np(h, -h), np(h, c), np(c, h), np(-h, h)], 'accent', 'accent')
-        s.poly([np(h, c), np(c, h), np(c, c)], 'accent-side', 'accent')
+        // An outline with a faint tint, not a slab: the bezel stays visible through it.
+        const note = [np(-h, -h), np(h, -h), np(h, c), np(c, h), np(-h, h)]
+        s.poly(note, 'accent', 'none', undefined, undefined, 0.22)
+        s.poly(note, 'none', 'accent', undefined, hero ? 1 : undefined)
+        s.poly([np(h, c), np(c, h), np(c, c)], 'none', 'accent', undefined, hero ? 0.8 : undefined)
         if (hero) {
-          s.line([np(-h, -5.2), np(h, -5.2)], 'accent-side', 0.6)
-          for (const v of [-2.4, 0.4, 3.2]) s.line([np(-5.8, v), np(5.8, v)], 'accent-side', 0.7)
+          s.line([np(-5.8, -2.6), np(5.8, -2.6)], 'accent', 0.7)
+          s.line([np(-5.8, 1), np(2.4, 1)], 'accent', 0.7)
         } else {
-          s.line([np(-h + 2.5, -2), np(h - 2.5, -2)], 'accent-side', 1.2)
+          s.line([np(-h + 2.5, -2), np(h - 2.5, -2)], 'accent', 1.2)
         }
       })
     }

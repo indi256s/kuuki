@@ -31,7 +31,7 @@ export const distance: LadderFigureDef = {
       P = L - fo - sl,
       prev = i ? LEN[i - 1] - FOIL[i - 1] - SLEEVE[i - 1] : 0
     const SD = 32,
-      ZS = 12,
+      ZS = rung === 5 ? 20 : 12,
       yc = SD / 2,
       HW = hero ? 12 : 13,
       H = hero ? 22 : 24,
@@ -39,7 +39,7 @@ export const distance: LadderFigureDef = {
     const blocks: [number, number][] =
       rung === 5
         ? [
-            [-8, 44],
+            [-8, 40],
             [132, 188],
           ]
         : [[-6, L + 6]]
@@ -134,7 +134,7 @@ export const distance: LadderFigureDef = {
       Hn = (H * 2) / 3,
       yn = HW / 3,
       litN = Math.max(1, Math.round((P - prev) / sw))
-    const peak = (j: number, on: boolean, ink: boolean) => {
+    const peak = (j: number, on: boolean) => {
       const a = j * sw,
         b = a + sw,
         first = j === 0,
@@ -147,26 +147,43 @@ export const distance: LadderFigureDef = {
         [first ? a : a + t, yc, z0 + H],
         ...(first ? [] : ([[a, yc + yn, z0 + Hn]] as P3[])),
       ]
-      if (!ink) return s.poly(slope, 'accent', 'none')
-      s.poly(slope, on ? 'accent' : 'top', 'crease')
-      if (!last)
-        s.poly(
+      const notch: P3[] = [
+        [b, yc - yn, z0 + Hn],
+        [b, yc + yn, z0 + Hn],
+        [b - t, yc, z0 + H],
+      ]
+      s.poly(slope, 'top', on ? 'accent' : 'crease')
+      if (on) s.poly(slope, 'accent', 'none', undefined, undefined, 0.26)
+      if (!last) {
+        s.poly(notch, 'side', on ? 'accent' : 'crease')
+        if (on) s.poly(notch, 'accent', 'none', undefined, undefined, 0.26)
+      }
+      if (on) {
+        // Ridge and the score line down to the base.
+        s.line(
           [
-            [b, yc - yn, z0 + Hn],
-            [b, yc + yn, z0 + Hn],
-            [b - t, yc, z0 + H],
+            [first ? a : a + t, yc, z0 + H],
+            [last ? b : b - t, yc, z0 + H],
           ],
-          on ? 'accent-side' : 'side',
-          'crease',
+          'accent',
+          1.4,
         )
+        if (!last)
+          s.line(
+            [
+              [b, yc + HW, z0],
+              [b, yc + yn, z0 + Hn],
+              [b - t, yc, z0 + H],
+            ],
+            'accent',
+            1.2,
+          )
+      }
     }
     s.group('lit', () => {
-      s.glow(4, () => {
-        for (let j = 0; j < litN; j++) peak(j, true, false)
-      })
-      for (let j = 0; j < litN; j++) peak(j, true, true)
+      for (let j = 0; j < litN; j++) peak(j, true)
     })
-    for (let j = litN; j < n; j++) peak(j, false, true)
+    for (let j = litN; j < n; j++) peak(j, false)
     // The foot of the bar, and the far end face of the first segment.
     s.line(
       [
@@ -302,45 +319,45 @@ export const distance: LadderFigureDef = {
       )
     }
 
-    // Top rung: the price tag is still on, swinging in the gap on a thread looped over the bar.
+    // Top rung: the price tag is still on, hanging in the gap on a thread looped over the bar.
     if (rung === 5) {
-      const j = Math.floor(66 / sw),
+      const j = Math.floor(80 / sw),
         tx = j * sw + sw / 2,
         ty = yc + HW + 1.2,
-        top = z0 - 2.2,
-        bot = z0 - 9.6,
-        sway = 0.9
+        top = z0 - 6,
+        hw = sw * 0.7,
+        bot = top - hw * 3,
+        sway = 1
       s.line(
         [
           [tx, yc, z0 + H],
           [tx, yc + HW, z0],
-          [tx + 0.3, ty, top],
+          [tx + 0.3, ty, z0 - 2],
+          [tx + 1.6, ty, top + 1.5],
         ],
         'line',
         0.8,
       )
       s.poly(
         [
-          [tx - 1.6, ty, top],
-          [tx + 1.6, ty, top],
-          [tx + 3.6, ty, top - 2],
-          [tx + 3.6 + sway, ty, bot],
-          [tx - 3.6 + sway, ty, bot],
-          [tx - 3.6, ty, top - 2],
+          [tx - hw * 0.45, ty, top],
+          [tx + hw * 0.45, ty, top],
+          [tx + hw, ty, top - hw * 0.5],
+          [tx + hw + sway, ty, bot],
+          [tx - hw + sway, ty, bot],
+          [tx - hw, ty, top - hw * 0.5],
         ],
         'top',
         'line',
       )
-      if (hero) {
-        s.poly(s.circle([tx, ty, top - 1.1], [1, 0, 0], Z, 0, 0, 0.7, 8), 'shade', 'line', 0.8)
-        const ruled: P3[][] = []
-        for (const d of [3.4, 5.2, 7])
-          ruled.push([
-            [tx - 2.4 + sway * (d / 9), ty, top - d],
-            [tx + 2.4 + sway * (d / 9), ty, top - d],
-          ])
-        s.segs(ruled, 'detail', 0.8)
-      }
+      s.poly(s.circle([tx, ty, top - hw * 0.5], [1, 0, 0], Z, 0, 0, 0.9, 8), 'shade', 'line', 0.8)
+      const ruled: P3[][] = []
+      for (const d of [0.4, 0.7].map((f) => f * hw * 3))
+        ruled.push([
+          [tx - hw * 0.62 + sway * (d / (hw * 3)), ty, top - d],
+          [tx + hw * 0.62 + sway * (d / (hw * 3)), ty, top - d],
+        ])
+      s.segs(ruled, 'detail', hero ? 0.9 : 1.1)
     }
     return s.done()
   },

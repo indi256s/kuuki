@@ -241,7 +241,7 @@ Kuuki's illustration language is the **iso figure**: a 30° isometric line drawi
 | Airlines       | Patchwork tail fin                                              | The newest livery band                                             | A ladder, a paint tin and a roller left at the fin, no painter.  |
 | Aircraft types | The stretch: one airframe, longer each rung, with a door rhythm | The newest plug's seam straps and door outlines                    | Far too many doors, the tail barely in frame.                    |
 
-Thumbs are 56px line-only drawings in a 72px `--surface-inset` mark: faces take the background, strokes `--text-muted`, the lit part accent, with no glow or shadow. The rung strip shares one k per ladder so the object visibly grows; the next and later rungs are restroked in `--iso-ghost-line` (accent included), later at 40% opacity. Figures never animate.
+Thumbs are 56px line-only drawings in a 72px `--surface-inset` mark: faces take the background, strokes `--text-muted`, the lit part accent, with no glow or shadow. The rung strip shares one k per ladder so the object visibly grows; the next and later rungs are restroked in `--iso-ghost-line` (accent included), later at 50% opacity. In dark, hero faces sit one step lighter than the shared iso faces so they separate from the sheet's `--surface`. A lit face larger than a small part is an accent outline with at most a 30% accent fill, never a solid slab. Figures never animate.
 
 **Built (hero figures, spec [`.scratch/hero-figures/spec.md`](.scratch/hero-figures/spec.md)).** The Overview figures card draws one figure per record, each with one live part and one pose that plays once. Row glyphs (`iso/hero-glyphs.ts`) are ~28px line-only marks at the end of each resting row.
 

@@ -4,11 +4,8 @@ import type { LadderFigureDef } from './types'
 
 /** The stretch: one airliner, side-on and long, whose barrel grows by plugs. Doors are the countable rhythm. */
 const RAD = Math.PI / 180
-/** Barrel radius, barrel axis height, nose and tail cone lengths. */
-const R = 13,
-  ZC = 27,
-  NOSE = 22,
-  TAIL = 34
+/** Tail cone length. The barrel radius, its axis height and the nose length are per lod (see build): the thumb body is fatter. */
+const TAIL = 34
 const DOOR_W = 9,
   DOOR_BOT = -8,
   DOOR_TOP = 7
@@ -46,18 +43,32 @@ const LAYOUTS: Layout[] = [
   },
 ]
 
-/** Radius and axis height of the body at x: a barrel, an ellipse nose and a tail cone that sweeps up. */
-function prof(x: number, B: number) {
-  if (x > B) {
-    const t = (x - B) / NOSE
-    return { r: Math.max(R * Math.sqrt(Math.max(1 - t * t, 0)), 0.8), z: ZC - 3 * t * t }
-  }
-  if (x < 0) {
-    const t = -x / TAIL
-    return { r: R - (R - 2.5) * Math.pow(t, 1.3), z: ZC + 9 * t * t }
-  }
-  return { r: R, z: ZC }
-}
+/** The thumb draws its own short layouts on a fatter body: doors are bold marks with clear gaps, and the top rung is a cropped section of the stretch (the far end runs out of frame). */
+const THUMB_LAYOUTS: Layout[] = [
+  {
+    lit: 1,
+    sections: [
+      { x0: 0, x1: 30, doors: [15] },
+      { x0: 30, x1: 60, doors: [45] },
+    ],
+  },
+  {
+    lit: 1,
+    sections: [
+      { x0: 0, x1: 30, doors: [15] },
+      { x0: 30, x1: 90, doors: [45, 75] },
+      { x0: 90, x1: 120, doors: [105] },
+    ],
+  },
+  {
+    lit: 1,
+    sections: [
+      { x0: 0, x1: 30, doors: [15] },
+      { x0: 30, x1: 162, doors: [41, 63, 85, 107, 129, 151] },
+      { x0: 162, x1: 192, doors: [177] },
+    ],
+  },
+]
 
 export const aircraftTypes: LadderFigureDef = {
   id: 'aircraft-types',
@@ -66,9 +77,25 @@ export const aircraftTypes: LadderFigureDef = {
     const hero = lod === 'hero'
     const main = new Scene(k)
     let s = main
-    const cut = rung === 3 && hero
-    const layout = LAYOUTS[rung - 1]
+    const cut = rung === 3
+    const layout = (hero ? LAYOUTS : THUMB_LAYOUTS)[rung - 1]
     const B = layout.sections[layout.sections.length - 1].x1
+    /** Barrel radius, barrel axis height and nose length. */
+    const R = hero ? 13 : 22,
+      ZC = R + 14,
+      NOSE = hero ? 22 : 26
+    /** Radius and axis height of the body at x: a barrel, an ellipse nose and a tail cone that sweeps up. */
+    const prof = (x: number, B: number) => {
+      if (x > B) {
+        const t = (x - B) / NOSE
+        return { r: Math.max(R * Math.sqrt(Math.max(1 - t * t, 0)), 0.8), z: ZC - 3 * t * t }
+      }
+      if (x < 0) {
+        const t = -x / TAIL
+        return { r: R - (R - 2.5) * Math.pow(t, 1.3), z: ZC + 9 * t * t }
+      }
+      return { r: R, z: ZC }
+    }
     const doors = layout.sections.flatMap((sec) => sec.doors)
 
     /** Point on the skin at x, `a` degrees round the barrel (0 up, 90 the near side). */
@@ -118,16 +145,16 @@ export const aircraftTypes: LadderFigureDef = {
     }
 
     const door = (xc: number, lit: boolean) => {
-      const w = hero ? DOOR_W : 12,
-        b = hero ? DOOR_BOT : -10,
-        t = hero ? DOOR_TOP : 10
+      const w = hero ? DOOR_W : 10,
+        b = hero ? DOOR_BOT : -12,
+        t = hero ? DOOR_TOP : 12
       const outline = roundRect(xc - w / 2, b, w, t - b, 2, 3).map(([x, h]) => at(x, h))
       s.poly(
         outline,
         'side',
         lit ? 'accent' : 'line',
         undefined,
-        (hero ? 1 : 1.8) + (lit ? 0.4 : 0),
+        (hero ? 1 : 1.4) + (lit ? 0.4 : 0),
       )
       if (!hero) return
       s.poly(
@@ -176,7 +203,7 @@ export const aircraftTypes: LadderFigureDef = {
             'crease',
           )
       }
-      if (!lit || !hero) for (const d of sec.doors) door(d, false)
+      if (!lit) for (const d of sec.doors) door(d, false)
     }
 
     const finish = () => {
@@ -192,13 +219,14 @@ export const aircraftTypes: LadderFigureDef = {
     const x0 = -TAIL - 3,
       x1 = B + NOSE + 3
     shadowDisc(s, (x0 + x1) / 2, 0, (x1 - x0) / 2 + 6, 24)
-    s.line(
-      [
-        [x0, 0, 0],
-        [x1, 0, 0],
-      ],
-      'crease',
-    )
+    if (hero)
+      s.line(
+        [
+          [x0, 0, 0],
+          [x1, 0, 0],
+        ],
+        'crease',
+      )
     if (hero)
       s.segs(
         Array.from({ length: Math.floor((x1 - x0) / 16) }, (_, i) => [
@@ -249,7 +277,7 @@ export const aircraftTypes: LadderFigureDef = {
       const p = prof(x, B)
       return p.z + p.r
     }
-    const FIN = ZC + R + 22
+    const FIN = ZC + R + (hero ? 22 : 16)
     /** The tail: APU stub, far stabiliser, cone, fin and near stabiliser. */
     const drawTail = () => {
       // APU exhaust: a stub past the tail tip, covered by the cone where it joins.
@@ -298,7 +326,7 @@ export const aircraftTypes: LadderFigureDef = {
     let tailNode: IsoNode | undefined
     if (cut) {
       const tail = new Scene(k)
-      const xc = -20.5 / Math.cos(Math.PI / 6)
+      const xc = -(R * Math.cos(Math.PI / 6) + (hero ? 9.25 : 2)) / Math.cos(Math.PI / 6)
       s = tail
       tail.group('tail', drawTail, {
         clip: [
@@ -317,7 +345,7 @@ export const aircraftTypes: LadderFigureDef = {
       if (i !== layout.lit) return section(sec, false)
       section(sec, true)
       // Lit: the plug's two joint straps (wide bands round the barrel) and its door outlines.
-      const w = hero ? 1.8 : 5
+      const w = hero ? 1.8 : 6
       const strap = (x: number): P3[] => [
         ...Array.from({ length: 11 }, (_, j) => edge(x - w, BANDS[0] + (j * 180) / 10)),
         ...Array.from({ length: 11 }, (_, j) => edge(x + w, BANDS[3] - (j * 180) / 10)),
@@ -327,7 +355,7 @@ export const aircraftTypes: LadderFigureDef = {
           s.glow(3, () => s.poly(strap(x), 'accent', 'none'))
           s.poly(strap(x), 'accent', 'accent')
         }
-        if (hero) for (const d of sec.doors) door(d, true)
+        for (const d of sec.doors) door(d, true)
       })
     })
     skin(cone(B, B + NOSE), ['top', 'front', 'side'])

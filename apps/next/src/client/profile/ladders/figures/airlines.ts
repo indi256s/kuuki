@@ -264,77 +264,74 @@ export const airlines: LadderFigureDef = {
 
     // Livery bands and patches draw clipped to the fin.
     const clipFin = (poly: readonly Fp[]) => clipPoly(poly, FIN)
-    const tape = (x0: number, x1: number, zf: (x: number, o: number) => number, o: number) =>
-      face(
-        [
-          [x0, zf(x0, o - 1.1)],
-          [x1, zf(x1, o - 1.1)],
-          [x1, zf(x1, o + 1.1)],
-          [x0, zf(x0, o + 1.1)],
-        ],
-        'land',
-        'line',
-        0.6,
-      )
+
+    /** The lit livery: accent outline over a 30% wash, so a big band stays quiet. */
+    const wash = (pts: readonly Fp[], w = 1.5) => {
+      s.glow(4, () => s.poly(pts.map(at), 'none', 'accent', undefined, w))
+      s.poly(pts.map(at), 'accent', 'none', undefined, undefined, 0.3)
+      s.poly(pts.map(at), 'none', 'accent', undefined, w)
+    }
 
     if (rung === 1) {
       // One livery band with its pinstripe, shapes only.
       face(clipFin(band(88 + 21, 0.24, 5)), 'ink', hero ? 'crease' : 'none')
       const b = clipFin(band(88, 0.24, 26))
       s.group('lit', () => {
-        s.lit(b.map(at), 4)
-        if (hero) hatch(b, 62, 5, 'on-accent', 0.5)
+        wash(b)
+        if (hero) hatch(b, 62, 5, 'accent', 0.5)
       })
     } else if (rung === 2) {
-      // The first livery, still visible.
-      face(clipFin(band(109, 0.24, 5)), 'ink', hero ? 'crease' : 'none')
-      face(clipFin(band(88, 0.24, 26)), 'muted', hero ? 'crease' : 'none')
-      // Primer slapped over its left half: ragged edge on the right, old paint peeking above.
+      // The first livery, still visible: a bold band with its pinstripe.
+      face(clipFin(band(88, 0.24, 24)), 'muted', hero ? 'crease' : 'line', 1)
+      face(clipFin(band(88 + 19, 0.24, 5)), 'ink', hero ? 'crease' : 'none')
+      // Primer slapped over the middle of it: zigzag edges, old paint peeking out above and below.
+      const zig = (x: number, z0: number, z1: number, n: number, amp: number): Fp[] =>
+        Array.from({ length: n + 1 }, (_, i): Fp => [
+          x + (i % 2 ? amp : 0),
+          z0 + ((z1 - z0) * i) / n,
+        ])
       const primer: Fp[] = [
-        [-10, 44],
-        [54, 44],
-        [56, 52],
-        [50, 58],
-        [55, 66],
-        [50, 72],
-        [52, 78],
-        [48, 86],
-        [-10, 81],
+        [14, 74],
+        [66, 74],
+        ...zig(66, 74, 104, 6, 6),
+        [66, 104],
+        [14, 104],
+        ...zig(14, 104, 74, 6, -6).slice(1, -1),
       ]
       const overpaint = clipFin(primer)
-      face(overpaint, hero ? 'top' : 'front', 'line', hero ? 0.9 : 1)
+      face(overpaint, hero ? 'top' : 'front', 'line', hero ? 0.9 : 1.1)
       if (hero) hatch(overpaint, 24, 4.2, 'crease', 0.5)
-      // The second livery: a band running the other way, stopped short with an unfinished edge.
-      const z = (x: number, off: number) => 106 - 0.18 * (x - 50) + off
-      const xe = 82
-      const second: Fp[] = [
-        [-20, z(-20, -9)],
-        [xe, z(xe, -9)],
-        [xe + 6, z(xe, -3)],
-        [xe - 2, z(xe, 1)],
-        [xe + 5, z(xe, 5)],
-        [xe - 1, z(xe, 9)],
-        [-20, z(-20, 9)],
-      ]
-      if (hero) tape(30, 76, z, -10.5)
+      // The second livery: a band at the opposite slant with a bold torn underside.
+      const ang = (-20 * Math.PI) / 180,
+        ux = Math.cos(ang),
+        uz = Math.sin(ang),
+        th = 20
+      const bp = (u: number, v: number): Fp => [54 + u * ux - v * uz, 96 + u * uz + v * ux]
+      const tips: Fp[] = []
+      const second: Fp[] = [bp(-100, th / 2), bp(100, th / 2), bp(100, -th / 2)]
+      // Teeth running back to the left: every other point is a long tip.
+      for (let u = 92, i = 0; u > -100; u -= 9, i++) {
+        const tip = bp(u, -th / 2 - (i % 2 ? 0 : 8))
+        second.push(tip)
+        if (!(i % 2)) tips.push(tip)
+      }
+      second.push(bp(-100, -th / 2))
+      const band2 = clipFin(second)
       s.group('lit', () => {
-        s.lit(clipFin(second).map(at), 4)
-        // Runs of wet paint under the unfinished edge.
-        for (const dx of hero ? [-11, -5, 1] : [-6]) {
-          const x = xe + dx,
-            y0 = z(x, -9)
+        wash(band2, 1.7)
+        // Runs of wet paint under the ragged edge.
+        for (const [x, z] of hero ? tips.slice(1, 4) : tips.slice(1, 2))
           face(
-            [
-              [x - 1.5, y0 + 0.5],
-              [x + 1.5, y0 + 0.5],
-              [x + 0.9, y0 - 6],
-              [x, y0 - 9],
-              [x - 0.9, y0 - 6],
-            ],
+            clipFin([
+              [x - 1.5, z + 0.5],
+              [x + 1.5, z + 0.5],
+              [x + 0.9, z - 6],
+              [x, z - 9],
+              [x - 0.9, z - 6],
+            ]),
             'accent',
             'accent',
           )
-        }
       })
     } else {
       // The quilt: rows of mismatched cells, brick-offset, each row cut at its own slant.
@@ -520,11 +517,11 @@ export const airlines: LadderFigureDef = {
     s.box(105, 0.8, ZT, 7, 3.4, 3, { top: 'top', front: 'detail', side: 'side' })
 
     if (rung === 3) {
-      // The ladder leans on the fin face above the fuselage; nobody is on it.
-      const LX = hero ? 46 : 40,
-        LW = hero ? 15 : 12,
-        foot: Fp = [58, 0],
-        top: Fp = [6.5, 92]
+      // The ladder leans on the fin's trailing edge, clear of the quilt; nobody is on it.
+      const LX = hero ? 98 : 96,
+        LW = hero ? 11 : 12,
+        foot: Fp = [26, 0],
+        top: Fp = [6.5, 96]
       const dir = [top[0] - foot[0], top[1] - foot[1]],
         len = Math.hypot(dir[0], dir[1]),
         perp = [-dir[1] / len, dir[0] / len]
@@ -537,53 +534,58 @@ export const airlines: LadderFigureDef = {
               pts.push([e[0] + sx, e[1] + perp[0] * sd, e[2] + perp[1] * sd])
         s.poly2(hull(s.pp(pts)), fill, 'line')
       }
-      const rz = 4.4
+      // The roller on the floor beside the ladder's foot, the tin to its right.
+      const RX = 14,
+        RY = 38,
+        rz = 4.4
       if (hero) {
         s.poly(
-          roundRect(8, 58, 40, 30, 8).map(([x, y]): P3 => [x, y, 0]),
+          roundRect(RX - 4, RY - 5, 32, 22, 6).map(([x, y]): P3 => [x, y, 0]),
           'shadow',
           'none',
         )
         // Roller: sleeve and wire cage lying on the floor, a streak of paint behind it.
         s.poly(
           [
-            [2, 66.5, 0.1],
-            [16, 66.5, 0.1],
-            [16, 69.5, 0.1],
-            [2, 69.5, 0.1],
+            [RX - 14, RY - 1.5, 0.1],
+            [RX, RY - 1.5, 0.1],
+            [RX, RY + 1.5, 0.1],
+            [RX - 14, RY + 1.5, 0.1],
           ],
           'muted',
           'crease',
           undefined,
           0.6,
         )
-        cylX(s, 16, 68, rz, rz, 22, { body: 'front', face: 'side' }, 20)
+      }
+      cylX(s, RX, RY, rz, rz, 22, { body: 'front', face: 'side' }, hero ? 20 : 12)
+      if (hero) {
         const rings: P3[][] = []
-        for (const x of [20, 25, 30, 35]) {
+        for (const x of [4, 9, 14, 19]) {
           const arc: P3[] = []
           for (let q = 0; q <= 8; q++) {
             const a = -Math.PI / 2 + (Math.PI * q) / 8
-            arc.push([x, 68 + rz * Math.cos(a), rz + rz * Math.sin(a)])
+            arc.push([RX + x, RY + rz * Math.cos(a), rz + rz * Math.sin(a)])
           }
           rings.push(arc)
         }
         s.segs(rings, 'crease', 0.6)
         s.line(
           [
-            [38, 68, rz],
-            [42, 68, rz],
-            [42, 76, 2],
-            [12, 76, 2],
-            [12, 68, rz],
-            [16, 68, rz],
+            [RX + 22, RY, rz],
+            [RX + 26, RY, rz],
+            [RX + 26, RY + 8, 2],
+            [RX - 4, RY + 8, 2],
+            [RX - 4, RY, rz],
+            [RX, RY, rz],
           ],
           'line',
           1,
         )
-        cylY(s, 27, 76, 2.4, 2.2, 14, { body: 'top', face: 'side' }, 14)
+        cylY(s, RX + 11, RY + 8, 2.4, 2.4, 2.2, { body: 'top', face: 'side' }, 14)
       }
 
-      // Ladder: back rail, rungs, near rail, rubber feet.
+      // Ladder: far rail, rungs, near rail, rubber feet.
       const rw = hero ? 2.4 : 3.2
       bar(lp(0, LX), lp(1, LX), rw, rw, 'top')
       const rungs = hero ? 8 : 4
@@ -596,14 +598,14 @@ export const airlines: LadderFigureDef = {
         s.rbox(x - 1.8, foot[0] - 2.8, 0, 3.6, 5.6, 1.6, 0.6, { top: 'side' })
 
       // Paint tin: lid off, paint wet at the rim, a drip down the front; the lid on the floor beside it.
-      const cx = hero ? 104 : 76,
-        cy = hero ? 62 : 62,
-        r = hero ? 9.4 : 12,
-        th = hero ? 13 : 17,
+      const cx = 80,
+        cy = 42,
+        r = hero ? 9.4 : 11,
+        th = hero ? 13 : 15,
         seg = hero ? 28 : 14
       if (hero)
         s.poly(
-          roundRect(86, 46, 52, 44, 10).map(([x, y]): P3 => [x, y, 0]),
+          roundRect(cx - 12, cy - 12, 26, 26, 8).map(([x, y]): P3 => [x, y, 0]),
           'shadow',
           'none',
         )
@@ -652,9 +654,9 @@ export const airlines: LadderFigureDef = {
         }
         s.line(bail, 'line', 0.9)
         // Lid on the floor, paint ring inside it, and a puddle where the tin was set down.
-        cylZ(s, 126, 78, 0, r + 0.9, 1.5, { body: 'top', top: 'top' }, seg)
+        cylZ(s, cx - 24, cy + 14, 0, r + 0.9, 1.5, { body: 'top', top: 'top' }, seg)
         s.poly(
-          s.circle([126, 78, 1.5], [1, 0, 0], [0, 1, 0], 0, 0, r - 1.4, seg),
+          s.circle([cx - 24, cy + 14, 1.5], [1, 0, 0], [0, 1, 0], 0, 0, r - 1.4, seg),
           'none',
           'crease',
           undefined,

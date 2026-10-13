@@ -1,5 +1,5 @@
-import { Scene, hull, roundRect, type P3, type Paint, type Pt } from '../../../overview/iso/scene'
-import { X, Y, cylY, cylZ, shadowRect } from '../../../overview/iso/solids'
+import { Scene, roundRect, type P3, type Paint, type Pt } from '../../../overview/iso/scene'
+import { X, Y, cylZ, shadowRect } from '../../../overview/iso/solids'
 import type { LadderFigureDef } from './types'
 
 type Kind = 'ring' | 'dbl' | 'oval' | 'rrect'
@@ -12,22 +12,23 @@ const SW = 92,
   SY0 = 40,
   SH = 0.9,
   FOLD = 9
-/** The tin: x PX..PX + PW, y 0..PD, with its lid hinged along the back edge (x = PX) and leaning back by LEAN. */
+/** The tin: x PX..PX + PW, y 0..PD, a shallow pan with its lid lying beside it, inside up, on y LY..LY + LD. */
 const PX = 100,
   PD = 58,
   PW = 48,
-  TIN = 7,
-  BEAD = 1.6,
-  LID_L = 44,
-  LID_T = 2.2,
-  LEAN = (12 * Math.PI) / 180
-/** The stamp stands on the felt at (STX, STY). */
+  TIN = 5,
+  BEAD = 1.4,
+  LY = PD + 8,
+  LD = 46,
+  LH = 3.2
+/** The stamp stands on the pad at (STX, STY). */
 const STX = PX + 28,
-  STY = 15,
-  FELT_Z = TIN - 1.8
+  STY = 17,
+  FELT_Z = TIN - 1.4
 
-/** Impressions per rung, in the order they were stamped: 15 on the sheet, then 2 on the lid. */
+/** Impressions per rung, in the order they were stamped: 15 on the sheet, then 2 on the lid. The thumb sheet holds 9, so its steps are 1, 3, 5, 7, then all 9 and the lid. */
 const COUNTS = [1, 3, 6, 10, 17]
+const THUMB_COUNTS = [1, 3, 5, 7, 11]
 const THUMB_SCALE = 1.2
 const CELLS: [number, number][] = [
   [1, 2],
@@ -70,15 +71,19 @@ const SHEET_MARKS: Mark[] = CELLS.map(([c, r], i) => ({
   deg: ((i * 47) % 29) - 14,
 }))
 const LID_MARKS: Mark[] = [
-  { u: 19, v: 17, kind: 'rrect', deg: 6 },
-  { u: 40, v: 31, kind: 'ring', deg: -9 },
+  { u: 16, v: 13, kind: 'rrect', deg: 6 },
+  { u: 34, v: 31, kind: 'ring', deg: -9 },
 ]
-/** The 56px slot: twelve bigger cells on a shorter sheet, so each impression stays a readable ring. */
+const THUMB_LID_MARKS: Mark[] = [
+  { u: 15, v: 15, kind: 'ring', deg: 6 },
+  { u: 33, v: 31, kind: 'ring', deg: -9 },
+]
+/** The 56px slot: nine bigger cells on a shorter sheet, so each impression stays a readable ring. */
 const THUMB_MARKS: Mark[] = CELLS.map(([c, r], i): [number, number, number] => [c, r, i])
-  .filter(([, r]) => r < 4)
+  .filter(([, r]) => r < 3)
   .map(([c, r, i]) => ({
     u: 17 + c * 29,
-    v: 11 + r * 21,
+    v: 15 + r * 28,
     kind: KINDS[i] === 'dbl' ? 'ring' : KINDS[i],
     deg: ((i * 47) % 29) - 14,
   }))
@@ -130,10 +135,10 @@ export const countries: LadderFigureDef = {
     const s = new Scene(k)
     const hero = lod === 'hero'
     const sheetMarks = hero ? SHEET_MARKS : THUMB_MARKS,
-      marks = [...sheetMarks, ...LID_MARKS],
+      marks = [...sheetMarks, ...(hero ? LID_MARKS : THUMB_LID_MARKS)],
       sd = hero ? SD : 86,
       sc = hero ? 1 : THUMB_SCALE
-    const count = rung === 5 ? marks.length : COUNTS[rung - 1],
+    const count = rung === 5 ? marks.length : (hero ? COUNTS : THUMB_COUNTS)[rung - 1],
       fresh = count - 1
 
     const dot = (x: number, y: number, z: number, r = 0.5) =>
@@ -186,6 +191,7 @@ export const countries: LadderFigureDef = {
     // Contact shadows: the sheet, the tin.
     shadowRect(s, 0, SY0, SW, sd, 3)
     shadowRect(s, PX - 3, 0, PW + 5, PD, 3)
+    shadowRect(s, PX - 3, LY, PW + 5, LD, 3)
 
     // The sheet: a visa page with a folded corner, a border rule and a stitched gutter.
     const sheetAt: At = (u, v) => [u, SY0 + v, SH]
@@ -221,6 +227,18 @@ export const countries: LadderFigureDef = {
       'top',
       'line',
     )
+    s.line(
+      [
+        [FOLD, SY0, SH],
+        [SW, SY0, SH],
+        [SW, Y1, SH],
+        [0, Y1, SH],
+        [0, SY0 + FOLD, SH],
+        [FOLD, SY0, SH],
+      ],
+      'line',
+      hero ? 1.2 : 1.4,
+    )
     const b = 4.5
     s.poly(rect(b, SY0 + b, SW - b, Y1 - b, SH), 'none', 'detail')
     if (hero) {
@@ -240,93 +258,34 @@ export const countries: LadderFigureDef = {
       'line',
     )
 
-    // The lid, opened past upright so its inside faces the viewer.
-    const cT = Math.cos(LEAN),
-      sT = Math.sin(LEAN)
-    const LB: P3 = [PX - 0.2 - LID_T * cT, 0, TIN - 0.8]
-    const lid = (u: number, v: number, t: number): P3 => [
-      LB[0] - v * sT + t * cT,
-      LB[1] + u,
-      LB[2] + v * cT + t * sT,
-    ]
-    const lidOutline = roundRect(0, 0, PD, LID_L, 4.2)
-    const back = lidOutline.map(([u, v]) => lid(u, v, 0)),
-      inner = lidOutline.map(([u, v]) => lid(u, v, LID_T))
-    s.poly2(hull([...s.pp(back), ...s.pp(inner)]), 'front', 'none')
-    s.poly(inner, 'top', 'crease')
-    s.poly2(hull([...s.pp(back), ...s.pp(inner)]), 'none', 'line')
-    const panel = roundRect(3.2, 3.2, PD - 6.4, LID_L - 6.4, 2.6)
+    // The tin: a shallow pan, rolled bead, opening, the inked pad sunk inside.
+    s.rbox(PX, 0, 0, PW, PD, TIN - BEAD, 4.5, { top: 'front' })
+    if (hero) {
+      s.line(nearRun(roundRect(PX, 0, PW, PD, 4.5), 1.9), 'crease', 0.8)
+      s.line(nearRun(roundRect(PX, 0, PW, PD, 4.5), 3.3), 'crease', 0.6)
+    }
+    s.rbox(PX - 0.6, -0.6, TIN - BEAD, PW + 1.2, PD + 1.2, BEAD, 5, { top: 'top' })
     s.poly(
-      panel.map(([u, v]) => lid(u, v, LID_T - 0.8)),
+      roundRect(PX + 3, 3, PW - 6, PD - 6, 4).map(([x, y]): P3 => [x, y, TIN]),
       'side',
       'crease',
     )
-    if (hero) {
-      // The lid's lip: a second rule inside the rolled edge, and the stamp's old ink ghosting the panel corner.
-      const lip = roundRect(1.6, 1.6, PD - 3.2, LID_L - 3.2, 3.4)
-      s.poly(
-        lip.map(([u, v]) => lid(u, v, LID_T)),
-        'none',
-        'detail',
-        0.8,
-      )
-    }
-    stamp((u, v) => lid(u, v, LID_T - 0.75), sheetMarks.length, fresh + 1)
-
-    // Hinge: knuckles along the back edge, alternating lid and tin, a pin showing in the gaps.
-    if (hero) {
-      const kz = TIN - 0.2,
-        kx = PX - 1.4
-      for (const [y0, y1] of [
-        [3, 13],
-        [15, 31],
-        [33, 45],
-        [47, 55],
-      ])
-        cylY(s, kx, y0, kz, 2.2, y1 - y0, { body: 'side', face: 'front' }, 16)
-      for (const y of [14, 32, 46])
-        s.line(
-          [
-            [kx, y - 1, kz + 0.1],
-            [kx, y + 1, kz + 0.1],
-          ],
-          'line',
-          1,
-        )
-    } else {
-      cylY(s, PX - 1.4, 3, TIN - 0.2, 2.2, 52, { body: 'side', face: 'front' }, 12)
-    }
-
-    // The tin: body, rolled bead, opening, the felt pad sunk inside.
-    const body = roundRect(PX, 0, PW, PD, 4.5)
-    s.rbox(PX, 0, 0, PW, PD, TIN - BEAD, 4.5, { top: 'front' })
-    if (hero) {
-      s.line(nearRun(roundRect(PX, 0, PW, PD, 4.5), 2.4), 'crease', 0.8)
-      s.line(nearRun(roundRect(PX, 0, PW, PD, 4.5), 4.1), 'crease', 0.6)
-    }
-    s.rbox(PX - 0.6, -0.6, TIN - BEAD, PW + 1.2, PD + 1.2, BEAD, 5, { top: 'top' })
-    void body
     s.poly(
-      roundRect(PX + 3, 3, PW - 6, PD - 6, 4).map(([x, y]): P3 => [x, y, TIN]),
+      roundRect(PX + 4.6, 4.6, PW - 9.2, PD - 9.2, 3).map(([x, y]): P3 => [x, y, FELT_Z]),
       'shade',
       'crease',
     )
-    s.poly(
-      roundRect(PX + 5, 5, PW - 10, PD - 10, 3).map(([x, y]): P3 => [x, y, FELT_Z]),
-      'side',
-      'crease',
-    )
     if (hero) {
-      // Felt: a few lines that fade out along their length.
+      // Pad: a few lines that fade out along their length.
       const fade = [0.9, 0.55, 0.22]
       for (const [x, y0] of [
-        [PX + 11, 9],
-        [PX + 17, 26],
-        [PX + 31, 12],
-        [PX + 36, 30],
-        [PX + 24, 40],
+        [PX + 9, 8],
+        [PX + 14, 31],
+        [PX + 38, 10],
+        [PX + 41, 33],
+        [PX + 22, 41],
       ]) {
-        const len = 13
+        const len = 10
         for (let j = 0; j < 3; j++)
           s.poly(
             [
@@ -341,44 +300,31 @@ export const countries: LadderFigureDef = {
           )
       }
     }
-    // The stamp's footprint on the felt: ink pooled round the die.
-    s.poly(
-      Array.from({ length: 24 }, (_, i): P3 => {
-        const a = (i / 24) * 2 * Math.PI
-        return [STX + 11.5 * Math.cos(a), STY + 11.5 * Math.sin(a), FELT_Z]
-      }),
-      'shade',
-      'none',
-    )
 
-    // The stamp, standing on its die: rubber die, mount block, turned handle.
+    // The stamp, standing on the pad: rubber die, rubber-mounted base, a short wooden knob.
     const z0 = FELT_Z
     cylZ(s, STX, STY, z0, R, 1.6, { top: 'side', body: 'side' }, 24)
     const zb = z0 + 1.6
-    s.rbox(STX - 10, STY - 10, zb, 20, 20, 4, 3, { top: 'top' })
-    s.rbox(STX - 8.4, STY - 8.4, zb + 4, 16.8, 16.8, 1, 2.4, { top: 'front' })
+    s.rbox(STX - 10.5, STY - 10.5, zb, 21, 21, 3.4, 3.4, { top: 'top' })
+    s.rbox(STX - 8.8, STY - 8.8, zb + 3.4, 17.6, 17.6, 1.2, 2.6, { top: 'front' })
     if (hero)
       for (const [dx, dy] of [
-        [-9.2, -9.2],
-        [9.2, -9.2],
-        [-9.2, 9.2],
-        [9.2, 9.2],
+        [-9.4, -9.4],
+        [9.4, -9.4],
+        [-9.4, 9.4],
+        [9.4, 9.4],
       ])
-        dot(STX + dx, STY + dy, zb + 4, 0.45)
-    const zh = zb + 5
-    cylZ(s, STX, STY, zh, 4.6, 1.4, { top: 'top', body: 'front' }, 20)
-    cylZ(s, STX, STY, zh + 1.4, 3.3, 10.6, { top: 'front', body: 'side' }, 20)
-    if (hero) {
-      cylZ(s, STX, STY, zh + 5, 4.1, 1.1, { top: 'top', body: 'front' }, 20)
-      ring(STX, STY, 3.3, zh + 8.5)
-    }
-    const zg = zh + 12
+        dot(STX + dx, STY + dy, zb + 3.4, 0.45)
+    const zh = zb + 4.6
+    cylZ(s, STX, STY, zh, 5.2, 1.4, { top: 'top', body: 'front' }, 20)
+    cylZ(s, STX, STY, zh + 1.4, 3.4, 2.2, { top: 'front', body: 'side' }, 20)
+    const zg = zh + 3.6
     const grip: [number, number][] = [
-      [4.4, 1.6],
-      [5.6, 2.4],
-      [6.2, 4.2],
-      [5.6, 2.4],
-      [4.6, 1.8],
+      [5, 1.4],
+      [6.4, 2.2],
+      [7, 3.2],
+      [6.4, 2.2],
+      [4.6, 1.4],
     ]
     let zz = zg
     for (const [r, h] of grip) {
@@ -386,11 +332,27 @@ export const countries: LadderFigureDef = {
       zz += h
     }
     if (hero) {
-      ring(STX, STY, 6.2, zg + 4.5)
-      ring(STX, STY, 6.2, zg + 6)
+      ring(STX, STY, 7, zg + 4.4)
+      ring(STX, STY, 7, zg + 5.4)
     }
-    cylZ(s, STX, STY, zz, 3.4, 1.2, { top: 'front', body: 'side' }, 20)
-    cylZ(s, STX, STY, zz + 1.2, 2.2, 1.2, { top: 'top', body: 'front' }, 16)
+
+    // The lid, upside down beside the tin: its inside faces up and takes the spilled impressions.
+    s.rbox(PX, LY, 0, PW, LD, LH, 4.5, { top: 'top' })
+    s.poly(
+      roundRect(PX + 3, LY + 3, PW - 6, LD - 6, 2.6).map(([x, y]): P3 => [x, y, LH]),
+      'side',
+      'crease',
+    )
+    if (hero) {
+      s.poly(
+        roundRect(PX + 1.6, LY + 1.6, PW - 3.2, LD - 3.2, 3.4).map(([x, y]): P3 => [x, y, LH]),
+        'none',
+        'detail',
+        0.8,
+      )
+      s.line(nearRun(roundRect(PX, LY, PW, LD, 4.5), 1.4), 'crease', 0.6)
+    }
+    stamp((u, v) => [PX + u, LY + v, LH], sheetMarks.length, fresh + 1)
     return s.done()
   },
 }

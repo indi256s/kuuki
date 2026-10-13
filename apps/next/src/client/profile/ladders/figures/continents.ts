@@ -5,8 +5,8 @@ import type { LadderFigureDef } from './types'
 // A cork board standing on a small easel: wooden frame with a ledge, six continent outlines on the cork, one push-pin per visited continent.
 // Rung r pushes r + 1 pins; the newest stands upright with an accent head, the earlier ones lean.
 // The board's face is the x-z plane at y = FY, turned toward the viewer; pins stick out toward +y.
-const W = 140,
-  H = 94,
+const W = 150,
+  H = 66,
   BAR = 8,
   Z0 = 10,
   TH = 8,
@@ -15,10 +15,13 @@ const W = 140,
   ZTOP = Z0 + H,
   ZB = Z0 + BAR,
   ZC = ZTOP - BAR
+/** The map is authored in 134 × 80 units; it is stretched to the cork's inner area. */
+const MX = (W - 2 * BAR) / 134,
+  MY = (H - 2 * BAR) / 80
 
 type Region = { name: string; shape: readonly Pt[]; pin: Pt; tilt: Pt }
 
-/** Simplified outlines in map units (the cork's inner area, x 0–132, y 0–78), in the order the pins go in. */
+/** Simplified outlines in map units (x 0–134, y 0–80), in the order the pins go in. */
 const REGIONS: readonly Region[] = [
   {
     name: 'europe',
@@ -135,8 +138,8 @@ export const continents: LadderFigureDef = {
     const X: P3 = [1, 0, 0],
       Zv: P3 = [0, 0, 1]
     /** A map point on the cork face, y up. */
-    const wx = (m: Pt) => BAR + m[0]
-    const wz = (m: Pt) => ZC - m[1]
+    const wx = (m: Pt) => BAR + m[0] * MX
+    const wz = (m: Pt) => ZC - m[1] * MY
     const onCork = (m: Pt, y = CY + 0.03): P3 => [wx(m), y, wz(m)]
     const fy = (x: number, z: number, y = FY): P3 => [x, y, z]
 
@@ -200,10 +203,10 @@ export const continents: LadderFigureDef = {
     // Cork: a solid recessed face, then the two inner walls that face the viewer.
     s.poly(
       [fy(BAR, ZB, CY), fy(W - BAR, ZB, CY), fy(W - BAR, ZC, CY), fy(BAR, ZC, CY)],
-      'front',
+      'side',
       'crease',
     )
-    s.poly([fy(BAR, ZB, FY), fy(BAR, ZC, FY), fy(BAR, ZC, CY), fy(BAR, ZB, CY)], 'side', 'line')
+    s.poly([fy(BAR, ZB, FY), fy(BAR, ZC, FY), fy(BAR, ZC, CY), fy(BAR, ZB, CY)], 'front', 'line')
     s.poly(
       [fy(BAR, ZB, FY), fy(W - BAR, ZB, FY), fy(W - BAR, ZB, CY), fy(BAR, ZB, CY)],
       'top',
@@ -227,11 +230,11 @@ export const continents: LadderFigureDef = {
         x1 = W - BAR - 1,
         z0 = ZB + 1,
         z1 = ZC - 1
-      for (let i = 0; i < 520; i++) {
+      for (let i = 0; i < 1500; i++) {
         const x = x0 + rnd() * (x1 - x0),
           z = z0 + rnd() * (z1 - z0)
         const edge = Math.min(x - x0, x1 - x, z - z0, z1 - z)
-        const keep = rnd() < smooth(0, 16, edge) * 0.55
+        const keep = rnd() < smooth(0, 24, edge) * 0.85
         const a = rnd() * Math.PI,
           len = 0.5 + rnd() * 1.3,
           big = rnd() < 0.3
@@ -247,39 +250,18 @@ export const continents: LadderFigureDef = {
             [x + Math.cos(a) * len, CY + 0.02, z + Math.sin(a) * len],
           ])
       }
-      s.segs(flecks, 'detail', 0.6)
-      s.segs(dots, 'detail', 1.3)
-      // The six continents, faint outlines.
+      s.segs(flecks, 'crease', 0.7)
+      s.segs(dots, 'crease', 1.5)
+      // The six continents: paper cut-outs lying on the cork.
       for (const r of REGIONS)
         s.poly(
           r.shape.map((m) => onCork(m)),
-          'none',
-          'detail',
-          0.5,
-          0.8,
+          'front',
+          'line',
+          0.55,
+          0.9,
+          0.7,
         )
-    }
-
-    // Rung 5: the sixth pin cracked the frame, starting with a hairline across the cork.
-    const O = REGIONS[5].pin
-    const cx = wx(O)
-    const crackPath: P3[] = [
-      [cx + 1, CY + 0.03, wz(O) - 2],
-      [cx + 3.5, CY + 0.03, wz(O) - 5.5],
-      [cx + 1.8, CY + 0.03, wz(O) - 8.5],
-      [cx + 4.4, CY + 0.03, wz(O) - 12],
-      [cx + 3, CY + 0.03, ZB],
-    ]
-    if (cracked) {
-      s.line(crackPath, 'line', 0.9)
-      s.line(
-        [
-          [cx + 2.8, CY + 0.03, wz(O) - 6],
-          [cx + 7.5, CY + 0.03, wz(O) - 8],
-        ],
-        'line',
-        0.6,
-      )
     }
 
     // Frame details on the bars: mitre joints, grain, nail heads.
@@ -340,42 +322,42 @@ export const continents: LadderFigureDef = {
       }
     }
 
-    // Rung 5 joke: the crack opens a gap across the bottom bar and runs down to the ledge, with a splinter.
+    // Rung 5 joke: the sixth pin split the bottom bar near the right corner, down to the ledge, and a chip fell off.
     if (cracked) {
-      const bx = cx + 3
-      const wall: P3[] = [
-        [bx, CY, ZB],
-        [bx - 1, FY, ZB],
-      ]
-      s.line(wall, 'line', 1)
+      const bx = W - 42
+      // The split: a jagged gap across the bar, with a short run up the cork's edge.
       const left: P3[] = [
-        [bx - 1, FY, ZB],
-        [bx - 2.2, FY, ZB - 2.5],
-        [bx - 0.6, FY, ZB - 5],
-        [bx - 2, FY, Z0],
+        [bx - 0.64, CY, ZB + 7],
+        [bx - 2.56, CY, ZB + 3.5],
+        [bx - 1.28, FY, ZB],
+        [bx - 3.52, FY, ZB - 2.6],
+        [bx - 0.96, FY, ZB - 5.2],
+        [bx - 2.88, FY, Z0],
       ]
       const right: P3[] = [
-        [bx - 1, FY, ZB],
-        [bx + 1.2, FY, ZB - 2.5],
-        [bx + 1.6, FY, ZB - 5],
-        [bx + 0.6, FY, Z0],
+        [bx + 0.96, CY, ZB + 7],
+        [bx + 0.64, CY, ZB + 3.5],
+        [bx + 2.24, FY, ZB],
+        [bx + 0.32, FY, ZB - 2.6],
+        [bx + 3.52, FY, ZB - 5.2],
+        [bx + 1.92, FY, Z0],
       ]
-      s.poly([...left, ...right.reverse()], 'glass', 'line', undefined, 0.9)
-      // Splinter: a chip lifted out of the frame, lying on the ledge.
+      s.poly([...left, ...right.reverse()], 'side', 'line', undefined, 0.9)
+      // The chip: a splinter lying on the ledge, with a crumb beside it.
       s.poly(
         [
           [bx + 3, FY + 5, Z0 + 0.1],
-          [bx + 9, FY + 7.5, Z0 + 0.1],
-          [bx + 5.5, FY + 6.2, Z0 + 1.6],
+          [bx + 10, FY + 7.5, Z0 + 0.1],
+          [bx + 6, FY + 6.2, Z0 + 1.8],
         ],
         'top',
         'line',
       )
       s.poly(
         [
-          [bx + 11, FY + 3, Z0 + 0.1],
-          [bx + 13, FY + 4, Z0 + 0.1],
-          [bx + 12, FY + 3.6, Z0 + 0.9],
+          [bx + 12, FY + 3, Z0 + 0.1],
+          [bx + 14, FY + 4, Z0 + 0.1],
+          [bx + 13, FY + 3.6, Z0 + 0.9],
         ],
         'top',
         'line',
@@ -389,19 +371,20 @@ export const continents: LadderFigureDef = {
         newest = i === pinCount - 1
       const px = wx(r.pin),
         pz = wz(r.pin)
-      const rad = newest ? (hero ? 4.5 : 10) : hero ? 3.1 : 7
-      const len = newest ? (hero ? 10 : 12) : hero ? 6.5 : 8
+      const rad = newest ? (hero ? 4.5 : 12.6) : hero ? 3.1 : 9
+      const len = newest ? (hero ? 10 : 12) : hero ? 6.5 : 9
       const hh = newest ? (hero ? 2.6 : 4.5) : hero ? 1.9 : 3.4
       const [tx, tz] = newest ? [0, 0] : [r.tilt[0] * sc, -r.tilt[1] * sc]
       const hx = px + tx,
         hz = pz + tz,
         hy = CY + len
       // Shadow on the cork, thrown right and down.
-      s.poly(
-        s.circle([px + 2.4 * sc, CY + 0.04, pz - 2.4 * sc], X, Zv, 0, 0, hero ? 2.4 : 3.4, 12),
-        'shadow',
-        'none',
-      )
+      if (hero)
+        s.poly(
+          s.circle([px + 2.4 * sc, CY + 0.04, pz - 2.4 * sc], X, Zv, 0, 0, 2.4, 12),
+          'shadow',
+          'none',
+        )
       s.line(
         [
           [px, CY, pz],
@@ -424,8 +407,9 @@ export const continents: LadderFigureDef = {
           if (hero) s.line(shine, 'on-accent', 0.7)
         })
       else {
-        s.poly2(outline, 'side', 'line')
-        s.poly(face, 'top', 'line')
+        // Thumb: a solid line-coloured head, so every earned pin counts.
+        s.poly2(outline, hero ? 'side' : 'line', 'line')
+        s.poly(face, hero ? 'top' : 'line', 'line')
         if (hero) s.line(shine, 'crease', 0.6)
       }
     }
