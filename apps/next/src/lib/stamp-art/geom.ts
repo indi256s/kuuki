@@ -73,7 +73,46 @@ export function clipStrokeOutside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   const lines = chain(segs)
   // A closed outline that survived whole stays closed.
   if (node.closed && lines.length === 1 && lines[0].length === pts.length) return [node]
-  return lines.map((l) => stroke(node.weight, l))
+  return lines.map((l) => ({ ...stroke(node.weight, l), ...(node.bg ? { bg: true } : {}) }))
+}
+
+/**
+ * Polygon grown by `d` units (miter joins, bevelled past a miter ratio of 2.5). Good for the
+ * convex-ish silhouettes of buildings; thin concave slots narrower than 2d may self-overlap, which
+ * only erases a little more backdrop hatching.
+ */
+export function bufferPoly(poly: Pt[], d: number): Pt[] {
+  let area = 0
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i],
+      b = poly[(i + 1) % poly.length]
+    area += a[0] * b[1] - b[0] * a[1]
+  }
+  const sign = area >= 0 ? 1 : -1 // y-down: positive area is clockwise on screen
+  const pts = poly.filter((p, i) => !same(p, poly[(i + 1) % poly.length]))
+  const normal = (a: Pt, b: Pt): Pt => {
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+    return [(sign * (b[1] - a[1])) / len, (sign * -(b[0] - a[0])) / len]
+  }
+  const out: Pt[] = []
+  for (let i = 0; i < pts.length; i++) {
+    const prev = pts[(i + pts.length - 1) % pts.length],
+      cur = pts[i],
+      next = pts[(i + 1) % pts.length]
+    const n0 = normal(prev, cur),
+      n1 = normal(cur, next)
+    const mx = n0[0] + n1[0],
+      my = n0[1] + n1[1]
+    const ml = Math.hypot(mx, my)
+    const cosHalf = ml / 2
+    if (cosHalf < 0.4) {
+      out.push([cur[0] + n0[0] * d, cur[1] + n0[1] * d], [cur[0] + n1[0] * d, cur[1] + n1[1] * d])
+    } else {
+      const k = d / cosHalf / ml
+      out.push([cur[0] + mx * k, cur[1] + my * k])
+    }
+  }
+  return out
 }
 
 /** Sutherland-Hodgman against the half-plane x <= cx. */
@@ -117,4 +156,25 @@ export function mirrorLeft(nodes: SvgNode[], cx: number): SvgNode[] {
     }
   }
   return out
+}
+
+/** Triangle pulled in by `d` on every side: scaled about its incentre (exact, unlike a miter). */
+export function insetTriangle(tri: [Pt, Pt, Pt], d: number): [Pt, Pt, Pt] {
+  const [a, b, c] = tri
+  const la = Math.hypot(b[0] - c[0], b[1] - c[1]),
+    lb = Math.hypot(a[0] - c[0], a[1] - c[1]),
+    lc = Math.hypot(a[0] - b[0], a[1] - b[1])
+  const perimeter = la + lb + lc
+  const area = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2
+  const inradius = (2 * area) / perimeter
+  const centre: Pt = [
+    (la * a[0] + lb * b[0] + lc * c[0]) / perimeter,
+    (la * a[1] + lb * b[1] + lc * c[1]) / perimeter,
+  ]
+  const k = Math.max(0, (inradius - d) / inradius)
+  const scale = (p: Pt): Pt => [
+    centre[0] + (p[0] - centre[0]) * k,
+    centre[1] + (p[1] - centre[1]) * k,
+  ]
+  return [scale(a), scale(b), scale(c)]
 }

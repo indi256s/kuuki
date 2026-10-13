@@ -215,6 +215,8 @@ export const platform: KitModule = ([x, y, w, h], p) => {
   const flare = bool(p, 'flare', false)
   const courses = Math.round(num(p, 'courses', 0))
   const joints = num(p, 'joints', 0)
+  // Each course is `courseRatio` as tall as the one below it: 1 is even, 0.78 grows shallower upward.
+  const ratio = num(p, 'courseRatio', 1)
   const wt = weight(p, 'weight', 'line')
   const edge = (sx: number, ex: number): Pt[] =>
     flare
@@ -235,8 +237,14 @@ export const platform: KitModule = ([x, y, w, h], p) => {
         [x + w - batter, y],
       ]),
     )
+  const unitH = h / Array.from({ length: courses }, (_, i) => ratio ** i).reduce((a, b) => a + b, 0)
   for (let i = 1; i < courses; i++) {
-    const yy = y + (h * i) / courses
+    // Courses are counted from the bottom, so the top ones are the shallowest.
+    const fromBottom = Array.from({ length: i }, (_, k) => unitH * ratio ** k).reduce(
+      (a, b) => a + b,
+      0,
+    )
+    const yy = y + h - fromBottom
     const xl = xAtY(L, yy),
       xr = xAtY(R.slice().reverse(), yy)
     out.push(hline('hair', xl + 0.8, xr - 0.8, yy))

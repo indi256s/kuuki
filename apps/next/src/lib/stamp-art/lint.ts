@@ -1,65 +1,54 @@
 // Pure geometric lint: no rasterising, safe for browser bundles.
-import { frames, shapeFor } from './frame'
-import { type SvgNode, nodeBounds } from './grid'
+import { frames, shapeFor, subjectPoly } from './frame'
+import { pointInPoly } from './geom'
+import { type Pt, type SvgNode } from './grid'
 import { isKitTag } from './kit'
 import { type Recipe, parseRecipe } from './recipe'
-import { composeNodes } from './render'
+import { composeScene } from './render'
 import { isSignatureName } from './signatures'
 
 export type LintIssue = { iso2: string; rule: 'schema' | 'tag' | 'frame'; message: string }
 
-const TOLERANCE = 0.05
+const pointsOf = (node: SvgNode): Pt[] => (node.kind === 'occlude' ? [] : node.pts)
 
-function boundsInside(b: [number, number, number, number], s: [number, number, number, number]) {
-  return (
-    b[0] >= s[0] - TOLERANCE &&
-    b[1] >= s[1] - TOLERANCE &&
-    b[2] <= s[0] + s[2] + TOLERANCE &&
-    b[3] <= s[1] + s[3] + TOLERANCE
-  )
-}
-
-/** Every layer box and every emitted node must sit inside the frame's safe box; every tag must exist. */
-export function lintGeometry(recipe: Recipe, nodes: SvgNode[] = composeNodes(recipe)): LintIssue[] {
+/**
+ * Every tag must exist, and every point the SUBJECT draws (layers and signature parts, before
+ * occlusion) must sit inside the frame window inset 6. Backdrop layers may fill the whole window.
+ */
+export function lintGeometry(recipe: Recipe, subject?: SvgNode[]): LintIssue[] {
   const issues: LintIssue[] = []
   const iso2 = recipe.iso2
-  const safe = frames[shapeFor(iso2, recipe.shape)].safe
   recipe.layers.forEach((l, i) => {
     if (!isKitTag(l.module))
       issues.push({ iso2, rule: 'tag', message: `layer ${i}: unknown module "${l.module}"` })
-    if (!boundsInside([l.box[0], l.box[1], l.box[0] + l.box[2], l.box[1] + l.box[3]], safe)) {
-      issues.push({
-        iso2,
-        rule: 'frame',
-        message: `layer ${i} (${l.module}) box ${JSON.stringify(l.box)} leaves the safe box ${JSON.stringify(safe)}`,
-      })
-    }
+  })
+  recipe.backdrop?.forEach((l, i) => {
+    if (!isKitTag(l.module))
+      issues.push({ iso2, rule: 'tag', message: `backdrop ${i}: unknown module "${l.module}"` })
   })
   recipe.signature?.forEach((s, i) => {
     if (!isSignatureName(s.part))
       issues.push({ iso2, rule: 'tag', message: `signature ${i}: unknown part "${s.part}"` })
-    if (!boundsInside([s.box[0], s.box[1], s.box[0] + s.box[2], s.box[1] + s.box[3]], safe)) {
-      issues.push({
-        iso2,
-        rule: 'frame',
-        message: `signature ${i} (${s.part}) box ${JSON.stringify(s.box)} leaves the safe box`,
-      })
-    }
   })
+  if (issues.length) return issues
+  const shape = shapeFor(iso2, recipe.shape)
+  const poly = subjectPoly(shape)
   let outside = 0
   let first = ''
-  for (const node of nodes) {
-    const b = nodeBounds(node)
-    if (b && !boundsInside(b, safe)) {
-      outside++
-      first ||= `[${b.map((v) => Math.round(v * 10) / 10).join(', ')}]`
+  for (const node of subject ?? composeScene(recipe).subject) {
+    for (const pt of pointsOf(node)) {
+      if (!pointInPoly(pt, poly)) {
+        outside++
+        first ||= `[${pt.map((v) => Math.round(v * 10) / 10).join(', ')}]`
+        break
+      }
     }
   }
   if (outside) {
     issues.push({
       iso2,
       rule: 'frame',
-      message: `${outside} drawn node(s) leave the safe box ${JSON.stringify(safe)}, first at ${first}`,
+      message: `${outside} subject node(s) leave the window inset 6 (${frames[shape].name}), first at ${first}`,
     })
   }
   return issues

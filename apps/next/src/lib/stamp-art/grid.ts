@@ -5,18 +5,27 @@
 export const GRID = 200
 
 /** Stroke widths in grid units, tuned to survive a 96px display (2.6 units is about 1.2px). */
-export const WEIGHTS = { hair: 1.6, line: 2.6, bold: 4 } as const
+export const WEIGHTS = { fine: 1, hair: 1.6, line: 2.6, bold: 4 } as const
 export type Weight = keyof typeof WEIGHTS
 
 export type Pt = [number, number]
 /** [x, y, width, height] in grid units. */
 export type Box = [number, number, number, number]
 
-export type StrokeNode = { kind: 'stroke'; weight: Weight; pts: Pt[]; closed: boolean }
+export type StrokeNode = {
+  kind: 'stroke'
+  weight: Weight
+  pts: Pt[]
+  closed: boolean
+  /** Backdrop line: stops `halo` units short of a subject silhouette (see `occlude`). */
+  bg?: boolean
+  /** Drawn after every layer and never occluded (the ground line). */
+  late?: boolean
+}
 /** Solid fill (dark openings). The only fill that is not made of lines. */
 export type FillNode = { kind: 'fill'; pts: Pt[] }
 /** Invisible silhouette: erases strokes emitted earlier (painter's algorithm in one ink). */
-export type OccludeNode = { kind: 'occlude'; pts: Pt[] }
+export type OccludeNode = { kind: 'occlude'; pts: Pt[]; halo?: number }
 export type SvgNode = StrokeNode | FillNode | OccludeNode
 
 export const stroke = (weight: Weight, pts: Pt[], closed = false): StrokeNode => ({
@@ -26,7 +35,12 @@ export const stroke = (weight: Weight, pts: Pt[], closed = false): StrokeNode =>
   closed,
 })
 export const fill = (pts: Pt[]): FillNode => ({ kind: 'fill', pts })
-export const occlude = (pts: Pt[]): OccludeNode => ({ kind: 'occlude', pts })
+/**
+ * `halo` buffers the silhouette by that many units, but only for backdrop strokes (`bg`): the
+ * hatching stops short of the subject and leaves a lit rim. Other strokes use the exact outline.
+ */
+export const occlude = (pts: Pt[], opts: { halo?: number } = {}): OccludeNode =>
+  opts.halo ? { kind: 'occlude', pts, halo: opts.halo } : { kind: 'occlude', pts }
 /** A solid body: hides what is behind it and draws its outline. */
 export const body = (pts: Pt[], weight: Weight = 'line'): SvgNode[] => [
   occlude(pts),
@@ -151,3 +165,105 @@ export function hatch(
   }
   return out
 }
+
+type GapRamp = number | [number, number]
+
+/**
+ * Hatching as real lines inside a polygon at any angle. `angle` is the direction of the lines in
+ * degrees (0 horizontal, 90 vertical, -58 rises to the right). `gap` is the perpendicular spacing,
+ * or a [start, end] pair interpolated across `ramp` (the perpendicular coordinate range, which for
+ * horizontal lines is y). Pure geometry: nothing is clipped here beyond the polygon itself.
+ */
+export function hatchPoly(
+  poly: Pt[],
+  opts: {
+    angle: number
+    gap: GapRamp
+    weight: Weight
+    ramp?: [number, number]
+    inset?: number
+    phase?: number
+  },
+): StrokeNode[] {
+  const th = (opts.angle * Math.PI) / 180
+  const c = Math.cos(th),
+    s = Math.sin(th)
+  const rot = (p: Pt): Pt => [p[0] * c + p[1] * s, -p[0] * s + p[1] * c]
+  const unrot = (p: Pt): Pt => [p[0] * c - p[1] * s, p[0] * s + p[1] * c]
+  const r = poly.map(rot)
+  const [, y0, , y1] = ptsBounds(r)
+  const [g0, g1] = typeof opts.gap === 'number' ? [opts.gap, opts.gap] : opts.gap
+  const [r0, r1] = opts.ramp ?? [y0, y1]
+  const gapAt = (y: number) => g0 + (g1 - g0) * Math.min(1, Math.max(0, (y - r0) / (r1 - r0 || 1)))
+  const inset = opts.inset ?? 0
+  const out: StrokeNode[] = []
+  for (let y = y0 + gapAt(y0) * (opts.phase ?? 0.5); y < y1; y += gapAt(y)) {
+    const xs: number[] = []
+    for (let i = 0; i < r.length; i++) {
+      const a = r[i],
+        b = r[(i + 1) % r.length]
+      if (a[1] === b[1]) continue
+      if ((a[1] <= y && b[1] > y) || (b[1] <= y && a[1] > y)) {
+        xs.push(a[0] + ((y - a[1]) / (b[1] - a[1])) * (b[0] - a[0]))
+      }
+    }
+    xs.sort((m, n) => m - n)
+    for (let i = 0; i + 1 < xs.length; i += 2) {
+      const xa = xs[i] + inset,
+        xb = xs[i + 1] - inset
+      if (xb - xa < 0.8) continue
+      out.push(stroke(opts.weight, [unrot([xa, y]), unrot([xb, y])]))
+    }
+  }
+  return out
+}
+
+/**
+ * The tone ladder. T0 is bare paper (lit walls). T1 to T4 are hatch presets, T5 is solid. Weights
+ * and gaps are grid units; the grey figure is the rough look at 96px. A `gap` pair opens or closes
+ * across the `ramp` the caller gives (sky: top to horizon, ground: horizon to bottom).
+ */
+export const TONES = {
+  /** Lit walls. */
+  T0: { kind: 'paper' },
+  /** Sky: horizontal fine lines, gap 3.0 at the top opening to 4.8 at the horizon (20-33%). */
+  T1: { kind: 'hatch', angle: 0, weight: 'fine', gap: [3, 4.8] },
+  /** Distance: diagonal fine lines, gap 2.4 (~40%). Lit faces may open to 3.4. */
+  T2: { kind: 'hatch', angle: -58, weight: 'fine', gap: [2.4, 2.4] },
+  /** Ground and water: horizontal hair lines, gap 3.6 at the horizon closing to 2.2 (45-70%). */
+  T3: { kind: 'hatch', angle: 0, weight: 'hair', gap: [3.6, 2.2] },
+  /** Shaded faces, passages, crawlspace: vertical hair lines, gap 2.4 (~65%). */
+  T4: { kind: 'hatch', angle: 90, weight: 'hair', gap: [2.4, 2.4] },
+  /** Openings, slate roofs, the quadriga: solid. */
+  T5: { kind: 'solid' },
+} as const
+export type ToneName = keyof typeof TONES
+
+export type ToneOpts = {
+  /** Overrides the preset's angle, gap pair, weight. */
+  angle?: number
+  gap?: GapRamp
+  weight?: Weight
+  ramp?: [number, number]
+  inset?: number
+  phase?: number
+}
+
+/** Fills a closed polygon with a tone from the ladder. */
+export function toneFill(poly: Pt[], tone: ToneName, o: ToneOpts = {}): SvgNode[] {
+  const t = TONES[tone]
+  if (t.kind === 'paper') return []
+  if (t.kind === 'solid') return [fill(poly)]
+  return hatchPoly(poly, {
+    angle: o.angle ?? t.angle,
+    gap: o.gap ?? [...t.gap],
+    weight: o.weight ?? t.weight,
+    ramp: o.ramp,
+    inset: o.inset,
+    phase: o.phase,
+  })
+}
+
+/** Marks every stroke of a list as backdrop. */
+export const asBackdrop = (nodes: SvgNode[]): SvgNode[] =>
+  nodes.map((n) => (n.kind === 'stroke' ? { ...n, bg: true } : n))

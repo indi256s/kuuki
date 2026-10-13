@@ -2,58 +2,65 @@
   "iso2": "GE",
   "tier": "engraved",
   "shape": "oval",
+  "backdrop": [
+    {
+      "module": "sky"
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.6],
+          [0.3, 0.44],
+          [0.52, 0.52],
+          [0.84, 0.22],
+          [1, 0.45]
+        ],
+        "snow": 0.4,
+        "litGap": 3.4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
   "layers": [
     {
-      "module": "mountains",
-      "box": [60, 56, 80, 70],
+      "module": "tower",
+      "box": [64, 57, 16, 72],
       "params": {
-        "weight": "hair",
-        "peaks": [
-          [0.1, 0.8],
-          [0.5, 1],
-          [0.92, 0.75]
-        ],
-        "shade": "right",
-        "shadeDepth": 30
+        "storeys": 3
       }
     },
     {
       "module": "tower",
-      "box": [62, 70, 18, 56],
+      "box": [119.2, 67.8, 13.6, 61.2],
       "params": {
-        "cap": "hip",
-        "openings": "loggia",
-        "loggia": 2,
-        "capH": 0.28
+        "storeys": 3
       }
     },
     {
       "module": "tower",
-      "box": [86, 54, 22, 72],
+      "box": [88, 39, 20, 90],
       "params": {
-        "cap": "hip",
-        "openings": "loggia",
-        "loggia": 3,
-        "capH": 0.27
+        "storeys": 4
       }
     },
     {
-      "module": "tower",
-      "box": [114, 74, 18, 52],
-      "params": {
-        "cap": "hip",
-        "openings": "loggia",
-        "loggia": 2,
-        "capH": 0.28
-      }
+      "module": "house",
+      "box": [55, 119, 14, 10]
     },
     {
-      "module": "platform",
-      "box": [60, 116, 80, 10],
-      "params": {
-        "courses": 2,
-        "joints": 8
-      }
+      "module": "house",
+      "box": [78, 120, 12, 9]
+    },
+    {
+      "module": "house",
+      "box": [106, 120, 12, 9]
+    },
+    {
+      "module": "house",
+      "box": [132, 119, 13, 10]
     }
   ]
 }

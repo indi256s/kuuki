@@ -1,6 +1,6 @@
 /**
  * Renders every engraved recipe in apps/next/src/lib/stamp-art/recipes to
- * apps/next/public/stamps/{iso2}.svg, writes the shared impression texture, and removes stale files.
+ * apps/next/public/stamps/{iso2}.svg, writes the five per-shape impression textures, and removes stale files.
  * Run: pnpm generate:stamps
  */
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'

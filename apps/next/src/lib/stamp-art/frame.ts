@@ -1,7 +1,12 @@
 // The five stamp frames, all in a 200x200 viewBox so the engraving grid and the frame share one
-// coordinate system. Single source for the renderer clip, the linter and the W2 component.
+// coordinate system. Single source for the renderer clip, the linter, the impression nicks and the
+// W2 component.
+//
+// Anatomy, outside in: outer rule (3.4), inner rule (1.2) at inset 4.5, a text band, then the
+// window edge (1.6) with the engraving inside. Round shapes carry text on the whole band; the
+// rectangle family only on the straight top and bottom, with narrow side bands.
 import countries from '@kuuki/data/countries.json'
-import { type Box } from './grid'
+import { type Box, type Pt } from './grid'
 import { hash32 } from './hash'
 
 export const SHAPE_NAMES = ['circle', 'oval', 'rectangle', 'cut-rect', 'octagon'] as const
@@ -13,69 +18,225 @@ export const FAMILY_SHAPES: Record<ShapeFamily, readonly ShapeName[]> = {
   rectangle: ['rectangle', 'cut-rect', 'octagon'],
 }
 
+/** Stroke widths of the frame rules, grid units. */
+export const FRAME_WEIGHTS = { outer: 3.4, inner: 1.2, window: 1.6 } as const
+/** Distance from the outer rule to the inner rule. */
+export const INNER_INSET = 4.5
+/** Cap height of the ring text, centred in its band (grid units). */
+export const RING_CAP = 9.5
+/** Subject geometry must stay this far inside the window edge. */
+export const SUBJECT_INSET = 6
+
+/** Text on a path. Glyphs stand upright when the path is read left to right. */
+export type RingPath = {
+  /** Path data. Top: glyphs rise away from the stamp centre. Bottom: they point toward it. */
+  d: string
+  /** Path length in grid units; keep text under about 80% of it. */
+  length: number
+  /** Where the text is anchored: 50% of the path, `text-anchor: middle`. */
+  startOffset: '50%'
+}
+
 export type Frame = {
   name: ShapeName
   family: ShapeFamily
   viewBox: string
   /** Double rule: heavy outer line first, thin inner line second. Stroke these. */
   outer: [string, string]
-  /** Closed path (clockwise from the left or top-left) for a <textPath> in the ring band. */
-  ringText: string
-  /** Inner window the engraving is clipped to. */
+  /** Inner window the engraving is clipped to. Stroke it at FRAME_WEIGHTS.window. */
   window: string
-  /** Inscribed box in grid units that all engraving geometry must stay inside. */
-  safe: Box
+  /** Bounding box of the window, [x, y, w, h]. */
+  windowBox: Box
+  /**
+   * Baselines for the country name (top) and `· ISO3 ·` (bottom). Both read upright. Use font
+   * metrics so the cap height is RING_CAP, centred in the band.
+   */
+  ring: { top: RingPath; bottom: RingPath; capHeight: number }
 }
+
+/** Geometry description: an ellipse or a rectangle with chamfered corners. */
+type Spec =
+  | { kind: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
+  | { kind: 'chamfer'; x: number; y: number; w: number; h: number; c: number }
 
 const n = (v: number) => String(Math.round(v * 100) / 100)
 
-function ellipse(cx: number, cy: number, rx: number, ry: number): string {
-  return `M${n(cx - rx)} ${n(cy)}A${n(rx)} ${n(ry)} 0 1 1 ${n(cx + rx)} ${n(cy)}A${n(rx)} ${n(ry)} 0 1 1 ${n(cx - rx)} ${n(cy)}Z`
+const ELLIPSE_STEPS = 96
+
+function specPath(s: Spec): string {
+  if (s.kind === 'ellipse') {
+    const { cx, cy, rx, ry } = s
+    return `M${n(cx - rx)} ${n(cy)}A${n(rx)} ${n(ry)} 0 1 1 ${n(cx + rx)} ${n(cy)}A${n(rx)} ${n(ry)} 0 1 1 ${n(cx - rx)} ${n(cy)}Z`
+  }
+  return specPoly(s)
+    .map(([x, y], i) => `${i ? 'L' : 'M'}${n(x)} ${n(y)}`)
+    .join('')
+    .concat('Z')
 }
 
-/** Rectangle with chamfered corners (c = 0 gives a plain rectangle), clockwise from the top-left. */
-function chamfer(x: number, y: number, w: number, h: number, c: number): string {
-  if (c <= 0) return `M${n(x)} ${n(y)}H${n(x + w)}V${n(y + h)}H${n(x)}Z`
-  return `M${n(x + c)} ${n(y)}H${n(x + w - c)}L${n(x + w)} ${n(y + c)}V${n(y + h - c)}L${n(x + w - c)} ${n(y + h)}H${n(x + c)}L${n(x)} ${n(y + h - c)}V${n(y + c)}Z`
+/** Polygon outline, clockwise on screen from the left (ellipse) or top-left (chamfer). */
+function specPoly(s: Spec): Pt[] {
+  if (s.kind === 'ellipse') {
+    return Array.from({ length: ELLIPSE_STEPS }, (_, i) => {
+      const a = Math.PI + (i / ELLIPSE_STEPS) * Math.PI * 2
+      return [s.cx + s.rx * Math.cos(a), s.cy + s.ry * Math.sin(a)] as Pt
+    })
+  }
+  const { x, y, w, h, c } = s
+  if (c <= 0)
+    return [
+      [x, y],
+      [x + w, y],
+      [x + w, y + h],
+      [x, y + h],
+    ]
+  return [
+    [x + c, y],
+    [x + w - c, y],
+    [x + w, y + c],
+    [x + w, y + h - c],
+    [x + w - c, y + h],
+    [x + c, y + h],
+    [x, y + h - c],
+    [x, y + c],
+  ]
 }
 
-/** Rectangle family: outer rect [x,y,w,h], chamfer c. Insets follow the 45-degree cut. */
-function rectFrame(name: ShapeName, r: Box, c: number, safe: Box): Frame {
+const specBounds = (s: Spec): Box =>
+  s.kind === 'ellipse' ? [s.cx - s.rx, s.cy - s.ry, s.rx * 2, s.ry * 2] : [s.x, s.y, s.w, s.h]
+
+const ellipseOf = (rx: number, ry: number): Spec => ({ kind: 'ellipse', cx: 100, cy: 100, rx, ry })
+
+/** Round shapes: the rules and window are concentric; the text band between them is 19 wide. */
+const ROUND_BAND = 19
+
+/** Rectangle family: side bands 14 from the outer edge, top and bottom bands 22. */
+const SIDE = 14
+const CAP_BAND = 22
+
+function rectSpecs(r: Box, c: number) {
   const [x, y, w, h] = r
-  const at = (d: number) => chamfer(x + d, y + d, w - 2 * d, h - 2 * d, Math.max(0, c - d * 0.586))
+  const cut = (inset: number, dx: number, dy: number): Spec => {
+    // The 45-degree cut moves by inset * sqrt(2) along the axes; recompute the chamfer so the cut
+    // line keeps a uniform perpendicular distance to the outer one.
+    const cw = c <= 0 ? 0 : Math.max(0, x + y + c + inset * Math.SQRT2 - (x + dx) - (y + dy))
+    return { kind: 'chamfer', x: x + dx, y: y + dy, w: w - 2 * dx, h: h - 2 * dy, c: cw }
+  }
+  return {
+    outer: cut(0, 0, 0),
+    inner: cut(INNER_INSET, INNER_INSET, INNER_INSET),
+    window: cut(SIDE, SIDE, CAP_BAND),
+  }
+}
+
+type FrameDef = {
+  family: ShapeFamily
+  outer: Spec
+  inner: Spec
+  window: Spec
+  /** Ring text baselines (computed from the shape). */
+  ring: Frame['ring']
+}
+
+function ellipseHalf(rx: number, ry: number, top: boolean): RingPath {
+  const d = top
+    ? `M${n(100 - rx)} 100A${n(rx)} ${n(ry)} 0 0 1 ${n(100 + rx)} 100`
+    : `M${n(100 - rx)} 100A${n(rx)} ${n(ry)} 0 0 0 ${n(100 + rx)} 100`
+  // Ramanujan perimeter, halved.
+  const h = ((rx - ry) / (rx + ry)) ** 2
+  const length = (Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))) / 2
+  return { d, length: Math.round(length * 10) / 10, startOffset: '50%' }
+}
+
+function roundDef(rx: number, ry: number): FrameDef {
+  const mid = INNER_INSET + ROUND_BAND / 2
+  const half = RING_CAP / 2
+  const at = (d: number) => ellipseOf(rx - d, ry - d)
+  return {
+    family: 'circle',
+    outer: at(0),
+    inner: at(INNER_INSET),
+    window: at(INNER_INSET + ROUND_BAND),
+    ring: {
+      // Top glyphs rise outward, so the baseline sits on the inner side of the text row.
+      top: ellipseHalf(rx - mid - half, ry - mid - half, true),
+      // Bottom glyphs point inward, so the baseline sits on the outer side.
+      bottom: ellipseHalf(rx - mid + half, ry - mid + half, false),
+      capHeight: RING_CAP,
+    },
+  }
+}
+
+function lineRing(x0: number, x1: number, y: number): RingPath {
+  return { d: `M${n(x0)} ${n(y)}H${n(x1)}`, length: x1 - x0, startOffset: '50%' }
+}
+
+function rectDef(r: Box, c: number): FrameDef {
+  const s = rectSpecs(r, c)
+  const [x, y, w, h] = r
+  const bandMid = INNER_INSET + (CAP_BAND - INNER_INSET) / 2
+  const half = RING_CAP / 2
+  // Text may not run into the chamfers: the inner rule's cut, at the outer edge of the glyphs,
+  // limits how far the baseline can run.
+  const gap = bandMid - half - INNER_INSET
+  const cut = s.inner.kind === 'chamfer' ? s.inner.c : 0
+  const reach = (cut > gap ? cut - gap : 0) + INNER_INSET + 4
+  return {
+    family: 'rectangle',
+    outer: s.outer,
+    inner: s.inner,
+    window: s.window,
+    ring: {
+      top: lineRing(x + reach, x + w - reach, y + bandMid + half),
+      bottom: lineRing(x + reach, x + w - reach, y + h - bandMid + half),
+      capHeight: RING_CAP,
+    },
+  }
+}
+
+const defs: Record<ShapeName, FrameDef> = {
+  circle: roundDef(96, 96),
+  oval: roundDef(80, 96),
+  rectangle: rectDef([6, 24, 188, 152], 0),
+  'cut-rect': rectDef([6, 24, 188, 152], 20),
+  octagon: rectDef([6, 14, 188, 172], 40),
+}
+
+function build(name: ShapeName): Frame {
+  const d = defs[name]
   return {
     name,
-    family: 'rectangle',
+    family: d.family,
     viewBox: '0 0 200 200',
-    outer: [at(0), at(4)],
-    ringText: at(13),
-    window: at(24),
-    safe,
+    outer: [specPath(d.outer), specPath(d.inner)],
+    window: specPath(d.window),
+    windowBox: specBounds(d.window),
+    ring: d.ring,
   }
 }
 
 export const frames: Record<ShapeName, Frame> = {
-  circle: {
-    name: 'circle',
-    family: 'circle',
-    viewBox: '0 0 200 200',
-    outer: [ellipse(100, 100, 96, 96), ellipse(100, 100, 91.5, 91.5)],
-    ringText: ellipse(100, 100, 83.5, 83.5),
-    window: ellipse(100, 100, 74, 74),
-    safe: [44, 50, 112, 100],
-  },
-  oval: {
-    name: 'oval',
-    family: 'circle',
-    viewBox: '0 0 200 200',
-    outer: [ellipse(100, 100, 80, 96), ellipse(100, 100, 75.5, 91.5)],
-    ringText: ellipse(100, 100, 67.5, 83.5),
-    window: ellipse(100, 100, 57, 73),
-    safe: [58, 50, 84, 100],
-  },
-  rectangle: rectFrame('rectangle', [6, 24, 188, 152], 0, [33, 51, 134, 98]),
-  'cut-rect': rectFrame('cut-rect', [6, 24, 188, 152], 20, [33, 51, 134, 98]),
-  octagon: rectFrame('octagon', [6, 14, 188, 172], 40, [43, 51, 114, 98]),
+  circle: build('circle'),
+  oval: build('oval'),
+  rectangle: build('rectangle'),
+  'cut-rect': build('cut-rect'),
+  octagon: build('octagon'),
+}
+
+/** Window outline as a polygon (ellipses sampled at 96 points). */
+export const windowPoly = (shape: ShapeName): Pt[] => specPoly(defs[shape].window)
+
+/** Outer rule as a polygon: the path the impression nicks are sampled along. */
+export const outerPoly = (shape: ShapeName): Pt[] => specPoly(defs[shape].outer)
+
+/** Window inset by `d` units: where subject geometry (not backdrop) must stay. */
+export function subjectPoly(shape: ShapeName, d = SUBJECT_INSET): Pt[] {
+  const w = defs[shape].window
+  if (w.kind === 'ellipse') return specPoly({ ...w, rx: w.rx - d, ry: w.ry - d })
+  // Chamfer: shrink the box by d and move the cut line d inward (perpendicular).
+  const [x, y] = [w.x + d, w.y + d]
+  const cw = w.c <= 0 ? 0 : w.c + d * (Math.SQRT2 - 2)
+  return specPoly({ kind: 'chamfer', x, y, w: w.w - 2 * d, h: w.h - 2 * d, c: Math.max(0, cw) })
 }
 
 type CatalogEntry = { stampShape: ShapeFamily }

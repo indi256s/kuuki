@@ -8,7 +8,8 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stampFiles } from '../apps/next/src/lib/stamp-art/build'
 import { lintGeometry } from '../apps/next/src/lib/stamp-art/lint'
-import { measureRaster } from '../apps/next/src/lib/stamp-art/lint-raster'
+import { SHAPE_NAMES } from '../apps/next/src/lib/stamp-art/frame'
+import { measureImpression, measureRaster } from '../apps/next/src/lib/stamp-art/lint-raster'
 import { RECIPE_FILES, loadRecipes } from '../apps/next/src/lib/stamp-art/recipes'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -35,13 +36,19 @@ async function main() {
     if (!(name in expected)) failures.push(`${name}: stale, no recipe produces it`)
   }
 
+  for (const shape of SHAPE_NAMES) {
+    const report = await measureImpression(shape)
+    for (const issue of report.issues) failures.push(issue)
+    console.log(`impression ${shape}: removes ${report.removed}% weak/strong ${report.weakStrong}`)
+  }
+
   for (const recipe of loadRecipes()) {
     if (recipe.tier !== 'engraved') continue
     for (const issue of lintGeometry(recipe)) failures.push(`${issue.iso2}: ${issue.message}`)
     const raster = await measureRaster(recipe)
     for (const issue of raster.issues) failures.push(`${recipe.iso2}: ${issue}`)
     console.log(
-      `${recipe.iso2}: coverage ${raster.coverage}% paper regions ${raster.paperRegions} ink components ${raster.inkComponents} solid ${raster.solidShare}% blob ${raster.blobShare}`,
+      `${recipe.iso2}: coverage ${raster.coverage}% paper regions ${raster.paperRegions} ink components ${raster.inkComponents} solid ${raster.solidShare}% blob ${raster.blobShare} subject paper ${raster.subjectPaper}% weak/strong ${raster.weakStrong}`,
     )
   }
 

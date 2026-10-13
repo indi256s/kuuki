@@ -2,54 +2,40 @@
   "iso2": "AM",
   "tier": "engraved",
   "shape": "circle",
+  "backdrop": [
+    {
+      "module": "sky"
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0.16, 0.7],
+          [0.38, 0.362],
+          [0.58, 0.56],
+          [0.78, 0.18],
+          [1, 0.58]
+        ],
+        "snow": 0.35,
+        "litGap": 3
+      }
+    },
+    {
+      "module": "ground"
+    },
+    {
+      "module": "basalt",
+      "params": {
+        "side": "right",
+        "reach": 0.3,
+        "drop": 0.55
+      }
+    }
+  ],
   "layers": [
     {
-      "module": "twin-peak",
-      "box": [45, 53, 109, 67],
-      "params": {
-        "weight": "hair",
-        "ratio": 0.8,
-        "bigX": 0.5,
-        "split": 0.74
-      }
-    },
-    {
-      "module": "cliff",
-      "box": [47, 118, 75, 16],
-      "params": {
-        "side": "left",
-        "wobble": [0, 0.8, -1.4, 0.4, -1.8, 0]
-      }
-    },
-    {
-      "module": "platform",
-      "box": [48, 113, 52, 5],
-      "params": {
-        "courses": 1
-      }
-    },
-    {
-      "module": "colonnade",
-      "box": [51, 94, 46, 19],
-      "params": {
-        "count": 6,
-        "entablature": 0.24,
-        "order": "ionic",
-        "shaft": "hair",
-        "colW": 0.42
-      }
-    },
-    {
-      "module": "pediment",
-      "box": [49, 85, 50, 9],
-      "params": {}
-    },
-    {
-      "module": "water",
-      "box": [47, 138, 106, 11],
-      "params": {
-        "rows": 3
-      }
+      "module": "temple",
+      "box": [49.7, 49, 85.6, 80]
     }
   ]
 }

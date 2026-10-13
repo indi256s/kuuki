@@ -22,7 +22,7 @@ export function str<T extends string>(
   return typeof v === 'string' && (allowed as readonly string[]).includes(v) ? (v as T) : fallback
 }
 export const weight = (p: Params, key: string, fallback: Weight): Weight =>
-  str(p, key, ['hair', 'line', 'bold'] as const, fallback)
+  str(p, key, ['fine', 'hair', 'line', 'bold'] as const, fallback)
 export const nums = (p: Params, key: string, fallback: number[]): number[] => {
   const v = p[key]
   return Array.isArray(v) && v.every((n) => typeof n === 'number') ? (v as number[]) : fallback

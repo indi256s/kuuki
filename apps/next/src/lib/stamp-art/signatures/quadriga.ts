@@ -1,87 +1,72 @@
-// DE: the quadriga on the Brandenburg Gate's attic, as a solid silhouette. Four horses abreast,
-// a chariot body behind them and a slim staff with a wreath ring above. No figures.
-import { type Pt, type SvgNode, fill, rectPts, stroke } from '../grid'
+// DE: the quadriga on the Brandenburg Gate, a solid T5 fan. Four horse heads notch the top, three
+// leg gaps notch the bottom, and a staff with a wreath rises from the centre. No cross.
+import { type Pt, type SvgNode, fill, stroke } from '../grid'
 import type { KitModule } from '../kit'
 import { num } from '../kit/util'
 
+/**
+ * The box is the fan: its width at the top and its height; the bottom (the chariot) is `foot` of the
+ * width. The staff rises `staff` times the fan height from the chariot floor, ending in a ring.
+ */
 export const quadriga: KitModule = ([x, y, w, h], p) => {
-  const horses = Math.max(2, Math.round(num(p, 'horses', 4)))
   const cx = x + w / 2
   const bottom = y + h
+  const foot = w * num(p, 'foot', 0.56)
+  const heads = 4
+  const pitch = w / heads
   const out: SvgNode[] = []
-  // Chariot body: low, wide, with a raised front.
-  const bodyW = w * 0.5
-  out.push(
-    fill([
-      [cx - bodyW / 2, bottom],
-      [cx - bodyW / 2, bottom - h * 0.3],
-      [cx + bodyW / 2, bottom - h * 0.3],
-      [cx + bodyW / 2, bottom],
-    ]),
-  )
-  // Wheels at the outer ends.
-  for (const s of [-1, 1]) {
-    const wx = cx + s * (w * 0.5 - h * 0.15)
-    const r = h * 0.16
-    out.push(
-      fill(
-        Array.from(
-          { length: 12 },
-          (_, i) =>
-            [
-              wx + r * Math.cos((i * Math.PI) / 6),
-              bottom - r + r * Math.sin((i * Math.PI) / 6),
-            ] as Pt,
-        ),
-      ),
+  // Top edge, left to right: four horse heads on an arch (outer ones lower), a notch between each.
+  const rise = [0.3, 0, 0, 0.3]
+  const top: Pt[] = [[x, y + h * 0.58]]
+  for (let i = 0; i < heads; i++) {
+    const hx = x + pitch * (i + 0.5)
+    const hy = y + h * rise[i]
+    top.push(
+      [hx - pitch * 0.38, hy + h * 0.42],
+      [hx - pitch * 0.3, hy + 1.6],
+      [hx - pitch * 0.12, hy],
+      [hx + pitch * 0.12, hy],
+      [hx + pitch * 0.3, hy + 1.6],
+      [hx + pitch * 0.38, hy + h * 0.42],
     )
   }
-  // Horses: chest, arching neck, head tipped forward, one raised foreleg.
-  const span = w * 0.74
-  const pitch = span / horses
-  for (let i = 0; i < horses; i++) {
-    const hx = cx - span / 2 + pitch * (i + 0.5)
-    const lean = (i - (horses - 1) / 2) * 0.9
-    const hw = pitch * 0.4
-    const headTop = y + h * 0.1 + Math.abs(i - (horses - 1) / 2) * h * 0.05
-    out.push(
-      fill([
-        [hx - hw, bottom],
-        [hx - hw, bottom - h * 0.35],
-        [hx - hw * 0.7 + lean * 0.3, bottom - h * 0.55],
-        [hx - hw * 0.35 + lean, headTop + h * 0.12],
-        [hx - hw * 0.1 + lean, headTop],
-        [hx + hw * 0.55 + lean, headTop + h * 0.05],
-        [hx + hw * 0.5 + lean, headTop + h * 0.2],
-        [hx + hw * 0.4, bottom - h * 0.5],
-        [hx + hw, bottom - h * 0.3],
-        [hx + hw, bottom],
-      ]),
+  top.push([x + w, y + h * 0.58])
+  // Bottom edge, right to left, with three leg gaps.
+  const gaps = 3
+  const bottomEdge: Pt[] = [[cx + foot / 2, bottom]]
+  for (let g = gaps - 1; g >= 0; g--) {
+    const gx = cx - foot / 2 + (foot * (g + 1)) / (gaps + 1)
+    bottomEdge.push(
+      [gx + 0.8, bottom],
+      [gx + 0.8, bottom - h * 0.36],
+      [gx - 0.8, bottom - h * 0.36],
+      [gx - 0.8, bottom],
     )
   }
-  // Staff with a wreath ring, rising from the chariot centre.
-  const top = y - h * 0.05
+  bottomEdge.push([cx - foot / 2, bottom])
+  out.push(fill([...top, ...bottomEdge]))
+  // Staff and wreath above the central notch.
+  const staffTop = bottom - h * num(p, 'staff', 1.3)
+  const r = Math.min(2.8, w * 0.1)
   out.push(
     stroke('line', [
-      [cx, bottom - h * 0.3],
-      [cx, top + 5],
+      [cx, y + h * 0.45],
+      [cx, staffTop + r * 2],
     ]),
   )
-  const r = Math.min(5, w * 0.1)
   out.push(
     stroke(
-      'line',
+      'hair',
       Array.from(
         { length: 14 },
         (_, i) =>
           [
             cx + r * Math.cos((i * Math.PI * 2) / 14),
-            top + r + r * Math.sin((i * Math.PI * 2) / 14),
+            staffTop + r + r * Math.sin((i * Math.PI * 2) / 14),
           ] as Pt,
       ),
       true,
     ),
   )
-  out.push(fill(rectPts(cx - 1.4, bottom - h * 0.72, 2.8, h * 0.44)))
   return out
 }

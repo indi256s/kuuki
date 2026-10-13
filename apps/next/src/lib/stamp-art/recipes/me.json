@@ -2,54 +2,119 @@
   "iso2": "ME",
   "tier": "engraved",
   "shape": "cut-rect",
+  "horizon": 0.78,
+  "backdrop": [
+    {
+      "module": "sky"
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.4],
+          [0.1, 0.33],
+          [0.22, 0.44],
+          [0.34, 0.56],
+          [0.45, 0.78]
+        ],
+        "jag": 1.2,
+        "litGap": 2.6,
+        "seed": 13
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0.32, 0.78],
+          [0.5, 0.46],
+          [0.68, 0.12],
+          [0.85, 0.4],
+          [1, 0.58]
+        ],
+        "shade": "T4",
+        "jag": 2,
+        "litGap": 3.2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
   "layers": [
     {
-      "module": "mountains",
-      "box": [36, 54, 126, 80],
+      "module": "house",
+      "box": [27.5, 109.2, 10, 14],
       "params": {
-        "peaks": [
-          [0.78, 1],
-          [0.5, 0.7],
-          [0.2, 0.45]
-        ],
-        "jag": 2.2,
-        "shadeGap": 2.8,
-        "shadeDepth": 46
+        "weight": "hair",
+        "roofH": 0.28,
+        "shade": 0.25,
+        "roof": "hip"
       }
     },
     {
-      "module": "fortress-wall",
-      "box": [35, 122, 50, 12],
+      "module": "house",
+      "box": [38.5, 104.2, 10, 19],
       "params": {
-        "merlons": 9,
-        "courses": 2,
-        "merlonH": 0.22
+        "weight": "hair",
+        "roofH": 0.28,
+        "shade": 0.25
       }
     },
     {
-      "module": "cliff",
-      "box": [145, 120, 17, 14],
+      "module": "house",
+      "box": [49.5, 110.2, 10, 13],
       "params": {
-        "side": "right",
-        "wobble": [0, 0.6, -1.2, 0.4, -1.6, 0]
+        "weight": "hair",
+        "roofH": 0.28,
+        "shade": 0.25,
+        "roof": "hip"
       }
     },
     {
-      "module": "water",
-      "box": [36, 136, 128, 13],
+      "module": "house",
+      "box": [60.5, 102.2, 10, 21],
       "params": {
-        "rows": 3
+        "weight": "hair",
+        "roofH": 0.28,
+        "shade": 0.25
       }
+    },
+    {
+      "module": "house",
+      "box": [71.5, 108.2, 10, 15],
+      "params": {
+        "weight": "hair",
+        "roofH": 0.28,
+        "shade": 0.25,
+        "roof": "hip"
+      }
+    },
+    {
+      "module": "house",
+      "box": [82.5, 106.2, 10, 17],
+      "params": {
+        "weight": "hair",
+        "roofH": 0.28,
+        "shade": 0.25
+      }
+    },
+    {
+      "module": "rampart",
+      "box": [27, 122.19999999999999, 66, 8]
     }
   ],
   "signature": [
     {
       "part": "kotor-walls",
-      "box": [46, 62, 96, 72],
+      "box": [103.8, 52.5, 50, 77.7],
       "params": {
-        "wallH": 5,
-        "towerH": 28,
-        "towerW": 16
+        "legs": 4,
+        "ratio": 0.8,
+        "endX": 0.5
       }
     }
   ]

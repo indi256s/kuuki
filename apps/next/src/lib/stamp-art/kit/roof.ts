@@ -3,12 +3,14 @@ import {
   type Pt,
   type SvgNode,
   body,
+  cubic,
   fill,
   hatch,
   hline,
   quad,
   rectPts,
   stroke,
+  toneFill,
   vline,
 } from '../grid'
 import { type KitModule, bool, num, nums, weight } from './util'
@@ -170,81 +172,104 @@ export const curvedEave: KitModule = ([x, y, w, h], p) => {
 }
 
 /**
- * A stack of walled tiers, each capped with a curved-eave roof, narrowing upward. `tiers` lists
- * relative wall widths bottom to top (default five, each narrower). `gables` marks tiers that get
- * a front gable on their roof.
+ * A castle keep: a stack of lit walls, each under a thin T4 hip-roof band whose tips lift `lift`
+ * units. The box is the widest roof (tier 1) by the whole stack height. `widths` are the wall widths
+ * bottom to top relative to tier 1 (1, .86, .72, .6, .46), `chidori` lists tiers (0-based) that get
+ * a triangular gable on their roof, `kara` tiers that get a curved gable, `nubs` adds the small
+ * ridge ornaments on the top roof. Tiers share the height in proportion to `heights`.
  */
 export const pagodaTier: KitModule = ([x, y, w, h], p) => {
-  const n = Math.max(1, Math.round(num(p, 'tiers', 5)))
-  const taper = num(p, 'taper', 0.13)
-  const widths = nums(
+  const widths = nums(p, 'widths', [1, 0.86, 0.72, 0.6, 0.46])
+  const heights = nums(
     p,
-    'widths',
-    Array.from({ length: n }, (_, i) => 1 - taper * i * (1 + i * 0.04)),
+    'heights',
+    widths.map(() => 1),
   )
-  const gables = nums(p, 'gables', [])
-  const windows = Math.round(num(p, 'windows', 2))
+  const chidori = nums(p, 'chidori', [])
+  const kara = nums(p, 'kara', [])
+  const pairs = nums(p, 'pairs', [])
+  const windows = nums(
+    p,
+    'windows',
+    widths.map((_, i) => (i < 2 ? 3 : i < widths.length - 1 ? 2 : 1)),
+  )
+  const wallFrac = num(p, 'wall', 0.7)
+  const roofOver = num(p, 'roofW', 1.22)
+  const lift = num(p, 'lift', 2)
   const cx = x + w / 2
-  const roofW = num(p, 'roofW', 1.3) // roof width over the wall
-  const roofRatio = num(p, 'roofRatio', 0.46) // roof height over wall height
-  const unit = h / widths.reduce((sum, _, i) => sum + (1 + roofRatio) * (1 - i * 0.06), 0)
+  const unit = h / heights.reduce((a, b) => a + b, 0)
   const out: SvgNode[] = []
-  let yy = y + h
-  for (let i = 0; i < n; i++) {
-    const wallH = unit * (1 - i * 0.06)
-    const roofH = wallH * roofRatio
-    const ww = (w / roofW) * widths[i]
-    // Wall.
-    out.push(...body(rectPts(cx - ww / 2, yy - wallH, ww, wallH), 'line'))
-    const ws = Math.max(1, windows)
-    for (let k = 0; k < ws && windows > 0; k++) {
-      const wx = cx - ww / 2 + (ww * (k + 1)) / (ws + 1)
-      const wsz = Math.min(5, ww * 0.1)
-      out.push(fill(rectPts(wx - wsz / 2, yy - wallH * 0.62, wsz, wsz * 1.1)))
+  // Gables sit on the roofs but rise in front of the wall above, so they are drawn last.
+  const front: SvgNode[] = []
+  let yb = y + h
+  widths.forEach((rel, i) => {
+    const tierH = unit * heights[i % heights.length]
+    const wallH = tierH * wallFrac
+    const roofH = tierH - wallH
+    const ww = (w / roofOver) * rel
+    const rw = ww * roofOver
+    const yw = yb - wallH // eave line, top of the wall
+    out.push(...body(rectPts(cx - ww / 2, yw, ww, wallH), 'line'))
+    const wn = windows[i % windows.length]
+    for (let k = 0; k < wn; k++) {
+      const wx = cx - ww / 2 + (ww * (k + 1)) / (wn + 1)
+      out.push(fill(rectPts(wx - 1.1, yb - wallH * 0.74, 2.2, Math.min(3.4, wallH * 0.46))))
     }
-    yy -= wallH
-    // Roof.
-    const rw = ww * roofW
-    const gableTier = gables.includes(i)
-    out.push(
-      ...curvedEave([cx - rw / 2, yy - roofH, rw, roofH], {
-        ridge: num(p, 'ridge', 0.34),
-        lift: 0.32,
-        thick: 0.24,
-        rows: 2,
-        finials: i === n - 1,
-      }),
-    )
-    if (gableTier) {
-      const gw = rw * 0.34
-      const gh = roofH * 1.05
-      const gy = yy - roofH * 0.35
-      out.push(
+    // Roof band: thin, tips lifted, T4.
+    const band: Pt[] = [
+      [cx - rw / 2, yw - lift],
+      [cx - rw * 0.35, yw - roofH],
+      [cx + rw * 0.35, yw - roofH],
+      [cx + rw / 2, yw - lift],
+      [cx + rw * 0.4, yw + 0.4],
+      [cx - rw * 0.4, yw + 0.4],
+    ]
+    out.push(...body(band, 'hair'))
+    out.push(...toneFill(band, 'T4', { inset: 1.2 }))
+    const gw = rw * 0.26
+    const gh = roofH + 2.4
+    const gableAt = (gx: number) =>
+      front.push(
         ...body(
           [
-            [cx - gw / 2, gy],
-            [cx, gy - gh],
-            [cx + gw / 2, gy],
+            [gx - gw / 2, yw - roofH * 0.1],
+            [gx, yw - gh],
+            [gx + gw / 2, yw - roofH * 0.1],
           ],
           'line',
         ),
       )
-      out.push(
-        ...hatch(
-          [
-            [cx - gw / 2 + 2, gy - 1],
-            [cx, gy - gh + 3.5],
-            [cx + gw / 2 - 2, gy - 1],
-          ],
-          'h',
-          3.2,
-          'hair',
-        ),
+    if (chidori.includes(i)) gableAt(cx)
+    if (pairs.includes(i)) for (const s of [-1, 1]) gableAt(cx + s * rw * 0.24)
+    if (kara.includes(i)) {
+      const kw = rw * 0.34,
+        kh = roofH + 3.6
+      const left = cubic(
+        [cx - kw / 2, yw - roofH * 0.1],
+        [cx - kw * 0.3, yw - kh * 0.15],
+        [cx - kw * 0.1, yw - kh * 0.6],
+        [cx, yw - kh],
+        10,
       )
+      const bell: Pt[] = [...left, ...left.map(([px, py]) => [2 * cx - px, py] as Pt).reverse()]
+      front.push(...body(bell, 'line'))
     }
-    yy -= roofH * 0.88
-  }
-  return out
+    if (i === widths.length - 1 && p.nubs !== false) {
+      for (const s of [-1, 1]) {
+        const nx = cx + s * rw * 0.35
+        out.push(
+          fill([
+            [nx - 1.3, yw - roofH],
+            [nx - 1.1 + s * 0.8, yw - roofH - 2.6],
+            [nx + 1.1 + s * 0.8, yw - roofH - 2.6],
+            [nx + 1.3, yw - roofH],
+          ]),
+        )
+      }
+    }
+    yb = yw - roofH
+  })
+  return [...out, ...front]
 }
 
 /** Posts on footings under a floor beam, with cross beams and braces. */

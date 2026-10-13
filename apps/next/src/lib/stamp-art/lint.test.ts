@@ -3,7 +3,8 @@ import { contrast, parseHex } from '../color'
 import { SURFACE_COLOR } from '../theme-colors'
 import { INKS } from './inks'
 import { lintGeometry, lintRaw } from './lint'
-import { measureRaster } from './lint-raster'
+import { SHAPE_NAMES } from './frame'
+import { measureImpression, measureRaster } from './lint-raster'
 import { parseRecipe } from './recipe'
 import { loadRecipes, RECIPE_FILES } from './recipes'
 
@@ -20,9 +21,15 @@ describe('stamp lint', () => {
 
   const base = RECIPE_FILES.th as { layers: unknown[] }
 
-  it('rejects an out-of-frame layer', () => {
+  it('rejects a subject outside the window inset', () => {
     const bad = { ...base, layers: [{ module: 'tower', box: [150, 60, 40, 80] }] }
     expect(lintRaw(bad).some((i) => i.rule === 'frame')).toBe(true)
+  })
+
+  it('keeps the wear texture inside its removal band on every shape', async () => {
+    for (const shape of SHAPE_NAMES) {
+      expect((await measureImpression(shape)).issues, shape).toEqual([])
+    }
   })
 
   it('rejects a near-empty recipe', async () => {

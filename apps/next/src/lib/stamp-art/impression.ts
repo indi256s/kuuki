@@ -1,71 +1,117 @@
-// Shared "wear" texture for the owner's impression layer (B1). One file for every country; the
-// component offsets and rotates it per country with `impressionTransform`.
+// Wear texture for the owner's impression layer (B1): one file per frame shape, because the broken
+// edge has to follow that shape's outer rule. The component offsets and rotates it per country with
+// `impressionTransform`.
 //
-// Convention: the rendered ALPHA is the mask. Opaque = ink kept, transparent = ink removed
-// (the file is #fff, so `mask-mode: luminance` agrees with `alpha`). Composite it over the whole
-// stamp with `mask-composite: intersect`. Inside the file the texture is built from an SVG <mask>
-// (white keeps, black removes), which is why holes are real alpha holes in the rendered image.
+// Convention: the rendered ALPHA is the mask. Opaque = ink kept, transparent = ink removed (the file
+// is #fff, so `mask-mode: luminance` agrees with `alpha`). Composite it over the whole stamp with
+// `mask-composite: intersect`. Inside the file the texture is built from an SVG <mask> (white keeps,
+// black removes), which is why holes are real alpha holes in the rendered image.
 //
-// The viewBox is 300x300 centred on the 200x200 stamp (-50 -50 300 300) so any offset up to
-// +-12 units and any rotation still covers the stamp. The pressure gradient is heavy on +x.
+// Anatomy: a pressure gradient across the shape's width (full ink over the strong 60%, falling toward the weak edge), paper
+// grain that is mostly on the weak side, a few ink dropouts (one crossing the outer rule) and nicks
+// along the outer rule. The strong side is +x; `impressionTransform` turns it toward the rest tilt.
+//
+// The viewBox is 300x300 centred on the 200x200 stamp (-50 -50 300 300) so a 180 degree rotation
+// and the small offset still cover the stamp.
+import { type ShapeName, outerPoly } from './frame'
 import { hash32, mulberry32 } from './hash'
+import type { Pt } from './grid'
 
 export const IMPRESSION_VIEWBOX = '-50 -50 300 300'
+export const impressionFileName = (shape: ShapeName) => `_impression-${shape}.svg`
 
+/** Share of ink kept at the weak edge; the gradient reaches full ink 40% across the shape. */
+const WEAK_KEEP = 0.59
+const GRAIN_COUNT = 240
+const NICK_COUNT = 24
+
+const grey = (v: number) =>
+  `#${Math.round(v * 255)
+    .toString(16)
+    .padStart(2, '0')
+    .repeat(3)}`
 const f = (v: number) => String(Math.round(v * 10) / 10)
 
+/** Point and unit tangent at arc length `s` along a closed polygon. */
+function along(poly: Pt[], lengths: number[], s: number): { p: Pt; t: Pt } {
+  let i = 0
+  while (i < poly.length - 1 && lengths[i + 1] < s) i++
+  const a = poly[i],
+    b = poly[(i + 1) % poly.length]
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+  const k = (s - lengths[i]) / len
+  return {
+    p: [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k],
+    t: [(b[0] - a[0]) / len, (b[1] - a[1]) / len],
+  }
+}
+
 /** Inner markup (defs + masked rect) shared by the committed file and the raster linter. */
-export function impressionInner(): string {
-  const rand = mulberry32(0x57a4b1e5)
+export function impressionInner(shape: ShapeName): string {
+  const rand = mulberry32(hash32(`impression-art:${shape}`))
   const r = (a: number, b: number) => a + (b - a) * rand()
 
-  // Paper grain: tiny squares knocked out at partial strength.
+  // Paper grain: 1.2-2.4 unit specks at 0.7 strength, two thirds on the weak (-x) half.
   let grain = ''
-  for (let i = 0; i < 520; i++) {
-    const s = r(0.4, 1.1)
-    grain += `M${f(r(-40, 240))} ${f(r(-40, 240))}h${f(s)}v${f(s)}h-${f(s)}z`
+  for (let i = 0; i < GRAIN_COUNT; i++) {
+    const s = r(1.2, 2.4)
+    const x = rand() < 2 / 3 ? r(0, 100) : r(100, 200)
+    grain += `M${f(x)} ${f(r(0, 200))}h${f(s)}v${f(s * r(0.6, 1.2))}h-${f(s)}z`
   }
 
-  // Ink gaps: a few small irregular holes.
+  const poly = outerPoly(shape)
+  const lengths = [0]
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i],
+      b = poly[(i + 1) % poly.length]
+    lengths.push(lengths[i] + Math.hypot(b[0] - a[0], b[1] - a[1]))
+  }
+  const perimeter = lengths[poly.length]
+  const xs = poly.map((q) => q[0])
+  const left = Math.min(...xs),
+    right = Math.max(...xs)
+
+  // Dropouts: 3-5 blobs of 4-9 units; the first sits on the outer rule.
   let gaps = ''
-  for (let i = 0; i < 7; i++) {
-    const cx = r(25, 175),
-      cy = r(30, 170),
-      rad = r(1.4, 3.1)
-    const sides = 7
+  const blobs = 3 + Math.floor(rand() * 3)
+  for (let i = 0; i < blobs; i++) {
+    const rad = r(2, 4.5)
+    let cx: number, cy: number
+    if (i === 0) {
+      const { p } = along(poly, lengths, r(0, perimeter))
+      ;[cx, cy] = p
+    } else {
+      cx = r(30, 170)
+      cy = r(40, 160)
+    }
+    const sides = 9
     const pts = Array.from({ length: sides }, (_, k) => {
-      const a = (k / sides) * Math.PI * 2 + r(-0.3, 0.3)
-      const rr = rad * r(0.6, 1.2)
+      const a = (k / sides) * Math.PI * 2 + r(-0.25, 0.25)
+      const rr = rad * r(0.65, 1.15)
       return `${f(cx + rr * Math.cos(a))} ${f(cy + rr * Math.sin(a))}`
     })
     gaps += `M${pts.join('L')}Z`
   }
 
-  // Broken edges: nicks near a circular border and near a rectangular border.
+  // Nicks: 1.5 x 2-4 unit notches centred on the outer rule, long side across it.
   let nicks = ''
-  for (let i = 0; i < 34; i++) {
-    const a = r(0, Math.PI * 2),
-      rad = r(88, 98),
-      s = r(0.9, 2.2)
-    nicks += `M${f(100 + rad * Math.cos(a))} ${f(100 + rad * Math.sin(a))}h${f(s)}v${f(s)}h-${f(s)}z`
-  }
-  for (let i = 0; i < 34; i++) {
-    const side = Math.floor(r(0, 4)),
-      t = r(0, 1),
-      s = r(0.9, 2.2)
-    const x = side === 0 ? 6 + 188 * t : side === 1 ? 194 : side === 2 ? 6 + 188 * t : 6
-    const y = side === 0 ? 24 : side === 1 ? 24 + 152 * t : side === 2 ? 176 : 24 + 152 * t
-    nicks += `M${f(x + r(-1.5, 1.5))} ${f(y + r(-1.5, 1.5))}h${f(s)}v${f(s)}h-${f(s)}z`
+  for (let i = 0; i < NICK_COUNT; i++) {
+    const { p, t } = along(poly, lengths, ((i + r(0.1, 0.9)) / NICK_COUNT) * perimeter)
+    const nx = -t[1],
+      ny = t[0]
+    const hw = 0.75,
+      hl = r(2, 4) / 2
+    const c = (u: number, v: number) =>
+      `${f(p[0] + t[0] * u + nx * v)} ${f(p[1] + t[1] * u + ny * v)}`
+    nicks += `M${c(-hw, -hl)}L${c(hw, -hl)}L${c(hw, hl)}L${c(-hw, hl)}Z`
   }
 
   return (
     `<defs>` +
-    `<linearGradient id="p" gradientUnits="userSpaceOnUse" x1="-50" y1="0" x2="250" y2="0"><stop offset="0" stop-color="#bdbdbd"/><stop offset="1" stop-color="#fff"/></linearGradient>` +
-    `<radialGradient id="v" gradientUnits="userSpaceOnUse" cx="100" cy="100" r="150"><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient>` +
+    `<linearGradient id="p" gradientUnits="userSpaceOnUse" x1="${f(left)}" y1="0" x2="${f(right)}" y2="0"><stop offset="0" stop-color="${grey(WEAK_KEEP)}"/><stop offset=".4" stop-color="#fff"/></linearGradient>` +
     `<mask id="m" maskUnits="userSpaceOnUse" x="-50" y="-50" width="300" height="300">` +
     `<rect x="-50" y="-50" width="300" height="300" fill="url(#p)"/>` +
-    `<rect x="-50" y="-50" width="300" height="300" fill="url(#v)"/>` +
-    `<path d="${grain}" fill="#000" fill-opacity=".55"/>` +
+    `<path d="${grain}" fill="#000" fill-opacity=".7"/>` +
     `<path d="${gaps}" fill="#000"/>` +
     `<path d="${nicks}" fill="#000"/>` +
     `</mask></defs>` +
@@ -73,36 +119,30 @@ export function impressionInner(): string {
   )
 }
 
-export function impressionSvg(): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${IMPRESSION_VIEWBOX}">${impressionInner()}</svg>\n`
+export function impressionSvg(shape: ShapeName): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${IMPRESSION_VIEWBOX}">${impressionInner(shape)}</svg>\n`
 }
 
 export type ImpressionTransform = {
   /** Offset of the texture in grid units (stamp is 200 wide). */
   dx: number
   dy: number
-  /** CSS rotation of the texture in degrees, (-180, 180]. */
+  /** CSS rotation of the texture in degrees: 0 or 180, so the nicks stay on the outer rule. */
   rotate: number
-  /** Direction of the heavy-pressure side in the stamp frame, [0, 360); 0 = right, 90 = down. */
+  /** Direction of the heavy-pressure side in the stamp frame, [0, 360); 0 = right, 180 = left. */
   pressureAngle: number
 }
 
 /**
- * Per-country placement of the shared texture. The pressure side is the side that is pressed down
- * by the rest tilt: the right edge for a clockwise (positive) tilt, the left edge otherwise, with a
- * small hashed deviation. Texture is heavy on +x, so rotating it by `pressureAngle` points it there.
+ * Per-country placement of the shape's texture. The pressure side is the side that is pressed down
+ * by the rest tilt: the right edge for a clockwise (positive) tilt, the left edge otherwise. The
+ * texture is heavy on +x, so it is turned by 0 or 180 degrees only (every frame is point-symmetric
+ * about the stamp centre), and the offset is small so the nicks stay on the outer rule.
  */
 export function impressionTransform(iso2: string, tilt: number): ImpressionTransform {
   const rand = mulberry32(hash32(`impression:${iso2.toUpperCase()}`))
-  const dx = Math.round((rand() * 2 - 1) * 12 * 10) / 10
-  const dy = Math.round((rand() * 2 - 1) * 12 * 10) / 10
-  const jitter = (rand() * 2 - 1) * 16
-  const pressureAngle = ((((tilt >= 0 ? 0 : 180) + jitter) % 360) + 360) % 360
-  const rotate = pressureAngle > 180 ? pressureAngle - 360 : pressureAngle
-  return {
-    dx,
-    dy,
-    rotate: Math.round(rotate * 10) / 10,
-    pressureAngle: Math.round(pressureAngle * 10) / 10,
-  }
+  const dx = Math.round((rand() * 2 - 1) * 1.5 * 10) / 10
+  const dy = Math.round((rand() * 2 - 1) * 1.5 * 10) / 10
+  const pressureAngle = tilt >= 0 ? 0 : 180
+  return { dx, dy, rotate: pressureAngle, pressureAngle }
 }

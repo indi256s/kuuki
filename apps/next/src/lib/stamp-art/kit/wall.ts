@@ -9,10 +9,11 @@ import {
   occlude,
   rectPts,
   stroke,
+  toneFill,
   vline,
 } from '../grid'
 import { hip } from './roof'
-import { type KitModule, bool, num, str, weight } from './util'
+import { type KitModule, num, str, weight } from './util'
 
 /** Stone courses with staggered joints inside a rectangle (hair weight). */
 export function masonry(
@@ -65,73 +66,111 @@ export const fortressWall: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Square tower in elevation: tapered shaft, courses, openings, optional hipped or battlement cap. */
+/**
+ * Square tower in elevation. The box is the shaft base width by the whole height. The shaft
+ * tapers to `taper` (0.9) of its base width; the crown storey (`crown`, a fraction of the height)
+ * projects 1.2 units per side over a bold course and carries two dark arched openings. Caps:
+ * `gable-low` (solid slate gable, height 0.25 of the crown width), `hip`, `battle`, `none`. The
+ * right `shade` (0.4) of the shaft is T4; one slit window per storey on the lit side.
+ */
 export const tower: KitModule = ([x, y, w, h], p) => {
-  const cap = str(p, 'cap', ['none', 'hip', 'battle'] as const, 'none')
-  const capH = h * num(p, 'capH', cap === 'none' ? 0 : 0.26)
-  const taper = num(p, 'taper', 0.05)
-  const over = num(p, 'overhang', 0.12)
-  const wt = weight(p, 'weight', 'line')
-  const shaftTop = y + capH
-  const shaftH = h - capH
-  const sw = w / (1 + (cap === 'none' ? 0 : over * 2))
-  const sx = x + (w - sw) / 2
-  const tp = sw * taper
-  const poly: Pt[] = [
-    [sx + tp, shaftTop],
-    [sx + sw - tp, shaftTop],
-    [sx + sw, y + h],
-    [sx, y + h],
+  const cap = str(p, 'cap', ['none', 'hip', 'battle', 'gable-low'] as const, 'gable-low')
+  const taper = num(p, 'taper', 0.9)
+  const project = num(p, 'project', 1.2)
+  const crownFrac = num(p, 'crown', cap === 'none' ? 0 : 0.13)
+  const cx = x + w / 2
+  const topW = w * taper
+  const crownW = topW + project * 2
+  const capH =
+    cap === 'gable-low'
+      ? crownW * num(p, 'gableH', 0.25)
+      : cap === 'none'
+        ? 0
+        : h * num(p, 'capH', 0.26)
+  const crownH = h * crownFrac
+  const shaftTop = y + capH + crownH
+  const bottom = y + h
+  const out: SvgNode[] = []
+  const shaft: Pt[] = [
+    [cx - topW / 2, shaftTop],
+    [cx + topW / 2, shaftTop],
+    [cx + w / 2, bottom],
+    [cx - w / 2, bottom],
   ]
-  const out: SvgNode[] = [
-    occlude(poly),
-    stroke(wt, poly, true),
-    stroke('bold', [
-      [sx, y + h],
-      [sx + sw, y + h],
-    ]),
-  ]
-  const courses = Math.round(num(p, 'courses', 0))
-  out.push(...masonry(sx + tp * 0.5, shaftTop, sw - tp, shaftH, courses, num(p, 'joints', 0)))
-  // Shaded face: tapering vertical hatch on the right.
-  if (bool(p, 'shade', true)) {
-    const gap = 2.8
-    for (let xx = sx + sw - 3; xx > sx + sw * 0.62; xx -= gap) {
-      const t = (sx + sw - xx) / (sw * 0.38)
+  out.push(...body(shaft, weight(p, 'weight', 'line')))
+  const half = (yy: number) => (topW + ((w - topW) * (yy - shaftTop)) / (bottom - shaftTop)) / 2
+  // Shaded right side of the shaft.
+  const shade = num(p, 'shade', 0.4)
+  if (shade > 0) {
+    const xl = (yy: number) => cx + half(yy) - w * shade * (half(yy) / (w / 2))
+    out.push(
+      ...toneFill(
+        [
+          [xl(shaftTop), shaftTop],
+          [cx + half(shaftTop), shaftTop],
+          [cx + half(bottom), bottom],
+          [xl(bottom), bottom],
+        ],
+        'T4',
+        { inset: 0.5 },
+      ),
+    )
+  }
+  // One slit window per storey, on the lit side.
+  const storeys = Math.max(0, Math.round(num(p, 'storeys', 3)))
+  const shaftH = bottom - shaftTop
+  for (let i = 0; i < storeys; i++) {
+    const yy = shaftTop + (shaftH * (i + 0.5)) / storeys - 2.4
+    const sx = cx - half(yy) + (half(yy) * 2 * (1 - shade)) / 2
+    out.push(fill(rectPts(sx - 1, yy, 2, Math.min(5, shaftH / storeys / 2.4))))
+  }
+  if (crownH > 0) {
+    // Crown storey over a bold course.
+    const crown = rectPts(cx - crownW / 2, y + capH, crownW, crownH)
+    out.push(...body(crown, 'line'))
+    out.push(
+      stroke('bold', [
+        [cx - crownW / 2 - 0.4, shaftTop],
+        [cx + crownW / 2 + 0.4, shaftTop],
+      ]),
+    )
+    const n = Math.max(0, Math.round(num(p, 'openings', 2)))
+    const ow = Math.min(crownW * 0.22, 4.4)
+    const oh = crownH * 0.62
+    for (let i = 0; i < n; i++) {
+      const ox = cx - crownW / 2 + (crownW * (i + 1)) / (n + 1) - ow / 2
+      const oy = y + capH + crownH * 0.2
       out.push(
-        vline('hair', xx, shaftTop + shaftH * (0.14 + 0.2 * t), y + h - 1.5 - shaftH * 0.1 * t),
+        fill([
+          [ox, oy + oh],
+          [ox, oy + ow / 2],
+          [ox + ow * 0.15, oy + ow * 0.15],
+          [ox + ow / 2, oy],
+          [ox + ow * 0.85, oy + ow * 0.15],
+          [ox + ow, oy + ow / 2],
+          [ox + ow, oy + oh],
+        ]),
       )
     }
   }
-  // Openings.
-  const rows = str(p, 'openings', ['none', 'slits', 'loggia', 'both'] as const, 'slits')
-  if (rows === 'slits' || rows === 'both') {
-    const n = Math.max(1, Math.round(num(p, 'slitRows', 2)))
-    for (let i = 0; i < n; i++) {
-      const yy = shaftTop + shaftH * (0.42 + (0.4 * i) / Math.max(1, n))
-      out.push(fill(rectPts(sx + sw * 0.32, yy, sw * 0.12, Math.min(7, shaftH * 0.1))))
-    }
-  }
-  if (rows === 'loggia' || rows === 'both') {
-    const n = Math.max(1, Math.round(num(p, 'loggia', 3)))
-    const lh = Math.min(shaftH * 0.12, 7)
-    const ly = shaftTop + shaftH * 0.1
-    const lw = sw * 0.16
-    const gap = (sw - tp * 2 - n * lw) / (n + 1)
-    for (let i = 0; i < n; i++) {
-      out.push(fill(rectPts(sx + tp + gap * (i + 1) + lw * i, ly, lw, lh)))
-    }
-  }
-  if (cap === 'hip') {
+  if (cap === 'gable-low') {
+    const over = project
+    const roof: Pt[] = [
+      [cx - crownW / 2 - over, y + capH],
+      [cx, y],
+      [cx + crownW / 2 + over, y + capH],
+    ]
+    out.push(occlude(roof), fill(roof), stroke('hair', roof, true))
+  } else if (cap === 'hip') {
     out.push(
-      ...hip([x, y, w, capH], {
+      ...hip([cx - crownW / 2 - 1, y, crownW + 2, capH], {
         ridge: num(p, 'ridge', 0.22),
         lines: Math.round(num(p, 'capLines', 3)),
       }),
     )
   } else if (cap === 'battle') {
     out.push(
-      ...fortressWall([x, y, w, capH], {
+      ...fortressWall([cx - crownW / 2, y, crownW, capH + crownH * 0.5], {
         merlons: Math.round(num(p, 'merlons', 4)),
         merlonH: 0.45,
         courses: 1,
