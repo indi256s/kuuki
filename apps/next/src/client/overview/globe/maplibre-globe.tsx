@@ -562,7 +562,7 @@ function ReplayFlightPlane({
     />
   )
 }
-const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'cover') =>
+const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'contain') =>
   globeZoom(
     map.getContainer().clientWidth,
     map.getContainer().clientHeight,
@@ -573,7 +573,7 @@ const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'co
 // Zoom out stops where the whole sphere shows and stays there; zoom in goes a few cities deep past the cover fit.
 // On a globe MapLibre applies both limits at the equator and corrects them for the center's latitude itself, so they are fitted at 0°.
 function setZoomLimits(map: LibreMap) {
-  map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE)
+  map.setMaxZoom(fitZoom(map, 0, 'cover') + GLOBE_ZOOM_RANGE)
   map.setMinZoom(fitZoom(map, 0, 'contain'))
 }
 function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {

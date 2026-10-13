@@ -1,21 +1,27 @@
 // @vitest-environment jsdom
 import type { ReactNode } from 'react'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
+import type { Map as LibreMap } from 'maplibre-gl'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
 import * as geometry from '../../maps/geometry'
+import { useMap } from '../../maps/mapcn'
 import { createUIBus } from '../store/ui-bus'
 import { createReplaySchedule } from './replay'
 import { MaplibreGlobe, type MaplibreGlobeProps } from './maplibre-globe'
 
 vi.mock('../../maps/mapcn', () => ({
   Map: ({ children }: { children: ReactNode }) => children,
-  useMap: () => ({ map: null, ready: false, themeRevision: 0 }),
+  useMap: vi.fn(() => ({ map: null, ready: false, themeRevision: 0 })),
 }))
-afterEach(() => vi.restoreAllMocks())
+vi.mock('./gestures', () => ({ attachGlobeGestures: vi.fn() }))
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+  vi.mocked(useMap).mockReturnValue({ map: null, ready: false, themeRevision: 0 })
+})
 
-it('reuses flown and upcoming great circles across filters and refreshes changed airport coordinates', () => {
-  const calculate = vi.spyOn(geometry, 'routeGeometry')
+function makeProps(): MaplibreGlobeProps {
   const all: GlobeData = {
     routes: [{ key: 'CDG-LHR', a: 'CDG', b: 'LHR', count: 12 }],
     ghosts: [{ id: 2, origin: 'LHR', destination: 'CDG', date: '2027-01-01' }],
@@ -28,7 +34,7 @@ it('reuses flown and upcoming great circles across filters and refreshes changed
     ghostRoutes: [],
     centroid: null,
   }
-  const props: MaplibreGlobeProps = {
+  return {
     globe: all,
     all,
     airports: {
@@ -54,6 +60,12 @@ it('reuses flown and upcoming great circles across filters and refreshes changed
     onReady: vi.fn(),
     onError: vi.fn(),
   }
+}
+
+it('reuses flown and upcoming great circles across filters and refreshes changed airport coordinates', () => {
+  const calculate = vi.spyOn(geometry, 'routeGeometry')
+  const props = makeProps()
+  const all = props.all
   const { rerender } = render(<MaplibreGlobe {...props} />)
   expect(calculate).toHaveBeenCalledTimes(2)
   expect(calculate.mock.results.every(({ value }) => value !== null)).toBe(true)
@@ -80,4 +92,69 @@ it('reuses flown and upcoming great circles across filters and refreshes changed
   )
   expect(calculate).toHaveBeenCalledTimes(4)
   expect(calculate).toHaveBeenLastCalledWith({ from: [-0.5, 51.47], to: [2.55, 49.01] })
+})
+
+it('keeps the whole globe inside the viewport on mount, filtering, resize and fullscreen', () => {
+  const container = { clientWidth: 358, clientHeight: 358 }
+  const fieldOfView = 36.86989764584402
+  let latitude = 45
+  let zoom = 0
+  let resize: (() => void) | undefined
+  const move = (camera: { center?: [number, number]; zoom: number }) => {
+    latitude = camera.center?.[1] ?? latitude
+    zoom = camera.zoom
+  }
+  const map = {
+    getContainer: () => container,
+    getVerticalFieldOfView: () => fieldOfView,
+    getCenter: () => ({ lat: latitude }),
+    setMaxZoom: vi.fn(),
+    setMinZoom: vi.fn(),
+    jumpTo: move,
+    flyTo: move,
+    on: (_event: string, handler: () => void) => {
+      resize = handler
+    },
+    off: vi.fn(),
+  }
+  vi.mocked(useMap).mockReturnValue({
+    map: map as unknown as LibreMap,
+    ready: true,
+    themeRevision: 0,
+  })
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise(() => {})),
+  )
+  vi.stubGlobal('matchMedia', () => ({ matches: false }))
+  const props = { ...makeProps(), active: true }
+  const { rerender, unmount } = render(<MaplibreGlobe {...props} />)
+  const expectContained = () => {
+    const radius = (512 * 2 ** zoom) / (2 * Math.PI * Math.cos((latitude * Math.PI) / 180))
+    const distance = container.clientHeight / (2 * Math.tan((fieldOfView * Math.PI) / 360))
+    const apparentRadius = (distance * radius) / Math.sqrt((distance + radius) ** 2 - radius ** 2)
+    expect(apparentRadius).toBeCloseTo(
+      Math.min(container.clientWidth, container.clientHeight) / 2 - 16,
+      8,
+    )
+  }
+  expectContained()
+  rerender(
+    <MaplibreGlobe
+      {...props}
+      filter={{ countries: ['GB'] }}
+      globe={{ ...props.globe, centroid: { lat: 70, lon: 0 } }}
+      reduced={false}
+    />,
+  )
+  expectContained()
+  container.clientWidth = 960
+  container.clientHeight = 520
+  act(() => resize?.())
+  expectContained()
+  container.clientWidth = 390
+  container.clientHeight = 844
+  rerender(<MaplibreGlobe {...props} fullscreen />)
+  expectContained()
+  unmount()
 })

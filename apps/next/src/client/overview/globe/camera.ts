@@ -1,14 +1,14 @@
 /**
  * The zoom at which the perspective sphere has a given on-screen size. MapLibre uses 512px tiles.
- * `cover` fills the whole viewport, corners included: the resting view. `contain` shows the whole sphere with a
- * 16px margin: the furthest the reader may zoom out.
+ * `contain` shows the whole sphere with a 16px margin: the resting view and zoom-out limit.
+ * `cover` fills the whole viewport, corners included, and anchors the zoom-in limit.
  */
 export function globeZoom(
   width: number,
   height: number,
   latitude: number,
   fieldOfView: number,
-  fit: 'cover' | 'contain' = 'cover',
+  fit: 'cover' | 'contain' = 'contain',
 ): number {
   latitude = Math.max(-85.051129, Math.min(85.051129, latitude))
   const distance = height / (2 * Math.tan((fieldOfView * Math.PI) / 360))
