@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from '@keyline-icons/react'
-import { type MakerKey } from '@kuuki/data/aircraft-makers'
+import { MAKER_NAMES, type MakerKey } from '@kuuki/data/aircraft-makers'
 import { formatDuration } from '../../../../lib/format'
 import { MakerSwatch } from '../../../ui/category-mark'
 import { Disclosure } from '../../../ui/disclosure'
@@ -16,9 +16,7 @@ export const makerName = (key: MakerKey, locale: 'en' | 'ru') =>
     ? copy(locale, 'Other', 'Другие')
     : key === 'unknown'
       ? copy(locale, 'Unknown', 'Неизвестно')
-      : key === 'atr'
-        ? 'ATR'
-        : key[0].toUpperCase() + key.slice(1)
+      : MAKER_NAMES[key]
 
 /** Details of the Aircraft card: every manufacturer with its flights, distance and time, the families folded into Other, and the review of flights still missing an aircraft. A manufacturer toggles its filter. */
 export function ManufacturersDetails() {

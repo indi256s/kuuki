@@ -3,7 +3,7 @@
 import './gallery.css'
 import { Archive, CircleCheck, Plane, Bin2 as Trash2 } from '@keyline-icons/react'
 import { useEffect, useState } from 'react'
-import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
+import { MAKER_NAMES, MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { ALLIANCES } from '@kuuki/data/alliance-membership'
 import { setTheme } from '../../../client/appearance'
 import { AllianceMark, MakerSwatch } from '../../../client/ui/category-mark'
@@ -392,16 +392,11 @@ function Sections({
           {MAKER_SLOTS.map((maker) => (
             <span key={maker} className="ui-category-label">
               <MakerSwatch maker={maker} />
-              {
-                {
-                  airbus: 'Airbus',
-                  boeing: 'Boeing',
-                  embraer: 'Embraer',
-                  atr: 'ATR',
-                  other: t('Other', 'Другие'),
-                  unknown: t('Unknown', 'Неизвестно'),
-                }[maker]
-              }
+              {maker === 'other'
+                ? t('Other', 'Другие')
+                : maker === 'unknown'
+                  ? t('Unknown', 'Неизвестно')
+                  : MAKER_NAMES[maker]}
             </span>
           ))}
         </div>

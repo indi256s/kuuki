@@ -172,3 +172,12 @@ it('non-string layout ids are dropped without resetting the rest of the stored p
   expect(prefs.filter).toEqual({ countries: ['JP'] })
   expect(prefs.layout.order[0]).toBe('clock')
 })
+
+it('preserves reference-manufacturer filters when saving and reloading preferences', () => {
+  const prefs = {
+    ...DEFAULT_PREFS,
+    filter: { makers: ['bombardier', 'de-havilland', 'sukhoi'] },
+  }
+  expect(overviewPrefsSchema.safeParse(prefs).success).toBe(true)
+  expect(parsePrefs(JSON.stringify(prefs)).filter).toEqual(prefs.filter)
+})

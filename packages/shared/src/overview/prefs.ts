@@ -1,3 +1,4 @@
+import { MAKER_SLOTS } from '../../../data/src/aircraft-makers'
 import { z } from 'zod'
 import { periodDays } from './range'
 import type { OverviewFilter } from './model'
@@ -46,7 +47,7 @@ const filterSchema = z.strictObject({
   airports: strings.optional(),
   families: strings.optional(),
   alliances: z.array(z.enum(['star', 'oneworld', 'skyteam'])).optional(),
-  makers: z.array(z.enum(['airbus', 'boeing', 'embraer', 'atr', 'other', 'unknown'])).optional(),
+  makers: z.array(z.enum(MAKER_SLOTS)).optional(),
   bodies: z.array(z.enum(['narrow', 'wide'])).optional(),
   depHours: z.array(z.number().int().min(0).max(23)).optional(),
   arrHours: z.array(z.number().int().min(0).max(23)).optional(),
