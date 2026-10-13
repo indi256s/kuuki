@@ -7,6 +7,7 @@ import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stampFiles } from '../apps/next/src/lib/stamp-art/build'
+import { stampIndexJson } from '../apps/next/src/lib/stamp-art/stamp-index'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 export const STAMPS_DIR = join(ROOT, 'apps', 'next', 'public', 'stamps')
@@ -27,4 +28,19 @@ for (const name of readdirSync(STAMPS_DIR)) {
     console.log(`removed stale ${name}`)
   }
 }
+const INDEX_PATH = join(
+  ROOT,
+  'apps',
+  'next',
+  'src',
+  'lib',
+  'stamp-art',
+  'stamp-index.generated.json',
+)
+const index = stampIndexJson()
+let currentIndex: string | null = null
+try {
+  currentIndex = readFileSync(INDEX_PATH, 'utf8')
+} catch {}
+if (currentIndex !== index) writeFileSync(INDEX_PATH, index)
 console.log(`stamps: wrote ${Object.keys(files).length} files`)

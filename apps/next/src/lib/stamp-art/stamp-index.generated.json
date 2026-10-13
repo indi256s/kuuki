@@ -1,0 +1,3692 @@
+{
+  "AD": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "AND",
+    "name": {
+      "en": "Andorra",
+      "ru": "Андорра"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Andorra",
+      "ru": "Андорра"
+    },
+    "tier": "fallback"
+  },
+  "AE": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "ARE",
+    "name": {
+      "en": "United Arab Emirates",
+      "ru": "ОАЭ"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "United Arab Emirates",
+      "ru": "ОАЭ"
+    },
+    "tier": "fallback"
+  },
+  "AF": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "AFG",
+    "name": {
+      "en": "Afghanistan",
+      "ru": "Афганистан"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Afghanistan",
+      "ru": "Афганистан"
+    },
+    "tier": "fallback"
+  },
+  "AG": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "ATG",
+    "name": {
+      "en": "Antigua & Barbuda",
+      "ru": "Антигуа и Барбуда"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Antigua & Barbuda",
+      "ru": "Антигуа и Барбуда"
+    },
+    "tier": "fallback"
+  },
+  "AI": {
+    "cluster": "ship",
+    "ink": "plum",
+    "iso3": "AIA",
+    "name": {
+      "en": "Anguilla",
+      "ru": "Ангилья"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Anguilla",
+      "ru": "Ангилья"
+    },
+    "tier": "fallback"
+  },
+  "AL": {
+    "cluster": "hill-town",
+    "ink": "plum",
+    "iso3": "ALB",
+    "name": {
+      "en": "Albania",
+      "ru": "Албания"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Albania",
+      "ru": "Албания"
+    },
+    "tier": "fallback"
+  },
+  "AM": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "ARM",
+    "name": {
+      "en": "Armenia",
+      "ru": "Армения"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Armenia",
+      "ru": "Армения"
+    },
+    "tier": "engraved"
+  },
+  "AO": {
+    "cluster": "waterfall",
+    "ink": "teal",
+    "iso3": "AGO",
+    "name": {
+      "en": "Angola",
+      "ru": "Ангола"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Angola",
+      "ru": "Ангола"
+    },
+    "tier": "fallback"
+  },
+  "AQ": {
+    "cluster": "station",
+    "ink": "plum",
+    "iso3": "ATA",
+    "name": {
+      "en": "Antarctica",
+      "ru": "Антарктида"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Antarctica",
+      "ru": "Антарктида"
+    },
+    "tier": "fallback"
+  },
+  "AR": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "ARG",
+    "name": {
+      "en": "Argentina",
+      "ru": "Аргентина"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Argentina",
+      "ru": "Аргентина"
+    },
+    "tier": "fallback"
+  },
+  "AS": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "ASM",
+    "name": {
+      "en": "American Samoa",
+      "ru": "Американское Самоа"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "American Samoa",
+      "ru": "Американское Самоа"
+    },
+    "tier": "fallback"
+  },
+  "AT": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "AUT",
+    "name": {
+      "en": "Austria",
+      "ru": "Австрия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Austria",
+      "ru": "Австрия"
+    },
+    "tier": "fallback"
+  },
+  "AU": {
+    "cluster": "bridge",
+    "ink": "slate",
+    "iso3": "AUS",
+    "name": {
+      "en": "Australia",
+      "ru": "Австралия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Australia",
+      "ru": "Австралия"
+    },
+    "tier": "fallback"
+  },
+  "AW": {
+    "cluster": "lighthouse",
+    "ink": "slate",
+    "iso3": "ABW",
+    "name": {
+      "en": "Aruba",
+      "ru": "Аруба"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Aruba",
+      "ru": "Аруба"
+    },
+    "tier": "fallback"
+  },
+  "AZ": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "AZE",
+    "name": {
+      "en": "Azerbaijan",
+      "ru": "Азербайджан"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Azerbaijan",
+      "ru": "Азербайджан"
+    },
+    "tier": "fallback"
+  },
+  "BA": {
+    "cluster": "bridge",
+    "ink": "moss",
+    "iso3": "BIH",
+    "name": {
+      "en": "Bosnia & Herzegovina",
+      "ru": "Босния и Герцеговина"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Bosnia",
+      "ru": "Босния и Герцеговина"
+    },
+    "tier": "fallback"
+  },
+  "BB": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "BRB",
+    "name": {
+      "en": "Barbados",
+      "ru": "Барбадос"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Barbados",
+      "ru": "Барбадос"
+    },
+    "tier": "fallback"
+  },
+  "BD": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "BGD",
+    "name": {
+      "en": "Bangladesh",
+      "ru": "Бангладеш"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Bangladesh",
+      "ru": "Бангладеш"
+    },
+    "tier": "fallback"
+  },
+  "BE": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "BEL",
+    "name": {
+      "en": "Belgium",
+      "ru": "Бельгия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Belgium",
+      "ru": "Бельгия"
+    },
+    "tier": "fallback"
+  },
+  "BF": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "BFA",
+    "name": {
+      "en": "Burkina Faso",
+      "ru": "Буркина-Фасо"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Burkina Faso",
+      "ru": "Буркина-Фасо"
+    },
+    "tier": "fallback"
+  },
+  "BG": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "BGR",
+    "name": {
+      "en": "Bulgaria",
+      "ru": "Болгария"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Bulgaria",
+      "ru": "Болгария"
+    },
+    "tier": "fallback"
+  },
+  "BH": {
+    "cluster": "gulf-fort",
+    "ink": "teal",
+    "iso3": "BHR",
+    "name": {
+      "en": "Bahrain",
+      "ru": "Бахрейн"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Bahrain",
+      "ru": "Бахрейн"
+    },
+    "tier": "fallback"
+  },
+  "BI": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "BDI",
+    "name": {
+      "en": "Burundi",
+      "ru": "Бурунди"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Burundi",
+      "ru": "Бурунди"
+    },
+    "tier": "fallback"
+  },
+  "BJ": {
+    "cluster": "stilts",
+    "ink": "plum",
+    "iso3": "BEN",
+    "name": {
+      "en": "Benin",
+      "ru": "Бенин"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Benin",
+      "ru": "Бенин"
+    },
+    "tier": "fallback"
+  },
+  "BL": {
+    "cluster": "lighthouse",
+    "ink": "moss",
+    "iso3": "BLM",
+    "name": {
+      "en": "St. Barthélemy",
+      "ru": "Сен-Бартелеми"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "St. Barthélemy",
+      "ru": "Сен-Бартелеми"
+    },
+    "tier": "fallback"
+  },
+  "BM": {
+    "cluster": "lighthouse",
+    "ink": "plum",
+    "iso3": "BMU",
+    "name": {
+      "en": "Bermuda",
+      "ru": "Бермудские о-ва"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Bermuda",
+      "ru": "Бермудские о-ва"
+    },
+    "tier": "fallback"
+  },
+  "BN": {
+    "cluster": "stilts",
+    "ink": "teal",
+    "iso3": "BRN",
+    "name": {
+      "en": "Brunei",
+      "ru": "Бруней"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Brunei",
+      "ru": "Бруней"
+    },
+    "tier": "fallback"
+  },
+  "BO": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "BOL",
+    "name": {
+      "en": "Bolivia",
+      "ru": "Боливия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Bolivia",
+      "ru": "Боливия"
+    },
+    "tier": "fallback"
+  },
+  "BR": {
+    "cluster": "twin-peak",
+    "ink": "slate",
+    "iso3": "BRA",
+    "name": {
+      "en": "Brazil",
+      "ru": "Бразилия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Brazil",
+      "ru": "Бразилия"
+    },
+    "tier": "fallback"
+  },
+  "BS": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "BHS",
+    "name": {
+      "en": "Bahamas",
+      "ru": "Багамы"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Bahamas",
+      "ru": "Багамы"
+    },
+    "tier": "fallback"
+  },
+  "BT": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "BTN",
+    "name": {
+      "en": "Bhutan",
+      "ru": "Бутан"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Bhutan",
+      "ru": "Бутан"
+    },
+    "tier": "fallback"
+  },
+  "BW": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "BWA",
+    "name": {
+      "en": "Botswana",
+      "ru": "Ботсвана"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Botswana",
+      "ru": "Ботсвана"
+    },
+    "tier": "fallback"
+  },
+  "BY": {
+    "cluster": "castle",
+    "ink": "ochre-dark",
+    "iso3": "BLR",
+    "name": {
+      "en": "Belarus",
+      "ru": "Беларусь"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Belarus",
+      "ru": "Беларусь"
+    },
+    "tier": "fallback"
+  },
+  "BZ": {
+    "cluster": "pyramid",
+    "ink": "oxblood",
+    "iso3": "BLZ",
+    "name": {
+      "en": "Belize",
+      "ru": "Белиз"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Belize",
+      "ru": "Белиз"
+    },
+    "tier": "fallback"
+  },
+  "CA": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "CAN",
+    "name": {
+      "en": "Canada",
+      "ru": "Канада"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Canada",
+      "ru": "Канада"
+    },
+    "tier": "fallback"
+  },
+  "CC": {
+    "cluster": "atoll",
+    "ink": "moss",
+    "iso3": "CCK",
+    "name": {
+      "en": "Cocos (Keeling) Islands",
+      "ru": "Кокосовые о-ва"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Cocos Islands",
+      "ru": "Кокосовые о-ва"
+    },
+    "tier": "fallback"
+  },
+  "CD": {
+    "cluster": "river-quay",
+    "ink": "plum",
+    "iso3": "COD",
+    "name": {
+      "en": "Congo - Kinshasa",
+      "ru": "Конго - Киншаса"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Congo - Kinshasa",
+      "ru": "Конго - Киншаса"
+    },
+    "tier": "fallback"
+  },
+  "CF": {
+    "cluster": "river-quay",
+    "ink": "teal",
+    "iso3": "CAF",
+    "name": {
+      "en": "Central African Republic",
+      "ru": "Центрально-Африканская Республика"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Central African Republic",
+      "ru": "Центрально-Африканская Республика"
+    },
+    "tier": "fallback"
+  },
+  "CG": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "COG",
+    "name": {
+      "en": "Congo - Brazzaville",
+      "ru": "Конго - Браззавиль"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Congo - Brazzaville",
+      "ru": "Конго - Браззавиль"
+    },
+    "tier": "fallback"
+  },
+  "CH": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "CHE",
+    "name": {
+      "en": "Switzerland",
+      "ru": "Швейцария"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Switzerland",
+      "ru": "Швейцария"
+    },
+    "tier": "fallback"
+  },
+  "CI": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "CIV",
+    "name": {
+      "en": "Côte d’Ivoire",
+      "ru": "Кот-д’Ивуар"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Côte d’Ivoire",
+      "ru": "Кот-д’Ивуар"
+    },
+    "tier": "fallback"
+  },
+  "CK": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "COK",
+    "name": {
+      "en": "Cook Islands",
+      "ru": "о-ва Кука"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Cook Islands",
+      "ru": "о-ва Кука"
+    },
+    "tier": "fallback"
+  },
+  "CL": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "CHL",
+    "name": {
+      "en": "Chile",
+      "ru": "Чили"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Chile",
+      "ru": "Чили"
+    },
+    "tier": "fallback"
+  },
+  "CM": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "CMR",
+    "name": {
+      "en": "Cameroon",
+      "ru": "Камерун"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Cameroon",
+      "ru": "Камерун"
+    },
+    "tier": "fallback"
+  },
+  "CN": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "CHN",
+    "name": {
+      "en": "China",
+      "ru": "Китай"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "China",
+      "ru": "Китай"
+    },
+    "tier": "fallback"
+  },
+  "CO": {
+    "cluster": "fort",
+    "ink": "indigo",
+    "iso3": "COL",
+    "name": {
+      "en": "Colombia",
+      "ru": "Колумбия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Colombia",
+      "ru": "Колумбия"
+    },
+    "tier": "fallback"
+  },
+  "CR": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "CRI",
+    "name": {
+      "en": "Costa Rica",
+      "ru": "Коста-Рика"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Costa Rica",
+      "ru": "Коста-Рика"
+    },
+    "tier": "fallback"
+  },
+  "CU": {
+    "cluster": "fort",
+    "ink": "oxblood",
+    "iso3": "CUB",
+    "name": {
+      "en": "Cuba",
+      "ru": "Куба"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Cuba",
+      "ru": "Куба"
+    },
+    "tier": "fallback"
+  },
+  "CV": {
+    "cluster": "volcano",
+    "ink": "plum",
+    "iso3": "CPV",
+    "name": {
+      "en": "Cape Verde",
+      "ru": "Кабо-Верде"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Cape Verde",
+      "ru": "Кабо-Верде"
+    },
+    "tier": "fallback"
+  },
+  "CW": {
+    "cluster": "stepped-gable",
+    "ink": "moss",
+    "iso3": "CUW",
+    "name": {
+      "en": "Curaçao",
+      "ru": "Кюрасао"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Curaçao",
+      "ru": "Кюрасао"
+    },
+    "tier": "fallback"
+  },
+  "CX": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "CXR",
+    "name": {
+      "en": "Christmas Island",
+      "ru": "о-в Рождества"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Christmas Island",
+      "ru": "о-в Рождества"
+    },
+    "tier": "fallback"
+  },
+  "CY": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "CYP",
+    "name": {
+      "en": "Cyprus",
+      "ru": "Кипр"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Cyprus",
+      "ru": "Кипр"
+    },
+    "tier": "fallback"
+  },
+  "CZ": {
+    "cluster": "bridge",
+    "ink": "plum",
+    "iso3": "CZE",
+    "name": {
+      "en": "Czechia",
+      "ru": "Чехия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Czechia",
+      "ru": "Чехия"
+    },
+    "tier": "fallback"
+  },
+  "DE": {
+    "cluster": "triumphal-arch",
+    "ink": "umber",
+    "iso3": "DEU",
+    "name": {
+      "en": "Germany",
+      "ru": "Германия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Germany",
+      "ru": "Германия"
+    },
+    "tier": "engraved"
+  },
+  "DJ": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "DJI",
+    "name": {
+      "en": "Djibouti",
+      "ru": "Джибути"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Djibouti",
+      "ru": "Джибути"
+    },
+    "tier": "fallback"
+  },
+  "DK": {
+    "cluster": "castle",
+    "ink": "indigo",
+    "iso3": "DNK",
+    "name": {
+      "en": "Denmark",
+      "ru": "Дания"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Denmark",
+      "ru": "Дания"
+    },
+    "tier": "fallback"
+  },
+  "DM": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "DMA",
+    "name": {
+      "en": "Dominica",
+      "ru": "Доминика"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Dominica",
+      "ru": "Доминика"
+    },
+    "tier": "fallback"
+  },
+  "DO": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "DOM",
+    "name": {
+      "en": "Dominican Republic",
+      "ru": "Доминиканская Республика"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Dominican Republic",
+      "ru": "Доминиканская Республика"
+    },
+    "tier": "fallback"
+  },
+  "DZ": {
+    "cluster": "hill-town",
+    "ink": "teal",
+    "iso3": "DZA",
+    "name": {
+      "en": "Algeria",
+      "ru": "Алжир"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Algeria",
+      "ru": "Алжир"
+    },
+    "tier": "fallback"
+  },
+  "EC": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "ECU",
+    "name": {
+      "en": "Ecuador",
+      "ru": "Эквадор"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Ecuador",
+      "ru": "Эквадор"
+    },
+    "tier": "fallback"
+  },
+  "EE": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "EST",
+    "name": {
+      "en": "Estonia",
+      "ru": "Эстония"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Estonia",
+      "ru": "Эстония"
+    },
+    "tier": "fallback"
+  },
+  "EG": {
+    "cluster": "pyramid",
+    "ink": "slate",
+    "iso3": "EGY",
+    "name": {
+      "en": "Egypt",
+      "ru": "Египет"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Egypt",
+      "ru": "Египет"
+    },
+    "tier": "fallback"
+  },
+  "EH": {
+    "cluster": "dunes",
+    "ink": "umber",
+    "iso3": "ESH",
+    "name": {
+      "en": "Western Sahara",
+      "ru": "Западная Сахара"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Western Sahara",
+      "ru": "Западная Сахара"
+    },
+    "tier": "fallback"
+  },
+  "ER": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "ERI",
+    "name": {
+      "en": "Eritrea",
+      "ru": "Эритрея"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Eritrea",
+      "ru": "Эритрея"
+    },
+    "tier": "fallback"
+  },
+  "ES": {
+    "cluster": "castle",
+    "ink": "oxblood",
+    "iso3": "ESP",
+    "name": {
+      "en": "Spain",
+      "ru": "Испания"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Spain",
+      "ru": "Испания"
+    },
+    "tier": "fallback"
+  },
+  "ET": {
+    "cluster": "castle",
+    "ink": "slate",
+    "iso3": "ETH",
+    "name": {
+      "en": "Ethiopia",
+      "ru": "Эфиопия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Ethiopia",
+      "ru": "Эфиопия"
+    },
+    "tier": "fallback"
+  },
+  "FI": {
+    "cluster": "fort",
+    "ink": "slate",
+    "iso3": "FIN",
+    "name": {
+      "en": "Finland",
+      "ru": "Финляндия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Finland",
+      "ru": "Финляндия"
+    },
+    "tier": "fallback"
+  },
+  "FJ": {
+    "cluster": "thatched-house",
+    "ink": "indigo",
+    "iso3": "FJI",
+    "name": {
+      "en": "Fiji",
+      "ru": "Фиджи"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Fiji",
+      "ru": "Фиджи"
+    },
+    "tier": "fallback"
+  },
+  "FK": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "FLK",
+    "name": {
+      "en": "Falkland Islands",
+      "ru": "Фолклендские о-ва"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Falkland Islands",
+      "ru": "Фолклендские о-ва"
+    },
+    "tier": "fallback"
+  },
+  "FM": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "FSM",
+    "name": {
+      "en": "Micronesia",
+      "ru": "Федеративные Штаты Микронезии"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Micronesia",
+      "ru": "Федеративные Штаты Микронезии"
+    },
+    "tier": "fallback"
+  },
+  "FO": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "FRO",
+    "name": {
+      "en": "Faroe Islands",
+      "ru": "Фарерские о-ва"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Faroe Islands",
+      "ru": "Фарерские о-ва"
+    },
+    "tier": "fallback"
+  },
+  "FR": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "FRA",
+    "name": {
+      "en": "France",
+      "ru": "Франция"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "France",
+      "ru": "Франция"
+    },
+    "tier": "fallback"
+  },
+  "GA": {
+    "cluster": "waterfall",
+    "ink": "umber",
+    "iso3": "GAB",
+    "name": {
+      "en": "Gabon",
+      "ru": "Габон"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Gabon",
+      "ru": "Габон"
+    },
+    "tier": "fallback"
+  },
+  "GB": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "GBR",
+    "name": {
+      "en": "United Kingdom",
+      "ru": "Великобритания"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "UK",
+      "ru": "Британия"
+    },
+    "tier": "fallback"
+  },
+  "GD": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "GRD",
+    "name": {
+      "en": "Grenada",
+      "ru": "Гренада"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Grenada",
+      "ru": "Гренада"
+    },
+    "tier": "fallback"
+  },
+  "GE": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "GEO",
+    "name": {
+      "en": "Georgia",
+      "ru": "Грузия"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Georgia",
+      "ru": "Грузия"
+    },
+    "tier": "engraved"
+  },
+  "GF": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "GUF",
+    "name": {
+      "en": "French Guiana",
+      "ru": "Французская Гвиана"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "French Guiana",
+      "ru": "Французская Гвиана"
+    },
+    "tier": "fallback"
+  },
+  "GG": {
+    "cluster": "castle",
+    "ink": "moss",
+    "iso3": "GGY",
+    "name": {
+      "en": "Guernsey",
+      "ru": "Гернси"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Guernsey",
+      "ru": "Гернси"
+    },
+    "tier": "fallback"
+  },
+  "GH": {
+    "cluster": "triumphal-arch",
+    "ink": "ochre-dark",
+    "iso3": "GHA",
+    "name": {
+      "en": "Ghana",
+      "ru": "Гана"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Ghana",
+      "ru": "Гана"
+    },
+    "tier": "fallback"
+  },
+  "GI": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "GIB",
+    "name": {
+      "en": "Gibraltar",
+      "ru": "Гибралтар"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Gibraltar",
+      "ru": "Гибралтар"
+    },
+    "tier": "fallback"
+  },
+  "GL": {
+    "cluster": "ice",
+    "ink": "indigo",
+    "iso3": "GRL",
+    "name": {
+      "en": "Greenland",
+      "ru": "Гренландия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Greenland",
+      "ru": "Гренландия"
+    },
+    "tier": "fallback"
+  },
+  "GM": {
+    "cluster": "megalith",
+    "ink": "ochre-dark",
+    "iso3": "GMB",
+    "name": {
+      "en": "Gambia",
+      "ru": "Гамбия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Gambia",
+      "ru": "Гамбия"
+    },
+    "tier": "fallback"
+  },
+  "GN": {
+    "cluster": "palm-island",
+    "ink": "ochre-dark",
+    "iso3": "GIN",
+    "name": {
+      "en": "Guinea",
+      "ru": "Гвинея"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Guinea",
+      "ru": "Гвинея"
+    },
+    "tier": "fallback"
+  },
+  "GP": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "GLP",
+    "name": {
+      "en": "Guadeloupe",
+      "ru": "Гваделупа"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Guadeloupe",
+      "ru": "Гваделупа"
+    },
+    "tier": "fallback"
+  },
+  "GQ": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "GNQ",
+    "name": {
+      "en": "Equatorial Guinea",
+      "ru": "Экваториальная Гвинея"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Equatorial Guinea",
+      "ru": "Экваториальная Гвинея"
+    },
+    "tier": "fallback"
+  },
+  "GR": {
+    "cluster": "classical-ruin",
+    "ink": "teal",
+    "iso3": "GRC",
+    "name": {
+      "en": "Greece",
+      "ru": "Греция"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Greece",
+      "ru": "Греция"
+    },
+    "tier": "fallback"
+  },
+  "GS": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "SGS",
+    "name": {
+      "en": "South Georgia & South Sandwich Islands",
+      "ru": "Южная Георгия и Южные Сандвичевы о-ва"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "South Georgia & South Sandwich Islands",
+      "ru": "Южная Георгия и Южные Сандвичевы о-ва"
+    },
+    "tier": "fallback"
+  },
+  "GT": {
+    "cluster": "pyramid",
+    "ink": "moss",
+    "iso3": "GTM",
+    "name": {
+      "en": "Guatemala",
+      "ru": "Гватемала"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Guatemala",
+      "ru": "Гватемала"
+    },
+    "tier": "fallback"
+  },
+  "GU": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "GUM",
+    "name": {
+      "en": "Guam",
+      "ru": "Гуам"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Guam",
+      "ru": "Гуам"
+    },
+    "tier": "fallback"
+  },
+  "GW": {
+    "cluster": "palm-island",
+    "ink": "indigo",
+    "iso3": "GNB",
+    "name": {
+      "en": "Guinea-Bissau",
+      "ru": "Гвинея-Бисау"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Guinea-Bissau",
+      "ru": "Гвинея-Бисау"
+    },
+    "tier": "fallback"
+  },
+  "GY": {
+    "cluster": "waterfall",
+    "ink": "ochre-dark",
+    "iso3": "GUY",
+    "name": {
+      "en": "Guyana",
+      "ru": "Гайана"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Guyana",
+      "ru": "Гайана"
+    },
+    "tier": "fallback"
+  },
+  "HK": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "HKG",
+    "name": {
+      "en": "Hong Kong SAR China",
+      "ru": "Гонконг (САР)"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Hong Kong",
+      "ru": "Гонконг"
+    },
+    "tier": "fallback"
+  },
+  "HN": {
+    "cluster": "pyramid",
+    "ink": "plum",
+    "iso3": "HND",
+    "name": {
+      "en": "Honduras",
+      "ru": "Гондурас"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Honduras",
+      "ru": "Гондурас"
+    },
+    "tier": "fallback"
+  },
+  "HR": {
+    "cluster": "sea-wall",
+    "ink": "slate",
+    "iso3": "HRV",
+    "name": {
+      "en": "Croatia",
+      "ru": "Хорватия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Croatia",
+      "ru": "Хорватия"
+    },
+    "tier": "fallback"
+  },
+  "HT": {
+    "cluster": "fort",
+    "ink": "moss",
+    "iso3": "HTI",
+    "name": {
+      "en": "Haiti",
+      "ru": "Гаити"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Haiti",
+      "ru": "Гаити"
+    },
+    "tier": "fallback"
+  },
+  "HU": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "HUN",
+    "name": {
+      "en": "Hungary",
+      "ru": "Венгрия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Hungary",
+      "ru": "Венгрия"
+    },
+    "tier": "fallback"
+  },
+  "ID": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "IDN",
+    "name": {
+      "en": "Indonesia",
+      "ru": "Индонезия"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Indonesia",
+      "ru": "Индонезия"
+    },
+    "tier": "fallback"
+  },
+  "IE": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "IRL",
+    "name": {
+      "en": "Ireland",
+      "ru": "Ирландия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Ireland",
+      "ru": "Ирландия"
+    },
+    "tier": "fallback"
+  },
+  "IL": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "ISR",
+    "name": {
+      "en": "Israel",
+      "ru": "Израиль"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Israel",
+      "ru": "Израиль"
+    },
+    "tier": "fallback"
+  },
+  "IM": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "IMN",
+    "name": {
+      "en": "Isle of Man",
+      "ru": "о-в Мэн"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Isle of Man",
+      "ru": "о-в Мэн"
+    },
+    "tier": "fallback"
+  },
+  "IN": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "IND",
+    "name": {
+      "en": "India",
+      "ru": "Индия"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "India",
+      "ru": "Индия"
+    },
+    "tier": "fallback"
+  },
+  "IO": {
+    "cluster": "atoll",
+    "ink": "plum",
+    "iso3": "IOT",
+    "name": {
+      "en": "British Indian Ocean Territory",
+      "ru": "Британская территория в Индийском океане"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "British Indian Ocean Territory",
+      "ru": "Британская территория в Индийском океане"
+    },
+    "tier": "fallback"
+  },
+  "IQ": {
+    "cluster": "pyramid",
+    "ink": "teal",
+    "iso3": "IRQ",
+    "name": {
+      "en": "Iraq",
+      "ru": "Ирак"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Iraq",
+      "ru": "Ирак"
+    },
+    "tier": "fallback"
+  },
+  "IR": {
+    "cluster": "classical-ruin",
+    "ink": "umber",
+    "iso3": "IRN",
+    "name": {
+      "en": "Iran",
+      "ru": "Иран"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Iran",
+      "ru": "Иран"
+    },
+    "tier": "fallback"
+  },
+  "IS": {
+    "cluster": "waterfall",
+    "ink": "indigo",
+    "iso3": "ISL",
+    "name": {
+      "en": "Iceland",
+      "ru": "Исландия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Iceland",
+      "ru": "Исландия"
+    },
+    "tier": "fallback"
+  },
+  "IT": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "ITA",
+    "name": {
+      "en": "Italy",
+      "ru": "Италия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Italy",
+      "ru": "Италия"
+    },
+    "tier": "fallback"
+  },
+  "JE": {
+    "cluster": "castle",
+    "ink": "plum",
+    "iso3": "JEY",
+    "name": {
+      "en": "Jersey",
+      "ru": "Джерси"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Jersey",
+      "ru": "Джерси"
+    },
+    "tier": "fallback"
+  },
+  "JM": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "JAM",
+    "name": {
+      "en": "Jamaica",
+      "ru": "Ямайка"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Jamaica",
+      "ru": "Ямайка"
+    },
+    "tier": "fallback"
+  },
+  "JO": {
+    "cluster": "rock-cut",
+    "ink": "umber",
+    "iso3": "JOR",
+    "name": {
+      "en": "Jordan",
+      "ru": "Иордания"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Jordan",
+      "ru": "Иордания"
+    },
+    "tier": "fallback"
+  },
+  "JP": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "JPN",
+    "name": {
+      "en": "Japan",
+      "ru": "Япония"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Japan",
+      "ru": "Япония"
+    },
+    "tier": "engraved"
+  },
+  "KE": {
+    "cluster": "twin-peak",
+    "ink": "moss",
+    "iso3": "KEN",
+    "name": {
+      "en": "Kenya",
+      "ru": "Кения"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Kenya",
+      "ru": "Кения"
+    },
+    "tier": "fallback"
+  },
+  "KG": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "KGZ",
+    "name": {
+      "en": "Kyrgyzstan",
+      "ru": "Киргизия"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Kyrgyzstan",
+      "ru": "Киргизия"
+    },
+    "tier": "fallback"
+  },
+  "KH": {
+    "cluster": "stilts",
+    "ink": "umber",
+    "iso3": "KHM",
+    "name": {
+      "en": "Cambodia",
+      "ru": "Камбоджа"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Cambodia",
+      "ru": "Камбоджа"
+    },
+    "tier": "fallback"
+  },
+  "KI": {
+    "cluster": "atoll",
+    "ink": "teal",
+    "iso3": "KIR",
+    "name": {
+      "en": "Kiribati",
+      "ru": "Кирибати"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Kiribati",
+      "ru": "Кирибати"
+    },
+    "tier": "fallback"
+  },
+  "KM": {
+    "cluster": "ship",
+    "ink": "teal",
+    "iso3": "COM",
+    "name": {
+      "en": "Comoros",
+      "ru": "Коморы"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Comoros",
+      "ru": "Коморы"
+    },
+    "tier": "fallback"
+  },
+  "KN": {
+    "cluster": "fort",
+    "ink": "plum",
+    "iso3": "KNA",
+    "name": {
+      "en": "St. Kitts & Nevis",
+      "ru": "Сент-Китс и Невис"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "St. Kitts & Nevis",
+      "ru": "Сент-Китс и Невис"
+    },
+    "tier": "fallback"
+  },
+  "KP": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "PRK",
+    "name": {
+      "en": "North Korea",
+      "ru": "КНДР"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "North Korea",
+      "ru": "КНДР"
+    },
+    "tier": "fallback"
+  },
+  "KR": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "KOR",
+    "name": {
+      "en": "South Korea",
+      "ru": "Республика Корея"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "South Korea",
+      "ru": "Республика Корея"
+    },
+    "tier": "fallback"
+  },
+  "KW": {
+    "cluster": "ship",
+    "ink": "umber",
+    "iso3": "KWT",
+    "name": {
+      "en": "Kuwait",
+      "ru": "Кувейт"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Kuwait",
+      "ru": "Кувейт"
+    },
+    "tier": "fallback"
+  },
+  "KY": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "CYM",
+    "name": {
+      "en": "Cayman Islands",
+      "ru": "о-ва Кайман"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Cayman Islands",
+      "ru": "о-ва Кайман"
+    },
+    "tier": "fallback"
+  },
+  "KZ": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "KAZ",
+    "name": {
+      "en": "Kazakhstan",
+      "ru": "Казахстан"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Kazakhstan",
+      "ru": "Казахстан"
+    },
+    "tier": "fallback"
+  },
+  "LA": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "LAO",
+    "name": {
+      "en": "Laos",
+      "ru": "Лаос"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Laos",
+      "ru": "Лаос"
+    },
+    "tier": "fallback"
+  },
+  "LB": {
+    "cluster": "rock-arch",
+    "ink": "moss",
+    "iso3": "LBN",
+    "name": {
+      "en": "Lebanon",
+      "ru": "Ливан"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Lebanon",
+      "ru": "Ливан"
+    },
+    "tier": "fallback"
+  },
+  "LC": {
+    "cluster": "twin-peak",
+    "ink": "plum",
+    "iso3": "LCA",
+    "name": {
+      "en": "St. Lucia",
+      "ru": "Сент-Люсия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "St. Lucia",
+      "ru": "Сент-Люсия"
+    },
+    "tier": "fallback"
+  },
+  "LI": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "LIE",
+    "name": {
+      "en": "Liechtenstein",
+      "ru": "Лихтенштейн"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Liechtenstein",
+      "ru": "Лихтенштейн"
+    },
+    "tier": "fallback"
+  },
+  "LK": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "LKA",
+    "name": {
+      "en": "Sri Lanka",
+      "ru": "Шри-Ланка"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Sri Lanka",
+      "ru": "Шри-Ланка"
+    },
+    "tier": "fallback"
+  },
+  "LR": {
+    "cluster": "waterfall",
+    "ink": "oxblood",
+    "iso3": "LBR",
+    "name": {
+      "en": "Liberia",
+      "ru": "Либерия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Liberia",
+      "ru": "Либерия"
+    },
+    "tier": "fallback"
+  },
+  "LS": {
+    "cluster": "thatched-house",
+    "ink": "oxblood",
+    "iso3": "LSO",
+    "name": {
+      "en": "Lesotho",
+      "ru": "Лесото"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Lesotho",
+      "ru": "Лесото"
+    },
+    "tier": "fallback"
+  },
+  "LT": {
+    "cluster": "castle",
+    "ink": "teal",
+    "iso3": "LTU",
+    "name": {
+      "en": "Lithuania",
+      "ru": "Литва"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Lithuania",
+      "ru": "Литва"
+    },
+    "tier": "fallback"
+  },
+  "LU": {
+    "cluster": "bridge",
+    "ink": "teal",
+    "iso3": "LUX",
+    "name": {
+      "en": "Luxembourg",
+      "ru": "Люксембург"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Luxembourg",
+      "ru": "Люксембург"
+    },
+    "tier": "fallback"
+  },
+  "LV": {
+    "cluster": "stepped-gable",
+    "ink": "plum",
+    "iso3": "LVA",
+    "name": {
+      "en": "Latvia",
+      "ru": "Латвия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Latvia",
+      "ru": "Латвия"
+    },
+    "tier": "fallback"
+  },
+  "LY": {
+    "cluster": "classical-ruin",
+    "ink": "ochre-dark",
+    "iso3": "LBY",
+    "name": {
+      "en": "Libya",
+      "ru": "Ливия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Libya",
+      "ru": "Ливия"
+    },
+    "tier": "fallback"
+  },
+  "MA": {
+    "cluster": "hill-town",
+    "ink": "umber",
+    "iso3": "MAR",
+    "name": {
+      "en": "Morocco",
+      "ru": "Марокко"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Morocco",
+      "ru": "Марокко"
+    },
+    "tier": "fallback"
+  },
+  "MC": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "MCO",
+    "name": {
+      "en": "Monaco",
+      "ru": "Монако"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Monaco",
+      "ru": "Монако"
+    },
+    "tier": "fallback"
+  },
+  "MD": {
+    "cluster": "triumphal-arch",
+    "ink": "indigo",
+    "iso3": "MDA",
+    "name": {
+      "en": "Moldova",
+      "ru": "Молдова"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Moldova",
+      "ru": "Молдова"
+    },
+    "tier": "fallback"
+  },
+  "ME": {
+    "cluster": "sea-wall",
+    "ink": "moss",
+    "iso3": "MNE",
+    "name": {
+      "en": "Montenegro",
+      "ru": "Черногория"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Montenegro",
+      "ru": "Черногория"
+    },
+    "tier": "engraved"
+  },
+  "MF": {
+    "cluster": "ship",
+    "ink": "ochre-dark",
+    "iso3": "MAF",
+    "name": {
+      "en": "St. Martin",
+      "ru": "Сен-Мартен"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "St. Martin",
+      "ru": "Сен-Мартен"
+    },
+    "tier": "fallback"
+  },
+  "MG": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "MDG",
+    "name": {
+      "en": "Madagascar",
+      "ru": "Мадагаскар"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Madagascar",
+      "ru": "Мадагаскар"
+    },
+    "tier": "fallback"
+  },
+  "MH": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "MHL",
+    "name": {
+      "en": "Marshall Islands",
+      "ru": "Маршалловы о-ва"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Marshall Islands",
+      "ru": "Маршалловы о-ва"
+    },
+    "tier": "fallback"
+  },
+  "MK": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "MKD",
+    "name": {
+      "en": "North Macedonia",
+      "ru": "Северная Македония"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "North Macedonia",
+      "ru": "Северная Македония"
+    },
+    "tier": "fallback"
+  },
+  "ML": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "MLI",
+    "name": {
+      "en": "Mali",
+      "ru": "Мали"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Mali",
+      "ru": "Мали"
+    },
+    "tier": "fallback"
+  },
+  "MM": {
+    "cluster": "bridge",
+    "ink": "umber",
+    "iso3": "MMR",
+    "name": {
+      "en": "Myanmar (Burma)",
+      "ru": "Мьянма (Бирма)"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Myanmar",
+      "ru": "Мьянма (Бирма)"
+    },
+    "tier": "fallback"
+  },
+  "MN": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "MNG",
+    "name": {
+      "en": "Mongolia",
+      "ru": "Монголия"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Mongolia",
+      "ru": "Монголия"
+    },
+    "tier": "fallback"
+  },
+  "MO": {
+    "cluster": "lighthouse",
+    "ink": "teal",
+    "iso3": "MAC",
+    "name": {
+      "en": "Macao SAR China",
+      "ru": "Макао (САР)"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Macao",
+      "ru": "Макао"
+    },
+    "tier": "fallback"
+  },
+  "MP": {
+    "cluster": "atoll",
+    "ink": "umber",
+    "iso3": "MNP",
+    "name": {
+      "en": "Northern Mariana Islands",
+      "ru": "Северные Марианские о-ва"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Northern Mariana Islands",
+      "ru": "Северные Марианские о-ва"
+    },
+    "tier": "fallback"
+  },
+  "MQ": {
+    "cluster": "volcano",
+    "ink": "teal",
+    "iso3": "MTQ",
+    "name": {
+      "en": "Martinique",
+      "ru": "Мартиника"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Martinique",
+      "ru": "Мартиника"
+    },
+    "tier": "fallback"
+  },
+  "MR": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "MRT",
+    "name": {
+      "en": "Mauritania",
+      "ru": "Мавритания"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Mauritania",
+      "ru": "Мавритания"
+    },
+    "tier": "fallback"
+  },
+  "MS": {
+    "cluster": "volcano",
+    "ink": "umber",
+    "iso3": "MSR",
+    "name": {
+      "en": "Montserrat",
+      "ru": "Монтсеррат"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Montserrat",
+      "ru": "Монтсеррат"
+    },
+    "tier": "fallback"
+  },
+  "MT": {
+    "cluster": "sea-wall",
+    "ink": "plum",
+    "iso3": "MLT",
+    "name": {
+      "en": "Malta",
+      "ru": "Мальта"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Malta",
+      "ru": "Мальта"
+    },
+    "tier": "fallback"
+  },
+  "MU": {
+    "cluster": "mesa",
+    "ink": "plum",
+    "iso3": "MUS",
+    "name": {
+      "en": "Mauritius",
+      "ru": "Маврикий"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Mauritius",
+      "ru": "Маврикий"
+    },
+    "tier": "fallback"
+  },
+  "MV": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "MDV",
+    "name": {
+      "en": "Maldives",
+      "ru": "Мальдивы"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Maldives",
+      "ru": "Мальдивы"
+    },
+    "tier": "fallback"
+  },
+  "MW": {
+    "cluster": "mesa",
+    "ink": "teal",
+    "iso3": "MWI",
+    "name": {
+      "en": "Malawi",
+      "ru": "Малави"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Malawi",
+      "ru": "Малави"
+    },
+    "tier": "fallback"
+  },
+  "MX": {
+    "cluster": "pyramid",
+    "ink": "umber",
+    "iso3": "MEX",
+    "name": {
+      "en": "Mexico",
+      "ru": "Мексика"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Mexico",
+      "ru": "Мексика"
+    },
+    "tier": "fallback"
+  },
+  "MY": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "MYS",
+    "name": {
+      "en": "Malaysia",
+      "ru": "Малайзия"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Malaysia",
+      "ru": "Малайзия"
+    },
+    "tier": "fallback"
+  },
+  "MZ": {
+    "cluster": "fort",
+    "ink": "teal",
+    "iso3": "MOZ",
+    "name": {
+      "en": "Mozambique",
+      "ru": "Мозамбик"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Mozambique",
+      "ru": "Мозамбик"
+    },
+    "tier": "fallback"
+  },
+  "NA": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "NAM",
+    "name": {
+      "en": "Namibia",
+      "ru": "Намибия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Namibia",
+      "ru": "Намибия"
+    },
+    "tier": "fallback"
+  },
+  "NC": {
+    "cluster": "lighthouse",
+    "ink": "umber",
+    "iso3": "NCL",
+    "name": {
+      "en": "New Caledonia",
+      "ru": "Новая Каледония"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "New Caledonia",
+      "ru": "Новая Каледония"
+    },
+    "tier": "fallback"
+  },
+  "NE": {
+    "cluster": "dunes",
+    "ink": "ochre-dark",
+    "iso3": "NER",
+    "name": {
+      "en": "Niger",
+      "ru": "Нигер"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Niger",
+      "ru": "Нигер"
+    },
+    "tier": "fallback"
+  },
+  "NF": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "NFK",
+    "name": {
+      "en": "Norfolk Island",
+      "ru": "о-в Норфолк"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Norfolk Island",
+      "ru": "о-в Норфолк"
+    },
+    "tier": "fallback"
+  },
+  "NG": {
+    "cluster": "monolith",
+    "ink": "plum",
+    "iso3": "NGA",
+    "name": {
+      "en": "Nigeria",
+      "ru": "Нигерия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Nigeria",
+      "ru": "Нигерия"
+    },
+    "tier": "fallback"
+  },
+  "NI": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "NIC",
+    "name": {
+      "en": "Nicaragua",
+      "ru": "Никарагуа"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Nicaragua",
+      "ru": "Никарагуа"
+    },
+    "tier": "fallback"
+  },
+  "NL": {
+    "cluster": "stepped-gable",
+    "ink": "teal",
+    "iso3": "NLD",
+    "name": {
+      "en": "Netherlands",
+      "ru": "Нидерланды"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Netherlands",
+      "ru": "Нидерланды"
+    },
+    "tier": "fallback"
+  },
+  "NO": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "NOR",
+    "name": {
+      "en": "Norway",
+      "ru": "Норвегия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Norway",
+      "ru": "Норвегия"
+    },
+    "tier": "fallback"
+  },
+  "NP": {
+    "cluster": "twin-peak",
+    "ink": "teal",
+    "iso3": "NPL",
+    "name": {
+      "en": "Nepal",
+      "ru": "Непал"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Nepal",
+      "ru": "Непал"
+    },
+    "tier": "fallback"
+  },
+  "NR": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "NRU",
+    "name": {
+      "en": "Nauru",
+      "ru": "Науру"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Nauru",
+      "ru": "Науру"
+    },
+    "tier": "fallback"
+  },
+  "NU": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "NIU",
+    "name": {
+      "en": "Niue",
+      "ru": "Ниуэ"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Niue",
+      "ru": "Ниуэ"
+    },
+    "tier": "fallback"
+  },
+  "NZ": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "NZL",
+    "name": {
+      "en": "New Zealand",
+      "ru": "Новая Зеландия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "New Zealand",
+      "ru": "Новая Зеландия"
+    },
+    "tier": "fallback"
+  },
+  "OM": {
+    "cluster": "gulf-fort",
+    "ink": "umber",
+    "iso3": "OMN",
+    "name": {
+      "en": "Oman",
+      "ru": "Оман"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Oman",
+      "ru": "Оман"
+    },
+    "tier": "fallback"
+  },
+  "PA": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "PAN",
+    "name": {
+      "en": "Panama",
+      "ru": "Панама"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Panama",
+      "ru": "Панама"
+    },
+    "tier": "fallback"
+  },
+  "PE": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "PER",
+    "name": {
+      "en": "Peru",
+      "ru": "Перу"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Peru",
+      "ru": "Перу"
+    },
+    "tier": "fallback"
+  },
+  "PF": {
+    "cluster": "stilts",
+    "ink": "ochre-dark",
+    "iso3": "PYF",
+    "name": {
+      "en": "French Polynesia",
+      "ru": "Французская Полинезия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "French Polynesia",
+      "ru": "Французская Полинезия"
+    },
+    "tier": "fallback"
+  },
+  "PG": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "PNG",
+    "name": {
+      "en": "Papua New Guinea",
+      "ru": "Папуа — Новая Гвинея"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Papua New Guinea",
+      "ru": "Папуа — Новая Гвинея"
+    },
+    "tier": "fallback"
+  },
+  "PH": {
+    "cluster": "volcano",
+    "ink": "ochre-dark",
+    "iso3": "PHL",
+    "name": {
+      "en": "Philippines",
+      "ru": "Филиппины"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Philippines",
+      "ru": "Филиппины"
+    },
+    "tier": "fallback"
+  },
+  "PK": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "PAK",
+    "name": {
+      "en": "Pakistan",
+      "ru": "Пакистан"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Pakistan",
+      "ru": "Пакистан"
+    },
+    "tier": "fallback"
+  },
+  "PL": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "POL",
+    "name": {
+      "en": "Poland",
+      "ru": "Польша"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Poland",
+      "ru": "Польша"
+    },
+    "tier": "fallback"
+  },
+  "PM": {
+    "cluster": "lighthouse",
+    "ink": "ochre-dark",
+    "iso3": "SPM",
+    "name": {
+      "en": "St. Pierre & Miquelon",
+      "ru": "Сен-Пьер и Микелон"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "St. Pierre & Miquelon",
+      "ru": "Сен-Пьер и Микелон"
+    },
+    "tier": "fallback"
+  },
+  "PN": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "PCN",
+    "name": {
+      "en": "Pitcairn Islands",
+      "ru": "о-ва Питкэрн"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Pitcairn",
+      "ru": "о-ва Питкэрн"
+    },
+    "tier": "fallback"
+  },
+  "PR": {
+    "cluster": "fort",
+    "ink": "umber",
+    "iso3": "PRI",
+    "name": {
+      "en": "Puerto Rico",
+      "ru": "Пуэрто-Рико"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Puerto Rico",
+      "ru": "Пуэрто-Рико"
+    },
+    "tier": "fallback"
+  },
+  "PS": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "PSE",
+    "name": {
+      "en": "Palestine",
+      "ru": "Палестинские территории"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Palestine",
+      "ru": "Палестина"
+    },
+    "tier": "fallback"
+  },
+  "PT": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "PRT",
+    "name": {
+      "en": "Portugal",
+      "ru": "Португалия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Portugal",
+      "ru": "Португалия"
+    },
+    "tier": "fallback"
+  },
+  "PW": {
+    "cluster": "karst",
+    "ink": "slate",
+    "iso3": "PLW",
+    "name": {
+      "en": "Palau",
+      "ru": "Палау"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Palau",
+      "ru": "Палау"
+    },
+    "tier": "fallback"
+  },
+  "PY": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "PRY",
+    "name": {
+      "en": "Paraguay",
+      "ru": "Парагвай"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Paraguay",
+      "ru": "Парагвай"
+    },
+    "tier": "fallback"
+  },
+  "QA": {
+    "cluster": "dunes",
+    "ink": "indigo",
+    "iso3": "QAT",
+    "name": {
+      "en": "Qatar",
+      "ru": "Катар"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Qatar",
+      "ru": "Катар"
+    },
+    "tier": "fallback"
+  },
+  "RE": {
+    "cluster": "volcano",
+    "ink": "indigo",
+    "iso3": "REU",
+    "name": {
+      "en": "Réunion",
+      "ru": "Реюньон"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Réunion",
+      "ru": "Реюньон"
+    },
+    "tier": "fallback"
+  },
+  "RO": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "ROU",
+    "name": {
+      "en": "Romania",
+      "ru": "Румыния"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Romania",
+      "ru": "Румыния"
+    },
+    "tier": "fallback"
+  },
+  "RS": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "SRB",
+    "name": {
+      "en": "Serbia",
+      "ru": "Сербия"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Serbia",
+      "ru": "Сербия"
+    },
+    "tier": "fallback"
+  },
+  "RU": {
+    "cluster": "twin-peak",
+    "ink": "umber",
+    "iso3": "RUS",
+    "name": {
+      "en": "Russia",
+      "ru": "Россия"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Russia",
+      "ru": "Россия"
+    },
+    "tier": "fallback"
+  },
+  "RW": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "RWA",
+    "name": {
+      "en": "Rwanda",
+      "ru": "Руанда"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Rwanda",
+      "ru": "Руанда"
+    },
+    "tier": "fallback"
+  },
+  "SA": {
+    "cluster": "rock-cut",
+    "ink": "ochre-dark",
+    "iso3": "SAU",
+    "name": {
+      "en": "Saudi Arabia",
+      "ru": "Саудовская Аравия"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Saudi Arabia",
+      "ru": "Саудовская Аравия"
+    },
+    "tier": "fallback"
+  },
+  "SB": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "SLB",
+    "name": {
+      "en": "Solomon Islands",
+      "ru": "Соломоновы о-ва"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Solomon Islands",
+      "ru": "Соломоновы о-ва"
+    },
+    "tier": "fallback"
+  },
+  "SC": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "SYC",
+    "name": {
+      "en": "Seychelles",
+      "ru": "Сейшельские о-ва"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Seychelles",
+      "ru": "Сейшельские о-ва"
+    },
+    "tier": "fallback"
+  },
+  "SD": {
+    "cluster": "pyramid",
+    "ink": "ochre-dark",
+    "iso3": "SDN",
+    "name": {
+      "en": "Sudan",
+      "ru": "Судан"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Sudan",
+      "ru": "Судан"
+    },
+    "tier": "fallback"
+  },
+  "SE": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "SWE",
+    "name": {
+      "en": "Sweden",
+      "ru": "Швеция"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Sweden",
+      "ru": "Швеция"
+    },
+    "tier": "fallback"
+  },
+  "SG": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "SGP",
+    "name": {
+      "en": "Singapore",
+      "ru": "Сингапур"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Singapore",
+      "ru": "Сингапур"
+    },
+    "tier": "fallback"
+  },
+  "SH": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "SHN",
+    "name": {
+      "en": "St. Helena",
+      "ru": "о-в Св. Елены"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "St. Helena",
+      "ru": "о-в Св. Елены"
+    },
+    "tier": "fallback"
+  },
+  "SI": {
+    "cluster": "castle",
+    "ink": "umber",
+    "iso3": "SVN",
+    "name": {
+      "en": "Slovenia",
+      "ru": "Словения"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Slovenia",
+      "ru": "Словения"
+    },
+    "tier": "fallback"
+  },
+  "SJ": {
+    "cluster": "ice",
+    "ink": "oxblood",
+    "iso3": "SJM",
+    "name": {
+      "en": "Svalbard & Jan Mayen",
+      "ru": "Шпицберген и Ян-Майен"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Svalbard & Jan Mayen",
+      "ru": "Шпицберген и Ян-Майен"
+    },
+    "tier": "fallback"
+  },
+  "SK": {
+    "cluster": null,
+    "ink": "ochre-dark",
+    "iso3": "SVK",
+    "name": {
+      "en": "Slovakia",
+      "ru": "Словакия"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Slovakia",
+      "ru": "Словакия"
+    },
+    "tier": "fallback"
+  },
+  "SL": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "SLE",
+    "name": {
+      "en": "Sierra Leone",
+      "ru": "Сьерра-Леоне"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Sierra Leone",
+      "ru": "Сьерра-Леоне"
+    },
+    "tier": "fallback"
+  },
+  "SM": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "SMR",
+    "name": {
+      "en": "San Marino",
+      "ru": "Сан-Марино"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "San Marino",
+      "ru": "Сан-Марино"
+    },
+    "tier": "fallback"
+  },
+  "SN": {
+    "cluster": "bridge",
+    "ink": "ochre-dark",
+    "iso3": "SEN",
+    "name": {
+      "en": "Senegal",
+      "ru": "Сенегал"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Senegal",
+      "ru": "Сенегал"
+    },
+    "tier": "fallback"
+  },
+  "SO": {
+    "cluster": "lighthouse",
+    "ink": "indigo",
+    "iso3": "SOM",
+    "name": {
+      "en": "Somalia",
+      "ru": "Сомали"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Somalia",
+      "ru": "Сомали"
+    },
+    "tier": "fallback"
+  },
+  "SR": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "SUR",
+    "name": {
+      "en": "Suriname",
+      "ru": "Суринам"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Suriname",
+      "ru": "Суринам"
+    },
+    "tier": "fallback"
+  },
+  "SS": {
+    "cluster": "bridge",
+    "ink": "indigo",
+    "iso3": "SSD",
+    "name": {
+      "en": "South Sudan",
+      "ru": "Южный Судан"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "South Sudan",
+      "ru": "Южный Судан"
+    },
+    "tier": "fallback"
+  },
+  "ST": {
+    "cluster": "volcano",
+    "ink": "oxblood",
+    "iso3": "STP",
+    "name": {
+      "en": "São Tomé & Príncipe",
+      "ru": "Сан-Томе и Принсипи"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "São Tomé & Príncipe",
+      "ru": "Сан-Томе и Принсипи"
+    },
+    "tier": "fallback"
+  },
+  "SV": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "SLV",
+    "name": {
+      "en": "El Salvador",
+      "ru": "Сальвадор"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "El Salvador",
+      "ru": "Сальвадор"
+    },
+    "tier": "fallback"
+  },
+  "SX": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "SXM",
+    "name": {
+      "en": "Sint Maarten",
+      "ru": "Синт-Мартен"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Sint Maarten",
+      "ru": "Синт-Мартен"
+    },
+    "tier": "fallback"
+  },
+  "SY": {
+    "cluster": "classical-ruin",
+    "ink": "indigo",
+    "iso3": "SYR",
+    "name": {
+      "en": "Syria",
+      "ru": "Сирия"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Syria",
+      "ru": "Сирия"
+    },
+    "tier": "fallback"
+  },
+  "SZ": {
+    "cluster": "monolith",
+    "ink": "teal",
+    "iso3": "SWZ",
+    "name": {
+      "en": "Eswatini",
+      "ru": "Эсватини"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Eswatini",
+      "ru": "Эсватини"
+    },
+    "tier": "fallback"
+  },
+  "TC": {
+    "cluster": "lighthouse",
+    "ink": "oxblood",
+    "iso3": "TCA",
+    "name": {
+      "en": "Turks & Caicos Islands",
+      "ru": "Тёркс и Кайкос"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Turks & Caicos Islands",
+      "ru": "Тёркс и Кайкос"
+    },
+    "tier": "fallback"
+  },
+  "TD": {
+    "cluster": "rock-arch",
+    "ink": "plum",
+    "iso3": "TCD",
+    "name": {
+      "en": "Chad",
+      "ru": "Чад"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Chad",
+      "ru": "Чад"
+    },
+    "tier": "fallback"
+  },
+  "TF": {
+    "cluster": "station",
+    "ink": "teal",
+    "iso3": "ATF",
+    "name": {
+      "en": "French Southern Territories",
+      "ru": "Французские Южные территории"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "French Southern Territories",
+      "ru": "Французские Южные территории"
+    },
+    "tier": "fallback"
+  },
+  "TG": {
+    "cluster": "thatched-house",
+    "ink": "slate",
+    "iso3": "TGO",
+    "name": {
+      "en": "Togo",
+      "ru": "Того"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Togo",
+      "ru": "Того"
+    },
+    "tier": "fallback"
+  },
+  "TH": {
+    "cluster": "stilts",
+    "ink": "indigo",
+    "iso3": "THA",
+    "name": {
+      "en": "Thailand",
+      "ru": "Таиланд"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Thailand",
+      "ru": "Таиланд"
+    },
+    "tier": "engraved"
+  },
+  "TJ": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "TJK",
+    "name": {
+      "en": "Tajikistan",
+      "ru": "Таджикистан"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Tajikistan",
+      "ru": "Таджикистан"
+    },
+    "tier": "fallback"
+  },
+  "TK": {
+    "cluster": "atoll",
+    "ink": "ochre-dark",
+    "iso3": "TKL",
+    "name": {
+      "en": "Tokelau",
+      "ru": "Токелау"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Tokelau",
+      "ru": "Токелау"
+    },
+    "tier": "fallback"
+  },
+  "TL": {
+    "cluster": null,
+    "ink": "moss",
+    "iso3": "TLS",
+    "name": {
+      "en": "Timor-Leste",
+      "ru": "Восточный Тимор"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Timor-Leste",
+      "ru": "Восточный Тимор"
+    },
+    "tier": "fallback"
+  },
+  "TM": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "TKM",
+    "name": {
+      "en": "Turkmenistan",
+      "ru": "Туркменистан"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Turkmenistan",
+      "ru": "Туркменистан"
+    },
+    "tier": "fallback"
+  },
+  "TN": {
+    "cluster": "hill-town",
+    "ink": "ochre-dark",
+    "iso3": "TUN",
+    "name": {
+      "en": "Tunisia",
+      "ru": "Тунис"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Tunisia",
+      "ru": "Тунис"
+    },
+    "tier": "fallback"
+  },
+  "TO": {
+    "cluster": "megalith",
+    "ink": "indigo",
+    "iso3": "TON",
+    "name": {
+      "en": "Tonga",
+      "ru": "Тонга"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Tonga",
+      "ru": "Тонга"
+    },
+    "tier": "fallback"
+  },
+  "TR": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "TUR",
+    "name": {
+      "en": "Türkiye",
+      "ru": "Турция"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Türkiye",
+      "ru": "Турция"
+    },
+    "tier": "fallback"
+  },
+  "TT": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "TTO",
+    "name": {
+      "en": "Trinidad & Tobago",
+      "ru": "Тринидад и Тобаго"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Trinidad & Tobago",
+      "ru": "Тринидад и Тобаго"
+    },
+    "tier": "fallback"
+  },
+  "TV": {
+    "cluster": "atoll",
+    "ink": "indigo",
+    "iso3": "TUV",
+    "name": {
+      "en": "Tuvalu",
+      "ru": "Тувалу"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Tuvalu",
+      "ru": "Тувалу"
+    },
+    "tier": "fallback"
+  },
+  "TW": {
+    "cluster": null,
+    "ink": "teal",
+    "iso3": "TWN",
+    "name": {
+      "en": "Taiwan",
+      "ru": "Тайвань"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Taiwan",
+      "ru": "Тайвань"
+    },
+    "tier": "fallback"
+  },
+  "TZ": {
+    "cluster": "volcano",
+    "ink": "slate",
+    "iso3": "TZA",
+    "name": {
+      "en": "Tanzania",
+      "ru": "Танзания"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Tanzania",
+      "ru": "Танзания"
+    },
+    "tier": "fallback"
+  },
+  "UA": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "UKR",
+    "name": {
+      "en": "Ukraine",
+      "ru": "Украина"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Ukraine",
+      "ru": "Украина"
+    },
+    "tier": "fallback"
+  },
+  "UG": {
+    "cluster": "waterfall",
+    "ink": "slate",
+    "iso3": "UGA",
+    "name": {
+      "en": "Uganda",
+      "ru": "Уганда"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Uganda",
+      "ru": "Уганда"
+    },
+    "tier": "fallback"
+  },
+  "UM": {
+    "cluster": null,
+    "ink": "oxblood",
+    "iso3": "UMI",
+    "name": {
+      "en": "U.S. Outlying Islands",
+      "ru": "Внешние малые о-ва (США)"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "U.S. Outlying Islands",
+      "ru": "Внешние малые о-ва (США)"
+    },
+    "tier": "fallback"
+  },
+  "US": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "USA",
+    "name": {
+      "en": "United States",
+      "ru": "Соединенные Штаты"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "United States",
+      "ru": "США"
+    },
+    "tier": "fallback"
+  },
+  "UY": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "URY",
+    "name": {
+      "en": "Uruguay",
+      "ru": "Уругвай"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Uruguay",
+      "ru": "Уругвай"
+    },
+    "tier": "fallback"
+  },
+  "UZ": {
+    "cluster": null,
+    "ink": "plum",
+    "iso3": "UZB",
+    "name": {
+      "en": "Uzbekistan",
+      "ru": "Узбекистан"
+    },
+    "shape": "circle",
+    "short": {
+      "en": "Uzbekistan",
+      "ru": "Узбекистан"
+    },
+    "tier": "fallback"
+  },
+  "VA": {
+    "cluster": null,
+    "ink": "indigo",
+    "iso3": "VAT",
+    "name": {
+      "en": "Vatican City",
+      "ru": "Ватикан"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Vatican City",
+      "ru": "Ватикан"
+    },
+    "tier": "fallback"
+  },
+  "VC": {
+    "cluster": "atoll",
+    "ink": "oxblood",
+    "iso3": "VCT",
+    "name": {
+      "en": "St. Vincent & Grenadines",
+      "ru": "Сент-Винсент и Гренадины"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "St. Vincent & Grenadines",
+      "ru": "Сент-Винсент и Гренадины"
+    },
+    "tier": "fallback"
+  },
+  "VE": {
+    "cluster": "waterfall",
+    "ink": "moss",
+    "iso3": "VEN",
+    "name": {
+      "en": "Venezuela",
+      "ru": "Венесуэла"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Venezuela",
+      "ru": "Венесуэла"
+    },
+    "tier": "fallback"
+  },
+  "VG": {
+    "cluster": "ship",
+    "ink": "indigo",
+    "iso3": "VGB",
+    "name": {
+      "en": "British Virgin Islands",
+      "ru": "Виргинские о-ва (Великобритания)"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "British Virgin Islands",
+      "ru": "Виргинские о-ва (Великобритания)"
+    },
+    "tier": "fallback"
+  },
+  "VI": {
+    "cluster": "fort",
+    "ink": "ochre-dark",
+    "iso3": "VIR",
+    "name": {
+      "en": "U.S. Virgin Islands",
+      "ru": "Виргинские о-ва (США)"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "U.S. Virgin Islands",
+      "ru": "Виргинские о-ва (США)"
+    },
+    "tier": "fallback"
+  },
+  "VN": {
+    "cluster": "karst",
+    "ink": "moss",
+    "iso3": "VNM",
+    "name": {
+      "en": "Vietnam",
+      "ru": "Вьетнам"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Vietnam",
+      "ru": "Вьетнам"
+    },
+    "tier": "fallback"
+  },
+  "VU": {
+    "cluster": "volcano",
+    "ink": "moss",
+    "iso3": "VUT",
+    "name": {
+      "en": "Vanuatu",
+      "ru": "Вануату"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Vanuatu",
+      "ru": "Вануату"
+    },
+    "tier": "fallback"
+  },
+  "WF": {
+    "cluster": null,
+    "ink": "slate",
+    "iso3": "WLF",
+    "name": {
+      "en": "Wallis & Futuna",
+      "ru": "Уоллис и Футуна"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Wallis & Futuna",
+      "ru": "Уоллис и Футуна"
+    },
+    "tier": "fallback"
+  },
+  "WS": {
+    "cluster": "thatched-house",
+    "ink": "moss",
+    "iso3": "WSM",
+    "name": {
+      "en": "Samoa",
+      "ru": "Самоа"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Samoa",
+      "ru": "Самоа"
+    },
+    "tier": "fallback"
+  },
+  "XK": {
+    "cluster": "twin-peak",
+    "ink": "ochre-dark",
+    "iso3": "XKX",
+    "name": {
+      "en": "Kosovo",
+      "ru": "Косово"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Kosovo",
+      "ru": "Косово"
+    },
+    "tier": "fallback"
+  },
+  "YE": {
+    "cluster": "hill-town",
+    "ink": "indigo",
+    "iso3": "YEM",
+    "name": {
+      "en": "Yemen",
+      "ru": "Йемен"
+    },
+    "shape": "oval",
+    "short": {
+      "en": "Yemen",
+      "ru": "Йемен"
+    },
+    "tier": "fallback"
+  },
+  "YT": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "MYT",
+    "name": {
+      "en": "Mayotte",
+      "ru": "Майотта"
+    },
+    "shape": "octagon",
+    "short": {
+      "en": "Mayotte",
+      "ru": "Майотта"
+    },
+    "tier": "fallback"
+  },
+  "ZA": {
+    "cluster": "mesa",
+    "ink": "umber",
+    "iso3": "ZAF",
+    "name": {
+      "en": "South Africa",
+      "ru": "Южно-Африканская Республика"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "South Africa",
+      "ru": "Южно-Африканская Республика"
+    },
+    "tier": "fallback"
+  },
+  "ZM": {
+    "cluster": "waterfall",
+    "ink": "plum",
+    "iso3": "ZMB",
+    "name": {
+      "en": "Zambia",
+      "ru": "Замбия"
+    },
+    "shape": "rectangle",
+    "short": {
+      "en": "Zambia",
+      "ru": "Замбия"
+    },
+    "tier": "fallback"
+  },
+  "ZW": {
+    "cluster": null,
+    "ink": "umber",
+    "iso3": "ZWE",
+    "name": {
+      "en": "Zimbabwe",
+      "ru": "Зимбабве"
+    },
+    "shape": "cut-rect",
+    "short": {
+      "en": "Zimbabwe",
+      "ru": "Зимбабве"
+    },
+    "tier": "fallback"
+  }
+}

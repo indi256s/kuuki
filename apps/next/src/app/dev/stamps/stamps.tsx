@@ -1,16 +1,12 @@
 'use client'
 
 import './stamps.css'
-import { useEffect, useMemo, useState } from 'react'
-import { loadRecipes } from '../../../lib/stamp-art/recipes'
+import { useEffect, useState } from 'react'
 import { SHAPE_NAMES } from '../../../lib/stamp-art/frame'
-import { lintGeometry } from '../../../lib/stamp-art/lint'
-import registry from '../../../lib/stamp-art/registry.json'
 import { setTheme } from '../../../client/appearance'
-import { countryNamer } from '../../../client/passport/model'
 import { CountryStamp } from '../../../client/stamps/country-stamp'
 import { emWidth } from '../../../client/stamps/ring-fit'
-import { stampMeta } from '../../../client/stamps/stamp-meta'
+import { stampCodes, stampMeta, stampNames } from '../../../client/stamps/stamp-meta'
 import { Button } from '../../../client/ui/button'
 import { SegmentedControl } from '../../../client/ui/segmented-control'
 import type { Locale } from '../../../lib/format'
@@ -25,46 +21,25 @@ export type SheetState = {
   filter: 'all' | 'unmarked' | 'redo' | 'accepted'
 }
 
-const CODES = (registry as { iso2: string }[]).map((r) => r.iso2)
+const CODES = stampCodes()
+const fullName = (code: string, locale: Locale) => stampNames(code, locale).name
 
-type Row = { iso2: string; kind: 'recipe' | 'fallback'; issues: string[] }
-
-/** The six recipes, then one fallback example per frame shape. */
-function buildRows(): Row[] {
-  const recipes = loadRecipes()
-  const rows: Row[] = recipes.map((r) => ({
-    iso2: r.iso2,
-    kind: 'recipe',
-    issues: lintGeometry(r).map((i) => i.message),
-  }))
-  const have = new Set(rows.map((r) => r.iso2))
-  for (const shape of SHAPE_NAMES) {
-    const iso2 = CODES.find((c) => !have.has(c) && stampMeta(c).shape === shape)
-    if (iso2) {
-      have.add(iso2)
-      rows.push({ iso2, kind: 'fallback', issues: [] })
-    }
-  }
-  return rows
-}
+export type Row = { iso2: string; kind: 'recipe' | 'fallback'; issues: string[] }
 
 /** The longest ring names of the catalog in one locale, by estimated width. */
 function longestNames(locale: Locale, count: number): string[] {
-  const name = countryNamer(locale)
-  return [...CODES]
-    .sort(
-      (a, b) =>
-        emWidth(name(b).toLocaleUpperCase(locale)) - emWidth(name(a).toLocaleUpperCase(locale)),
-    )
-    .slice(0, count)
+  const width = (c: string) => emWidth(fullName(c, locale).toLocaleUpperCase(locale))
+  return [...CODES].sort((a, b) => width(b) - width(a)).slice(0, count)
 }
 
 export function StampSheet({
   initial,
   review: initialReview,
+  rows,
 }: {
   initial: SheetState
   review: ReviewFile
+  rows: Row[]
 }) {
   const [s, setS] = useState(initial)
   const [review, setReview] = useState(initialReview)
@@ -75,8 +50,6 @@ export function StampSheet({
   }, [s.theme])
   const ru = s.locale === 'ru'
   const t = (en: string, rus: string) => (ru ? rus : en)
-  const rows = useMemo(() => buildRows(), [])
-  const name = useMemo(() => countryNamer(s.locale), [s.locale])
   const shown = rows.filter((r) => {
     const status = review[r.iso2]?.status
     return s.filter === 'all' || (s.filter === 'unmarked' ? !status : status === s.filter)
@@ -161,7 +134,7 @@ export function StampSheet({
               key={row.iso2}
               row={row}
               s={s}
-              title={name(row.iso2)}
+              title={fullName(row.iso2, s.locale)}
               mark={review[row.iso2]}
               onSave={save}
               t={t}
@@ -178,7 +151,7 @@ export function StampSheet({
             {longestNames(loc, 3).map((code) => (
               <div key={code} className="stamp-sheet-worst-name">
                 <p>
-                  {loc.toUpperCase()} · {countryNamer(loc)(code)}
+                  {loc.toUpperCase()} · {fullName(code, loc)}
                 </p>
                 <div className="stamp-sheet-row">
                   {SHAPE_NAMES.map((shape) => (

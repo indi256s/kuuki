@@ -1,9 +1,10 @@
-// What the component needs to know about a country without importing the engraver: frame shape,
-// ink, tier and ISO3. Recipes override the catalog defaults. The registry is already in the bundle through inks.ts.
+// What the component needs to know about a country without importing the engraver: frame shape, ink, tier,
+// ISO3 and ring names. Reads only the committed stamp-index.generated.json (pnpm generate:stamps), so the
+// recipes, the engraving kit and zod stay out of the client bundle and names are identical on server and client.
+import type { Locale } from '../../lib/format'
 import { type ShapeName, shapeFor } from '../../lib/stamp-art/frame'
-import { type InkName, inkMap } from '../../lib/stamp-art/inks'
-import registry from '../../lib/stamp-art/registry.json'
-import { RECIPE_FILES } from '../../lib/stamp-art/recipes'
+import type { InkName } from '../../lib/stamp-art/inks'
+import index from '../../lib/stamp-art/stamp-index.generated.json'
 
 export type StampTier = 'engraved' | 'fallback'
 export type StampMeta = {
@@ -15,40 +16,36 @@ export type StampMeta = {
   cluster: string | null
 }
 
-type RawRecipe = {
-  iso2: string
-  tier?: StampTier
-  shape?: ShapeName
-  ink?: InkName
-  cluster?: string
+type Entry = {
+  cluster: string | null
+  ink: string
+  iso3: string
+  name: Record<Locale, string>
+  shape: string
+  short: Record<Locale, string>
+  tier: string
 }
-const rawRecipes = Object.values(RECIPE_FILES) as RawRecipe[]
-const recipeOf = new Map(rawRecipes.map((r) => [r.iso2, r]))
-const iso3Of = new Map((registry as { iso2: string; iso3: string }[]).map((r) => [r.iso2, r.iso3]))
-const clusterOf = new Map(
-  (registry as { iso2: string; cluster: string | null }[]).map((r) => [r.iso2, r.cluster]),
-)
+const entries = index as Record<string, Entry>
 
-let inks: Map<string, InkName> | undefined
-const inkOf = (iso2: string): InkName => {
-  inks ??= inkMap(
-    Object.fromEntries(rawRecipes.map((r) => [r.iso2, { ink: r.ink, cluster: r.cluster }])),
-  )
-  return inks.get(iso2) ?? 'indigo'
-}
-
-/** Recipe countries: the ones with committed engraving files. */
-export const recipeCodes = (): string[] => rawRecipes.map((r) => r.iso2).sort()
+/** Every catalog code, sorted. */
+export const stampCodes = (): string[] => Object.keys(entries)
 
 export function stampMeta(iso2: string): StampMeta {
   const code = iso2.toUpperCase()
-  const recipe = recipeOf.get(code)
+  const e = entries[code]
   return {
     iso2: code,
-    iso3: iso3Of.get(code) ?? code,
-    shape: shapeFor(code, recipe?.shape),
-    ink: inkOf(code),
-    tier: recipe?.tier ?? 'fallback',
-    cluster: recipe?.cluster ?? clusterOf.get(code) ?? null,
+    iso3: e?.iso3 ?? code,
+    shape: (e?.shape as ShapeName | undefined) ?? shapeFor(code),
+    ink: (e?.ink as InkName | undefined) ?? 'indigo',
+    tier: e?.tier === 'engraved' ? 'engraved' : 'fallback',
+    cluster: e?.cluster ?? null,
   }
+}
+
+/** Ring names as generated: the full name and the short form, not yet uppercased. */
+export function stampNames(iso2: string, locale: Locale): { name: string; short: string } {
+  const code = iso2.toUpperCase()
+  const e = entries[code]
+  return { name: e?.name[locale] ?? code, short: e?.short[locale] ?? code }
 }

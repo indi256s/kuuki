@@ -7,6 +7,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stampFiles } from '../apps/next/src/lib/stamp-art/build'
+import { stampIndexJson } from '../apps/next/src/lib/stamp-art/stamp-index'
 import { lintGeometry } from '../apps/next/src/lib/stamp-art/lint'
 import { SHAPE_NAMES } from '../apps/next/src/lib/stamp-art/frame'
 import { measureImpression, measureRaster } from '../apps/next/src/lib/stamp-art/lint-raster'
@@ -35,6 +36,12 @@ async function main() {
   for (const name of existsSync(STAMPS_DIR) ? readdirSync(STAMPS_DIR) : []) {
     if (!(name in expected)) failures.push(`${name}: stale, no recipe produces it`)
   }
+
+  const indexPath = join(RECIPES_DIR, '..', 'stamp-index.generated.json')
+  if (!existsSync(indexPath))
+    failures.push('stamp-index.generated.json: missing (run pnpm generate:stamps)')
+  else if (readFileSync(indexPath, 'utf8') !== stampIndexJson())
+    failures.push('stamp-index.generated.json: drifted (run pnpm generate:stamps)')
 
   for (const shape of SHAPE_NAMES) {
     const report = await measureImpression(shape)

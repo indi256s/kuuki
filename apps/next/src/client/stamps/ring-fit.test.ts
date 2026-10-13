@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import registry from '../../lib/stamp-art/registry.json'
 import { SHAPE_NAMES, frames } from '../../lib/stamp-art/frame'
 import type { Locale } from '../../lib/format'
-import { countryNamer } from '../passport/model'
+import { stampNames } from './stamp-meta'
 import { ringNames } from './country-stamp'
 import { BUDGET, FS_FLOOR, fitRing } from './ring-fit'
 
@@ -26,7 +26,7 @@ describe('ring fitting', () => {
 
   it('cuts a name that cannot fit at the floor size with an ellipsis, and leaves short names whole', () => {
     const { ring, family } = frames.octagon
-    const name = countryNamer('ru')('GS').toLocaleUpperCase('ru')
+    const name = stampNames('GS', 'ru').name.toLocaleUpperCase('ru')
     expect(fitRing([name], ring.top.length, family).text.endsWith('…')).toBe(true)
     const short = fitRing(['JAPAN'], ring.top.length, family)
     expect(short.text).toBe('JAPAN')

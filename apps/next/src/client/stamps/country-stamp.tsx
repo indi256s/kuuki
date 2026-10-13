@@ -5,10 +5,9 @@ import { useId, useLayoutEffect, useMemo, useState, type CSSProperties } from 'r
 import { FRAME_WEIGHTS, frames, restTilt, type ShapeName } from '../../lib/stamp-art/frame'
 import { impressionTransform } from '../../lib/stamp-art/impression'
 import type { Locale } from '../../lib/format'
-import { countryNamer } from '../passport/model'
 import { markPressed, wasPressed } from '../signature/stamp'
 import { emWidth, fitRing } from './ring-fit'
-import { stampMeta } from './stamp-meta'
+import { stampMeta, stampNames } from './stamp-meta'
 import './country-stamp.css'
 
 export type CountryStampProps = {
@@ -38,32 +37,11 @@ export type CountryStampProps = {
 
 export const DEFAULT_STAMP_SIZE = 160
 
-const namers = new Map<Locale, { long: (c: string) => string; short: (c: string) => string }>()
-function namersFor(locale: Locale) {
-  let n = namers.get(locale)
-  if (!n) {
-    const short = new Intl.DisplayNames([locale], { type: 'region', style: 'short' })
-    n = {
-      long: countryNamer(locale),
-      short: (c) => {
-        try {
-          return short.of(c) ?? c
-        } catch {
-          return c
-        }
-      },
-    }
-    namers.set(locale, n)
-  }
-  return n
-}
-
 /** Uppercased ring name candidates: the full name, then the short form when it is different. */
 export function ringNames(iso2: string, locale: Locale): string[] {
-  const n = namersFor(locale)
-  const up = (s: string) => s.toLocaleUpperCase(locale)
-  const long = up(n.long(iso2))
-  const short = up(n.short(iso2))
+  const n = stampNames(iso2, locale)
+  const long = n.name.toLocaleUpperCase(locale)
+  const short = n.short.toLocaleUpperCase(locale)
   return short !== long && short.length < long.length ? [long, short] : [long]
 }
 
