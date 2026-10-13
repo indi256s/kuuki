@@ -732,7 +732,11 @@ export function Section({ span }: { span: Span }) {
         category === 'airports' ? (
           <AirportFigure code={code} />
         ) : (
-          <GateSignFigure code={code} picked={r.picked} />
+          <GateSignFigure
+            code={code}
+            picked={r.picked}
+            note={reading ? `#${rank} ×${number(locale, reading.count)}` : ''}
+          />
         )
       }
       figureButton={

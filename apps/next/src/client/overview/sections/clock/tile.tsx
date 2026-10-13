@@ -1,10 +1,9 @@
 'use client'
-import { useMemo } from 'react'
 import { formatDateOnly } from '../../../../lib/format'
 import { IsoFigure } from '../../iso/iso-figure'
 import { clock } from '../../iso/clock'
-import { fitK } from '../../iso/scene'
-import { TILE_FIGURE_WIDTH, type TileSpan } from '../../mobile/tiles'
+import { useFigure } from '../../iso/use-figure'
+import type { TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { CoverageNote, copy, flights } from '../rankings/display'
 import { departures } from './departure'
@@ -17,13 +16,8 @@ export function Tile({ span }: { span: TileSpan }) {
     peak = found?.peak
   const time = found?.time ?? null
   // At rest, showing the hero's headline time; with no time the display stays dark.
-  const figure = useMemo(() => {
-    const shown = time ?? '    '
-    return clock(
-      shown,
-      fitK(TILE_FIGURE_WIDTH[span], (k) => clock(shown, k)),
-    )
-  }, [time, span])
+  const shown = time ?? '    '
+  const figure = useFigure(span, shown, (k) => clock(shown, k))
   if (!scope) return null
   if (scope.clock.status !== 'ready')
     return <p>{copy(locale, 'Not enough times yet', 'Пока мало данных о времени')}</p>

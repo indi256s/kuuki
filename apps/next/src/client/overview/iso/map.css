@@ -61,3 +61,11 @@
     transition: opacity var(--dur-press) var(--ease-out);
   }
 }
+
+/* Light theme: the land tint (35% of --iso-detail) all but vanishes on a white panel. Land alone takes a darker detail tone, for its fill and its coast. Dark keeps the stock tone. */
+:root:not([data-theme='dark']) :is(.iso-map, .iso-map-pick) {
+  --map-land-detail: color-mix(in oklab, var(--iso-line) 40%, var(--iso-detail));
+}
+:root:not([data-theme='dark']) :is(.iso-map, .iso-map-pick) [data-part='land'] {
+  --iso-detail: var(--map-land-detail);
+}

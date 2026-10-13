@@ -5,7 +5,7 @@ import { useFigure } from '../../iso/use-figure'
 import type { TileSpan } from '../../mobile/tiles'
 import { useOverview } from '../../store/overview-context'
 import { referenceLabels } from '../../labels'
-import { copy, flights } from './display'
+import { copy, flights, number } from './display'
 import '../cookie.css'
 import '../../iso/gate-sign.css'
 export function Tile({ span }: { span: TileSpan }) {
@@ -13,7 +13,8 @@ export function Tile({ span }: { span: TileSpan }) {
   const top = scope?.rankings.airlines[0]
   // The sign at rest, showing the top airline's code; with no airline on file it stays dim.
   const code = top?.key ?? ''
-  const figure = useFigure(span, code, (k) => gateSign(k, { code }))
+  const note = top ? `#1 ×${number(locale, top.count)}` : ''
+  const figure = useFigure(span, `${code}|${note}`, (k) => gateSign(k, { code, note }))
   if (!scope) return null
   const name = top ? referenceLabels(locale).airline(top.key) : null
   return (

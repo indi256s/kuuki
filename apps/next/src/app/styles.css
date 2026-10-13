@@ -155,11 +155,12 @@
   --kc-chart-3: var(--cmp-3);
   --kc-chart-4: var(--cmp-4);
   --kc-chart-5: var(--cmp-5);
-  /* Iso-glow figures (Overview cards): faces, hairlines, glass and unlit segments. The accent glows; --iso-glow is its blurred copy's opacity; --iso-shadow is the contact shadow fill. */
+  /* Iso-glow figures (Overview cards): faces, silhouette (--iso-line), interior creases (--iso-crease), glass and unlit segments. The accent glows; --iso-glow is its blurred copy's opacity; --iso-shadow is the contact shadow fill. */
   --iso-top: var(--surface);
-  --iso-front: #f3f1ee;
-  --iso-side: #e7e3df;
+  --iso-front: #f1eeea;
+  --iso-side: #dcd7d1;
   --iso-line: #5f5954;
+  --iso-crease: #a9a199;
   --iso-detail: #cfc8c1;
   --iso-glass: var(--accent-tint);
   --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
@@ -263,10 +264,11 @@
   --cat-alliance-skyteam: #a9bbd0;
   --heat-0: var(--surface-inset);
   --heat-0-text: var(--text);
-  --iso-top: var(--surface-inset);
-  --iso-front: #363432;
-  --iso-side: #2e2c2a;
+  --iso-top: #4b4844;
+  --iso-front: #393735;
+  --iso-side: #292725;
   --iso-line: #a8a098;
+  --iso-crease: #756f68;
   --iso-detail: #5f5954;
   --iso-glass: #262423;
   --iso-ghost: #45403c;

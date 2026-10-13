@@ -23,3 +23,7 @@
     transition: opacity var(--dur-base) var(--ease-out);
   }
 }
+/* Unlit segments: the shared ghost is 1.3:1 against the dark glass, which reads as a blank pane; here a blank clock still reads as a display. The lit segments stay the one lit part. */
+:root[data-theme='dark'] .iso-clock {
+  --iso-ghost: color-mix(in srgb, var(--iso-crease) 70%, var(--iso-detail));
+}

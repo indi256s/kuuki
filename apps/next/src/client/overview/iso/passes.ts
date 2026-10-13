@@ -22,14 +22,23 @@ const SKEW: readonly [number, number][] = [
 ]
 
 /**
- * Routes: a stack of PASSES boarding passes. `repeatShare` of them (rounded, from the top down) are repeats: their stub is red, which shows on each pass's edge; the rest are plain new routes. At section size the top pass reads `route` (for example "ROV ↔ VKO").
- * Parts: `top-pass` (carries --slide-x/--slide-y; slides out along its length on hover).
+ * Routes: a stack of PASSES boarding passes. `repeatShare` of them (from the top down) are repeats: their stub is red, which shows on each pass's edge; the rest are plain new routes.
+ * Any share above 0 shows at least one red stub and any share below 1 leaves at least one plain pass, so the stack never lies at the edges.
+ * `topRepeat` says whether the route on the top pass is itself a repeat (default: any repeat exists); only then is the top stub lit, the one lit part. Red stubs below take a subdued accent, unlit.
+ * At section size the top pass reads `route` (for example "ROV ↔ VKO").
+ * Parts: `supporting-pass` (subdued repeat stubs), `top-pass` (carries --slide-x/--slide-y; slides out along its length on hover).
  */
-export function passStack(repeatShare: number, route: string, k = 1) {
+export function passStack(repeatShare: number, route: string, k = 1, topRepeat?: boolean) {
   const s = new Scene(k)
   const n = PASSES,
-    repeats = Math.max(0, Math.min(n, Math.round(repeatShare * n)))
-  const isRepeat = (i: number) => i >= n - repeats
+    repeats =
+      repeatShare <= 0
+        ? 0
+        : Math.max(1, Math.min(repeatShare >= 1 ? n : n - 1, Math.round(repeatShare * n))),
+    top = topRepeat ?? repeats > 0,
+    // Red stubs under the top pass: the stack's count, less the top pass when that one is a repeat.
+    lower = Math.max(0, Math.min(n - 1, repeats - (top && repeats > 0 ? 1 : 0)))
+  const isRepeat = (i: number) => (i === n - 1 ? top : i >= n - 1 - lower)
   // Contact shadow, a little larger than the stack.
   s.poly(
     [
@@ -83,13 +92,15 @@ export function passStack(repeatShare: number, route: string, k = 1) {
     return at
   }
   for (let i = 0; i < n - 1; i++) {
-    const depth = n - 1 - i,
-      [deg, dy] = SKEW[(depth - 1) % SKEW.length]
-    const dx = depth * FAN
-    const repeat = isRepeat(i)
-    const at = card(deg, dx, dy, (i + 1) * T, repeat)
-    if (repeat) s.poly([at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)], 'accent', 'line')
-    else s.segs([[at(L - STUB, 1), at(L - STUB, B - 1)]], 'detail', 0.7)
+    s.group('supporting-pass', () => {
+      const depth = n - 1 - i,
+        [deg, dy] = SKEW[(depth - 1) % SKEW.length]
+      const dx = depth * FAN
+      const repeat = isRepeat(i)
+      const at = card(deg, dx, dy, (i + 1) * T, repeat)
+      if (repeat) s.poly([at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)], 'accent', 'line')
+      else s.segs([[at(L - STUB, 1), at(L - STUB, B - 1)]], 'detail', 0.7)
+    })
   }
 
   const [sx, sy] = s.vector(SLIDE, 0, 0)
@@ -116,7 +127,16 @@ export function passStack(repeatShare: number, route: string, k = 1) {
       }
       s.segs(bars, repeat ? 'on-accent' : 'line', 0.8)
       s.segs(thick, repeat ? 'on-accent' : 'line', 1.6)
-      // The body: a plane glyph, the route or printed rules, and a seat box.
+      // The body: airline mark, the route with a plane glyph, FROM / TO fields and seat, gate and class boxes. Small labels are printed rules.
+      s.poly([at(4, 3), at(16, 3), at(16, 8), at(4, 8)], 'detail', 'none')
+      s.segs(
+        [
+          [at(20, 4), at(40, 4)],
+          [at(20, 7), at(32, 7)],
+        ],
+        'detail',
+        0.8,
+      )
       const glyph: Pt[] = [
         [4, 0],
         [1, 0.8],
@@ -136,24 +156,46 @@ export function passStack(repeatShare: number, route: string, k = 1) {
         [1, -0.8],
       ]
       s.poly(
-        glyph.map(([u, v]) => at(12 + u * 1.3, 10 + v * 1.3)),
+        glyph.map(([u, v]) => at(12 + u * 1.3, 16 + v * 1.3)),
         'ink',
         'ink',
       )
       if (k >= 0.9 && route)
-        s.text(route, at(22, 13.5), U, V, { size: 8, weight: 700, mono: true, fill: 'ink' })
-      else s.segs([[at(22, 10), at(58, 10)]], 'line', 1.6)
+        s.text(route, at(22, 19.5), U, V, { size: 8, weight: 700, mono: true, fill: 'ink' })
+      else s.segs([[at(22, 16), at(58, 16)]], 'line', 1.6)
+      // FROM and TO: a tiny label rule over a longer value rule each.
       s.segs(
         [
-          [at(8, 24), at(40, 24)],
-          [at(8, 30), at(32, 30)],
-          [at(48, 24), at(70, 24)],
+          [at(8, 25), at(15, 25)],
+          [at(46, 25), at(51, 25)],
         ],
         'detail',
-        1.2,
+        0.8,
       )
-      s.poly([at(8, 34), at(28, 34), at(28, 40), at(8, 40)], 'none', 'detail', undefined, 0.8)
-      s.poly([at(48, 34), at(76, 34), at(76, 40), at(48, 40)], 'none', 'detail', undefined, 0.8)
+      s.segs(
+        [
+          [at(8, 28.5), at(34, 28.5)],
+          [at(46, 28.5), at(72, 28.5)],
+        ],
+        'line',
+        1.4,
+      )
+      // Seat, gate and class boxes, each printed with a label rule and a value rule.
+      for (const [l, r] of [
+        [8, 26],
+        [30, 48],
+        [52, 76],
+      ]) {
+        s.poly([at(l, 33), at(r, 33), at(r, 41), at(l, 41)], 'none', 'detail', undefined, 0.8)
+        s.segs(
+          [
+            [at(l + 2, 35.2), at(l + 7, 35.2)],
+            [at(l + 2, 38.4), at(l + 11, 38.4)],
+          ],
+          'detail',
+          0.8,
+        )
+      }
       s.include([at(L + SLIDE, 0), at(L + SLIDE, B)])
     },
     { vars: { '--slide-x': `${sx}px`, '--slide-y': `${sy}px` } },

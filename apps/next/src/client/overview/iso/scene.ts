@@ -14,13 +14,18 @@ export type Paint =
   | 'front'
   | 'side'
   | 'line'
+  /** Quiet stroke for interior edges between two faces of one solid; `line` is the silhouette. */
+  | 'crease'
   | 'detail'
   | 'glass'
   | 'ghost'
   | 'accent'
   | 'accent-side'
   | 'accent-plate'
+  /** A cast shadow: a polygon with this fill and no stroke is drawn feathered (see `SHADOW_BLUR`) and does not count toward the fit box. */
   | 'shadow'
+  /** The shadow colour, never feathered: for dark inner walls and apertures that need a crisp edge. */
+  | 'shade'
   | 'land'
   | 'on-accent'
   | 'ink'
@@ -76,9 +81,21 @@ export type IsoNode =
 export type IsoFigureData = {
   width: number
   height: number
+  /** Filter region including cast shadows, which spill outside the ink-and-glow viewport. */
+  shadowBounds?: { x: number; y: number; width: number; height: number }
+  /** stdDeviation in px of the feather on cast shadows; 0 when the figure has none. */
+  shadowBlur?: number
   viewBox: string
   nodes: IsoNode[]
 }
+
+/** Cast shadows are feathered with a Gaussian of this stdDeviation at k = 1. */
+export const SHADOW_BLUR = 1.6
+/** Smallest rendered size of any label, in CSS px at the fitted scale. Below ~6 px glyph counters close up and mono digits blur together, so text the plane size would shrink under this is enlarged to it (it may then outgrow its plate: widen the plate or shorten the text). */
+export const MIN_LABEL_PX = 6
+/** Plane-unit font size that renders at least `MIN_LABEL_PX` when each plane unit is `px` screen px. */
+export const labelSize = (size: number, px: number) =>
+  px > 0 ? Math.max(size, MIN_LABEL_PX / px) : size
 
 export const r1 = (n: number) => Math.round(n * 10) / 10
 export const r3 = (n: number) => Math.round(n * 1000) / 1000
@@ -87,6 +104,10 @@ export class Scene {
   readonly k: number
   private stack: IsoNode[][] = [[]]
   private pts: Pt[] = []
+  /** Bounds of cast shadows and of glow halos, kept apart from `pts` so only glow counts toward the fit. */
+  private shadowPts: Pt[] = []
+  private haloPts: Pt[] = []
+  private sigma = 0
 
   constructor(k = 1) {
     this.k = k
@@ -135,9 +156,12 @@ export class Scene {
     width?: number,
     opacity?: number,
   ) {
+    const cast = fill === 'shadow' && stroke === 'none'
+    const projected = cast ? pts3.map((p) => this.project(p)) : this.pp(pts3)
+    if (cast) this.castShadow(projected)
     this.push({
       kind: 'polygon',
-      points: this.str(this.pp(pts3)),
+      points: this.str(projected),
       fill,
       stroke,
       strokeOpacity,
@@ -145,9 +169,14 @@ export class Scene {
       opacity,
     })
   }
+  private castShadow(pts: readonly Pt[]) {
+    this.shadowPts.push(...pts)
+    this.sigma = SHADOW_BLUR * this.k
+  }
   /** Polygon already in screen space. */
   poly2(pts: readonly Pt[], fill: Paint, stroke: Paint = 'line', width?: number) {
-    this.pts.push(...pts)
+    if (fill === 'shadow' && stroke === 'none') this.castShadow(pts)
+    else this.pts.push(...pts)
     this.push({ kind: 'polygon', points: this.str(pts), fill, stroke, width })
   }
   line(pts3: readonly P3[], stroke: Paint = 'line', width = 1, dash?: string) {
@@ -188,7 +217,13 @@ export class Scene {
   }
   /** Soft light under an accent part: whatever `draw` emits, blurred. `blur` is the stdDeviation at k = 1, so glows scale with the figure like its geometry. */
   glow(blur: number, draw: () => void) {
-    this.push({ kind: 'glow', blur: r3(blur * this.k), children: this.collect(draw) })
+    const from = this.pts.length
+    const children = this.collect(draw)
+    const sigma = r3(blur * this.k)
+    // The blur reaches 3 sigma past the part it copies.
+    for (const [x, y] of this.pts.slice(from))
+      this.haloPts.push([x - 3 * sigma, y - 3 * sigma], [x + 3 * sigma, y + 3 * sigma])
+    this.push({ kind: 'glow', blur: sigma, children })
   }
   /** Accent face with glow; `blur` is at k = 1. */
   lit(pts3: readonly P3[], blur = 4) {
@@ -240,13 +275,18 @@ export class Scene {
       anchor = 'start' as 'start' | 'middle' | 'end',
     } = {},
   ) {
+    // Floor: plane units are screen px times the projected length of the axes, so enlarge a label that would render under MIN_LABEL_PX.
+    const unit = Math.min(
+      Math.hypot((U[0] - U[1]) * C * this.k, (U[0] + U[1]) * S * this.k - U[2] * this.k),
+      Math.hypot((V[0] - V[1]) * C * this.k, (V[0] + V[1]) * S * this.k - V[2] * this.k),
+    )
     this.push({
       kind: 'text',
       text,
       x: 0,
       y: 0,
       transform: this.matrix(O, U, V),
-      size,
+      size: labelSize(size, unit),
       weight,
       mono,
       anchor,
@@ -266,6 +306,7 @@ export class Scene {
       dy = 0,
     } = {},
   ) {
+    size = Math.max(size, MIN_LABEL_PX)
     const [x0, y] = this.P(x3, y3, z3),
       x = x0 + dx
     const width = text.length * size * 0.62
@@ -284,6 +325,7 @@ export class Scene {
     })
   }
 
+  /** Block with a top, front and side face. Edges between its own faces take `crease`, the outer silhouette `line`; an explicit `stroke` paints every edge that colour and skips the silhouette. */
   box(
     x: number,
     y: number,
@@ -293,6 +335,7 @@ export class Scene {
     h: number,
     f: { top?: Paint; front?: Paint; side?: Paint; stroke?: Paint } = {},
   ) {
+    const edge = f.stroke ?? 'crease'
     this.poly(
       [
         [x + w, y, z + h],
@@ -301,7 +344,7 @@ export class Scene {
         [x + w, y, z],
       ],
       f.side ?? 'side',
-      f.stroke,
+      edge,
     )
     this.poly(
       [
@@ -311,7 +354,7 @@ export class Scene {
         [x, y + d, z],
       ],
       f.front ?? 'front',
-      f.stroke,
+      edge,
     )
     this.poly(
       [
@@ -321,11 +364,26 @@ export class Scene {
         [x, y + d, z + h],
       ],
       f.top ?? 'top',
-      f.stroke,
+      edge,
     )
+    if (!f.stroke)
+      this.poly2(
+        hull(
+          [
+            [x, y, z + h],
+            [x + w, y, z + h],
+            [x + w, y, z],
+            [x + w, y + d, z],
+            [x, y + d, z],
+            [x, y + d, z + h],
+          ].map(([a, b, c]) => this.project([a, b, c])),
+        ),
+        'none',
+        'line',
+      )
   }
   /**
-   * Rounded box: the outline is filled `wall` (the y-facing tone), the visible facets that face more along x than y are merged into one `side` polygon, then come the outline stroke and a rounded top.
+   * Rounded box (edges: top `crease`, silhouette `line`; an explicit `stroke` paints both): the outline is filled `wall` (the y-facing tone), the visible facets that face more along x than y are merged into one `side` polygon, then come the outline stroke and a rounded top.
    * Facets are the straight runs of `roundRect`, which winds counter-clockwise in plan, so a facet's outward normal is (dy, -dx).
    */
   rbox(
@@ -362,11 +420,12 @@ export class Scene {
         'none',
       )
     }
-    this.poly2(outline, 'none', f.stroke)
-    this.poly2(top, f.top ?? 'top', f.stroke)
+    this.poly2(top, f.top ?? 'top', f.stroke ?? 'crease')
+    this.poly2(outline, 'none', f.stroke ?? 'line')
   }
   /**
    * Prism extruded along y from `y` to `y + d`, from a convex x–z profile wound counter-clockwise with z up (`roundRect(x, z, w, h, r)`), so a facet's outward normal is (dz, -dx).
+   * Edges: the end face is `crease`, the silhouette `line` (an explicit `stroke` paints both).
    * The outline is filled `side`, visible facets that face more up than along x are merged into `top` runs, then the near end face (`front`) and the outline stroke.
    */
   prism(
@@ -397,8 +456,8 @@ export class Scene {
         'none',
       )
     }
-    this.poly2(near, f.front ?? 'front', f.stroke)
-    this.poly2(outline, 'none', f.stroke)
+    this.poly2(near, f.front ?? 'front', f.stroke ?? 'crease')
+    this.poly2(outline, 'none', f.stroke ?? 'line')
   }
   /** Circle on a plane, given its centre and radius in plane units. */
   circle(O: P3, U: P3, V: P3, cu: number, cv: number, rad: number, n = 28): P3[] {
@@ -411,47 +470,62 @@ export class Scene {
     return out
   }
 
-  done(pad = 6): IsoFigureData {
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity
-    for (const [x, y] of this.pts) {
-      minX = Math.min(minX, x)
-      minY = Math.min(minY, y)
-      maxX = Math.max(maxX, x)
-      maxY = Math.max(maxY, y)
+  /** Closes the ink-and-glow viewport with stroke padding. Glow adds 3 sigma; cast shadows spill through overflow: visible into a separate filter region with 2 sigma of feather (the tail beyond is under 3% opacity). */
+  done(pad = 3): IsoFigureData {
+    const box = (pts: readonly Pt[]) => {
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity
+      for (const [x, y] of pts) {
+        minX = Math.min(minX, x)
+        minY = Math.min(minY, y)
+        maxX = Math.max(maxX, x)
+        maxY = Math.max(maxY, y)
+      }
+      return { minX, minY, maxX, maxY }
     }
-    const x0 = minX - pad,
-      y0 = minY - pad
-    const width = Math.ceil(maxX + pad - x0),
-      height = Math.ceil(maxY + pad - y0)
+    const reach = 2 * this.sigma
+    const shadow = this.shadowPts.flatMap(([x, y]): Pt[] => [
+      [x - reach, y - reach],
+      [x + reach, y + reach],
+    ])
+    const fitBox = box([...this.pts, ...this.haloPts]),
+      all = box([...this.pts, ...this.haloPts, ...shadow])
+    const size = (b: typeof fitBox) => ({
+      width: Math.ceil(b.maxX - b.minX + 2 * pad),
+      height: Math.ceil(b.maxY - b.minY + 2 * pad),
+    })
+    const { width, height } = size(fitBox)
     return {
       width,
       height,
-      viewBox: `${r1(x0)} ${r1(y0)} ${width} ${height}`,
+      shadowBounds: this.sigma
+        ? { x: r1(all.minX - pad), y: r1(all.minY - pad), ...size(all) }
+        : undefined,
+      shadowBlur: this.sigma ? r3(this.sigma) : undefined,
+      viewBox: `${r1(fitBox.minX - pad)} ${r1(fitBox.minY - pad)} ${width} ${height}`,
       nodes: this.stack[0],
     }
   }
 }
 
-/** The largest scale (to 0.005) at which `build(k)` is at most `width` px wide, so a tile can draw a figure at the width its box has instead of CSS shrinking it. Width is near-linear in k below the scales where detail switches on: two probes place the guess and a few steps settle it. */
+type Sized = { width: number; height: number }
+
+/** The largest scale (to 0.005) at which `build(k)` is at most `width` px wide, so a tile can draw a figure at the width its box has (sized by ink and glow, not cast shadows) instead of CSS shrinking it. Width is near-linear in k below the scales where detail switches on: two probes place the guess and a few steps settle it. */
 export function fitK(width: number, build: (k: number) => { width: number }): number {
-  const w1 = build(0.8).width,
-    w2 = build(0.4).width
+  const wide = (k: number) => build(k).width
+  const w1 = wide(0.8),
+    w2 = wide(0.4)
   const slope = (w1 - w2) / 0.4
   let k = Math.round((0.8 + (width - w1) / slope) / 0.005) * 0.005
-  for (let i = 0; i < 20 && build(k).width > width; i++) k -= 0.005
-  for (let i = 0; i < 20 && build(k + 0.005).width <= width; i++) k += 0.005
+  for (let i = 0; i < 20 && wide(k) > width; i++) k -= 0.005
+  for (let i = 0; i < 20 && wide(k + 0.005) <= width; i++) k += 0.005
   return Math.round(k * 1000) / 1000
 }
 
 /** Like fitK, but the figure must also be at most `height` px tall: upright figures (a board, a calendar) run out of height before width. */
-export function fitBox(
-  width: number,
-  height: number,
-  build: (k: number) => { width: number; height: number },
-): number {
+export function fitBox(width: number, height: number, build: (k: number) => Sized): number {
   return Math.min(
     fitK(width, build),
     fitK(width, (k) => ({ width: (build(k).height * width) / height })),
