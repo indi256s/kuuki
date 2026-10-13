@@ -318,6 +318,7 @@ export const TOP_RUNG = p('Top rung', 'Верхняя ступень')
 /** Visually hidden state after a strip slot's rung name. */
 export const SLOT_EARNED = p(', earned', ', получено')
 export const SLOT_LOCKED = p(', locked', ', закрыто')
+export const SLOT_NEXT = p(', next', ', следующая')
 export const EARNED_COUNT = (n: number, locale: Locale) =>
   locale === 'ru' ? `Получено: ${formatNumber(locale, n)}` : `${formatNumber(locale, n)} earned`
 export const SHOW_ALL = (n: number, locale: Locale) =>

@@ -16,6 +16,7 @@ import {
   SHOW_ALL,
   SLOT_EARNED,
   SLOT_LOCKED,
+  SLOT_NEXT,
   TOP_RUNG,
   normal,
   rungOf,
@@ -63,7 +64,9 @@ export function AchievementCabinet({
 }) {
   const mobile = useMobile() === true
   const tiles = toTiles(badges)
-  const [open, setOpen] = useState<LadderTile | null>(null)
+  // Keep the key, not the tile: an award that lands while the sheet is open must show the new rung.
+  const [openKey, setOpenKey] = useState<string | null>(null)
+  const open = tiles.find((tile) => tileKey(tile) === openKey) ?? null
   const [expanded, setExpanded] = useState(false)
   const [fresh, setFresh] = useState<string[]>([])
   useEffect(() => {
@@ -103,7 +106,7 @@ export function AchievementCabinet({
                 type="button"
                 className="profile-badge"
                 aria-haspopup="dialog"
-                onClick={() => setOpen(tile)}
+                onClick={() => setOpenKey(key)}
               >
                 <span className="profile-badge-mark">
                   {tile.kind === 'founding' ? (
@@ -140,7 +143,7 @@ export function AchievementCabinet({
       )}
       <Sheet
         open={open !== null}
-        onOpenChange={(next) => !next && setOpen(null)}
+        onOpenChange={(next) => !next && setOpenKey(null)}
         side={mobile ? 'bottom' : 'right'}
         title={
           open
@@ -267,13 +270,11 @@ function RungStrip({
                 initials={initials}
               />
               <span className="ladder-slot-name">{name}</span>
+              <span className="sr-only">
+                {{ earned: SLOT_EARNED, next: SLOT_NEXT, later: SLOT_LOCKED }[state][locale]}
+              </span>
               {state === 'next' && step && (
                 <span className="ladder-slot-togo">{toGo(ladder, step.remaining, locale)}</span>
-              )}
-              {state !== 'next' && (
-                <span className="sr-only">
-                  {(state === 'earned' ? SLOT_EARNED : SLOT_LOCKED)[locale]}
-                </span>
               )}
             </li>
           )
