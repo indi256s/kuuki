@@ -48,7 +48,7 @@ const usage = {
   cache_creation_input_tokens: 0,
   server_tool_use: { web_search_requests: 1 },
 }
-function research() {
+function research(evidenceQuote = quote) {
   return {
     stop_reason: 'end_turn',
     usage,
@@ -67,13 +67,13 @@ function research() {
       },
       {
         type: 'text',
-        text: quote,
+        text: evidenceQuote,
         citations: [
           {
             type: 'web_search_result_location',
             url: 'https://example.test/BA123/2025-01-01',
             title: 'Dated record',
-            cited_text: quote,
+            cited_text: evidenceQuote,
           },
         ],
       },
@@ -222,6 +222,30 @@ it('supports a spelled calendar date and spaced full flight number in the actual
 
 it.each([
   [
+    'a different Airbus variant',
+    'BA123 AAA-BBB 2025-01-01 operated Airbus A320neo.',
+    { icao: 'A320' },
+    {},
+  ],
+  [
+    'a competing flight beside the proposed Airbus model',
+    'BA123 AAA-BBB 2025-01-01 operated Airbus A320. BA-456 AAA-BBB 2025-01-01 operated Airbus A320.',
+    { icao: 'A320' },
+    {},
+  ],
+  [
+    'a type-like competing flight beside the proposed Airbus model',
+    'BA123 AAA-BBB 2025-01-01 operated Airbus A320. SU95 AAA-BBB 2025-01-01 operated Airbus A320.',
+    { icao: 'A320' },
+    {},
+  ],
+  [
+    'conflicting types for the same dated flight',
+    'BA123 AAA-BBB 2025-01-01 operated Boeing 777-300ER. Conflicting source reports BA123 AAA-BBB 2025-01-01 operated Boeing 737-800.',
+    {},
+    {},
+  ],
+  [
     'a hyphenated competing flight',
     'BA123 AAA-BBB 2025-01-01 operated Airbus A320. BA-456 AAA-BBB 2025-01-01 operated Boeing 737-800.',
     {},
@@ -277,4 +301,11 @@ it.each([
   provider(extracted({ ...fields, evidence_quote }), first)
   const response = await onRequestPost(context(input))
   expect(await response.json()).toMatchObject({ results: [{ aircraft_icao: null }] })
+})
+
+it('accepts a named Airbus model without mistaking its type for another flight', async () => {
+  const evidence_quote = 'BA123 AAA-BBB 2025-01-01 operated Airbus A320.'
+  provider(extracted({ icao: 'A320', evidence_quote }), research(evidence_quote))
+  const response = await onRequestPost(context())
+  expect(await response.json()).toMatchObject({ results: [{ aircraft_icao: 'A320' }] })
 })

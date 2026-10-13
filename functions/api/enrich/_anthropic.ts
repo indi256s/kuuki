@@ -1,4 +1,4 @@
-import { findAircraft } from '../../../packages/data/src/aircraft-lookup'
+import aircraftData from '../../../packages/data/src/aircraft.json' with { type: 'json' }
 import { findAirport } from '../../../packages/data/src/airport-lookup'
 import { normalizeFlightNumber } from '../_services/blockTimeMedian'
 import { HttpError } from '../_lib/http'
@@ -132,6 +132,15 @@ const tokenMatch = (text: string, value: string) =>
   new RegExp(`(^|[^A-Z0-9])${escapeRegex(value)}(?=$|[^A-Z0-9])`, 'i').exec(text)
 const token = (text: string, value: string) => tokenMatch(text, value) != null
 
+// Exact model names and explicitly labeled ICAO codes identify aircraft, not flights.
+const aircraftPatterns = aircraftData.map((aircraft) => ({
+  icao: aircraft.icao.toUpperCase(),
+  pattern: new RegExp(
+    `(^|[^A-Z0-9])(?:${escapeRegex(aircraft.name).replace(/[ -]/g, '[ -]*')}|(?:aircraft|equipment|type|icao)\\s*[:=]?\\s*${aircraft.icao})(?=$|[^A-Z0-9-])`,
+    'gi',
+  ),
+}))
+
 /** The extractor cannot copy requested identity into an unrelated cited excerpt. */
 function quoteSupports(row: ProviderAircraft, flight: FlightToEnrich, quote: string): boolean {
   const dates = new Set(quote.match(/\b\d{4}-\d{2}-\d{2}\b/g) ?? [])
@@ -169,14 +178,28 @@ function quoteSupports(row: ProviderAircraft, flight: FlightToEnrich, quote: str
   if (!carrier || !number || !/^\d{1,5}[A-Z]?$/.test(number)) return false
   if (!new RegExp(`(^|[^A-Z0-9])${carrier}[-\\s]*0*${number}([^A-Z0-9]|$)`, 'i').test(quote))
     return false
+  const types = new Set<string>()
+  const aircraftSpans: Array<{ start: number; end: number }> = []
+  for (const { icao, pattern } of aircraftPatterns) {
+    for (const match of quote.matchAll(pattern)) {
+      types.add(icao)
+      aircraftSpans.push({
+        start: match.index + match[1].length,
+        end: match.index + match[0].length,
+      })
+    }
+  }
+  if (types.size !== 1 || !types.has(row.icao?.toUpperCase() ?? '')) return false
   for (const match of quote.toUpperCase().matchAll(/\b([A-Z0-9]{2})[-\s]*(\d{1,5}[A-Z]?)\b/g)) {
     const code = match[1]
     const label = match[0].replace(/[-\s]/g, '')
     if (!/[A-Z]/.test(code)) continue
-    if (label === row.icao?.toUpperCase()) {
-      const prefix = quote.slice(0, match.index)
-      if (/\b(aircraft|equipment|type|icao)\s*[:=]?\s*$/i.test(prefix)) continue
-    }
+    if (
+      aircraftSpans.some(
+        ({ start, end }) => match.index >= start && match.index + match[0].length <= end,
+      )
+    )
+      continue
     if (code !== carrier || normalizeFlightNumber(code, label) !== number) return false
   }
   const airportPosition = (iata: string) => {
@@ -195,16 +218,6 @@ function quoteSupports(row: ProviderAircraft, flight: FlightToEnrich, quote: str
   const originPosition = airportPosition(flight.origin)
   const destinationPosition = airportPosition(flight.destination)
   if (originPosition < 0 || destinationPosition <= originPosition) return false
-  const aircraft = row.icao ? findAircraft(row.icao) : undefined
-  if (!aircraft) return false
-  // Word boundary prevents A320 from being accepted using a literal A320neo claim.
-  const modelPattern = escapeRegex(aircraft.name).replace(/[ -]/g, '[ -]*')
-  const typeSupported =
-    new RegExp(
-      `\\b(?:aircraft|equipment|type|icao)\\s*[:=]?\\s*${aircraft.icao}([^A-Z0-9]|$)`,
-      'i',
-    ).test(quote) || new RegExp(`(^|[^A-Z0-9])${modelPattern}([^A-Z0-9-]|$)`, 'i').test(quote)
-  if (!typeSupported) return false
   const scheduled = /\b(scheduled|planned|expected)\b/i.test(quote)
   const actual = /\b(actual|operated|landed|completed)\b/i.test(quote)
   if (row.equipment_basis === 'actual') return actual && !scheduled

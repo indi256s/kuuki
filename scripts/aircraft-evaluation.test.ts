@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { createPrivateAircraftArtifact, groupAircraftOccurrences } from './evaluate-aircraft'
 
@@ -30,6 +30,7 @@ test('repeated journal occurrences reuse one full marketing flight lookup withou
 })
 
 test('private artifacts refuse overwrite, symlink traversal and escapes; incremental writes retain private permissions', async () => {
+  await mkdir(resolve('.scratch/import-eval'), { recursive: true, mode: 0o700 })
   const directory = await mkdtemp(resolve('.scratch/import-eval/aircraft-test-'))
   const path = join(directory, 'result.json')
   try {
