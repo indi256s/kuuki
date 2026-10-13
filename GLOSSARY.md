@@ -63,6 +63,13 @@ How a logged flight became logged: `save` (past/today save), `user` (explicit
 confirmation), `automatic` (seven-day auto-confirm), `legacy` (migration
 provenance for pre-existing flights, not an explicit confirmation).
 
+### Owner confirmation
+
+The journal owner's explicit statement that a journey occurred and which
+countries were visited, conveyed directly or through an agent acting on their
+instruction. A ticket, elapsed date or an agent's inference is not owner
+confirmation.
+
 ### Import batch
 
 One import run (document or text) that yields draft rows for review before any
@@ -139,6 +146,32 @@ flight number alone does not establish the same occurrence.
 Sources of flight evidence with demonstrably separate primary data origins.
 Different websites reproducing the same upstream data do not constitute
 independent confirmation; an unknown origin does not establish independence.
+
+## Ground travel vocabulary
+
+### Rail journey
+
+A journey between cities by train, including suburban rail between cities.
+It contains one or more rail legs deliberately grouped by the traveler; urban
+rail and routine commuting are outside this concept.
+
+### Rail leg
+
+The part of a rail journey traveled on one train between boarding and alighting
+stations. Changing trains starts another leg; return travel is a separate leg.
+
+### Ground border crossing
+
+Actual entry into a country by land during a rail journey or road trip. It
+counts as a country visit even in transit without a stop; a planned crossing
+does not establish a visit.
+
+### Road trip
+
+A travel itinerary by car to one or more cities, including its stops and any
+return travel. The traveler decides which itineraries qualify, with no minimum
+distance or duration.
+_Avoid_: Any car ride — ordinary car travel does not by itself constitute a road trip.
 
 ## Flight metrics vocabulary
 

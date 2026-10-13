@@ -48,6 +48,11 @@ navigation; [Overview](../DESIGN.md#overview-redesign) for dashboard changes;
 | [plans/](./plans/)                                                              | Plans and adjacent handoffs; resume from the handoff                      |
 | [Flight enrichment sources](./research/2026-10-07-flight-enrichment-sources.md) | Historical aircraft sources, storage limits and local Gemini source audit |
 
+The shared “Ground travel” page is specified in the
+[rail and road-trip spec](../.scratch/ground-travel/spec.md), with accepted
+contracts and triage results. Browser agent access is a separate
+[WebMCP workstream](plans/2026-10-13-webmcp.md). Neither is implemented yet.
+
 For ingest evaluation resumption and checkout-local inputs, read the
 [ingest handoff](plans/2026-10-11-ingest-evaluation-handoff.md).
 

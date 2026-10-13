@@ -336,6 +336,20 @@ Active state never relies on color alone: an `--accent-tint` pill with `--accent
 
 ## Shell and navigation
 
+**Accepted for ground travel, unbuilt (13 October 2026).** The new
+`/ground-travel` page is “Наземные путешествия” / “Ground travel”, combining
+rail and road lists with an All / Trains / Road filter and its own Add chooser.
+Desktop navigation becomes Overview, Journal, Ground travel, Passport; the
+existing desktop Add flight retains its functions. Mobile has four destinations
+Overview, Journal, Ground, Passport (Обзор, Журнал, Наземные, Паспорт); Add moves
+inside pages and the bottom + is removed. Journal keeps all four flight capture
+choices through its page action. This accepted feature delta supersedes the
+three-destination-plus arrangement below when building ground travel; the
+current source still implements that baseline. Use the existing rail tokens,
+controls and accessibility requirements. The interaction/list/route contract
+is [page-flow-contract.md](.scratch/ground-travel/page-flow-contract.md); this
+is a decision, not visual acceptance of four tabs at 320px or 200% text.
+
 One breakpoint at 700px switches between desktop and mobile. The header and tab bar sit outside the single `<main id="main" class="page-shell">`; a skip link precedes them. `BrandShell` (guests) shows the wordmark, sign-in and sign-up links, and the language/theme controls; `MemberShell` adds navigation.
 
 **Desktop (above 700px).** The header is `position: sticky; top: 0` at `z-index: var(--z-header)`, solid `--background`, no divider hairline, minimum height `--header-h` 64px, content aligned to 1200px, or the 2560px shell on Overview. Spacing tightens fluidly and controls wrap when localized text needs another row. Left: the kana tile and lowercase wordmark, then Overview, Journal, Passport (Обзор, Журнал, Паспорт) 40px after the brand. Links are 44px high with 16px inline padding, radius `--radius-sm`, 15/20, inactive 500 `--text-muted`; fine-pointer hover is `--surface-inset` with `--text`. The selected link has `aria-current="page"`, an `--accent-tint` pill, `--accent-on-tint` text and weight 600; there is no underline bar and no sliding indicator. Leaderboard and the queue badge are not in the header. Right, 16px apart: Add flight, then the avatar menu. The Journal ledger column header sticks below the header's measured height (`--header-block`, published by the primary nav; `--header-h` before it is measured).
