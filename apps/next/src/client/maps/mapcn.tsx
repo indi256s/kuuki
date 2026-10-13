@@ -5,12 +5,16 @@
 import * as MapLibreGL from 'maplibre-gl'
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { mapOptions } from './options'
+import { resolveColor } from './resolve-color'
 
-const blankStyle: MapLibreGL.StyleSpecification = {
+const waterColor = () =>
+  resolveColor(getComputedStyle(document.documentElement).getPropertyValue('--map-water').trim())
+
+const blankStyle = (): MapLibreGL.StyleSpecification => ({
   version: 8,
   sources: {},
-  layers: [{ id: 'background', type: 'background', paint: { 'background-color': 'transparent' } }],
-}
+  layers: [{ id: 'background', type: 'background', paint: { 'background-color': waterColor() } }],
+})
 type MapContextValue = { map: MapLibreGL.Map | null; ready: boolean; themeRevision: number }
 /** Exported so layer components can be exercised against a stand-in map in unit tests. */
 export const MapContext = createContext<MapContextValue>({
@@ -55,7 +59,7 @@ export function Map({
     try {
       instance = new MapLibreGL.Map({
         container: host.current,
-        style: projection ? { ...blankStyle, projection } : blankStyle,
+        style: { ...blankStyle(), ...(projection ? { projection } : {}) },
         ...mapOptions(locale),
       })
     } catch {
@@ -121,6 +125,10 @@ export function Map({
     // The map is created once per mount; a locale change reloads the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  useEffect(() => {
+    if (!map || !ready) return
+    map.setPaintProperty('background', 'background-color', waterColor())
+  }, [map, ready, themeRevision])
   return (
     <MapContext.Provider value={{ map, ready, themeRevision }}>
       <div ref={host} className={className} aria-hidden="true" />

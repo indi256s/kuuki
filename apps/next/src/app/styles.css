@@ -95,10 +95,11 @@
   --holder-uv: #6a52b8;
   --holder-uv-shade: rgb(48 45 42/7%);
   --map-land: var(--surface-inset);
-  --map-border: var(--hairline);
+  --map-water: #e4edf1;
+  --map-border: #b1aaa2;
   --map-route: var(--accent);
   --globe-route: var(--text);
-  --globe-route-casing: var(--map-land);
+  --globe-route-casing: var(--surface-inset);
   --map-bucket-1: var(--heat-1);
   --map-bucket-2: var(--heat-2);
   --map-bucket-3: var(--heat-3);
@@ -210,6 +211,9 @@
   --background: #292827;
   --surface: #353331;
   --surface-inset: #403d3a;
+  --map-land: #55504b;
+  --map-water: #26363f;
+  --map-border: #80766d;
   --text: #f1efeb;
   --text-muted: #c4beb7;
   --hairline: #554f4a;
