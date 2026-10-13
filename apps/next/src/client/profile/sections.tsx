@@ -92,8 +92,9 @@ export function HolderPage({
                 {ru ? 'Бортовой журнал · Владелец' : 'Flight journal · Holder'}
               </p>
             </div>
-            <span className="profile-doc-number" aria-hidden="true">
-              № KU {documentNumber}
+            <span className="profile-holder-issuer" aria-hidden="true">
+              <span className="profile-holder-kana">くうき</span>
+              <span className="profile-doc-number">№ KU {documentNumber}</span>
             </span>
           </div>
           <span className="profile-photo-window">

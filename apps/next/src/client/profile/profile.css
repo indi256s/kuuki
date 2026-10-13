@@ -132,6 +132,35 @@
   font-weight: 500;
   letter-spacing: 0.12em;
 }
+.profile-holder-issuer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+/* Foil-printed kana: the same optically variable ink as the OVI patch, so its sheen slides with the tilt.
+   At rest (touch, reduced motion) it holds the mid-angle look. */
+.profile-holder-kana {
+  font: 500 14px/18px var(--font-kana);
+  letter-spacing: 0.2em;
+  margin-inline-end: -0.2em;
+  color: var(--accent-text);
+  background: linear-gradient(
+      105deg,
+      var(--accent-text) 38%,
+      var(--holder-ovi-shift) 50%,
+      var(--accent-text) 62%
+    )
+    calc(50% + var(--tilt-y) * 15%) 0 / 300% 100% no-repeat;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@media (forced-colors: active) {
+  .profile-holder-kana {
+    -webkit-text-fill-color: currentColor;
+  }
+}
 .profile-doc-number {
   flex-shrink: 0;
   font: 11px/14px var(--font-mono);
