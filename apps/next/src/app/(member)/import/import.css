@@ -210,23 +210,6 @@
   max-width: 100%;
   overflow-wrap: anywhere;
 }
-.import-progressbar {
-  height: 8px;
-  overflow: hidden;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--surface-inset);
-}
-.import-progressbar-fill {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--accent);
-  transform: scaleX(var(--done, 0));
-  transform-origin: left;
-  transition: transform var(--dur-base) var(--ease-out);
-}
 .import-stages {
   list-style: none;
   margin: 0;
@@ -235,7 +218,8 @@
 }
 .import-stages li {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   min-height: 40px;
@@ -283,8 +267,17 @@
 .import-stages li[data-state='active'] {
   font-weight: 600;
 }
+.import-stage-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+.import-stage-copy > span:first-child {
+  flex: 1 1 auto;
+}
 .import-stage-state {
-  margin-left: auto;
   font-size: 13px;
   color: var(--text-muted);
   font-weight: 400;
@@ -301,14 +294,15 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  padding-block: var(--space-2);
 }
-.import-found li[data-new='true'] {
-  animation: import-enter var(--dur-base) var(--ease-out) both;
-  animation-delay: var(--stagger, 0ms);
+.import-found-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Review */
@@ -887,35 +881,12 @@
   opacity: 1;
 }
 
-@keyframes import-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 @keyframes import-spin {
   to {
     transform: rotate(360deg);
   }
 }
-@keyframes import-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .import-found li[data-new='true'] {
-    animation: import-fade 150ms var(--ease-out) both;
-    animation-delay: 0ms;
-  }
-  .import-progressbar-fill,
   .import-check input {
     transition: none;
   }

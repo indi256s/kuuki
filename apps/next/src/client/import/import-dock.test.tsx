@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BatchApi } from './batch-run'
-import { snapshot } from './fixtures'
+import { draft, snapshot } from './fixtures'
 import { ImportDock } from './import-dock'
 import { ImportRunsProvider } from './import-runs'
-import type { Snapshot } from './import-types'
+import type { ImportEvent, Snapshot } from './import-types'
 import { useImportBatch } from './use-import-batch'
 
 afterEach(cleanup)
@@ -41,9 +41,24 @@ function Page({ batch }: { batch: string }) {
 }
 
 describe('ImportDock', () => {
-  it('leaves a run to its own /import page and still shows the others', async () => {
+  it('leaves a run to its own page and announces real stages for docked runs', async () => {
+    let current = snapshot([], {
+      id: 'b2',
+      sourceLabel: 'b2.pdf',
+      status: 'processing',
+      stage: 'recognizing',
+    })
+    let notify!: (event: ImportEvent) => void
+    const liveApi: BatchApi = {
+      ...api,
+      readBatch: async (id) => (id === 'b2' ? current : api.readBatch(id)),
+      connect: (id, _after, onEvent) => {
+        if (id === 'b2') notify = onEvent
+        return new Promise<void>(() => {})
+      },
+    }
     const shell = (pages: string[]) => (
-      <ImportRunsProvider api={api}>
+      <ImportRunsProvider api={liveApi}>
         {pages.map((batch) => (
           <Page key={batch} batch={batch} />
         ))}
@@ -56,7 +71,20 @@ describe('ImportDock', () => {
 
     rerender(shell(['b1']))
     const dock = await screen.findByRole('region', { name: 'Imports' })
-    expect(dock).toHaveTextContent('Reading b2.pdf')
+    expect(dock).toHaveTextContent('Reading the document')
+    expect(dock).toHaveTextContent('b2.pdf')
     expect(dock).not.toHaveTextContent('b1.pdf')
+
+    current = snapshot([draft({ id: 'a' })], { ...current.batch, stage: 'validating', sequence: 2 })
+    await act(async () =>
+      notify({ name: 'rows', sequence: 2, rowIds: ['a'], snapshot: false, reupload: false }),
+    )
+    await waitFor(() =>
+      expect(within(dock).getByRole('button', { expanded: false })).toHaveTextContent(
+        'Checking flights',
+      ),
+    )
+    expect(within(dock).getByRole('button', { expanded: false })).toHaveTextContent('1 found')
+    expect(screen.getByRole('status')).toHaveTextContent('Checking flights. b2.pdf')
   })
 })

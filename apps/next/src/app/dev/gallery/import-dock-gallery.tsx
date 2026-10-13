@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DOCK, FAILURE, count } from '../../../client/import/copy'
+import { DOCK, FAILURE, count, progressLabel } from '../../../client/import/copy'
 import {
   ImportDockView,
   byUrgency,
@@ -26,7 +26,7 @@ function fixtures(locale: Locale, found: number): Record<DockKind, DockItem> {
       key: 'reading',
       kind: 'reading',
       label: 'boarding-passes.pdf',
-      line: DOCK.reading[locale].replace('{label}', 'boarding-passes.pdf'),
+      line: progressLabel(locale, base.stage),
       found,
       href: null,
       actionLabel: null,

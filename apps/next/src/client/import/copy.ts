@@ -186,7 +186,6 @@ ${PROMPT_EXAMPLE.ru}
 - Оставляйте в строке только то, что требует формат: без имён пассажиров, номеров бронирований, номеров билетов, адресов почты, номеров бонусных карт, цен и платёжных данных.`,
   ),
 
-  recognizing: p('Finding your flights', 'Ищем ваши перелёты'),
   sourceChip: p('Source', 'Источник'),
   textSource: p('Pasted text', 'Вставленный текст'),
   leaveSafe: p(
@@ -194,13 +193,15 @@ ${PROMPT_EXAMPLE.ru}
     'Страницу можно закрыть. Найденное останется в Журнале среди ожидающих черновиков.',
   ),
   progressBound: p(
-    'Go do something else. We’ll wave from the corner when it’s read.',
-    'Займитесь своими делами — помашем из угла, когда дочитаем.',
+    'You can leave this page. We’ll let you know when your flights are ready to review.',
+    'Можно уйти с этой страницы. Сообщим, когда перелёты будут готовы к проверке.',
   ),
   cancelRun: p('Cancel', 'Отменить'),
   cancelling: p('Cancelling…', 'Отменяем…'),
   cancelFailed: p('Could not cancel. Try again.', 'Не удалось отменить. Попробуйте ещё раз.'),
   stageAccepted: p('Received', 'Получено'),
+  stagePreparing: p('Preparing import', 'Готовим импорт'),
+  stageWaiting: p('Waiting to read', 'Ожидаем распознавания'),
   stageRecognizing: p('Reading the document', 'Читаем документ'),
   stageValidating: p('Checking flights', 'Проверяем перелёты'),
   stageReady: p('Ready to review', 'Готово к проверке'),
@@ -566,8 +567,10 @@ ${PROMPT_EXAMPLE.ru}
 /** The floating import dock in the member shell. Counts are in COUNTS. */
 export const DOCK = {
   label: p('Imports', 'Импорт'),
-  reading: p('Reading {label}', 'Читаем {label}'),
-  readingSub: p('Go do something else. We’ll wave.', 'Займитесь своими делами — помашем.'),
+  readingSub: p(
+    'We’ll let you know when it’s ready to review.',
+    'Сообщим, когда можно будет проверить.',
+  ),
   review: p('Review', 'Проверить'),
   tryAgain: p('Try again', 'Ещё раз'),
   yourFile: p('your file', 'ваш файл'),
@@ -823,6 +826,13 @@ export const STAGE_KEY: Record<BatchStage, Key> = {
   validating: 'stageValidating',
   review_ready: 'stageReady',
 }
+
+export const progressLabel = (locale: Locale, stage: BatchStage | null): string =>
+  stage === null
+    ? S.stagePreparing[locale]
+    : stage === 'accepted'
+      ? S.stageWaiting[locale]
+      : tx(locale, STAGE_KEY[stage])
 
 export const FIELD_LABEL: Record<FieldName, Pair> = {
   date: p('Date', 'Дата'),
