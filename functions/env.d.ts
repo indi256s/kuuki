@@ -6,6 +6,10 @@ interface Env {
   // Environment variables (wrangler.toml [vars] + Cloudflare dashboard secrets)
   GEMINI_API_KEY: string
   GEMINI_IMPORT_MODEL?: string // non-secret override; defaults to gemini-3.5-flash-lite
+  ENRICH_PROVIDER?: string // gemini (default) or anthropic; server-selected
+  ANTHROPIC_API_KEY?: string
+  ANTHROPIC_WORKSPACE_ID?: string
+  ANTHROPIC_ENRICH_MODEL?: string // defaults to claude-haiku-5-5
   GEMINI_ENRICH_MODEL?: string // non-secret override; defaults to gemini-3.5-flash-lite
   BETTER_AUTH_SECRET: string // independent signing/encryption secret, at least 32 characters
   GOOGLE_CLIENT_ID?: string

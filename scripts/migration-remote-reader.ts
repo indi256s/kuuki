@@ -1,4 +1,4 @@
-/** Explicit-target read-only Wrangler D1 adapter. No caller-provided SQL CLI option. */
+/** Explicit-target read-only Cloudflare CLI D1 adapter. No caller-provided SQL CLI option. */
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -20,6 +20,7 @@ export function assertRemoteIds(accountId: string, databaseId: string): void {
 export function openRemoteReader(
   accountId: string,
   databaseId: string,
+  cli: 'wrangler' | 'cf' = 'wrangler',
 ): MigrationReader & { dispose(): void } {
   assertRemoteIds(accountId, databaseId)
   const directory = mkdtempSync(join(tmpdir(), 'kuuki-remote-read-'))
@@ -48,22 +49,25 @@ database_id = "${databaseId}"
       }
       try {
         const stdout = execFileSync(
-          'pnpm',
-          [
-            'exec',
-            'wrangler',
-            'd1',
-            'execute',
-            'DB',
-            '--remote',
-            '--config',
-            config,
-            '--command',
-            sql,
-            '--json',
-          ],
+          cli === 'cf' ? 'cf' : 'pnpm',
+          cli === 'cf'
+            ? ['d1', 'query', databaseId, '--sql', sql, '--quiet']
+            : [
+                'exec',
+                'wrangler',
+                'd1',
+                'execute',
+                'DB',
+                '--remote',
+                '--config',
+                config,
+                '--command',
+                sql,
+                '--json',
+              ],
           {
             cwd: ROOT,
+            env: { ...process.env, CLOUDFLARE_ACCOUNT_ID: accountId },
             encoding: 'utf8',
             stdio: ['ignore', 'pipe', 'pipe'],
             timeout: 30_000,
@@ -82,7 +86,7 @@ database_id = "${databaseId}"
         return (result as { results: Record<string, unknown>[] }).results
       } catch {
         throw new Error(
-          'Remote read failed; verify Wrangler authentication and explicit target IDs',
+          'Remote read failed; verify Cloudflare CLI authentication and explicit target IDs',
         )
       }
     },

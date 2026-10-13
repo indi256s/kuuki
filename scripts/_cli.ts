@@ -1,5 +1,6 @@
 // Shared helpers for the migration and smoke CLI scripts.
 import { existsSync, realpathSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -28,4 +29,14 @@ export function privateOutputPath(raw: string): string {
     )
   }
   return path
+}
+
+/** Reads one KEY=value line from the ignored root .dev.vars, unquoting the value. */
+export async function devVar(name: string): Promise<string | undefined> {
+  const vars = await readFile(join(ROOT, '.dev.vars'), 'utf8').catch(() => '')
+  const line = vars.split(/\r?\n/).find((line) => line.startsWith(`${name}=`))
+  return line
+    ?.slice(name.length + 1)
+    .trim()
+    .replace(/^(['"])(.*)\1$/, '$2')
 }

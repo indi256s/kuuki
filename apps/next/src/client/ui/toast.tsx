@@ -59,7 +59,6 @@ const DEFAULT_KIND_LABELS: KindLabels = {
   success: 'Success',
   error: 'Error',
 }
-const ICONS = { info: Info, error: CircleAlert } as const
 /** Arc toast: a swipe past this distance (px) or speed (px/ms) throws the toast off in that direction. */
 const SWIPE = { distance: 80, velocity: 0.48 }
 
@@ -79,6 +78,12 @@ function DrawnCheck() {
     </svg>
   )
 }
+
+const ICONS = {
+  info: <Info size={18} strokeWidth={2} aria-hidden="true" />,
+  success: <DrawnCheck />,
+  error: <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />,
+} as const
 
 export function ToastProvider({
   children,
@@ -282,14 +287,7 @@ function ToastView({
       }}
     >
       <span className="ui-toast-icon" data-kind={item.kind}>
-        {item.kind === 'success' ? (
-          <DrawnCheck />
-        ) : (
-          (() => {
-            const Icon = ICONS[item.kind]
-            return <Icon size={18} strokeWidth={2} aria-hidden="true" />
-          })()
-        )}
+        {ICONS[item.kind]}
         <span className="sr-only">{kindLabels[item.kind]}: </span>
       </span>
       {(() => {
