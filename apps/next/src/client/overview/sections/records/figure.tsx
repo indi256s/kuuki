@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { IsoFigure } from '../../iso/iso-figure'
 import { foldedMap, mapPin, type MapPin } from '../../iso/map'
-import { fitBox } from '../../iso/scene'
+import { useFigureK } from '../../layout/figure-box'
 import { useRepin } from './use-repin'
 import '../../iso/map.css'
 
@@ -14,7 +14,7 @@ export type Leg = { key: string; from: MapPin; to: MapPin; equator: boolean }
 const SIZING = [mapPin('AAA'), mapPin('BBB')] as const
 
 /**
- * The folded map in the chapter card's figure stage (300 × 160). `reading` is the key of the route it shows, one of `legs`.
+ * The folded map in the chapter card's figure box (figure-box.ts). `reading` is the key of the route it shows, one of `legs`.
  * A pick re-pins the map (map.css, use-repin.ts); a change that is not a pick swaps the route with no motion. Without legs the sheet is blank and unlit.
  */
 export function RecordMapFigure({
@@ -28,14 +28,7 @@ export function RecordMapFigure({
 }) {
   const { shown, down, host } = useRepin(reading ?? '', picked)
   const leg = legs.get(shown) ?? (reading === null ? undefined : legs.get(reading))
-  const k = useMemo(
-    () =>
-      Math.min(
-        1.8,
-        fitBox(300, 160, (k) => foldedMap(...SIZING, k)),
-      ),
-    [],
-  )
+  const k = useFigureK('', (k) => foldedMap(...SIZING, k))
   const figure = useMemo(
     () =>
       leg ? foldedMap(leg.from, leg.to, k, leg.equator) : foldedMap(mapPin(''), mapPin(''), k),

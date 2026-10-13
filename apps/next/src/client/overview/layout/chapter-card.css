@@ -1,4 +1,4 @@
-/* One chapter, the same bands in the sheet (342 wide) and the desktop card (636 wide): figure stage, hero, chart stage, details.
+/* One chapter, the same bands in the sheet (342 wide) and the desktop card (636 wide; a wider card moves the figure to its own column, see Wide): figure stage, hero, chart stage, details.
    Every band has a fixed box, so a swipe lines two chapters up and loading, empty and ready never move what is below. Spacing groups; there are no rules between rows. */
 .ov3-card {
   display: flex;
@@ -279,19 +279,25 @@
   padding: 4px 0 var(--space-2);
 }
 
-/* Full: row A is 192 (176 stage, 16 below), then the 246 chart stage and the details. */
+/* Full: row A is the figure stage (the box plus 16) and 16 below it, then the 246 chart stage and the details. The box is 300 × 160, or the
+   roomier --figure-w × --figure-h that ChapterCard sets from the card's width (figure-box.ts). */
 .ov3-card[data-span='full'] .ov3-card-top {
   flex-direction: row;
   gap: 24px;
-  height: 192px;
+  height: calc(var(--figure-h, 160px) + 32px);
   padding-bottom: 16px;
 }
 .ov3-card[data-span='full'] .ov3-card-figure {
-  width: 300px;
+  width: var(--figure-w, 300px);
+  height: calc(var(--figure-h, 160px) + 16px);
+}
+.ov3-card[data-span='full'] .ov3-card-figure-box {
+  width: var(--figure-w, 300px);
+  height: var(--figure-h, 160px);
 }
 .ov3-card[data-span='full'] .ov3-card-hero {
   flex: 1;
-  height: 176px;
+  height: calc(var(--figure-h, 160px) + 16px);
   padding-top: 8px;
 }
 .ov3-card[data-span='full'] .ov3-card-value {
@@ -336,6 +342,84 @@
   padding-top: 0;
 }
 .ov3-card[data-span='full'] .ov3-card-figure-box:has(> .ui-skeleton) {
-  height: 176px;
+  height: calc(var(--figure-h, 160px) + 16px);
   margin-top: 0;
+}
+
+/* Wide (card content 1000+, set by ChapterCard from its own width): the bands keep their 636 reading column and the figure takes the rest as
+   its own column, drawn at --figure-w × --figure-h (figure-box.ts). The bands keep fixed heights, so states still never move what is below;
+   the caption keeps the sheet's two lines, which hold more at 636 than at 342. */
+.ov3-card[data-wide] {
+  display: grid;
+  grid-template-columns: 636px minmax(0, 1fr);
+  grid-template-areas:
+    'hero figure'
+    'chart figure'
+    'details figure';
+  grid-template-rows: auto auto 1fr;
+  column-gap: 40px;
+  --only-max: 200px;
+}
+.ov3-card[data-wide] .ov3-card-top {
+  display: contents;
+}
+.ov3-card[data-wide] .ov3-card-hero {
+  grid-area: hero;
+  height: 112px;
+  margin-bottom: 16px;
+  padding-top: 0;
+}
+.ov3-card[data-wide] .ov3-card-value {
+  height: 60px;
+  font-size: 56px;
+  line-height: 60px;
+}
+.ov3-card[data-wide] .ov3-card-caption {
+  height: 48px;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.ov3-card[data-wide] .ov3-card-only {
+  top: 4px;
+}
+.ov3-card[data-wide] :is(.ov3-card-chart, .ov3-card-empty) {
+  grid-area: chart;
+}
+.ov3-card[data-wide] .ov3-card-details {
+  grid-area: details;
+}
+/* The figure column: it starts level with the value and stays in view while the details run on; with short details there is nothing to stick to. */
+.ov3-card[data-wide] .ov3-card-figure {
+  grid-area: figure;
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-block, var(--header-h)) + 24px);
+  width: auto;
+  height: auto;
+}
+.ov3-card[data-wide] .ov3-card-figure-box {
+  width: var(--figure-w);
+  height: var(--figure-h);
+  margin: 0 auto;
+}
+.ov3-card[data-wide] .ov3-card-figure-box:has(> .ui-skeleton) {
+  height: var(--figure-h);
+}
+
+/* Press feedback on a figure that is a button: the drawing gives a little, the focus ring (on the button) does not. Reduced motion keeps it still. */
+@media (prefers-reduced-motion: no-preference) {
+  .ov3-card-figure-box {
+    transition: transform var(--dur-press) var(--ease-out);
+  }
+  .ov3-card-figure:has(> .ov3-card-figure-button:active) .ov3-card-figure-box {
+    transform: scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .ov3-card-figure:has(> .ov3-card-figure-button:hover) .ov3-card-figure-box {
+    transform: translateY(-2px);
+  }
+  .ov3-card-figure:has(> .ov3-card-figure-button:hover:active) .ov3-card-figure-box {
+    transform: translateY(-2px) scale(0.98);
+  }
 }

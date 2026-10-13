@@ -1,6 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { Filter } from '@keyline-icons/react'
 import { Button } from '../../ui/button'
 import { Disclosure } from '../../ui/disclosure'
@@ -11,6 +19,7 @@ import { S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
 import { TableView, type ChartTable } from '../charts/table-view'
 import { useChapter } from './chapter-context'
+import { FigureBoxContext, STAGE_BOX, cardLayout, type FigureBox } from './figure-box'
 import './chapter-card.css'
 
 export type ChapterCardDetails = {
@@ -86,8 +95,20 @@ export function ChapterCard({
     epoch = rollValue ? roll.epoch : roll.epoch + 1
     setRoll({ value: hero.value, epoch })
   }
+  const { wide, box } = useCardLayout(card, span === 'full')
   return (
-    <div ref={card} className="ov3-card" data-span={span} data-state={state}>
+    <div
+      ref={card}
+      className="ov3-card"
+      data-span={span}
+      data-state={state}
+      data-wide={wide ? '' : undefined}
+      style={
+        box === STAGE_BOX
+          ? undefined
+          : ({ '--figure-w': `${box.width}px`, '--figure-h': `${box.height}px` } as CSSProperties)
+      }
+    >
       <div className="ov3-card-top">
         <div className="ov3-card-figure">
           {loading ? (
@@ -96,7 +117,7 @@ export function ChapterCard({
             </div>
           ) : (
             <div className="ov3-card-figure-box" aria-hidden="true">
-              {figure}
+              <FigureBoxContext.Provider value={box}>{figure}</FigureBoxContext.Provider>
             </div>
           )}
           {figureButton && state === 'ready' ? (
@@ -182,6 +203,40 @@ export function ChapterCard({
       ) : null}
     </div>
   )
+}
+
+const STAGE = { wide: false, box: STAGE_BOX }
+
+/**
+ * A desktop card's figure layout from its own content width (cardLayout); the sheet always uses the stage. Measured before paint so a wide
+ * card never flashes the stage layout; the state changes only when the width crosses a step, so a window drag does not re-render per pixel.
+ */
+function useCardLayout(
+  card: RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+): { wide: boolean; box: FigureBox } {
+  const [layout, setLayout] = useState(STAGE)
+  useLayoutEffect(() => {
+    const node = card.current
+    if (!enabled || !node || typeof ResizeObserver !== 'function') return
+    const update = (width: number) => {
+      const next = cardLayout(width)
+      setLayout((old) =>
+        old.wide === next.wide &&
+        old.box.width === next.box.width &&
+        old.box.height === next.box.height
+          ? old
+          : next,
+      )
+    }
+    update(node.clientWidth)
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) update(entry.contentRect.width)
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [card, enabled])
+  return enabled ? layout : STAGE
 }
 
 function CardEmpty({ title, line, action }: NonNullable<ChapterCardProps['empty']>) {

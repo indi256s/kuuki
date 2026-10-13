@@ -55,7 +55,7 @@ it('spans each card by its height plus the 16px gap in 4px rows and re-measures 
     ),
   )
   expect(card('b').style.getPropertyValue('--ov-span')).toBe(String(laneSpan(200)))
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1279)
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1387)
   act(() =>
     callbacks[0](
       [{ target: getByTestId('flow') } as unknown as ResizeObserverEntry],
