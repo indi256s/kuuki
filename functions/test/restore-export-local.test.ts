@@ -85,6 +85,7 @@ it('restores a private export in chunks, preserves historical rows and applies o
         '0008_flight_metrics.sql',
         '0009_schedule_time_provenance.sql',
         '0010_onboarding_state.sql',
+        '0011_ground_travel.sql',
       ],
     })
     expect(readFileSync(exportPath, 'utf8')).toBe(sql)
