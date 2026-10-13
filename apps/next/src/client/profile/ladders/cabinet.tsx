@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Sheet } from '../../ui/sheet'
 import { useMobile } from '../../ui/use-mobile'
 import { formatDateOnly, type Locale } from '../../../lib/format'
@@ -235,9 +235,23 @@ function RungStrip({
   initials?: string
 }) {
   const k = useStripK(ladder)
+  const strip = useRef<HTMLOListElement>(null)
+  // The strip scrolls sideways. When the next rung would open out of view, start the strip at the current rung instead.
+  useEffect(() => {
+    const list = strip.current
+    const current = list?.children[rung - 1]
+    const next = list?.children[Math.min(rung, rungs - 1)]
+    if (!list || !current || !next) return
+    const box = list.getBoundingClientRect()
+    if (next.getBoundingClientRect().right <= box.right) return
+    list.scrollLeft +=
+      current.getBoundingClientRect().left -
+      box.left -
+      parseFloat(getComputedStyle(list).paddingInlineStart)
+  }, [rung, rungs])
   return (
     <>
-      <ol className="ladder-strip">
+      <ol ref={strip} className="ladder-strip">
         {Array.from({ length: rungs }, (_, i) => {
           const n = i + 1
           const state: RungState = n <= rung ? 'earned' : n === rung + 1 ? 'next' : 'later'

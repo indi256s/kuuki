@@ -858,7 +858,7 @@
   text-align: center;
 }
 .ladder-slot[data-state='next'] {
-  min-inline-size: 140px;
+  inline-size: 140px;
 }
 .ladder-slot-name {
   max-inline-size: 96px;
@@ -873,7 +873,7 @@
   font-size: 12px;
   line-height: 16px;
   font-weight: 600;
-  white-space: nowrap;
+  text-wrap: balance;
 }
 .ladder-top {
   margin-block-start: var(--space-3);
