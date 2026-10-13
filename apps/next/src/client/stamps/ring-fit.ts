@@ -84,7 +84,7 @@ const UNKNOWN = 0.7
 export const CAP_EM = 0.713
 /** Base font size: the one whose cap height is exactly RING_CAP. */
 export const RING_FONT_SIZE = Math.round((RING_CAP / CAP_EM) * 100) / 100
-export const FS_FLOOR = 9
+export const FS_FLOOR = 10.5
 export const LS_MIN = 0.3
 export const BUDGET = { rectangle: 0.82, circle: 0.76 } as const
 
@@ -128,6 +128,21 @@ function fitOne(text: string, budget: number, lsPreferred: number) {
   return null
 }
 
+/** Words that cannot end a cut name: a dangling connector reads as a sentence that stops mid-way. */
+const DANGLING = /(?:\s+(?:&|AND|И)|-)$/
+
+/** Cuts at a word boundary when the first `cut` characters contain one, drops a trailing connector, adds the ellipsis. */
+function cutAtWord(chars: string[], cut: number): string {
+  let head = chars.slice(0, cut).join('')
+  if (cut < chars.length && chars[cut] !== ' ') {
+    const space = head.lastIndexOf(' ')
+    if (space > 0) head = head.slice(0, space)
+  }
+  head = head.trimEnd()
+  while (DANGLING.test(head)) head = head.replace(DANGLING, '').trimEnd()
+  return `${head}…`
+}
+
 const dyFor = (fontSize: number) => round1(-(RING_CAP - fontSize * CAP_EM) / 2)
 
 /**
@@ -152,7 +167,7 @@ export function fitRing(
   const at = (k: number) => `${chars.slice(0, k).join('').trimEnd()}…`
   let cut = chars.length
   while (cut > 1 && textWidth(at(cut), FS_FLOOR, LS_MIN) > budget) cut--
-  const text = at(cut)
+  const text = cutAtWord(chars, cut)
   return {
     text,
     fontSize: FS_FLOOR,

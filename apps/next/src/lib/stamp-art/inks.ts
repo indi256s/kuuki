@@ -11,8 +11,8 @@ export const INKS = {
   moss: { light: '#365f19', dark: '#9fce85' },
   plum: { light: '#79346c', dark: '#eea0dc' },
   teal: { light: '#005f5f', dark: '#72d0d0' },
-  umber: { light: '#744624', dark: '#e7b18c' },
-  'ochre-dark': { light: '#6d4c00', dark: '#e0b771' },
+  umber: { light: '#794228', dark: '#daa28a' },
+  'ochre-dark': { light: '#725600', dark: '#e0b771' },
 } as const
 /* oxlint-enable kuuki/design-tokens */
 

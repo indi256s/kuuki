@@ -259,8 +259,8 @@
   --stamp-ink-moss: #365f19;
   --stamp-ink-plum: #79346c;
   --stamp-ink-teal: #005f5f;
-  --stamp-ink-umber: #744624;
-  --stamp-ink-ochre-dark: #6d4c00;
+  --stamp-ink-umber: #794228;
+  --stamp-ink-ochre-dark: #725600;
 }
 :root[data-theme='dark'] {
   --stamp-ink-indigo: #a2bcff;
@@ -269,7 +269,7 @@
   --stamp-ink-moss: #9fce85;
   --stamp-ink-plum: #eea0dc;
   --stamp-ink-teal: #72d0d0;
-  --stamp-ink-umber: #e7b18c;
+  --stamp-ink-umber: #daa28a;
   --stamp-ink-ochre-dark: #e0b771;
   --background: #292827;
   --surface: #353331;

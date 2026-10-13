@@ -1,4 +1,4 @@
-/* CountryStamp. Tokens only; transform and opacity are the only animated properties. Decorative, aria-hidden.
+/* CountryStamp. Tokens only; rotate, scale, transform and opacity are the only animated properties. Decorative, aria-hidden.
    Hosts: a card with `data-stamp-host`, or any link or button around the stamp, drives hover, focus-visible and press. */
 
 .country-stamp {
@@ -25,8 +25,12 @@
   height: 100%;
 }
 .cs-tilt {
-  transform: rotate(var(--cs-r)) scale(var(--cs-s));
-  transition: transform var(--dur-fast) var(--ease-out);
+  /* Individual properties: rotate and scale have their own transitions, so a press never waits on the hover straighten's delay. */
+  rotate: var(--cs-r);
+  scale: var(--cs-s);
+  transition:
+    rotate var(--dur-fast) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
 }
 .cs-engraving {
   background-color: currentColor;
@@ -83,9 +87,9 @@
   opacity: 0;
 }
 
-/* Pending: dashed outline, no ink, no texture. */
+/* Pending: the outer rule alone, dashed (the component draws no inner rule or window edge), no ink, no texture. */
 .country-stamp[data-status='pending'] .cs-rules {
-  stroke-dasharray: 5 4;
+  stroke-dasharray: 7 5;
 }
 
 /* Hover: fine pointers only. Straightens after a short delay; leaving is the base transition with no delay. */
@@ -96,22 +100,28 @@
   }
   .country-stamp:not([data-static]):hover .cs-tilt,
   :is(a, button, [data-stamp-host]):hover .country-stamp:not([data-static]) .cs-tilt {
-    transition: transform var(--dur-base) var(--ease-out) 60ms;
+    transition:
+      rotate var(--dur-base) var(--ease-out) 60ms,
+      scale var(--dur-press) var(--ease-out);
   }
 }
 .country-stamp[data-pose='hover']:not([data-static]) {
   --cs-r: 0deg;
 }
 .country-stamp[data-pose='hover'] .cs-tilt {
-  transition: transform var(--dur-base) var(--ease-out);
+  transition:
+    rotate var(--dur-base) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
 }
 
 /* Keyboard focus: straight at once. */
 :is(a, button, [data-stamp-host]):focus-visible .country-stamp:not([data-static]),
+[data-stamp-host]:has(:focus-visible) .country-stamp:not([data-static]),
 .country-stamp[data-pose='focus']:not([data-static]) {
   --cs-r: 0deg;
 }
 :is(a, button, [data-stamp-host]):focus-visible .country-stamp:not([data-static]) .cs-tilt,
+[data-stamp-host]:has(:focus-visible) .country-stamp:not([data-static]) .cs-tilt,
 .country-stamp[data-pose='focus'] .cs-tilt {
   transition: none;
 }
@@ -124,7 +134,9 @@
 }
 :is(a, button, [data-stamp-host]):active .country-stamp:not([data-static]) .cs-tilt,
 .country-stamp[data-pose='press'] .cs-tilt {
-  transition: transform var(--dur-press) var(--ease-out);
+  transition:
+    rotate var(--dur-press) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
 }
 :is(a, button, [data-stamp-host]):active .country-stamp:not([data-static]) .cs-full,
 .country-stamp[data-pose='press'] .cs-full {
@@ -132,21 +144,25 @@
   transition-duration: var(--dur-press);
 }
 
-/* New impression: lands slightly large and pale, settles to the rest pose; the ink dries from full density into the worn layer. */
+/* New impression: lands large and unseen, overshoots small and opaque, settles to the rest pose; the tilt is the rotate property, so the keyframes only scale; the ink dries from full density into the worn layer. */
 .cs-tilt[data-impress] {
   animation: cs-press-in var(--dur-moment) var(--ease-out);
 }
 .cs-tilt[data-impress] .cs-full {
-  animation: cs-dry var(--dur-moment) var(--ease-out);
+  animation: cs-dry var(--dur-moment) linear;
 }
 @keyframes cs-press-in {
-  from {
+  0% {
     opacity: 0;
-    transform: rotate(var(--cs-r)) scale(1.06);
+    transform: scale(1.05);
   }
-  to {
+  18% {
     opacity: 1;
-    transform: rotate(var(--cs-r)) scale(1);
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 @keyframes cs-fade-in {
@@ -176,7 +192,8 @@
 /* Reduced motion: no tilt, no scale; opacity only. */
 @media (prefers-reduced-motion: reduce) {
   .country-stamp .cs-tilt {
-    transform: none;
+    rotate: none;
+    scale: none;
   }
   .cs-tilt[data-impress] {
     animation-name: cs-fade-in;

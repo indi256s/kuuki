@@ -192,9 +192,9 @@ function Card({
   t: (en: string, rus: string) => string
 }) {
   const meta = stampMeta(row.iso2)
-  const [replay, setReplay] = useState(0)
+  // Built in the click handler, so markup never carries it during SSR; the timestamp keeps a replay after a reload from hitting the session's pressed memory.
+  const [impressionId, setImpressionId] = useState<string>()
   const [note, setNote] = useState(mark?.note ?? '')
-  const impressionId = replay ? `dev-${row.iso2}-${replay}` : undefined
   const common = { iso2: row.iso2, locale: s.locale, size: s.size } as const
   const strip = 64
   return (
@@ -253,7 +253,7 @@ function Card({
             <figcaption>{label}</figcaption>
           </figure>
         ))}
-        <Button dense onClick={() => setReplay((n) => n + 1)}>
+        <Button dense onClick={() => setImpressionId(`dev-${row.iso2}-${Date.now().toString(36)}`)}>
           {t('Replay impression', 'Повторить оттиск')}
         </Button>
       </div>

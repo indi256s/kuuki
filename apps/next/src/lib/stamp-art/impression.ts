@@ -13,7 +13,8 @@
 //
 // The viewBox is 300x300 centred on the 200x200 stamp (-50 -50 300 300) so a 180 degree rotation
 // and the small offset still cover the stamp.
-import { type ShapeName, outerPoly } from './frame'
+import { type ShapeName, outerPoly, windowPoly } from './frame'
+import { pointInPoly } from './geom'
 import { hash32, mulberry32 } from './hash'
 import type { Pt } from './grid'
 
@@ -21,8 +22,8 @@ export const IMPRESSION_VIEWBOX = '-50 -50 300 300'
 export const impressionFileName = (shape: ShapeName) => `_impression-${shape}.svg`
 
 /** Share of ink kept at the weak edge; the gradient reaches full ink 40% across the shape. */
-const WEAK_KEEP = 0.59
-const GRAIN_COUNT = 240
+const WEAK_KEEP = 0.8
+const GRAIN_COUNT = 340
 const NICK_COUNT = 24
 
 const grey = (v: number) =>
@@ -46,15 +47,69 @@ function along(poly: Pt[], lengths: number[], s: number): { p: Pt; t: Pt } {
   }
 }
 
-/** Inner markup (defs + masked rect) shared by the committed file and the raster linter. */
-export function impressionInner(shape: ShapeName): string {
+/** Largest dropout radius: the one on the outer rule must never reach the text band 8.5 units inside it. */
+const RULE_GAP_MAX = 3
+
+/**
+ * Dropouts: 3-5 blobs. The first sits on the outer rule, pushed half its radius outward and capped at
+ * RULE_GAP_MAX so it never reaches the ring text; the others stay wholly inside the window, clear of the text.
+ * Draws from the same `rand` stream as the rest of the texture (call order matters).
+ */
+export function impressionGaps(
+  shape: ShapeName,
+  rand: () => number,
+  poly: Pt[],
+  lengths: number[],
+  perimeter: number,
+): Pt[][] {
+  const r = (a: number, b: number) => a + (b - a) * rand()
+  const win = windowPoly(shape)
+  const blobs = 3 + Math.floor(rand() * 3)
+  const out: Pt[][] = []
+  for (let i = 0; i < blobs; i++) {
+    let rad = r(2, 4.5)
+    let cx = 0,
+      cy = 0
+    if (i === 0) {
+      rad = Math.min(rad, RULE_GAP_MAX)
+      const { p, t } = along(poly, lengths, r(0, perimeter))
+      // Outward normal: the one pointing away from the stamp centre.
+      const flip = (-t[1] * (p[0] - 100) + t[0] * (p[1] - 100) < 0 ? -1 : 1) * rad * 0.5
+      cx = p[0] - t[1] * flip
+      cy = p[1] + t[0] * flip
+    }
+    const sides = 9
+    const shapeAt = () =>
+      Array.from({ length: sides }, (_, k) => {
+        const a = (k / sides) * Math.PI * 2 + r(-0.25, 0.25)
+        const rr = rad * r(0.65, 1.15)
+        return [cx + rr * Math.cos(a), cy + rr * Math.sin(a)] as Pt
+      })
+    if (i === 0) {
+      out.push(shapeAt())
+      continue
+    }
+    // Interior blobs: redraw until every vertex lies inside the window.
+    let pts: Pt[] = []
+    for (let tries = 0; tries < 40; tries++) {
+      cx = r(30, 170)
+      cy = r(40, 160)
+      pts = shapeAt()
+      if (pts.every((q) => pointInPoly(q, win))) break
+    }
+    out.push(pts)
+  }
+  return out
+}
+
+function texture(shape: ShapeName) {
   const rand = mulberry32(hash32(`impression-art:${shape}`))
   const r = (a: number, b: number) => a + (b - a) * rand()
 
-  // Paper grain: 1.2-2.4 unit specks at 0.7 strength, two thirds on the weak (-x) half.
+  // Paper grain: 2.2-3.5 unit specks at full strength, two thirds on the weak (-x) half.
   let grain = ''
   for (let i = 0; i < GRAIN_COUNT; i++) {
-    const s = r(1.2, 2.4)
+    const s = r(2.2, 3.5)
     const x = rand() < 2 / 3 ? r(0, 100) : r(100, 200)
     grain += `M${f(x)} ${f(r(0, 200))}h${f(s)}v${f(s * r(0.6, 1.2))}h-${f(s)}z`
   }
@@ -71,27 +126,7 @@ export function impressionInner(shape: ShapeName): string {
   const left = Math.min(...xs),
     right = Math.max(...xs)
 
-  // Dropouts: 3-5 blobs of 4-9 units; the first sits on the outer rule.
-  let gaps = ''
-  const blobs = 3 + Math.floor(rand() * 3)
-  for (let i = 0; i < blobs; i++) {
-    const rad = r(2, 4.5)
-    let cx: number, cy: number
-    if (i === 0) {
-      const { p } = along(poly, lengths, r(0, perimeter))
-      ;[cx, cy] = p
-    } else {
-      cx = r(30, 170)
-      cy = r(40, 160)
-    }
-    const sides = 9
-    const pts = Array.from({ length: sides }, (_, k) => {
-      const a = (k / sides) * Math.PI * 2 + r(-0.25, 0.25)
-      const rr = rad * r(0.65, 1.15)
-      return `${f(cx + rr * Math.cos(a))} ${f(cy + rr * Math.sin(a))}`
-    })
-    gaps += `M${pts.join('L')}Z`
-  }
+  const gapPolys = impressionGaps(shape, rand, poly, lengths, perimeter)
 
   // Nicks: 1.5 x 2-4 unit notches centred on the outer rule, long side across it.
   let nicks = ''
@@ -106,12 +141,24 @@ export function impressionInner(shape: ShapeName): string {
     nicks += `M${c(-hw, -hl)}L${c(hw, -hl)}L${c(hw, hl)}L${c(-hw, hl)}Z`
   }
 
+  return { grain, gapPolys, nicks, left, right }
+}
+
+/** The dropout outlines of a shape's texture, grid units on the 200 unit stamp. */
+export const impressionGapPolys = (shape: ShapeName): Pt[][] => texture(shape).gapPolys
+
+/** Inner markup (defs + masked rect) shared by the committed file and the raster linter. */
+export function impressionInner(shape: ShapeName): string {
+  const { grain, gapPolys, nicks, left, right } = texture(shape)
+  const gaps = gapPolys
+    .map((pts) => `M${pts.map(([x, y]) => `${f(x)} ${f(y)}`).join('L')}Z`)
+    .join('')
   return (
     `<defs>` +
     `<linearGradient id="p" gradientUnits="userSpaceOnUse" x1="${f(left)}" y1="0" x2="${f(right)}" y2="0"><stop offset="0" stop-color="${grey(WEAK_KEEP)}"/><stop offset=".4" stop-color="#fff"/></linearGradient>` +
     `<mask id="m" maskUnits="userSpaceOnUse" x="-50" y="-50" width="300" height="300">` +
     `<rect x="-50" y="-50" width="300" height="300" fill="url(#p)"/>` +
-    `<path d="${grain}" fill="#000" fill-opacity=".7"/>` +
+    `<path d="${grain}" fill="#000"/>` +
     `<path d="${gaps}" fill="#000"/>` +
     `<path d="${nicks}" fill="#000"/>` +
     `</mask></defs>` +

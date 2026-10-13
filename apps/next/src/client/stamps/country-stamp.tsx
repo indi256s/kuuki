@@ -36,6 +36,8 @@ export type CountryStampProps = {
 }
 
 export const DEFAULT_STAMP_SIZE = 160
+/** Pending stamps draw the outer rule alone, thinner than the inked one. */
+const PENDING_STROKE = 1.6
 
 /** Uppercased ring name candidates: the full name, then the short form when it is different. */
 export function ringNames(iso2: string, locale: Locale): string[] {
@@ -81,9 +83,13 @@ function Face({ iso2, shape, iso3, names, engraved, pending, idBase }: FaceProps
       ) : null}
       <svg className="cs-frame" viewBox={f.viewBox} aria-hidden="true" focusable="false">
         <g fill="none" stroke="currentColor" className="cs-rules">
-          <path d={f.outer[0]} strokeWidth={FRAME_WEIGHTS.outer} />
-          <path d={f.outer[1]} strokeWidth={FRAME_WEIGHTS.inner} />
-          <path d={f.window} strokeWidth={FRAME_WEIGHTS.window} />
+          <path d={f.outer[0]} strokeWidth={pending ? PENDING_STROKE : FRAME_WEIGHTS.outer} />
+          {pending ? null : (
+            <>
+              <path d={f.outer[1]} strokeWidth={FRAME_WEIGHTS.inner} />
+              <path d={f.window} strokeWidth={FRAME_WEIGHTS.window} />
+            </>
+          )}
         </g>
         {pending ? null : (
           <>
@@ -156,7 +162,7 @@ export function CountryStamp({
   const pending = status === 'pending'
   const engraved = meta.tier === 'engraved' && shape === meta.shape
   const names = useMemo(() => ringNames(meta.iso2, locale), [meta.iso2, locale])
-  const tilt = restTilt(meta.iso2)
+  const tilt = restTilt(meta.iso2, shape)
   const imp = impressionTransform(meta.iso2, tilt)
   const idBase = useId().replace(/[^a-zA-Z0-9]/g, '')
 

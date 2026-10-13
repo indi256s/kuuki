@@ -114,7 +114,7 @@ const ROUND_BAND = 19
 const SIDE = 14
 const CAP_BAND = 22
 
-function rectSpecs(r: Box, c: number) {
+function rectSpecs(r: Box, c: number, uniformWindow: boolean) {
   const [x, y, w, h] = r
   const cut = (inset: number, dx: number, dy: number): Spec => {
     // The 45-degree cut moves by inset * sqrt(2) along the axes; recompute the chamfer so the cut
@@ -125,7 +125,9 @@ function rectSpecs(r: Box, c: number) {
   return {
     outer: cut(0, 0, 0),
     inner: cut(INNER_INSET, INNER_INSET, INNER_INSET),
-    window: cut(SIDE, SIDE, CAP_BAND),
+    // Uniform: the window's cut sits as far from the outer cut as the window's top edge from the outer top
+    // edge, so the ring text can run along the corner cuts.
+    window: uniformWindow ? cut(CAP_BAND, SIDE, CAP_BAND) : cut(SIDE, SIDE, CAP_BAND),
   }
 }
 
@@ -171,8 +173,22 @@ function lineRing(x0: number, x1: number, y: number): RingPath {
   return { d: `M${n(x0)} ${n(y)}H${n(x1)}`, length: x1 - x0, startOffset: '50%' }
 }
 
-function rectDef(r: Box, c: number): FrameDef {
-  const s = rectSpecs(r, c)
+/** Corner-cut text: the ring line runs on the cuts too, down to this x from the box edge. */
+const CUT_TEXT_END = 22
+
+function polyRing(pts: Pt[]): RingPath {
+  const length = pts
+    .slice(1)
+    .reduce((s, q, i) => s + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0)
+  return {
+    d: pts.map(([x, y], i) => `${i ? 'L' : 'M'}${n(x)} ${n(y)}`).join(''),
+    length: Math.round(length * 10) / 10,
+    startOffset: '50%',
+  }
+}
+
+function rectDef(r: Box, c: number, cutText = false): FrameDef {
+  const s = rectSpecs(r, c, cutText)
   const [x, y, w, h] = r
   const bandMid = INNER_INSET + (CAP_BAND - INNER_INSET) / 2
   const half = RING_CAP / 2
@@ -181,6 +197,42 @@ function rectDef(r: Box, c: number): FrameDef {
   const gap = bandMid - half - INNER_INSET
   const cut = s.inner.kind === 'chamfer' ? s.inner.c : 0
   const reach = (cut > gap ? cut - gap : 0) + INNER_INSET + 4
+  if (cutText) {
+    // Octagon: the baselines keep their distance from the outer rule on the 45-degree cuts, so the line
+    // is top edge plus both cuts (top: glyphs rise outward; bottom: they rise inward).
+    const topY = y + bandMid + half
+    const botY = y + h - bandMid + half
+    const topOff = topY - y
+    const botOff = y + h - botY
+    const k = Math.SQRT2 - 1
+    // Where the offset baseline meets the cut: shift along x by c + offset * (sqrt2 - 1).
+    const topX = x + c + topOff * k
+    const botX = x + c + botOff * k
+    const ex = x + CUT_TEXT_END
+    const topEdge = topX - ex
+    const botEdge = botX - ex
+    return {
+      family: 'rectangle',
+      outer: s.outer,
+      inner: s.inner,
+      window: s.window,
+      ring: {
+        top: polyRing([
+          [ex, topY + topEdge],
+          [topX, topY],
+          [x + w - topX + x, topY],
+          [x + w - ex + x, topY + topEdge],
+        ]),
+        bottom: polyRing([
+          [ex, botY - botEdge],
+          [botX, botY],
+          [x + w - botX + x, botY],
+          [x + w - ex + x, botY - botEdge],
+        ]),
+        capHeight: RING_CAP,
+      },
+    }
+  }
   return {
     family: 'rectangle',
     outer: s.outer,
@@ -199,7 +251,7 @@ const defs: Record<ShapeName, FrameDef> = {
   oval: roundDef(80, 96),
   rectangle: rectDef([6, 24, 188, 152], 0),
   'cut-rect': rectDef([6, 24, 188, 152], 20),
-  octagon: rectDef([6, 14, 188, 172], 40),
+  octagon: rectDef([6, 14, 188, 172], 40, true),
 }
 
 function build(name: ShapeName): Frame {
@@ -255,12 +307,14 @@ export function shapeFor(iso2: string, override?: ShapeName): ShapeName {
 }
 
 /**
- * Resting tilt in degrees, 1.2 to 4 in magnitude (never near 0). The sign comes from a different
+ * Resting tilt in degrees, never near 0: 2 to 4.5 in magnitude on round shapes, 1 to 2.5 on the
+ * rectangle family (a long straight edge shows a small angle more). `shape` defaults to the country's own. The sign comes from a different
  * hash bit than the magnitude so neighbouring codes do not all lean the same way.
  */
-export function restTilt(iso2: string): number {
+export function restTilt(iso2: string, shape: ShapeName = shapeFor(iso2)): number {
   const h = hash32(`tilt:${iso2.toUpperCase()}`)
-  const magnitude = 1.2 + ((h >>> 8) % 281) / 100
+  const [lo, hi] = FAMILY_SHAPES.circle.includes(shape) ? [2, 4.5] : [1, 2.5]
+  const magnitude = lo + (((h >>> 8) % 1000) / 999) * (hi - lo)
   const sign = (h & 1) === 0 ? -1 : 1
   return Math.round(sign * magnitude * 100) / 100
 }

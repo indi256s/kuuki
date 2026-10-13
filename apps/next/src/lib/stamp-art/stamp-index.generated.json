@@ -159,8 +159,8 @@
     },
     "shape": "octagon",
     "short": {
-      "en": "American Samoa",
-      "ru": "Американское Самоа"
+      "en": "AM. SAMOA",
+      "ru": "АМ. САМОА"
     },
     "tier": "fallback"
   },
@@ -235,7 +235,7 @@
     "shape": "rectangle",
     "short": {
       "en": "Bosnia",
-      "ru": "Босния и Герцеговина"
+      "ru": "БОСНИЯ И ГЕРЦ."
     },
     "tier": "fallback"
   },
@@ -564,8 +564,8 @@
     },
     "shape": "cut-rect",
     "short": {
-      "en": "Central African Republic",
-      "ru": "Центрально-Африканская Республика"
+      "en": "CENTRAL AFR. REP.",
+      "ru": "ЦАР"
     },
     "tier": "fallback"
   },
@@ -864,8 +864,8 @@
     },
     "shape": "cut-rect",
     "short": {
-      "en": "Dominican Republic",
-      "ru": "Доминиканская Республика"
+      "en": "DOMINICAN REP.",
+      "ru": "ДОМИНИКАНА"
     },
     "tier": "fallback"
   },
@@ -1045,7 +1045,7 @@
     "shape": "cut-rect",
     "short": {
       "en": "Micronesia",
-      "ru": "Федеративные Штаты Микронезии"
+      "ru": "МИКРОНЕЗИЯ"
     },
     "tier": "fallback"
   },
@@ -1270,7 +1270,7 @@
     "shape": "rectangle",
     "short": {
       "en": "Equatorial Guinea",
-      "ru": "Экваториальная Гвинея"
+      "ru": "ЭКВ. ГВИНЕЯ"
     },
     "tier": "fallback"
   },
@@ -1299,8 +1299,8 @@
     },
     "shape": "rectangle",
     "short": {
-      "en": "South Georgia & South Sandwich Islands",
-      "ru": "Южная Георгия и Южные Сандвичевы о-ва"
+      "en": "S. GEORGIA",
+      "ru": "Ю. ГЕОРГИЯ И САНДВИЧ"
     },
     "tier": "fallback"
   },
@@ -1524,8 +1524,8 @@
     },
     "shape": "circle",
     "short": {
-      "en": "British Indian Ocean Territory",
-      "ru": "Британская территория в Индийском океане"
+      "en": "BRIT. INDIAN OCEAN TERR.",
+      "ru": "БРИТ. ТЕРР. В ИНД. ОКЕАНЕ"
     },
     "tier": "fallback"
   },
@@ -2169,8 +2169,8 @@
     },
     "shape": "octagon",
     "short": {
-      "en": "Northern Mariana Islands",
-      "ru": "Северные Марианские о-ва"
+      "en": "N. MARIANA IS.",
+      "ru": "С. МАРИАНСКИЕ О-ВА"
     },
     "tier": "fallback"
   },
@@ -2560,7 +2560,7 @@
     "shape": "octagon",
     "short": {
       "en": "French Polynesia",
-      "ru": "Французская Полинезия"
+      "ru": "ФРАНЦ. ПОЛИНЕЗИЯ"
     },
     "tier": "fallback"
   },
@@ -2575,7 +2575,7 @@
     "shape": "octagon",
     "short": {
       "en": "Papua New Guinea",
-      "ru": "Папуа — Новая Гвинея"
+      "ru": "ПАПУА — Н. ГВИНЕЯ"
     },
     "tier": "fallback"
   },
@@ -2950,7 +2950,7 @@
     "shape": "rectangle",
     "short": {
       "en": "Svalbard & Jan Mayen",
-      "ru": "Шпицберген и Ян-Майен"
+      "ru": "ШПИЦБ. И ЯН-МАЙЕН"
     },
     "tier": "fallback"
   },
@@ -3070,7 +3070,7 @@
     "shape": "octagon",
     "short": {
       "en": "São Tomé & Príncipe",
-      "ru": "Сан-Томе и Принсипи"
+      "ru": "САН-ТОМЕ И ПРИНС."
     },
     "tier": "fallback"
   },
@@ -3144,7 +3144,7 @@
     },
     "shape": "cut-rect",
     "short": {
-      "en": "Turks & Caicos Islands",
+      "en": "TURKS & CAICOS",
       "ru": "Тёркс и Кайкос"
     },
     "tier": "fallback"
@@ -3174,8 +3174,8 @@
     },
     "shape": "cut-rect",
     "short": {
-      "en": "French Southern Territories",
-      "ru": "Французские Южные территории"
+      "en": "FR. SOUTHERN TERR.",
+      "ru": "ФР. ЮЖНЫЕ ТЕРР."
     },
     "tier": "fallback"
   },
@@ -3325,7 +3325,7 @@
     "shape": "cut-rect",
     "short": {
       "en": "Trinidad & Tobago",
-      "ru": "Тринидад и Тобаго"
+      "ru": "ТРИНИДАД И ТОБ."
     },
     "tier": "fallback"
   },
@@ -3415,7 +3415,7 @@
     "shape": "octagon",
     "short": {
       "en": "U.S. Outlying Islands",
-      "ru": "Внешние малые о-ва (США)"
+      "ru": "ВНЕШН. МАЛЫЕ О-ВА"
     },
     "tier": "fallback"
   },
@@ -3489,8 +3489,8 @@
     },
     "shape": "rectangle",
     "short": {
-      "en": "St. Vincent & Grenadines",
-      "ru": "Сент-Винсент и Гренадины"
+      "en": "ST. VINCENT & GREN.",
+      "ru": "СЕНТ-ВИНСЕНТ И ГРЕН."
     },
     "tier": "fallback"
   },
@@ -3520,7 +3520,7 @@
     "shape": "rectangle",
     "short": {
       "en": "British Virgin Islands",
-      "ru": "Виргинские о-ва (Великобритания)"
+      "ru": "ВИРГ. О-ВА (БРИТ.)"
     },
     "tier": "fallback"
   },
@@ -3535,7 +3535,7 @@
     "shape": "cut-rect",
     "short": {
       "en": "U.S. Virgin Islands",
-      "ru": "Виргинские о-ва (США)"
+      "ru": "ВИРГ. О-ВА (США)"
     },
     "tier": "fallback"
   },
@@ -3655,7 +3655,7 @@
     "shape": "cut-rect",
     "short": {
       "en": "South Africa",
-      "ru": "Южно-Африканская Республика"
+      "ru": "ЮАР"
     },
     "tier": "fallback"
   },
