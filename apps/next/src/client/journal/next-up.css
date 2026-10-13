@@ -1,5 +1,6 @@
-/* Next up (boards 22.1, 22.2, 22.6, 22.7): one card, the nearest flight leads with a split-flap day count, later flights stay quiet.
-   Tokens only; weights 400/500, no eyebrow, no hairlines inside the card, no press scale. */
+/* Next up (boards 22.1, 22.2, 22.6, 22.7): a night-jade boarding pass. The main ticket leads with the nearest flight and lists
+   later ones; a torn-off stub holds the split-flap day count. Tokens only; weights 400/500, no eyebrow, no hairlines inside,
+   no press scale. */
 .journal-next {
   display: grid;
   gap: var(--space-2);
@@ -11,49 +12,117 @@
   font-weight: 500;
   color: var(--accent-text);
 }
+
+/* The pass: two pieces of paper with a 3px tear and punched notches that show the page through. */
 .journal-next-card {
+  --journal-next-paper: var(--pass-paper);
+  --journal-next-notch: 8px;
+  display: flex;
+  gap: 3px;
+  border-radius: var(--radius-md);
+  color: var(--pass-ink);
+}
+.journal-next-main,
+.journal-next-stub {
+  background: var(--journal-next-paper);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.journal-next-main {
+  position: relative;
+  flex: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-6);
-  padding: var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: var(--accent-tint);
+  gap: var(--space-3) var(--space-6);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md) var(--radius-xs) var(--radius-xs) var(--radius-md);
+  mask:
+    radial-gradient(circle var(--journal-next-notch) at 100% 0, #0000 98%, #000) top / 100% 51%
+      no-repeat,
+    radial-gradient(circle var(--journal-next-notch) at 100% 100%, #0000 98%, #000) bottom / 100%
+      51% no-repeat;
 }
+/* Until the count can show (or with nothing to count), the ticket is one whole piece. */
+.journal-next-card:not(:has(.journal-next-stub)) .journal-next-main {
+  border-radius: var(--radius-md);
+  mask: none;
+}
+.journal-next-stub {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-inline-size: 96px;
+  padding: var(--space-4) var(--space-5);
+  /* For the Today/Tomorrow word's flip; the flaps carry their own. */
+  perspective: 240px;
+  border-radius: var(--radius-xs) var(--radius-md) var(--radius-md) var(--radius-xs);
+  cursor: pointer;
+  mask:
+    radial-gradient(circle var(--journal-next-notch) at 0 0, #0000 98%, #000) top / 100% 51%
+      no-repeat,
+    radial-gradient(circle var(--journal-next-notch) at 0 100%, #0000 98%, #000) bottom / 100% 51%
+      no-repeat;
+}
+
+/* The lead's hit area covers the main ticket; later flights sit above it. */
 .journal-next-lead,
 .journal-next-item {
   border: 0;
-  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text);
+  color: inherit;
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-out);
 }
 .journal-next-lead {
-  flex: 1 1 320px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3) var(--space-4);
+  flex: 1 1 260px;
+  display: grid;
+  gap: 2px;
   min-width: 0;
-  min-height: 64px;
-  padding: var(--space-2) var(--space-4);
+  padding: 0;
 }
-.journal-next-lead:focus-visible,
-.journal-next-item:focus-visible {
+.journal-next-lead::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.journal-next-lead:focus-visible {
+  outline: none;
+}
+.journal-next-card:has(.journal-next-lead:focus-visible) {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-
-/* The day count: one tile per digit with the flap seam, or the word for today and tomorrow. */
-.journal-next-count {
-  flex: none;
+.journal-next-cities {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+/* The date is a phrase, so it stays in the text face; only codes are mono. */
+.journal-next-date {
+  font-size: 15px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.journal-next-meta {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  margin-block-start: 2px;
+  font: 400 13px/20px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--pass-ink-muted);
+  overflow-wrap: anywhere;
+}
+
+/* The day count: one tile per digit over its unit, or the word for today and tomorrow. */
+.journal-next-count {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
 }
 .journal-next-flaps {
   display: flex;
@@ -63,30 +132,36 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 40px;
+  width: 36px;
+  height: 48px;
   overflow: hidden;
   border-radius: var(--radius-xs);
-  background: var(--accent);
-  color: var(--accent-foreground);
+  background: var(--pass-flap);
+  color: var(--pass-flap-foreground);
   /* On the digit's direct parent: perspective does not reach grandchildren. */
   perspective: 240px;
 }
+/* The seam is a gap to the paper behind; the digit sits above it, so it never cuts a stroke. */
 .journal-next-flap::after {
   content: '';
   position: absolute;
   inset-inline: 0;
-  top: calc(50% - 1px);
-  height: 2px;
-  background: var(--accent-tint);
+  top: calc(50% - 0.5px);
+  height: 1px;
+  background: var(--journal-next-paper);
+  /* Fades with the paper on hover, so the seam never shows as a line of the old colour. */
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 .journal-next-flap-digit {
-  font: 500 26px/40px var(--font-mono);
+  position: relative;
+  z-index: 1;
+  font: 500 32px/48px var(--font-mono);
   font-variant-numeric: tabular-nums;
   /* The digit fills the tile, so its centre line is the flap seam: the flip hinges there. */
   transform-origin: 50% 50%;
 }
-.journal-next-flap-digit[data-flip] {
+.journal-next-flap-digit[data-flip],
+.journal-next-word[data-flip] {
   animation: journal-next-flip 160ms var(--ease-out) backwards;
 }
 @keyframes journal-next-flip {
@@ -96,121 +171,98 @@
 }
 .journal-next-unit {
   font-size: 13px;
-  line-height: 20px;
-  color: var(--accent-on-tint);
+  line-height: 16px;
+  color: var(--pass-ink-muted);
 }
 .journal-next-word {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-xs);
-  background: var(--accent);
+  background: var(--pass-flap);
   font-size: 15px;
   line-height: 20px;
   font-weight: 500;
-  color: var(--accent-foreground);
+  color: var(--pass-flap-foreground);
 }
 
-.journal-next-trip {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.journal-next-cities {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
-.journal-next-codes {
-  font: 400 13px/20px var(--font-mono);
-  color: var(--accent-on-tint);
-}
-.journal-next-date {
-  font: 400 15px/20px var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-.journal-next-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-3);
-  font: 400 13px/20px var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--accent-on-tint);
-  overflow-wrap: anywhere;
-}
-
-/* Later flights: quieter, one line each. */
+/* Later flights: a quieter column, route over date and countdown. */
 .journal-next-later {
+  position: relative;
+  z-index: 1;
   display: grid;
-  justify-items: end;
+  justify-items: start;
   min-width: 0;
-  padding-inline-end: var(--space-2);
-  margin-inline-start: auto;
 }
 .journal-next-then {
   padding-inline: var(--space-2);
   font-size: 13px;
   line-height: 20px;
-  color: var(--accent-on-tint);
+  color: var(--pass-ink-muted);
 }
 .journal-next-later ul {
   display: grid;
-  justify-items: end;
+  justify-items: stretch;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .journal-next-item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 0 var(--space-2);
+  display: grid;
+  align-content: center;
+  width: 100%;
   min-height: 44px;
   padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.journal-next-item:focus-visible {
+  /* On the jade paper the page's focus colour can fall under 3:1 (light Shu), so the ring takes the flap's accent. */
+  outline: 2px solid var(--pass-flap);
+  outline-offset: 0;
 }
 .journal-next-item-route {
   font-size: 15px;
   line-height: 20px;
   overflow-wrap: anywhere;
 }
-.journal-next-item-date {
-  font: 400 13px/20px var(--font-mono);
-  color: var(--accent-on-tint);
-}
-.journal-next-item-when {
+.journal-next-item-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-1);
   font-size: 13px;
   line-height: 20px;
-  color: var(--accent-on-tint);
   font-variant-numeric: tabular-nums;
+  color: var(--pass-ink-muted);
 }
+.journal-next-item-when::before {
+  content: '· ';
+}
+
+/* Hover darkens (light) or lifts (dark) the paper a step toward its ink; the seams follow through the shared variable. */
 @media (hover: hover) and (pointer: fine) {
-  .journal-next-lead:hover,
+  .journal-next-card:has(.journal-next-lead:hover, .journal-next-stub:hover) {
+    --journal-next-paper: color-mix(in oklab, var(--pass-paper), var(--pass-ink) 6%);
+  }
   .journal-next-item:hover {
-    background: var(--surface);
+    background: color-mix(in oklab, var(--pass-paper), var(--pass-ink) 10%);
   }
 }
 
-/* Phones: a compact card that leaves room for the ledger. The flaps shrink and sit beside the trip; later flights stack below. */
+/* Phones: later flights drop under the lead; the stub and its flaps shrink. */
 @media (max-width: 700px) {
   .journal-next-card {
-    display: grid;
-    gap: 0;
-    padding: var(--space-1);
+    --journal-next-notch: 7px;
   }
-  .journal-next-lead {
-    flex-wrap: nowrap;
-    gap: var(--space-3);
-    min-height: 0;
-    padding: var(--space-2) var(--space-3);
+  .journal-next-main {
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
   }
-  .journal-next-count {
-    flex: none;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-1);
+  .journal-next-later {
+    width: 100%;
+    margin-inline: calc(-1 * var(--space-2));
   }
-  .journal-next-date {
-    font-size: 13px;
+  .journal-next-stub {
+    min-inline-size: 76px;
+    padding: var(--space-3);
   }
   .journal-next-flap {
     width: 30px;
@@ -222,51 +274,25 @@
   }
   .journal-next-unit {
     font-size: 12px;
-    line-height: 16px;
-  }
-  .journal-next-word {
-    font-size: 15px;
-    line-height: 20px;
   }
   .journal-next-cities {
     font-size: 17px;
     line-height: 24px;
   }
-  .journal-next-later {
-    display: flex;
-    align-items: flex-start;
-    justify-items: start;
-    gap: var(--space-2);
-    margin-inline-start: 0;
-    padding-inline: var(--space-3) 0;
-  }
-  .journal-next-then {
-    flex: none;
-    padding-block: var(--space-3);
-    padding-inline: 0;
-  }
-  .journal-next-later ul {
-    flex: 1;
-    justify-items: stretch;
-    min-width: 0;
-  }
-  .journal-next-item {
-    justify-content: flex-start;
-    width: 100%;
-    padding-inline: var(--space-1);
-  }
-  .journal-next-item-route {
-    font-size: 15px;
-    width: 100%;
+  .journal-next-date {
+    font-size: 13px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .journal-next-lead,
-  .journal-next-item {
+  .journal-next-main,
+  .journal-next-stub,
+  .journal-next-item,
+  .journal-next-flap::after {
     transition: none;
   }
-  .journal-next-flap-digit[data-flip] {
+  .journal-next-flap-digit[data-flip],
+  .journal-next-word[data-flip] {
     animation: none;
   }
 }

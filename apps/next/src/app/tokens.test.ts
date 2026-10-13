@@ -145,6 +145,15 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     }
   })
 
+  it('keeps the boarding pass inks readable and the accent flaps visible on its paper', () => {
+    const paper = hex('--pass-paper')
+    for (const name of ['--pass-ink', '--pass-ink-muted']) {
+      expect(ratio(hex(name), paper), `${name} on the pass`).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(ratio(hex('--pass-flap'), paper), '--pass-flap on the pass').toBeGreaterThanOrEqual(3)
+    expect(ratio(hex('--pass-flap-foreground'), hex('--pass-flap'))).toBeGreaterThanOrEqual(4.5)
+  })
+
   it('keeps the action label readable on the accent fill', () => {
     expect(ratio(hex('--accent-foreground'), hex('--accent'))).toBeGreaterThanOrEqual(4.5)
   })
