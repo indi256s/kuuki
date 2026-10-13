@@ -1,3 +1,4 @@
+import { MAKER_NAMES } from '@kuuki/data/aircraft-makers'
 import type { FacetKey, OverviewFilter } from '@kuuki/shared/overview/model'
 import { formatPeriodDate, formatNumber, type Locale } from '../../../lib/format'
 import { REGION_LABELS } from '../../passport/model'
@@ -25,10 +26,9 @@ const VALUES: Partial<Record<FacetKey, Record<string, { en: string; ru: string }
     skyteam: { en: 'SkyTeam', ru: 'SkyTeam' },
   },
   makers: {
-    airbus: { en: 'Airbus', ru: 'Airbus' },
-    boeing: { en: 'Boeing', ru: 'Boeing' },
-    embraer: { en: 'Embraer', ru: 'Embraer' },
-    atr: { en: 'ATR', ru: 'ATR' },
+    ...Object.fromEntries(
+      Object.entries(MAKER_NAMES).map(([key, name]) => [key, { en: name, ru: name }]),
+    ),
     other: { en: 'Other', ru: 'Другие' },
     unknown: { en: 'Unknown', ru: 'Неизвестно' },
   },

@@ -57,7 +57,7 @@ const LENGTH = 61.66
 const SPAN = 25.6
 const PIVOT = 33 // the stand sits under the centre of gravity, about 53% of the length
 const R0 = (2.87 / 2) * M // fuselage radius
-const NOSE_END = 12 // the ogive reaches full diameter
+const NOSE_END = 9 // the cockpit shoulder reaches the cabin diameter
 const BODY_END = 57 // the straight barrel ends under the rudder
 const TAIL_R = 0.42 * M
 // Ogee leading edge and a near-straight trailing edge, half span; the strips below give 354 m² against 358.25 m².
@@ -291,32 +291,18 @@ T.prism({
   },
 })
 
-// Nose: a tangent ogive from the pitot probe to full diameter, with the droop-hinge and visor seams.
+// Raised display-model nose: a fine radome, a fuller cockpit shoulder and six angular panes.
+// Stations and glazing proportions are estimated from the supplied Air France reference.
 const NOSE_L = NOSE_END * M
 const RHO = (R0 * R0 + NOSE_L * NOSE_L) / (2 * R0)
 const ogive = (s) => Math.sqrt(Math.max(0, RHO * RHO - (NOSE_L - s) ** 2)) + R0 - RHO
 const ogiveSlope = (s) => (NOSE_L - s) / Math.sqrt(Math.max(1e-9, RHO * RHO - (NOSE_L - s) ** 2))
-const NOSE_S0 = 3
-const cockpit = []
-for (const side of [-1, 1])
-  for (const [s, dz] of [
-    [44.5, 3.9],
-    [47.6, 4.6],
-  ]) {
-    const r = ogive(s)
-    const zz = Math.min(dz, r - 0.6)
-    const yy = Math.sqrt(Math.max(0, r * r - zz * zz))
-    cockpit.push({
-      at: [s, side * yy, zz],
-      normal: rz([0, (-side * yy) / r, zz / r]),
-      size: 0.55,
-      tone: 'lo',
-    })
-  }
-T.lathe({
+const NOSE_S0 = 0.8
+const noseF = AFT()
+const nose = T.lathe({
   name: 'air.nose',
   ...H,
-  F: AFT(),
+  F: noseF,
   profile: [
     [NOSE_S0, ogive(NOSE_S0)],
     [NOSE_L, R0],
@@ -325,9 +311,57 @@ T.lathe({
   slope: ogiveSlope,
   tone: 'hi',
   crease: 'faint',
-  details: { seams: [24, 38.5], dots: cockpit },
+  details: { seams: [3.8 * M, 7.7 * M] },
 })
-T.round({ name: 'air.pitot', ...H, F: AFT(), s0: -4.5, s1: NOSE_S0, r: 0.22, tone: 'mid' })
+// Surface details share the nose's turning part, so the far-side glazing fades with its facing.
+function nosePanel(s, phi, polygon, glazed = true) {
+  const radial = G.add3(G.mul3(noseF.u, Math.cos(phi)), G.mul3(noseF.v, Math.sin(phi)))
+  const tangent = G.add3(G.mul3(noseF.u, -Math.sin(phi)), G.mul3(noseF.v, Math.cos(phi)))
+  const d = polygon.map(([x, y], i) => `${i ? 'L' : 'M'}${f(x)} ${f(y)}`).join('') + 'Z'
+  T.plane({
+    part: nose,
+    o: G.pointOf(noseF, s, ogive(s), phi),
+    u: G.unit3(G.add3(noseF.a, G.mul3(radial, ogiveSlope(s)))),
+    v: tangent,
+    normal: G.unit3(G.sub3(radial, G.mul3(noseF.a, ogiveSlope(s)))),
+    svg: `<path class="iso-line${glazed ? ' cn-cockpit' : ''}" data-tone="${glazed ? 'mid' : 'lo'}" d="${d}"/>`,
+  })
+}
+for (const side of [-1, 1]) {
+  const angle = (phi) => (side > 0 ? phi : Math.PI - phi)
+  // Swept windscreen, quarter light and longer side pane, separated by narrow mullions.
+  nosePanel(5.1 * M, angle(1.22), [
+    [-2.5, -1.0],
+    [1.7, -1.2],
+    [2.4, 0.9],
+    [-1.5, 1.2],
+  ])
+  nosePanel(5.8 * M, angle(0.82), [
+    [-1.5, -1.0],
+    [1.2, -1.0],
+    [1.7, 1.1],
+    [-1.2, 1.1],
+  ])
+  nosePanel(6.5 * M, angle(0.57), [
+    [-1.6, -1.0],
+    [2.0, -0.7],
+    [1.7, 1.0],
+    [-1.6, 1.2],
+  ])
+  // The raised visor runs forward from the windscreen to the radome seam.
+  nosePanel(
+    4.35 * M,
+    angle(1.02),
+    [
+      [-2.5, -0.4],
+      [1.0, -1.4],
+      [1.3, 1.5],
+      [-2.2, 0.7],
+    ],
+    false,
+  )
+}
+T.round({ name: 'air.pitot', ...H, F: noseF, s0: -2.5, s1: NOSE_S0, r: 0.12, tone: 'mid' })
 
 // Barrel: cabin windows (the lit part, a row each side just above the axis) and frame seams at the door stations.
 const windows = []
@@ -454,17 +488,23 @@ for (const side of [-1, 1]) {
   const mouth = (u0, u1) =>
     `M${f(u0)} ${f(-hHalf + 1.6)}L${f(u1)} ${f(-hHalf + 1.6)}L${f(u1)} ${f(hHalf - 1.2)}L${f(u0)} ${f(hHalf - 1.2)}Z`
   const mouths = mouth(-wHalf + 1.1, -0.5) + mouth(0.5, wHalf - 1.1)
+  const intakeLights = [-1, 1]
+    .map(
+      (e) =>
+        `<rect class="cn-engine-light" x="${f((e * wHalf) / 2 - 1.5)}" y="-1.2" width="3" height="2.4" rx="0.35"/>`,
+    )
+    .join('')
   T.plane({
     part: nacelle,
     o: rz([X(NACELLE.x0), yc, zc]),
     u: rz([0, 1, 0]),
     v: [0, 0, -1],
     normal: rz([1, 0, 0]),
-    svg: `<path class="iso-fill cn-intake" d="${mouths}"/><path class="iso-line" data-tone="lo" d="${mouths}"/>`,
+    svg: `<path class="iso-fill cn-intake" d="${mouths}"/><path class="iso-line" data-tone="lo" d="${mouths}"/>${intakeLights}`,
   })
   for (const e of [-1, 1]) {
     const y = yc + e * NOZZLE.dy * M
-    T.round({
+    const nozzle = T.round({
       name: `air.nozzle.${tag}${e > 0 ? 'o' : 'i'}`,
       ...H,
       F: frameOf([X(0), y, zc], [-1, 0, 0], [0, -1, 0]),
@@ -484,6 +524,15 @@ for (const side of [-1, 1]) {
           },
         ],
       },
+    })
+    const throat = NOZZLE.r1 * M - 0.9
+    T.plane({
+      part: nozzle,
+      o: rz([X(NACELLE.x1 + NOZZLE.len), y, zc]),
+      u: rz([0, -1, 0]),
+      v: [0, 0, 1],
+      normal: rz([-1, 0, 0]),
+      svg: `<circle class="cn-intake" r="${f(throat + 0.3)}"/><circle class="cn-engine-glow" r="${f(throat)}"/><circle class="cn-engine-light" r="${f(throat)}"/>`,
     })
   }
 }
@@ -669,9 +718,9 @@ if (argv.includes('--preview')) {
     title: 'Concorde, 1:200',
     hint: 'Turns on its own',
     readout: 'hdg 000°',
-    keys: [{ mark: 'lit', label: 'Cabin windows' }],
+    keys: [{ mark: 'lit', label: 'Cabin windows and engines' }],
     caption: `61.66 m long, 25.6 m span; ogee wing ${area.toFixed(0)} m² as drawn (358.25 m² published).`,
-    body: `<style>${out.css}\n.cn-intake{fill:var(--anatomy-halo);opacity:.6}.iso-live [data-tone=lit] circle{fill:#ea846f}</style>${stage}`,
+    body: `<style>${out.css}\n.cn-intake{fill:var(--anatomy-halo);opacity:.6}.iso-live [data-tone=lit] circle{fill:#ea846f}.cn-cockpit{fill:var(--anatomy-mid);stroke-width:.45}.cn-engine-light,.cn-engine-glow{fill:#ea846f;stroke:none}.cn-engine-light{opacity:.85}.cn-engine-glow{filter:blur(2px);opacity:.65}</style>${stage}`,
   })
   const page = k.pageHtml({
     title: 'Concorde',

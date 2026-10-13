@@ -2,6 +2,7 @@
 // src/app/styles.css stays the single UI token source; this table feeds consumers that cannot read
 // CSS variables (PNG renderer, favicon, meta theme-color). apps/next/src/app/tokens.test.ts fails
 // when a resolved CSS token drifts from any value below.
+import type { MakerSlot } from '../../../data/src/aircraft-makers'
 
 export const MODES = ['light', 'dark'] as const
 export type Mode = (typeof MODES)[number]
@@ -29,8 +30,8 @@ export type AccentTheme = {
   contour: string
 }
 
-export const MAKER_KEYS = ['airbus', 'boeing', 'embraer', 'atr', 'other'] as const
-export type MakerKey = (typeof MAKER_KEYS)[number]
+/** The domain's maker slots (type-only import: the palette must not load the aircraft reference). */
+export type MakerKey = MakerSlot
 
 export const REGION_KEYS = [
   'africa',
@@ -218,6 +219,34 @@ export const MAKERS: Record<Mode, Record<MakerKey, string>> = {
     boeing: '#487a6b',
     embraer: '#988451',
     atr: '#8457a8',
+    aerospatiale: '#8b5f50',
+    antonov: '#508b70',
+    'bae-systems': '#81508b',
+    beechcraft: '#848b50',
+    bombardier: '#50738b',
+    cessna: '#8b5061',
+    concorde: '#508b50',
+    dassault: '#61508b',
+    'de-havilland': '#8b7350',
+    douglas: '#508b84',
+    'fairchild-dornier': '#8b5081',
+    fokker: '#708b50',
+    gulfstream: '#505f8b',
+    harbin: '#8b5350',
+    'hawker-siddeley': '#508b64',
+    ilyushin: '#75508b',
+    learjet: '#8b8650',
+    lockheed: '#507f8b',
+    'mcdonnell-douglas': '#8b506e',
+    namc: '#5c8b50',
+    partenavia: '#55508b',
+    pilatus: '#8b6650',
+    piper: '#508b78',
+    saab: '#89508b',
+    shorts: '#7c8b50',
+    sukhoi: '#506b8b',
+    tupolev: '#8b505a',
+    yakovlev: '#508b58',
     other: '#5e574f',
   },
   dark: {
@@ -225,9 +254,40 @@ export const MAKERS: Record<Mode, Record<MakerKey, string>> = {
     boeing: '#71bca5',
     embraer: '#dec179',
     atr: '#bd99dd',
+    aerospatiale: '#cfaca0',
+    antonov: '#a0cfba',
+    'bae-systems': '#c7a0cf',
+    beechcraft: '#c9cfa0',
+    bombardier: '#a0bccf',
+    cessna: '#cfa0ae',
+    concorde: '#a0cfa0',
+    dassault: '#aea0cf',
+    'de-havilland': '#cfbca0',
+    douglas: '#a0cfc9',
+    'fairchild-dornier': '#cfa0c7',
+    fokker: '#b9cfa0',
+    gulfstream: '#a0accf',
+    harbin: '#cfa2a0',
+    'hawker-siddeley': '#a0cfb0',
+    ilyushin: '#bea0cf',
+    learjet: '#cfcba0',
+    lockheed: '#a0c5cf',
+    'mcdonnell-douglas': '#cfa0b7',
+    namc: '#aacfa0',
+    partenavia: '#a4a0cf',
+    pilatus: '#cfb2a0',
+    piper: '#a0cfc0',
+    saab: '#cda0cf',
+    shorts: '#c3cfa0',
+    sukhoi: '#a0b5cf',
+    tupolev: '#cfa0a8',
+    yakovlev: '#a0cfa6',
     other: '#9b9084',
   },
 }
+
+/** In palette order. `MAKERS` is typed by the domain's slots, so a maker without a colour fails the type check. */
+export const MAKER_KEYS = Object.keys(MAKERS.light) as MakerKey[]
 
 export const REGIONS: Record<Mode, Record<RegionKey, string>> = {
   light: {

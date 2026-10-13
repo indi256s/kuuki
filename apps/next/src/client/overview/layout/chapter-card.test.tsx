@@ -12,6 +12,7 @@ function Harness() {
     <ChapterCard
       state="ready"
       figure={null}
+      figureButton={{ label: 'Show next airline', onPress: () => {} }}
       hero={{
         value: '4',
         caption: 'Air France',
@@ -25,7 +26,7 @@ function Harness() {
   )
 }
 
-it('hands focus to the picked mark when applying "Only …" removes its own button', async () => {
+it('hands focus to the picked mark, not the figure button before it, when applying "Only …" removes its own button', async () => {
   render(<Harness />)
   const only = screen.getByRole('button', { name: 'Only Air France' })
   only.focus()

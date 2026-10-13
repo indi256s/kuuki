@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties } from 'react'
-import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
+import { MAKER_NAMES, MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { MakerSwatch } from '../../../ui/category-mark'
 import { Button } from '../../../ui/button'
 import { ArcRidgeline, type ArcRidgeRow } from '../../charts/arc-ridgeline'
@@ -224,9 +224,9 @@ export function FleetRidgelines({ span }: { span: Span }) {
               <MakerSwatch maker={maker} />{' '}
               {maker === 'other'
                 ? copy(locale, 'Other', 'Другие')
-                : maker === 'atr'
-                  ? 'ATR'
-                  : maker[0].toUpperCase() + maker.slice(1)}
+                : maker === 'unknown'
+                  ? copy(locale, 'Unknown', 'Неизвестно')
+                  : MAKER_NAMES[maker]}
             </span>
           ),
         )}

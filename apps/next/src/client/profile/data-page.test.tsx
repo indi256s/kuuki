@@ -74,3 +74,12 @@ it('reads the MRZ once per session and never under reduced motion', () => {
   expect(still.container.textContent).toContain(LINES[0])
   expect(sessionStorage.getItem(MRZ_READ_KEY)).toBeNull()
 })
+
+it('shows new MRZ lines after a reading, when the holder counts change', () => {
+  const view = render(<DataPageMrz lines={LINES} page="2" />)
+  act(() => observed[0]([{ isIntersecting: true }]))
+  const next: [string, string] = [LINES[0], 'MIRASATO<<0143FL<32CC<<<<<2403']
+  view.rerender(<DataPageMrz lines={next} page="2" />)
+  expect(view.container.textContent).toContain(next[1])
+  expect(view.container.textContent).not.toContain(LINES[1])
+})

@@ -36,3 +36,8 @@ tree, plus rejection of modified kit files before output changes:
 ```sh
 node --test scripts/concorde/generate.test.mjs
 ```
+
+The onboarding passport bench uses this same pin and setup. Regenerate it with
+`pnpm generate:passport-bench`; its SVG, scoped kit CSS and MIT geometry runtime
+are checked in under `apps/next/src/client/welcome/passport`. The live layer
+loads on desktop after hydration, while phones keep the compact passport strip.

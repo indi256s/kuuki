@@ -15,7 +15,8 @@
     ".open-next/**",
     "public/maps/maplibre-6.13.0/**",
     "api-routes.generated.ts",
-    "src/client/auth-card/concorde/turn.generated.js"
+    "src/client/auth-card/concorde/turn.generated.js",
+    "src/client/welcome/passport/iso-kit.generated.js"
   ],
   "rules": {
     "no-array-constructor": "error",

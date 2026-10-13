@@ -32,8 +32,9 @@ password is **unrecoverable** (bcrypt hashes were not in the export).
 
 A deliberately _structurally-invalid_ value for `password_hash` (it contains no
 `$`, so `verifyPassword` bails before any crypto). Marks an account as
-intentionally **un-loginnable** until a real credential is seeded. The default
-state of every migrated account.
+intentionally **unable to sign in with a password** until a real credential is
+seeded. The default state of every migrated account; a verified authoritative
+Google identity can enable sign-in to the existing journal without a password.
 
 ### Pepper (AUTH_SECRET coupling)
 
@@ -210,11 +211,11 @@ _Avoid_: Early adopter badge
 
 ### Maker slot
 
-One of six fixed aircraft categories: Airbus, Boeing, Embraer, ATR, Other or
-Unknown. Other covers recognized aircraft families outside the four named
-slots; Unknown means aircraft information is absent or unrecognized. Slots
-follow the current type designation: A220 is Airbus; the Embraer slot covers
-E-Jets, while its other recognized families belong to Other.
+An aircraft manufacturer category from the reference catalog, or Other or
+Unknown. All models of a named manufacturer share its slot; A220 counts as
+Airbus. Other covers recognized aircraft whose manufacturer has no named slot;
+Unknown covers absent or unrecognized aircraft. Only slots with flights appear
+as chart rows.
 
 ### Alliance at date
 

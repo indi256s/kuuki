@@ -1,6 +1,6 @@
 /* The brand panel's Concorde (concorde-field.tsx). The kit's rules are in concorde.generated.css; this file maps its
    colour roles onto Kuuki's iso tokens, so the model follows both themes and every accent like the Overview figures:
-   quiet faces and lines, and only the cabin windows lit in the accent. */
+   quiet faces and lines, and the cabin windows and engine openings lit in the accent. */
 .auth-concorde {
   --anatomy-paper: var(--iso-side);
   --anatomy-top: var(--iso-top);
@@ -34,10 +34,26 @@
 .auth-concorde[data-ready] {
   opacity: 1;
 }
-/* The cabin windows: the figure's one live part. */
+/* Cabin windows and engine openings share the live accent. */
 .auth-concorde [data-name='air.barrel'] [data-tone='lit'] circle {
   fill: var(--accent);
   opacity: 1;
+}
+.auth-concorde .cn-cockpit {
+  fill: var(--anatomy-mid);
+  stroke-width: 0.45px;
+}
+.auth-concorde .cn-engine-light,
+.auth-concorde .cn-engine-glow {
+  fill: var(--accent);
+  stroke: none;
+}
+.auth-concorde .cn-engine-light {
+  opacity: 0.85;
+}
+.auth-concorde .cn-engine-glow {
+  filter: blur(2px);
+  opacity: var(--iso-glow);
 }
 .auth-concorde .cn-intake {
   fill: var(--iso-shadow);

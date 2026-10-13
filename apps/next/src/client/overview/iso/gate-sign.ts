@@ -1,5 +1,5 @@
 import { X, Y, Zd, flat } from './flat'
-import { Scene, hull, type IsoFigureData, type P3, type Pt } from './scene'
+import { Scene, type IsoFigureData, type P3, type Pt } from './scene'
 
 /** Largest code size, in plane units; a code too long for the face shrinks to fit it. */
 const CODE_MAX = 16,
@@ -249,9 +249,9 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
       'shadow',
       'none',
     )
-    cylinder(s, x, y, 3.6, G, G + 1.4)
-    cylinder(s, x, y, 1.2, G + 1.4, G + 19)
-    cylinder(s, x, y, 1.8, G + 19, G + 20.4)
+    s.cylinder(x, y, 3.6, G, G + 1.4)
+    s.cylinder(x, y, 1.2, G + 1.4, G + 19)
+    s.cylinder(x, y, 1.8, G + 19, G + 20.4)
   }
   post(10, 26)
   s.line(
@@ -327,12 +327,4 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     0.6,
   )
   return s.done()
-}
-
-/** Upright disc: wall then top, centre (x, y), radius r, from z0 to z1. */
-function cylinder(s: Scene, x: number, y: number, r: number, z0: number, z1: number) {
-  const a = s.circle([x, y, z0], X, Y, 0, 0, r, 32),
-    b = s.circle([x, y, z1], X, Y, 0, 0, r, 32)
-  s.poly2(hull(s.pp([...a, ...b])), 'front', 'line')
-  s.poly(b, 'top', 'line')
 }

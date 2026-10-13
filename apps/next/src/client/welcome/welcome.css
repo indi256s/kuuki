@@ -48,8 +48,8 @@
 }
 
 /* The morph (morph.ts): create → name and every step change run as one view transition. The card grows or shrinks
-   as a clipped box over its snapshots at natural size, so the radius and the text never stretch. The passport changes
-   shape in place (cover → spread → tall spread), and the step content cross-slides with a 2px blur that bridges the
+   as a clipped box over its snapshots at natural size, so the radius and the text never stretch. The passport strip
+   crossfades in place (on desktop the bench animates itself), and the step content cross-slides with a 2px blur that bridges the
    two states. Names exist only while html[data-welcome-morph] is set, so the theme sweep never captures them. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-welcome-morph='forward'] {
@@ -106,6 +106,17 @@
   }
   html[data-welcome-morph]::view-transition-new(welcome-passport) {
     animation: welcome-passport-in var(--dur-sheet) var(--ease-out) both;
+  }
+  /* On desktop the passport is the bench, which swings its cover and presses its stamps itself: it rides the card's
+     resize live, with no crossfade over its own motion. The phone strip keeps the crossfade above. */
+  @media (min-width: 701px) {
+    html[data-welcome-morph]::view-transition-old(welcome-passport) {
+      animation: none;
+      opacity: 0;
+    }
+    html[data-welcome-morph]::view-transition-new(welcome-passport) {
+      animation: none;
+    }
   }
   /* The step content swaps in place: no travel between columns, only the cross-slide. Clipped to the new step, so a
      taller outgoing step (review going Back) never shows below the shrinking card. */

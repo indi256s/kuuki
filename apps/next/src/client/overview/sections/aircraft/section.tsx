@@ -35,8 +35,14 @@ type Row = {
   value: number
 }
 
-const ordinal = (locale: 'en' | 'ru', n: number) =>
-  locale === 'ru' ? `${n}-й` : (['1st', '2nd', '3rd', '4th', '5th', '6th'][n - 1] ?? `${n}th`)
+const ordinal = (locale: 'en' | 'ru', n: number) => {
+  if (locale === 'ru') return `${n}-й`
+  const suffix =
+    n % 100 >= 11 && n % 100 <= 13
+      ? 'th'
+      : (({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th')
+  return `${n}${suffix}`
+}
 
 export function Section({ span }: { span: Span }) {
   const { scope, all, payload, filter, locale, actions, isCurrent } = useOverview()
@@ -99,7 +105,7 @@ export function Section({ span }: { span: Span }) {
         : `${row.name}, ${shareText(row.share)} · ${flights(locale, row.flights)}`
       : `${row.key}, ${flights(locale, row.flights)}`
   const points = rows.map((row) => ({ key: row.key, datum: row, label: spoken(row) }))
-  const plotHeight = span === 'sheet' ? 176 : 206
+  const plotHeight = Math.max(span === 'sheet' ? 176 : 206, points.length * 32)
 
   let value = '—',
     unit: string | undefined,
@@ -394,7 +400,6 @@ export function Section({ span }: { span: Span }) {
 
 const EMPTY = {
   rows: [],
-  other: [],
   totals: { flights: 0, minutes: 0, km: 0, minutesApproximate: false },
   flights: [],
 }

@@ -12,6 +12,7 @@ import {
   parseCookies,
 } from './cookies'
 import { revokeSession } from './session'
+import { nowIso } from './time'
 import { requireCsrf, requireSameOrigin } from './auth'
 import { HttpError, jsonError } from './http'
 
@@ -38,13 +39,26 @@ export function createAuth(env: Env) {
             google: {
               clientId: env.GOOGLE_CLIENT_ID,
               clientSecret: env.GOOGLE_CLIENT_SECRET,
-              mapProfileToUser: (profile) => ({
+              prompt: 'select_account',
+              mapProfileToUser: async (profile) => {
                 // Google only owns Gmail and Workspace email addresses, not third-party mailboxes.
-                emailVerified:
+                const emailVerified =
                   profile.email_verified === true &&
                   (/@(?:gmail|googlemail)\.com$/i.test(profile.email) ||
-                    (typeof profile.hd === 'string' && profile.hd.length > 0)),
-              }),
+                    (typeof profile.hd === 'string' && profile.hd.length > 0))
+                if (emailVerified) {
+                  // Google proves ownership of an unclaimed migrated journal. Keep the local
+                  // verification gate for accounts with an existing password or provider identity.
+                  await env.DB.prepare(
+                    `UPDATE users SET email_verified = 1, updated_at = ?
+                     WHERE email = ? AND email_verified = 0 AND password_hash = 'RESET_REQUIRED'
+                       AND NOT EXISTS (SELECT 1 FROM auth_accounts WHERE userId = users.id)`,
+                  )
+                    .bind(nowIso(), profile.email.toLowerCase())
+                    .run()
+                }
+                return { emailVerified }
+              },
             },
           }
         : {},
