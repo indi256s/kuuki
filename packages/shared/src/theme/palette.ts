@@ -278,6 +278,32 @@ export const NEUTRALS: Record<Mode, Neutrals> = {
   },
 }
 
+/** The profile holder's data page: laminate rule, guilloche, perforation, MRZ band and the UV print's fluorescent tint. */
+export type HolderInks = {
+  rule: string
+  guilloche: string
+  perforation: string
+  band: string
+  uv: string
+}
+
+export const HOLDER: Record<Mode, HolderInks> = {
+  light: {
+    rule: '#dedad5',
+    guilloche: '#e7e3de',
+    perforation: '#b7b0a8',
+    band: '#f2f0ed',
+    uv: '#6a52b8',
+  },
+  dark: {
+    rule: '#5f5954',
+    guilloche: '#45403c',
+    perforation: '#5f5954',
+    band: '#2e2c2a',
+    uv: '#b9a6ff',
+  },
+}
+
 // Accent names retired by earlier palettes; public/bootstrap.js keeps the same table for the device cookie.
 const LEGACY_ACCENTS: Readonly<Record<string, AccentKey>> = {
   terracotta: 'shu',

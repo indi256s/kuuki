@@ -13,6 +13,10 @@ function mrzText(value: string) {
 }
 
 const pad = (value: string) => value.padEnd(LENGTH, '<').slice(0, LENGTH)
+const count = (value: number, max: number) => String(Math.min(Math.max(0, Math.round(value)), max))
+
+/** The data page's document number, "0142": the public flight total the MRZ prints as `0142FL`. */
+export const documentNumber = (flights: number) => count(flights, 9999).padStart(4, '0')
 
 /**
  * The holder page's machine-readable zone, decorative (`aria-hidden`): `P<KUU<SURNAME<<GIVEN` and
@@ -35,9 +39,7 @@ export function mrzLines({
   const surname = words.at(-1) ?? ''
   const given = words.slice(0, -1).join('<')
   const first = pad(`P<KUU<${surname}${given ? `<<${given}` : ''}`)
-  const count = (value: number, max: number) =>
-    String(Math.min(Math.max(0, Math.round(value)), max))
-  const tail = `${count(flights, 9999).padStart(4, '0')}FL<${count(countries, 999).padStart(2, '0')}CC`
+  const tail = `${documentNumber(flights)}FL<${count(countries, 999).padStart(2, '0')}CC`
   const date =
     issued && /^\d{4}-\d{2}/.test(issued) ? `${issued.slice(2, 4)}${issued.slice(5, 7)}` : '<<<<'
   const id = mrzText(handle)

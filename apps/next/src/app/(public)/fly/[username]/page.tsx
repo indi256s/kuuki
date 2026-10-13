@@ -13,7 +13,7 @@ import { pageMetadata } from '../../../../server/metadata'
 import { IdentitySnapshot } from '../../../../client/activity'
 import { BadgeCabinet } from '../../../../client/profile/profile'
 import { OwnerAccent } from '../../../../client/owner-accent'
-import { mrzLines } from '../../../../client/profile/mrz'
+import { documentNumber, mrzLines } from '../../../../client/profile/mrz'
 import { remarksLine } from '../../../../client/profile/remarks'
 import { profileStamps } from '../../../../client/profile/stamps'
 import { profileViewState } from '../../../../client/profile/view'
@@ -81,6 +81,8 @@ export async function ProfileData({ username }: { username: string }) {
         founding={badges.some((item) => item.badge.code === 'founding-user')}
         issued={profile.created_at}
         bio={profile.bio}
+        documentNumber={documentNumber(stats?.total_flights ?? 0)}
+        uvStamp={stamps.stamps[0]?.code ?? null}
         mrz={mrzLines({
           name,
           handle,

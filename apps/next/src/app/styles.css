@@ -85,6 +85,15 @@
   --holder-shadow:
     0 0 0 1px rgb(48 45 42/6%), 0 1px 2px rgb(48 45 42/4%), 0 12px 32px -12px rgb(48 45 42/12%),
     inset -10px 0 12px -12px rgb(48 45 42/10%);
+  /* Holder data page (DESIGN.md "Profile"): laminate and photo-window rule, guilloche ink, perforation, MRZ band, the
+     OVI's shifted ink, and the UV print: fluorescent tint (ink on paper in light) and the page shade under the lamp. */
+  --holder-rule: #dedad5;
+  --holder-guilloche: #e7e3de;
+  --holder-perforation: #b7b0a8;
+  --holder-band: #f2f0ed;
+  --holder-ovi-shift: color-mix(in oklch, var(--accent) 55%, var(--surface));
+  --holder-uv: #6a52b8;
+  --holder-uv-shade: rgb(48 45 42/7%);
   --map-land: var(--surface-inset);
   --map-border: var(--hairline);
   --map-route: var(--accent);
@@ -228,6 +237,13 @@
   --holder-shadow:
     inset 0 1px 0 rgb(255 255 255/5%), 0 0 0 1px rgb(0 0 0/25%),
     inset -10px 0 12px -12px rgb(0 0 0/30%);
+  --holder-rule: #5f5954;
+  --holder-guilloche: #45403c;
+  --holder-perforation: #5f5954;
+  --holder-band: #2e2c2a;
+  --holder-ovi-shift: color-mix(in oklch, var(--accent) 55%, var(--text));
+  --holder-uv: #b9a6ff;
+  --holder-uv-shade: rgb(0 0 0/32%);
   --swatch-shu: #ea846f;
   --swatch-ai: #acbbef;
   --swatch-matcha: #b7ce92;

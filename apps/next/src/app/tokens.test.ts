@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 // The shared package has no `./theme/*` export entry yet; consumers switch to the package path once it does.
 import {
   ACCENT_KEYS,
+  HOLDER,
   MAKER_KEYS,
   MAKERS,
   MODES,
@@ -223,6 +224,27 @@ describe.each(MODES)('%s mode tokens', (mode) => {
       expect(ratio(hex('--skeleton'), hex(name)), `--skeleton on ${name}`).toBeGreaterThanOrEqual(
         1.3,
       )
+    }
+  })
+
+  it('mirrors the holder inks and keeps holder text readable under the UV shade', () => {
+    const inks = HOLDER[mode]
+    expect(hex('--holder-rule')).toBe(inks.rule)
+    expect(hex('--holder-guilloche')).toBe(inks.guilloche)
+    expect(hex('--holder-perforation')).toBe(inks.perforation)
+    expect(hex('--holder-band')).toBe(inks.band)
+    expect(hex('--holder-uv')).toBe(inks.uv)
+    const shade = /^rgb\((\d+) (\d+) (\d+)\s*\/\s*(\d+)%\)$/.exec(
+      decls.get('--holder-uv-shade') ?? '',
+    )
+    if (!shade) throw new Error('--holder-uv-shade is not an rgb() with alpha')
+    const alpha = Number(shade[4]) / 100
+    const page = rgb(hex('--surface'))
+    const shaded = toHex(
+      page.map((channel, i) => channel * (1 - alpha) + (Number(shade[i + 1]) / 255) * alpha) as Rgb,
+    )
+    for (const name of ['--text', '--text-muted']) {
+      expect(ratio(hex(name), shaded), `${name} under UV`).toBeGreaterThanOrEqual(4.5)
     }
   })
 

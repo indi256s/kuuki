@@ -5,6 +5,8 @@ import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'
 import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
 import { ProfileAvatar } from './avatar'
+import { DataPage, DataPageMrz, UvToggle } from './data-page'
+import { Guilloche, OviPatch, Perforation, UvPrint, initials } from './data-page-art'
 import { FoundingCrew } from './founding-crew'
 import { ShareProfile } from './profile'
 import type { ProfileStamp } from './stamps'
@@ -24,6 +26,18 @@ export function issuedLabel(value: string, locale: Locale) {
   return match ? `${MONTHS[locale][Number(match[2]) - 1]} ${match[1]}` : value
 }
 
+/** A printed field label, in both languages in every locale by design; assistive tech reads only `spoken`. */
+function PrintedLabel({ printed, spoken }: { printed: string; spoken?: string }) {
+  return (
+    <>
+      <span className="profile-label" aria-hidden="true">
+        {printed}
+      </span>
+      {spoken && <span className="sr-only">{spoken}</span>}
+    </>
+  )
+}
+
 export function HolderPage({
   locale,
   id,
@@ -34,6 +48,8 @@ export function HolderPage({
   issued,
   bio,
   mrz,
+  documentNumber,
+  uvStamp,
   owner,
 }: {
   locale: Locale
@@ -45,6 +61,10 @@ export function HolderPage({
   issued: string | null
   bio: string | null
   mrz: [string, string]
+  /** "0142", printed as "№ KU 0142" and perforated down the right edge. */
+  documentNumber: string
+  /** A public stamp code for the UV ring stamp; the crest shows alone without one. */
+  uvStamp: string | null
   owner: null | {
     visibility: 'public' | 'private'
     shareUrl: string | null
@@ -55,49 +75,86 @@ export function HolderPage({
   const privateOwner = owner?.visibility === 'private'
   return (
     <aside className="profile-holder" aria-labelledby="profile-name">
-      <div className="profile-holder-head">
-        <p className="eyebrow">{ru ? 'Бортовой журнал · Владелец' : 'Flight journal · Holder'}</p>
-        <span className="profile-holder-kana" aria-hidden="true">
-          くうき
+      <DataPage>
+        <Guilloche className="profile-guilloche" />
+        <UvPrint stamp={uvStamp} />
+        <span className="profile-laminate" aria-hidden="true" />
+        <span className="profile-stitches" aria-hidden="true" />
+        <Perforation number={documentNumber} />
+        <span className="profile-ghost" aria-hidden="true">
+          {initials(name)}
         </span>
-      </div>
-      <div className="profile-identity">
-        <span className="profile-identity-photo">
-          <ProfileAvatar id={id} url={avatarUrl} name={name} size={88} />
-        </span>
-        <div className="profile-identity-text">
-          <h1 id="profile-name">{name}</h1>
-          <p className="profile-handle-row">
-            <span className="profile-handle">@{handle}</span>
-            {founding && <FoundingCrew locale={locale} />}
-          </p>
-        </div>
-      </div>
-      {(issued || bio) && (
-        <dl className="profile-fields">
-          {issued && (
-            <div className="profile-field-issued">
-              <dt className="eyebrow">{ru ? 'Выдан' : 'Issued'}</dt>
-              <dd>
-                <time dateTime={issued}>{issuedLabel(issued, locale)}</time>
-              </dd>
+        <div className="profile-data-content">
+          <div className="profile-holder-head">
+            <div className="profile-holder-mark">
+              <UvToggle locale={locale} />
+              <p className="eyebrow">
+                {ru ? 'Бортовой журнал · Владелец' : 'Flight journal · Holder'}
+              </p>
+            </div>
+            <span className="profile-holder-issuer" aria-hidden="true">
+              <span className="profile-holder-kana">くうき</span>
+              <span className="profile-doc-number">№ KU {documentNumber}</span>
+            </span>
+          </div>
+          <span className="profile-photo-window">
+            <ProfileAvatar id={id} url={avatarUrl} name={name} size={88} />
+            <OviPatch />
+          </span>
+          <div className="profile-field profile-field-name">
+            <PrintedLabel printed="Holder / Владелец" />
+            <h1 id="profile-name">{name}</h1>
+          </div>
+          <div className="profile-field">
+            <PrintedLabel printed="Handle / Имя пользователя" />
+            <p className="profile-handle-row">
+              <span className="profile-handle">@{handle}</span>
+              {founding && <FoundingCrew locale={locale} />}
+            </p>
+          </div>
+          {(issued || bio) && (
+            <dl className="profile-fields">
+              {issued && (
+                <div className="profile-field profile-field-issued">
+                  <dt>
+                    <PrintedLabel printed="Issued / Дата выдачи" spoken={ru ? 'Выдан' : 'Issued'} />
+                  </dt>
+                  <dd>
+                    <time dateTime={issued}>{issuedLabel(issued, locale)}</time>
+                  </dd>
+                </div>
+              )}
+              {bio && (
+                <div className="profile-field profile-field-bio">
+                  <dt>
+                    <PrintedLabel printed="Bio / О себе" spoken={ru ? 'О себе' : 'Bio'} />
+                  </dt>
+                  <dd>{bio}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+          {owner?.remarks && (
+            <div className="profile-field profile-remarks">
+              <p>
+                <PrintedLabel printed="Remarks / Замечания" spoken={ru ? 'Замечания' : 'Remarks'} />
+              </p>
+              <p className="profile-remarks-line">{owner.remarks}</p>
+              <p className="profile-remarks-note">
+                {ru ? 'Видите только вы' : 'Only you see this'}
+              </p>
             </div>
           )}
-          {bio && (
-            <div className="profile-field-bio">
-              <dt className="eyebrow">{ru ? 'О себе' : 'Bio'}</dt>
-              <dd>{bio}</dd>
-            </div>
-          )}
-        </dl>
-      )}
-      {owner?.remarks && (
-        <div className="profile-remarks">
-          <p className="eyebrow">{ru ? 'Замечания' : 'Remarks'}</p>
-          <p className="profile-remarks-line">{owner.remarks}</p>
-          <p className="profile-remarks-note">{ru ? 'Видите только вы' : 'Only you see this'}</p>
         </div>
-      )}
+        <DataPageMrz lines={mrz} page="2" />
+        {privateOwner && (
+          <div className="profile-private-stamp" aria-hidden="true">
+            <span>{ru ? 'СКРЫТ' : 'PRIVATE'}</span>
+            <span>{ru ? 'ВИДИТЕ ТОЛЬКО ВЫ' : 'ONLY YOU CAN SEE THIS'}</span>
+          </div>
+        )}
+      </DataPage>
+      {/* Owner controls are actions, not printed fields: they sit below the page, off it. */}
       {owner && !privateOwner && (
         <div className="profile-owner-actions">
           {owner.shareUrl && <ShareProfile url={owner.shareUrl} title={name} locale={locale} />}
@@ -132,16 +189,6 @@ export function HolderPage({
               : 'Your profile is private. Others see a closed passport.'}{' '}
             <Link href="/settings">{ru ? 'Изменить в настройках' : 'Change in Settings'}</Link>
           </p>
-        </div>
-      )}
-      <div className="profile-mrz" aria-hidden="true">
-        <span>{mrz[0]}</span>
-        <span>{mrz[1]}</span>
-      </div>
-      {privateOwner && (
-        <div className="profile-private-stamp" aria-hidden="true">
-          <span>{ru ? 'СКРЫТ' : 'PRIVATE'}</span>
-          <span>{ru ? 'ВИДИТЕ ТОЛЬКО ВЫ' : 'ONLY YOU CAN SEE THIS'}</span>
         </div>
       )}
     </aside>
