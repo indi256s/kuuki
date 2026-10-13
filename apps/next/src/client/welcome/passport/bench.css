@@ -1,0 +1,252 @@
+/* The passport bench (bench-live.ts). The kit's rules are in bench.generated.css; this file maps its colour roles onto
+   Kuuki's tokens, as concorde.css does for the sign-in figure: the bench in the --iso-* faces and lines, the cover in
+   the accent, the data page in --holder-*, and stamps in the five accent swatches. Light is the default; dark swaps the
+   roles whose light and dark tokens sit at different steps of the ramp. */
+.wp-bench {
+  --anatomy-paper: var(--surface);
+  --anatomy-face: var(--surface-inset);
+  --anatomy-top: color-mix(in oklab, var(--iso-front) 50%, var(--surface));
+  --anatomy-shade-0: var(--iso-side);
+  --anatomy-shade-1: color-mix(in oklab, var(--iso-side) 67%, var(--iso-front));
+  --anatomy-shade-2: color-mix(in oklab, var(--iso-side) 33%, var(--iso-front));
+  --anatomy-shade-3: var(--iso-front);
+  --anatomy-lit-top: color-mix(in oklab, var(--accent) 14%, var(--surface));
+  --anatomy-lit-shade: color-mix(in oklab, var(--accent) 24%, var(--iso-front));
+  --anatomy-hi: var(--iso-line);
+  --anatomy-mid: color-mix(in oklab, var(--iso-line) 55%, var(--iso-crease));
+  --anatomy-lo: var(--iso-crease);
+  --anatomy-faint: var(--iso-detail);
+  --anatomy-lit: var(--accent);
+  --anatomy-halo: var(--iso-shadow);
+  --anatomy-halo-opacity: 1;
+  --anatomy-dot: var(--text-muted);
+  --anatomy-strong: var(--text);
+  --anatomy-weight: 0.7px;
+  --anatomy-mono: var(--font-mono);
+  --wp-page: var(--surface);
+  --wp-guilloche: var(--holder-guilloche);
+  --wp-ink-pad: color-mix(in oklab, var(--text) 80%, var(--iso-line));
+  --wp-ink-nap: color-mix(in oklab, var(--iso-line) 90%, var(--text));
+  --wp-cover-line: color-mix(in oklab, var(--accent) 62%, black);
+}
+:root[data-theme='dark'] .wp-bench {
+  --anatomy-lit-top: color-mix(in oklab, var(--accent) 34%, var(--iso-front));
+  --anatomy-lit-shade: color-mix(in oklab, var(--accent) 26%, var(--iso-side));
+  --anatomy-mid: color-mix(in oklab, var(--iso-line) 35%, var(--iso-detail));
+  --anatomy-lo: var(--iso-detail);
+  --anatomy-faint: color-mix(in oklab, var(--iso-detail) 50%, var(--surface));
+  --wp-page: color-mix(in oklab, var(--iso-top) 70%, var(--iso-front));
+  --wp-guilloche: color-mix(in oklab, var(--holder-guilloche) 40%, var(--iso-detail));
+  --wp-ink-pad: var(--iso-side);
+  --wp-ink-nap: color-mix(in oklab, var(--iso-detail) 75%, var(--iso-side));
+  --wp-cover-line: color-mix(in oklab, var(--accent) 55%, black);
+}
+.wp-bench .iso-svg {
+  overflow: hidden;
+}
+.wp-bench .iso-line.iso-edge {
+  stroke-width: 0.9px;
+}
+.wp-bench :is(.pp-ink-tex, .pp-ink-mark) .iso-line,
+.wp-bench .pp-ink-rim.iso-line {
+  stroke: var(--wp-ink-nap);
+}
+/* The covers are the accent material: the same anatomy with its own roles. */
+.wp-bench .pp-cover {
+  --anatomy-paper: var(--accent);
+  --anatomy-top: var(--accent);
+  --anatomy-shade-0: color-mix(in oklab, var(--accent) 70%, black);
+  --anatomy-shade-1: color-mix(in oklab, var(--accent) 76%, black);
+  --anatomy-shade-2: color-mix(in oklab, var(--accent) 82%, black);
+  --anatomy-shade-3: color-mix(in oklab, var(--accent) 88%, black);
+}
+.wp-bench .pp-cover .iso-line {
+  stroke: var(--wp-cover-line);
+}
+.wp-bench .pp-pages {
+  --anatomy-top: var(--wp-page);
+}
+.wp-bench .pp-ink {
+  --anatomy-paper: var(--wp-ink-pad);
+  --anatomy-top: var(--wp-ink-pad);
+}
+
+/* ---------- Printed art, drawn in the page plane ---------- */
+.wp-bench .pp-print text {
+  font-family: var(--font-sans);
+}
+.wp-bench .pp-page-face {
+  fill: var(--wp-page);
+}
+.wp-bench .pp-page-rim {
+  fill: none;
+  stroke: var(--anatomy-hi);
+  stroke-width: 0.9px;
+  vector-effect: non-scaling-stroke;
+}
+.wp-bench .pp-guilloche.iso-line {
+  stroke: var(--wp-guilloche);
+}
+.wp-bench .pp-print :is(.pp-eyebrow, .pp-label, .pp-date, .pp-mrz, .pp-imp-code, .pp-imp-small),
+.wp-bench .pp-cover-art :is(.pp-cover-title, .pp-cover-holder, .pp-cover-foot) {
+  font-family: var(--font-mono);
+}
+.wp-bench :is(.pp-eyebrow, .pp-label) {
+  font-size: 2.5px;
+  letter-spacing: 0.06em;
+  fill: var(--anatomy-mid);
+}
+.wp-bench .pp-kana {
+  font-size: 3.6px;
+  fill: var(--anatomy-mid);
+}
+.wp-bench .pp-window {
+  fill: var(--holder-band);
+  stroke: var(--holder-rule);
+  stroke-width: 0.7px;
+  vector-effect: non-scaling-stroke;
+}
+.wp-bench :is(.pp-window-mark, .pp-watermark, .pp-cover-globe, .pp-ovi) {
+  fill: none;
+  stroke-width: 0.7px;
+}
+.wp-bench :is(.pp-window-mark, .pp-watermark, .pp-cover-globe, .pp-ovi) > * {
+  vector-effect: non-scaling-stroke;
+}
+.wp-bench .pp-window-mark {
+  stroke: var(--holder-rule);
+}
+.wp-bench .pp-ovi {
+  stroke: color-mix(in oklab, var(--accent) 55%, var(--wp-page));
+}
+.wp-bench .pp-ovi circle {
+  fill: var(--wp-page);
+}
+.wp-bench .pp-watermark {
+  stroke: var(--wp-guilloche);
+}
+.wp-bench .pp-watermark .pp-plane {
+  fill: var(--wp-guilloche);
+  stroke: none;
+}
+.wp-bench .pp-name {
+  font-size: 5.4px;
+  font-weight: 600;
+  fill: var(--anatomy-strong);
+}
+.wp-bench .pp-date {
+  font-size: 3.6px;
+  fill: var(--anatomy-strong);
+}
+.wp-bench .pp-ghost {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  fill: color-mix(in oklab, var(--wp-guilloche) 75%, var(--wp-page));
+}
+.wp-bench .pp-band {
+  fill: var(--holder-band);
+}
+.wp-bench .pp-mrz {
+  font-size: 4.1px;
+  letter-spacing: 0.02em;
+  fill: var(--anatomy-strong);
+}
+.wp-bench .pp-scan .iso-line {
+  stroke-width: 1.2px;
+  filter: drop-shadow(0 0 2px var(--accent));
+}
+.wp-bench .pp-slot {
+  fill: none;
+  stroke: var(--anatomy-lo);
+  stroke-width: 0.7px;
+  stroke-dasharray: 2 2.4;
+  vector-effect: non-scaling-stroke;
+}
+.wp-bench .pp-imp {
+  --ink: var(--swatch-shu);
+}
+.wp-bench .pp-imp .pp-ink-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.6px;
+  vector-effect: non-scaling-stroke;
+}
+.wp-bench .pp-imp text {
+  fill: var(--ink);
+}
+/* Each impression knocks the page out under itself, so a newer stamp lies over an older one instead of tangling with it. */
+.wp-bench .pp-imp-paper {
+  fill: color-mix(in oklab, var(--ink) 6%, var(--wp-page));
+  opacity: 0.88;
+}
+.wp-bench .pp-imp-code {
+  font-size: 6px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.wp-bench .pp-imp-small {
+  font-size: 1.9px;
+  letter-spacing: 0.08em;
+}
+.wp-bench .pp-entry {
+  --ink: var(--accent-text);
+}
+.wp-bench .pp-entry-word {
+  font-size: 6.4px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+:root:not([data-theme='dark']) .wp-bench :is([data-imps], .pp-entry) {
+  mix-blend-mode: multiply;
+}
+.wp-bench .pp-cover-art text {
+  fill: var(--accent-foreground);
+}
+.wp-bench :is(.pp-cover-title, .pp-cover-holder, .pp-cover-foot) {
+  font-size: 3.6px;
+  letter-spacing: 0.14em;
+}
+.wp-bench .pp-cover-holder {
+  font-size: 2.6px;
+  opacity: 0.8;
+}
+.wp-bench .pp-cover-kana {
+  font-size: 5px;
+}
+.wp-bench .pp-cover-name {
+  font-size: 6.4px;
+  font-weight: 600;
+}
+.wp-bench .pp-cover-name[data-empty] {
+  opacity: 0.6;
+  font-weight: 500;
+}
+.wp-bench .pp-cover-globe {
+  stroke: var(--accent-foreground);
+  opacity: 0.9;
+}
+.wp-bench .pp-cover-globe .pp-plane {
+  fill: var(--accent-foreground);
+  stroke: none;
+}
+/* The head being pressed is the figure's one lit part, and it glows (DESIGN Illustration). */
+.wp-bench .pp-head[data-lit] .pp-foot {
+  filter: drop-shadow(0 0 2.5px color-mix(in oklab, var(--accent) 70%, transparent));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wp-bench .pp-halo {
+    transition: opacity var(--dur-base) linear;
+  }
+  .wp-bench .pp-head .iso-solid > path {
+    transition:
+      fill var(--dur-fast) var(--ease-out),
+      stroke var(--dur-fast) var(--ease-out);
+  }
+}
+/* Reduced motion: stamps and the entry fade in instead of being pressed (DESIGN: the press becomes a 200ms fade). */
+@media (prefers-reduced-motion: reduce) {
+  .wp-bench .pp-imp {
+    transition: opacity var(--dur-base) linear;
+  }
+}

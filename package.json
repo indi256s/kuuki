@@ -32,6 +32,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "generate:concorde": "node scripts/generate-concorde.mjs",
+    "generate:passport-bench": "node scripts/generate-passport-bench.mjs",
     "verify:cloudflare": "bash scripts/verify-cloudflare.sh"
   },
   "devDependencies": {
