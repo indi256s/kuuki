@@ -2,7 +2,7 @@
 
 import { useMemo, type CSSProperties } from 'react'
 import { IsoFigure } from '../../iso/iso-figure'
-import { fitBox } from '../../iso/scene'
+import { useFigureK } from '../../layout/figure-box'
 import { stamper } from '../../iso/stamper'
 import { reducedMotion } from '../../layout/drag-motion'
 import type { Mark } from './marks'
@@ -24,7 +24,7 @@ export function bandLabels(marks: readonly Mark[], at: number, wrap: boolean) {
   return slots
 }
 
-/** The date stamper in the chapter card's figure stage (300 × 160), drawn with `marks[at]` on its band and the last impression beside it. */
+/** The date stamper in the chapter card's figure box (figure-box.ts), drawn with `marks[at]` on its band and the last impression beside it. */
 export function stamperFigure(
   k: number,
   marks: readonly Mark[],
@@ -62,14 +62,7 @@ export function RhythmStamper({
   wrap: boolean
 }) {
   const stamp = useStamp(at ?? 0, picked && !reducedMotion(), marks.length, wrap)
-  const k = useMemo(
-    () =>
-      Math.min(
-        1.8,
-        fitBox(300, 160, (k) => stamper(k, SIZING)),
-      ),
-    [],
-  )
+  const k = useFigureK('', (k) => stamper(k, SIZING))
   const print = at === null ? null : Math.min(stamp.impression, marks.length - 1)
   const key = `${wrap}|${at}|${print}|${marks.map((mark) => `${mark.band}/${mark.print}/${mark.flights}`).join()}`
   const figure = useMemo(

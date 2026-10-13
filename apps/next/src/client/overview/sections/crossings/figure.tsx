@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CONTINENT_IDS, puzzle, type ContinentId } from '../../iso/puzzle'
 import { IsoFigure } from '../../iso/iso-figure'
-import { fitBox } from '../../iso/scene'
+import { useFigureK } from '../../layout/figure-box'
 import '../../iso/puzzle.css'
 
 /** How long the lift lasts, in ms: puzzle.css's `--dur-press`. The piece seats when it is over. */
@@ -26,7 +26,7 @@ function useLift(lit: ContinentId | null, animate: boolean) {
 }
 
 /**
- * The jigsaw tray in the chapter card's figure stage (300 × 160). `lit` is the picked continent: a flown one lifts 4px and seats in the accent,
+ * The jigsaw tray in the chapter card's figure box (figure-box.ts). `lit` is the picked continent: a flown one lifts 4px and seats in the accent,
  * one not flown outlines its socket (puzzle.css). `picked` is `useReading`'s flag: only a pick moves anything.
  */
 export function ContinentsFigure({
@@ -40,15 +40,8 @@ export function ContinentsFigure({
   label: string
   picked: boolean
 }) {
-  const k = useMemo(
-    () =>
-      Math.min(
-        1.8,
-        fitBox(300, 160, (k) => puzzle(k, { flown, lit: null, label })),
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the tray is the same size whatever is flown; only the label's width could change it.
-    [label],
-  )
+  // The tray is the same size whatever is flown; only the label's width could change it.
+  const k = useFigureK(label, (k) => puzzle(k, { flown, lit: null, label }))
   const bits = CONTINENT_IDS.map((id) => (flown[id] ? 1 : 0)).join('')
   const figure = useMemo(
     () => puzzle(k, { flown, lit, label }),

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { passStack } from '../../iso/passes'
-import { fitBox } from '../../iso/scene'
 import { useFigure, type FigureSize } from '../../iso/use-figure'
 import { IsoFigure } from '../../iso/iso-figure'
+import { useFigureK } from '../../layout/figure-box'
 import '../cookie.css'
 import '../../iso/passes.css'
 
@@ -15,7 +15,7 @@ export function usePassFigure(size: FigureSize, share: number, route: string) {
 const SIZING_ROUTE = 'AAA ↔ BBB'
 
 /**
- * The stack in the chapter card's figure stage (300 × 160). `route` is the reading. When it changes by a pick the top pass is dealt in
+ * The stack in the chapter card's figure box (figure-box.ts). `route` is the reading. When it changes by a pick the top pass is dealt in
  * (passes.css); a change that is not a pick (first render, swipe, filter) swaps its print with no motion. `data-deal` alternates 1 and 2
  * so the next pick deals again; a pick while a deal is still running swaps the print and the deal settles as it was, never restarting.
  */
@@ -28,14 +28,7 @@ export function PassCardFigure({
   route: string
   picked: boolean
 }) {
-  const k = useMemo(
-    () =>
-      Math.min(
-        1.8,
-        fitBox(300, 160, (k) => passStack(share, SIZING_ROUTE, k)),
-      ),
-    [share],
-  )
+  const k = useFigureK(String(share), (k) => passStack(share, SIZING_ROUTE, k))
   const figure = useMemo(() => passStack(share, route, k), [share, route, k])
   const [seen, setSeen] = useState({ route, deal: 0, dealing: false })
   let deal = seen.deal

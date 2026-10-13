@@ -10,8 +10,8 @@ import type { ChartPoint } from '../../charts/kuuki-chart'
 import { fill } from '../../copy'
 import { IsoFigure } from '../../iso/iso-figure'
 import { clock } from '../../iso/clock'
-import { fitBox } from '../../iso/scene'
 import { ChapterCard } from '../../layout/chapter-card'
+import { useFigureK } from '../../layout/figure-box'
 import { useReading } from '../../layout/use-reading'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
@@ -42,6 +42,17 @@ function useMorph(time: string, picked: boolean) {
       : { ...slots, a: time, side: 'a' as const }
   setSlots(next)
   return next
+}
+
+/** The clock in the card's figure box: its face shows `a` and `b`, and `side` names the one in front (the digit morph, clock.css). */
+function ClockFigure({ a, b, side }: { a: string; b: string; side: 'a' | 'b' }) {
+  const k = useFigureK('', (k) => clock('00:00', k))
+  const figure = useMemo(() => clock(a, k, b), [a, b, k])
+  return (
+    <div className="ov3-clock-figure" data-side={side}>
+      <IsoFigure figure={figure} className="iso-clock" />
+    </div>
+  )
 }
 
 export function Section({ span }: { span: Span }) {
@@ -87,15 +98,6 @@ export function Section({ span }: { span: Span }) {
   const time = record ? hhmm(record.depMinute) : hour !== null ? hhmm(hour * 60) : null
   const state = !scope || !all ? 'loading' : data ? 'ready' : 'empty'
   const slots = useMorph(state === 'ready' && time ? time : BLANK, r.picked)
-  const k = useMemo(
-    () =>
-      Math.min(
-        1.8,
-        fitBox(300, 160, (k) => clock('00:00', k)),
-      ),
-    [],
-  )
-  const figure = useMemo(() => clock(slots.a, k, slots.b), [slots.a, slots.b, k])
 
   const only = (value: number) => {
     if (isCurrent()) actions.add(facet, value)
@@ -191,11 +193,7 @@ export function Section({ span }: { span: Span }) {
   return (
     <ChapterCard
       state={state}
-      figure={
-        <div className="ov3-clock-figure" data-side={slots.side}>
-          <IsoFigure figure={figure} className="iso-clock" />
-        </div>
-      }
+      figure={<ClockFigure a={slots.a} b={slots.b} side={slots.side} />}
       figureButton={
         cycle.length > 1
           ? {

@@ -3,24 +3,26 @@ import { IsoFigure } from '../../iso/iso-figure'
 import { gateSign } from '../../iso/gate-sign'
 import { carousel } from '../../iso/carousel'
 import { fitBox } from '../../iso/scene'
+import { boxK, useFigureBox, type FigureBox } from '../../layout/figure-box'
 import '../../iso/gate-sign.css'
 import '../../iso/carousel.css'
 
-let fitted: number | undefined
-// The sign's geometry never depends on its code, so one scale fits every reading in the card's 300 × 160 stage.
-const stageK = () =>
-  (fitted ??= Math.min(
-    1.8,
-    fitBox(300, 160, (k) => gateSign(k, { code: 'AAA' })),
-  ))
+// The sign's geometry never depends on its code, so one scale per figure box fits every reading.
+const fitted = new Map<string, number>()
+const signK = (box: FigureBox) => {
+  const id = `${box.width}x${box.height}`
+  let k = fitted.get(id)
+  if (k === undefined) fitted.set(id, (k = boxK(box, (k) => gateSign(k, { code: 'AAA' }))))
+  return k
+}
 
 /**
- * The gate sign in the chapter card's figure stage (300 × 160). `code` is the reading's: an airline code, an airport's IATA or a route (`ROV–VKO`).
+ * The gate sign in the chapter card's figure box (figure-box.ts). `code` is the reading's: an airline code, an airport's IATA or a route (`ROV–VKO`).
  * The wrapper is keyed by the code, so a new reading remounts the figure; only after a pick (`picked`) does it carry `iso-gate-relight`, which
  * relights the sign face from dim (gate-sign.css). A first render, a swipe or a filter change swaps the code with no motion. An empty code is a dim sign.
  */
 export function GateSignFigure({ code, picked }: { code: string; picked: boolean }) {
-  const k = stageK()
+  const k = signK(useFigureBox())
   const figure = useMemo(() => gateSign(k, { code }), [k, code])
   return (
     <div
@@ -33,10 +35,19 @@ export function GateSignFigure({ code, picked }: { code: string; picked: boolean
   )
 }
 
-const carouselK = fitBox(300, 160, (k) => carousel(k, { code: 'AAA' }))
+// The carousel fills its box uncapped, as it always has; one scale per box fits every code.
+const carouselFitted = new Map<string, number>()
+const carouselK = (box: FigureBox) => {
+  const id = `${box.width}x${box.height}`
+  let k = carouselFitted.get(id)
+  if (k === undefined)
+    carouselFitted.set(id, (k = fitBox(box.width, box.height, (k) => carousel(k, { code: 'AAA' }))))
+  return k
+}
 
 export function AirportFigure({ code }: { code: string }) {
-  const figure = useMemo(() => carousel(carouselK, { code }), [code])
+  const k = carouselK(useFigureBox())
+  const figure = useMemo(() => carousel(k, { code }), [k, code])
   return (
     <div data-blank={code ? undefined : ''}>
       <IsoFigure figure={figure} className="iso-carousel" />

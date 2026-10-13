@@ -1,4 +1,4 @@
-/* One column by default; at 1280px+ (set by useLanes from the rail's own width) two lanes. Each card spans its height in 4px rows and auto-placement fills the lane that frees up first, left on ties. Cards keep their own height. */
+/* One column by default; at 1388px+ (set by useLanes from the rail's own width) two lanes. Each card spans its height in 4px rows and auto-placement fills the lane that frees up first, left on ties. Cards keep their own height. */
 .ov3-bento {
   display: flex;
   flex-direction: column;
