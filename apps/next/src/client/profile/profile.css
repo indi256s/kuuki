@@ -742,37 +742,6 @@
   }
 }
 
-/* Achievement toast (shell-wide; see badge-notifications.tsx). */
-.badge-notice {
-  position: fixed;
-  inset-block-end: calc(var(--tabbar-offset, 0px) + var(--space-6));
-  inset-inline: var(--page-gutter);
-  max-width: 520px;
-  margin-inline: auto;
-  z-index: 70;
-  background: var(--surface-floating);
-  box-shadow: var(--shadow-floating);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-}
-.badge-notice[data-first='true'] {
-  animation: first-achievement 600ms var(--ease-out);
-}
-@keyframes first-achievement {
-  from {
-    transform: perspective(500px) rotateY(-12deg);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .badge-notice[data-first='true'] {
-    animation: achievement-fade 150ms linear;
-  }
-}
 @keyframes achievement-fade {
   from {
     opacity: 0;

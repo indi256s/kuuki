@@ -68,6 +68,33 @@ describe('Toast', () => {
     })
     expect(screen.queryByText('Link copied')).not.toBeInTheDocument()
   })
+
+  it('springs back from a short swipe and dismisses on a long one', () => {
+    vi.useFakeTimers()
+    render(
+      <ToastProvider>
+        <Trigger />
+      </ToastProvider>,
+    )
+    act(() => {
+      screen.getByRole('button', { name: 'Show' }).click()
+    })
+    const toast = screen.getByText('Link copied').closest('.ui-toast') as HTMLElement
+    const swipe = (to: number) => {
+      fireEvent.pointerDown(toast, { pointerId: 1, clientX: 0, timeStamp: 0 })
+      fireEvent.pointerMove(toast, { pointerId: 1, clientX: to, timeStamp: 1000 })
+      fireEvent.pointerUp(toast, { pointerId: 1, clientX: to, timeStamp: 1000 })
+    }
+    swipe(40)
+    expect(toast).toHaveAttribute('data-state', 'open')
+    expect(toast.style.translate).toBe('')
+    swipe(120)
+    expect(toast).toHaveAttribute('data-thrown', 'true')
+    act(() => {
+      vi.advanceTimersByTime(250)
+    })
+    expect(screen.queryByText('Link copied')).not.toBeInTheDocument()
+  })
 })
 
 it('keeps announcements exposed while a Radix modal sheet is open', async () => {

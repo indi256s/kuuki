@@ -1,32 +1,28 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
-import { IdentitySnapshot, trackPrivateOperation } from '../activity'
+import { trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
-import { badgeEventId, type EarnedBadge } from './achievements'
-import { DISMISS, FOUNDING, NEW_ACHIEVEMENTS, RUNG_NAME } from './ladders/copy'
+import type { EarnedBadge } from './achievements'
+import { FOUNDING, NEW_ACHIEVEMENTS, RUNG_NAME } from './ladders/copy'
 import { toTiles, visibleBadges } from './ladders/model'
 import { notificationStorage } from './storage'
 import { unseenBadges } from './unseen'
-import { Button } from '../ui/button'
+import { useToast } from '../ui/toast'
 import type { Locale } from '../../lib/format'
-import './profile.css'
 
+/** Announces newly earned achievements in the shell's toast region, one line per ladder. */
 export function BadgeNotifications({ ownerId, locale }: { ownerId: string; locale: Locale }) {
-  const [notice, setNotice] = useState<{
-    ownerId: string
-    badges: EarnedBadge[]
-    first: boolean
-  } | null>(null)
-  const pending = useRef<EarnedBadge[]>([])
+  const { show, dismiss } = useToast()
   useEffect(() => {
     let stopped = false
     let active: AbortController | null = null
+    const shown = new Set<number>()
     const clear = () => {
       stopped = true
       active?.abort()
-      pending.current = []
-      setNotice(null)
+      shown.forEach(dismiss)
+      shown.clear()
     }
     const load = () => {
       if (stopped) return
@@ -47,22 +43,25 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
             return
           // Hidden rows (legacy, cities) never toast.
           const result = unseenBadges(ownerId, visibleBadges(badges), notificationStorage())
-          if (result.badges.length) {
-            const merged = [...pending.current, ...result.badges]
-            pending.current = [
-              ...new Map(merged.map((item) => [badgeEventId(item), item])).values(),
-            ]
-            setNotice((current) => ({
-              ownerId,
-              badges: pending.current,
-              first: current?.first ?? result.first,
-            }))
-          }
+          if (!result.badges.length) return
+          // One line per ladder: a batch that climbs several rungs names only the highest.
+          const lines = toTiles(result.badges).map((tile) =>
+            tile.kind === 'founding'
+              ? FOUNDING.name[locale]
+              : RUNG_NAME[tile.ladder][tile.rung - 1][locale],
+          )
+          shown.add(
+            show({
+              kind: 'success',
+              message: NEW_ACHIEVEMENTS[locale],
+              description: lines.join('\n'),
+              duration: 8000,
+            }),
+          )
         })
         .catch(() => {})
         .finally(release)
     }
-    pending.current = []
     load()
     window.addEventListener(LIFECYCLE_CHANGED_EVENT, load)
     window.addEventListener('focus', load)
@@ -76,32 +75,6 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
       window.removeEventListener('focus', load)
       window.removeEventListener('kuuki:identity-reset', clear)
     }
-  }, [ownerId])
-  if (!notice || notice.ownerId !== ownerId) return null
-  return (
-    <IdentitySnapshot ownerId={ownerId}>
-      <aside className="badge-notice" data-first={notice.first || undefined} role="status">
-        <strong>{NEW_ACHIEVEMENTS[locale]}</strong>
-        <ul>
-          {/* One line per ladder: a batch that climbs several rungs names only the highest. */}
-          {toTiles(notice.badges).map((tile) => (
-            <li key={tile.item.id}>
-              {tile.kind === 'founding'
-                ? FOUNDING.name[locale]
-                : RUNG_NAME[tile.ladder][tile.rung - 1][locale]}
-            </li>
-          ))}
-        </ul>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            pending.current = []
-            setNotice(null)
-          }}
-        >
-          {DISMISS[locale]}
-        </Button>
-      </aside>
-    </IdentitySnapshot>
-  )
+  }, [ownerId, locale, show, dismiss])
+  return null
 }
