@@ -35,6 +35,12 @@ function Harness({
     <>
       <input ref={searchRef} aria-label="Search" defaultValue="tbs" />
       <button type="button">Outside</button>
+      <div className="journal-toolbar" role="toolbar">
+        <button type="button">Period filter</button>
+      </div>
+      <button type="button" className="journal-shortcuts-button">
+        Shortcuts
+      </button>
       <textarea aria-label="Note" />
       <select aria-label="Sort">
         <option>Date</option>
@@ -88,7 +94,7 @@ describe('useJournalKeys', () => {
   it('/ focuses and selects the search field', () => {
     render(<Harness on={handlers()} />)
     const search = screen.getByRole('textbox', { name: 'Search' }) as HTMLInputElement
-    press(document.body, '/')
+    press(screen.getByRole('button', { name: 'Period filter' }), '/')
     expect(search).toHaveFocus()
     expect(search.selectionStart).toBe(0)
     expect(search.selectionEnd).toBe(3)
@@ -96,8 +102,7 @@ describe('useJournalKeys', () => {
 
   it('j and k move between flight rows, clamped at the ends', () => {
     render(<Harness on={handlers()} />)
-    press(document.body, 'j')
-    expect(row(1)).toHaveFocus()
+    row(1).focus()
     press(row(1), 'j')
     expect(row(2)).toHaveFocus()
     press(row(2), 'k')
@@ -113,20 +118,36 @@ describe('useJournalKeys', () => {
   it('reports the row it moved to, so the docked sheet can follow', () => {
     const on = { ...handlers(), onMove: vi.fn() }
     render(<Harness on={on} />)
-    press(document.body, 'j')
+    press(document.body, 'ArrowDown')
     press(row(1), 'ArrowDown')
     expect(on.onMove).toHaveBeenNthCalledWith(1, 1)
     expect(on.onMove).toHaveBeenNthCalledWith(2, 2)
   })
 
-  it('k from outside the ledger starts at the last row; j works from an unrelated button', () => {
-    render(<Harness on={handlers()} />)
-    press(document.body, 'k')
-    expect(row(3)).toHaveFocus()
+  it('keeps character shortcuts within the owning Journal controls', () => {
+    const on = handlers()
+    render(<Harness on={on} />)
     const outside = screen.getByRole('button', { name: 'Outside' })
-    outside.focus()
-    press(outside, 'j')
-    expect(row(1)).toHaveFocus()
+    const toolbar = screen.getByRole('button', { name: 'Period filter' })
+    const sheetField = screen.getByRole('button', { name: 'Change aircraft' })
+    for (const target of [document.body, outside, sheetField]) {
+      if (target instanceof HTMLElement && target !== document.body) target.focus()
+      for (const key of ['j', 'k', '/', '?']) press(target, key)
+      expect(row(1)).not.toHaveFocus()
+      expect(row(3)).not.toHaveFocus()
+      expect(screen.getByRole('textbox', { name: 'Search' })).not.toHaveFocus()
+    }
+    expect(on.onShowShortcuts).not.toHaveBeenCalled()
+    toolbar.focus()
+    press(toolbar, 'j')
+    press(toolbar, 'k')
+    expect(toolbar).toHaveFocus()
+    press(toolbar, '?', { shiftKey: true })
+    expect(on.onShowShortcuts).toHaveBeenCalledTimes(1)
+    const shortcuts = screen.getByRole('button', { name: 'Shortcuts' })
+    shortcuts.focus()
+    press(shortcuts, '/')
+    expect(screen.getByRole('textbox', { name: 'Search' })).toHaveFocus()
   })
 
   it('arrows move between rows from the body or the ledger, but not from other widgets', () => {
@@ -216,7 +237,7 @@ describe('useJournalKeys', () => {
   it('? shows the shortcuts', () => {
     const on = handlers()
     render(<Harness on={on} />)
-    press(document.body, '?', { shiftKey: true })
+    press(row(1), '?', { shiftKey: true })
     expect(on.onShowShortcuts).toHaveBeenCalledTimes(1)
   })
 

@@ -10,7 +10,7 @@ it('empty journal and no matches have different headings and actions', () => {
   const { unmount } = render(<EmptyJournal locale="en" />)
   expect(screen.getByRole('heading', { name: 'Your journal is empty' })).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Import flights' })).toHaveAttribute('href', '/import')
-  expect(screen.getByRole('link', { name: 'or add one by hand' })).toHaveAttribute('href', '/add')
+  expect(screen.getByRole('link', { name: 'Add manually' })).toHaveAttribute('href', '/add')
   expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument()
   unmount()
 

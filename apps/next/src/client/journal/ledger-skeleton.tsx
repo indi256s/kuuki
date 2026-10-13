@@ -20,10 +20,15 @@ export function LedgerSkeleton({ locale, rows = 8 }: { locale: Locale; rows?: nu
     <div className="ledger-skeleton journal-page">
       <header className="journal-header">
         <div className="journal-header-row">
-          <h1>{t.title}</h1>
+          <h1 tabIndex={-1}>{t.title}</h1>
         </div>
-        <div className="ledger-skeleton-summary" aria-hidden="true">
-          {bar('is-summary')}
+        <div className="ledger-skeleton-summary journal-summary" aria-hidden="true">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index}>
+              {bar('is-small')}
+              {bar('is-summary')}
+            </div>
+          ))}
         </div>
       </header>
       <div role="status" aria-busy="true">

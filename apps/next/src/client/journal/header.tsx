@@ -14,19 +14,17 @@ import { SlotText } from '../ui/slot-text'
 import type { JournalSummary } from './filter'
 import './header.css'
 
-// The summary follows the filters. Flights count every flight shown; distance and time are confirmed-only, and the line says so.
-
 const flights: CountForms = {
   en: { one: 'flight', other: 'flights' },
   ru: { one: 'перелёт', few: 'перелёта', many: 'перелётов', other: 'перелёта' },
 }
 const toConfirm: CountForms = {
-  en: { one: '{count} to confirm', other: '{count} to confirm' },
+  en: { one: 'Confirm {count}', other: 'Confirm {count}' },
   ru: {
-    one: '{count} нужно подтвердить',
-    few: '{count} нужно подтвердить',
-    many: '{count} нужно подтвердить',
-    other: '{count} нужно подтвердить',
+    one: 'Подтвердить {count}',
+    few: 'Подтвердить {count}',
+    many: 'Подтвердить {count}',
+    other: 'Подтвердить {count}',
   },
 }
 const imports: CountForms = {
@@ -40,8 +38,8 @@ const imports: CountForms = {
 }
 
 const copy = {
-  en: { title: 'Journal', inTheAir: 'in the air', confirmedOnly: '(confirmed flights only)' },
-  ru: { title: 'Журнал', inTheAir: 'в воздухе', confirmedOnly: '(только подтверждённые)' },
+  en: { title: 'Journal', distance: 'Distance', inTheAir: 'In the air' },
+  ru: { title: 'Журнал', distance: 'Расстояние', inTheAir: 'В воздухе' },
 } as const
 
 export type JournalHeaderProps = {
@@ -64,10 +62,13 @@ export function JournalHeader({
   importHref,
 }: JournalHeaderProps) {
   const t = copy[locale]
+  const distanceUnknown = summary.flights > 0 && summary.distanceMissing === summary.flights
+  const durationUnknown = summary.flights > 0 && summary.durationMissing === summary.flights
+  const durationCue = summary.durationEstimated ? '≈ ' : summary.durationMissing > 0 ? '≥ ' : ''
   return (
     <header className="journal-header">
       <div className="journal-header-row">
-        <h1>{t.title}</h1>
+        <h1 tabIndex={-1}>{t.title}</h1>
         {(awaitingCount > 0 || importReviewCount > 0) && (
           <div className="journal-header-actions">
             {importReviewCount > 0 && (
@@ -83,26 +84,38 @@ export function JournalHeader({
           </div>
         )}
       </div>
-      <p className="journal-summary">
-        <span>
-          <SlotText value={summary.flights} format={(count) => formatNumber(locale, count)} />{' '}
-          <span>{formatCount(locale, summary.flights, flights)}</span>
-        </span>
-        <span className="journal-summary-sep" aria-hidden="true">
-          {' '}
-          ·{' '}
-        </span>
-        <SlotText value={summary.distanceKm} format={(km) => formatDistanceKm(locale, km)} />
-        <span className="journal-summary-sep" aria-hidden="true">
-          {' '}
-          ·{' '}
-        </span>
-        <span>
-          <SlotText value={formatDurationDays(locale, summary.durationMinutes)} align="end" />{' '}
-          {t.inTheAir}
-        </span>{' '}
-        <span className="journal-summary-note">{t.confirmedOnly}</span>
-      </p>
+      <dl className="journal-summary">
+        <div>
+          <dt>{formatCount(locale, summary.flights, flights)}</dt>
+          <dd>
+            <SlotText value={summary.flights} format={(count) => formatNumber(locale, count)} />
+          </dd>
+        </div>
+        <div>
+          <dt>{t.distance}</dt>
+          <dd>
+            <SlotText
+              value={
+                distanceUnknown
+                  ? '—'
+                  : `${summary.distanceMissing > 0 ? '≥ ' : ''}${formatDistanceKm(locale, summary.distanceKm)}`
+              }
+            />
+          </dd>
+        </div>
+        <div>
+          <dt>{t.inTheAir}</dt>
+          <dd>
+            <SlotText
+              value={
+                durationUnknown
+                  ? '—'
+                  : `${durationCue}${formatDurationDays(locale, summary.durationMinutes)}`
+              }
+            />
+          </dd>
+        </div>
+      </dl>
     </header>
   )
 }

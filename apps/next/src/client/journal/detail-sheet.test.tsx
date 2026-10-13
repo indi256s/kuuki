@@ -118,6 +118,9 @@ function Page() {
       <button type="button" data-flight-row="1" onClick={() => store.openFlight(1)}>
         TBS to IST
       </button>
+      <button type="button" onClick={() => store.openFlight(2)}>
+        Open upcoming flight
+      </button>
       <JournalDetail ownerId="owner" locale="en" docked={docked} />
     </>
   )
@@ -358,6 +361,19 @@ describe('Journal detail sheet', () => {
       await user.keyboard('{Escape}')
     })
     await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+  })
+
+  it('returns focus to an upcoming flight opener outside the ledger after Escape', async () => {
+    const user = userEvent.setup()
+    dock()
+    mount([flight(1), flight(2, { is_upcoming: true, lifecycle_state: 'upcoming' })], '')
+    const opener = screen.getByRole('button', { name: 'Open upcoming flight' })
+    await user.click(opener)
+    const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+    expect(within(pane).getByRole('heading', { level: 2 })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+    expect(opener).toHaveFocus()
   })
 
   it('returns focus to the originating row when the pane closes', async () => {

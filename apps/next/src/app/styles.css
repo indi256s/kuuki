@@ -68,6 +68,9 @@
   --danger-fill: #ca3056;
   --info-text: #175d9b;
   --info-fill: #2b7ec9;
+  /* Journal status labels retain their named state alongside the color. */
+  --journal-awaiting-tint: color-mix(in oklch, var(--warning-fill) 10%, var(--surface));
+  --journal-upcoming-tint: color-mix(in oklch, var(--info-fill) 10%, var(--surface));
   --rank-gold: #775800;
   --rank-silver: #595e64;
   --rank-bronze: #8a4b24;

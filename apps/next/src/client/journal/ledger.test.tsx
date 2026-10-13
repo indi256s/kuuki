@@ -138,6 +138,15 @@ it('keeps airline identity and the flight number when a local logo fails to load
   expect(open).toHaveAccessibleName(/Turkish Airlines, TK381/)
 })
 
+it('preserves an impossible legacy date instead of normalizing it to another day', () => {
+  setup({
+    items: [{ kind: 'flight', flight: flight({ date: '2024-02-31' }), firsts: null, chain: null }],
+  })
+  const date = screen.getByLabelText('2024-02-31')
+  expect(date).toHaveTextContent('2024-02-31')
+  expect(date).not.toHaveTextContent('2 Mar')
+})
+
 it('sorts from the headers: the active column flips, another column starts descending, and aria-sort follows', async () => {
   const user = userEvent.setup()
   const { props } = setup()
@@ -268,7 +277,12 @@ it('mobile card swipes and the accessible menu invoke the same actions, and the 
   const confirm = vi.fn(),
     remove = vi.fn(),
     select = vi.fn()
-  const pending = { kind: 'flight' as const, flight: second, firsts: null, chain: null }
+  const pending = {
+    kind: 'flight' as const,
+    flight: { ...second, flight_number: '381' },
+    firsts: null,
+    chain: null,
+  }
   setup({
     mobile: true,
     items: [pending],
@@ -282,6 +296,8 @@ it('mobile card swipes and the accessible menu invoke the same actions, and the 
       trailing: [{ label: 'Delete flight', icon: null, onSelect: remove }],
     }),
   })
+  const identity = screen.getByText('TK 381').parentElement!
+  expect(identity).toHaveTextContent('Mar 12, 2024')
   const actionButton = screen.getByRole('button', { name: /Actions:/ })
   await user.click(actionButton)
   await user.click(await screen.findByRole('menuitem', { name: 'I flew' }))

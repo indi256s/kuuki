@@ -413,18 +413,18 @@ it('attaches firsts by flight id', () => {
   expect(items.map((item) => item.kind === 'flight' && item.firsts)).toEqual([firsts, null])
 })
 
-it('sums distance and time over confirmed flights only', () => {
+it('uses the same flown flights for every total and retains estimated or missing values', () => {
   const payload = payloadOf([
-    flight({ id: 1, distance_km: 1000, duration_minutes: 100 }),
+    flight({ id: 1, distance_km: 1000, duration_minutes: 100, duration_source: 'estimate' }),
     flight({ id: 2, distance_km: null, duration_minutes: 50 }),
     flight({ id: 3, distance_km: 300, duration_minutes: null }),
     flight({ id: 4, lifecycle_state: 'awaiting', distance_km: 9999, duration_minutes: 999 }),
   ])
   expect(select(payload).summary).toEqual({
-    flights: 4,
+    flights: 3,
     distanceKm: 1300,
     durationMinutes: 150,
-    confirmedFlights: 3,
+    durationEstimated: true,
     distanceMissing: 1,
     durationMissing: 1,
   })

@@ -11,7 +11,7 @@ const summary = (overrides: Partial<JournalSummary> = {}): JournalSummary => ({
   flights: 74,
   distanceKm: 141204,
   durationMinutes: 9 * 24 * 60 + 4 * 60,
-  confirmedFlights: 70,
+  durationEstimated: false,
   distanceMissing: 0,
   durationMissing: 0,
   ...overrides,
@@ -34,14 +34,14 @@ function setup(overrides: Partial<JournalHeaderProps> = {}) {
 const values = (container: HTMLElement) =>
   [...container.querySelectorAll('.ui-slot-text-value')].map((node) => node.textContent)
 
-it('shows the title, one summary line with confirmed-only wording, and no Add button', () => {
+it('shows the title, labeled summary metrics and no Add button', () => {
   const { container } = setup()
   expect(screen.getByRole('heading', { level: 1, name: 'Journal' })).toBeInTheDocument()
   expect(values(container)).toEqual(['74', '141,204 km', '9 d 4 h'])
   const line = container.querySelector('.journal-summary')!
   expect(line).toHaveTextContent('flights')
-  expect(line).toHaveTextContent('in the air')
-  expect(line).toHaveTextContent('(confirmed flights only)')
+  expect(line).toHaveTextContent('Distance')
+  expect(line).toHaveTextContent('In the air')
   expect(screen.queryByRole('button', { name: /add/i })).not.toBeInTheDocument()
 })
 
@@ -55,15 +55,15 @@ it.each([
   ['ru', 11, 'перелётов'],
 ] as const)('pluralizes the flight count in %s for %i', (locale, flights, noun) => {
   setup({ locale, summary: summary({ flights }) })
-  expect(screen.getByText(noun, { selector: 'span span' })).toBeInTheDocument()
+  expect(screen.getByText(noun, { selector: 'dt' })).toBeInTheDocument()
 })
 
 it.each([
-  ['en', 1, '1 to confirm'],
-  ['en', 3, '3 to confirm'],
-  ['ru', 1, '1 нужно подтвердить'],
-  ['ru', 3, '3 нужно подтвердить'],
-  ['ru', 5, '5 нужно подтвердить'],
+  ['en', 1, 'Confirm 1'],
+  ['en', 3, 'Confirm 3'],
+  ['ru', 1, 'Подтвердить 1'],
+  ['ru', 3, 'Подтвердить 3'],
+  ['ru', 5, 'Подтвердить 5'],
 ] as const)('words the review pill in %s for %i', async (locale, awaitingCount, label) => {
   const user = userEvent.setup()
   const { props } = setup({ locale, awaitingCount })
@@ -74,6 +74,19 @@ it.each([
 it('hides the review pill at zero', () => {
   setup({ awaitingCount: 0 })
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
+})
+
+it('marks estimated time and incomplete distance instead of presenting exact totals', () => {
+  const { container } = setup({
+    summary: {
+      ...summary({ distanceMissing: 1 }),
+      durationEstimated: true,
+    },
+  })
+  const totals = container.querySelector('.journal-summary')!
+  expect(totals).toHaveTextContent('≥')
+  expect(totals).toHaveTextContent('≈')
+  expect(values(container)).toEqual(['74', '≥ 141,204 km', '≈ 9 d 4 h'])
 })
 
 it.each([
@@ -127,13 +140,15 @@ it('counts down to the next flights and opens one', async () => {
   expect(digits.some((node) => node.hasAttribute('data-flip'))).toBe(false)
   expect(screen.getByText('days')).toBeInTheDocument()
   expect(screen.getByText('Tbilisi → IST')).toBeInTheDocument()
-  expect(screen.getByText(/Wed, Oct 21 · TK381$/)).toBeInTheDocument()
+  expect(screen.getByText('Wed, Oct 21')).toBeInTheDocument()
+  expect(screen.getByText('TK381')).toBeInTheDocument()
   expect(
     screen.getByRole('button', { name: /Tbilisi \(TBS\) to IST, Oct 21, 2026, TK381, in 12 days/ }),
   ).toBeInTheDocument()
   // Later flights: quieter, one named button each; tomorrow is a word, a next-year date carries its year.
   expect(screen.getByText('Tomorrow')).toBeInTheDocument()
-  expect(screen.getByText(/JFK → TBS · .*2027/)).toBeInTheDocument()
+  expect(screen.getByText('JFK → Tbilisi')).toBeInTheDocument()
+  expect(screen.getByText(/Sat, Jan 2, 2027/)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /IST to JFK.*tomorrow/ })).toBeInTheDocument()
   screen.getByRole('button', { name: /^Tbilisi \(TBS\)/ }).click()
   expect(onOpen).toHaveBeenCalledWith(7)
@@ -149,7 +164,7 @@ it('counts down to the next flights and opens one', async () => {
   )
   expect(screen.getByRole('heading', { level: 2, name: 'Скоро' })).toBeInTheDocument()
   expect(screen.getByText('дней')).toBeInTheDocument()
-  expect(screen.getByText(/ · 05:30 · TK381$/)).toBeInTheDocument()
+  expect(screen.getByText(/ · 05:30$/)).toBeInTheDocument()
   expect(screen.getByText('85 дней')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: /через 12 дней/ })).toBeInTheDocument()
 })

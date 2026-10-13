@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import type { AwaitingQueue } from '../awaiting'
 import { ToastProvider } from '../ui/toast'
-import { JournalDetail, useDockedDetail } from './detail-sheet'
+import { DOCK_QUERY, JournalDetail, useDockedDetail } from './detail-sheet'
 import { JournalDeleteProvider } from './journal-delete'
 import type { JournalFlight, JournalPayload } from './model'
 import { useJournalReview } from './review-mode'
@@ -288,6 +288,28 @@ describe('Review mode', () => {
     expect(await within(dialog).findByText('All confirmed.')).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Close' })).toBeInTheDocument()
     expect(openFlight()).toBeNull()
+  })
+
+  it('returns focus to the opener when the completed docked review closes', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query) =>
+        ({
+          matches: query === DOCK_QUERY,
+          media: query,
+          addEventListener() {},
+          removeEventListener() {},
+        }) as unknown as MediaQueryList,
+    )
+    mount([flight(3, '2024-05-01', 'TBS', 'IST')], '')
+    const opener = screen.getByRole('button', { name: 'Review flights' })
+    await user.click(opener)
+    const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+    await user.click(within(pane).getByRole('button', { name: 'I flew' }))
+    expect(await within(pane).findByText('All confirmed.')).toBeInTheDocument()
+    await user.click(within(pane).getByRole('button', { name: 'Close' }))
+    await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+    expect(opener).toHaveFocus()
   })
 
   it('a refused confirmation stays on the flight and says so', async () => {

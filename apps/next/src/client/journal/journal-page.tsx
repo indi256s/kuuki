@@ -270,7 +270,6 @@ function JournalContent({
         onReview={onReview}
         importHref={importHref}
       />
-      <HistoricalReview locale={locale} available={historicalReviewAvailable} />
       {!online && <OfflineNote locale={locale} id={OFFLINE_NOTE_ID} />}
       {isError && <RefreshFailed locale={locale} onRetry={onRetry} />}
       {payload.derivedState === 'pending' && <PublicationPending locale={locale} />}
@@ -331,21 +330,24 @@ function JournalContent({
           placeholder={review?.placeholder}
         />
       </div>
-      {!mobile && (
-        <>
-          <ShortcutsButton
-            ref={shortcutsRef}
-            locale={locale}
-            onClick={() => setShortcutsOpen(true)}
-          />
-          <ShortcutsPopover
-            open={shortcutsOpen}
-            onOpenChange={setShortcutsOpen}
-            locale={locale}
-            anchor={shortcutsRef}
-          />
-        </>
-      )}
+      <div className="journal-footer">
+        <HistoricalReview locale={locale} available={historicalReviewAvailable} />
+        {!mobile && (
+          <>
+            <ShortcutsButton
+              ref={shortcutsRef}
+              locale={locale}
+              onClick={() => setShortcutsOpen(true)}
+            />
+            <ShortcutsPopover
+              open={shortcutsOpen}
+              onOpenChange={setShortcutsOpen}
+              locale={locale}
+              anchor={shortcutsRef}
+            />
+          </>
+        )}
+      </div>
       <JournalBulkActions
         locale={locale}
         selected={selectedFlights}

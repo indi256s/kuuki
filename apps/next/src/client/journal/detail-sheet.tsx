@@ -19,8 +19,8 @@
  * Undo: the docked pane offers it in a "Saved" toast. The overlay is modal (focus trapped, a press outside dismisses it), so it
  * offers the same Undo in a status line inside the sheet instead, until the next edit or until the sheet closes.
  *
- * Focus: the docked pane takes focus on open (its title, or the requested field) and returns it to the originating ledger row
- * (`[data-flight-row=<id>]`) on close; Escape inside it closes it. The overlay does the same through Radix.
+ * Focus: the docked pane takes focus on open (its title, or the requested field) and returns it to the opener
+ * (or the flight row/Journal title when the opener has gone) on close; Escape inside it closes it. The overlay does the same through Radix.
  */
 import Link from 'next/link'
 import { X } from '@keyline-icons/react'
@@ -410,24 +410,45 @@ export function JournalDetail({
   /** A swap started inside the sheet (a connection leg): the clicked button unmounts, so focus moves to the title. */
   const swapFromInside = useRef(false)
   const previousId = useRef<number | null>(null)
+  const previousDockOpen = useRef(false)
+  const opener = useRef<HTMLElement | null>(null)
+  const dockOpen = docked && (id !== null || idle !== null)
 
   useEffect(() => {
     const before = previousId.current
+    const wasDockOpen = previousDockOpen.current
     previousId.current = id
-    if (before === id) return
-    if (id === null) {
-      dismissOffer()
-      // Closed: focus fell out of the removed pane (or the overlay already handed it back). Return it to the row it came from.
-      if (
-        docked &&
-        before !== null &&
-        (!document.activeElement || document.activeElement === document.body)
-      )
-        rowFor(before)?.focus()
-      return
+    previousDockOpen.current = dockOpen
+    if (wasDockOpen && !dockOpen) {
+      // Review can keep an idle pane open after its last flight; restore focus only when the dock closes.
+      if (!document.activeElement || document.activeElement === document.body)
+        (opener.current?.isConnected
+          ? opener.current
+          : ((shownId !== null ? rowFor(shownId) : null) ??
+            document.querySelector<HTMLElement>('.journal-header h1'))
+        )?.focus()
+      opener.current = null
     }
     const inside = swapFromInside.current
+    if (dockOpen && (before !== id || !wasDockOpen)) {
+      const active = document.activeElement
+      if (
+        !inside &&
+        active instanceof HTMLElement &&
+        active !== document.body &&
+        !active.closest('.journal-detail, .journal-detail-sheet')
+      )
+        opener.current = active
+    }
+    if (before === id) {
+      if (dockOpen && !wasDockOpen) paneTitle.current?.focus()
+      return
+    }
     swapFromInside.current = false
+    if (id === null) {
+      dismissOffer()
+      return
+    }
     if (docked) {
       if (before === null && initialField?.flightId === id) return // the requested field takes focus
       if (before === null || inside) paneTitle.current?.focus()
@@ -437,7 +458,7 @@ export function JournalDetail({
         ?.querySelector<HTMLElement>('.ui-panel-title')
         ?.focus()
     }
-  }, [id, docked, initialField, dismissOffer])
+  }, [id, docked, dockOpen, shownId, initialField, dismissOffer])
 
   const swap = useCallback(
     (next: number) => {

@@ -26,12 +26,12 @@ export type LedgerItem =
   | { kind: 'connector'; key: string; airport: string; minutes: number | null; estimated: boolean }
 
 export type JournalSummary = {
+  /** Every total uses the matching flights that were logged as flown. */
   flights: number
-  /** Distance and time are confirmed-only: summed over `logged` flights. */
   distanceKm: number
   durationMinutes: number
-  confirmedFlights: number
-  /** Logged flights that lack the value, so the summary can say it is partial. */
+  durationEstimated: boolean
+  /** Missing values keep incomplete totals distinguishable from exact ones. */
   distanceMissing: number
   durationMissing: number
 }
@@ -249,22 +249,25 @@ export function selectJournal(
   })
 
   const summary: JournalSummary = {
-    flights: matching.length,
+    flights: 0,
     distanceKm: 0,
     durationMinutes: 0,
-    confirmedFlights: 0,
+    durationEstimated: false,
     distanceMissing: 0,
     durationMissing: 0,
   }
   for (const flight of matching) {
     if (flight.lifecycle_state !== 'logged') continue
-    summary.confirmedFlights += 1
+    summary.flights += 1
     const distance = finite(flight.distance_km),
       duration = finite(flight.duration_minutes)
     if (distance === null) summary.distanceMissing += 1
     else summary.distanceKm += distance
     if (duration === null) summary.durationMissing += 1
-    else summary.durationMinutes += duration
+    else {
+      summary.durationMinutes += duration
+      if (flight.duration_source === 'estimate') summary.durationEstimated = true
+    }
   }
 
   return { items, matching, summary, statusCounts, facetValues: index.facetValues }

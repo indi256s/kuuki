@@ -34,7 +34,6 @@ const copy = {
     airline: 'Airline',
     times: 'Times',
     flight_number: 'Flight number',
-    statusDefault: 'Without a choice, the list shows flown flights and those to confirm.',
   },
   ru: {
     title: 'Другие фильтры',
@@ -51,8 +50,6 @@ const copy = {
     airline: 'Авиакомпания',
     times: 'Время',
     flight_number: 'Номер рейса',
-    statusDefault:
-      'Если ничего не выбрать, в списке выполненные перелёты и те, что нужно подтвердить.',
   },
 }
 
@@ -170,7 +167,6 @@ export function MoreFiltersDrawer({
         {primaryFacets}
         <fieldset className="journal-facet-group">
           <legend>{t.status}</legend>
-          {filters.status.length === 0 && <p className="journal-facet-hint">{t.statusDefault}</p>}
           {STATUS_ROWS.map((row) => {
             const countId = `${base}-count-${row.value}`
             return (

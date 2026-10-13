@@ -147,6 +147,20 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
           aria-label={first.name}
           onClick={() => onOpen(lead.id)}
         >
+          <span className="journal-next-trip">
+            <span className="journal-next-cities">
+              {leadCities[0] ?? lead.origin} → {leadCities[1] ?? lead.destination}
+            </span>
+            <span className="journal-next-date">
+              {[first.date, first.time].filter(Boolean).join(' · ')}
+            </span>
+            <span className="journal-next-meta">
+              <span className="journal-next-codes">
+                {lead.origin} → {lead.destination}
+              </span>
+              {first.number && <span>{first.number}</span>}
+            </span>
+          </span>
           {first.days !== null && (
             <span className="journal-next-count" aria-hidden="true">
               {first.word ? (
@@ -165,21 +179,6 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
               )}
             </span>
           )}
-          <span className="journal-next-trip">
-            <span className="journal-next-route">
-              {(leadCities[0] || leadCities[1]) && (
-                <span className="journal-next-cities">
-                  {leadCities[0] ?? lead.origin} → {leadCities[1] ?? lead.destination}
-                </span>
-              )}
-              <span className="journal-next-codes">
-                {lead.origin} → {lead.destination}
-              </span>
-            </span>
-            <span className="journal-next-meta">
-              {[first.date, first.time, first.number].filter(Boolean).join(' · ')}
-            </span>
-          </span>
         </button>
         {later.length > 0 && (
           <div className="journal-next-later">
@@ -201,8 +200,10 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
                       onClick={() => onOpen(flight.id)}
                     >
                       <span className="journal-next-item-route">
-                        {flight.origin} → {flight.destination} · {info.date}
+                        {city(flight.origin) ?? flight.origin} →{' '}
+                        {city(flight.destination) ?? flight.destination}
                       </span>
+                      <span className="journal-next-item-date">{info.date}</span>
                       {when && <span className="journal-next-item-when">{when}</span>}
                     </button>
                   </li>

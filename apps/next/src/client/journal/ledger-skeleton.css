@@ -10,8 +10,18 @@
   background: var(--surface-inset);
 }
 .ledger-skeleton-bar.is-summary {
-  width: min(100%, 360px);
-  height: 24px;
+  width: 112px;
+  height: 32px;
+}
+.ledger-skeleton-summary > div:first-child .is-summary {
+  width: 64px;
+}
+.ledger-skeleton-summary > div:last-child .is-summary {
+  width: 72px;
+}
+.ledger-skeleton-summary > div .is-small {
+  width: 64px;
+  height: 20px;
 }
 .ledger-skeleton-bar.is-search {
   width: 100%;
@@ -94,8 +104,8 @@
     gap: var(--space-3);
   }
   .ledger-skeleton-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'route date' 'airline aircraft' 'distance distance';
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas: 'route route' 'date date' 'aircraft distance';
     gap: var(--space-2) var(--space-3);
     align-items: start;
     min-height: 0;
@@ -104,9 +114,11 @@
     border-radius: var(--radius-md);
     background: var(--surface);
   }
-  :root[data-theme='dark'] .ledger-skeleton-row {
-    border-color: transparent;
-    box-shadow: inset 0 1px 0 var(--surface-highlight);
+  .ledger-skeleton-summary .ledger-skeleton-bar.is-summary {
+    height: 24px;
+  }
+  .ledger-skeleton-airline {
+    display: none;
   }
   .ledger-skeleton-distance {
     grid-area: distance;
@@ -114,16 +126,20 @@
   }
   .ledger-skeleton-date {
     grid-area: date;
-    justify-items: end;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .ledger-skeleton-date .is-text {
+    width: 112px;
   }
   .ledger-skeleton-route {
     grid-area: route;
   }
-  .ledger-skeleton-airline {
-    grid-area: airline;
-  }
   .ledger-skeleton-aircraft {
     grid-area: aircraft;
-    justify-items: end;
+  }
+  .ledger-skeleton-distance .is-text {
+    width: 64px;
   }
 }
