@@ -106,7 +106,7 @@ it('hides "Only …" once the picked value is applied', () => {
 it('below the gate under a filter, the card says so and offers to clear it', () => {
   admit({ airlines: ['ZZ'] })
   render(<Section span="full" />)
-  expect(screen.getByText('The hangars are shut')).toBeInTheDocument()
+  expect(screen.getByText('Too few flights with aircraft')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(clear).toHaveBeenCalled()
 })

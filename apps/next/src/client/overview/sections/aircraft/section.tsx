@@ -117,8 +117,8 @@ export function Section({ span }: { span: Span }) {
       unit = copy(locale, 'unknown', 'без производителя')
       caption = copy(
         locale,
-        'Flights with no maker on file. The hangars have no door for them.',
-        'Перелёты без производителя в данных. Для них в ангарах нет ворот.',
+        'Flights with an unknown maker',
+        'Перелёты с неизвестным производителем',
       )
     } else if (view === 'makers') {
       value = shareText(reading.share)
@@ -129,25 +129,9 @@ export function Section({ span }: { span: Span }) {
           .slice(0, 2)
           .map((row) => `${makerName(row.key, locale)} ${shareText(row.share)}`)
           .join(', ')
-        const dry =
-          reading.share >= 0.5
-            ? copy(
-                locale,
-                'Loyalty, or just the cheapest fare.',
-                'Верность или просто самый дешёвый билет.',
-              )
-            : copy(
-                locale,
-                'No favourites, or no say in the matter.',
-                'Любимчиков нет, или выбирали не вы.',
-              )
         caption = others
-          ? `${others}. ${dry}`
-          : copy(
-              locale,
-              `Every flight with a known maker is ${reading.name}. Loyalty, or a short list.`,
-              `Все перелёты с известным производителем: ${reading.name}. Верность или короткий список.`,
-            )
+          ? others
+          : copy(locale, '100% of known-maker flights', '100% перелётов с известным производителем')
       } else {
         caption = copy(
           locale,
@@ -165,8 +149,8 @@ export function Section({ span }: { span: Span }) {
       caption = r.isHeadline
         ? copy(
             locale,
-            `${who} · ${share} of flights with an aircraft. You know its safety card by heart.`,
-            `${who} · ${share} перелётов с самолётом. Памятку по безопасности вы знаете наизусть.`,
+            `${who} · ${share} of flights with an aircraft`,
+            `${who} · ${share} перелётов с самолётом`,
           )
         : copy(
             locale,
@@ -368,18 +352,25 @@ export function Section({ span }: { span: Span }) {
           ],
         }}
         empty={{
-          title: copy(locale, 'The hangars are shut', 'Ангары закрыты'),
-          line:
-            gate?.status === 'below' && gate.have > 0
+          title:
+            gate?.status === 'below'
               ? copy(
                   locale,
-                  `This filter leaves ${flights(locale, gate.have)} with a known aircraft. The hangars open at ${number(locale, gate.need)} and don't haggle.`,
-                  `Самолёт в выборке указан лишь у ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных перелётов. Ангары не торгуются.`,
+                  'Too few flights with aircraft',
+                  'Мало перелётов с известным самолётом',
+                )
+              : copy(locale, 'Unknown manufacturers', 'Производители неизвестны'),
+          line:
+            gate?.status === 'below'
+              ? copy(
+                  locale,
+                  `Flights with a known aircraft ${number(locale, gate.have)} of ${number(locale, gate.need)} required`,
+                  `Перелётов с известным самолётом ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных`,
                 )
               : copy(
                   locale,
-                  'No flight in this filter has a known maker. The hangars admit no strangers.',
-                  'Ни у одного перелёта в выборке производитель не известен. Посторонним вход в ангар воспрещён.',
+                  'No flights with a known maker',
+                  'Нет перелётов с известным производителем',
                 ),
           action: (
             <Button

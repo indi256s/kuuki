@@ -57,7 +57,7 @@ export function PayloadAircraftReview() {
       key={ownerKey}
       locale={locale}
       count={count}
-      actionLabel={locale === 'ru' ? 'Указать самолёт →' : 'Add aircraft →'}
+      actionLabel={locale === 'ru' ? 'Указать самолёт' : 'Add aircraft'}
       read={async (after, signal) => {
         current()
         return payloadMissingAircraft(rows(), after, signal)

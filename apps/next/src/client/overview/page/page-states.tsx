@@ -16,7 +16,6 @@ export function FirstRun() {
         <Link className="ui-button" data-variant="primary" href="/import">
           {t(S.import, locale)}
         </Link>
-        <p>{t(S.firstRunNote, locale)}</p>
         <Link className="ui-button" data-variant="secondary" href="/add">
           {t(S.add, locale)}
         </Link>
@@ -34,7 +33,7 @@ export function ZeroResult() {
           {t({ en: 'Remove last filter', ru: 'Убрать последний фильтр' }, locale)}
         </Button>
         <Button variant="ghost" onClick={actions.clear}>
-          {t({ en: 'Clear all', ru: 'Сбросить всё' }, locale)}
+          {t({ en: 'Clear filters', ru: 'Сбросить фильтры' }, locale)}
         </Button>
       </div>
     </div>

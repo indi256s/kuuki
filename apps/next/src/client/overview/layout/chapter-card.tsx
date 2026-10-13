@@ -250,7 +250,6 @@ function CardEmpty({ title, line, action }: NonNullable<ChapterCardProps['empty'
 }
 
 function DetailsBody({ details, table }: { details: ChapterCardDetails; table?: ChartTable }) {
-  const { locale } = useOverview()
   const { columns, coverage, more, extra } = details
   return (
     <div className="ov3-card-details-body">
@@ -266,12 +265,7 @@ function DetailsBody({ details, table }: { details: ChapterCardDetails; table?: 
       ) : null}
       {coverage ? <p className="ov3-card-coverage">{coverage}</p> : null}
       {extra}
-      {table ? (
-        <TableView
-          table={table}
-          summary={t({ en: `Table: ${table.caption}`, ru: `Таблица: ${table.caption}` }, locale)}
-        />
-      ) : null}
+      {table ? <TableView table={table} /> : null}
       {more?.map(({ summary, content }) => (
         <Disclosure key={summary} summary={<span className="ov3-card-more">{summary}</span>}>
           {content}

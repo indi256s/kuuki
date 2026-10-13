@@ -43,7 +43,7 @@ it('a pick moves the hero and the lit piece and does not filter', () => {
   expect(hero(view)).toHaveTextContent('4')
   expect(unit(view)).toHaveTextContent('of 7 continents')
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
-    'Europe most · Oceania since 2023. The tray still has 3 holes in it.',
+    'Europe most · Oceania since 2023',
   )
   expect(screen.queryByRole('button', { name: /^Only/ })).toBeNull()
   const host = view.container.querySelector('.iso-puzzle-host')

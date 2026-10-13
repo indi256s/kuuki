@@ -71,8 +71,8 @@ export function CountryTreemap() {
       <Disclosure summary={title} open={open} onOpenChange={setOpen}>
         <p>
           {locale === 'ru'
-            ? 'Каждый завершённый перелёт учитывается один раз для каждой страны вне транзита. Международный перелёт может учитываться в двух странах; сумма не равна числу перелётов.'
-            : 'Each completed flight counts once for each country outside transit. An international flight can count in two countries; the total is not the number of flights.'}
+            ? 'Один перелёт может учитываться в нескольких странах. Транзит исключён.'
+            : 'A flight can count in multiple countries. Transit excluded.'}
         </p>
         <nav aria-label={locale === 'ru' ? 'Регионы и страны' : 'Regions and countries'}>
           <Button
@@ -84,7 +84,7 @@ export function CountryTreemap() {
           </Button>
           {selected && (
             <>
-              <span> / {regionName(selected.region)}</span>
+              <span>{regionName(selected.region)}</span>
               {canFilterRegion(selected.region) && (
                 <Button dense onClick={() => actions.add('regions', selected.region)}>
                   {add}

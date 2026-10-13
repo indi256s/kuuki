@@ -41,9 +41,7 @@ export function Tile() {
         <p className="ov3-cookie-label ov3-cookie-full">
           {copy(locale, 'Most flown maker', 'Самый частый производитель')}
         </p>
-        <p className="ov3-cookie-detail">
-          {others || copy(locale, 'The only maker on file', 'Единственный производитель в данных')}
-        </p>
+        {others ? <p className="ov3-cookie-detail">{others}</p> : null}
         <CoverageNote
           have={scope.coverage.typed}
           total={scope.coverage.total}

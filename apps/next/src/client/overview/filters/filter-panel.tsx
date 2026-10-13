@@ -1,6 +1,7 @@
 'use client'
 
 import { Anchor } from '@radix-ui/react-popover'
+import { ChevronLeft, ChevronRight } from '@keyline-icons/react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { formatNumber } from '../../../lib/format'
 import { referenceLabels } from '../labels'
@@ -220,7 +221,8 @@ export function FilterPanel({
               setBrowse(true)
             }}
           >
-            {locale === 'ru' ? 'Все фильтры ›' : 'Browse all facets ›'}
+            {locale === 'ru' ? 'Все фильтры' : 'All filters'}
+            <ChevronRight size={16} aria-hidden="true" />
           </Button>
         </>
       ) : facet ? (
@@ -233,7 +235,8 @@ export function FilterPanel({
               setCustom(false)
             }}
           >
-            {locale === 'ru' ? '‹ Все фильтры' : '‹ All facets'}
+            <ChevronLeft size={16} aria-hidden="true" />
+            {locale === 'ru' ? 'Все фильтры' : 'All filters'}
           </Button>
           <h3>{facetName(facet, locale)}</h3>
           {index

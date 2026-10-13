@@ -208,9 +208,7 @@ function PageContent({ name }: { name: string }) {
       filter.period.from.length === 10 ? (
         <div role="alert">
           <p>
-            {locale === 'ru'
-              ? 'В этой старой сводке нет точных дат. Обновите данные или сбросьте диапазон.'
-              : 'This older summary has no exact-day detail. Refresh the data or clear the range.'}
+            {locale === 'ru' ? 'В этой сводке нет точных дат.' : 'This summary has no exact dates.'}
           </p>
           <Button onClick={() => void revalidate()}>{t(S.retry, locale)}</Button>
           <Button onClick={() => actions.setPeriod(null)}>

@@ -79,19 +79,15 @@ export function Section({ span }: { span: Span }) {
         hero={{ value: '', caption: null }}
         chart={{ caption: '', plot: null }}
         empty={{
-          title: copy(locale, 'No records to show', 'Рекордов не видно'),
+          title: copy(locale, 'Records', 'Рекорды'),
           line:
             gated?.status === 'below'
               ? copy(
                   locale,
-                  `Records start at ${flights(locale, gated.need)}, and this filter leaves ${flights(locale, gated.have)}. The cabinet stays locked.`,
-                  `Порог для рекордов — ${flights(locale, gated.need)}, а фильтр оставил ${flights(locale, gated.have)}. Витрина закрыта.`,
+                  `${number(locale, gated.have)} of ${flights(locale, gated.need)} required`,
+                  `Перелётов ${number(locale, gated.have)} из ${number(locale, gated.need)} нужных`,
                 )
-              : copy(
-                  locale,
-                  'No flight in this filter has a known distance. Hard to set a record without a ruler.',
-                  'Ни у одного перелёта в выборке нет известного расстояния. Без линейки рекорд не ставится.',
-                ),
+              : copy(locale, 'Distance unknown', 'Расстояние неизвестно'),
           action: (
             <Button
               dense
@@ -181,8 +177,8 @@ export function Section({ span }: { span: Span }) {
   const caption: ReactNode = r.isHeadline
     ? copy(
         locale,
-        `Longest flight · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} of the way round the equator, in one sitting.`,
-        `Самый длинный перелёт · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} длины экватора за один присест.`,
+        `Longest flight · ${arrow(reading)} · ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} of the equator`,
+        `Самый длинный перелёт · ${arrow(reading)} · ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} длины экватора`,
       )
     : copy(
         locale,
@@ -258,9 +254,8 @@ export function Section({ span }: { span: Span }) {
             </>
           ) : (
             <>
-              <p>{copy(locale, 'No departure times recorded', 'Время вылета не указано')}</p>
               <a className="ov3-record-link" href="/journal">
-                {copy(locale, 'Add times →', 'Указать время →')}
+                {copy(locale, 'Add times', 'Указать время')}
               </a>
             </>
           )}
@@ -446,7 +441,7 @@ export function Section({ span }: { span: Span }) {
         more: witnesses
           ? [
               {
-                summary: copy(locale, 'Witnesses and provenance', 'Свидетели и происхождение'),
+                summary: copy(locale, 'Flight details', 'Данные перелёта'),
                 content: witnesses,
               },
             ]

@@ -76,11 +76,6 @@ export function Section({ span }: { span: Span }) {
   const state =
     !scope || !all || !payload ? 'loading' : top.length === 0 && scoped ? 'empty' : 'ready'
   if (!scope || !all || !payload || state === 'empty') {
-    const noun = {
-      airlines: copy(locale, 'airlines', 'авиакомпаний'),
-      airports: copy(locale, 'airports', 'аэропортов'),
-      routes: copy(locale, 'routes', 'маршрутов'),
-    }[category]
     return (
       <ChapterCard
         state={state}
@@ -95,11 +90,7 @@ export function Section({ span }: { span: Span }) {
         chart={{ caption: '', plot: null }}
         empty={{
           title: copy(locale, 'Nothing left to rank', 'Ранжировать нечего'),
-          line: copy(
-            locale,
-            `This filter leaves no ${noun}. A podium needs someone standing on it.`,
-            `Фильтр не оставил ${noun}. Для пьедестала нужен хотя бы один участник.`,
-          ),
+          line: '',
           action: (
             <Button
               dense
@@ -210,39 +201,12 @@ export function Section({ span }: { span: Span }) {
     airports: copy(locale, 'airport', 'аэропорт'),
     routes: copy(locale, 'route', 'маршрут'),
   }[category]
-  const topLabel = {
-    airlines: copy(locale, 'Top airline', 'Главная авиакомпания'),
-    airports: copy(locale, 'Top airport', 'Главный аэропорт'),
-    routes: copy(locale, 'Top route', 'Главный маршрут'),
-  }[category]
   const ofWhat =
     category === 'airports'
       ? copy(locale, 'of airport visits', 'посещений аэропортов')
       : category === 'airlines'
         ? copy(locale, 'of flights with an airline', 'перелётов с указанной авиакомпанией')
         : copy(locale, 'of your flights', 'ваших перелётов')
-  const dry = tied
-    ? copy(locale, 'Neither blinked.', 'Никто не моргнул.')
-    : {
-        airlines: copy(
-          locale,
-          'Brand loyalty, or just the only gate nearby.',
-          'Верность бренду или просто единственный гейт рядом.',
-        ),
-        airports:
-          scope.home?.iata === reading?.key
-            ? copy(locale, 'Of course it is.', 'Ещё бы.')
-            : copy(
-                locale,
-                'Some people have a favourite café. You have this.',
-                'У кого-то любимое кафе. У вас вот это.',
-              ),
-        routes: copy(
-          locale,
-          'The same two airports again. Bold.',
-          'Опять те же два аэропорта. Смело.',
-        ),
-      }[category]
   const fact = tied
     ? copy(
         locale,
@@ -253,9 +217,9 @@ export function Section({ span }: { span: Span }) {
       ? copy(locale, 'your home airport', 'ваш домашний аэропорт')
       : `${share} ${ofWhat}`
   const caption = !reading
-    ? copy(locale, `No ${nounOne} on file.`, 'Здесь пока пусто.')
+    ? ''
     : r.isHeadline
-      ? `${readingName} · ${topLabel} · ${fact}. ${dry}`
+      ? `${readingName} · ${fact}`
       : `${ordinal(rank)} ${nounOne} · ${readingName} · ${share} ${ofWhat}`
   const code = !reading ? '' : category === 'routes' ? signCode(reading.key) : reading.key
   const shortName = !reading
@@ -381,9 +345,6 @@ export function Section({ span }: { span: Span }) {
         )}
       </LazyChart>
       {/* These toggle lines in this chart only, unlike the names above, which filter the page. */}
-      <p className="ov3-bump-hint">
-        {copy(locale, 'Show or hide lines', 'Показать или скрыть линии')}
-      </p>
       <div
         className="ov3-bump-dashes"
         role="group"
@@ -627,15 +588,6 @@ export function Section({ span }: { span: Span }) {
             <p>
               {copy(locale, 'Airline not recorded', 'Авиакомпания не указана')}:{' '}
               {flights(locale, scope.figures.flights - shareTotal)}
-            </p>
-          )}
-          {!comparison && (
-            <p className="ov3-share-note" role="status">
-              {copy(
-                locale,
-                'Select a continuous period with available detail to compare with the previous period.',
-                'Выберите непрерывный период с доступными данными для сравнения с прошлым периодом.',
-              )}
             </p>
           )}
         </div>

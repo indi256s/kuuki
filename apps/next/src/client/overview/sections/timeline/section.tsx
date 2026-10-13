@@ -112,14 +112,7 @@ export function TimelineContent({ span }: { span: Span }) {
   )
   const landmarkNote =
     valueKey === 'km' && total > 0 && !reference ? landmarkSentence(locale, total) : null
-  const lapKey =
-    crossings.length > 0
-      ? copy(
-          locale,
-          '1×, 2×… mark laps around the equator.',
-          'Метки 1×, 2×… — круги вокруг экватора.',
-        )
-      : null
+  const lapKey = crossings.length > 0 ? copy(locale, 'Equator laps', 'Круги вокруг экватора') : null
   const setRange = (next: { from: string; to: string } | null) => {
     if (isCurrent()) actions.setPeriod(next)
   }
@@ -271,13 +264,7 @@ export function TimelineContent({ span }: { span: Span }) {
         />
       ) : (
         <>
-          <p>
-            {copy(
-              locale,
-              'Daily detail is unavailable in this older monthly summary.',
-              'В старой месячной сводке нет данных по дням.',
-            )}
-          </p>
+          <p>{copy(locale, 'Monthly data only.', 'Данные только по месяцам.')}</p>
           <MonthRange
             from={period.from.slice(0, 7)}
             to={period.to.slice(0, 7)}

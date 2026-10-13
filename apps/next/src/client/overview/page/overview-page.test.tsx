@@ -64,7 +64,7 @@ it('saved exact-day preferences show unavailable monthly detail and recover afte
       saver={save}
     />,
   )
-  expect(screen.getByRole('alert')).toHaveTextContent('This older summary has no exact-day detail.')
+  expect(screen.getByRole('alert')).toHaveTextContent('This summary has no exact dates.')
   expect(screen.queryByRole('region', { name: 'Totals for the period' })).toBeNull()
   expect(screen.queryByText('Loading overview')).toBeNull()
   expect(screen.queryByRole('link', { name: 'Import flights' })).toBeNull()

@@ -78,7 +78,7 @@ it('re-pins the map on a pick: the old pins sink, the route swaps, the new pins 
 it('below the gate under a filter, the card says so and offers to clear it', () => {
   const actions = admit({ airlines: ['ZZ'] })
   render(<Section span="full" />)
-  expect(screen.getByRole('heading', { name: 'No records to show' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Records' })).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(actions.clear).toHaveBeenCalled()
 })

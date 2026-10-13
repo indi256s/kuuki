@@ -25,7 +25,6 @@ type Row = { key: string; hour: number; flights: number }
 const BLANK = '    '
 const pad = (hour: number) => String(hour).padStart(2, '0')
 const hourKey = (hour: number) => `h${pad(hour)}`
-const isNight = (hour: number) => hour >= 22 || hour < 6
 const TICKS = [0, 6, 12, 18, 23].map((index) => ({ index, text: pad(index) }))
 
 /**
@@ -128,19 +127,11 @@ export function Section({ span }: { span: Span }) {
     ? copy(locale, 'departures', 'вылетов')
     : copy(locale, 'arrivals', 'прилётов')
   const tail = (count: number) =>
-    hour !== null && isNight(hour)
-      ? departing
-        ? copy(locale, 'a red-eye hour, sleep optional', 'ночной час, сон по желанию')
-        : copy(
-            locale,
-            'a night arrival, bed still a rumour',
-            'ночной прилёт, кровать пока в планах',
-          )
-      : copy(
-          locale,
-          `${percent(count / Math.max(1, timed))} of timed ${noun}`,
-          `${percent(count / Math.max(1, timed))} ${noun} со временем`,
-        )
+    copy(
+      locale,
+      `${percent(count / Math.max(1, timed))} of timed ${noun}`,
+      `${percent(count / Math.max(1, timed))} ${noun} со временем`,
+    )
   const clockTime = hour !== null ? hhmm(hour * 60) : ''
   let caption = ''
   if (record && reading) {
@@ -304,8 +295,8 @@ export function Section({ span }: { span: Span }) {
         line: missing
           ? copy(
               locale,
-              `This filter leaves ${flights(locale, missing.have)} with a departure time, and the clock needs ${number(locale, missing.need)}. Not enough to wind it.`,
-              `Перелётов со временем вылета в выборке: ${number(locale, missing.have)}, а часам нужно ${number(locale, missing.need)}. Заводить их нечем.`,
+              `Flights with departure times ${number(locale, missing.have)} of ${number(locale, missing.need)} required`,
+              `Перелётов со временем вылета ${number(locale, missing.have)} из ${number(locale, missing.need)} нужных`,
             )
           : '',
         action: (

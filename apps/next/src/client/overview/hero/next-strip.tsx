@@ -33,8 +33,8 @@ export function NextStrip() {
     return (
       <div className="ov3-next-strip">
         <Link className="ov3-next-review" href="/journal?queue=awaiting">
-          {formatCount(locale, awaiting, forms.flights)}
-          {locale === 'en' ? ' to review' : ''} · {locale === 'ru' ? 'Проверить' : 'Review'} →
+          {locale === 'ru' ? 'Проверить' : 'Review'} {formatCount(locale, awaiting, forms.flights)}
+          <ChevronRight size={16} aria-hidden="true" />
         </Link>
       </div>
     )

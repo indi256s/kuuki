@@ -65,7 +65,7 @@ it('emphasizes a legend series on hover and focus without dimming the others, cl
   expect(undimmed()).toBe(true)
 })
 
-it('caps the airline share legend at eight rows with a plural-aware toggle, and shows the comparison prompt as a status line', () => {
+it('caps the airline share legend at eight rows with a plural-aware toggle', () => {
   const { container } = render(
     <OverviewProvider
       payload={board as OverviewPayload}
@@ -89,9 +89,4 @@ it('caps the airline share legend at eight rows with a plural-aware toggle, and 
     expect(rows()).toBeGreaterThan(8)
     expect(toggle.textContent).toBe('Показать меньше')
   } else expect(rows()).toBeLessThanOrEqual(8)
-  expect(
-    container.querySelector(
-      '.ov3-rankings-bottom[data-single="true"] .ov3-share-note[role="status"]',
-    ),
-  ).not.toBeNull()
 })

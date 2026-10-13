@@ -71,7 +71,7 @@ export function RouteCard({
         {locale === 'ru' ? 'км' : 'km'}
       </p>
       <Button onClick={onScope}>
-        {locale === 'ru' ? 'Выбрать этот маршрут для страницы' : 'Scope page to this route'}
+        {locale === 'ru' ? 'Только этот маршрут' : 'Only this route'}
       </Button>
     </div>
   )

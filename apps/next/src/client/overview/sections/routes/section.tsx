@@ -128,18 +128,6 @@ const PROFILE = {
   explorer: { en: 'Explorer', ru: 'Исследователь' },
   mixed: { en: 'Mixed', ru: 'Вперемешку' },
 } as const
-const DRY = {
-  commuter: {
-    en: 'Commuter: the boarding pass could be laminated.',
-    ru: 'Челнок: посадочный можно ламинировать.',
-  },
-  explorer: {
-    en: 'Explorer: the map is not a loyalty scheme.',
-    ru: 'Исследователь: карта — не программа лояльности.',
-  },
-  mixed: { en: 'Mixed: neither loyal nor lost.', ru: 'Вперемешку: ни верности, ни потерянности.' },
-} as const
-
 function Code({ children }: { children: string }) {
   return <span className="ov3-routes-code">{children}</span>
 }
@@ -253,8 +241,6 @@ export function Section({ span }: { span: Span }) {
                 <Code>{routeArrow(data.top.key)}</Code> ×{number(locale, data.top.count)}
               </>
             ) : null}
-            {'. '}
-            {copy(locale, DRY[data.profile].en, DRY[data.profile].ru)}
           </>
         ),
       }
@@ -268,8 +254,8 @@ export function Section({ span }: { span: Span }) {
             <Code>{arrow}</Code>
             {copy(
               locale,
-              ` · ${percent(row.count / data.flights)} of flights, number ${place} on the board.`,
-              ` · ${percent(row.count / data.flights)} перелётов, ${place}-е место в списке.`,
+              ` · ${percent(row.count / data.flights)} of flights · #${place}`,
+              ` · ${percent(row.count / data.flights)} перелётов · №${place}`,
             )}
           </>
         ),
@@ -389,24 +375,16 @@ export function Section({ span }: { span: Span }) {
       empty={{
         title:
           gate?.status === 'below'
-            ? copy(
-                locale,
-                `Routes need ${number(locale, gate.need)} flights`,
-                `Для маршрутов нужно ${flights(locale, gate.need)}`,
-              )
+            ? copy(locale, 'Too few flights for routes', 'Мало перелётов для маршрутов')
             : copy(locale, 'No routes yet', 'Маршрутов пока нет'),
         line:
           gate?.status === 'below'
             ? copy(
                 locale,
-                `This filter leaves ${flights(locale, gate.have)}. Too few to call it a network.`,
-                `Фильтр оставляет ${flights(locale, gate.have)}. Для сети маловато.`,
+                `Flights ${number(locale, gate.have)} of ${number(locale, gate.need)} required`,
+                `Перелётов ${number(locale, gate.have)} из ${number(locale, gate.need)} нужных`,
               )
-            : copy(
-                locale,
-                'This filter leaves no route to draw. The network is a blank page.',
-                'Фильтр не оставил ни одного маршрута. Сеть пока чистый лист.',
-              ),
+            : '',
         action: (
           <Button
             variant="secondary"

@@ -228,10 +228,7 @@ export const S = {
 
   map: p('Places by air', 'Места по воздуху'),
   globeLoading: p('Loading globe…', 'Загружаем глобус…'),
-  globeUnavailable: p(
-    'Globe unavailable. Your routes and countries are in the table.',
-    'Глобус недоступен. Маршруты и страны доступны в таблице.',
-  ),
+  globeUnavailable: p('Globe unavailable.', 'Глобус недоступен.'),
   mapLink: p('Open Passport map', 'Открыть карту паспорта'),
   legend: p('Visits per country', 'Посещений на страну'),
   countryList: p('Countries on the map', 'Страны на карте'),
@@ -267,17 +264,17 @@ export const S = {
     'Несохранённые предложения и результаты для повторной попытки остаются в этой проверке.',
   ),
   reviewWorking: p(
-    'Wait for the aircraft search or save to finish before leaving this review.',
-    'Дождитесь окончания поиска или сохранения самолётов, прежде чем выйти из проверки.',
+    'Search or save in progress. Please wait.',
+    'Идёт поиск или сохранение. Подождите.',
   ),
   reviewDiscard: p(
-    'Leaving this review discards unsaved suggestions and retry outcomes.',
-    'При выходе из проверки несохранённые предложения и результаты для повторной попытки будут потеряны.',
+    'Unsaved suggestions will be lost.',
+    'Несохранённые предложения будут потеряны.',
   ),
   reviewDiscardContinue: p('Discard and continue', 'Отбросить и продолжить'),
   reviewKeep: p('Keep reviewing', 'Продолжить проверку'),
   reviewAircraft: p('Review aircraft', 'Проверить самолёты'),
-  reviewTitle: p('Aircraft for flights without one', 'Самолёты для перелётов без указания'),
+  reviewTitle: p('Missing aircraft', 'Указать самолёты'),
   reviewDescription: p(
     'Suggestions are saved only after you confirm them.',
     'Предложения сохраняются только после вашего подтверждения.',
@@ -315,7 +312,7 @@ export const S = {
   regionOf: p('{pressed} of {total}', '{pressed} из {total}'),
   regionWaiting: p('+{count} waiting', '+{count} ждёт'),
 
-  emptyTitle: p('Your overview begins with a flight.', 'Ваш обзор начнётся с перелёта.'),
+  emptyTitle: p('First flight', 'Первый перелёт'),
   emptyBody: p(
     'Import a booking or boarding pass, or add a flight by hand.',
     'Импортируйте бронь или посадочный талон либо добавьте перелёт вручную.',
