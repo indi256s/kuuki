@@ -2,12 +2,12 @@
 
 import { Check, Circle, LoaderCircle } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
-import { formatDateOnly, formatNumber, type Locale } from '../../lib/format'
+import { formatDateOnly, type Locale } from '../../lib/format'
 import { FeedbackText } from '../ui/feedback-text'
 import { Button } from '../ui/button'
 import { Announcer } from './announcer'
 import { useImportRunsStore } from './import-runs'
-import { S, STAGE_KEY, count, tx } from './copy'
+import { S, STAGE_KEY, count, progressLabel, tx } from './copy'
 import type { Batch, BatchStage, Draft } from './import-types'
 
 const ORDER: BatchStage[] = ['accepted', 'recognizing', 'validating', 'review_ready']
@@ -16,6 +16,7 @@ export const SHOWN = ORDER.slice(0, 3)
 export type StageState = 'done' | 'active' | 'pending'
 /** Where the shown stage at `position` stands while the batch is at `stage`. */
 export function stageState(position: number, stage: BatchStage | null): StageState {
+  if (stage === 'accepted') return position === 0 ? 'done' : 'pending'
   const index = ORDER.indexOf(stage ?? 'accepted')
   return position < index ? 'done' : position === index ? 'active' : 'pending'
 }
@@ -28,7 +29,7 @@ function useAnnouncement(stage: BatchStage | null, found: number, locale: Locale
     const timers: number[] = []
     const speak = (heard: { stage: string | null; found?: number } | null) => {
       if (!heard) return
-      const stageText = heard.stage ? tx(locale, STAGE_KEY[heard.stage as BatchStage]) : ''
+      const stageText = progressLabel(locale, heard.stage as BatchStage | null)
       timers.push(
         window.setTimeout(
           () =>
@@ -67,35 +68,17 @@ export function ProgressStep({
   cancelling: boolean
   error: string | null
 }) {
-  const stage = batch?.stage ?? 'accepted'
-  const index = ORDER.indexOf(stage)
-  // Honest progress: only stages that have finished count. The service reports no total for the rows still to be found.
-  const finished = Math.min(index, SHOWN.length)
-  const announcement = useAnnouncement(batch ? stage : null, drafts.length, locale)
-  const [initial] = useState(() => new Set(drafts.map((draft) => draft.id)))
+  const stage = batch ? (batch.stage ?? 'accepted') : null
+  const announcement = useAnnouncement(stage, drafts.length, locale)
   // The shell's runs exist only where the job worker is bound: there the dock carries the batch once this page is left.
   const bound = useImportRunsStore() !== null
   return (
     <section className="import-progress" aria-labelledby="import-progress-title">
-      <h2 id="import-progress-title">{S.recognizing[locale]}</h2>
+      <h2 id="import-progress-title">{progressLabel(locale, stage)}</h2>
       <p className="import-source-chip">
         <span>{S.sourceChip[locale]}:</span>{' '}
         <strong>{sourceName ?? batch?.sourceLabel ?? S.textSource[locale]}</strong>
       </p>
-      <div
-        className="import-progressbar"
-        role="progressbar"
-        aria-label={S.recognizing[locale]}
-        aria-valuemin={0}
-        aria-valuemax={SHOWN.length}
-        aria-valuenow={finished}
-        aria-valuetext={`${formatNumber(locale, finished)} / ${formatNumber(locale, SHOWN.length)} · ${tx(locale, STAGE_KEY[stage])}`}
-      >
-        <span
-          className="import-progressbar-fill"
-          style={{ ['--done' as string]: finished / SHOWN.length }}
-        />
-      </div>
       <ol className="import-stages" aria-label={S.stagesLabel[locale]}>
         {SHOWN.map((name, position) => {
           const state = stageState(position, stage)
@@ -109,15 +92,21 @@ export function ProgressStep({
               <span className="import-stage-marker" aria-hidden="true">
                 <Icon size={14} strokeWidth={2} />
               </span>
-              <span>{tx(locale, STAGE_KEY[name])}</span>
-              <span className="import-stage-state">
-                <FeedbackText fast locale={locale}>
-                  {state === 'done'
-                    ? S.stateDone[locale]
-                    : state === 'active'
-                      ? S.stateActive[locale]
-                      : S.statePending[locale]}
-                </FeedbackText>
+              <span className="import-stage-copy">
+                <span>
+                  {name === 'accepted' && !batch
+                    ? S.stagePreparing[locale]
+                    : tx(locale, STAGE_KEY[name])}
+                </span>
+                <span className="import-stage-state">
+                  <FeedbackText fast locale={locale}>
+                    {state === 'done'
+                      ? S.stateDone[locale]
+                      : state === 'active'
+                        ? S.stateActive[locale]
+                        : S.statePending[locale]}
+                  </FeedbackText>
+                </span>
               </span>
             </li>
           )
@@ -130,25 +119,26 @@ export function ProgressStep({
         {S.foundRows[locale]}:{' '}
         <span className="import-count">
           <FeedbackText numbers locale={locale}>
-            {count(locale, 'found', drafts.length)}
+            {count(locale, 'flightsN', drafts.length)}
           </FeedbackText>
         </span>
       </h3>
       {drafts.length > 0 ? (
         <ul className="import-found">
-          {drafts.map((draft, position) => (
-            <li
-              key={draft.id}
-              data-new={initial.has(draft.id) ? undefined : 'true'}
-              style={{ ['--stagger' as string]: `${(position % 8) * 40}ms` }}
-            >
+          {drafts.map((draft) => (
+            <li key={draft.id}>
               <span className="import-code">
                 {draft.fields.origin || '—'} → {draft.fields.destination || '—'}
               </span>
-              <span>
-                {draft.fields.date
-                  ? formatDateOnly(locale, draft.fields.date, 'medium')
-                  : S.noDate[locale]}
+              <span className="import-found-detail">
+                {draft.fields.flight_number ? (
+                  <span className="import-code">{draft.fields.flight_number}</span>
+                ) : null}
+                <span>
+                  {draft.fields.date
+                    ? formatDateOnly(locale, draft.fields.date, 'medium')
+                    : S.noDate[locale]}
+                </span>
               </span>
             </li>
           ))}

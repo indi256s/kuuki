@@ -6,6 +6,8 @@ import {
   MultiAnimation,
   Ssgoi,
   SpringIntegrator,
+  WebAnimation,
+  defineTransition,
   type Animation as SsgoiAnimation,
   type PrepareArgs,
   type SsgoiConfig,
@@ -14,8 +16,15 @@ import {
 } from '@ssgoi/react'
 import { SsgoiRouteBoundary } from '@ssgoi/react/nextjs'
 import { drill, hero } from '@ssgoi/react/view-transitions'
-import { useTransitionKey, type StageKind } from './route-transition-pairs'
-import { ROUTE_SPRINGS, SPRING_REST, keepVisibleStamps, type Spring } from './route-motion'
+import { TAB_ROUTES, useTransitionKey, type StageKind } from './route-transition-pairs'
+import {
+  ROUTE_SPRINGS,
+  SPRING_REST,
+  TAB_FADE,
+  clock,
+  keepVisibleStamps,
+  type Spring,
+} from './route-motion'
 
 const integrator = (spring: Spring) => new SpringIntegrator({ ...spring, ...SPRING_REST })
 const override = (retune: (args: { animation: SsgoiAnimation }) => void) => ({
@@ -28,6 +37,7 @@ const tuned = (spring: Spring) =>
   })
 
 const REDUCED = Symbol('reduced-motion')
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let markerToken = 0
 
 // Where each page sat in its stage, read as React detaches it. ssgoi puts the outgoing copy at the stage top,
@@ -44,17 +54,57 @@ function StagePage(props: ComponentProps<'div'>) {
 }
 
 /**
- * Wraps a preset for Kuuki: reduced motion swaps instantly; otherwise the outgoing page turns inert and
- * `html[data-route-transition]` names the running transition until it settles.
+ * Fade-in only: the outgoing page hides at once, so the incoming one never waits on it. Opacity alone, so reduced
+ * motion keeps it, shorter and linear.
+ */
+function tabFade(): Transition {
+  const direction = {
+    prepare({ from, to, onCleanup }: PrepareArgs) {
+      let hidden: HTMLElement | undefined
+      void from.then((page) => {
+        hidden = page
+        page.style.visibility = 'hidden'
+      })
+      void to.then((page) => {
+        page.style.opacity = '0'
+      })
+      onCleanup?.(() => {
+        if (hidden) hidden.style.visibility = ''
+      })
+      return {}
+    },
+    animation({ to }: { to: HTMLElement }) {
+      const { ms, ease } = reducedMotion() ? TAB_FADE.reduced : TAB_FADE.motion
+      return new MultiAnimation({
+        in: new WebAnimation({
+          element: to,
+          integrator: clock(ms),
+          style: (t) => ({ opacity: ease(t) }),
+          onDispose: () => {
+            to.style.opacity = ''
+          },
+        }),
+      })
+    },
+  }
+  return defineTransition({ forward: direction, backward: direction })
+}
+
+/**
+ * Wraps a preset for Kuuki: reduced motion swaps instantly unless the preset keeps its own reduced form; otherwise the
+ * outgoing page turns inert and `html[data-route-transition]` names the running transition until it settles.
  */
 function routeTransition(
   name: string,
   preset: Transition,
-  beforePrepare?: (args: PrepareArgs) => void,
+  {
+    beforePrepare,
+    keepWhenReduced = false,
+  }: { beforePrepare?: (args: PrepareArgs) => void; keepWhenReduced?: boolean } = {},
 ): TransitionConfig<object> {
   return {
     prepare(args) {
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (!keepWhenReduced && reducedMotion()) {
         void args.from.then((page) => {
           page.inert = true
           page.style.visibility = 'hidden'
@@ -89,12 +139,23 @@ function routeTransition(
 }
 
 const config: SsgoiConfig = {
+  // The outgoing page is inert, so there is nothing to protect; a scroll right after a tap must land.
+  scrollLock: false,
   transitions: [
     {
       from: '/import',
       to: '/passport',
       bidirectional: false,
-      transition: routeTransition('hero', hero({}, tuned(ROUTE_SPRINGS.hero)), keepVisibleStamps),
+      // Import → Passport is also a tab switch; the stamps' hero wins.
+      priority: 1,
+      transition: routeTransition('hero', hero({}, tuned(ROUTE_SPRINGS.hero)), {
+        beforePrepare: keepVisibleStamps,
+      }),
+    },
+    {
+      from: TAB_ROUTES,
+      to: TAB_ROUTES,
+      transition: routeTransition('fade', tabFade(), { keepWhenReduced: true }),
     },
     {
       from: '/leaderboard',

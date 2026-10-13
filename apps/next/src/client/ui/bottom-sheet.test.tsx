@@ -251,3 +251,18 @@ it('settles a body drag after the caller rerenders with a new open-change callba
     'true',
   )
 })
+
+it('keeps a titleAction beside the heading, outside its accessible name', () => {
+  render(
+    <Sheet
+      open
+      onOpenChange={() => {}}
+      title="Rankings"
+      titleAction={<button>Rankings options</button>}
+    >
+      <p>Details</p>
+    </Sheet>,
+  )
+  const heading = screen.getByRole('heading', { name: 'Rankings' })
+  expect(heading).not.toContainElement(screen.getByRole('button', { name: 'Rankings options' }))
+})

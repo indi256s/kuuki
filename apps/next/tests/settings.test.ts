@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { signIn, fixtureHeaders } from './helpers'
+import { signIn, fixtureHeaders, routeSettled } from './helpers'
 
 test.use({ viewport: { width: 1280, height: 800 } })
 
@@ -9,6 +9,7 @@ async function settingsLink(page: Page) {
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible()
 }
 async function edit(page: Page, value = 'Unsaved browser edit') {
+  await routeSettled(page)
   await page.getByLabel('Display name').fill(value)
   await expect(page.getByText('Unsaved changes', { exact: true })).toBeVisible()
 }

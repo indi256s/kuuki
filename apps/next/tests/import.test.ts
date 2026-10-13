@@ -266,15 +266,15 @@ test('leaving and reloading during recognition resumes the stored batch, without
   server.stage = 'recognizing'
   server.drafts = [row('d1')]
   await submitText(page)
-  await expect(page.getByRole('heading', { name: 'Finding your flights' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Reading the document' })).toBeVisible()
   await expect(page).toHaveURL(new RegExp(`batch=${BATCH}`))
-  await expect(page.getByText('1 flight found', { exact: true })).toBeVisible()
+  await expect(page.getByText('Found so far: 1 flight', { exact: true })).toBeVisible()
   expect(server.jobs).toHaveLength(1)
   const stored = await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]))
   expect(stored).not.toContain(PASTED)
 
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Finding your flights' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Reading the document' })).toBeVisible()
   expect(server.jobs).toHaveLength(1) // resumed from the URL, nothing submitted again
 
   server.ready([

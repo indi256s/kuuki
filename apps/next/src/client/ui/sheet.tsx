@@ -31,7 +31,10 @@ export function shouldDismiss({
   return velocity > DISMISS_VELOCITY || (height > 0 && distance >= height * DISMISS_RATIO)
 }
 
-export type SheetProps = Pick<BottomSheetProps, 'detents' | 'initialDetent' | 'onDetentChange'> & {
+export type SheetProps = Pick<
+  BottomSheetProps,
+  'detents' | 'initialDetent' | 'onDetentChange' | 'titleAction'
+> & {
   initialFocusRef?: RefObject<HTMLElement | null>
   onCloseAutoFocus?: (event: Event) => void
   className?: string
@@ -71,6 +74,7 @@ export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetPro
 function SideSheetContent({
   onOpenChange,
   title,
+  titleAction,
   description,
   trigger,
   children,
@@ -169,6 +173,7 @@ function SideSheetContent({
             </RadixDialog.Description>
           ) : null}
         </div>
+        {titleAction}
         <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}>
           <X size={20} strokeWidth={2} aria-hidden="true" />
         </RadixDialog.Close>

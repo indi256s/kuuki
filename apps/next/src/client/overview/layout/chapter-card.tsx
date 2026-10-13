@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Filter } from '@keyline-icons/react'
 import { Button } from '../../ui/button'
 import { Disclosure } from '../../ui/disclosure'
@@ -63,6 +63,22 @@ export function ChapterCard({
   const loading = state === 'loading',
     blank = state === 'empty'
   const label = t(S.loading, locale)
+  // Applying "Only …" removes its own button, which would drop focus to <body>. Hand it to the picked mark (the applied row) instead.
+  const card = useRef<HTMLDivElement>(null)
+  const pressedAt = useRef(0)
+  const hasOnly = !!hero.only
+  useEffect(() => {
+    if (hasOnly || Date.now() - pressedAt.current > 2000) return
+    pressedAt.current = 0
+    const frame = requestAnimationFrame(() => {
+      const active = document.activeElement
+      if (active && active !== document.body) return
+      card.current
+        ?.querySelector<HTMLElement>('[data-picked], .ov3-card-figure-button')
+        ?.focus({ preventScroll: true })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hasOnly])
   // The value rolls only on a pick. A change that is not a pick (a filter, a reset) starts a new SlotText, which renders its first value still.
   const [roll, setRoll] = useState({ value: hero.value, epoch: 0 })
   let epoch = roll.epoch
@@ -71,7 +87,7 @@ export function ChapterCard({
     setRoll({ value: hero.value, epoch })
   }
   return (
-    <div className="ov3-card" data-span={span} data-state={state}>
+    <div ref={card} className="ov3-card" data-span={span} data-state={state}>
       <div className="ov3-card-top">
         <div className="ov3-card-figure">
           {loading ? (
@@ -121,7 +137,10 @@ export function ChapterCard({
                   dense
                   variant="secondary"
                   icon={<Filter size={14} aria-hidden="true" />}
-                  onClick={hero.only.onPress}
+                  onClick={() => {
+                    pressedAt.current = Date.now()
+                    hero.only?.onPress()
+                  }}
                 >
                   {hero.only.label}
                 </Button>

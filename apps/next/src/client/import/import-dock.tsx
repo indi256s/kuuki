@@ -2,7 +2,7 @@
 
 // The floating import dock: the batches this tab follows while the member is elsewhere, in the shell's toast corner.
 // It only follows reading. Ready runs call the member back to /import, where review and saving stay (decision 1).
-// It announces transitions (reading started, ready, stopped, failed), never every found count.
+// It announces stage and state transitions, never every found count.
 import { Check, Circle, CircleAlert, X } from '@keyline-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { formatNumber, type Locale } from '../../lib/format'
@@ -15,7 +15,7 @@ import { TextShimmer } from '../ui/text-shimmer'
 import { ToastSlot } from '../ui/toast'
 import { useMobile } from '../ui/use-mobile'
 import { isReading, type BatchRun } from './batch-run'
-import { DOCK, FAILURE, S, STAGE_KEY, count, tx } from './copy'
+import { DOCK, FAILURE, S, STAGE_KEY, count, progressLabel, tx } from './copy'
 import { cancelBatch } from './import-api'
 import { useImportRuns, useImportRunsStore, type RunEntry } from './import-runs'
 import type { BatchStage } from './import-types'
@@ -69,7 +69,7 @@ export function itemOf(
     label,
     found: state.drafts.length,
     need: 0,
-    stage: state.batch?.stage ?? null,
+    stage: state.batch ? (state.batch.stage ?? 'accepted') : null,
     routes,
   }
   const review = id ? `/import?batch=${encodeURIComponent(id)}` : null
@@ -77,7 +77,7 @@ export function itemOf(
     return {
       ...base,
       kind: 'reading',
-      line: DOCK.reading[locale].replace('{label}', label),
+      line: progressLabel(locale, base.stage),
       href: null,
       actionLabel: null,
     }
@@ -152,7 +152,11 @@ function Stages({ stage, locale }: { stage: BatchStage | null; locale: Locale })
                 <Circle size={14} strokeWidth={2} />
               )}
             </span>
-            <span>{tx(locale, STAGE_KEY[name])}</span>
+            <span>
+              {name === 'accepted' && stage === null
+                ? S.stagePreparing[locale]
+                : tx(locale, STAGE_KEY[name])}
+            </span>
           </li>
         )
       })}
@@ -230,7 +234,7 @@ function Detail({
           <DockMark kind={item.kind} need={item.need} locale={locale} />
           <div className="import-dock-run-copy">
             <p className="import-dock-run-line">{item.line}</p>
-            {item.kind !== 'reading' ? <p className="import-dock-run-label">{item.label}</p> : null}
+            <p className="import-dock-run-label">{item.label}</p>
           </div>
           <Actions item={item} locale={locale} onDismiss={onDismiss} onAction={onAction} />
         </div>
@@ -381,7 +385,14 @@ export function ImportDockView({
           </span>
         }
         description={
-          reading ? <SlotText value={count(locale, 'foundShort', lead.found)} /> : lead.label
+          reading ? (
+            <span className="import-dock-description">
+              <span className="import-dock-source">{lead.label}</span>
+              <SlotText value={count(locale, 'foundShort', lead.found)} />
+            </span>
+          ) : (
+            lead.label
+          )
         }
         actions={
           several ? null : (
@@ -451,20 +462,21 @@ export function ImportDock({ locale }: { locale: Locale }) {
   }, [docked, locale])
   const runOf = (key: string) => docked.find((entry) => keyOf(entry.run) === key)?.run ?? null
 
-  // Transitions only: a run starting to read, or reaching ready, stopped or failed. Found counts are never spoken.
+  // Stage and state transitions only. Found counts are never spoken.
   const [heard, setHeard] = useState<{
     items: DockItem[]
-    kinds: Map<string, DockKind>
+    states: Map<string, string>
     said: string
-  }>(() => ({ items: [], kinds: new Map(), said: '' }))
+  }>(() => ({ items: [], states: new Map(), said: '' }))
   let announcement = heard.said
   if (heard.items !== items) {
-    const kinds = new Map<string, DockKind>()
+    const states = new Map<string, string>()
     for (const item of items) {
-      kinds.set(item.key, item.kind)
-      if (heard.kinds.get(item.key) !== item.kind) announcement = item.line
+      const state = item.kind === 'reading' ? `${item.kind}:${item.stage}` : item.kind
+      states.set(item.key, state)
+      if (heard.states.get(item.key) !== state) announcement = `${item.line}. ${item.label}`
     }
-    setHeard({ items, kinds, said: announcement })
+    setHeard({ items, states, said: announcement })
   }
 
   const [cancel, setCancel] = useState<Record<string, CancelState>>({})

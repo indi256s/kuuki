@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react'
 
 /**
- * The only route changes allowed to animate (DESIGN.md "Motion"). A stage remounts its transition boundary
+ * The only route changes allowed to animate (DESIGN.md "Route transitions"). A stage remounts its transition boundary
  * for these pairs alone; every other navigation keeps the boundary and swaps the page instantly.
  */
 export type StageKind = 'page'
 
 const isProfile = (path: string) => /^\/fly\/[^/]+$/.test(path)
+
+/** The member pages reached from the header, the tab rail and the account menu. Sheets (`/add`, a Journal flight) are not among them. */
+export const TAB_ROUTES = ['/overview', '/journal', '/passport', '/import', '/settings']
+
+/** One top-level member page to another, either way, Back and Forward included. */
+export const isTabSwitch = (from: string, to: string) =>
+  from !== to && TAB_ROUTES.includes(from) && TAB_ROUTES.includes(to)
 
 /** Import done → Passport, forward only. */
 export const isStampHero = (from: string, to: string) => from === '/import' && to === '/passport'
@@ -28,7 +35,10 @@ export function isApprovedPair(
   to: string,
   back: boolean | null = false,
 ) {
-  return stage === 'page' && (isStampHero(from, to) || isProfileDrill(from, to, back))
+  return (
+    stage === 'page' &&
+    (isTabSwitch(from, to) || isStampHero(from, to) || isProfileDrill(from, to, back))
+  )
 }
 
 // The last Back or Forward, until the stage renders a pathname change: where it landed and whether it went back. Only
@@ -55,6 +65,20 @@ else if (typeof window !== 'undefined')
     traversal = { pathname: location.pathname, back: null }
   })
 
+// Where the last activated link was heading, when the keyboard activated it (a click with `detail` 0, as in
+// `ui/button.tsx`). A tab switch to that pathname swaps instantly; any later click replaces it.
+let keyboardTarget: string | null = null
+if (typeof document !== 'undefined')
+  document.addEventListener(
+    'click',
+    (event) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href]') : null
+      keyboardTarget =
+        link instanceof HTMLAnchorElement && event.detail === 0 ? new URL(link.href).pathname : null
+    },
+    true,
+  )
+
 /**
  * The boundary keeps its key, and so its DOM node, unless the pathname change is an approved pair. ssgoi
  * then sees no outgoing page, so every other navigation stays an instant swap with no scroll reset.
@@ -63,16 +87,20 @@ export function useTransitionKey(stage: StageKind, pathname: string) {
   const [state, setState] = useState({ pathname, key: 0 })
   useEffect(() => {
     traversal = null
+    keyboardTarget = null
   }, [pathname])
   if (state.pathname === pathname) return state.key
-  const key = isApprovedPair(
-    stage,
-    state.pathname,
-    pathname,
-    traversal?.pathname === pathname ? traversal.back : false,
-  )
-    ? state.key + 1
-    : state.key
+  const keyboardTab = keyboardTarget === pathname && isTabSwitch(state.pathname, pathname)
+  const key =
+    !keyboardTab &&
+    isApprovedPair(
+      stage,
+      state.pathname,
+      pathname,
+      traversal?.pathname === pathname ? traversal.back : false,
+    )
+      ? state.key + 1
+      : state.key
   setState({ pathname, key })
   return key
 }

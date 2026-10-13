@@ -50,6 +50,19 @@
   font-size: 13px;
   font-weight: 400;
 }
+.import-dock-description {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+.import-dock-source {
+  flex: 1 1 120px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* The leading mark: one layer per state, crossfaded. */
 .import-dock-mark {

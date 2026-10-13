@@ -14,8 +14,12 @@
   justify-content: space-between;
   gap: 8px;
 }
-.ov3-tile-heading h2 {
+.ov3-tile-title {
   min-width: 0;
+  font-size: 22px;
+  line-height: calc(28 / 22);
+  font-weight: 600;
+  text-wrap: balance;
 }
 /* Only there to name the preview as the tile's description; the preview keeps laying out as the tile's own children. */
 .ov3-tile-preview {
@@ -28,7 +32,8 @@
 .ov3-tile[data-dragging='true'] {
   cursor: grabbing;
 }
-/* Title and position fill the row up to the options button, which keeps its own corner so chapter names of any length never move it. */
+/* Title and position fill the row up to the options button, which keeps its own corner so chapter names of any length never move it.
+   The button is a sibling of the heading (the sheet's `titleAction`), so it stays out of the heading's accessible name. */
 .ov3-section-sheet .ui-panel-header > div {
   flex: 1;
   min-width: 0;
@@ -38,7 +43,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  min-height: 44px;
 }
 /* Title and position slide together with the chapter (chapter-motion.ts); the departing copy is positioned against the heading. */
 .ov3-sheet-title {
@@ -59,8 +64,8 @@
   min-width: 0;
   overflow: hidden;
 }
-/* Narrow phones: the pager already shows the position, so "3 of 7" stays for screen readers only and the title keeps one line. */
-@container (max-width: 270px) {
+/* Narrow phones (the heading is 56px narrower than it was beside the options button, so 214 is the old 270): the pager already shows the position, so "3 of 7" stays for screen readers only and the title keeps one line. */
+@container (max-width: 214px) {
   .ov3-sheet-position {
     position: absolute;
     width: 1px;
