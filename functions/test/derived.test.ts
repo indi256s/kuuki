@@ -108,6 +108,40 @@ describe('durable derived repair', () => {
     expect(badges.results).toEqual([{ badge_id: 1 }, { badge_id: 2 }])
   })
 
+  it('awards countries, airports and airtime_minutes badges at their threshold only', async () => {
+    const db = await fixture()
+    const defs: [number, string, string][] = [
+      [10, 'countries-at', '{"countries":2}'],
+      [11, 'airports-at', '{"airports":3}'],
+      [12, 'airtime-at', '{"airtime_minutes":120}'],
+      [13, 'countries-over', '{"countries":3}'],
+      [14, 'airports-over', '{"airports":4}'],
+      [15, 'airtime-over', '{"airtime_minutes":121}'],
+    ]
+    await db.batch([
+      db.prepare(
+        "INSERT INTO airports_reference (iata,name,city,country,country_code) VALUES ('CCC','C','C city','Beta','BB')",
+      ),
+      db.prepare(
+        "INSERT INTO flights (id,user_id,date,origin,destination,distance_km,duration_minutes,is_upcoming) VALUES (2,'u1','2020-01-03','BBB','CCC',100,120,0)",
+      ),
+      ...defs.map(([id, code, criteria]) =>
+        db
+          .prepare('INSERT INTO badge_definitions (id,code,name,criteria) VALUES (?,?,?,?)')
+          .bind(id, code, code, criteria),
+      ),
+      dirtyUserStatement(db, 'u1'),
+    ])
+    expect(await repairUserDerivedState(db, 'u1')).toEqual({ derived_state: 'ready', revision: 1 })
+    const badges = await db
+      .prepare(
+        'SELECT badge_id FROM user_badges WHERE user_id = ? AND badge_id >= 10 ORDER BY badge_id',
+      )
+      .bind('u1')
+      .all()
+    expect(badges.results).toEqual([{ badge_id: 10 }, { badge_id: 11 }, { badge_id: 12 }])
+  })
+
   it('rolls back late publication failure, then rejects a stale revision', async () => {
     const db = await fixture()
     await db.batch([dirtyUserStatement(db, 'u1')])
