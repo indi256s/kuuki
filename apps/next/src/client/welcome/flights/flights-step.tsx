@@ -481,7 +481,6 @@ export function FlightsStep({
   const showList = reading || stop?.kind === 'stopped' || stop?.kind === 'truncated'
   const attempted = kept !== null || copied === 'ok' || pasteOpen || stop !== null
   const textSource = kept?.type === 'text' ? kept.content : null
-  const freeText = kept !== null && !(textSource !== null && hasV2Header(textSource))
 
   const noticeText = (): { text: string; detail?: string; snippet?: string } | null => {
     if (notice) {
@@ -620,7 +619,7 @@ export function FlightsStep({
         <div className="flights-live">
           <p className="flights-count" aria-live="polite">
             <span className="flights-count-n">{formatNumber(locale, count)}</span>{' '}
-            {countLine(locale, count, countries, truncated ? 'read' : 'found', reading && freeText)}
+            {countLine(locale, count, countries, truncated ? 'read' : 'found')}
           </p>
           <ol className="flights-list" aria-label={t(COPY.listLabel)}>
             {rows.length > 0
@@ -852,15 +851,14 @@ export function FlightsStep({
   )
 }
 
-/** "found so far, 6 countries" (or "read, …"); no country part until there is one, then the free-text wait. */
+/** "found so far, 6 countries" (or "read, …"); no country part until there is one. */
 function countLine(
   locale: 'en' | 'ru',
   flights: number,
   countries: number,
   verb: 'found' | 'read',
-  waiting: boolean,
 ) {
   const label = COPY[verb][locale]
-  if (flights === 0) return waiting ? `${label}. ${COPY.freeText[locale]}` : label
+  if (flights === 0) return label
   return countries > 0 ? `${label}, ${formatCount(locale, countries, countryForms)}` : label
 }

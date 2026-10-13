@@ -161,7 +161,7 @@ describe('Settings work and data outcomes', () => {
       await waitFor(() =>
         expect(screen.getByRole('status')).toHaveTextContent('CSV files downloaded'),
       )
-      expect(screen.getByText(/Resets.*UTC/)).toHaveTextContent('Remaining: 4')
+      expect(screen.queryByText(/Resets.*UTC/)).not.toBeInTheDocument()
       expect(JSON.parse(localStorage.getItem('kuuki-export-count:b')!)).toMatchObject({ count: 5 })
     } finally {
       failedStorage.mockRestore()

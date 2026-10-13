@@ -9,8 +9,8 @@ export const COPY = {
   readyTitle: p('Your flights are read', 'Ваши перелёты прочитаны'),
   titleNamed: p('Where have you flown, {name}?', 'Где вы летали, {name}?'),
   sub: p(
-    'ChatGPT, Claude or Gemini can read your email and calendar. Give it this prompt and it finds every flight for you.',
-    'ChatGPT, Claude или Gemini могут прочитать вашу почту и календарь. Дайте ему этот запрос, и он найдёт все перелёты за вас.',
+    'Ask ChatGPT, Claude or Gemini to find your flights.',
+    'Попросите ChatGPT, Claude или Gemini найти ваши перелёты.',
   ),
   promptLabel: p('Prompt for your assistant', 'Запрос для вашего ассистента'),
   copyPrompt: p('Copy prompt', 'Скопировать запрос'),
@@ -115,10 +115,7 @@ export const COPY = {
   readAgain: p('Read again', 'Прочитать снова'),
 
   offlineTitle: p('Waiting for a connection', 'Ждём подключения'),
-  offlineCount: p(
-    'flights yet. You’re offline, so we haven’t started.',
-    'перелётов пока. Нет сети, поэтому мы не начали.',
-  ),
+  offlineCount: p('flights yet.', 'перелётов пока.'),
   offlineNote: p(
     'Keep this tab open for now. We’ll send your reply as soon as you’re back online.',
     'Пока не закрывайте вкладку. Мы отправим ваш ответ, как только сеть вернётся.',
@@ -128,11 +125,7 @@ export const COPY = {
   readingTitle: p('Reading your flights', 'Читаем ваши перелёты'),
   found: p('found so far', 'найдено пока'),
   read: p('read', 'прочитано'),
-  freeText: p('Free text takes a little longer.', 'Свободный текст читается чуть дольше.'),
-  safe: p(
-    'You can close this tab. We keep reading, and your flights wait here for review next time you sign in.',
-    'Вкладку можно закрыть. Мы продолжим читать, а перелёты дождутся проверки здесь, когда вы войдёте снова.',
-  ),
+  safe: p('You can close this tab.', 'Вкладку можно закрыть.'),
   listLabel: p('Latest flights found', 'Последние найденные перелёты'),
   truncated: p(
     'Your reply had more flights than we can read at once, so we took the first {count}. Paste the rest after you review these.',

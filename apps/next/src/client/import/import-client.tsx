@@ -803,7 +803,7 @@ export function ImportClient({
       <div className="page-heading">
         <p className="eyebrow">{S.eyebrow[locale]}</p>
         <h1>{quickSource ? S.qaTitle[locale] : S.title[locale]}</h1>
-        <p className="lead">{quickSource ? S.qaLead[locale] : S.lead[locale]}</p>
+        {quickSource ? <p className="lead">{S.qaLead[locale]}</p> : null}
       </div>
       <Stepper locale={locale} step={step} />
       <UnconfirmedSaves

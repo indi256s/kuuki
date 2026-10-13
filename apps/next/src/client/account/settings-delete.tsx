@@ -190,9 +190,6 @@ export function SettingsDelete({
                 {ru ? 'Пропустить' : 'Skip'}
               </Button>
             </div>
-            <p>
-              {ru ? 'После загрузки выберите «Продолжить».' : 'After downloading, choose Continue.'}
-            </p>
             <p role="status">{exportOutcome.message}</p>
             {exportOutcome.error ? <p role="alert">{exportOutcome.error}</p> : null}
             <Button disabled={exporting} variant="primary" onClick={() => setStep(3)}>
