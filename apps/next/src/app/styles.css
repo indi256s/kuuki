@@ -252,8 +252,25 @@
   --skeleton: var(--hairline);
   --missing: #837b74;
   --brand-neutral: #8a8076;
+  /* Passport stamp inks (lib/stamp-art/inks.ts, drift-tested): independent of the accent, 4.5:1 on --surface. */
+  --stamp-ink-indigo: #344c99;
+  --stamp-ink-oxblood: #90272d;
+  --stamp-ink-slate: #3d556a;
+  --stamp-ink-moss: #365f19;
+  --stamp-ink-plum: #79346c;
+  --stamp-ink-teal: #005f5f;
+  --stamp-ink-umber: #744624;
+  --stamp-ink-ochre-dark: #6d4c00;
 }
 :root[data-theme='dark'] {
+  --stamp-ink-indigo: #a2bcff;
+  --stamp-ink-oxblood: #ffa09c;
+  --stamp-ink-slate: #a6c1d9;
+  --stamp-ink-moss: #9fce85;
+  --stamp-ink-plum: #eea0dc;
+  --stamp-ink-teal: #72d0d0;
+  --stamp-ink-umber: #e7b18c;
+  --stamp-ink-ochre-dark: #e0b771;
   --background: #292827;
   --surface: #353331;
   --surface-inset: #403d3a;

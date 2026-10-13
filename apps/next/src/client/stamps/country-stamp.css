@@ -1,0 +1,184 @@
+/* CountryStamp. Tokens only; transform and opacity are the only animated properties. Decorative, aria-hidden.
+   Hosts: a card with `data-stamp-host`, or any link or button around the stamp, drives hover, focus-visible and press. */
+
+.country-stamp {
+  --cs-r: var(--cs-tilt);
+  --cs-s: 1;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--cs-size);
+  aspect-ratio: 1;
+  color: var(--cs-ink);
+}
+.cs-tilt,
+.cs-worn,
+.cs-full,
+.cs-content,
+.cs-face,
+.cs-engraving,
+.cs-frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.cs-tilt {
+  transform: rotate(var(--cs-r)) scale(var(--cs-s));
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.cs-engraving {
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+}
+.cs-frame {
+  overflow: visible;
+}
+.cs-ring {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  fill: currentColor;
+  stroke: none;
+  text-rendering: geometricPrecision;
+}
+.cs-code {
+  font-weight: 700;
+}
+
+/* Worn layer (B1): the shared wear texture, 300 units wide on a 200 unit stamp, offset per country and
+   turned 0 or 180 degrees. The content is turned back so only the texture rotates. */
+.cs-worn {
+  transform: rotate(var(--imp-rot));
+  mask-repeat: no-repeat;
+  mask-size: 150% 150%;
+  mask-position: calc(50% + var(--cs-size) * var(--imp-dx) / 200)
+    calc(50% + var(--cs-size) * var(--imp-dy) / 200);
+}
+.cs-worn > .cs-content {
+  transform: rotate(calc(var(--imp-rot) * -1));
+}
+.cs-worn[data-shape='circle'] {
+  mask-image: url('/stamps/_impression-circle.svg');
+}
+.cs-worn[data-shape='oval'] {
+  mask-image: url('/stamps/_impression-oval.svg');
+}
+.cs-worn[data-shape='rectangle'] {
+  mask-image: url('/stamps/_impression-rectangle.svg');
+}
+.cs-worn[data-shape='cut-rect'] {
+  mask-image: url('/stamps/_impression-cut-rect.svg');
+}
+.cs-worn[data-shape='octagon'] {
+  mask-image: url('/stamps/_impression-octagon.svg');
+}
+
+/* Full-density copy: invisible at rest over the worn layer, the only layer when worn is off. */
+.cs-full {
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.country-stamp[data-worn] .cs-full {
+  opacity: 0;
+}
+
+/* Pending: dashed outline, no ink, no texture. */
+.country-stamp[data-status='pending'] .cs-rules {
+  stroke-dasharray: 5 4;
+}
+
+/* Hover: fine pointers only. Straightens after a short delay; leaving is the base transition with no delay. */
+@media (hover: hover) and (pointer: fine) {
+  .country-stamp:not([data-static]):hover,
+  :is(a, button, [data-stamp-host]):hover .country-stamp:not([data-static]) {
+    --cs-r: 0deg;
+  }
+  .country-stamp:not([data-static]):hover .cs-tilt,
+  :is(a, button, [data-stamp-host]):hover .country-stamp:not([data-static]) .cs-tilt {
+    transition: transform var(--dur-base) var(--ease-out) 60ms;
+  }
+}
+.country-stamp[data-pose='hover']:not([data-static]) {
+  --cs-r: 0deg;
+}
+.country-stamp[data-pose='hover'] .cs-tilt {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* Keyboard focus: straight at once. */
+:is(a, button, [data-stamp-host]):focus-visible .country-stamp:not([data-static]),
+.country-stamp[data-pose='focus']:not([data-static]) {
+  --cs-r: 0deg;
+}
+:is(a, button, [data-stamp-host]):focus-visible .country-stamp:not([data-static]) .cs-tilt,
+.country-stamp[data-pose='focus'] .cs-tilt {
+  transition: none;
+}
+
+/* Press: a small stamping, straight, scaled, ink at full density. Touch gets this without the hover. */
+:is(a, button, [data-stamp-host]):active .country-stamp:not([data-static]),
+.country-stamp[data-pose='press']:not([data-static]) {
+  --cs-r: 0deg;
+  --cs-s: 0.97;
+}
+:is(a, button, [data-stamp-host]):active .country-stamp:not([data-static]) .cs-tilt,
+.country-stamp[data-pose='press'] .cs-tilt {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+:is(a, button, [data-stamp-host]):active .country-stamp:not([data-static]) .cs-full,
+.country-stamp[data-pose='press'] .cs-full {
+  opacity: 1;
+  transition-duration: var(--dur-press);
+}
+
+/* New impression: lands slightly large and pale, settles to the rest pose; the ink dries from full density into the worn layer. */
+.cs-tilt[data-impress] {
+  animation: cs-press-in var(--dur-moment) var(--ease-out);
+}
+.cs-tilt[data-impress] .cs-full {
+  animation: cs-dry var(--dur-moment) var(--ease-out);
+}
+@keyframes cs-press-in {
+  from {
+    opacity: 0;
+    transform: rotate(var(--cs-r)) scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--cs-r)) scale(1);
+  }
+}
+@keyframes cs-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cs-dry {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.country-stamp[data-static] .cs-tilt,
+.country-stamp[data-static] .cs-full {
+  transition: none;
+}
+.country-stamp[data-static] .cs-tilt[data-impress],
+.country-stamp[data-static] .cs-tilt[data-impress] .cs-full {
+  animation: none;
+}
+
+/* Reduced motion: no tilt, no scale; opacity only. */
+@media (prefers-reduced-motion: reduce) {
+  .country-stamp .cs-tilt {
+    transform: none;
+  }
+  .cs-tilt[data-impress] {
+    animation-name: cs-fade-in;
+  }
+}

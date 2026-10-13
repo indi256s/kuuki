@@ -60,11 +60,11 @@ function load() {
     /* storage unavailable */
   }
 }
-function wasPressed(id: string): boolean {
+export function wasPressed(id: string): boolean {
   load()
   return seen.has(id)
 }
-function markPressed(id: string) {
+export function markPressed(id: string) {
   load()
   seen.add(id)
   try {
