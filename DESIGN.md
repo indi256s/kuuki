@@ -449,8 +449,6 @@ Shared controls live in [`apps/next/src/client/ui/`](apps/next/src/client/ui/) w
 | MultiSelect      | Multiselectable listbox of checkable options with search (`foldSearchText`), counts and Arc's keyboard model.                                                                     |
 | DateRangePicker  | Paired typed calendars with Apply; `presets` (for example whole years) fill both dates and still wait for Apply.                                                                  |
 | MonthRange       | Typed month range; only incomplete input is local, complete ranges stay controlled by the caller.                                                                                 |
-| InlineEdit       | An idle display button that becomes a field with Save and Cancel; saves optimistically and on blur, with screen-reader hints.                                                     |
-| ConfirmMorph     | A destructive action asks in place (Cancel and Confirm side by side) instead of in a dialog; the caller's deferred delete supplies Undo.                                          |
 | ContextMenu      | Opens at the pointer inside the viewport over the existing Radix Menu; `ContextMenuButton` is the keyboard path.                                                                  |
 | SwipeActions     | Row swipe revealing leading and trailing actions: 10px axis lock, full swipe commits the outermost action, one open row at a time.                                                |
 | SlotText         | Per-character columns matched from the aligned end, rolling in the number's direction, with screen-reader text; no spinning reels. Overview chapter heroes roll it on picks only. |

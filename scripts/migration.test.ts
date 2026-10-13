@@ -146,7 +146,18 @@ afterEach(() => {
 })
 
 describe('isolated D1 migration', () => {
-  it('changes the reference content hash when a supplement row drifts without provenance change', () => {
+  it('rejects an auth user without a profile before projecting an import plan', async () => {
+    const source = syntheticSnapshot()
+    const authUsers = JSON.parse(readFileSync(join(source, 'auth_users.json'), 'utf8'))
+    authUsers.push({ id: 'missing-profile', email: 'missing@example.test', created_at: TS })
+    writeFileSync(join(source, 'auth_users.json'), JSON.stringify(authUsers))
+
+    await expect(async () => buildImportTables(source)).rejects.toThrow(
+      'ASSERT FAILED: auth/profile source count mismatch',
+    )
+  })
+
+  it('changes the reference content hash when a supplement row drifts without provenance change', async () => {
     const source = syntheticSnapshot()
     const original = JSON.parse(
       readFileSync(
@@ -159,10 +170,10 @@ describe('isolated D1 migration', () => {
     }
     const supplementPath = join(source, 'reference-supplement.json')
     writeFileSync(supplementPath, JSON.stringify(original))
-    const before = buildImportTables(source, supplementPath).manifest
+    const before = (await buildImportTables(source, supplementPath)).manifest
     original.airports[0].name += ' changed'
     writeFileSync(supplementPath, JSON.stringify(original))
-    const after = buildImportTables(source, supplementPath).manifest
+    const after = (await buildImportTables(source, supplementPath)).manifest
     expect(after.referenceDatasetSha256).toBe(before.referenceDatasetSha256)
     expect(after.referenceSourceSha256).not.toBe(before.referenceSourceSha256)
   })
@@ -310,7 +321,7 @@ describe('isolated D1 migration', () => {
             accountId: 'a'.repeat(32),
             databaseId: 'b'.repeat(36),
             observedSchemaSha256: 'c'.repeat(64),
-            manifest: buildImportTables(source).manifest,
+            manifest: (await buildImportTables(source)).manifest,
             dirtyUserIds: [LEGACY],
           },
         )

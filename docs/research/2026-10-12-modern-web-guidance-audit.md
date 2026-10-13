@@ -28,7 +28,7 @@ Confidence: high for the code path; no real IME/browser reproduction. [UI Events
 
 ### 2. P2 — Inline edits can save when older Safari confirms IME text
 
-[inline-edit.tsx:212](../../apps/next/src/client/ui/inline-edit.tsx#L212) and [flight-detail.tsx:493](../../apps/next/src/client/journal/flight-detail.tsx#L493) use `isComposing` in capture and bubble handlers, but omit the `keyCode === 229` fallback already present in Combobox. On Safari versions affected by the historical event-order bug, confirming Enter arrives with `isComposing=false`. A child Combobox returning early does not stop the parent bubble handler from saving.
+At audit time, the shared InlineEdit (since removed as unused) and [flight-detail.tsx:493](../../apps/next/src/client/journal/flight-detail.tsx#L493) use `isComposing` in capture and bubble handlers, but omit the `keyCode === 229` fallback already present in Combobox. On Safari versions affected by the historical event-order bug, confirming Enter arrives with `isComposing=false`. A child Combobox returning early does not stop the parent bubble handler from saving.
 
 Smallest repair: add the existing fallback in both capture and bubble paths in both owners. Check a composing event with `isComposing=false`, `keyCode=229`, and ordinary deliberate Enter. Modifier submission shortcuts are not implicated by this finding.
 

@@ -80,7 +80,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   const admissionIndex = argv.indexOf('--schema-admission')
   const admissionPath =
     admissionIndex < 0 ? undefined : privateOutputPath(requiredArg(argv, '--schema-admission'))
-  const { tables, manifest } = buildImportTables(snapshotDir)
+  const { tables, manifest } = await buildImportTables(snapshotDir)
   const reader = openRemoteReader(accountId, databaseId)
   try {
     const schemaRows = await reader.read(SCHEMA_SQL)

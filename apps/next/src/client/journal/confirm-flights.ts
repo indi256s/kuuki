@@ -20,7 +20,7 @@
 //      is dropped: outcome `stale`, nothing else is reported. The request is registered with
 //      `trackPrivateOperation`, so an identity reset aborts it.
 //   It never waits for publication; the result carries `derivedState` and the caller refreshes its reads.
-// - "Did not fly" is not a server call here. Spec D1: it is the 6 s deferred delete (`useDeferredDelete`) of
+// - "Did not fly" is not a server call here. Spec D1: it is the 6 s deferred delete (JournalDeleteProvider) of
 //   `partitionPending(flights).awaiting`.
 import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import type {

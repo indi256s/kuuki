@@ -18,10 +18,15 @@ import {
 import { aircraftChoices, airlineChoices, airportChoices } from '../capture/reference-choices'
 import { sendWithZone, withZone } from '../capture/flight-writes'
 import { airlineName } from '../import/reference'
-import type { InlineEditOutcome } from '../ui/inline-edit'
 import type { JournalFlight, JournalRefs } from './model'
 
 export { aircraftChoices, airlineChoices, airportChoices }
+
+/** A rejected or unconfirmed write keeps the draft available for recovery. */
+export type InlineEditOutcome =
+  | { status: 'saved' }
+  | { status: 'rejected'; message: string }
+  | { status: 'unknown'; message: string }
 
 /** The fields the sheet edits inline. Every one is accepted by the PATCH as-is. */
 export type EditableField =

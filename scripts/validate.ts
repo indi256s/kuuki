@@ -36,7 +36,7 @@ async function validateRows(
   snapshotDir: string,
   manifest: Manifest,
 ): Promise<void> {
-  const { tables, manifest: source } = buildImportTables(snapshotDir)
+  const { tables, manifest: source } = await buildImportTables(snapshotDir)
   assert(
     source.sourceSnapshotSha256 === manifest.sourceSnapshotSha256,
     'Source files changed since import',

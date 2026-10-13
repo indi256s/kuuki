@@ -518,10 +518,11 @@ function loadJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8')) as T
 }
 
-export function buildImportTables(
+/** Admit source closure and timestamps before projecting any import plan. */
+export async function buildImportTables(
   snapshotDir: string,
   supplementPath = join(__dirname, '..', 'db', 'reference-supplements.json'),
-): { tables: ImportTable[]; manifest: ImportManifest } {
+): Promise<{ tables: ImportTable[]; manifest: ImportManifest }> {
   const files = [
     'auth_users',
     'profiles',
@@ -551,6 +552,7 @@ export function buildImportTables(
   const countryClaims = readSnapshot<CountryClaimRow>('country_claims', snapshotDir)
   const groundVisits = readSnapshot<GroundVisitRow>('ground_visits', snapshotDir)
   const sourceVisits = readSnapshot<VisitRow>('visits', snapshotDir)
+  await runAsserts(authUsers, profiles, flights, countryClaims, groundVisits)
 
   const dataDir = join(__dirname, '..', 'packages', 'data', 'src')
   const aircraft = loadJson<
@@ -1016,13 +1018,7 @@ export async function inspectSnapshotImport(
   manifest: ImportManifest
   prepared: PreparedTable[]
 }> {
-  const authUsers = readSnapshot<AuthUserRow>('auth_users', snapshotDir)
-  const profiles = readSnapshot<ProfileRow>('profiles', snapshotDir)
-  const flights = readSnapshot<FlightRow>('flights', snapshotDir)
-  const claims = readSnapshot<CountryClaimRow>('country_claims', snapshotDir)
-  const ground = readSnapshot<GroundVisitRow>('ground_visits', snapshotDir)
-  await runAsserts(authUsers, profiles, flights, claims, ground)
-  const { tables, manifest } = buildImportTables(snapshotDir)
+  const { tables, manifest } = await buildImportTables(snapshotDir)
   const targetUsers = (await db.prepare('SELECT id FROM users').all<{ id: string }>()).results.map(
     (row) => row.id,
   )
