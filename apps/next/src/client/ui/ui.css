@@ -567,52 +567,60 @@
   color: var(--text-muted);
 }
 .ui-menu-tray {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
   padding: 2px;
   border-radius: var(--radius-sm);
   background: var(--surface-inset);
+}
+/* One thumb under the selected cell; it slides on a pointer pick and jumps on an arrow key (the menu is
+   data-instant then). The cells share the width equally, so a pick never resizes the tray. */
+.ui-menu-tray-thumb {
+  position: absolute;
+  z-index: -1;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--n));
+  border-radius: 8px;
+  background: var(--surface-thumb);
+  box-shadow: var(--shadow-thumb);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform var(--dur-base) var(--ease-in-out);
+  pointer-events: none;
+}
+.ui-menu[data-instant] .ui-menu-tray-thumb {
+  transition: none;
 }
 .ui-menu-tray-cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
+  min-width: 0;
   height: 40px;
   padding-inline: 10px;
   border-radius: 8px;
   color: var(--text-muted);
   font-size: 13px;
   line-height: 18px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
   outline: none;
   transition: color var(--dur-fast) var(--ease-out);
 }
-.ui-menu-tray[data-kind='swatch'] .ui-menu-tray-cell {
-  width: 40px;
+.ui-menu-tray:not([data-kind='text']) .ui-menu-tray-cell {
   padding: 0;
 }
-/* Selected: raised on the surface. Text cells add a 1px control outline, so the pick never relies on colour; the
-   swatch's cue is its check. */
 .ui-menu-tray-cell[aria-checked='true'] {
-  background: var(--surface);
   color: var(--text);
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgb(0 0 0/10%);
-}
-.ui-menu-tray[data-kind='text'] .ui-menu-tray-cell[aria-checked='true'] {
-  box-shadow:
-    inset 0 0 0 1px var(--control-border),
-    0 1px 2px rgb(0 0 0/10%);
 }
 /* Only the selected cell takes focus; the 2px inset ring replaces its outline while focused. */
 .ui-menu-tray .ui-menu-tray-cell[aria-checked]:focus-visible {
-  box-shadow:
-    inset 0 0 0 2px var(--focus),
-    0 1px 2px rgb(0 0 0/10%);
+  box-shadow: inset 0 0 0 2px var(--focus);
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-menu-tray-cell:hover {
@@ -858,15 +866,11 @@
 .ui-menu-tray-dot {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--radius-full);
   background: var(--swatch);
   color: var(--background);
-}
-.ui-menu-tray-dot {
-  width: 20px;
-  height: 20px;
 }
 .ui-swatch[aria-checked='true'] {
   border-color: var(--text);
@@ -1179,6 +1183,9 @@
     animation: ui-fade-out var(--dur-fast) linear forwards;
   }
   .ui-sheet {
+    transition: none;
+  }
+  .ui-menu-tray-thumb {
     transition: none;
   }
   /* [data-side] matches the slide rules' specificity, so the fade wins. */

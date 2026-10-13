@@ -50,11 +50,11 @@ describe('AvatarMenu', () => {
     const trigger = screen.getByRole('button', { name: 'Account menu' })
     trigger.focus()
     await user.keyboard('{Enter}')
-    const profile = await screen.findByRole('menuitem', { name: /My profile/ })
+    const profile = await screen.findByRole('menuitem', { name: 'ana@ana' })
     expect(profile).toHaveAttribute('href', '/fly/ana')
     await waitFor(() => expect(profile).toHaveFocus())
     await user.keyboard('{ArrowDown}')
-    expect(screen.getByRole('menuitem', { name: 'Leaderboard' })).toHaveFocus()
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Public profile' })).toHaveFocus()
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
     expect(trigger).toHaveFocus()
@@ -66,12 +66,10 @@ describe('AvatarMenu', () => {
     await user.click(screen.getByRole('button', { name: 'Account menu' }))
     const toggle = await screen.findByRole('menuitemcheckbox', { name: 'Public profile' })
     expect(toggle).toHaveAttribute('aria-checked', 'false')
-    expect(screen.getByText('Hidden')).toBeInTheDocument()
     await user.click(toggle)
     await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'))
     expect(patch).toHaveBeenCalledWith('/api/profiles/me', { is_public: true }, expect.anything())
     expect(refresh).toHaveBeenCalled()
-    expect(screen.getByText('Public')).toBeInTheDocument()
   })
 
   it('reverts and reports when the write fails', async () => {
@@ -113,13 +111,13 @@ describe('AvatarMenu', () => {
       ),
     ].map((node) => node.getAttribute('aria-label') ?? node.textContent)
     expect(stops).toEqual([
-      'My profile@ana · Public',
+      'ana@ana',
+      'Public profile',
       'Leaderboard',
       'Settings',
-      'Public profile',
       'System',
-      'Shu',
       'EN',
+      'Shu',
       'Sign out',
     ])
   })

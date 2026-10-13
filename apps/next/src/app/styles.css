@@ -76,6 +76,11 @@
   --rank-bronze: #8a4b24;
   --surface-floating: var(--surface);
   --shadow-floating: 0 1px 2px rgb(0 0 0/8%), 0 8px 24px rgb(0 0 0/8%);
+  /* The floating shadow as a filter, for a floating surface whose edge a mask cuts (the account menu's notches). */
+  --filter-floating: drop-shadow(0 1px 2px rgb(0 0 0/8%)) drop-shadow(0 8px 24px rgb(0 0 0/8%));
+  /* The selected cell's thumb in a menu tray: raised above --surface-inset in both themes. */
+  --surface-thumb: #fff;
+  --shadow-thumb: inset 0 0 0 1px rgb(0 0 0/7%), 0 1px 2px rgb(0 0 0/10%);
   --shadow-modal: 0 2px 4px rgb(0 0 0/10%), 0 16px 48px rgb(0 0 0/12%);
   --ring-floating: 0 0 0 0 transparent;
   --scrim: rgb(0 0 0/40%);
@@ -264,6 +269,10 @@
   --rank-bronze: #eca57d;
   --surface-floating: #3c3a37;
   --shadow-floating: 0 0 0 0 transparent;
+  /* Dark has no floating shadow; a tight light edge stands in for --ring-floating along the cut outline. */
+  --filter-floating: drop-shadow(0 0 0.5px rgb(255 255 255/45%));
+  --surface-thumb: #4b4744;
+  --shadow-thumb: inset 0 0 0 1px rgb(255 255 255/9%), 0 1px 2px rgb(0 0 0/30%);
   --shadow-modal: 0 0 0 0 transparent;
   --ring-floating: 0 0 0 1px rgb(255 255 255/8%);
   --scrim: rgb(0 0 0/60%);

@@ -134,59 +134,187 @@ a.ui-menu-item {
   color: inherit;
   text-decoration: none;
 }
-.account-menu {
+/* The account menu is a boarding pass: an accent-tinted stub over the menu body, notched on both sides at the tear.
+   Each half masks its own semicircles, so the notch follows the stub's height without measuring it. The content
+   element draws the floating shadow as a filter, which follows the cut edge. */
+.ui-menu.account-menu {
+  --notch: 8px;
   width: 300px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  filter: var(--filter-floating);
+}
+.account-stub {
+  padding: 16px 18px 18px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: color-mix(in oklab, var(--stub-accent, var(--accent)) 20%, var(--surface-floating));
+  transition: background-color var(--dur-base) var(--ease-out);
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+.account-body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 14px 6px 6px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background: var(--surface-floating);
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
 }
-.account-menu .ui-menu-item {
-  min-height: 44px;
-  gap: 12px;
-  padding-inline: 12px;
+.account-eyebrow,
+.account-field-key {
+  font-family: var(--font-mono);
   font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+.account-eyebrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  line-height: 14px;
+}
+.account-stub .ui-menu-item {
+  min-height: 0;
+  padding: 6px;
+}
+.account-stub .ui-menu-item[data-highlighted] {
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+}
+.account-who {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 12px;
+  margin: 6px -6px 0;
+}
+.account-who-text {
+  display: grid;
+  min-width: 0;
+}
+.account-name {
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-handle {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+.account-fields {
+  display: flex;
+  gap: 16px 28px;
+  margin: 10px -6px 0;
+}
+.account-fields .ui-menu-item {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.account-field-key {
+  font-size: 10.5px;
+  line-height: 14px;
+}
+.account-field-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.account-field-value .queue-unavailable {
+  font-weight: 500;
+}
+/* Mini switch, drawn only: the whole field is the menuitemcheckbox. */
+.account-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--control-border);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.account-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--surface-floating);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+[aria-checked='true'] > .account-field-value .account-switch {
+  background: var(--stub-accent, var(--accent));
+}
+[aria-checked='true'] > .account-field-value .account-switch::after {
+  background: var(--accent-foreground);
+  transform: translateX(12px);
+}
+/* The two words share one cell, so the field keeps its width while they crossfade. */
+.account-field-word {
+  display: inline-grid;
+}
+.account-field-word > span {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    filter var(--dur-fast) var(--ease-out);
+}
+.account-field-word > [data-off] {
+  opacity: 0;
+  filter: blur(2px);
+}
+.account-body .ui-menu-item {
+  padding-inline: 12px;
 }
 .account-menu .ui-menu-check {
   display: none;
 }
-.account-menu .ui-menu-radio {
-  padding-left: 12px;
-}
-.account-menu .avatar-profile {
-  min-height: 60px;
-}
-.avatar-profile-text {
+.account-appearance {
   display: grid;
-  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 6px;
+  padding-inline: 6px;
 }
-.avatar-profile-title {
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
+.account-accent {
+  padding-inline: 6px;
 }
-.avatar-profile-sub {
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 400;
-  color: var(--text-muted);
+.account-menu .ui-menu-tray-row {
+  min-height: 0;
+  padding: 0;
 }
-.account-menu [data-signout] {
-  color: var(--text-muted);
-}
-.avatar-box {
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--control-border);
-  color: var(--accent-foreground);
-}
-.avatar-box[data-checked] {
-  background: var(--accent);
-  box-shadow: none;
+.account-menu .ui-menu-tray {
+  flex: 1;
 }
 
 .queue-label {

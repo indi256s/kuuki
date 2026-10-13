@@ -13,6 +13,7 @@ import { ImportDock } from './import/import-dock'
 import { ImportRunsProvider } from './import/import-runs'
 import { getGateProfile } from '../server/gates'
 import { getRequestEnv } from '../server/identity'
+import { getOwnProfileStats } from '../server/profile'
 import type { Locale } from '../server/locale'
 
 function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
@@ -58,7 +59,7 @@ function ImportRuns({
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const own = await getGateProfile()
   if (!own) return <PageShell>{children}</PageShell>
-  const env = await getRequestEnv()
+  const [env, stats] = await Promise.all([getRequestEnv(), getOwnProfileStats(own.profile.id)])
   const jobs = Boolean((env as { IMPORT_JOBS?: unknown }).IMPORT_JOBS)
   const username = own.profile.username ?? null
   return (
@@ -84,6 +85,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
                     displayName={own.profile.display_name}
                     isPublic={own.profile.is_public}
                     profileAccent={own.profile.theme_color}
+                    flights={stats?.total_flights ?? 0}
                     locale={locale}
                   />
                 ) : null}

@@ -33,38 +33,51 @@ const LABEL = { en: 'To review', ru: 'На проверку' }
 const UNAVAILABLE = { en: 'Unavailable', ru: 'Недоступно' }
 
 /**
- * Account-menu row for the confirmation queue. Hides a zero count; an initial transport failure has an explicit
+ * Menu row for the confirmation queue. Hides a zero count; an initial transport failure has an explicit
  * unavailable state unless `showUnavailable` is off. C4 supplies actionableCount; transport failures remain unknown
- * rather than empty. The accessible name starts with the visible label.
+ * rather than empty. The accessible name starts with the visible label. `field` draws it as a field on the account
+ * menu's stub: the label above the count, no icon.
  */
 export function QueueMenuItem({
   count,
   locale = 'en',
   showUnavailable = true,
+  field,
 }: {
   count?: number | null
   locale?: Locale
   showUnavailable?: boolean
+  field?: boolean
 }) {
   const queue = useAwaiting()
   const waiting = queue.data
   count ??= waiting?.actionableCount
   const label = LABEL[locale]
+  const lang = locale === 'ru' ? 'ru' : undefined
   const row = (trailing: ReactNode, name?: string) => (
     <MenuItem asChild>
-      <Link href={QUEUE_HREF} aria-label={name}>
-        <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
-        <span className="queue-label" lang={locale === 'ru' ? 'ru' : undefined}>
-          {label}
-        </span>
-        {trailing}
-      </Link>
+      {field ? (
+        <Link href={QUEUE_HREF} aria-label={name}>
+          <span className="account-field-key" lang={lang}>
+            {label}
+          </span>
+          <span className="account-field-value">{trailing}</span>
+        </Link>
+      ) : (
+        <Link href={QUEUE_HREF} aria-label={name}>
+          <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
+          <span className="queue-label" lang={lang}>
+            {label}
+          </span>
+          {trailing}
+        </Link>
+      )}
     </MenuItem>
   )
   if (queue.error && !waiting && count == null)
     return showUnavailable
       ? row(
-          <span className="queue-unavailable" lang={locale === 'ru' ? 'ru' : undefined}>
+          <span className="queue-unavailable" lang={lang}>
             {UNAVAILABLE[locale]}
           </span>,
         )
@@ -83,7 +96,11 @@ export function QueueMenuItem({
       .map(([n, forms]) => formatCount(locale, n, forms))
       .join(', ') || formatNumber(locale, whole)
   return row(
-    <span className="queue-count">{formatNumber(locale, whole)}</span>,
+    field ? (
+      formatNumber(locale, whole)
+    ) : (
+      <span className="queue-count">{formatNumber(locale, whole)}</span>
+    ),
     `${label}: ${detail}`,
   )
 }
