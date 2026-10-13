@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { IdentitySnapshot, trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
-import { badgeEventId, badgeName, type EarnedBadge } from './achievements'
+import { badgeEventId, type EarnedBadge } from './achievements'
+import { DISMISS, FOUNDING, NEW_ACHIEVEMENTS, RUNG_NAME } from './ladders/copy'
+import { toTiles, visibleBadges } from './ladders/model'
 import { notificationStorage } from './storage'
 import { unseenBadges } from './unseen'
 import { Button } from '../ui/button'
@@ -43,7 +45,8 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
             badges.some((item) => item.user_id !== ownerId)
           )
             return
-          const result = unseenBadges(ownerId, badges, notificationStorage())
+          // Hidden rows (legacy, cities) never toast.
+          const result = unseenBadges(ownerId, visibleBadges(badges), notificationStorage())
           if (result.badges.length) {
             const merged = [...pending.current, ...result.badges]
             pending.current = [
@@ -78,10 +81,15 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
   return (
     <IdentitySnapshot ownerId={ownerId}>
       <aside className="badge-notice" data-first={notice.first || undefined} role="status">
-        <strong>{locale === 'ru' ? 'Новые достижения' : 'New achievements'}</strong>
+        <strong>{NEW_ACHIEVEMENTS[locale]}</strong>
         <ul>
-          {notice.badges.map((item) => (
-            <li key={item.id}>{badgeName(item, locale)}</li>
+          {/* One line per ladder: a batch that climbs several rungs names only the highest. */}
+          {toTiles(notice.badges).map((tile) => (
+            <li key={tile.item.id}>
+              {tile.kind === 'founding'
+                ? FOUNDING.name[locale]
+                : RUNG_NAME[tile.ladder][tile.rung - 1][locale]}
+            </li>
           ))}
         </ul>
         <Button
@@ -91,7 +99,7 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
             setNotice(null)
           }}
         >
-          {locale === 'ru' ? 'Закрыть' : 'Dismiss'}
+          {DISMISS[locale]}
         </Button>
       </aside>
     </IdentitySnapshot>

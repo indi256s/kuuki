@@ -85,8 +85,9 @@ it('announces a single batch, clears on identity reset and rejects late account 
   })
   const notice = await screen.findByRole('status')
   expect(notice).toHaveTextContent('Новые достижения')
-  expect(notice).toHaveTextContent('Стартовая площадка')
-  expect(notice).toHaveTextContent('Низкая орбита')
+  // One line per ladder: a batch that climbs two rungs names only the higher one.
+  expect(notice).toHaveTextContent('Завсегдатай')
+  expect(notice).not.toHaveTextContent('Взлёт')
   expect(notice).toHaveAttribute('data-first', 'true')
   act(() => window.dispatchEvent(new Event('kuuki:identity-reset')))
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
@@ -107,7 +108,18 @@ it('does not baseline failures or accept a previous account response after reren
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
   vi.mocked(api.get).mockResolvedValueOnce([award(1, 'new')])
   await act(async () => window.dispatchEvent(new Event('focus')))
-  expect(await screen.findByRole('status')).toHaveTextContent('Launch Pad')
+  expect(await screen.findByRole('status')).toHaveTextContent('Wheels up')
+})
+
+it('never toasts hidden legacy rows', async () => {
+  const legacy = { ...award(1, 'legacy-owner'), id: 9, badge_id: 9 }
+  legacy.badge = { ...legacy.badge, id: 9, code: 'first_flight' }
+  vi.mocked(api.get).mockResolvedValueOnce([]).mockResolvedValueOnce([legacy])
+  render(<BadgeNotifications ownerId="legacy-owner" locale="en" />)
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+  await act(async () => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 it('does not turn a failed first read into a historical celebration on retry', async () => {
   vi.mocked(api.get)
@@ -120,8 +132,8 @@ it('does not turn a failed first read into a historical celebration on retry', a
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
   await act(async () => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
   const notice = await screen.findByRole('status')
-  expect(notice).toHaveTextContent('Low Orbit')
-  expect(notice).not.toHaveTextContent('Launch Pad')
+  expect(notice).toHaveTextContent('Regular')
+  expect(notice).not.toHaveTextContent('Wheels up')
 })
 
 it('keeps a dismissed first badge seen through focus and remount when reads work but storage writes fail', async () => {

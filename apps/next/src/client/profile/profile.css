@@ -735,37 +735,28 @@
   outline-offset: 2px;
 }
 .profile-badge strong {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 16px;
+  line-height: 20px;
   font-weight: 600;
-  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .profile-badge small {
-  margin-block-start: -8px;
-  font-size: 12px;
-  line-height: 16px;
+  margin-block-start: -6px;
+  font-size: 14px;
+  line-height: 18px;
   color: var(--text-muted);
 }
+/* The 72px mark holds the ladder's 56px line-only thumb (ladders.css), or the Founding crew stub. */
 .profile-badge-mark {
+  --ladder-bg: var(--surface-inset);
   position: relative;
   display: grid;
   place-items: center;
-  inline-size: 56px;
-  block-size: 56px;
+  inline-size: 72px;
+  block-size: 72px;
   border-radius: var(--radius-full);
-  background: var(--accent-tint);
+  background: var(--surface-inset);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
-  color: var(--accent-on-tint);
-}
-.profile-badge-mark svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-.profile-badge-mark .profile-glyph-fill {
-  fill: currentColor;
-  stroke: none;
 }
 /* Unboxing (owner): the badge presses into its slot and the ink settles; the New tag is pinned to the corner,
    out of flow, so the grid never moves when it clears. */
@@ -823,8 +814,71 @@
   font-weight: 600;
   cursor: pointer;
 }
-.profile-badge-sheet .profile-badge-mark {
-  margin-block-end: var(--space-3);
+/* Ladder sheet: hero figure on its stage, Normal then Sarcastic, the earned date, then the rung strip. Space groups, no rules. */
+.ladder-stage {
+  --ladder-bg: var(--surface);
+  display: grid;
+  place-items: center;
+  block-size: 232px;
+  margin-block-end: var(--space-4);
+  padding: var(--space-4);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.ladder-stage-founding .founding-crew-stub {
+  transform: scale(2);
+}
+.ladder-sheet p {
+  text-wrap: pretty;
+}
+.ladder-sarcastic {
+  color: var(--text-muted);
+}
+.ladder-strip {
+  --ladder-bg: var(--surface-inset);
+  display: flex;
+  gap: var(--space-4);
+  margin: var(--space-5) calc(-1 * var(--space-4)) 0;
+  padding: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  list-style: none;
+  border-radius: 16px;
+  background: var(--surface-inset);
+}
+.ladder-slot {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-inline-size: 64px;
+  scroll-snap-align: start;
+  text-align: center;
+}
+.ladder-slot[data-state='next'] {
+  min-inline-size: 140px;
+}
+.ladder-slot-name {
+  max-inline-size: 96px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+.ladder-slot[data-state='next'] .ladder-slot-name {
+  max-inline-size: none;
+}
+.ladder-slot-togo {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ladder-top {
+  margin-block-start: var(--space-3);
+  color: var(--text-muted);
+  font-size: 14px;
 }
 .profile-badge-earned {
   color: var(--text-muted);
