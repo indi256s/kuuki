@@ -82,9 +82,11 @@ export function ChapterCard({
     const frame = requestAnimationFrame(() => {
       const active = document.activeElement
       if (active && active !== document.body) return
-      card.current
-        ?.querySelector<HTMLElement>('[data-picked], .ov3-card-figure-button')
-        ?.focus({ preventScroll: true })
+      // One selector list would return whichever comes first in the DOM; the picked mark wins over the figure button.
+      const target =
+        card.current?.querySelector<HTMLElement>('[data-picked]') ??
+        card.current?.querySelector<HTMLElement>('.ov3-card-figure-button')
+      target?.focus({ preventScroll: true })
     })
     return () => cancelAnimationFrame(frame)
   }, [hasOnly])

@@ -32,7 +32,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     crossings: crossings(rows, payload.refs, payload.mode, counted),
     continents: continents(rows, payload.refs),
     fleet: fleet(rows, payload.refs, payload.mode),
-    makers: makers(rows, payload.refs, payload.mode),
+    makers: makers(rows, payload.mode),
     clock: clock(rows),
     rhythm: rhythm(rows, payload.mode),
     rankings: rankings(rows),

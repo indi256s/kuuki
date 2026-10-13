@@ -1,4 +1,4 @@
-import { MAKER_SLOTS } from '../../../data/src/aircraft-makers'
+import { MAKER_SLOTS, type MakerKey } from '../../../data/src/aircraft-makers'
 import { z } from 'zod'
 import { periodDays } from './range'
 import type { OverviewFilter } from './model'
@@ -136,8 +136,14 @@ export function parsePrefs(raw: string | null): OverviewPrefs {
         if (!Object.hasOwn(filterSchema.shape, rawKey)) continue
         const key = rawKey as keyof OverviewFilter
         const parsed = filterSchema.shape[key].safeParse(stored.filter[key])
-        if (parsed.success && parsed.data !== undefined)
-          Object.assign(filter, { [key]: parsed.data })
+        if (!parsed.success || parsed.data === undefined) continue
+        // Every reference manufacturer has its own slot now, so a saved Other would match no flight: drop it.
+        const value =
+          key === 'makers'
+            ? (parsed.data as MakerKey[]).filter((maker) => maker !== 'other')
+            : parsed.data
+        if (key !== 'makers' || (value as MakerKey[]).length)
+          Object.assign(filter, { [key]: value })
       }
     }
     const layout = object(stored.layout) ? stored.layout : {}

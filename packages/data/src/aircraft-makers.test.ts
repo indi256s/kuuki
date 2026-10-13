@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest'
-import { makerOf } from './aircraft-makers'
+import aircraft from './aircraft.json' with { type: 'json' }
+import { MAKER_NAMES, makerOf } from './aircraft-makers'
 
 it.each([
   ['E145', 'embraer'],
@@ -22,4 +23,10 @@ it.each([
   [null, 'unknown'],
 ])('classifies %s by its reference manufacturer as %s', (code, maker) => {
   expect(makerOf(code)).toBe(maker)
+})
+
+// Overview has no Other families to fold any more: a manufacturer added to the reference needs its own slot (and colour).
+it('names every reference manufacturer', () => {
+  const named = new Set<string>(Object.values(MAKER_NAMES))
+  expect(aircraft.map((row) => row.manufacturer).filter((name) => !named.has(name))).toEqual([])
 })

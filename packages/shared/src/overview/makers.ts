@@ -9,7 +9,6 @@ interface MakerMetrics {
 }
 export interface Makers {
   rows: Array<MakerMetrics & { key: MakerKey }>
-  other: Array<MakerMetrics & { key: string; family: string }>
   totals: MakerMetrics & { minutesApproximate: boolean }
   flights: Array<{
     key: string
@@ -23,15 +22,10 @@ export interface Makers {
   }>
 }
 
-export function makers(
-  rows: OverviewRow[],
-  refs: OverviewPayload['refs'],
-  mode: OverviewPayload['mode'],
-): Gate<Makers> {
+export function makers(rows: OverviewRow[], mode: OverviewPayload['mode']): Gate<Makers> {
   const { typed } = coverage(rows)
   if (typed < 5) return { status: 'below', have: typed, need: 5 }
   const slots: Makers['rows'] = MAKER_SLOTS.map((key) => ({ key, flights: 0, minutes: 0, km: 0 }))
-  const families = new Map<string, Makers['other'][number]>()
   for (const row of rows) {
     const maker = makerOf(row.aircraft)
     const slot = slots[MAKER_SLOTS.indexOf(maker)]
@@ -39,23 +33,12 @@ export function makers(
     slot.flights += metrics.flights
     slot.minutes += metrics.durationMinutes
     slot.km += metrics.distanceKm
-    const family = row.aircraft ? refs.aircraft[row.aircraft]?.family : null
-    if (maker === 'other' && family) {
-      const item = families.get(family) ?? { key: family, family, flights: 0, minutes: 0, km: 0 }
-      item.flights += metrics.flights
-      item.minutes += metrics.durationMinutes
-      item.km += metrics.distanceKm
-      families.set(family, item)
-    }
   }
   const sum = totals(rows)
   return {
     status: 'ready',
     value: {
       rows: slots,
-      other: [...families.values()].sort(
-        (a, b) => b.flights - a.flights || a.key.localeCompare(b.key),
-      ),
       totals: {
         flights: sum.flights,
         minutes: sum.durationMinutes,

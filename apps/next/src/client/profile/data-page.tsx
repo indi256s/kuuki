@@ -241,19 +241,21 @@ export function DataPageMrz({ lines, page }: { lines: [string, string]; page: st
       { threshold: 0.6 },
     )
     observer.observe(node)
+    // No text restore here: new lines remount their rows (keyed by text), and writing this run's text would overwrite them.
     return () => {
       observer.disconnect()
       cancelAnimationFrame(frame)
-      restore()
+      delete node.dataset.reading
     }
   }, [first, second])
 
   return (
     <div className="profile-mrz-wrap" aria-hidden="true">
       <div ref={band} className="profile-mrz">
+        {/* Keyed by text: the scan writes textContent, which detaches React's text node, so a changed line needs a fresh row. */}
         {lines.map((line, i) => (
           <span
-            key={i}
+            key={`${i}:${line}`}
             ref={(row) => {
               rows.current[i] = row
             }}

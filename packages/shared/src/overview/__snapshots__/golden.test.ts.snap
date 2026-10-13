@@ -709,7 +709,6 @@ exports[`dateLine matches its generated fixture and known snapshot values 1`] = 
           "origin": "SFO",
         },
       ],
-      "other": [],
       "rows": [
         {
           "flights": 6,
@@ -3389,7 +3388,6 @@ exports[`n10 matches its generated fixture and known snapshot values 1`] = `
           "origin": "NRT",
         },
       ],
-      "other": [],
       "rows": [
         {
           "flights": 4,
@@ -10266,7 +10264,6 @@ exports[`n500 matches its generated fixture and known snapshot values 1`] = `
           "origin": "NRT",
         },
       ],
-      "other": [],
       "rows": [
         {
           "flights": 152,
@@ -24212,7 +24209,6 @@ exports[`n5001 matches its generated fixture and known snapshot values 1`] = `
     "status": "ready",
     "value": {
       "flights": [],
-      "other": [],
       "rows": [
         {
           "flights": 1516,
@@ -32523,7 +32519,6 @@ exports[`polar matches its generated fixture and known snapshot values 1`] = `
           "origin": "DXB",
         },
       ],
-      "other": [],
       "rows": [
         {
           "flights": 6,
@@ -33914,7 +33909,6 @@ exports[`redEyeDst matches its generated fixture and known snapshot values 1`] =
           "origin": "JFK",
         },
       ],
-      "other": [],
       "rows": [
         {
           "flights": 10,

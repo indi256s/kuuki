@@ -400,7 +400,6 @@ export function Section({ span }: { span: Span }) {
 
 const EMPTY = {
   rows: [],
-  other: [],
   totals: { flights: 0, minutes: 0, km: 0, minutesApproximate: false },
   flights: [],
 }

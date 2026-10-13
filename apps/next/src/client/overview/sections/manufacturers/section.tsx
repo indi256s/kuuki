@@ -4,7 +4,6 @@ import { Check } from '@keyline-icons/react'
 import { MAKER_NAMES, type MakerKey } from '@kuuki/data/aircraft-makers'
 import { formatDuration } from '../../../../lib/format'
 import { MakerSwatch } from '../../../ui/category-mark'
-import { Disclosure } from '../../../ui/disclosure'
 import { useOverview } from '../../store/overview-context'
 import { makerRows } from '../aircraft/model'
 import { copy, flights, number } from '../rankings/display'
@@ -18,7 +17,7 @@ export const makerName = (key: MakerKey, locale: 'en' | 'ru') =>
       ? copy(locale, 'Unknown', 'Неизвестно')
       : MAKER_NAMES[key]
 
-/** Details of the Aircraft card: every manufacturer with its flights, distance and time, the families folded into Other, and the review of flights still missing an aircraft. A manufacturer toggles its filter. */
+/** Details of the Aircraft card: every manufacturer with its flights, distance and time, and the review of flights still missing an aircraft. A manufacturer toggles its filter. */
 export function ManufacturersDetails() {
   const { scope, locale, actions, isCurrent } = useOverview()
   if (!scope || scope.makers.status !== 'ready') return null
@@ -48,20 +47,6 @@ export function ManufacturersDetails() {
                 {number(locale, Math.round(row.km))} {copy(locale, 'km', 'км')} · {approximate}
                 {formatDuration(locale, row.minutes)}
               </button>
-              {row.key === 'other' && data.other.length > 0 && (
-                <Disclosure summary={copy(locale, 'Other families', 'Другие семейства')}>
-                  {data.other.map((family) => (
-                    <button
-                      key={family.key}
-                      onClick={() => {
-                        if (isCurrent()) actions.add('families', family.family)
-                      }}
-                    >
-                      {family.family} · {flights(locale, family.flights)}
-                    </button>
-                  ))}
-                </Disclosure>
-              )}
             </div>
           )
         })}
