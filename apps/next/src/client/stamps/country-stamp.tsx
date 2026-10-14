@@ -1,18 +1,19 @@
 'use client'
 
 import clsx from 'clsx'
-import { useId, useLayoutEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useLayoutEffect, useState, type CSSProperties } from 'react'
 import { FRAME_WEIGHTS, frames, restTilt, type ShapeName } from '../../lib/stamp-art/frame'
 import { impressionTransform } from '../../lib/stamp-art/impression'
 import type { Locale } from '../../lib/format'
 import { markPressed, wasPressed } from '../signature/stamp'
-import { emWidth, fitRing } from './ring-fit'
-import { stampMeta, stampNames } from './stamp-meta'
+import { emWidth } from './ring-fit'
+import { stampMeta } from './stamp-meta'
 import './country-stamp.css'
 
 export type CountryStampProps = {
   iso2: string
-  locale: Locale
+  /** Not used by the stamp: the ring text is baked in its own script and English at generation time. Kept so callers need no change. */
+  locale?: Locale
   /** `pending` is the dashed outline without ink. */
   status: 'inked' | 'pending'
   /** Edge length in px. */
@@ -40,47 +41,30 @@ export const DEFAULT_STAMP_SIZE = 160
 /** Pending stamps draw the outer rule alone, thinner than the inked one. */
 const PENDING_STROKE = 1.6
 
-/** Uppercased ring name candidates: the full name, then the short form when it is different. */
-export function ringNames(iso2: string, locale: Locale): string[] {
-  const n = stampNames(iso2, locale)
-  const long = n.name.toLocaleUpperCase(locale)
-  const short = n.short.toLocaleUpperCase(locale)
-  return short !== long && short.length < long.length ? [long, short] : [long]
-}
-
 type FaceProps = {
   iso2: string
   shape: ShapeName
   iso3: string
-  names: string[]
   engraved: boolean
+  /** The baked ring text exists for the country's own shape only. */
+  ringed: boolean
   pending: boolean
-  idBase: string
 }
 
-/** One complete copy of the stamp: frame, ring text, engraving. */
-function Face({ iso2, shape, iso3, names, engraved, pending, idBase }: FaceProps) {
+/** One complete copy of the stamp: frame, baked ring text, engraving. */
+function Face({ iso2, shape, iso3, engraved, ringed, pending }: FaceProps) {
   const f = frames[shape]
-  const top = useMemo(
-    () => fitRing(names, f.ring.top.length, f.family),
-    [names, f.ring.top.length, f.family],
-  )
-  const bottom = useMemo(
-    () => fitRing([`· ${iso3} ·`], f.ring.bottom.length, f.family, 2.4),
-    [iso3, f.ring.bottom.length, f.family],
-  )
   const [wx, wy, ww, wh] = f.windowBox
   // Fallback tier: the ISO3 code set large in the window.
   const big = Math.min(wh * 0.34, (Math.min(ww, wh * 1.5) * 0.62) / (emWidth(iso3) + 0.16))
-  const topId = `${idBase}t`
-  const bottomId = `${idBase}b`
+  const file = iso2.toLowerCase()
   return (
     <span className="cs-face">
       {engraved ? (
-        <span
-          className="cs-engraving"
-          style={{ maskImage: `url(/stamps/${iso2.toLowerCase()}.svg)` }}
-        />
+        <span className="cs-engraving" style={{ maskImage: `url(/stamps/${file}.svg)` }} />
+      ) : null}
+      {ringed ? (
+        <span className="cs-engraving" style={{ maskImage: `url(/stamps/ring/${file}.svg)` }} />
       ) : null}
       <svg className="cs-frame" viewBox={f.viewBox} aria-hidden="true" focusable="false">
         <g fill="none" stroke="currentColor" className="cs-rules">
@@ -94,24 +78,6 @@ function Face({ iso2, shape, iso3, names, engraved, pending, idBase }: FaceProps
         </g>
         {pending ? null : (
           <>
-            <defs>
-              <path id={topId} d={f.ring.top.d} />
-              <path id={bottomId} d={f.ring.bottom.d} />
-            </defs>
-            <text className="cs-ring" fontSize={top.fontSize} letterSpacing={top.letterSpacing}>
-              <textPath href={`#${topId}`} startOffset="50%" textAnchor="middle" dy={top.dy}>
-                {top.text}
-              </textPath>
-            </text>
-            <text
-              className="cs-ring"
-              fontSize={bottom.fontSize}
-              letterSpacing={bottom.letterSpacing}
-            >
-              <textPath href={`#${bottomId}`} startOffset="50%" textAnchor="middle" dy={bottom.dy}>
-                {bottom.text}
-              </textPath>
-            </text>
             {engraved ? null : (
               <text
                 className="cs-ring cs-code"
@@ -147,7 +113,6 @@ function Face({ iso2, shape, iso3, names, engraved, pending, idBase }: FaceProps
  */
 export function CountryStamp({
   iso2,
-  locale,
   status,
   size = DEFAULT_STAMP_SIZE,
   impressionId,
@@ -162,10 +127,8 @@ export function CountryStamp({
   const shape = shapeOverride ?? meta.shape
   const pending = status === 'pending'
   const engraved = meta.tier === 'engraved' && shape === meta.shape
-  const names = useMemo(() => ringNames(meta.iso2, locale), [meta.iso2, locale])
   const tilt = restTilt(meta.iso2, shape)
   const imp = impressionTransform(meta.iso2, tilt)
-  const idBase = useId().replace(/[^a-zA-Z0-9]/g, '')
 
   // Decided after hydration so server markup never depends on session memory; marked synchronously so remounts cannot replay.
   const [played, setPlayed] = useState<string | null>(null)
@@ -186,15 +149,14 @@ export function CountryStamp({
     '--imp-rot': `${imp.rotate}deg`,
     viewTransitionName,
   } as CSSProperties
-  const face = (id: string) => (
+  const face = (
     <Face
       iso2={meta.iso2}
       shape={shape}
       iso3={meta.iso3}
-      names={names}
       engraved={engraved && !pending}
+      ringed={shape === meta.shape && !pending}
       pending={pending}
-      idBase={`${idBase}${id}`}
     />
   )
   const layered = worn && !pending
@@ -214,10 +176,10 @@ export function CountryStamp({
       <span className="cs-tilt" key={played ?? 'rest'} data-impress={played ? '' : undefined}>
         {layered ? (
           <span className="cs-worn" data-shape={shape}>
-            <span className="cs-content">{face('w')}</span>
+            <span className="cs-content">{face}</span>
           </span>
         ) : null}
-        {!layered || !isStatic ? <span className="cs-full">{face('f')}</span> : null}
+        {!layered || !isStatic ? <span className="cs-full">{face}</span> : null}
       </span>
     </span>
   )

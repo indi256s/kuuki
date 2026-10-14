@@ -171,6 +171,51 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^5.20261009.1
         version: 5.20261009.1
+      '@expo-google-fonts/commissioner':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/noto-sans-arabic':
+        specifier: ^0.4.3
+        version: 0.4.3
+      '@expo-google-fonts/noto-sans-armenian':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-bengali':
+        specifier: ^0.4.4
+        version: 0.4.4
+      '@expo-google-fonts/noto-sans-devanagari':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/noto-sans-ethiopic':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-georgian':
+        specifier: ^0.4.3
+        version: 0.4.3
+      '@expo-google-fonts/noto-sans-hebrew':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/noto-sans-khmer':
+        specifier: ^0.4.3
+        version: 0.4.3
+      '@expo-google-fonts/noto-sans-lao':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-myanmar':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-sinhala':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-thaana':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-thai':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-serif-tibetan':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@next/eslint-plugin-next':
         specifier: 16.3.8
         version: 16.3.8(eslint@9.39.5(jiti@2.7.0))
@@ -210,6 +255,9 @@ importers:
       eslint-plugin-react:
         specifier: 7.37.5
         version: 7.37.5(eslint@9.39.5(jiti@2.7.0))
+      harfbuzzjs:
+        specifier: ^1.6.3
+        version: 1.6.3
       jsdom:
         specifier: ^30.1.2
         version: 30.1.2(@noble/hashes@2.4.0)
@@ -1169,6 +1217,51 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@expo-google-fonts/commissioner@0.4.1':
+    resolution: {integrity: sha512-M+Gdbq507GnODV/+Sc99BD+1X9e7L89n7GTthA373wL3NANFa2s57nOFrGjbciZfrVeVzB2iJKqq8lTO6eEnwA==}
+
+  '@expo-google-fonts/noto-sans-arabic@0.4.3':
+    resolution: {integrity: sha512-YvtxyuegxPegu2g5urXJ+gQxRp8i798nQswTmEjwXOWR/fqy0Gvey6h5IoNRBrc43SxRxPezqCiR9ivpfPAXSg==}
+
+  '@expo-google-fonts/noto-sans-armenian@0.4.2':
+    resolution: {integrity: sha512-AHnwnabRI64hwenSeePxp2TICbYK6Wg56o2y5shFTLWLWzwnPXv30r4LGy6NQYk9PliXizDU9Qeyvob6e3tsgQ==}
+
+  '@expo-google-fonts/noto-sans-bengali@0.4.4':
+    resolution: {integrity: sha512-Ya58tLTEdP4P5EF3ZXTM829/g57mbfW8OrD16MMZr2sC3nIKItl/3J9tZlk1nrtqfFGzIgxb+zt/hLjAaTAQgQ==}
+
+  '@expo-google-fonts/noto-sans-devanagari@0.4.1':
+    resolution: {integrity: sha512-26boYPNKGP1r4R5MxsMAY/zCQOwiXLOJzX8sh1a2oEWyQurQsyniaCv4992c+9jjwshEEt2NNVv5GcnyzaL7QQ==}
+
+  '@expo-google-fonts/noto-sans-ethiopic@0.4.2':
+    resolution: {integrity: sha512-puS0u1/7b0kZ6fqOYaSlCdai8zHuD9CQY2qlyJEtYzUC5Nd1fH3QENmQc0a1Gcqe0q9s3n7440eNJSLK2mGouw==}
+
+  '@expo-google-fonts/noto-sans-georgian@0.4.3':
+    resolution: {integrity: sha512-qvQ/DE/F10hZPD/vYSm68aNWjOLyxGrCC3NzZR3L0RWpo2njqePvNjXcAcR9yvLwrREOmlWGtUD7GTAuIjlkzA==}
+
+  '@expo-google-fonts/noto-sans-hebrew@0.4.1':
+    resolution: {integrity: sha512-NR3vP6GT/hSINLrk4JHJBQnuzh/C1mlMrphNlI2dQaO53a3oTjSRoG4JyYb1B6bHadjsGh0wPZbT4kMJBKjT/w==}
+
+  '@expo-google-fonts/noto-sans-khmer@0.4.3':
+    resolution: {integrity: sha512-vBG7J/w4j+tPTPA53a43zb/s/K3AjHRTDbEG4omn/xs4dThknBh4aVRJ4zwROLy7OeZnhQPDkGRUEPAi8C/btg==}
+
+  '@expo-google-fonts/noto-sans-lao@0.4.2':
+    resolution: {integrity: sha512-gM/grIG03BWSk8lqiR1IC7WHpGH/8TrvwU0ZjEvs236YiN0LK2qQythq6lqcJbENo/0HMxdk13n35yhqnHVJ8g==}
+
+  '@expo-google-fonts/noto-sans-myanmar@0.4.2':
+    resolution: {integrity: sha512-qG8DHmy+7xFvW5z8lN3r5jjEXoQBhjpjoxXR/Y8/WcywirPIBZnFpAy5IlwCRSobJdCw3+i7gvmIz1bl6mp7bg==}
+
+  '@expo-google-fonts/noto-sans-sinhala@0.4.2':
+    resolution: {integrity: sha512-pczEE8p3aAvnMuVSppyW8d9dqlg9wxr8R3BfEUB9qPQHAWlR9TsSlaGbF/G/j8k4fSU21swf+v5p4BeTuFeMtA==}
+
+  '@expo-google-fonts/noto-sans-thaana@0.4.2':
+    resolution: {integrity: sha512-nidXdOuvsuuhdb0bXxSQxxg7uW0eAEXtqU3wmJ5Yo7m5VmCe1Zdy5MX+2EWo86qlWG4NK9YoGjmU04/dCt+FIw==}
+
+  '@expo-google-fonts/noto-sans-thai@0.4.2':
+    resolution: {integrity: sha512-PGBBBDGfJJ/5y2hNweLBZWD4YmVT4uOO4chsOPXyl0TktaBJamDKVKv/WbGiDTeBGdkegLiytsWo+lhnkHP5qA==}
+
+  '@expo-google-fonts/noto-serif-tibetan@0.4.2':
+    resolution: {integrity: sha512-e3PdLzPldwsirxE0xUN3IQ69XG6QOTQT1jxm2AnB3RrYPHLC+043AM4VZCkYXfepr1oPqK4caEKkuXyehF6y5Q==}
 
   '@floating-ui/core@1.8.0':
     resolution: {integrity: sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ==}
@@ -3885,6 +3978,9 @@ packages:
   gzip-size@6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}
     engines: {node: '>=10'}
+
+  harfbuzzjs@1.6.3:
+    resolution: {integrity: sha512-R5Mfo1UUvQmZJmtScP7fBLKYKnYu82ZdtFT7WbQYeGb3Ut5PR3xfFCJ5/FjbcW5SAfb9cqCSny/KNjp+NJBx0w==}
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -6605,6 +6701,36 @@ snapshots:
     optionalDependencies:
       '@noble/hashes': 2.4.0
 
+  '@expo-google-fonts/commissioner@0.4.1': {}
+
+  '@expo-google-fonts/noto-sans-arabic@0.4.3': {}
+
+  '@expo-google-fonts/noto-sans-armenian@0.4.2': {}
+
+  '@expo-google-fonts/noto-sans-bengali@0.4.4': {}
+
+  '@expo-google-fonts/noto-sans-devanagari@0.4.1': {}
+
+  '@expo-google-fonts/noto-sans-ethiopic@0.4.2': {}
+
+  '@expo-google-fonts/noto-sans-georgian@0.4.3': {}
+
+  '@expo-google-fonts/noto-sans-hebrew@0.4.1': {}
+
+  '@expo-google-fonts/noto-sans-khmer@0.4.3': {}
+
+  '@expo-google-fonts/noto-sans-lao@0.4.2': {}
+
+  '@expo-google-fonts/noto-sans-myanmar@0.4.2': {}
+
+  '@expo-google-fonts/noto-sans-sinhala@0.4.2': {}
+
+  '@expo-google-fonts/noto-sans-thaana@0.4.2': {}
+
+  '@expo-google-fonts/noto-sans-thai@0.4.2': {}
+
+  '@expo-google-fonts/noto-serif-tibetan@0.4.2': {}
+
   '@floating-ui/core@1.8.0':
     dependencies:
       '@floating-ui/utils': 0.2.12
@@ -9072,6 +9198,8 @@ snapshots:
   gzip-size@6.0.0:
     dependencies:
       duplexer: 0.1.2
+
+  harfbuzzjs@1.6.3: {}
 
   has-bigints@1.1.0: {}
 

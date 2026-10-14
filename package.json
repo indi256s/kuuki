@@ -30,6 +30,7 @@
     "verify:import:provider": "tsx scripts/verify-import-provider.ts",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
+    "generate:ring-endonyms": "tsx scripts/generate-ring-endonyms.ts",
     "generate:stamps": "tsx scripts/generate-stamps.ts",
     "check:stamps": "tsx scripts/check-stamps.ts",
     "generate:concorde": "node scripts/generate-concorde.mjs",

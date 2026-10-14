@@ -1,55 +1,42 @@
-import { describe, expect, it } from 'vitest'
-import registry from '../../lib/stamp-art/registry.json'
-import { SHAPE_NAMES, frames } from '../../lib/stamp-art/frame'
-import type { Locale } from '../../lib/format'
-import { stampCodes, stampMeta, stampNames } from './stamp-meta'
-import { ringNames } from './country-stamp'
-import { BUDGET, FS_FLOOR, fitRing } from './ring-fit'
+import { beforeAll, describe, expect, it } from 'vitest'
+import endonyms from '../../lib/stamp-art/ring-endonyms.json'
+import { frames } from '../../lib/stamp-art/frame'
+import { BUDGET, FS_FLOOR, bakeRing, initRingBake } from '../../lib/stamp-art/ring-bake'
+import { stampCodes, stampMeta } from './stamp-meta'
 
-const codes = (registry as { iso2: string }[]).map((r) => r.iso2)
+const rows = endonyms as Record<string, { script: string }>
+const CASED = new Set(['Latin', 'Cyrillic', 'Greek'])
 
-describe('ring fitting', () => {
-  it.each(['en', 'ru'] as Locale[])(
-    'keeps every %s catalog name inside its ring on every shape, at or above the font floor',
-    (locale) => {
-      for (const shape of SHAPE_NAMES) {
-        const { ring, family } = frames[shape]
-        for (const code of codes) {
-          const fit = fitRing(ringNames(code, locale), ring.top.length, family)
-          const label = `${shape} ${locale} ${code} ${fit.text}`
-          expect(fit.width, label).toBeLessThanOrEqual(ring.top.length * BUDGET[family] + 0.01)
+beforeAll(initRingBake)
+
+describe('baked ring text', () => {
+  it('fits every country inside its own ring, at or above the font floor, without cutting a name', () => {
+    for (const code of stampCodes()) {
+      const shape = stampMeta(code).shape
+      const { ring, family } = frames[shape]
+      const baked = bakeRing(code, shape)
+      for (const [name, fit, path] of [
+        ['top', baked.top, ring.top],
+        ['bottom', baked.bottom, ring.bottom],
+      ] as const) {
+        if (!fit) continue
+        const label = `${shape} ${code} ${name} ${fit.text}`
+        expect(fit.width, label).toBeLessThanOrEqual(path.length * BUDGET[family] + 0.01)
+        expect(fit.fontSize, label).toBeGreaterThanOrEqual(fit.floor)
+        expect(fit.text, label).not.toContain('…')
+        if (CASED.has(rows[code].script) || name === 'bottom')
           expect(fit.fontSize, label).toBeGreaterThanOrEqual(FS_FLOOR)
-        }
       }
-    },
-  )
-
-  it.each(['en', 'ru'] as Locale[])(
-    'shows every %s name untruncated in its own shape',
-    (locale) => {
-      const cut = stampCodes().filter((code) => {
-        const { ring, family } = frames[stampMeta(code).shape]
-        return fitRing(ringNames(code, locale), ring.top.length, family).source === 'truncated'
-      })
-      expect(cut).toEqual([])
-    },
-  )
-
-  it('cuts at a word boundary and drops a dangling connector before the ellipsis', () => {
-    const { ring, family } = frames.rectangle
-    const fit = fitRing(['SOUTH GEORGIA & SOUTH SANDWICH ISLANDS'], ring.top.length, family)
-    expect(fit.source).toBe('truncated')
-    expect(fit.text).toMatch(/^SOUTH GEORGIA…$/)
-    const ru = fitRing(['БОСНИЯ И ГЕРЦЕГОВИНА И ДРУГИЕ ТЕРРИТОРИИ ЮЖНЫЕ'], 90, family)
-    expect(ru.text).not.toMatch(/(?:\sИ|-|&)…$/)
+      expect(baked.svg).toMatch(/^<svg [^>]*><path d="m[^"]+"\/><\/svg>$/)
+    }
   })
 
-  it('cuts a name that cannot fit at the floor size with an ellipsis, and leaves short names whole', () => {
-    const { ring, family } = frames.octagon
-    const name = stampNames('GS', 'ru').name.toLocaleUpperCase('ru')
-    expect(fitRing([name], ring.top.length, family).text.endsWith('…')).toBe(true)
-    const short = fitRing(['JAPAN'], ring.top.length, family)
-    expect(short.text).toBe('JAPAN')
-    expect(short.source).toBe('full')
+  it('shows the name in its own script on top and the English name below, or three dots when both are the same word', () => {
+    const de = bakeRing('DE', stampMeta('DE').shape)
+    expect([de.top.text, de.bottom?.text]).toEqual(['DEUTSCHLAND', 'GERMANY'])
+    const gr = bakeRing('GR', stampMeta('GR').shape)
+    expect([gr.top.text, gr.bottom?.text]).toEqual(['ΕΛΛΑΣ', 'GREECE'])
+    const gb = bakeRing('GB', stampMeta('GB').shape)
+    expect([gb.top.text, gb.bottom]).toEqual(['UNITED KINGDOM', null])
   })
 })
