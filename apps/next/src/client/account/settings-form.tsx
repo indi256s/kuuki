@@ -23,6 +23,7 @@ import { SwitchRow } from '../ui/switch-row'
 import { SegmentedControl } from '../ui/segmented-control'
 import { SwatchPicker } from '../ui/swatch-picker'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
+import { countryNamer } from '../passport/model'
 import type { toOwnProfile } from '../../../../../functions/api/_lib/profiles'
 import {
   downloadSettingsData,
@@ -44,6 +45,7 @@ const values = (profile: Profile) => ({
   gemini_api_key: profile.gemini_api_key ?? '',
   is_public: profile.is_public,
   show_on_leaderboards: profile.show_on_leaderboards,
+  passport_publication: profile.passport_publication,
 })
 const flightsLeft = {
   en: { one: '{count} more flight needed.', other: '{count} more flights needed.' },
@@ -54,6 +56,34 @@ const flightsLeft = {
     other: 'Нужно ещё {count} перелёта.',
   },
 }
+const addsForms = {
+  en: { one: 'Adds {count}:', other: 'Adds {count}:' },
+  ru: {
+    one: 'Добавится {count}:',
+    few: 'Добавятся {count}:',
+    many: 'Добавятся {count}:',
+    other: 'Добавятся {count}:',
+  },
+}
+const countryForms = {
+  en: { one: '{count} country', other: '{count} countries' },
+  ru: {
+    one: '{count} страна',
+    few: '{count} страны',
+    many: '{count} стран',
+    other: '{count} страны',
+  },
+}
+const publishForms = {
+  en: { one: 'Publish {count} country', other: 'Publish {count} countries' },
+  ru: {
+    one: 'Опубликовать {count} страну',
+    few: 'Опубликовать {count} страны',
+    many: 'Опубликовать {count} стран',
+    other: 'Опубликовать {count} страны',
+  },
+}
+export type PublicationPreviews = { flights: string[]; all: string[] }
 type AddressCheck = 'ok' | 'taken' | 'invalid'
 const subscribeNothing = () => () => {}
 const readHost = () => window.location.host
@@ -65,12 +95,15 @@ export function SettingsForm({
   locale: initialLocale,
   counts = null,
   hasPassword = true,
+  previews = null,
 }: {
   ownerId: string
   profile: Profile
   locale: Locale
   counts?: SettingsCounts | null
   hasPassword?: boolean | null
+  /** Country codes a visitor would see under each publication scope; null when the read failed. */
+  previews?: PublicationPreviews | null
 }) {
   const locale = useLocale(initialLocale)
   const ru = locale === 'ru',
@@ -82,7 +115,8 @@ export function SettingsForm({
     [identityBusy, setIdentityBusy] = useState(false)
   const [messageCopy, setMessage] = useState<Record<Locale, string> | null>(null),
     [errorCopy, setError] = useState<Record<Locale, string> | null>(null),
-    [deleteOpen, setDeleteOpen] = useState(false)
+    [deleteOpen, setDeleteOpen] = useState(false),
+    [proposing, setProposing] = useState(false)
   const message = messageCopy?.[locale] ?? ''
   const error = errorCopy?.[locale] ?? ''
   const busy = saving || exporting || identityBusy
@@ -165,7 +199,7 @@ export function SettingsForm({
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
     try {
-      const { username, display_name, ...fields } = draft
+      const { username, display_name, passport_publication, ...fields } = draft
       const sentUsername = username !== baseline.username ? username : null
       const payload = {
         ...fields,
@@ -175,6 +209,8 @@ export function SettingsForm({
         ...(display_name !== baseline.display_name
           ? { display_name: normalizeName(display_name) || null }
           : {}),
+        // Widening or narrowing publication is sent only when the member changed it.
+        ...(passport_publication !== baseline.passport_publication ? { passport_publication } : {}),
         bio: draft.bio.trim() || null,
         home_airport: draft.home_airport.trim() || null,
         avatar_url: draft.avatar_url.trim() || null,
@@ -318,6 +354,14 @@ export function SettingsForm({
     timeStyle: 'short',
     timeZone: 'UTC',
   }).format(limit.retryAt)
+  const nameOf = countryNamer(locale),
+    collator = new Intl.Collator(locale)
+  const byName = (codes: string[]) => codes.map(nameOf).sort(collator.compare)
+  const publishAll = draft.passport_publication === 'all'
+  const previewAll = previews ? byName(previews.all) : []
+  const previewAdded = previews
+    ? byName(previews.all.filter((code) => !previews.flights.includes(code)))
+    : []
   const leaderboardReason = !draft.is_public
     ? text('Make your profile public first.', 'Сначала сделайте профиль публичным.')
     : counts === null
@@ -493,6 +537,89 @@ export function SettingsForm({
               'Нужны публичный профиль и пять завершённых перелётов.',
             )}
           />
+          <SwitchRow
+            label={text('Publish all confirmed countries', 'Публиковать все подтверждённые страны')}
+            checked={publishAll || proposing}
+            disabled={busy}
+            onCheckedChange={(value) => {
+              if (value) setProposing(true)
+              else {
+                setProposing(false)
+                edit('passport_publication', 'flights')
+              }
+            }}
+            description={text(
+              'By default your public passport shows countries from flights only. This adds countries confirmed by train, road trips and manual marks. Dates, sources and routes stay private, and hidden countries are never published.',
+              'По умолчанию в публичном паспорте только страны из перелётов. Этот пункт добавляет страны, подтверждённые поездками на поезде и на авто, а также ручными отметками. Даты, источники и маршруты остаются приватными, скрытые страны не публикуются.',
+            )}
+            consequence={
+              publishAll
+                ? text(
+                    'Turning it off returns the public passport to flight countries.',
+                    'Если выключить, в публичном паспорте снова останутся страны из перелётов.',
+                  )
+                : undefined
+            }
+          />
+          {!draft.is_public ? (
+            <p className="settings-note">
+              {text(
+                'Your profile is private, so nothing is public now. This setting applies when the profile becomes public.',
+                'Ваш профиль закрыт, поэтому сейчас ничего не опубликовано. Настройка вступит в силу, когда профиль станет публичным.',
+              )}
+            </p>
+          ) : null}
+          {proposing && !publishAll ? (
+            <div className="settings-publication" role="group" aria-live="polite">
+              {previews ? (
+                <>
+                  <p>
+                    {text('Public collection: ', 'Публичная коллекция: ')}
+                    {formatCount(locale, previewAll.length, countryForms)}
+                    {previewAll.length ? `. ${previewAll.join(', ')}.` : '.'}
+                  </p>
+                  <p>
+                    {previewAdded.length
+                      ? `${formatCount(locale, previewAdded.length, addsForms)} ${previewAdded.join(', ')}.`
+                      : text(
+                          'Nothing would be added: your public passport already has every confirmed country.',
+                          'Ничего не добавится: в публичном паспорте уже есть все подтверждённые страны.',
+                        )}
+                  </p>
+                  <div className="settings-actions">
+                    <Button
+                      type="button"
+                      variant="primary"
+                      disabled={busy}
+                      onClick={() => {
+                        edit('passport_publication', 'all')
+                        setProposing(false)
+                      }}
+                    >
+                      {formatCount(locale, previewAll.length, publishForms)}
+                    </Button>
+                    <Button type="button" disabled={busy} onClick={() => setProposing(false)}>
+                      {text('Cancel', 'Отмена')}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p>
+                    {text(
+                      'The preview is unavailable, so publication cannot be widened now. Refresh to try again.',
+                      'Предпросмотр недоступен, поэтому расширить публикацию сейчас нельзя. Обновите страницу и повторите.',
+                    )}
+                  </p>
+                  <div className="settings-actions">
+                    <Button type="button" disabled={busy} onClick={() => setProposing(false)}>
+                      {text('Cancel', 'Отмена')}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
         </section>
       </form>
       <section aria-labelledby="settings-appearance-heading">

@@ -527,3 +527,66 @@ describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 })
+
+describe('Passport publication', () => {
+  const previews = { flights: ['FR', 'JP'], all: ['AT', 'FR', 'IT', 'JP'] }
+  const mountPublication = (data: typeof previews | null = previews) =>
+    render(
+      <SettingsForm ownerId="a" profile={profile} locale="en" counts={counts} previews={data} />,
+    )
+  const sentBody = () => m.patch.mock.calls[0][1] as Record<string, unknown>
+  const toggle = () =>
+    userEvent.click(screen.getByRole('switch', { name: 'Publish all confirmed countries' }))
+  const save = () => userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+  it('keeps flights as the default and a plain save does not send the setting', async () => {
+    mountPublication()
+    fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Edited' } })
+    await save()
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
+    expect(sentBody()).not.toHaveProperty('passport_publication')
+  })
+
+  it('previews the added countries on turning on and leaves the draft untouched until confirmed', async () => {
+    mountPublication()
+    await toggle()
+    expect(screen.getByText(/Adds 2:/)).toHaveTextContent('Adds 2: Austria, Italy.')
+    expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull()
+    fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Edited' } })
+    await save()
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
+    expect(sentBody()).not.toHaveProperty('passport_publication')
+  })
+
+  it('sends all after Confirm and Save', async () => {
+    mountPublication()
+    await toggle()
+    await userEvent.click(screen.getByRole('button', { name: 'Publish 4 countries' }))
+    await save()
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
+    expect(sentBody()).toMatchObject({ passport_publication: 'all' })
+  })
+
+  it('sends flights when turned off again', async () => {
+    render(
+      <SettingsForm
+        ownerId="a"
+        profile={{ ...profile, passport_publication: 'all' }}
+        locale="en"
+        counts={counts}
+        previews={previews}
+      />,
+    )
+    await toggle()
+    await save()
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
+    expect(sentBody()).toMatchObject({ passport_publication: 'flights' })
+  })
+
+  it('offers no confirm when previews are unavailable', async () => {
+    mountPublication(null)
+    await toggle()
+    expect(screen.getByText(/preview is unavailable/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Publish \d+ countr/ })).toBeNull()
+  })
+})
