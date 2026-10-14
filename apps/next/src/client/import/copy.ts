@@ -246,8 +246,8 @@ ${PROMPT_EXAMPLE.ru}
     'Данные не подтверждены источником. Проверьте их, прежде чем выбрать перелёт.',
   ),
   notVerifiedSave: p(
-    'Not verified against the source. Check the details before saving.',
-    'Данные не подтверждены источником. Проверьте их перед сохранением.',
+    'Check the details against the document before saving.',
+    'Сверьте данные с документом перед сохранением.',
   ),
   fieldUnsure: p('Unsure', 'Не уверены'),
   snippetTitle: p('Found in the document', 'Найдено в документе'),
@@ -584,6 +584,24 @@ export type Key = keyof typeof S
 export const tx = (locale: Locale, key: Key): string => S[key][locale]
 
 export const COUNTS = {
+  saveSelected: {
+    en: { one: 'Save {count} flight', other: 'Save {count} flights' },
+    ru: {
+      one: 'Сохранить {count} перелёт',
+      few: 'Сохранить {count} перелёта',
+      many: 'Сохранить {count} перелётов',
+      other: 'Сохранить {count} перелёта',
+    },
+  },
+  savedFlights: {
+    en: { one: '{count} flight saved', other: '{count} flights saved' },
+    ru: {
+      one: 'Сохранён {count} перелёт',
+      few: 'Сохранено {count} перелёта',
+      many: 'Сохранено {count} перелётов',
+      other: 'Сохранено {count} перелёта',
+    },
+  },
   selected: {
     en: { one: '{count} selected', other: '{count} selected' },
     ru: {

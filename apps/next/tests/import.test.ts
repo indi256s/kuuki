@@ -306,7 +306,7 @@ test('leaving and reloading during recognition resumes the stored batch without 
     }),
   ])
   await expect(rows(page)).toHaveCount(2, { timeout: 15000 })
-  await expect(page.getByRole('button', { name: 'Save flights' })).not.toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Save 2 flights' })).not.toHaveAttribute(
     'aria-disabled',
     'true',
   )
@@ -327,7 +327,7 @@ test('reloading review retains member exclusions', async ({ page, baseURL }) => 
   expect(server.patches[0].body.selected).toBe(false)
   await page.reload()
   await expect(rows(page).first().getByRole('checkbox')).not.toBeChecked()
-  await page.getByRole('button', { name: 'Save flights' }).click()
+  await page.getByRole('button', { name: 'Save 1 flight', exact: true }).click()
   await expect(page).toHaveURL(/\/journal\?flight=/)
   expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d2'])
   await page.goto('/import')
@@ -356,7 +356,7 @@ test('a partial save keeps failed rows actionable and retries only the original 
   ])
   server.failOnce.add('d2')
   await page.goto(`/import?batch=${BATCH}`)
-  await page.getByRole('button', { name: 'Save flights' }).click()
+  await page.getByRole('button', { name: 'Save 3 flights' }).click()
   await expect(
     page.getByText('Couldn’t finish saving. Your remaining flights are kept here.'),
   ).toBeVisible()
@@ -368,7 +368,7 @@ test('a partial save keeps failed rows actionable and retries only the original 
   expect(server.confirms).toHaveLength(2)
   expect(server.confirms[1].items.map((item) => item.draftId)).toEqual(['d2'])
   expect(server.confirms[1].items[0].key).toBe(server.confirms[0].items[1].key)
-  await expect(page.getByText('Flights saved', { exact: true })).toBeVisible()
+  await expect(page.getByText('3 flights saved', { exact: true })).toBeVisible()
 })
 
 test('typed corrections protect close and save until persisted', async ({ page, baseURL }) => {
@@ -383,7 +383,7 @@ test('typed corrections protect close and save until persisted', async ({ page, 
   const first = rows(page).first()
   await first.getByRole('button', { name: 'Edit' }).click()
   await first.getByLabel('To (airport code)').fill('BOS')
-  const save = page.getByRole('button', { name: 'Save flights' })
+  const save = page.getByRole('button', { name: 'Save 2 flights' })
   await expect(save).toHaveAttribute('aria-disabled', 'true')
   await expect(page.getByRole('button', { name: 'Close import' })).toHaveAttribute(
     'aria-disabled',
@@ -484,7 +484,7 @@ test('barcode reading automatically complements online, asks the year once, and 
   await page.goto('/import?source=pass')
   await expect(page.getByRole('heading', { name: 'Import flights' })).toBeVisible()
   await expect(
-    page.getByText('Photos and PDFs may be sent for online recognition', { exact: false }),
+    page.getByText('Files and pasted text are sent for online recognition', { exact: false }),
   ).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeHidden()
   const camera = page.locator('input[type=file][capture]')
@@ -540,7 +540,7 @@ test('an unreadable pass continues online without another confirmation', async (
   server.ready([row('d1')])
   await page.goto('/import?source=pass')
   await expect(
-    page.getByText('Photos and PDFs may be sent for online recognition', { exact: false }),
+    page.getByText('Files and pasted text are sent for online recognition', { exact: false }),
   ).toBeVisible()
   await screenshotInput(page).setInputFiles({
     name: 'blank.png',
@@ -682,7 +682,8 @@ test('empty extraction reports no flights and keeps another-file and manual reco
   await submitText(page)
   await expect(page.getByText('No flights found', { exact: true })).toBeVisible()
   await expect(page.getByText('Ready to review', { exact: true })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Add files' })).toBeEnabled()
+  await page.getByRole('button', { name: 'Add more' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Add files' })).toBeEnabled()
   await expect(page.getByRole('link', { name: 'Enter manually' })).toHaveAttribute('href', '/add')
   expect(server.confirms).toHaveLength(0)
 })

@@ -45,6 +45,9 @@
   display: grid;
   gap: var(--space-4);
 }
+.journal-bulk-dialog .flight-search-popover {
+  position: static;
+}
 .journal-bulk-dialog-actions {
   display: flex;
   flex-wrap: wrap;
