@@ -25,6 +25,12 @@ import { rooftops } from './rooftops'
 import { atoll } from './atoll'
 import { dunes } from './dunes'
 import { pyramid, steppedPyramid } from './pyramid'
+import { ganvie } from './ganvie'
+import { islandB } from './island-b'
+import { kolmanskop } from './kolmanskop'
+import { ruinWall } from './ruin-wall'
+import { standingStonesB } from './standing-stones-b'
+import { veranda } from './veranda'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -79,6 +85,12 @@ export const kit = {
   'switchback-wall': switchbackWall,
   'rock-hill': rockHill,
   'ruined-temple': ruinedTemple,
+  ganvie,
+  'island-b': islandB,
+  kolmanskop,
+  'ruin-wall': ruinWall,
+  'standing-stones-b': standingStonesB,
+  veranda,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

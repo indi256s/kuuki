@@ -297,7 +297,7 @@
       "en": "Burkina Faso",
       "ru": "Буркина-Фасо"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BG": {
     "cluster": null,
@@ -357,7 +357,7 @@
       "en": "Benin",
       "ru": "Бенин"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BL": {
     "cluster": "lighthouse",
@@ -477,7 +477,7 @@
       "en": "Botswana",
       "ru": "Ботсвана"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BY": {
     "cluster": "castle",
@@ -612,7 +612,7 @@
       "en": "Côte d’Ivoire",
       "ru": "Кот-д’Ивуар"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CK": {
     "cluster": null,
@@ -732,7 +732,7 @@
       "en": "Cape Verde",
       "ru": "Кабо-Верде"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CW": {
     "cluster": "stepped-gable",
@@ -1182,7 +1182,7 @@
       "en": "Ghana",
       "ru": "Гана"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GI": {
     "cluster": null,
@@ -1227,7 +1227,7 @@
       "en": "Gambia",
       "ru": "Гамбия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GN": {
     "cluster": "palm-island",
@@ -1242,7 +1242,7 @@
       "en": "Guinea",
       "ru": "Гвинея"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GP": {
     "cluster": null,
@@ -2337,7 +2337,7 @@
       "en": "Namibia",
       "ru": "Намибия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NC": {
     "cluster": "lighthouse",
@@ -3282,7 +3282,7 @@
       "en": "Tunisia",
       "ru": "Тунис"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TO": {
     "cluster": "megalith",
