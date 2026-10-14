@@ -108,6 +108,7 @@ import jo from './jo.json'
 import jp from './jp.json'
 import ke from './ke.json'
 import kg from './kg.json'
+import kh from './kh.json'
 import km from './km.json'
 import kn from './kn.json'
 import kp from './kp.json'
@@ -115,6 +116,7 @@ import kr from './kr.json'
 import kw from './kw.json'
 import ky from './ky.json'
 import kz from './kz.json'
+import la from './la.json'
 import lb from './lb.json'
 import lc from './lc.json'
 import li from './li.json'
@@ -133,6 +135,7 @@ import mf from './mf.json'
 import mg from './mg.json'
 import mk from './mk.json'
 import ml from './ml.json'
+import mm from './mm.json'
 import mn from './mn.json'
 import mo from './mo.json'
 import mq from './mq.json'
@@ -143,6 +146,7 @@ import mu from './mu.json'
 import mv from './mv.json'
 import mw from './mw.json'
 import mx from './mx.json'
+import my from './my.json'
 import mz from './mz.json'
 import na from './na.json'
 import nc from './nc.json'
@@ -177,6 +181,7 @@ import sb from './sb.json'
 import sc from './sc.json'
 import sd from './sd.json'
 import se from './se.json'
+import sg from './sg.json'
 import sh from './sh.json'
 import si from './si.json'
 import sj from './sj.json'
@@ -198,6 +203,7 @@ import tf from './tf.json'
 import tg from './tg.json'
 import th from './th.json'
 import tj from './tj.json'
+import tl from './tl.json'
 import tm from './tm.json'
 import tn from './tn.json'
 import tr from './tr.json'
@@ -334,6 +340,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   jp,
   ke,
   kg,
+  kh,
   km,
   kn,
   kp,
@@ -341,6 +348,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   kw,
   ky,
   kz,
+  la,
   lb,
   lc,
   li,
@@ -359,6 +367,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   mg,
   mk,
   ml,
+  mm,
   mn,
   mo,
   mq,
@@ -369,6 +378,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   mv,
   mw,
   mx,
+  my,
   mz,
   na,
   nc,
@@ -403,6 +413,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   sc,
   sd,
   se,
+  sg,
   sh,
   si,
   sj,
@@ -424,6 +435,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tg,
   th,
   tj,
+  tl,
   tm,
   tn,
   tr,

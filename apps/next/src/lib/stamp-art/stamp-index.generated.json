@@ -1692,7 +1692,7 @@
       "en": "Cambodia",
       "ru": "Камбоджа"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KI": {
     "cluster": "atoll",
@@ -1827,7 +1827,7 @@
       "en": "Laos",
       "ru": "Лаос"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LB": {
     "cluster": "rock-arch",
@@ -2120,14 +2120,14 @@
     "iso3": "MMR",
     "name": {
       "en": "Myanmar (Burma)",
-      "ru": "Мьянма (Бирма)"
+      "ru": "Мьянма"
     },
     "shape": "circle",
     "short": {
       "en": "Myanmar",
       "ru": "Мьянма (Бирма)"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MN": {
     "cluster": null,
@@ -2307,7 +2307,7 @@
       "en": "Malaysia",
       "ru": "Малайзия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MZ": {
     "cluster": "fort",
@@ -2907,7 +2907,7 @@
       "en": "Singapore",
       "ru": "Сингапур"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SH": {
     "cluster": null,
@@ -3252,7 +3252,7 @@
       "en": "Timor-Leste",
       "ru": "Восточный Тимор"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TM": {
     "cluster": null,

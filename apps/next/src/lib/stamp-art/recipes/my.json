@@ -1,0 +1,32 @@
+{
+  "iso2": "MY",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [48, 40, 26, 150, 50, 26],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "kinabalu",
+      "box": [48, 40, 104, 92],
+      "params": {
+        "forest": 0.8
+      }
+    }
+  ]
+}
