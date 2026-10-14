@@ -60,6 +60,12 @@ import { funicularC } from './funicular-c'
 import { waterWheelC } from './water-wheel-c'
 import { waterfall } from './waterfall'
 import { tataSomba } from './tata-somba'
+import { greatHouseA } from './great-house-a'
+import { millRuinA } from './mill-ruin-a'
+import { citadelle } from './citadelle'
+import { pitons } from './pitons'
+import { ridgesA } from './ridges-a'
+import { plumeA } from './plume-a'
 import { granaries } from './granaries'
 import { monolithB } from './monolith-b'
 import { jacobsLadder } from './jacobs-ladder'
@@ -210,6 +216,12 @@ export const kit = {
   'cleft-falls-b': cleftFallsB,
   'wing-station-b': wingStationB,
   'chimneys-b': chimneysB,
+  'great-house-a': greatHouseA,
+  'mill-ruin-a': millRuinA,
+  citadelle,
+  pitons,
+  'ridges-a': ridgesA,
+  'plume-a': plumeA,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

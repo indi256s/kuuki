@@ -1,0 +1,52 @@
+{
+  "iso2": "GD",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "slate",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 60, 34, 150, 64, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "hill-town",
+      "box": [34, 62, 132, 46],
+      "params": {
+        "seed": 2,
+        "rows": 3
+      }
+    },
+    {
+      "module": "colonial-row",
+      "box": [34, 104, 132, 18],
+      "params": {
+        "seed": 5,
+        "minW": 40
+      }
+    },
+    {
+      "module": "tower",
+      "box": [128, 56, 12, 22],
+      "params": {
+        "cap": "battle",
+        "storeys": 1,
+        "openings": 0,
+        "shade": 0
+      }
+    }
+  ]
+}
