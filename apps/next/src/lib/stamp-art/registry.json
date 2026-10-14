@@ -1720,18 +1720,18 @@
     "iso2": "IO",
     "iso3": "IOT",
     "name": "British Indian Ocean Territory",
-    "motif": "Reef ring around a lagoon with a sailing yacht",
+    "motif": "Chagos-type reef ring around a lagoon with palm islets",
     "kind": "nature",
-    "silhouette": "a thin closed reef ring with a lagoon inside and a small sailing yacht at anchor; palms on the rim; no buildings",
-    "modules": ["island", "palm", "ship", "water"],
-    "signature": null,
+    "silhouette": "a closed oval reef ring seen at a low angle: foam-edged outer reef, sandy reef flat carrying palm islets, a pale lagoon with a dark deep patch; no buildings, no boats",
+    "modules": ["reef-ring-b", "palm", "sky", "ground"],
+    "signature": "new:reef-ring-b – closed reef ring with palm islets and a deep lagoon patch",
     "backdrop": null,
     "cluster": "atoll",
-    "status": "kept",
-    "replaced": null,
+    "status": "replaced",
+    "replaced": "Reef ring with a sailing yacht: the yacht is dropped, contested territory gets neutral nature only (rule 5)",
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: closed reef ring with a sailing yacht at anchor inside. Contested: neutral nature only, no buildings (rule 5)."
+    "notes": "part: closed reef ring with islets and a dark deep-water patch. Contested: neutral nature only, no buildings or vessels (rule 5)."
   },
   {
     "iso2": "IQ",
@@ -1944,15 +1944,15 @@
     "motif": "Ngalawa outrigger canoe",
     "kind": "object",
     "silhouette": "Slim dugout hull with an outrigger float on two curved poles, a small sail, flat water",
-    "modules": ["ship", "water"],
-    "signature": "new:outrigger – narrow canoe with a float on two curved arms",
+    "modules": ["ngalawa", "sky", "distance-mountains", "ground"],
+    "signature": "new:ngalawa – narrow dugout with outrigger float on two curved arms and a triangular sail",
     "backdrop": null,
     "cluster": "ship",
     "status": "replaced",
     "replaced": "Mount Karthala, Grande Comore: Q44 (volcano cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: outrigger float on two arms. Promoted research alternate."
+    "notes": "part: outrigger float on two arms and a tall triangular sail. Promoted research alternate."
   },
   {
     "iso2": "KN",
@@ -2335,15 +2335,15 @@
     "motif": "Avenue of the Baobabs",
     "kind": "nature",
     "silhouette": "two receding rows of tall swollen trunks, each topped with a sparse crown tuft; symmetric about the centre line; flat ground strip across the bottom, open sky above",
-    "modules": [],
-    "signature": "new:baobab – receding pair",
+    "modules": ["baobab", "sky", "distance-trees", "ground"],
+    "signature": "new:baobab – receding avenue of bottle trunks with sparse crowns",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": null
+    "notes": "part: two receding rows of baobabs along a dirt road to the vanishing point."
   },
   {
     "iso2": "MH",
@@ -2539,15 +2539,15 @@
     "motif": "Le Morne Brabant",
     "kind": "nature",
     "silhouette": "one steep-sided, flat-crested peak with a broad base, standing in water on a low spit; no other vertical elements; asymmetric slightly, keep it near symmetric",
-    "modules": ["mountains", "island", "water"],
-    "signature": null,
+    "modules": ["le-morne", "sky", "distance-mountains", "ground"],
+    "signature": "new:le-morne – compact basalt monolith with domed flat crest, forest skirt and reef surf",
     "backdrop": null,
     "cluster": "mesa",
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: rounded flat-topped monolith on a peninsula with surf"
+    "notes": "part: compact flat-crested monolith with surf in the lagoon; narrower and taller than MW Mulanje and ZA Table Mountain."
   },
   {
     "iso2": "MV",
@@ -3117,15 +3117,15 @@
     "motif": "Piton de la Fournaise",
     "kind": "nature",
     "silhouette": "a broad, low shield cone with a flat summit crater; the cone spreads wide across the bottom; sea band at the base",
-    "modules": ["volcano", "island", "water"],
-    "signature": null,
+    "modules": ["shield-b", "sky", "ground"],
+    "signature": "new:shield-b – broad shield with caldera wall, stepped summit crater and lava flow to the sea",
     "backdrop": null,
     "cluster": "volcano",
     "status": "kept",
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: broad shield with a stepped nested crater and a lava flow to the sea"
+    "notes": "part: broad shield with a stepped nested crater, caldera wall and a lava flow reaching the sea in steam."
   },
   {
     "iso2": "RO",
@@ -3236,15 +3236,15 @@
     "motif": "Anse Source d'Argent granite boulders",
     "kind": "nature",
     "silhouette": "Smooth rounded granite boulders heaped on a shore, palms leaning above, flat sea",
-    "modules": ["cliff", "palm", "water"],
-    "signature": "new:boulder – huge rounded granite boulder with smooth sides",
+    "modules": ["boulders-b", "palm", "distance-mountains", "ground"],
+    "signature": "new:boulders-b – huge rounded granite boulders with contour shading",
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
     "replaced": "Victoria Clock Tower: clock-tower collision with GB (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "part: smooth granite boulders with palms leaning over. Promoted research alternate."
   },
   {
     "iso2": "SD",
@@ -3593,15 +3593,15 @@
     "motif": "Port-aux-Francais research base",
     "kind": "architecture",
     "silhouette": "A row of low, flat-roofed station buildings on a shelf above a dark cliff, a radio mast on the right, water below",
-    "modules": ["cliff", "water", "platform"],
-    "signature": "new:station – low flat-roofed block; new:mast – thin radio mast",
+    "modules": ["station-b", "sky", "distance-mountains", "ground"],
+    "signature": "new:station-b – row of flat-roofed blocks on a shelf above a sea cliff with a lattice mast",
     "backdrop": null,
     "cluster": "station",
     "status": "kept",
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: flat-roofed block with a radio mast on a sea cliff"
+    "notes": "part: flat-roofed blocks with a lattice radio mast on a sea cliff, Kerguelen ridges behind."
   },
   {
     "iso2": "TG",
@@ -4120,15 +4120,15 @@
     "motif": "Mont Choungui",
     "kind": "nature",
     "silhouette": "a single rounded green peak over a low island band with a pale lagoon edge; asymmetric",
-    "modules": ["mountains", "island", "water"],
-    "signature": null,
+    "modules": ["choungui", "palm", "sky", "ground"],
+    "signature": "new:choungui – rounded forested peak with spurs, shoulder and reef surf",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "Contested: neutral nature only, no buildings (rule 5)."
+    "notes": "Contested: neutral nature only, no buildings (rule 5). Rounded forested peak over a reef lagoon."
   },
   {
     "iso2": "ZA",
@@ -4154,15 +4154,15 @@
     "motif": "Victoria Falls, Zambian bank",
     "kind": "nature",
     "silhouette": "a horizontal band of water falling into a dark gorge with a tall white plume rising above; asymmetric; flat rim line",
-    "modules": ["waterfall", "cliff", "water"],
-    "signature": null,
+    "modules": ["victoria-falls", "sky", "ground"],
+    "signature": "new:victoria-falls – white veils standing out of a dark basalt wall under a billowing spray plume",
     "backdrop": null,
     "cluster": "waterfall",
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: wide curtain with a tall spray plume over a zig-zag gorge"
+    "notes": "part: veils of water against a dark gorge wall with a tall spray plume. Differs from ZW (Great Zimbabwe ruins) and from the other waterfalls (GY/VE tall single drop, UG cleft, AO/GA wide step)."
   },
   {
     "iso2": "ZW",
@@ -4171,14 +4171,14 @@
     "motif": "Great Zimbabwe",
     "kind": "ruin",
     "silhouette": "rounded, high dry-stone enclosure walls with a solid, tapering conical tower rising in front; symmetric about the tower",
-    "modules": ["conical", "tower", "fortress-wall"],
-    "signature": null,
+    "modules": ["great-zimbabwe", "sky", "distance-trees", "ground"],
+    "signature": "new:great-zimbabwe – coursed dry-stone enclosure wall with chevron band and conical tower",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "Omit the Zimbabwe Bird (flag symbol)."
+    "notes": "part: conical tower in front of the Great Enclosure wall. Omit the Zimbabwe Bird (flag symbol). Different from ZM, which is Victoria Falls."
   }
 ]

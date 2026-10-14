@@ -81,12 +81,14 @@ import ht from './ht.json'
 import hu from './hu.json'
 import ie from './ie.json'
 import im from './im.json'
+import io from './io.json'
 import is from './is.json'
 import it from './it.json'
 import je from './je.json'
 import jm from './jm.json'
 import jp from './jp.json'
 import ke from './ke.json'
+import km from './km.json'
 import kn from './kn.json'
 import ky from './ky.json'
 import lc from './lc.json'
@@ -102,12 +104,14 @@ import mc from './mc.json'
 import md from './md.json'
 import me from './me.json'
 import mf from './mf.json'
+import mg from './mg.json'
 import mk from './mk.json'
 import ml from './ml.json'
 import mq from './mq.json'
 import mr from './mr.json'
 import ms from './ms.json'
 import mt from './mt.json'
+import mu from './mu.json'
 import mw from './mw.json'
 import mx from './mx.json'
 import mz from './mz.json'
@@ -123,10 +127,12 @@ import ph from './ph.json'
 import pl from './pl.json'
 import pm from './pm.json'
 import py from './py.json'
+import re from './re.json'
 import ro from './ro.json'
 import rs from './rs.json'
 import ru from './ru.json'
 import rw from './rw.json'
+import sc from './sc.json'
 import sd from './sd.json'
 import se from './se.json'
 import sh from './sh.json'
@@ -143,6 +149,7 @@ import st from './st.json'
 import sv from './sv.json'
 import sz from './sz.json'
 import td from './td.json'
+import tf from './tf.json'
 import tg from './tg.json'
 import th from './th.json'
 import tn from './tn.json'
@@ -155,7 +162,10 @@ import va from './va.json'
 import ve from './ve.json'
 import vn from './vn.json'
 import xk from './xk.json'
+import yt from './yt.json'
 import za from './za.json'
+import zm from './zm.json'
+import zw from './zw.json'
 
 /** Raw recipes by lowercase iso2. check:stamps fails when a recipes/*.json file is missing here. */
 export const RECIPE_FILES: Record<string, unknown> = {
@@ -241,12 +251,14 @@ export const RECIPE_FILES: Record<string, unknown> = {
   hu,
   ie,
   im,
+  io,
   is,
   it,
   je,
   jm,
   jp,
   ke,
+  km,
   kn,
   ky,
   lc,
@@ -262,12 +274,14 @@ export const RECIPE_FILES: Record<string, unknown> = {
   md,
   me,
   mf,
+  mg,
   mk,
   ml,
   mq,
   mr,
   ms,
   mt,
+  mu,
   mw,
   mx,
   mz,
@@ -283,10 +297,12 @@ export const RECIPE_FILES: Record<string, unknown> = {
   pl,
   pm,
   py,
+  re,
   ro,
   rs,
   ru,
   rw,
+  sc,
   sd,
   se,
   sh,
@@ -303,6 +319,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   sv,
   sz,
   td,
+  tf,
   tg,
   th,
   tn,
@@ -315,7 +332,10 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ve,
   vn,
   xk,
+  yt,
   za,
+  zm,
+  zw,
 }
 
 export function loadRecipes(): Recipe[] {

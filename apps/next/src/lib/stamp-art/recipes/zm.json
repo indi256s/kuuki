@@ -1,0 +1,22 @@
+{
+  "iso2": "ZM",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "slate",
+  "cluster": "waterfall",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [150, 50, 34] }
+    },
+    { "module": "ground", "params": { "line": false } }
+  ],
+  "layers": [
+    {
+      "module": "victoria-falls",
+      "box": [26, 48, 146, 78],
+      "params": { "seed": 6 }
+    }
+  ]
+}

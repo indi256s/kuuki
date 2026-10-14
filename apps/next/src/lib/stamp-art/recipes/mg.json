@@ -1,0 +1,25 @@
+{
+  "iso2": "MG",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "ochre-dark",
+  "horizon": 0.62,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [3, 4.2], "weight": "hair", "clouds": [44, 58, 30, 156, 62, 26] }
+    },
+    {
+      "module": "distance-trees",
+      "params": { "height": 6, "amp": 1.6, "seed": 3, "swell": 1.5 }
+    },
+    { "module": "ground", "params": { "line": false } }
+  ],
+  "layers": [
+    {
+      "module": "baobab",
+      "box": [26, 50, 148, 96],
+      "params": { "seed": 17, "hz": 0.656 }
+    }
+  ]
+}

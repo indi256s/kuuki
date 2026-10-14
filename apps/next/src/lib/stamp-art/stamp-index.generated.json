@@ -1516,7 +1516,7 @@
   },
   "IO": {
     "cluster": "atoll",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "IOT",
     "name": {
       "en": "British Indian Ocean Territory",
@@ -1527,7 +1527,7 @@
       "en": "BRIT. INDIAN OCEAN TERR.",
       "ru": "БРИТ. ТЕРР. В ИНД. ОКЕАНЕ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IQ": {
     "cluster": "pyramid",
@@ -1696,7 +1696,7 @@
   },
   "KI": {
     "cluster": "atoll",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "KIR",
     "name": {
       "en": "Kiribati",
@@ -1717,12 +1717,12 @@
       "en": "Comoros",
       "ru": "Коморы"
     },
-    "shape": "octagon",
+    "shape": "cut-rect",
     "short": {
       "en": "Comoros",
       "ru": "Коморы"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KN": {
     "cluster": "fort",
@@ -2056,18 +2056,18 @@
   },
   "MG": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "ochre-dark",
     "iso3": "MDG",
     "name": {
       "en": "Madagascar",
       "ru": "Мадагаскар"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Madagascar",
       "ru": "Мадагаскар"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MH": {
     "cluster": null,
@@ -2161,7 +2161,7 @@
   },
   "MP": {
     "cluster": "atoll",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "MNP",
     "name": {
       "en": "Northern Mariana Islands",
@@ -2236,7 +2236,7 @@
   },
   "MU": {
     "cluster": "mesa",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "MUS",
     "name": {
       "en": "Mauritius",
@@ -2247,7 +2247,7 @@
       "en": "Mauritius",
       "ru": "Маврикий"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MV": {
     "cluster": null,
@@ -2746,7 +2746,7 @@
   },
   "RE": {
     "cluster": "volcano",
-    "ink": "umber",
+    "ink": "oxblood",
     "iso3": "REU",
     "name": {
       "en": "Réunion",
@@ -2757,7 +2757,7 @@
       "en": "Réunion",
       "ru": "Реюньон"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "RO": {
     "cluster": null,
@@ -2851,7 +2851,7 @@
   },
   "SC": {
     "cluster": null,
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "SYC",
     "name": {
       "en": "Seychelles",
@@ -2862,7 +2862,7 @@
       "en": "Seychelles",
       "ru": "Сейшельские о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SD": {
     "cluster": "pyramid",
@@ -3166,7 +3166,7 @@
   },
   "TF": {
     "cluster": "station",
-    "ink": "plum",
+    "ink": "slate",
     "iso3": "ATF",
     "name": {
       "en": "French Southern Territories",
@@ -3177,7 +3177,7 @@
       "en": "FR. SOUTHERN TERR.",
       "ru": "ФР. ЮЖНЫЕ ТЕРР."
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TG": {
     "cluster": "thatched-house",
@@ -3226,7 +3226,7 @@
   },
   "TK": {
     "cluster": "atoll",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "TKL",
     "name": {
       "en": "Tokelau",
@@ -3331,7 +3331,7 @@
   },
   "TV": {
     "cluster": "atoll",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "TUV",
     "name": {
       "en": "Tuvalu",
@@ -3556,7 +3556,7 @@
   },
   "VU": {
     "cluster": "volcano",
-    "ink": "indigo",
+    "ink": "umber",
     "iso3": "VUT",
     "name": {
       "en": "Vanuatu",
@@ -3642,7 +3642,7 @@
       "en": "Mayotte",
       "ru": "Майотта"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ZA": {
     "cluster": "mesa",
@@ -3661,7 +3661,7 @@
   },
   "ZM": {
     "cluster": "waterfall",
-    "ink": "umber",
+    "ink": "slate",
     "iso3": "ZMB",
     "name": {
       "en": "Zambia",
@@ -3672,7 +3672,7 @@
       "en": "Zambia",
       "ru": "Замбия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ZW": {
     "cluster": null,
@@ -3687,6 +3687,6 @@
       "en": "Zimbabwe",
       "ru": "Зимбабве"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "iso2": "RE",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "oxblood",
+  "cluster": "volcano",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [46, 60, 30, 150, 56, 26] }
+    },
+    { "module": "ground", "params": { "water": true, "line": false } }
+  ],
+  "layers": [
+    {
+      "module": "shield-b",
+      "box": [26, 48, 146, 78],
+      "params": { "seed": 12 }
+    }
+  ]
+}
