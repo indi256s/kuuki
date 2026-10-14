@@ -3,83 +3,75 @@
   "tier": "engraved",
   "shape": "rectangle",
   "ink": "slate",
-  "horizon": 0.72,
+  "horizon": 0.74,
   "backdrop": [
     {
-      "module": "sky"
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [62, 66, 40, 150, 74, 30]
+      }
     },
     {
       "module": "distance-mountains",
       "params": {
         "ridge": [
-          [0, 0.46],
-          [0.2, 0.38],
-          [0.4, 0.5],
-          [0.7, 0.44],
-          [1, 0.34]
+          [0, 0.5],
+          [0.12, 0.34],
+          [0.28, 0.46],
+          [0.5, 0.52],
+          [0.72, 0.44],
+          [0.88, 0.3],
+          [1, 0.46]
         ],
-        "jag": 0.8
+        "jag": 0.8,
+        "litGap": 3.2,
+        "seed": 9
       }
     },
     {
-      "module": "ground"
+      "module": "ground",
+      "params": {}
     }
   ],
   "layers": [
     {
-      "module": "platform",
-      "box": [28, 114, 144, 19],
+      "module": "rock-hill",
+      "box": [26, 98, 147, 30],
       "params": {
-        "batter": 26,
-        "flare": true,
-        "weight": "line"
+        "profile": [
+          [0, 1],
+          [0.05, 0.75],
+          [0.1, 0.4],
+          [0.14, 0.12],
+          [0.18, 0.02],
+          [0.5, 0],
+          [0.84, 0.03],
+          [0.88, 0.14],
+          [0.92, 0.4],
+          [0.96, 0.72],
+          [1, 1]
+        ],
+        "walls": [0.16, 0.84],
+        "wallH": 7,
+        "courses": 3,
+        "shadeFrom": 0.68,
+        "seed": 8,
+        "crag": 2,
+        "strata": 5,
+        "shadeGap": 3.4
       }
     },
     {
-      "module": "platform",
-      "box": [34, 100, 132, 14],
+      "module": "ruined-temple",
+      "box": [52, 54, 96, 46],
       "params": {
-        "batter": 2,
-        "courses": 2
-      }
-    },
-    {
-      "module": "colonnade",
-      "box": [28, 66, 78, 34],
-      "params": {
-        "count": 5,
-        "entablature": 0.2,
-        "stylobate": 2,
-        "flutes": 0,
-        "colW": 0.38
-      }
-    },
-    {
-      "module": "pediment",
-      "box": [31, 54, 72, 12],
-      "params": {
-        "pitch": 0.2,
-        "tympanum": "plain"
-      }
-    },
-    {
-      "module": "colonnade",
-      "box": [106, 74, 31.2, 26],
-      "params": {
-        "count": 2,
-        "stylobate": 2,
-        "flutes": 0,
-        "colW": 0.38
-      }
-    },
-    {
-      "module": "colonnade",
-      "box": [121.6, 88, 31.2, 12],
-      "params": {
-        "count": 2,
-        "stylobate": 2,
-        "flutes": 0,
-        "colW": 0.38
+        "count": 8,
+        "broken": [1, 1, 1, 0.45, 0.6, 1, 0.8, 1],
+        "pediment": 0.26,
+        "entablature": 0.1,
+        "stepsH": 0.09
       }
     }
   ]

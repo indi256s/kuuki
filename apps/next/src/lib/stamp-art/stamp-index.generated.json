@@ -1,7 +1,7 @@
 {
   "AD": {
     "cluster": null,
-    "ink": "oxblood",
+    "ink": "teal",
     "iso3": "AND",
     "name": {
       "en": "Andorra",
@@ -12,7 +12,7 @@
       "en": "Andorra",
       "ru": "Андорра"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AE": {
     "cluster": null,
@@ -592,7 +592,7 @@
       "en": "Switzerland",
       "ru": "Швейцария"
     },
-    "shape": "oval",
+    "shape": "cut-rect",
     "short": {
       "en": "Switzerland",
       "ru": "Швейцария"
@@ -1186,7 +1186,7 @@
   },
   "GI": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "umber",
     "iso3": "GIB",
     "name": {
       "en": "Gibraltar",
@@ -1197,7 +1197,7 @@
       "en": "Gibraltar",
       "ru": "Гибралтар"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GL": {
     "cluster": "ice",
@@ -1861,7 +1861,7 @@
   },
   "LI": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "LIE",
     "name": {
       "en": "Liechtenstein",
@@ -1872,7 +1872,7 @@
       "en": "Liechtenstein",
       "ru": "Лихтенштейн"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LK": {
     "cluster": null,
@@ -2221,7 +2221,7 @@
   },
   "MT": {
     "cluster": "sea-wall",
-    "ink": "plum",
+    "ink": "ochre-dark",
     "iso3": "MLT",
     "name": {
       "en": "Malta",
@@ -2232,7 +2232,7 @@
       "en": "Malta",
       "ru": "Мальта"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MU": {
     "cluster": "mesa",
@@ -2997,7 +2997,7 @@
       "en": "San Marino",
       "ru": "Сан-Марино"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SN": {
     "cluster": "bridge",
@@ -3477,7 +3477,7 @@
       "en": "Vatican City",
       "ru": "Ватикан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "VC": {
     "cluster": "atoll",

@@ -6,6 +6,12 @@ import de from './de.json'
 import fr from './fr.json'
 import ge from './ge.json'
 import gr from './gr.json'
+import va from './va.json'
+import mt from './mt.json'
+import ad from './ad.json'
+import sm from './sm.json'
+import li from './li.json'
+import gi from './gi.json'
 import it from './it.json'
 import jp from './jp.json'
 import mx from './mx.json'
@@ -25,6 +31,12 @@ export const RECIPE_FILES: Record<string, unknown> = {
   fr,
   ge,
   gr,
+  ad,
+  mt,
+  va,
+  gi,
+  li,
+  sm,
   it,
   jp,
   me,

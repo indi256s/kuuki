@@ -1,0 +1,88 @@
+{
+  "iso2": "LI",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "plum",
+  "horizon": 0.8,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [2.6, 3.4],
+        "clouds": [40, 60, 30, 150, 80, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.7],
+          [0.08, 0.5],
+          [0.16, 0.22],
+          [0.22, 0.4],
+          [0.3, 0.12],
+          [0.38, 0.34],
+          [0.46, 0.2],
+          [0.56, 0.46],
+          [0.7, 0.3],
+          [0.82, 0.5],
+          [0.92, 0.4],
+          [1, 0.62]
+        ],
+        "jag": 1.6,
+        "snow": 0.15,
+        "litGap": 3.2,
+        "seed": 5
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2.2,
+        "seed": 9
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "house",
+      "box": [40, 112, 14, 12],
+      "params": {
+        "roof": "gable",
+        "shade": 0.1
+      }
+    },
+    {
+      "module": "house",
+      "box": [62, 114, 12, 10],
+      "params": {
+        "roof": "gable",
+        "shade": 0.1
+      }
+    },
+    {
+      "module": "house",
+      "box": [120, 113, 15, 11],
+      "params": {
+        "roof": "gable",
+        "shade": 0.1
+      }
+    },
+    {
+      "module": "house",
+      "box": [142, 115, 11, 9],
+      "params": {
+        "roof": "gable",
+        "shade": 0.1
+      }
+    }
+  ]
+}

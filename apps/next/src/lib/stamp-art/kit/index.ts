@@ -9,6 +9,8 @@ import { mesa } from './mesa'
 import { peak } from './peak'
 import { acacia } from './savanna'
 import { volcano } from './volcano'
+import { rockHill } from './rock-hill'
+import { ruinedTemple } from './ruined-temple'
 import { amphitheatre } from './amphitheatre'
 import { rooftops } from './rooftops'
 import { dunes } from './dunes'
@@ -55,6 +57,8 @@ export const kit = {
   temple,
   rampart,
   'switchback-wall': switchbackWall,
+  'rock-hill': rockHill,
+  'ruined-temple': ruinedTemple,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

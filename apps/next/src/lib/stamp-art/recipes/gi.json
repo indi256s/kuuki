@@ -1,0 +1,58 @@
+{
+  "iso2": "GI",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "umber",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [150, 66, 34]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [38, 56, 124, 76],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.02, 0.5],
+          [0.04, 0.14],
+          [0.09, 0.03],
+          [0.2, 0.0],
+          [0.3, 0.08],
+          [0.5, 0.3],
+          [0.7, 0.52],
+          [0.85, 0.72],
+          [0.93, 0.86],
+          [1, 1]
+        ],
+        "shadeFrom": 0.0,
+        "shadeGap": 2.8,
+        "strata": 4.5,
+        "crag": 1.2,
+        "seed": 7,
+        "shadeTo": 0.28
+      }
+    },
+    {
+      "module": "rooftops",
+      "box": [38, 100, 124, 32],
+      "params": {
+        "height": 9,
+        "seed": 4
+      }
+    }
+  ]
+}

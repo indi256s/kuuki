@@ -1,34 +1,87 @@
 {
   "iso2": "CH",
   "tier": "engraved",
-  "shape": "oval",
+  "shape": "cut-rect",
   "ink": "oxblood",
-  "horizon": 0.72,
+  "horizon": 0.74,
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [2.8, 3.6], "clouds": [48, 52, 34, 150, 44, 30], "weight": "hair" }
+      "params": {
+        "gap": [2.8, 3.8],
+        "weight": "hair",
+        "clouds": [40, 70, 30, 160, 60, 26]
+      }
     },
     {
       "module": "distance-mountains",
       "params": {
         "ridge": [
-          [0, 0.58],
-          [0.1, 0.5],
-          [0.2, 0.56],
-          [0.3, 0.64],
-          [0.7, 0.64],
-          [0.8, 0.55],
-          [0.9, 0.5],
-          [1, 0.58]
+          [0, 0.5],
+          [0.08, 0.4],
+          [0.18, 0.5],
+          [0.3, 0.58],
+          [0.7, 0.58],
+          [0.82, 0.46],
+          [0.92, 0.38],
+          [1, 0.5]
         ],
         "jag": 0.8,
         "litGap": 3.2,
         "seed": 12
       }
     },
-    { "module": "distance-trees", "params": { "height": 9, "amp": 2.4, "seed": 4, "swell": 1.5 } },
-    { "module": "ground" }
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 9,
+        "amp": 2.4,
+        "seed": 4,
+        "swell": 1.5
+      }
+    },
+    {
+      "module": "ground"
+    }
   ],
-  "layers": [{ "module": "peak", "box": [51, 36, 98, 95.5], "params": {} }]
+  "layers": [
+    {
+      "module": "peak",
+      "box": [38, 54, 112, 72],
+      "params": {
+        "litShare": 0.45,
+        "gap": 3.6
+      }
+    },
+    {
+      "module": "house",
+      "box": [44, 115.5, 15, 10.5],
+      "params": {
+        "roof": "gable",
+        "roofH": 0.5,
+        "overhang": 2,
+        "shade": 0.1
+      }
+    },
+    {
+      "module": "house",
+      "box": [128, 116, 17, 10],
+      "params": {
+        "roof": "gable",
+        "roofH": 0.5,
+        "overhang": 2,
+        "shade": 0.1
+      }
+    },
+    {
+      "module": "house",
+      "box": [112, 118, 11, 8],
+      "params": {
+        "roof": "gable",
+        "roofH": 0.5,
+        "overhang": 2,
+        "shade": 0.1
+      }
+    }
+  ]
 }

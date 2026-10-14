@@ -1,136 +1,154 @@
-// Peak module: an asymmetric alpine horn (Matterhorn). Silhouette and the Hörnli ridge are fixed
-// shapes scaled into the box (tip at the top, foot at the bottom). The east face (left of the
-// ridge) is lit paper with strata ledges; the north face (right) is shaded with hair lines along
-// the fall line, broken by white snow fields. A white glacier band sits at the foot.
+// Peak module: the Matterhorn seen from the north-east (Zermatt). Fixed shapes scaled into the
+// box (tip at the top, foot at the bottom): a crooked summit that hooks east (left) with a notch
+// on its short summit ridge, the Hörnli ridge falling from the tip as a lit edge, the shaded north
+// face to its right (fall-line hairs, white snow ledges, rock bands) and the lit east face to its
+// left (strata ticks), a shoulder on the right skyline and a white glacier at the foot.
 import { mulberry32 } from '../hash'
-import { clipStrokeOutside } from '../geom'
-import { type Pt, type StrokeNode, type SvgNode, occlude, stroke } from '../grid'
-import { type KitModule, num, xAtY } from './util'
+import { clipStrokeOutside, pointInPoly } from '../geom'
+import { type Pt, type StrokeNode, type SvgNode, occlude, quad, stroke } from '../grid'
+import { type KitModule, num } from './util'
 
-// Silhouette (fractions of the box), left foot to right foot over a crooked tip.
+// Silhouette, left foot to right foot over the tip.
 const SIL: Pt[] = [
   [0.0, 1.0],
-  [0.1, 0.84],
-  [0.19, 0.72],
-  [0.25, 0.62],
-  [0.31, 0.55],
-  [0.36, 0.44],
-  [0.41, 0.3],
-  [0.45, 0.17],
-  [0.48, 0.08],
-  [0.5, 0.02],
-  [0.53, 0.0],
-  [0.55, 0.04],
-  [0.575, 0.03],
-  [0.59, 0.08],
-  [0.62, 0.16],
-  [0.65, 0.26],
-  [0.68, 0.34],
-  [0.7, 0.4],
-  [0.73, 0.4],
-  [0.76, 0.5],
-  [0.8, 0.63],
-  [0.87, 0.78],
-  [0.94, 0.9],
+  [0.1, 0.9],
+  [0.18, 0.8],
+  [0.24, 0.68],
+  [0.3, 0.56],
+  [0.35, 0.44],
+  [0.39, 0.32],
+  [0.42, 0.2],
+  [0.44, 0.1],
+  [0.455, 0.03],
+  [0.47, 0.0],
+  [0.485, 0.025],
+  [0.5, 0.05],
+  [0.525, 0.075],
+  [0.54, 0.06],
+  [0.56, 0.12],
+  [0.6, 0.21],
+  [0.64, 0.3],
+  [0.68, 0.36],
+  [0.715, 0.35],
+  [0.74, 0.4],
+  [0.79, 0.52],
+  [0.85, 0.66],
+  [0.92, 0.82],
   [1.0, 1.0],
 ]
-// Hörnli ridge: from the tip down to the foot, splitting lit east face and shaded north face.
+// Hörnli ridge: from the tip down to the foot on the left, lit edge between east and north face.
 const RIDGE: Pt[] = [
-  [0.55, 0.05],
-  [0.56, 0.16],
-  [0.57, 0.28],
-  [0.59, 0.4],
-  [0.6, 0.52],
-  [0.62, 0.64],
-  [0.65, 0.78],
-  [0.7, 0.9],
-  [0.75, 1.0],
+  [0.48, 0.04],
+  [0.485, 0.16],
+  [0.47, 0.3],
+  [0.45, 0.44],
+  [0.41, 0.58],
+  [0.37, 0.7],
+  [0.32, 0.82],
+  [0.27, 0.92],
+  [0.24, 1.0],
 ]
 
 export const peak: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 31)))
-  const crook = num(p, 'crook', 1)
-  const glacier = num(p, 'glacier', 0.14)
+  const glacier = num(p, 'glacier', 0.1)
+  const gap = num(p, 'gap', 3)
   const at = ([fx, fy]: Pt): Pt => [x + w * fx, y + h * fy]
-  // Crookedness scales the tip's lean away from the axis.
-  const sil = SIL.map(([fx, fy]): Pt => at([fx + (fy < 0.12 ? (crook - 1) * 0.01 : 0), fy]))
+  const sil = SIL.map(at)
   const ridge = RIDGE.map(at)
   const base = y + h
+  const tipIdx = SIL.findIndex(([, fy]) => fy === 0)
   const out: SvgNode[] = [occlude(sil)]
-  const L = sil.slice(0, SIL.findIndex(([, fy]) => fy === 0) + 1)
-  const R = sil.slice(SIL.findIndex(([, fy]) => fy === 0))
-  const leftEdge = (yy: number) => xAtY(L.slice().reverse(), yy)
-  const rightEdge = (yy: number) => xAtY(R, yy)
-  const ridgeX = (yy: number) => xAtY(ridge, yy)
 
-  // Snow fields and glacier: polygons that stay paper.
+  // North face polygon: ridge down to the foot, then the right skyline back up to the tip.
+  const northPoly: Pt[] = [...ridge, ...sil.slice(tipIdx + 1).reverse()]
+  const ridgeAt = (fy: number) => {
+    for (let i = 0; i + 1 < RIDGE.length; i++) {
+      const [ax, ay] = RIDGE[i],
+        [bx2, by] = RIDGE[i + 1]
+      if (ay <= fy && fy <= by) return x + w * (ax + ((fy - ay) / (by - ay || 1)) * (bx2 - ax))
+    }
+    return x + w * RIDGE[RIDGE.length - 1][0]
+  }
+  const tip = at([0.485, 0.04])
+  const hatch: StrokeNode[] = []
+  const rightFoot = x + w
+  const ridgeFoot = ridge[ridge.length - 1][0]
+  let lineNo = 0
+  for (
+    let bx = ridgeFoot + (rightFoot - ridgeFoot) * num(p, 'litShare', 0.3);
+    bx < rightFoot;
+    bx += gap, lineNo++
+  ) {
+    // Fall line from the tip fanning out to the base, sampled and kept inside the face. Every
+    // third line runs the whole way, the others start lower so the summit stays open.
+    const pts: Pt[] = []
+    const t0 = [0.03, 0.38, 0.64][lineNo % 3]
+    for (let t = t0; t <= 1.001; t += 0.03) {
+      const px = tip[0] + (bx - tip[0]) * Math.pow(t, 1.1)
+      const py = tip[1] + (base - tip[1]) * t
+      if (pointInPoly([px, py], northPoly) && px > ridgeAt((py - y) / h) + 3.2) pts.push([px, py])
+    }
+    if (pts.length > 1) hatch.push(stroke('hair', pts))
+  }
+  // East face: strata ticks, short fine dashes leaning down to the right, sparse.
+  const eastLeft = (fy: number) => {
+    for (let i = 0; i < tipIdx; i++) {
+      const [ax, ay] = SIL[i],
+        [bx2, by] = SIL[i + 1]
+      if (ay >= fy && fy >= by) return x + w * (ax + ((fy - ay) / (by - ay || 1)) * (bx2 - ax))
+    }
+    return x
+  }
+  for (let fy = 0.22; fy < 0.9; fy += 0.055 + rand() * 0.02) {
+    const a = eastLeft(fy) + 2.5 + rand() * 2
+    const b = ridgeAt(fy) - 2
+    if (b - a > 4)
+      hatch.push(
+        stroke('fine', [
+          [a, y + h * fy],
+          [Math.min(b, a + 8 + rand() * 10), y + h * fy + 1.2],
+        ]),
+      )
+  }
+  // Snow ledges on the north face (paper lenses) and the glacier at the foot (paper band).
   const snow: Pt[][] = []
+  for (const [fy, f0, f1, th] of [
+    [0.2, 0.0, 0.7, 2.6],
+    [0.33, 0.1, 0.8, 3.4],
+    [0.46, 0.0, 0.85, 3.8],
+    [0.6, 0.15, 0.9, 4],
+    [0.72, 0.05, 0.8, 3.6],
+  ] as const) {
+    const yy = y + h * fy
+    // Ledge spans a share of the face width at that height.
+    const xl = ridgeAt(fy) + 2
+    let xr = xl
+    for (let i = tipIdx; i + 1 < SIL.length; i++) {
+      const [ax, ay] = SIL[i],
+        [bx2, by] = SIL[i + 1]
+      if (ay <= fy && fy <= by) xr = x + w * (ax + ((fy - ay) / (by - ay || 1)) * (bx2 - ax))
+    }
+    const a = xl + (xr - xl) * f0 + 1,
+      b = xl + (xr - xl) * f1 - 1
+    if (b - a > 4)
+      snow.push([
+        ...quad([a, yy], [(a + b) / 2, yy - th], [b, yy - 0.5], 6),
+        ...quad([b, yy - 0.5], [(a + b) / 2, yy + th * 0.4], [a, yy], 6).slice(1),
+      ])
+  }
   const glY = base - h * glacier
   const gl: Pt[] = [[x, base]]
   for (let px = x + 1; px <= x + w - 1; px += 4)
-    gl.push([px, glY + Math.sin(px * 0.35) * 2 + (rand() - 0.5) * 2.5])
+    gl.push([px, glY + Math.sin(px * 0.3) * 1.6 + (rand() - 0.5) * 1.6])
   gl.push([x + w, base])
   snow.push(gl)
-  const field = (cx: number, cy: number, rw: number, rh: number): Pt[] =>
-    Array.from({ length: 10 }, (_, i) => {
-      const a = (i / 10) * Math.PI * 2
-      const k = 0.75 + rand() * 0.35
-      return [cx + Math.cos(a) * rw * k, cy + Math.sin(a) * rh * k] as Pt
-    })
-  // North face fields hug the ridge; east face fields sit in the lit ledges.
-  for (const [fy, off, rw, rh] of [
-    [0.2, 0.045, 3, 6],
-    [0.36, 0.07, 4.4, 7],
-    [0.5, 0.1, 5, 8],
-    [0.64, 0.12, 5.5, 6],
-  ] as const) {
-    const yy = y + h * fy
-    snow.push(field(ridgeX(yy) + w * off, yy, rw, rh))
-  }
-
-  const hatch: StrokeNode[] = []
-  // North face: hair lines along the fall line, right of the ridge.
-  const gx0 = x + w * 0.5
-  for (let px = gx0; px < x + w; px += 2) {
-    // Fall line: lean follows the right edge's local slope, converging upward toward the tip.
-    const tipX = x + w * 0.55
-    const pts: Pt[] = []
-    for (let t = 0.04; t <= 1.0; t += 0.04) {
-      const yy = y + h * t
-      const lx = tipX + (px - tipX) * Math.min(1, t * 1.15)
-      if (lx > ridgeX(yy) - 0.5 && lx < rightEdge(yy) - 1.2) pts.push([lx, yy])
-    }
-    if (pts.length < 2) continue
-    hatch.push(stroke('hair', pts))
-  }
-  // East face: strata ledges, short fine dashes leaning slightly down to the right.
-  for (let yy = y + h * 0.1; yy < glY; yy += 5 + rand() * 1.5) {
-    const a = leftEdge(yy) + 3 + rand() * 4
-    const b = Math.min(ridgeX(yy) - 3, a + 10 + rand() * 18)
-    if (b - a > 3)
-      hatch.push(
-        stroke('fine', [
-          [a, yy],
-          [b, yy + 1.3],
-        ]),
-      )
-    const a2 = a + (b - a) * 0.6 + 6
-    const b2 = Math.min(ridgeX(yy) - 3, a2 + 8 + rand() * 8)
-    if (b2 - a2 > 3)
-      hatch.push(
-        stroke('fine', [
-          [a2, yy + 2.3],
-          [b2, yy + 3.2],
-        ]),
-      )
-  }
   let acc: StrokeNode[] = hatch
   for (const poly of snow) acc = acc.flatMap((n) => clipStrokeOutside(n, poly))
   out.push(...acc)
-  // Snow edges.
-  for (const poly of snow.slice(1)) out.push(stroke('fine', poly, true))
+  for (const poly of snow.slice(0, -1)) out.push(stroke('fine', poly, true))
   out.push(stroke('hair', gl.slice(1, -1)))
-  out.push(stroke('hair', ridge))
+  out.push(stroke('line', ridge))
   out.push(stroke('line', sil))
   return out
 }

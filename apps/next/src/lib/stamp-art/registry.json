@@ -668,8 +668,8 @@
     "name": "Switzerland",
     "motif": "Matterhorn",
     "kind": "nature",
-    "silhouette": "one tall, steep, four-faced pyramid, peak above a broad snowline base. Symmetric",
-    "modules": ["pyramid", "mountains"],
+    "silhouette": "the crooked Matterhorn: summit hooking east, Hörnli ridge as a lit edge, shaded hatched north face with snow ledges, lit east face, chalets at the foot",
+    "modules": ["peak", "house"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -677,7 +677,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": null
+    "notes": "Redo: the pilot read as a flat triangle."
   },
   {
     "iso2": "CI",
@@ -1451,7 +1451,7 @@
     "motif": "Parthenon on the Acropolis of Athens",
     "kind": "ruin",
     "silhouette": "a long rectangular temple on a broad platform; a row of tall columns across the front, with a low triangular pediment above",
-    "modules": ["colonnade", "pediment", "platform", "steps"],
+    "modules": ["rock-hill", "ruined-temple"],
     "signature": null,
     "backdrop": null,
     "cluster": "classical-ruin",
@@ -1459,7 +1459,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: pedimented Doric colonnade on a stepped base"
+    "notes": "Redo: the Parthenon now stands on a rocky Acropolis hill with retaining walls; the pediment is broken."
   },
   {
     "iso2": "GS",
@@ -3930,18 +3930,18 @@
     "iso2": "VA",
     "iso3": "VAT",
     "name": "Vatican City",
-    "motif": "Bernini colonnade and obelisk",
+    "motif": "Leonine Wall and a gate of Vatican City",
     "kind": "architecture",
-    "silhouette": "Two curved four-row colonnade arms sweeping around a plaza, one tall obelisk alone in the centre on a stepped base",
-    "modules": ["colonnade", "obelisk", "platform", "steps"],
+    "silhouette": "long crenellated stone wall with a round-arched gate and a square corner tower at the right",
+    "modules": ["fortress-wall", "triumphal-arch", "tower"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "St Peter's Basilica dome: basilica (rule 3)",
-    "confidence": "high",
+    "replaced": "Bernini colonnade and obelisk: both stand in St Peter's Square, the forecourt of an active religious site (rule 3)",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Draw no statues on the balustrade."
+    "notes": "Fortification only: no basilica, no statues, no crosses."
   },
   {
     "iso2": "VC",
