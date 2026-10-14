@@ -1,0 +1,55 @@
+{
+  "iso2": "FR",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "indigo",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.6, 4.0]
+      }
+    },
+    {
+      "module": "rooftops",
+      "params": {
+        "height": 22
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 2,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground"
+    },
+    {
+      "module": "dunes",
+      "params": {
+        "crests": [0.9],
+        "amp": 1.2,
+        "wave": 120,
+        "lee": [0],
+        "band": true,
+        "bandGap": 2.1
+      }
+    }
+  ],
+  "layers": [],
+  "signature": [
+    {
+      "part": "lattice-tower",
+      "box": [72, 38, 56, 96],
+      "params": {
+        "legPanels": 3,
+        "lower": 3,
+        "upper": 5
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "iso2": "EG",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "ochre-dark",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky"
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.12, 0.44],
+          [0.3, 0.54],
+          [0.55, 0.42],
+          [0.78, 0.52],
+          [1, 0.44]
+        ],
+        "jag": 0.5,
+        "litGap": 2.4
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    },
+    {
+      "module": "dunes",
+      "params": {
+        "crests": [0.81, 0.86],
+        "lee": [13, 20],
+        "gap": 1.9,
+        "band": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "pyramid",
+      "box": [140, 98, 32, 26],
+      "params": {
+        "apex": 0.45,
+        "depth": 0.12,
+        "gap": 2.5
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [88, 72, 66, 52],
+      "params": {
+        "apex": 0.45,
+        "depth": 0.12,
+        "gap": 2.5
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [27, 56, 110, 76],
+      "params": {
+        "apex": 0.46,
+        "courses": 8,
+        "depth": 0.1,
+        "gap": 2.5
+      }
+    }
+  ]
+}

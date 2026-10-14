@@ -5,6 +5,10 @@ import type { KitModule } from './util'
 import { gate, house, rampart, stiltHouse, switchbackWall, temple } from './building'
 import { basalt, distanceMountains, distanceTrees, ground, sky } from './vignette'
 import { volcano } from './volcano'
+import { amphitheatre } from './amphitheatre'
+import { rooftops } from './rooftops'
+import { dunes } from './dunes'
+import { pyramid, steppedPyramid } from './pyramid'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -18,6 +22,11 @@ export const kit = {
   mountains,
   'twin-peak': twinPeak,
   volcano,
+  dunes,
+  rooftops,
+  amphitheatre,
+  pyramid,
+  'stepped-pyramid': steppedPyramid,
   cliff,
   platform,
   steps,
