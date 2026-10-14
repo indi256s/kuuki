@@ -162,7 +162,7 @@
       "en": "AM. SAMOA",
       "ru": "АМ. САМОА"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AT": {
     "cluster": null,
@@ -627,7 +627,7 @@
       "en": "Cook Islands",
       "ru": "о-ва Кука"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CL": {
     "cluster": null,
@@ -1017,7 +1017,7 @@
       "en": "Fiji",
       "ru": "Фиджи"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "FK": {
     "cluster": null,
@@ -2352,7 +2352,7 @@
       "en": "New Caledonia",
       "ru": "Новая Каледония"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NE": {
     "cluster": "dunes",
@@ -2382,7 +2382,7 @@
       "en": "Norfolk Island",
       "ru": "о-в Норфолк"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NG": {
     "cluster": "monolith",
@@ -2487,7 +2487,7 @@
       "en": "Niue",
       "ru": "Ниуэ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NZ": {
     "cluster": null,
@@ -2502,7 +2502,7 @@
       "en": "New Zealand",
       "ru": "Новая Зеландия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "OM": {
     "cluster": "gulf-fort",
@@ -2577,7 +2577,7 @@
       "en": "Papua New Guinea",
       "ru": "ПАПУА — Н. ГВИНЕЯ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PH": {
     "cluster": "volcano",
@@ -2847,7 +2847,7 @@
       "en": "Solomon Islands",
       "ru": "Соломоновы о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SC": {
     "cluster": null,
@@ -3567,7 +3567,7 @@
       "en": "Vanuatu",
       "ru": "Вануату"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "WF": {
     "cluster": null,

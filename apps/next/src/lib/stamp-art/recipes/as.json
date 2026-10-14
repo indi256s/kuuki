@@ -1,0 +1,74 @@
+{
+  "iso2": "AS",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "moss",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [96, 60, 32, 150, 78, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [34, 64, 74, 64],
+      "params": {
+        "profile": [
+          [0, 0.06],
+          [0.12, 0.0],
+          [0.35, 0.06],
+          [0.55, 0.22],
+          [0.78, 0.55],
+          [1, 1],
+          [0, 1]
+        ],
+        "shadeFrom": 0.5,
+        "shadeGap": 2.6,
+        "crag": 0.5,
+        "seed": 3,
+        "strata": 7
+      }
+    },
+    {
+      "module": "rock-hill",
+      "box": [98, 78, 74, 50],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.25, 0.5],
+          [0.5, 0.18],
+          [0.78, 0.04],
+          [1, 0.0],
+          [1, 1]
+        ],
+        "shadeFrom": 0.4,
+        "shadeGap": 2.6,
+        "crag": 0.5,
+        "seed": 5,
+        "strata": 6
+      }
+    },
+    {
+      "module": "thatch-hut",
+      "box": [80, 94, 40, 34],
+      "params": {
+        "platform": 0.14,
+        "wall": 0.14,
+        "seed": 3
+      }
+    }
+  ]
+}

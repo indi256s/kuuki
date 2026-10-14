@@ -1,0 +1,47 @@
+{
+  "iso2": "NF",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [100, 62, 32, 150, 78, 26]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2,
+        "seed": 3,
+        "swell": 1.5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "ruin-wall",
+      "box": [88, 86, 84, 40],
+      "params": {
+        "seed": 9
+      }
+    },
+    {
+      "module": "araucaria-a",
+      "box": [32, 52, 60, 74],
+      "params": {
+        "tiers": 9,
+        "seed": 3
+      }
+    }
+  ]
+}
