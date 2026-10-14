@@ -1,6 +1,7 @@
 import { type Recipe, parseRecipe } from '../recipe'
 import ad from './ad.json'
 import ae from './ae.json'
+import af from './af.json'
 import ag from './ag.json'
 import ai from './ai.json'
 import al from './al.json'
@@ -14,6 +15,7 @@ import aw from './aw.json'
 import az from './az.json'
 import ba from './ba.json'
 import bb from './bb.json'
+import bd from './bd.json'
 import be from './be.json'
 import bf from './bf.json'
 import bg from './bg.json'
@@ -22,9 +24,11 @@ import bi from './bi.json'
 import bj from './bj.json'
 import bl from './bl.json'
 import bm from './bm.json'
+import bn from './bn.json'
 import bo from './bo.json'
 import br from './br.json'
 import bs from './bs.json'
+import bt from './bt.json'
 import bw from './bw.json'
 import by from './by.json'
 import bz from './bz.json'
@@ -89,8 +93,10 @@ import hu from './hu.json'
 import ie from './ie.json'
 import il from './il.json'
 import im from './im.json'
+import in_ from './in.json'
 import io from './io.json'
 import iq from './iq.json'
+import ir from './ir.json'
 import is from './is.json'
 import it from './it.json'
 import je from './je.json'
@@ -109,6 +115,7 @@ import kz from './kz.json'
 import lb from './lb.json'
 import lc from './lc.json'
 import li from './li.json'
+import lk from './lk.json'
 import lr from './lr.json'
 import ls from './ls.json'
 import lt from './lt.json'
@@ -130,6 +137,7 @@ import mr from './mr.json'
 import ms from './ms.json'
 import mt from './mt.json'
 import mu from './mu.json'
+import mv from './mv.json'
 import mw from './mw.json'
 import mx from './mx.json'
 import mz from './mz.json'
@@ -139,10 +147,12 @@ import ng from './ng.json'
 import ni from './ni.json'
 import nl from './nl.json'
 import no from './no.json'
+import np from './np.json'
 import om from './om.json'
 import pa from './pa.json'
 import pe from './pe.json'
 import ph from './ph.json'
+import pk from './pk.json'
 import pl from './pl.json'
 import pm from './pm.json'
 import pr from './pr.json'
@@ -201,6 +211,7 @@ import zw from './zw.json'
 export const RECIPE_FILES: Record<string, unknown> = {
   ad,
   ae,
+  af,
   ag,
   ai,
   al,
@@ -214,6 +225,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   az,
   ba,
   bb,
+  bd,
   be,
   bf,
   bg,
@@ -222,9 +234,11 @@ export const RECIPE_FILES: Record<string, unknown> = {
   bj,
   bl,
   bm,
+  bn,
   bo,
   br,
   bs,
+  bt,
   bw,
   by,
   bz,
@@ -289,8 +303,10 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ie,
   il,
   im,
+  in: in_,
   io,
   iq,
+  ir,
   is,
   it,
   je,
@@ -309,6 +325,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   lb,
   lc,
   li,
+  lk,
   lr,
   ls,
   lt,
@@ -330,6 +347,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ms,
   mt,
   mu,
+  mv,
   mw,
   mx,
   mz,
@@ -339,10 +357,12 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ni,
   nl,
   no,
+  np,
   om,
   pa,
   pe,
   ph,
+  pk,
   pl,
   pm,
   pr,

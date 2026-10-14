@@ -1,0 +1,23 @@
+{
+  "iso2": "MV",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "indigo",
+  "horizon": 0.66,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [52, 44, 28, 150, 48, 30, 100, 40, 24],
+        "weight": "hair"
+      }
+    },
+    { "module": "distance-trees", "params": { "height": 4, "amp": 1.2, "seed": 2, "swell": 1 } },
+    { "module": "ground", "params": { "water": true } }
+  ],
+  "layers": [
+    { "module": "palm", "box": [128, 60, 30, 60], "params": { "lean": -0.2, "frond": 0.7 } }
+  ],
+  "signature": [{ "part": "seaplane", "box": [38, 70, 112, 52] }]
+}

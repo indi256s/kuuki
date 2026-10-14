@@ -31,7 +31,7 @@
   },
   "AF": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "AFG",
     "name": {
       "en": "Afghanistan",
@@ -42,7 +42,7 @@
       "en": "Afghanistan",
       "ru": "Афганистан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AG": {
     "cluster": null,
@@ -256,7 +256,7 @@
   },
   "BD": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "oxblood",
     "iso3": "BGD",
     "name": {
       "en": "Bangladesh",
@@ -267,7 +267,7 @@
       "en": "Bangladesh",
       "ru": "Бангладеш"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BE": {
     "cluster": null,
@@ -402,7 +402,7 @@
       "en": "Brunei",
       "ru": "Бруней"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BO": {
     "cluster": null,
@@ -451,7 +451,7 @@
   },
   "BT": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "moss",
     "iso3": "BTN",
     "name": {
       "en": "Bhutan",
@@ -462,7 +462,7 @@
       "en": "Bhutan",
       "ru": "Бутан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BW": {
     "cluster": null,
@@ -1501,7 +1501,7 @@
   },
   "IN": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "indigo",
     "iso3": "IND",
     "name": {
       "en": "India",
@@ -1512,7 +1512,7 @@
       "en": "India",
       "ru": "Индия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IO": {
     "cluster": "atoll",
@@ -1557,7 +1557,7 @@
       "en": "Iran",
       "ru": "Иран"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IS": {
     "cluster": "waterfall",
@@ -1876,7 +1876,7 @@
   },
   "LK": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "moss",
     "iso3": "LKA",
     "name": {
       "en": "Sri Lanka",
@@ -1887,7 +1887,7 @@
       "en": "Sri Lanka",
       "ru": "Шри-Ланка"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LR": {
     "cluster": "waterfall",
@@ -2251,7 +2251,7 @@
   },
   "MV": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "MDV",
     "name": {
       "en": "Maldives",
@@ -2262,7 +2262,7 @@
       "en": "Maldives",
       "ru": "Мальдивы"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MW": {
     "cluster": "mesa",
@@ -2457,7 +2457,7 @@
       "en": "Nepal",
       "ru": "Непал"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NR": {
     "cluster": null,
@@ -2596,7 +2596,7 @@
   },
   "PK": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "ochre-dark",
     "iso3": "PAK",
     "name": {
       "en": "Pakistan",
@@ -2607,7 +2607,7 @@
       "en": "Pakistan",
       "ru": "Пакистан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PL": {
     "cluster": null,

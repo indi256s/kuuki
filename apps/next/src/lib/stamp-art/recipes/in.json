@@ -1,0 +1,20 @@
+{
+  "iso2": "IN",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "indigo",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [48, 44, 30, 150, 54, 28, 44, 82, 24],
+        "weight": "hair"
+      }
+    },
+    { "module": "distance-trees", "params": { "height": 10, "amp": 2.2, "seed": 4, "swell": 2 } },
+    { "module": "ground", "params": { "water": true, "line": false } }
+  ],
+  "layers": [{ "module": "taj-mahal", "box": [49, 57, 102, 75] }]
+}

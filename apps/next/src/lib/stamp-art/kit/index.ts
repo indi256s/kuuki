@@ -125,6 +125,15 @@ import { dhow } from './dhow'
 import { drumB } from './drum-b'
 import { ziggurat } from './ziggurat'
 import { pigeonRocks } from './pigeon-rocks'
+import { tajMahal } from './taj-mahal'
+import { sigiriya } from './sigiriya'
+import { heratCitadel } from './herat-citadel'
+import { ahsanManzil } from './ahsan-manzil'
+import { alamgiriGate } from './alamgiri-gate'
+import { persepolis } from './persepolis'
+import { machapuchare } from './machapuchare'
+import { bhutanHouse } from './bhutan-house'
+import { kampongAyer } from './kampong-ayer'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -256,6 +265,15 @@ export const kit = {
   'reef-ring-b': reefRingB,
   'station-b': stationB,
   choungui: choungui,
+  'taj-mahal': tajMahal,
+  sigiriya,
+  'herat-citadel': heratCitadel,
+  'ahsan-manzil': ahsanManzil,
+  'alamgiri-gate': alamgiriGate,
+  persepolis,
+  machapuchare,
+  'bhutan-house': bhutanHouse,
+  'kampong-ayer': kampongAyer,
   'queens-staircase': queensStaircase,
   'crater-lake-a': craterLakeA,
   'massif-b': massifB,
