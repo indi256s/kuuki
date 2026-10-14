@@ -55,12 +55,19 @@ affected files then passed (95 tests, one worker). The navigation run passed 50 
 timeouts then passed in the five-test account suite without other verification load. No tests or timeouts
 were changed to obtain these results.
 
-Local `main` is still checked out at `/Users/indi256/Documents/kuuki/kuuki`, with other threads' staged and
-unstaged work. Its HEAD advanced during preparation. The user has been asked to pause those threads before
-the checkout update; no main files or index entries have been changed by this transfer. The 23 existing
-untracked files overlapping incoming additions matched the incoming contents exactly. Next: after the
-pause, take fresh preservation snapshots, update local main to the integrated feature tip and restore the
-uncommitted work with its staging state. Retain the snapshots until preservation is verified.
+The user authorized the paused checkout update. Local `main` at
+`/Users/indi256/Documents/kuuki/kuuki` was advanced to `d3a5480f`, which also retains newer main commits
+`99fca3c1` and `22efdf96`. The migration-test conflict includes both 0011 migrations in filename order;
+typecheck, API typecheck and 31 targeted API tests pass after that merge.
+
+The other threads' 20 staged paths retain their exact index entries. Of the 34 preserved working files,
+32 are byte-identical; DESIGN and docs/README retain the newer built-ground-travel status together with
+the unrelated local edits. All 313 prior untracked file contents are preserved; 23 identical feature
+documents are now tracked. No remote update, D1 write or deployment was made during this transfer.
+
+Preservation evidence stays checkout-local at `/tmp/kuuki-ground-main-preserve-_qiwl52x/` (manifest,
+index copy, patches, file copies and verification), with the stash also protected by
+`refs/backup/ground-travel-main-_qiwl52x`. Keep these snapshots until the owners confirm their work.
 
 ## Release gates (not done, separate approval)
 
