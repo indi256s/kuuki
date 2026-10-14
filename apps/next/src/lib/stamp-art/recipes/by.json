@@ -17,7 +17,7 @@
     {
       "module": "distance-trees",
       "params": {
-        "height": 12,
+        "height": 10,
         "amp": 2.5,
         "seed": 8,
         "swell": 2
@@ -26,32 +26,16 @@
     {
       "module": "ground",
       "params": {
-        "water": true
+        "water": true,
+        "tone": "T1",
+        "gap": [3.8, 3.2]
       }
     }
   ],
   "layers": [
     {
-      "module": "castle",
-      "box": [30, 58, 140, 78],
-      "params": {
-        "top": [
-          [0, 0.62],
-          [1, 0.62]
-        ],
-        "hill": false,
-        "wallH": 20,
-        "roofs": 0,
-        "from": 0.02,
-        "to": 0.98,
-        "towers": [
-          [0.1, 17, 26, 0, "cone"],
-          [0.9, 17, 26, 0, "cone"],
-          [0.5, 15, 8, 0, "cone"]
-        ],
-        "gate": 0.5,
-        "shadeFrom": 0.8
-      }
+      "module": "mir-castle",
+      "box": [28, 48, 144, 85]
     }
   ]
 }

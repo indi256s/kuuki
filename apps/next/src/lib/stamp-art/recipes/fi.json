@@ -11,38 +11,22 @@
       "params": {
         "weight": "hair",
         "gap": [3, 4.4],
-        "clouds": [40, 60, 26]
+        "clouds": [40, 60, 26, 150, 66, 22]
       }
     },
     {
       "module": "ground",
       "params": {
-        "water": true
+        "water": true,
+        "tone": "T1",
+        "gap": [3.4, 2.8]
       }
     }
   ],
   "layers": [
     {
-      "module": "castle",
-      "box": [28, 54, 144, 72],
-      "params": {
-        "top": [
-          [0, 0.66],
-          [0.3, 0.56],
-          [0.7, 0.56],
-          [1, 0.66]
-        ],
-        "hill": false,
-        "wallH": 20,
-        "gate": 0.5,
-        "from": 0.02,
-        "to": 0.98,
-        "towers": [
-          [0.5, 28, 22, 0, "battle"],
-          [0.16, 15, 10, 1, "battle"],
-          [0.84, 15, 10, 1, "battle"]
-        ]
-      }
+      "module": "kings-gate",
+      "box": [28, 54, 144, 70]
     }
   ]
 }

@@ -2010,7 +2010,7 @@
     "tier": "engraved"
   },
   "MD": {
-    "cluster": "triumphal-arch",
+    "cluster": null,
     "ink": "indigo",
     "iso3": "MDA",
     "name": {
