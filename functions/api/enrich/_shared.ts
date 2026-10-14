@@ -1,7 +1,5 @@
 import { AIRCRAFT_BATCH_SIZE } from '../../../packages/shared/src/constants'
-// Shared types and utilities for aircraft enrichment (Gemini-backed).
-//
-// NOTE: the AirLabs Routes API tier was removed — enrichment is Gemini-only now.
+// Shared types and utilities for server-selected aircraft suggestion providers.
 
 export interface FlightToEnrich {
   id: string
@@ -11,6 +9,7 @@ export interface FlightToEnrich {
   date: string
   origin: string
   destination: string
+  source_hints?: string[] // Optional known archive URLs; hints never count as evidence.
 }
 
 export interface EnrichmentRequest {
@@ -29,13 +28,26 @@ export interface EnrichmentResult {
   evidence_date?: string | null
   registration?: string | null
   operating_airline?: string | null
-  source?: 'gemini'
+  source?: 'gemini' | 'anthropic'
 }
 
 export interface EnrichmentResponse {
   results: EnrichmentResult[]
   search_suggestions_html?: string
   error?: string
+}
+
+/** Provider and client URLs become links only as credential-free http(s) URLs. */
+export function safeUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  try {
+    const url = new URL(value)
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password
+      ? url.href
+      : null
+  } catch {
+    return null
+  }
 }
 
 // Maximum number of flights per batch request

@@ -30,6 +30,17 @@ function addMonths(day: string, delta: number) {
 function valid(value: string) {
   return dayToEpoch(value) !== null
 }
+function readableDate(locale: Locale, value: string) {
+  const parts = new Intl.DateTimeFormat(locale === 'ru' ? 'ru' : 'en-GB', {
+    day: 'numeric',
+    month: locale === 'ru' ? 'long' : 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).formatToParts(new Date(dayToEpoch(value)!))
+  return ['day', 'month', 'year']
+    .map((type) => parts.find((part) => part.type === type)!.value)
+    .join(' ')
+}
 export function Calendar({
   label,
   value,
@@ -41,6 +52,8 @@ export function Calendar({
   disabled,
   defaultOpen = false,
   inline = false,
+  weekStartsOn = locale === 'ru' ? 1 : 0,
+  displayFormat = 'short',
 }: {
   label: string
   value: string
@@ -54,8 +67,18 @@ export function Calendar({
   defaultOpen?: boolean
   /** The grid flows in the page instead of floating over it. */
   inline?: boolean
+  /** Explicit week start; otherwise follows the locale. */
+  weekStartsOn?: 0 | 1
+  /** Readable dates remain replaceable with numeric or ISO input. */
+  displayFormat?: 'short' | 'readable'
 }) {
   const id = useId()
+  const [draft, setDraft] = useState<{ value: string; text: string } | null>(null)
+  const displayValue = valid(value)
+    ? displayFormat === 'readable'
+      ? readableDate(locale, value)
+      : formatDateOnly(locale, value, 'short')
+    : value
   const [open, setOpen] = useState(defaultOpen)
   const [month, setMonth] = useState(() =>
     valid(value)
@@ -65,7 +88,7 @@ export function Calendar({
   const popover = useRef<HTMLDivElement>(null)
   const first = dayToEpoch(`${month}-01`)!
   const weekday = new Date(first).getUTCDay()
-  const start = first - ((weekday + (locale === 'ru' ? 6 : 0)) % 7) * DAY_MS
+  const start = first - ((weekday - weekStartsOn + 7) % 7) * DAY_MS
   const days = Array.from({ length: 42 }, (_, index) => epochToDay(start + index * DAY_MS))
   const shiftMonth = (delta: number) => {
     setMonth(addMonths(`${month}-01`, delta).slice(0, 7))
@@ -85,9 +108,9 @@ export function Calendar({
   const weeks = Array.from({ length: 6 }, (_, index) => days.slice(index * 7, index * 7 + 7))
   const today = todayLabel()
   const headingId = `${id}-heading`
-  // Offset of a day from the start of its week (Sunday in English, Monday in Russian).
+  // Use the same week start for the headers, grid and Home/End navigation.
   const weekOffset = (day: string) =>
-    (new Date(dayToEpoch(day)!).getUTCDay() + (locale === 'ru' ? 6 : 0)) % 7
+    (new Date(dayToEpoch(day)!).getUTCDay() - weekStartsOn + 7) % 7
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, day: string) => {
     const target = (
       {
@@ -125,9 +148,20 @@ export function Calendar({
           aria-invalid={!!error}
           aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
           disabled={disabled}
-          value={valid(value) ? formatDateOnly(locale, value, 'short') : value}
-          onChange={(event) => onChange(normalize(event.target.value, locale))}
-          onBlur={onBlur}
+          value={draft?.value === value ? draft.text : displayValue}
+          onFocus={(event) => {
+            if (displayFormat === 'readable') event.currentTarget.select()
+          }}
+          onChange={(event) => {
+            const text = event.target.value
+            const normalized = normalize(text, locale)
+            if (displayFormat === 'readable') setDraft({ value: normalized, text })
+            onChange(normalized)
+          }}
+          onBlur={() => {
+            setDraft(null)
+            onBlur?.()
+          }}
         />
         <button
           type="button"
@@ -189,11 +223,11 @@ export function Calendar({
           <div role="grid" aria-labelledby={headingId} className="flight-calendar-grid">
             <div role="row" className="flight-calendar-week">
               {(locale === 'ru'
-                ? ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+                ? ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
                 : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-              ).map((day) => (
-                <small role="columnheader" key={day}>
-                  {day}
+              ).map((_, index, weekdays) => (
+                <small role="columnheader" key={index}>
+                  {weekdays[(index + weekStartsOn) % 7]}
                 </small>
               ))}
             </div>

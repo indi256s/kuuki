@@ -169,7 +169,10 @@ export function FlightForm({
   const [loading, setLoading] = useState(!!editId)
   const saving = useRef(false)
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const [errorCause, setErrorCause] = useState<{ cause: unknown; kind: 'load' | 'save' } | null>(
+    null,
+  )
+  const error = errorCause ? flightErrorMessage(errorCause.cause, locale, errorCause.kind) : ''
   const [duplicate, setDuplicate] = useState<Flight | null>(null)
   const errorRef = useRef<HTMLParagraphElement>(null)
   const duplicateRef = useRef<HTMLDivElement>(null)
@@ -182,7 +185,8 @@ export function FlightForm({
     }
   }, [busy, error, duplicate, focusBlockedSave])
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
+  const [deleteCause, setDeleteCause] = useState<unknown>(null)
+  const deleteError = deleteCause ? flightErrorMessage(deleteCause, locale, 'delete') : ''
   const [saved, setSaved] = useState(false)
   const [savedFlight, setSavedFlight] = useState<(Flight & DerivedAck) | null>(null)
   useEffect(() => {
@@ -244,7 +248,7 @@ export function FlightForm({
     setRestored(null)
     setShowDetails(false)
     setApplied(null)
-    setError('')
+    setErrorCause(null)
     requestAnimationFrame(() => setFocus('origin'))
   }
   // Route shortcuts from the latest flight dated today or earlier; nothing is applied until the member picks one.
@@ -323,7 +327,7 @@ export function FlightForm({
         }
       })
       .catch((cause) => {
-        if (current(generation, controller)) setError(flightErrorMessage(cause, locale, 'load'))
+        if (current(generation, controller)) setErrorCause({ cause, kind: 'load' })
       })
       .finally(() => {
         if (current(generation, controller)) setLoading(false)
@@ -332,7 +336,7 @@ export function FlightForm({
       controller.abort()
       release()
     }
-  }, [editId, reset, ownerId, locale, focusField])
+  }, [editId, reset, ownerId, focusField])
   useEffect(() => {
     setDuplicate(null)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || origin?.length !== 3 || destination?.length !== 3)
@@ -366,7 +370,7 @@ export function FlightForm({
     const release = trackPrivateOperation(controller)
     const generation = getAuthGeneration()
     setBusy(true)
-    setError('')
+    setErrorCause(null)
     try {
       try {
         validateFlightInput(original ?? input(values), 'create')
@@ -457,7 +461,7 @@ export function FlightForm({
     } catch (cause) {
       if (current(generation, controller)) {
         setFocusBlockedSave(true)
-        setError(flightErrorMessage(cause, locale, 'save'))
+        setErrorCause({ cause, kind: 'save' })
       }
     } finally {
       saving.current = false
@@ -477,7 +481,7 @@ export function FlightForm({
     const release = trackPrivateOperation(controller)
     const generation = getAuthGeneration()
     setBusy(true)
-    setDeleteError('')
+    setDeleteCause(null)
     try {
       const ack = await deleteFlight(flight.id)
       if (current(generation, controller)) {
@@ -489,7 +493,7 @@ export function FlightForm({
       return true
     } catch (cause) {
       if (current(generation, controller)) {
-        setDeleteError(flightErrorMessage(cause, locale, 'delete'))
+        setDeleteCause(cause)
         throw cause
       }
     } finally {
@@ -498,7 +502,9 @@ export function FlightForm({
       release()
     }
   }
-  const fieldError = (name: keyof Values) => formState.errors[name]?.message
+  const validationMessages = validateFlightValues(values, locale)
+  const fieldError = (name: keyof Values) =>
+    formState.errors[name] ? validationMessages[name] : undefined
   const invalid = (issues: typeof formState.errors) => {
     // Focus the first invalid field in the order it appears on screen.
     const field =
@@ -604,7 +610,7 @@ export function FlightForm({
       <DestructiveConfirm
         open={confirmDelete}
         onOpenChange={(next) => {
-          if (next) setDeleteError('')
+          if (next) setDeleteCause(null)
           setConfirmDelete(next)
         }}
         trigger={
@@ -909,7 +915,7 @@ export function FlightForm({
           onClick={() => {
             abandonFlightCreateOperation(ownerId, operationId)
             setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`))
-            setError('')
+            setErrorCause(null)
           }}
         >
           {ru

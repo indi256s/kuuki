@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { useState } from 'react'
+import { StrictMode, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { ToastProvider } from '../ui/toast'
@@ -29,8 +29,10 @@ function Actions() {
 function Harness({
   refresh = async () => {},
   read,
+  ownerId = 'owner',
 }: {
   refresh?: (options?: { throwOnError?: boolean }) => Promise<void>
+  ownerId?: string
   read?: () => Promise<number[]>
 }) {
   const [rows, setRows] = useState([1, 2, 3])
@@ -39,6 +41,8 @@ function Harness({
     <ToastProvider>
       <JournalDeleteProvider
         locale="en"
+        key={ownerId}
+        ownerId={ownerId}
         refresh={async (options) => {
           await refresh(options)
           if (read) setRows(await read())
@@ -66,6 +70,7 @@ const setHiddenTab = (value: boolean) =>
   Object.defineProperty(document, 'hidden', { configurable: true, get: () => value })
 
 beforeEach(() => {
+  sessionStorage.clear()
   vi.useFakeTimers()
   setHiddenTab(false)
   vi.mocked(api.post).mockReset().mockResolvedValue({ deleted: 2, derived_state: 'ready' })
@@ -233,4 +238,83 @@ it('does not restore rows or announce an uncertain result after an identity rese
   })
   expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
   expect(screen.queryByText(/Could not check whether/)).not.toBeInTheDocument()
+})
+
+it('resumes a pending deletion after a document reload instead of restoring the flight', async () => {
+  let serverRows = [1, 2, 3]
+  vi.mocked(api.delete).mockImplementation(async () => {
+    serverRows = [2, 3]
+    return { derived_state: 'ready' }
+  })
+  const view = render(<Harness read={async () => serverRows} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(2000))
+  window.dispatchEvent(new Event('pagehide'))
+  view.unmount()
+  render(
+    <StrictMode>
+      <Harness read={async () => serverRows} />
+    </StrictMode>,
+  )
+  await act(() => vi.advanceTimersByTimeAsync(0))
+  expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
+  await act(() => vi.advanceTimersByTimeAsync(4100))
+  expect(serverRows).toEqual([2, 3])
+  expect(api.delete).toHaveBeenCalledTimes(1)
+})
+
+it('Undo after reload clears the deletion so another reload cannot send it', async () => {
+  const view = render(<Harness />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 2 and 3' }))
+  window.dispatchEvent(new Event('pagehide'))
+  view.unmount()
+  const restored = render(<Harness />)
+  await act(() => vi.advanceTimersByTimeAsync(0))
+  fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+  expect(screen.getByText('Row 2')).toBeInTheDocument()
+  window.dispatchEvent(new Event('pagehide'))
+  restored.unmount()
+  render(<Harness />)
+  await act(() => vi.advanceTimersByTimeAsync(10_000))
+  expect(api.post).not.toHaveBeenCalled()
+})
+
+it('reconciles an interrupted committed request after reload without deleting again', async () => {
+  let serverRows = [1, 2, 3]
+  vi.mocked(api.delete).mockImplementation(() => {
+    serverRows = [2, 3]
+    return new Promise(() => {})
+  })
+  const view = render(<Harness read={async () => serverRows} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  await act(() => vi.advanceTimersByTimeAsync(6100))
+  window.dispatchEvent(new Event('pagehide'))
+  view.unmount()
+  const refresh = vi.fn(async () => {})
+  render(<Harness refresh={refresh} read={async () => serverRows} />)
+  await act(() => vi.advanceTimersByTimeAsync(10_000))
+  expect(refresh).toHaveBeenCalledWith({ throwOnError: true })
+  expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+  expect(api.delete).toHaveBeenCalledTimes(1)
+})
+
+it("does not resume another owner's deletion and clears the departing owner on identity reset", async () => {
+  const view = render(<Harness />)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete 1' }))
+  window.dispatchEvent(new Event('pagehide'))
+  view.unmount()
+  const other = render(<Harness ownerId="other" />)
+  await act(() => vi.advanceTimersByTimeAsync(10_000))
+  expect(api.delete).not.toHaveBeenCalled()
+  expect(screen.getByText('Row 1')).toBeInTheDocument()
+  other.unmount()
+  const restored = render(<Harness />)
+  await act(() => vi.advanceTimersByTimeAsync(0))
+  act(() => window.dispatchEvent(new Event('kuuki:identity-reset')))
+  restored.unmount()
+  render(<Harness />)
+  await act(() => vi.advanceTimersByTimeAsync(10_000))
+  expect(api.delete).not.toHaveBeenCalled()
+  expect(screen.getByText('Row 1')).toBeInTheDocument()
 })

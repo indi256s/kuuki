@@ -15,12 +15,22 @@ export type EmptyStateProps = {
   className?: string
   /** Optional accessible name for the region. */
   label?: string
+  /** The title's heading level; pick the one that follows the page's outline. */
+  headingLevel?: 2 | 3
 }
 
-export function EmptyState({ title, description, action, className, label }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  action,
+  className,
+  label,
+  headingLevel = 3,
+}: EmptyStateProps) {
+  const Heading = headingLevel === 2 ? 'h2' : 'h3'
   return (
     <section className={clsx('ui-empty', className)} aria-label={label}>
-      <h3 className="ui-empty-title">{title}</h3>
+      <Heading className="ui-empty-title">{title}</Heading>
       {description ? <p className="ui-empty-description">{description}</p> : null}
       {action ? <div className="ui-empty-action">{action}</div> : null}
     </section>

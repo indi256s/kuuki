@@ -332,8 +332,8 @@
 .ov3-card[data-span='full'] .ov3-card-details {
   padding-top: 24px;
 }
-.ov3-card[data-span='full'] .ov3-card-details > .ov3-card-heading {
-  margin-bottom: 12px;
+.ov3-card[data-span='full'] .ov3-card-details-body {
+  padding-block: 4px var(--space-2);
 }
 .ov3-card[data-span='full'] .ov3-card-coverage {
   padding-top: 12px;

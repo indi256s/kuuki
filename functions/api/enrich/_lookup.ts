@@ -1,89 +1,27 @@
 import { GoogleGenAI, type GenerateContentResponse } from '@google/genai'
-import { findAircraft } from '../../../packages/data/src/aircraft-lookup'
-import { normalizeFlightNumber } from '../_services/blockTimeMedian'
 import { HttpError } from '../_lib/http'
-import { ProviderResponseError } from '../import/_provider'
-import { buildBatchPrompt, type FlightToEnrich, type EnrichmentResult } from './_shared'
+import { normalizeAircraftEvidence, parseAircraftResults } from './_evidence'
+import { buildBatchPrompt, safeUrl, type FlightToEnrich, type EnrichmentResult } from './_shared'
 
 // Below the 40s web client deadline, including response validation.
 export const ENRICHMENT_DEADLINE_MS = 20_000
-
-interface ProviderAircraft {
-  index: number
-  icao?: string | null
-  name?: string | null
-  confidence: number
-  evidence?: string | null
-  uncertainty?: string | null
-  equipment_basis?: 'actual' | 'scheduled' | 'unknown'
-  evidence_date?: string | null
-  evidence_origin?: string | null
-  evidence_destination?: string | null
-  evidence_flight?: string | null
-  source_urls?: string[]
-  registration?: string | null
-  operating_airline?: string | null
-}
 
 /** A retrieved URL is provenance, not independent verification of its page's claims. */
 export function normalizeEnrichment(
   response: GenerateContentResponse,
   flights: FlightToEnrich[],
 ): EnrichmentResult[] {
-  if (!response.text) throw new ProviderResponseError('Empty enrichment response')
-  let parsed: { results: ProviderAircraft[] }
-  try {
-    parsed = JSON.parse(response.text.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/, '$1'))
-  } catch {
-    throw new ProviderResponseError('Invalid enrichment JSON')
-  }
-  const nullableStrings = [
-    'icao',
-    'name',
-    'evidence',
-    'uncertainty',
-    'evidence_date',
-    'evidence_origin',
-    'evidence_destination',
-    'evidence_flight',
-    'registration',
-    'operating_airline',
-  ] as const
-  if (
-    !parsed ||
-    !Array.isArray(parsed.results) ||
-    parsed.results.length !== flights.length ||
-    new Set(parsed.results.map((row) => row?.index)).size !== flights.length ||
-    parsed.results.some(
-      (row) =>
-        !row ||
-        !Number.isInteger(row.index) ||
-        row.index < 1 ||
-        row.index > flights.length ||
-        !Number.isFinite(row.confidence) ||
-        nullableStrings.some((key) => row[key] != null && typeof row[key] !== 'string') ||
-        (row.equipment_basis != null &&
-          !['actual', 'scheduled', 'unknown'].includes(row.equipment_basis)) ||
-        (row.source_urls != null &&
-          (!Array.isArray(row.source_urls) ||
-            row.source_urls.some((url) => typeof url !== 'string'))),
-    )
-  ) {
-    throw new ProviderResponseError('Invalid enrichment response shape')
-  }
+  const rows = parseAircraftResults(response.text, flights)
   const candidate = response.candidates?.[0]
   const metadata = candidate?.groundingMetadata
   const chunks = metadata?.groundingChunks ?? []
   const supports = metadata?.groundingSupports ?? []
   return flights.map((flight, index) => {
-    const row = parsed.results.find((item) => item.index === index + 1)!
+    const row = rows.find((item) => item.index === index + 1)!
     const citedIndices = new Set<number>()
     // Search supports may be cumulative prefixes. Attribute a citation ending in this row's evidence,
     // rather than attaching every citation to every earlier record in that prefix.
-    if (
-      row.evidence &&
-      parsed.results.filter((item) => item.evidence === row.evidence).length === 1
-    ) {
+    if (row.evidence && rows.filter((item) => item.evidence === row.evidence).length === 1) {
       for (const support of supports) {
         const segment = support.segment
         const part = candidate?.content?.parts?.[segment?.partIndex ?? 0]?.text ?? ''
@@ -121,58 +59,11 @@ export function normalizeEnrichment(
         !(citedIndices.has(chunkIndex) || (supports.length === 0 && row.source_urls?.includes(uri)))
       )
         continue
-      try {
-        const url = new URL(uri)
-        if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) continue
-        sources.set(uri, { url: uri, title: chunk.web?.title?.trim() || url.hostname })
-      } catch {
-        /* Invalid provider URLs never become links. */
-      }
+      // Invalid provider URLs never become links.
+      if (!safeUrl(uri)) continue
+      sources.set(uri, { url: uri, title: chunk.web?.title?.trim() || new URL(uri).hostname })
     }
-    const flightNumber = normalizeFlightNumber(flight.airline_iata, flight.flight_number)
-    const matchesFlight =
-      row.evidence_date === flight.date &&
-      row.evidence_origin === flight.origin &&
-      row.evidence_destination === flight.destination &&
-      !!flightNumber &&
-      !!flight.airline_iata &&
-      row.evidence_flight
-        ?.toUpperCase()
-        .replace(/\s/g, '')
-        .startsWith(flight.airline_iata.toUpperCase()) &&
-      normalizeFlightNumber(flight.airline_iata, row.evidence_flight) === flightNumber
-    const icao = row.icao?.trim().toUpperCase()
-    const offered =
-      !!icao &&
-      !!findAircraft(icao) &&
-      row.confidence >= 0.7 &&
-      !!row.evidence?.trim() &&
-      matchesFlight &&
-      sources.size > 0 &&
-      (row.equipment_basis === 'actual' || row.equipment_basis === 'scheduled') &&
-      (row.equipment_basis !== 'actual' ||
-        flight.date <= new Date(Date.now() + 14 * 3600_000).toISOString().slice(0, 10))
-    return {
-      flight_id: flight.id,
-      aircraft_icao: offered ? icao : null,
-      aircraft_name: offered ? (findAircraft(icao)?.name ?? row.name ?? null) : null,
-      confidence: offered
-        ? Math.min(row.equipment_basis === 'scheduled' ? 0.89 : 1, row.confidence)
-        : 0,
-      equipment_basis: offered ? row.equipment_basis : 'unknown',
-      evidence_date: matchesFlight ? (row.evidence_date ?? null) : null,
-      evidence: offered ? (row.evidence ?? null) : null,
-      uncertainty: offered
-        ? (row.uncertainty ?? null)
-        : 'No matching dated search evidence for this flight.',
-      sources: [...sources.values()],
-      registration:
-        offered && row.equipment_basis === 'actual'
-          ? row.registration?.trim().toUpperCase() || null
-          : null,
-      operating_airline: offered ? row.operating_airline?.trim() || null : null,
-      source: 'gemini',
-    }
+    return normalizeAircraftEvidence(row, flight, [...sources.values()], 'gemini')
   })
 }
 

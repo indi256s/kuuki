@@ -28,6 +28,7 @@ import {
 import { cityOf } from './reference'
 
 export interface QuestionDeckProps {
+  compact?: boolean
   locale: Locale
   /** Review rows as shown: the stored drafts with unsent changes laid over them. */
   drafts: Draft[]
@@ -47,14 +48,19 @@ interface Resolved {
 }
 
 /** «26 марта» / "26 March": a printed day without its year, formatted in a fixed leap year so 29 February survives. */
-export function formatMonthDay(locale: Locale, monthDay: { month: number; day: number }): string {
-  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(
+export function formatMonthDay(
+  locale: Locale,
+  monthDay: { month: number; day: number },
+  month: 'long' | 'short' = 'long',
+): string {
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month, timeZone: 'UTC' }).format(
     new Date(Date.UTC(2000, monthDay.month - 1, monthDay.day, 12)),
   )
 }
 
 export function QuestionDeck({
   locale,
+  compact = false,
   drafts,
   saveStates,
   frozen,
@@ -88,11 +94,19 @@ export function QuestionDeck({
     .filter((draft): draft is Draft => draft?.status === 'dismissed')
 
   // After an answer, focus moves to the question now in that place, or to the deck heading when none is left.
+  // A compact deck's heading is visually hidden, so focus goes on to the next control of the row it belongs to.
   useEffect(() => {
     if (focusAt.current === null || !root.current) return
     const headings = root.current.querySelectorAll<HTMLElement>('[data-question-heading]')
     ;(
       headings[Math.min(focusAt.current, headings.length - 1)] ??
+      (compact
+        ? root.current
+            .closest('li')
+            ?.querySelector<HTMLElement>(
+              'input:not(:disabled), button:not(:disabled):not([aria-disabled="true"])',
+            )
+        : null) ??
       root.current.querySelector<HTMLElement>('h3')
     )?.focus()
     focusAt.current = null
@@ -143,15 +157,16 @@ export function QuestionDeck({
     focusAt.current = index
   }
 
-  const flightList = (rows: Draft[]) => (
-    <ul className="import-question-flights">
-      {rows.map((draft) => (
-        <li key={draft.id} className="import-code">
-          {route(draft)} · {when(draft)}
-        </li>
-      ))}
-    </ul>
-  )
+  const flightList = (rows: Draft[]) =>
+    compact ? null : (
+      <ul className="import-question-flights">
+        {rows.map((draft) => (
+          <li key={draft.id} className="import-code">
+            {route(draft)} · {when(draft)}
+          </li>
+        ))}
+      </ul>
+    )
 
   /** The first rows stay in view; the rest open in place, and stay answerable while a save runs. */
   const withMore = (rows: ReactNode[], visible: number) =>
@@ -189,9 +204,11 @@ export function QuestionDeck({
           <h4 id={titleId} tabIndex={-1} data-question-heading>
             {title}
           </h4>
-          <span className="import-question-count">{count(locale, 'flightsN', rows.length)}</span>
+          {compact ? null : (
+            <span className="import-question-count">{count(locale, 'flightsN', rows.length)}</span>
+          )}
         </div>
-        <p className="import-hint">{body}</p>
+        {compact ? null : <p className="import-hint">{body}</p>}
       </div>
     )
 
@@ -221,9 +238,12 @@ export function QuestionDeck({
               .filter(Boolean)
               .join(' '),
           )}
-          <p className="import-question-dates import-code">
-            {question.drafts.map(when).join(' · ')}
-          </p>
+          {/* A compact row already shows its day and month; only a day of the year needs saying here. */}
+          {compact && question.evidence !== 'ordinal' ? null : (
+            <p className="import-question-dates import-code">
+              {question.drafts.map(when).join(' · ')}
+            </p>
+          )}
           <div className="import-question-answers" data-columns="3">
             {question.years.map((year) => (
               <Button key={year} disabled={busy} onClick={() => setYear(year)}>
@@ -237,7 +257,7 @@ export function QuestionDeck({
               onApply={setYear}
             />
           </div>
-          {each(S.questionsEach[locale])}
+          {compact ? null : each(S.questionsEach[locale])}
         </li>
       )
     }
@@ -322,7 +342,7 @@ export function QuestionDeck({
               {S.airlineAnswer[locale]}
             </Button>
           </div>
-          {each(S.questionsEach[locale])}
+          {compact ? null : each(S.questionsEach[locale])}
         </li>
       )
     }
@@ -383,7 +403,7 @@ export function QuestionDeck({
             }),
             1,
           )}
-          {each(S.questionsEachAirport[locale])}
+          {compact ? null : each(S.questionsEachAirport[locale])}
         </li>
       )
     }
@@ -465,7 +485,7 @@ export function QuestionDeck({
         {S.questionsTitle[locale]}
       </h3>
       {shown.length > 0 ? <ol className="import-question-list">{shown.map(card)}</ol> : null}
-      {resolved.length > 0 || skippedRows.length > 0 ? (
+      {!compact && (resolved.length > 0 || skippedRows.length > 0) ? (
         <ul className="import-question-done">
           {resolved.map((item) => {
             const failed = failedIds(item.ids)
@@ -519,7 +539,7 @@ export function QuestionDeck({
           ))}
         </ul>
       ) : null}
-      <p className="import-note" role="status">
+      <p className={compact ? 'sr-only' : 'import-note'} role="status">
         {notice}
       </p>
     </section>

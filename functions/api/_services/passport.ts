@@ -2,7 +2,14 @@
 // contributing flights and legacy sources from the same pure policy (`countryContributions`), so Passport,
 // Overview and `user_stats` cannot disagree about which countries a flight supports.
 import { assertRows } from '../_lib/d1'
-import { toGroundVisit, type GroundVisitRow } from '../_lib/passportDtos'
+import {
+  railRouteLabel,
+  roadRouteLabel,
+  toGroundVisit,
+  toPassportJourney,
+  type GroundVisitRow,
+  type PassportJourneyRow,
+} from '../_lib/passportDtos'
 import { REGION_POLICY, catalogRegionOf, regionProgress, type RegionId } from '../_lib/regions'
 import {
   countryContributions,
@@ -79,7 +86,7 @@ export function passportRead(db: D1Database, userId: string) {
       .bind(userId),
     db
       .prepare(
-        `SELECT country_code, status, logged_visit_count, awaiting_visit_count, claimed, ground_visit_count, first_visit, last_visit
+        `SELECT country_code, status, logged_visit_count, awaiting_visit_count, claimed, ground_visit_count, ground_journey_count, first_visit, last_visit
        FROM country_visit_evidence WHERE user_id = ? ORDER BY country_code`,
       )
       .bind(userId),
@@ -199,6 +206,34 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
         'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
       )
       .bind(userId),
+    // Journey contributions: the owner's live completed journeys that confirmed this country, with the
+    // place snapshots their route label is built from (same batch, one consistent snapshot).
+    db
+      .prepare(
+        `SELECT j.id, j.mode, j.title, j.start_date, j.end_date FROM ground_journeys j
+       JOIN ground_journey_countries c ON c.journey_id = j.id AND c.user_id = j.user_id
+       WHERE j.user_id = ? AND c.country_code = ? AND j.status = 'completed' AND j.deleted_at IS NULL
+       ORDER BY j.start_date IS NULL, j.start_date DESC, j.id`,
+      )
+      .bind(userId, countryCode),
+    db
+      .prepare(
+        `SELECT l.journey_id, l.from_place, l.to_place FROM ground_rail_legs l
+       JOIN ground_journey_countries c ON c.journey_id = l.journey_id AND c.user_id = l.user_id
+       JOIN ground_journeys j ON j.id = l.journey_id AND j.user_id = l.user_id
+       WHERE l.user_id = ? AND c.country_code = ? AND j.status = 'completed' AND j.deleted_at IS NULL
+       ORDER BY l.journey_id, l.ordinal`,
+      )
+      .bind(userId, countryCode),
+    db
+      .prepare(
+        `SELECT p.journey_id, p.place FROM ground_road_points p
+       JOIN ground_journey_countries c ON c.journey_id = p.journey_id AND c.user_id = p.user_id
+       JOIN ground_journeys j ON j.id = p.journey_id AND j.user_id = p.user_id
+       WHERE p.user_id = ? AND c.country_code = ? AND j.status = 'completed' AND j.deleted_at IS NULL
+       ORDER BY p.journey_id, p.ordinal`,
+      )
+      .bind(userId, countryCode),
   ]
   const results = await db.batch(statements)
   assertRows(results, 'Passport country read failed', statements.length)
@@ -215,6 +250,28 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
         last_visit: string | null
       }
     | undefined
+
+  const legsOf = new Map<string, Array<{ from_place: string; to_place: string }>>()
+  for (const leg of results[7].results as unknown as Array<{
+    journey_id: string
+    from_place: string
+    to_place: string
+  }>)
+    legsOf.set(leg.journey_id, [...(legsOf.get(leg.journey_id) ?? []), leg])
+  const pointsOf = new Map<string, Array<{ place: string }>>()
+  for (const point of results[8].results as unknown as Array<{
+    journey_id: string
+    place: string
+  }>)
+    pointsOf.set(point.journey_id, [...(pointsOf.get(point.journey_id) ?? []), point])
+  const journeys = (results[6].results as unknown as PassportJourneyRow[]).map((row) =>
+    toPassportJourney(
+      row,
+      row.mode === 'rail'
+        ? railRouteLabel(legsOf.get(row.id) ?? [])
+        : roadRouteLabel(pointsOf.get(row.id) ?? []),
+    ),
+  )
 
   const policy = countryContributions(flights)
   const contributing = policy.contributions.filter((row) => row.country_code === countryCode)
@@ -306,6 +363,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
       .sort((a, b) => b.visitCount - a.visitCount || a.iata.localeCompare(b.iata)),
     isClaimed: !!claim,
     groundVisits,
+    journeys,
     flightIds,
     entries,
     suppressed,

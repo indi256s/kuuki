@@ -105,7 +105,7 @@ it('shows the first-run state after revalidation removes the last flight', async
   await waitFor(() => expect(screen.getByRole('link', { name: 'Import flights' })).toBeVisible())
 })
 
-it('drops a locked section from the grid and lists its gate in Next up, keeping the saved layout', async () => {
+it('omits unavailable chapters without a goal band, keeping the saved layout', async () => {
   const few: OverviewPayload = {
     ...payload,
     rows: payload.rows.slice(0, 4).map((row, index) => ({ ...row, id: index + 1, weight: 1 })),
@@ -132,8 +132,8 @@ it('drops a locked section from the grid and lists its gate in Next up, keeping 
       saver={save}
     />,
   )
-  const nextUp = await screen.findByRole('region', { name: 'Next up' })
-  expect(within(nextUp).getByText('1 more flight unlocks Routes')).toBeInTheDocument()
+  await screen.findByRole('heading', { level: 1 })
+  expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()
   expect(container.querySelector('[data-section="routes"]')).toBeNull()
   expect(container.querySelector('[data-section="records"]')).not.toBeNull()
   expect(save).not.toHaveBeenCalled()
@@ -165,4 +165,45 @@ it('keeps a chapter in the grid when only the filter drops it below its gate', a
     (node) => node.getAttribute('data-section'),
   )
   expect(order).toEqual(DEFAULT_PREFS.layout.order)
+})
+
+it('reads mobile controls and facts before the map while upcoming bookings remain global in a filtered scope', () => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: query === '(max-width: 700px)',
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    })),
+  )
+  const { container } = render(
+    <OverviewPage
+      payload={payload}
+      prefs={{ ...DEFAULT_PREFS, filter: { period: { years: [2025] } } }}
+      ownerKey="mobile-order-owner"
+      name="Aviator"
+      locale="en"
+      live={false}
+      saver={saver}
+    />,
+  )
+  const heading = screen.getByRole('heading', { level: 1, name: 'Overview' })
+  expect(heading).toHaveAttribute('tabindex', '-1')
+  const next = screen.getByRole('button', { name: /^Open flight/ })
+  const controls = screen.getByLabelText('Overview filters')
+  const facts = screen.getByRole('region', { name: 'Totals for the period' })
+  const map = screen.getByRole('region', { name: 'Places by air' })
+  for (const [before, after] of [
+    [next, controls],
+    [controls, facts],
+    [facts, map],
+  ]) {
+    expect(before.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  }
+  expect(screen.getByRole('link', { name: /more booked/ })).toHaveAttribute(
+    'href',
+    '/journal?status=upcoming',
+  )
+  expect(container.querySelectorAll('[aria-label="Overview filters"]')).toHaveLength(1)
 })

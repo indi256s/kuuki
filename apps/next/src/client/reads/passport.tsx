@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -34,7 +36,7 @@ type Patch = Partial<Record<'view' | 'sort' | 'country' | 'layer', string | null
 
 function Inner({
   ownerId,
-  locale,
+  locale: initialLocale,
   initial,
   period,
 }: {
@@ -43,6 +45,7 @@ function Inner({
   initial: PassportData
   period?: OverviewPeriod
 }) {
+  const locale = useLocale(initialLocale)
   const router = useRouter()
   const queryClient = useQueryClient()
   const search = useSearchParams()
@@ -50,7 +53,7 @@ function Inner({
   const ru = locale === 'ru'
   const mobile = useMobile()
   const [adding, setAdding] = useState(false)
-  const [notice, setNotice] = useState('')
+  const [removedCountry, setRemovedCountry] = useState<string | null>(null)
   // A pending slot resolving its arrival card: shown while the evidence loads, dropped when the member leaves or acts.
   const [opening, setOpening] = useState<string | null>(null)
   const arrivalIntent = useRef<{ code: string; href: string } | null>(null)
@@ -191,11 +194,7 @@ function Inner({
   }
   function removed(code: string) {
     navigate({ country: null })
-    setNotice(
-      ru
-        ? `Страна «${name(code)}» удалена из паспорта.`
-        : `${name(code)} was removed from your passport.`,
-    )
+    setRemovedCountry(code)
   }
   // Focus returns to the stamp (or map list item) that opened the sheet; when it is gone (a removed country, a
   // deep link), to the page heading.
@@ -242,7 +241,11 @@ function Inner({
           ? ru
             ? `Открываем карточку прилёта: ${name(opening)}…`
             : `Opening the arrival card for ${name(opening)}…`
-          : notice}
+          : removedCountry
+            ? ru
+              ? `Страна «${name(removedCountry)}» удалена из паспорта.`
+              : `${name(removedCountry)} was removed from your passport.`
+            : ''}
       </p>
       <div
         className="passport-toolbar"

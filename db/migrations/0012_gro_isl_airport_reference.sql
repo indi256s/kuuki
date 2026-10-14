@@ -1,0 +1,5 @@
+-- Source: checked-in OpenFlights scripts/airports-raw.dat, source IDs 1222 and 1701.
+-- Admit Girona and Atatürk for imports, including historical flight endpoints.
+-- Existing matching rows are no-ops; a divergent existing IATA raises a primary-key conflict.
+INSERT INTO airports_reference (iata, icao, name, city, country, country_code, latitude, longitude) SELECT 'GRO', 'LEGE', 'Girona Airport', 'Gerona', 'Spain', 'ES', 41.901000977, 2.7605500221 WHERE NOT EXISTS (SELECT 1 FROM airports_reference WHERE iata IS 'GRO' AND icao IS 'LEGE' AND name IS 'Girona Airport' AND city IS 'Gerona' AND country IS 'Spain' AND country_code IS 'ES' AND latitude IS 41.901000977 AND longitude IS 2.7605500221);
+INSERT INTO airports_reference (iata, icao, name, city, country, country_code, latitude, longitude) SELECT 'ISL', 'LTBA', 'Atatürk International Airport', 'Istanbul', 'Turkey', 'TR', 40.976898, 28.8146 WHERE NOT EXISTS (SELECT 1 FROM airports_reference WHERE iata IS 'ISL' AND icao IS 'LTBA' AND name IS 'Atatürk International Airport' AND city IS 'Istanbul' AND country IS 'Turkey' AND country_code IS 'TR' AND latitude IS 40.976898 AND longitude IS 28.8146);

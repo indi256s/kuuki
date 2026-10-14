@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import { useState, type ReactNode } from 'react'
 import { CircleQuestion as CircleHelp, Globe, Pause, Play } from '@keyline-icons/react'
 import { setLocale } from '../appearance'
@@ -87,7 +89,7 @@ function HelpControl({ locale }: { locale: Locale }) {
  * Each control is at least 44×44. `theme` swaps the theme control; the default is the `HorizonToggle`.
  */
 export function CornerControls({
-  locale,
+  locale: initialLocale,
   theme,
   onLocaleChange,
   motionPaused,
@@ -99,6 +101,7 @@ export function CornerControls({
   motionPaused?: boolean
   onMotionPauseChange?: (paused: boolean) => void
 }) {
+  const locale = useLocale(initialLocale)
   return (
     <div className="auth-corner">
       {motionPaused !== undefined ? (

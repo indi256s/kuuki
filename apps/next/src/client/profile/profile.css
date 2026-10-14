@@ -209,6 +209,7 @@
 
 /* Stamps: pressed ink rings, no opacity on the ink; dates are owner-only. */
 .profile-stamps {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;

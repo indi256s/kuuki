@@ -101,6 +101,8 @@ export default {
         db
           .prepare('DELETE FROM import_conversion_receipts WHERE created_at < ?')
           .bind(conversionReceiptCutoff),
+        // Ground-travel receipts expire at their stored instant; tombstones stay for the account's lifetime.
+        db.prepare('DELETE FROM ground_operation_receipts WHERE expires_at <= ?').bind(instant),
         // A batch whose job died keeps the rows it already persisted (partial) or fails (failed); the generation bump
         // fences any late write from the dead job.
         db

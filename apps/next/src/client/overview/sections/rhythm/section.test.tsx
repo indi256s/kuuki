@@ -39,7 +39,11 @@ function admit(payload: OverviewPayload, ownerKey = 'owner-a', filter: OverviewF
   } as unknown as typeof context.current
   return setPeriod
 }
-const open = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
+const open = (name: string) => {
+  const details = screen.getByRole('button', { name: 'Peaks and gaps' })
+  if (details.getAttribute('aria-expanded') === 'false') fireEvent.click(details)
+  fireEvent.click(screen.getByRole('button', { name }))
+}
 const hero = (view: { container: HTMLElement }) =>
   view.container.querySelector('.ov3-card-value-text')
 // Ten flights, one a month through 2020, plus two more Marches: March is the busiest month and 2020 the busiest year.

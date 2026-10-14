@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import { TriangleAlert } from '@keyline-icons/react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Disclosure } from '../ui/disclosure'
@@ -44,11 +44,16 @@ export interface ReviewRowProps {
   today?: string
   /** The import is being saved: corrections and selection are paused so nothing typed now is lost when the review closes. */
   frozen?: boolean
+  compact?: boolean
+  singleton?: boolean
+  implicitSelection?: boolean
   onChange: (change: DraftChange) => void
   /** Reports whether the form holds a correction the member has typed but not saved. */
   onDirty: (id: string, dirty: boolean) => void
   onRetry: () => void
   onDiscard: () => void
+  /** Compact review only: the row's own questions and save outcome, inside its card above Edit. */
+  children?: ReactNode
 }
 
 const timeRange = (draft: Draft) =>
@@ -62,10 +67,14 @@ export function ReviewRow({
   mobile,
   today,
   frozen = false,
+  compact = false,
+  singleton = false,
+  implicitSelection = false,
   onChange,
   onDirty,
   onRetry,
   onDiscard,
+  children,
 }: ReviewRowProps) {
   const id = useId()
   const duplicate = isDuplicate(draft)
@@ -110,11 +119,15 @@ export function ReviewRow({
   const routeLabel = `${draft.fields.origin || '—'} → ${draft.fields.destination || '—'}`
   // An ordinal day is never shown as a month and day: without the year it is only a day to confirm.
   const yearToConfirm = !draft.fields.date && ordinalOf(draft) !== null
+  // Compact rows show a printed day and month while its year question sits right below.
+  const monthDay = compact && !draft.fields.date ? monthDayOf(draft) : null
   const dateText = draft.fields.date
     ? formatDateOnly(locale, draft.fields.date, 'medium')
     : yearToConfirm
       ? S.yearToConfirm[locale]
-      : S.noDate[locale]
+      : monthDay
+        ? formatMonthDay(locale, monthDay, 'short')
+        : S.noDate[locale]
   // A locally read barcode has no recognition score, so it says where it came from instead.
   const unscored = draft.fields.flown_required
     ? S.readFromBarcode[locale]
@@ -122,7 +135,7 @@ export function ReviewRow({
   const flightNumber = draft.fields.flight_number
     ? `${draft.fields.airline_iata}${draft.fields.flight_number}`.trim()
     : undefined
-  const needsYear = !draft.yearExplicit
+  const needsYear = !draft.yearExplicit && !draft.yearConfirmed
   // Typed but not yet sent: the parent blocks the import and the unload warning is armed until it is saved or discarded.
   const dirty =
     Object.keys(changedFields(draft.fields, values)).length > 0 ||
@@ -140,6 +153,7 @@ export function ReviewRow({
     const change: DraftChange = {}
     if (Object.keys(fields).length > 0) change.fields = fields
     if (needsYear && yearChecked !== draft.yearConfirmed) change.yearConfirmed = yearChecked
+    if (compact && change.fields?.date && !draft.yearExplicit) change.yearConfirmed = true
     if (!change.fields && change.yearConfirmed === undefined) return true
     onChange(change)
     return true
@@ -170,25 +184,41 @@ export function ReviewRow({
   const failedState = state && state.status !== 'saving'
 
   const checkLabel = duplicate ? S.saveAnyway[locale] : S.selectRow[locale]
-  const checkbox = (
-    <label className="import-check">
-      <input
-        type="checkbox"
-        checked={duplicate ? draft.selected && draft.duplicateAcknowledged : chosen}
+  const checkbox =
+    compact && implicitSelection && !duplicate ? null : compact && singleton && !duplicate ? (
+      <Button
+        dense
+        variant="ghost"
         disabled={blocked.length > 0 || frozen}
-        aria-describedby={
-          [blockText && `${id}-block`, notVerified && `${id}-verification`]
-            .filter(Boolean)
-            .join(' ') || undefined
-        }
-        onChange={(event) => toggle(event.target.checked)}
-      />
-      <span>
-        <span className={duplicate ? undefined : 'sr-only'}>{checkLabel}</span>
-        <span className="sr-only">{`: ${routeLabel}, ${dateText}`}</span>
-      </span>
-    </label>
-  )
+        onClick={() => toggle(!draft.selected)}
+      >
+        {draft.selected
+          ? locale === 'ru'
+            ? 'Исключить'
+            : 'Exclude'
+          : locale === 'ru'
+            ? 'Добавить'
+            : 'Include'}
+      </Button>
+    ) : (
+      <label className="import-check">
+        <input
+          type="checkbox"
+          checked={duplicate ? draft.selected && draft.duplicateAcknowledged : chosen}
+          disabled={blocked.length > 0 || frozen}
+          aria-describedby={
+            [blockText && !compact && `${id}-block`, notVerified && `${id}-verification`]
+              .filter(Boolean)
+              .join(' ') || undefined
+          }
+          onChange={(event) => toggle(event.target.checked)}
+        />
+        <span>
+          <span className={duplicate ? undefined : 'sr-only'}>{checkLabel}</span>
+          <span className="sr-only">{`: ${routeLabel}, ${dateText}`}</span>
+        </span>
+      </label>
+    )
 
   const flags = (
     <div className="import-flags">
@@ -217,20 +247,20 @@ export function ReviewRow({
     <>
       {notVerified ? (
         <p className="import-note" id={`${id}-verification`}>
-          {S.notVerified[locale]}
+          {compact ? S.notVerifiedSave[locale] : S.notVerified[locale]}
         </p>
       ) : null}
-      {blockText ? (
+      {blockText && !compact ? (
         <p className="import-note" id={`${id}-block`}>
           {blockText}
         </p>
       ) : null}
-      {!draft.fields.date && monthDayOf(draft) ? (
+      {!compact && !draft.fields.date && monthDayOf(draft) ? (
         <p className="import-note">
           {S.monthDayNote[locale].replace('{date}', formatMonthDay(locale, monthDayOf(draft)!))}
         </p>
       ) : null}
-      {yearToConfirm ? <p className="import-note">{S.ordinalNote[locale]}</p> : null}
+      {!compact && yearToConfirm ? <p className="import-note">{S.ordinalNote[locale]}</p> : null}
       {issueText ? <p className="import-note">{issueText}</p> : null}
       <p
         className="import-note"
@@ -273,7 +303,7 @@ export function ReviewRow({
         low={low}
         disabled={state?.status === 'saving' || frozen}
         year={
-          needsYear
+          needsYear && !compact
             ? {
                 missing: !draft.fields.date && !values.date,
                 checked: yearChecked,
@@ -291,7 +321,7 @@ export function ReviewRow({
     </>
   )
 
-  if (mobile) {
+  if (mobile && !compact) {
     return (
       <li
         className="import-row import-row-ticket"
@@ -332,7 +362,7 @@ export function ReviewRow({
             </div>
           }
         />
-        {flags}
+        {compact ? null : flags}
         {notes}
         <Sheet
           initialDetent={1}
@@ -371,7 +401,8 @@ export function ReviewRow({
     <li
       className="import-row"
       data-selected={chosen ? 'true' : undefined}
-      data-low={confidence === 'check' || low.length > 0 ? 'true' : undefined}
+      // Compact rows do not list unsure fields, so an unexplained warning edge is left out.
+      data-low={!compact && (confidence === 'check' || low.length > 0) ? 'true' : undefined}
     >
       <div className="import-row-main">
         {checkbox}
@@ -397,10 +428,11 @@ export function ReviewRow({
             ) : null}
             {timeRange(draft) ? <span className="import-code">{timeRange(draft)}</span> : null}
           </p>
-          {flags}
+          {compact ? null : flags}
         </div>
       </div>
       {notes}
+      {children}
       <Disclosure
         open={open}
         onOpenChange={setOpen}

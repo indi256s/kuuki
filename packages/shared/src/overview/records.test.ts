@@ -141,3 +141,14 @@ it('counts every flight on a longest route, including those without a distance',
   if (gate.status !== 'ready') throw new Error('Expected ready records')
   expect(gate.value.longest5).toEqual([{ origin: 'TBS', destination: 'IST', km: 1000, flights: 3 }])
 })
+
+it('shows the witnessed record and route when a journal contains one completed flight', () => {
+  const flight = { ...row(42, '2025-01-01', 360), distanceKm: 500 }
+  expect(records([flight], payload.refs, 'flights')).toMatchObject({
+    status: 'ready',
+    value: {
+      longest: { flightId: 42, date: '2025-01-01', value: 500 },
+      longest5: [{ origin: flight.origin, destination: flight.destination, km: 500, flights: 1 }],
+    },
+  })
+})

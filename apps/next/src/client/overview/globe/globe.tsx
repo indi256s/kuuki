@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import { matches, routeKey } from '@kuuki/shared/overview/filter'
 import { useOverview } from '../store/overview-context'
-import { GlobeCard } from './globe-card'
+import { GlobeCard, type GlobeCardProps } from './globe-card'
 import { CountryTreemap } from './country-treemap'
 import { S, t } from '../copy'
 import { buildTimeline, replayDurationMs } from './replay'
@@ -65,12 +65,15 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
 }
 
 /** PAGE owns the filter bar; this consumer owns the one clock shared by card and Fullscreen. */
-export function OverviewGlobe({ topLeft }: { topLeft?: ReactNode }) {
+type Props = Pick<GlobeCardProps, 'topLeft' | 'onFullscreenChange'>
+export function OverviewGlobe({ topLeft, onFullscreenChange }: Props) {
   const overview = useOverview()
   if (!overview.payload || !overview.scope || !overview.all) return null
-  return <OwnedGlobe key={overview.ownerKey} topLeft={topLeft} />
+  return (
+    <OwnedGlobe key={overview.ownerKey} topLeft={topLeft} onFullscreenChange={onFullscreenChange} />
+  )
 }
-function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
+function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
   const {
     payload,
     scope,
@@ -83,6 +86,7 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
     actions,
     isCurrent,
   } = useOverview()
+  useEffect(() => () => onFullscreenChange?.(false), [onFullscreenChange])
   const host = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [reduced, setReduced] = useState(true)
@@ -125,7 +129,10 @@ function OwnedGlobe({ topLeft }: { topLeft?: ReactNode }) {
         locale={locale}
         disclosure={disclosure}
         topLeft={topLeft}
-        onFullscreenChange={setFullscreen}
+        onFullscreenChange={(open) => {
+          setFullscreen(open)
+          onFullscreenChange?.(open)
+        }}
         bottomLeft={
           <ReplayTransport
             key={`${payload!.etag}:${JSON.stringify(filter)}`}

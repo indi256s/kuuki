@@ -1,11 +1,11 @@
-import { lookupAircraft } from './_lookup'
+import { lookupFlightAircraft, resolveEnrichmentProvider } from './_provider'
 import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
-import { type EnrichmentRequest, type EnrichmentResponse, MAX_BATCH_SIZE } from './_shared'
+import { type EnrichmentRequest, type EnrichmentResponse, MAX_BATCH_SIZE, safeUrl } from './_shared'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { HttpError, readJson, runHandler } from '../_lib/http'
 import { rateLimit } from '../_lib/ratelimit'
-import { DEFAULT_MODEL, providerFailure, usageBucket } from '../import/_provider'
+import { providerFailure, usageBucket } from '../import/_provider'
 
 export { ENRICHMENT_DEADLINE_MS } from './_lookup'
 
@@ -27,8 +27,6 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
       // Per-user rate limit — paid Gemini quota. Prevents one user from running up cost
       // (security finding: AI quota / cost abuse — no per-user limit).
       await rateLimit(env.DB, `import-enrich:${user.id}`, 30, 3600)
-
-      if (!env.GEMINI_API_KEY) throw new HttpError(500, 'Gemini API key not configured')
 
       const body = await readJson<Partial<EnrichmentRequest>>(request, { maxBytes: 50_000 })
       const flights = body?.flights
@@ -57,7 +55,13 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
           ) ||
           (flight.airline_iata != null && !/^[A-Z0-9]{2}$/.test(flight.airline_iata)) ||
           (flight.flight_number != null && flight.flight_number.length > 20) ||
-          (flight.airline_name != null && flight.airline_name.length > 200)
+          (flight.airline_name != null && flight.airline_name.length > 200) ||
+          (flight.source_hints != null &&
+            (!Array.isArray(flight.source_hints) ||
+              flight.source_hints.length > 2 ||
+              flight.source_hints.some(
+                (value) => typeof value !== 'string' || value.length > 1000 || !safeUrl(value),
+              )))
         ) {
           throw new HttpError(
             400,
@@ -69,21 +73,26 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         throw new HttpError(400, 'Flight IDs must be unique')
       }
 
-      const model = context.env.GEMINI_ENRICH_MODEL?.trim() || DEFAULT_MODEL
+      const { provider, model } = resolveEnrichmentProvider(env)
       const started = Date.now()
       try {
         console.log(
-          JSON.stringify({ event: 'gemini_enrichment_start', model, flight_count: flights.length }),
+          JSON.stringify({
+            event: 'enrichment_start',
+            provider,
+            model,
+            flight_count: flights.length,
+          }),
         )
-        const { results, tokenCount, searchSuggestionsHtml } = await lookupAircraft(
-          context.env.GEMINI_API_KEY,
-          model,
+        const { results, tokenCount, searchSuggestionsHtml } = await lookupFlightAircraft(
+          env,
           flights,
         )
 
         console.log(
           JSON.stringify({
             event: 'enrichment_complete',
+            provider,
             model,
             outcome: 'success',
             duration_ms: Date.now() - started,
@@ -106,6 +115,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
         console.error(
           JSON.stringify({
             event: 'enrichment_provider_error',
+            provider,
             model,
             code: failure.code,
             duration_ms: Date.now() - started,

@@ -148,7 +148,7 @@ describe('ActivityBridge owner sync', () => {
   })
 })
 
-it("clears the departing owner's capture recents and disclosure preferences when signing out", async () => {
+it("clears the departing owner's capture preferences and deferred deletions when signing out", async () => {
   const { beginIdentityOperation } = await import('@kuuki/client/apiClient')
   vi.mocked(beginIdentityOperation).mockReturnValue({
     ready: Promise.resolve(),
@@ -163,6 +163,8 @@ it("clears the departing owner's capture recents and disclosure preferences when
   writeCapturePreference('a', 'airports', ['TBS'])
   writeCapturePreference('a', 'details', true)
   writeCapturePreference('b', 'airports', ['IST'])
+  sessionStorage.setItem('kuuki-journal-delete:a', '[{"key":1,"ids":[1],"remaining":6000}]')
+  sessionStorage.setItem('kuuki-journal-delete:b', '[{"key":1,"ids":[2],"remaining":6000}]')
   sessionStorage.setItem('unrelated', 'keep')
   // jsdom reports document navigation as unimplemented; the cleanup precedes it.
   const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -174,6 +176,8 @@ it("clears the departing owner's capture recents and disclosure preferences when
   expect(readCapturePreference('a', 'airports', [])).toEqual([])
   expect(readCapturePreference('a', 'details', false)).toBe(false)
   expect(readCapturePreference('b', 'airports', [])).toEqual(['IST'])
+  expect(sessionStorage.getItem('kuuki-journal-delete:a')).toBeNull()
+  expect(sessionStorage.getItem('kuuki-journal-delete:b')).not.toBeNull()
   expect(sessionStorage.getItem('unrelated')).toBe('keep')
 })
 

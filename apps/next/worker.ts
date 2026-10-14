@@ -92,6 +92,7 @@ export default {
       [
         '/overview',
         '/journal',
+        '/ground-travel',
         '/passport',
         '/settings',
         '/onboarding',

@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -108,7 +110,7 @@ export interface ImportResult {
 
 export function ImportClient({
   ownerId,
-  locale,
+  locale: initialLocale,
   initialBatchId = null,
   initialSource = null,
   batchApi,
@@ -125,6 +127,7 @@ export function ImportClient({
   onBatchId?: (id: string | null) => void
   onResult?: (result: ImportResult) => void
 }) {
+  const locale = useLocale(initialLocale)
   const router = useRouter()
   const feedback = useWriteFeedback(ownerId)
   const mobile = useMobile()
@@ -177,9 +180,13 @@ export function ImportClient({
   const [checkFailed, setCheckFailed] = useState(false)
   const [newCodes, setNewCodes] = useState<string[] | null>(null)
   const [unfinished, setUnfinished] = useState<UnfinishedImport[] | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [noticeKey, setNotice] = useState<'sourceAgain' | 'fileRead' | 'heldDone' | null>(null)
+  const notice = noticeKey ? S[noticeKey][locale] : null
   const [cancelling, setCancelling] = useState(false)
-  const [cancelError, setCancelError] = useState<string | null>(null)
+  const [cancelErrorKey, setCancelError] = useState<'cancelReadFailed' | 'cancelFailed' | null>(
+    null,
+  )
+  const cancelError = cancelErrorKey ? S[cancelErrorKey][locale] : null
   const cancelOperation = useRef<symbol | null>(null)
   const [sourceName, setSourceName] = useState<string | null>(null)
   const [sourceMode, setSourceMode] = useState<'file' | 'text' | 'pass' | null>(initialSource)
@@ -206,7 +213,16 @@ export function ImportClient({
   const [receipts, setReceipts] = useState<UnconfirmedSave[]>([])
   const [recoveryFailures, setRecoveryFailures] = useState<Record<string, ManualFailure>>({})
   const [recoveryRetrying, setRecoveryRetrying] = useState<string | null>(null)
-  const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null)
+  const [recoveryResult, setRecoveryNotice] = useState<{
+    kind: 'saved' | 'settled'
+    values: ReturnType<typeof emptyValues> | null
+  } | null>(null)
+  const recoveryNotice = recoveryResult
+    ? S[recoveryResult.kind === 'saved' ? 'recoverySaved' : 'recoverySettled'][locale].replace(
+        '{flight}',
+        recoveryResult.values ? rowLabel(locale, recoveryResult.values) : S.unreadableSave[locale],
+      )
+    : null
   const refreshReceipts = useCallback(() => {
     const found = unconfirmedSaves(ownerId)
     setReceipts(found)
@@ -360,7 +376,7 @@ export function ImportClient({
       const quick = sourceMode === 'pass'
       reset()
       setSourceMode(quick ? 'pass' : type === 'text' ? 'text' : 'file')
-      setNotice(S.sourceAgain[locale])
+      setNotice('sourceAgain')
     } else if (action === 'manual') {
       clearCancel()
       batch.reset()
@@ -416,10 +432,10 @@ export function ImportClient({
         const snapshot = await batch.reload()
         if (isCurrent() && snapshot && snapshot.drafts.length === 0) reset()
       } catch {
-        if (isCurrent()) setCancelError(S.cancelReadFailed[locale])
+        if (isCurrent()) setCancelError('cancelReadFailed')
       }
     } catch {
-      if (isCurrent()) setCancelError(S.cancelFailed[locale])
+      if (isCurrent()) setCancelError('cancelFailed')
     } finally {
       if (isCurrent()) setCancelling(false)
     }
@@ -444,7 +460,7 @@ export function ImportClient({
       setPassFile(null)
       start(source, passUploadOperation.current)
     } catch {
-      if (passUploadFence.current === fence) setNotice(S.fileRead[locale])
+      if (passUploadFence.current === fence) setNotice('fileRead')
     } finally {
       setPassUploading(false)
     }
@@ -552,7 +568,7 @@ export function ImportClient({
     // A correction that appeared while saving would be lost with the form: stay on review until it is saved or discarded.
     if (unsentNow.current) {
       setHoldDone(true)
-      setNotice(S.heldDone[locale])
+      setNotice('heldDone')
     } else setShowDone(true)
   }
 
@@ -624,10 +640,8 @@ export function ImportClient({
   const shownSaves = receipts.filter(
     (save) => step !== 'review' || !manualRows.some((row) => row.operationId === save.operationId),
   )
-  const saveLabel = (operationId: string) => {
-    const values = receipts.find((save) => save.operationId === operationId)?.values
-    return values ? rowLabel(locale, values) : S.unreadableSave[locale]
-  }
+  const saveValues = (operationId: string) =>
+    receipts.find((save) => save.operationId === operationId)?.values ?? null
   const forgetRecoveryFailure = (operationId: string) =>
     setRecoveryFailures((previous) => {
       const next = { ...previous }
@@ -636,7 +650,7 @@ export function ImportClient({
     })
   const onRecoveryRetry = async (operationId: string) => {
     if (confirming || recoveryRetrying !== null) return
-    const label = saveLabel(operationId)
+    const values = saveValues(operationId)
     setRecoveryRetrying(operationId)
     setRecoveryNotice(null)
     try {
@@ -666,7 +680,7 @@ export function ImportClient({
           ])
         setManualRows((previous) => previous.filter((row) => !matches(row)))
         acknowledgeWrites(result.acks)
-        setRecoveryNotice(S.recoverySaved[locale].replace('{flight}', label))
+        setRecoveryNotice({ kind: 'saved', values })
       }
     } finally {
       setRecoveryRetrying(null)
@@ -675,7 +689,7 @@ export function ImportClient({
   }
   const onRecoverySettle = (operationId: string) => {
     if (confirming || recoveryRetrying !== null) return
-    const label = saveLabel(operationId)
+    const values = saveValues(operationId)
     settleUnconfirmedSave(ownerId, operationId)
     setManualRows((previous) =>
       previous.map((row) =>
@@ -687,7 +701,7 @@ export function ImportClient({
       ),
     )
     forgetRecoveryFailure(operationId)
-    setRecoveryNotice(S.recoverySettled[locale].replace('{flight}', label))
+    setRecoveryNotice({ kind: 'settled', values })
     refreshReceipts()
   }
 

@@ -68,7 +68,11 @@ it('a pick moves the hero and the lit piece and does not filter', () => {
 
 it('picking a continent never flown reads 0 flights and outlines its socket', () => {
   const view = render(<Section span="full" />)
-  fireEvent.click(row(/^Africa, 0 flights/))
+  expect(screen.queryByRole('button', { name: /^Africa, 0 flights/ })).toBeNull()
+  expect(screen.getByText('No flights: 3')).toBeInTheDocument()
+  const next = screen.getByRole('button', { name: 'Show next continent' })
+  for (let step = 0; step < 4; step++) fireEvent.click(next)
+  expect(row(/^Africa, 0 flights/)).toHaveAttribute('aria-current', 'true')
   expect(hero(view)).toHaveTextContent('0')
   expect(unit(view)).toHaveTextContent('flights')
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent('Africa · not flown')
@@ -85,15 +89,7 @@ it('the figure button steps through the continents and Firsts re-sorts by year',
   const names = Array.from(view.container.querySelectorAll('.stage-name')).map(
     (el) => el.textContent,
   )
-  expect(names).toEqual([
-    'Asia',
-    'Europe',
-    'North America',
-    'Oceania',
-    'Africa',
-    'South America',
-    'Antarctica',
-  ])
+  expect(names).toEqual(['Asia', 'Europe', 'North America', 'Oceania'])
   expect(view.container.querySelector('[data-kc-key="asia"] .stage-value')).toHaveTextContent(
     '2014',
   )
@@ -113,6 +109,7 @@ it('lines you crossed: gap and scope-hidden years keep decorative ghosts without
   const year = all.crossings.value.shiftByYear.toSorted((a, b) => b.flights - a.flights)[0].year
   admit({ period: { years: [year] } })
   render(<Section span="full" />)
+  fireEvent.click(screen.getByRole('button', { name: 'Lines you crossed' }))
   fireEvent.click(screen.getByRole('button', { name: 'Clock shift by year' }))
   const chart = screen.getByRole('group', { name: 'Clock change per year · hours' })
   const marks = Array.from(chart.querySelectorAll('[data-kc-key]'))
@@ -122,4 +119,21 @@ it('lines you crossed: gap and scope-hidden years keep decorative ghosts without
   expect(chart).toHaveTextContent('–')
   fireEvent.click(marks[0])
   expect(setPeriod).toHaveBeenCalledExactlyOnceWith({ years: [year] })
+})
+
+it('keeps a flown continent with an unknown first year distinct from an unflown continent', () => {
+  const continents = context.current.scope!.continents
+  if (continents.status !== 'ready') throw new Error('Board must satisfy Continents minimum')
+  continents.value.rows = continents.value.rows.map((item) =>
+    item.id === 'asia' ? { ...item, firstYear: null } : item,
+  )
+  const view = render(<Section span="full" />)
+  fireEvent.click(screen.getByRole('radio', { name: 'Firsts' }))
+  const asia = row(/^Asia, first flight undated$/)
+  expect(view.container.querySelector('[data-kc-key="asia"] .stage-value')).toHaveTextContent('—')
+  fireEvent.click(asia)
+  expect(hero(view)).toHaveTextContent('36')
+  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
+    'Asia · first flight undated',
+  )
 })

@@ -24,6 +24,9 @@
     "./restore-export-local.ts",
     "./verify-import-provider.ts",
     "./evaluate-import.ts",
-    "../functions/env.d.ts"
+    "../functions/env.d.ts",
+    "./evaluate-aircraft.ts",
+    "./inventory-aircraft.ts",
+    "./aircraft-evaluation.test.ts"
   ]
 }

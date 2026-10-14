@@ -1,0 +1,404 @@
+/* Ground journey form. Rows are grouped by space and an inset surface, never by divider lines. */
+.gt-form {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 760px;
+  min-width: 0;
+  margin-block-end: var(--space-6);
+}
+.gt-sections,
+.gt-row-fieldset,
+.gt-countries {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.gt-sections {
+  display: grid;
+  gap: var(--space-8);
+}
+.gt-section {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.gt-h {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.gt-subhead {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.gt-muted {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-error-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--danger-text);
+}
+.gt-loading {
+  color: var(--text-muted);
+}
+.gt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.gt-restored {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.gt-restored p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+
+/* Editors */
+.gt-editor {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.gt-fields {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.gt-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  min-width: 0;
+}
+.gt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.gt-rows {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-row {
+  min-width: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+}
+.gt-row[data-dragging] {
+  opacity: 0.6;
+}
+.gt-row[data-over] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.gt-row-fieldset {
+  display: grid;
+  gap: var(--space-4);
+}
+.gt-row-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.gt-grip {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.gt-grip:active {
+  cursor: grabbing;
+}
+/* Move and remove buttons: icon only, a 44 x 44 target. */
+.ui-button.gt-icon-button:has(> .ui-button-icon) {
+  grid-template-columns: auto;
+  width: 44px;
+  padding: 0;
+}
+.gt-place {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.gt-manual {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.gt-select,
+.gt-textarea {
+  width: 100%;
+  min-height: 44px;
+  font: inherit;
+}
+.gt-textarea {
+  resize: vertical;
+}
+
+/* Metrics preview */
+.gt-metrics {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.gt-metrics > div {
+  display: grid;
+  gap: var(--space-1);
+}
+.gt-metrics dt {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-metrics dd {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.gt-metrics .gt-muted {
+  display: inline;
+  font-weight: 400;
+}
+
+/* Countries */
+.gt-countries {
+  display: grid;
+  gap: var(--space-4);
+}
+.gt-countries > legend {
+  padding: 0;
+  font-weight: 600;
+}
+.gt-countries-group {
+  display: grid;
+  gap: var(--space-2);
+}
+.gt-countries-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.gt-checklist {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-country-row {
+  min-height: 44px;
+  align-items: center;
+}
+.gt-country-choice {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.gt-country-choice {
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.gt-country-choice:active {
+  background: var(--surface-inset);
+}
+@media (hover: hover) and (pointer: fine) {
+  .gt-country-choice:hover {
+    background: var(--surface-inset);
+  }
+}
+
+/* Save notices: an Arc alert, with its buttons beneath it. */
+.gt-notices {
+  display: grid;
+  gap: var(--space-3);
+}
+.gt-notices:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+.gt-notice {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.gt-notice-title {
+  margin: 0;
+  font-weight: 600;
+}
+.gt-saved {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.gt-saved dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.gt-saved dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .gt-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Kind chooser on /ground-travel/new without ?mode */
+.gt-choose {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 480px;
+}
+.gt-choose ul {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-choose a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.gt-choose a:focus-visible,
+.gt-back:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.gt-choose a:active {
+  background: var(--surface);
+}
+@media (hover: hover) and (pointer: fine) {
+  .gt-choose a:hover {
+    background: var(--surface);
+  }
+  .gt-back:hover {
+    color: var(--text);
+  }
+}
+/* "Back to the list": a text link with a 44px target. */
+.gt-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent-text, var(--text));
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}
+.gt-back:active {
+  color: var(--text);
+}
+
+.gt-form .ui-field-error:empty {
+  display: none;
+}
+.gt-form .flight-calendar > small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.gt-count {
+  margin-block-end: calc(-1 * var(--space-4));
+}
+.gt-save-actions {
+  align-items: start;
+}
+.gt-row-summary {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.gt-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.gt-row-summary > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gt-row-primary {
+  margin: 0;
+  font-weight: 600;
+}
+.gt-row-summary .gt-muted {
+  margin-block-start: var(--space-1);
+}
+.gt-row-fields > div[id]:not([hidden]) {
+  margin-block-start: var(--space-3);
+}
+.gt-row-label {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.gt-row-tools {
+  margin-inline-start: auto;
+}
+.ui-button.gt-icon-button[data-row-menu] {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.gt-row-summary > .ui-button {
+  flex: none;
+  white-space: nowrap;
+}

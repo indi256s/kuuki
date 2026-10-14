@@ -22,6 +22,26 @@
   flex-direction: column;
   gap: 16px;
 }
+.ov3-hero-estimates-mobile {
+  display: none;
+}
+@media (min-width: 701px) {
+  .ov3-hero-row[data-record='flights'] {
+    order: 0;
+  }
+  .ov3-hero-row[data-record='km'] {
+    order: 1;
+  }
+  .ov3-hero-row[data-record='air'] {
+    order: 2;
+  }
+  .ov3-hero-row[data-record='countries'] {
+    order: 3;
+  }
+  .ov3-hero-row[data-record='airports'] {
+    order: 4;
+  }
+}
 .ov3-hero-row {
   display: grid;
   grid-template: 'value glyph' auto 'label glyph' auto / minmax(0, 1fr) 44px;
@@ -183,8 +203,9 @@
   font-weight: 600;
 }
 .ov3-next-flight:focus-visible,
-.ov3-next-review:focus-visible {
-  outline: 2px solid var(--accent);
+.ov3-next-review:focus-visible,
+.ov3-next-more:focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 .ov3-next-strip {
@@ -233,42 +254,104 @@
 }
 .ov3-next-more {
   margin-inline-start: auto;
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 @media (max-width: 700px) {
   .ov3-hero-panel {
     min-height: 0;
-    padding: 24px;
+    padding: 16px;
     gap: 12px;
   }
   .ov3-hero-list {
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
   }
-  .ov3-hero-value {
-    font-size: 24px;
-    line-height: 28px;
+  .ov3-hero-row {
+    grid-template: 'value' auto 'label' auto / minmax(0, 1fr);
   }
+  .ov3-hero-glyph,
+  .ov3-hero-estimates-desktop {
+    display: none;
+  }
+  .ov3-hero-value,
   .ov3-hero-row[data-record='flights'] > .ov3-hero-value {
-    font-size: 40px;
-    line-height: 44px;
+    font-size: clamp(24px, 8vw, 32px);
+    line-height: 1.125;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
-  .ov3-takeover {
-    padding: 24px 20px 24px 12px;
-    gap: 16px;
+  .ov3-hero-row[data-record='air'] > .ov3-hero-value {
+    font-size: 24px;
+    line-height: 30px;
   }
-  .ov3-takeover-entry {
-    min-height: 44px;
+  .ov3-hero-row[data-record='airports'] {
+    align-items: baseline;
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
   }
-  /* A phone stage is about 230px wide, so long Russian durations need a lower floor to stay on one line. */
-  .ov3-takeover-value {
-    font-size: clamp(28px, calc(100cqi / (var(--chars, 6) * 0.62)), 48px);
+  .ov3-hero-row[data-record='airports'] > .ov3-hero-label {
+    flex: 1;
+    min-inline-size: 0;
+  }
+  .ov3-hero-row[data-record='airports'] > .ov3-hero-value {
+    order: -1;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--text-muted);
+  }
+  .ov3-hero-estimates-mobile {
+    display: inline;
+  }
+  .ov3-hero-footer {
+    font-size: 13px;
+    line-height: 20px;
   }
   .ov3-next-strip {
-    flex-wrap: wrap;
-    gap: 4px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
   }
   .ov3-next-flight,
-  .ov3-next-flight.ui-button > span {
-    gap: 4px 8px;
+  .ov3-next-flight.ui-button {
+    inline-size: 100%;
+    padding: 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .ov3-next-flight.ui-button > span,
+  .ov3-next-flight:not(.ui-button) {
+    inline-size: 100%;
+    min-inline-size: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20px;
+    gap: 8px 12px;
+    align-items: center;
+  }
+  .ov3-next-pill {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .ov3-next-route {
+    grid-column: 1;
+    font-size: 28px;
+    line-height: 32px;
+  }
+  .ov3-next-details {
+    grid-column: 1;
+  }
+  .ov3-next-flight.ui-button > span > svg {
+    grid-column: 2;
+    grid-row: 1 / 4;
+  }
+  .ov3-next-more {
+    margin-inline-start: 0;
   }
 }

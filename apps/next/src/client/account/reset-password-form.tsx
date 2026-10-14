@@ -6,6 +6,7 @@ import { ArrowLeft } from '@keyline-icons/react'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import { setLocale } from '../appearance'
+import { useLocale } from '../preferences'
 import { AuthCardFrame } from '../auth-card/auth-card'
 import { CardField } from '../auth-card/card-field'
 import { CardHeading, FormMessage, formMessages } from '../auth-card/form-step'
@@ -51,7 +52,7 @@ const words = {
 }
 
 export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale }) {
-  const [locale, setLocalLocale] = useState(initialLocale)
+  const locale = useLocale(initialLocale)
   const t = words[locale]
   const captured = useRef<string | undefined>(undefined)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -119,8 +120,7 @@ export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale })
     <AuthCardFrame
       locale={locale}
       onLocaleChange={(next) => {
-        setLocale(next, false)
-        setLocalLocale(next)
+        setLocale(next)
       }}
     >
       <CardHeading

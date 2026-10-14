@@ -35,7 +35,7 @@ function setup(overrides: Partial<JournalHeaderProps> = {}) {
 const values = (container: HTMLElement) =>
   [...container.querySelectorAll('.ui-slot-text-value')].map((node) => node.textContent)
 
-it('shows the title, labeled summary metrics and no Add button', () => {
+it('shows the title, labeled summary metrics and the phone Add flight menu', () => {
   const { container } = setup()
   expect(screen.getByRole('heading', { level: 1, name: 'Journal' })).toBeInTheDocument()
   expect(values(container)).toEqual(['74', '141,204 km', '9 d 4 h'])
@@ -43,7 +43,10 @@ it('shows the title, labeled summary metrics and no Add button', () => {
   expect(line).toHaveTextContent('flights')
   expect(line).toHaveTextContent('Distance')
   expect(line).toHaveTextContent('In the air')
-  expect(screen.queryByRole('button', { name: /add/i })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Add flight' })).toHaveAttribute(
+    'aria-haspopup',
+    'menu',
+  )
 })
 
 it.each([
@@ -74,7 +77,7 @@ it.each([
 
 it('hides the review pill at zero', () => {
   setup({ awaitingCount: 0 })
-  expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /^Confirm/ })).not.toBeInTheDocument()
 })
 
 it('marks estimated time and incomplete distance instead of presenting exact totals', () => {

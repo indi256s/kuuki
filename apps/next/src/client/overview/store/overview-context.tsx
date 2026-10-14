@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../../preferences'
+
 import {
   createContext,
   useCallback,
@@ -47,10 +49,11 @@ function useController({
   payload: initial,
   prefs: initialPrefs,
   ownerKey,
-  locale,
+  locale: initialLocale,
   saver = savePrefs,
   live = true,
 }: Props) {
+  const locale = useLocale(initialLocale)
   const [navigation] = useState(() => {
     let observed: string | null = null,
       requested: string | null = null,
@@ -246,10 +249,10 @@ function useController({
           runtime.warned = true
           announceShellNotice(ownerKey, {
             kind: 'error',
-            message:
-              runtime.locale === 'ru'
-                ? 'Настройки не сохранены. Ваш выбор остаётся на этой странице.'
-                : 'Settings were not saved. Your choices remain on this page.',
+            message: {
+              en: 'Settings were not saved. Your choices remain on this page.',
+              ru: 'Настройки не сохранены. Ваш выбор остаётся на этой странице.',
+            },
           })
         }
       } finally {

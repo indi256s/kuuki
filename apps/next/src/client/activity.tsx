@@ -4,6 +4,7 @@ import { useEffect, useSyncExternalStore, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { api, beginIdentityOperation, getAuthGeneration } from '@kuuki/client/apiClient'
 import { clearFlightCreateOperations } from '@kuuki/client/flightCreateOperations'
+import { clearDeleteReceipts } from './journal/delete-receipts'
 import { clearDrafts } from './capture/drafts'
 import { clearCapturePreferences } from './capture/capture-preferences'
 import {
@@ -55,6 +56,7 @@ function dropPrivateState(previousOwner: string | null | undefined) {
     controller.abort(new DOMException('Session changed', 'AbortError'))
   tracked.clear()
   if (previousOwner) {
+    clearDeleteReceipts(previousOwner)
     clearFlightCreateOperations(previousOwner)
     clearDrafts(previousOwner)
     clearCapturePreferences(previousOwner)

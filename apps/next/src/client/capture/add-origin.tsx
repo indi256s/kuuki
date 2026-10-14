@@ -4,12 +4,21 @@ import { usePathname, useSearchParams } from 'next/navigation'
 
 const KEY = 'kuuki:add-origin'
 
+/** Ground-travel forms are not a place to come back to from Add a flight: they own their own return context. */
+const GROUND_FORM = /^\/ground-travel\/(new|[^/]+\/edit)(?:[/?#]|$)/
+
 /** Where Add a flight returns to: the last member screen before /add, kept for the tab so a reload keeps it. */
 export function addOrigin() {
   try {
     const path = sessionStorage.getItem(KEY)
     // Local paths only; anything else falls back to Journal, as a direct visit to /add does.
-    if (path && path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/add'))
+    if (
+      path &&
+      path.startsWith('/') &&
+      !path.startsWith('//') &&
+      !path.startsWith('/add') &&
+      !GROUND_FORM.test(path)
+    )
       return path
   } catch {
     /* storage unavailable */
@@ -21,7 +30,7 @@ function Track() {
   const pathname = usePathname()
   const search = useSearchParams().toString()
   useEffect(() => {
-    if (!pathname || pathname.startsWith('/add')) return
+    if (!pathname || pathname.startsWith('/add') || GROUND_FORM.test(pathname)) return
     try {
       sessionStorage.setItem(KEY, search ? `${pathname}?${search}` : pathname)
     } catch {

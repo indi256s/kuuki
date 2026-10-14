@@ -400,9 +400,6 @@
 .import-row[data-selected='true'] {
   border-color: var(--control-border);
 }
-.import-row[data-low='true'] {
-  border-left: 3px solid var(--warning-fill);
-}
 .import-row[data-failed='true'] {
   border-color: var(--danger-text);
 }
@@ -514,12 +511,6 @@
   gap: var(--space-2);
   align-content: start;
 }
-.import-form-field.is-unsure {
-  padding-left: var(--space-3);
-  border-left: 3px solid var(--warning-fill);
-  background: var(--surface-inset);
-  border-radius: var(--radius-xs);
-}
 .import-year {
   display: grid;
   gap: var(--space-1);
@@ -530,8 +521,8 @@
   gap: var(--space-1);
   margin: 0;
   padding: var(--space-3);
-  border-left: 3px solid var(--hairline);
   background: var(--surface-inset);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: 13px;
   line-height: 20px;
@@ -909,4 +900,149 @@
     font-size: 17px;
     line-height: 24px;
   }
+}
+
+/* Several single-source jobs share one focused review and one final save. */
+.unified-import-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.unified-import-heading h1 {
+  margin: 0;
+}
+.unified-import-heading > .ui-button {
+  flex: none;
+}
+.unified-import-source-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.unified-import-source-actions > .ui-button[data-variant='ghost'] {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.unified-import-source-actions > .ui-button {
+  white-space: normal;
+}
+.unified-import-files,
+.unified-import-rows {
+  list-style: none;
+  padding: 0;
+}
+.unified-import-files {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+.unified-import-files > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: var(--space-1);
+}
+.unified-import-file-name {
+  display: flex;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+.unified-import-file-name > :first-child {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.unified-import-file-name > :last-child {
+  flex: none;
+}
+.unified-import-files > li > .import-hint {
+  min-block-size: 20px;
+}
+.unified-import-files:empty,
+.unified-import-rows:empty {
+  display: none;
+}
+.unified-import .import-row .import-questions {
+  margin-block: var(--space-2);
+}
+.unified-import .import-row {
+  background: transparent;
+}
+.unified-import .import-row-main {
+  flex-wrap: wrap;
+}
+.unified-import .import-row-body {
+  flex: 1 1 12rem;
+}
+/* Inside a row card the year answers size to their labels and wrap whole, never mid-word. */
+.unified-import .import-question-answers[data-columns='3'] {
+  display: flex;
+  flex-wrap: wrap;
+}
+.unified-import .import-question-answers[data-columns='3'] > .import-question-year {
+  flex-basis: 100%;
+}
+.unified-import .ui-action-bar-count {
+  max-width: 48ch;
+  font-weight: 400;
+}
+.unified-import .import-edit-summary {
+  color: var(--text);
+}
+.unified-import-text {
+  display: grid;
+  gap: var(--space-3);
+}
+/* Desktop browsers ignore `capture`; there the camera would only repeat Choose files. */
+@media (hover: hover) and (pointer: fine) {
+  .unified-import-camera,
+  .ui-menu-item:has(.unified-import-camera) {
+    display: none;
+  }
+  .unified-import-source-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .unified-import-rows > .import-row {
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  @starting-style {
+    .unified-import-rows > .import-row {
+      opacity: 0;
+    }
+  }
+}
+@media (max-width: 700px) {
+  /* The focused route has no tab rail, so the final action rests at the bottom even under a short review. */
+  .unified-import {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--space-8) - env(safe-area-inset-bottom));
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: 0;
+  }
+  .unified-import > .ui-action-bar {
+    margin-top: auto;
+  }
+  .unified-import .ui-action-bar {
+    bottom: calc(env(safe-area-inset-bottom) + var(--import-keyboard-inset, 0px));
+    flex-wrap: wrap;
+  }
+  /* A disabled Save sits in a wrapper with its reason; both span the bar. */
+  .unified-import .ui-action-bar-actions,
+  .unified-import .ui-action-bar-actions > *,
+  .unified-import .ui-action-bar-actions .ui-button {
+    width: 100%;
+  }
+}
+.unified-import .import-question {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.unified-import-heading h1 {
+  min-width: 0;
+  overflow-wrap: break-word;
 }

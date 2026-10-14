@@ -245,6 +245,10 @@ ${PROMPT_EXAMPLE.ru}
     'Not verified against the source. Check the details before selecting this flight.',
     'Данные не подтверждены источником. Проверьте их, прежде чем выбрать перелёт.',
   ),
+  notVerifiedSave: p(
+    'Check the details against the document before saving.',
+    'Сверьте данные с документом перед сохранением.',
+  ),
   fieldUnsure: p('Unsure', 'Не уверены'),
   snippetTitle: p('Found in the document', 'Найдено в документе'),
   saving: p('Saving…', 'Сохраняем…'),
@@ -527,7 +531,6 @@ ${PROMPT_EXAMPLE.ru}
   ),
   aircraftSearchFailed: p('Aircraft search failed.', 'Поиск самолётов не удался.'),
   aircraftSearchRetry: p('Search again', 'Искать снова'),
-  aircraftClose: p('Close', 'Закрыть'),
   aircraftEvidence: p('Evidence', 'Основание'),
   aircraftUnsure: p('Unconfirmed', 'Не подтверждено'),
   aircraftActual: p(
@@ -581,6 +584,24 @@ export type Key = keyof typeof S
 export const tx = (locale: Locale, key: Key): string => S[key][locale]
 
 export const COUNTS = {
+  saveSelected: {
+    en: { one: 'Save {count} flight', other: 'Save {count} flights' },
+    ru: {
+      one: 'Сохранить {count} перелёт',
+      few: 'Сохранить {count} перелёта',
+      many: 'Сохранить {count} перелётов',
+      other: 'Сохранить {count} перелёта',
+    },
+  },
+  savedFlights: {
+    en: { one: '{count} flight saved', other: '{count} flights saved' },
+    ru: {
+      one: 'Сохранён {count} перелёт',
+      few: 'Сохранено {count} перелёта',
+      many: 'Сохранено {count} перелётов',
+      other: 'Сохранено {count} перелёта',
+    },
+  },
   selected: {
     en: { one: '{count} selected', other: '{count} selected' },
     ru: {
@@ -841,8 +862,8 @@ export const FIELD_LABEL: Record<FieldName, Pair> = {
   arrival_time: p('Arrival time', 'Время прилёта'),
 }
 export const FIELD_HINT: Partial<Record<FieldName, Pair>> = {
-  origin: p('Three letters, for example JFK', 'Три буквы, например JFK'),
-  destination: p('Three letters, for example BOS', 'Три буквы, например BOS'),
+  origin: p('City, airport or code, for example JFK', 'Город, аэропорт или код, например JFK'),
+  destination: p('City, airport or code, for example BOS', 'Город, аэропорт или код, например BOS'),
   airline_iata: p(
     'Search by name or code, for example Turkish Airlines or TK',
     'Ищите по названию или коду, например Turkish Airlines или TK',

@@ -1,5 +1,5 @@
-// Per-field flight writes for the Journal detail sheet (spec "Detail sheet", D5): one PATCH /api/flights/:id carrying only the changed
-// field, the client-side consequence preview, Undo and the merge of the server's row into the cached payload.
+// Flight writes for the Journal detail sheet's Edit mode: one PATCH /api/flights/:id carrying every changed field together, the
+// client-side consequence preview, Undo and the merge of the server's row into the cached payload.
 // Loaded only when a member starts an edit: it carries the airport, airline and aircraft catalogues.
 import { familyOf, findAircraft } from '@kuuki/data/aircraft-lookup'
 import { findAirport } from '@kuuki/data/airport-lookup'
@@ -22,7 +22,7 @@ import type { JournalFlight, JournalRefs } from './model'
 
 export { aircraftChoices, airlineChoices, airportChoices }
 
-/** The fields the sheet edits inline. Every one is accepted by the PATCH as-is. */
+/** The fields the sheet's Edit mode changes. Every one is accepted by the PATCH as-is. */
 export type EditableField =
   | 'origin'
   | 'destination'
@@ -47,19 +47,25 @@ export const EDITABLE_FIELDS: readonly EditableField[] = [
 export type FlightDto = Omit<JournalFlight, 'origin_country' | 'destination_country'> &
   DerivedAck & { undo_token?: string }
 
-/** Rejected: the server answered no (draft stays, field shows why). Unknown: the request may or may not have landed (draft stays, outcome is not claimed). */
-export type InlineEditOutcome =
+/** Rejected: the server answered no (drafts stay, the form shows why). Unknown: the request may or may not have landed (drafts stay, outcome is not claimed). */
+export type EditOutcome =
   | { status: 'saved' }
-  | { status: 'rejected'; message: string }
-  | { status: 'unknown'; message: string }
+  | { status: 'rejected'; message: string; messageCopy?: Record<Locale, string> }
+  | { status: 'unknown'; message: string; messageCopy?: Record<Locale, string> }
+/** A save attempt: `invalid` never left the browser and names each field's problem. */
+export type SaveOutcome = EditOutcome | { status: 'invalid'; errors: FieldErrors }
+export type FieldErrors = Partial<Record<EditableField, string>>
+/** Edit text per field ('' for none). */
+export type Drafts = Record<EditableField, string>
+/** Normalized values to send, only for the fields that differ from the flight. */
+export type Changes = Partial<Record<EditableField, string | null>>
 
-export type FieldWrite = { outcome: InlineEditOutcome; flight?: FlightDto }
+export type FlightWrite = { outcome: EditOutcome; flight?: FlightDto }
 
-/** What Undo needs: the field, the value before the save and the editable values the save left behind. */
+/** What Undo needs: the fields one save changed and the editable values it left behind. */
 export type EditRecord = {
   flightId: number
-  field: EditableField
-  previous: string | null
+  fields: EditableField[]
   after: Record<EditableField, string | null>
   seq: number
   undoToken: string
@@ -88,9 +94,9 @@ const FORM_KEY: Record<EditableField, FlightField> = {
   aircraft_icao: 'aircraft',
 }
 
-/** The field's current value as edit text ('' for none). */
-export const fieldText = (flight: JournalFlight, field: EditableField): string =>
-  flight[field] ?? ''
+/** The flight's current values as edit text ('' for none). */
+export const draftsOf = (flight: Pick<JournalFlight, EditableField>): Drafts =>
+  Object.fromEntries(EDITABLE_FIELDS.map((field) => [field, flight[field] ?? ''])) as Drafts
 
 /** The value to send: trimmed, codes upper-cased, an emptied optional field becomes null. */
 export function normalizeDraft(field: EditableField, draft: string): string | null {
@@ -106,32 +112,52 @@ export const editableValues = (
     string | null
   >
 
-/** The localized problem with a draft, checked as the full form checks it, or null when it may be sent. */
-export function validateDraft(
-  flight: JournalFlight,
-  field: EditableField,
-  draft: string,
-  locale: Locale,
-): string | null {
-  const value = normalizeDraft(field, draft) ?? ''
-  const values: FlightValues = {
-    date: flight.date,
-    origin: flight.origin,
-    destination: flight.destination,
-    airline: flight.airline_iata ?? '',
-    aircraft: flight.aircraft_icao ?? '',
-    number: flight.flight_number ?? '',
-    departure: flight.departure_time ?? '',
-    arrival: flight.arrival_time ?? '',
+/** The fields whose normalized draft differs from the flight, with the value to send. Empty when nothing changed. */
+export function changesOf(flight: Pick<JournalFlight, EditableField>, drafts: Drafts): Changes {
+  const changes: Changes = {}
+  for (const field of EDITABLE_FIELDS) {
+    const value = normalizeDraft(field, drafts[field])
+    if (value !== (flight[field] ?? null)) changes[field] = value
   }
-  values[FORM_KEY[field]] = value
-  if (REQUIRED.has(field) && !value)
-    return field === 'date'
-      ? say(locale, 'Enter a date.', 'Введите дату.')
-      : say(locale, 'Choose an airport from the list.', 'Выберите аэропорт из списка.')
-  const errors = validateFlightValues(values, locale)
-  // The same-airport check lands on the destination; an origin edit owns it too.
-  return errors[FORM_KEY[field]] ?? (field === 'origin' ? errors.destination : undefined) ?? null
+  return changes
+}
+
+/**
+ * The localized problem with each changed draft, checked together as the full form checks them. Unchanged fields are not sent, so a
+ * legacy value the catalogue no longer knows never blocks another edit. Empty when the changes may be sent.
+ */
+export function validateDrafts(
+  flight: Pick<JournalFlight, EditableField>,
+  drafts: Drafts,
+  locale: Locale,
+): FieldErrors {
+  const value = (field: EditableField) => normalizeDraft(field, drafts[field]) ?? ''
+  const values: FlightValues = {
+    date: value('date'),
+    origin: value('origin'),
+    destination: value('destination'),
+    airline: value('airline_iata'),
+    aircraft: value('aircraft_icao'),
+    number: value('flight_number'),
+    departure: value('departure_time'),
+    arrival: value('arrival_time'),
+  }
+  const formErrors = validateFlightValues(values, locale)
+  const changed = changesOf(flight, drafts)
+  const errors: FieldErrors = {}
+  for (const field of EDITABLE_FIELDS) {
+    const problem = formErrors[FORM_KEY[field]]
+    if (problem && field in changed) errors[field] = problem
+  }
+  // The same-airport check lands on the destination; a changed origin owns it when the destination stayed.
+  if (
+    formErrors.destination &&
+    'origin' in changed &&
+    !errors.destination &&
+    values.origin === values.destination
+  )
+    errors.origin = formErrors.destination
+  return errors
 }
 
 function today(): string {
@@ -202,6 +228,31 @@ export function previewConsequence(
   return null
 }
 
+/** What the pending changes will do, one line each: the route's new distance and country, then a lifecycle move from the date. */
+export function previewChanges(
+  flight: JournalFlight,
+  changes: Changes,
+  locale: Locale,
+  deps: { lookup?: AirportLookup; today?: string } = {},
+): string[] {
+  const lines: string[] = []
+  const { origin, destination, date } = changes
+  // Both ends changed: forecast the destination against the new origin.
+  if (destination)
+    lines.push(
+      previewConsequence(
+        origin ? { ...flight, origin } : flight,
+        'destination',
+        destination,
+        locale,
+        deps,
+      ) ?? '',
+    )
+  else if (origin) lines.push(previewConsequence(flight, 'origin', origin, locale, deps) ?? '')
+  if (date) lines.push(previewConsequence(flight, 'date', date, locale, deps) ?? '')
+  return lines.filter(Boolean)
+}
+
 /** Copy for an outcome nobody can confirm: the compare-and-set update may have landed before the answer was lost. */
 export const unknownMessage = (locale: Locale) =>
   say(
@@ -218,7 +269,10 @@ export const sessionChangedMessage = (locale: Locale) =>
   )
 
 /** 4xx: the server said no and nothing changed. 5xx, a dropped connection or an abort: unknown. */
-export function failureOutcome(cause: unknown, locale: Locale): InlineEditOutcome {
+export function failureOutcome(
+  cause: unknown,
+  locale: Locale,
+): Exclude<EditOutcome, { status: 'saved' }> {
   if (cause instanceof ApiError && cause.status >= 400 && cause.status < 500) {
     if (cause.code === 'STATE_CONFLICT')
       return {
@@ -235,37 +289,72 @@ export function failureOutcome(cause: unknown, locale: Locale): InlineEditOutcom
 }
 
 /**
- * One PATCH carrying only `field`. The answer is applied only while the session that asked is still current and it really is this
- * flight with the sent value; anything else is unknown. A sign-out or owner switch aborts the request through `trackPrivateOperation`.
+ * One PATCH carrying every changed field, so related changes land together or not at all. The answer is applied only while the
+ * session that asked is still current and it really is this flight with the sent values; anything else is unknown. A sign-out or
+ * owner switch aborts the request through `trackPrivateOperation`.
  */
-export async function writeFlightField(
+export async function writeFlightFields(
   flightId: number,
-  field: EditableField,
-  value: string | null,
+  changes: Changes,
   locale: Locale,
   generation = getAuthGeneration(),
   undoToken?: string,
-): Promise<FieldWrite> {
+): Promise<FlightWrite> {
   if (generation !== getAuthGeneration())
-    return { outcome: { status: 'rejected', message: sessionChangedMessage(locale) } }
+    return {
+      outcome: {
+        status: 'rejected',
+        message: sessionChangedMessage(locale),
+        messageCopy: { en: sessionChangedMessage('en'), ru: sessionChangedMessage('ru') },
+      },
+    }
   const controller = new AbortController()
   const untrack = trackPrivateOperation(controller)
   try {
-    const body = undoToken ? { undo_token: undoToken } : { [field]: value, offer_undo: true }
+    const body = undoToken ? { undo_token: undoToken } : { ...changes, offer_undo: true }
     const dto = await sendWithZone((zone) =>
       api.patch<FlightDto>(`/api/flights/${flightId}`, withZone(body, zone), {
         signal: controller.signal,
       }),
     )
     if (generation !== getAuthGeneration())
-      return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
-    if (!dto || dto.id !== flightId || (!undoToken && (dto[field] ?? null) !== value))
-      return { outcome: { status: 'unknown', message: unknownMessage(locale) } }
+      return {
+        outcome: {
+          status: 'unknown',
+          message: sessionChangedMessage(locale),
+          messageCopy: { en: sessionChangedMessage('en'), ru: sessionChangedMessage('ru') },
+        },
+      }
+    const echoed = (Object.keys(changes) as EditableField[]).every(
+      (field) => (dto?.[field] ?? null) === changes[field],
+    )
+    if (!dto || dto.id !== flightId || (!undoToken && !echoed))
+      return {
+        outcome: {
+          status: 'unknown',
+          message: unknownMessage(locale),
+          messageCopy: { en: unknownMessage('en'), ru: unknownMessage('ru') },
+        },
+      }
     return { outcome: { status: 'saved' }, flight: dto }
   } catch (cause) {
     if (generation !== getAuthGeneration())
-      return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
-    return { outcome: failureOutcome(cause, locale) }
+      return {
+        outcome: {
+          status: 'unknown',
+          message: sessionChangedMessage(locale),
+          messageCopy: { en: sessionChangedMessage('en'), ru: sessionChangedMessage('ru') },
+        },
+      }
+    return {
+      outcome: {
+        ...failureOutcome(cause, locale),
+        messageCopy: {
+          en: failureOutcome(cause, 'en').message,
+          ru: failureOutcome(cause, 'ru').message,
+        },
+      },
+    }
   } finally {
     untrack()
   }
@@ -276,15 +365,8 @@ export const undoWrite = (
   record: EditRecord,
   locale: Locale,
   generation = getAuthGeneration(),
-): Promise<FieldWrite> =>
-  writeFlightField(
-    record.flightId,
-    record.field,
-    record.previous,
-    locale,
-    generation,
-    record.undoToken,
-  )
+): Promise<FlightWrite> =>
+  writeFlightFields(record.flightId, {}, locale, generation, record.undoToken)
 
 /** Undo is safe only while the flight still holds exactly what that save left behind, and no later edit of it was recorded. */
 export function canUndo(

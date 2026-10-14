@@ -163,7 +163,7 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
               {[first.date, first.time].filter(Boolean).join(' · ')}
             </span>
             <span className="journal-next-meta">
-              <span className="journal-next-codes">
+              <span>
                 {lead.origin} → {lead.destination}
               </span>
               {first.number && <span>{first.number}</span>}

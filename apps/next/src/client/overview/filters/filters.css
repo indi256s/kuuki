@@ -161,3 +161,18 @@
     background: var(--surface-inset);
   }
 }
+
+@media (min-width: 701px) {
+  .ov-filter-period {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .ov3-common-controls .ov-filter-all {
+    display: none;
+  }
+  .ov3-common-controls :is(.ov-filter-add, .ov-filter-overflow) {
+    box-shadow: none;
+    background: var(--surface);
+  }
+}

@@ -151,7 +151,13 @@ function Content() {
 function Page() {
   const { hide, unhide, refresh } = useJournalStore()
   return (
-    <JournalDeleteProvider locale="en" hide={hide} unhide={unhide} refresh={refresh}>
+    <JournalDeleteProvider
+      ownerId="owner"
+      locale="en"
+      hide={hide}
+      unhide={unhide}
+      refresh={refresh}
+    >
       <Content />
     </JournalDeleteProvider>
   )

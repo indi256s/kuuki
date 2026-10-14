@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useState } from 'react'
 import { Sheet } from './sheet'
 import { ToastProvider, ToastSlot, useToast } from './toast'
+import { setLocale } from '../appearance'
 
 function Trigger({ kind }: { kind?: 'error' }) {
   const { show } = useToast()
@@ -67,6 +68,45 @@ describe('Toast', () => {
       vi.advanceTimersByTime(250)
     })
     expect(screen.queryByText('Link copied')).not.toBeInTheDocument()
+  })
+
+  it('translates a visible notice without restarting its dismissal timer', () => {
+    vi.useFakeTimers()
+    document.documentElement.lang = 'en'
+    function LocalizedTrigger() {
+      const { show } = useToast()
+      return (
+        <button
+          onClick={() =>
+            show({
+              message: { en: 'Flight saved', ru: 'Перелёт сохранён' },
+              description: { en: 'Totals updated.', ru: 'Итоги обновлены.' },
+            })
+          }
+        >
+          Show translated
+        </button>
+      )
+    }
+    render(
+      <ToastProvider>
+        <LocalizedTrigger />
+      </ToastProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Show translated' }))
+    const toast = screen.getByText('Flight saved').closest('.ui-toast')!
+    act(() => vi.advanceTimersByTime(4000))
+    act(() => setLocale('ru'))
+    expect(screen.getByText('Перелёт сохранён').closest('.ui-toast')).toBe(toast)
+    expect(screen.getByText('Итоги обновлены.')).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(1000))
+    expect(toast).toHaveAttribute('data-state', 'closed')
+    act(() => vi.advanceTimersByTime(250))
+    expect(screen.queryByText('Перелёт сохранён')).not.toBeInTheDocument()
+    document.documentElement.lang = 'en'
+    delete document.documentElement.dataset.locale
+    document.cookie = 'kuuki_locale=; Max-Age=0; Path=/'
+    localStorage.removeItem('kuuki-language')
   })
 
   it('springs back from a short swipe and dismisses on a long one', () => {

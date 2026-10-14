@@ -1,11 +1,10 @@
 'use client'
 
-import clsx from 'clsx'
 import { useId } from 'react'
 import type { Locale } from '../../lib/format'
 import { Field } from '../ui/field'
 import { Combobox } from '../ui/combobox'
-import { airlineChoices } from '../capture/reference-choices'
+import { airlineChoices, airportChoices } from '../capture/reference-choices'
 import { FIELD_ERROR, FIELD_HINT, FIELD_LABEL, S } from './copy'
 import { FIELDS, type FieldError, type FieldName, type FieldValues } from './review-model'
 
@@ -33,7 +32,7 @@ export function RowForm({
   values: FieldValues
   onChange: (next: FieldValues) => void
   errors: Partial<Record<FieldName, FieldError>>
-  /** Fields the source was unsure about: marked with a dot, a tint and a text reason, never colour alone. */
+  /** Fields the source was unsure about, explained in the field hint. */
   low?: FieldName[]
   disabled?: boolean
   /** Present when the document showed no year: the date needs the member's explicit decision. */
@@ -70,12 +69,19 @@ export function RowForm({
           .filter(Boolean)
           .join(' ')
         return (
-          <div
-            key={name}
-            className={clsx('import-form-field', unsure && 'is-unsure')}
-            data-field={name}
-          >
-            {name === 'airline_iata' ? (
+          <div key={name} className="import-form-field" data-field={name}>
+            {name === 'origin' || name === 'destination' ? (
+              <Combobox
+                label={FIELD_LABEL[name][locale]}
+                value={values[name]}
+                onChange={(value) => onChange({ ...values, [name]: value })}
+                choices={airportChoices(locale)}
+                locale={locale}
+                disabled={disabled}
+                hint={hint || undefined}
+                error={errors[name] ? FIELD_ERROR[errors[name]!][locale] : undefined}
+              />
+            ) : name === 'airline_iata' ? (
               <Combobox
                 label={`${FIELD_LABEL[name][locale]} · ${optional}`}
                 value={values[name]}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
+import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { Button } from '../../../ui/button'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { StageRows } from '../../charts/stage-rows'
@@ -22,6 +23,7 @@ import {
 } from './continents'
 import { ContinentsFigure } from './figure'
 import { ShiftYears } from './shift-years'
+import './continents.css'
 
 type View = 'flights' | 'firsts'
 type Datum = { id: ContinentId; name: string; flights: number; firstYear: number | null }
@@ -110,13 +112,23 @@ export function Section({ span }: { span: Span }) {
   const chartCaption = firsts
     ? copy(locale, 'First reached', 'Впервые на континенте')
     : copy(locale, 'Flights by continent', 'Перелёты по континентам')
-  const points = order.map((row) => {
+  const visible = order.filter((row) => row.flights > 0 || row.id === r.reading)
+  const unflown = order.filter((row) => row.flights === 0).length
+  const omitted = order.length - visible.length
+  const scoped = !!scope && !isEmptyFilter(scope.filter)
+  const points = visible.map((row) => {
     const datum: Datum = { ...row, name: name(row.id) }
     return {
       key: row.id,
       datum,
       label: firsts
-        ? `${datum.name}, ${row.flights > 0 && row.firstYear !== null ? row.firstYear : copy(locale, 'not flown', 'не бывали')}`
+        ? `${datum.name}, ${
+            row.flights === 0
+              ? copy(locale, 'not flown', 'не бывали')
+              : row.firstYear === null
+                ? copy(locale, 'first flight undated', 'дата первого перелёта неизвестна')
+                : row.firstYear
+          }`
         : `${datum.name}, ${flights(locale, row.flights)}`,
     }
   })
@@ -190,25 +202,40 @@ export function Section({ span }: { span: Span }) {
           />
         ),
         plot: (
-          <LazyChart height={TOTAL * 24} label={chartCaption}>
-            {(inView) => (
-              <StageRows
-                span={span}
-                points={points}
-                value={(point) => (firsts ? held(point.datum) : point.datum.flights)}
-                format={(point) =>
-                  firsts ? String(point.datum.firstYear) : number(locale, point.datum.flights)
-                }
-                name={(point) => point.datum.name}
-                valueWidth={44}
-                selectedKey={reading?.id ?? null}
-                inView={inView}
-                ariaLabel={chartCaption}
-                onPick={(point) => r.pick(point.key as ContinentId)}
-                tip={(selected) => <span>{selected[0].label}</span>}
-              />
-            )}
-          </LazyChart>
+          <>
+            <LazyChart height={visible.length * 24} label={chartCaption}>
+              {(inView) => (
+                <StageRows
+                  span={span}
+                  points={points}
+                  value={(point) => (firsts ? held(point.datum) : point.datum.flights)}
+                  format={(point) =>
+                    firsts
+                      ? point.datum.firstYear === null
+                        ? '—'
+                        : String(point.datum.firstYear)
+                      : number(locale, point.datum.flights)
+                  }
+                  name={(point) => point.datum.name}
+                  valueWidth={44}
+                  selectedKey={reading?.id ?? null}
+                  inView={inView}
+                  ariaLabel={chartCaption}
+                  onPick={(point) => r.pick(point.key as ContinentId)}
+                  tip={(selected) => <span>{selected[0].label}</span>}
+                />
+              )}
+            </LazyChart>
+            {omitted > 0 ? (
+              <p className="ov3-continents-unflown">
+                {copy(
+                  locale,
+                  `${scoped ? 'No flights in this selection' : 'No flights'}: ${unflown}`,
+                  `${scoped ? 'Без перелётов в выборке' : 'Без перелётов'}: ${unflown}`,
+                )}
+              </p>
+            ) : null}
+          </>
         ),
       }}
       details={{

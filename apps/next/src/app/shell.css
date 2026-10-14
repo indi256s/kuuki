@@ -358,8 +358,7 @@ a.ui-menu-item {
 }
 
 /* With work in the queue, its row follows Manual after a gap, so the four capture rows never move. */
-.add-menu [data-add-action='manual']:not(:last-child),
-.add-card [data-add-action='manual']:not(:last-child) {
+.add-menu [data-add-action='manual']:not(:last-child) {
   margin-block-end: var(--space-2);
 }
 
@@ -371,7 +370,7 @@ a.ui-menu-item {
   .member-header .site-header-inner {
     padding-inline: 20px 16px;
   }
-  /* Floating rail: three labeled destinations and the + key, 12px in from the edges and above the home indicator. */
+  /* Floating rail: four labeled destinations, 12px in from the edges and above the home indicator. */
   :root:has(.tab-bar) {
     --rail-inset: 12px;
     --rail-bottom: max(var(--rail-inset), env(safe-area-inset-bottom));
@@ -400,11 +399,6 @@ a.ui-menu-item {
     flex: 1 1 0;
     min-width: 0;
   }
-  /* The key is set apart from the destinations: it is an action, never the current page. */
-  .tab-bar .tab-add-slot {
-    flex: none;
-    margin-inline-start: 6px;
-  }
   .tab {
     display: flex;
     flex-direction: column;
@@ -425,8 +419,11 @@ a.ui-menu-item {
       color var(--dur-fast) var(--ease-out),
       background-color var(--dur-fast) var(--ease-out);
   }
+  /* Four tabs leave 64px of text at 320px: «Наземные» (600) fits, the ellipsis is only a guard for larger text. */
   .tab-label {
     max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
   .tab[aria-current='page'] {
@@ -437,71 +434,16 @@ a.ui-menu-item {
   .tab:active {
     background: var(--surface-inset);
   }
-  .tab-add {
-    display: grid;
-    place-items: center;
-    width: 56px;
-    height: 56px;
-    padding: 0;
-    border: 0;
-    border-radius: 18px;
-    background: var(--accent);
-    color: var(--accent-foreground);
-    transition:
-      transform var(--dur-press) var(--ease-out),
-      background-color var(--dur-fast) var(--ease-out);
-  }
-  .tab-add:active {
-    transform: scale(0.96);
-  }
-  .tab-add:focus-visible,
   .tab:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
-  }
-  /* + turns into × (the same glyph at 45°); a transition, so a quick reopen reverses mid-turn. */
-  .tab-add-icon {
-    transition: transform var(--dur-base) var(--ease-out);
-  }
-  .tab-add[data-state='open'] .tab-add-icon {
-    transform: rotate(45deg);
   }
   /* Stacking while a scrimmed menu is open: the menu, then the rail, then the scrim, then toasts and the import dock. */
   :root:has(.ui-menu-shield[data-scrim][data-state='open']) .tab-bar {
     z-index: 73;
   }
-  .ui-menu.add-card,
   .ui-menu.account-menu {
     z-index: 74;
-  }
-  /* Doubled class: outranks the base menu's 320px cap, so the card spans the rail. */
-  .ui-menu.add-card {
-    width: calc(100vw - 2 * var(--rail-inset));
-    max-width: none;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px;
-    border: 0;
-    border-radius: 24px;
-    background: var(--surface-floating);
-    box-shadow: var(--shadow-modal), var(--ring-floating);
-  }
-  .add-card-title {
-    margin: 0;
-    padding: 12px 14px 8px;
-    font-size: 17px;
-    line-height: 24px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .add-card .ui-menu-item {
-    min-height: var(--action-row-h);
-    gap: 12px;
-    padding-inline: 14px;
-    border-radius: 18px;
-    font-weight: 500;
-    line-height: 20px;
   }
   /* Content, floating bars and toasts clear the rail, its gap and the safe area. Toasts add the safe area themselves. */
   :root:has(.tab-bar) {
@@ -527,17 +469,10 @@ a.ui-menu-item {
     background: var(--surface-inset);
     color: var(--text);
   }
-  .tab-add:hover {
-    background: var(--accent-hover);
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tab-bar,
-  .tab-add-icon {
+  .tab-bar {
     transition: none;
-  }
-  .tab-add:active {
-    transform: none;
   }
   .add-button {
     transition: none;
@@ -576,4 +511,24 @@ a.ui-menu-item {
 /* The drill slides one page over the other, so the pages need the page background to hide what lies beneath. */
 :root[data-route-transition='drill'] .route-stage > * {
   background: var(--background);
+}
+
+.member-route {
+  display: contents;
+}
+@media (max-width: 700px) {
+  .member-route[data-import-focused] .member-header,
+  .member-route[data-import-focused] .tab-bar,
+  body:has(.member-route[data-import-focused]) .import-dock-host {
+    display: none;
+  }
+  .member-route[data-import-focused] .page-shell {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  html:has(.member-route[data-import-focused]) {
+    scroll-padding-block-end: calc(
+      var(--import-footer-height, var(--space-12)) + var(--import-keyboard-inset, 0px) +
+        var(--space-4)
+    );
+  }
 }

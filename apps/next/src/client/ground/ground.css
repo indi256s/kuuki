@@ -1,0 +1,500 @@
+/* Ground travel list, totals, cards and detail sheet. Tokens only. No divider lines between rows: space groups. */
+.gt-page {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.gt-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+.gt-header h1 {
+  margin: 0;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gt-results {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.gt-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-count {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-toolbar {
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.gt-cancelled-toggle[aria-pressed='true'] {
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+  font-weight: 600;
+}
+
+/* A compact summary of the modes with completed journeys. */
+.gt-totals {
+  display: grid;
+  gap: var(--space-2);
+}
+.gt-totals-lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-totals-line {
+  font-size: 15px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.gt-totals-line strong {
+  font-weight: 500;
+}
+.gt-totals-line small,
+.gt-facts small {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.gt-facts > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.gt-facts dt {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.gt-facts dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 17px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Sections and cards. */
+.gt-list-section {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.gt-list-section h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.gt-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-card {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+}
+.gt-card-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* The title link spans the card, so the whole card is one 44px+ target and one tab stop. */
+.gt-card-link {
+  color: var(--text);
+  text-decoration: none;
+}
+.gt-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+}
+.gt-card-link:focus-visible {
+  outline: none;
+}
+.gt-card-link:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.gt-card {
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .gt-card:hover {
+    background: var(--surface-inset);
+  }
+  .gt-skeleton-card:hover {
+    background: var(--surface);
+  }
+}
+.gt-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-card-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.gt-card-facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.gt-card-facts dt {
+  order: 1;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-muted);
+}
+.gt-card-facts dd {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+}
+.gt-card-facts small {
+  display: block;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-muted);
+}
+.gt-card-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.gt-card-topline .gt-status {
+  font-size: 13px;
+  line-height: 20px;
+}
+.gt-card-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-items: start;
+}
+.gt-card-itinerary {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.gt-card .gt-card-title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+}
+.gt-card-date,
+.gt-card-via {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.gt-totals-line {
+  display: grid;
+  gap: var(--space-1);
+}
+.gt-totals-line .gt-mode {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-totals-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+}
+@media (width <= 700px) {
+  .gt-card-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+  .gt-card-facts {
+    justify-content: flex-start;
+  }
+}
+.gt-card-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--warning-text);
+}
+.gt-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text);
+  font-weight: 500;
+}
+/* Status is a word first; the tint only backs it. */
+.gt-status {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+  color: var(--text);
+  font-weight: 500;
+}
+.gt-status[data-status='planned'] {
+  background: var(--journal-upcoming-tint);
+  color: var(--info-text);
+}
+.gt-status[data-status='cancelled'] {
+  color: var(--text-muted);
+}
+.gt-card[data-status='cancelled'] .gt-card-title {
+  font-weight: 500;
+}
+
+/* Detail sheet. */
+.gt-detail {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.gt-detail-loading {
+  min-height: 160px;
+  border-radius: var(--radius-md);
+  background: var(--skeleton);
+}
+.gt-missing {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+.gt-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+.gt-detail-heading {
+  margin: var(--space-2) 0 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.gt-steps {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-step {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.gt-step-route {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.gt-step-meta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.gt-note-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.gt-sketch {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.gt-sketch-svg {
+  width: 100%;
+  height: auto;
+  background: var(--map-water);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.gt-sketch figcaption {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  justify-content: flex-end;
+  min-width: 0;
+}
+.gt-list-actions .ui-button {
+  font-weight: 500;
+}
+.gt-alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Loading skeleton: static bars at the final card size. */
+.gt-skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+.gt-skeleton-card {
+  min-height: 140px;
+}
+.gt-skeleton-bar {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--skeleton);
+}
+.gt-skeleton-totals {
+  min-height: 56px;
+}
+.gt-skeleton-bar.is-toolbar {
+  height: 32px;
+  max-width: 240px;
+}
+.gt-skeleton-bar.is-title {
+  height: 24px;
+  width: 60%;
+}
+.gt-skeleton-bar.is-meta {
+  height: 20px;
+  width: 80%;
+}
+.gt-skeleton-bar.is-facts {
+  height: 24px;
+  width: 45%;
+}
+.gt-form-skeleton {
+  display: grid;
+  gap: var(--space-8);
+  max-width: 760px;
+  min-width: 0;
+}
+.gt-form-skeleton-section {
+  display: grid;
+  gap: var(--space-4);
+}
+.gt-skeleton-bar.is-form-title {
+  height: 40px;
+  width: 50%;
+}
+.gt-skeleton-bar.is-section-title {
+  height: 24px;
+  width: 30%;
+}
+.gt-skeleton-bar.is-block {
+  height: 160px;
+  border-radius: var(--radius-md);
+}
+@media (max-width: 700px) {
+  .gt-page,
+  .gt-results {
+    gap: var(--space-4);
+  }
+  .gt-card {
+    padding: var(--space-4);
+  }
+}
+
+.gt-map-dark {
+  display: none;
+}
+[data-theme='dark'] .gt-map-dark {
+  display: block;
+}
+[data-theme='dark'] .gt-map-light {
+  display: none;
+}
+.gt-map-route {
+  fill: none;
+  stroke: var(--map-route);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gt-map-dot {
+  fill: var(--map-water);
+  stroke: var(--map-route);
+  stroke-width: 2;
+}
+.gt-map-dot[data-end='true'] {
+  fill: var(--map-route);
+}
+.gt-map-label path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 0.75;
+}
+.gt-map-label rect {
+  fill: var(--surface-floating);
+}
+.gt-map-label text {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.gt-card-facts dd[data-unknown='true'] {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+}

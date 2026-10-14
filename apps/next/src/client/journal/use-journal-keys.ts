@@ -72,7 +72,7 @@ function moveRowFocus(
 /**
  * Journal keyboard layer: one `keydown` listener on `document` while `enabled`.
  * `/` and `?` belong to the ledger, filter toolbar and shortcuts button; j/k belong to the ledger.
- * Arrows move row focus, `x` selects, `e` edits the focused sheet field, Esc closes the sheet or clears the search,
+ * Arrows move row focus, `x` selects, `e` starts Edit from inside the open flight's details, Esc closes the sheet or clears the search,
  * `?` lists them. Enter is native (the row button opens the sheet). Nothing here is destructive.
  */
 export function useJournalKeys(options: JournalKeyOptions): void {
@@ -153,8 +153,8 @@ export function useJournalKeys(options: JournalKeyOptions): void {
         }
         case 'e': {
           const trigger = target
-            .closest('.jd-row[data-field]')
-            ?.querySelector<HTMLElement>('.jd-trigger')
+            .closest('.journal-detail, .journal-detail-sheet')
+            ?.querySelector<HTMLElement>('[data-action="edit-flight"]')
           if (trigger) {
             event.preventDefault()
             trigger.click()

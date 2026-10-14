@@ -1,24 +1,24 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
 import {
   useEffect,
-  useId,
   useRef,
   useState,
   type ComponentType,
   type ReactNode,
   type SVGProps,
 } from 'react'
-import { BookOpen, GridSquares, Plus, Stamp } from '@keyline-icons/react'
-import { AddActions } from './add-actions'
-import { Menu } from './ui/menu'
+import { BookOpen, GridSquares, Route, Stamp } from '@keyline-icons/react'
 
 type Locale = 'en' | 'ru'
 export const NAV_ITEMS = [
   { href: '/overview', label: 'Overview', ru: 'Обзор' },
   { href: '/journal', label: 'Journal', ru: 'Журнал' },
+  { href: '/ground-travel', label: 'Ground travel', ru: 'Наземные путешествия' },
   { href: '/passport', label: 'Passport', ru: 'Паспорт' },
 ] as const
 
@@ -69,7 +69,8 @@ export function MobilePageTitle() {
   )
 }
 
-export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
+export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }) {
+  const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const nav = useRef<HTMLElement>(null)
   // The sticky header wraps on narrow desktops and long labels; sticky content below reads its real height.
@@ -151,14 +152,15 @@ function Tab({
   icon,
   en,
   ru,
-  onPointerDown,
+  name,
 }: {
   href: string
   active: boolean
   icon: ReactNode
   en: string
   ru: string
-  onPointerDown: () => void
+  /** Full accessible name when the visible label is short; it always contains the visible label (Label in Name). */
+  name?: string
 }) {
   return (
     <li>
@@ -166,8 +168,8 @@ function Tab({
         href={href}
         prefetch
         className="tab"
+        aria-label={name}
         aria-current={active ? 'page' : undefined}
-        onPointerDown={onPointerDown}
       >
         {icon}
         <span className="tab-label">
@@ -178,85 +180,49 @@ function Tab({
   )
 }
 
-const TABS = [
+const TABS: readonly {
+  href: string
+  en: string
+  ru: string
+  /** Full accessible names, for a tab whose visible label is shortened to fit four across at 320px. */
+  name?: { en: string; ru: string }
+  Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>
+}[] = [
   { href: '/overview', en: 'Overview', ru: 'Обзор', Icon: GridSquares },
   { href: '/journal', en: 'Journal', ru: 'Журнал', Icon: BookOpen },
+  {
+    href: '/ground-travel',
+    en: 'Ground',
+    ru: 'Наземные',
+    name: { en: 'Ground travel', ru: 'Наземные путешествия' },
+    Icon: Route,
+  },
   { href: '/passport', en: 'Passport', ru: 'Паспорт', Icon: Stamp },
-] as const
+]
 
 /**
- * Floating rail: three labeled destinations and the + key, an action that never carries aria-current. The key opens the
- * Add card, the shared Menu anchored above it at the rail's width over a scrim. The rail stays above the scrim and live:
- * a tab tap closes the card at once and navigates. The card also closes on any route change and when the keyboard opens.
+ * Floating rail: four labeled destinations. Adding lives inside the pages (Journal's Add flight, the ground-travel
+ * Add chooser), so the rail has no action key. The rail slides off-screen while the keyboard is open (`useKeyboardFlag`).
  */
-export function TabBar({ locale = 'en' }: { locale?: Locale }) {
+export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
+  const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const ru = locale === 'ru'
-  const titleId = useId()
-  const [addOpen, setAddOpen] = useState(false)
-  // A close caused by navigating skips the card's exit, so it never overlaps the page change.
-  const [leaving, setLeaving] = useState(false)
-  const keyboard = useKeyboardFlag()
-  const [cardPath, setCardPath] = useState(pathname)
-  if (cardPath !== pathname) {
-    setCardPath(pathname)
-    setAddOpen(false)
-  }
-  if (keyboard && addOpen) setAddOpen(false)
-  const leave = () => {
-    if (addOpen) setLeaving(true)
-  }
-  const icon = (Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>) => (
-    <Icon size={22} strokeWidth={2} aria-hidden="true" />
-  )
+  useKeyboardFlag()
   return (
     <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar">
       <ul>
-        {TABS.map((tab) => (
+        {TABS.map(({ Icon, ...tab }) => (
           <Tab
             key={tab.href}
             href={tab.href}
             active={isActive(pathname, tab.href)}
-            icon={icon(tab.Icon)}
+            icon={<Icon size={22} strokeWidth={2} aria-hidden="true" />}
             en={tab.en}
             ru={tab.ru}
-            onPointerDown={leave}
+            name={tab.name?.[locale]}
           />
         ))}
-        <li className="tab-add-slot">
-          <Menu
-            open={addOpen}
-            onOpenChange={(next) => {
-              if (next) setLeaving(false)
-              setAddOpen(next)
-            }}
-            side="top"
-            align="end"
-            // 8px above the rail: the key sits inside the rail's 6px padding on both axes.
-            sideOffset={14}
-            alignOffset={-6}
-            className="add-card"
-            scrim="always"
-            instant={leaving}
-            labelledBy={titleId}
-            trigger={
-              <button
-                type="button"
-                className="tab-add"
-                aria-label={
-                  addOpen ? (ru ? 'Закрыть' : 'Close') : ru ? 'Добавить перелёт' : 'Add flight'
-                }
-              >
-                <Plus className="tab-add-icon" size={24} strokeWidth={2.25} aria-hidden="true" />
-              </button>
-            }
-          >
-            <p id={titleId} className="add-card-title">
-              {ru ? 'Добавить перелёт' : 'Add flight'}
-            </p>
-            <AddActions locale={locale} />
-          </Menu>
-        </li>
       </ul>
     </nav>
   )

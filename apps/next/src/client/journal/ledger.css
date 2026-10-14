@@ -213,7 +213,7 @@
   color: var(--info-text);
 }
 
-/* Route: the focusable button names the row; the glyph and the "more" button sit beside it. */
+/* Route: the focusable button names the row; the "more" button sits beside it. */
 .jr-route-inner {
   display: flex;
   align-items: flex-start;
@@ -252,30 +252,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.journal-firsts {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  color: var(--accent-text);
-  border-radius: var(--radius-xs);
-}
-.journal-firsts:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-.journal-firsts-line {
-  display: block;
-}
-@media (pointer: coarse) {
-  .journal-firsts {
-    width: 44px;
-    height: 44px;
-    margin-block: -10px;
-  }
-}
-
 /* Airline, aircraft, metrics. */
 .journal-ledger .jr-airline {
   display: grid;
@@ -341,7 +317,7 @@
   position: absolute;
   inset: 0;
 }
-.journal-ledger :is(.jr-open, .journal-firsts, .jr-aircraft .ui-button, .jr-select) {
+.journal-ledger :is(.jr-open, .jr-aircraft .ui-button, .jr-select) {
   position: relative;
   z-index: 1;
 }
@@ -429,11 +405,15 @@
   }
   .journal-ledger .jr-row .jr-aircraft {
     grid-area: aircraft;
+    display: flex;
+    align-items: center;
+    min-block-size: 32px;
     min-width: 0;
     color: var(--text-muted);
   }
   .journal-ledger .jr-row .jr-distance {
     grid-area: distance;
+    align-self: center;
     color: var(--text-muted);
     padding-inline-end: 44px;
   }
@@ -447,7 +427,7 @@
   .journal-ledger .jr-more {
     inset-inline-end: var(--space-1);
     top: auto;
-    bottom: var(--space-1);
+    bottom: calc(var(--space-4) - 6px);
     margin-top: 0;
   }
 }

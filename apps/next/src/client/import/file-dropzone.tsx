@@ -52,19 +52,33 @@ function Thumb({ file }: { file: File }) {
 
 // Arc FileDropzone, MIT (../ui/ARC-LICENSE.txt), manually adapted from https://uiarc.dev/r/file-dropzone.json.
 // Keep its selection/thumbnail/removal, sheet-stack composition, drag-depth and clipboard lifecycle;
-// Kuuki owns validation/submission. Batch uploads and motion/react are omitted for this single-document flow.
+// Kuuki owns validation/submission. motion/react is omitted. By default it picks one document and lists it;
+// `multiple` hands every picked or dropped file to the caller, which renders its own per-file rows.
 export function FileDropzone({
-  file,
+  file = null,
   accept,
   disabled,
   locale,
   onFilesChange,
+  multiple = false,
+  paste = true,
+  title,
+  hint,
+  note,
 }: {
-  file: File | null
+  file?: File | null
   accept: string
   disabled: boolean
   locale: Locale
   onFilesChange: (files: File[]) => void
+  /** Several files per pick or drop; the dropzone then lists nothing, the caller owns the rows. */
+  multiple?: boolean
+  /** Take an image pasted anywhere on the page. A page with other paste targets turns it off. */
+  paste?: boolean
+  /** Replace the default title, hint and note. `note: null` removes the note line. */
+  title?: string
+  hint?: string
+  note?: string | null
 }) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -74,7 +88,7 @@ export function FileDropzone({
     noteId = useId()
 
   useEffect(() => {
-    if (disabled) return
+    if (disabled || !paste) return
     const onPaste = (event: ClipboardEvent) => {
       const target = event.target
       if (
@@ -97,7 +111,7 @@ export function FileDropzone({
     }
     document.addEventListener('paste', onPaste)
     return () => document.removeEventListener('paste', onPaste)
-  }, [disabled, onFilesChange])
+  }, [disabled, paste, onFilesChange])
 
   const carriesFiles = (event: DragEvent) =>
     Array.from(event.dataTransfer?.types ?? []).includes('Files')
@@ -129,8 +143,8 @@ export function FileDropzone({
           event.preventDefault()
           dragDepth.current = 0
           setDragging(false)
-          if (!disabled && event.dataTransfer.files.length)
-            onFilesChange([event.dataTransfer.files[0]!])
+          const dropped = Array.from(event.dataTransfer.files)
+          if (!disabled && dropped.length) onFilesChange(multiple ? dropped : [dropped[0]!])
         }}
       >
         <button
@@ -139,7 +153,7 @@ export function FileDropzone({
           className={styles.trigger}
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
-          aria-describedby={`${descriptionId} ${noteId}`}
+          aria-describedby={note === null ? descriptionId : `${descriptionId} ${noteId}`}
         >
           <span className={styles.sheets} aria-hidden="true">
             <span className={styles.sheet} data-sheet="back" />
@@ -149,26 +163,34 @@ export function FileDropzone({
             </span>
           </span>
           <strong className={styles.label}>
-            {dragging ? S.dropNow[locale] : file ? S.dropChange[locale] : S.dropTitle[locale]}
+            {dragging
+              ? S.dropNow[locale]
+              : file
+                ? S.dropChange[locale]
+                : (title ?? S.dropTitle[locale])}
           </strong>
           <span id={descriptionId} className={styles.hint}>
-            {S.dropHint[locale]}
+            {hint ?? S.dropHint[locale]}
           </span>
-          <small id={noteId} className={styles.note}>
-            {S.dropPaste[locale]}
-          </small>
+          {note === null ? null : (
+            <small id={noteId} className={styles.note}>
+              {note ?? S.dropPaste[locale]}
+            </small>
+          )}
         </button>
       </div>
       <input
         ref={inputRef}
         className="sr-only"
         type="file"
+        multiple={multiple}
         accept={accept}
         disabled={disabled}
         tabIndex={-1}
         aria-hidden="true"
         onChange={(event) => {
-          if (event.target.files?.length) onFilesChange([event.target.files[0]!])
+          const picked = Array.from(event.target.files ?? [])
+          if (picked.length) onFilesChange(multiple ? picked : [picked[0]!])
           event.target.value = ''
         }}
       />

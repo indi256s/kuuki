@@ -58,6 +58,7 @@ function Harness({
   return (
     <ToastProvider>
       <JournalDeleteProvider
+        ownerId="owner"
         locale="en"
         refresh={refresh}
         hide={(ids) => {

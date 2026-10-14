@@ -23,7 +23,9 @@ A personal flight tracking app for aviation enthusiasts. Log journeys, build you
 - Not a social network (no following, no activity feeds)
 - Not a booking tool (no flight search, no prices)
 - Not a loyalty program tracker (no miles, no elite status)
-- Not a travel planning app (no trip planning, no itineraries)
+- General travel planning is out of scope. An agreed, unimplemented exception
+  supports personal rail journeys and road-trip itineraries, without booking;
+  see the [ground-travel spec](../.scratch/ground-travel/spec.md).
 
 ---
 
@@ -357,7 +359,7 @@ Characteristics:
 
 - Flight booking
 - Price alerts
-- Trip planning
+- General trip planning beyond the agreed rail/road-trip exception
 - Automatic flight detection (requires email access)
 
 **Loyalty & Rewards:**

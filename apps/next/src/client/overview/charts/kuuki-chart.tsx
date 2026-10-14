@@ -10,6 +10,7 @@ import {
   type ReactNode,
   type SVGProps,
 } from 'react'
+import { X } from '@keyline-icons/react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../ui/button'
 import { useLocale } from '../../preferences'
@@ -40,7 +41,7 @@ export type KuukiChartProps<T> = {
   tapPicks?: boolean
   tip?: (points: readonly ChartPoint<T>[]) => ReactNode
   actions?: (point: ChartPoint<T>) => readonly TipAction[]
-  /** The data as a "View as table" disclosure under the chart. Stage charts leave it to the card's Details, outside their fixed stage. */
+  /** Semantic data for screen readers. Stage charts leave it to the card, outside their fixed stage. */
   table?: ChartTable
   /** Count-driven charts: the SVG's natural width for the measured host width (left-aligned, scrolls when wider). Default fills the host. */
   fit?: (available: number) => number
@@ -380,9 +381,14 @@ export function KuukiChart<T>({
                       {action.label}
                     </Button>
                   ))}
-                  <Button onClick={dismiss}>
-                    {document.documentElement.lang === 'ru' ? 'Закрыть' : 'Close'}
-                  </Button>
+                  <button
+                    type="button"
+                    className="ui-icon-button"
+                    aria-label={t({ en: 'Close', ru: 'Закрыть' }, locale)}
+                    onClick={dismiss}
+                  >
+                    <X size={18} strokeWidth={2} aria-hidden="true" />
+                  </button>
                 </div>
               )}
             </div>,

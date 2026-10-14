@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { signIn } from './helpers'
 
-test('the overview globe keeps its canvas visible in the card and fullscreen', async ({
+test('the overview globe fills the card and keeps its canvas visible in fullscreen', async ({
   page,
   baseURL,
 }) => {
@@ -19,17 +19,27 @@ test('the overview globe keeps its canvas visible in the card and fullscreen', a
   await expect(page.getByRole('status').filter({ hasText: 'Loading globe…' })).toBeVisible()
   await expect(page.locator('.globe-viewport svg')).toHaveCount(0)
   releaseAtlas()
-  for (const width of [1280, 390]) {
+  for (const width of [1280, 600, 390]) {
     await page.setViewportSize({ width, height: 844 })
-    const surface = page.locator('.globe-card:not(.globe-card-fullscreen) .globe-surface')
+    const card = page.locator('.globe-card:not(.globe-card-fullscreen)')
+    const surface = card.locator('.globe-surface')
     await expect(surface).toHaveAttribute('data-webgl-ready', 'true', { timeout: 20_000 })
     await expect
       .poll(async () => {
+        const bounds = await card.boundingBox()
         const layer = await surface.locator('.globe-webgl-layer').boundingBox()
         const host = await surface.locator('.globe-map-canvas').boundingBox()
-        return Boolean(layer && host && host.height > 0 && Math.abs(layer.height - host.height) < 1)
+        const canvas = await surface.locator('.maplibregl-canvas').boundingBox()
+        if (!bounds || !layer || !host || !canvas) return null
+        return {
+          visible: host.height > 0 && Math.abs(layer.height - host.height) < 1,
+          insetX: Math.round(canvas.x - bounds.x),
+          insetY: Math.round(canvas.y - bounds.y),
+          widthGap: Math.round(bounds.width - canvas.width),
+          heightGap: Math.round(bounds.height - canvas.height),
+        }
       })
-      .toBe(true)
+      .toEqual({ visible: true, insetX: 1, insetY: 1, widthGap: 2, heightGap: 2 })
   }
   await page.getByRole('button', { name: 'Fullscreen', exact: true }).click()
   const fullscreen = page.locator('.globe-card-fullscreen .globe-surface')

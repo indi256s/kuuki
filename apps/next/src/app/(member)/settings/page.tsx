@@ -21,8 +21,10 @@ export default async function Settings() {
       COALESCE((SELECT total_flights FROM user_stats WHERE user_id = ?), 0) AS completed,
       (SELECT COUNT(*) FROM country_claims WHERE user_id = ?) AS claims,
       (SELECT COUNT(*) FROM ground_visits WHERE user_id = ?) AS ground,
-      (SELECT COUNT(*) FROM import_drafts WHERE user_id = ?) AS drafts`)
-      .bind(own.ownerId, own.ownerId, own.ownerId, own.ownerId, own.ownerId)
+      (SELECT COUNT(*) FROM import_drafts WHERE user_id = ?) AS drafts,
+      (SELECT COUNT(*) FROM ground_journeys WHERE user_id = ? AND deleted_at IS NULL) AS journeys,
+      (SELECT COUNT(*) FROM ground_manual_places WHERE user_id = ?) AS manualPlaces`)
+      .bind(...Array<string>(7).fill(own.ownerId))
       .first<SettingsCounts>()
   } catch {
     /* Keep Settings usable; unavailable counts must never become an empty account. */

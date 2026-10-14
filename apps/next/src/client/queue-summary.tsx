@@ -52,26 +52,35 @@ export function QueueMenuItem({
   const queue = useAwaiting()
   const waiting = queue.data
   count ??= waiting?.actionableCount
+  const batches = (waiting?.drafts ?? []).filter((draft) => draft.reviewRowCount > 0)
+  const href =
+    waiting?.awaitingFlightCount === 0 && waiting.draftRowCount > 0
+      ? batches.length === 1
+        ? `/import?batch=${encodeURIComponent(batches[0]!.batchId)}`
+        : '/import'
+      : QUEUE_HREF
   const label = LABEL[locale]
   const lang = locale === 'ru' ? 'ru' : undefined
   const row = (trailing: ReactNode, name?: string) => (
     <MenuItem asChild>
-      {field ? (
-        <Link href={QUEUE_HREF} aria-label={name}>
-          <span className="account-field-key" lang={lang}>
-            {label}
-          </span>
-          <span className="account-field-value">{trailing}</span>
-        </Link>
-      ) : (
-        <Link href={QUEUE_HREF} aria-label={name}>
-          <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
-          <span className="queue-label" lang={lang}>
-            {label}
-          </span>
-          {trailing}
-        </Link>
-      )}
+      <Link href={href} aria-label={name}>
+        {field ? (
+          <>
+            <span className="account-field-key" lang={lang}>
+              {label}
+            </span>
+            <span className="account-field-value">{trailing}</span>
+          </>
+        ) : (
+          <>
+            <ClipboardCheck size={20} strokeWidth={2} aria-hidden="true" />
+            <span className="queue-label" lang={lang}>
+              {label}
+            </span>
+            {trailing}
+          </>
+        )}
+      </Link>
     </MenuItem>
   )
   if (queue.error && !waiting && count == null)

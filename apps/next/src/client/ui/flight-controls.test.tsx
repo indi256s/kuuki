@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Calendar } from './calendar'
+import { DateField } from '../ground/form/fields'
 import { Combobox } from './combobox'
-import { airportChoices } from '../capture/reference-choices'
+import { aircraftChoices, airportChoices } from '../capture/reference-choices'
 import type { Locale } from '../../lib/format'
 
 beforeEach(() => {
@@ -42,6 +43,44 @@ function SearchHarness({ locale }: { locale: Locale }) {
     </>
   )
 }
+function AircraftHarness() {
+  const [value, setValue] = useState('')
+  return (
+    <Combobox
+      label="Aircraft"
+      locale="en"
+      choices={aircraftChoices}
+      value={value}
+      onChange={setValue}
+    />
+  )
+}
+it.each([
+  ['EMBRAER ERJ-190-400', 'E295'],
+  ['erj 190 300 embraer', 'E290'],
+  ['E195 E2', 'E295'],
+  ['295', 'E295'],
+])('selects aircraft by alternate designation %s', async (query, code) => {
+  render(<AircraftHarness />)
+  const input = screen.getByRole('combobox')
+  await userEvent.click(input)
+  fireEvent.change(input, { target: { value: query } })
+  expect(screen.getByRole('option', { name: new RegExp(code) })).toBeInTheDocument()
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(input).toHaveValue(code)
+  expect(input).toHaveAttribute('aria-expanded', 'false')
+})
+it.each(['en', 'ru'] as const)('announces an empty search without options (%s)', async (locale) => {
+  render(<SearchHarness locale={locale} />)
+  const input = screen.getByRole('combobox')
+  await userEvent.click(input)
+  fireEvent.change(input, { target: { value: 'no-such-airport' } })
+  expect(within(input.parentElement!).getByRole('status')).toHaveTextContent(
+    locale === 'ru' ? 'Ничего не найдено' : 'No matches',
+  )
+  expect(screen.queryByRole('option')).not.toBeInTheDocument()
+  expect(input).not.toHaveAttribute('aria-activedescendant')
+})
 describe.each(['en', 'ru'] as const)('flight controls (%s)', (locale) => {
   it.each(['SVO'])('matches a catalog airport by %s and selects by keyboard', async (query) => {
     render(<SearchHarness locale={locale} />)
@@ -440,5 +479,76 @@ it.each([
     await userEvent.keyboard('{Enter}')
     expect(screen.getByRole('status')).toHaveTextContent(`${year}-02-${last}`)
     expect(input).toHaveValue(`02/${last}/${year}`)
+  },
+)
+
+function GroundDateHarness({ locale }: { locale: Locale }) {
+  const [value, setValue] = useState('2026-05-06')
+  return (
+    <>
+      <DateField label="Journey date" locale={locale} value={value} onChange={setValue} />
+      <output>{value}</output>
+    </>
+  )
+}
+
+it.each(['en', 'ru'] as const)(
+  'uses Monday weeks and ISO selections for readable ground dates (%s)',
+  async (locale) => {
+    render(<GroundDateHarness locale={locale} />)
+    const input = screen.getByRole('textbox')
+    expect(input).toHaveValue(locale === 'ru' ? '6 мая 2026' : '6 May 2026')
+    await userEvent.click(
+      screen.getByRole('button', { name: locale === 'ru' ? 'Календарь' : 'Calendar' }),
+    )
+    expect(screen.getAllByRole('columnheader')[0]).toHaveTextContent(locale === 'ru' ? 'пн' : 'Mon')
+    const selected = screen.getByRole('button', {
+      name: locale === 'ru' ? '6 мая 2026 г.' : 'May 6, 2026',
+    })
+    selected.focus()
+    fireEvent.keyDown(selected, { key: 'Home' })
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: locale === 'ru' ? '4 мая 2026 г.' : 'May 4, 2026',
+        }),
+      ).toHaveFocus(),
+    )
+    fireEvent.keyDown(document.activeElement!, { key: 'End' })
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: locale === 'ru' ? '10 мая 2026 г.' : 'May 10, 2026',
+        }),
+      ).toHaveFocus(),
+    )
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('2026-05-10')
+    await userEvent.tab()
+    expect(input).toHaveValue(locale === 'ru' ? '10 мая 2026' : '10 May 2026')
+  },
+)
+
+it.each(['en', 'ru'] as const)(
+  'replaces a readable ground date with numeric or ISO input without rewriting a draft (%s)',
+  async (locale) => {
+    render(<GroundDateHarness locale={locale} />)
+    const input = screen.getByRole('textbox')
+    await userEvent.click(input)
+    await userEvent.keyboard(locale === 'ru' ? '07.05.2026' : '05/07/2026')
+    expect(input).toHaveValue(locale === 'ru' ? '07.05.2026' : '05/07/2026')
+    expect(screen.getByRole('status')).toHaveTextContent('2026-05-07')
+    await userEvent.tab()
+    expect(input).toHaveValue(locale === 'ru' ? '7 мая 2026' : '7 May 2026')
+    await userEvent.click(input)
+    await userEvent.keyboard('2026-12-31')
+    expect(input).toHaveValue('2026-12-31')
+    expect(screen.getByRole('status')).toHaveTextContent('2026-12-31')
+    await userEvent.tab()
+    expect(input).toHaveValue(locale === 'ru' ? '31 декабря 2026' : '31 Dec 2026')
+    await userEvent.click(input)
+    await userEvent.keyboard('31/99/2026')
+    await userEvent.tab()
+    expect(input).toHaveValue(locale === 'ru' ? '2026-99-31' : '2026-31-99')
   },
 )

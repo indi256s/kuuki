@@ -1,8 +1,17 @@
 'use client'
-import { useId, useRef, useState, type KeyboardEvent, type Ref } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+} from 'react'
 import { foldSearchText } from '@kuuki/shared'
-import { formatCount, type Locale } from '../../lib/format'
+import { formatCount, type CountForms, type Locale } from '../../lib/format'
 import { Sheet } from './sheet'
+import { useAsyncSearch } from './use-async-search'
 import { useMobile } from './use-mobile'
 import './flight-controls.css'
 
@@ -38,13 +47,16 @@ function highlight(text: string, query: string) {
 /** Filters by code, name and aliases; an exact code ranks first, and an empty query lists recents first. */
 export function searchChoices(choices: Choice[], query: string, recents: string[] = []) {
   const needle = query.trim().toLocaleLowerCase()
-  const all = choices.filter(
-    (choice) =>
-      !needle ||
-      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`
-        .toLocaleLowerCase()
-        .includes(needle),
-  )
+  const words = foldSearchText(needle)
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ''))
+    .filter(Boolean)
+  const all = choices.filter((choice) => {
+    const text = foldSearchText(
+      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`,
+    ).replace(/[^\p{L}\p{N}]/gu, '')
+    return !needle || (words.length > 0 && words.every((word) => text.includes(word)))
+  })
   const ordered = needle
     ? [...all].sort(
         (a, b) =>
@@ -82,7 +94,13 @@ export function ChoiceOptions({
 }) {
   return (
     <>
-      <p role="status">{formatCount(locale, count, counts)}</p>
+      <p role="status">
+        {count === 0
+          ? locale === 'ru'
+            ? 'Ничего не найдено'
+            : 'No matches'
+          : formatCount(locale, count, counts)}
+      </p>
       <ul id={`${id}-list`} role="listbox" aria-label={label}>
         {matches.map((choice, index) => (
           <li
@@ -302,7 +320,11 @@ export function Combobox({
           {error}
         </p>
       )}
-      {open && !mobile && <div className="flight-search-popover">{list}</div>}
+      {open && !mobile && (
+        <div className={matches.length ? 'flight-search-popover' : 'flight-search-empty'}>
+          {list}
+        </div>
+      )}
       {mobile && (
         <Sheet
           initialDetent={1}
@@ -323,6 +345,305 @@ export function Combobox({
             restoringFocus.current = false
           }}
           closeLabel={locale === 'ru' ? 'Закрыть поиск' : 'Close search'}
+          className="flight-search-sheet flight-full-sheet"
+        >
+          <div className="flight-search-input">{input(true)}</div>
+          {list}
+        </Sheet>
+      )}
+    </div>
+  )
+}
+
+export type AsyncOption = { key: string; label: string; detail?: string }
+
+const letters: CountForms = {
+  en: { one: 'Type at least {count} letter.', other: 'Type at least {count} letters.' },
+  ru: {
+    one: 'Введите хотя бы {count} букву.',
+    few: 'Введите хотя бы {count} буквы.',
+    many: 'Введите хотя бы {count} букв.',
+    other: 'Введите хотя бы {count} буквы.',
+  },
+}
+
+const asyncCopy = {
+  en: {
+    searching: 'Searching…',
+    keepTyping: (min: number) => formatCount('en', min, letters),
+    none: (query: string) => `No match for “${query}”.`,
+    failed: 'Search failed.',
+    retry: 'Retry',
+    found: (count: number) => `${count} found`,
+    close: 'Close search',
+  },
+  ru: {
+    searching: 'Ищем…',
+    keepTyping: (min: number) => formatCount('ru', min, letters),
+    none: (query: string) => `Ничего не найдено по запросу «${query}».`,
+    failed: 'Поиск не удался.',
+    retry: 'Повторить',
+    found: (count: number) => `Найдено: ${count}`,
+    close: 'Закрыть поиск',
+  },
+}
+
+/**
+ * A combobox whose options come from a search request. The typed text is only a query: a place is chosen by
+ * Enter on a highlighted option or a click, never by leaving the field, so the only match is not taken for
+ * the answer. Loading, no result and failure are separate states; a failure keeps the typed text and the
+ * previous choice, and a response for an older query is dropped (see useAsyncSearch).
+ */
+export function AsyncCombobox<T>({
+  label,
+  locale,
+  selected,
+  onSelect,
+  search,
+  toOption,
+  minChars = 2,
+  error,
+  hint,
+  disabled,
+  inputRef,
+  shortQueryText,
+  footer,
+  prefill,
+  refocus,
+}: {
+  label: string
+  locale: Locale
+  /** The committed choice, shown when no query is being typed. */
+  selected: { label: string; detail?: string } | null
+  onSelect: (item: T) => void
+  search: (query: string, signal: AbortSignal) => Promise<T[]>
+  toOption: (item: T) => AsyncOption
+  minChars?: number
+  error?: string
+  hint?: string
+  disabled?: boolean
+  inputRef?: Ref<HTMLInputElement>
+  /** Replaces the "no match" line for a query that is too short for the whole catalog to answer. */
+  shortQueryText?: (query: string) => string | null
+  /** Rendered under the options, e.g. "Add a place manually". `close` dismisses the list. */
+  footer?: (close: () => void, query: string) => ReactNode
+  /** A new `nonce` puts `text` in the field as an unresolved query, opens the list and focuses the field. */
+  prefill?: { text: string; nonce: number }
+  /** A new (non-zero) value focuses the field without opening the list, e.g. after a form that replaced it closes. */
+  refocus?: number
+}) {
+  const copy = asyncCopy[locale]
+  const id = useId()
+  const mobile = useMobile() === true
+  const [open, setOpen] = useState(false)
+  const [typed, setTyped] = useState<{ text: string; base: string } | null>(null)
+  const [active, setActive] = useState(0)
+  const originRef = useRef<HTMLInputElement>(null)
+  const restoringFocus = useRef(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+  // The typed text is an unresolved query. It outlives closing the list, but not a choice made elsewhere
+  // (swap, reset, OCR hand-off): when the committed label moves on, the stale text goes.
+  if (typed !== null && typed.base !== (selected?.label ?? '')) setTyped(null)
+  const text = typed?.text ?? null
+  const setText = (next: string | null) =>
+    setTyped(next === null ? null : { text: next, base: selected?.label ?? '' })
+  const [prefilled, setPrefilled] = useState(prefill?.nonce)
+  if (prefill && prefill.nonce !== prefilled) {
+    setPrefilled(prefill.nonce)
+    setTyped({ text: prefill.text, base: selected?.label ?? '' })
+    setActive(0)
+    setOpen(true)
+  }
+  useEffect(() => {
+    if (prefill) originRef.current?.focus()
+    // Only a new nonce is a request; re-rendering with the same one must not steal focus again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill?.nonce])
+  useEffect(() => {
+    if (!refocus) return
+    restoringFocus.current = true
+    originRef.current?.focus()
+    restoringFocus.current = false
+    // Only a new value is a request, as with `prefill`.
+  }, [refocus])
+  const query = text ?? ''
+  const { state, retry } = useAsyncSearch(query, search, { minChars })
+  const loading = state.status === 'loading'
+  const results = state.status === 'ready' ? state.results : []
+  // While a new query loads the previous answer stays on screen for height, but is not selectable.
+  const options = (loading ? state.previous : results).map(toOption)
+  const current = loading ? -1 : Math.min(active, Math.max(0, options.length - 1))
+  // Closing keeps the typed text as an unresolved query; only a choice replaces it.
+  const close = () => setOpen(false)
+  const choose = (item: T) => {
+    onSelect(item)
+    setTyped(null)
+    setOpen(false)
+  }
+  const status =
+    state.status === 'idle'
+      ? query.trim() === ''
+        ? ''
+        : copy.keepTyping(minChars)
+      : loading
+        ? copy.searching
+        : state.status === 'error'
+          ? copy.failed
+          : options.length > 0
+            ? copy.found(options.length)
+            : (shortQueryText?.(query.trim()) ?? copy.none(query.trim()))
+  const keydown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
+    if (event.key === 'Escape' && open) {
+      event.preventDefault()
+      event.stopPropagation()
+      close()
+      return
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!open) {
+        setOpen(true)
+        return
+      }
+      if (loading) return
+      setActive(
+        Math.max(0, Math.min(options.length - 1, current + (event.key === 'ArrowDown' ? 1 : -1))),
+      )
+    }
+    if (event.key === 'Enter' && open) {
+      // Enter inside an open search never submits the surrounding form; it picks the highlighted option only.
+      event.preventDefault()
+      if (results[current]) choose(results[current])
+    }
+  }
+  const input = (inSheet: boolean) => (
+    <input
+      id={inSheet ? `${id}-search` : id}
+      ref={
+        inSheet
+          ? searchRef
+          : (node) => {
+              originRef.current = node
+              if (typeof inputRef === 'function') inputRef(node)
+              else if (inputRef) inputRef.current = node
+            }
+      }
+      role="combobox"
+      aria-label={inSheet ? label : undefined}
+      aria-expanded={open}
+      aria-controls={open && options.length > 0 ? `${id}-list` : undefined}
+      aria-activedescendant={open && options[current] ? `${id}-option-${current}` : undefined}
+      aria-autocomplete="list"
+      aria-busy={open && loading}
+      aria-invalid={!!error}
+      aria-describedby={
+        [error ? `${id}-error` : '', hint ? `${id}-hint` : ''].filter(Boolean).join(' ') ||
+        undefined
+      }
+      autoComplete="off"
+      disabled={disabled}
+      value={text ?? (inSheet ? '' : (selected?.label ?? ''))}
+      onChange={(event) => {
+        setText(event.target.value)
+        setActive(0)
+        setOpen(true)
+      }}
+      onClick={() => {
+        if (!disabled && !open) setOpen(true)
+      }}
+      onFocus={(event) => {
+        if (!disabled && !restoringFocus.current) {
+          // A field that already holds a choice opens on a click or an arrow, not on every Tab through it.
+          if (!selected || query !== '') setOpen(true)
+          if (!inSheet) event.target.select()
+        }
+      }}
+      onKeyDown={keydown}
+    />
+  )
+  const footerOpen = query.trim().length >= minChars || state.status === 'error'
+  const list = (
+    <>
+      <p
+        role="status"
+        className={
+          options.length > 0 && state.status !== 'error' && !loading
+            ? 'flight-async-result-count'
+            : undefined
+        }
+      >
+        {status}
+      </p>
+      {state.status === 'error' && (
+        <button
+          type="button"
+          className="flight-combobox-action"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={retry}
+        >
+          {copy.retry}
+        </button>
+      )}
+      {options.length > 0 && (
+        <ul id={`${id}-list`} role="listbox" aria-label={label}>
+          {options.map((option, index) => (
+            <li
+              key={option.key}
+              id={`${id}-option-${index}`}
+              role="option"
+              aria-selected={current === index}
+              aria-disabled={loading || undefined}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                if (!loading) choose(results[index])
+              }}
+            >
+              <span className="flight-choice-text">
+                <span className="flight-choice-label">{highlight(option.label, query.trim())}</span>
+                {option.detail && <small>{option.detail}</small>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {footerOpen && footer?.(close, query.trim())}
+    </>
+  )
+  // Nothing to say yet (empty query, no footer): no empty bubble.
+  const hasList = status !== '' || options.length > 0 || (footerOpen && !!footer)
+  return (
+    <div
+      className="flight-combobox"
+      onBlur={(event) => {
+        // Leaving the field closes the list and keeps the typed query as is. It never picks a result.
+        if (!mobile && !event.currentTarget.contains(event.relatedTarget)) close()
+      }}
+    >
+      <label htmlFor={id}>{label}</label>
+      {input(false)}
+      {hint && <small id={`${id}-hint`}>{hint}</small>}
+      {!open && selected?.detail && <small>{selected.detail}</small>}
+      {error && (
+        <p role="alert" id={`${id}-error`}>
+          {error}
+        </p>
+      )}
+      {open && !mobile && hasList && <div className="flight-search-popover">{list}</div>}
+      {mobile && (
+        <Sheet
+          initialDetent={1}
+          open={open}
+          onOpenChange={(next) => (next ? setOpen(true) : close())}
+          title={label}
+          initialFocusRef={searchRef}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            restoringFocus.current = true
+            originRef.current?.focus()
+            restoringFocus.current = false
+          }}
+          closeLabel={copy.close}
           className="flight-search-sheet flight-full-sheet"
         >
           <div className="flight-search-input">{input(true)}</div>

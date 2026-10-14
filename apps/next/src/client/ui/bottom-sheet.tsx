@@ -51,6 +51,8 @@ export interface BottomSheetProps {
   footer?: ReactNode
   initialFocusRef?: RefObject<HTMLElement | null>
   onCloseAutoFocus?: (event: Event) => void
+  /** Prevent the event to keep the sheet open, say while an editor inside it owns Escape. */
+  onEscapeKeyDown?: (event: globalThis.KeyboardEvent) => void
 }
 
 type Stop = number | 'closed'
@@ -141,6 +143,7 @@ function Sheet({
   footer,
   initialFocusRef,
   onCloseAutoFocus,
+  onEscapeKeyDown,
   trigger,
   onDismiss,
 }: Omit<BottomSheetProps, 'open' | 'defaultOpen' | 'onOpenChange'> & { onDismiss: () => void }) {
@@ -646,6 +649,7 @@ function Sheet({
         asChild
         forceMount
         {...(description ? {} : { 'aria-describedby': undefined })}
+        onEscapeKeyDown={onEscapeKeyDown}
         onOpenAutoFocus={(event) => {
           event.preventDefault()
           ;(initialFocusRef?.current ?? sheetRef.current)?.focus({ preventScroll: true })

@@ -14,7 +14,7 @@ import './hero.css'
 export function NextStrip() {
   const { payload, scope, all, locale, bus, isCurrent, aggregate, ownerKey } = useOverview()
   const openFlight = useOpenFlight()
-  const next = scope?.next[0],
+  const next = all?.next[0],
     id = next?.flightId
   const current = useRef(isCurrent)
   useEffect(() => {
@@ -31,7 +31,7 @@ export function NextStrip() {
     const awaiting = all.figures.awaiting
     if (!awaiting) return null
     return (
-      <div className="ov3-next-strip">
+      <div className="ov3-next-strip" data-region="next">
         <Link className="ov3-next-review" href="/journal?queue=awaiting">
           {locale === 'ru' ? 'Проверить' : 'Review'} {formatCount(locale, awaiting, forms.flights)}
           <ChevronRight size={16} aria-hidden="true" />
@@ -88,7 +88,7 @@ export function NextStrip() {
   )
   const interactive = !aggregate && ownerKey !== 'dev'
   return (
-    <div className="ov3-next-strip">
+    <div className="ov3-next-strip" data-region="next">
       {interactive ? (
         <Button
           variant="ghost"
@@ -116,11 +116,11 @@ export function NextStrip() {
           {content}
         </div>
       )}
-      {scope.next.length > 1 ? (
-        <span className="ov3-next-more">
-          +{formatNumber(locale, scope.next.length - 1)}{' '}
+      {all.next.length > 1 ? (
+        <Link className="ov3-next-more" href="/journal?status=upcoming">
+          +{formatNumber(locale, all.next.length - 1)}{' '}
           {locale === 'ru' ? 'ещё забронировано' : 'more booked'}
-        </span>
+        </Link>
       ) : null}
     </div>
   )

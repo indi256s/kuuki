@@ -267,6 +267,17 @@ describe('manual flight', () => {
   })
 })
 
+it('keeps unsaved flight edits when the language changes without reading the flight again', async () => {
+  const view = render(<FlightForm ownerId="a" locale="en" editId={7} initialEditing />)
+  const airline = await screen.findByRole('combobox', { name: words.en.airline })
+  fireEvent.change(airline, { target: { value: '' } })
+  view.rerender(<FlightForm ownerId="a" locale="ru" editId={7} initialEditing />)
+  await waitFor(() =>
+    expect(screen.getByRole('combobox', { name: words.ru.airline })).toHaveValue(''),
+  )
+  expect(mocks.get).toHaveBeenCalledTimes(1)
+})
+
 it('starts every fresh entry collapsed and clears per-account airport recents on identity reset', async () => {
   const view = render(<FlightForm ownerId="a" locale="en" />)
   await userEvent.click(screen.getByRole('button', { name: words.en.details }))

@@ -12,18 +12,22 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocale } from '../preferences'
+import type { Locale } from '../../lib/format'
 import './ui.css'
+
+type ToastCopy = string | Record<Locale, string>
 
 export type ToastKind = 'info' | 'success' | 'error'
 export type ToastInput = {
   /** State the outcome («Ссылка скопирована»), not the action. */
-  message: string
+  message: ToastCopy
   /** Detail under the outcome, one line each (the saved route and date, then the totals state). */
-  description?: string
+  description?: ToastCopy
   kind?: ToastKind
   /** ms; default 5000 (8000 for errors). 0 keeps it until dismissed. */
   duration?: number
-  actionLabel?: string
+  actionLabel?: ToastCopy
   onAction?: () => void
 }
 type Item = ToastInput & { id: number; kind: ToastKind; leaving: boolean }
@@ -59,7 +63,6 @@ const DEFAULT_KIND_LABELS: KindLabels = {
   success: 'Success',
   error: 'Error',
 }
-const ICONS = { info: Info, error: CircleAlert } as const
 /** Arc toast: a swipe past this distance (px) or speed (px/ms) throws the toast off in that direction. */
 const SWIPE = { distance: 80, velocity: 0.48 }
 
@@ -79,6 +82,12 @@ function DrawnCheck() {
     </svg>
   )
 }
+
+const ICONS = {
+  info: <Info size={18} strokeWidth={2} aria-hidden="true" />,
+  success: <DrawnCheck />,
+  error: <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />,
+} as const
 
 export function ToastProvider({
   children,
@@ -171,6 +180,11 @@ function ToastView({
   kindLabels: KindLabels
   onDismiss: (id: number) => void
 }) {
+  const locale = useLocale()
+  const text = (copy: ToastCopy | undefined) => (typeof copy === 'string' ? copy : copy?.[locale])
+  const message = text(item.message)
+  const description = text(item.description)
+  const actionLabel = text(item.actionLabel)
   const total = item.duration ?? (item.kind === 'error' ? 8000 : 5000)
   const remaining = useRef(total)
   const startedAt = useRef(0)
@@ -282,14 +296,7 @@ function ToastView({
       }}
     >
       <span className="ui-toast-icon" data-kind={item.kind}>
-        {item.kind === 'success' ? (
-          <DrawnCheck />
-        ) : (
-          (() => {
-            const Icon = ICONS[item.kind]
-            return <Icon size={18} strokeWidth={2} aria-hidden="true" />
-          })()
-        )}
+        {ICONS[item.kind]}
         <span className="sr-only">{kindLabels[item.kind]}: </span>
       </span>
       {(() => {
@@ -304,13 +311,13 @@ function ToastView({
               onDismiss(item.id)
             }}
           >
-            <span>{item.actionLabel}</span>
+            <span>{actionLabel}</span>
           </button>
         ) : null
-        return item.description ? (
+        return description || action ? (
           <div className="ui-toast-copy">
-            <p className="ui-toast-message">{item.message}</p>
-            {item.description.split('\n').map((line) => (
+            <p className="ui-toast-message">{message}</p>
+            {description?.split('\n').map((line) => (
               <p className="ui-toast-description" key={line}>
                 {line}
               </p>
@@ -319,7 +326,7 @@ function ToastView({
           </div>
         ) : (
           <>
-            <p className="ui-toast-message">{item.message}</p>
+            <p className="ui-toast-message">{message}</p>
             {action}
           </>
         )

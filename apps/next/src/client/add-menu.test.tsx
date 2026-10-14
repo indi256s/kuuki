@@ -7,7 +7,7 @@ import { PrimaryNav } from './nav'
 
 const pathname = '/journal'
 // The accepted capture paths, spelled out so a dropped or rerouted action fails here.
-const ADD_PATHS = ['/import?source=pass', '/import?source=file', '/import?source=text', '/add']
+const ADD_PATHS = ['/import', '/add']
 vi.mock('next/navigation', () => ({ usePathname: () => pathname, useRouter: () => ({}) }))
 vi.mock('next/link', async () => ({
   default: (await import('../test/next-link')).linkStandIn(() => {}),
@@ -22,7 +22,7 @@ beforeEach(() => {
   vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(768)
 })
 
-it('opens one Add flight menu with the four capture rows in order', async () => {
+it('opens one Add flight menu with file import and manual entry in order', async () => {
   const user = userEvent.setup()
   render(<AddMenu />)
   const trigger = screen.getByRole('button', { name: 'Add flight' })
@@ -37,12 +37,13 @@ it('opens one Add flight menu with the four capture rows in order', async () => 
   expect(items.map((item) => item.getAttribute('href'))).toEqual(ADD_PATHS)
 })
 
-it('lists Overview, Journal and Passport, marking the current route', () => {
+it('lists Overview, Journal, Ground travel and Passport, marking the current route', () => {
   render(<PrimaryNav />)
   const links = within(screen.getByRole('navigation', { name: 'Primary' })).getAllByRole('link')
   expect(links.map((link) => link.textContent)).toEqual([
     'OverviewОбзор',
     'JournalЖурнал',
+    'Ground travelНаземные путешествия',
     'PassportПаспорт',
   ])
   expect(links.filter((link) => link.getAttribute('aria-current') === 'page')).toEqual([links[1]])

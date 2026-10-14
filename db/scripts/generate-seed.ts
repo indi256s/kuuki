@@ -220,8 +220,8 @@ function genAircraft(): AircraftSrc[] {
     seen.add(a.icao)
     deduped.push(a)
   }
-  if (deduped.length !== 214) {
-    throw new Error(`ASSERT FAIL: expected 214 aircraft after dedup, got ${deduped.length}`)
+  if (deduped.length !== 215) {
+    throw new Error(`ASSERT FAIL: expected 215 aircraft after dedup, got ${deduped.length}`)
   }
 
   // Deterministic sort by PK (icao).
@@ -438,7 +438,12 @@ function validate(dedupedAircraft: AircraftSrc[]): string[] {
 // ---------------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------------
-if (process.argv.includes('--supplement-only')) {
+if (process.argv.includes('--aircraft-only')) {
+  genAircraft()
+  console.log(
+    `Generated db/seed/aircraft_reference.sql (${results['aircraft_reference.sql']} rows)`,
+  )
+} else if (process.argv.includes('--supplement-only')) {
   genAirportSupplement()
   console.log('Generated db/seed/airports_reference_supplement.sql (8 additive rows)')
 } else {

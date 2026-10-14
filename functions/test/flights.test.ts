@@ -390,6 +390,25 @@ it('acknowledges a committed flight as pending when derived publishing fails', a
   }
 })
 
+it('saves the ATR 72-600 selected from the bundled aircraft catalogue', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const created = await onRequestPost(context(db, '/api/flights', 'POST', flight, 'atr-edit-001'))
+    const { id } = (await created.json()) as { id: number }
+    const saved = await onRequestPatch(
+      context(db, `/api/flights/${id}`, 'PATCH', { aircraft_icao: 'AT76' }, undefined, String(id)),
+    )
+    expect(await saved.json()).toMatchObject({ id, aircraft_icao: 'AT76' })
+    expect(saved.status).toBe(200)
+    expect(
+      await db.prepare('SELECT aircraft_icao FROM flights WHERE id = ?').bind(id).first(),
+    ).toEqual({ aircraft_icao: 'AT76' })
+  } finally {
+    await dispose()
+  }
+})
+
 it('preserves unchanged historical references but rejects a different unknown code', async () => {
   const { db, dispose } = await createApiDatabase()
   try {

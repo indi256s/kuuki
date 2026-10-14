@@ -40,6 +40,8 @@ export interface CountryEvidenceRow {
   awaiting_visit_count: number
   claimed: number
   ground_visit_count: number
+  /** Live completed journeys (rail/road) whose confirmed country list contains this country. */
+  ground_journey_count: number
   first_visit: string | null
   last_visit: string | null
   policy_version: number
@@ -232,6 +234,8 @@ export function deriveCountryEvidence<L>(
     legacy: L[]
     claims: string[]
     ground: Array<{ country_code: string; n: number }>
+    /** Per-country count of the owner's live completed journeys; defaults to none. */
+    journeys?: Array<{ country_code: string; n: number }>
   },
   merge: MergeVisits<L>,
 ): CountryEvidence {
@@ -247,6 +251,7 @@ export function deriveCountryEvidence<L>(
         awaiting_visit_count: 0,
         claimed: 0,
         ground_visit_count: 0,
+        ground_journey_count: 0,
         first_visit: null,
         last_visit: null,
         policy_version: COUNTRY_POLICY_VERSION,
@@ -274,6 +279,9 @@ export function deriveCountryEvidence<L>(
   for (const code of input.claims) if (isCountry(code)) row(code).claimed = 1
   for (const ground of input.ground)
     if (isCountry(ground.country_code)) row(ground.country_code).ground_visit_count += ground.n
+  // Journey stamps carry no dates: first/last visit stay flight evidence only.
+  for (const journey of input.journeys ?? [])
+    if (isCountry(journey.country_code)) row(journey.country_code).ground_journey_count += journey.n
 
   const rows = [...byCountry.values()]
     .filter(
@@ -281,13 +289,15 @@ export function deriveCountryEvidence<L>(
         current.logged_visit_count > 0 ||
         current.awaiting_visit_count > 0 ||
         current.claimed === 1 ||
-        current.ground_visit_count > 0,
+        current.ground_visit_count > 0 ||
+        current.ground_journey_count > 0,
     )
     .map((current) => ({
       ...current,
       status: (current.logged_visit_count > 0 ||
       current.claimed === 1 ||
-      current.ground_visit_count > 0
+      current.ground_visit_count > 0 ||
+      current.ground_journey_count > 0
         ? 'pressed'
         : 'pending') as CountryEvidenceRow['status'],
     }))
@@ -310,7 +320,19 @@ export function evidenceFlightsStatement(db: D1Database, userId: string): D1Prep
     .bind(userId)
 }
 
-/** One read for the repair's combined batch: flights, claims, ground visits and legacy evidence. */
+/** Per-country count of the owner's confirmed journeys: live completed rows only, never plans, cancellations or tombstones. */
+export const journeyCountriesStatement = (db: D1Database, userId: string): D1PreparedStatement =>
+  db
+    .prepare(
+      `SELECT c.country_code, COUNT(*) AS n
+       FROM ground_journey_countries c
+       JOIN ground_journeys j ON j.id = c.journey_id AND j.user_id = c.user_id
+       WHERE c.user_id = ? AND j.status = 'completed' AND j.deleted_at IS NULL
+       GROUP BY c.country_code`,
+    )
+    .bind(userId)
+
+/** One read for the repair's combined batch: flights, claims, ground visits, journeys and legacy evidence. */
 export function countryEvidenceRead<L>(
   db: D1Database,
   userId: string,
@@ -326,14 +348,16 @@ export function countryEvidenceRead<L>(
           'SELECT country_code, COUNT(*) AS n FROM ground_visits WHERE user_id = ? GROUP BY country_code',
         )
         .bind(userId),
+      journeyCountriesStatement(db, userId),
       legacy,
     ],
-    derive: ([flights, claims, ground, legacyRows]) =>
+    derive: ([flights, claims, ground, journeys, legacyRows]) =>
       deriveCountryEvidence(
         {
           flights: rowsOf<EvidenceFlight>(flights),
           claims: rowsOf<{ country_code: string }>(claims).map((claim) => claim.country_code),
           ground: rowsOf<{ country_code: string; n: number }>(ground),
+          journeys: rowsOf<{ country_code: string; n: number }>(journeys),
           legacy: rowsOf<L>(legacyRows),
         },
         merge,
@@ -362,22 +386,24 @@ export function countryEvidenceStatements(
       .prepare(
         `INSERT INTO country_visit_evidence
          (user_id, country_code, status, logged_visit_count, awaiting_visit_count, claimed, ground_visit_count,
-          first_visit, last_visit, policy_version)
+          ground_journey_count, first_visit, last_visit, policy_version)
        SELECT ?, json_extract(value, '$.country_code'), json_extract(value, '$.status'),
               json_extract(value, '$.logged_visit_count'), json_extract(value, '$.awaiting_visit_count'),
               json_extract(value, '$.claimed'), json_extract(value, '$.ground_visit_count'),
-              json_extract(value, '$.first_visit'), json_extract(value, '$.last_visit'), json_extract(value, '$.policy_version')
+              json_extract(value, '$.ground_journey_count'), json_extract(value, '$.first_visit'), json_extract(value, '$.last_visit'), json_extract(value, '$.policy_version')
        FROM json_each(?) WHERE true
        ON CONFLICT(user_id, country_code) DO UPDATE SET
          status = excluded.status, logged_visit_count = excluded.logged_visit_count,
          awaiting_visit_count = excluded.awaiting_visit_count, claimed = excluded.claimed,
-         ground_visit_count = excluded.ground_visit_count, first_visit = excluded.first_visit,
+         ground_visit_count = excluded.ground_visit_count,
+         ground_journey_count = excluded.ground_journey_count, first_visit = excluded.first_visit,
          last_visit = excluded.last_visit, policy_version = excluded.policy_version
        WHERE country_visit_evidence.status IS NOT excluded.status
          OR country_visit_evidence.logged_visit_count IS NOT excluded.logged_visit_count
          OR country_visit_evidence.awaiting_visit_count IS NOT excluded.awaiting_visit_count
          OR country_visit_evidence.claimed IS NOT excluded.claimed
          OR country_visit_evidence.ground_visit_count IS NOT excluded.ground_visit_count
+         OR country_visit_evidence.ground_journey_count IS NOT excluded.ground_journey_count
          OR country_visit_evidence.first_visit IS NOT excluded.first_visit
          OR country_visit_evidence.last_visit IS NOT excluded.last_visit
          OR country_visit_evidence.policy_version IS NOT excluded.policy_version`,

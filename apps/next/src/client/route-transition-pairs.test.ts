@@ -7,6 +7,9 @@ describe('isApprovedPair', () => {
   it.each([
     ['/passport', '/import', true],
     ['/import', '/passport', true],
+    ['/journal', '/ground-travel', true],
+    ['/ground-travel', '/passport', true],
+    ['/ground-travel', '/ground-travel/new', false],
     ['/journal', '/add', false],
   ])('%s → %s animates: %s', (from, to, animates) => {
     expect(isApprovedPair('page', from, to)).toBe(animates)

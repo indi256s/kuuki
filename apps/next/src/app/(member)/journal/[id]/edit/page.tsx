@@ -1,3 +1,4 @@
+import { LocaleText } from '../../../../../client/locale-text'
 import { notFound } from 'next/navigation'
 import { requireOnboardedMember } from '../../../../../server/gates'
 import { pageMetadata } from '../../../../../server/metadata'
@@ -18,8 +19,12 @@ export default async function EditFlight({ params }: { params: Promise<{ id: str
   return (
     <IdentitySnapshot ownerId={identity.id}>
       <div className="page-heading">
-        <p className="eyebrow">{locale === 'ru' ? 'Журнал' : 'Journal'}</p>
-        <h1>{locale === 'ru' ? 'Изменить перелёт' : 'Edit flight'}</h1>
+        <p className="eyebrow">
+          <LocaleText locale={locale} en="Journal" ru="Журнал" />
+        </p>
+        <h1>
+          <LocaleText locale={locale} en="Edit flight" ru="Изменить перелёт" />
+        </h1>
       </div>
       <FlightDetailSheet ownerId={identity.id} locale={locale} flightId={flightId} initialEditing />
     </IdentitySnapshot>

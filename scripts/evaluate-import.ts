@@ -2,6 +2,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { GoogleGenAI } from '@google/genai'
+import { devVar } from './_cli'
 import {
   extractFlights,
   extractionContents,
@@ -191,15 +192,6 @@ function score(
     (draft, index) => draft.selected && !used.has(index),
   ).length
   return metrics
-}
-
-async function devVar(name: string) {
-  const vars = await readFile(resolve(root, '.dev.vars'), 'utf8').catch(() => '')
-  const line = vars.split(/\r?\n/).find((line) => line.startsWith(`${name}=`))
-  return line
-    ?.slice(name.length + 1)
-    .trim()
-    .replace(/^(['"])(.*)\1$/, '$2')
 }
 
 async function apiKey() {

@@ -138,11 +138,16 @@ it('opens secondary actions by keyboard and returns focus after an action', asyn
 })
 it('dismisses keyboard tooltips when focus leaves the chart', async () => {
   const user = userEvent.setup()
-  render(<Chart />)
+  render(
+    <>
+      <Chart />
+      <button type="button">Next card</button>
+    </>,
+  )
   fireEvent.keyDown(screen.getByRole('group', { name: 'Routes' }), { key: 'Home' })
   expect(screen.getByRole('tooltip')).toBeInTheDocument()
   await user.tab()
-  expect(screen.getByRole('button', { name: 'View as table' })).toHaveFocus()
+  expect(screen.getByRole('button', { name: 'Next card' })).toHaveFocus()
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
 })
 it('touch pins portaled actions without direct selection and keeps focused actions on current data', () => {
@@ -460,20 +465,12 @@ it('brush updates a UTC draft and commits once at pointer or keyboard completion
     ),
   ).not.toMatch(/NaN|Infinity/)
 })
-it.each([
-  ['en', 'View as table'],
-  ['ru', 'Показать таблицу'],
-])('table disclosure uses %s copy and shows caption, headers and rows', (locale, label) => {
-  document.documentElement.lang = locale
+it('keeps caption, headers and chart data accessible without a table toggle', () => {
   render(<TableView table={table} />)
-  const toggle = screen.getByRole('button', { name: label })
-  expect(toggle).toHaveAttribute('aria-expanded', 'false')
-  fireEvent.click(toggle)
-  const visibleTable = screen.getByRole('table', { name: table.caption })
-  expect(within(visibleTable).getByRole('columnheader', { name: 'Flights' })).toBeInTheDocument()
-  expect(within(visibleTable).getByRole('cell', { name: '3' })).toBeInTheDocument()
-  fireEvent.click(toggle)
-  expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  const accessibleTable = screen.getByRole('table', { name: table.caption })
+  expect(within(accessibleTable).getByRole('columnheader', { name: 'Flights' })).toBeInTheDocument()
+  expect(within(accessibleTable).getByRole('cell', { name: '3' })).toBeInTheDocument()
+  expect(screen.queryByRole('button')).not.toBeInTheDocument()
 })
 
 it('lazy charts mount near the viewport but animate only while visible, and clean observers', () => {

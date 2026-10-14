@@ -45,6 +45,12 @@
   font-size: 13px;
   color: var(--text-muted);
 }
+.flight-search-empty p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
 .flight-combobox ul,
 .flight-search-sheet ul {
   list-style: none;
@@ -318,8 +324,8 @@
   min-width: 0;
 }
 @media (hover: hover) and (pointer: fine) {
-  .flight-combobox li:hover,
-  .flight-search-sheet li:hover,
+  .flight-combobox li:hover:not([aria-disabled='true']),
+  .flight-search-sheet li:hover:not([aria-disabled='true']),
   .flight-calendar-grid [aria-selected='false'] button:hover:not([aria-current='date']) {
     background: var(--surface-inset);
   }
@@ -328,4 +334,47 @@
   .flight-calendar-grid button {
     transition: none;
   }
+}
+
+/* Inline actions inside a search list ("Retry", "Add a place manually"): a text button at the 44px target. */
+.flight-combobox-action {
+  min-height: 44px;
+  margin: 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-text, var(--text));
+  font: inherit;
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.flight-combobox-action:active {
+  background: var(--surface-inset);
+}
+@media (hover: hover) and (pointer: fine) {
+  .flight-combobox-action:hover {
+    background: var(--surface-inset);
+  }
+}
+/* A result kept on screen while the next query loads: visible, not choosable. */
+.flight-combobox li[aria-disabled='true'],
+.flight-search-sheet li[aria-disabled='true'] {
+  cursor: default;
+}
+
+/* Neutral input focus stays distinct from the danger border and the selected accent. */
+.flight-combobox input:focus-visible,
+.flight-calendar input:focus-visible,
+.flight-search-input input:focus-visible {
+  outline-color: var(--text);
+}
+.flight-async-result-count {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }

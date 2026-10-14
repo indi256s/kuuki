@@ -45,6 +45,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
   await expect(page.locator('.ov-globe')).toBeVisible()
   for (const [route, heading] of [
     ['journal', 'Journal'],
+    ['ground-travel', 'Ground travel'],
     ['passport', 'Passport'],
     ['overview', 'Overview'],
   ]) {
@@ -53,7 +54,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
       .click()
     await page.waitForURL((url) => url.pathname === `/${route}`)
     await routeSettled(page)
-    await expect(page.locator('h1')).toHaveText(route === 'overview' ? /^Hi(?:,| ·|$)/ : heading)
+    await expect(page.locator('h1')).toHaveText(heading)
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
     ).toBeVisible()
@@ -192,6 +193,7 @@ test.describe('entry behavior', () => {
       '/signup',
       '/overview',
       '/journal',
+      '/ground-travel',
       '/passport',
       '/import',
       '/settings',
@@ -210,9 +212,48 @@ test.describe('entry behavior', () => {
 test('a guest hitting a member page gets a 307 to sign-in, not a streamed 200', async ({
   request,
 }) => {
-  for (const path of ['/overview', '/journal', '/passport']) {
+  for (const path of ['/overview', '/journal', '/ground-travel', '/passport']) {
     const response = await request.get(path, { maxRedirects: 0 })
     expect(response.status(), path).toBe(307)
     expect(new URL(response.headers().location, 'http://x').pathname).toBe('/signin')
   }
+})
+
+test('language changes update the page in place and retain unsaved settings', async ({
+  page,
+  baseURL,
+}) => {
+  await signIn(page, baseURL!)
+  await page.goto('/settings')
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible()
+  const name = page.getByRole('textbox', { name: 'Display name', exact: true })
+  await name.fill('Unfinished name')
+  const runtimeErrors: string[] = []
+  page.on('pageerror', (error) => runtimeErrors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error') runtimeErrors.push(message.text())
+  })
+  const documentRequests: string[] = []
+  page.on('request', (request) => {
+    if (request.resourceType() === 'document') documentRequests.push(request.url())
+  })
+  await page.evaluate(() => {
+    document.body.dataset.localeTest = 'same-document'
+  })
+  await page.getByRole('radio', { name: 'Русский', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Имя', exact: true })).toHaveValue(
+    'Unfinished name',
+  )
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru')
+  await page.getByRole('button', { name: 'Меню аккаунта', exact: true }).click()
+  await page.getByRole('menuitemradio', { name: 'EN', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Display name', exact: true })).toHaveValue(
+    'Unfinished name',
+  )
+  await expect(page.locator('body')).toHaveAttribute('data-locale-test', 'same-document')
+  expect(documentRequests).toEqual([])
+  expect(runtimeErrors).toEqual([])
 })

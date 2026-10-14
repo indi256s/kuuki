@@ -89,15 +89,15 @@ export async function runtime(
           })
         },
         FAKE: async (request: { json(): Promise<unknown> }) => {
-          calls++
           providerInput = (await request.json()) as Record<string, any>
-          return new Response(
-            new ReadableStream<Uint8Array>({
-              start(controller) {
-                feed = controller
-              },
-            }),
-          )
+          const body = new ReadableStream<Uint8Array>({
+            start(controller) {
+              feed = controller
+            },
+          })
+          // Counted only once `feed` is this call's stream: `start()` waits for the count before tests send chunks.
+          calls++
+          return new Response(body)
         },
       },
     }),

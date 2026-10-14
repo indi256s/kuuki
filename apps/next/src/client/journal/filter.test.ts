@@ -403,16 +403,6 @@ describe('connections', () => {
   })
 })
 
-it('attaches firsts by flight id', () => {
-  const firsts = { countries: ['TR'], aircraft: true, airline: false, pending: false }
-  const items = select(
-    payloadOf([flight({ id: 1 }), flight({ id: 2, date: '2020-01-01' })], {
-      firsts: { 1: firsts },
-    }),
-  ).items
-  expect(items.map((item) => item.kind === 'flight' && item.firsts)).toEqual([firsts, null])
-})
-
 it('uses the same flown flights for every total and retains estimated or missing values', () => {
   const payload = payloadOf([
     flight({ id: 1, distance_km: 1000, duration_minutes: 100, duration_source: 'estimate' }),

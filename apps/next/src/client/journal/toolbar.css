@@ -172,6 +172,16 @@
     flex-wrap: nowrap;
     margin-inline-start: 0;
   }
+  .journal-toolbar .ui-filter-toolbar-actions .ui-button {
+    min-block-size: 44px;
+    padding-block: 10px;
+  }
+  .journal-toolbar .ui-filter-toolbar-actions .ui-button::after {
+    inset: 0;
+  }
+  .journal-toolbar .journal-more {
+    min-inline-size: 44px;
+  }
   /* Padding and the matching negative margin keep focus rings and chip shadows inside the scroll box. */
   .journal-chips {
     flex: 1 1 0;

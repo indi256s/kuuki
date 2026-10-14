@@ -30,7 +30,10 @@ const award = (id: number, user = 'u'): EarnedBadge => ({
   },
 })
 const withToasts = (node: ReactElement) => <ToastProvider>{node}</ToastProvider>
-beforeEach(() => vi.mocked(api.get).mockReset())
+beforeEach(() => {
+  vi.mocked(api.get).mockReset()
+  document.documentElement.lang = 'en'
+})
 afterEach(() => vi.restoreAllMocks())
 it('baselines a new device, aggregates actual deltas and persists them per account', () => {
   const storage = new Map<string, string>()
@@ -81,6 +84,7 @@ it('announces a single batch, clears on identity reset and rejects late account 
   vi.mocked(api.get)
     .mockResolvedValueOnce([])
     .mockResolvedValueOnce([award(1), award(2)])
+  document.documentElement.lang = 'ru'
   render(withToasts(<BadgeNotifications ownerId="u" locale="ru" />))
   await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
   await act(async () => {
