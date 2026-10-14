@@ -147,7 +147,7 @@
       "en": "Argentina",
       "ru": "Аргентина"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AS": {
     "cluster": null,
@@ -406,7 +406,7 @@
   },
   "BO": {
     "cluster": null,
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "BOL",
     "name": {
       "en": "Bolivia",
@@ -417,11 +417,11 @@
       "en": "Bolivia",
       "ru": "Боливия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BR": {
     "cluster": "twin-peak",
-    "ink": "slate",
+    "ink": "moss",
     "iso3": "BRA",
     "name": {
       "en": "Brazil",
@@ -432,7 +432,7 @@
       "en": "Brazil",
       "ru": "Бразилия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BS": {
     "cluster": null,
@@ -522,7 +522,7 @@
       "en": "Canada",
       "ru": "Канада"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CC": {
     "cluster": "atoll",
@@ -631,7 +631,7 @@
   },
   "CL": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "teal",
     "iso3": "CHL",
     "name": {
       "en": "Chile",
@@ -642,7 +642,7 @@
       "en": "Chile",
       "ru": "Чили"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CM": {
     "cluster": null,
@@ -676,7 +676,7 @@
   },
   "CO": {
     "cluster": "fort",
-    "ink": "indigo",
+    "ink": "oxblood",
     "iso3": "COL",
     "name": {
       "en": "Colombia",
@@ -687,7 +687,7 @@
       "en": "Colombia",
       "ru": "Колумбия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CR": {
     "cluster": null,
@@ -706,7 +706,7 @@
   },
   "CU": {
     "cluster": "fort",
-    "ink": "oxblood",
+    "ink": "indigo",
     "iso3": "CUB",
     "name": {
       "en": "Cuba",
@@ -1651,7 +1651,7 @@
   },
   "KE": {
     "cluster": "twin-peak",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "KEN",
     "name": {
       "en": "Kenya",
@@ -2412,7 +2412,7 @@
       "en": "Nicaragua",
       "ru": "Никарагуа"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NL": {
     "cluster": "stepped-gable",
@@ -2521,7 +2521,7 @@
   },
   "PA": {
     "cluster": null,
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "PAN",
     "name": {
       "en": "Panama",
@@ -2532,7 +2532,7 @@
       "en": "Panama",
       "ru": "Панама"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PE": {
     "cluster": null,
@@ -3087,7 +3087,7 @@
       "en": "El Salvador",
       "ru": "Сальвадор"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SX": {
     "cluster": null,
@@ -3421,7 +3421,7 @@
   },
   "US": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "USA",
     "name": {
       "en": "United States",
@@ -3432,7 +3432,7 @@
       "en": "United States",
       "ru": "США"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "UY": {
     "cluster": null,
