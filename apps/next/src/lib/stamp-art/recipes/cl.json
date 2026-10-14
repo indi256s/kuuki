@@ -1,0 +1,30 @@
+{
+  "iso2": "CL",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.6],
+        "weight": "hair",
+        "clouds": [40, 60, 34, 100, 70, 28, 150, 62, 30]
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "paine-towers",
+      "box": [28, 52, 144, 76],
+      "params": {
+        "heights": [0.9, 1, 0.78],
+        "slope": 0.2
+      }
+    }
+  ]
+}

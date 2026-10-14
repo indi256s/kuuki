@@ -1,0 +1,74 @@
+{
+  "iso2": "BR",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "moss",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.2, 3.0],
+        "weight": "hair",
+        "clouds": [34, 62, 52, 100, 56, 44, 166, 66, 52, 128, 80, 34]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.42],
+          [0.2, 0.3],
+          [0.4, 0.4],
+          [0.62, 0.34],
+          [1, 0.46]
+        ],
+        "jag": 0.8,
+        "seed": 3,
+        "snow": 0
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 12,
+        "amp": 2,
+        "seed": 9
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "granite-dome",
+      "box": [92, 56, 76, 72],
+      "params": {
+        "axis": 0.5,
+        "crown": 0.3,
+        "power": 4.2
+      }
+    },
+    {
+      "module": "granite-dome",
+      "box": [34, 92, 66, 36],
+      "params": {
+        "axis": 0.5,
+        "seed": 7,
+        "power": 3.4
+      }
+    },
+    {
+      "module": "cable-car",
+      "box": [66, 57, 66, 71],
+      "params": {
+        "left": 0.48,
+        "right": 1,
+        "stub": 7,
+        "sag": 2.2,
+        "at": 0.5
+      }
+    }
+  ]
+}

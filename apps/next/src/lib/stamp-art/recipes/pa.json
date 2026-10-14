@@ -1,0 +1,40 @@
+{
+  "iso2": "PA",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "ochre-dark",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.7, 3.7],
+        "weight": "hair",
+        "clouds": [34, 62, 52, 100, 56, 44, 166, 66, 52, 128, 80, 34]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 16,
+        "amp": 3,
+        "seed": 5,
+        "swell": 4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "bridge",
+      "box": [26, 54, 146, 70],
+      "params": {
+        "deckEnd": 0.62,
+        "deckMid": 0.5,
+        "girder": 2.4
+      }
+    }
+  ]
+}

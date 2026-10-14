@@ -159,7 +159,7 @@
     "motif": "Obelisco de Buenos Aires on Avenida 9 de Julio",
     "kind": "object",
     "silhouette": "wide flat base with a short plinth step; a tall, straight-sided tapering shaft rising to a point; symmetric, narrow top half, wide bottom third",
-    "modules": ["obelisk", "steps", "platform"],
+    "modules": ["obelisk", "rooftops"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -167,7 +167,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": null
+    "notes": "obelisk (lane A) over a low rooftop band."
   },
   {
     "iso2": "AS",
@@ -465,7 +465,7 @@
     "motif": "Gate of the Sun at Tiwanaku",
     "kind": "ruin",
     "silhouette": "two tall, straight uprights with a flat lintel across the top forming a rectangular gateway; a plain carved frieze band across the lintel; a stepped sunken court or platform at the base",
-    "modules": ["gate-arch", "platform", "steps"],
+    "modules": ["monolith-gate"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -473,7 +473,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "monolith-gate (lane A): doorway, frieze panels, crack, stepped base; Illimani-style ridge behind."
   },
   {
     "iso2": "BR",
@@ -482,15 +482,15 @@
     "motif": "Sugarloaf Mountain at the harbour entrance",
     "kind": "architecture",
     "silhouette": "two rounded granite domes side by side, the larger on the right and the smaller on the left; a thin cable line running between them; flat water across the bottom",
-    "modules": ["twin-peak", "water"],
-    "signature": "new:cable-car – two low towers with a thin cable and a small gondola between them",
+    "modules": ["granite-dome", "cable-car", "distance-trees"],
+    "signature": null,
     "backdrop": null,
     "cluster": "twin-peak",
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: two rounded granite domes with a cable-car line between. Christ the Redeemer dropped (rule 1); Sugarloaf was already the primary."
+    "notes": "Sugarloaf (bullet-profile granite-dome, power param) with Morro da Urca and a cable-car line; Christ the Redeemer dropped (rule 1)."
   },
   {
     "iso2": "BS",
@@ -584,7 +584,7 @@
     "motif": "Chateau Frontenac on its cliff",
     "kind": "architecture",
     "silhouette": "Long steep-roofed castle hotel on a cliff above the river, central tower, a row of conical turrets and dormers along the roofline",
-    "modules": ["conical", "tower", "window-grid", "cliff", "water"],
+    "modules": ["chateau", "distance-trees"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -592,7 +592,7 @@
     "replaced": "Peace Tower: clock-tower collision with GB (REVIEW)",
     "confidence": "high",
     "facts": "unchecked",
-    "notes": "Promoted research alternate (REVIEW)."
+    "notes": "chateau (lane A): towered chateau hotel on a cliff."
   },
   {
     "iso2": "CC",
@@ -720,7 +720,7 @@
     "motif": "Torres del Paine",
     "kind": "nature",
     "silhouette": "Three sheer granite towers of different heights side by side above a glacial lake, dark lower slopes",
-    "modules": ["mountains", "cliff", "water"],
+    "modules": ["paine-towers"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -728,7 +728,7 @@
     "replaced": "Moai on ahu platforms: Q43 (moai: sacred statues of a living culture)",
     "confidence": "high",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "paine-towers (lane A): three needles on dark scree with a massif behind."
   },
   {
     "iso2": "CM",
@@ -771,7 +771,7 @@
     "motif": "Castillo San Felipe de Barajas",
     "kind": "architecture",
     "silhouette": "a massive, stepped fortress with thick, angled bastion walls on a hillside; a few tall towers and a lower stepped base; a flat sea and city wall at the bottom",
-    "modules": ["fortress-wall", "hills", "tower", "platform"],
+    "modules": ["bastion-fort"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -779,7 +779,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: zig-zag stepped bastions on a hill"
+    "notes": "bastion-fort (lane A): battered stepped terraces with lit and shaded bastion faces, garitas, watch tower on a hill."
   },
   {
     "iso2": "CR",
@@ -2726,7 +2726,7 @@
     "motif": "Granada colonial street",
     "kind": "architecture",
     "silhouette": "Row of low colonial houses with deep arcaded porches and arched doors, flat parapets, a palm behind",
-    "modules": ["arcade", "flat-parapet", "window-grid", "palm"],
+    "modules": ["colonial-row", "distance-mountains", "palm"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2734,7 +2734,7 @@
     "replaced": "Leon Cathedral: cathedral (rule 1); round 2 Q44: dropped Momotombo volcano over Lake Managua (volcano cluster cut; only alternate is a church tower (rule 1))",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "unverified; not in research."
+    "notes": "colonial-row (lane A): three arcaded houses, Mombacho-style cone behind, palm."
   },
   {
     "iso2": "NL",
@@ -2859,18 +2859,18 @@
     "iso2": "PA",
     "iso3": "PAN",
     "name": "Panama",
-    "motif": "Miraflores Locks",
+    "motif": "Bridge of the Americas",
     "kind": "architecture",
-    "silhouette": "Two tall lock gates meeting in a narrow channel between concrete chamber walls, a small control building at the side",
-    "modules": ["platform", "tower", "water"],
+    "silhouette": "Steel through-arch over the canal, deck humping up to the middle, slim piers into the water",
+    "modules": ["bridge"],
     "signature": "new:lock-gates – pair of tall gates meeting in a channel",
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Miraflores Locks: hard to read in elevation (REVIEW); round 2 Q43: dropped Panama Viejo ruined tower (ruined cathedral tower of a living religion)",
+    "replaced": "Miraflores Locks: hard to read in elevation (REVIEW); bridge family is lane A",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Original round-1 primary restored; weak in elevation (REVIEW)."
+    "notes": "bridge module (lane A)."
   },
   {
     "iso2": "PE",
@@ -3491,7 +3491,7 @@
     "motif": "Joya de Ceren",
     "kind": "ruin",
     "silhouette": "Few small thatched huts with steep conical roofs on low earth platforms, ash-covered ground",
-    "modules": ["thatched", "conical", "platform"],
+    "modules": ["thatch-hut", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3499,7 +3499,7 @@
     "replaced": "Santa Ana volcano: Q44 (volcano cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "thatch-hut (lane A): three thatched huts on low platforms."
   },
   {
     "iso2": "SX",
@@ -3879,18 +3879,18 @@
     "iso2": "US",
     "iso3": "USA",
     "name": "United States",
-    "motif": "Statue of Liberty on Liberty Island",
-    "kind": "object",
-    "silhouette": "tall robed figure with raised arm and torch on a stepped pedestal, water beneath. Symmetric",
-    "modules": ["statue", "platform", "water"],
+    "motif": "Devils Tower",
+    "kind": "nature",
+    "silhouette": "Flat-topped fluted column rising from a broad boulder talus skirt, pines and ridges behind",
+    "modules": ["devils-tower", "distance-mountains", "distance-trees"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
-    "status": "kept",
-    "replaced": null,
+    "status": "replaced",
+    "replaced": "Statue of Liberty: statue module not chosen; brief carry-over asks for a nature landscape that reads at 96px",
     "confidence": "high",
     "facts": "unchecked",
-    "notes": null
+    "notes": "devils-tower (lane A)."
   },
   {
     "iso2": "UY",

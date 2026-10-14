@@ -8,7 +8,8 @@ export const graniteDome: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 41)))
   const base = y + h
   const cx = x + w * num(p, 'axis', 0.48)
-  const prof = (t: number) => y + h * (1 - (1 - Math.abs(2 * t - 1) ** 2.4) ** 0.6)
+  const power = num(p, 'power', 2.4)
+  const prof = (t: number) => y + h * (1 - (1 - Math.abs(2 * t - 1) ** power) ** 0.6)
   const sil: Pt[] = []
   for (let i = 0; i <= 40; i++) {
     const t = i / 40
