@@ -1,0 +1,50 @@
+{
+  "iso2": "SJ",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "cluster": "ice",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "mountains",
+      "box": [30, 54, 140, 60],
+      "params": {
+        "peaks": [
+          [0.08, 0.5],
+          [0.24, 1],
+          [0.4, 0.62],
+          [0.55, 0.9],
+          [0.72, 0.6],
+          [0.88, 0.78]
+        ],
+        "jag": 2.6,
+        "shadeDepth": 52
+      }
+    },
+    {
+      "module": "iceberg",
+      "box": [32, 102, 136, 24],
+      "params": {
+        "kind": "tabular",
+        "lit": 0.4
+      }
+    }
+  ]
+}

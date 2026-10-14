@@ -1,0 +1,53 @@
+{
+  "iso2": "IE",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "moss",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [30, 66, 140, 60],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.02, 0.5],
+          [0.28, 0.4],
+          [0.4, 0.32],
+          [0.62, 0.3],
+          [0.74, 0.1],
+          [0.88, 0.08],
+          [0.89, 1]
+        ],
+        "shadeFrom": 0.5,
+        "strata": 4.5,
+        "crag": 0.7
+      }
+    },
+    {
+      "module": "tower",
+      "box": [136, 52, 15, 20],
+      "params": {
+        "cap": "battle",
+        "taper": 0.9,
+        "storeys": 2
+      }
+    }
+  ]
+}

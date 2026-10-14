@@ -16,7 +16,7 @@ import { type KitModule, num, str } from './util'
 import { windowRow } from './windows'
 
 export const steppedGable: KitModule = ([x, y, w, h], p) => {
-  const style = str(p, 'style', ['stepped', 'bell', 'neck'] as const, 'stepped')
+  const style = str(p, 'style', ['stepped', 'bell', 'neck', 'pointed'] as const, 'stepped')
   const gableH = h * num(p, 'gableH', 0.26)
   const steps = Math.max(2, Math.round(num(p, 'steps', 4)))
   const wallY = y + gableH
@@ -57,6 +57,15 @@ export const steppedGable: KitModule = ([x, y, w, h], p) => {
       .map(([px, py]): Pt => [2 * cx - px, py])
       .reverse()
     outline = [...left, ...right, [x + w, y + h], [x, y + h]]
+  } else if (style === 'pointed') {
+    // Bryggen: a plain steep triangle over a plank wall.
+    outline = [
+      [x, wallY],
+      [cx, y],
+      [x + w, wallY],
+      [x + w, y + h],
+      [x, y + h],
+    ]
   } else {
     const dip = gableH * 0.25
     outline = [

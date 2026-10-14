@@ -1,0 +1,94 @@
+{
+  "iso2": "NO",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
+    },
+    {
+      "module": "distance-mountains"
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "stepped-gable",
+      "box": [28, 72, 24, 54],
+      "params": {
+        "style": "pointed",
+        "gableH": 0.36,
+        "rows": 4,
+        "cols": 2,
+        "tone": "lit"
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [52, 60, 22, 66],
+      "params": {
+        "style": "pointed",
+        "gableH": 0.36,
+        "rows": 4,
+        "cols": 2,
+        "tone": "lit"
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [74, 68, 24, 58],
+      "params": {
+        "style": "pointed",
+        "gableH": 0.36,
+        "rows": 4,
+        "cols": 2,
+        "tone": "lit"
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [98, 56, 22, 70],
+      "params": {
+        "style": "pointed",
+        "gableH": 0.36,
+        "rows": 5,
+        "cols": 2,
+        "tone": "dark"
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [120, 66, 24, 60],
+      "params": {
+        "style": "pointed",
+        "gableH": 0.36,
+        "rows": 4,
+        "cols": 2,
+        "tone": "lit"
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [144, 74, 28, 52],
+      "params": {
+        "style": "pointed",
+        "gableH": 0.36,
+        "rows": 4,
+        "cols": 2,
+        "tone": "lit"
+      }
+    }
+  ]
+}

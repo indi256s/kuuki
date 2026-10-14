@@ -1,0 +1,67 @@
+{
+  "iso2": "HK",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "ochre-dark",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
+    },
+    {
+      "module": "rooftops",
+      "params": {
+        "height": 16,
+        "seed": 8
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [52, 56, 96, 66],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.06, 0.72],
+          [0.2, 0.46],
+          [0.38, 0.18],
+          [0.52, 0.04],
+          [0.62, 0.06],
+          [0.78, 0.3],
+          [0.92, 0.62],
+          [1, 0.9],
+          [1, 1]
+        ],
+        "shadeFrom": 0.64,
+        "crag": 0.3,
+        "walls": []
+      }
+    },
+    {
+      "module": "funicular-c",
+      "box": [52, 56, 96, 66],
+      "params": {
+        "from": [0.2, 0.9],
+        "to": [0.5, 0.2]
+      }
+    },
+    {
+      "module": "junk-c",
+      "box": [58, 114, 34, 26],
+      "params": {}
+    }
+  ]
+}

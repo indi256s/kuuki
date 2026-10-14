@@ -32,6 +32,7 @@ import ch from './ch.json'
 import ci from './ci.json'
 import cl from './cl.json'
 import cm from './cm.json'
+import cn from './cn.json'
 import co from './co.json'
 import cr from './cr.json'
 import cu from './cu.json'
@@ -59,6 +60,7 @@ import ga from './ga.json'
 import gb from './gb.json'
 import ge from './ge.json'
 import gf from './gf.json'
+import gg from './gg.json'
 import gh from './gh.json'
 import gi from './gi.json'
 import gl from './gl.json'
@@ -70,10 +72,15 @@ import gs from './gs.json'
 import gt from './gt.json'
 import gw from './gw.json'
 import gy from './gy.json'
+import hk from './hk.json'
 import hn from './hn.json'
 import hr from './hr.json'
 import hu from './hu.json'
+import ie from './ie.json'
+import im from './im.json'
+import is from './is.json'
 import it from './it.json'
+import je from './je.json'
 import jp from './jp.json'
 import ke from './ke.json'
 import li from './li.json'
@@ -99,6 +106,7 @@ import ne from './ne.json'
 import ng from './ng.json'
 import ni from './ni.json'
 import nl from './nl.json'
+import no from './no.json'
 import pa from './pa.json'
 import pe from './pe.json'
 import ph from './ph.json'
@@ -110,8 +118,10 @@ import rs from './rs.json'
 import ru from './ru.json'
 import rw from './rw.json'
 import sd from './sd.json'
+import se from './se.json'
 import sh from './sh.json'
 import si from './si.json'
+import sj from './sj.json'
 import sk from './sk.json'
 import sl from './sl.json'
 import sm from './sm.json'
@@ -172,6 +182,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ci,
   cl,
   cm,
+  cn,
   co,
   cr,
   cu,
@@ -199,6 +210,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   gb,
   ge,
   gf,
+  gg,
   gh,
   gi,
   gl,
@@ -210,10 +222,15 @@ export const RECIPE_FILES: Record<string, unknown> = {
   gt,
   gw,
   gy,
+  hk,
   hn,
   hr,
   hu,
+  ie,
+  im,
+  is,
   it,
+  je,
   jp,
   ke,
   li,
@@ -239,6 +256,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ng,
   ni,
   nl,
+  no,
   pa,
   pe,
   ph,
@@ -250,8 +268,10 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ru,
   rw,
   sd,
+  se,
   sh,
   si,
+  sj,
   sk,
   sl,
   sm,

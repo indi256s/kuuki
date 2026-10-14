@@ -667,12 +667,12 @@
       "en": "China",
       "ru": "Китай"
     },
-    "shape": "oval",
+    "shape": "rectangle",
     "short": {
       "en": "China",
       "ru": "Китай"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CO": {
     "cluster": "fort",
@@ -1162,12 +1162,12 @@
       "en": "Guernsey",
       "ru": "Гернси"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Guernsey",
       "ru": "Гернси"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GH": {
     "cluster": "triumphal-arch",
@@ -1377,7 +1377,7 @@
       "en": "Hong Kong",
       "ru": "Гонконг"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "HN": {
     "cluster": "pyramid",
@@ -1456,18 +1456,18 @@
   },
   "IE": {
     "cluster": null,
-    "ink": "indigo",
+    "ink": "moss",
     "iso3": "IRL",
     "name": {
       "en": "Ireland",
       "ru": "Ирландия"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Ireland",
       "ru": "Ирландия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IL": {
     "cluster": null,
@@ -1486,18 +1486,18 @@
   },
   "IM": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "IMN",
     "name": {
       "en": "Isle of Man",
       "ru": "о-в Мэн"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Isle of Man",
       "ru": "о-в Мэн"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IN": {
     "cluster": null,
@@ -1561,18 +1561,18 @@
   },
   "IS": {
     "cluster": "waterfall",
-    "ink": "umber",
+    "ink": "indigo",
     "iso3": "ISL",
     "name": {
       "en": "Iceland",
       "ru": "Исландия"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Iceland",
       "ru": "Исландия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IT": {
     "cluster": null,
@@ -1597,12 +1597,12 @@
       "en": "Jersey",
       "ru": "Джерси"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Jersey",
       "ru": "Джерси"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "JM": {
     "cluster": null,
@@ -2431,18 +2431,18 @@
   },
   "NO": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "umber",
     "iso3": "NOR",
     "name": {
       "en": "Norway",
       "ru": "Норвегия"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Norway",
       "ru": "Норвегия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NP": {
     "cluster": "twin-peak",
@@ -2881,18 +2881,18 @@
   },
   "SE": {
     "cluster": null,
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "SWE",
     "name": {
       "en": "Sweden",
       "ru": "Швеция"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Sweden",
       "ru": "Швеция"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SG": {
     "cluster": null,
@@ -2941,7 +2941,7 @@
   },
   "SJ": {
     "cluster": "ice",
-    "ink": "indigo",
+    "ink": "teal",
     "iso3": "SJM",
     "name": {
       "en": "Svalbard & Jan Mayen",
@@ -2952,7 +2952,7 @@
       "en": "Svalbard & Jan Mayen",
       "ru": "ШПИЦБ. И ЯН-МАЙЕН"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SK": {
     "cluster": null,
@@ -3661,7 +3661,7 @@
   },
   "ZM": {
     "cluster": "waterfall",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "ZMB",
     "name": {
       "en": "Zambia",
