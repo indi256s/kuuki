@@ -282,6 +282,11 @@ export function UnifiedImport({
     !session.isExcluded(review[0].id)
   const chosen = review.filter((draft) => safe(draft) && (draft.selected || implicitSingleton))
   const selectedIds = new Set(chosen.map((draft) => draft.id))
+  const selectable = review.filter(
+    (draft) => safe(draft) && session.getOutcomes().get(draft.id)?.status !== 'uncertain',
+  )
+  const allSelected =
+    selectable.length > 0 && selectable.every((draft) => selectedIds.has(draft.id))
   const reading = entries.some((entry) => ['queued', 'local', 'online'].includes(entry.phase))
   const today = localToday()
   const hasPast = chosen.some((draft) => draft.fields.date && draft.fields.date <= today)
@@ -592,6 +597,31 @@ export function UnifiedImport({
           </li>
         ))}
       </ul>
+      {review.length > 1 ? (
+        <div className="import-select-head">
+          <Button
+            variant="ghost"
+            dense
+            disabled={saving || reading || unsent || selectable.length === 0}
+            onClick={() => {
+              for (const draft of selectable) {
+                const selected = !allSelected
+                if (draft.selected === selected) continue
+                session.noteSelection(draft.id, selected)
+                void saver.save(
+                  drafts.find((item) => item.id === draft.id)!,
+                  { selected },
+                )
+              }
+            }}
+          >
+            {allSelected ? S.aircraftDeselectAll[locale] : S.selectAll[locale]}
+          </Button>
+          <span className="import-count" aria-live="polite">
+            {count(locale, 'selected', chosen.length)} {count(locale, 'ofTotal', review.length)}
+          </span>
+        </div>
+      ) : null}
       <ul className="import-rows unified-import-rows">
         {review.map((draft) => {
           const original = drafts.find((item) => item.id === draft.id)!

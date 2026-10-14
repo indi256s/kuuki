@@ -92,6 +92,8 @@ The shared header keeps `--content-width` 1200px on every route. Gutter `--page-
 
 ## Interaction and states
 
+Use the shared Arc-based primitives for import review and editing. Warnings use text and, where useful, a status icon; do not add colored side rails or tinted wrappers to cards or fields. Airport editors reuse the shared searchable Combobox, including its mobile search sheet.
+
 Language changes apply in place through the device locale subscription (`useLocale` in `client/preferences.tsx`), including page copy, number/date formatting and accessible labels. `setLocale` persists the cookie and updates the document language without reloading or refreshing the route; unfinished forms, filters and open panels retain their state. Server-rendered copy uses live client presentation while private data reads and visibility gates stay on the server.
 
 Navigation stays available while private data streams in. Every data surface distinguishes loading, empty, partial, error, and ready states; route `loading.tsx` files render the [loading screen](#loading-screen). Never present an unavailable read as a confirmed empty journal. Links and controls have visible 2px offset focus rings (`--focus`) and 44px touch targets. Press feedback is 120ms scale to 0.96 except static rows and cards; hover styles apply only to fine pointers. Disabled actions explain why in visible text, not a `title`. Use Keyline icons with text labels; color alone does not signal active state. Capture, authentication, privacy, and destructive copy is calm and direct.

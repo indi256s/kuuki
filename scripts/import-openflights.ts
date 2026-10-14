@@ -391,6 +391,7 @@ const PRIORITY_AIRPORTS = new Set([
 
   // Turkey
   'IST',
+  'ISL', // Atatürk: retain historical flight endpoints
   'SAW',
   'ESB',
   'AYT',
@@ -458,6 +459,7 @@ const PRIORITY_AIRPORTS = new Set([
   // Spain
   'MAD',
   'BCN',
+  'GRO',
   'PMI',
   'AGP',
   'ALC',

@@ -862,8 +862,8 @@ export const FIELD_LABEL: Record<FieldName, Pair> = {
   arrival_time: p('Arrival time', 'Время прилёта'),
 }
 export const FIELD_HINT: Partial<Record<FieldName, Pair>> = {
-  origin: p('Three letters, for example JFK', 'Три буквы, например JFK'),
-  destination: p('Three letters, for example BOS', 'Три буквы, например BOS'),
+  origin: p('City, airport or code, for example JFK', 'Город, аэропорт или код, например JFK'),
+  destination: p('City, airport or code, for example BOS', 'Город, аэропорт или код, например BOS'),
   airline_iata: p(
     'Search by name or code, for example Turkish Airlines or TK',
     'Ищите по названию или коду, например Turkish Airlines или TK',

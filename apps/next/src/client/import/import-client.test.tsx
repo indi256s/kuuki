@@ -708,8 +708,9 @@ describe('I7 manual flights keep their cause and receipt', () => {
     await user.click(screen.getByRole('button', { name: /back to review/i }))
     expect(screen.getByText(/the service refused these details/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /retry original save/i })).not.toBeInTheDocument()
-    await user.clear(within(manualRow()).getByLabelText(/^To \(airport code\)/))
-    await user.type(within(manualRow()).getByLabelText(/^To \(airport code\)/), 'LAX')
+    const destination = within(manualRow()).getByRole('combobox', { name: /^To \(airport code\)/ })
+    await user.clear(destination)
+    await user.type(destination, 'LAX')
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     await waitFor(() => expect(createFlights).toHaveBeenCalledTimes(2))
     const [first, second] = createFlights.mock.calls.map(

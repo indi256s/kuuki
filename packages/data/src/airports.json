@@ -2123,6 +2123,17 @@
     "timezone": "Europe/Stockholm"
   },
   {
+    "iata": "GRO",
+    "icao": "LEGE",
+    "name": "Girona Airport",
+    "city": "Gerona",
+    "country": "Spain",
+    "countryCode": "ES",
+    "latitude": 41.901000977,
+    "longitude": 2.7605500221,
+    "timezone": "Europe/Madrid"
+  },
+  {
     "iata": "GRU",
     "icao": "SBGR",
     "name": "São Paulo/Guarulhos International Airport",
@@ -2550,6 +2561,17 @@
     "latitude": -20.535200119018555,
     "longitude": -70.1812973022461,
     "timezone": "America/Santiago"
+  },
+  {
+    "iata": "ISL",
+    "icao": "LTBA",
+    "name": "Atatürk International Airport",
+    "city": "Istanbul",
+    "country": "Turkey",
+    "countryCode": "TR",
+    "latitude": 40.976898,
+    "longitude": 28.8146,
+    "timezone": "Europe/Istanbul"
   },
   {
     "iata": "IST",

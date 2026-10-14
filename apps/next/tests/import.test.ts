@@ -382,7 +382,12 @@ test('typed corrections protect close and save until persisted', async ({ page, 
   await page.goto(`/import?batch=${BATCH}`)
   const first = rows(page).first()
   await first.getByRole('button', { name: 'Edit' }).click()
-  await first.getByLabel('To (airport code)').fill('BOS')
+  await first.getByRole('combobox', { name: 'To (airport code)' }).click()
+  const search = page.getByRole('dialog').getByRole('combobox', { name: 'To (airport code)' })
+  await search.fill('Boston')
+  await page.getByRole('option', { name: /BOS/ }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
+  await expect(first.getByRole('combobox', { name: 'To (airport code)' })).toHaveValue('BOS')
   const save = page.getByRole('button', { name: 'Save 2 flights' })
   await expect(save).toHaveAttribute('aria-disabled', 'true')
   await expect(page.getByRole('button', { name: 'Close import' })).toHaveAttribute(
@@ -396,6 +401,44 @@ test('typed corrections protect close and save until persisted', async ({ page, 
   await expect(save).not.toHaveAttribute('aria-disabled', 'true')
   await save.click()
   await expect(page).toHaveURL(/\/journal\?flight=/)
+})
+
+test('bulk selection persists eligible rows without accepting duplicates or unresolved airports', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  server.ready([
+    row('d1', { selected: false }),
+    row('d2', {
+      selected: false,
+      fields: { date: '2026-04-02', origin: 'GRO', destination: 'ISL' },
+    }),
+    row('d3', { selected: false, duplicateFlightId: 42 }),
+    row('d4', {
+      selected: false,
+      fields: { date: '2026-04-03', origin: 'ZZZ', destination: 'LAX' },
+    }),
+  ])
+  await page.goto(`/import?batch=${BATCH}`)
+  await expect(rows(page)).toHaveCount(4)
+  await page.getByRole('button', { name: 'Select all', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Deselect all' })).toBeEnabled()
+  await expect(rows(page).nth(0).getByRole('checkbox')).toBeChecked()
+  await expect(rows(page).nth(1).getByRole('checkbox')).toBeChecked()
+  await expect(rows(page).nth(2).getByRole('checkbox')).not.toBeChecked()
+  await expect(rows(page).nth(3).getByRole('checkbox')).not.toBeChecked()
+  expect(server.patches.map((patch) => patch.id).sort()).toEqual(['d1', 'd2'])
+  await page.getByRole('button', { name: 'Deselect all' }).click()
+  await expect(page.getByRole('button', { name: 'Select all', exact: true })).toBeEnabled()
+  await page.reload()
+  await expect(rows(page).nth(0).getByRole('checkbox')).not.toBeChecked()
+  await expect(rows(page).nth(1).getByRole('checkbox')).not.toBeChecked()
+  await page.getByRole('button', { name: 'Select all', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Save 2 flights' })).toBeEnabled()
+  await page.getByRole('button', { name: 'Save 2 flights' }).click()
+  await expect.poll(() => server.confirms.length).toBe(1)
+  expect(server.confirms[0].items.map((item) => item.draftId).sort()).toEqual(['d1', 'd2'])
 })
 
 // ---- Quick Add (boarding pass) ----
