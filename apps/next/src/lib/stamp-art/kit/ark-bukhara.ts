@@ -11,7 +11,7 @@ export const arkBukhara: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const cx = x + w * num(p, 'axis', 0.5)
   const wallTop = base - h * 0.56
-  const batter = w * 0.05
+  const batter = w * 0.12
   const out: SvgNode[] = []
   const wall: Pt[] = [
     [x, base],
@@ -99,7 +99,7 @@ export const arkBukhara: KitModule = ([x, y, w, h], p) => {
     ]),
   )
   // Pavilion above the gate: flat roof on slim columns.
-  const pw = w * 0.16
+  const pw = w * 0.2
   const pb = towerTop
   const ph = h * 0.14
   out.push(...body(rectPts(cx - pw, pb - ph, pw * 2, ph + 1), 'line'))

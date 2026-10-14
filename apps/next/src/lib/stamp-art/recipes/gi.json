@@ -14,6 +14,13 @@
       }
     },
     {
+      "module": "rooftops",
+      "params": {
+        "height": 14,
+        "seed": 4
+      }
+    },
+    {
       "module": "ground",
       "params": {
         "water": true

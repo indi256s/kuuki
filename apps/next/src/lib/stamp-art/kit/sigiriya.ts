@@ -11,12 +11,12 @@ const SIL: Pt[] = [
   [0.18, 0.66],
   [0.17, 0.46],
   [0.16, 0.27],
-  [0.165, 0.13],
-  [0.2, 0.05],
-  [0.28, 0.03],
-  [0.72, 0.03],
-  [0.8, 0.05],
-  [0.835, 0.13],
+  [0.19, 0.17],
+  [0.24, 0.07],
+  [0.32, 0.03],
+  [0.68, 0.03],
+  [0.76, 0.07],
+  [0.81, 0.17],
   [0.84, 0.27],
   [0.83, 0.46],
   [0.82, 0.66],
@@ -49,8 +49,8 @@ export const sigiriya: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(
     ...toneFill(lit.slice(0, -4).concat(lit.slice(-4)), 'T4', {
-      angle: 88,
-      gap: [5, 5],
+      angle: 8,
+      gap: [9, 9],
       weight: 'fine',
       inset: 1.5,
     }),
@@ -89,7 +89,7 @@ export const sigiriya: KitModule = ([x, y, w, h], p) => {
     out.push(...body(t, 'hair'))
   }
   // Ledge, lion paws, stair mouth.
-  const ledge = y + h * 0.55
+  const ledge = y + h * 0.82
   const lx0 = x + w * 0.38
   const lx1 = x + w * 0.64
   out.push(occlude(rectPts(lx0, ledge - 2, lx1 - lx0, 5.4)))

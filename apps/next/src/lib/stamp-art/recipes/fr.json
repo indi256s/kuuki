@@ -44,7 +44,7 @@
   "signature": [
     {
       "part": "lattice-tower",
-      "box": [72, 38, 56, 96],
+      "box": [70, 35, 60, 99],
       "params": {
         "legPanels": 3,
         "lower": 3,

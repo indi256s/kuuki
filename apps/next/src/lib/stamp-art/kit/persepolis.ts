@@ -12,12 +12,12 @@ export const persepolis: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const top = base - h * num(p, 'terrace', 0.22)
   // Columns first, so the terrace wall hides their feet.
-  const heights = [1, 1, 0.5, 1, 0.34, 1, 1]
+  const heights = [0.55, 1, 0.38, 0.72, 0.46]
   const n = heights.length
-  const cw = 5.4
+  const cw = 6
   for (let i = 0; i < n; i++) {
     const px = x + w * 0.11 + (w * 0.78 * i) / (n - 1)
-    const full = top - (y + h * 0.26)
+    const full = top - (y + h * 0.1)
     const ch = full * heights[i]
     const ty = top - ch
     if (heights[i] === 1) {

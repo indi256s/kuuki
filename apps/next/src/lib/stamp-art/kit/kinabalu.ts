@@ -16,10 +16,10 @@ const CROWN: Pt[] = [
   [0.38, 0.26],
   [0.43, 0.2],
   [0.47, 0.3],
-  [0.52, 0.0],
+  [0.52, 0.15],
   [0.56, 0.22],
   [0.6, 0.18],
-  [0.64, 0.07],
+  [0.64, 0.0],
   [0.68, 0.28],
   [0.73, 0.24],
   [0.82, 0.38],
@@ -57,9 +57,9 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
     ...crown.slice(rightStart),
     ...rightFlank.slice(1),
     [x + w, foot],
-    [crown[rightStart][0], foot],
+    [crown[rightStart][0] + w * 0.24, foot],
   ]
-  out.push(...toneFill(right, 'T4', { angle: 90, gap: [3.6, 3.6], weight: 'hair', inset: 0.4 }))
+  out.push(...toneFill(right, 'T4', { angle: 65, gap: [6, 6], weight: 'fine', inset: 0.4 }))
   // Horn faces: shaded right side under every local summit of the crown.
   const plateauY = y + h * 0.4
   for (let i = 1; i + 1 < crown.length; i++) {
@@ -87,6 +87,19 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(stroke('line', sky))
+  // A low cloud shelf separates bare granite from forest without outlining puffs.
+  const cloudY = y + h * 0.6
+  const cloud: Pt[] = [
+    [x + w * 0.13, cloudY + 3],
+    [x + w * 0.27, cloudY],
+    [x + w * 0.4, cloudY + 1],
+    [x + w * 0.56, cloudY - 1],
+    [x + w * 0.76, cloudY + 2],
+    [x + w * 0.88, cloudY + 5],
+    [x + w * 0.84, cloudY + 9],
+    [x + w * 0.18, cloudY + 8],
+  ]
+  out.push(occlude(cloud), ...toneFill(cloud, 'T1', { gap: 5, weight: 'fine' }))
   // Forest belt.
   const crownLine: Pt[] = []
   for (let px = x; px <= x + w + 0.1; px += 3.8)

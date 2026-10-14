@@ -37,12 +37,12 @@ export const heratCitadel: KitModule = ([x, y, w, h], p) => {
   out.push(hline('bold', x + w * 0.03, x + w * 0.97, wallTop))
   // Towers.
   const towers: Array<[number, number, number]> = [
-    [0.08, 0.1, 0.18],
+    [0.12, 0.18, 0.18],
     [0.25, 0.09, 0.15],
     [0.42, 0.11, 0.07],
     [0.58, 0.11, 0.07],
     [0.75, 0.09, 0.15],
-    [0.92, 0.1, 0.18],
+    [0.88, 0.18, 0.18],
   ]
   const tower = (fx: number, fw: number, ftop: number): SvgNode[] => {
     const t: SvgNode[] = []
@@ -54,8 +54,10 @@ export const heratCitadel: KitModule = ([x, y, w, h], p) => {
       ...body(
         [
           [tx - tw / 2 - 1.2, bot],
-          [tx - tw / 2, top],
-          [tx + tw / 2, top],
+          [tx - tw / 2, top + 2],
+          [tx - tw * 0.28, top],
+          [tx + tw * 0.28, top],
+          [tx + tw / 2, top + 2],
           [tx + tw / 2 + 1.2, bot],
         ],
         'line',

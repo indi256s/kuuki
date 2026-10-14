@@ -1,89 +1,123 @@
-// Darvaza gas crater (Turkmenistan): a round collapse pit in flat desert, seen from slightly
-// above. A raised, cracked rim of lit sand, the far inner wall in shadow, the near inner wall lit,
-// a dark floor with concentric rings, and a few fallen rim blocks. No flames are drawn: the fire
-// is being put out. The box bottom is the near sand.
-import { mulberry32 } from '../hash'
-import { type Pt, type SvgNode, fill, occlude, stroke, toneFill } from '../grid'
-import { type KitModule, num } from './util'
+import { clipPoly } from './rock-b'
+// Darvaza gas crater (Turkmenistan), seen at eye level on a night desert. The crater is a thin dark
+// lens cut into flat ground: a lit near rim (T0, bold lip), a dark lens with the far inner wall in
+// T4 above it and a lit far rim. Seven pointed flame tongues (T0) rise out of the lens into a solid glow.
+// The box is the whole scene: bottom = near rim, top = flame tip, the near rim.
+import { type Pt, type SvgNode, cubic, fill, hatchPoly, occlude, quad, stroke } from '../grid'
 
-const ellipse = (cx: number, cy: number, rx: number, ry: number, n = 36): Pt[] =>
-  Array.from({ length: n }, (_, i): Pt => {
-    const a = (i / n) * Math.PI * 2
-    return [cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]
+/** Polygon with the given winding (1 or -1 by shoelace sign), so fills can cut holes. */
+const orient = (pts: Pt[], dir: 1 | -1): Pt[] => {
+  let a = 0
+  for (let i = 0; i < pts.length; i++) {
+    const [x1, y1] = pts[i]
+    const [x2, y2] = pts[(i + 1) % pts.length]
+    a += x1 * y2 - x2 * y1
+  }
+  return Math.sign(a) === dir ? pts : [...pts].reverse()
+}
+import type { KitModule } from './util'
+
+export const darvaza: KitModule = ([x, y, w, h]) => {
+  const cx = x + w / 2
+  const base = y + h
+  const lensY = base - 9
+  const out: SvgNode[] = []
+
+  // Flame tongues: S-curved leaves rising from the lens, leaning with the wind. [x offset as a
+  // fraction of the width, height as a fraction of the tallest, base half-width, lean].
+  const top = y + 2
+  const gh = lensY - top
+  const yb = lensY + 1
+  const specs: [number, number, number, number][] = [
+    [-0.31, 0.4, 6.2, -6],
+    [-0.2, 0.7, 7.4, -8],
+    [-0.08, 0.98, 8.6, -9],
+    [0.04, 0.52, 6.4, 6],
+    [0.14, 0.75, 7.2, 8],
+    [0.25, 0.5, 6.6, 7],
+    [0.34, 0.32, 5.4, 5],
+  ]
+  const tongues = specs.map(([ox, hf, fw, lean]) => {
+    const bx = cx + w * ox
+    const fh = gh * 0.95 * hf
+    const tip: Pt = [bx + lean, yb - fh]
+    const l = cubic(
+      [bx - fw, yb],
+      [bx - fw * 1.3, yb - fh * 0.4],
+      [bx + lean * 1.4 - fw * 0.2, yb - fh * 0.66],
+      tip,
+      10,
+    )
+    const r = cubic(
+      tip,
+      [bx + lean * 0.9 + fw * 0.9, yb - fh * 0.62],
+      [bx + fw * 1.4, yb - fh * 0.28],
+      [bx + fw, yb],
+      10,
+    )
+    return { poly: [...l, ...r.slice(1)] as Pt[], tip, fw }
   })
 
-export const darvaza: KitModule = ([x, y, w, h], p) => {
-  const rand = mulberry32(Math.round(num(p, 'seed', 6)))
-  const cx = x + w / 2
-  const cy = y + h * 0.55
-  const rx = w * 0.46
-  const ry = h * 0.34
-  const out: SvgNode[] = []
-  // Rim: a bulging ring of sand around the pit.
-  const outer = ellipse(cx, cy, rx * 1.08, ry * 1.2)
-  const rimPts: Pt[] = outer.map(([px, py], i): Pt => [
-    px + (rand() - 0.5) * 1.4,
-    py + (rand() - 0.5) * 1 + (i > 18 ? 1 : 0),
-  ])
-  out.push(occlude(rimPts), stroke('line', rimPts, true))
-  // Inner edge and pit.
-  const edge = ellipse(cx, cy, rx * 0.9, ry * 0.92).map(([px, py]): Pt => [
-    px + (rand() - 0.5) * 1.8,
-    py + (rand() - 0.5) * 1.2,
-  ])
-  out.push(occlude(edge), stroke('line', edge, true))
-  // Far inner wall in shadow: the upper crescent of the pit.
-  const crescent: Pt[] = [
-    ...edge.filter(([, py]) => py <= cy + ry * 0.1),
-    ...ellipse(cx, cy + ry * 0.28, rx * 0.5, ry * 0.4)
-      .filter(([, py]) => py <= cy + ry * 0.28)
-      .reverse(),
+  // Glow: a rounded envelope 4 units around the tongues. The lower part is solid T5 with the
+  // tongues cut out of it (reversed winding); above it the glow thins into vertical T4 hatching.
+  const env: Pt[] = []
+  const x0 = cx - w * 0.38
+  const x1 = cx + w * 0.38
+  for (let px = x0; px <= x1; px += 2) {
+    let ey = yb - 4
+    for (const t of tongues)
+      for (const [qx, qy] of t.poly) {
+        const dx = px - qx
+        if (Math.abs(dx) < 14) ey = Math.min(ey, qy - 4 + 0.16 * dx * dx)
+      }
+    env.push([px, ey])
+  }
+  const coreY = yb - gh * 0.2
+  const core: Pt[] = [[x0, yb], ...env.map(([px, ey]): Pt => [px, Math.max(ey, coreY)]), [x1, yb]]
+  out.push(occlude(core))
+  out.push(fill(orient(core, 1)))
+  for (const t of tongues) {
+    out.push(occlude(t.poly, { halo: 3 }))
+    out.push(stroke('hair', t.poly))
+    const low = clipPoly(t.poly, ([, qy]) => qy - coreY)
+    if (low.length > 2) out.push(fill(orient(low, -1)))
+  }
+
+  // Crater: lit far rim, T4 far inner wall, dark lens, lit near rim with a bold lip.
+  const lensTop = base - 14
+  const half = w * 0.365
+  const farRim: Pt[] = [
+    ...quad([cx - half - 2.5, base - 8], [cx, lensTop - 6.5], [cx + half + 2.5, base - 8], 14),
   ]
-  out.push(...toneFill(crescent, 'T4', { inset: 0.6, gap: [3.4, 3.4] }))
-  // Floor.
-  const floor = ellipse(cx, cy + ry * 0.28, rx * 0.5, ry * 0.4)
-  out.push(occlude(floor), fill(floor))
-  for (const k of [0.78, 0.5]) {
-    const ring = ellipse(cx, cy + ry * 0.28, rx * 0.5 * k, ry * 0.4 * k)
-    out.push(occlude(ring, {}), stroke('hair', ring, true))
-  }
-  // Fallen blocks on the near rim.
-  for (let i = 0; i < 6; i++) {
-    const a = Math.PI * (0.15 + 0.7 * (i / 5)) + (rand() - 0.5) * 0.15
-    const bx = cx + Math.cos(a) * rx * 1.0
-    const by = cy + Math.sin(a) * ry * 1.12
-    const s = 2.4 + rand() * 2
-    out.push(
-      occlude([
-        [bx - s, by + s * 0.6],
-        [bx - s * 0.6, by - s * 0.6],
-        [bx + s, by - s * 0.4],
-        [bx + s * 0.8, by + s * 0.6],
-      ]),
-    )
-    out.push(
-      stroke(
-        'hair',
-        [
-          [bx - s, by + s * 0.6],
-          [bx - s * 0.6, by - s * 0.6],
-          [bx + s, by - s * 0.4],
-          [bx + s * 0.8, by + s * 0.6],
-        ],
-        true,
-      ),
-    )
-  }
-  // Cracks on the lit near rim.
-  for (let i = 0; i < 8; i++) {
-    const a = Math.PI * (0.05 + 0.9 * rand())
-    const r0 = 0.94 + rand() * 0.04
-    out.push(
-      stroke('fine', [
-        [cx + Math.cos(a) * rx * r0, cy + Math.sin(a) * ry * r0 * 1.0],
-        [cx + Math.cos(a) * rx * (r0 + 0.1), cy + Math.sin(a) * ry * (r0 + 0.14)],
-      ]),
-    )
-  }
+  const lens: Pt[] = [
+    ...quad([cx - half, base - 8], [cx, lensTop - 1.5], [cx + half, base - 8], 14),
+    ...quad([cx + half, base - 8], [cx, base + 1.5], [cx - half, base - 8], 14).slice(1),
+  ]
+  const nearRim: Pt[] = [
+    ...quad([cx - half - 5, base - 7], [cx, base + 8], [cx + half + 5, base - 7], 14),
+    [cx + half + 5, base + 9],
+    [cx - half - 5, base + 9],
+  ]
+  out.push(occlude(farRim, { halo: 0 }))
+  out.push(stroke('hair', farRim))
+  out.push(occlude(lens))
+  const wall: Pt[] = [
+    ...quad([cx - half, base - 8], [cx, lensTop - 1.5], [cx + half, base - 8], 14),
+    ...quad([cx + half, base - 8], [cx, base - 6.5], [cx - half, base - 8], 14).slice(1),
+  ]
+  out.push(...hatchPoly(wall, { angle: 90, gap: 2, weight: 'hair' }))
+  const floor: Pt[] = [
+    ...quad([cx + half * 0.96, base - 6.8], [cx, base - 5], [cx - half * 0.96, base - 6.8], 14),
+    ...quad(
+      [cx - half * 0.96, base - 6.8],
+      [cx, base + 1.2],
+      [cx + half * 0.96, base - 6.8],
+      14,
+    ).slice(1),
+  ]
+  out.push(fill(floor))
+  out.push(stroke('line', lens, true))
+  out.push(occlude(nearRim))
+  out.push(stroke('bold', nearRim.slice(0, 15)))
   return out
 }

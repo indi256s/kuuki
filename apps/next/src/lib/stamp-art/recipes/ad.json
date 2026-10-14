@@ -49,28 +49,8 @@
   ],
   "layers": [
     {
-      "module": "house",
-      "box": [56, 116, 15, 12],
-      "params": {
-        "roof": "gable",
-        "shade": 0.1
-      }
-    },
-    {
-      "module": "house",
-      "box": [92, 118, 13, 10],
-      "params": {
-        "roof": "gable",
-        "shade": 0.1
-      }
-    },
-    {
-      "module": "house",
-      "box": [122, 115, 16, 13],
-      "params": {
-        "roof": "gable",
-        "shade": 0.1
-      }
+      "module": "terraces-c",
+      "box": [32, 66, 136, 63]
     }
   ]
 }

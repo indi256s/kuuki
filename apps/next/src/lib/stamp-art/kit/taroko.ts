@@ -17,7 +17,11 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
   const edgeY = (i: number) => y + 3 + (floor - y - 3) * (i / 30)
   const inner = (s: -1 | 1): Pt[] => {
     const pts: Pt[] = []
-    for (let i = 0; i <= 30; i++) pts.push([cx + s * half(i / 30), edgeY(i)])
+    for (let i = 0; i <= 30; i++)
+      pts.push([
+        cx + s * (half(i / 30) + (i > 8 && i < 12 ? -3 : i > 18 && i < 21 ? 3 : 0)),
+        edgeY(i),
+      ])
     pts.push([cx + s * foot * 2.4, base])
     return pts
   }
@@ -53,14 +57,6 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
   const L = wall(-1)
   const R = wall(1)
   // Lit left wall: gullies from the rim and marble strata ticks.
-  const yOnRidge = (r: Pt[], px: number) => {
-    for (let i = 0; i + 1 < r.length; i++) {
-      const [a, b] = [r[i], r[i + 1]]
-      if ((a[0] - px) * (b[0] - px) <= 0)
-        return a[1] + ((px - a[0]) / (b[0] - a[0] || 1)) * (b[1] - a[1])
-    }
-    return r[r.length - 1][1]
-  }
   const innerX = (ie: Pt[], py: number) => {
     for (let i = 0; i + 1 < ie.length; i++) {
       const [a, b] = [ie[i], ie[i + 1]]
@@ -68,20 +64,6 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
         return a[0] + ((py - a[1]) / (b[1] - a[1] || 1)) * (b[0] - a[0])
     }
     return ie[ie.length - 1][0]
-  }
-  for (let k = 0; k < 11; k++) {
-    const u = 0.06 + k * 0.085
-    const px = L.ie[0][0] + (L.outerX - L.ie[0][0]) * u
-    const top = yOnRidge(L.ridge, px) + 2
-    const len = (base - top) * (0.3 + rand() * 0.4)
-    const xx = Math.max(px, 0)
-    if (xx > innerX(L.ie, top + len) - 2) continue
-    out.push(
-      stroke('fine', [
-        [xx, top],
-        [xx + (rand() - 0.5) * 2, top + len],
-      ]),
-    )
   }
   for (let k = 0; k < 7; k++) {
     const yy = y + h * (0.3 + k * 0.08) + rand() * 3
@@ -103,11 +85,20 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
     ...R.ridge.filter((q) => q[0] <= R.ie[0][0] + (R.outerX - R.ie[0][0]) * cut).reverse(),
   ]
   out.push(...toneFill(shade, 'T4', { inset: 0.6, gap: [2.2, 2.2] }))
+  for (let k = 0; k < 5; k++) {
+    const yy = y + h * (0.32 + k * 0.12)
+    out.push(
+      stroke('fine', [
+        [innerX(R.ie, yy) + 3, yy],
+        [x + w - 5, yy - 3],
+      ]),
+    )
+  }
   // Outlines.
   out.push(stroke('line', [...L.ridge, ...L.ie]), stroke('line', [...R.ridge, ...R.ie]))
   // Tunnel arch low on the lit wall.
   const tw = w * 0.085
-  const tx = cx - half(0.84) - tw * 1.5
+  const tx = cx + half(0.84) + tw * 1.5
   const tb = floor - 3
   const th = h * 0.15
   const arch: Pt[] = [[tx - tw / 2, tb]]
@@ -119,8 +110,8 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
   out.push(fill(arch))
   out.push(
     stroke('bold', [
-      [tx - tw * 1.3, tb + 1.5],
-      [innerX(L.ie, tb + 1.5) + 1, tb + 1.5],
+      [innerX(R.ie, tb + 1.5) - 1, tb + 1.5],
+      [x + w - 2, tb - 8],
     ]),
   )
   // River: water lines widening toward the bank, boulders on the shore.
@@ -130,7 +121,7 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
       .filter((q) => q[1] >= floor)
       .reverse(),
   ]
-  out.push(...toneFill(river, 'T3', { inset: 0.5 }))
+  out.push(...toneFill(river, 'T1', { inset: 0.5 }))
   out.push(hline('hair', x, x + w, base))
   return out
 }

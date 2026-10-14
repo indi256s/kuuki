@@ -29,7 +29,7 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
   const Y = (f: number) => y + f * h
   const out: SvgNode[] = []
   const base = y + h
-  const wallTop = Y(num(p, 'wallTop', 0.5))
+  const wallTop = Y(num(p, 'wallTop', 0.68))
   // timbered upper block
   out.push(...body(rectPts(X(0.04), wallTop, X(0.96) - X(0.04), base - wallTop), 'line'))
   out.push(hline('bold', X(0.04) - 1, X(0.96) + 1, base))
@@ -81,7 +81,7 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
           [gx + gW * 0.85, apex + (wallTop - apex) * 0.62],
           [gx + gW * 0.85, wallTop - 1],
         ],
-        { angle: 90, gap: 2.6, weight: 'hair' },
+        { angle: 90, gap: 3.8, weight: 'hair' },
       ),
     )
     out.push(fill(archPts(gx + gW / 2 - 1.4, wallTop - 11, 2.8, 8)))
@@ -98,7 +98,7 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
   // main tower with a balcony and a tall spire
   const tcx = X(num(p, 'towerAt', 0.56))
   const tw = w * 0.085
-  const tTop = Y(0.22)
+  const tTop = Y(0.2)
   out.push(...body(rectPts(tcx - tw / 2, tTop, tw, wallTop - tTop + 2), 'line'))
   out.push(
     ...hatchPoly(rectPts(tcx + tw * 0.1, tTop + 1, tw * 0.4, wallTop - tTop), {

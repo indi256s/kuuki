@@ -18,12 +18,10 @@ const DEFAULT_JARS: [number, number, number][] = [
 
 function jar(cx: number, base: number, ht: number, lid: number, rand: () => number): SvgNode[] {
   const out: SvgNode[] = []
-  const w = ht * 0.78
+  const w = ht * 0.62
   const hw = (t: number) => {
-    // Half width from the rim (t 0): flared lip, narrow neck, belly at 40% down, tapering foot.
-    if (t < 0.07) return (w / 2) * (0.78 - 0.08 * (t / 0.07))
-    if (t < 0.42) return (w / 2) * (0.7 + 0.3 * Math.sin(((t - 0.07) / 0.35) * (Math.PI / 2)))
-    return (w / 2) * (1 - 0.4 * ((t - 0.42) / 0.58) ** 1.3)
+    // Rough cylindrical stone sides, with only a slight taper.
+    return (w / 2) * (0.92 + 0.05 * Math.sin(t * 8) - 0.1 * t)
   }
   const top = base - ht
   const n = 18
@@ -123,6 +121,35 @@ export const stoneJars: KitModule = ([x, y, w, h], p) => {
     const b = base - (1 - fh) * h * 0.3
     out.push(...jar(x + fx * w, b, ht, lid, rand))
   }
+  out.push(
+    ...body(
+      Array.from({ length: 16 }, (_, i): Pt => [
+        x + w * 0.87 + Math.cos((i * Math.PI) / 8) * 3,
+        base - 5 + Math.sin((i * Math.PI) / 8) * 4,
+      ]),
+      'hair',
+    ),
+  )
+  out.push(
+    ...body(
+      [
+        [x + w * 0.68, base - 7],
+        [x + w * 0.87, base - 9],
+        [x + w * 0.89, base - 2],
+        [x + w * 0.69, base],
+      ],
+      'hair',
+    ),
+  )
+  out.push(
+    ...body(
+      Array.from({ length: 16 }, (_, i): Pt => [
+        x + w * 0.37 + Math.cos((i * Math.PI) / 8) * 7,
+        base - 2 + Math.sin((i * Math.PI) / 8) * 2,
+      ]),
+      'hair',
+    ),
+  )
   // Foreground grass: short tufts along the base.
   for (let gx = x; gx < x + w; gx += 2.6 + rand() * 1.8) {
     const len = 2 + rand() * 4

@@ -36,43 +36,24 @@
   ],
   "layers": [
     {
-      "module": "house",
-      "box": [30, 92, 24, 34],
-      "params": {
-        "roof": "gable",
-        "roofH": 0.5,
-        "shade": 0.2
-      }
+      "module": "turf-house-c",
+      "box": [30, 92, 24, 34]
     },
     {
-      "module": "house",
-      "box": [56, 96, 20, 30],
-      "params": {
-        "shade": 0.2
-      }
+      "module": "turf-house-c",
+      "box": [56, 96, 20, 30]
     },
     {
-      "module": "house",
-      "box": [78, 90, 26, 36],
-      "params": {
-        "roofH": 0.5,
-        "shade": 0.2
-      }
+      "module": "turf-house-c",
+      "box": [78, 90, 26, 36]
     },
     {
-      "module": "house",
-      "box": [106, 96, 22, 30],
-      "params": {
-        "shade": 0.2
-      }
+      "module": "turf-house-c",
+      "box": [106, 96, 22, 30]
     },
     {
-      "module": "house",
-      "box": [130, 92, 24, 34],
-      "params": {
-        "roofH": 0.5,
-        "shade": 0.2
-      }
+      "module": "turf-house-c",
+      "box": [130, 92, 24, 34]
     }
   ]
 }

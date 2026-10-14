@@ -1,3 +1,14 @@
+import {
+  greatWallC,
+  oceanMuseumC,
+  potemkinC,
+  uBeinC,
+  beiroC,
+  terracesC,
+  turfHouseC,
+  passettoC,
+  mirafloresC,
+} from './final-scenes-c'
 import { cliff, mountains, platform, steps, twinPeak, water } from './ground'
 import { curvedEave, gable, hip, pagodaTier, stilts } from './roof'
 import { statue } from './object'
@@ -175,6 +186,7 @@ import { tongkonan } from './tongkonan'
 import { kinabalu } from './kinabalu'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 import { castleCornet, kingsGate, kiek, mirCastle, soroca, whiteTower } from './castles-c2'
+import { blackheads } from './blackheads'
 import { dubrovnik, gediminas, guaita, ohridBoat, samuelsFortress, valletta } from './hills-c2'
 
 /** Kit modules by recipe tag. */
@@ -392,6 +404,16 @@ export const kit = {
   dubrovnik,
   guaita,
   valletta,
+  blackheads,
+  'great-wall-c': greatWallC,
+  'ocean-museum-c': oceanMuseumC,
+  'potemkin-c': potemkinC,
+  'u-bein-c': uBeinC,
+  'beiro-c': beiroC,
+  'terraces-c': terracesC,
+  'turf-house-c': turfHouseC,
+  'passetto-c': passettoC,
+  'miraflores-c': mirafloresC,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

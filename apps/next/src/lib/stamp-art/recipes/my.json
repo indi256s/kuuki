@@ -23,7 +23,7 @@
   "layers": [
     {
       "module": "kinabalu",
-      "box": [48, 40, 104, 92],
+      "box": [48, 43, 104, 89],
       "params": {
         "forest": 0.8
       }

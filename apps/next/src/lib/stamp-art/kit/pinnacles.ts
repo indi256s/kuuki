@@ -1,7 +1,7 @@
 // Sandstone pinnacles (lane C): a row of tall weathered rock needles of uneven height with lit
 // left faces, shaded right faces and bedding lines, plus an optional low wall between them
 // (Belogradchik, BG). `spires` rows are [centre, width, height] as fractions of the box.
-import { type Pt, type SvgNode, body, hatchPoly, hline, rectPts, stroke } from '../grid'
+import { type Pt, type SvgNode, body, fill, hatchPoly, hline, rectPts, stroke } from '../grid'
 import { mulberry32 } from '../hash'
 import { type KitModule, bool, num } from './util'
 
@@ -34,7 +34,9 @@ export const pinnacles: KitModule = ([x, y, w, h], p) => {
       const t = i / rows
       const ty = top + (base - top) * t
       // ragged taper: slender at the crown, spreading to a broad foot
-      const prof = 0.34 + 0.66 * Math.pow(t, 0.85)
+      const prof = p.rounded
+        ? 0.65 + 0.35 * Math.sin((Math.min(1, t * 3) * Math.PI) / 2)
+        : 0.34 + 0.66 * Math.pow(t, 0.85)
       const half = (bw / 2) * prof * (0.82 + rand() * 0.36)
       const sway = lean * (1 - t) + (rand() - 0.5) * 1.6
       left.push([px + sway - half, ty])
@@ -60,6 +62,16 @@ export const pinnacles: KitModule = ([x, y, w, h], p) => {
     out.push(...body(rectPts(x0, wy, x1 - x0, base - wy), 'line'))
     for (let mx = x0; mx < x1 - 3; mx += 5) out.push(...body(rectPts(mx, wy - 2.2, 3, 2.2), 'hair'))
     out.push(hline('hair', x0, x1, wy + 4))
+    if (p.rounded)
+      out.push(
+        fill([
+          [x + w * 0.46, base],
+          [x + w * 0.46, wy + 4],
+          [x + w * 0.5, wy + 1],
+          [x + w * 0.54, wy + 4],
+          [x + w * 0.54, base],
+        ]),
+      )
   }
   return out
 }
