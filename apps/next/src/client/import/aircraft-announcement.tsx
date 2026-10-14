@@ -1,3 +1,4 @@
+import { CircleAlert } from '@keyline-icons/react'
 import type { Locale } from '../../lib/format'
 import { summarizeAircraftRun, type AircraftRunCounts } from './aircraft-review'
 
@@ -23,7 +24,12 @@ export function AircraftAnnouncement({
         {[saved ? summary : '', status].filter(Boolean).join(' ')}
       </p>
       <p className={alertClassName} role="alert">
-        {saved ? '' : summary}
+        {!saved && summary ? (
+          <>
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{summary}</span>
+          </>
+        ) : null}
       </p>
     </>
   )

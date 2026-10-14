@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import { useEffect, useId, useMemo, useRef, useState, type Ref } from 'react'
 import { ApiError } from '@kuuki/client/apiClient'
 import {
@@ -321,7 +322,8 @@ export function ManualPlaceForm({
       </div>
       {failure && (
         <p className="gt-error-text" role="alert">
-          {failure}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{failure}</span>
         </p>
       )}
       <div className="gt-actions">

@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import Link from 'next/link'
 import { formatDateOnly, formatInstantDate, formatNumber, type Locale } from '../../lib/format'
@@ -129,7 +130,8 @@ export function DoneStep({
       ) : null}
       {checkFailed ? (
         <p className="import-problem" role="alert">
-          {S.checkFailed[locale]}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{S.checkFailed[locale]}</span>
         </p>
       ) : null}
       {publication === 'pending' ? (

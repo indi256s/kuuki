@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { GROUND_LIMITS, placeLabel } from '@kuuki/shared/groundTravel'
 import type { RailCandidateField } from '@kuuki/shared/railTicketOcr'
@@ -160,7 +161,8 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
       )}
       {refused && (
         <p className="gt-error-text" role="alert">
-          {T.routeFull[l]}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{T.routeFull[l]}</span>
         </p>
       )}
       {previews.length > 0 && (

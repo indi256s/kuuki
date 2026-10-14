@@ -1,6 +1,6 @@
 'use client'
 
-import { Camera, Clipboard, Upload, X } from '@keyline-icons/react'
+import { Camera, Clipboard, Upload, X, CircleAlert } from '@keyline-icons/react'
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Locale } from '../../lib/format'
@@ -679,11 +679,14 @@ export function UnifiedImport({
               />
               {outcome && outcome.status !== 'saved' ? (
                 <p className="import-problem" role="status">
-                  {outcome.status === 'failed'
-                    ? ROW_FAILURE[outcome.failure][locale]
-                    : outcome.status === 'uncertain'
-                      ? S.uncertainRow[locale]
-                      : S.unsentRow[locale]}
+                  <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+                  <span>
+                    {outcome.status === 'failed'
+                      ? ROW_FAILURE[outcome.failure][locale]
+                      : outcome.status === 'uncertain'
+                        ? S.uncertainRow[locale]
+                        : S.unsentRow[locale]}
+                  </span>
                 </p>
               ) : null}
             </ReviewRow>
@@ -706,7 +709,8 @@ export function UnifiedImport({
         ))}
       {error ? (
         <p className="import-problem" role="alert">
-          {C.saveFailed[locale]}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{C.saveFailed[locale]}</span>
         </p>
       ) : null}
       {drafts.some((draft) => draft.status === 'converted') ? (

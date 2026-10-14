@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Circle, LoaderCircle } from '@keyline-icons/react'
+import { Check, Circle, LoaderCircle, CircleAlert } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { FeedbackText } from '../ui/feedback-text'
@@ -147,7 +147,8 @@ export function ProgressStep({
       <p className="import-hint">{bound ? S.progressBound[locale] : S.leaveSafe[locale]}</p>
       {error ? (
         <p className="import-problem" role="alert">
-          {error}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{error}</span>
         </p>
       ) : null}
       <div className="import-actions">

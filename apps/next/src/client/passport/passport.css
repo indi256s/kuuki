@@ -483,3 +483,9 @@
     line-height: 44px;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .passport-cell-action:hover,
+  .passport-choice {
+    transition: none;
+  }
+}

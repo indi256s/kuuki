@@ -3,7 +3,7 @@
 // Quick Add source step: two equal ways to bring a boarding pass in, then a local barcode read. A readable pass goes to
 // the server as flight fields only; anything else is offered as an upload for online recognition, after the member has
 // been told the document will leave the device. The file lives in this component's state and is never stored.
-import { Camera, FileArrowUp } from '@keyline-icons/react'
+import { Camera, FileArrowUp, CircleAlert } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
 import { NavigationLink as Link } from '../navigation-link'
@@ -251,7 +251,12 @@ export function QuickAddSource({
             : ''}
       </p>
       <p className="import-problem" role={problem ? 'alert' : undefined}>
-        {problem ? S[PROBLEM[problem]][locale] : null}
+        {problem ? (
+          <>
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{S[PROBLEM[problem]][locale]}</span>
+          </>
+        ) : null}
       </p>
       {state === 'none' ? (
         <UploadFallback

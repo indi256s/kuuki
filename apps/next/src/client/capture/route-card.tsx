@@ -1,5 +1,5 @@
 'use client'
-import { ArrowUpDown } from '@keyline-icons/react'
+import { ArrowUpDown, CircleAlert } from '@keyline-icons/react'
 import {
   useEffect,
   useId,
@@ -265,7 +265,8 @@ export function RouteCard({
         (end) =>
           errors[end] && (
             <p key={end} id={`${id}-${end}-error`} role="alert" className="route-error">
-              {errors[end]}
+              <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+              <span>{errors[end]}</span>
             </p>
           ),
       )}

@@ -52,6 +52,24 @@
   line-height: 20px;
   min-height: 20px;
 }
+.import-problem,
+.import-status-line,
+.import-note[data-state='error'],
+.import-note[data-state='conflict'] {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.import-status-line {
+  margin: 0;
+}
+.import-problem svg,
+.import-status-line svg,
+.import-note[data-state='error'] svg,
+.import-note[data-state='conflict'] svg {
+  flex: none;
+  margin-top: 2px;
+}
 .import-problem:empty {
   min-height: 0;
 }

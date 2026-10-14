@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { useEffect, useMemo, useState } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
@@ -342,7 +343,10 @@ export function AircraftPanel({
       ))}
       {failure ? (
         <p className="import-problem" role="alert">
-          {S.aircraftSearchFailed[locale]} {FAILURE[failure.kind][locale].title}.
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>
+            {S.aircraftSearchFailed[locale]} {FAILURE[failure.kind][locale].title}.
+          </span>
         </p>
       ) : null}
       {view.suggested.length > 0 ? (

@@ -118,7 +118,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .leaderboard-eligibility[data-celebrate='true'] {
-    animation-duration: 150ms;
+    animation-duration: var(--dur-fast);
     animation-timing-function: linear;
   }
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import { useId, useMemo, useRef, useState } from 'react'
 import type { Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
@@ -177,7 +178,8 @@ export function CountriesFieldset({
       </p>
       {error && (
         <p id={`${id}-error`} className="gt-error-text" role="alert">
-          {error}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{error}</span>
         </p>
       )}
     </fieldset>

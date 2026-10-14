@@ -2,6 +2,7 @@
 // The detail sheet's content: one flight read as a journey (cities, local times, the time between them), one history fact and a
 // compact block of supporting facts. Edit switches the same panel to labeled fields that save together.
 // Presentational: the container (detail-sheet.tsx) owns writes, Undo, the lazily loaded editor catalogue and the layout.
+import { CircleAlert, TriangleAlert } from '@keyline-icons/react'
 import { makerOf } from '@kuuki/data/aircraft-makers'
 import {
   useCallback,
@@ -783,7 +784,12 @@ function FlightEditForm({
           role="alert"
           className={problem.kind === 'unknown' ? 'arc-inline-unknown' : 'jd-form-error'}
         >
-          {problemText}
+          {problem.kind === 'unknown' ? (
+            <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          )}
+          <span>{problemText}</span>
         </p>
       )}
       {discarding ? (

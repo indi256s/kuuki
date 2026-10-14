@@ -42,10 +42,17 @@
   color: var(--text-muted);
 }
 .gt-error-text {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
   margin: 0;
   font-size: 13px;
   line-height: 20px;
   color: var(--danger-text);
+}
+.gt-error-text svg {
+  flex: none;
+  margin-top: 2px;
 }
 .gt-loading {
   color: var(--text-muted);
@@ -111,8 +118,12 @@
   opacity: 0.6;
 }
 .gt-row[data-over] {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  box-shadow: inset 0 0 0 2px var(--selection-contour);
+}
+@media (forced-colors: active) {
+  .gt-row[data-over] {
+    border: 2px solid Highlight;
+  }
 }
 .gt-row-fieldset {
   display: grid;
@@ -401,4 +412,10 @@
 .gt-row-summary > .ui-button {
   flex: none;
   white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gt-country-choice,
+  .gt-choose a {
+    transition: none;
+  }
 }

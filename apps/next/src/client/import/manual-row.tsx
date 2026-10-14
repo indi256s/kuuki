@@ -1,6 +1,6 @@
 'use client'
 
-import { Bin2 as Trash2 } from '@keyline-icons/react'
+import { Bin2 as Trash2, CircleAlert } from '@keyline-icons/react'
 import { useId, type ReactNode } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
@@ -67,7 +67,10 @@ export function ManualRow({
       </div>
       {row.failure ? (
         <div className="import-note" role="alert">
-          <p>{MANUAL_FAILURE[row.failure.kind][locale]}</p>
+          <p className="import-status-line">
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{MANUAL_FAILURE[row.failure.kind][locale]}</span>
+          </p>
           {unresolved ? (
             <div className="import-actions">
               {row.failure.kind !== 'expired' && row.failure.kind !== 'settled' ? (

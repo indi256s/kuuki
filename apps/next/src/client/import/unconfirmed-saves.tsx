@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { FIELD_LABEL, MANUAL_FAILURE, S } from './copy'
@@ -102,8 +103,12 @@ export function UnconfirmedSaves({
                     ))}
                   </p>
                 ) : null}
-                <p className="import-note" role={failure ? 'alert' : undefined}>
-                  {message}
+                <p
+                  className={failure ? 'import-note import-status-line' : 'import-note'}
+                  role={failure ? 'alert' : undefined}
+                >
+                  {failure ? <CircleAlert size={16} strokeWidth={2} aria-hidden="true" /> : null}
+                  {failure ? <span>{message}</span> : message}
                 </p>
                 <div className="import-actions">
                   <Button

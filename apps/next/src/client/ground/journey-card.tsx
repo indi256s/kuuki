@@ -4,7 +4,7 @@
 // active status is a word, never colour alone. Missing optional facts stay in the details.
 
 import Link from 'next/link'
-import { Car, Train } from '@keyline-icons/react'
+import { Car, Train, TriangleAlert } from '@keyline-icons/react'
 import {
   placeKey,
   placeLabel,
@@ -175,7 +175,10 @@ export function JourneyCard({
       </div>
       {passed && (
         <p className="gt-card-hint">
-          <strong>{t.datePassed}.</strong> {t.datePassedHint}
+          <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>
+            <strong>{t.datePassed}.</strong> {t.datePassedHint}
+          </span>
         </p>
       )}
     </li>

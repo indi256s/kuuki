@@ -160,7 +160,7 @@ export function UvToggle({ locale }: { locale: Locale }) {
 
 export const MRZ_READ_KEY = 'kuuki:profile-mrz-read'
 const OCR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<'
-const SCAN_MS = 900
+const SCAN_MS = 450
 /** Unread characters re-roll this often, not every frame. */
 const ROLL_MS = 60
 

@@ -1,4 +1,5 @@
 'use client'
+import { CircleAlert } from '@keyline-icons/react'
 import { IMPORT_MAX_FILE_BYTES } from '@kuuki/shared/constants'
 
 import { useEffect, useRef, useState } from 'react'
@@ -193,7 +194,12 @@ export function SourceStep({
         />
       )}
       <p className="import-problem" role={problemText ? 'alert' : undefined}>
-        {problemText}
+        {problemText ? (
+          <>
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{problemText}</span>
+          </>
+        ) : null}
       </p>
       {notice ? (
         <p className="import-hint" role="status">

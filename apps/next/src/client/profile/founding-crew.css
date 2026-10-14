@@ -190,11 +190,11 @@
 @media (prefers-reduced-motion: no-preference) {
   @media (hover: hover) and (pointer: fine) {
     :is(.founding-crew-trigger, .profile-badges summary):hover .founding-crew-punch svg {
-      animation: founding-crew-punch 300ms var(--ease-out);
+      animation: founding-crew-punch var(--dur-sheet) var(--ease-out);
     }
   }
   :is(.founding-crew-trigger, .profile-badges summary):focus-visible .founding-crew-punch svg {
-    animation: founding-crew-punch 300ms var(--ease-out);
+    animation: founding-crew-punch var(--dur-sheet) var(--ease-out);
   }
 }
 @keyframes founding-crew-punch {

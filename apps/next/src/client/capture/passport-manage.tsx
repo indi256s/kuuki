@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert, TriangleAlert } from '@keyline-icons/react'
 import { useLocale } from '../preferences'
 
 import { useEffect, useRef, useState } from 'react'
@@ -244,7 +245,14 @@ export function PassportManage({
             <ul className="capture-outcomes" aria-label={ru ? 'Результат' : 'Result'}>
               {reported.map(([id, outcome]) => (
                 <li key={id} data-state={outcome.status}>
-                  {label(id)} — {tag(outcome, id)}
+                  {outcome.status === 'uncertain' ? (
+                    <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
+                  ) : outcome.status === 'failed' ? (
+                    <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+                  ) : null}
+                  <span>
+                    {label(id)} — {tag(outcome, id)}
+                  </span>
                 </li>
               ))}
             </ul>

@@ -567,7 +567,10 @@ export function FlightForm({
   if (editId && !flight)
     return wrap(
       <p role="alert">
-        {error || flightErrorMessage(new ApiError(404, 'Not found', 'NOT_FOUND'), locale, 'load')}
+        <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+        <span>
+          {error || flightErrorMessage(new ApiError(404, 'Not found', 'NOT_FOUND'), locale, 'load')}
+        </span>
       </p>,
     )
   if (saved)
@@ -693,7 +696,12 @@ export function FlightForm({
           ))}
         </dl>
         {deleteButton}
-        {error && <p role="alert">{error}</p>}
+        {error && (
+          <p role="alert">
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{error}</span>
+          </p>
+        )}
       </section>,
     )
   }
@@ -724,7 +732,8 @@ export function FlightForm({
   const fieldErrorLine = (name: keyof Values) =>
     fieldError(name) && (
       <p id={`${formId}-${name}-error`} role="alert">
-        {fieldError(name)}
+        <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+        <span>{fieldError(name)}</span>
       </p>
     )
   const flightNumber = (

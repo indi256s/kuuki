@@ -265,7 +265,10 @@ function Detail({
             </Button>
             {cancelling === 'failed' || cancelling === 'readFailed' ? (
               <p className="import-dock-problem" role="alert">
-                {cancelling === 'failed' ? S.cancelFailed[locale] : S.cancelReadFailed[locale]}
+                <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+                <span>
+                  {cancelling === 'failed' ? S.cancelFailed[locale] : S.cancelReadFailed[locale]}
+                </span>
               </p>
             ) : null}
           </div>

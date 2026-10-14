@@ -35,6 +35,15 @@
   background: var(--surface-inset);
   overflow-wrap: anywhere;
 }
+.capture-manage .capture-outcomes li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.capture-manage .capture-outcomes li svg {
+  flex: none;
+  margin-top: 2px;
+}
 .capture-manage .capture-outcomes [data-state='uncertain'] {
   border-inline-start: 3px solid var(--warning-fill);
 }

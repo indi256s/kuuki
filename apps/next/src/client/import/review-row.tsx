@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { TriangleAlert } from '@keyline-icons/react'
+import { TriangleAlert, CircleAlert } from '@keyline-icons/react'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
@@ -267,7 +267,8 @@ export function ReviewRow({
         role="status"
         data-state={state?.status ?? (dirty ? 'unsaved' : undefined)}
       >
-        {stateText || (dirty ? S.unsavedRow[locale] : '')}
+        {failedState ? <CircleAlert size={16} strokeWidth={2} aria-hidden="true" /> : null}
+        {failedState ? <span>{stateText}</span> : stateText || (dirty ? S.unsavedRow[locale] : '')}
       </p>
       {failedState ? (
         <div className="import-actions">

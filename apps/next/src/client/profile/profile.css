@@ -20,7 +20,7 @@
   flex-direction: column;
   gap: var(--space-4);
   perspective: 1200px;
-  animation: profile-rise 240ms var(--ease-out) both;
+  animation: profile-rise var(--dur-base) var(--ease-out) both;
 }
 
 .profile-avatar {
@@ -110,7 +110,7 @@
   flex-direction: column;
   gap: var(--space-5);
   min-inline-size: 0;
-  animation: profile-rise 240ms var(--ease-out) both;
+  animation: profile-rise var(--dur-base) var(--ease-out) both;
   animation-delay: calc(60ms + var(--block-i, 0) * 60ms);
 }
 .profile-block-head {
@@ -320,11 +320,11 @@
    out of flow, so the grid never moves when it clears. */
 .profile-badges [data-fresh] .profile-badge-mark {
   box-shadow: 0 0 0 2px var(--accent);
-  animation: badge-press 320ms var(--ease-out) both;
+  animation: badge-press var(--dur-sheet) var(--ease-out) both;
   animation-delay: calc(var(--fresh-i, 0) * 80ms);
 }
 .profile-badges [data-fresh] .profile-badge-mark svg {
-  animation: badge-ink 320ms var(--ease-out) both;
+  animation: badge-ink var(--dur-sheet) var(--ease-out) both;
   animation-delay: calc(var(--fresh-i, 0) * 80ms);
 }
 .profile-badge-new {
@@ -512,7 +512,7 @@
   margin-inline: auto;
   padding-block: var(--space-6) var(--space-12);
   text-align: center;
-  animation: profile-rise 240ms var(--ease-out) both;
+  animation: profile-rise var(--dur-base) var(--ease-out) both;
 }
 .profile-cover {
   --cover-fill: var(--accent);

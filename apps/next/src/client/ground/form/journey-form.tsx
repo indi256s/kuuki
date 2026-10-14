@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import {
   useCallback,
   useEffect,
@@ -568,7 +569,8 @@ function FormBody({
             </h2>
             {errors.route && showErrors && (
               <p className="gt-error-text" role="alert">
-                {errorText(errors.route, locale)}
+                <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+                <span>{errorText(errors.route, locale)}</span>
               </p>
             )}
             {state.mode === 'rail' ? (
@@ -921,7 +923,8 @@ function SaveNotices({
   if (save.phase === 'rejected') {
     return (
       <p className="gt-error-text" role="alert">
-        {save.message}
+        <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+        <span>{save.message}</span>
       </p>
     )
   }

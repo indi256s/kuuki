@@ -220,7 +220,14 @@
   align-items: flex-start;
   gap: var(--space-2);
 }
+.import-dock-problem svg {
+  flex: none;
+  margin-top: 1px;
+}
 .import-dock-problem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
   margin: 0;
   color: var(--danger-text);
   font-size: 13px;

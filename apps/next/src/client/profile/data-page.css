@@ -343,7 +343,7 @@
   background: var(--text-muted);
 }
 .profile-mrz[data-reading] .profile-mrz-scan {
-  animation: profile-mrz-scan 900ms linear both;
+  animation: profile-mrz-scan var(--dur-moment) linear both;
 }
 @keyframes profile-mrz-scan {
   0% {
@@ -367,7 +367,7 @@
   z-index: -1;
   background: var(--holder-uv-shade);
   opacity: 0;
-  transition: opacity 250ms var(--ease-out);
+  transition: opacity var(--dur-base) var(--ease-out);
   pointer-events: none;
 }
 .profile-data-page[data-uv] .profile-uv {

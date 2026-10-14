@@ -1015,10 +1015,10 @@ h2 {
   --auth-watermark-opacity: 0.1;
 }
 :root[data-theme='dark'] {
-  --auth-brand-surface: #2f2d2b;
-  --auth-input-surface: #2f2d2b;
+  --auth-brand-surface: var(--background);
+  --auth-input-surface: var(--background);
   --auth-band-surface: var(--background);
-  --auth-sheet-edge: inset 0 1px 0 rgb(255 255 255/6%);
+  --auth-sheet-edge: inset 0 1px 0 var(--surface-highlight);
   --auth-watermark-opacity: 0.13;
 }
 :root[data-theme='dark'] :is(.read-panel, .capture-card, .auth-shell) {
@@ -1040,7 +1040,7 @@ h2 {
   background: var(--accent-tint);
   color: var(--accent-on-tint);
   font: 700 18px/18px var(--font-kana);
-  transition: background-color 150ms ease-in-out;
+  transition: background-color var(--dur-fast) ease-in-out;
 }
 .wordmark .mark-glyph {
   position: absolute;
