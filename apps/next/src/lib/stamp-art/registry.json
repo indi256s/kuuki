@@ -125,7 +125,7 @@
     "motif": "Kalandula Falls",
     "kind": "nature",
     "silhouette": "Very wide, low curtain of water spilling over a long straight ledge in several parallel streams, spray at the foot",
-    "modules": ["kalandula", "sky", "ground"],
+    "modules": ["waterfall-b", "canopy-b", "sky", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -133,7 +133,7 @@
     "replaced": "Fortaleza de Sao Miguel: fort cluster collision (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: very wide, low, multi-stream curtain"
+    "notes": "Final pass: horseshoe of six falls under a forested rim, rock teeth hanging between the sheets, spray and a dark pool band at the foot"
   },
   {
     "iso2": "AQ",
@@ -651,8 +651,8 @@
     "name": "Congo",
     "motif": "Diosso Gorge near Pointe-Noire",
     "kind": "nature",
-    "silhouette": "two tall flat-faced cliff walls with a notch between them; the notch as the centre. Symmetric",
-    "modules": ["gorge-b"],
+    "silhouette": "a dry gorge: two benched red-earth cliff walls with ledged horizontal strata, fluted pinnacles standing on them with scrub on top, a dry floor between",
+    "modules": ["gorge-pinnacles-b", "canopy-b", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -660,7 +660,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": null
+    "notes": "Final pass: dry gorge, no water: red earth pinnacles with ledged strata, bench cliffs, scrub on top, dry floor"
   },
   {
     "iso2": "CH",
@@ -1230,7 +1230,7 @@
     "motif": "Kongou Falls, Ivindo National Park",
     "kind": "nature",
     "silhouette": "forest band on both sides, a central white cascade stepping down. Symmetric",
-    "modules": ["kalandula", "rainforest-b"],
+    "modules": ["waterfall-b", "canopy-b", "sky", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -1238,7 +1238,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: broad stepped cascade in forest"
+    "notes": "Final pass: wide five-channel cascade among forest, rock islets with canopy, spray and a dark pool band at the foot"
   },
   {
     "iso2": "GB",
@@ -1536,7 +1536,7 @@
     "motif": "Kaieteur Falls on the Potaro River in the interior",
     "kind": "nature",
     "silhouette": "a flat, wide, horizontal plateau cliff on top; a single white column of water falling straight down the middle; a dark rainforest gorge at the base",
-    "modules": ["waterfall", "cliff", "water", "forest"],
+    "modules": ["waterfall-b", "canopy-b", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -1544,7 +1544,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: single plunge from a flat plateau lip with a forest rim"
+    "notes": "Final pass: one tall plunge (height about 2.5x width) from a forest-topped amphitheatre, dark recess behind the water, spray at the foot"
   },
   {
     "iso2": "HK",
@@ -1774,7 +1774,7 @@
     "motif": "Gullfoss waterfall",
     "kind": "nature",
     "silhouette": "Broad river stepping down in two tiers, then turning sharply into a narrow canyon, spray mist, low cliff walls",
-    "modules": ["waterfall", "distance-mountains"],
+    "modules": ["waterfall-b", "sky", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -1782,7 +1782,7 @@
     "replaced": "Hallgrimskirkja: church (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: two tiers then a right-angle turn into a canyon. Promoted research alternate.; waterfall cascade (lane B module) over distance-mountains; the two-tier Gullfoss canyon is not modelled, so it reads as a generic cascade"
+    "notes": "Final pass: diagonal upper step, then an upright lower plunge into a T5 crevice at right angles, basalt banks, spray"
   },
   {
     "iso2": "IT",
@@ -2148,7 +2148,7 @@
     "motif": "Kpatawee Falls",
     "kind": "nature",
     "silhouette": "Low wide stepped cascade over rock ledges in rainforest",
-    "modules": ["waterfall", "distance-trees", "water"],
+    "modules": ["waterfall-b", "canopy-b", "sky", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -2156,7 +2156,7 @@
     "replaced": "Temple of Justice: 1965 modernist building (rule 6); round 2 Q44: dropped Cape Mesurado headland with palm and lighthouse (lighthouse cluster would exceed 8 after MO)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "part: low wide stepped rapids over rock ledges. unverified location; promoted research alternate."
+    "notes": "Final pass: six low rock-step tiers with bold wavy lips and dark rock humps, forested banks, spray at the foot"
   },
   {
     "iso2": "LS",
@@ -3848,7 +3848,7 @@
     "motif": "Murchison Falls",
     "kind": "nature",
     "silhouette": "River forced through a very narrow rock cleft, dropping as one tall white plume into a pool, rock walls close on both sides",
-    "modules": ["cleft-falls-b", "sky", "distance-trees", "ground"],
+    "modules": ["waterfall-b", "plume-b", "canopy-b", "sky", "distance-trees", "ground"],
     "signature": "new:cleft-falls-b – river squeezed through a narrow rock cleft with mist banks",
     "backdrop": null,
     "cluster": "waterfall",
@@ -3856,7 +3856,7 @@
     "replaced": "Rwenzori twin peaks: twin-peak collision with KE (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: narrow cleft squeezing the whole river. Promoted REVIEW alternate; distinct from KE spire and TZ flat top."
+    "notes": "Final pass: a narrow jet bursting diagonally from a 7-unit rock cleft between two rock masses, hatched spray plume where it lands"
   },
   {
     "iso2": "UM",
@@ -3967,7 +3967,7 @@
     "motif": "Angel Falls",
     "kind": "nature",
     "silhouette": "flat-topped tepui mesa on one side, a single thin fall dropping down its face, a cliff edge and a low stream at the base",
-    "modules": ["waterfall", "cliff", "water", "mountains"],
+    "modules": ["waterfall-b", "canopy-b", "sky", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -3975,7 +3975,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "unchecked",
-    "notes": "part: tallest, thin thread free-falling off a flat-topped tepui with mid-fall mist"
+    "notes": "Final pass: tepui wall with a thin ribbon (8% of width) falling from the lip at 15% to a hatched mist at 70%, forest apron at the foot"
   },
   {
     "iso2": "VG",
@@ -4154,7 +4154,7 @@
     "motif": "Victoria Falls, Zambian bank",
     "kind": "nature",
     "silhouette": "a horizontal band of water falling into a dark gorge with a tall white plume rising above; asymmetric; flat rim line",
-    "modules": ["victoria-falls", "sky", "ground"],
+    "modules": ["waterfall-b", "canopy-b", "plume-b", "sky", "ground"],
     "signature": "new:victoria-falls – white veils standing out of a dark basalt wall under a billowing spray plume",
     "backdrop": null,
     "cluster": "waterfall",
@@ -4162,7 +4162,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: veils of water against a dark gorge wall with a tall spray plume. Differs from ZW (Great Zimbabwe ruins) and from the other waterfalls (GY/VE tall single drop, UG cleft, AO/GA wide step)."
+    "notes": "Final pass: full-width curtain seen face-on in seven channels split by tapering rock teeth, a T5 gorge cut in front, a hatched spray column rising above the lip"
   },
   {
     "iso2": "ZW",

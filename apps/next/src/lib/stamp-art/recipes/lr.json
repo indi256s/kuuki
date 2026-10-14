@@ -10,7 +10,7 @@
       "module": "sky",
       "params": {
         "gap": [2.8, 3.6],
-        "clouds": [40, 58, 30, 100, 70, 24, 150, 58, 34],
+        "clouds": [36, 54, 28, 80, 52, 24, 120, 50, 26, 160, 56, 24, 58, 60, 18],
         "weight": "hair"
       }
     },
@@ -33,14 +33,14 @@
   ],
   "layers": [
     {
-      "module": "waterfall",
-      "box": [34, 58, 130, 66],
+      "module": "waterfall-b",
+      "box": [27, 53, 146, 73],
       "params": {
-        "steps": 4,
-        "topHalf": 11,
-        "spread": 30,
-        "sway": 0.08,
-        "rockGap": 5.2
+        "profile": "cascade",
+        "steps": 6,
+        "seed": 6,
+        "mist": 0.22,
+        "drop": 0.64
       }
     }
   ]

@@ -9,9 +9,18 @@
     {
       "module": "sky",
       "params": {
-        "gap": [3.2, 4.4],
-        "clouds": [30, 56, 40, 96, 66, 34, 146, 54, 40],
+        "gap": [2.4, 3.4],
+        "clouds": [36, 54, 30, 80, 52, 26, 146, 54, 36, 114, 50, 22, 60, 58, 20],
         "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 16,
+        "amp": 3,
+        "seed": 8,
+        "swell": 2
       }
     },
     {
@@ -23,11 +32,28 @@
   ],
   "layers": [
     {
-      "module": "kalandula",
-      "box": [34, 68, 132, 58],
+      "module": "waterfall-b",
+      "box": [27, 53, 146, 73],
       "params": {
-        "streams": 6,
-        "seed": 9
+        "profile": "horseshoe",
+        "channels": 6,
+        "lipY": 0.26,
+        "drop": 0.56,
+        "bow": 13,
+        "buttress": 12,
+        "ends": 0.07,
+        "endTall": 6,
+        "canopy": 6,
+        "islets": 6,
+        "mist": 0.3,
+        "seed": 9,
+        "footBow": 8,
+        "lipJit": 2,
+        "spread": 0.55,
+        "weights": [0.5, 0.8, 1.2, 1.2, 0.8, 0.5],
+        "wall": 0,
+        "ribLen": 1,
+        "taper": 3.4
       }
     }
   ]

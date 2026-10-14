@@ -32,29 +32,26 @@
   ],
   "layers": [
     {
-      "module": "kalandula",
-      "box": [42, 60, 116, 66],
+      "module": "waterfall-b",
+      "box": [38, 52, 124, 70],
       "params": {
-        "streams": 3,
-        "seed": 21
-      }
-    },
-    {
-      "module": "rainforest-b",
-      "box": [36, 78, 30, 48],
-      "params": {
-        "rows": 1,
-        "emergent": 1,
-        "seed": 2
-      }
-    },
-    {
-      "module": "rainforest-b",
-      "box": [132, 78, 30, 48],
-      "params": {
-        "rows": 1,
-        "emergent": 1,
-        "seed": 5
+        "profile": "curtain",
+        "channels": 5,
+        "lipY": 0.3,
+        "drop": 0.58,
+        "buttress": 7,
+        "ends": 0.08,
+        "endTall": 0,
+        "canopy": 7,
+        "islets": 8,
+        "mist": 0.3,
+        "seed": 21,
+        "spread": 0.45,
+        "wallCanopy": 0,
+        "lipJit": 5,
+        "wall": 0,
+        "ribLen": 1,
+        "taper": 3.4
       }
     }
   ]

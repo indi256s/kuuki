@@ -22,8 +22,8 @@
   ],
   "layers": [
     {
-      "module": "gorge-b",
-      "box": [34, 62, 132, 64],
+      "module": "gorge-pinnacles-b",
+      "box": [27, 53, 146, 71],
       "params": {
         "seed": 5
       }
