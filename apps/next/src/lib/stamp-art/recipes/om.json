@@ -1,0 +1,91 @@
+{
+  "iso2": "OM",
+  "tier": "engraved",
+  "ink": "umber",
+  "cluster": "gulf-fort",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [56, 56, 32, 150, 62, 26]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.42],
+          [0.1, 0.3],
+          [0.22, 0.4],
+          [0.36, 0.3],
+          [0.5, 0.42],
+          [0.66, 0.28],
+          [0.82, 0.4],
+          [0.92, 0.3],
+          [1, 0.4]
+        ],
+        "jag": 1.3,
+        "litGap": 3.2,
+        "seed": 6
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "palm",
+      "box": [40, 80, 24, 50],
+      "params": {
+        "lean": 0.12
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [44, 106, 34, 24],
+      "params": {
+        "merlons": 6,
+        "merlonH": 0.2,
+        "courses": 3,
+        "joints": 7
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [122, 106, 34, 24],
+      "params": {
+        "merlons": 6,
+        "merlonH": 0.2,
+        "courses": 3,
+        "joints": 7
+      }
+    },
+    {
+      "module": "drum-b",
+      "box": [62, 56, 76, 74],
+      "params": {
+        "taper": 0.95,
+        "crownW": 1.1,
+        "crownH": 0.17,
+        "merlons": 11,
+        "merlonH": 5,
+        "bands": 3,
+        "slits": 4,
+        "shade": 0.34,
+        "door": 0.1
+      }
+    },
+    {
+      "module": "palm",
+      "box": [138, 76, 24, 54],
+      "params": {
+        "lean": -0.12
+      }
+    }
+  ]
+}

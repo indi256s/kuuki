@@ -1,0 +1,41 @@
+{
+  "iso2": "JO",
+  "tier": "engraved",
+  "ink": "umber",
+  "cluster": "rock-cut",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [150, 58, 30]
+      }
+    },
+    {
+      "module": "khazneh",
+      "params": {
+        "part": "cliff",
+        "facade": 0.54
+      },
+      "box": [28, 34, 144, 100]
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "khazneh",
+      "box": [28, 34, 144, 100],
+      "params": {
+        "part": "facade",
+        "facade": 0.54
+      }
+    }
+  ]
+}

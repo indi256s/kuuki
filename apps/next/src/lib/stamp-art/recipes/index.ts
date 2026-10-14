@@ -1,5 +1,6 @@
 import { type Recipe, parseRecipe } from '../recipe'
 import ad from './ad.json'
+import ae from './ae.json'
 import ag from './ag.json'
 import ai from './ai.json'
 import al from './al.json'
@@ -9,11 +10,13 @@ import aq from './aq.json'
 import ar from './ar.json'
 import at from './at.json'
 import aw from './aw.json'
+import az from './az.json'
 import ba from './ba.json'
 import bb from './bb.json'
 import be from './be.json'
 import bf from './bf.json'
 import bg from './bg.json'
+import bh from './bh.json'
 import bi from './bi.json'
 import bj from './bj.json'
 import bl from './bl.json'
@@ -38,6 +41,7 @@ import cr from './cr.json'
 import cu from './cu.json'
 import cv from './cv.json'
 import cw from './cw.json'
+import cy from './cy.json'
 import cz from './cz.json'
 import de from './de.json'
 import dj from './dj.json'
@@ -80,17 +84,22 @@ import hr from './hr.json'
 import ht from './ht.json'
 import hu from './hu.json'
 import ie from './ie.json'
+import il from './il.json'
 import im from './im.json'
 import io from './io.json'
+import iq from './iq.json'
 import is from './is.json'
 import it from './it.json'
 import je from './je.json'
 import jm from './jm.json'
+import jo from './jo.json'
 import jp from './jp.json'
 import ke from './ke.json'
 import km from './km.json'
 import kn from './kn.json'
+import kw from './kw.json'
 import ky from './ky.json'
+import lb from './lb.json'
 import lc from './lc.json'
 import li from './li.json'
 import lr from './lr.json'
@@ -121,6 +130,7 @@ import ng from './ng.json'
 import ni from './ni.json'
 import nl from './nl.json'
 import no from './no.json'
+import om from './om.json'
 import pa from './pa.json'
 import pe from './pe.json'
 import ph from './ph.json'
@@ -170,6 +180,7 @@ import zw from './zw.json'
 /** Raw recipes by lowercase iso2. check:stamps fails when a recipes/*.json file is missing here. */
 export const RECIPE_FILES: Record<string, unknown> = {
   ad,
+  ae,
   ag,
   ai,
   al,
@@ -179,11 +190,13 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ar,
   at,
   aw,
+  az,
   ba,
   bb,
   be,
   bf,
   bg,
+  bh,
   bi,
   bj,
   bl,
@@ -208,6 +221,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cu,
   cv,
   cw,
+  cy,
   cz,
   de,
   dj,
@@ -250,17 +264,22 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ht,
   hu,
   ie,
+  il,
   im,
   io,
+  iq,
   is,
   it,
   je,
   jm,
+  jo,
   jp,
   ke,
   km,
   kn,
+  kw,
   ky,
+  lb,
   lc,
   li,
   lr,
@@ -291,6 +310,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ni,
   nl,
   no,
+  om,
   pa,
   pe,
   ph,

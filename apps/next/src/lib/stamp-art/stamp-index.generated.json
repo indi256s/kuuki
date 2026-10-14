@@ -27,7 +27,7 @@
       "en": "United Arab Emirates",
       "ru": "ОАЭ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AF": {
     "cluster": null,
@@ -222,7 +222,7 @@
       "en": "Azerbaijan",
       "ru": "Азербайджан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BA": {
     "cluster": "bridge",
@@ -327,7 +327,7 @@
       "en": "Bahrain",
       "ru": "Бахрейн"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BI": {
     "cluster": null,
@@ -777,7 +777,7 @@
       "en": "Cyprus",
       "ru": "Кипр"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CZ": {
     "cluster": "bridge",
@@ -1482,7 +1482,7 @@
       "en": "Israel",
       "ru": "Израиль"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IM": {
     "cluster": null,
@@ -1542,7 +1542,7 @@
       "en": "Iraq",
       "ru": "Ирак"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "IR": {
     "cluster": "classical-ruin",
@@ -1632,7 +1632,7 @@
       "en": "Jordan",
       "ru": "Иордания"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "JP": {
     "cluster": null,
@@ -1782,7 +1782,7 @@
       "en": "Kuwait",
       "ru": "Кувейт"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KY": {
     "cluster": null,
@@ -1842,7 +1842,7 @@
       "en": "Lebanon",
       "ru": "Ливан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LC": {
     "cluster": "twin-peak",
@@ -2517,7 +2517,7 @@
       "en": "Oman",
       "ru": "Оман"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PA": {
     "cluster": null,

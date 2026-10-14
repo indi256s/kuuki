@@ -1,0 +1,31 @@
+{
+  "iso2": "KW",
+  "tier": "engraved",
+  "ink": "teal",
+  "cluster": "ship",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [48, 62, 34, 150, 74, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "dhow",
+      "box": [42, 44, 114, 86],
+      "params": {}
+    }
+  ]
+}
