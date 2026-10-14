@@ -355,19 +355,16 @@ Active state never relies on color alone: an `--accent-tint` pill with `--accent
 
 ## Shell and navigation
 
-**Accepted for ground travel, unbuilt (13 October 2026).** The new
-`/ground-travel` page is “Наземные путешествия” / “Ground travel”, combining
-rail and road lists with an All / Trains / Road filter and its own Add chooser.
-Desktop navigation becomes Overview, Journal, Ground travel, Passport; the
-existing desktop Add flight retains its functions. Mobile has four destinations
-Overview, Journal, Ground, Passport (Обзор, Журнал, Наземные, Паспорт); Add moves
-inside pages and the bottom + is removed. Journal keeps all four flight capture
-choices through its page action. This accepted feature delta supersedes the
-three-destination-plus arrangement below when building ground travel; the
-current source still implements that baseline. Use the existing rail tokens,
-controls and accessibility requirements. The interaction/list/route contract
-is [page-flow-contract.md](.scratch/ground-travel/page-flow-contract.md); this
-is a decision, not visual acceptance of four tabs at 320px or 200% text.
+**Ground travel, built on `feature/ground-travel` (source only, 14 October 2026; not visually verified).** The
+`/ground-travel` page is “Наземные путешествия” / “Ground travel”, combining rail and road lists with an All /
+Trains / Road filter, a Cancelled view and its own Add chooser. Desktop navigation is Overview, Journal, Ground
+travel, Passport; the desktop Add flight keeps its functions. Mobile has four destinations Overview, Journal,
+Ground, Passport (Обзор, Журнал, Наземные, Паспорт) with a Train icon; the visible tab label is short and the
+accessible name is the full page name. The bottom + key and its Add card are removed there: Journal carries the
+four flight capture choices in its header on phones. Where the + key, Add card and three-tab bullets below
+disagree, this paragraph wins until they are rewritten after a visual pass. Open checks: 320px and 200% text for
+«Наземные», and the desktop header at 700–900px. Contract:
+[page-flow-contract.md](.scratch/ground-travel/page-flow-contract.md).
 
 One breakpoint at 700px switches between desktop and mobile. The header and tab bar sit outside the single `<main id="main" class="page-shell">`; a skip link precedes them. `BrandShell` (guests) shows the wordmark, sign-in and sign-up links, and the language/theme controls; `MemberShell` adds navigation.
 
@@ -609,6 +606,15 @@ The approved [Journal spec](.scratch/journal-redesign/spec.md) takes precedence 
 - Character shortcuts operate only while their Journal controls have focus; `j`/`k` stay in the ledger, and modal details keep local edit/close shortcuts (`e` starts Edit from inside the details). Closing docked details returns focus to the connected opener, then a surviving ledger row or the Journal heading. Journal controls and portaled sheet headings retain weight 500; loading cards use the same outline as ready cards.
 
 Rows remain real DOM with `content-visibility: auto`. Their remembered intrinsic block sizes estimate inner content, with separate desktop flight, connector and mobile card estimates. The server renders the first 60 rows; the remainder mount in transitions in batches of 150 under the measured performance fallback in the spec. This is progressive mounting, with no virtualizer or offline persistence.
+
+## Ground travel
+
+**Built (source only, not visually verified; spec [`.scratch/ground-travel/spec.md`](.scratch/ground-travel/spec.md)).** Rail and road journeys share one list but are never mixed in one journey. Plans come first (nearest upcoming, then past-dated, then undated), then history newest first with undated last. Cards and the detail sheet show unknown values as words, never 0; every distance is a straight-line sum and carries `≈`, and a partial route shows coverage instead of a total. The route sketch is labelled “Route sketch (straight lines)” and never joins across a place without coordinates.
+
+- **Forms.** `/ground-travel/new?mode=rail|road` and `/ground-travel/<id>/edit` (`?complete=1` completes a plan). One unified review holds the route, dates and countries with a single Save; it is used for completing a plan, entering an old trip and correcting a completed one. Countries are never pre-checked; an empty list is sent only after “None of these”.
+- **Places.** The city picker searches from three letters, shows region and country to tell same-name cities apart, never commits a place on blur, and offers a manual place (name and country, optional coordinates).
+- **Writes.** Every write carries an operation key. A lost response shows one alert with Check result and Retry original save; a conflict shows the saved version with an explicit “Apply my changes on top”; pending publication says “Saved. Totals are still updating.”
+- **Rail OCR.** Up to ten PDF/JPEG/PNG/WebP files, per-file rows and a Stop that keeps received rows. Tickets are not stored. Candidates are added or replace legs only by explicit action, never with an invented year, place or country.
 
 ## Profile
 
