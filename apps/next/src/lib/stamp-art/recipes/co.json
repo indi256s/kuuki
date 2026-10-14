@@ -19,16 +19,9 @@
   ],
   "layers": [
     {
-      "module": "bastion-fort",
-      "box": [30, 50, 140, 81],
-      "params": {
-        "tiers": 2,
-        "hill": 0.34,
-        "batter": 6,
-        "shift": 0.2,
-        "width": 0.74,
-        "drop": 0
-      }
+      "module": "san-felipe-a",
+      "box": [31, 60, 138, 70],
+      "params": {}
     }
   ]
 }

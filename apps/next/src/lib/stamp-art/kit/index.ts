@@ -107,6 +107,13 @@ import { pirogue } from './pirogue'
 import { outcropsB } from './outcrops-b'
 import { sloopA } from './sloop-a'
 import { queensStaircase } from './queens-staircase'
+import { bergsA } from './bergs-a'
+import { talietumuA } from './talietumu-a'
+import { brimstoneA } from './brimstone-a'
+import { castilloA } from './castillo-a'
+import { paradiseA, rainforestA } from './paradise-a'
+import { sanFelipeA } from './san-felipe-a'
+import { craterEyeA } from './crater-eye-a'
 import { craterLakeA } from './crater-lake-a'
 import { massifB } from './massif-b'
 import { saoSebastiao } from './sao-sebastiao'
@@ -337,6 +344,14 @@ export const kit = {
   kinabalu: kinabalu,
   'queens-staircase': queensStaircase,
   'crater-lake-a': craterLakeA,
+  'crater-eye-a': craterEyeA,
+  'castillo-a': castilloA,
+  'talietumu-a': talietumuA,
+  'bergs-a': bergsA,
+  'paradise-a': paradiseA,
+  'rainforest-a': rainforestA,
+  'brimstone-a': brimstoneA,
+  'san-felipe-a': sanFelipeA,
   'massif-b': massifB,
   'sao-sebastiao': saoSebastiao,
   'cleft-falls-b': cleftFallsB,

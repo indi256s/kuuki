@@ -24,16 +24,9 @@
   ],
   "layers": [
     {
-      "module": "bastion-fort",
-      "box": [32, 56, 136, 72],
-      "params": {
-        "tiers": 2,
-        "hill": 0.4,
-        "batter": 6,
-        "shift": 0.3,
-        "width": 0.62,
-        "drop": 0
-      }
+      "module": "brimstone-a",
+      "box": [34, 50, 138, 74],
+      "params": {}
     }
   ]
 }

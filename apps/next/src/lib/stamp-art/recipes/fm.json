@@ -16,7 +16,7 @@
     {
       "module": "distance-trees",
       "params": {
-        "height": 14,
+        "height": 12,
         "amp": 3,
         "seed": 3,
         "swell": 2
@@ -33,7 +33,7 @@
   "layers": [
     {
       "module": "nan-madol",
-      "box": [34, 56, 132, 70],
+      "box": [34, 56, 132, 62],
       "params": {}
     }
   ]

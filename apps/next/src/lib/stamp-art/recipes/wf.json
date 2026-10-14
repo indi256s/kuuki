@@ -31,31 +31,35 @@
   ],
   "layers": [
     {
-      "module": "rock-hill",
-      "box": [32, 70, 136, 54],
+      "module": "talietumu-a",
+      "box": [34, 66, 132, 56],
+      "params": {}
+    },
+    {
+      "module": "palm",
+      "box": [42, 68, 34, 56],
       "params": {
-        "seed": 5,
-        "profile": [
-          [0, 1],
-          [0.1, 0.7],
-          [0.28, 0.38],
-          [0.45, 0.2],
-          [0.7, 0.16],
-          [0.88, 0.4],
-          [1, 1]
-        ],
-        "walls": [[0.28, 0.62]],
-        "wallH": 18,
-        "courses": 4,
-        "shadeFrom": 0.72,
-        "strata": 6
+        "lean": -0.25,
+        "seed": 3,
+        "frond": 0.62
       }
     },
     {
-      "module": "ruin-wall",
-      "box": [48, 50, 86, 30],
+      "module": "palm",
+      "box": [134, 66, 30, 56],
       "params": {
-        "seed": 7
+        "lean": 0.2,
+        "seed": 8,
+        "frond": 0.64
+      }
+    },
+    {
+      "module": "palm",
+      "box": [88, 45, 34, 30],
+      "params": {
+        "lean": 0.1,
+        "seed": 5,
+        "frond": 0.7
       }
     }
   ]
