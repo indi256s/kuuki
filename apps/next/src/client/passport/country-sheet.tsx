@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MoreHorizontal, PlaneLanding, PlaneTakeoff } from '@keyline-icons/react'
+import { Car, MoreHorizontal, PlaneLanding, PlaneTakeoff, Train } from '@keyline-icons/react'
 import { useQuery } from '@tanstack/react-query'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import {
@@ -42,6 +42,22 @@ import {
 import './passport.css'
 
 type GroundEntry = Extract<CountryDetail['entries'][number], { kind: 'ground' }>
+type JourneySource = CountryDetail['journeys'][number]
+
+const JOURNEY_FALLBACK: Record<JourneySource['mode'], Record<Locale, string>> = {
+  rail: { en: 'Train journey', ru: 'Поездка на поезде' },
+  road: { en: 'Road trip', ru: 'Поездка на машине' },
+}
+
+/** "3 Oct 2026", "3 Oct 2026 – 9 Oct 2026" or null when neither end is known. */
+function journeyDates(locale: Locale, journey: JourneySource): string | null {
+  const start = journey.startDate?.slice(0, 10)
+  const end = journey.endDate?.slice(0, 10)
+  if (start && end && start !== end)
+    return `${formatDateOnly(locale, start)} – ${formatDateOnly(locale, end)}`
+  const only = start ?? end
+  return only ? formatDateOnly(locale, only) : null
+}
 
 const LAND_SEA_FORMS = {
   en: { one: '{count} land or sea visit', other: '{count} land and sea visits' },
@@ -190,6 +206,7 @@ export function CountrySheet({
   const flights = data?.entries.filter((item) => item.kind === 'flight') ?? []
   const legacy = data?.entries.filter((item) => item.kind === 'legacy') ?? []
   const ground = (data?.entries.filter((item) => item.kind === 'ground') ?? []) as GroundEntry[]
+  const journeys = data?.journeys ?? []
   const claim = data?.entries.find((item) => item.kind === 'claim')
   const outcome = data ? removalOutcome(data) : null
   // The projection leaves first/last NULL for land/sea-only countries; their years still date the visit.
@@ -437,6 +454,37 @@ export function CountrySheet({
               </section>
             ) : null}
 
+            {journeys.length ? (
+              <section aria-labelledby="passport-journeys">
+                <h3 id="passport-journeys">
+                  {ru ? 'Наземные поездки' : 'Ground journeys'} ·{' '}
+                  {formatNumber(locale, journeys.length)}
+                </h3>
+                <ul
+                  className="passport-list passport-timeline"
+                  aria-label={ru ? 'Наземные поездки' : 'Ground journeys'}
+                >
+                  {journeys.map((journey) => {
+                    const dates = journeyDates(locale, journey)
+                    const Icon = journey.mode === 'rail' ? Train : Car
+                    return (
+                      <li key={journey.id}>
+                        <a href={`/ground-travel?journey=${encodeURIComponent(journey.id)}`}>
+                          <Icon size={18} aria-hidden="true" />
+                          <span>
+                            {journey.title ||
+                              journey.route ||
+                              JOURNEY_FALLBACK[journey.mode][locale]}{' '}
+                            · {dates ?? (ru ? 'дата неизвестна' : 'date unknown')}
+                          </span>
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
+            ) : null}
+
             {data.airports.length ? (
               <section aria-labelledby="passport-airports">
                 <h3 id="passport-airports">{ru ? 'Аэропорты' : 'Airports'}</h3>
@@ -567,9 +615,13 @@ export function CountrySheet({
                   </>
                 ) : (
                   <p className="passport-note">
-                    {ru
-                      ? 'Этот штамп поставлен перелётами. Чтобы убрать его, удалите или измените эти перелёты в журнале.'
-                      : 'Flights press this stamp. To remove it, delete or change those flights in the Journal.'}
+                    {journeys.length
+                      ? ru
+                        ? 'Этот штамп поставлен перелётами и наземными поездками. Чтобы убрать его, удалите или измените их.'
+                        : 'Flights and ground journeys press this stamp. To remove it, delete or change them.'
+                      : ru
+                        ? 'Этот штамп поставлен перелётами. Чтобы убрать его, удалите или измените эти перелёты в журнале.'
+                        : 'Flights press this stamp. To remove it, delete or change those flights in the Journal.'}
                   </p>
                 )}
               </section>
@@ -661,19 +713,31 @@ export function removalCopy(locale: Locale, outcome: ReturnType<typeof removalOu
         ? `${pluralCategory('ru', outcome.groundVisits) === 'one' ? 'Будет удалён' : 'Будут удалены'} ${visits}.`
         : `This deletes ${visits}.`,
     )
-  parts.push(ru ? 'Перелёты в журнале не удаляются.' : 'Flights in your journal are not deleted.')
   parts.push(
-    outcome.after === 'pressed'
+    outcome.journeys
       ? ru
-        ? 'Перелёты по-прежнему ведут в эту страну, поэтому штамп останется.'
-        : 'Flights still reach this country, so its stamp stays.'
-      : outcome.after === 'pending'
+        ? 'Перелёты и наземные поездки не удаляются.'
+        : 'Flights and ground journeys are not deleted.'
+      : ru
+        ? 'Перелёты в журнале не удаляются.'
+        : 'Flights in your journal are not deleted.',
+  )
+  parts.push(
+    outcome.journeys
+      ? ru
+        ? 'Наземные поездки по-прежнему ведут в эту страну, поэтому штамп останется.'
+        : 'Ground journeys still reach this country, so its stamp stays.'
+      : outcome.after === 'pressed'
         ? ru
-          ? 'Останется только неподтверждённый перелёт: страна будет ждать отметки.'
-          : 'Only an unconfirmed flight remains, so the country will wait for confirmation.'
-        : ru
-          ? 'Штамп исчезнет из паспорта.'
-          : 'The stamp disappears from your passport.',
+          ? 'Перелёты по-прежнему ведут в эту страну, поэтому штамп останется.'
+          : 'Flights still reach this country, so its stamp stays.'
+        : outcome.after === 'pending'
+          ? ru
+            ? 'Останется только неподтверждённый перелёт: страна будет ждать отметки.'
+            : 'Only an unconfirmed flight remains, so the country will wait for confirmation.'
+          : ru
+            ? 'Штамп исчезнет из паспорта.'
+            : 'The stamp disappears from your passport.',
   )
   return parts.join(' ')
 }

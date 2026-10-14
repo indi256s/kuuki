@@ -105,13 +105,16 @@ export type PassportEntry = {
   status: 'pressed' | 'pending'
   /** Air when flights support it; otherwise land/sea from ground visits; otherwise a claim. */
   kind: StampKind
-  /** Logged + awaiting + ground visits; drives the rings. */
+  /** Logged + awaiting + manual ground visits + ground journeys; drives the rings. */
   visits: number
   first: VisitPoint | null
   last: VisitPoint | null
   firstYear: number | null
   claimed: boolean
+  /** Manual land/sea visits only; ground journeys are counted apart in `journeys`. */
   ground: number
+  /** Completed rail/road journeys that confirmed this country. */
+  journeys: number
   region: RegionId | null
 }
 
@@ -148,24 +151,27 @@ export function passportEntries(
     const kind: StampKind =
       flights > 0
         ? 'air'
-        : row.ground_visit_count > 0
-          ? visits && visits.sea > 0 && visits.other === 0
-            ? 'sea'
-            : 'land'
-          : row.claimed === 1
-            ? 'claim'
-            : 'air'
+        : row.ground_journey_count > 0
+          ? 'land'
+          : row.ground_visit_count > 0
+            ? visits && visits.sea > 0 && visits.other === 0
+              ? 'sea'
+              : 'land'
+            : row.claimed === 1
+              ? 'claim'
+              : 'air'
     const { first, last } = chronology([row.first_visit, row.last_visit], visits?.years ?? [])
     return {
       code: row.country_code,
       status: row.status,
       kind,
-      visits: flights + row.ground_visit_count,
+      visits: flights + row.ground_visit_count + row.ground_journey_count,
       first,
       last,
       firstYear: first?.year ?? null,
       claimed: row.claimed === 1,
       ground: row.ground_visit_count,
+      journeys: row.ground_journey_count,
       region: row.region,
     }
   })
@@ -331,13 +337,18 @@ export type RemovalOutcome = {
   removable: boolean
   claimed: boolean
   groundVisits: number
+  /** Live ground journeys that confirmed the country; the claim removal never touches them. */
+  journeys: number
   /** The country after DELETE /api/passport/claims/:cc, which deletes the claim and every land/sea visit, never flights. */
   after: 'pressed' | 'pending' | 'gone'
 }
 /** Reads the country detail entries the way the evidence policy does (ADR 0001 §4, C3). */
-export function removalOutcome(detail: Pick<CountryDetail, 'entries'>): RemovalOutcome {
+export function removalOutcome(
+  detail: Pick<CountryDetail, 'entries'> & Partial<Pick<CountryDetail, 'journeys'>>,
+): RemovalOutcome {
   const claimed = detail.entries.some((entry) => entry.kind === 'claim')
   const groundVisits = detail.entries.filter((entry) => entry.kind === 'ground').length
+  const journeys = detail.journeys?.length ?? 0
   const logged = detail.entries.some(
     (entry) => entry.kind === 'legacy' || (entry.kind === 'flight' && entry.state === 'logged'),
   )
@@ -348,6 +359,7 @@ export function removalOutcome(detail: Pick<CountryDetail, 'entries'>): RemovalO
     removable: claimed || groundVisits > 0,
     claimed,
     groundVisits,
-    after: logged ? 'pressed' : awaiting ? 'pending' : 'gone',
+    journeys,
+    after: logged || journeys > 0 ? 'pressed' : awaiting ? 'pending' : 'gone',
   }
 }

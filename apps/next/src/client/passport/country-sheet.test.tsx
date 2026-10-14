@@ -72,6 +72,7 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail =>
       { kind: 'ground', id: 'g2', visitYear: null, entryMethod: null },
     ],
     suppressed: [],
+    journeys: [],
     derivedState: 'ready',
     revision: 3,
     publishedRevision: 3,
@@ -123,6 +124,72 @@ describe('CountrySheet', () => {
     )
     expect(within(dialog).getByRole('radiogroup', { name: 'How you entered' })).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Add visit' })).toBeInTheDocument()
+  })
+
+  it('lists ground journeys apart from flights and manual visits, each linking to the Ground travel page', async () => {
+    mount(
+      detail({
+        journeys: [
+          {
+            id: 'j-rail',
+            mode: 'rail',
+            title: 'Alps loop',
+            startDate: '2026-03-02',
+            endDate: '2026-03-09',
+            route: 'Zurich → Milan',
+          },
+          {
+            id: 'j-road',
+            mode: 'road',
+            title: null,
+            startDate: null,
+            endDate: null,
+            route: 'Athens → Delphi',
+          },
+        ],
+      }),
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    const list = await within(dialog).findByRole('list', { name: 'Ground journeys' })
+    const links = within(list).getAllByRole('link')
+    expect(links[0]).toHaveTextContent('Alps loop · Mar 2, 2026 – Mar 9, 2026')
+    expect(links[0]).toHaveAttribute('href', '/ground-travel?journey=j-rail')
+    expect(links[1]).toHaveTextContent('Athens → Delphi · date unknown')
+    expect(links[1]).toHaveAttribute('href', '/ground-travel?journey=j-road')
+    // Journeys are not manual visits: the manual list and the "Visits" count stay as they were.
+    expect(within(dialog).getByRole('heading', { name: 'Visits · 3' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Ground journeys · 2' })).toBeInTheDocument()
+    expect(within(list).queryByText(/by sea|Year not set/)).toBeNull()
+  })
+
+  it('presses a journey-only country as land and counts journeys apart from manual visits', () => {
+    const [entry] = passportEntries({
+      countries: [
+        {
+          country_code: 'CH',
+          status: 'pressed',
+          logged_visit_count: 0,
+          awaiting_visit_count: 0,
+          claimed: 0,
+          ground_visit_count: 0,
+          ground_journey_count: 2,
+          first_visit: null,
+          last_visit: null,
+          region: 'europe',
+        },
+      ],
+      groundVisits: [],
+    })
+    expect(entry).toMatchObject({ kind: 'land', ground: 0, journeys: 2, visits: 2 })
+  })
+
+  it('says ground journeys keep the stamp when a claim and manual visits are removed', () => {
+    const outcome = removalOutcome({
+      entries: [{ kind: 'claim', claimedAt: '2024-01-01' }] as CountryDetail['entries'],
+      journeys: [{ id: 'j' }] as CountryDetail['journeys'],
+    })
+    expect(outcome).toMatchObject({ after: 'pressed', journeys: 1 })
+    expect(removalCopy('en', outcome)).toContain('Ground journeys still reach this country')
   })
 
   it('states exactly what removal deletes and that flights keep the stamp, then removes claim and visits', async () => {
@@ -632,6 +699,28 @@ describe('CountrySheet derived failure in Russian', () => {
       'Не удалось обновить итоги по стране. Визиты сохранены, но данные здесь могут быть устаревшими.',
     )
     expect(within(alert).getByRole('button', { name: 'Повторить' })).toBeInTheDocument()
+  })
+})
+
+describe('CountrySheet ground journeys in Russian', () => {
+  it('labels ground journeys and unknown dates in Russian', async () => {
+    mount(
+      detail({
+        journeys: [
+          {
+            id: 'j1',
+            mode: 'rail',
+            title: null,
+            startDate: null,
+            endDate: null,
+            route: '',
+          },
+        ],
+      }),
+      { locale: 'ru' },
+    )
+    const list = await screen.findByRole('list', { name: 'Наземные поездки' })
+    expect(within(list).getByRole('link')).toHaveTextContent('Поездка на поезде · дата неизвестна')
   })
 })
 
