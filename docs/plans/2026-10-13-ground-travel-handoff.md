@@ -21,6 +21,28 @@ browser.
   `b04c0d46`. Independent UI review fixes: `58f20182`, `35b82cbd`, `e295b9e1`, `45b5e99d`.
 - **Wave 3:** ownership in `docs/README.md`, DESIGN shell note and Ground travel section `9bf7bc14`.
 
+### Design-review corrections (14 October)
+
+The accepted follow-up fixes the source findings in
+[design-review-r1.md](../../.scratch/ground-travel/design-review-r1.md). H1–H3, M1–M10 and M12–M14 are
+implemented: focus return, separate list/form classes, compact totals after plans, one page Add when empty,
+typed Calendar dates, stable field placement, visible but disabled old search results, six-second row Undo,
+collapsed row/ticket summaries, form skeletons, Arc save notices and deletion toasts. The Journal title and
+mobile Add now wrap with flex layout. L1, L3–L11, L13, L14 and L16 are also addressed.
+
+M11 is superseded by the accepted four-tab navigation; L2, L12, L15 and L17 were explicitly excluded from
+this correction round. No final interface review was run, as requested. Visual acceptance remains open.
+
+The implementation delegate stopped at the Claude API limit. The primary agent completed integration and
+read the full correction diff. Local lint (two existing warnings), typecheck, formatting, Next build and
+1617 Next unit tests and all 48 navigation scenarios pass (port 8813; 8800 was occupied). Focus return, Undo
+and retained search-result regressions fail against the old source and pass with these changes.
+
+The draft PR is [#59](https://github.com/indi256s/kuuki/pull/59). Its old Workers Build on `59a8108c` failed
+one import-runtime test: the fixture announced a provider call before its stream existed. The existing
+`main` fix `da3f4108` was cherry-picked as `f4214e66`; no import production code changed. All 911 API tests
+pass after this fixture fix. Remote CI success is a separate release gate.
+
 ## Release gates (not done, separate approval)
 
 1. Apply migration 0011 remotely **before** deploying this code: `countryEvidenceRead` (used by every repair,
@@ -39,7 +61,8 @@ browser.
 - Rail OCR shares the `import-parse` quota (20/hour); the client waits up to 120 s per file.
 - Mobile: the bottom + key is removed; phones add flights from the Journal header.
 - Opening another journey aborts an in-flight detail action; it then shows as unconfirmed on its own journey.
-- Dates and times use native inputs; drag reorder is a small local pointer handler with ↑/↓ buttons.
+- Dates use the shared typed Calendar; times stay native. Drag reorder is a small local pointer handler
+  with up/down icon buttons; row removal offers six-second Undo.
 
 Open items: no per-account cap on journeys or manual places; `listManualPlaces` stops at 1000; the country detail
 `totalVisits` excludes `ground_journey_count` (journeys are shown in their own section); crowded 3-letter search

@@ -203,6 +203,8 @@ describe('RailOcrPanel', () => {
 
     // Re-tick the first preview and swap only the second leg with it.
     const previews = screen.getAllByRole('group')
+    // A ticket the reader is sure of reads as one line until Edit opens it.
+    await userEvent.click(within(previews[0]!).getByRole('button', { name: 'Edit' }))
     await userEvent.selectOptions(
       within(previews[0]!).getByRole('combobox', { name: 'Leg to replace' }),
       screen.getAllByRole('option', { name: /^Leg 2/ })[0]!,

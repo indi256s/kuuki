@@ -357,9 +357,9 @@ Active state never relies on color alone: an `--accent-tint` pill with `--accent
 
 **Ground travel, built on `feature/ground-travel` (source only, 14 October 2026; not visually verified).** The
 `/ground-travel` page is “Наземные путешествия” / “Ground travel”, combining rail and road lists with an All /
-Trains / Road filter, a Cancelled view and its own Add chooser. Desktop navigation is Overview, Journal, Ground
+Rail / Road filter, a Cancelled view and its own Add chooser. Desktop navigation is Overview, Journal, Ground
 travel, Passport; the desktop Add flight keeps its functions. Mobile has four destinations Overview, Journal,
-Ground, Passport (Обзор, Журнал, Наземные, Паспорт) with a Train icon; the visible tab label is short and the
+Ground, Passport (Обзор, Журнал, Наземные, Паспорт) with a Route icon; the visible tab label is short and the
 accessible name is the full page name. The bottom + key and its Add card are removed there: Journal carries the
 four flight capture choices in its header on phones. Where the + key, Add card and three-tab bullets below
 disagree, this paragraph wins until they are rewritten after a visual pass. Open checks: 320px and 200% text for
@@ -609,9 +609,9 @@ Rows remain real DOM with `content-visibility: auto`. Their remembered intrinsic
 
 ## Ground travel
 
-**Built (source only, not visually verified; spec [`.scratch/ground-travel/spec.md`](.scratch/ground-travel/spec.md)).** Rail and road journeys share one list but are never mixed in one journey. Plans come first (nearest upcoming, then past-dated, then undated), then history newest first with undated last. Cards and the detail sheet show unknown values as words, never 0; every distance is a straight-line sum and carries `≈`, and a partial route shows coverage instead of a total. The route sketch is labelled “Route sketch (straight lines)” and never joins across a place without coordinates.
+**Built (source only, not visually verified; spec [`.scratch/ground-travel/spec.md`](.scratch/ground-travel/spec.md)).** Rail and road journeys share one list but are never mixed in one journey. Plans come first (nearest upcoming, then past-dated, then undated), then history newest first with undated last. Cards and the detail sheet show unknown values as words, never 0; every distance is a straight-line sum and carries `≈`, and a partial route shows coverage instead of a total. Totals are one compact line per mode (“Rail · 12 journeys · ≈ 4,300 km · 38 h”) placed after the plans and before the history; the heading is for assistive technology only. A reload keeps the list at full strength and says “Updating…” in the count line only after 150ms. The empty state holds the page's one Add; the header's appears with the first journey. The route sketch is labelled “Route sketch (straight lines)” and never joins across a place without coordinates.
 
-- **Forms.** `/ground-travel/new?mode=rail|road` and `/ground-travel/<id>/edit` (`?complete=1` completes a plan). One unified review holds the route, dates and countries with a single Save; it is used for completing a plan, entering an old trip and correcting a completed one. Countries are never pre-checked; an empty list is sent only after “None of these”.
+- **Forms.** `/ground-travel/new?mode=rail|road` and `/ground-travel/<id>/edit` (`?complete=1` completes a plan). Dates use the typeable [Calendar](#calendar) field (times stay native). A leg or stop whose places are filled reads as one summary line with an Edit button; rows with a gap, an error or just added stay open. Remove is immediate with a six-second Undo in the shell toast, and move/remove buttons are 44px icon buttons. One unified review holds the route, dates and countries with a single Save; it is used for completing a plan, entering an old trip and correcting a completed one. Countries are never pre-checked; an empty list is sent only after “None of these”.
 - **Places.** The city picker searches from three letters, shows region and country to tell same-name cities apart, never commits a place on blur, and offers a manual place (name and country, optional coordinates).
 - **Writes.** Every write carries an operation key. A lost response shows one alert with Check result and Retry original save; a conflict shows the saved version with an explicit “Apply my changes on top”; pending publication says “Saved. Totals are still updating.”
 - **Rail OCR.** Up to ten PDF/JPEG/PNG/WebP files, per-file rows and a Stop that keeps received rows. Tickets are not stored. Candidates are added or replace legs only by explicit action, never with an invented year, place or country.

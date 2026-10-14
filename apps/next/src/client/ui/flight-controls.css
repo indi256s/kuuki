@@ -318,8 +318,8 @@
   min-width: 0;
 }
 @media (hover: hover) and (pointer: fine) {
-  .flight-combobox li:hover,
-  .flight-search-sheet li:hover,
+  .flight-combobox li:hover:not([aria-disabled='true']),
+  .flight-search-sheet li:hover:not([aria-disabled='true']),
   .flight-calendar-grid [aria-selected='false'] button:hover:not([aria-current='date']) {
     background: var(--surface-inset);
   }
@@ -343,7 +343,18 @@
   font-weight: 500;
   text-align: start;
   cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
-.flight-combobox-action:hover {
+.flight-combobox-action:active {
   background: var(--surface-inset);
+}
+@media (hover: hover) and (pointer: fine) {
+  .flight-combobox-action:hover {
+    background: var(--surface-inset);
+  }
+}
+/* A result kept on screen while the next query loads: visible, not choosable. */
+.flight-combobox li[aria-disabled='true'],
+.flight-search-sheet li[aria-disabled='true'] {
+  cursor: default;
 }

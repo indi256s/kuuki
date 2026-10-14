@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import type { Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
 import { Checkbox } from '../../ui/checkbox'
@@ -50,6 +50,8 @@ export function CountriesFieldset({
   const name = useMemo(() => countryNamer(locale), [locale])
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+  const routeHeadRef = useRef<HTMLHeadingElement>(null)
   const missing = routeCodes.filter((code) => !value.countries.includes(code))
   const onRoute = routeCodes
   const others = value.countries.filter((code) => !routeCodes.includes(code))
@@ -88,19 +90,25 @@ export function CountriesFieldset({
       {onRoute.length > 0 && (
         <div className="gt-countries-group">
           <div className="gt-countries-head">
-            <h3 className="gt-subhead">{ru ? 'На маршруте' : 'On the route'}</h3>
-            <Button
-              dense
-              disabled={missing.length === 0 || disabled}
-              onClick={() => {
-                onChange(addSuggested(value, routeCodes))
-                setStatus(ru ? 'Предложенные страны отмечены' : 'Suggested countries ticked')
-              }}
-            >
-              {ru
-                ? `Отметить предложенные (${missing.length})`
-                : `Add suggested (${missing.length})`}
-            </Button>
+            <h3 ref={routeHeadRef} tabIndex={-1} className="gt-subhead">
+              {ru ? 'На маршруте' : 'On the route'}
+            </h3>
+            {missing.length > 0 && (
+              <Button
+                dense
+                disabled={disabled}
+                onClick={() => {
+                  onChange(addSuggested(value, routeCodes))
+                  setStatus(ru ? 'Предложенные страны отмечены' : 'Suggested countries ticked')
+                  // The button leaves with its job done; focus stays in this group.
+                  routeHeadRef.current?.focus()
+                }}
+              >
+                {ru
+                  ? `Отметить предложенные (${missing.length})`
+                  : `Add suggested (${missing.length})`}
+              </Button>
+            )}
           </div>
           <ul className="gt-checklist">{onRoute.map(row)}</ul>
         </div>
@@ -113,6 +121,7 @@ export function CountriesFieldset({
       )}
       <div className="gt-countries-group">
         <Field
+          ref={searchRef}
           type="search"
           label={ru ? 'Добавить другую страну' : 'Add another country'}
           value={query}
@@ -134,6 +143,8 @@ export function CountriesFieldset({
                     onChange(toggleCountry(value, code, true))
                     setQuery('')
                     setStatus(ru ? `Добавлено: ${name(code)}` : `${name(code)} added`)
+                    // The result list leaves with the query; focus goes back to the field it came from.
+                    searchRef.current?.focus()
                   }}
                 >
                   {name(code)}
@@ -157,7 +168,11 @@ export function CountriesFieldset({
         onChange={(event) => onChange(chooseNone(value, event.target.checked))}
       />
       <p className="gt-sr" role="status">
-        {status}
+        {results.length > 0
+          ? ru
+            ? `Найдено: ${results.length}`
+            : `${results.length} found`
+          : status}
       </p>
       {error && (
         <p id={`${id}-error`} className="gt-error-text" role="alert">

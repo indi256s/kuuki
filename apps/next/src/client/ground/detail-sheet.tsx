@@ -23,7 +23,7 @@ import { DestructiveConfirm } from '../ui/destructive-confirm'
 import { Sheet } from '../ui/sheet'
 import { useMobile } from '../ui/use-mobile'
 import { OfflineNote, PublicationPending } from './states'
-import { approxDistance, coverageNote, knownDuration } from './format'
+import { approxDistance, coverageNote, knownDuration, unknownText } from './format'
 import { cities, copy, nights } from './copy'
 import { dateRange, routeText, statusWord } from './journey-card'
 import { endpoints } from './list-model'
@@ -190,9 +190,11 @@ function Body({ locale, journey }: { locale: Locale; journey: GroundJourneyDto }
               )}
           </Row>
         ) : (
-          metrics.uniqueCities !== null && (
-            <Row label={t.uniqueCities}>{formatCount(locale, metrics.uniqueCities, cities)}</Row>
-          )
+          <Row label={t.uniqueCities}>
+            {metrics.uniqueCities === null
+              ? unknownText(locale)
+              : formatCount(locale, metrics.uniqueCities, cities)}
+          </Row>
         )}
         {journey.status === 'completed' && (
           <Row label={t.countries}>
@@ -278,7 +280,7 @@ export function GroundDetail({
           : null)
 
   const footer = journey ? (
-    <div className="gt-actions">
+    <div className="gt-list-actions">
       {journey.status !== 'cancelled' && (
         <Link
           className="ui-button"

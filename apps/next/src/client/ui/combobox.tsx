@@ -9,7 +9,7 @@ import {
   type Ref,
 } from 'react'
 import { foldSearchText } from '@kuuki/shared'
-import { formatCount, type Locale } from '../../lib/format'
+import { formatCount, type CountForms, type Locale } from '../../lib/format'
 import { Sheet } from './sheet'
 import { useAsyncSearch } from './use-async-search'
 import { useMobile } from './use-mobile'
@@ -344,10 +344,20 @@ export function Combobox({
 
 export type AsyncOption = { key: string; label: string; detail?: string }
 
+const letters: CountForms = {
+  en: { one: 'Type at least {count} letter.', other: 'Type at least {count} letters.' },
+  ru: {
+    one: 'Введите хотя бы {count} букву.',
+    few: 'Введите хотя бы {count} буквы.',
+    many: 'Введите хотя бы {count} букв.',
+    other: 'Введите хотя бы {count} буквы.',
+  },
+}
+
 const asyncCopy = {
   en: {
     searching: 'Searching…',
-    keepTyping: (min: number) => `Type at least ${min} letters.`,
+    keepTyping: (min: number) => formatCount('en', min, letters),
     none: (query: string) => `No match for “${query}”.`,
     failed: 'Search failed.',
     retry: 'Retry',
@@ -356,7 +366,7 @@ const asyncCopy = {
   },
   ru: {
     searching: 'Ищем…',
-    keepTyping: (min: number) => `Введите хотя бы ${min} буквы.`,
+    keepTyping: (min: number) => formatCount('ru', min, letters),
     none: (query: string) => `Ничего не найдено по запросу «${query}».`,
     failed: 'Поиск не удался.',
     retry: 'Повторить',
@@ -386,6 +396,7 @@ export function AsyncCombobox<T>({
   shortQueryText,
   footer,
   prefill,
+  refocus,
 }: {
   label: string
   locale: Locale
@@ -405,6 +416,8 @@ export function AsyncCombobox<T>({
   footer?: (close: () => void, query: string) => ReactNode
   /** A new `nonce` puts `text` in the field as an unresolved query, opens the list and focuses the field. */
   prefill?: { text: string; nonce: number }
+  /** A new (non-zero) value focuses the field without opening the list, e.g. after a form that replaced it closes. */
+  refocus?: number
 }) {
   const copy = asyncCopy[locale]
   const id = useId()
@@ -433,11 +446,20 @@ export function AsyncCombobox<T>({
     // Only a new nonce is a request; re-rendering with the same one must not steal focus again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill?.nonce])
+  useEffect(() => {
+    if (!refocus) return
+    restoringFocus.current = true
+    originRef.current?.focus()
+    restoringFocus.current = false
+    // Only a new value is a request, as with `prefill`.
+  }, [refocus])
   const query = text ?? ''
   const { state, retry } = useAsyncSearch(query, search, { minChars })
+  const loading = state.status === 'loading'
   const results = state.status === 'ready' ? state.results : []
-  const options = results.map(toOption)
-  const current = Math.min(active, Math.max(0, options.length - 1))
+  // While a new query loads the previous answer stays on screen for height, but is not selectable.
+  const options = (loading ? state.previous : results).map(toOption)
+  const current = loading ? -1 : Math.min(active, Math.max(0, options.length - 1))
   // Closing keeps the typed text as an unresolved query; only a choice replaces it.
   const close = () => setOpen(false)
   const choose = (item: T) => {
@@ -450,7 +472,7 @@ export function AsyncCombobox<T>({
       ? query.trim() === ''
         ? ''
         : copy.keepTyping(minChars)
-      : state.status === 'loading'
+      : loading
         ? copy.searching
         : state.status === 'error'
           ? copy.failed
@@ -471,6 +493,7 @@ export function AsyncCombobox<T>({
         setOpen(true)
         return
       }
+      if (loading) return
       setActive(
         Math.max(0, Math.min(options.length - 1, current + (event.key === 'ArrowDown' ? 1 : -1))),
       )
@@ -499,7 +522,7 @@ export function AsyncCombobox<T>({
       aria-controls={open && options.length > 0 ? `${id}-list` : undefined}
       aria-activedescendant={open && options[current] ? `${id}-option-${current}` : undefined}
       aria-autocomplete="list"
-      aria-busy={open && state.status === 'loading'}
+      aria-busy={open && loading}
       aria-invalid={!!error}
       aria-describedby={
         [error ? `${id}-error` : '', hint ? `${id}-hint` : ''].filter(Boolean).join(' ') ||
@@ -518,13 +541,15 @@ export function AsyncCombobox<T>({
       }}
       onFocus={(event) => {
         if (!disabled && !restoringFocus.current) {
-          setOpen(true)
+          // A field that already holds a choice opens on a click or an arrow, not on every Tab through it.
+          if (!selected || query !== '') setOpen(true)
           if (!inSheet) event.target.select()
         }
       }}
       onKeyDown={keydown}
     />
   )
+  const footerOpen = query.trim().length >= minChars || state.status === 'error'
   const list = (
     <>
       <p role="status">{status}</p>
@@ -546,8 +571,11 @@ export function AsyncCombobox<T>({
               id={`${id}-option-${index}`}
               role="option"
               aria-selected={current === index}
+              aria-disabled={loading || undefined}
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => choose(results[index])}
+              onClick={() => {
+                if (!loading) choose(results[index])
+              }}
             >
               <span className="flight-choice-text">
                 <span className="flight-choice-label">{highlight(option.label, query.trim())}</span>
@@ -557,9 +585,11 @@ export function AsyncCombobox<T>({
           ))}
         </ul>
       )}
-      {footer?.(close, query.trim())}
+      {footerOpen && footer?.(close, query.trim())}
     </>
   )
+  // Nothing to say yet (empty query, no footer): no empty bubble.
+  const hasList = status !== '' || options.length > 0 || (footerOpen && !!footer)
   return (
     <div
       className="flight-combobox"
@@ -577,7 +607,7 @@ export function AsyncCombobox<T>({
           {error}
         </p>
       )}
-      {open && !mobile && <div className="flight-search-popover">{list}</div>}
+      {open && !mobile && hasList && <div className="flight-search-popover">{list}</div>}
       {mobile && (
         <Sheet
           initialDetent={1}

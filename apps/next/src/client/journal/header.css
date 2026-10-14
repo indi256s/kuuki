@@ -79,7 +79,7 @@
   }
 }
 
-/* Phones: title and pill share the row. */
+/* Phones: Add sits beside the title when both fit; the pill and import link take the row below. */
 @media (max-width: 700px) {
   .journal-summary {
     display: flex;
@@ -90,25 +90,13 @@
     font-size: 17px;
     line-height: 24px;
   }
-  .journal-header-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
+  /* The title and Add share a row while both fit; Add drops below the title rather than squeeze it. */
   .journal-header-actions {
-    display: contents;
+    flex: 1 1 100%;
+    justify-content: flex-start;
   }
-  .journal-add-mobile {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .journal-review-pill {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
-  }
-  .journal-import-link {
-    grid-column: 1 / -1;
-    grid-row: 3;
+  .journal-header-actions:empty {
+    display: none;
   }
 }
 /* The desktop header carries Add flight; on phones the Journal header does (the tab rail has no action key). */

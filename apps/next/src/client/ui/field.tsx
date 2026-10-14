@@ -10,11 +10,23 @@ export type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'aria-inval
   error?: ReactNode
   /** Marks optional fields instead of starring required ones, e.g. «необязательно». */
   optionalLabel?: ReactNode
+  /** `below` puts the hint under the control, so a hint that changes while typing never moves the field. */
+  hintPosition?: 'above' | 'below'
 }
 
 // forwardRef + prop pass-through, so `<Field {...register('name')} />` works with react-hook-form.
 export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
-  { label, hint, error, optionalLabel, id, className, 'aria-describedby': describedBy, ...input },
+  {
+    label,
+    hint,
+    error,
+    optionalLabel,
+    hintPosition = 'above',
+    id,
+    className,
+    'aria-describedby': describedBy,
+    ...input
+  },
   ref,
 ) {
   const generated = useId()
@@ -25,17 +37,18 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   const describedIds =
     [describedBy, hint ? hintId : null, hasError ? errorId : null].filter(Boolean).join(' ') ||
     undefined
+  const hintLine = (
+    <p id={hintId} className="ui-field-hint">
+      {hint}
+    </p>
+  )
   return (
     <div className={clsx('ui-field', className)}>
       <label className="ui-field-label" htmlFor={inputId}>
         {label}
         {optionalLabel ? <span className="ui-field-optional">{optionalLabel}</span> : null}
       </label>
-      {hint ? (
-        <p id={hintId} className="ui-field-hint">
-          {hint}
-        </p>
-      ) : null}
+      {hint && hintPosition === 'above' ? hintLine : null}
       <input
         {...input}
         ref={ref}
@@ -44,6 +57,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
         aria-invalid={hasError ? true : undefined}
         aria-describedby={describedIds}
       />
+      {hint && hintPosition === 'below' ? hintLine : null}
       {/* The line is always rendered so an error appearing does not move anything below it. */}
       <p id={errorId} className="ui-field-error" role={hasError ? 'alert' : undefined}>
         {hasError ? error : null}

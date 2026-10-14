@@ -60,6 +60,8 @@ export function PlacePicker({
   const country = useMemo(() => countryNamer(locale), [locale])
   const [manual, setManual] = useState<string | null>(null)
   const [announce, setAnnounce] = useState('')
+  // Closing the manual form removes the button that held focus; the field takes it back without opening the list.
+  const [refocus, setRefocus] = useState(0)
   const search = (query: string, signal: AbortSignal) => searchPlaces(query, locale, { signal })
   return (
     <div className="gt-place">
@@ -84,6 +86,7 @@ export function PlacePicker({
         disabled={disabled}
         inputRef={inputRef}
         prefill={prefill}
+        refocus={refocus}
         footer={(close, query) => (
           <button
             type="button"
@@ -102,10 +105,14 @@ export function PlacePicker({
         <ManualPlaceForm
           locale={locale}
           initialName={manual}
-          onCancel={() => setManual(null)}
+          onCancel={() => {
+            setManual(null)
+            setRefocus((n) => n + 1)
+          }}
           onCreated={(place) => {
             onChange(place)
             setManual(null)
+            setRefocus((n) => n + 1)
             setAnnounce(
               ru
                 ? `Место «${placeLabel(place, locale)}» добавлено`
@@ -243,6 +250,7 @@ export function ManualPlaceForm({
           className="ui-field-input gt-select"
           value={countryCode}
           aria-invalid={submitted && problems.country ? true : undefined}
+          aria-describedby={submitted && problems.country ? `${fieldId}-country-error` : undefined}
           onChange={(event) => setCountryCode(event.target.value)}
         >
           <option value="">{ru ? 'Выберите страну' : 'Choose a country'}</option>
@@ -252,7 +260,11 @@ export function ManualPlaceForm({
             </option>
           ))}
         </select>
-        <p className="ui-field-error" role={submitted && problems.country ? 'alert' : undefined}>
+        <p
+          id={`${fieldId}-country-error`}
+          className="ui-field-error"
+          role={submitted && problems.country ? 'alert' : undefined}
+        >
           {submitted && problems.country ? (ru ? 'Выберите страну.' : 'Choose a country.') : null}
         </p>
       </div>

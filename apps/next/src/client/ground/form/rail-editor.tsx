@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Plus } from '@keyline-icons/react'
 import { GROUND_LIMITS, placeLabel, railLegDuration } from '@kuuki/shared/groundTravel'
-import type { Locale } from '../../../lib/format'
+import { formatDateOnly, type Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
 import { Disclosure } from '../../ui/disclosure'
 import { Field } from '../../ui/field'
@@ -11,7 +11,7 @@ import { knownDuration } from '../format'
 import { DateField, errorText, TimeField } from './fields'
 import { emptyLeg, legPreview, parseWholeNumber, type FormErrors, type LegDraft } from './model'
 import type { Preview } from './ocr/model'
-import { moved, OrderedRows } from './ordered-rows'
+import { moved, OrderedRows, RowFields } from './ordered-rows'
 import { PlacePicker } from './place-picker'
 
 /**
@@ -61,6 +61,7 @@ export function applyLegCandidates(
 const ignoreUnadded = () => {}
 
 export function RailEditor({
+  ownerId,
   legs,
   onChange,
   locale,
@@ -69,6 +70,7 @@ export function RailEditor({
   ocrSlot,
   ocrDraft,
 }: {
+  ownerId: string
   legs: LegDraft[]
   onChange: (legs: LegDraft[]) => void
   locale: Locale
@@ -82,6 +84,8 @@ export function RailEditor({
   const ru = locale === 'ru'
   const root = useRef<HTMLDivElement>(null)
   const added = useRef<string | null>(null)
+  // Legs added in this session start open even when their start is already known.
+  const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set())
   const name = (place: LegDraft['from']) => (place ? placeLabel(place, locale) : '?')
   const update = (id: string, patch: Partial<LegDraft>) =>
     onChange(legs.map((leg) => (leg.id === id ? { ...leg, ...patch } : leg)))
@@ -101,6 +105,7 @@ export function RailEditor({
     // A transfer starts where the last leg ended, so the known city is not typed again.
     const leg = emptyLeg(legs.at(-1)?.to ?? null)
     added.current = leg.id
+    setFresh((ids) => new Set(ids).add(leg.id))
     onChange([...legs, leg])
   }
   const full = legs.length >= GROUND_LIMITS.children
@@ -120,6 +125,7 @@ export function RailEditor({
       })}
       <OrderedRows
         items={legs}
+        ownerId={ownerId}
         locale={locale}
         label={ru ? 'Участки маршрута' : 'Route legs'}
         title={(leg, index) =>
@@ -132,6 +138,7 @@ export function RailEditor({
         }
         onMove={(from, to) => onChange(moved(legs, from, to))}
         onRemove={(id) => onChange(legs.filter((leg) => leg.id !== id))}
+        onRestore={onChange}
         removeDisabledReason={
           legs.length <= 1
             ? ru
@@ -147,6 +154,7 @@ export function RailEditor({
             locale={locale}
             errors={errors}
             disabled={disabled}
+            fresh={fresh.has(leg.id)}
             onChange={(patch) => update(leg.id, patch)}
           />
         )}
@@ -174,12 +182,14 @@ function LegFields({
   locale,
   errors,
   disabled,
+  fresh,
   onChange,
 }: {
   leg: LegDraft
   locale: Locale
   errors: FormErrors
   disabled: boolean
+  fresh: boolean
   onChange: (patch: Partial<LegDraft>) => void
 }) {
   const ru = locale === 'ru'
@@ -214,142 +224,163 @@ function LegFields({
         : ru
           ? 'Если оставить пустым, время возьмётся из расписания, когда его хватает.'
           : 'Left empty, the time comes from the schedule when it has enough to go on.'
+  const when = [
+    leg.departureDate && formatDateOnly(locale, leg.departureDate, 'medium'),
+    leg.departureTime,
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const summary = [
+    leg.from && leg.to ? `${placeLabel(leg.from, locale)} → ${placeLabel(leg.to, locale)}` : '',
+    when,
+  ]
+    .filter(Boolean)
+    .join(' · ')
   return (
-    <div className="gt-fields">
-      <div className="gt-pair">
-        <PlacePicker
-          label={ru ? 'Откуда' : 'From'}
-          locale={locale}
-          value={leg.from}
-          onChange={(from) => onChange({ from, fromCity: undefined })}
-          error={error('from')}
-          disabled={disabled}
-          prefill={prefill('from')}
-        />
-        <PlacePicker
-          label={ru ? 'Куда' : 'To'}
-          locale={locale}
-          value={leg.to}
-          onChange={(to) => onChange({ to, toCity: undefined })}
-          error={error('to')}
-          disabled={disabled}
-          prefill={prefill('to')}
-        />
-      </div>
-      {(pending.from || pending.to) && (
-        <div className="gt-actions">
-          {(['from', 'to'] as const).map((side) => {
-            const city = pending[side]
-            if (!city) return null
-            const sideLabel = side === 'from' ? (ru ? 'Откуда' : 'From') : ru ? 'Куда' : 'To'
-            const text = ru ? `Найти «${city}»` : `Find “${city}”`
-            return (
-              <Button
-                key={side}
-                disabled={disabled}
-                aria-label={`${text}: ${sideLabel}`}
-                onClick={() => setFind({ side, nonce: (find?.nonce ?? 0) + 1 })}
-              >
-                {text}
-              </Button>
-            )
-          })}
-        </div>
-      )}
-      <div className="gt-pair">
-        <DateField
-          label={ru ? 'Дата отправления' : 'Departure date'}
-          value={leg.departureDate}
-          locale={locale}
-          onChange={(departureDate) => onChange({ departureDate })}
-          error={error('departureDate')}
-          disabled={disabled}
-        />
-        <TimeField
-          label={ru ? 'Время отправления (местное)' : 'Departure time (local)'}
-          value={leg.departureTime}
-          locale={locale}
-          onChange={(departureTime) => onChange({ departureTime })}
-          error={error('departureTime')}
-          disabled={disabled}
-        />
-      </div>
-      <div className="gt-pair">
-        <DateField
-          label={ru ? 'Дата прибытия' : 'Arrival date'}
-          value={leg.arrivalDate}
-          locale={locale}
-          onChange={(arrivalDate) => onChange({ arrivalDate })}
-          error={error('arrivalDate')}
-          disabled={disabled}
-        />
-        <TimeField
-          label={ru ? 'Время прибытия (местное)' : 'Arrival time (local)'}
-          value={leg.arrivalTime}
-          locale={locale}
-          onChange={(arrivalTime) => onChange({ arrivalTime })}
-          error={error('arrivalTime')}
-          disabled={disabled}
-        />
-      </div>
-      <Disclosure
-        layout="row"
-        defaultOpen={detailsFilled}
-        summary={ru ? 'Станции, поезд и время в пути' : 'Stations, train and time on the train'}
-      >
-        <div className="gt-fields">
-          <div className="gt-pair">
-            <Field
-              label={ru ? 'Станция отправления' : 'Departure station'}
-              optionalLabel={ru ? 'необязательно' : 'optional'}
-              value={leg.fromStation}
-              maxLength={GROUND_LIMITS.station}
-              disabled={disabled}
-              onChange={(event) => onChange({ fromStation: event.target.value })}
-              error={error('fromStation')}
-            />
-            <Field
-              label={ru ? 'Станция прибытия' : 'Arrival station'}
-              optionalLabel={ru ? 'необязательно' : 'optional'}
-              value={leg.toStation}
-              maxLength={GROUND_LIMITS.station}
-              disabled={disabled}
-              onChange={(event) => onChange({ toStation: event.target.value })}
-              error={error('toStation')}
-            />
-          </div>
-          <div className="gt-pair">
-            <Field
-              label={ru ? 'Номер поезда' : 'Train number'}
-              optionalLabel={ru ? 'необязательно' : 'optional'}
-              value={leg.trainNumber}
-              maxLength={GROUND_LIMITS.trainNumber}
-              disabled={disabled}
-              onChange={(event) => onChange({ trainNumber: event.target.value })}
-              error={error('trainNumber')}
-            />
-            <Field
-              label={ru ? 'Перевозчик' : 'Operator'}
-              optionalLabel={ru ? 'необязательно' : 'optional'}
-              value={leg.operator}
-              maxLength={GROUND_LIMITS.operator}
-              disabled={disabled}
-              onChange={(event) => onChange({ operator: event.target.value })}
-              error={error('operator')}
-            />
-          </div>
-          <Field
-            label={ru ? 'Время в пути, минут' : 'Time on the train, minutes'}
-            optionalLabel={ru ? 'необязательно' : 'optional'}
-            hint={durationHint}
-            inputMode="numeric"
-            value={leg.durationManual}
+    <RowFields
+      locale={locale}
+      summary={summary}
+      complete={!!leg.from && !!leg.to}
+      hasError={Object.keys(errors).some((key) => key.startsWith(`leg:${leg.id}:`))}
+      fresh={fresh}
+    >
+      <div className="gt-fields">
+        <div className="gt-pair">
+          <PlacePicker
+            label={ru ? 'Откуда' : 'From'}
+            locale={locale}
+            value={leg.from}
+            onChange={(from) => onChange({ from, fromCity: undefined })}
+            error={error('from')}
             disabled={disabled}
-            onChange={(event) => onChange({ durationManual: event.target.value })}
-            error={error('durationManual')}
+            prefill={prefill('from')}
+          />
+          <PlacePicker
+            label={ru ? 'Куда' : 'To'}
+            locale={locale}
+            value={leg.to}
+            onChange={(to) => onChange({ to, toCity: undefined })}
+            error={error('to')}
+            disabled={disabled}
+            prefill={prefill('to')}
           />
         </div>
-      </Disclosure>
-    </div>
+        {(pending.from || pending.to) && (
+          <div className="gt-actions">
+            {(['from', 'to'] as const).map((side) => {
+              const city = pending[side]
+              if (!city) return null
+              const sideLabel = side === 'from' ? (ru ? 'Откуда' : 'From') : ru ? 'Куда' : 'To'
+              const text = ru ? `Найти «${city}»` : `Find “${city}”`
+              return (
+                <Button
+                  key={side}
+                  disabled={disabled}
+                  aria-label={`${text}: ${sideLabel}`}
+                  onClick={() => setFind({ side, nonce: (find?.nonce ?? 0) + 1 })}
+                >
+                  {text}
+                </Button>
+              )
+            })}
+          </div>
+        )}
+        <div className="gt-pair">
+          <DateField
+            label={ru ? 'Дата отправления' : 'Departure date'}
+            value={leg.departureDate}
+            locale={locale}
+            onChange={(departureDate) => onChange({ departureDate })}
+            error={error('departureDate')}
+            disabled={disabled}
+          />
+          <TimeField
+            label={ru ? 'Время отправления (местное)' : 'Departure time (local)'}
+            value={leg.departureTime}
+            locale={locale}
+            onChange={(departureTime) => onChange({ departureTime })}
+            error={error('departureTime')}
+            disabled={disabled}
+          />
+        </div>
+        <div className="gt-pair">
+          <DateField
+            label={ru ? 'Дата прибытия' : 'Arrival date'}
+            value={leg.arrivalDate}
+            locale={locale}
+            onChange={(arrivalDate) => onChange({ arrivalDate })}
+            error={error('arrivalDate')}
+            disabled={disabled}
+          />
+          <TimeField
+            label={ru ? 'Время прибытия (местное)' : 'Arrival time (local)'}
+            value={leg.arrivalTime}
+            locale={locale}
+            onChange={(arrivalTime) => onChange({ arrivalTime })}
+            error={error('arrivalTime')}
+            disabled={disabled}
+          />
+        </div>
+        <Disclosure
+          layout="row"
+          defaultOpen={detailsFilled}
+          summary={ru ? 'Станции, поезд и время в пути' : 'Stations, train and time on the train'}
+        >
+          <div className="gt-fields">
+            <div className="gt-pair">
+              <Field
+                label={ru ? 'Станция отправления' : 'Departure station'}
+                optionalLabel={ru ? 'необязательно' : 'optional'}
+                value={leg.fromStation}
+                maxLength={GROUND_LIMITS.station}
+                disabled={disabled}
+                onChange={(event) => onChange({ fromStation: event.target.value })}
+                error={error('fromStation')}
+              />
+              <Field
+                label={ru ? 'Станция прибытия' : 'Arrival station'}
+                optionalLabel={ru ? 'необязательно' : 'optional'}
+                value={leg.toStation}
+                maxLength={GROUND_LIMITS.station}
+                disabled={disabled}
+                onChange={(event) => onChange({ toStation: event.target.value })}
+                error={error('toStation')}
+              />
+            </div>
+            <div className="gt-pair">
+              <Field
+                label={ru ? 'Номер поезда' : 'Train number'}
+                optionalLabel={ru ? 'необязательно' : 'optional'}
+                value={leg.trainNumber}
+                maxLength={GROUND_LIMITS.trainNumber}
+                disabled={disabled}
+                onChange={(event) => onChange({ trainNumber: event.target.value })}
+                error={error('trainNumber')}
+              />
+              <Field
+                label={ru ? 'Перевозчик' : 'Operator'}
+                optionalLabel={ru ? 'необязательно' : 'optional'}
+                value={leg.operator}
+                maxLength={GROUND_LIMITS.operator}
+                disabled={disabled}
+                onChange={(event) => onChange({ operator: event.target.value })}
+                error={error('operator')}
+              />
+            </div>
+            <Field
+              label={ru ? 'Время в пути, минут' : 'Time on the train, minutes'}
+              optionalLabel={ru ? 'необязательно' : 'optional'}
+              hint={durationHint}
+              hintPosition="below"
+              inputMode="numeric"
+              value={leg.durationManual}
+              disabled={disabled}
+              onChange={(event) => onChange({ durationManual: event.target.value })}
+              error={error('durationManual')}
+            />
+          </div>
+        </Disclosure>
+      </div>
+    </RowFields>
   )
 }

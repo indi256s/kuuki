@@ -4,7 +4,10 @@
   gap: var(--space-6);
   max-width: 760px;
   min-width: 0;
-  margin-block-end: calc(var(--space-12) * 2);
+  /* Clears the floating action bar wherever the shell puts it. */
+  margin-block-end: calc(
+    var(--action-bar-bottom, var(--space-4)) + var(--space-12) + var(--space-6)
+  );
 }
 .gt-sections,
 .gt-row-fieldset,
@@ -25,25 +28,25 @@
 }
 .gt-h {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 24px;
   font-weight: 600;
 }
 .gt-subhead {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 20px;
   font-weight: 600;
 }
 .gt-muted {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   color: var(--text-muted);
 }
 .gt-error-text {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   color: var(--danger-text);
 }
@@ -67,7 +70,7 @@
 }
 .gt-restored p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   color: var(--text-muted);
 }
@@ -148,6 +151,29 @@
 .gt-grip:active {
   cursor: grabbing;
 }
+/* Move and remove buttons: icon only, a 44 x 44 target. */
+.ui-button.gt-icon-button:has(> .ui-button-icon) {
+  grid-template-columns: auto;
+  width: 44px;
+  padding: 0;
+}
+.gt-row-fields .ui-disclosure-text {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: baseline;
+  justify-content: space-between;
+  flex: 1;
+  gap: var(--space-3);
+}
+.gt-row-fields .ui-disclosure-summary {
+  flex: none;
+  font-size: 13px;
+}
+.gt-row-fields .ui-disclosure-description {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 24px;
+}
 .gt-place {
   display: grid;
   gap: var(--space-3);
@@ -178,7 +204,7 @@
 }
 .gt-metrics > div {
   display: grid;
-  gap: 2px;
+  gap: var(--space-1);
 }
 .gt-metrics dt {
   font-size: 13px;
@@ -237,11 +263,28 @@
   text-align: start;
   cursor: pointer;
 }
-.gt-country-choice:hover {
+.gt-country-choice {
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.gt-country-choice:active {
   background: var(--surface-inset);
 }
+@media (hover: hover) and (pointer: fine) {
+  .gt-country-choice:hover {
+    background: var(--surface-inset);
+  }
+}
 
-/* Save notices */
+/* Save notices: an Arc alert, with its buttons beneath it. */
+.gt-notices {
+  display: grid;
+  gap: var(--space-3);
+}
+.gt-notices:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
 .gt-notice {
   display: grid;
   gap: var(--space-3);
@@ -249,9 +292,6 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
   background: var(--surface);
-}
-.gt-notice[data-tone='warning'] .gt-notice-title {
-  color: var(--warning-text);
 }
 .gt-notice-title {
   margin: 0;
@@ -301,4 +341,33 @@
   color: var(--text);
   font-weight: 500;
   text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.gt-choose a:focus-visible,
+.gt-back:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.gt-choose a:active {
+  background: var(--surface);
+}
+@media (hover: hover) and (pointer: fine) {
+  .gt-choose a:hover {
+    background: var(--surface);
+  }
+  .gt-back:hover {
+    color: var(--text);
+  }
+}
+/* "Back to the list": a text link with a 44px target. */
+.gt-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent-text, var(--text));
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}
+.gt-back:active {
+  color: var(--text);
 }

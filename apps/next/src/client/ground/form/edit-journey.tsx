@@ -8,6 +8,7 @@ import type { Locale } from '../../../lib/format'
 import { trackPrivateOperation } from '../../activity'
 import { Button } from '../../ui/button'
 import { readJourney } from '../api'
+import { GroundFormSkeleton } from '../ground-skeleton'
 import { JourneyForm } from './journey-form'
 import type { RailOcrSlotApi } from './rail-editor'
 import type { ReactNode } from 'react'
@@ -62,18 +63,16 @@ export function EditJourney({
   }, [id, attempt])
 
   if (!loaded || loaded.id !== id || loaded.attempt !== attempt)
-    return (
-      <p className="gt-loading" role="status">
-        {ru ? 'Загружаем путешествие…' : 'Loading the journey…'}
-      </p>
-    )
+    return <GroundFormSkeleton label={ru ? 'Загружаем путешествие…' : 'Loading the journey…'} />
   if (loaded.kind === 'missing')
     return (
       <div className="gt-notice">
         <p className="gt-notice-title">
           {ru ? 'Этого путешествия нет в вашем списке.' : 'This journey is not in your list.'}
         </p>
-        <Link href={returnTo}>{ru ? 'К списку' : 'Back to the list'}</Link>
+        <Link href={returnTo} className="gt-back">
+          {ru ? 'К списку' : 'Back to the list'}
+        </Link>
       </div>
     )
   if (loaded.kind === 'error')
@@ -86,7 +85,9 @@ export function EditJourney({
           <Button variant="primary" onClick={() => setAttempt((n) => n + 1)}>
             {ru ? 'Повторить' : 'Retry'}
           </Button>
-          <Link href={returnTo}>{ru ? 'К списку' : 'Back to the list'}</Link>
+          <Link href={returnTo} className="gt-back">
+            {ru ? 'К списку' : 'Back to the list'}
+          </Link>
         </div>
       </div>
     )

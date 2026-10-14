@@ -47,7 +47,7 @@ type JourneySource = CountryDetail['journeys'][number]
 
 const JOURNEY_FALLBACK: Record<JourneySource['mode'], Record<Locale, string>> = {
   rail: { en: 'Train journey', ru: 'Поездка на поезде' },
-  road: { en: 'Road trip', ru: 'Поездка на машине' },
+  road: { en: 'Road trip', ru: 'Поездка на авто' },
 }
 
 /** "3 Oct 2026", "3 Oct 2026 – 9 Oct 2026" or null when neither end is known. */

@@ -5,7 +5,7 @@
 }
 .gt-ocr-heading {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 24px;
 }
 .gt-ocr-bar {
@@ -41,7 +41,7 @@
 }
 .gt-ocr-status {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
 }
 .gt-ocr-file-actions {
@@ -55,7 +55,7 @@
   min-width: 0;
   margin: 0;
   padding: var(--space-4);
-  border: 1px solid var(--control-border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
 }
 .gt-ocr-preview legend {
@@ -64,7 +64,7 @@
 }
 .gt-ocr-flags {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   font-weight: 600;
 }
@@ -78,4 +78,10 @@
   .gt-ocr-replace {
     grid-template-columns: minmax(0, 1fr) auto;
   }
+}
+.gt-ocr-check {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
 }

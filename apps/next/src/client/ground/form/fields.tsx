@@ -2,6 +2,7 @@
 
 import { useId, type KeyboardEvent, type TextareaHTMLAttributes } from 'react'
 import type { Locale } from '../../../lib/format'
+import { Calendar } from '../../ui/calendar'
 import { Field } from '../../ui/field'
 import type { ErrorCode } from './model'
 
@@ -17,7 +18,7 @@ export function errorText(code: ErrorCode | undefined, locale: Locale): string |
     case 'required':
       return ru ? 'Выберите место из списка.' : 'Choose a place from the list.'
     case 'date':
-      return ru ? 'Дата в формате ГГГГ-ММ-ДД.' : 'Use a valid date.'
+      return ru ? 'Укажите существующую дату.' : 'Use a valid date.'
     case 'time':
       return ru ? 'Время в формате ЧЧ:ММ.' : 'Use a valid time, HH:MM.'
     case 'date-order':
@@ -39,7 +40,7 @@ export function errorText(code: ErrorCode | undefined, locale: Locale): string |
   }
 }
 
-/** A native date input. An empty value is stated as "Date unknown": the journey is saved without a date. */
+/** The typeable date field. An empty value is saved as no date: the label says it is optional. */
 export function DateField({
   label,
   value,
@@ -56,15 +57,13 @@ export function DateField({
   disabled?: boolean
 }) {
   return (
-    <Field
-      type="date"
-      label={label}
-      optionalLabel={locale === 'ru' ? 'необязательно' : 'optional'}
-      hint={value === '' ? (locale === 'ru' ? 'Дата неизвестна' : 'Date unknown') : undefined}
+    <Calendar
+      label={`${label} (${locale === 'ru' ? 'необязательно' : 'optional'})`}
       value={value}
-      disabled={disabled}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={onChange}
+      locale={locale}
       error={error}
+      disabled={disabled}
     />
   )
 }

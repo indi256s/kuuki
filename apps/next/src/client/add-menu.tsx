@@ -13,6 +13,7 @@ export function AddMenu({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
       align="end"
       sideOffset={8}
       className="add-menu"
+      scrim="mobile"
       trigger={
         <button type="button" className="add-button">
           <Plus size={18} strokeWidth={2} aria-hidden="true" />

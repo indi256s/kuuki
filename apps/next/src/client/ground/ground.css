@@ -22,9 +22,6 @@
   gap: var(--space-5);
   min-width: 0;
 }
-.gt-results[data-refreshing] {
-  opacity: 0.6;
-}
 .gt-note {
   margin: 0;
   font-size: 13px;
@@ -47,52 +44,49 @@
   font-weight: 600;
 }
 
-/* Totals: two quiet level-1 blocks, one per mode. */
+/* Totals: one quiet line per mode, in a single level-1 block. */
 .gt-totals {
   display: grid;
-  gap: var(--space-3);
-}
-.gt-totals-block {
-  display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding: var(--space-4) var(--space-5);
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
-.gt-totals-title {
+.gt-totals-lines {
+  display: grid;
+  gap: var(--space-1);
   margin: 0;
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
+  padding: 0;
+  list-style: none;
 }
-.gt-totals-none {
-  margin: 0;
-  color: var(--text-muted);
+.gt-totals-line {
   font-size: 15px;
   line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
-.gt-totals-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-3) var(--space-5);
-  margin: 0;
+.gt-totals-line strong {
+  font-weight: 500;
 }
-.gt-totals-list > div,
+.gt-totals-line small,
+.gt-facts small {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
 .gt-facts > div {
   display: flex;
   flex-direction: column-reverse;
   gap: var(--space-1);
   min-width: 0;
 }
-.gt-totals-list dt,
 .gt-facts dt {
   color: var(--text-muted);
   font-size: 13px;
   line-height: 20px;
 }
-.gt-totals-list dd,
 .gt-facts dd {
   margin: 0;
   display: flex;
@@ -102,20 +96,14 @@
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.gt-totals-list small,
-.gt-facts small {
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
-}
 
 /* Sections and cards. */
-.gt-section {
+.gt-list-section {
   display: grid;
   gap: var(--space-3);
   min-width: 0;
 }
-.gt-section h2 {
+.gt-list-section h2 {
   margin: 0;
   font-size: 17px;
   line-height: 24px;
@@ -164,9 +152,15 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+.gt-card {
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
 @media (hover: hover) and (pointer: fine) {
   .gt-card:hover {
     background: var(--surface-inset);
+  }
+  .gt-skeleton-card:hover {
+    background: var(--surface);
   }
 }
 .gt-card-meta,
@@ -296,14 +290,14 @@
   line-height: 20px;
   color: var(--text-muted);
 }
-.gt-actions {
+.gt-list-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-3);
   justify-content: flex-end;
   min-width: 0;
 }
-.gt-actions .ui-button {
+.gt-list-actions .ui-button {
   font-weight: 500;
 }
 .gt-alert-actions {
@@ -325,6 +319,9 @@
   border-radius: var(--radius-sm);
   background: var(--skeleton);
 }
+.gt-skeleton-totals {
+  min-height: 112px;
+}
 .gt-skeleton-bar.is-toolbar {
   height: 32px;
   max-width: 240px;
@@ -340,6 +337,28 @@
 .gt-skeleton-bar.is-facts {
   height: 24px;
   width: 45%;
+}
+.gt-form-skeleton {
+  display: grid;
+  gap: var(--space-8);
+  max-width: 760px;
+  min-width: 0;
+}
+.gt-form-skeleton-section {
+  display: grid;
+  gap: var(--space-4);
+}
+.gt-skeleton-bar.is-form-title {
+  height: 40px;
+  width: 50%;
+}
+.gt-skeleton-bar.is-section-title {
+  height: 24px;
+  width: 30%;
+}
+.gt-skeleton-bar.is-block {
+  height: 160px;
+  border-radius: var(--radius-md);
 }
 @media (max-width: 700px) {
   .gt-page,

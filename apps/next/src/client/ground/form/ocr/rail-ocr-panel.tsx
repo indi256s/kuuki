@@ -3,13 +3,15 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { GROUND_LIMITS, placeLabel } from '@kuuki/shared/groundTravel'
 import type { RailCandidateField } from '../../../../../../../functions/api/_services/railTicketOcr'
-import { formatCount, type Locale } from '../../../../lib/format'
+import { formatCount, formatDateOnly, type Locale } from '../../../../lib/format'
 import { FileDropzone } from '../../../import/file-dropzone'
 import { Button } from '../../../ui/button'
+import { Calendar } from '../../../ui/calendar'
 import { Checkbox } from '../../../ui/checkbox'
 import { DestructiveConfirm } from '../../../ui/destructive-confirm'
 import { Field } from '../../../ui/field'
 import { blockImplicitSubmit } from '../fields'
+import { RowFields } from '../ordered-rows'
 import type { RailOcrSlotApi } from '../rail-editor'
 import { T, files as fileForms, statusText, trains, unclear } from './copy'
 import {
@@ -302,6 +304,21 @@ function PreviewCard({
   ].filter(Boolean)
   const legend = `${fileName} · ${T.train[l]} ${index + 1}`
   const targetId = legs.some((leg) => leg.id === target) ? target : ''
+  // Cards the reader is sure of read as one line; a "Check this" card opens so the doubtful field is in view.
+  const unclear =
+    preview.uncertain.length > 0 ||
+    dateNeedsYear(preview.departureDate) ||
+    dateNeedsYear(preview.arrivalDate)
+  const printedDate = (date: PreviewDate) =>
+    date.partial ? '' : date.value && formatDateOnly(locale, date.value, 'medium')
+  const summary = [
+    [preview.fromStation || preview.fromCity, preview.toStation || preview.toCity]
+      .filter(Boolean)
+      .join(' → '),
+    [printedDate(preview.departureDate), preview.departureTime].filter(Boolean).join(' '),
+  ]
+    .filter(Boolean)
+    .join(' · ')
   return (
     <fieldset className="gt-ocr-preview" disabled={disabled} onKeyDown={blockImplicitSubmit}>
       <legend>{legend}</legend>
@@ -311,102 +328,116 @@ function PreviewCard({
         onChange={(event) => onEdit({ include: event.target.checked })}
       />
       {flags.length > 0 && <p className="gt-ocr-flags">{flags.join(' · ')}</p>}
-      <div className="gt-pair">
-        <Field
-          label={T.departureStation[l]}
-          hint={check('fromStation') ?? check('fromCity')}
-          value={preview.fromStation}
-          maxLength={GROUND_LIMITS.station}
-          onChange={(event) => onEdit({ fromStation: event.target.value })}
-        />
-        <Field
-          label={T.arrivalStation[l]}
-          hint={check('toStation') ?? check('toCity')}
-          value={preview.toStation}
-          maxLength={GROUND_LIMITS.station}
-          onChange={(event) => onEdit({ toStation: event.target.value })}
-        />
-      </div>
-      {(preview.fromCity || preview.toCity) && (
-        <p className="gt-muted">
-          {`${T.ticketCity[l]}: ${[preview.fromCity, preview.toCity].filter(Boolean).join(' → ')}. ${T.ticketCityNote[l]}`}
-        </p>
-      )}
-      <div className="gt-pair">
-        <DateInput
-          label={T.departureDate[l]}
-          date={preview.departureDate}
-          uncertain={isUncertain(preview, 'departureDate')}
-          locale={locale}
-          onChange={(departureDate) => onEdit({ departureDate })}
-        />
-        <Field
-          type="time"
-          label={T.departureTime[l]}
-          hint={check('departureTime')}
-          value={preview.departureTime}
-          onChange={(event) => onEdit({ departureTime: event.target.value })}
-        />
-      </div>
-      <div className="gt-pair">
-        <DateInput
-          label={T.arrivalDate[l]}
-          date={preview.arrivalDate}
-          uncertain={isUncertain(preview, 'arrivalDate')}
-          locale={locale}
-          onChange={(arrivalDate) => onEdit({ arrivalDate })}
-        />
-        <Field
-          type="time"
-          label={T.arrivalTime[l]}
-          hint={check('arrivalTime')}
-          value={preview.arrivalTime}
-          onChange={(event) => onEdit({ arrivalTime: event.target.value })}
-        />
-      </div>
-      <div className="gt-pair">
-        <Field
-          label={T.trainNumber[l]}
-          hint={check('trainNumber')}
-          value={preview.trainNumber}
-          maxLength={GROUND_LIMITS.trainNumber}
-          onChange={(event) => onEdit({ trainNumber: event.target.value })}
-        />
-        <Field
-          label={T.operator[l]}
-          hint={check('operator')}
-          value={preview.operator}
-          maxLength={GROUND_LIMITS.operator}
-          onChange={(event) => onEdit({ operator: event.target.value })}
-        />
-      </div>
-      <div className="gt-ocr-replace">
-        <div className="ui-field">
-          <label className="ui-field-label" htmlFor={selectId}>
-            {T.replaceWhich[l]}
-          </label>
-          <select
-            id={selectId}
-            className="ui-field-input gt-select"
-            value={targetId}
-            onChange={(event) => setTarget(event.target.value)}
-          >
-            <option value="">{T.replaceLeg[l]}</option>
-            {legs.map((leg, legIndex) => (
-              <option key={leg.id} value={leg.id}>
-                {legName(legIndex, leg)}
-              </option>
-            ))}
-          </select>
+      <RowFields
+        locale={locale}
+        summary={summary}
+        complete={!unclear}
+        hasError={false}
+        fresh={false}
+      >
+        <div className="gt-pair">
+          <Field
+            label={T.departureStation[l]}
+            hint={check('fromStation') ?? check('fromCity')}
+            hintPosition="below"
+            value={preview.fromStation}
+            maxLength={GROUND_LIMITS.station}
+            onChange={(event) => onEdit({ fromStation: event.target.value })}
+          />
+          <Field
+            label={T.arrivalStation[l]}
+            hint={check('toStation') ?? check('toCity')}
+            hintPosition="below"
+            value={preview.toStation}
+            maxLength={GROUND_LIMITS.station}
+            onChange={(event) => onEdit({ toStation: event.target.value })}
+          />
         </div>
-        <Button
-          disabled={disabled || !targetId}
-          disabledReason={targetId ? undefined : T.replaceLeg[l]}
-          onClick={() => onReplaceLeg(targetId)}
-        >
-          {T.replaceThis[l]}
-        </Button>
-      </div>
+        {(preview.fromCity || preview.toCity) && (
+          <p className="gt-muted">
+            {`${T.ticketCity[l]}: ${[preview.fromCity, preview.toCity].filter(Boolean).join(' → ')}. ${T.ticketCityNote[l]}`}
+          </p>
+        )}
+        <div className="gt-pair">
+          <DateInput
+            label={T.departureDate[l]}
+            date={preview.departureDate}
+            uncertain={isUncertain(preview, 'departureDate')}
+            locale={locale}
+            onChange={(departureDate) => onEdit({ departureDate })}
+          />
+          <Field
+            type="time"
+            label={T.departureTime[l]}
+            hint={check('departureTime')}
+            hintPosition="below"
+            value={preview.departureTime}
+            onChange={(event) => onEdit({ departureTime: event.target.value })}
+          />
+        </div>
+        <div className="gt-pair">
+          <DateInput
+            label={T.arrivalDate[l]}
+            date={preview.arrivalDate}
+            uncertain={isUncertain(preview, 'arrivalDate')}
+            locale={locale}
+            onChange={(arrivalDate) => onEdit({ arrivalDate })}
+          />
+          <Field
+            type="time"
+            label={T.arrivalTime[l]}
+            hint={check('arrivalTime')}
+            hintPosition="below"
+            value={preview.arrivalTime}
+            onChange={(event) => onEdit({ arrivalTime: event.target.value })}
+          />
+        </div>
+        <div className="gt-pair">
+          <Field
+            label={T.trainNumber[l]}
+            hint={check('trainNumber')}
+            hintPosition="below"
+            value={preview.trainNumber}
+            maxLength={GROUND_LIMITS.trainNumber}
+            onChange={(event) => onEdit({ trainNumber: event.target.value })}
+          />
+          <Field
+            label={T.operator[l]}
+            hint={check('operator')}
+            hintPosition="below"
+            value={preview.operator}
+            maxLength={GROUND_LIMITS.operator}
+            onChange={(event) => onEdit({ operator: event.target.value })}
+          />
+        </div>
+        <div className="gt-ocr-replace">
+          <div className="ui-field">
+            <label className="ui-field-label" htmlFor={selectId}>
+              {T.replaceWhich[l]}
+            </label>
+            <select
+              id={selectId}
+              className="ui-field-input gt-select"
+              value={targetId}
+              onChange={(event) => setTarget(event.target.value)}
+            >
+              <option value="">{T.replaceLeg[l]}</option>
+              {legs.map((leg, legIndex) => (
+                <option key={leg.id} value={leg.id}>
+                  {legName(legIndex, leg)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button
+            disabled={disabled || !targetId}
+            disabledReason={targetId ? undefined : T.replaceLeg[l]}
+            onClick={() => onReplaceLeg(targetId)}
+          >
+            {T.replaceThis[l]}
+          </Button>
+        </div>
+      </RowFields>
     </fieldset>
   )
 }
@@ -428,13 +459,15 @@ function DateInput({
   const l = locale === 'ru' ? 'ru' : 'en'
   if (!date.partial)
     return (
-      <Field
-        type="date"
-        label={label}
-        hint={uncertain ? T.checkThis[l] : undefined}
-        value={date.value}
-        onChange={(event) => onChange({ ...date, value: event.target.value })}
-      />
+      <div>
+        <Calendar
+          label={label}
+          value={date.value}
+          locale={locale}
+          onChange={(value) => onChange({ ...date, value })}
+        />
+        {uncertain && <p className="gt-ocr-check">{T.checkThis[l]}</p>}
+      </div>
     )
   const printed = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(
     // 2000 is a leap year, so 29 February prints; the year is never shown or used.
@@ -448,6 +481,7 @@ function DateInput({
       autoComplete="off"
       label={`${label}: ${printed}`}
       hint={`${T.yearMissing[l]}${uncertain ? ` ${T.checkThis[l]}` : ''}`}
+      hintPosition="below"
       placeholder={T.year[l]}
       value={date.year}
       error={typed && dateNeedsYear(date) ? T.yearProblem[l] : undefined}

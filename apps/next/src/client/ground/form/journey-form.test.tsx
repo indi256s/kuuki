@@ -158,7 +158,11 @@ describe('JourneyForm', () => {
     }
     writeDraft('owner-a', 'new-road', { v: 1, journeyId, baseVersion: null, state, pending })
     render(<JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />)
-    expect(screen.getByRole('alert').textContent).toBe('We could not confirm the save')
+    expect(screen.getByRole('alert').textContent).toContain('We could not confirm the save')
+    // The buttons sit outside the live region.
+    expect(screen.getByRole('alert')).not.toContainElement(
+      screen.getByRole('button', { name: 'Check result' }),
+    )
     expect(screen.getByRole('button', { name: 'Check result' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Retry original save' })).toBeTruthy()
   })

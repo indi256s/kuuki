@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 export type AsyncSearch<T> =
   /** Query shorter than `minChars`: nothing was asked. */
   | { status: 'idle' }
-  | { status: 'loading' }
+  /** `previous` answered an older query: it may stay on screen, but it must never be chosen. */
+  | { status: 'loading'; previous: T[] }
   | { status: 'ready'; results: T[] }
   | { status: 'error' }
 
@@ -13,7 +14,8 @@ type Settled<T> = { query: string; attempt: number; outcome: 'ready' | 'error'; 
 /**
  * Debounced, abortable search whose answer always belongs to the query on screen. A response for an older query
  * (or an older retry) is never shown, even when the search function ignores its signal: the state is keyed by
- * the query it answered, so a stale entry simply does not match.
+ * the query it answered, so a stale entry simply does not match. While a new query loads, the last answer is
+ * handed back as `previous` so a list can keep its height; it is not a result.
  */
 export function useAsyncSearch<T>(
   query: string,
@@ -24,6 +26,8 @@ export function useAsyncSearch<T>(
   const [attempt, setAttempt] = useState(0)
   const [settled, setSettled] = useState<Settled<T> | null>(null)
   const active = trimmed.length >= minChars
+  // A new session of typing starts with no old answer to show.
+  if (!active && settled !== null) setSettled(null)
 
   useEffect(() => {
     if (!active) return
@@ -55,6 +59,6 @@ export function useAsyncSearch<T>(
       settled.outcome === 'ready'
         ? { status: 'ready', results: settled.results }
         : { status: 'error' }
-  else state = { status: 'loading' }
+  else state = { status: 'loading', previous: settled?.outcome === 'ready' ? settled.results : [] }
   return { state, retry: () => setAttempt((n) => n + 1) }
 }

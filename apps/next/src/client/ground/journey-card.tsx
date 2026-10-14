@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Car, Train } from '@keyline-icons/react'
 import { placeLabel, type GroundJourneyDto } from '@kuuki/shared/groundTravel'
 import { formatCount, formatDateOnly, type Locale } from '../../lib/format'
-import { approxDistance, coverageNote, knownDuration, unknownText } from './format'
+import { approxDistance, coverageNote, knownDuration } from './format'
 import { cities, copy, legs, stops } from './copy'
 import { endpoints, groupOf } from './list-model'
 import { groundHref, type GroundView } from './url'
@@ -63,7 +63,7 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
       ) : (
         <span>
           {metrics.uniqueCities === null
-            ? unknownText(locale)
+            ? t.citiesUnknown
             : formatCount(locale, metrics.uniqueCities, cities)}
         </span>
       )}

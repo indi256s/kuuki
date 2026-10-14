@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
 import type { GroundMutationResult } from '@kuuki/shared/groundTravel'
 import * as api from './api'
+import { announceShellNotice } from '../shell-notices'
 import { GroundTravelPage } from './ground-page'
 import { listOf, rail, road, uuid } from './test-fixtures'
 
@@ -17,6 +18,7 @@ vi.mock('next/link', async () => ({
 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
+vi.mock('../shell-notices', () => ({ announceShellNotice: vi.fn() }))
 vi.mock('./api', () => ({
   listJourneys: vi.fn(),
   readJourney: vi.fn(),
@@ -80,7 +82,7 @@ describe('list', () => {
     expect(done).not.toHaveTextContent(/\b0 km\b/)
     const dated = document.querySelector(`[data-journey-card="${recent.id}"]`) as HTMLElement
     expect(within(dated).getByText(/≈ 321 km/)).toBeInTheDocument()
-    expect(within(dated).getByText(/Train/)).toBeInTheDocument()
+    expect(within(dated).getByText(/Rail/)).toBeInTheDocument()
   })
 
   it('flags a past-dated plan without changing its status', async () => {
@@ -110,11 +112,11 @@ describe('list', () => {
       query.cancelled ? listOf([cancelled]) : listOf(all),
     )
     mount()
-    await screen.findByRole('region', { name: 'Totals of completed journeys' })
+    await screen.findByRole('heading', { level: 2, name: 'Totals of completed journeys' })
     await u.click(screen.getByRole('button', { name: 'Cancelled' }))
     await screen.findByRole('heading', { level: 2, name: 'Cancelled' })
     expect(cards()).toEqual([cancelled.id])
-    expect(screen.queryByRole('region', { name: 'Totals of completed journeys' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Totals of completed journeys' })).toBeNull()
     expect(api.listJourneys).toHaveBeenLastCalledWith(
       expect.objectContaining({ cancelled: true }),
       expect.anything(),
@@ -127,7 +129,7 @@ describe('states', () => {
     vi.mocked(api.listJourneys).mockResolvedValue(listOf([]))
     mount()
     await screen.findByText('No ground journeys yet')
-    expect(screen.queryByRole('region', { name: 'Totals of completed journeys' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Totals of completed journeys' })).toBeNull()
     expect(screen.getAllByRole('button', { name: /Add journey/ }).length).toBeGreaterThan(0)
   })
 
@@ -217,9 +219,8 @@ describe('detail sheet', () => {
 
   it('opens from ?journey= with the sketch label and the form links', async () => {
     const dialog = await openPlan()
-    expect(
-      within(dialog).getByRole('img', { name: 'Route sketch (straight lines)' }),
-    ).toBeInTheDocument()
+    // The drawing is hidden from assistive technology; its caption names it.
+    expect(within(dialog).getByText('Route sketch (straight lines)')).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: 'Edit' })).toHaveAttribute(
       'href',
       expect.stringContaining(`/ground-travel/${upcoming.id}/edit?return=`),
@@ -402,7 +403,12 @@ describe('detail sheet', () => {
     await u.click(within(dialog).getByRole('button', { name: 'Delete' }))
     const confirm = await screen.findByRole('dialog', { name: 'Delete this journey?' })
     await u.click(within(confirm).getByRole('button', { name: 'Delete' }))
-    await screen.findByText('Journey deleted.')
+    await waitFor(() =>
+      expect(announceShellNotice).toHaveBeenCalledWith('owner', {
+        kind: 'success',
+        message: 'Journey deleted.',
+      }),
+    )
     expect(window.location.search).toBe('')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })

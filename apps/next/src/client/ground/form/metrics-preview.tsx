@@ -16,6 +16,17 @@ const CITIES = {
   },
 }
 
+/** "of N segments": after «из» the Russian count takes the genitive, so 21 is «21 отрезка». */
+const SEGMENTS_OF = {
+  en: { one: '{count} segment', other: '{count} segments' },
+  ru: {
+    one: '{count} отрезка',
+    few: '{count} отрезков',
+    many: '{count} отрезков',
+    other: '{count} отрезков',
+  },
+}
+
 /** Straight-line sums from the places chosen so far. Unknown is a sentence, never a zero or a partial total. */
 export function MetricsPreview({ state, locale }: { state: FormState; locale: Locale }) {
   const ru = locale === 'ru'
@@ -47,8 +58,8 @@ export function MetricsPreview({ state, locale }: { state: FormState; locale: Lo
               <span className="gt-muted">
                 {complete
                   ? ru
-                    ? ` — координаты есть у ${distanceCoverage.known} из ${distanceCoverage.total} отрезков`
-                    : ` — ${distanceCoverage.known} of ${distanceCoverage.total} segments have coordinates`
+                    ? ` — координаты есть у ${distanceCoverage.known} из ${formatCount(locale, distanceCoverage.total, SEGMENTS_OF)}`
+                    : ` — ${distanceCoverage.known} of ${formatCount(locale, distanceCoverage.total, SEGMENTS_OF)} have coordinates`
                   : ru
                     ? ' — выбраны не все места'
                     : ' — not every place is chosen yet'}

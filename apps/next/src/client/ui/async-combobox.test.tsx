@@ -113,4 +113,24 @@ describe('AsyncCombobox', () => {
     // preventDefault on mousedown is what stops the browser moving focus (and the blur closing the list).
     expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Retry' }))).toBe(false)
   })
+
+  it('keeps the previous results on screen while a new query loads, but never lets one be chosen', async () => {
+    const next = deferred<Item[]>()
+    const { input, onSelect } = setup(async (query) =>
+      query === 'kars' ? [{ key: 'one', label: 'Kars' }] : next.promise,
+    )
+    input.focus()
+    await type(input, 'kars')
+    await type(input, 'karsx')
+    const stale = screen.getByRole('option', { name: /Kars/ })
+    expect(stale).toHaveAttribute('aria-disabled', 'true')
+    expect(stale).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getByRole('status').textContent).toBe('Searching…')
+    fireEvent.click(stale)
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onSelect).not.toHaveBeenCalled()
+    await act(async () => next.resolve([{ key: 'two', label: 'Karsx' }]))
+    expect(screen.queryByRole('option', { name: /^Kars\b(?!x)/ })).toBeNull()
+    expect(screen.getByRole('option', { name: /Karsx/ })).not.toHaveAttribute('aria-disabled')
+  })
 })

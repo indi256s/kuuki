@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, GripVertical, X } from '@keyline-icons/react'
 import type { Locale } from '../../../lib/format'
+import { announceShellNotice } from '../../shell-notices'
 import { Button } from '../../ui/button'
+import { Disclosure } from '../../ui/disclosure'
 
 /** Index a dragged row would take when released at pointer height `y`: the first row whose middle is below it. */
 export function dropIndexAt(
@@ -25,24 +27,76 @@ export function moved<T>(items: readonly T[], from: number, to: number): T[] {
 
 type Dir = 'up' | 'down'
 
+/** The list with `item` back at `index` (clamped); unchanged if a row with its id is already there. */
+export function restored<T extends { id: string }>(
+  items: readonly T[],
+  item: T,
+  index: number,
+): T[] {
+  if (items.some((entry) => entry.id === item.id)) return [...items]
+  const next = [...items]
+  next.splice(Math.min(Math.max(index, 0), next.length), 0, item)
+  return next
+}
+
+/**
+ * The fields of one row. A row with its required fields filled reads as a summary line and an Edit button; a row with
+ * something missing, an error, or just added stays open. Once open it stays open, so typing never folds it away.
+ */
+export function RowFields({
+  locale,
+  summary,
+  complete,
+  hasError,
+  fresh,
+  children,
+}: {
+  locale: Locale
+  summary: string
+  complete: boolean
+  hasError: boolean
+  /** The row was added in this session; it starts open even when its place is already filled. */
+  fresh: boolean
+  children: ReactNode
+}) {
+  const [opened, setOpened] = useState(!complete || fresh)
+  return (
+    <div className="gt-row-fields">
+      <Disclosure
+        layout="row"
+        open={opened || hasError || !complete}
+        onOpenChange={setOpened}
+        summary={locale === 'ru' ? 'Изменить' : 'Edit'}
+        description={summary}
+      >
+        {children}
+      </Disclosure>
+    </div>
+  )
+}
+
 /**
  * An ordered list whose rows can be moved with two buttons per row (the canonical way) or by dragging the grip
  * (pointer only, Escape cancels). Reordering and removing keep focus where the member is working and announce
- * the result. Rows stay in the page flow; nothing here clips a popover.
+ * the result; a removed row can be brought back from the notice for a few seconds. Rows stay in the page flow;
+ * nothing here clips a popover.
  */
 export function OrderedRows<T extends { id: string }>({
   items,
+  ownerId,
   locale,
   title,
   name,
   onMove,
   onRemove,
+  onRestore,
   removeDisabledReason,
   disabled,
   children,
   label,
 }: {
   items: readonly T[]
+  ownerId: string
   locale: Locale
   /** Visible legend of a row, e.g. "Leg 2: Tbilisi → Kars". */
   title: (item: T, index: number) => string
@@ -50,6 +104,8 @@ export function OrderedRows<T extends { id: string }>({
   name: (item: T, index: number) => string
   onMove: (from: number, to: number) => void
   onRemove: (id: string) => void
+  /** Puts back what Undo restores: the whole list with the removed row at its old index. */
+  onRestore: (items: T[]) => void
   /** Why Remove is unavailable (e.g. the minimum is reached); shown as the button's accessible description. */
   removeDisabledReason?: string
   disabled?: boolean
@@ -63,6 +119,14 @@ export function OrderedRows<T extends { id: string }>({
   const [status, setStatus] = useState('')
   const [drag, setDrag] = useState<{ id: string; over: number } | null>(null)
   const dragRef = useRef<{ id: string; from: number; over: number } | null>(null)
+  // The notice outlives this render: Undo must read the list as it is then, not as it was when the row went.
+  const latest = useRef({ items, onRestore, alive: true })
+  useEffect(() => {
+    latest.current = { items, onRestore, alive: true }
+    return () => {
+      latest.current.alive = false
+    }
+  })
 
   useEffect(() => {
     const target = pendingFocus.current
@@ -99,8 +163,16 @@ export function OrderedRows<T extends { id: string }>({
     const item = items[index]
     const neighbour = items[index + 1] ?? items[index - 1] ?? null
     pendingFocus.current = { next: neighbour?.id ?? null }
-    setStatus(ru ? `${name(item, index)}: удалено` : `${name(item, index)} removed`)
     onRemove(item.id)
+    announceShellNotice(ownerId, {
+      message: ru ? `${name(item, index)}: удалено` : `${name(item, index)} removed`,
+      duration: 6000,
+      actionLabel: ru ? 'Отменить' : 'Undo',
+      onAction: () => {
+        const now = latest.current
+        if (now.alive) now.onRestore(restored(now.items, item, index))
+      },
+    })
   }
 
   const endDrag = (commit: boolean) => {
@@ -185,31 +257,39 @@ export function OrderedRows<T extends { id: string }>({
                   aria-label={ru ? `${name(item, index)}: выше` : `Move ${name(item, index)} up`}
                   disabled={index === 0 || disabled}
                   data-dir="up"
+                  className="gt-icon-button"
                   icon={<ArrowUp size={18} />}
                   onClick={() => index > 0 && move(index, 'up')}
                 >
-                  {ru ? 'Выше' : 'Up'}
+                  <span className="sr-only">{ru ? 'Выше' : 'Up'}</span>
                 </Button>
                 <Button
                   aria-label={ru ? `${name(item, index)}: ниже` : `Move ${name(item, index)} down`}
                   disabled={index === items.length - 1 || disabled}
                   data-dir="down"
+                  className="gt-icon-button"
                   icon={<ArrowDown size={18} />}
                   onClick={() => index < items.length - 1 && move(index, 'down')}
                 >
-                  {ru ? 'Ниже' : 'Down'}
+                  <span className="sr-only">{ru ? 'Ниже' : 'Down'}</span>
                 </Button>
                 <Button
                   variant="ghost"
                   aria-label={ru ? `${name(item, index)}: удалить` : `Remove ${name(item, index)}`}
+                  className="gt-icon-button"
                   icon={<X size={18} />}
-                  disabled={disabled}
-                  disabledReason={removeDisabledReason}
+                  disabled={disabled || !!removeDisabledReason}
+                  aria-describedby={removeDisabledReason ? `reason-${item.id}` : undefined}
                   onClick={() => remove(index)}
                 >
-                  {ru ? 'Удалить' : 'Remove'}
+                  <span className="sr-only">{ru ? 'Удалить' : 'Remove'}</span>
                 </Button>
               </div>
+              {removeDisabledReason && (
+                <p id={`reason-${item.id}`} className="gt-muted">
+                  {removeDisabledReason}
+                </p>
+              )}
               {children(item, index)}
             </fieldset>
           </li>

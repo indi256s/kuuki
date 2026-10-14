@@ -94,13 +94,13 @@ export function RouteSketch({
   const lines = sketch.segments
     .filter((run) => run.length > 1)
     .map((run) => run.map((at) => `${sketch.dots[at].x},${sketch.dots[at].y}`).join(' '))
+  const end = sketch.segments.at(-1)?.at(-1)
   return (
     <figure className="gt-sketch">
       {sketch.dots.length > 0 && (
         <svg
           viewBox={`0 0 ${SKETCH_WIDTH} ${SKETCH_HEIGHT}`}
-          role="img"
-          aria-label={t.sketchLabel}
+          aria-hidden="true"
           className="gt-sketch-svg"
         >
           {lines.map((points) => (
@@ -114,16 +114,21 @@ export function RouteSketch({
               strokeLinejoin="round"
             />
           ))}
-          {sketch.dots.map((dot) => (
-            <circle
-              key={dot.key}
-              cx={dot.x}
-              cy={dot.y}
-              r="4"
-              fill="var(--surface)"
-              stroke="var(--map-route)"
-              strokeWidth="2"
-            />
+          {/* The start is hollow and the end filled; a route that ends where it began gets both. */}
+          {sketch.dots.map((dot, at) => (
+            <g key={dot.key}>
+              {at === 0 && at === end && (
+                <circle cx={dot.x} cy={dot.y} r="7" fill="none" stroke="var(--map-route)" />
+              )}
+              <circle
+                cx={dot.x}
+                cy={dot.y}
+                r="4"
+                fill={at === end ? 'var(--map-route)' : 'var(--surface)'}
+                stroke="var(--map-route)"
+                strokeWidth="2"
+              />
+            </g>
           ))}
         </svg>
       )}

@@ -21,15 +21,18 @@ import {
   type GroundMode,
   type GroundPlaceSnapshot,
 } from '@kuuki/shared/groundTravel'
-import { formatCount, type Locale } from '../../../lib/format'
+import { formatCount, formatDateOnly, type Locale } from '../../../lib/format'
 import { trackPrivateOperation } from '../../activity'
 import { announceShellNotice } from '../../shell-notices'
+import { Alert } from '../../ui/alert'
 import { Button } from '../../ui/button'
 import { FloatingActionBar } from '../../ui/floating-action-bar'
 import { Field } from '../../ui/field'
 import { SegmentedControl } from '../../ui/segmented-control'
 import { countryNamer } from '../../passport/model'
 import { readJourney, readOperation, sendCommand } from '../api'
+import { copy } from '../copy'
+import { GroundFormSkeleton } from '../ground-skeleton'
 import { CountriesFieldset, type CountriesValue } from './countries-fieldset'
 import { createDraftWriter, readDraft, removeDraft, type Draft, type DraftKind } from './draft'
 import { DateField, errorText, TextAreaField } from './fields'
@@ -119,12 +122,7 @@ export interface JourneyFormProps {
 export function JourneyForm(props: JourneyFormProps) {
   const mounted = useMounted()
   // Unfinished input lives in localStorage, so the form is built on the client only: no hydration mismatch.
-  if (!mounted)
-    return (
-      <p className="gt-loading" role="status">
-        {props.locale === 'ru' ? 'Открываем форму…' : 'Opening the form…'}
-      </p>
-    )
+  if (!mounted) return <GroundFormSkeleton label={copy[props.locale].loadingForm} />
   return <FormBody {...props} />
 }
 
@@ -570,6 +568,7 @@ function FormBody({
             )}
             {state.mode === 'rail' ? (
               <RailEditor
+                ownerId={ownerId}
                 legs={state.legs}
                 onChange={(legs) => change((current) => ({ ...current, legs }))}
                 locale={locale}
@@ -580,6 +579,7 @@ function FormBody({
               />
             ) : (
               <RoadEditor
+                ownerId={ownerId}
                 points={state.points}
                 onChange={(points) => change((current) => ({ ...current, points }))}
                 locale={locale}
@@ -774,17 +774,18 @@ function SaveNotices({
   if (save.phase === 'unknown') {
     const route = commandRoute(save.command, locale)
     return (
-      <div ref={noticeRef} tabIndex={-1} className="gt-notice" data-tone="warning">
-        {/* One short live message; the buttons sit outside it so a re-render never re-announces them. */}
-        <p className="gt-notice-title" role="alert">
-          {ru ? 'Не удалось подтвердить сохранение' : 'We could not confirm the save'}
-        </p>
-        <p className="gt-muted">
+      <div ref={noticeRef} tabIndex={-1} className="gt-notices">
+        {/* One live alert; the buttons sit outside it so a re-render never re-announces them. */}
+        <Alert
+          variant="warning"
+          urgent
+          title={ru ? 'Не удалось подтвердить сохранение' : 'We could not confirm the save'}
+        >
           {ru
             ? 'Запись могла сохраниться. Отправленные данные заморожены; правки ниже останутся у вас и не подменят их.'
             : 'The journey may have been saved. The data that was sent is frozen; edits made since stay here and do not replace it.'}
           {route ? ` ${route}` : ''}
-        </p>
+        </Alert>
         <div className="gt-actions">
           <Button
             loading={save.checking}
@@ -816,15 +817,16 @@ function SaveNotices({
     const current = save.current
     const saved = current ? stateFromDto(current, false) : null
     return (
-      <div ref={noticeRef} tabIndex={-1} className="gt-notice" data-tone="warning">
-        <p className="gt-notice-title" role="alert">
-          {ru ? 'Путешествие изменилось в другом месте' : 'This journey changed elsewhere'}
-        </p>
-        <p className="gt-muted">
+      <div ref={noticeRef} tabIndex={-1} className="gt-notices">
+        <Alert
+          variant="warning"
+          urgent
+          title={ru ? 'Путешествие изменилось в другом месте' : 'This journey changed elsewhere'}
+        >
           {ru
             ? 'Ваши правки остались в форме. Ничего не объединяется само.'
             : 'Your edits are still in the form. Nothing is merged automatically.'}
-        </p>
+        </Alert>
         <div className="gt-actions">
           {current && (
             <Button aria-expanded={reviewSaved} onClick={onToggleReview}>
@@ -846,8 +848,12 @@ function SaveNotices({
             <div>
               <dt>{ru ? 'Даты' : 'Dates'}</dt>
               <dd>
-                {saved.startDate || (ru ? 'Дата неизвестна' : 'Date unknown')}
-                {saved.endDate ? ` – ${saved.endDate}` : ''}
+                {saved.startDate
+                  ? formatDateOnly(locale, saved.startDate, 'medium')
+                  : ru
+                    ? 'Дата неизвестна'
+                    : 'Date unknown'}
+                {saved.endDate ? ` – ${formatDateOnly(locale, saved.endDate, 'medium')}` : ''}
               </dd>
             </div>
             {current.status === 'completed' && (
@@ -862,10 +868,6 @@ function SaveNotices({
                 </dd>
               </div>
             )}
-            <div>
-              <dt>{ru ? 'Версия' : 'Version'}</dt>
-              <dd>{current.version}</dd>
-            </div>
           </dl>
         )}
         {!current && (
@@ -896,10 +898,12 @@ function SaveNotices({
   }
   if (save.phase === 'gone') {
     return (
-      <div ref={noticeRef} tabIndex={-1} className="gt-notice" data-tone="warning">
-        <p className="gt-notice-title" role="alert">
-          {ru ? 'Это путешествие удалено' : 'This journey was deleted'}
-        </p>
+      <div ref={noticeRef} tabIndex={-1} className="gt-notices">
+        <Alert
+          variant="danger"
+          urgent
+          title={ru ? 'Это путешествие удалено' : 'This journey was deleted'}
+        />
         <div className="gt-actions">
           <Button onClick={onLeave}>{ru ? 'К списку' : 'Back to the list'}</Button>
         </div>

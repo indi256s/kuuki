@@ -34,7 +34,7 @@ export default async function NewJourney({
               : 'New train journey'
             : mode === 'road'
               ? ru
-                ? 'Новый роуд-трип'
+                ? 'Новая поездка на авто'
                 : 'New road trip'
               : ru
                 ? 'Новое путешествие'
@@ -58,13 +58,13 @@ export default async function NewJourney({
             <li>
               <Link href={`/ground-travel/new?mode=rail${keep}`}>
                 <Train size={20} aria-hidden="true" />
-                {ru ? 'Поезд' : 'Train'}
+                {ru ? 'Поездка на поезде' : 'Train journey'}
               </Link>
             </li>
             <li>
               <Link href={`/ground-travel/new?mode=road${keep}`}>
                 <Car size={20} aria-hidden="true" />
-                {ru ? 'Авто' : 'Road trip'}
+                {ru ? 'Поездка на авто' : 'Road trip'}
               </Link>
             </li>
           </ul>
