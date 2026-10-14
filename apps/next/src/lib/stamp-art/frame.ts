@@ -248,7 +248,7 @@ function rectDef(r: Box, c: number, cutText = false): FrameDef {
 
 const defs: Record<ShapeName, FrameDef> = {
   circle: roundDef(96, 96),
-  oval: roundDef(80, 96),
+  oval: roundDef(88, 96),
   rectangle: rectDef([6, 24, 188, 152], 0),
   'cut-rect': rectDef([6, 24, 188, 152], 20),
   octagon: rectDef([6, 14, 188, 172], 40, true),
