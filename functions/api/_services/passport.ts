@@ -139,8 +139,15 @@ export function passportRead(
     derive(results: D1Result[]) {
       assertRows(results, 'Passport read failed', statements.length)
       const rows = results[3].results as Array<Omit<CountryEvidenceRow, 'policy_version'>>
+      const pressedCodes = new Set(
+        rows.filter((row) => row.status === 'pressed').map((row) => row.country_code),
+      )
+      // A stored preference counts only while its country is pressed: when the last support goes, or the country
+      // falls back to pending, it is neither a hidden stamp nor kept out of the pending block.
       const hidden = applyHidden
-        ? (results[5].results as Array<{ country_code: string }>).map((row) => row.country_code)
+        ? (results[5].results as Array<{ country_code: string }>)
+            .map((row) => row.country_code)
+            .filter((code) => pressedCodes.has(code))
         : []
       const hiddenSet = new Set(hidden)
       const journeyModes = applyHidden

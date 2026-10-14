@@ -189,10 +189,25 @@ function AtlasLayers({
       source: 'atlas-points',
       paint: { 'circle-radius': HIT_RADIUS, 'circle-color': now.dot as never, 'circle-opacity': 0 },
     })
-    // The hit layer is on top, so its features come first: a marker beats the polygon under it.
-    const pick = (event: GL.MapMouseEvent) =>
-      map.queryRenderedFeatures(event.point, { layers: [ATLAS_LAYERS.hit, ATLAS_LAYERS.fill] })[0]
-        ?.properties?.id
+    // A marker beats the polygon under it; where 44px targets overlap (European microstates at world zoom), the
+    // marker nearest the pointer wins rather than whichever the renderer lists first.
+    const pick = (event: GL.MapMouseEvent) => {
+      let best: { id: unknown; distance: number } | null = null
+      for (const feature of map.queryRenderedFeatures(event.point, {
+        layers: [ATLAS_LAYERS.hit],
+      })) {
+        const id = feature.properties?.id
+        const point = typeof id === 'string' ? SMALL_STATE_POINTS[id] : undefined
+        if (!point) continue
+        const { x, y } = map.project(point)
+        const distance = Math.hypot(x - event.point.x, y - event.point.y)
+        if (!best || distance < best.distance) best = { id, distance }
+      }
+      return (
+        best?.id ??
+        map.queryRenderedFeatures(event.point, { layers: [ATLAS_LAYERS.fill] })[0]?.properties?.id
+      )
+    }
     const click = (event: GL.MapMouseEvent) => {
       const id = pick(event)
       if (typeof id === 'string' && isCatalogCountry(id)) select.current(id)

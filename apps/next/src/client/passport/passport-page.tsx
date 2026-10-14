@@ -286,7 +286,9 @@ function OwnerInner({
     }
   }
   async function onHidden(code: string) {
-    navigate({ country: null })
+    // A slow response must not close a sheet the member opened since: close only the hidden country's own sheet.
+    if (new URLSearchParams(window.location.search).get('country') === code)
+      navigate({ country: null })
     // The toast outlives the sheet and the locale switch, so it carries both languages.
     toast.show({
       message: {

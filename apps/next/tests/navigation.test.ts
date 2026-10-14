@@ -72,7 +72,8 @@ test('the old profile entry /me lands on the Passport', async ({ page, baseURL }
   await signIn(page, baseURL!)
   await page.goto('/me')
   await page.waitForURL((url) => url.pathname === '/passport')
-  await expect(page.getByTestId('passport-data')).toBeVisible()
+  await routeSettled(page)
+  await expect(page.locator('#main').getByTestId('passport-data')).toBeVisible()
 })
 
 test('desktop tab navigation keeps the header and incoming page geometry stable', async ({

@@ -143,6 +143,32 @@ describe('public projection', () => {
     }
   })
 
+  it('never returns the wider set when the owner narrows publication during a read', async () => {
+    const { db, dispose } = await fixture({ isPublic: true, publication: 'all' })
+    try {
+      // The owner saves 'flights' right after the projection batch, before the final profile re-read.
+      const racing = new Proxy(db, {
+        get(target, key) {
+          if (key !== 'batch') return Reflect.get(target, key)
+          return async (statements: D1PreparedStatement[]) => {
+            const results = await target.batch(statements)
+            await target
+              .prepare("UPDATE profiles SET passport_publication = 'flights' WHERE id = ?")
+              .bind(USER.id)
+              .run()
+            return results
+          }
+        },
+      })
+      const profile = await readPublicProfile(racing, 'pilot')
+      // No hidden country here, so the flights set includes TR; the claim (FR) and ground visit (JP) must not leak.
+      expect(profile?.countries).toEqual(['GB', 'GE', 'TR', 'US'])
+      expect(profile?.publication).toBe('flights')
+    } finally {
+      await dispose()
+    }
+  })
+
   it('rejects an unknown passport_publication', async () => {
     const { db, dispose } = await fixture({ isPublic: true, publication: 'flights' })
     try {
@@ -200,6 +226,31 @@ describe('hidden countries', () => {
       expect((await hide(db, 'AU')).status).toBe(409)
       expect((await hide(db, 'usa')).status).toBe(400)
       expect((await readPassport(db, USER.id)).hidden).toEqual([])
+    } finally {
+      await dispose()
+    }
+  })
+
+  it('ignores a hidden preference once its country is no longer pressed', async () => {
+    const { db, dispose } = await fixture({ isPublic: true, publication: 'all' })
+    try {
+      expect((await hide(db, 'FR')).status).toBe(200)
+      // A stale row for the awaiting-only US, as a hidden country left behind when its logged flight went back to awaiting.
+      await db
+        .prepare('INSERT INTO passport_hidden_countries VALUES (?,?,?)')
+        .bind(USER.id, 'US', '2026-01-01T00:00:00.000Z')
+        .run()
+      // FR loses its only support (the claim); the published evidence row goes with it.
+      await db.batch([
+        db.prepare('DELETE FROM country_claims WHERE user_id = ?').bind(USER.id),
+        db
+          .prepare("DELETE FROM country_visit_evidence WHERE user_id = ? AND country_code = 'FR'")
+          .bind(USER.id),
+      ])
+      const passport = await readPassport(db, USER.id)
+      expect(passport.hidden).toEqual([])
+      expect(passport.countries.map((row) => row.country_code)).toContain('US')
+      expect(passport.pendingCountryCount).toBe(2)
     } finally {
       await dispose()
     }

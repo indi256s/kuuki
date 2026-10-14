@@ -144,13 +144,18 @@ export async function readPublicProfile(db: D1Database, username: string) {
   if (!profile) return null
   if (!profile.is_public) return privatePayload(profile)
 
-  const projection = await projectPublic(db, profile, profile.passport_publication ?? 'flights')
+  const scope = profile.passport_publication ?? 'flights'
+  let projection = await projectPublic(db, profile, scope)
   const current = await db
     .prepare('SELECT * FROM profiles WHERE id = ?')
     .bind(profile.id)
     .first<ProfileRow>()
   if (!current) return null
   if (!current.is_public) return privatePayload(current)
+  // The owner changed publication during the read: a narrowed scope must not return the wider set it replaced, so
+  // fall back to the narrowest projection rather than trusting either snapshot.
+  if ((current.passport_publication ?? 'flights') !== scope)
+    projection = await projectPublic(db, current, 'flights')
   return {
     ...projection,
     profile: toPublicProfile(current),

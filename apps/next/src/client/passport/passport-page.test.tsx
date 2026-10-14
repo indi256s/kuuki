@@ -40,12 +40,25 @@ vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span aria-hidden="true" /> }))
 // The atlas belongs to W3; the stand-in keeps the filtered set visible to these tests.
 vi.mock('./atlas', () => ({
-  PassportAtlas: ({ entries }: { entries: { code: string }[] }) => (
-    <ul aria-label="Atlas stand-in">
-      {entries.map((entry) => (
-        <li key={entry.code}>{entry.code}</li>
-      ))}
-    </ul>
+  PassportAtlas: ({
+    entries,
+    pending,
+  }: {
+    entries: { code: string }[]
+    pending: { code: string }[]
+  }) => (
+    <>
+      <ul aria-label="Atlas stand-in">
+        {entries.map((entry) => (
+          <li key={entry.code}>{entry.code}</li>
+        ))}
+      </ul>
+      <ul aria-label="Atlas pending stand-in">
+        {pending.map((entry) => (
+          <li key={entry.code}>{entry.code}</li>
+        ))}
+      </ul>
+    </>
   ),
 }))
 
@@ -391,6 +404,18 @@ describe('totals and found', () => {
     expect(window.location.search).toBe('?view=map')
     expect(screen.queryByText(/^Found /)).not.toBeInTheDocument()
   })
+
+  it('filters the pending countries the atlas draws with the same model', async () => {
+    const atlasPending = () =>
+      within(screen.getByRole('list', { name: 'Atlas pending stand-in' })).queryAllByRole(
+        'listitem',
+      )
+    nativeReplace(null, '', '/passport?view=map')
+    render(<PassportPage {...ownerProps()} />)
+    expect(atlasPending().map((item) => item.textContent)).toEqual(['PT', 'GR'])
+    act(() => window.history.replaceState(null, '', '/passport?view=map&region=asia'))
+    expect(atlasPending()).toHaveLength(0)
+  })
 })
 
 describe('search with no match', () => {
@@ -454,6 +479,16 @@ describe('states', () => {
     expect(screen.getByText(/No stamps yet: the countries below are waiting/)).toBeVisible()
     await userEvent.click(screen.getByRole('button', { name: 'Go to awaiting' }))
     expect(screen.getByRole('heading', { name: 'Awaiting confirmation · 1' })).toHaveFocus()
+  })
+
+  it('shows the atlas with its pending countries for a pending-only passport', () => {
+    const data = empty({ countries: [pendingRow('PT')], pendingCountryCount: 1 })
+    nativeReplace(null, '', '/passport?view=map')
+    render(<PassportPage {...ownerProps({ data })} />)
+    expect(screen.getByText(/No stamps yet: the countries below are waiting/)).toBeVisible()
+    expect(
+      within(screen.getByRole('list', { name: 'Atlas pending stand-in' })).getByText('PT'),
+    ).toBeInTheDocument()
   })
 
   it('scrolls to and focuses the pending block from the entry above the collection', async () => {
@@ -577,6 +612,22 @@ const pressedDetail = (code: string) => ({
 })
 
 describe('hide from passport', () => {
+  it('keeps a sheet opened after the hide started when the late response lands', async () => {
+    const user = userEvent.setup()
+    const put = deferred<unknown>()
+    mocks.put.mockReturnValue(put.promise)
+    render(<PassportPage {...ownerProps()} />)
+    await user.click(screen.getByRole('button', { name: /^Norway/ }))
+    const sheet = await screen.findByRole('dialog', { name: 'Norway' })
+    reads.get('NO')!.resolve(pressedDetail('NO'))
+    await user.click(await within(sheet).findByRole('button', { name: 'Hide from passport' }))
+    act(() => window.history.replaceState(null, '', '/passport?country=JP'))
+    await act(async () => put.resolve({ ok: true, hidden: ['NO'] }))
+    await settle()
+    expect(window.location.search).toBe('?country=JP')
+    expect(await screen.findByText('Norway hidden from your passport.')).toBeVisible()
+  })
+
   it('hides through PUT, closes the sheet and offers an Undo that restores through DELETE', async () => {
     const user = userEvent.setup()
     mocks.put.mockResolvedValue({ ok: true, hidden: ['NO'] })

@@ -11,6 +11,8 @@ const state = vi.hoisted(() => ({
   paint: [] as [string, string, unknown][],
   listeners: new Map<string, (event: unknown) => void>(),
   hit: undefined as string | undefined,
+  /** Overlapping marker targets, in the renderer's order. */
+  hits: [] as string[],
 }))
 vi.mock('../../maps/mapcn', () => ({
   Map: ({ children }: { children: ReactNode }) => children,
@@ -35,8 +37,13 @@ const map = {
   getZoom: () => 1,
   getContainer: () => ({ clientWidth: 800, clientHeight: 500 }),
   getCanvas: () => ({ style: {} }),
-  project: () => ({ x: 0, y: 0 }),
-  queryRenderedFeatures: () => (state.hit ? [{ properties: { id: state.hit } }] : []),
+  project: ([lon, lat]: [number, number]) => ({ x: lon * 10, y: lat * 10 }),
+  queryRenderedFeatures: () =>
+    state.hits.length
+      ? state.hits.map((id) => ({ properties: { id } }))
+      : state.hit
+        ? [{ properties: { id: state.hit } }]
+        : [],
   on: (event: string, listener: (event: unknown) => void) => state.listeners.set(event, listener),
   off: (event: string) => state.listeners.delete(event),
 }
@@ -64,6 +71,7 @@ beforeEach(() => {
   state.paint.length = 0
   state.listeners.clear()
   state.hit = undefined
+  state.hits = []
   vi.stubGlobal('fetch', async () => ({ ok: true, json: async () => geometry }))
 })
 afterEach(() => vi.unstubAllGlobals())
@@ -132,4 +140,12 @@ it('selects the ISO2 code on a polygon or marker click, and ignores unknown ids'
   state.hit = '-99'
   state.listeners.get('click')?.({ point: { x: 1, y: 1 } })
   expect(onSelectCountry.mock.calls).toEqual([['DE'], ['MC']])
+})
+
+it('picks the nearest of overlapping small-state markers', async () => {
+  const { onSelectCountry } = await mount([], [])
+  // Monaco is listed first, but the pointer sits on San Marino (lon 12.44 → x 124 in the stand-in projection).
+  state.hits = ['MC', 'SM']
+  state.listeners.get('click')?.({ point: { x: 124, y: 439 } })
+  expect(onSelectCountry).toHaveBeenLastCalledWith('SM')
 })

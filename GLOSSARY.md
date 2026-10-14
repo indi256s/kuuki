@@ -247,6 +247,9 @@ publication modes, but its records, evidence and statistics stay, and the
 owner's visited total still counts it, with the hidden number shown beside it.
 Hiding is reversible (Undo, or Restore from Hidden) and does not remove the
 country from other public surfaces such as the flight Overview.
+The preference counts only while the country is pressed: if it loses its
+last support or falls back to pending, the owner sees it as usual (pending
+block), while the public projection keeps leaving it out.
 _Avoid_: deleted country, removed stamp
 
 ### Achievement ladder

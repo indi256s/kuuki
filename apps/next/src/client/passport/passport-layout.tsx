@@ -124,6 +124,11 @@ export function PassportLayout(props: PassportLayoutProps) {
     () => filterEntries(sorted, filters, name, { visitor: !isOwner }),
     [sorted, filters, name, isOwner],
   )
+  // Pending countries follow the same filters wherever they are drawn (the atlas shows them beside the collection).
+  const filteredPending = useMemo(
+    () => (isOwner ? filterEntries(pending, filters, name) : []),
+    [pending, filters, name, isOwner],
+  )
   const suggestion = useMemo(
     () =>
       norm(draft) && filtered.length === 0
@@ -225,18 +230,7 @@ export function PassportLayout(props: PassportLayoutProps) {
         }
       />
     )
-  } else if (state.view === 'map') {
-    collection = (
-      <PassportAtlas
-        locale={locale}
-        entries={filtered}
-        pending={isOwner ? pending : []}
-        owner={isOwner}
-        name={name}
-        onSelectCountry={(code) => props.onOpen(code)}
-      />
-    )
-  } else {
+  } else if (state.view !== 'map') {
     collection = (
       <PassportCards
         entries={filtered}
@@ -247,6 +241,28 @@ export function PassportLayout(props: PassportLayoutProps) {
         onOpen={props.onOpen}
       />
     )
+  }
+  // The atlas draws what the filters leave, pending included; a pending-only passport keeps its explanation above it.
+  if (state.view === 'map' && filtered.length + filteredPending.length > 0) {
+    const atlas = (
+      <PassportAtlas
+        locale={locale}
+        entries={filtered}
+        pending={filteredPending}
+        owner={isOwner}
+        name={name}
+        onSelectCountry={(code) => props.onOpen(code)}
+      />
+    )
+    collection =
+      entries.length === 0 ? (
+        <>
+          {collection}
+          {atlas}
+        </>
+      ) : (
+        atlas
+      )
   }
 
   const showTotals = isOwner || props.visited > 0
