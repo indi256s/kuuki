@@ -8,6 +8,7 @@ import ao from './ao.json'
 import aq from './aq.json'
 import ar from './ar.json'
 import at from './at.json'
+import au from './au.json'
 import aw from './aw.json'
 import ba from './ba.json'
 import bb from './bb.json'
@@ -25,6 +26,7 @@ import bw from './bw.json'
 import by from './by.json'
 import bz from './bz.json'
 import ca from './ca.json'
+import cc from './cc.json'
 import cd from './cd.json'
 import cf from './cf.json'
 import cg from './cg.json'
@@ -38,6 +40,7 @@ import cr from './cr.json'
 import cu from './cu.json'
 import cv from './cv.json'
 import cw from './cw.json'
+import cx from './cx.json'
 import cz from './cz.json'
 import de from './de.json'
 import dj from './dj.json'
@@ -132,6 +135,7 @@ import pe from './pe.json'
 import ph from './ph.json'
 import pl from './pl.json'
 import pm from './pm.json'
+import pr from './pr.json'
 import py from './py.json'
 import re from './re.json'
 import ro from './ro.json'
@@ -153,7 +157,9 @@ import sr from './sr.json'
 import ss from './ss.json'
 import st from './st.json'
 import sv from './sv.json'
+import sx from './sx.json'
 import sz from './sz.json'
+import tc from './tc.json'
 import td from './td.json'
 import tf from './tf.json'
 import tg from './tg.json'
@@ -161,6 +167,7 @@ import th from './th.json'
 import tj from './tj.json'
 import tm from './tm.json'
 import tn from './tn.json'
+import tt from './tt.json'
 import tw from './tw.json'
 import tz from './tz.json'
 import ua from './ua.json'
@@ -169,7 +176,10 @@ import us from './us.json'
 import uy from './uy.json'
 import uz from './uz.json'
 import va from './va.json'
+import vc from './vc.json'
 import ve from './ve.json'
+import vg from './vg.json'
+import vi from './vi.json'
 import vn from './vn.json'
 import xk from './xk.json'
 import yt from './yt.json'
@@ -188,6 +198,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   aq,
   ar,
   at,
+  au,
   aw,
   ba,
   bb,
@@ -205,6 +216,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   by,
   bz,
   ca,
+  cc,
   cd,
   cf,
   cg,
@@ -218,6 +230,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cu,
   cv,
   cw,
+  cx,
   cz,
   de,
   dj,
@@ -312,6 +325,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ph,
   pl,
   pm,
+  pr,
   py,
   re,
   ro,
@@ -333,7 +347,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ss,
   st,
   sv,
+  sx,
   sz,
+  tc,
   td,
   tf,
   tg,
@@ -341,6 +357,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tj,
   tm,
   tn,
+  tt,
   tw,
   tz,
   ua,
@@ -349,7 +366,10 @@ export const RECIPE_FILES: Record<string, unknown> = {
   uy,
   uz,
   va,
+  vc,
   ve,
+  vg,
+  vi,
   vn,
   xk,
   yt,

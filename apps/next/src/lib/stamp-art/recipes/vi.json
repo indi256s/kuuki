@@ -1,0 +1,43 @@
+{
+  "iso2": "VI",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "slate",
+  "cluster": "fort",
+  "horizon": 0.8,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 62, 34, 40, 78, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.62],
+          [0.2, 0.5],
+          [0.45, 0.58],
+          [0.7, 0.46],
+          [1, 0.6]
+        ]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "fort-christian",
+      "box": [28, 52, 144, 80],
+      "params": {}
+    }
+  ]
+}

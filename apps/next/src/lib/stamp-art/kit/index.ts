@@ -114,6 +114,12 @@ import { bouldersB } from './boulders-b'
 import { reefRingB } from './reef-ring-b'
 import { stationB } from './station-b'
 import { choungui } from './choungui'
+import { harbourBridge } from './harbour-bridge'
+import { garita } from './garita'
+import { fortChristian } from './fort-christian'
+import { jettyA } from './jetty-a'
+import { jetA } from './jet-a'
+import { schoonerA } from './schooner-a'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -258,6 +264,12 @@ export const kit = {
   pitons,
   'ridges-a': ridgesA,
   'plume-a': plumeA,
+  'schooner-a': schoonerA,
+  'jet-a': jetA,
+  'jetty-a': jettyA,
+  'fort-christian': fortChristian,
+  garita,
+  'harbour-bridge': harbourBridge,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

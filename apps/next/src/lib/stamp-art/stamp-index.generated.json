@@ -181,7 +181,7 @@
   },
   "AU": {
     "cluster": "bridge",
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "AUS",
     "name": {
       "en": "Australia",
@@ -192,7 +192,7 @@
       "en": "Australia",
       "ru": "Австралия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AW": {
     "cluster": "lighthouse",
@@ -537,7 +537,7 @@
       "en": "Cocos Islands",
       "ru": "Кокосовые о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CD": {
     "cluster": "river-quay",
@@ -751,7 +751,7 @@
   },
   "CX": {
     "cluster": null,
-    "ink": "oxblood",
+    "ink": "moss",
     "iso3": "CXR",
     "name": {
       "en": "Christmas Island",
@@ -762,7 +762,7 @@
       "en": "Christmas Island",
       "ru": "о-в Рождества"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CY": {
     "cluster": null,
@@ -1696,7 +1696,7 @@
   },
   "KI": {
     "cluster": "atoll",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "KIR",
     "name": {
       "en": "Kiribati",
@@ -2116,7 +2116,7 @@
   },
   "MM": {
     "cluster": "bridge",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "MMR",
     "name": {
       "en": "Myanmar (Burma)",
@@ -2161,7 +2161,7 @@
   },
   "MP": {
     "cluster": "atoll",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "MNP",
     "name": {
       "en": "Northern Mariana Islands",
@@ -2341,7 +2341,7 @@
   },
   "NC": {
     "cluster": "lighthouse",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "NCL",
     "name": {
       "en": "New Caledonia",
@@ -2656,7 +2656,7 @@
   },
   "PR": {
     "cluster": "fort",
-    "ink": "slate",
+    "ink": "oxblood",
     "iso3": "PRI",
     "name": {
       "en": "Puerto Rico",
@@ -2667,7 +2667,7 @@
       "en": "Puerto Rico",
       "ru": "Пуэрто-Рико"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PS": {
     "cluster": null,
@@ -3091,7 +3091,7 @@
   },
   "SX": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "SXM",
     "name": {
       "en": "Sint Maarten",
@@ -3102,7 +3102,7 @@
       "en": "Sint Maarten",
       "ru": "Синт-Мартен"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SY": {
     "cluster": "classical-ruin",
@@ -3136,18 +3136,18 @@
   },
   "TC": {
     "cluster": "lighthouse",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "TCA",
     "name": {
       "en": "Turks & Caicos Islands",
       "ru": "Тёркс и Кайкос"
     },
-    "shape": "cut-rect",
+    "shape": "octagon",
     "short": {
       "en": "TURKS & CAICOS",
       "ru": "Тёркс и Кайкос"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TD": {
     "cluster": "rock-arch",
@@ -3226,7 +3226,7 @@
   },
   "TK": {
     "cluster": "atoll",
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "TKL",
     "name": {
       "en": "Tokelau",
@@ -3316,7 +3316,7 @@
   },
   "TT": {
     "cluster": null,
-    "ink": "oxblood",
+    "ink": "indigo",
     "iso3": "TTO",
     "name": {
       "en": "Trinidad & Tobago",
@@ -3327,11 +3327,11 @@
       "en": "Trinidad & Tobago",
       "ru": "ТРИНИДАД И ТОБ."
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TV": {
     "cluster": "atoll",
-    "ink": "ochre-dark",
+    "ink": "oxblood",
     "iso3": "TUV",
     "name": {
       "en": "Tuvalu",
@@ -3481,7 +3481,7 @@
   },
   "VC": {
     "cluster": "atoll",
-    "ink": "oxblood",
+    "ink": "plum",
     "iso3": "VCT",
     "name": {
       "en": "St. Vincent & Grenadines",
@@ -3492,7 +3492,7 @@
       "en": "ST. VINCENT & GREN.",
       "ru": "СЕНТ-ВИНСЕНТ И ГРЕН."
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "VE": {
     "cluster": "waterfall",
@@ -3522,11 +3522,11 @@
       "en": "British Virgin Islands",
       "ru": "ВИРГ. О-ВА (БРИТ.)"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "VI": {
     "cluster": "fort",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "VIR",
     "name": {
       "en": "U.S. Virgin Islands",
@@ -3537,7 +3537,7 @@
       "en": "U.S. Virgin Islands",
       "ru": "ВИРГ. О-ВА (США)"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "VN": {
     "cluster": "karst",

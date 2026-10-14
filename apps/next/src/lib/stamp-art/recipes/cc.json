@@ -1,0 +1,47 @@
+{
+  "iso2": "CC",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "moss",
+  "cluster": "atoll",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 66, 36, 44, 80, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "island-b",
+      "box": [44, 100, 84, 30],
+      "params": {
+        "hump": 0.14,
+        "seed": 4,
+        "palms": [
+          [0.42, 72, 0.32],
+          [0.8, 26, -0.2]
+        ]
+      }
+    },
+    {
+      "module": "island-b",
+      "box": [128, 112, 32, 16],
+      "params": {
+        "hump": 0.16,
+        "seed": 12,
+        "palms": [[0.5, 18, 0.3]]
+      }
+    }
+  ]
+}

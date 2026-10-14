@@ -1,0 +1,71 @@
+{
+  "iso2": "CX",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "moss",
+  "horizon": 0.8,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 62, 34, 44, 80, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "cliff",
+      "box": [26, 68, 92, 64],
+      "params": {
+        "side": "left",
+        "wobble": [0, 2, -1.5, 3, 0.5, -2.5, 1, -1, 0],
+        "gap": 3.2
+      }
+    },
+    {
+      "module": "palm",
+      "box": [34, 54, 16, 14],
+      "params": {
+        "lean": -0.2,
+        "fronds": 7,
+        "seed": 2,
+        "frond": 0.7
+      }
+    },
+    {
+      "module": "palm",
+      "box": [52, 55, 18, 14],
+      "params": {
+        "lean": 0.15,
+        "fronds": 7,
+        "seed": 5,
+        "frond": 0.7
+      }
+    },
+    {
+      "module": "palm",
+      "box": [76, 55, 16, 13],
+      "params": {
+        "lean": -0.1,
+        "fronds": 7,
+        "seed": 9,
+        "frond": 0.7
+      }
+    },
+    {
+      "module": "jetty-a",
+      "box": [96, 70, 72, 62],
+      "params": {
+        "crane": true
+      }
+    }
+  ]
+}
