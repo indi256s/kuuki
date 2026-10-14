@@ -91,7 +91,7 @@ async function expectDarkChangeInk(change: Locator) {
     }
   })
   expect(paint.background).toBe('rgba(0, 0, 0, 0)')
-  expect(paint.paintedBackground).toBe('rgb(64, 61, 58)')
+  expect(paint.paintedBackground).toBe('rgb(35, 35, 35)')
   expect(paint.color).toBe('rgb(241, 239, 235)')
 }
 
