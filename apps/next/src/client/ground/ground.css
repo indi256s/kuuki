@@ -1,0 +1,343 @@
+/* Ground travel list, totals, cards and detail sheet. Tokens only. No divider lines between rows: space groups. */
+.gt-page {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.gt-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+.gt-header h1 {
+  margin: 0;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gt-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-count {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-toolbar {
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.gt-cancelled-toggle[aria-pressed='true'] {
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+  font-weight: 600;
+}
+
+/* Totals: two quiet level-1 blocks, one per mode. */
+.gt-totals {
+  display: grid;
+  gap: var(--space-3);
+}
+.gt-totals-block {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+}
+.gt-totals-title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.gt-totals-none {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 24px;
+}
+.gt-totals-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+.gt-totals-list > div,
+.gt-facts > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.gt-totals-list dt,
+.gt-facts dt {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.gt-totals-list dd,
+.gt-facts dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 17px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.gt-totals-list small,
+.gt-facts small {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* Sections and cards. */
+.gt-section {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.gt-section h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.gt-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-card {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+}
+.gt-card-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* The title link spans the card, so the whole card is one 44px+ target and one tab stop. */
+.gt-card-link {
+  color: var(--text);
+  text-decoration: none;
+}
+.gt-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+}
+.gt-card-link:focus-visible {
+  outline: none;
+}
+.gt-card-link:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .gt-card:hover {
+    background: var(--surface-inset);
+  }
+}
+.gt-card-meta,
+.gt-card-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-card-facts {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 24px;
+}
+.gt-card-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--warning-text);
+}
+.gt-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text);
+  font-weight: 500;
+}
+/* Status is a word first; the tint only backs it. */
+.gt-status {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+  color: var(--text);
+  font-weight: 500;
+}
+.gt-status[data-status='planned'] {
+  background: var(--journal-upcoming-tint);
+  color: var(--info-text);
+}
+.gt-status[data-status='cancelled'] {
+  color: var(--text-muted);
+}
+.gt-card[data-status='cancelled'] .gt-card-title {
+  font-weight: 500;
+}
+
+/* Detail sheet. */
+.gt-detail {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.gt-detail-loading {
+  min-height: 160px;
+  border-radius: var(--radius-md);
+  background: var(--skeleton);
+}
+.gt-missing {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+.gt-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+.gt-detail-heading {
+  margin: var(--space-2) 0 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.gt-steps {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-step {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.gt-step-route {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.gt-step-meta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.gt-note-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.gt-sketch {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.gt-sketch-svg {
+  width: 100%;
+  height: auto;
+  background: var(--map-land);
+  border-radius: var(--radius-md);
+}
+.gt-sketch figcaption {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.gt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  justify-content: flex-end;
+  min-width: 0;
+}
+.gt-actions .ui-button {
+  font-weight: 500;
+}
+.gt-alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Loading skeleton: static bars at the final card size. */
+.gt-skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+.gt-skeleton-card {
+  min-height: 108px;
+}
+.gt-skeleton-bar {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--skeleton);
+}
+.gt-skeleton-bar.is-toolbar {
+  height: 32px;
+  max-width: 240px;
+}
+.gt-skeleton-bar.is-title {
+  height: 24px;
+  width: 60%;
+}
+.gt-skeleton-bar.is-meta {
+  height: 20px;
+  width: 80%;
+}
+.gt-skeleton-bar.is-facts {
+  height: 24px;
+  width: 45%;
+}
+@media (max-width: 700px) {
+  .gt-page {
+    gap: var(--space-4);
+  }
+  .gt-card {
+    padding: var(--space-4);
+  }
+}

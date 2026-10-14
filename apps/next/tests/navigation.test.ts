@@ -45,6 +45,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
   await expect(page.locator('.ov-globe')).toBeVisible()
   for (const [route, heading] of [
     ['journal', 'Journal'],
+    ['ground-travel', 'Ground travel'],
     ['passport', 'Passport'],
     ['overview', 'Overview'],
   ]) {
@@ -192,6 +193,7 @@ test.describe('entry behavior', () => {
       '/signup',
       '/overview',
       '/journal',
+      '/ground-travel',
       '/passport',
       '/import',
       '/settings',
@@ -210,7 +212,7 @@ test.describe('entry behavior', () => {
 test('a guest hitting a member page gets a 307 to sign-in, not a streamed 200', async ({
   request,
 }) => {
-  for (const path of ['/overview', '/journal', '/passport']) {
+  for (const path of ['/overview', '/journal', '/ground-travel', '/passport']) {
     const response = await request.get(path, { maxRedirects: 0 })
     expect(response.status(), path).toBe(307)
     expect(new URL(response.headers().location, 'http://x').pathname).toBe('/signin')

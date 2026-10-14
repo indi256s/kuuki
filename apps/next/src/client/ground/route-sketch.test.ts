@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest'
+import { sketchOf, SKETCH_HEIGHT, SKETCH_WIDTH } from './route-sketch'
+import { baku, kars, nowhere, tbilisi } from './test-fixtures'
+
+describe('route sketch', () => {
+  it('joins a loop back to its first dot and keeps every dot inside the box', () => {
+    const sketch = sketchOf([tbilisi, kars, baku, tbilisi])
+    expect(sketch.dots).toHaveLength(3)
+    expect(sketch.path).toEqual([0, 1, 2, 0])
+    for (const dot of sketch.dots) {
+      expect(dot.x).toBeGreaterThanOrEqual(0)
+      expect(dot.x).toBeLessThanOrEqual(SKETCH_WIDTH)
+      expect(dot.y).toBeGreaterThanOrEqual(0)
+      expect(dot.y).toBeLessThanOrEqual(SKETCH_HEIGHT)
+    }
+  })
+
+  it('never plots a place without coordinates at the origin; it names it instead', () => {
+    const sketch = sketchOf([tbilisi, nowhere, kars])
+    expect(sketch.dots).toHaveLength(2)
+    expect(sketch.missing.map((item) => item.name)).toEqual(['Nowhere'])
+    expect(sketchOf([nowhere]).dots).toEqual([])
+  })
+
+  it('centres a single place', () => {
+    const [dot] = sketchOf([tbilisi]).dots
+    expect(dot.x).toBe(SKETCH_WIDTH / 2)
+    expect(dot.y).toBe(SKETCH_HEIGHT / 2)
+  })
+})
