@@ -312,7 +312,7 @@
       "en": "Bulgaria",
       "ru": "Болгария"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BH": {
     "cluster": "gulf-fort",
@@ -492,7 +492,7 @@
       "en": "Belarus",
       "ru": "Беларусь"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BZ": {
     "cluster": "pyramid",
@@ -792,7 +792,7 @@
       "en": "Czechia",
       "ru": "Чехия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "DE": {
     "cluster": "triumphal-arch",
@@ -1437,7 +1437,7 @@
       "en": "Hungary",
       "ru": "Венгрия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ID": {
     "cluster": null,
@@ -2022,7 +2022,7 @@
       "en": "Moldova",
       "ru": "Молдова"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ME": {
     "cluster": "sea-wall",
@@ -2622,7 +2622,7 @@
       "en": "Poland",
       "ru": "Польша"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PM": {
     "cluster": "lighthouse",
@@ -2772,7 +2772,7 @@
       "en": "Romania",
       "ru": "Румыния"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "RS": {
     "cluster": null,
@@ -2787,7 +2787,7 @@
       "en": "Serbia",
       "ru": "Сербия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "RU": {
     "cluster": "twin-peak",
@@ -2937,7 +2937,7 @@
       "en": "Slovenia",
       "ru": "Словения"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SJ": {
     "cluster": "ice",
@@ -3612,7 +3612,7 @@
       "en": "Kosovo",
       "ru": "Косово"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "YE": {
     "cluster": "hill-town",

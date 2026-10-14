@@ -1,0 +1,45 @@
+{
+  "iso2": "CZ",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "teal",
+  "cluster": "bridge",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 56, 30, 146, 50, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.3, 0.46],
+          [0.7, 0.5],
+          [1, 0.44]
+        ],
+        "jag": 0.6,
+        "litGap": 3.0,
+        "seed": 6
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "charles-bridge",
+      "box": [36, 50, 130, 80]
+    }
+  ]
+}

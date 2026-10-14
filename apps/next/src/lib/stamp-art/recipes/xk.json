@@ -1,0 +1,76 @@
+{
+  "iso2": "XK",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "ochre-dark",
+  "cluster": "twin-peak",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [36, 54, 30, 146, 58, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.2, 0.38],
+          [0.4, 0.46],
+          [0.8, 0.4],
+          [1, 0.5]
+        ],
+        "jag": 0.8,
+        "litGap": 3.0,
+        "seed": 3
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "mountains",
+      "box": [28, 70, 144, 58],
+      "params": {
+        "peaks": [
+          [0.0, 0.5],
+          [0.14, 1],
+          [0.3, 0.55],
+          [0.7, 0.6],
+          [0.86, 1],
+          [1, 0.45]
+        ],
+        "jag": 1.0,
+        "shade": "right",
+        "shadeDepth": 18,
+        "shadeGap": 2.8
+      }
+    },
+    {
+      "module": "peak",
+      "box": [50, 52, 100, 76],
+      "params": {
+        "seed": 31
+      }
+    },
+    {
+      "module": "distance-trees",
+      "box": [26, 52, 140, 78],
+      "params": {
+        "horizonY": 128,
+        "height": 14,
+        "amp": 3,
+        "seed": 7,
+        "swell": 3,
+        "gap": 2.6
+      }
+    }
+  ]
+}
