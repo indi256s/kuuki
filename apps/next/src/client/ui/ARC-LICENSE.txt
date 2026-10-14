@@ -20,6 +20,10 @@ Expandable-card and text-shimmer were additionally fetched on 2026-10-12 for
 the import dock; their source hashes and adaptation are recorded in the same
 inventory.
 
+Waffle-chart was fetched again on 2026-10-14 for the desktop Aircraft maker
+composition; its source hashes and bounded-cell adaptation are recorded in
+the same inventory.
+
 The MIT License below is reproduced verbatim from the repository LICENSE
 (SHA256 1b73a3fbab233cb995e6e9b6a63d302f91975c74c1629919c8e9820902820dde,
 fetched 2026-10-08), which matches the Free: MIT section of

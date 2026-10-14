@@ -167,6 +167,7 @@ it('releases a removed route selection so the current focused route keeps its ai
   const listeners = new Map<string, (event: { point: { x: number; y: number } }) => void>()
   const map = {
     addSource() {},
+    setFontFaces() {},
     addLayer() {},
     getSource: () => ({ setData() {} }),
     getLayer: () => true,

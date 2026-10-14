@@ -2,12 +2,10 @@
 
 import Link from 'next/link'
 import { useState, type CSSProperties } from 'react'
-import { MAKER_NAMES, type MakerKey } from '@kuuki/data/aircraft-makers'
 import type { Rankings } from '@kuuki/shared/overview/rankings'
 import { Button } from '../../../ui/button'
-import { PayloadAircraftReview } from '../manufacturers/aircraft-review'
 import { useOverview } from '../../store/overview-context'
-import { copy, flights, percent } from './display'
+import { copy, flights, percent, number } from './display'
 import './travel-patterns.css'
 
 type Pattern = Rankings['patterns'][number]
@@ -21,34 +19,21 @@ function PatternEvidence({
   baseline: Pattern
   filtered: boolean
 }) {
-  const { locale, actions, isCurrent, scope } = useOverview()
+  const { locale, actions, isCurrent } = useOverview()
   const [picked, setPicked] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
   const selection = pattern.categories.find((item) => item.key === picked && item.count > 0)
-  const title = {
-    makers: copy(locale, 'Aircraft manufacturers', 'Производители самолётов'),
-    haul: copy(locale, 'Flight length', 'Дальность перелётов'),
-    daytime: copy(locale, 'Departure schedule', 'Время вылета'),
-  }[pattern.id]
+  const title =
+    pattern.id === 'haul'
+      ? copy(locale, 'Flight length', 'Дальность перелётов')
+      : copy(locale, 'Departure schedule', 'Время вылета')
   const label = (key: string) => {
     if (key === 'unknown')
       return copy(
         locale,
-        pattern.id === 'makers'
-          ? 'Unknown aircraft'
-          : pattern.id === 'haul'
-            ? 'Unknown distance'
-            : 'Unknown time',
-        pattern.id === 'makers'
-          ? 'Самолёт не указан'
-          : pattern.id === 'haul'
-            ? 'Расстояние неизвестно'
-            : 'Время не указано',
+        pattern.id === 'haul' ? 'Unknown distance' : 'Unknown time',
+        pattern.id === 'haul' ? 'Расстояние неизвестно' : 'Время не указано',
       )
-    if (pattern.id === 'makers')
-      return key === 'other'
-        ? copy(locale, 'Other makers', 'Другие производители')
-        : MAKER_NAMES[key as keyof typeof MAKER_NAMES]
     if (pattern.id === 'haul')
       return key === 'long'
         ? copy(locale, 'Long haul', 'Дальние')
@@ -60,19 +45,16 @@ function PatternEvidence({
   const color = (key: string) =>
     key === 'unknown'
       ? 'var(--surface)'
-      : pattern.id === 'makers'
-        ? `var(--cat-maker-${key})`
-        : key === 'day' || key === 'short-medium'
-          ? 'var(--accent)'
-          : 'var(--mark-2)'
+      : key === 'day' || key === 'short-medium'
+        ? 'var(--cmp-1)'
+        : 'var(--cmp-2)'
   const inspect = (key: string) => {
     setPicked(key)
     setExpanded(true)
   }
   const filterSelection = () => {
     if (!selection || selection.key === 'unknown' || !isCurrent()) return
-    if (pattern.id === 'makers') actions.add('makers', selection.key as MakerKey)
-    else if (pattern.id === 'haul') {
+    if (pattern.id === 'haul') {
       actions.add('haul', selection.key === 'long' ? 'long' : 'short')
       if (selection.key === 'short-medium') actions.add('haul', 'medium')
     } else {
@@ -86,13 +68,8 @@ function PatternEvidence({
   const description = (item: Pattern['categories'][number], total: number) =>
     `${label(item.key)}: ${flights(locale, item.count)} · ${total > 0 ? percent(item.count / total) : '—'}`
   const unknown = pattern.categories.find((item) => item.key === 'unknown')?.count ?? 0
-  const aircraftReview =
-    unknown > 0 && pattern.id === 'makers' && scope && scope.coverage.total > scope.coverage.typed
   const hasDetails =
-    filtered ||
-    pattern.id === 'daytime' ||
-    aircraftReview ||
-    (selection && selection.key !== 'unknown')
+    filtered || pattern.id === 'daytime' || (selection && selection.key !== 'unknown')
   return (
     <article className="ov3-pattern">
       <div className="ov3-pattern-heading">
@@ -100,47 +77,35 @@ function PatternEvidence({
         <span>{flights(locale, pattern.total)}</span>
       </div>
       {pattern.total > 0 ? (
-        <>
-          <div className="ov3-pattern-stack" aria-label={title}>
-            {pattern.categories
-              .filter((item) => item.count > 0)
-              .map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  data-unknown={item.key === 'unknown' || undefined}
-                  style={
-                    { flexGrow: item.count, '--pattern-color': color(item.key) } as CSSProperties
-                  }
-                  aria-label={description(item, pattern.total)}
-                  aria-pressed={selection?.key === item.key}
-                  onClick={() => inspect(item.key)}
-                />
-              ))}
-          </div>
-          <div className="ov3-pattern-legend">
-            {pattern.categories
-              .filter((item) => item.count > 0)
-              .map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  aria-pressed={selection?.key === item.key}
-                  onClick={() => inspect(item.key)}
-                >
+        <div className="ov3-pattern-legend">
+          {pattern.categories
+            .filter((item) => item.count > 0)
+            .map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                aria-label={description(item, pattern.total)}
+                aria-pressed={selection?.key === item.key}
+                onClick={() => inspect(item.key)}
+              >
+                <span>{label(item.key)}</span>
+                <span className="ov3-pattern-ratio" aria-hidden="true">
                   <i
                     data-unknown={item.key === 'unknown' || undefined}
-                    style={{ '--pattern-color': color(item.key) } as CSSProperties}
-                    aria-hidden="true"
+                    style={
+                      {
+                        '--pattern-color': color(item.key),
+                        inlineSize: `${(item.count / pattern.total) * 100}%`,
+                      } as CSSProperties
+                    }
                   />
-                  <span>{label(item.key)}</span>
-                  <strong>
-                    {item.count} · {percent(item.count / pattern.total)}
-                  </strong>
-                </button>
-              ))}
-          </div>
-        </>
+                </span>
+                <strong>
+                  {number(locale, item.count)} · {percent(item.count / pattern.total)}
+                </strong>
+              </button>
+            ))}
+        </div>
       ) : (
         <p>{copy(locale, 'No flights in this selection', 'В выборке нет перелётов')}</p>
       )}
@@ -185,10 +150,12 @@ function PatternEvidence({
                     <tr key={key}>
                       <th scope="row">{label(key)}</th>
                       <td>
-                        {count} · {pattern.total ? percent(count / pattern.total) : '—'}
+                        {number(locale, count)} ·{' '}
+                        {pattern.total ? percent(count / pattern.total) : '—'}
                       </td>
                       <td>
-                        {lifetime} · {baseline.total ? percent(lifetime / baseline.total) : '—'}
+                        {number(locale, lifetime)} ·{' '}
+                        {baseline.total ? percent(lifetime / baseline.total) : '—'}
                       </td>
                     </tr>
                   )
@@ -208,7 +175,6 @@ function PatternEvidence({
                 {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
               </Button>
             )}
-            {aircraftReview && <PayloadAircraftReview />}
             {unknown > 0 && pattern.id === 'daytime' && (
               <Link className="ui-button" data-variant="ghost" href="/journal">
                 {copy(locale, 'Add times', 'Указать время')}
@@ -232,14 +198,16 @@ export function TravelPatterns({
 }) {
   return (
     <div className="ov3-patterns">
-      {patterns.map((pattern) => (
-        <PatternEvidence
-          key={pattern.id}
-          pattern={pattern}
-          baseline={baseline.find((item) => item.id === pattern.id)!}
-          filtered={filtered}
-        />
-      ))}
+      {patterns
+        .filter((pattern) => pattern.id !== 'makers')
+        .map((pattern) => (
+          <PatternEvidence
+            key={pattern.id}
+            pattern={pattern}
+            baseline={baseline.find((item) => item.id === pattern.id)!}
+            filtered={filtered}
+          />
+        ))}
     </div>
   )
 }

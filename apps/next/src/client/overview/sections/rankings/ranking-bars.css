@@ -1,0 +1,30 @@
+.ov3-ranking-bars .ov3-ranking-name {
+  color: var(--text);
+  font: 400 15px/20px var(--font-sans);
+  overflow-wrap: anywhere;
+}
+.ov3-ranking-bars .ov3-ranking-place {
+  fill: var(--text-muted);
+  font: 400 13px/18px var(--font-mono);
+}
+.ov3-ranking-bars .ov3-ranking-count {
+  fill: var(--text);
+  font: 600 17px/20px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.ov3-ranking-bars .ov3-ranking-bar {
+  fill: var(--mark-rest);
+}
+.ov3-ranking-bars [data-picked] .ov3-ranking-bar {
+  fill: var(--mark-peak);
+}
+.ov3-ranking-bars [data-picked] .ov3-ranking-name {
+  font-weight: 600;
+}
+.ov3-ranking-gap {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+  text-wrap: pretty;
+}

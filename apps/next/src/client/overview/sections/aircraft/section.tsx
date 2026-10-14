@@ -10,6 +10,7 @@ import { MakerSwatch } from '../../../ui/category-mark'
 import { Button } from '../../../ui/button'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { LazyChart } from '../../charts/lazy-chart'
+import { ArcWaffle } from '../../charts/arc-waffle'
 import { StageRows } from '../../charts/stage-rows'
 import { fill } from '../../copy'
 import { ChapterCard } from '../../layout/chapter-card'
@@ -25,7 +26,7 @@ import { makerRows, planSheds, shareText } from './model'
 import './aircraft.css'
 
 type View = 'makers' | 'fleet'
-/** One bar of the stage: a maker (Makers) or an ICAO type (Fleet). `value` is what the bar is drawn from. */
+/** One stage reading: a maker (Makers) or an ICAO type (Fleet). */
 type Row = {
   key: string
   name: string
@@ -90,22 +91,26 @@ export function Section({ span }: { span: Span }) {
   const applied: readonly string[] = (filter[facet] as string[] | undefined) ?? []
 
   const gate = scope ? SECTION_GATES.aircraft.gate(scope) : null
-  const state =
-    !scope || !all ? 'loading' : makers && fleet && reading && !plan.blank ? 'ready' : 'empty'
+  const state = !scope || !all ? 'loading' : makers && fleet && reading ? 'ready' : 'empty'
   const typeName = (key: string) => payload?.refs.aircraft[key]?.name ?? key
 
   const title =
     view === 'makers'
-      ? copy(locale, 'Share of known-maker flights', 'Доля среди известных производителей')
+      ? copy(locale, 'All flights by maker', 'Все перелёты по производителям')
       : copy(locale, 'Most-flown types', 'Самые частые типы')
   const spoken = (row: Row) =>
     view === 'makers'
-      ? row.maker === 'unknown'
-        ? `${row.name}, ${flights(locale, row.flights)}`
-        : `${row.name}, ${shareText(row.share)} · ${flights(locale, row.flights)}`
+      ? `${row.name}, ${shareText(row.share)} · ${flights(locale, row.flights)}`
       : `${row.key}, ${flights(locale, row.flights)}`
   const points = rows.map((row) => ({ key: row.key, datum: row, label: spoken(row) }))
-  const plotHeight = Math.max(span === 'sheet' ? 176 : 206, points.length * 32)
+  const plotHeight =
+    view === 'makers' && span === 'full'
+      ? Math.max(238, points.length * 36 + 26)
+      : span === 'sheet'
+        ? 176
+        : 206
+
+  const rowHeight = span === 'sheet' ? 44 : plotHeight / Math.max(1, points.length)
 
   let value = '—',
     unit: string | undefined,
@@ -117,8 +122,8 @@ export function Section({ span }: { span: Span }) {
       unit = copy(locale, 'unknown', 'без производителя')
       caption = copy(
         locale,
-        'Flights with an unknown maker',
-        'Перелёты с неизвестным производителем',
+        `${shareText(reading.share)} of all flights have an unknown maker`,
+        `${shareText(reading.share)} всех перелётов с неизвестным производителем`,
       )
     } else if (view === 'makers') {
       value = shareText(reading.share)
@@ -131,7 +136,11 @@ export function Section({ span }: { span: Span }) {
           .join(', ')
         caption = others
           ? others
-          : copy(locale, '100% of known-maker flights', '100% перелётов с известным производителем')
+          : copy(
+              locale,
+              `${shareText(reading.share)} of all flights`,
+              `${shareText(reading.share)} всех перелётов`,
+            )
       } else {
         caption = copy(
           locale,
@@ -262,6 +271,7 @@ export function Section({ span }: { span: Span }) {
         rollValue={r.picked}
         chart={{
           caption: title,
+          layout: 'content',
           toggle: (
             <SegmentedControl
               dense
@@ -290,44 +300,69 @@ export function Section({ span }: { span: Span }) {
             rows: rows.map((row) => ({
               name: view === 'makers' ? row.name : `${row.key} · ${typeName(row.key)}`,
               flights: row.flights,
-              share: row.maker === 'unknown' && view === 'makers' ? '—' : shareText(row.share),
+              share: shareText(row.share),
             })),
           },
           plot: (
             <LazyChart height={plotHeight} label={title}>
-              {(inView) => (
-                <StageRows
-                  rowHeight={plotHeight / Math.max(1, points.length)}
-                  points={points}
-                  value={(point) => point.datum.value}
-                  format={(point) =>
-                    view === 'fleet'
-                      ? number(locale, point.datum.flights)
-                      : point.datum.maker === 'unknown'
-                        ? flights(locale, point.datum.flights)
-                        : shareText(point.datum.share)
-                  }
-                  name={(point) => point.datum.name}
-                  // Unknown reads as a count ("5 flights", «5 перелётов»), wider than a share.
-                  valueWidth={
-                    view !== 'fleet' && points.some((point) => point.datum.maker === 'unknown')
-                      ? 88
-                      : undefined
-                  }
-                  mono={view === 'fleet'}
-                  swatch={(point) => <MakerSwatch maker={point.datum.maker} />}
-                  fill={(point) => `var(--cat-maker-${point.datum.maker})`}
-                  outline={(point) => point.datum.maker === 'unknown'}
-                  span={span}
-                  selectedKey={r.reading}
-                  appliedKeys={applied}
-                  inView={inView}
-                  ariaLabel={title}
-                  onPick={(point) => r.pick(point.key)}
-                  actions={(point) => [{ label: filterLabel(locale), run: () => only(point.key) }]}
-                  tip={(selected) => <span>{selected[0].label}</span>}
-                />
-              )}
+              {(inView) =>
+                view === 'makers' && span === 'full' ? (
+                  <ArcWaffle
+                    points={points}
+                    value={(point) => point.datum.flights}
+                    name={(point) => point.datum.name}
+                    format={(point) =>
+                      `${number(locale, point.datum.flights)} · ${shareText(point.datum.share)}`
+                    }
+                    fill={(point) => `var(--cat-maker-${point.datum.maker})`}
+                    outline={(point) => point.datum.maker === 'unknown'}
+                    selectedKey={r.reading}
+                    appliedKeys={applied}
+                    inView={inView}
+                    height={plotHeight}
+                    ariaLabel={title}
+                    note={copy(
+                      locale,
+                      '100 cells · rounded shares, exact counts in legend',
+                      '100 ячеек · округлённые доли, точные числа в легенде',
+                    )}
+                    onPick={(point) => r.pick(point.key)}
+                    actions={(point) => [
+                      { label: filterLabel(locale), run: () => only(point.key) },
+                    ]}
+                    tip={(selected) => <span>{selected[0].label}</span>}
+                  />
+                ) : (
+                  <div className={span === 'sheet' ? 'ov3-aircraft-sheet-rows' : undefined}>
+                    <StageRows
+                      rowHeight={rowHeight}
+                      points={points}
+                      value={(point) => point.datum.value}
+                      format={(point) =>
+                        view === 'fleet'
+                          ? number(locale, point.datum.flights)
+                          : `${number(locale, point.datum.flights)} · ${shareText(point.datum.share)}`
+                      }
+                      name={(point) => point.datum.name}
+                      valueWidth={view === 'makers' ? 104 : undefined}
+                      mono={view === 'fleet'}
+                      swatch={(point) => <MakerSwatch maker={point.datum.maker} />}
+                      fill={(point) => `var(--cat-maker-${point.datum.maker})`}
+                      outline={(point) => point.datum.maker === 'unknown'}
+                      span={span}
+                      selectedKey={r.reading}
+                      appliedKeys={applied}
+                      inView={inView}
+                      ariaLabel={title}
+                      onPick={(point) => r.pick(point.key)}
+                      actions={(point) => [
+                        { label: filterLabel(locale), run: () => only(point.key) },
+                      ]}
+                      tip={(selected) => <span>{selected[0].label}</span>}
+                    />
+                  </div>
+                )
+              }
             </LazyChart>
           ),
         }}

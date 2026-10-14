@@ -20,7 +20,7 @@ import { RhythmStamper } from './figure'
 import { monthMarks, monthTotals, yearMarks } from './marks'
 import './rhythm.css'
 
-type View = 'calendar' | 'timeline'
+type View = 'history' | 'calendar' | 'timeline'
 type Row = { key: string; flights: number; month: number; year: number }
 
 const MONTHS: CountForms = {
@@ -53,30 +53,42 @@ const ordinal = (locale: 'en' | 'ru', n: number) =>
 
 export function Section({ span }: { span: Span }) {
   const { scope, all, payload, filter, locale, actions, isCurrent } = useOverview()
-  const [view, setView] = useState<View>('calendar')
+  const [chosenView, setView] = useState<View | null>(null)
   const [metric, setMetric] = useState<Metric>('flights')
   const [showAll, setShowAll] = useState(false)
   const [activityYear, setActivityYear] = useState<number | null>(null)
-  const calendar = view === 'calendar'
   const data = scope?.rhythm.status === 'ready' ? scope.rhythm.value : null
+  const hasHistory = span === 'full' && (data?.years.length ?? 0) > 1
+  const view =
+    chosenView === 'history' && !hasHistory
+      ? 'calendar'
+      : (chosenView ?? (hasHistory ? 'history' : 'calendar'))
+  const calendar = view === 'calendar'
+  const history = view === 'history'
+  const historyYears = showAll ? data?.years : data?.years.slice(0, 6)
   const cap = (text: string) => text.charAt(0).toLocaleUpperCase(locale) + text.slice(1)
 
-  // One row per column of the chart: the twelve calendar months summed over every year, or each year of the scope.
+  // History reads dated months; seasonality combines calendar months; Years reads yearly totals.
   const rows: Row[] = !data
     ? []
-    : calendar
-      ? monthTotals(data).map((count, index) => ({
-          key: monthKey(index + 1),
-          flights: count,
-          month: index + 1,
-          year: 0,
-        }))
-      : (scope?.figures.byYear ?? []).map((row) => ({
-          key: yearKey(row.year),
-          flights: row.flights,
-          month: 0,
-          year: row.year,
-        }))
+    : history
+      ? data.cells.filter(
+          (row) =>
+            historyYears?.includes(row.year) && row.key <= (payload?.generatedAt.slice(0, 7) ?? ''),
+        )
+      : calendar
+        ? monthTotals(data).map((count, index) => ({
+            key: monthKey(index + 1),
+            flights: count,
+            month: index + 1,
+            year: 0,
+          }))
+        : (scope?.figures.byYear ?? []).map((row) => ({
+            key: yearKey(row.year),
+            flights: row.flights,
+            month: 0,
+            year: row.year,
+          }))
   const filled = rows.filter((row) => row.flights > 0)
   // The busiest month is the rhythm's own; the busiest year is the latest of any tie.
   const busiest = calendar
@@ -84,11 +96,16 @@ export function Section({ span }: { span: Span }) {
       ? monthKey(data.busiestMonthOfYear.month)
       : null
     : (filled.reduce<Row | null>(
-        (best, row) => (!best || row.flights >= best.flights ? row : best),
+        (best, row) =>
+          !best ||
+          row.flights > best.flights ||
+          (row.flights === best.flights && row.key > best.key)
+            ? row
+            : best,
         null,
       )?.key ?? null)
   const r = useReading(
-    filled.map((row) => row.key),
+    (history ? rows : filled).map((row) => row.key),
     busiest,
   )
   const at = rows.findIndex((row) => row.key === r.reading)
@@ -99,19 +116,36 @@ export function Section({ span }: { span: Span }) {
         rows.map((row) => row.flights),
         locale,
       )
-    : yearMarks(rows, locale)
+    : history
+      ? rows.map((row) => ({
+          band: `${pad(row.month)}/${String(row.year).slice(-2)}`,
+          print: `${pad(row.month)}/${String(row.year).slice(-2)}`,
+          flights: flights(locale, row.flights).toLocaleUpperCase(locale),
+        }))
+      : yearMarks(rows, locale)
 
   const yearsApplied = filter.period && 'years' in filter.period ? filter.period.years : []
   const applied = (row: Row) =>
-    calendar
-      ? (filter.months ?? []).includes(row.month)
-      : yearsApplied.length === 1 && yearsApplied[0] === row.year
+    history
+      ? !!filter.period &&
+        'from' in filter.period &&
+        filter.period.from === row.key &&
+        filter.period.to === row.key
+      : calendar
+        ? (filter.months ?? []).includes(row.month)
+        : yearsApplied.length === 1 && yearsApplied[0] === row.year
   const only = (row: Row) => {
     if (!isCurrent()) return
-    if (calendar) actions.add('months', row.month)
+    if (history) actions.setPeriod({ from: row.key, to: row.key })
+    else if (calendar) actions.add('months', row.month)
     else actions.setPeriod({ years: [row.year] })
   }
-  const nameOf = (row: Row) => (calendar ? monthName(locale, row.month) : String(row.year))
+  const nameOf = (row: Row) =>
+    history
+      ? `${monthName(locale, row.month)} ${row.year}`
+      : calendar
+        ? monthName(locale, row.month)
+        : String(row.year)
 
   const gate = scope && SECTION_GATES.rhythm.gate(scope)
   const missing = gate?.status === 'below' ? gate : null
@@ -149,9 +183,21 @@ export function Section({ span }: { span: Span }) {
         )
   }
 
-  const chartCaption = calendar
-    ? copy(locale, 'Flights by month · all years', 'Перелёты по месяцам · все годы')
-    : copy(locale, 'Flights by year', 'Перелёты по годам')
+  if (history && reading) {
+    caption = r.isHeadline
+      ? copy(
+          locale,
+          'Busiest shown month · by flights',
+          'Самый активный месяц на графике · по перелётам',
+        )
+      : copy(locale, `${share} of shown flights`, `${share} перелётов на графике`)
+  }
+
+  const chartCaption = history
+    ? copy(locale, 'Year by month', 'Год по месяцам')
+    : calendar
+      ? copy(locale, 'Flights by month · all years', 'Перелёты по месяцам · все годы')
+      : copy(locale, 'Flights by year', 'Перелёты по годам')
   const points: ChartPoint<Row>[] = rows.map((row) => ({
     key: row.key,
     datum: row,
@@ -195,15 +241,16 @@ export function Section({ span }: { span: Span }) {
       figureButton={
         filled.length > 1
           ? {
-              label: calendar
-                ? copy(locale, 'Show next month', 'Показать следующий месяц')
-                : copy(locale, 'Show next year', 'Показать следующий год'),
+              label:
+                calendar || history
+                  ? copy(locale, 'Show next month', 'Показать следующий месяц')
+                  : copy(locale, 'Show next year', 'Показать следующий год'),
               onPress: r.next,
             }
           : undefined
       }
       hero={{
-        value: reading ? (calendar ? cap(nameOf(reading)) : nameOf(reading)) : '—',
+        value: reading ? (calendar || history ? cap(nameOf(reading)) : nameOf(reading)) : '—',
         unit: reading ? flights(locale, reading.flights) : undefined,
         caption,
         only:
@@ -216,17 +263,20 @@ export function Section({ span }: { span: Span }) {
       }}
       rollValue={r.picked}
       chart={{
-        table: {
-          caption: chartCaption,
-          columns: [
-            {
-              key: 'label',
-              label: calendar ? copy(locale, 'Month', 'Месяц') : copy(locale, 'Year', 'Год'),
+        layout: 'content',
+        table: history
+          ? undefined
+          : {
+              caption: chartCaption,
+              columns: [
+                {
+                  key: 'label',
+                  label: calendar ? copy(locale, 'Month', 'Месяц') : copy(locale, 'Year', 'Год'),
+                },
+                { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+              ],
+              rows: rows.map((row) => ({ label: nameOf(row), flights: row.flights })),
             },
-            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
-          ],
-          rows: rows.map((row) => ({ label: nameOf(row), flights: row.flights })),
-        },
         caption: chartCaption,
         toggle: (
           <SegmentedControl
@@ -235,12 +285,23 @@ export function Section({ span }: { span: Span }) {
             onChange={setView}
             label={copy(locale, 'Rhythm view', 'Вид ритма')}
             options={[
-              { value: 'calendar', label: copy(locale, 'Calendar', 'Календарь') },
-              { value: 'timeline', label: copy(locale, 'Over time', 'Со временем') },
+              ...(hasHistory
+                ? [{ value: 'history' as const, label: copy(locale, 'History', 'История') }]
+                : []),
+              { value: 'calendar', label: copy(locale, 'Seasonality', 'Сезонность') },
+              { value: 'timeline', label: copy(locale, 'Years', 'Годы') },
             ]}
           />
         ),
-        plot: (
+        plot: history ? (
+          <YearByMonth
+            metric={metric}
+            setMetric={setMetric}
+            showAll={showAll}
+            setShowAll={setShowAll}
+            reading={{ key: r.reading, pick: r.pick }}
+          />
+        ) : (
           <LazyChart height={span === 'full' ? 206 : 176} label={chartCaption}>
             {(inView) => (
               <StageColumns
@@ -277,17 +338,21 @@ export function Section({ span }: { span: Span }) {
                   content: <TimelineContent span={span} />,
                 },
               ]),
-          {
-            summary: copy(locale, 'Year by month', 'Год по месяцам'),
-            content: (
-              <YearByMonth
-                metric={metric}
-                setMetric={setMetric}
-                showAll={showAll}
-                setShowAll={setShowAll}
-              />
-            ),
-          },
+          ...(!hasHistory
+            ? [
+                {
+                  summary: copy(locale, 'Year by month', 'Год по месяцам'),
+                  content: (
+                    <YearByMonth
+                      metric={metric}
+                      setMetric={setMetric}
+                      showAll={showAll}
+                      setShowAll={setShowAll}
+                    />
+                  ),
+                },
+              ]
+            : []),
           {
             summary: copy(locale, 'Daily activity', 'Дневная активность'),
             content: (

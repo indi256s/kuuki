@@ -47,7 +47,14 @@ export type ChapterCardProps = {
   /** Roll the value on change: pass `picked` from `useReading`. Without it a changed value swaps at once. */
   rollValue?: boolean
   /** `table` is the plot's screen-reader alternative, outside the collapsible Details. */
-  chart: { caption: string; toggle?: ReactNode; plot: ReactNode; table?: ChartTable }
+  chart: {
+    caption: string
+    toggle?: ReactNode
+    plot: ReactNode
+    table?: ChartTable
+    /** Content-sized desktop analysis; the mobile sheet retains its stable stage. */
+    layout?: 'content'
+  }
   details?: ChapterCardDetails
   empty?: { title: string; line: string; action: ReactNode }
 }
@@ -105,6 +112,7 @@ export function ChapterCard({
       data-span={span}
       data-state={state}
       data-wide={wide ? '' : undefined}
+      data-chart-layout={span === 'full' ? chart.layout : undefined}
       style={
         box === STAGE_BOX
           ? undefined
@@ -149,7 +157,11 @@ export function ChapterCard({
               data-only={hero.only ? '' : undefined}
             >
               <span className="ov3-card-value-text">
-                <SlotText key={epoch} value={hero.value} />
+                {span === 'full' && chart.layout === 'content' ? (
+                  hero.value
+                ) : (
+                  <SlotText key={epoch} value={hero.value} />
+                )}
               </span>
               {hero.unit ? <span className="ov3-card-unit">{hero.unit}</span> : null}
             </div>

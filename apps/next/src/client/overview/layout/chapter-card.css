@@ -346,6 +346,57 @@
   margin-top: 0;
 }
 
+/* Detailed desktop analyses grow with their data. Mobile chapters keep their aligned stages. */
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-top {
+  height: auto;
+  min-block-size: calc(var(--figure-h, 160px) + 32px);
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-hero {
+  height: auto;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-value {
+  height: auto;
+  min-block-size: 52px;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-value-text {
+  flex: 0 1 auto;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-caption {
+  display: block;
+  height: auto;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-chart {
+  height: auto;
+  min-block-size: 246px;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-plot {
+  height: auto;
+  min-block-size: 206px;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-chart-header {
+  height: auto;
+  min-block-size: 32px;
+  flex-wrap: wrap;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-chart-caption {
+  flex-basis: 12rem;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-chart-caption-text {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+.ov3-card[data-span='full'][data-chart-layout='content'] .ov3-card-plot > .ui-skeleton {
+  min-block-size: 206px;
+}
+
 /* Wide (card content 1000+, set by ChapterCard from its own width): the bands keep their 636 reading column and the figure takes the rest as
    its own column, drawn at --figure-w × --figure-h (figure-box.ts). The bands keep fixed heights, so states still never move what is below;
    the caption keeps the sheet's two lines, which hold more at 636 than at 342. */

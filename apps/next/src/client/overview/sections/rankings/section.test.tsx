@@ -95,3 +95,16 @@ it('a filter that leaves nothing to rank says so and offers to clear it', () => 
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(actions.clear).toHaveBeenCalled()
 })
+
+it('compares the current leaders with exact counts and category units, without inventing a runner', () => {
+  admit()
+  const { rerender } = render(<Section span="full" />)
+  expect(screen.getByText('Turkish Airlines leads Qatar Airways by 12 flights.')).toBeVisible()
+  view('Airports')
+  expect(screen.getByText(/leads TBS.*by 6 airport visits\./)).toBeVisible()
+  expect(screen.getByRole('columnheader', { name: 'Airport visits' })).toBeInTheDocument()
+  admit({ airlines: ['TK'] })
+  rerender(<Section span="full" />)
+  view('Airlines')
+  expect(screen.queryByText(/leads .* by /)).toBeNull()
+})

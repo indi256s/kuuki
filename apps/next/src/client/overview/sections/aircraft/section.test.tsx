@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { MAKER_SLOTS } from '@kuuki/data/aircraft-makers'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/board.json'
@@ -49,14 +50,16 @@ afterEach(cleanup)
 
 it("a pick moves the hero and lights that maker's hangar, and does not filter", () => {
   const view = render(<Section span="full" />)
-  expect(hero(view).value).toHaveTextContent('59%')
+  expect(hero(view).value).toHaveTextContent('55%')
   expect(hero(view).unit).toHaveTextContent('Airbus')
+  const unknown = within(screen.getAllByRole('table')[0]).getByRole('row', { name: 'Unknown 5 7%' })
+  expect(unknown).toBeInTheDocument()
   expect(top().queryByRole('button', { name: /^Only/ })).toBeNull()
   const opacity = (key: string, part: 'lit' | 'unlit') =>
     (view.container.querySelector(`[data-part="shed-${key}-${part}"]`) as SVGElement).style.opacity
   expect(opacity('airbus', 'lit')).toContain('var(--lit-airbus, 1)')
   fireEvent.click(row('Boeing'))
-  expect(hero(view).value).toHaveTextContent('33%')
+  expect(hero(view).value).toHaveTextContent('30%')
   expect(hero(view).unit).toHaveTextContent('Boeing')
   expect(opacity('boeing', 'lit')).toContain('var(--lit-boeing, 1)')
   expect(opacity('airbus', 'lit')).toContain('var(--lit-airbus, 0)')
@@ -113,5 +116,39 @@ it('below the gate under a filter, the card says so and offers to clear it', () 
 
 it('the tile shows the headline share and maker', () => {
   render(<Tile />)
-  expect(screen.getByText('59% Airbus')).toBeInTheDocument()
+  expect(screen.getByText('55% Airbus')).toBeInTheDocument()
+})
+
+it('keeps a sub-cell maker selectable with its exact count and the all-flight share', () => {
+  const scope = context.current.scope!
+  if (scope.makers.status !== 'ready') throw new Error('Fixture makers must be ready')
+  scope.makers.value.rows = scope.makers.value.rows.map((row) => ({
+    ...row,
+    flights: row.key === 'airbus' ? 10000 : row.key === 'unknown' ? 1 : 0,
+  }))
+  render(<Section span="full" />)
+  const unknown = row('Unknown')
+  expect(unknown).toHaveAccessibleName('Unknown, <1% · 1 flight')
+  fireEvent.click(unknown)
+  expect(top().getByRole('button', { name: 'Only Unknown' })).toBeInTheDocument()
+  expect(add).not.toHaveBeenCalled()
+  expect(
+    within(screen.getAllByRole('table')[0]).getByRole('row', { name: 'Unknown 1 <1%' }),
+  ).toBeInTheDocument()
+})
+
+it('keeps all makers at full touch height inside the sheet stage', () => {
+  const scope = context.current.scope!
+  if (scope.makers.status !== 'ready') throw new Error('Fixture makers must be ready')
+  scope.makers.value.rows = MAKER_SLOTS.map((key) => ({ key, flights: 10, km: 0, minutes: 0 }))
+  const view = render(<Section span="sheet" />)
+  const marks = stage().getAllByRole('button', { name: /, .* · 10 flights$/ })
+  expect(marks).toHaveLength(MAKER_SLOTS.length)
+  for (const mark of marks) {
+    expect(mark.querySelector('rect[fill="transparent"]')).toHaveAttribute('height', '44')
+  }
+  expect(marks[0].closest('svg')).toHaveStyle({ height: `${MAKER_SLOTS.length * 44}px` })
+  fireEvent.click(row('Unknown'))
+  expect(hero(view).unit).toHaveTextContent('unknown')
+  expect(add).not.toHaveBeenCalled()
 })
