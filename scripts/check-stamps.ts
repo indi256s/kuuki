@@ -4,7 +4,7 @@
  * Run: pnpm check:stamps
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stampFiles } from '../apps/next/src/lib/stamp-art/build'
 import { stampIndexJson } from '../apps/next/src/lib/stamp-art/stamp-index'
@@ -26,14 +26,19 @@ async function main() {
     }
   }
 
-  const expected = stampFiles()
+  const expected = await stampFiles()
   for (const [name, content] of Object.entries(expected)) {
     const path = join(STAMPS_DIR, name)
     if (!existsSync(path)) failures.push(`${name}: missing (run pnpm generate:stamps)`)
     else if (readFileSync(path, 'utf8') !== content)
       failures.push(`${name}: drifted from its recipe (run pnpm generate:stamps)`)
   }
-  for (const name of existsSync(STAMPS_DIR) ? readdirSync(STAMPS_DIR) : []) {
+  const present = existsSync(STAMPS_DIR)
+    ? readdirSync(STAMPS_DIR, { recursive: true, withFileTypes: true })
+    : []
+  for (const entry of present) {
+    if (!entry.isFile()) continue
+    const name = relative(STAMPS_DIR, join(entry.parentPath, entry.name))
     if (!(name in expected)) failures.push(`${name}: stale, no recipe produces it`)
   }
 

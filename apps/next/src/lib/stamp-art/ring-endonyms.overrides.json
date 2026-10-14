@@ -1,0 +1,224 @@
+{
+  "AE": {
+    "endonymShort": "الإمارات",
+    "englishShort": "UAE"
+  },
+  "AF": {
+    "endonym": "افغانستان",
+    "lang": "fa"
+  },
+  "AQ": {
+    "endonym": "Antarctica",
+    "lang": "en"
+  },
+  "AS": {
+    "endonym": "American Samoa",
+    "lang": "en"
+  },
+  "BA": {
+    "endonymShort": "BiH",
+    "englishShort": "Bosnia"
+  },
+  "BE": {
+    "endonym": "België · Belgique",
+    "endonymShort": "België",
+    "lang": "nl"
+  },
+  "BI": {
+    "endonym": "Burundi",
+    "lang": "fr"
+  },
+  "CC": {
+    "endonym": "Cocos Islands",
+    "english": "Cocos (Keeling) Islands",
+    "englishShort": "Cocos Islands",
+    "lang": "en"
+  },
+  "CD": {
+    "endonym": "RD Congo",
+    "lang": "fr",
+    "english": "DR Congo"
+  },
+  "CF": {
+    "endonym": "République centrafricaine",
+    "endonymShort": "Centrafrique",
+    "english": "Central African Republic",
+    "englishShort": "Central African Rep.",
+    "lang": "fr"
+  },
+  "CG": {
+    "endonym": "Congo",
+    "lang": "fr",
+    "english": "Republic of the Congo",
+    "englishShort": "Congo"
+  },
+  "CH": {
+    "endonym": "Helvetia",
+    "lang": "la"
+  },
+  "CI": {
+    "english": "Ivory Coast"
+  },
+  "CV": {
+    "english": "Cape Verde"
+  },
+  "DO": {
+    "endonymShort": "Dominicana",
+    "englishShort": "Dominican Rep."
+  },
+  "EH": {
+    "endonym": "Western Sahara",
+    "lang": "en"
+  },
+  "FK": {
+    "endonym": "Falkland Islands",
+    "lang": "en"
+  },
+  "FM": {
+    "endonym": "Micronesia",
+    "lang": "en"
+  },
+  "GH": {
+    "endonym": "Ghana",
+    "lang": "en"
+  },
+  "GR": {
+    "endonym": "Ελλάς",
+    "lang": "el"
+  },
+  "GS": {
+    "endonym": "South Georgia & South Sandwich Islands",
+    "endonymShort": "South Georgia",
+    "englishShort": "South Georgia",
+    "lang": "en"
+  },
+  "HK": {
+    "endonym": "香港",
+    "lang": "zh",
+    "english": "Hong Kong"
+  },
+  "IO": {
+    "endonym": "British Indian Ocean Territory",
+    "endonymShort": "BIOT",
+    "englishShort": "BIOT",
+    "lang": "en"
+  },
+  "KP": {
+    "endonym": "조선",
+    "lang": "ko"
+  },
+  "KZ": {
+    "endonym": "Қазақстан",
+    "lang": "kk"
+  },
+  "LU": {
+    "endonym": "Luxembourg",
+    "lang": "fr"
+  },
+  "MD": {
+    "endonymShort": "Moldova"
+  },
+  "ME": {
+    "endonym": "Crna Gora",
+    "lang": "sr"
+  },
+  "MM": {
+    "english": "Myanmar"
+  },
+  "MN": {
+    "endonym": "Монгол Улс",
+    "endonymShort": "Монгол",
+    "lang": "mn"
+  },
+  "MO": {
+    "endonym": "澳門",
+    "lang": "zh",
+    "english": "Macao"
+  },
+  "MP": {
+    "endonymShort": "Northern Marianas",
+    "englishShort": "N. Mariana Islands"
+  },
+  "MV": {
+    "endonym": "ދިވެހިރާއްޖެ",
+    "lang": "dv"
+  },
+  "NA": {
+    "endonym": "Namibia",
+    "lang": "en"
+  },
+  "NE": {
+    "endonym": "Niger",
+    "lang": "fr"
+  },
+  "NZ": {
+    "endonym": "New Zealand",
+    "lang": "en"
+  },
+  "PM": {
+    "endonym": "Saint-Pierre-et-Miquelon",
+    "endonymShort": "St-Pierre-Miquelon",
+    "englishShort": "St. Pierre & Miquelon"
+  },
+  "PS": {
+    "endonym": "Palestinian Territories",
+    "endonymShort": "Palestine",
+    "lang": "en"
+  },
+  "RW": {
+    "endonym": "Rwanda",
+    "lang": "fr"
+  },
+  "SA": {
+    "endonym": "المملكة العربية السعودية",
+    "endonymShort": "السعودية"
+  },
+  "SG": {
+    "endonym": "Singapore",
+    "lang": "en"
+  },
+  "SN": {
+    "endonym": "Sénégal",
+    "lang": "fr"
+  },
+  "SS": {
+    "endonym": "South Sudan",
+    "lang": "en"
+  },
+  "TC": {
+    "endonymShort": "Turks & Caicos",
+    "englishShort": "Turks & Caicos"
+  },
+  "TF": {
+    "endonymShort": "Terres australes",
+    "englishShort": "Southern Lands"
+  },
+  "TH": {
+    "endonym": "ประเทศไทย",
+    "lang": "th"
+  },
+  "TR": {
+    "english": "Turkey"
+  },
+  "TW": {
+    "endonym": "台灣",
+    "lang": "zh",
+    "english": "Taiwan"
+  },
+  "US": {
+    "endonymShort": "USA",
+    "englishShort": "USA"
+  },
+  "VC": {
+    "endonymShort": "St. Vincent",
+    "englishShort": "St. Vincent"
+  },
+  "XK": {
+    "endonym": "Kosovo",
+    "lang": "en"
+  },
+  "ZA": {
+    "endonym": "South Africa",
+    "lang": "en"
+  }
+}

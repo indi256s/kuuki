@@ -1,0 +1,1509 @@
+{
+  "AD": {
+    "endonym": "Andorra",
+    "lang": "ca",
+    "script": "Latin",
+    "english": "Andorra"
+  },
+  "AE": {
+    "endonym": "الإمارات العربية المتحدة",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "United Arab Emirates",
+    "endonymShort": "الإمارات",
+    "englishShort": "UAE"
+  },
+  "AF": {
+    "endonym": "افغانستان",
+    "lang": "fa",
+    "script": "Arabic",
+    "english": "Afghanistan"
+  },
+  "AG": {
+    "endonym": "Antigua & Barbuda",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Antigua & Barbuda"
+  },
+  "AI": {
+    "endonym": "Anguilla",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Anguilla"
+  },
+  "AL": {
+    "endonym": "Shqipëri",
+    "lang": "sq",
+    "script": "Latin",
+    "english": "Albania"
+  },
+  "AM": {
+    "endonym": "Հայաստան",
+    "lang": "hy",
+    "script": "Armenian",
+    "english": "Armenia"
+  },
+  "AO": {
+    "endonym": "Angola",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Angola"
+  },
+  "AQ": {
+    "endonym": "Antarctica",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Antarctica"
+  },
+  "AR": {
+    "endonym": "Argentina",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Argentina"
+  },
+  "AS": {
+    "endonym": "American Samoa",
+    "lang": "en",
+    "script": "Latin",
+    "english": "American Samoa"
+  },
+  "AT": {
+    "endonym": "Österreich",
+    "lang": "de",
+    "script": "Latin",
+    "english": "Austria"
+  },
+  "AU": {
+    "endonym": "Australia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Australia"
+  },
+  "AW": {
+    "endonym": "Aruba",
+    "lang": "nl",
+    "script": "Latin",
+    "english": "Aruba"
+  },
+  "AZ": {
+    "endonym": "Azərbaycan",
+    "lang": "az",
+    "script": "Latin",
+    "english": "Azerbaijan"
+  },
+  "BA": {
+    "endonym": "Bosna i Hercegovina",
+    "lang": "bs",
+    "script": "Latin",
+    "english": "Bosnia & Herzegovina",
+    "endonymShort": "BiH",
+    "englishShort": "Bosnia"
+  },
+  "BB": {
+    "endonym": "Barbados",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Barbados"
+  },
+  "BD": {
+    "endonym": "বাংলাদেশ",
+    "lang": "bn",
+    "script": "Bengali",
+    "english": "Bangladesh"
+  },
+  "BE": {
+    "endonym": "België · Belgique",
+    "lang": "nl",
+    "script": "Latin",
+    "english": "Belgium",
+    "endonymShort": "België"
+  },
+  "BF": {
+    "endonym": "Burkina Faso",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Burkina Faso"
+  },
+  "BG": {
+    "endonym": "България",
+    "lang": "bg",
+    "script": "Cyrillic",
+    "english": "Bulgaria"
+  },
+  "BH": {
+    "endonym": "البحرين",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Bahrain"
+  },
+  "BI": {
+    "endonym": "Burundi",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Burundi"
+  },
+  "BJ": {
+    "endonym": "Bénin",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Benin"
+  },
+  "BL": {
+    "endonym": "Saint-Barthélemy",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "St. Barthélemy"
+  },
+  "BM": {
+    "endonym": "Bermuda",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Bermuda"
+  },
+  "BN": {
+    "endonym": "Brunei",
+    "lang": "ms",
+    "script": "Latin",
+    "english": "Brunei"
+  },
+  "BO": {
+    "endonym": "Bolivia",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Bolivia"
+  },
+  "BR": {
+    "endonym": "Brasil",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Brazil"
+  },
+  "BS": {
+    "endonym": "Bahamas",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Bahamas"
+  },
+  "BT": {
+    "endonym": "འབྲུག",
+    "lang": "dz",
+    "script": "Tibetan",
+    "english": "Bhutan"
+  },
+  "BW": {
+    "endonym": "Botswana",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Botswana"
+  },
+  "BY": {
+    "endonym": "Беларусь",
+    "lang": "ru",
+    "script": "Cyrillic",
+    "english": "Belarus"
+  },
+  "BZ": {
+    "endonym": "Belize",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Belize"
+  },
+  "CA": {
+    "endonym": "Canada",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Canada"
+  },
+  "CC": {
+    "endonym": "Cocos Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Cocos (Keeling) Islands",
+    "englishShort": "Cocos Islands"
+  },
+  "CD": {
+    "endonym": "RD Congo",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "DR Congo"
+  },
+  "CF": {
+    "endonym": "République centrafricaine",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Central African Republic",
+    "endonymShort": "Centrafrique",
+    "englishShort": "Central African Rep."
+  },
+  "CG": {
+    "endonym": "Congo",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Republic of the Congo",
+    "englishShort": "Congo"
+  },
+  "CH": {
+    "endonym": "Helvetia",
+    "lang": "la",
+    "script": "Latin",
+    "english": "Switzerland"
+  },
+  "CI": {
+    "endonym": "Côte d’Ivoire",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Ivory Coast"
+  },
+  "CK": {
+    "endonym": "Cook Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Cook Islands"
+  },
+  "CL": {
+    "endonym": "Chile",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Chile"
+  },
+  "CM": {
+    "endonym": "Cameroun",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Cameroon"
+  },
+  "CN": {
+    "endonym": "中国",
+    "lang": "zh",
+    "script": "Han",
+    "english": "China"
+  },
+  "CO": {
+    "endonym": "Colombia",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Colombia"
+  },
+  "CR": {
+    "endonym": "Costa Rica",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Costa Rica"
+  },
+  "CU": {
+    "endonym": "Cuba",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Cuba"
+  },
+  "CV": {
+    "endonym": "Cabo Verde",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Cape Verde"
+  },
+  "CW": {
+    "endonym": "Curaçao",
+    "lang": "pap",
+    "script": "Latin",
+    "english": "Curaçao"
+  },
+  "CX": {
+    "endonym": "Christmas Island",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Christmas Island"
+  },
+  "CY": {
+    "endonym": "Κύπρος",
+    "lang": "el",
+    "script": "Greek",
+    "english": "Cyprus"
+  },
+  "CZ": {
+    "endonym": "Česko",
+    "lang": "cs",
+    "script": "Latin",
+    "english": "Czechia"
+  },
+  "DE": {
+    "endonym": "Deutschland",
+    "lang": "de",
+    "script": "Latin",
+    "english": "Germany"
+  },
+  "DJ": {
+    "endonym": "Djibouti",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Djibouti"
+  },
+  "DK": {
+    "endonym": "Danmark",
+    "lang": "da",
+    "script": "Latin",
+    "english": "Denmark"
+  },
+  "DM": {
+    "endonym": "Dominica",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Dominica"
+  },
+  "DO": {
+    "endonym": "República Dominicana",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Dominican Republic",
+    "endonymShort": "Dominicana",
+    "englishShort": "Dominican Rep."
+  },
+  "DZ": {
+    "endonym": "الجزائر",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Algeria"
+  },
+  "EC": {
+    "endonym": "Ecuador",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Ecuador"
+  },
+  "EE": {
+    "endonym": "Eesti",
+    "lang": "et",
+    "script": "Latin",
+    "english": "Estonia"
+  },
+  "EG": {
+    "endonym": "مصر",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Egypt"
+  },
+  "EH": {
+    "endonym": "Western Sahara",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Western Sahara"
+  },
+  "ER": {
+    "endonym": "ኤርትራ",
+    "lang": "ti",
+    "script": "Ethiopic",
+    "english": "Eritrea"
+  },
+  "ES": {
+    "endonym": "España",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Spain"
+  },
+  "ET": {
+    "endonym": "ኢትዮጵያ",
+    "lang": "am",
+    "script": "Ethiopic",
+    "english": "Ethiopia"
+  },
+  "FI": {
+    "endonym": "Suomi",
+    "lang": "fi",
+    "script": "Latin",
+    "english": "Finland"
+  },
+  "FJ": {
+    "endonym": "Fiji",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Fiji"
+  },
+  "FK": {
+    "endonym": "Falkland Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Falkland Islands"
+  },
+  "FM": {
+    "endonym": "Micronesia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Micronesia"
+  },
+  "FO": {
+    "endonym": "Føroyar",
+    "lang": "fo",
+    "script": "Latin",
+    "english": "Faroe Islands"
+  },
+  "FR": {
+    "endonym": "France",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "France"
+  },
+  "GA": {
+    "endonym": "Gabon",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Gabon"
+  },
+  "GB": {
+    "endonym": "United Kingdom",
+    "lang": "en",
+    "script": "Latin",
+    "english": "United Kingdom"
+  },
+  "GD": {
+    "endonym": "Grenada",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Grenada"
+  },
+  "GE": {
+    "endonym": "საქართველო",
+    "lang": "ka",
+    "script": "Georgian",
+    "english": "Georgia"
+  },
+  "GF": {
+    "endonym": "Guyane française",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "French Guiana"
+  },
+  "GG": {
+    "endonym": "Guernsey",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Guernsey"
+  },
+  "GH": {
+    "endonym": "Ghana",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Ghana"
+  },
+  "GI": {
+    "endonym": "Gibraltar",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Gibraltar"
+  },
+  "GL": {
+    "endonym": "Kalaallit Nunaat",
+    "lang": "kl",
+    "script": "Latin",
+    "english": "Greenland"
+  },
+  "GM": {
+    "endonym": "Gambia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Gambia"
+  },
+  "GN": {
+    "endonym": "Guinée",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Guinea"
+  },
+  "GP": {
+    "endonym": "Guadeloupe",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Guadeloupe"
+  },
+  "GQ": {
+    "endonym": "Guinea Ecuatorial",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Equatorial Guinea"
+  },
+  "GR": {
+    "endonym": "Ελλάς",
+    "lang": "el",
+    "script": "Greek",
+    "english": "Greece"
+  },
+  "GS": {
+    "endonym": "South Georgia & South Sandwich Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "South Georgia & South Sandwich Islands",
+    "endonymShort": "South Georgia",
+    "englishShort": "South Georgia"
+  },
+  "GT": {
+    "endonym": "Guatemala",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Guatemala"
+  },
+  "GU": {
+    "endonym": "Guam",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Guam"
+  },
+  "GW": {
+    "endonym": "Guiné-Bissau",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Guinea-Bissau"
+  },
+  "GY": {
+    "endonym": "Guyana",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Guyana"
+  },
+  "HK": {
+    "endonym": "香港",
+    "lang": "zh",
+    "script": "Han",
+    "english": "Hong Kong"
+  },
+  "HN": {
+    "endonym": "Honduras",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Honduras"
+  },
+  "HR": {
+    "endonym": "Hrvatska",
+    "lang": "hr",
+    "script": "Latin",
+    "english": "Croatia"
+  },
+  "HT": {
+    "endonym": "Haiti",
+    "lang": "ht",
+    "script": "Latin",
+    "english": "Haiti"
+  },
+  "HU": {
+    "endonym": "Magyarország",
+    "lang": "hu",
+    "script": "Latin",
+    "english": "Hungary"
+  },
+  "ID": {
+    "endonym": "Indonesia",
+    "lang": "id",
+    "script": "Latin",
+    "english": "Indonesia"
+  },
+  "IE": {
+    "endonym": "Ireland",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Ireland"
+  },
+  "IL": {
+    "endonym": "ישראל",
+    "lang": "he",
+    "script": "Hebrew",
+    "english": "Israel"
+  },
+  "IM": {
+    "endonym": "Isle of Man",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Isle of Man"
+  },
+  "IN": {
+    "endonym": "भारत",
+    "lang": "hi",
+    "script": "Devanagari",
+    "english": "India"
+  },
+  "IO": {
+    "endonym": "British Indian Ocean Territory",
+    "lang": "en",
+    "script": "Latin",
+    "english": "British Indian Ocean Territory",
+    "endonymShort": "BIOT",
+    "englishShort": "BIOT"
+  },
+  "IQ": {
+    "endonym": "العراق",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Iraq"
+  },
+  "IR": {
+    "endonym": "ایران",
+    "lang": "fa",
+    "script": "Arabic",
+    "english": "Iran"
+  },
+  "IS": {
+    "endonym": "Ísland",
+    "lang": "is",
+    "script": "Latin",
+    "english": "Iceland"
+  },
+  "IT": {
+    "endonym": "Italia",
+    "lang": "it",
+    "script": "Latin",
+    "english": "Italy"
+  },
+  "JE": {
+    "endonym": "Jersey",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Jersey"
+  },
+  "JM": {
+    "endonym": "Jamaica",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Jamaica"
+  },
+  "JO": {
+    "endonym": "الأردن",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Jordan"
+  },
+  "JP": {
+    "endonym": "日本",
+    "lang": "ja",
+    "script": "Han",
+    "english": "Japan"
+  },
+  "KE": {
+    "endonym": "Kenya",
+    "lang": "sw",
+    "script": "Latin",
+    "english": "Kenya"
+  },
+  "KG": {
+    "endonym": "Кыргызстан",
+    "lang": "ky",
+    "script": "Cyrillic",
+    "english": "Kyrgyzstan"
+  },
+  "KH": {
+    "endonym": "កម្ពុជា",
+    "lang": "km",
+    "script": "Khmer",
+    "english": "Cambodia"
+  },
+  "KI": {
+    "endonym": "Kiribati",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Kiribati"
+  },
+  "KM": {
+    "endonym": "جزر القمر",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Comoros"
+  },
+  "KN": {
+    "endonym": "St. Kitts & Nevis",
+    "lang": "en",
+    "script": "Latin",
+    "english": "St. Kitts & Nevis"
+  },
+  "KP": {
+    "endonym": "조선",
+    "lang": "ko",
+    "script": "Hangul",
+    "english": "North Korea"
+  },
+  "KR": {
+    "endonym": "대한민국",
+    "lang": "ko",
+    "script": "Hangul",
+    "english": "South Korea"
+  },
+  "KW": {
+    "endonym": "الكويت",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Kuwait"
+  },
+  "KY": {
+    "endonym": "Cayman Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Cayman Islands"
+  },
+  "KZ": {
+    "endonym": "Қазақстан",
+    "lang": "kk",
+    "script": "Cyrillic",
+    "english": "Kazakhstan"
+  },
+  "LA": {
+    "endonym": "ລາວ",
+    "lang": "lo",
+    "script": "Lao",
+    "english": "Laos"
+  },
+  "LB": {
+    "endonym": "لبنان",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Lebanon"
+  },
+  "LC": {
+    "endonym": "St. Lucia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "St. Lucia"
+  },
+  "LI": {
+    "endonym": "Liechtenstein",
+    "lang": "de",
+    "script": "Latin",
+    "english": "Liechtenstein"
+  },
+  "LK": {
+    "endonym": "ශ්‍රී ලංකාව",
+    "lang": "si",
+    "script": "Sinhala",
+    "english": "Sri Lanka"
+  },
+  "LR": {
+    "endonym": "Liberia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Liberia"
+  },
+  "LS": {
+    "endonym": "Lesotho",
+    "lang": "st",
+    "script": "Latin",
+    "english": "Lesotho"
+  },
+  "LT": {
+    "endonym": "Lietuva",
+    "lang": "lt",
+    "script": "Latin",
+    "english": "Lithuania"
+  },
+  "LU": {
+    "endonym": "Luxembourg",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Luxembourg"
+  },
+  "LV": {
+    "endonym": "Latvija",
+    "lang": "lv",
+    "script": "Latin",
+    "english": "Latvia"
+  },
+  "LY": {
+    "endonym": "ليبيا",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Libya"
+  },
+  "MA": {
+    "endonym": "المغرب",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Morocco"
+  },
+  "MC": {
+    "endonym": "Monaco",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Monaco"
+  },
+  "MD": {
+    "endonym": "Republica Moldova",
+    "lang": "ro",
+    "script": "Latin",
+    "english": "Moldova",
+    "endonymShort": "Moldova"
+  },
+  "ME": {
+    "endonym": "Crna Gora",
+    "lang": "sr",
+    "script": "Latin",
+    "english": "Montenegro"
+  },
+  "MF": {
+    "endonym": "Saint-Martin",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "St. Martin"
+  },
+  "MG": {
+    "endonym": "Madagasikara",
+    "lang": "mg",
+    "script": "Latin",
+    "english": "Madagascar"
+  },
+  "MH": {
+    "endonym": "Marshall Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Marshall Islands"
+  },
+  "MK": {
+    "endonym": "Северна Македонија",
+    "lang": "mk",
+    "script": "Cyrillic",
+    "english": "North Macedonia"
+  },
+  "ML": {
+    "endonym": "Mali",
+    "lang": "bm",
+    "script": "Latin",
+    "english": "Mali"
+  },
+  "MM": {
+    "endonym": "မြန်မာ",
+    "lang": "my",
+    "script": "Myanmar",
+    "english": "Myanmar"
+  },
+  "MN": {
+    "endonym": "Монгол Улс",
+    "lang": "mn",
+    "script": "Cyrillic",
+    "english": "Mongolia",
+    "endonymShort": "Монгол"
+  },
+  "MO": {
+    "endonym": "澳門",
+    "lang": "zh",
+    "script": "Han",
+    "english": "Macao"
+  },
+  "MP": {
+    "endonym": "Northern Mariana Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Northern Mariana Islands",
+    "endonymShort": "Northern Marianas",
+    "englishShort": "N. Mariana Islands"
+  },
+  "MQ": {
+    "endonym": "Martinique",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Martinique"
+  },
+  "MR": {
+    "endonym": "موريتانيا",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Mauritania"
+  },
+  "MS": {
+    "endonym": "Montserrat",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Montserrat"
+  },
+  "MT": {
+    "endonym": "Malta",
+    "lang": "mt",
+    "script": "Latin",
+    "english": "Malta"
+  },
+  "MU": {
+    "endonym": "Maurice",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Mauritius"
+  },
+  "MV": {
+    "endonym": "ދިވެހިރާއްޖެ",
+    "lang": "dv",
+    "script": "Thaana",
+    "english": "Maldives"
+  },
+  "MW": {
+    "endonym": "Malawi",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Malawi"
+  },
+  "MX": {
+    "endonym": "México",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Mexico"
+  },
+  "MY": {
+    "endonym": "Malaysia",
+    "lang": "ms",
+    "script": "Latin",
+    "english": "Malaysia"
+  },
+  "MZ": {
+    "endonym": "Moçambique",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Mozambique"
+  },
+  "NA": {
+    "endonym": "Namibia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Namibia"
+  },
+  "NC": {
+    "endonym": "Nouvelle-Calédonie",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "New Caledonia"
+  },
+  "NE": {
+    "endonym": "Niger",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Niger"
+  },
+  "NF": {
+    "endonym": "Norfolk Island",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Norfolk Island"
+  },
+  "NG": {
+    "endonym": "Nigeria",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Nigeria"
+  },
+  "NI": {
+    "endonym": "Nicaragua",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Nicaragua"
+  },
+  "NL": {
+    "endonym": "Nederland",
+    "lang": "nl",
+    "script": "Latin",
+    "english": "Netherlands"
+  },
+  "NO": {
+    "endonym": "Norge",
+    "lang": "nb",
+    "script": "Latin",
+    "english": "Norway"
+  },
+  "NP": {
+    "endonym": "नेपाल",
+    "lang": "ne",
+    "script": "Devanagari",
+    "english": "Nepal"
+  },
+  "NR": {
+    "endonym": "Nauru",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Nauru"
+  },
+  "NU": {
+    "endonym": "Niue",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Niue"
+  },
+  "NZ": {
+    "endonym": "New Zealand",
+    "lang": "en",
+    "script": "Latin",
+    "english": "New Zealand"
+  },
+  "OM": {
+    "endonym": "عُمان",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Oman"
+  },
+  "PA": {
+    "endonym": "Panamá",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Panama"
+  },
+  "PE": {
+    "endonym": "Perú",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Peru"
+  },
+  "PF": {
+    "endonym": "Polynésie française",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "French Polynesia"
+  },
+  "PG": {
+    "endonym": "Papua New Guinea",
+    "lang": "tpi",
+    "script": "Latin",
+    "english": "Papua New Guinea"
+  },
+  "PH": {
+    "endonym": "Pilipinas",
+    "lang": "fil",
+    "script": "Latin",
+    "english": "Philippines"
+  },
+  "PK": {
+    "endonym": "پاکستان",
+    "lang": "ur",
+    "script": "Arabic",
+    "english": "Pakistan"
+  },
+  "PL": {
+    "endonym": "Polska",
+    "lang": "pl",
+    "script": "Latin",
+    "english": "Poland"
+  },
+  "PM": {
+    "endonym": "Saint-Pierre-et-Miquelon",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "St. Pierre & Miquelon",
+    "endonymShort": "St-Pierre-Miquelon",
+    "englishShort": "St. Pierre & Miquelon"
+  },
+  "PN": {
+    "endonym": "Pitcairn Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Pitcairn Islands"
+  },
+  "PR": {
+    "endonym": "Puerto Rico",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Puerto Rico"
+  },
+  "PS": {
+    "endonym": "Palestinian Territories",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Palestinian Territories",
+    "endonymShort": "Palestine"
+  },
+  "PT": {
+    "endonym": "Portugal",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Portugal"
+  },
+  "PW": {
+    "endonym": "Palau",
+    "lang": "pau",
+    "script": "Latin",
+    "english": "Palau"
+  },
+  "PY": {
+    "endonym": "Paraguay",
+    "lang": "gn",
+    "script": "Latin",
+    "english": "Paraguay"
+  },
+  "QA": {
+    "endonym": "قطر",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Qatar"
+  },
+  "RE": {
+    "endonym": "La Réunion",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Réunion"
+  },
+  "RO": {
+    "endonym": "România",
+    "lang": "ro",
+    "script": "Latin",
+    "english": "Romania"
+  },
+  "RS": {
+    "endonym": "Србија",
+    "lang": "sr",
+    "script": "Cyrillic",
+    "english": "Serbia"
+  },
+  "RU": {
+    "endonym": "Россия",
+    "lang": "ru",
+    "script": "Cyrillic",
+    "english": "Russia"
+  },
+  "RW": {
+    "endonym": "Rwanda",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Rwanda"
+  },
+  "SA": {
+    "endonym": "المملكة العربية السعودية",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Saudi Arabia",
+    "endonymShort": "السعودية"
+  },
+  "SB": {
+    "endonym": "Solomon Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Solomon Islands"
+  },
+  "SC": {
+    "endonym": "Seychelles",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Seychelles"
+  },
+  "SD": {
+    "endonym": "السودان",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Sudan"
+  },
+  "SE": {
+    "endonym": "Sverige",
+    "lang": "sv",
+    "script": "Latin",
+    "english": "Sweden"
+  },
+  "SG": {
+    "endonym": "Singapore",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Singapore"
+  },
+  "SH": {
+    "endonym": "St. Helena",
+    "lang": "en",
+    "script": "Latin",
+    "english": "St. Helena"
+  },
+  "SI": {
+    "endonym": "Slovenija",
+    "lang": "sl",
+    "script": "Latin",
+    "english": "Slovenia"
+  },
+  "SJ": {
+    "endonym": "Svalbard og Jan Mayen",
+    "lang": "nb",
+    "script": "Latin",
+    "english": "Svalbard & Jan Mayen"
+  },
+  "SK": {
+    "endonym": "Slovensko",
+    "lang": "sk",
+    "script": "Latin",
+    "english": "Slovakia"
+  },
+  "SL": {
+    "endonym": "Sierra Leone",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Sierra Leone"
+  },
+  "SM": {
+    "endonym": "San Marino",
+    "lang": "it",
+    "script": "Latin",
+    "english": "San Marino"
+  },
+  "SN": {
+    "endonym": "Sénégal",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Senegal"
+  },
+  "SO": {
+    "endonym": "Soomaaliya",
+    "lang": "so",
+    "script": "Latin",
+    "english": "Somalia"
+  },
+  "SR": {
+    "endonym": "Suriname",
+    "lang": "nl",
+    "script": "Latin",
+    "english": "Suriname"
+  },
+  "SS": {
+    "endonym": "South Sudan",
+    "lang": "en",
+    "script": "Latin",
+    "english": "South Sudan"
+  },
+  "ST": {
+    "endonym": "São Tomé e Príncipe",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "São Tomé & Príncipe"
+  },
+  "SV": {
+    "endonym": "El Salvador",
+    "lang": "es",
+    "script": "Latin",
+    "english": "El Salvador"
+  },
+  "SX": {
+    "endonym": "Sint Maarten",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Sint Maarten"
+  },
+  "SY": {
+    "endonym": "سوريا",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Syria"
+  },
+  "SZ": {
+    "endonym": "Eswatini",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Eswatini"
+  },
+  "TC": {
+    "endonym": "Turks & Caicos Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Turks & Caicos Islands",
+    "endonymShort": "Turks & Caicos",
+    "englishShort": "Turks & Caicos"
+  },
+  "TD": {
+    "endonym": "تشاد",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Chad"
+  },
+  "TF": {
+    "endonym": "Terres australes françaises",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "French Southern Territories",
+    "endonymShort": "Terres australes",
+    "englishShort": "Southern Lands"
+  },
+  "TG": {
+    "endonym": "Togo",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Togo"
+  },
+  "TH": {
+    "endonym": "ประเทศไทย",
+    "lang": "th",
+    "script": "Thai",
+    "english": "Thailand"
+  },
+  "TJ": {
+    "endonym": "Тоҷикистон",
+    "lang": "tg",
+    "script": "Cyrillic",
+    "english": "Tajikistan"
+  },
+  "TK": {
+    "endonym": "Tokelau",
+    "lang": "tkl",
+    "script": "Latin",
+    "english": "Tokelau"
+  },
+  "TL": {
+    "endonym": "Timor-Leste",
+    "lang": "pt",
+    "script": "Latin",
+    "english": "Timor-Leste"
+  },
+  "TM": {
+    "endonym": "Türkmenistan",
+    "lang": "tk",
+    "script": "Latin",
+    "english": "Turkmenistan"
+  },
+  "TN": {
+    "endonym": "تونس",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Tunisia"
+  },
+  "TO": {
+    "endonym": "Tonga",
+    "lang": "to",
+    "script": "Latin",
+    "english": "Tonga"
+  },
+  "TR": {
+    "endonym": "Türkiye",
+    "lang": "tr",
+    "script": "Latin",
+    "english": "Turkey"
+  },
+  "TT": {
+    "endonym": "Trinidad & Tobago",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Trinidad & Tobago"
+  },
+  "TV": {
+    "endonym": "Tuvalu",
+    "lang": "tvl",
+    "script": "Latin",
+    "english": "Tuvalu"
+  },
+  "TW": {
+    "endonym": "台灣",
+    "lang": "zh",
+    "script": "Han",
+    "english": "Taiwan"
+  },
+  "TZ": {
+    "endonym": "Tanzania",
+    "lang": "sw",
+    "script": "Latin",
+    "english": "Tanzania"
+  },
+  "UA": {
+    "endonym": "Україна",
+    "lang": "uk",
+    "script": "Cyrillic",
+    "english": "Ukraine"
+  },
+  "UG": {
+    "endonym": "Uganda",
+    "lang": "sw",
+    "script": "Latin",
+    "english": "Uganda"
+  },
+  "UM": {
+    "endonym": "U.S. Outlying Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "U.S. Outlying Islands"
+  },
+  "US": {
+    "endonym": "United States",
+    "lang": "en",
+    "script": "Latin",
+    "english": "United States",
+    "endonymShort": "USA",
+    "englishShort": "USA"
+  },
+  "UY": {
+    "endonym": "Uruguay",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Uruguay"
+  },
+  "UZ": {
+    "endonym": "Oʻzbekiston",
+    "lang": "uz",
+    "script": "Latin",
+    "english": "Uzbekistan"
+  },
+  "VA": {
+    "endonym": "Città del Vaticano",
+    "lang": "it",
+    "script": "Latin",
+    "english": "Vatican City"
+  },
+  "VC": {
+    "endonym": "St. Vincent & Grenadines",
+    "lang": "en",
+    "script": "Latin",
+    "english": "St. Vincent & Grenadines",
+    "endonymShort": "St. Vincent",
+    "englishShort": "St. Vincent"
+  },
+  "VE": {
+    "endonym": "Venezuela",
+    "lang": "es",
+    "script": "Latin",
+    "english": "Venezuela"
+  },
+  "VG": {
+    "endonym": "British Virgin Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "British Virgin Islands"
+  },
+  "VI": {
+    "endonym": "U.S. Virgin Islands",
+    "lang": "en",
+    "script": "Latin",
+    "english": "U.S. Virgin Islands"
+  },
+  "VN": {
+    "endonym": "Việt Nam",
+    "lang": "vi",
+    "script": "Latin",
+    "english": "Vietnam"
+  },
+  "VU": {
+    "endonym": "Vanuatu",
+    "lang": "bi",
+    "script": "Latin",
+    "english": "Vanuatu"
+  },
+  "WF": {
+    "endonym": "Wallis-et-Futuna",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Wallis & Futuna"
+  },
+  "WS": {
+    "endonym": "Samoa",
+    "lang": "sm",
+    "script": "Latin",
+    "english": "Samoa"
+  },
+  "XK": {
+    "endonym": "Kosovo",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Kosovo"
+  },
+  "YE": {
+    "endonym": "اليمن",
+    "lang": "ar",
+    "script": "Arabic",
+    "english": "Yemen"
+  },
+  "YT": {
+    "endonym": "Mayotte",
+    "lang": "fr",
+    "script": "Latin",
+    "english": "Mayotte"
+  },
+  "ZA": {
+    "endonym": "South Africa",
+    "lang": "en",
+    "script": "Latin",
+    "english": "South Africa"
+  },
+  "ZM": {
+    "endonym": "Zambia",
+    "lang": "en",
+    "script": "Latin",
+    "english": "Zambia"
+  },
+  "ZW": {
+    "endonym": "Zimbabwe",
+    "lang": "sn",
+    "script": "Latin",
+    "english": "Zimbabwe"
+  }
+}
