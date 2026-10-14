@@ -1,0 +1,11 @@
+{
+  "iso2": "MH",
+  "tier": "engraved",
+  "horizon": 0.86,
+  "backdrop": [
+    { "module": "sky", "params": { "gap": [2.8, 3.2], "weight": "hair", "clouds": [] } },
+    { "module": "ground", "params": { "water": true, "line": false } }
+  ],
+  "layers": [],
+  "signature": [{ "part": "stick-chart", "box": [54, 60, 90, 58], "params": { "tilt": -5 } }]
+}

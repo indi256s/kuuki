@@ -2082,7 +2082,7 @@
       "en": "Marshall Islands",
       "ru": "Маршалловы о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MK": {
     "cluster": null,
@@ -2172,7 +2172,7 @@
       "en": "N. MARIANA IS.",
       "ru": "С. МАРИАНСКИЕ О-ВА"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MQ": {
     "cluster": "volcano",
@@ -2472,7 +2472,7 @@
       "en": "Nauru",
       "ru": "Науру"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NU": {
     "cluster": null,
@@ -2697,7 +2697,7 @@
       "en": "Portugal",
       "ru": "Португалия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PW": {
     "cluster": "karst",
@@ -2712,7 +2712,7 @@
       "en": "Palau",
       "ru": "Палау"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PY": {
     "cluster": null,
@@ -3417,7 +3417,7 @@
       "en": "U.S. Outlying Islands",
       "ru": "ВНЕШН. МАЛЫЕ О-ВА"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "US": {
     "cluster": null,

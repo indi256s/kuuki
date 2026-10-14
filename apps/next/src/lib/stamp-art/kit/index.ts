@@ -51,6 +51,10 @@ import { colonialRow } from './colonial-row'
 import { bastionFort } from './bastion-fort'
 import { cliffCastle } from './cliff-castle'
 import { pinnacles } from './pinnacles'
+import { topside } from './topside'
+import { managaha } from './managaha'
+import { belemTower } from './belem-tower'
+import { mushroomIslets } from './mushroom-islets'
 import { chateauC } from './chateau-c'
 import { bastionTurrets } from './bastion-turrets'
 import { charlesBridge } from './charles-bridge'
@@ -225,6 +229,10 @@ export const kit = {
   'bastion-fort': bastionFort,
   'cliff-castle': cliffCastle,
   pinnacles,
+  topside,
+  managaha,
+  'belem-tower': belemTower,
+  'mushroom-islets': mushroomIslets,
   'chateau-c': chateauC,
   'bastion-turrets': bastionTurrets,
   'charles-bridge': charlesBridge,
