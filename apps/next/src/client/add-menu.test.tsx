@@ -37,12 +37,13 @@ it('opens one Add flight menu with the four capture rows in order', async () => 
   expect(items.map((item) => item.getAttribute('href'))).toEqual(ADD_PATHS)
 })
 
-it('lists Overview, Journal and Passport, marking the current route', () => {
+it('lists Overview, Journal, Ground travel and Passport, marking the current route', () => {
   render(<PrimaryNav />)
   const links = within(screen.getByRole('navigation', { name: 'Primary' })).getAllByRole('link')
   expect(links.map((link) => link.textContent)).toEqual([
     'OverviewОбзор',
     'JournalЖурнал',
+    'Ground travelНаземные путешествия',
     'PassportПаспорт',
   ])
   expect(links.filter((link) => link.getAttribute('aria-current') === 'page')).toEqual([links[1]])

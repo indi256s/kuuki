@@ -97,12 +97,26 @@
   .journal-header-actions {
     display: contents;
   }
-  .journal-review-pill {
+  .journal-add-mobile {
     grid-column: 2;
     grid-row: 1;
   }
-  .journal-import-link {
+  .journal-review-pill {
     grid-column: 1 / -1;
     grid-row: 2;
+    justify-self: start;
+  }
+  .journal-import-link {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+}
+/* The desktop header carries Add flight; on phones the Journal header does (the tab rail has no action key). */
+.journal-add-mobile {
+  display: none;
+}
+@media (max-width: 700px) {
+  .journal-add-mobile {
+    display: block;
   }
 }

@@ -9,7 +9,14 @@ export type StageKind = 'page'
 const isProfile = (path: string) => /^\/fly\/[^/]+$/.test(path)
 
 /** The member pages reached from the header, the tab rail and the account menu. Sheets (`/add`, a Journal flight) are not among them. */
-export const TAB_ROUTES = ['/overview', '/journal', '/passport', '/import', '/settings']
+export const TAB_ROUTES = [
+  '/overview',
+  '/journal',
+  '/ground-travel',
+  '/passport',
+  '/import',
+  '/settings',
+]
 
 /** One top-level member page to another, either way, Back and Forward included. */
 export const isTabSwitch = (from: string, to: string) =>

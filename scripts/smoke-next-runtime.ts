@@ -188,7 +188,7 @@ async function maintenanceProbe() {
     outboundService: async () => new WorkerResponse('Outbound disabled', { status: 502 }),
   })
   try {
-    for (const path of ['/api/auth/me', '/overview', '/journal', '/passport']) {
+    for (const path of ['/api/auth/me', '/overview', '/journal', '/ground-travel', '/passport']) {
       const response = await hold.dispatchFetch(new URL(path, origin).toString(), {
         redirect: 'manual',
       })
