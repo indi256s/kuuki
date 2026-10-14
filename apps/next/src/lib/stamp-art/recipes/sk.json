@@ -1,0 +1,50 @@
+{
+  "iso2": "SK",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [150, 60, 26]
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "mountains",
+      "box": [32, 54, 134, 72],
+      "params": {
+        "peaks": [
+          [0.0, 0.45],
+          [0.2, 0.85],
+          [0.3, 0.65],
+          [0.45, 1],
+          [0.58, 0.72],
+          [0.75, 0.9],
+          [0.9, 0.6],
+          [1, 0.5]
+        ],
+        "jag": 1.6,
+        "shadeDepth": 46,
+        "shadeGap": 2.4
+      }
+    },
+    {
+      "module": "distance-trees",
+      "box": [32, 106, 134, 20],
+      "params": {
+        "height": 18,
+        "seed": 6,
+        "amp": 3
+      }
+    }
+  ]
+}

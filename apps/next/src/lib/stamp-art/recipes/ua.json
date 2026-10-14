@@ -1,0 +1,57 @@
+{
+  "iso2": "UA",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26]
+      }
+    },
+    {
+      "module": "rooftops",
+      "params": {
+        "height": 16
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "steps",
+      "box": [50, 54, 100, 70],
+      "params": {
+        "count": 13,
+        "narrow": 0.45
+      }
+    },
+    {
+      "module": "house",
+      "box": [28, 88, 22, 36],
+      "params": {
+        "roof": "flat",
+        "shade": 0.25,
+        "roofH": 0.1
+      }
+    },
+    {
+      "module": "house",
+      "box": [150, 88, 22, 36],
+      "params": {
+        "roof": "flat",
+        "shade": 0.25,
+        "roofH": 0.1
+      }
+    }
+  ]
+}

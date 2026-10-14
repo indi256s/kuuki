@@ -25,13 +25,18 @@ import cr from './cr.json'
 import cv from './cv.json'
 import cz from './cz.json'
 import de from './de.json'
+import dk from './dk.json'
 import dz from './dz.json'
 import ec from './ec.json'
+import ee from './ee.json'
 import eg from './eg.json'
 import eh from './eh.json'
 import es from './es.json'
+import fi from './fi.json'
 import fk from './fk.json'
+import fo from './fo.json'
 import fr from './fr.json'
+import gb from './gb.json'
 import ge from './ge.json'
 import gf from './gf.json'
 import gh from './gh.json'
@@ -52,7 +57,9 @@ import jp from './jp.json'
 import li from './li.json'
 import lr from './lr.json'
 import ls from './ls.json'
+import lt from './lt.json'
 import lu from './lu.json'
+import lv from './lv.json'
 import ly from './ly.json'
 import ma from './ma.json'
 import mc from './mc.json'
@@ -76,9 +83,11 @@ import pm from './pm.json'
 import py from './py.json'
 import ro from './ro.json'
 import rs from './rs.json'
+import ru from './ru.json'
 import sd from './sd.json'
 import sh from './sh.json'
 import si from './si.json'
+import sk from './sk.json'
 import sl from './sl.json'
 import sm from './sm.json'
 import sn from './sn.json'
@@ -89,6 +98,7 @@ import tg from './tg.json'
 import th from './th.json'
 import tn from './tn.json'
 import tz from './tz.json'
+import ua from './ua.json'
 import us from './us.json'
 import uy from './uy.json'
 import va from './va.json'
@@ -125,13 +135,18 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cv,
   cz,
   de,
+  dk,
   dz,
   ec,
+  ee,
   eg,
   eh,
   es,
+  fi,
   fk,
+  fo,
   fr,
+  gb,
   ge,
   gf,
   gh,
@@ -152,7 +167,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   li,
   lr,
   ls,
+  lt,
   lu,
+  lv,
   ly,
   ma,
   mc,
@@ -176,9 +193,11 @@ export const RECIPE_FILES: Record<string, unknown> = {
   py,
   ro,
   rs,
+  ru,
   sd,
   sh,
   si,
+  sk,
   sl,
   sm,
   sn,
@@ -189,6 +208,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   th,
   tn,
   tz,
+  ua,
   us,
   uy,
   va,

@@ -1,0 +1,93 @@
+{
+  "iso2": "LT",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "moss",
+  "cluster": "castle",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [30, 60, 26, 100, 52, 20, 150, 70, 24]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "seed": 5
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [28, 84, 144, 42],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.2, 0.62],
+          [0.38, 0.3],
+          [0.5, 0.26],
+          [0.62, 0.3],
+          [0.8, 0.62],
+          [1, 1]
+        ],
+        "crag": 0.3,
+        "shadeFrom": 0.64,
+        "walls": []
+      }
+    },
+    {
+      "module": "castle",
+      "box": [28, 54, 144, 72],
+      "params": {
+        "top": [
+          [0.18, 0.8],
+          [0.38, 0.6]
+        ],
+        "hill": false,
+        "wallH": 5,
+        "from": 0.18,
+        "to": 0.38
+      }
+    },
+    {
+      "module": "castle",
+      "box": [28, 54, 144, 72],
+      "params": {
+        "top": [
+          [0.62, 0.6],
+          [0.82, 0.8]
+        ],
+        "hill": false,
+        "wallH": 5,
+        "from": 0.62,
+        "to": 0.82,
+        "shadeFrom": 0
+      }
+    },
+    {
+      "module": "castle",
+      "box": [28, 54, 144, 72],
+      "params": {
+        "top": [
+          [0, 0.58],
+          [1, 0.58]
+        ],
+        "hill": false,
+        "wallH": 4,
+        "from": 0.4,
+        "to": 0.6,
+        "capH": 0.45,
+        "towers": [[0.5, 32, 26, 1, "cone"]]
+      }
+    }
+  ]
+}
