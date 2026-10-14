@@ -1,50 +1,54 @@
 # Ground travel handoff
 
 Plan: [2026-10-13-ground-travel.md](2026-10-13-ground-travel.md). Owner checkout:
-`~/.t3/worktrees/kuuki/feature-ground-travel`, branch `feature/ground-travel` (base main `7188d198`,
-seed docs commit `e5e0b657`).
+`~/.t3/worktrees/kuuki/feature-ground-travel`, branch `feature/ground-travel` (seed docs commit `e5e0b657` on
+main `7188d198`; local main `43d7002a` merged in `1fad4e5a` on 14 October).
 
-## Status (13 October 2026)
+## Status (14 October 2026)
 
-Paused by the owner after wave 1. Source implementation only: no remote D1 migration, no remote GeoNames
-load and no deploy were performed or authorized.
+Waves 0–2 are implemented, reviewed and fixed; wave 3 docs are written. Source implementation only: no remote
+D1 migration, no remote GeoNames load and no deploy were performed or authorized. Nothing was checked in a real
+browser.
 
-- **Wave 0 accepted:** migration `0011_ground_travel.sql` and `packages/shared/src/groundTravel.ts`
-  (`61182c04`, doc note `4db884c7`).
-- **Wave 1 implemented, primary-checked, not yet independently reviewed:**
-  - S1 journeys API with receipt-first atomic mutations — `83c0837f`.
-  - D1 Passport evidence, journey contributions, JSON export, account deletion, receipt cleanup — `01c3c923`
-    (also adjusted `transitReview.ts` and `lifecycle-migration.test.ts`).
-  - O1 rail ticket OCR endpoint — `2d130ce1`.
-  - P1 GeoNames generator, place search and manual places — `baaf8332`.
-  - Integration: route inventory current, `restore-export-local.test.ts` expects 0011.
-- **Pre-UI inputs committed:** [Arc research](../../.scratch/ground-travel/arc-components-research.md),
-  [dxe UI brief](../../.scratch/ground-travel/dxe-ui-brief.md).
+- **Wave 0:** migration `0011_ground_travel.sql`, `packages/shared/src/groundTravel.ts` (`61182c04`, `4db884c7`).
+- **Wave 1 backend:** journeys API `83c0837f`, Passport evidence/export/deletion/receipt cleanup `01c3c923`,
+  rail OCR `2d130ce1`, GeoNames places `baaf8332`. Independent review found no critical/high defects; fixes in
+  `811de5e9` (owner child-read indexes, operation-key charset and code-point lengths, 5 MiB body cap with
+  chunked child inserts, leg date order, fresh-account `ready`, binary tie-break, CAS-loss-after-classify test).
+- **Wave 2 UI:** client API/formatters `8582a4a9`; Passport sources `066d125d`; Settings export and counts
+  `d8454dc8`; nav with four mobile tabs `22e349a8`; list/detail `0b33e680`; async combobox `4e1805e0`; forms and
+  unified review `4d6a71f7`; return-context fix `0a42014e`; multi-file dropzone `9a4ca346`; rail OCR UI
+  `b04c0d46`. Independent UI review fixes: `58f20182`, `35b82cbd`, `e295b9e1`, `45b5e99d`.
+- **Wave 3:** ownership in `docs/README.md`, DESIGN shell note and Ground travel section `9bf7bc14`.
 
-Latest checks on the wave 1 integration state: `pnpm test:api` 73 files / 922 tests pass;
-`pnpm typecheck:api`, `typecheck:maintenance`, Next typecheck and `pnpm lint` clean (one pre-existing
-React Compiler warning); Passport UI unit tests pass. P1 measured the real catalog: 236,112 places,
-327,696 search keys, 47.6 MB SQL in 5 chunks, local load 92 s, index-only search plans.
+## Release gates (not done, separate approval)
 
-## Next action
+1. Apply migration 0011 remotely **before** deploying this code: `countryEvidenceRead` (used by every repair,
+   flight confirm and transit review) now reads `ground_journey_countries`. The migration is additive, so rolling
+   back code is safe.
+2. Load the GeoNames catalog remotely (`scripts/geonames/README.md`; ~47.6 MB SQL in 5 chunks).
+3. Visual pass: «Наземные» tab at 320px and 200% text, desktop header at 700–900px, segmented control at 320px,
+   Safari/Firefox combobox footer clicks, live OCR with a large PDF, Safari JSON export.
 
-1. Independent Sonnet-high review of the wave 1 backend diff (`61182c04..HEAD` excluding docs), then fixes.
-2. Wave 2 UI (U1 shell/list, U2 forms, U3 OCR/Passport/settings) per the plan, using the dxe brief.
-
-Decisions taken during wave 1 (reversible, recorded for review):
+## Decisions (reversible, recorded for review)
 
 - Completing a plan opens the unified review at `/ground-travel/<id>/edit?complete=1`.
-- An explicitly empty confirmed-country list is valid (storage contract).
-- Rail OCR shares the existing `import-parse` quota (20/hour); a batch of 10 files uses half of it.
-- Catalog search starts at 3 characters for GeoNames (prefix buckets); manual places match from 2.
+- An explicitly empty confirmed-country list is valid; the UI sends it only after “None of these”.
+- Place search starts at 3 characters for the catalog and manual places alike (catalog buckets are 3-char
+  prefixes), so a 2-letter manual place is not found by search.
+- Rail OCR shares the `import-parse` quota (20/hour); the client waits up to 120 s per file.
+- Mobile: the bottom + key is removed; phones add flights from the Journal header.
+- Opening another journey aborts an in-flight detail action; it then shows as unconfirmed on its own journey.
+- Dates and times use native inputs; drag reorder is a small local pointer handler with ↑/↓ buttons.
 
-Open items for review: OCR quota sizing; untagged/other-script aliases are not searchable;
-`SettingsCounts` client type needs `journeys`/`manualPlaces` in the UI wave.
+Open items: no per-account cap on journeys or manual places; `listManualPlaces` stops at 1000; the country detail
+`totalVisits` excludes `ground_journey_count` (journeys are shown in their own section); crowded 3-letter search
+buckets may return fewer than 10 results.
 
 ## Inputs needed to resume
 
-- **Committed:** spec and contracts under `.scratch/ground-travel/`, this plan, migration 0011, shared
-  module, `scripts/geonames/manifest.json` (pinned dump SHA-256), `db/seed/ground_places_fixture.sql`.
-- **Reproducible:** full catalog via `pnpm exec tsx scripts/generate-geonames-places.ts` (see
-  `scripts/geonames/README.md`); output SQL under `.wrangler/geonames/` stays out of Git.
+- **Committed:** spec and contracts under `.scratch/ground-travel/`, this plan, migration 0011, shared module,
+  `scripts/geonames/manifest.json` (pinned dump SHA-256), `db/seed/ground_places_fixture.sql`.
+- **Reproducible:** full catalog via `pnpm exec tsx scripts/generate-geonames-places.ts`; output SQL under
+  `.wrangler/geonames/` stays out of Git.
 - **Checkout-local:** none required.
