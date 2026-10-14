@@ -27,36 +27,9 @@
   ],
   "layers": [
     {
-      "module": "stepped-gable",
-      "box": [56, 56, 88, 68],
-      "params": {
-        "style": "stepped",
-        "steps": 6,
-        "rows": 5,
-        "cols": 5
-      }
-    },
-    {
-      "module": "stepped-gable",
-      "box": [30, 84, 26, 40],
-      "params": {
-        "style": "stepped",
-        "steps": 3,
-        "rows": 3,
-        "cols": 2,
-        "tone": "dark"
-      }
-    },
-    {
-      "module": "stepped-gable",
-      "box": [144, 84, 26, 40],
-      "params": {
-        "style": "stepped",
-        "steps": 3,
-        "rows": 3,
-        "cols": 2,
-        "tone": "dark"
-      }
+      "module": "blackheads",
+      "box": [52, 50, 98, 74],
+      "params": {}
     }
   ]
 }

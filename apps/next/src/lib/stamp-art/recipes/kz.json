@@ -23,13 +23,7 @@
   "layers": [
     {
       "module": "charyn",
-      "box": [46, 52, 108, 78.4],
-      "params": {
-        "seed": 6,
-        "benches": 7,
-        "rim": 0.4,
-        "foot": 0.1
-      }
+      "box": [48, 58, 104, 71]
     }
   ]
 }

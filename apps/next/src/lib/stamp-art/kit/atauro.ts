@@ -76,7 +76,7 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
       [pk[0] + (valley[0] - pk[0]) * 0.18, foot],
     ]
     out.push(occlude(flank))
-    out.push(...toneFill(flank, 'T4', { angle: 90, gap: [2.8, 2.8], weight: 'hair', inset: 0.4 }))
+    out.push(...toneFill(flank, 'T4', { angle: 65, gap: [5, 5], weight: 'fine', inset: 0.4 }))
     out.push(
       stroke('hair', [
         [pk[0], pk[1] + 1.4],

@@ -30,7 +30,7 @@ export const bridgeC: KitModule = ([x, y, w, h], p) => {
   if (kind === 'adolphe') {
     const deckY = y + h * 0.08
     const deckH = h * 0.1
-    const rx = w * 0.4
+    const rx = w * 0.3
     const ry = h * 0.7
     const thick = h * 0.1
     const outer = arcPts(cx, base, rx + thick * 0.4, ry + thick)
@@ -55,12 +55,23 @@ export const bridgeC: KitModule = ([x, y, w, h], p) => {
       const aw = pitch * 0.64
       const eY = lerpLine(outer, ax + aw / 2)
       const ah = Math.min(base - (deckY + deckH) - 1, eY - 2.5 - (deckY + deckH))
-      if (ah > 3.4) out.push(fill(archPts(ax, eY - 2 - ah, aw, ah)))
+      if (ah > 3.4)
+        out.push(
+          ...body(archPts(ax, eY - 2 - ah, aw, ah), 'hair'),
+          ...toneFill(archPts(ax, eY - 2 - ah, aw, ah), 'T4', { gap: 4, weight: 'fine' }),
+        )
+    }
+    for (const side of [-1, 1]) {
+      const ax = side < 0 ? x + 3 : x + w - 21
+      out.push(
+        ...body(archPts(ax, base - h * 0.44, 18, h * 0.44), 'hair'),
+        ...toneFill(archPts(ax, base - h * 0.44, 18, h * 0.44), 'T4', { gap: 4, weight: 'fine' }),
+      )
     }
     // the great arch: dark ring with a lit soffit gap beneath
     const ring: Pt[] = [...outer, ...inner.slice().reverse()]
     out.push(occlude(ring), stroke('line', outer), stroke('line', inner))
-    const voussoirs = 26
+    const voussoirs = 16
     for (let i = 1; i < voussoirs; i++) {
       const t = i / voussoirs
       out.push(

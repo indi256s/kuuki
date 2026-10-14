@@ -20,6 +20,14 @@
       }
     },
     {
+      "module": "distance-trees",
+      "params": {
+        "height": 38,
+        "seed": 7,
+        "swell": 4
+      }
+    },
+    {
       "module": "ground",
       "params": {
         "water": true
@@ -28,30 +36,8 @@
   ],
   "layers": [
     {
-      "module": "steps",
-      "box": [50, 54, 100, 70],
-      "params": {
-        "count": 13,
-        "narrow": 0.45
-      }
-    },
-    {
-      "module": "house",
-      "box": [28, 88, 22, 36],
-      "params": {
-        "roof": "flat",
-        "shade": 0.25,
-        "roofH": 0.1
-      }
-    },
-    {
-      "module": "house",
-      "box": [150, 88, 22, 36],
-      "params": {
-        "roof": "flat",
-        "shade": 0.25,
-        "roofH": 0.1
-      }
+      "module": "potemkin-c",
+      "box": [42, 58, 116, 70]
     }
   ]
 }

@@ -28,15 +28,8 @@
   ],
   "layers": [
     {
-      "module": "fortress-wall",
-      "box": [38, 92, 124, 38],
-      "params": {
-        "merlons": 18,
-        "merlonH": 0.16,
-        "courses": 4,
-        "joints": 10,
-        "slits": 4
-      }
+      "module": "passetto-c",
+      "box": [38, 78, 124, 52]
     },
     {
       "module": "tower",
@@ -46,18 +39,6 @@
         "storeys": 2,
         "openings": 0,
         "shade": 0.35
-      }
-    },
-    {
-      "module": "triumphal-arch",
-      "box": [58, 78, 44, 52],
-      "params": {
-        "opening": "arch",
-        "dark": "fill",
-        "openW": 0.5,
-        "panels": 0,
-        "atticH": 0.22,
-        "entH": 0.1
       }
     }
   ]

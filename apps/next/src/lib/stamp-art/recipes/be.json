@@ -28,10 +28,8 @@
   "layers": [
     {
       "module": "belfry",
-      "box": [52, 54, 96, 72],
-      "params": {
-        "towerW": 0.42
-      }
+      "box": [34, 60, 132, 72],
+      "params": {}
     }
   ]
 }

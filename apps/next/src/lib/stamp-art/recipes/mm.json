@@ -4,7 +4,7 @@
   "shape": "circle",
   "ink": "umber",
   "cluster": "bridge",
-  "horizon": 0.52,
+  "horizon": 0.55,
   "backdrop": [
     {
       "module": "sky",
@@ -33,12 +33,8 @@
   ],
   "layers": [
     {
-      "module": "u-bein-bridge",
-      "box": [57, 80, 103, 62],
-      "params": {
-        "hz": 0.34,
-        "height": 46
-      }
+      "module": "u-bein-c",
+      "box": [44, 72, 112, 60]
     }
   ]
 }
