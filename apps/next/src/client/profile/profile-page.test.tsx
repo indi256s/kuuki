@@ -77,6 +77,7 @@ const privateRead = {
   rankings: [],
   countries: [],
   derivedState: 'private' as const,
+  publication: null,
 }
 const founding = {
   id: 1,
@@ -105,6 +106,7 @@ beforeEach(() => {
     rankings: [],
     countries: ['NO', 'GE'],
     derivedState: 'ready',
+    publication: 'flights',
   })
   vi.mocked(getOwnProfileStats).mockClear()
   vi.mocked(getOwnProfile).mockClear()
@@ -149,6 +151,7 @@ it('names each gate sign by rank and category and links it to its leaderboard', 
     badges: [],
     countries: [],
     derivedState: 'ready',
+    publication: 'flights',
     rankings: [
       { category: 'flights', rank: 27 },
       { category: 'distance', rank: 4 },
@@ -173,6 +176,7 @@ it.each([
     rankings: [],
     countries: [],
     derivedState: 'ready',
+    publication: 'flights',
     badges: [founding],
   })
   const user = userEvent.setup()
@@ -271,6 +275,7 @@ it('does not show unknown distance or duration as a visitor zero after saved fli
     rankings: [],
     countries: [],
     derivedState: 'ready',
+    publication: 'flights',
   })
   render(await ProfileData({ username: 'traveler' }))
   expect(screen.queryByText('0 km')).not.toBeInTheDocument()

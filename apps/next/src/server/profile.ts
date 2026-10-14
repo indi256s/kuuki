@@ -3,6 +3,12 @@ import { getRequestEnv, getRequestIdentity } from './identity'
 import { toUserStats, type UserStatsRow } from '../../../../functions/api/_lib/stats'
 import { readOwnBadges } from '../../../../functions/api/_services/ownBadges'
 import { getProfileRow, toOwnProfile } from '../../../../functions/api/_lib/profiles'
+import {
+  derivedStateJoin,
+  PUBLISHED_DERIVED_STATE,
+  toLeaderboardEntry,
+  type LeaderboardCacheRow,
+} from '../../../../functions/api/_lib/leaderboard'
 
 export async function getOwnProfile() {
   const identity = await getRequestIdentity()
@@ -47,4 +53,20 @@ export async function getOwnStamps(userId: string) {
     .bind(userId)
     .all<{ country_code: string; last_visit: string | null }>()
   return rows.results.map((row) => ({ code: row.country_code, lastVisit: row.last_visit }))
+}
+
+/** The owner's leaderboard entries (empty when ineligible), the `GET /api/me/rankings` read. */
+export async function readOwnRankings(db: D1Database, userId: string) {
+  const { results } = await db
+    .prepare(
+      `SELECT lc.* FROM leaderboard_cache lc
+       JOIN profiles p ON p.id = lc.user_id
+       JOIN user_stats us ON us.user_id = lc.user_id
+       ${derivedStateJoin('lc')}
+       WHERE lc.user_id = ? AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
+         AND ${PUBLISHED_DERIVED_STATE}`,
+    )
+    .bind(userId)
+    .all<LeaderboardCacheRow>()
+  return results.map(toLeaderboardEntry)
 }

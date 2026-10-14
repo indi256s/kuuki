@@ -64,6 +64,7 @@ it.each(['public', 'private', 'missing'] as const)(
               rankings: [],
               countries: [],
               derivedState: 'private',
+              publication: null,
             }
           : {
               profile,
@@ -72,6 +73,7 @@ it.each(['public', 'private', 'missing'] as const)(
               rankings: [],
               countries: [],
               derivedState: 'ready',
+              publication: 'flights',
             },
     )
     render(await PublicLayout({ children: await ProfileData({ username: 'B' }) }))
@@ -88,6 +90,7 @@ it('does not duplicate notifications on own public profile or mount private noti
     rankings: [],
     countries: [],
     derivedState: 'ready',
+    publication: 'flights',
   })
   vi.mocked(getOptionalPublicViewer).mockResolvedValue({
     id: 'B',

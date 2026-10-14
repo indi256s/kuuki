@@ -140,6 +140,8 @@ describe('flight metrics migration', () => {
 
   it('public profile never exposes prefs', async () => {
     await applyMigrationAtomically(db, migration)
+    // The public projection reads the hidden-countries table.
+    await applyMigrationAtomically(db, '0013_unified_passport.sql')
     await db
       .prepare('UPDATE profiles SET overview_prefs = ? WHERE id = ?')
       .bind(JSON.stringify({ marker: 'PRIVATE_PREF_MARKER' }), user.id)

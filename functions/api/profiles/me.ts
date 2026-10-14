@@ -33,6 +33,7 @@ interface UpdateBody {
   locale?: string | null
   show_on_leaderboards?: boolean
   theme_color?: string | null
+  passport_publication?: 'flights' | 'all'
 }
 
 const TEXT_FIELDS = [
@@ -115,6 +116,14 @@ export function updateProfileRequest(
       throw new HttpError(400, 'Invalid theme_color', 'BAD_REQUEST')
     }
 
+    if (
+      body.passport_publication !== undefined &&
+      body.passport_publication !== 'flights' &&
+      body.passport_publication !== 'all'
+    ) {
+      throw new HttpError(400, 'Invalid passport_publication', 'BAD_REQUEST')
+    }
+
     if ('display_name' in body && typeof body.display_name === 'string') {
       body.display_name = normalizeName(body.display_name)
       if (body.display_name.length < 1 || body.display_name.length > NAME_MAX) {
@@ -145,6 +154,10 @@ export function updateProfileRequest(
     if ('is_public' in body) {
       sets.push('is_public = ?')
       binds.push(body.is_public ? 1 : 0)
+    }
+    if (body.passport_publication !== undefined) {
+      sets.push('passport_publication = ?')
+      binds.push(body.passport_publication)
     }
     if ('show_on_leaderboards' in body) {
       sets.push('show_on_leaderboards = ?')

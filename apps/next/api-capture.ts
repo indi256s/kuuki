@@ -14,6 +14,10 @@ import {
   unclaimCountryRequest,
 } from '../../functions/api/passport/claims/[cc]/index'
 import {
+  hideCountryRequest,
+  unhideCountryRequest,
+} from '../../functions/api/passport/hidden/[cc]/index'
+import {
   createGroundVisitRequest,
   listGroundVisitsRequest,
 } from '../../functions/api/passport/ground-visits/index'
@@ -55,6 +59,12 @@ export function captureHandler(
       method === 'PUT'
         ? claimCountryRequest(request, env, data, decodeURIComponent(code))
         : unclaimCountryRequest(request, env, data, decodeURIComponent(code))
+  } else if (/^\/api\/passport\/hidden\/[^/]+$/.test(path)) {
+    const code = path.split('/').at(-1)!
+    handler = () =>
+      method === 'PUT'
+        ? hideCountryRequest(request, env, data, decodeURIComponent(code))
+        : unhideCountryRequest(request, env, data, decodeURIComponent(code))
   } else if (path === '/api/passport/ground-visits')
     handler = () =>
       method === 'GET'
