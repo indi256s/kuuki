@@ -21,27 +21,9 @@
   color: var(--text-muted);
   font-size: 13px;
 }
-.ov3-pattern-stack {
-  display: flex;
-  margin-block: var(--space-3);
-  block-size: 44px;
-}
-.ov3-pattern-stack button {
-  flex-basis: 0;
-  min-inline-size: 0;
-  padding: 0;
-  border: 0;
-  background: var(--pattern-color);
-  cursor: pointer;
-}
 .ov3-pattern [data-unknown] {
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--text-muted);
-}
-.ov3-pattern-stack button[aria-pressed='true'] {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-  z-index: 1;
 }
 .ov3-pattern button:focus-visible,
 .ov3-pattern summary:focus-visible {
@@ -53,13 +35,13 @@
   outline-offset: 2px;
 }
 .ov3-pattern-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  display: grid;
+  margin-block-start: var(--space-2);
 }
 .ov3-pattern-legend button {
-  display: flex;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px max-content;
+  gap: var(--space-3);
   align-items: center;
   min-block-size: 44px;
   padding: 0;
@@ -69,16 +51,25 @@
   cursor: pointer;
   text-align: start;
   font-size: 13px;
+  line-height: 20px;
 }
-.ov3-pattern-legend i {
-  inline-size: 10px;
-  block-size: 10px;
-  flex-shrink: 0;
+.ov3-pattern-legend button[aria-pressed='true'] {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.ov3-pattern-ratio {
+  display: flex;
+  block-size: 8px;
+}
+.ov3-pattern-ratio i {
+  display: block;
+  block-size: 100%;
   background: var(--pattern-color);
 }
 .ov3-pattern-legend strong {
-  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-weight: 500;
+  text-align: end;
 }
 .ov3-pattern details {
   margin-block-start: var(--space-2);

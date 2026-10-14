@@ -31,3 +31,11 @@
   block-size: auto;
   --iso-lit: 1;
 }
+
+/* Keep the sheet stage stable while every maker retains a full touch target. */
+.ov3-aircraft-sheet-rows {
+  max-block-size: var(--aircraft-plot-height);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-inline: 2px;
+}

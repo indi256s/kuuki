@@ -45,3 +45,14 @@ export const moreAirlines = (locale: Locale, value: number) =>
       other: 'Показать ещё {count} авиакомпании',
     },
   })
+
+export const visits = (locale: Locale, value: number) =>
+  formatCount(locale, value, {
+    en: { one: '{count} airport visit', other: '{count} airport visits' },
+    ru: {
+      one: '{count} посещение аэропорта',
+      few: '{count} посещения аэропортов',
+      many: '{count} посещений аэропортов',
+      other: '{count} посещения аэропортов',
+    },
+  })

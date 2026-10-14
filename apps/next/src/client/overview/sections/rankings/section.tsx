@@ -14,13 +14,13 @@ import type { BumpRow } from '@kuuki/shared/overview/rankings'
 import { airlineComparison } from './comparison'
 import { KuukiChart } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
-import { StageRows } from '../../charts/stage-rows'
+import { RankingBars } from './ranking-bars'
 import { ChapterCard } from '../../layout/chapter-card'
 import { useReading } from '../../layout/use-reading'
 import { referenceLabels } from '../../labels'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, flights, percent, filterLabel, moreAirlines, number } from './display'
+import { copy, flights, percent, filterLabel, moreAirlines, number, visits } from './display'
 import { AirportFigure, GateSignFigure } from './figure'
 import { TravelPatterns } from './travel-patterns'
 import './rankings.css'
@@ -92,7 +92,7 @@ export function Section({ span }: { span: Span }) {
           )
         }
         hero={{ value: '', caption: null }}
-        chart={{ caption: '', plot: null }}
+        chart={{ caption: '', plot: null, layout: 'content' }}
         empty={{
           title: copy(locale, 'Nothing left to rank', 'Ранжировать нечего'),
           line: '',
@@ -163,11 +163,13 @@ export function Section({ span }: { span: Span }) {
   // The reading: the leader until a row is picked. Its figure code, hero value and caption all come from the same row.
   const leader = scope.rankings.leaders[category]
   const reading = top.find((row) => row.key === r.reading) ?? top[0] ?? null
-  const rank = reading ? top.indexOf(reading) + 1 : 0
+  const rank = reading ? top.findIndex((row) => row.count === reading.count) + 1 : 0
   const tied = top.length > 1 && top[1].count === top[0].count ? top[1] : null
   const readingName = reading ? name(category, reading.key) : ''
   const share = reading && leader.total ? percent(reading.count / leader.total) : ''
-  const unit = (count: number) => flights(locale, count).replace(/^[\d\s.,  ]+/u, '')
+  const counted = (count: number) =>
+    category === 'airports' ? visits(locale, count) : flights(locale, count)
+  const unit = (count: number) => counted(count).replace(/^[\d\s.,  ]+/u, '')
   const ordinal = (n: number) =>
     locale === 'ru'
       ? `${n}-${{ airlines: 'я', airports: 'й', routes: 'й' }[category]}`
@@ -214,9 +216,25 @@ export function Section({ span }: { span: Span }) {
   const stagePoints = top.map((row) => ({
     key: row.key,
     datum: row,
-    label: `${name(category, row.key)}, ${flights(locale, row.count)}`,
+    label: `${name(category, row.key)}, ${counted(row.count)}`,
   }))
   const appliedKeys = keys.filter((key) => filter[category]?.includes(key))
+  const runner = top[1]
+  const gap = runner ? top[0].count - runner.count : null
+  const gapUnit = gap === null ? '' : counted(gap)
+  const leaderGap = !runner
+    ? null
+    : gap === 0
+      ? copy(
+          locale,
+          `${name(category, top[0].key)} and ${name(category, runner.key)} are tied.`,
+          `${name(category, top[0].key)} и ${name(category, runner.key)} делят первое место.`,
+        )
+      : copy(
+          locale,
+          `${name(category, top[0].key)} leads ${name(category, runner.key)} by ${gapUnit}.`,
+          `${name(category, top[0].key)} опережает ${name(category, runner.key)}: разница — ${gapUnit}.`,
+        )
 
   const bump = (
     <div className="ov3-rankings" data-span={span}>
@@ -666,6 +684,7 @@ export function Section({ span }: { span: Span }) {
       }}
       rollValue={r.picked}
       chart={{
+        layout: 'content',
         caption: chartCaption,
         toggle: (
           <SegmentedControl
@@ -690,33 +709,46 @@ export function Section({ span }: { span: Span }) {
           caption: chartCaption,
           columns: [
             { key: 'name', label: copy(locale, 'Name', 'Название') },
-            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+            {
+              key: 'flights',
+              label:
+                category === 'airports'
+                  ? copy(locale, 'Airport visits', 'Посещения аэропортов')
+                  : copy(locale, 'Flights', 'Перелёты'),
+              numeric: true,
+            },
           ],
           rows: top.map((row) => ({ name: name(category, row.key), flights: row.count })),
         },
         plot: (
-          <LazyChart height={stagePoints.length * 24} label={chartCaption}>
-            {(inView) => (
-              <StageRows
-                key={category}
-                points={stagePoints}
-                value={(point) => point.datum.count}
-                format={(point) => number(locale, point.datum.count)}
-                name={(point) => name(category, point.key)}
-                mono={category !== 'airlines'}
-                span={span}
-                selectedKey={r.reading}
-                appliedKeys={appliedKeys}
-                inView={inView}
-                ariaLabel={chartCaption}
-                onPick={(point) => r.pick(point.key)}
-                actions={(point) => [
-                  { label: filterLabel(locale), run: () => addFilter(category, point.key) },
-                ]}
-                tip={(selected) => <span>{selected[0].label}</span>}
-              />
-            )}
-          </LazyChart>
+          <div>
+            {span === 'full' && leaderGap && <p className="ov3-ranking-gap">{leaderGap}</p>}
+            <LazyChart
+              height={stagePoints.length * (span === 'full' ? 72 : 24)}
+              label={chartCaption}
+            >
+              {(inView) => (
+                <RankingBars
+                  key={category}
+                  points={stagePoints}
+                  value={(point) => point.datum.count}
+                  format={(point) => number(locale, point.datum.count)}
+                  name={(point) => name(category, point.key)}
+                  mono={category !== 'airlines'}
+                  span={span}
+                  selectedKey={r.reading}
+                  appliedKeys={appliedKeys}
+                  inView={inView}
+                  ariaLabel={chartCaption}
+                  onPick={(point) => r.pick(point.key)}
+                  actions={(point) => [
+                    { label: filterLabel(locale), run: () => addFilter(category, point.key) },
+                  ]}
+                  tip={(selected) => <span>{selected[0].label}</span>}
+                />
+              )}
+            </LazyChart>
+          </div>
         ),
       }}
       details={{

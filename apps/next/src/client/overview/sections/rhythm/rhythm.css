@@ -71,3 +71,16 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* Expanded histories retain every year without making the chapter unbounded. */
+.ov3-rhythm-history-scroll {
+  max-height: 480px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Keep heat intensity quantitative while making the selected month visible. */
+.ov3-rhythm-history-scroll [data-picked] > rect {
+  stroke: var(--text);
+  stroke-width: 2px;
+}

@@ -34,16 +34,18 @@ type HeatState = {
   setMetric: (metric: Metric) => void
   showAll: boolean
   setShowAll: (showAll: boolean) => void
+  reading?: { key: string | null; pick: (key: string) => void }
 }
 /** The year × month heat grid with its metric control. */
-export function YearByMonth({ metric, setMetric, showAll, setShowAll }: HeatState) {
+export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }: HeatState) {
   const { scope, all, payload, filter, locale, actions, isCurrent } = useOverview()
   if (!scope || !all || !payload) return null
   const gate = scope.rhythm
   if (gate.status !== 'ready') return null
   const data = gate.value,
     baseline = all.rhythm.status === 'ready' ? all.rhythm.value : data
-  const years = showAll ? baseline.years : baseline.years.slice(0, 6)
+  const domainYears = reading ? data.years : baseline.years
+  const years = showAll ? domainYears : domainYears.slice(0, 6)
   const today = payload.generatedAt.slice(0, 7)
   const rows = data.cells.filter((row) => years.includes(row.year)),
     ghosts = baseline.cells.filter((row) => years.includes(row.year))
@@ -116,6 +118,7 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll }: HeatStat
   return (
     <div className="ov3-rhythm-group">
       <SegmentedControl
+        dense={!!reading}
         value={metric}
         onChange={setMetric}
         label={copy(locale, 'Rhythm metric', 'Показатель ритма')}
@@ -125,124 +128,143 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll }: HeatStat
           { value: 'durationMinutes', label: copy(locale, 'Hours', 'Часы') },
         ]}
       />
-      <LazyChart height={gridHeight + 64} label={gridCaption}>
-        {(inView) => (
-          <KuukiChart
-            points={gridPoints}
-            height={gridHeight}
-            fit={gridWidth}
-            inView={inView}
-            ariaLabel={gridCaption}
-            onPick={(point) => pickMonth(point.key)}
-            actions={(point) => [{ label: filterLabel(locale), run: () => pickMonth(point.key) }]}
-            tip={(points) => <span>{points[0].label}</span>}
-            table={{
-              caption: gridCaption,
-              columns: [
-                { key: 'key', label: copy(locale, 'Month', 'Месяц') },
-                { key: 'value', label: copy(locale, 'Value', 'Значение'), numeric: true },
-              ],
-              rows: rows.map((row) => ({
-                key: row.key,
-                value: bucketOf(row) === HEAT_MISSING ? noData : valueOf(row),
-              })),
-            }}
-          >
-            {(mark, { width }) => {
-              const band = (width - GUTTER) / 12,
-                cellX = (month: number) => GUTTER + (month - 1) * band,
-                cellW = band - CELL_GAP,
-                narrow = band < 40
-              return (
-                <>
-                  {ghosts.map((row) => (
-                    <rect
-                      key={`ghost:${row.key}`}
-                      x={cellX(row.month)}
-                      y={cellY(row.year) + 3}
-                      width={cellW}
-                      height={30}
-                      rx={6}
-                      fill="none"
-                      stroke="var(--mark-ghost)"
-                    />
-                  ))}
-                  {rows.map((row) => {
-                    // A future month, an unmeasured one, or a value the scale cannot place is missing: a dashed empty outline, never a zero.
-                    const point = pointOf.get(row.key),
-                      bucket = bucketOf(row),
-                      text = bucket === HEAT_MISSING ? '–' : number(locale, valueOf(row))
-                    return (
-                      <g key={row.key} {...(point && mark(point))}>
-                        <rect
-                          x={cellX(row.month)}
-                          y={cellY(row.year) + 3}
-                          width={cellW}
-                          height={30}
-                          rx={6}
-                          fill={bucket === HEAT_MISSING ? 'transparent' : `var(--heat-${bucket})`}
-                          stroke={
-                            bucket === HEAT_MISSING
-                              ? 'var(--missing)'
-                              : heatIsWeak(bucket)
-                                ? 'var(--heat-contour)'
-                                : 'none'
+      <div className={reading ? 'ov3-rhythm-history-scroll' : undefined}>
+        <LazyChart height={gridHeight + 64} label={gridCaption}>
+          {(inView) => (
+            <KuukiChart
+              points={gridPoints}
+              height={gridHeight}
+              fit={gridWidth}
+              inView={inView}
+              ariaLabel={gridCaption}
+              selected={reading ? (point) => reading.key === point.key : undefined}
+              tapPicks={!!reading}
+              applied={(point) =>
+                !!filter.period &&
+                'from' in filter.period &&
+                filter.period.from === point.key &&
+                filter.period.to === point.key
+              }
+              onPick={(point) => (reading ? reading.pick(point.key) : pickMonth(point.key))}
+              actions={(point) => [{ label: filterLabel(locale), run: () => pickMonth(point.key) }]}
+              tip={(points) => <span>{points[0].label}</span>}
+              table={{
+                caption: gridCaption,
+                columns: [
+                  { key: 'key', label: copy(locale, 'Month', 'Месяц') },
+                  {
+                    key: 'value',
+                    label:
+                      metric === 'flights'
+                        ? copy(locale, 'Flights', 'Перелёты')
+                        : metric === 'distanceKm'
+                          ? copy(locale, 'Distance, km', 'Расстояние, км')
+                          : copy(locale, 'Hours', 'Часы'),
+                    numeric: true,
+                  },
+                ],
+                rows: rows.map((row) => ({
+                  key: row.key,
+                  value: bucketOf(row) === HEAT_MISSING ? noData : valueOf(row),
+                })),
+              }}
+            >
+              {(mark, { width }) => {
+                const band = (width - GUTTER) / 12,
+                  cellX = (month: number) => GUTTER + (month - 1) * band,
+                  cellW = band - CELL_GAP,
+                  narrow = band < 40
+                return (
+                  <>
+                    {ghosts.map((row) => (
+                      <rect
+                        key={`ghost:${row.key}`}
+                        x={cellX(row.month)}
+                        y={cellY(row.year) + 3}
+                        width={cellW}
+                        height={30}
+                        rx={6}
+                        fill="none"
+                        stroke="var(--mark-ghost)"
+                      />
+                    ))}
+                    {rows.map((row) => {
+                      // A future month, an unmeasured one, or a value the scale cannot place is missing: a dashed empty outline, never a zero.
+                      const point = pointOf.get(row.key),
+                        bucket = bucketOf(row),
+                        text = bucket === HEAT_MISSING ? '–' : number(locale, valueOf(row))
+                      return (
+                        <g key={row.key} {...(point && mark(point))}>
+                          <rect
+                            x={cellX(row.month)}
+                            y={cellY(row.year) + 3}
+                            width={cellW}
+                            height={30}
+                            rx={6}
+                            fill={bucket === HEAT_MISSING ? 'transparent' : `var(--heat-${bucket})`}
+                            stroke={
+                              bucket === HEAT_MISSING
+                                ? 'var(--missing)'
+                                : heatIsWeak(bucket)
+                                  ? 'var(--heat-contour)'
+                                  : 'none'
+                            }
+                            strokeDasharray={bucket === HEAT_MISSING ? '3 3' : undefined}
+                          />
+                          {
+                            /* Values that cannot fit the band stay in the tooltip and table. */ cellW >=
+                              text.length * 7 + 8 && (
+                              <text
+                                x={cellX(row.month) + cellW / 2}
+                                y={cellY(row.year) + 23}
+                                textAnchor="middle"
+                                fill={
+                                  bucket === HEAT_MISSING
+                                    ? 'var(--text-muted)'
+                                    : `var(--heat-${bucket}-text)`
+                                }
+                                fontSize={12}
+                                data-sans
+                              >
+                                {text}
+                              </text>
+                            )
                           }
-                          strokeDasharray={bucket === HEAT_MISSING ? '3 3' : undefined}
-                        />
-                        {
-                          /* Values that cannot fit the band stay in the tooltip and table. */ cellW >=
-                            text.length * 7 + 8 && (
-                            <text
-                              x={cellX(row.month) + cellW / 2}
-                              y={cellY(row.year) + 23}
-                              textAnchor="middle"
-                              fill={
-                                bucket === HEAT_MISSING
-                                  ? 'var(--text-muted)'
-                                  : `var(--heat-${bucket}-text)`
-                              }
-                              fontSize={12}
-                              data-sans
-                            >
-                              {text}
-                            </text>
-                          )
-                        }
-                      </g>
-                    )
-                  })}
-                  {years.map((year) => (
-                    <text
-                      key={year}
-                      x={0}
-                      y={cellY(year) + 23}
-                      fill="var(--text-muted)"
-                      fontSize={12}
-                      data-sans
-                    >
-                      {year}
-                    </text>
-                  ))}
-                  {Array.from({ length: 12 }, (_, index) => (
-                    <text
-                      key={index}
-                      x={cellX(index + 1) + cellW / 2}
-                      y={gridHeight - 7}
-                      textAnchor="middle"
-                      fill="var(--text-muted)"
-                      fontSize={12}
-                      data-sans
-                    >
-                      {monthName(index + 1, narrow ? 'narrow' : 'short')}
-                    </text>
-                  ))}
-                </>
-              )
-            }}
-          </KuukiChart>
-        )}
-      </LazyChart>
+                        </g>
+                      )
+                    })}
+                    {years.map((year) => (
+                      <text
+                        key={year}
+                        x={0}
+                        y={cellY(year) + 23}
+                        fill="var(--text-muted)"
+                        fontSize={12}
+                        data-sans
+                      >
+                        {year}
+                      </text>
+                    ))}
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <text
+                        key={index}
+                        x={cellX(index + 1) + cellW / 2}
+                        y={gridHeight - 7}
+                        textAnchor="middle"
+                        fill="var(--text-muted)"
+                        fontSize={12}
+                        data-sans
+                      >
+                        {monthName(index + 1, narrow ? 'narrow' : 'short')}
+                      </text>
+                    ))}
+                  </>
+                )
+              }}
+            </KuukiChart>
+          )}
+        </LazyChart>
+      </div>
       <div className="ov3-heat-year-totals">
         {scope.figures.byYear
           .filter((row) => years.includes(row.year))
@@ -256,11 +278,11 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll }: HeatStat
         <p className="ov3-chart-caption">{monthlyBase}</p>
         <HeatKey entries={monthlyKey} />
       </div>
-      {baseline.years.length > 6 && (
+      {domainYears.length > 6 && (
         <button className="ov3-rhythm-more" onClick={() => setShowAll(!showAll)}>
           {showAll
             ? copy(locale, 'Show latest 6 years', 'Последние 6 лет')
-            : `${copy(locale, 'Show all years', 'Все годы')}, ${baseline.years.at(-1)}–${baseline.years[6]}`}
+            : `${copy(locale, 'Show all years', 'Все годы')}, ${domainYears.at(-1)}–${domainYears[6]}`}
         </button>
       )}
     </div>

@@ -147,6 +147,7 @@ it('never reads a missing monthly measurement as zero: unmeasured and future mon
 it('a pick on the chart moves the hero and the stamper and does not filter', () => {
   const setPeriod = admit(marches())
   const view = render(<Section span="full" />)
+  fireEvent.click(stage().getByRole('radio', { name: 'Seasonality' }))
   expect(hero(view)).toHaveTextContent('March')
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
     'Busiest month · longest gap 11 months',
@@ -163,10 +164,11 @@ it('a pick on the chart moves the hero and the stamper and does not filter', () 
 it('"Only …" adds the month in Calendar and sets the year in Over time, and hides once applied', () => {
   const setPeriod = admit(marches())
   const view = render(<Section span="full" />)
+  fireEvent.click(stage().getByRole('radio', { name: 'Seasonality' }))
   fireEvent.click(stage().getByRole('button', { name: /^May ·/ }))
   fireEvent.click(top().getByRole('button', { name: 'Only May' }))
   expect(add).toHaveBeenCalledWith('months', 5)
-  fireEvent.click(stage().getByRole('radio', { name: 'Over time' }))
+  fireEvent.click(stage().getByRole('radio', { name: 'Years' }))
   expect(hero(view)).toHaveTextContent('2020')
   fireEvent.click(stage().getByRole('button', { name: /^2021 ·/ }))
   expect(hero(view)).toHaveTextContent('2021')
@@ -183,4 +185,26 @@ it('shows the empty state when the filter leaves too few months, and clears the 
   expect(screen.getByText('Too few months for a rhythm')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(clear).toHaveBeenCalled()
+})
+
+// The desktop matrix is a stage: picking an exact month must inspect before filtering.
+it('History selects a dated month for the hero and stamper and filters only through the explicit action', () => {
+  vi.stubGlobal('IntersectionObserver', undefined)
+  const setPeriod = admit(marches())
+  const view = render(<Section span="full" />)
+  expect(stage().getByRole('radio', { name: 'History' })).toHaveAttribute('aria-checked', 'true')
+  expect(hero(view)).toHaveTextContent('March 2022')
+  fireEvent.click(stage().getByRole('button', { name: /^2021-03 ·/ }))
+  expect(hero(view)).toHaveTextContent('March 2021')
+  expect(stage().getByRole('button', { name: /^2021-03 ·/ })).toHaveAttribute(
+    'aria-current',
+    'true',
+  )
+  expect(view.container.querySelector('.iso-stamper-host')).toHaveAttribute('data-stamp', 'set')
+  expect(setPeriod).not.toHaveBeenCalled()
+  fireEvent.click(top().getByRole('button', { name: 'Only March 2021' }))
+  expect(setPeriod).toHaveBeenCalledWith({ from: '2021-03', to: '2021-03' })
+  const table = screen.getByRole('table', { name: 'Year by month' })
+  expect(table.closest('[hidden]')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Year by month' })).toBeNull()
 })

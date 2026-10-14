@@ -15,13 +15,13 @@ export const shareText = (share: number) =>
   share > 0 && share < 0.005 ? '<1%' : `${Math.round(share * 100)}%`
 
 /**
- * The makers with flights, the most flown first and Unknown last. A share is of the flights whose maker is known; Unknown's
- * `share` is its flights against that same total, so its bar sits on the same scale as the others.
+ * The makers with flights, the most flown first and Unknown last. Every share uses all selected flights,
+ * including those whose maker is unknown.
  */
 export function makerRows(data: Makers) {
   const live = data.rows.filter((row) => row.flights > 0)
   const known = live.filter((row) => row.key !== 'unknown')
-  const total = known.reduce((sum, row) => sum + row.flights, 0)
+  const total = live.reduce((sum, row) => sum + row.flights, 0)
   const order = (key: MakerKey) => data.rows.findIndex((row) => row.key === key)
   const rows: MakerRow[] = [
     ...known.sort((a, b) => b.flights - a.flights || order(a.key) - order(b.key)),

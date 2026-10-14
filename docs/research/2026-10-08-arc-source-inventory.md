@@ -89,6 +89,12 @@ Intentional exclusions: paid Arc/map source, foundation CSS/provider/fonts, Anim
 
 Import source-date/operator/registration and operated-versus-scheduled classification are absent from this bound execution baseline's DTO. Presentation preserves its existing authority; the missing domain contract is recorded in `.scratch/arc-import-enrichment-baseline-gap.md` and the handoff. No dirty-root enrichment changes were copied.
 
+## Waffle composition adaptation — 2026-10-14
+
+The desktop Aircraft Makers view now uses `apps/next/src/client/overview/charts/arc-waffle.tsx` and `arc-waffle.css`. The registry was fetched again from `https://uiarc.dev/r/waffle-chart.json`: registry SHA256 `d3eec42f27514a94bed06a454244bd7c3e652f73ed4178dad3cc87035d33a9fc`, upstream TSX SHA256 `f1538515ae585da3d69e87421841593fa1297d98f73d826104b4771949f021b0`, matching the original inventory. The existing MIT notice remains in `client/ui/ARC-LICENSE.txt`.
+
+The adaptation retains bottom-up geometry and largest-remainder allocation over 100 cells. KuukiChart owns interaction and accessibility; category tokens replace upstream colors. Exact legend counts and shares include Unknown in the denominator; categories below one apportioned cell remain selectable in the legend and available in the semantic table. Unknown stays outlined, with `?` where marks permit. The cells approximate shares and do not represent individual flights. Mobile keeps the existing StageRows. No neighbor dimming, new dependency or staggered motion runtime was added. This records local source implementation, not deployment.
+
 ## Component ledger
 
 One row per candidate named in the plan's disposition table. "Tree" = transitive `registryDependencies` (Arc items) beyond `arc-motion-tokens`, which every item needs. Hash is SHA256 of the exact `registry/<item>.json` bytes; per-file hashes are in the appendix.

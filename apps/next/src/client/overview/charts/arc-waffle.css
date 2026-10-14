@@ -1,0 +1,23 @@
+.arc-waffle text {
+  fill: var(--text);
+  pointer-events: none;
+}
+.arc-waffle .arc-waffle-value {
+  font-weight: 600;
+}
+.arc-waffle .arc-waffle-note {
+  fill: var(--text-muted);
+}
+/* A reading keeps its category fill; its legend swatch carries the contour. */
+.arc-waffle [data-picked] > rect:nth-last-of-type(1) {
+  stroke: var(--text);
+  stroke-width: 2px;
+}
+
+.arc-waffle-name {
+  color: var(--text);
+  font: 400 13px/36px var(--font-sans);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
