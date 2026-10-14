@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render as renderBare, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, type ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PassportData } from '../../server/passport'
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
+  put: vi.fn(),
   delete: vi.fn(),
   push: vi.fn(),
   listeners: new Set<() => void>(),
@@ -28,7 +29,7 @@ vi.mock('next/link', async () => ({
   default: (await import('../../test/next-link')).linkStandIn((href) => mocks.push(href)),
 }))
 vi.mock('@kuuki/client/apiClient', () => ({
-  api: { get: mocks.get, delete: mocks.delete },
+  api: { get: mocks.get, put: mocks.put, delete: mocks.delete },
   getAuthGeneration: () => 1,
 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
@@ -50,6 +51,10 @@ vi.mock('./atlas', () => ({
 
 const { PassportPage } = await import('./passport-page')
 const { PrimaryNav } = await import('../nav')
+const { ToastProvider } = await import('../ui/toast')
+
+// The page lives in the member shell, whose ToastProvider carries the hide notice.
+const render = (ui: ReactElement) => renderBare(ui, { wrapper: ToastProvider })
 
 const row = (code: string, region: string, over: Record<string, unknown> = {}) => ({
   country_code: code,
@@ -460,7 +465,7 @@ describe('states', () => {
 
   it('is a calm line for a visitor with nothing to show, never an empty block', () => {
     render(<PassportPage {...publicProps('visitor', [])} />)
-    expect(screen.getByText('Nothing to show here yet.')).toBeVisible()
+    expect(screen.getByText(/^No countries to show yet\./)).toBeVisible()
     expect(screen.queryByText(/^Visited/)).not.toBeInTheDocument()
     expect(screen.queryByRole('list', { name: 'Stamps' })).not.toBeInTheDocument()
   })
@@ -542,6 +547,100 @@ describe('hidden countries', () => {
     await user.click(screen.getByRole('button', { name: 'Passport menu' }))
     await user.click(screen.getByRole('menuitem', { name: 'Add country' }))
     expect(await screen.findByRole('dialog', { name: 'Add country' })).toBeVisible()
+  })
+})
+
+const pressedDetail = (code: string) => ({
+  countryCode: code,
+  status: 'pressed',
+  isClaimed: false,
+  groundVisits: [],
+  journeys: [],
+  suppressed: [],
+  airports: [],
+  firstVisit: '2026-03-10',
+  lastVisit: '2026-03-10',
+  totalVisits: 1,
+  derivedState: 'ready',
+  revision: 3,
+  publishedRevision: 3,
+  entries: [
+    {
+      kind: 'flight',
+      flightId: 4,
+      endpoint: 'destination',
+      airport: 'OSL',
+      date: '2026-03-10',
+      state: 'logged',
+    },
+  ],
+})
+
+describe('hide from passport', () => {
+  it('hides through PUT, closes the sheet and offers an Undo that restores through DELETE', async () => {
+    const user = userEvent.setup()
+    mocks.put.mockResolvedValue({ ok: true, hidden: ['NO'] })
+    mocks.delete.mockResolvedValue({ ok: true, hidden: [] })
+    render(<PassportPage {...ownerProps()} />)
+    await user.click(screen.getByRole('button', { name: /^Norway/ }))
+    const sheet = await screen.findByRole('dialog', { name: 'Norway' })
+    reads.get('NO')!.resolve(pressedDetail('NO'))
+    await user.click(await within(sheet).findByRole('button', { name: 'Hide from passport' }))
+    expect(mocks.put).toHaveBeenCalledWith('/api/passport/hidden/NO', undefined, expect.anything())
+    expect(await screen.findByText('Norway hidden from your passport.')).toBeVisible()
+    expect(window.location.search).toBe('')
+    expect(mocks.delete).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await settle()
+    expect(mocks.delete).toHaveBeenCalledWith(
+      '/api/passport/hidden/NO',
+      undefined,
+      expect.anything(),
+    )
+  })
+})
+
+describe('stamp hero', () => {
+  type Transition = (update: () => Promise<void>) => { finished: Promise<void> }
+  afterEach(() => {
+    Reflect.deleteProperty(document, 'startViewTransition')
+  })
+
+  it('runs a pointer open inside a view transition and a keyboard open without one', async () => {
+    const user = userEvent.setup()
+    mocks.get.mockImplementation(() => new Promise(() => {}))
+    const start = vi.fn<Transition>((update) => {
+      void update()
+      return { finished: Promise.resolve() }
+    })
+    Object.defineProperty(document, 'startViewTransition', { configurable: true, value: start })
+    render(<PassportPage {...ownerProps()} />)
+    const card = screen.getByRole('button', { name: /^Norway/ })
+    card.focus()
+    await user.keyboard('{Enter}')
+    expect(window.location.search).toBe('?country=NO')
+    expect(start).not.toHaveBeenCalled()
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: /^Japan/ }))
+    await settle()
+    expect(start).toHaveBeenCalledTimes(1)
+    expect(window.location.search).toBe('?country=JP')
+    expect(await screen.findByRole('dialog', { name: 'Japan' })).toBeVisible()
+  })
+
+  it('marks each pressed card stamp for the Import to Passport hero and leaves awaiting ones out', () => {
+    render(<PassportPage {...ownerProps()} />)
+    const marked = within(screen.getByRole('list', { name: 'Stamps' }))
+      .getAllByRole('button')
+      .map((card) =>
+        card.querySelector('[data-hero-enter-key]')?.getAttribute('data-hero-enter-key'),
+      )
+    expect(marked.sort()).toEqual(['GE', 'JP', 'NO'])
+    expect(
+      within(screen.getByRole('list', { name: 'Awaiting confirmation' })).queryAllByText(
+        (_, element) => element?.hasAttribute('data-hero-enter-key') ?? false,
+      ),
+    ).toHaveLength(0)
   })
 })
 

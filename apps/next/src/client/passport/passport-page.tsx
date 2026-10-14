@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@kuuki/client/apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import { useLocale } from '../preferences'
@@ -14,6 +14,7 @@ import { notificationStorage } from '../profile/storage'
 import type { EarnedBadge } from '../profile/achievements'
 import { Button } from '../ui/button'
 import { Menu, MenuItem } from '../ui/menu'
+import { useToast } from '../ui/toast'
 import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 import type { PassportData } from '../../server/passport'
@@ -29,6 +30,7 @@ import {
   visitorEntries,
 } from './model'
 import { unseenCountries } from './new-stamps'
+import { openWithStampHero } from './stamp-hero'
 import {
   PassportLayout,
   type OwnerLayout,
@@ -134,6 +136,7 @@ function OwnerInner({
   const ru = locale === 'ru'
   const router = useRouter()
   const queryClient = useQueryClient()
+  const toast = useToast()
   const mobile = useMobile()
   const query = usePassportQuery('/passport')
   const { state } = query
@@ -220,9 +223,12 @@ function OwnerInner({
     },
     [query],
   )
-  const openCountry = (code: string, element?: HTMLElement) => {
+  const openCountry = (code: string, element?: HTMLElement, pointer?: boolean) => {
     opener.remember(element)
-    navigate({ country: code })
+    const open = () => navigate({ country: code })
+    // The hero needs the desktop side panel: the mobile bottom sheet is driven by JS motion that moves its stamp.
+    if (pointer && element && mobile === false && openWithStampHero(element, code, open)) return
+    open()
   }
 
   // A pending slot's arrival card comes from the country's published evidence, not from the queue page's flags.
@@ -255,6 +261,45 @@ function OwnerInner({
     ])
   }
 
+  /** Brings a hidden country back from the Undo on the toast; a failure is a calm notice with a retry. */
+  async function undoHide(code: string) {
+    const controller = new AbortController()
+    const release = trackPrivateOperation(controller)
+    const generation = getAuthGeneration()
+    try {
+      await api.delete(`/api/passport/hidden/${code}`, undefined, { signal: controller.signal })
+      if (controller.signal.aborted || generation !== getAuthGeneration()) return
+      await refresh()
+    } catch {
+      if (controller.signal.aborted || generation !== getAuthGeneration()) return
+      toast.show({
+        kind: 'error',
+        message: {
+          en: 'Could not restore the country. Check your connection and try again.',
+          ru: 'Не удалось вернуть страну. Проверьте сеть и повторите.',
+        },
+        actionLabel: { en: 'Try again', ru: 'Повторить' },
+        onAction: () => void undoHide(code),
+      })
+    } finally {
+      release()
+    }
+  }
+  async function onHidden(code: string) {
+    navigate({ country: null })
+    // The toast outlives the sheet and the locale switch, so it carries both languages.
+    toast.show({
+      message: {
+        en: `${countryNamer('en')(code)} hidden from your passport.`,
+        ru: `Страна «${countryNamer('ru')(code)}» скрыта из паспорта.`,
+      },
+      duration: 8000,
+      actionLabel: { en: 'Undo', ru: 'Отменить' },
+      onAction: () => void undoHide(code),
+    })
+    await refresh()
+  }
+
   const hiddenCodes = data.hidden
   const menu = (
     <Menu
@@ -283,6 +328,9 @@ function OwnerInner({
       </MenuItem>
       <MenuItem onSelect={fromMenu(() => setAdding(true))}>
         {ru ? 'Добавить страну' : 'Add country'}
+      </MenuItem>
+      <MenuItem asChild>
+        <Link href="/passport/manage">{ru ? 'Самолёты в журнале' : 'Aircraft in journal'}</Link>
       </MenuItem>
     </Menu>
   )
@@ -381,6 +429,7 @@ function OwnerInner({
               onChanged={async () => {
                 await refresh()
               }}
+              onHidden={onHidden}
               onRemoved={(code) => {
                 navigate({ country: null })
                 setRemovedCountry(code)
@@ -455,9 +504,11 @@ function PublicPassport(props: PublicProps) {
       name={name}
       query={query}
       fresh={NO_STAMPS}
-      onOpen={(code, element) => {
+      onOpen={(code, element, pointer) => {
         opener.remember(element)
-        navigate({ country: code })
+        const open = () => navigate({ country: code })
+        if (pointer && element && mobile === false && openWithStampHero(element, code, open)) return
+        open()
       }}
       bar={bar}
       notices={

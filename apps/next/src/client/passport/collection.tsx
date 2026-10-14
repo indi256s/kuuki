@@ -60,7 +60,8 @@ export function PassportCards({
   owner: boolean
   /** Immutable press-event IDs for countries pressed since the owner last looked; the stamp plays them once. */
   fresh: ReadonlyMap<string, string>
-  onOpen: (code: string, opener: HTMLElement) => void
+  /** `pointer` is false for a keyboard activation (a click with no pointer behind it), which never plays the stamp hero. */
+  onOpen: (code: string, opener: HTMLElement, pointer: boolean) => void
 }) {
   const ru = locale === 'ru'
   return (
@@ -72,14 +73,17 @@ export function PassportCards({
             className="passport-card"
             data-stamp-host
             data-code={entry.code}
-            onClick={(event) => onOpen(entry.code, event.currentTarget)}
+            onClick={(event) => onOpen(entry.code, event.currentTarget, event.detail > 0)}
           >
-            <CountryStamp
-              iso2={entry.code}
-              status="inked"
-              size={CARD_STAMP_SIZE}
-              impressionId={fresh.get(entry.code)}
-            />
+            {/* The Import → Passport hero (route-motion.ts) pairs this stamp with the one on the Import page. */}
+            <span className="passport-card-stamp" data-hero-enter-key={entry.code}>
+              <CountryStamp
+                iso2={entry.code}
+                status="inked"
+                size={CARD_STAMP_SIZE}
+                impressionId={fresh.get(entry.code)}
+              />
+            </span>
             <span className="passport-card-name">{name(entry.code)}</span>
             {owner && entry.last ? (
               <span className="passport-card-date">
@@ -213,6 +217,11 @@ export function EmptyPassport({ locale, onAdd }: { locale: Locale; onAdd: () => 
           ? 'Добавьте страну, где вы были, или импортируйте перелёты: штампы появятся здесь.'
           : 'Add a country you have visited or import your flights, and the stamps appear here.'}
       </p>
+      <p>
+        {ru
+          ? 'Страницы чисты. Формально — безупречная репутация.'
+          : 'Every page is blank. Technically a clean record.'}
+      </p>
       <div className="read-actions">
         <Button variant="primary" onClick={onAdd}>
           {ru ? 'Добавить страну' : 'Add country'}
@@ -246,6 +255,11 @@ export function FilteredEmpty({
         {ru
           ? 'В этой коллекции нет стран под ваш поиск и фильтры.'
           : 'No country in this collection fits your search and filters.'}
+      </p>
+      <p>
+        {ru
+          ? 'Здесь пусто. Паспорт проверили дважды.'
+          : 'Nothing here. The passport checked twice.'}
       </p>
       {suggestion}
       <div className="read-actions">

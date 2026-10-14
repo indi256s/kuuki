@@ -92,7 +92,8 @@ export function HiddenSheet({
           </ul>
         ) : (
           <p className="passport-note" role="status">
-            {ru ? 'Скрытых стран нет.' : 'No hidden countries.'}
+            {ru ? 'Скрытых стран нет.' : 'No hidden countries.'}{' '}
+            {ru ? 'Секретничать пока не о чем.' : 'Nothing to be secretive about.'}
           </p>
         )}
         {error ? <p role="alert">{error}</p> : null}

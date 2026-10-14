@@ -7,13 +7,17 @@ import type { CountryDetail } from '../../server/passport'
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
+  put: vi.fn(),
   unclaim: vi.fn(),
   deleteVisit: vi.fn(),
   addVisit: vi.fn(),
   claim: vi.fn(),
   acknowledge: vi.fn(),
 }))
-vi.mock('@kuuki/client/apiClient', () => ({ api: { get: mocks.get }, getAuthGeneration: () => 1 }))
+vi.mock('@kuuki/client/apiClient', () => ({
+  api: { get: mocks.get, put: mocks.put },
+  getAuthGeneration: () => 1,
+}))
 vi.mock('@kuuki/client/passport', () => ({
   unclaimCountry: mocks.unclaim,
   deleteGroundVisit: mocks.deleteVisit,
@@ -81,7 +85,12 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail =>
 
 function mount(
   value: CountryDetail,
-  props: { onRemoved?: (code: string) => void; onChanged?: () => void; locale?: 'en' | 'ru' } = {},
+  props: {
+    onRemoved?: (code: string) => void
+    onChanged?: () => void
+    onHidden?: (code: string) => void
+    locale?: 'en' | 'ru'
+  } = {},
 ) {
   mocks.get.mockResolvedValue(value)
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -99,6 +108,7 @@ function mount(
         onClose={() => {}}
         onChanged={props.onChanged ?? (() => {})}
         onRemoved={props.onRemoved ?? (() => {})}
+        onHidden={props.onHidden ?? (() => {})}
       />
     </QueryClientProvider>,
   )
@@ -213,6 +223,24 @@ describe('CountrySheet', () => {
     })
     // Flights keep the country pressed: the sheet stays on it instead of announcing a removal.
     expect(onRemoved).not.toHaveBeenCalled()
+  })
+
+  it('hides a pressed country without a confirmation and hands the hidden code to the page', async () => {
+    const user = userEvent.setup()
+    mocks.put.mockResolvedValue({ ok: true })
+    const onHidden = vi.fn()
+    mount(detail({}), { onHidden })
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(await within(dialog).findByRole('button', { name: 'Hide from passport' }))
+    await waitFor(() => expect(onHidden).toHaveBeenCalledWith('GR'))
+    expect(mocks.put).toHaveBeenCalledWith('/api/passport/hidden/GR', undefined, expect.anything())
+  })
+
+  it('does not offer Hide for a country that is only awaiting confirmation', async () => {
+    mount(detail({ status: 'pending', entries: [], groundVisits: [], isClaimed: false }))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await within(dialog).findByRole('button', { name: 'Add visit' })
+    expect(within(dialog).queryByRole('button', { name: 'Hide from passport' })).toBeNull()
   })
 
   it('reports a removed country when nothing else supports it', async () => {
@@ -409,6 +437,7 @@ describe('CountrySheet freshness and failures', () => {
           onClose={() => {}}
           onChanged={() => {}}
           onRemoved={() => {}}
+          onHidden={() => {}}
         />
       </QueryClientProvider>
     )
@@ -569,6 +598,7 @@ describe('CountrySheet add-visit form during a save', () => {
           onClose={() => {}}
           onChanged={() => {}}
           onRemoved={() => {}}
+          onHidden={() => {}}
         />
       </QueryClientProvider>
     )

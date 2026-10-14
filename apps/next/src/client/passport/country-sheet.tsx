@@ -105,6 +105,7 @@ export function CountrySheet({
   onClose,
   onChanged,
   onRemoved,
+  onHidden,
   onCloseAutoFocus,
 }: {
   ownerId: string
@@ -119,6 +120,8 @@ export function CountrySheet({
   /** A write landed: refresh the collection; `added` is true when the country was not in the passport before. */
   onChanged: (code: string, added: boolean) => Promise<void> | void
   onRemoved: (code: string) => void
+  /** The country was hidden from the passport: close the sheet, refresh and offer Undo. */
+  onHidden: (code: string) => Promise<void> | void
   onCloseAutoFocus?: (event: Event) => void
 }) {
   const ru = locale === 'ru'
@@ -134,6 +137,8 @@ export function CountrySheet({
   const [note, setNote] = useState('')
   const [deleting, setDeleting] = useState<GroundEntry | null>(null)
   const [removing, setRemoving] = useState(false)
+  const [hiding, setHiding] = useState(false)
+  const [hideError, setHideError] = useState('')
   const menuTrigger = useRef<HTMLButtonElement | null>(null)
   const [shownCode, setShownCode] = useState(code)
   const shownRef = useRef(code)
@@ -145,6 +150,7 @@ export function CountrySheet({
     setShownCode(code)
     setNotice('')
     setError('')
+    setHideError('')
     setYear('')
     setNote('')
     setMethod('land')
@@ -201,6 +207,33 @@ export function CountrySheet({
     }
   }
 
+  /** Hiding is presentation only (PUT /api/passport/hidden/:cc): records and statistics stay. No confirm; Undo is the net. */
+  async function hide() {
+    if (!code) return
+    const target = code
+    const controller = new AbortController()
+    const release = trackPrivateOperation(controller)
+    const generation = getAuthGeneration()
+    const current = () => !controller.signal.aborted && generation === getAuthGeneration()
+    setHiding(true)
+    setHideError('')
+    try {
+      await api.put(`/api/passport/hidden/${target}`, undefined, { signal: controller.signal })
+      if (!current()) return
+      await onHidden(target)
+    } catch {
+      if (current())
+        setHideError(
+          ru
+            ? 'Не удалось скрыть страну. Проверьте сеть и повторите.'
+            : 'Could not hide this country. Check your connection and try again.',
+        )
+    } finally {
+      release()
+      if (current()) setHiding(false)
+    }
+  }
+
   const ignore = () => {}
   const status = data && !behind ? data.status : (entry?.status ?? 'none')
   const inPassport = status !== 'none'
@@ -242,7 +275,7 @@ export function CountrySheet({
     >
       <div className="passport-sheet">
         {entry ? (
-          <div className="passport-sheet-stamp">
+          <div className="passport-sheet-stamp" data-sheet-stamp={entry.code}>
             <CountryStamp
               iso2={entry.code}
               status={entry.status === 'pending' ? 'pending' : 'inked'}
@@ -606,6 +639,28 @@ export function CountrySheet({
                 : ''}
             </p>
             {error ? <p role="alert">{error}</p> : null}
+
+            {status === 'pressed' ? (
+              <section aria-labelledby="passport-hide">
+                <h3 id="passport-hide">{ru ? 'Скрыть из паспорта' : 'Hide from passport'}</h3>
+                <p className="passport-note">
+                  {ru
+                    ? 'Страна пропадёт из карточек, карты и публичного профиля. Записи и статистика останутся, а вернуть её можно в меню паспорта, в пункте «Скрытые».'
+                    : 'The country leaves your cards, map and public profile. Your records and statistics stay, and Hidden in the passport menu brings it back.'}
+                </p>
+                <div>
+                  <Button
+                    disabled={busy}
+                    loading={hiding}
+                    loadingLabel={ru ? 'Скрываем…' : 'Hiding…'}
+                    onClick={() => void hide()}
+                  >
+                    {ru ? 'Скрыть из паспорта' : 'Hide from passport'}
+                  </Button>
+                </div>
+                {hideError ? <p role="alert">{hideError}</p> : null}
+              </section>
+            ) : null}
 
             {inPassport ? (
               <section className="passport-danger" aria-labelledby="passport-remove">

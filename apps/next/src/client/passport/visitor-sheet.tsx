@@ -47,7 +47,7 @@ export function VisitorSheet({
     >
       <div className="passport-sheet">
         {code && inCollection ? (
-          <div className="passport-sheet-stamp">
+          <div className="passport-sheet-stamp" data-sheet-stamp={code}>
             <CountryStamp iso2={code} status="inked" size={SHEET_STAMP_SIZE} static />
           </div>
         ) : null}

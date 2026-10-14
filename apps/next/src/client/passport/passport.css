@@ -304,6 +304,9 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+.passport-card-stamp {
+  display: flex;
+}
 .passport-card-name {
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -600,4 +603,23 @@
 .passport-country-list [data-collected='true'] span:last-child {
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* ---------- Stamp hero (stamp-hero.ts) ---------- */
+/* The card's stamp and the sheet's stamp share a per-country name while html[data-stamp-hero] is set, so the stamp
+   grows into the sheet illustration. The page under it must not crossfade, and the sheet fades in place instead of
+   sliding: a slide would put the stamp's target off screen when the new state is captured. */
+:root[data-stamp-hero]::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+:root[data-stamp-hero]::view-transition-new(root) {
+  animation: none;
+}
+:root[data-stamp-hero]::view-transition-group(*) {
+  animation-duration: var(--dur-sheet);
+  animation-timing-function: var(--ease-out);
+}
+:root[data-stamp-hero] .ui-sheet.passport-sheet-panel[data-side='right'][data-state='open'] {
+  animation: ui-fade-in var(--dur-base) var(--ease-out);
 }

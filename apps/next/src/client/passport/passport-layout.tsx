@@ -80,7 +80,8 @@ export type PassportLayoutProps = {
   query: ReturnType<typeof usePassportQuery>
   /** Press-event IDs for newly pressed countries. */
   fresh: ReadonlyMap<string, string>
-  onOpen: (code: string, opener?: HTMLElement) => void
+  /** `pointer` is true when a pointer opened the card: only then may the stamp grow into the sheet. */
+  onOpen: (code: string, opener?: HTMLElement, pointer?: boolean) => void
   bar: PassportBar | null
   /** Status notes above the page: preparing, error, refresh failure. */
   notices: ReactNode
@@ -153,7 +154,10 @@ export function PassportLayout(props: PassportLayoutProps) {
   if (entries.length === 0) {
     if (!owner) {
       collection = (
-        <QuietLine>{ru ? 'Пока нечего показать.' : 'Nothing to show here yet.'}</QuietLine>
+        <QuietLine>
+          {ru ? 'Пока нечего показать.' : 'No countries to show yet.'}{' '}
+          {ru ? 'Этот паспорт путешествует налегке.' : 'This passport is travelling light.'}
+        </QuietLine>
       )
     } else if (pending.length > 0) {
       collection = (
@@ -161,6 +165,7 @@ export function PassportLayout(props: PassportLayoutProps) {
           {ru
             ? 'Штампов пока нет: страны ждут вашего подтверждения.'
             : 'No stamps yet: the countries below are waiting for you to confirm them.'}{' '}
+          {ru ? 'Вылет состоялся — по документам.' : 'Departed, as far as the paperwork knows.'}{' '}
           <Button dense onClick={showPending}>
             {ru ? 'К ожидающим' : 'Go to awaiting'}
           </Button>
