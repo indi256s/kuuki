@@ -28,6 +28,16 @@ export function airportChoices(locale: Locale): Choice[] {
 export const airlineChoices: Choice[] = airlines
   .filter((row) => row.iata)
   .map((row) => ({ code: row.iata, label: row.name, fallback: true }))
+// Certified designations: EASA.IM.A.071, https://www.easa.europa.eu/en/downloads/7382/en.
+const aircraftAliases: Record<string, string> = {
+  E290: 'ERJ 190-300',
+  E295: 'ERJ 190-400',
+}
 export const aircraftChoices: Choice[] = aircraft
   .filter((row) => row.icao)
-  .map((row) => ({ code: row.icao, label: row.name, fallback: true }))
+  .map((row) => ({
+    code: row.icao,
+    label: row.name,
+    search: `${row.iata ?? ''} ${row.manufacturer} ${row.model} ${aircraftAliases[row.icao] ?? ''}`,
+    fallback: true,
+  }))

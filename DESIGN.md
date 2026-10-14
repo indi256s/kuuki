@@ -468,10 +468,10 @@ A typeable date field, not a picker-only control. The input is text with `inputM
 
 ### Combobox
 
-Used for airports, airlines and aircraft. Matches code, label, detail and verified search aliases; an exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms. Options are 44px with `<mark>` highlights (`--info-text` on `--surface-inset`, ≥4.5:1) and mono codes. Arrows move, Enter chooses, Escape closes.
+Used for airports, airlines and aircraft. Matches every query word across code, label, detail and verified search aliases, ignoring case, diacritics and punctuation; word order does not matter. Aircraft also match IATA codes and verified certified designations. An exact code match ranks first; with an empty query per-account recents come first; at most 50 rows. A polite status announces the count with real plural forms, or «Ничего не найдено» / “No matches” for an empty result. Options are 44px with `<mark>` highlights (`--info-text` on `--surface-inset`, ≥4.5:1) and mono codes. Arrows move, Enter chooses, Escape closes.
 
 - **Honest fallback labelling.** In Russian, aircraft and airline rows without a localized name show their English reference name with «Название на английском». English does not label its normal reference names as a translation fallback. Verified airport aliases remain searchable. Owner-scoped recents use local storage across tabs, with an in-memory fallback when storage is unavailable.
-- **Desktop.** A level 2 popover under the input, max height 360px.
+- **Desktop.** A level 2 popover under the input, max height 360px. An empty result is a small inline status under the field, without a popover surface or overlap with following controls.
 - **Mobile (≤700px).** A full-height search Sheet (`.flight-full-sheet`) with the search input pinned at the top (sticky) and focused on open; results scroll beneath. Close is labelled «Закрыть поиск». On close, focus returns to the origin field without reopening the list.
 
 ## Signature components
