@@ -1,0 +1,80 @@
+/* The loading windsock (windsock.tsx). The kit's rules are in windsock.generated.css; this file maps its colour roles
+   onto Kuuki's tokens as bench.css does: the footing and mast in the --iso-* faces and lines, and the sock, the only live
+   part, in the accent. Its five bands alternate accent and pale cloth, first and last in the accent as ICAO asks. */
+.windsock {
+  --anatomy-paper: var(--surface);
+  --anatomy-face: var(--surface-inset);
+  --anatomy-top: color-mix(in oklab, var(--iso-front) 50%, var(--surface));
+  --anatomy-shade-0: var(--iso-side);
+  --anatomy-shade-1: color-mix(in oklab, var(--iso-side) 67%, var(--iso-front));
+  --anatomy-shade-2: color-mix(in oklab, var(--iso-side) 33%, var(--iso-front));
+  --anatomy-shade-3: var(--iso-front);
+  --anatomy-hi: var(--iso-line);
+  --anatomy-mid: color-mix(in oklab, var(--iso-line) 55%, var(--iso-crease));
+  --anatomy-lo: var(--iso-crease);
+  --anatomy-faint: var(--iso-detail);
+  --anatomy-lit: var(--accent);
+  --anatomy-halo: var(--iso-shadow);
+  --anatomy-halo-opacity: 1;
+  --anatomy-dot: var(--text-muted);
+  --anatomy-weight: 0.7px;
+  --ws-cloth: var(--accent);
+  --ws-cloth-pale: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --ws-edge: color-mix(in oklab, var(--accent) 62%, black);
+  --ws-frame: var(--iso-line);
+}
+:root[data-theme='dark'] .windsock {
+  --anatomy-mid: color-mix(in oklab, var(--iso-line) 35%, var(--iso-detail));
+  --anatomy-lo: var(--iso-detail);
+  --anatomy-faint: color-mix(in oklab, var(--iso-detail) 50%, var(--surface));
+  --ws-cloth-pale: color-mix(in oklab, var(--accent) 14%, var(--text));
+  --ws-edge: color-mix(in oklab, var(--accent) 55%, black);
+}
+.windsock .iso-line.iso-edge {
+  stroke-width: 0.9px;
+}
+
+.windsock .ws-arm {
+  fill: none;
+  stroke: var(--ws-frame);
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+}
+.windsock .ws-hoop {
+  fill: none;
+  stroke: var(--ws-frame);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+}
+.windsock .ws-cloth {
+  fill: var(--ws-cloth);
+  stroke: var(--ws-edge);
+  stroke-width: 0.8px;
+  stroke-linejoin: round;
+}
+.windsock .ws-band:is([data-band='1'], [data-band='3']) .ws-cloth {
+  fill: var(--ws-cloth-pale);
+}
+.windsock .ws-seam {
+  fill: none;
+  stroke: var(--ws-edge);
+  stroke-width: 0.7px;
+  stroke-linecap: round;
+}
+.windsock .ws-light-top {
+  stop-color: white;
+  stop-opacity: 0.22;
+}
+.windsock .ws-light-mid {
+  stop-color: white;
+  stop-opacity: 0;
+}
+.windsock .ws-light-low {
+  stop-color: black;
+  stop-opacity: 0.24;
+}
+.windsock .ws-glow {
+  fill: var(--accent);
+  opacity: var(--iso-glow);
+  filter: blur(4px);
+}

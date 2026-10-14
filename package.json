@@ -35,6 +35,7 @@
     "check:stamps": "tsx scripts/check-stamps.ts",
     "generate:concorde": "node scripts/generate-concorde.mjs",
     "generate:passport-bench": "node scripts/generate-passport-bench.mjs",
+    "generate:windsock": "node scripts/generate-windsock.mjs",
     "verify:cloudflare": "bash scripts/verify-cloudflare.sh"
   },
   "devDependencies": {
