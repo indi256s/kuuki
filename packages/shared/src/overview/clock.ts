@@ -1,8 +1,10 @@
 import { bandOf, haulOf } from './filter'
 import { coverage, hasPreciseDuration, type Gate } from './figures'
-import type { Haul, OverviewRow } from './model'
+import { recordFlights } from './records'
+import type { Haul, OverviewRow, OverviewPayload, RecordRef } from './model'
 
 export interface Clock {
+  earliestDeparture: (RecordRef & { date: string; depMinute: number }) | null
   byHour: Array<{ key: string; hour: number; flights: number }>
   arrByHour: Clock['byHour']
   withArrivalTime: number
@@ -25,7 +27,7 @@ function peak(buckets: Clock['byHour']): Clock['peakHour'] {
   return best
 }
 
-export function clock(rows: OverviewRow[]): Gate<Clock> {
+export function clock(rows: OverviewRow[], mode: OverviewPayload['mode'] = 'flights'): Gate<Clock> {
   const { withDepartureTime, total } = coverage(rows)
   if (withDepartureTime < 5) return { status: 'below', have: withDepartureTime, need: 5 }
   const byHour = Array.from({ length: 24 }, (_, hour) => ({
@@ -66,9 +68,13 @@ export function clock(rows: OverviewRow[]): Gate<Clock> {
       }
     }
   }
+  const earliest = recordFlights(rows, mode).earliestDeparture
   return {
     status: 'ready',
     value: {
+      earliestDeparture: earliest
+        ? { ...earliest, flightId: mode === 'aggregate' ? null : earliest.flightId }
+        : null,
       byHour,
       arrByHour,
       withArrivalTime,

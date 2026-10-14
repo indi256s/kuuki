@@ -3,7 +3,6 @@ import { matches, previousPeriod } from './filter'
 import type { OverviewFilter, OverviewPayload } from './model'
 import { records } from './records'
 import { routes } from './routes'
-import { goals } from './goals'
 import { crossings } from './crossings'
 import { continents } from './continents'
 import { fleet } from './fleet'
@@ -22,7 +21,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     ? totals(counted.filter((row) => matches(row, previous, payload.refs)))
     : null
   const homeAirport = home(counted, payload)
-  const scope: Omit<OverviewScope, 'goals'> = {
+  const scope: OverviewScope = {
     filter,
     figures: figures(rows, payload, filter, deltas, counted),
     coverage: coverage(rows),
@@ -33,12 +32,12 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     continents: continents(rows, payload.refs),
     fleet: fleet(rows, payload.refs, payload.mode),
     makers: makers(rows, payload.mode),
-    clock: clock(rows),
+    clock: clock(rows, payload.mode),
     rhythm: rhythm(rows, payload.mode),
     rankings: rankings(rows),
     globe: globe(payload.rows, rows, payload.refs),
     next: nextFlights(payload, counted),
     replay: replayItems(rows, payload.mode),
   }
-  return { ...scope, goals: goals(scope) }
+  return scope
 }

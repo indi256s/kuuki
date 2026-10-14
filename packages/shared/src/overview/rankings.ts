@@ -1,4 +1,4 @@
-import { makerOf } from '../../../data/src/aircraft-makers'
+import { MAKER_SLOTS, makerOf } from '../../../data/src/aircraft-makers'
 import { bandOf, haulOf, routeKey } from './filter'
 import type { OverviewRow } from './model'
 import { calendarDay } from './next'
@@ -20,11 +20,10 @@ export interface BumpRow {
   rank: number
   count: number
 }
-export interface VersusRow {
+export interface PatternRow {
   id: 'makers' | 'haul' | 'daytime'
-  left: RankRow
-  right: RankRow
-  excluded: number
+  total: number
+  categories: RankRow[]
 }
 type Category = 'airlines' | 'airports' | 'routes'
 export interface Rankings {
@@ -33,7 +32,7 @@ export interface Rankings {
   routes: RankRow[]
   leaders: Record<Category, Leader>
   rankByYear: Record<Category, BumpRow[]>
-  versus: VersusRow[]
+  patterns: PatternRow[]
 }
 
 function add(counts: Map<string, number>, key: string, weight: number): void {
@@ -107,49 +106,60 @@ export function rankings(rows: OverviewRow[]): Rankings {
       })
     }
   }
-  const versus: VersusRow[] = [
-    {
-      id: 'makers',
-      left: { key: 'airbus', count: 0 },
-      right: { key: 'boeing', count: 0 },
-      excluded: 0,
-    },
-    { id: 'haul', left: { key: 'short', count: 0 }, right: { key: 'long', count: 0 }, excluded: 0 },
-    {
-      id: 'daytime',
-      left: { key: 'day', count: 0 },
-      right: { key: 'night', count: 0 },
-      excluded: 0,
-    },
-  ]
+  const countsByPattern = {
+    makers: new Map<string, number>(),
+    haul: new Map<string, number>([
+      ['short-medium', 0],
+      ['long', 0],
+      ['unknown', 0],
+    ]),
+    daytime: new Map<string, number>([
+      ['day', 0],
+      ['night', 0],
+      ['unknown', 0],
+    ]),
+  }
+  const total = rows.reduce((sum, row) => sum + row.weight, 0)
   for (const row of rows) {
     const km = row.distanceKm === null ? null : row.distanceKm / row.weight
     const minute = row.depMinute
-    const keys = [
-      makerOf(row.aircraft),
+    add(countsByPattern.makers, makerOf(row.aircraft), row.weight)
+    add(
+      countsByPattern.haul,
       km !== null && Number.isFinite(km) && km >= 0 && row.weight > 0
         ? haulOf(km) === 'long'
           ? 'long'
-          : 'short'
-        : null,
+          : 'short-medium'
+        : 'unknown',
+      row.weight,
+    )
+    add(
+      countsByPattern.daytime,
       minute !== null && Number.isFinite(minute) && minute >= 0 && minute < 1440
         ? bandOf(minute) === 'night'
           ? 'night'
           : 'day'
-        : null,
-    ]
-    versus.forEach((pair, index) => {
-      if (keys[index] === pair.left.key) pair.left.count += row.weight
-      else if (keys[index] === pair.right.key) pair.right.count += row.weight
-      else pair.excluded += row.weight
-    })
+        : 'unknown',
+      row.weight,
+    )
   }
+  const patterns: PatternRow[] = (['makers', 'haul', 'daytime'] as const).map((id) => ({
+    id,
+    total,
+    categories:
+      id === 'makers'
+        ? MAKER_SLOTS.flatMap((key) => {
+            const count = countsByPattern.makers.get(key) ?? 0
+            return count > 0 ? [{ key, count }] : []
+          })
+        : [...countsByPattern[id]].map(([key, count]) => ({ key, count })),
+  }))
   return {
     airlines,
     airports,
     routes,
     leaders: { airlines: leader(airlines), airports: leader(airports), routes: leader(routes) },
     rankByYear,
-    versus,
+    patterns,
   }
 }

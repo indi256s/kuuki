@@ -105,7 +105,7 @@ it('shows the first-run state after revalidation removes the last flight', async
   await waitFor(() => expect(screen.getByRole('link', { name: 'Import flights' })).toBeVisible())
 })
 
-it('drops a locked section from the grid and lists its gate in Next up, keeping the saved layout', async () => {
+it('omits unavailable chapters without a goal band, keeping the saved layout', async () => {
   const few: OverviewPayload = {
     ...payload,
     rows: payload.rows.slice(0, 4).map((row, index) => ({ ...row, id: index + 1, weight: 1 })),
@@ -132,8 +132,8 @@ it('drops a locked section from the grid and lists its gate in Next up, keeping 
       saver={save}
     />,
   )
-  const nextUp = await screen.findByRole('region', { name: 'Next up' })
-  expect(within(nextUp).getByText('1 more flight unlocks Routes')).toBeInTheDocument()
+  await screen.findByRole('heading', { level: 1 })
+  expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()
   expect(container.querySelector('[data-section="routes"]')).toBeNull()
   expect(container.querySelector('[data-section="records"]')).not.toBeNull()
   expect(save).not.toHaveBeenCalled()

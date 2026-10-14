@@ -265,31 +265,42 @@ function expectedRankingOutputs(fixture: OverviewPayload) {
     )
   }
   const total = rows.reduce((sum, row) => sum + row.weight, 0)
-  const versus = ['makers', 'haul', 'daytime'].map((id) => {
-    let left = 0,
-      right = 0
-    for (const row of rows) {
-      if (id === 'makers') {
-        const maker =
-          row.aircraft === null ? null : fixture.refs.aircraft[row.aircraft]?.manufacturer
-        if (maker === 'Airbus') left += row.weight
-        if (maker === 'Boeing') right += row.weight
-      } else if (id === 'haul' && row.distanceKm !== null) {
-        if (row.distanceKm / row.weight < 4000) left += row.weight
-        else right += row.weight
-      } else if (id === 'daytime' && row.depMinute !== null) {
-        if (row.depMinute >= 360 && row.depMinute < 1320) left += row.weight
-        else right += row.weight
-      }
-    }
-    return {
-      id,
-      left: { key: id === 'makers' ? 'airbus' : id === 'haul' ? 'short' : 'day', count: left },
-      right: { key: id === 'makers' ? 'boeing' : id === 'haul' ? 'long' : 'night', count: right },
-      excluded: total - left - right,
-    }
-  })
-  return { leaders, rankByYear, versus }
+  const patternCounts: Record<string, Record<string, number>> = {
+    makers: {},
+    haul: { 'short-medium': 0, long: 0, unknown: 0 },
+    daytime: { day: 0, night: 0, unknown: 0 },
+  }
+  for (const row of rows) {
+    const manufacturer =
+      row.aircraft === null ? null : fixture.refs.aircraft[row.aircraft]?.manufacturer
+    const maker = manufacturer?.toLowerCase() ?? 'unknown'
+    const haul =
+      row.distanceKm === null
+        ? 'unknown'
+        : row.distanceKm / row.weight < 4000
+          ? 'short-medium'
+          : 'long'
+    const daytime =
+      row.depMinute === null
+        ? 'unknown'
+        : row.depMinute >= 360 && row.depMinute < 1320
+          ? 'day'
+          : 'night'
+    for (const [id, key] of [
+      ['makers', maker],
+      ['haul', haul],
+      ['daytime', daytime],
+    ])
+      patternCounts[id][key] = (patternCounts[id][key] ?? 0) + row.weight
+  }
+  const patterns = Object.entries(patternCounts).map(([id, counts]) => ({
+    id,
+    total,
+    categories: expect.arrayContaining(
+      Object.entries(counts).map(([key, count]) => ({ key, count })),
+    ),
+  }))
+  return { leaders, rankByYear, patterns }
 }
 
 // Independent new-output oracle over fixture records, separate from engine helpers.
@@ -650,7 +661,7 @@ it.each(names)(
           }
       }
       inspect(result.records)
-      expect(ids).toBe(7)
+      expect(ids).toBe(5)
       expect(result.records).toMatchObject({
         status: 'ready',
         value: { busiestDay: null, longestGroundStopDays: null },
@@ -706,10 +717,6 @@ it('board fixture reproduces board totals', () => {
   })
   expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result.rankings.airlines[0]).toEqual({ key: 'TK', count: 24 })
-  expect(result.records).toMatchObject({
-    status: 'ready',
-    value: { northernmost: { iata: 'KTT', lat: expect.closeTo(67.6986111111, 8) } },
-  })
   expect(result.crossings).toMatchObject({
     status: 'ready',
     value: { arcticCircle: 2, clockShiftHours: 85 },

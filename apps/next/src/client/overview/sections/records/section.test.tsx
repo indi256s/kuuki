@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { computeOverview } from '@kuuki/shared/overview/compute'
 import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/model'
@@ -7,17 +7,19 @@ import fixture from '../../../../../../../packages/shared/src/overview/__fixture
 import { Section } from './section'
 
 const context = vi.hoisted(() => ({
+  openFlight: vi.fn(),
   current: {} as ReturnType<typeof import('../../store/overview-context').useOverview>,
 }))
 vi.mock('../../store/overview-context', () => ({ useOverview: () => context.current }))
-vi.mock('../../store/open-flight', () => ({ useOpenFlight: () => vi.fn() }))
+vi.mock('../../store/open-flight', () => ({ useOpenFlight: () => context.openFlight }))
 
 const payload = fixture as OverviewPayload
 const admit = (filter: OverviewFilter = {}) => {
-  const actions = { add: vi.fn(), clear: vi.fn() }
+  const actions = { add: vi.fn(), clear: vi.fn(), setPeriod: vi.fn() }
   context.current = {
     payload,
     scope: computeOverview(payload, filter),
+    all: computeOverview(payload, {}),
     filter,
     locale: 'en',
     aggregate: false,
@@ -81,4 +83,42 @@ it('below the gate under a filter, the card says so and offers to clear it', () 
   expect(screen.getByRole('heading', { name: 'Records' })).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(actions.clear).toHaveBeenCalled()
+})
+
+it('keeps sparse filtered facts with lifetime evidence and opens the witness explicitly', () => {
+  const actions = admit({ routes: ['KUT-TBS'] })
+  context.openFlight.mockClear()
+  const { container } = render(<Section span="full" />)
+  expect(screen.getAllByText('Shortest flight').length).toBeGreaterThan(0)
+  expect(screen.getByText('No distance range in this selection.')).toBeInTheDocument()
+  expect(container.querySelector('.ov3-record-months')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Flight evidence' }))
+  expect(screen.getAllByText(/Whole journal: 187–14,535 km/).length).toBeGreaterThan(0)
+  expect(actions.add).not.toHaveBeenCalled()
+  const shortest = container.querySelector(
+    '.ov3-record-small-grid .ov3-record-inset',
+  ) as HTMLElement
+  fireEvent.click(within(shortest).getByRole('button', { name: 'Open flight ↗' }))
+  expect(context.openFlight).toHaveBeenCalledWith(17)
+  expect(actions.add).not.toHaveBeenCalled()
+})
+
+it('retains year and duration evidence when no selected flight has known distance', () => {
+  admit()
+  const unknownDistance = {
+    ...payload,
+    rows: payload.rows.map((row) => ({ ...row, distanceKm: null })),
+  }
+  context.current = {
+    ...context.current,
+    payload: unknownDistance,
+    scope: computeOverview(unknownDistance, {}),
+  }
+  render(<Section span="full" />)
+  expect(screen.getByText('Distance unknown')).toBeInTheDocument()
+  expect(screen.getAllByText('Busiest year').length).toBeGreaterThan(0)
+  fireEvent.click(screen.getByRole('button', { name: 'Duration evidence' }))
+  expect(screen.getByText('Longest time in the air')).toBeInTheDocument()
+  expect(screen.getByText('Shortest time in the air')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Clear filter' })).toBeNull()
 })

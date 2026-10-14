@@ -9,6 +9,7 @@ import { Section } from './section'
 const context = vi.hoisted(() => ({
   current: {} as ReturnType<typeof import('../../store/overview-context').useOverview>,
 }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('../../store/overview-context', () => ({ useOverview: () => context.current }))
 
 const payload = fixture as OverviewPayload

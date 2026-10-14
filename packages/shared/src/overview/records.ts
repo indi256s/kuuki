@@ -33,18 +33,6 @@ export interface Records {
   shortestDuration: RecordRef | null
   biggestClockJump: RecordRef | null
   busiestDay: { date: string; flights: number } | null
-  northernmost: {
-    iata: string
-    lat: number
-    flight: {
-      flightId: number | null
-      origin: string
-      destination: string
-      value: number | null
-      date: string
-    } | null
-  } | null
-  earliestDeparture: (RecordRef & { date: string; depMinute: number }) | null
   /** Null unless every row is a raw flight: route groups carry no witness for their latest departure. */
   latestDeparture: (RecordRef & { date: string; depMinute: number }) | null
   busiestYear: {
@@ -295,7 +283,7 @@ export function records(
   mode: OverviewPayload['mode'],
 ): Gate<Records> {
   const have = rows.reduce((sum, row) => sum + row.weight, 0)
-  if (have < 3) return { status: 'below', have, need: 3 }
+  if (have < 1) return { status: 'below', have, need: 1 }
   const endpoints = [...new Set(rows.flatMap((row) => [row.origin, row.destination]))]
     .sort()
     .flatMap((iata) => {
@@ -322,9 +310,6 @@ export function records(
   const gaps = dates
     .slice(1)
     .map((date, i) => (dateInstant(date)! - dateInstant(dates[i])!) / 86400000)
-  const northernmost = endpoints.length
-    ? endpoints.find((endpoint) => endpoint.lat === endpoints[endpoints.length - 1].lat)!
-    : null
   const extrema = recordExtrema(rows, mode)
   const project = (ref: SourceRecordRef | null): RecordRef | null =>
     ref && {
@@ -349,16 +334,7 @@ export function records(
     Number.isFinite(duration) &&
     duration > 0 &&
     ['times', 'route_median', 'schedule'].includes(winner.durationSource ?? '')
-  const latest = northernmost
-    ? recordFlights(
-        rows.filter(
-          (row) => row.origin === northernmost.iata || row.destination === northernmost.iata,
-        ),
-        mode,
-      ).latest
-    : null
-  const earliest = recordFlights(rows, mode).earliestDeparture,
-    latestDep = latestDeparture(rows, mode)
+  const latestDep = latestDeparture(rows, mode)
   const years = new Map<number, OverviewRow[]>()
   for (const row of rows)
     if (dateInstant(row.date) !== null) {
@@ -411,9 +387,6 @@ export function records(
       longestDuration: project(extrema.longestDuration),
       shortestDuration: project(extrema.shortestDuration),
       biggestClockJump: project(extrema.biggestClockJump),
-      earliestDeparture: earliest
-        ? { ...project(earliest)!, date: earliest.date, depMinute: earliest.depMinute }
-        : null,
       latestDeparture: latestDep
         ? { ...project(latestDep)!, date: latestDep.date, depMinute: latestDep.depMinute }
         : null,
@@ -429,14 +402,6 @@ export function records(
           }
         : null,
       busiestDay: mode === 'flights' && busiest ? { date: busiest[0], flights: busiest[1] } : null,
-      northernmost: northernmost
-        ? {
-            ...northernmost,
-            flight: latest
-              ? { ...latest, flightId: mode === 'aggregate' ? null : latest.flightId }
-              : null,
-          }
-        : null,
       southernmost: endpoints[0] ?? null,
       longestStreakMonths,
       longestGroundStopDays: mode === 'flights' && gaps.length ? Math.max(...gaps) : null,

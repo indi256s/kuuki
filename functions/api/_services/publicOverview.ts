@@ -41,17 +41,31 @@ export async function readPublicOverview(
         .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
     ),
   }
-  if (prefs.publicSections.records && scope.records.status === 'ready') {
+  if (
+    prefs.publicSections.records &&
+    scope.coverage.total >= 3 &&
+    scope.records.status === 'ready'
+  ) {
     const records = scope.records.value
+    const endpoints = [
+      ...new Set(
+        payload.rows
+          .filter((row) => row.state === 'logged' || row.state === 'awaiting')
+          .flatMap((row) => [row.origin, row.destination]),
+      ),
+    ]
+      .flatMap((iata) => {
+        const lat = payload.refs.airports[iata]?.lat
+        return lat != null && Number.isFinite(lat) && Math.abs(lat) <= 90 ? [{ iata, lat }] : []
+      })
+      .sort((a, b) => b.lat - a.lat || a.iata.localeCompare(b.iata))
     result.records = {
       longest: publicRecord(records.longest),
       shortest: publicRecord(records.shortest),
       longestDuration: publicRecord(records.longestDuration),
       shortestDuration: publicRecord(records.shortestDuration),
       biggestClockJump: publicRecord(records.biggestClockJump),
-      northernmost: records.northernmost
-        ? { iata: records.northernmost.iata, lat: records.northernmost.lat }
-        : null,
+      northernmost: endpoints[0] ?? null,
       southernmost: records.southernmost,
       longestStreakMonths: records.longestStreakMonths,
     }

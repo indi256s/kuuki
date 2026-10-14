@@ -22,6 +22,7 @@ import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, flights, percent, filterLabel, moreAirlines, number } from './display'
 import { AirportFigure, GateSignFigure } from './figure'
+import { TravelPatterns } from './travel-patterns'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
@@ -74,7 +75,11 @@ export function Section({ span }: { span: Span }) {
   }
   const scoped = !!scope && !isEmptyFilter(scope.filter)
   const state =
-    !scope || !all || !payload ? 'loading' : top.length === 0 && scoped ? 'empty' : 'ready'
+    !scope || !all || !payload
+      ? 'loading'
+      : scope.figures.flights === 0 && scoped
+        ? 'empty'
+        : 'ready'
   if (!scope || !all || !payload || state === 'empty') {
     return (
       <ChapterCard
@@ -155,35 +160,6 @@ export function Section({ span }: { span: Span }) {
     'Airlines · previous and selected period · top 5',
     'Авиакомпании · прошлый и выбранный период · топ-5',
   )
-  const pairPick = (id: 'makers' | 'haul' | 'daytime', side: 'left' | 'right') => {
-    if (!isCurrent()) return
-    if (id === 'makers') actions.add('makers', side === 'left' ? 'airbus' : 'boeing')
-    else if (id === 'haul') {
-      actions.add('haul', side === 'left' ? 'short' : 'long')
-      if (side === 'left') actions.add('haul', 'medium')
-    } else {
-      actions.add('departureBands', side === 'left' ? 'morning' : 'night')
-      if (side === 'left') {
-        actions.add('departureBands', 'afternoon')
-        actions.add('departureBands', 'evening')
-      }
-    }
-  }
-  const daytime = scope.rankings.versus.find((pair) => pair.id === 'daytime')!
-  const pairEmpty = {
-    makers: copy(locale, 'No Airbus or Boeing flights', 'Перелётов на Airbus и Boeing нет'),
-    haul: copy(locale, 'No distances recorded', 'Расстояния не указаны'),
-    daytime: copy(locale, 'No departure times recorded', 'Время вылета не указано'),
-  }
-  const pairNames = {
-    makers: ['Airbus', 'Boeing'],
-    haul: [
-      copy(locale, 'Short & medium haul', 'Ближние и средние'),
-      copy(locale, 'Long haul', 'Дальние'),
-    ],
-    daytime: [copy(locale, 'Daytime', 'Дневные'), copy(locale, 'Red-eye', 'Ночные')],
-  }
-
   // The reading: the leader until a row is picked. Its figure code, hero value and caption all come from the same row.
   const leader = scope.rankings.leaders[category]
   const reading = top.find((row) => row.key === r.reading) ?? top[0] ?? null
@@ -419,29 +395,6 @@ export function Section({ span }: { span: Span }) {
       </div>
       {shown.length === 0 && (
         <p role="status">{copy(locale, 'No series shown', 'Все ряды скрыты')}</p>
-      )}
-    </div>
-  )
-  const headToHead = (
-    <div className="ov3-rankings" data-span={span}>
-      {scope.rankings.versus.map((pair) =>
-        pair.left.count + pair.right.count === 0 ? (
-          <p key={pair.id}>{pairEmpty[pair.id]}</p>
-        ) : (
-          <div className="ov3-score" key={pair.id}>
-            <button onClick={() => pairPick(pair.id, 'left')}>{pairNames[pair.id][0]}</button>
-            <strong>
-              {pair.left.count} : {pair.right.count}
-            </strong>
-            <button onClick={() => pairPick(pair.id, 'right')}>{pairNames[pair.id][1]}</button>
-          </div>
-        ),
-      )}
-      {daytime.left.count + daytime.right.count > 0 && daytime.excluded > 0 && (
-        <p>
-          {copy(locale, 'Daytime v red-eye leaves out', 'Дневные и ночные: вне подсчёта —')}{' '}
-          {flights(locale, daytime.excluded)} {copy(locale, 'without times', 'без времени')}
-        </p>
       )}
     </div>
   )
@@ -767,8 +720,14 @@ export function Section({ span }: { span: Span }) {
         ),
       }}
       details={{
-        heading: copy(locale, 'Head to head', 'Лицом к лицу'),
-        extra: headToHead,
+        heading: copy(locale, 'Travel patterns', 'Привычки в путешествиях'),
+        extra: (
+          <TravelPatterns
+            patterns={scope.rankings.patterns}
+            baseline={all.rankings.patterns}
+            filtered={scoped}
+          />
+        ),
         more: [
           { summary: copy(locale, 'Rank by year', 'Рейтинг по годам'), content: bump },
           { summary: shareCaption, content: sharesBlock },

@@ -225,12 +225,13 @@ or former carriers have no assumed membership outside a verified active span;
 current membership, parent ownership and successor identity do not establish
 historical membership.
 
-### Head to head
+### Travel patterns
 
-A comparison of actual flight counts: Airbus versus Boeing, shorter-haul
-versus long-haul, or daytime versus night departures. Each pair reports excluded
-flights whose evidence does not fit either side; untimed flights are excluded
-from the day/night comparison.
+Complete compositions of scoped flights by aircraft manufacturer, haul and
+local departure schedule. Every flight contributes to the denominator, including
+unknown evidence. Day means 06:00–21:59 and night means 22:00–05:59 in the
+departure airport's local time; night departure does not imply overnight travel.
+Expanded filtered evidence compares against the entire lifetime journal.
 
 ### Record cabinet
 

@@ -25,7 +25,6 @@ import { CountryList } from '../globe/country-list'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
-import { NextUp } from '../next-up/next-up'
 import { SECTIONS } from '../sections/registry'
 import { FirstRun, ZeroResult } from './page-states'
 import './page.css'
@@ -238,7 +237,6 @@ function PageContent() {
               {!firstRun ? <CountryList /> : null}
             </div>
           </div>
-          {!firstRun && !zero ? <NextUp goals={scope.goals} /> : null}
           {zero ? (
             <ZeroResult />
           ) : !firstRun && mobile !== null ? (
