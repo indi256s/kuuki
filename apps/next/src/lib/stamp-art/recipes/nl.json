@@ -1,0 +1,77 @@
+{
+  "iso2": "NL",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 58, 30, 110, 56, 26]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 10,
+        "seed": 8
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "stepped-gable",
+      "box": [26, 70, 26, 54],
+      "params": {
+        "style": "stepped",
+        "steps": 4,
+        "rows": 3,
+        "cols": 2
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [52, 62, 25, 62],
+      "params": {
+        "style": "bell",
+        "rows": 4,
+        "cols": 2
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [77, 74, 26, 50],
+      "params": {
+        "style": "stepped",
+        "steps": 3,
+        "rows": 3,
+        "cols": 2
+      }
+    },
+    {
+      "module": "stepped-gable",
+      "box": [103, 66, 25, 58],
+      "params": {
+        "style": "neck",
+        "rows": 3,
+        "cols": 2
+      }
+    },
+    {
+      "module": "windmill",
+      "box": [138, 76, 22, 48],
+      "params": {
+        "sail": 0.52
+      }
+    }
+  ]
+}

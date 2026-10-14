@@ -1,0 +1,78 @@
+{
+  "iso2": "HR",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "indigo",
+  "cluster": "sea-wall",
+  "horizon": 0.78,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [36, 58, 30, 140, 54, 24]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.3],
+          [0.2, 0.24],
+          [0.5, 0.4],
+          [0.75, 0.52],
+          [1, 0.6]
+        ],
+        "jag": 0.9,
+        "litGap": 3.2,
+        "seed": 2
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.33],
+          [0.41, 0.44],
+          [0.7, 0.65],
+          [1, 0.76]
+        ],
+        "jag": 0.6,
+        "litGap": 2.6,
+        "seed": 4
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "castle",
+      "box": [30, 50, 138, 86],
+      "params": {
+        "top": [
+          [0, 0.22],
+          [0.4, 0.38],
+          [0.72, 0.7],
+          [1, 0.84]
+        ],
+        "hill": false,
+        "wallH": 9,
+        "roofs": 2,
+        "from": 0.06,
+        "shadeFrom": 0.92,
+        "towers": [
+          [0.2, 15, 20, 1, "battle"],
+          [0.46, 10, 9, 1, "cone"],
+          [0.78, 11, 9, 1, "cone"]
+        ],
+        "hillGap": 2.8
+      }
+    }
+  ]
+}

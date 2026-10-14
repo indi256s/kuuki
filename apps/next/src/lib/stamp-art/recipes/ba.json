@@ -1,0 +1,49 @@
+{
+  "iso2": "BA",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "moss",
+  "cluster": "bridge",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [36, 62, 30, 140, 60, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.42],
+          [0.18, 0.28],
+          [0.4, 0.4],
+          [0.62, 0.3],
+          [0.85, 0.2],
+          [1, 0.36]
+        ],
+        "jag": 1.1,
+        "litGap": 3.0,
+        "seed": 5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "bridge-c",
+      "box": [30, 58, 140, 68],
+      "params": {
+        "kind": "stari"
+      }
+    }
+  ]
+}
