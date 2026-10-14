@@ -83,9 +83,9 @@
 }
 .ui-button[aria-disabled='true'] {
   cursor: not-allowed;
-  background: var(--surface-inset);
+  background: var(--disabled-surface);
   border-color: var(--hairline);
-  color: var(--text-muted);
+  color: var(--disabled-text);
 }
 .ui-button[aria-busy='true'] {
   cursor: progress;
@@ -121,13 +121,14 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-button:hover:not([aria-disabled='true']) {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
   }
   .ui-button[data-variant='primary']:hover:not([aria-disabled='true']) {
     background: var(--accent-hover);
+    color: var(--accent-hover-foreground);
   }
   .ui-button[data-variant='danger']:hover:not([aria-disabled='true']) {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
   }
 }
 .ui-button:focus-visible,
@@ -182,8 +183,8 @@
 }
 .ui-field-input:disabled {
   cursor: not-allowed;
-  background: var(--surface-inset);
-  color: var(--text-muted);
+  background: var(--disabled-surface);
+  color: var(--disabled-text);
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-field-input:hover:not(:disabled, [aria-invalid='true']) {
@@ -199,6 +200,9 @@
 }
 /* Reserved line: an error appearing never shifts the layout below it. */
 .ui-field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
   min-height: 20px;
   margin: 0;
   font-size: 13px;
@@ -276,7 +280,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-icon-button:hover {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
   }
 }
 
@@ -450,7 +454,7 @@
   animation: ui-fade-in var(--dur-fast) var(--ease-out);
 }
 .ui-menu-shield[data-scrim][data-state='closed'] {
-  animation: ui-fade-out 120ms var(--ease-out) forwards;
+  animation: ui-fade-out var(--dur-press) var(--ease-out) forwards;
 }
 @media (min-width: 701px) {
   .ui-menu-shield[data-scrim='mobile'][data-state] {
@@ -482,7 +486,7 @@
   animation: ui-pop-in var(--dur-fast) var(--ease-out);
 }
 .ui-menu[data-state='closed'] {
-  animation: ui-pop-out 120ms var(--ease-out) forwards;
+  animation: ui-pop-out var(--dur-press) var(--ease-out) forwards;
 }
 @keyframes ui-pop-in {
   from {
@@ -524,11 +528,11 @@
   outline: none;
 }
 .ui-menu-item[data-disabled] {
-  color: var(--text-muted);
+  color: var(--disabled-text);
   cursor: not-allowed;
 }
 .ui-menu-item[data-highlighted] {
-  background: var(--surface-inset);
+  background: var(--hover-surface);
 }
 .ui-menu-item[data-variant='danger'] {
   color: var(--danger-text);
@@ -823,7 +827,7 @@
   cursor: not-allowed;
 }
 .ui-switch[aria-disabled='true'] .ui-switch-track {
-  background: var(--surface-inset);
+  background: var(--disabled-surface);
   border-color: var(--hairline);
 }
 .ui-switch[aria-disabled='true'] .ui-switch-knob {
@@ -873,16 +877,21 @@
   color: var(--background);
 }
 .ui-swatch[aria-checked='true'] {
-  border-color: var(--text);
+  border-color: var(--selection-contour);
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--text);
+  box-shadow: inset 0 0 0 1px var(--selection-contour);
+}
+@media (forced-colors: active) {
+  .ui-swatch[aria-checked='true'] {
+    border-color: Highlight;
+  }
 }
 .ui-swatch-name {
   font-size: 13px;
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-swatch:hover {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
   }
 }
 
@@ -1056,7 +1065,7 @@
 .ui-toast-check {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: ui-toast-check var(--dur-sheet) var(--ease-out) 120ms forwards;
+  animation: ui-toast-check var(--dur-sheet) var(--ease-out) var(--dur-press) forwards;
 }
 @keyframes ui-toast-check {
   to {
@@ -1172,7 +1181,15 @@
   margin: 0 0 var(--space-3);
   color: var(--text);
 }
+.ui-field-error svg,
+.ui-confirm-error svg {
+  flex: none;
+  margin-top: 2px;
+}
 .ui-confirm-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
   margin: var(--space-3) 0 0;
   color: var(--danger-text);
   font-size: 13px;
@@ -1323,7 +1340,7 @@
 @media (hover: hover) and (pointer: fine) {
   .ui-chip-body:hover,
   .ui-chip-remove:hover {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
   }
 }
 
@@ -1344,7 +1361,7 @@
   animation: ui-pop-in var(--dur-fast) var(--ease-out);
 }
 .ui-popover[data-state='closed'] {
-  animation: ui-pop-out 120ms var(--ease-out) forwards;
+  animation: ui-pop-out var(--dur-press) var(--ease-out) forwards;
 }
 .ui-skeleton {
   width: 100%;

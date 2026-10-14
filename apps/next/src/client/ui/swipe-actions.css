@@ -47,7 +47,7 @@
 }
 .ui-swipe-row [data-swipe-tone='danger'] {
   --swipe-bg: var(--danger-fill);
-  --swipe-fg: var(--accent-foreground);
+  --swipe-fg: var(--danger-foreground);
 }
 .ui-swipe-row[data-armed='leading'] .ui-swipe-side[data-side='leading'],
 .ui-swipe-row[data-armed='trailing'] .ui-swipe-side[data-side='trailing'] {

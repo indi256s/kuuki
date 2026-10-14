@@ -1,6 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
+import { CircleAlert } from '@keyline-icons/react'
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react'
 import './ui.css'
 
@@ -60,7 +61,12 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
       {hint && hintPosition === 'below' ? hintLine : null}
       {/* The line is always rendered so an error appearing does not move anything below it. */}
       <p id={errorId} className="ui-field-error" role={hasError ? 'alert' : undefined}>
-        {hasError ? error : null}
+        {hasError ? (
+          <>
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{error}</span>
+          </>
+        ) : null}
       </p>
     </div>
   )

@@ -21,7 +21,7 @@ test.describe('Horizon theme toggle on the card', () => {
     expect(
       (await page.context().cookies()).find((cookie) => cookie.name === 'kuuki_theme')?.value,
     ).toBe('dark')
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#292827')
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#2e2e2e')
 
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')

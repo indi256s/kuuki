@@ -72,7 +72,9 @@
   transform: scale(0.96);
 }
 .ui-checkbox-input:disabled + .ui-checkbox-mark {
-  opacity: 0.55;
+  background: var(--disabled-surface);
+  border-color: var(--hairline);
+  color: var(--disabled-text);
 }
 .ui-checkbox-copy {
   display: grid;
@@ -92,7 +94,7 @@
   color: var(--text-muted);
 }
 .ui-checkbox:has(.ui-checkbox-input:disabled) .ui-checkbox-label {
-  color: var(--text-muted);
+  color: var(--disabled-text);
   cursor: not-allowed;
 }
 @media (hover: hover) and (pointer: fine) {

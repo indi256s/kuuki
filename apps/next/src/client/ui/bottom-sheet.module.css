@@ -81,3 +81,11 @@
     padding-inline: var(--space-4);
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .sheet {
+    animation: none;
+    transition: none;
+    will-change: auto;
+  }
+}

@@ -16,8 +16,8 @@
 }
 .ui-multi-trigger:disabled {
   cursor: not-allowed;
-  background: var(--surface-inset);
-  color: var(--text-muted);
+  background: var(--disabled-surface);
+  color: var(--disabled-text);
 }
 .ui-multi-trigger:focus-visible {
   outline: 2px solid var(--focus);
@@ -116,6 +116,6 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-multi-option:hover {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
   }
 }

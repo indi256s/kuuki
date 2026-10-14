@@ -30,3 +30,9 @@
     opacity: 0;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .ui-tooltip {
+    animation: none;
+    transition: none;
+  }
+}

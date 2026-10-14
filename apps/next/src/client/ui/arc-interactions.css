@@ -24,7 +24,7 @@
 }
 .arc-inline-trigger[aria-disabled='true'] {
   cursor: not-allowed;
-  color: var(--text-muted);
+  color: var(--disabled-text);
 }
 .arc-inline-trigger:focus-visible {
   outline: 2px solid var(--focus);
@@ -32,7 +32,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .arc-inline-trigger:not([aria-disabled='true']):hover {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
     border-color: var(--control-border);
   }
 }
@@ -58,7 +58,9 @@
   color: var(--accent-foreground);
 }
 .arc-inline-icon[aria-disabled='true'] {
-  opacity: 0.55;
+  background: var(--disabled-surface);
+  border-color: var(--hairline);
+  color: var(--disabled-text);
   cursor: not-allowed;
 }
 .arc-inline-icon:focus-visible {
@@ -120,7 +122,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .arc-context-button:hover {
-    background: var(--surface-inset);
+    background: var(--hover-surface);
     color: var(--text);
   }
 }

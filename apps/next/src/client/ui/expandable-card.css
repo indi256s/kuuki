@@ -113,7 +113,7 @@
 }
 .ui-xcard[data-expanded] .ui-xcard-panel-inner {
   opacity: 1;
-  transition: opacity var(--dur-base) var(--ease-out) 60ms;
+  transition: opacity var(--dur-base) var(--ease-out) var(--dur-press);
 }
 @keyframes ui-xcard-rise {
   from {

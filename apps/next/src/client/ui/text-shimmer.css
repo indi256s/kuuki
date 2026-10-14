@@ -24,7 +24,7 @@
   -webkit-text-fill-color: transparent;
   animation:
     ui-shimmer-rise var(--dur-base) var(--ease-out) both,
-    ui-shimmer-sweep 1.8s linear 120ms infinite;
+    ui-shimmer-sweep 1.8s linear var(--dur-press) infinite;
 }
 .ui-shimmer[data-paused] .ui-shimmer-label {
   animation-play-state: paused;

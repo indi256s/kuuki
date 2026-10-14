@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleAlert } from '@keyline-icons/react'
 import { useRef, useState, type ReactNode } from 'react'
 import { Button } from './button'
 import { Dialog } from './dialog'
@@ -128,7 +129,8 @@ export function DestructiveConfirm({
       ) : null}
       {failed && errorMessage ? (
         <p className="ui-confirm-error" role="alert">
-          {errorMessage}
+          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{errorMessage}</span>
         </p>
       ) : null}
     </Dialog>
