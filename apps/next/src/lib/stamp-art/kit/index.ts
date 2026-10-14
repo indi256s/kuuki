@@ -66,6 +66,9 @@ import { citadelle } from './citadelle'
 import { pitons } from './pitons'
 import { ridgesA } from './ridges-a'
 import { plumeA } from './plume-a'
+import { eruptionA } from './eruption-a'
+import { dugoutA } from './dugout-a'
+import { araucariaA } from './araucaria-a'
 import { granaries } from './granaries'
 import { monolithB } from './monolith-b'
 import { jacobsLadder } from './jacobs-ladder'
@@ -264,6 +267,9 @@ export const kit = {
   pitons,
   'ridges-a': ridgesA,
   'plume-a': plumeA,
+  'eruption-a': eruptionA,
+  'dugout-a': dugoutA,
+  'araucaria-a': araucariaA,
   'schooner-a': schoonerA,
   'jet-a': jetA,
   'jetty-a': jettyA,

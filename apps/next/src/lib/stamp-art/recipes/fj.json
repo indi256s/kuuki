@@ -1,0 +1,65 @@
+{
+  "iso2": "FJ",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "cluster": "thatched-house",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [30, 62, 32, 150, 58, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2,
+        "seed": 4,
+        "swell": 1.4
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "palm",
+      "box": [40, 64, 40, 62],
+      "params": {
+        "lean": -0.2,
+        "frond": 0.6,
+        "fronds": 9,
+        "seed": 5
+      }
+    },
+    {
+      "module": "palm",
+      "box": [124, 70, 42, 56],
+      "params": {
+        "lean": 0.2,
+        "frond": 0.6,
+        "fronds": 9,
+        "seed": 8
+      }
+    },
+    {
+      "module": "thatch-hut",
+      "box": [64, 56, 72, 70],
+      "params": {
+        "platform": 0.1,
+        "wall": 0.15,
+        "seed": 6
+      }
+    }
+  ]
+}

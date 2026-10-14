@@ -1,0 +1,60 @@
+{
+  "iso2": "VU",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "cluster": "volcano",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [34, 70, 34, 150, 62, 30]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2,
+        "seed": 9,
+        "swell": 1.5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "volcano",
+      "box": [28, 90, 144, 36],
+      "params": {
+        "profile": "cone",
+        "summit": 20,
+        "concavity": 0.2,
+        "snow": 0,
+        "gullies": 4,
+        "trees": 0,
+        "spacing": 1.8
+      }
+    },
+    {
+      "module": "eruption-a",
+      "box": [60, 54, 80, 38],
+      "params": {
+        "puffs": 7,
+        "arcs": 6,
+        "sway": 0.12,
+        "bulb": 0.15,
+        "column": 1.0
+      }
+    }
+  ]
+}
