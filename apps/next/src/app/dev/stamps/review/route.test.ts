@@ -1,9 +1,9 @@
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { applyUpdate, parseUpdate, serializeReview } from '../review-store'
-import { POST } from './route'
+import { GET, POST } from './route'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -31,6 +31,35 @@ describe('stamp review route', () => {
       null,
     ])
       expect((await post(body)).status).toBe(400)
+  })
+
+  it('preserves concurrent marks and exposes only complete JSON during publication', async () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    const dir = mkdtempSync(join(tmpdir(), 'review-concurrent-'))
+    const parent = join(dir, 'src/lib/stamp-art')
+    mkdirSync(parent, { recursive: true })
+    const file = join(parent, 'review.json')
+    writeFileSync(file, '{}\n')
+    vi.spyOn(process, 'cwd').mockReturnValue(dir)
+    try {
+      const writes = ['JP', 'TH', 'GE', 'FR', 'DE', 'GB'].map((iso2) =>
+        post({ iso2, status: 'accepted' }),
+      )
+      const reads = Array.from({ length: 20 }, async () => {
+        expect(await (await GET()).json()).toBeTypeOf('object')
+      })
+      await Promise.all([...writes, ...reads])
+      expect(Object.keys(JSON.parse(readFileSync(file, 'utf8'))).sort()).toEqual([
+        'DE',
+        'FR',
+        'GB',
+        'GE',
+        'JP',
+        'TH',
+      ])
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it('writes only review.json, sorted, two-space JSON with a trailing newline', async () => {

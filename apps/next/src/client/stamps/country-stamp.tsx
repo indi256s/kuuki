@@ -7,10 +7,18 @@ import { impressionTransform } from '../../lib/stamp-art/impression'
 import type { Locale } from '../../lib/format'
 import { markPressed, wasPressed } from '../signature/stamp'
 import { emWidth } from './ring-fit'
-import { stampMeta } from './stamp-meta'
+import { stampMeta, type StampMeta } from './stamp-meta'
 import './country-stamp.css'
 
+export type StampPreview = {
+  meta: StampMeta
+  engraving?: string
+  rings: Partial<Record<ShapeName, string>>
+}
+
 export type CountryStampProps = {
+  /** Server-rendered sources for the development contact sheet. */
+  preview?: StampPreview
   iso2: string
   /** Not used by the stamp: the ring text is baked in its own script and English at generation time. Kept so callers need no change. */
   locale?: Locale
@@ -49,10 +57,11 @@ type FaceProps = {
   /** The baked ring text exists for the country's own shape only. */
   ringed: boolean
   pending: boolean
+  preview?: StampPreview
 }
 
 /** One complete copy of the stamp: frame, baked ring text, engraving. */
-function Face({ iso2, shape, iso3, engraved, ringed, pending }: FaceProps) {
+function Face({ iso2, shape, iso3, engraved, ringed, pending, preview }: FaceProps) {
   const f = frames[shape]
   const [wx, wy, ww, wh] = f.windowBox
   // Fallback tier: the ISO3 code set large in the window.
@@ -61,10 +70,16 @@ function Face({ iso2, shape, iso3, engraved, ringed, pending }: FaceProps) {
   return (
     <span className="cs-face">
       {engraved ? (
-        <span className="cs-engraving" style={{ maskImage: `url(/stamps/${file}.svg)` }} />
+        <span
+          className="cs-engraving"
+          style={{ maskImage: `url("${preview?.engraving ?? `/stamps/${file}.svg`}")` }}
+        />
       ) : null}
       {ringed ? (
-        <span className="cs-engraving" style={{ maskImage: `url(/stamps/ring/${file}.svg)` }} />
+        <span
+          className="cs-engraving"
+          style={{ maskImage: `url("${preview?.rings[shape] ?? `/stamps/ring/${file}.svg`}")` }}
+        />
       ) : null}
       <svg className="cs-frame" viewBox={f.viewBox} aria-hidden="true" focusable="false">
         <g fill="none" stroke="currentColor" className="cs-rules">
@@ -122,8 +137,9 @@ export function CountryStamp({
   shape: shapeOverride,
   pose,
   className,
+  preview,
 }: CountryStampProps) {
-  const meta = stampMeta(iso2)
+  const meta = preview?.meta ?? stampMeta(iso2)
   const shape = shapeOverride ?? meta.shape
   const pending = status === 'pending'
   const engraved = meta.tier === 'engraved' && shape === meta.shape
@@ -155,7 +171,8 @@ export function CountryStamp({
       shape={shape}
       iso3={meta.iso3}
       engraved={engraved && !pending}
-      ringed={shape === meta.shape && !pending}
+      ringed={(preview ? !!preview.rings[shape] : shape === meta.shape) && !pending}
+      preview={preview}
       pending={pending}
     />
   )

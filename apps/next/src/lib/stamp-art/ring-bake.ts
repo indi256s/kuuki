@@ -19,9 +19,9 @@
 // round rings, where glyphs near the horizon stand sideways and stay readable only while the line is kept off
 // the last stretch of the arc. On the octagon the line never bends round a corner: its budget is the flat edge
 // plus OCTAGON_OVERHANG on each end.
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import type * as HB from 'harfbuzzjs'
 import { RING_CAP, frames, type RingPath, type ShapeName } from './frame'
 import endonyms from './ring-endonyms.json'
@@ -87,7 +87,11 @@ export async function initRingBake(): Promise<void> {
   hb ??= await import('harfbuzzjs')
 }
 
-const nodeRequire = createRequire(import.meta.url)
+// Native filesystem inputs, not bundler module imports. Both CLI (repo cwd) and Next (app cwd) use the same files.
+const appRoot = existsSync(join(process.cwd(), 'apps', 'next', 'package.json'))
+  ? join(process.cwd(), 'apps', 'next')
+  : process.cwd()
+const nodeRequire = createRequire(join(appRoot, 'package.json'))
 const fonts = new Map<FontKey, { font: HB.Font; upem: number }>()
 
 function loadFont(key: FontKey) {
@@ -96,7 +100,7 @@ function loadFont(key: FontKey) {
   const npm = FONT_FILES[key]
   const path = npm
     ? nodeRequire.resolve(`@expo-google-fonts/${npm.pkg}/600SemiBold/${npm.file}`)
-    : fileURLToPath(new URL(`./ring-fonts/${SUBSETS[key]}`, import.meta.url))
+    : join(appRoot, 'src', 'lib', 'stamp-art', 'ring-fonts', SUBSETS[key]!)
   const face = new hb.Face(new hb.Blob(readFileSync(path)))
   const entry = { font: new hb.Font(face), upem: face.upem }
   fonts.set(key, entry)

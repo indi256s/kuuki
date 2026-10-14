@@ -4,9 +4,8 @@ import './stamps.css'
 import { useEffect, useRef, useState } from 'react'
 import { SHAPE_NAMES } from '../../../lib/stamp-art/frame'
 import { setTheme } from '../../../client/appearance'
-import { CountryStamp } from '../../../client/stamps/country-stamp'
+import { CountryStamp, type StampPreview } from '../../../client/stamps/country-stamp'
 import { emWidth } from '../../../client/stamps/ring-fit'
-import { stampCodes, stampMeta, stampNames } from '../../../client/stamps/stamp-meta'
 import { Button } from '../../../client/ui/button'
 import { SegmentedControl } from '../../../client/ui/segmented-control'
 import type { Locale } from '../../../lib/format'
@@ -21,15 +20,18 @@ export type SheetState = {
   filter: 'all' | 'unmarked' | 'redo' | 'accepted'
 }
 
-const CODES = stampCodes()
-const fullName = (code: string, locale: Locale) => stampNames(code, locale).name
+export type Row = {
+  iso2: string
+  kind: 'recipe' | 'fallback'
+  issues: string[]
+  names: Record<Locale, string>
+  preview: StampPreview
+}
 
-export type Row = { iso2: string; kind: 'recipe' | 'fallback'; issues: string[] }
-
-/** The longest ring names of the catalog in one locale, by estimated width. */
-function longestNames(locale: Locale, count: number): string[] {
-  const width = (c: string) => emWidth(fullName(c, locale).toLocaleUpperCase(locale))
-  return [...CODES].sort((a, b) => width(b) - width(a)).slice(0, count)
+/** The longest current ring names by estimated width. */
+function longestNames(rows: Row[], locale: Locale, count: number): Row[] {
+  const width = (row: Row) => emWidth(row.names[locale].toLocaleUpperCase(locale))
+  return [...rows].sort((a, b) => width(b) - width(a)).slice(0, count)
 }
 
 export function StampSheet({
@@ -43,6 +45,7 @@ export function StampSheet({
 }) {
   const [s, setS] = useState(initial)
   const [review, setReview] = useState(initialReview)
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
   const set = <K extends keyof SheetState>(key: K, value: SheetState[K]) =>
     setS((prev) => ({ ...prev, [key]: value }))
   useEffect(() => {
@@ -70,23 +73,33 @@ export function StampSheet({
   }, [review])
 
   /** Resolves true when the mark reached the file. */
-  async function save(iso2: string, status: ReviewStatus | null, note: string): Promise<boolean> {
-    try {
-      const res = await fetch('/dev/stamps/review', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ iso2, status, note }),
-      })
-      if (!res.ok) return false
-      if (s.filter === 'unmarked' && status) {
-        const i = shown.findIndex((r) => r.iso2 === iso2)
-        focusAfter.current = (shown[i + 1] ?? shown[i - 1])?.iso2 ?? null
+  function save(iso2: string, status: ReviewStatus | null, note: string): Promise<boolean> {
+    const operation = saveQueue.current.then(async () => {
+      try {
+        const res = await fetch('/dev/stamps/review', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ iso2, status, note }),
+        })
+        if (!res.ok) return false
+        if (s.filter === 'unmarked' && status) {
+          const i = shown.findIndex((r) => r.iso2 === iso2)
+          focusAfter.current = (shown[i + 1] ?? shown[i - 1])?.iso2 ?? null
+        }
+        const saved = (await res.json()) as ReviewFile
+        setReview((current) => {
+          const next = { ...current }
+          if (saved[iso2]) next[iso2] = saved[iso2]
+          else delete next[iso2]
+          return next
+        })
+        return true
+      } catch {
+        return false
       }
-      setReview((await res.json()) as ReviewFile)
-      return true
-    } catch {
-      return false
-    }
+    })
+    saveQueue.current = operation
+    return operation
   }
 
   return (
@@ -161,7 +174,7 @@ export function StampSheet({
               key={row.iso2}
               row={row}
               s={s}
-              title={fullName(row.iso2, s.locale)}
+              title={row.names[s.locale]}
               mark={review[row.iso2]}
               onSave={save}
               t={t}
@@ -175,16 +188,17 @@ export function StampSheet({
         <h2>{t('Worst-case ring names', 'Самые длинные названия на кольце')}</h2>
         {(['en', 'ru'] as const).map((loc) => (
           <div key={loc} className="stamp-sheet-worst">
-            {longestNames(loc, 3).map((code) => (
-              <div key={code} className="stamp-sheet-worst-name">
+            {longestNames(rows, loc, 3).map((row) => (
+              <div key={row.iso2} className="stamp-sheet-worst-name">
                 <p>
-                  {loc.toUpperCase()} · {fullName(code, loc)}
+                  {loc.toUpperCase()} · {row.names[loc]}
                 </p>
                 <div className="stamp-sheet-row">
                   {SHAPE_NAMES.map((shape) => (
                     <CountryStamp
                       key={shape}
-                      iso2={code}
+                      iso2={row.iso2}
+                      preview={row.preview}
                       locale={loc}
                       status="inked"
                       size={s.size === 96 ? 96 : 160}
@@ -218,17 +232,19 @@ function Card({
   onSave: (iso2: string, status: ReviewStatus | null, note: string) => Promise<boolean>
   t: (en: string, rus: string) => string
 }) {
-  const meta = stampMeta(row.iso2)
+  const meta = row.preview.meta
   // Built in the click handler, so markup never carries it during SSR; the timestamp keeps a replay after a reload from hitting the session's pressed memory.
   const [impressionId, setImpressionId] = useState<string>()
   const [note, setNote] = useState(mark?.note ?? '')
   const [failed, setFailed] = useState(false)
+  const requestedStatus = useRef<ReviewStatus | null>(mark?.status ?? null)
   async function commit(status: ReviewStatus | null, text: string) {
+    requestedStatus.current = status
     const ok = await onSave(row.iso2, status, text)
     setFailed(!ok)
     return ok
   }
-  const common = { iso2: row.iso2, locale: s.locale, size: s.size } as const
+  const common = { iso2: row.iso2, locale: s.locale, size: s.size, preview: row.preview } as const
   const strip = 64
   return (
     <article className="stamp-sheet-card" data-iso2={row.iso2} data-review={mark?.status}>
@@ -292,6 +308,7 @@ function Card({
           <figure key={key}>
             <CountryStamp
               iso2={row.iso2}
+              preview={row.preview}
               locale={s.locale}
               size={strip}
               status={status}
@@ -346,7 +363,7 @@ function Card({
           rows={2}
           onChange={(e) => setNote(e.target.value)}
           onBlur={() => {
-            if (note !== (mark?.note ?? '')) void commit(mark?.status ?? null, note)
+            if (note !== (mark?.note ?? '')) void commit(requestedStatus.current, note)
           }}
         />
         <p className="stamp-sheet-error" role="alert">

@@ -148,7 +148,7 @@
 .cs-tilt[data-impress] {
   animation: cs-press-in var(--dur-moment) var(--ease-out);
 }
-.cs-tilt[data-impress] .cs-full {
+.country-stamp[data-worn] .cs-tilt[data-impress] .cs-full {
   animation: cs-dry var(--dur-moment) linear;
 }
 @keyframes cs-press-in {
@@ -200,7 +200,7 @@
     animation-duration: var(--dur-base);
   }
   /* The dry keyframes are opacity only; no scale reaches the full-density layer. */
-  .cs-tilt[data-impress] .cs-full {
+  .country-stamp[data-worn] .cs-tilt[data-impress] .cs-full {
     animation-duration: var(--dur-base);
   }
 }
