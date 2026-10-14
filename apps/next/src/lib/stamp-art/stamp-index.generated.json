@@ -76,7 +76,7 @@
   },
   "AL": {
     "cluster": "hill-town",
-    "ink": "plum",
+    "ink": "ochre-dark",
     "iso3": "ALB",
     "name": {
       "en": "Albania",
@@ -87,7 +87,7 @@
       "en": "Albania",
       "ru": "Албания"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AM": {
     "cluster": null,
@@ -166,7 +166,7 @@
   },
   "AT": {
     "cluster": null,
-    "ink": "umber",
+    "ink": "plum",
     "iso3": "AUT",
     "name": {
       "en": "Austria",
@@ -177,11 +177,11 @@
       "en": "Austria",
       "ru": "Австрия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AU": {
     "cluster": "bridge",
-    "ink": "slate",
+    "ink": "plum",
     "iso3": "AUS",
     "name": {
       "en": "Australia",
@@ -237,7 +237,7 @@
       "en": "Bosnia",
       "ru": "БОСНИЯ И ГЕРЦ."
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BB": {
     "cluster": null,
@@ -271,7 +271,7 @@
   },
   "BE": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "umber",
     "iso3": "BEL",
     "name": {
       "en": "Belgium",
@@ -282,7 +282,7 @@
       "en": "Belgium",
       "ru": "Бельгия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BF": {
     "cluster": null,
@@ -781,7 +781,7 @@
   },
   "CZ": {
     "cluster": "bridge",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "CZE",
     "name": {
       "en": "Czechia",
@@ -871,7 +871,7 @@
   },
   "DZ": {
     "cluster": "hill-town",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "DZA",
     "name": {
       "en": "Algeria",
@@ -972,7 +972,7 @@
       "en": "Spain",
       "ru": "Испания"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ET": {
     "cluster": "castle",
@@ -1396,7 +1396,7 @@
   },
   "HR": {
     "cluster": "sea-wall",
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "HRV",
     "name": {
       "en": "Croatia",
@@ -1407,7 +1407,7 @@
       "en": "Croatia",
       "ru": "Хорватия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "HT": {
     "cluster": "fort",
@@ -1936,7 +1936,7 @@
   },
   "LU": {
     "cluster": "bridge",
-    "ink": "teal",
+    "ink": "slate",
     "iso3": "LUX",
     "name": {
       "en": "Luxembourg",
@@ -1947,7 +1947,7 @@
       "en": "Luxembourg",
       "ru": "Люксембург"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LV": {
     "cluster": "stepped-gable",
@@ -1981,7 +1981,7 @@
   },
   "MA": {
     "cluster": "hill-town",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "MAR",
     "name": {
       "en": "Morocco",
@@ -1996,7 +1996,7 @@
   },
   "MC": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "teal",
     "iso3": "MCO",
     "name": {
       "en": "Monaco",
@@ -2007,7 +2007,7 @@
       "en": "Monaco",
       "ru": "Монако"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MD": {
     "cluster": "triumphal-arch",
@@ -2026,7 +2026,7 @@
   },
   "ME": {
     "cluster": "sea-wall",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "MNE",
     "name": {
       "en": "Montenegro",
@@ -2086,7 +2086,7 @@
   },
   "MK": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "MKD",
     "name": {
       "en": "North Macedonia",
@@ -2097,7 +2097,7 @@
       "en": "North Macedonia",
       "ru": "Северная Македония"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ML": {
     "cluster": null,
@@ -2416,7 +2416,7 @@
   },
   "NL": {
     "cluster": "stepped-gable",
-    "ink": "teal",
+    "ink": "indigo",
     "iso3": "NLD",
     "name": {
       "en": "Netherlands",
@@ -2427,7 +2427,7 @@
       "en": "Netherlands",
       "ru": "Нидерланды"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NO": {
     "cluster": null,
@@ -3271,7 +3271,7 @@
   },
   "TN": {
     "cluster": "hill-town",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "TUN",
     "name": {
       "en": "Tunisia",

@@ -1,0 +1,92 @@
+{
+  "iso2": "MK",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [2.8, 4.2],
+        "clouds": [30, 60, 28, 70, 52, 22, 108, 62, 24, 142, 52, 22, 166, 64, 20]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.18, 0.34],
+          [0.4, 0.4],
+          [0.62, 0.24],
+          [0.84, 0.32],
+          [1, 0.4]
+        ],
+        "snow": 0.3,
+        "jag": 1.4,
+        "litGap": 3.6,
+        "seed": 10
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0.1, 0.7],
+          [0.28, 0.46],
+          [0.4, 0.6],
+          [0.56, 0.36],
+          [0.7, 0.54],
+          [0.84, 0.4],
+          [1, 0.58]
+        ],
+        "shade": "T4",
+        "jag": 1.8,
+        "litGap": 3.4,
+        "seed": 21
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.1, 0.54],
+          [0.22, 0.64],
+          [0.34, 0.74]
+        ],
+        "shade": "T4",
+        "jag": 1.2,
+        "litGap": 3.4,
+        "seed": 23
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 4,
+        "seed": 5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "boats-c",
+      "box": [40, 100, 124, 36],
+      "params": {
+        "count": 5,
+        "seed": 11,
+        "hullH": 2.2
+      }
+    }
+  ]
+}

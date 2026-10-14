@@ -1,0 +1,37 @@
+{
+  "iso2": "BE",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 62, 34, 150, 66, 28]
+      }
+    },
+    {
+      "module": "rooftops",
+      "params": {
+        "height": 11,
+        "seed": 21
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "belfry",
+      "box": [52, 54, 96, 72],
+      "params": {
+        "towerW": 0.42
+      }
+    }
+  ]
+}

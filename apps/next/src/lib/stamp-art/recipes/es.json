@@ -1,0 +1,82 @@
+{
+  "iso2": "ES",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "oxblood",
+  "cluster": "castle",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 30, 140, 56, 24]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.2, 0.24],
+          [0.42, 0.36],
+          [0.64, 0.14],
+          [0.82, 0.3],
+          [1, 0.38]
+        ],
+        "snow": 0.5,
+        "jag": 1.2,
+        "litGap": 3.0,
+        "seed": 8
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.4],
+          [0.45, 0.5],
+          [1, 0.66]
+        ],
+        "jag": 0.5,
+        "litGap": 2.8,
+        "seed": 2
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 10,
+        "seed": 17
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "castle",
+      "box": [30, 58, 140, 66],
+      "params": {
+        "top": [
+          [0, 0.3],
+          [0.45, 0.46],
+          [1, 0.72]
+        ],
+        "hill": false,
+        "wallH": 10,
+        "shadeFrom": 0.8,
+        "towers": [
+          [0.1, 15, 22, 0, "battle"],
+          [0.3, 10, 10, 0, "battle"],
+          [0.52, 11, 10, 1, "battle"],
+          [0.74, 9, 10, 0, "battle"]
+        ],
+        "gate": 0.9
+      }
+    }
+  ]
+}

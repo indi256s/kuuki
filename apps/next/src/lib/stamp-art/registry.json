@@ -91,7 +91,7 @@
     "motif": "Berat's hillside Ottoman houses",
     "kind": "architecture",
     "silhouette": "a hill in the lower half, filled with stacked rows of pale houses with close grids of tall windows; a fortress outline at the top",
-    "modules": ["window-grid", "hills", "fortress-wall", "tower"],
+    "modules": ["hill-town", "castle", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": "hill-town",
@@ -99,7 +99,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: stacked rows of windows under a citadel"
+    "notes": "Berat: stacked houses with window slits under a small citadel."
   },
   {
     "iso2": "AM",
@@ -193,7 +193,7 @@
     "motif": "Schoenbrunn Palace with the Gloriette on the hill behind",
     "kind": "architecture",
     "silhouette": "Long symmetric palace front, central pediment and flanking pavilions, a free-standing colonnade crowning the rising lawn above",
-    "modules": ["window-grid", "pediment", "colonnade", "hills"],
+    "modules": ["palace", "gloriette", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -201,7 +201,7 @@
     "replaced": "Stephansdom: cathedral (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate (REVIEW calls it safer)."
+    "notes": "Palace front plus Gloriette arcade on the hill."
   },
   {
     "iso2": "AU",
@@ -261,7 +261,7 @@
     "motif": "Stari Most, the Old Bridge over the Neretva",
     "kind": "architecture",
     "silhouette": "a flat horizontal deck with one steep, tall, very wide arch springing from the water; a small square tower at each end",
-    "modules": ["bridge", "gate-arch", "tower", "water"],
+    "modules": ["bridge-c", "distance-mountains", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "bridge",
@@ -269,7 +269,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: single steep stone arch with a gate tower at each end"
+    "notes": "Steep single arch with a conical-roofed tower at each end."
   },
   {
     "iso2": "BB",
@@ -312,7 +312,7 @@
     "motif": "Bruges Belfry",
     "kind": "architecture",
     "silhouette": "Tall square brick belfry with an octagonal lantern top and corner turrets above a low hall front",
-    "modules": ["tower", "bell-tower", "window-grid", "arcade"],
+    "modules": ["belfry", "rooftops"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -320,7 +320,7 @@
     "replaced": "Atomium: copyrighted modern landmark (rule 6); round 2 Q42: dropped Grand Place guildhalls (Grand Place centres on the active Town Hall)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Belfry tower over a low arcaded hall; no stepped gables."
   },
   {
     "iso2": "BF",
@@ -1094,7 +1094,7 @@
     "motif": "Alhambra",
     "kind": "architecture",
     "silhouette": "a long line of crenellated walls with square and round towers on a hilltop, with a gate arch at the lower end. Asymmetric, low and wide",
-    "modules": ["fortress-wall", "tower", "hills", "gate-arch"],
+    "modules": ["castle", "distance-mountains", "distance-trees"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
@@ -1102,7 +1102,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: red tower-studded walls along a ridge, snow mountains behind"
+    "notes": "Alhambra: crenellated wall along the ridge with square and round towers, gate arch, snow range behind."
   },
   {
     "iso2": "ET",
@@ -1587,7 +1587,7 @@
     "motif": "Dubrovnik city walls",
     "kind": "architecture",
     "silhouette": "a sloping line of crenellated wall running up the hill and along the water, with round and square towers at intervals and red tiled roofs behind",
-    "modules": ["fortress-wall", "tower", "water", "hip"],
+    "modules": ["castle", "distance-mountains", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "sea-wall",
@@ -1595,7 +1595,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: continuous wall with round towers and red roofs inside"
+    "notes": "Dubrovnik: wall sloping down to the sea, round towers with cone roofs, red roofs behind; sea in front."
   },
   {
     "iso2": "HT",
@@ -2199,7 +2199,7 @@
     "motif": "Adolphe Bridge",
     "kind": "architecture",
     "silhouette": "a single wide arch with a flat deck, with a heavy pier at each end carrying lamp posts. The valley edge forms the base",
-    "modules": ["bridge", "cliff", "water"],
+    "modules": ["bridge-c", "distance-mountains", "distance-trees", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "bridge",
@@ -2207,7 +2207,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: tall double-tier stone arches over a deep valley"
+    "notes": "Two-tier arch (arch ring with voussoirs, small arches under the deck) over the valley."
   },
   {
     "iso2": "LV",
@@ -2267,7 +2267,7 @@
     "motif": "Port Hercule harbour under the Rock",
     "kind": "nature",
     "silhouette": "Rock cliff rising steeply at the back, a row of masts and hulls along the quay, calm water in front",
-    "modules": ["cliff", "quay", "ship", "water"],
+    "modules": ["rock-hill", "rooftops", "boats-c", "distance-mountains", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2275,7 +2275,7 @@
     "replaced": "Prince's Palace on The Rock: royal imagery (rule 7)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Rock of Monaco as bare limestone, no palace; moored sailboats along the quay."
   },
   {
     "iso2": "MD",
@@ -2369,7 +2369,7 @@
     "motif": "Lake Ohrid shoreline",
     "kind": "nature",
     "silhouette": "Mountains running down to still water, long low ridge line, flat reflection",
-    "modules": ["mountains", "water"],
+    "modules": ["distance-mountains", "distance-trees", "boats-c", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2377,7 +2377,7 @@
     "replaced": "Samuel's Fortress: Q44 (castle cluster cut)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Galicica range over the lake, sailboats on the water; neutral nature."
   },
   {
     "iso2": "ML",
@@ -2743,7 +2743,7 @@
     "motif": "Canal houses along the Herengracht",
     "kind": "architecture",
     "silhouette": "a row of narrow tall brick facades with stepped gables, a canal in front, and a bridge across it. Symmetric",
-    "modules": ["stepped-gable", "window-grid", "water", "bridge"],
+    "modules": ["stepped-gable", "windmill", "distance-trees", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "stepped-gable",
@@ -2751,7 +2751,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: narrow canal houses with a small bridge over water"
+    "notes": "Canal houses with stepped, bell and neck gables; windmill as counterweight; bridge dropped."
   },
   {
     "iso2": "NO",

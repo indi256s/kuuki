@@ -1,0 +1,75 @@
+{
+  "iso2": "MC",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 64, 30, 150, 60, 26]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.15, 0.38],
+          [0.45, 0.34],
+          [0.8, 0.22],
+          [1, 0.4]
+        ],
+        "jag": 1,
+        "litGap": 3.2,
+        "seed": 14
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [26, 60, 86, 64],
+      "params": {
+        "profile": [
+          [0, 0.34],
+          [0.1, 0.1],
+          [0.4, 0],
+          [0.75, 0.06],
+          [0.9, 0.4],
+          [1, 1]
+        ],
+        "crag": 2,
+        "strata": 4,
+        "seed": 3,
+        "shadeFrom": 0.62
+      }
+    },
+    {
+      "module": "rooftops",
+      "box": [100, 90, 70, 34],
+      "params": {
+        "horizonY": 124,
+        "height": 15,
+        "seed": 9
+      }
+    },
+    {
+      "module": "boats-c",
+      "box": [30, 88, 140, 36],
+      "params": {
+        "count": 7,
+        "seed": 6
+      }
+    }
+  ]
+}
