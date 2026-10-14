@@ -23,8 +23,8 @@
   ],
   "layers": [
     {
-      "module": "massif-b",
-      "box": [28, 52, 144, 74],
+      "module": "mulanje-b",
+      "box": [32, 54, 136, 72],
       "params": {
         "seed": 12
       }

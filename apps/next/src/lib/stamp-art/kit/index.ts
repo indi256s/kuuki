@@ -1,3 +1,11 @@
+import { lionMountainB } from './lion-mountain-b'
+import { mulanjeB } from './mulanje-b'
+import { masadaB } from './masada-b'
+import { rhumsikiB } from './rhumsiki-b'
+import { dzangaBaiB } from './dzanga-bai-b'
+import { ceibaB } from './ceiba-b'
+import { caoGrandeB } from './cao-grande-b'
+import { fournaiseB } from './fournaise-b'
 import { cliff, mountains, platform, steps, twinPeak, water } from './ground'
 import { curvedEave, gable, hip, pagodaTier, stilts } from './roof'
 import { statue } from './object'
@@ -302,6 +310,14 @@ export const kit = {
   ngalawa: ngalawa,
   'le-morne': leMorne,
   'shield-b': shieldB,
+  'fournaise-b': fournaiseB,
+  'lion-mountain-b': lionMountainB,
+  'mulanje-b': mulanjeB,
+  'masada-b': masadaB,
+  'rhumsiki-b': rhumsikiB,
+  'dzanga-bai-b': dzangaBaiB,
+  'ceiba-b': ceibaB,
+  'cao-grande-b': caoGrandeB,
   'boulders-b': bouldersB,
   'reef-ring-b': reefRingB,
   'station-b': stationB,

@@ -86,7 +86,7 @@ export function plumeNodes(
   base: number,
   h: number,
   rand: () => number,
-  o: { lobes?: number; halo?: number } = {},
+  o: { lobes?: number; halo?: number; thr?: number; gap?: number; angle?: number } = {},
 ): SvgNode[] {
   const n = o.lobes ?? 5
   const w = x1 - x0
@@ -102,7 +102,12 @@ export function plumeNodes(
   const poly = crownPoly(blobs, x0, x1, base)
   return [
     occlude(poly, { halo: o.halo ?? 1.8 }),
-    ...hatchMass(poly, rand, { angle: -62, gap: 2.1, weight: 'fine', thr: 0.5 }),
+    ...hatchMass(poly, rand, {
+      angle: o.angle ?? -62,
+      gap: o.gap ?? 2.1,
+      weight: 'fine',
+      thr: o.thr ?? 0.5,
+    }),
   ]
 }
 
