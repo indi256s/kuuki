@@ -67,11 +67,13 @@ export const FLIGHT_RESPONSE_SCHEMA = {
           },
           departure_time: {
             type: Type.STRING,
-            description: 'Departure time in HH:mm format',
+            description:
+              'Flight departure HH:mm from DEPARTURE, DATE/TIME or flight TIME. Never use BOARDING time. BOARDING 09:05 with flight TIME 09:50 means departure 09:50.',
           },
           arrival_time: {
             type: Type.STRING,
-            description: 'Arrival time in HH:mm format',
+            description:
+              'HH:mm only when ARRIVAL is stated or an itinerary explicitly gives a departure-arrival range. A boarding pass flight TIME is departure, not arrival. Otherwise empty string.',
           },
           date_month_day: {
             type: Type.STRING,
@@ -105,7 +107,7 @@ export const FLIGHT_RESPONSE_SCHEMA = {
               date_year_explicit: {
                 type: Type.BOOLEAN,
                 description:
-                  'true only if the year is explicitly visible; false when absent, with date empty',
+                  'true only if this flight has an explicitly visible year, including an unambiguous DD/MM/YY printed date; false when absent or ambiguous, with date empty',
               },
               origin: { type: Type.NUMBER, description: 'Confidence for origin field 0-1' },
               destination: {

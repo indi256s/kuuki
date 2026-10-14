@@ -10,6 +10,7 @@ import { PageShell } from './page-shell'
 import { ShellNotices } from './shell-notices'
 import { AddOriginTracker } from './capture/add-origin'
 import { ImportDock } from './import/import-dock'
+import { FocusedImportShell } from './import/focused-import-shell'
 import { ImportRunsProvider } from './import/import-runs'
 import { getGateProfile } from '../server/gates'
 import { getRequestEnv } from '../server/identity'
@@ -68,32 +69,34 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
       <ShellNotices ownerId={own.profile.id} locale={locale}>
         <AddOriginTracker />
         <ImportRuns jobs={jobs} ownerId={own.profile.id} locale={locale}>
-          <header className="site-header member-header">
-            <div className="site-header-inner">
-              <Wordmark />
-              <MobilePageTitle />
-              <PrimaryNav locale={locale} />
-              <div className="header-end">
-                <div className="header-desktop-only">
-                  <AddMenu locale={locale} />
+          <FocusedImportShell>
+            <header className="site-header member-header">
+              <div className="site-header-inner">
+                <Wordmark />
+                <MobilePageTitle />
+                <PrimaryNav locale={locale} />
+                <div className="header-end">
+                  <div className="header-desktop-only">
+                    <AddMenu locale={locale} />
+                  </div>
+                  {username ? (
+                    <AvatarMenu
+                      id={own.profile.id}
+                      avatarUrl={own.profile.avatar_url}
+                      username={username}
+                      displayName={own.profile.display_name}
+                      isPublic={own.profile.is_public}
+                      profileAccent={own.profile.theme_color}
+                      flights={stats?.total_flights ?? 0}
+                      locale={locale}
+                    />
+                  ) : null}
                 </div>
-                {username ? (
-                  <AvatarMenu
-                    id={own.profile.id}
-                    avatarUrl={own.profile.avatar_url}
-                    username={username}
-                    displayName={own.profile.display_name}
-                    isPublic={own.profile.is_public}
-                    profileAccent={own.profile.theme_color}
-                    flights={stats?.total_flights ?? 0}
-                    locale={locale}
-                  />
-                ) : null}
               </div>
-            </div>
-          </header>
-          <PageShell>{children}</PageShell>
-          <TabBar locale={locale} />
+            </header>
+            <PageShell>{children}</PageShell>
+            <TabBar locale={locale} />
+          </FocusedImportShell>
         </ImportRuns>
       </ShellNotices>
     </AwaitingProvider>

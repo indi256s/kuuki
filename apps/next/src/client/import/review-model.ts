@@ -228,6 +228,7 @@ export function lowFields(draft: Draft): FieldName[] {
   if (!scores) return []
   return FIELDS.filter(
     (name) =>
+      !(name === 'date' && draft.yearConfirmed) &&
       typeof scores[name] === 'number' &&
       scores[name] < LOW_CONFIDENCE &&
       toValues(draft.fields)[name] !== '',

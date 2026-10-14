@@ -245,6 +245,10 @@ ${PROMPT_EXAMPLE.ru}
     'Not verified against the source. Check the details before selecting this flight.',
     'Данные не подтверждены источником. Проверьте их, прежде чем выбрать перелёт.',
   ),
+  notVerifiedSave: p(
+    'Not verified against the source. Check the details before saving.',
+    'Данные не подтверждены источником. Проверьте их перед сохранением.',
+  ),
   fieldUnsure: p('Unsure', 'Не уверены'),
   snippetTitle: p('Found in the document', 'Найдено в документе'),
   saving: p('Saving…', 'Сохраняем…'),

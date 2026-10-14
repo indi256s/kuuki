@@ -79,14 +79,14 @@ Return one entry per flight segment, in document order.
 - Skip flights marked as cancelled or refunded.
 - Also skip unpaid reservations, superseded bookings and records explicitly belonging to another passenger. Section headings apply to the records below them. A replacement flight is kept; the superseded flight is skipped.
 - Keep a return whose outbound was cancelled, a possible refund that is not conclusively linked, or conflicting evidence as review candidates; set review_required to true. Never treat uncertain cancellation as confirmed cancellation. Mark time conflicts, conflicting ownership and unconfirmed travel mode for review too.
-- A boarding pass and its detachable stub describe the same leg. Multiple boarding passes in one image can describe different legs; read all of them and do not duplicate the stubs.
+- A boarding pass and its detachable stub describe the same leg. Multiple boarding passes in one image can describe different legs; read all of them and do not duplicate the stubs. A partly hidden pass is another candidate only when enough visible flight identity belongs to that pass itself. Never copy the foreground pass’s route, year or times into an occluded pass, or invent a leg from a gate, seat or isolated date.
 - In a pasted list, each line is usually one flight, with parts separated by "|":
   2024-03-15 | JFK → LAX | American Airlines AA 123 | 08:30-11:45
   "?" or an empty part means the value is unknown. Older lists can be shorter or use city names, for example "2024-03-20 | Los Angeles to New York | Delta" or "March 25 | SVO-LED | Aeroflot".
 </flights>
 
 <fields>
-- date: YYYY-MM-DD, only when the document states the year (four digits, like 2024) for that flight, in the date itself or in the booking it belongs to. In a pasted list, each line needs its own year. If the year is absent or uncertain, return "" and set field_confidence.date_year_explicit to false. Never infer a year from today's date, from neighbouring lines or from general knowledge. Set date_year_explicit to true only when the year is written in the document.
+- date: YYYY-MM-DD, only when the document states the year (four digits, like 2024, or an unambiguous printed two-digit year) for that flight, in the date itself or in the booking it belongs to. In a pasted list, each line needs its own year. If the year is absent or uncertain, return "" and set field_confidence.date_year_explicit to false. Never infer a year from today's date, from neighbouring lines or from general knowledge. Set date_year_explicit to true only when the year is written in the document.
 - origin, destination: 3-letter IATA airport codes (e.g. JFK, TLV, TBS). Convert unambiguous airport and city names to codes. When a city has several airports and the document does not say which, return "" for that field with confidence 0 and review_required true. Never guess a main airport. Keep a partially readable leg with the missing endpoint empty.
 - airline_iata: 2-letter IATA airline code. Convert airline names to codes, e.g. "El Al" → LY, "Qatar Airways" → QR, "Turkish Airlines" → TK, "Aeroflot" → SU, "Lufthansa" → LH, "Georgian Airways" → A9, "China Eastern" → MU, "Thai Airways" → TG, "Pegasus" → PC, "Air Serbia" → JU, "Wizz Air" → W6, "Yakutia" → R3, "Smartavia" → 5N. Use "ZZ" only when the airline cannot be determined.
 - date_month_day: MM-DD, only when the document prints the day and month of that flight but not its year ("March 25" → "03-25"). Never infer it. Use "" when the full date with year is given or no day and month are shown.
@@ -94,7 +94,8 @@ Return one entry per flight segment, in document order.
 - flight_number: the flight number without the airline code ("LH 1234" → "1234"). Omit it when absent.
 - aircraft_icao: ICAO aircraft type code (e.g. B738, A320), only when the aircraft type is shown. Omit it otherwise.
 - departure_time, arrival_time: local time at each airport, 24-hour HH:mm ("8:30 PM" → "20:30", "06:35+1" → "06:35"). Always extract them when shown; use "" when absent.
-- Boarding time is NOT departure time. Gate, seat, sequence, ticket number and check-in time are not flight times. A "DATE / TIME" or flight "TIME" value is departure; a "BOARDING AT" or "Boarding Time" value is boarding only. Leave departure_time empty if only boarding is shown. Never estimate departure or arrival from flight numbers, timetables or boarding time.
+- Orient each photographed pass before reading its labels, including sideways photos and perspective. Match every time to its own printed label; reading order and the presence of two times do not establish departure and arrival.
+- Boarding time is NOT departure time. Gate, seat, sequence, ticket number and check-in time are not flight times. A "DATE / TIME" or flight "TIME" value is departure; a "BOARDING AT" or "Boarding Time" value is boarding only. Leave departure_time empty if only boarding is shown. Never estimate departure or arrival from flight numbers, timetables or boarding time. For example, BOARDING 09:05 and flight TIME 09:50 means departure_time "09:50" and arrival_time "". It does NOT mean departure "09:05" and arrival "09:50". Return arrival_time only when an arrival label or an explicit itinerary time range establishes it; boarding passes commonly show no arrival time.
 - review_required: true when source evidence conflicts or a required fact is unresolved; false for a clearly stated flight. This controls the review default, not whether to keep the candidate.
 - confidence: 0.0 to 1.0 for the whole flight. field_confidence: 0.0 to 1.0 per field, for how clearly the document states it; 0 for an absent field.
 - raw_text: at most one short sentence about the source, such as "Itinerary with 3 flights". Never copy the document.
@@ -104,4 +105,4 @@ If the document has no flights, return {"flights": []}.`
 
 /** Follows the document, so the request comes after long pasted text (Gemini 3 long-context guidance). */
 export const EXTRACTION_TASK =
-  'Based on the document above, return every flight it contains, following the rules.'
+  'Based on the document above, return every supported flight it contains. Recheck each printed date and time against its own label before returning: a visible unambiguous DD/MM/YY states a year; a day/month alone does not. BOARDING is never departure. Flight DATE/TIME or TIME is departure, never arrival. Do not create a leg from an occluded pass with insufficient visible identity.'

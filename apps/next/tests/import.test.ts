@@ -8,6 +8,7 @@ import { signIn } from './helpers'
 // The fixture has no import binding, so these journeys run against a small stateful stand-in for the import
 // endpoints (batch, drafts, events, confirm). It is the server contract the client consumes, not the server.
 const BATCH = '8b1f0c2e-4f0a-4d57-9a55-6d1e2b3c4d5e'
+const LOCAL_BATCH = '8b1f0c2e-4f0a-4d57-9a55-6d1e2b3c4d5f'
 const PASTED = 'DOCUMENT MUST NOT BE STORED'
 
 type Row = {
@@ -71,6 +72,7 @@ class FakeImport {
   errorCode: string | null = null
   sequence = 1
   drafts: Row[] = []
+  localDrafts: Row[] = []
   jobs: Job[] = []
   patches: Array<{ id: string; body: Record<string, unknown> }> = []
   confirms: Array<{
@@ -119,11 +121,8 @@ class FakeImport {
         this.jobs.push(job)
         if (job.type !== 'boarding_pass') return json(route, 202, { batchId: BATCH })
         // A locally read pass is admitted in the request: the answer is the stored snapshot (201), rows carry no date yet.
-        this.sourceType = job.source === 'pdf' ? 'pdf' : 'image'
-        this.status = job.incomplete ? 'partial' : 'review'
-        this.stage = 'review_ready'
-        this.drafts = (job.legs ?? []).map((leg, index) =>
-          row(`d${index + 1}`, {
+        this.localDrafts = (job.legs ?? []).map((leg, index) =>
+          row(`local-d${index + 1}`, {
             fields: {
               date: '',
               origin: leg.origin,
@@ -140,8 +139,23 @@ class FakeImport {
           }),
         )
         this.sequence++
-        return json(route, 201, this.snapshot())
+        return json(route, 201, {
+          ...this.snapshot(),
+          batch: {
+            ...this.snapshot().batch,
+            id: LOCAL_BATCH,
+            sourceType: job.source,
+            status: job.incomplete ? 'partial' : 'review',
+          },
+          drafts: this.localDrafts,
+        })
       }
+      if (pathname === `/api/import/batches/${LOCAL_BATCH}` && method === 'GET')
+        return json(route, 200, {
+          ...this.snapshot(),
+          batch: { ...this.snapshot().batch, id: LOCAL_BATCH, sourceType: 'image' },
+          drafts: this.localDrafts,
+        })
       if (pathname === `/api/import/batches/${BATCH}` && method === 'GET')
         return json(route, 200, this.snapshot())
       if (pathname === `/api/import/batches/${BATCH}/events`) {
@@ -164,9 +178,10 @@ class FakeImport {
         const body = request.postDataJSON() as Record<string, unknown> & {
           version: number
           flownConfirmed?: boolean
+          dismissed?: boolean
           fields?: Record<string, string>
         }
-        const draft = this.drafts.find((item) => item.id === patch[1])
+        const draft = [...this.drafts, ...this.localDrafts].find((item) => item.id === patch[1])
         if (!draft) return json(route, 404, { error: 'missing', code: 'DRAFT_NOT_FOUND' })
         this.patches.push({ id: draft.id, body })
         if (body.fields) {
@@ -181,11 +196,17 @@ class FakeImport {
         }
         for (const key of ['selected', 'yearConfirmed', 'duplicateAcknowledged'] as const)
           if (typeof body[key] === 'boolean') draft[key] = body[key] as boolean
+        if (body.dismissed !== undefined) draft.status = body.dismissed ? 'dismissed' : 'review'
         draft.version++
         this.sequence++
         return json(route, 200, { draft })
       }
-      if (pathname === `/api/import/batches/${BATCH}/confirm` && method === 'POST') {
+      if (
+        (pathname === `/api/import/batches/${BATCH}/confirm` ||
+          pathname === `/api/import/batches/${LOCAL_BATCH}/confirm`) &&
+        method === 'POST'
+      ) {
+        const ownedRows = pathname.includes(LOCAL_BATCH) ? this.localDrafts : this.drafts
         const body = request.postDataJSON() as {
           timezone?: string
           items: Array<{ draftId: string; version: number; key: string }>
@@ -201,7 +222,7 @@ class FakeImport {
               code: 'INTERNAL',
               error: 'Temporary failure',
             }
-          const draft = this.drafts.find((candidate) => candidate.id === item.draftId)!
+          const draft = ownedRows.find((candidate) => candidate.id === item.draftId)!
           draft.status = 'converted'
           draft.convertedFlightId = 1000 + draft.ordinal
           return {
@@ -221,10 +242,10 @@ class FakeImport {
         return json(route, 200, {
           results,
           batch: {
-            id: BATCH,
+            id: pathname.includes(LOCAL_BATCH) ? LOCAL_BATCH : BATCH,
             status: 'review',
             sequence: this.sequence,
-            reviewRowCount: this.drafts.filter((item) => item.status === 'review').length,
+            reviewRowCount: ownedRows.filter((item) => item.status === 'review').length,
           },
           derived_state: 'ready',
           revision: 5,
@@ -252,12 +273,12 @@ async function setup(page: Page, baseURL: string | undefined) {
 const rows = (page: Page) => page.locator('.import-row:visible')
 const submitText = async (page: Page) => {
   await page.goto('/import')
-  await page.getByRole('radio', { name: 'Paste text' }).click()
-  await page.getByLabel('Booking or itinerary text').fill(PASTED)
-  await page.getByRole('button', { name: 'Find flights' }).click()
+  await page.getByRole('button', { name: 'Paste text', exact: true }).click()
+  await page.getByLabel('Paste text', { exact: true }).fill(PASTED)
+  await page.getByRole('button', { name: 'Read text' }).click()
 }
 
-test('leaving and reloading during recognition resumes the stored batch, without storing the source', async ({
+test('leaving and reloading during recognition resumes the stored batch without storing the source', async ({
   page,
   baseURL,
 }) => {
@@ -266,33 +287,32 @@ test('leaving and reloading during recognition resumes the stored batch, without
   server.stage = 'recognizing'
   server.drafts = [row('d1')]
   await submitText(page)
-  await expect(page.getByRole('heading', { name: 'Reading the document' })).toBeVisible()
+  await expect(page.getByText('Reading document online')).toBeVisible()
   await expect(page).toHaveURL(new RegExp(`batch=${BATCH}`))
-  await expect(page.getByText('Found so far: 1 flight', { exact: true })).toBeVisible()
   expect(server.jobs).toHaveLength(1)
-  const stored = await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]))
-  expect(stored).not.toContain(PASTED)
-
+  expect(await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]))).not.toContain(
+    PASTED,
+  )
+  await page.getByRole('button', { name: 'Close import' }).click()
+  await expect(page).toHaveURL(/\/journal/)
+  await page.goto(`/import?batch=${BATCH}`)
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Reading the document' })).toBeVisible()
-  expect(server.jobs).toHaveLength(1) // resumed from the URL, nothing submitted again
-
+  await expect(page.getByText('Reading document online')).toBeVisible()
+  expect(server.jobs).toHaveLength(1)
   server.ready([
     row('d1'),
     row('d2', {
       fields: { date: '2026-04-02', origin: 'LAX', destination: 'JFK', airline_iata: 'AA' },
     }),
   ])
-  await expect(page.getByRole('heading', { name: 'Review flights' })).toBeVisible({
-    timeout: 15_000,
-  })
-  await expect(rows(page)).toHaveCount(2)
+  await expect(rows(page)).toHaveCount(2, { timeout: 15000 })
+  await expect(page.getByRole('button', { name: 'Save flights' })).not.toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
 })
 
-test('reloading during review resumes the stored rows and the member choices', async ({
-  page,
-  baseURL,
-}) => {
+test('reloading review retains member exclusions', async ({ page, baseURL }) => {
   const server = await setup(page, baseURL)
   server.ready([
     row('d1'),
@@ -301,21 +321,29 @@ test('reloading during review resumes the stored rows and the member choices', a
     }),
   ])
   await page.goto(`/import?batch=${BATCH}`)
-  await expect(page.getByRole('heading', { name: 'Review flights' })).toBeVisible()
-  await expect(page.getByText('2 selected of 2')).toBeVisible()
-  await expect(page.getByTestId('import-retention')).toContainText('Nov 4, 2026') // the stored deadline, on a resumed review
+  await expect(rows(page)).toHaveCount(2)
   await rows(page).first().getByRole('checkbox').uncheck()
-  await expect(page.getByText('1 selected of 2')).toBeVisible()
   await expect.poll(() => server.patches.length).toBe(1)
   expect(server.patches[0].body.selected).toBe(false)
-
   await page.reload()
-  await expect(page.getByText('1 selected of 2')).toBeVisible()
   await expect(rows(page).first().getByRole('checkbox')).not.toBeChecked()
+  await page.getByRole('button', { name: 'Save flights' }).click()
+  await expect(page).toHaveURL(/\/journal\?flight=/)
+  expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d2'])
+  await page.goto('/import')
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Save flight', exact: true })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
+  expect(server.confirms).toHaveLength(1)
   expect(server.jobs).toHaveLength(0)
 })
 
-test('a partial save lists the failed row and retries only that row', async ({ page, baseURL }) => {
+test('a partial save keeps failed rows actionable and retries only the original receipt', async ({
+  page,
+  baseURL,
+}) => {
   const server = await setup(page, baseURL)
   server.ready([
     row('d1'),
@@ -328,25 +356,22 @@ test('a partial save lists the failed row and retries only that row', async ({ p
   ])
   server.failOnce.add('d2')
   await page.goto(`/import?batch=${BATCH}`)
-  await page.getByRole('button', { name: 'Import 3' }).click()
-  await expect(page.getByRole('heading', { name: 'Some flights were not saved' })).toBeVisible()
-  await expect(page.getByTestId('import-summary')).toContainText('Saved 2')
-  await expect(page.getByRole('heading', { name: 'Not saved', exact: true })).toBeVisible()
-  expect(server.confirms).toHaveLength(1)
+  await page.getByRole('button', { name: 'Save flights' }).click()
+  await expect(
+    page.getByText('Couldn’t finish saving. Your remaining flights are kept here.'),
+  ).toBeVisible()
+  await expect(rows(page)).toHaveCount(1)
   expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d1', 'd2', 'd3'])
   expect(server.confirms[0].timezone).toMatch(/\S/)
-
-  await page.getByRole('button', { name: 'Try again for 1' }).click()
-  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
+  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
+  await expect(page).toHaveURL(/\/journal\?flight=/)
   expect(server.confirms).toHaveLength(2)
   expect(server.confirms[1].items.map((item) => item.draftId)).toEqual(['d2'])
   expect(server.confirms[1].items[0].key).toBe(server.confirms[0].items[1].key)
-  await expect(page.getByTestId('import-summary')).toContainText('3 flights added')
-  await expect(page.getByRole('link', { name: 'Open Passport' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Go to Journal' })).toBeVisible()
+  await expect(page.getByText('Flights saved', { exact: true })).toBeVisible()
 })
 
-test('a typed correction blocks the import until it is saved', async ({ page, baseURL }) => {
+test('typed corrections protect close and save until persisted', async ({ page, baseURL }) => {
   const server = await setup(page, baseURL)
   server.ready([
     row('d1'),
@@ -355,25 +380,22 @@ test('a typed correction blocks the import until it is saved', async ({ page, ba
     }),
   ])
   await page.goto(`/import?batch=${BATCH}`)
-  await rows(page).first().getByRole('button', { name: 'Edit' }).click()
-  const sheet = page.getByRole('dialog')
-  await sheet.getByLabel('To (airport code)').fill('BOS')
-  await sheet.getByRole('button', { name: 'Close' }).last().click() // leave the sheet without saving
-  const importButton = page.getByRole('button', { name: 'Import 2' })
-  await expect(importButton).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByText('Some edits are not saved yet', { exact: false })).toBeVisible()
-  await expect(
-    rows(page).first().getByText('Changes not saved yet', { exact: false }),
-  ).toBeVisible()
+  const first = rows(page).first()
+  await first.getByRole('button', { name: 'Edit' }).click()
+  await first.getByLabel('To (airport code)').fill('BOS')
+  const save = page.getByRole('button', { name: 'Save flights' })
+  await expect(save).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByRole('button', { name: 'Close import' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
   expect(server.patches).toHaveLength(0)
-  await rows(page).first().getByRole('button', { name: 'Edit' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click()
+  await first.getByRole('button', { name: 'Save changes' }).click()
   await expect.poll(() => server.patches.length).toBe(1)
   expect(server.patches[0].body.fields).toMatchObject({ destination: 'BOS' })
-  await expect(importButton).not.toHaveAttribute('aria-disabled', 'true')
-  await importButton.click()
-  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
-  expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d1', 'd2'])
+  await expect(save).not.toHaveAttribute('aria-disabled', 'true')
+  await save.click()
+  await expect(page).toHaveURL(/\/journal\?flight=/)
 })
 
 // ---- Quick Add (boarding pass) ----
@@ -452,105 +474,79 @@ function blankPng(side = 240): Buffer {
 }
 // One leg: Montreal to Frankfurt on Air Canada 834, flight day 326 (21 November in a leap year, 22 in others).
 const PASS = 'M1DESMARAIS/LUC       EABC123 YULFRAAC 0834 326J001A0025 100'
-const screenshotInput = (page: Page) => page.locator('input[type=file][data-quick-add="file"]')
+const screenshotInput = (page: Page) => page.locator('input[type=file][multiple]')
 
-test('Quick Add reads a barcode locally and the member confirms the year and that they flew', async ({
+test('barcode reading automatically complements online, asks the year once, and confirms flown only on final save', async ({
   page,
   baseURL,
 }) => {
   const server = await setup(page, baseURL)
   await page.goto('/import?source=pass')
-  await expect(page.getByRole('heading', { name: 'Add a boarding pass' })).toBeVisible()
-  const photo = page.getByRole('button', { name: 'Take photo' })
-  const choose = page.getByRole('button', { name: 'Choose screenshot or PDF' })
-  await expect(photo).toBeVisible()
-  await expect(choose).toBeVisible()
-  // Equal weight: the same variant and the same box.
-  await expect(photo).toHaveAttribute('data-variant', 'secondary')
-  await expect(choose).toHaveAttribute('data-variant', 'secondary')
-  const [a, b] = [await photo.boundingBox(), await choose.boundingBox()]
-  expect(Math.abs(a!.height - b!.height)).toBeLessThan(1)
-  expect(Math.abs(a!.width - b!.width)).toBeLessThan(1)
-  const camera = page.locator('input[type=file][data-quick-add="photo"]')
+  await expect(page.getByRole('heading', { name: 'Import flights' })).toBeVisible()
+  await expect(
+    page.getByText('Photos and PDFs may be sent for online recognition', { exact: false }),
+  ).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Primary' })).toBeHidden()
+  const camera = page.locator('input[type=file][capture]')
   await expect(camera).toHaveAttribute('capture', 'environment')
-  await expect(camera).toHaveAttribute('accept', 'image/jpeg,image/png')
-  await expect(camera).toHaveAttribute('aria-hidden', 'true')
-
+  await expect(screenshotInput(page)).toHaveAttribute('multiple', '')
   await screenshotInput(page).setInputFiles({
     name: 'pass.png',
     mimeType: 'image/png',
     buffer: await barcodePng(PASS),
   })
   await expect(rows(page)).toHaveCount(1)
-  expect(server.jobs).toHaveLength(1)
-  const job = server.jobs[0]
-  expect(job).toMatchObject({
+  await expect(page.getByText('Ready to review', { exact: true })).toBeVisible()
+  expect(server.jobs).toHaveLength(2)
+  expect(server.jobs[1]).toMatchObject({
+    type: 'image',
+    sourceLabel: 'pass.png',
+    requireFlownConfirmation: true,
+  })
+  expect(server.jobs[0]).toMatchObject({
     type: 'boarding_pass',
     source: 'image',
-    sourceLabel: 'pass.png',
     legs: [
       { origin: 'YUL', destination: 'FRA', airline: 'AC', flightNumber: '834', dayOfYear: 326 },
     ],
   })
-  expect(job).not.toHaveProperty('content')
-  expect(JSON.stringify(job)).not.toContain('DESMARAIS')
-
-  await expect(rows(page).first()).toContainText('YUL')
-  await expect(page.getByText('Which year did you fly?', { exact: false })).toBeVisible()
+  expect(server.jobs[0]).not.toHaveProperty('content')
   await page.getByRole('button', { name: 'Another year' }).click()
   await page.getByLabel('Year', { exact: true }).fill('2020')
   await page.getByRole('button', { name: 'Apply' }).click()
-  await expect(page.getByText('Have you taken this flight?')).toBeVisible()
-  await page.getByRole('button', { name: 'Yes, I flew' }).click()
-  await expect
-    .poll(() => server.patches.some((patch) => patch.body.flownConfirmed === true))
-    .toBe(true)
+  await expect(page.getByText('Which year did you fly?', { exact: false })).toBeHidden()
+  // Focus stays in the answered row instead of falling to the deck's visually hidden heading.
+  await expect(rows(page).getByRole('button', { name: 'Edit' })).toBeFocused()
+  await expect(page.getByText('Have you taken this flight?')).toBeHidden()
+  await expect(page.getByRole('checkbox')).toHaveCount(0)
   expect(server.patches[0].body).toMatchObject({
     fields: { date: '2020-11-21' },
     yearConfirmed: true,
   })
-  await page.getByRole('button', { name: 'Import 1' }).click()
-  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
+  expect(server.confirms).toHaveLength(0)
+  expect(server.patches.some((patch) => patch.body.flownConfirmed === true)).toBe(false)
+  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
+  await expect(page).toHaveURL(/\/journal\?flight=/)
+  expect(server.patches.filter((patch) => patch.body.yearConfirmed)).toHaveLength(1)
+  expect(server.patches.some((patch) => patch.body.flownConfirmed === true)).toBe(true)
   expect(server.confirms).toHaveLength(1)
 })
 
-test('Quick Add discloses the upload before an unreadable pass leaves the device', async ({
+test('an unreadable pass continues online without another confirmation', async ({
   page,
   baseURL,
 }) => {
   const server = await setup(page, baseURL)
-  server.ready([
-    row('d1', {
-      fields: {
-        date: '',
-        origin: 'JFK',
-        destination: 'LAX',
-        airline_iata: 'AA',
-        flown_required: true,
-      },
-    }),
-  ])
+  server.ready([row('d1')])
   await page.goto('/import?source=pass')
+  await expect(
+    page.getByText('Photos and PDFs may be sent for online recognition', { exact: false }),
+  ).toBeVisible()
   await screenshotInput(page).setInputFiles({
     name: 'blank.png',
     mimeType: 'image/png',
     buffer: blankPng(),
   })
-  // The outcome is announced once, through the status line; the fallback paragraph repeats it for sighted readers.
-  await expect(
-    page.getByRole('status').filter({ hasText: 'We could not find a boarding pass' }),
-  ).toHaveCount(1)
-  await expect(
-    page
-      .getByTestId('quick-add-fallback')
-      .getByText('We could not find a boarding pass barcode in this file.'),
-  ).toBeVisible()
-  await expect(
-    page.getByText('this document is uploaded to Kuuki’s online recognition'),
-  ).toBeVisible()
-  expect(server.jobs).toHaveLength(0)
-
-  await page.getByRole('button', { name: 'Upload for recognition' }).click()
   await expect(rows(page)).toHaveCount(1)
   expect(server.jobs).toHaveLength(1)
   expect(server.jobs[0]).toMatchObject({
@@ -558,15 +554,19 @@ test('Quick Add discloses the upload before an unreadable pass leaves the device
     sourceLabel: 'blank.png',
     requireFlownConfirmation: true,
   })
-  expect(server.jobs[0].content).toMatch(/^iVBOR/) // base64 of the PNG
+  expect(server.jobs[0].content).toMatch(/^iVBOR/)
+  expect(server.confirms).toHaveLength(0)
 })
 
-test('a same-day pass stays a draft until the member says they flew', async ({ page, baseURL }) => {
+test('same-day evidence stays a draft until explicit final save confirms the owner', async ({
+  page,
+  baseURL,
+}) => {
   const server = await setup(page, baseURL)
-  await page.goto('/import') // a page in the app's own timezone, to read the member's local date
+  await page.goto('/import')
   const today = await page.evaluate(() => {
     const now = new Date()
-    const pad = (value: number) => String(value).padStart(2, '0')
+    const pad = (n: number) => String(n).padStart(2, '0')
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
   })
   server.ready([
@@ -583,41 +583,142 @@ test('a same-day pass stays a draft until the member says they flew', async ({ p
     }),
   ])
   await page.goto(`/import?batch=${BATCH}`)
-  await expect(page.getByText('Have you taken this flight?')).toBeVisible()
-  await page.getByRole('button', { name: 'Not yet' }).click()
-  await expect(page.getByText('Have you taken this flight?')).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Include', exact: true })).toHaveCount(0)
   expect(server.patches).toHaveLength(0)
   expect(server.confirms).toHaveLength(0)
-
-  await page.reload() // "Not yet" is not stored: the question is back
-  await expect(page.getByText('Have you taken this flight?')).toBeVisible()
-  expect(server.confirms).toHaveLength(0)
-  await page.getByRole('button', { name: 'Yes, I flew' }).click()
-  await expect.poll(() => server.patches.length).toBe(1)
-  expect(server.patches[0].body.flownConfirmed).toBe(true)
-  await page.getByRole('button', { name: 'Import 1' }).click()
-  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
+  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
+  await expect(page).toHaveURL(/\/journal\?flight=/)
+  expect(server.patches.at(-1)?.body.flownConfirmed).toBe(true)
   expect(server.confirms).toHaveLength(1)
 })
 
-test('Quick Add reads a barcode drawn in a PDF, the pdf.js path included', async ({
+test('PDF barcode recognition also sends the whole PDF for printed years and remaining pages', async ({
   page,
   baseURL,
 }) => {
   const server = await setup(page, baseURL)
-  await page.goto('/import?source=pass')
+  await page.goto('/import?source=file')
   await screenshotInput(page).setInputFiles({
     name: 'pass.pdf',
     mimeType: 'application/pdf',
     buffer: await barcodePdf(PASS),
   })
   await expect(rows(page)).toHaveCount(1)
-  expect(server.jobs).toHaveLength(1)
+  await expect(page.getByText('Ready to review', { exact: true })).toBeVisible()
+  expect(server.jobs).toHaveLength(2)
+  expect(server.jobs[1]).toMatchObject({
+    type: 'pdf',
+    sourceLabel: 'pass.pdf',
+    requireFlownConfirmation: true,
+  })
+  expect(server.jobs[1].content).toBeTruthy()
   expect(server.jobs[0]).toMatchObject({
     type: 'boarding_pass',
     source: 'pdf',
-    sourceLabel: 'pass.pdf',
     legs: [{ origin: 'YUL', destination: 'FRA', airline: 'AC', flightNumber: '834' }],
   })
-  expect(server.jobs[0]).not.toHaveProperty('content')
+})
+
+test('primary import entry resumes every retained source group without overwriting metadata', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  server.ready([row('d1')])
+  server.localDrafts = [
+    row('local-d2', {
+      fields: { date: '2025-04-01', origin: 'TBS', destination: 'IST', airline_iata: 'TK' },
+    }),
+  ]
+  await page.goto(`/import?batch=${BATCH}`)
+  await expect(rows(page)).toHaveCount(1)
+  await page.evaluate(
+    ({ main, other }) => {
+      const key = Object.keys(sessionStorage).find((key) =>
+        key.startsWith('kuuki-import-session:'),
+      )!
+      const first = JSON.parse(sessionStorage.getItem(key)!)[0]
+      sessionStorage.setItem(
+        key,
+        JSON.stringify([
+          { ...first, label: 'one.pdf', onlineBatchId: main },
+          {
+            id: 'second-source',
+            label: 'two.pdf',
+            operationId: 'second-operation',
+            batchIds: [other],
+            onlineBatchId: other,
+          },
+        ]),
+      )
+    },
+    { main: BATCH, other: LOCAL_BATCH },
+  )
+  await page.getByRole('button', { name: 'Close import' }).click()
+  await expect(page).toHaveURL(/\/journal/)
+  await page.goto('/import')
+  await expect(rows(page)).toHaveCount(2)
+  await expect(page.getByText('one.pdf', { exact: true })).toBeVisible()
+  await expect(page.getByText('two.pdf', { exact: true })).toBeVisible()
+  expect(
+    await page.evaluate(
+      () =>
+        JSON.parse(
+          sessionStorage.getItem(
+            Object.keys(sessionStorage).find((key) => key.startsWith('kuuki-import-session:'))!,
+          )!,
+        ).length,
+    ),
+  ).toBe(2)
+  expect(server.jobs).toHaveLength(0)
+})
+
+test('empty extraction reports no flights and keeps another-file and manual recovery available', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  server.ready([])
+  await submitText(page)
+  await expect(page.getByText('No flights found', { exact: true })).toBeVisible()
+  await expect(page.getByText('Ready to review', { exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Add files' })).toBeEnabled()
+  await expect(page.getByRole('link', { name: 'Enter manually' })).toHaveAttribute('href', '/add')
+  expect(server.confirms).toHaveLength(0)
+})
+
+test('system barcode copies stay suppressed after reload while user dismissals remain restorable', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  server.ready([
+    row('printed', {
+      fields: {
+        date: '2020-11-21',
+        origin: 'YUL',
+        destination: 'FRA',
+        airline_iata: 'AC',
+        flight_number: '834',
+      },
+    }),
+    row('user-dismissed', {
+      status: 'dismissed',
+      fields: { date: '2025-04-01', origin: 'TBS', destination: 'IST', airline_iata: 'TK' },
+    }),
+  ])
+  await page.goto('/import')
+  await screenshotInput(page).setInputFiles({
+    name: 'complement.pdf',
+    mimeType: 'application/pdf',
+    buffer: await barcodePdf(PASS),
+  })
+  await expect(page.getByText('Ready to review', { exact: true })).toBeVisible()
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /Bring back.*YUL/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Bring back.*TBS/ })).toBeVisible()
+  await page.reload()
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /Bring back.*YUL/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Bring back.*TBS/ })).toBeVisible()
 })

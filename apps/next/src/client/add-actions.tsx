@@ -4,7 +4,7 @@ import { useLocale } from './preferences'
 
 import { NavigationLink as Link } from './navigation-link'
 import { QueueMenuItem } from './queue-summary'
-import { ClipboardPaste, PenLine, ScanLine, Upload } from '@keyline-icons/react'
+import { PenLine, Upload } from '@keyline-icons/react'
 import type { ReactNode } from 'react'
 import { MenuItem } from './ui/menu'
 
@@ -19,31 +19,17 @@ type Action = {
 /** The capture entry points. One list feeds the desktop Add menu and the mobile Add card. */
 export const ADD_ACTIONS: readonly Action[] = [
   {
-    id: 'pass',
-    href: '/import?source=pass',
-    en: 'Add boarding pass',
-    ru: 'Добавить посадочный',
-    icon: <ScanLine size={20} strokeWidth={2} aria-hidden="true" />,
-  },
-  {
     id: 'upload',
-    href: '/import?source=file',
-    en: 'Upload a booking or PDF',
-    ru: 'Загрузить бронь или PDF',
+    href: '/import',
+    en: 'From files',
+    ru: 'Из файлов',
     icon: <Upload size={20} strokeWidth={2} aria-hidden="true" />,
-  },
-  {
-    id: 'paste',
-    href: '/import?source=text',
-    en: 'Paste text',
-    ru: 'Вставить текст',
-    icon: <ClipboardPaste size={20} strokeWidth={2} aria-hidden="true" />,
   },
   {
     id: 'manual',
     href: '/add',
-    en: 'Enter manually',
-    ru: 'Ввести вручную',
+    en: 'Manually',
+    ru: 'Вручную',
     icon: <PenLine size={20} strokeWidth={2} aria-hidden="true" />,
   },
 ]

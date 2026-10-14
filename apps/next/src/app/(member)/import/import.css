@@ -910,3 +910,98 @@
     line-height: 24px;
   }
 }
+
+/* Several single-source jobs share one focused review and one final save. */
+.unified-import-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.unified-import-heading h1 {
+  margin: 0;
+}
+.unified-import-files,
+.unified-import-rows {
+  list-style: none;
+  padding: 0;
+}
+.unified-import-files {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-5);
+}
+.unified-import-files > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.unified-import-file-name {
+  overflow-wrap: anywhere;
+}
+.unified-import .import-row .import-questions {
+  margin-block: var(--space-2);
+}
+.unified-import .import-row {
+  background: transparent;
+}
+.unified-import .import-row-main {
+  flex-wrap: wrap;
+}
+.unified-import .import-row-body {
+  flex: 1 1 12rem;
+}
+/* Inside a row card the year answers size to their labels and wrap whole, never mid-word. */
+.unified-import .import-question-answers[data-columns='3'] {
+  display: flex;
+  flex-wrap: wrap;
+}
+.unified-import .import-question-answers[data-columns='3'] > .import-question-year {
+  flex-basis: 100%;
+}
+.unified-import .ui-action-bar-count {
+  max-width: 48ch;
+}
+.unified-import-text {
+  display: grid;
+  gap: var(--space-3);
+}
+/* Desktop browsers ignore `capture`; there the camera would only repeat Choose files. */
+@media (hover: hover) and (pointer: fine) {
+  .unified-import-camera {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  /* The focused route has no tab rail, so the final action rests at the bottom even under a short review. */
+  .unified-import {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--space-8) - env(safe-area-inset-bottom));
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: 0;
+  }
+  .unified-import > .ui-action-bar {
+    margin-top: auto;
+  }
+  .unified-import .ui-action-bar {
+    bottom: calc(env(safe-area-inset-bottom) + var(--import-keyboard-inset, 0px));
+    flex-wrap: wrap;
+  }
+  /* A disabled Save sits in a wrapper with its reason; both span the bar. */
+  .unified-import .ui-action-bar-actions,
+  .unified-import .ui-action-bar-actions > *,
+  .unified-import .ui-action-bar-actions .ui-button {
+    width: 100%;
+  }
+}
+.unified-import .import-question {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.unified-import-heading h1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
