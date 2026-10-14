@@ -9,6 +9,12 @@ import { mesa } from './mesa'
 import { peak } from './peak'
 import { acacia } from './savanna'
 import { volcano } from './volcano'
+import { tableMountain } from './table-mountain'
+import { bayCity } from './bay-city'
+import { kasbah } from './kasbah'
+import { graniteDome } from './granite-dome'
+import { mokorotlo } from './mokorotlo'
+import { cubeTown } from './cube-town'
 import { amphitheatre } from './amphitheatre'
 import { rooftops } from './rooftops'
 import { dunes } from './dunes'
@@ -28,6 +34,12 @@ export const kit = {
   volcano,
   acacia,
   mesa,
+  'table-mountain': tableMountain,
+  'bay-city': bayCity,
+  kasbah,
+  'granite-dome': graniteDome,
+  mokorotlo,
+  'cube-town': cubeTown,
   karst,
   peak,
   dunes,

@@ -1,0 +1,51 @@
+{
+  "iso2": "SZ",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "moss",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "clouds": [46, 60, 30, 152, 62, 30],
+        "weight": "hair",
+        "gap": [2.7, 3.5]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.58],
+          [0.3, 0.52],
+          [0.6, 0.6],
+          [1, 0.5]
+        ],
+        "jag": 0.5,
+        "litGap": 2.4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "granite-dome",
+      "box": [30, 56, 134, 70],
+      "params": {}
+    },
+    {
+      "module": "distance-trees",
+      "box": [30, 98, 134, 28],
+      "params": {
+        "horizonY": 126,
+        "height": 9,
+        "amp": 2,
+        "swell": 1.5,
+        "seed": 6
+      }
+    }
+  ]
+}

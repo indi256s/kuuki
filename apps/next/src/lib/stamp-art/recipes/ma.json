@@ -1,0 +1,41 @@
+{
+  "iso2": "MA",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "oxblood",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "clouds": [60, 66, 34, 150, 60, 28],
+        "weight": "hair",
+        "gap": [2.7, 3.5]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.25, 0.4],
+          [0.55, 0.52],
+          [0.8, 0.38],
+          [1, 0.48]
+        ],
+        "jag": 0.8,
+        "litGap": 2.4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "kasbah",
+      "box": [28, 60, 144, 68],
+      "params": {}
+    }
+  ]
+}

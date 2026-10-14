@@ -1,0 +1,66 @@
+{
+  "iso2": "LY",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "clouds": [40, 60, 30, 160, 66, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.62],
+          [0.3, 0.56],
+          [0.6, 0.64],
+          [1, 0.58]
+        ],
+        "jag": 0.4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "colonnade",
+      "box": [27, 92, 48, 32],
+      "params": {
+        "count": 5,
+        "order": "ionic",
+        "entablature": 0.16,
+        "stylobate": 1,
+        "colW": 0.4
+      }
+    },
+    {
+      "module": "colonnade",
+      "box": [125, 92, 48, 32],
+      "params": {
+        "count": 5,
+        "order": "ionic",
+        "entablature": 0.16,
+        "stylobate": 1,
+        "colW": 0.4
+      }
+    },
+    {
+      "module": "triumphal-arch",
+      "box": [72, 58, 56, 66],
+      "params": {
+        "opening": "arch",
+        "bays": 1,
+        "openW": 0.5,
+        "openH": 0.85,
+        "dark": "fill",
+        "panels": 3
+      }
+    }
+  ]
+}
