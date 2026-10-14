@@ -1,1 +1,27 @@
-{}
+{
+  "AM": {
+    "status": "accepted",
+    "at": "2026-10-14"
+  },
+  "DE": {
+    "status": "accepted",
+    "at": "2026-10-14"
+  },
+  "GE": {
+    "status": "accepted",
+    "at": "2026-10-14"
+  },
+  "JP": {
+    "status": "redo",
+    "note": "Replace Himeji Castle with Mount Fuji.",
+    "at": "2026-10-14"
+  },
+  "ME": {
+    "status": "accepted",
+    "at": "2026-10-14"
+  },
+  "TH": {
+    "status": "accepted",
+    "at": "2026-10-14"
+  }
+}

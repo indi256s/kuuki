@@ -3,17 +3,19 @@
 // stroke is flagged as backdrop by the renderer so a subject halo stops it short, and nothing here
 // is ever outlined except the lit ridge (hair) and the one bold ground line.
 import { mulberry32 } from '../hash'
+import { clipStrokeOutside } from '../geom'
 import {
   type Pt,
   type SvgNode,
   hline,
   occlude,
+  quad,
   rectPts,
   stroke,
   toneFill,
   type ToneName,
 } from '../grid'
-import { type KitModule, num, pairs, str } from './util'
+import { type KitModule, num, nums, pairs, str } from './util'
 
 const hatchTone = (p: Record<string, unknown>, key: string, fallback: ToneName): ToneName =>
   str(p, key, ['T1', 'T2', 'T3', 'T4'] as const, fallback)
@@ -21,7 +23,24 @@ const hatchTone = (p: Record<string, unknown>, key: string, fallback: ToneName):
 /** T1 sky: horizontal fine lines from the top of the box down to the horizon, opening downward. */
 export const sky: KitModule = ([x, y, w], p) => {
   const horizon = num(p, 'horizonY', y + 100)
-  return toneFill(rectPts(x, y, w, horizon - y), 'T1', { ramp: [y, horizon] })
+  const gap = nums(p, 'gap', [])
+  const lines = toneFill(rectPts(x, y, w, horizon - y), 'T1', {
+    ramp: [y, horizon],
+    ...(p.weight === 'hair' ? { weight: 'hair' as const } : {}),
+    ...(gap.length === 2 ? { gap: [gap[0], gap[1]] as [number, number] } : {}),
+  })
+  // Optional clouds as flat [x, y, width] triples: lens-shaped gaps in the hatching.
+  const c = nums(p, 'clouds', [])
+  let out: SvgNode[] = lines
+  for (let i = 0; i + 2 < c.length; i += 3) {
+    const [cx, cy, cw] = [c[i], c[i + 1], c[i + 2]]
+    const lens: Pt[] = [
+      ...quad([cx - cw / 2, cy], [cx, cy - 15], [cx + cw / 2, cy], 8),
+      ...quad([cx + cw / 2, cy], [cx, cy + 9], [cx - cw / 2, cy], 8).slice(1),
+    ]
+    out = out.flatMap((n): SvgNode[] => (n.kind === 'stroke' ? clipStrokeOutside(n, lens) : [n]))
+  }
+  return out
 }
 
 type Ridge = { pts: Pt[]; vertices: number[] }
@@ -128,10 +147,16 @@ export const distanceTrees: KitModule = ([x, y, w, h], p) => {
   const horizon = num(p, 'horizonY', y + h * 0.7)
   const height = num(p, 'height', 18)
   const amp = num(p, 'amp', 3)
+  // Optional slow undulation of the crown line (default: none, so older recipes are unchanged).
+  const swell = num(p, 'swell', 0)
   const rand = mulberry32(Math.round(num(p, 'seed', 3)))
   const top: Pt[] = []
   for (let tx = x; tx <= x + w + 4; tx += 5) {
-    top.push([tx, horizon - height + (rand() - 0.5) * 2 * amp], [tx + 2.5, horizon - height - amp])
+    const lift = swell ? swell * Math.sin(tx * 0.07 + 1.3) + swell * 0.5 * Math.sin(tx * 0.23) : 0
+    top.push(
+      [tx, horizon - height - lift + (rand() - 0.5) * 2 * amp],
+      [tx + 2.5, horizon - height - lift - amp],
+    )
   }
   const poly: Pt[] = [[x, horizon], ...top, [x + w + 4, horizon]]
   return [

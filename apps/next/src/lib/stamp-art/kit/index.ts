@@ -4,6 +4,7 @@ import { statue } from './object'
 import type { KitModule } from './util'
 import { gate, house, rampart, stiltHouse, switchbackWall, temple } from './building'
 import { basalt, distanceMountains, distanceTrees, ground, sky } from './vignette'
+import { volcano } from './volcano'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -16,6 +17,7 @@ export const kit = {
   water,
   mountains,
   'twin-peak': twinPeak,
+  volcano,
   cliff,
   platform,
   steps,

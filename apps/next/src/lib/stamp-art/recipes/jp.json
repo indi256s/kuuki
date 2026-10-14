@@ -2,55 +2,66 @@
   "iso2": "JP",
   "tier": "engraved",
   "shape": "oval",
+  "horizon": 0.71,
   "backdrop": [
     {
-      "module": "sky"
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [66, 52, 50, 140, 62, 44, 56, 86, 34, 146, 98, 30, 100, 40, 26],
+        "weight": "hair"
+      }
     },
     {
       "module": "distance-mountains",
       "params": {
         "ridge": [
           [0, 0.6],
-          [0.2, 0.52],
-          [0.5, 0.58],
-          [0.8, 0.5],
-          [1, 0.58]
+          [0.09, 0.58],
+          [0.2, 0.6],
+          [0.3, 0.64],
+          [0.4, 0.67],
+          [0.5, 0.69],
+          [0.6, 0.67],
+          [0.7, 0.64],
+          [0.8, 0.6],
+          [0.91, 0.58],
+          [1, 0.6]
         ],
-        "jag": 0.9,
-        "litGap": 2.4
+        "jag": 0.8,
+        "litGap": 3.2,
+        "seed": 9,
+        "shade": "T4"
       }
     },
     {
-      "module": "ground"
+      "module": "distance-trees",
+      "params": {
+        "height": 12,
+        "amp": 2.4,
+        "seed": 4,
+        "swell": 2.2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
     }
   ],
   "layers": [
     {
-      "module": "pagoda-tier",
-      "box": [53, 79.5, 34, 20.7],
+      "module": "volcano",
+      "box": [50, 65.2, 100, 65.25],
       "params": {
-        "widths": [1, 0.78],
-        "windows": [2, 1],
-        "nubs": false
-      }
-    },
-    {
-      "module": "platform",
-      "box": [56, 100.2, 88, 28.8],
-      "params": {
-        "batter": 9.7,
-        "flare": true,
-        "courses": 5,
-        "courseRatio": 0.8
-      }
-    },
-    {
-      "module": "pagoda-tier",
-      "box": [65, 41.6, 70, 58.6],
-      "params": {
-        "chidori": [1],
-        "pairs": [3],
-        "kara": [0]
+        "profile": "cone",
+        "summit": 10,
+        "concavity": 0.5,
+        "snow": 0.42,
+        "gullies": 7,
+        "trees": 10,
+        "clouds": [0.66]
       }
     }
   ]
