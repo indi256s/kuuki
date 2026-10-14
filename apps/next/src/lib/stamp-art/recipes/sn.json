@@ -27,7 +27,8 @@
       "module": "truss-bridge-b",
       "box": [30, 70, 140, 54],
       "params": {
-        "spans": 7
+        "spans": 7,
+        "boxTruss": true
       }
     }
   ]

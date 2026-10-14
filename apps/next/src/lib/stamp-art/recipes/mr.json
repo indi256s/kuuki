@@ -3,7 +3,7 @@
   "tier": "engraved",
   "shape": "cut-rect",
   "ink": "plum",
-  "horizon": 0.72,
+  "horizon": 0.68,
   "backdrop": [
     {
       "module": "sky",
@@ -33,37 +33,27 @@
       "params": {
         "line": false
       }
+    },
+    {
+      "module": "rock-hill",
+      "box": [26, 65, 148, 62],
+      "params": {
+        "profile": [
+          [0, 0.15],
+          [0.3, 0.1],
+          [0.7, 0.6],
+          [1, 1]
+        ],
+        "strata": 6
+      }
     }
   ],
   "layers": [
     {
-      "module": "rock-hill",
-      "box": [30, 64, 140, 62],
+      "module": "casbah-b",
+      "box": [34, 54, 132, 57],
       "params": {
-        "profile": [
-          [0, 0.2],
-          [0.45, 0.18],
-          [0.6, 0.3],
-          [0.75, 0.6],
-          [1, 1]
-        ],
-        "strata": 5.5,
-        "shadeFrom": 0.4
-      }
-    },
-    {
-      "module": "ruin-wall",
-      "box": [34, 52, 74, 26],
-      "params": {}
-    },
-    {
-      "module": "dunes",
-      "box": [30, 100, 140, 26],
-      "params": {
-        "crests": [0.5, 0.8],
-        "amp": 3,
-        "wave": 80,
-        "lee": [6, 8]
+        "ruin": true
       }
     }
   ]

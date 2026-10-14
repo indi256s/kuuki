@@ -1,7 +1,17 @@
 // A sternwheel river steamer seen from the side, bow to the left: low hull with a rail line, two
 // white decks with rows of windows, a pilot house, two tall funnels with dark caps and a big
 // paddle wheel at the stern drawn as a spoked disc. The box bottom is the waterline.
-import { type Pt, type SvgNode, fill, hline, occlude, stroke, toneFill } from '../grid'
+import {
+  type Pt,
+  type SvgNode,
+  body,
+  rectPts,
+  fill,
+  hline,
+  occlude,
+  stroke,
+  toneFill,
+} from '../grid'
 import { type KitModule, num } from './util'
 
 export const riverboat: KitModule = ([x, y, w, h], p) => {
@@ -113,5 +123,7 @@ export const riverboat: KitModule = ([x, y, w, h], p) => {
       [wcx - 1.6, wcy + 1.6],
     ]),
   )
+  if (p.housing === true)
+    out.push(...body(rectPts(wcx - wr * 1.08, wcy - wr * 1.1, wr * 2.16, wr * 1.3), 'line'))
   return out
 }

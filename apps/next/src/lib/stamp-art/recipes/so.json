@@ -24,12 +24,16 @@
   ],
   "layers": [
     {
+      "module": "coast-arcade-b",
+      "box": [29, 98, 142, 32],
+      "params": {}
+    },
+    {
       "module": "lighthouse",
-      "box": [80, 52, 40, 74],
+      "box": [119, 54, 30, 72],
       "params": {
         "base": 0.1,
         "taper": 0.7,
-        "bands": 0,
         "windows": 3
       }
     }

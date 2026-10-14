@@ -38,16 +38,18 @@
   ],
   "layers": [
     {
-      "module": "pirogue",
-      "box": [72, 92, 66, 34],
-      "params": {}
+      "module": "palm",
+      "box": [36, 55, 36, 71],
+      "params": {
+        "lean": 0.4,
+        "seed": 4
+      }
     },
     {
-      "module": "palm",
-      "box": [34, 56, 34, 70],
+      "module": "pirogue",
+      "box": [64, 104, 96, 23],
       "params": {
-        "lean": 0.12,
-        "seed": 4
+        "awning": false
       }
     }
   ]

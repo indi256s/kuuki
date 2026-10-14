@@ -5,10 +5,38 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [2.8, 3.8], "weight": "hair", "clouds": [40, 60, 30, 146, 56, 28] }
+      "params": {
+        "gap": [2.8, 3.8],
+        "weight": "hair",
+        "clouds": [40, 60, 30, 146, 56, 28]
+      }
     },
-    { "module": "distance-trees", "params": { "height": 5, "amp": 1.4, "seed": 3, "swell": 1 } },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 5,
+        "amp": 1.4,
+        "seed": 3,
+        "swell": 1
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
   ],
-  "layers": [{ "module": "belem-tower", "box": [28, 62, 144, 64], "params": { "at": 0.4 } }]
+  "layers": [
+    {
+      "module": "belem-tower",
+      "box": [52, 65, 96, 63],
+      "params": {
+        "at": 0.48,
+        "towerWidth": 0.46,
+        "bulwarkWidth": 0.36
+      }
+    }
+  ]
 }

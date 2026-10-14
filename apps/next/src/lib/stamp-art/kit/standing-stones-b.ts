@@ -9,8 +9,10 @@ function stone(cx: number, base: number, w: number, h: number, lean: number): Sv
   const tw = w * 0.84
   const pts: Pt[] = [
     [cx - w / 2, base],
-    [cx - tw / 2 + lean, base - h],
-    [cx + tw / 2 + lean, base - h],
+    [cx - tw / 2 + lean, base - h + 3],
+    [cx - tw / 4 + lean, base - h],
+    [cx + tw / 4 + lean, base - h + 0.6],
+    [cx + tw / 2 + lean, base - h + 3],
     [cx + w / 2, base],
   ]
   const out = body(pts, 'line')
@@ -44,8 +46,8 @@ export const standingStonesB: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   for (const s of list) {
     const k = 0.62 + 0.38 * s.t
-    const sh = h * 0.5 * k * (0.78 + rand() * 0.3)
-    out.push(...stone(s.px, s.py, w * 0.105 * k, sh, (rand() - 0.5) * 3.4 * k))
+    const sh = h * 0.72 * k * (0.78 + rand() * 0.3)
+    out.push(...stone(s.px, s.py, sh * 0.35, sh, (rand() - 0.5) * 3.4 * k))
   }
   return out
 }

@@ -85,6 +85,16 @@ export const naturalArch: KitModule = ([x, y, w, h], p) => {
       weight: 'fine',
     }),
   )
+  for (const f of [0.08, 0.87]) {
+    const px = x + w * f
+    out.push(
+      stroke('line', [
+        [px, y + h * 0.4],
+        [px + 4, y + h * 0.57],
+        [px + 1, y + h * 0.75],
+      ]),
+    )
+  }
   // Sand skirt with wind ripples.
   for (let k = 0; k < 4; k++)
     for (let sx = x + rand() * 6; sx < x + w - 6; sx += 10 + rand() * 10)

@@ -32,28 +32,15 @@
   ],
   "layers": [
     {
-      "module": "island-b",
-      "box": [48, 96, 72, 28],
-      "params": {
-        "hump": 0.36,
-        "palms": [
-          [0.2, 46, 0.1],
-          [0.45, 56, -0.12],
-          [0.7, 40, 0.15]
-        ],
-        "seed": 5
-      }
+      "module": "motu-b",
+      "box": [38, 64, 116, 60],
+      "params": {}
     },
     {
-      "module": "island-b",
-      "box": [122, 108, 40, 16],
+      "module": "pirogue",
+      "box": [100, 130, 55, 10],
       "params": {
-        "hump": 0.4,
-        "palms": [
-          [0.4, 40, 0.12],
-          [0.75, 30, -0.1]
-        ],
-        "seed": 8
+        "awning": false
       }
     }
   ]

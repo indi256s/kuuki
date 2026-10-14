@@ -24,8 +24,10 @@
   "layers": [
     {
       "module": "dhow",
-      "box": [42, 44, 114, 86],
-      "params": {}
+      "box": [43, 56, 114, 74],
+      "params": {
+        "shallowYard": true
+      }
     }
   ]
 }

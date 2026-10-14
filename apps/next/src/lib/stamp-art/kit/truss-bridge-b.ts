@@ -32,9 +32,9 @@ export const trussBridgeB: KitModule = ([x, y, w, h], p) => {
   // Trusses, one per span; the swing span stands taller.
   for (let s = 0; s < spans; s++) {
     const sx = x + pw * s
-    const swing = s === mid
+    const swing = p.boxTruss === true ? false : s === mid
     const hh = trussH * (swing ? 1.45 : 1)
-    const sag = swing ? 0 : 3.2
+    const sag = p.boxTruss === true ? 0 : swing ? 0 : 3.2
     const topAt = (t: number) => deck - hh + (swing ? 0 : sag * (2 * t - 1) ** 2) - (swing ? 0 : 0)
     const topPts: Pt[] = []
     for (let k = 0; k <= 8; k++) topPts.push([sx + (pw * k) / 8, topAt(k / 8)])
@@ -50,6 +50,13 @@ export const trussBridgeB: KitModule = ([x, y, w, h], p) => {
       const a: Pt = up ? [sx + pw * t0, deck] : [sx + pw * t0, topAt(t0)]
       const b: Pt = up ? [sx + pw * t1, topAt(t1)] : [sx + pw * t1, deck]
       out.push(stroke('hair', [a, b]))
+      if (p.boxTruss === true)
+        out.push(
+          stroke('hair', [
+            [a[0], up ? topAt(t0) : deck],
+            [b[0], up ? deck : topAt(t1)],
+          ]),
+        )
     }
     if (swing) {
       const cw = pw * 0.34
@@ -59,5 +66,13 @@ export const trussBridgeB: KitModule = ([x, y, w, h], p) => {
   }
   out.push(...body(rectPts(x - 1, deck, w + 2, 2.2), 'line'))
   out.push(hline('bold', x - 2, x + w + 2, deck + 2.2))
+  if (p.boxTruss === true)
+    return out.map((n) => ({
+      ...n,
+      pts: n.pts.map(([px, py]): Pt => [
+        px,
+        deck + (py - deck) * (1 - (0.45 * (px - x)) / w) - (5 * (px - x)) / w,
+      ]),
+    }))
   return out
 }

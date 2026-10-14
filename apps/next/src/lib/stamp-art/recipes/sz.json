@@ -33,7 +33,7 @@
   "layers": [
     {
       "module": "granite-dome",
-      "box": [30, 56, 134, 70],
+      "box": [36, 76, 128, 50],
       "params": {}
     },
     {

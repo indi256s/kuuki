@@ -4,7 +4,7 @@
 // waterline at the box bottom; depth 0 is the nearest, 1 the farthest). Far islets are a light
 // diagonal T2 hatch; near ones have a lit left neck, a shaded right neck and a dark crown.
 import { mulberry32 } from '../hash'
-import { type Pt, type SvgNode, body, hline, quad, stroke, toneFill } from '../grid'
+import { type Pt, type SvgNode, body, fill, hline, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num, nums } from './util'
 
 export const mushroomIslets: KitModule = ([x, y, w, h], p) => {
@@ -67,8 +67,16 @@ export const mushroomIslets: KitModule = ([x, y, w, h], p) => {
         ...crownR.filter(([px]) => px > it.cx - hw * 0.25),
         ...rim.slice(0, 4),
       ]
-      out.push(...toneFill(dome, 'T4', { gap: 2.7, inset: 0.3 }))
-      out.push(stroke('hair', rim))
+      out.push(...toneFill(dome, 'T4', { gap: 3.5, inset: 0.3 }))
+      out.push(
+        fill([
+          ...rim,
+          ...rim
+            .slice()
+            .reverse()
+            .map(([px, py]): Pt => [px, py + 3]),
+        ]),
+      )
       // neck: lit left, shaded right with fall-line hatching
       const shade: Pt[] = [
         [it.cx + hw * 0.1, rimY + 3],

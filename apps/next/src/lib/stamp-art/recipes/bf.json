@@ -33,7 +33,9 @@
     {
       "module": "ruin-wall",
       "box": [26, 56, 146, 70],
-      "params": {}
+      "params": {
+        "crumble": true
+      }
     }
   ]
 }

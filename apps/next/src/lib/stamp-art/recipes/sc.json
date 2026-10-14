@@ -37,30 +37,19 @@
   ],
   "layers": [
     {
-      "module": "palm",
-      "box": [96, 57, 58, 69],
-      "params": {
-        "lean": -0.35,
-        "seed": 3,
-        "frond": 0.6,
-        "fronds": 9
-      }
-    },
-    {
-      "module": "palm",
-      "box": [128, 66, 40, 60],
-      "params": {
-        "lean": -0.15,
-        "seed": 8,
-        "frond": 0.62,
-        "fronds": 9
-      }
-    },
-    {
       "module": "boulders-b",
       "box": [28, 52, 146, 74],
       "params": {
         "boulders": [0.02, 0.42, 0.9, 3, 0.4, 0.4, 0.55, 8, 0.7, 0.24, 0.3, 5]
+      }
+    },
+    {
+      "module": "palm",
+      "box": [111, 56, 40, 70],
+      "params": {
+        "lean": -0.65,
+        "frond": 0.6,
+        "seed": 3
       }
     }
   ]

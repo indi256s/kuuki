@@ -7,19 +7,37 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [44, 62, 30, 150, 58, 26] }
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [44, 62, 30, 150, 58, 26]
+      }
     },
     {
       "module": "distance-trees",
-      "params": { "height": 10, "amp": 2.4, "seed": 5, "swell": 2 }
+      "params": {
+        "height": 10,
+        "amp": 2.4,
+        "seed": 5,
+        "swell": 2
+      }
     },
-    { "module": "ground", "params": { "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
   ],
   "layers": [
     {
       "module": "great-zimbabwe",
       "box": [26, 48, 148, 78],
-      "params": { "seed": 9 }
+      "params": {
+        "seed": 9,
+        "chevron": true,
+        "taper": 0.42
+      }
     }
   ]
 }

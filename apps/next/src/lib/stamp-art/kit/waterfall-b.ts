@@ -170,25 +170,24 @@ function mist(x0: number, x1: number, base: number, h: number, rand: Rand): SvgN
   return out
 }
 
-/** Paper foam lenses cut into the pool hatching at a fall's foot. */
+/** Small ragged foam lenses with a dark ripple edge in the plunge pool. */
 function foam(cx: number, half: number, y: number, rand: Rand): SvgNode[] {
   const out: SvgNode[] = []
-  for (let row = 0; row < 2; row++) {
+  for (let row = 0; row < 2; row++)
     for (let k = 0; k < 3; k++) {
-      const len = 5 + rand() * 6
-      const px = cx + (rand() - 0.5) * 2 * half
-      const py = y + 2.6 + row * 3.4
-      out.push(
-        occlude(
-          [
-            ...quad([px - len / 2, py], [px, py - 1.4], [px + len / 2, py], 4),
-            ...quad([px + len / 2, py], [px, py + 1.4], [px - len / 2, py], 4).slice(1),
-          ],
-          { halo: 0.4 },
-        ),
-      )
+      const len = 12 + rand() * 8,
+        px = cx + (rand() - 0.5) * 2 * half,
+        py = y + 3 + row * 5
+      const lens: Pt[] = [
+        [px - len / 2, py],
+        [px - len * 0.28, py - 2],
+        [px + len * 0.1, py - 1.5],
+        [px + len / 2, py],
+        [px + len * 0.2, py + 2.4],
+        [px - len * 0.3, py + 2],
+      ]
+      out.push(occlude(lens, { halo: 0.3 }), stroke('line', lens, true))
     }
-  }
   return out
 }
 
@@ -246,9 +245,12 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
   const lipJit = num(p, 'lipJit', 2.2)
   const recess = num(p, 'recess', 0)
   const wallOn = num(p, 'wall', 1) > 0
+  const perspective = num(p, 'perspective', 0)
+  const connected = p.connected === true
   const bu = (xx: number) => ((2 * (xx - x)) / w - 1) ** 2
-  const lipAt = (xx: number) => y + lipV * h + bow * bu(xx)
-  const footAt = (xx: number) => y + (lipV + dropV) * h + footBow * bu(xx)
+  const lipAt = (xx: number) => y + lipV * h + bow * bu(xx) + (perspective * (xx - x)) / w
+  const footAt = (xx: number) =>
+    y + (lipV + dropV) * h + footBow * bu(xx) + (perspective * 0.5 * (xx - x)) / w
   const x0 = x + endW,
     x1 = x + w - endW
   const wts = Array.isArray(p.weights) ? (p.weights as number[]) : null
@@ -358,39 +360,86 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
       }
     }
   }
-  // The sheets.
-  chans.forEach(([a, b], ci) => {
-    const top: Pt[] = []
-    const bot: Pt[] = []
-    for (let k = 0; k <= 4; k++) {
-      const xx = lerp(a, b, k / 4)
-      top.push([xx, lipAt(xx) + chJit[ci][0]])
-      bot.push([
-        Math.min(x + w - 2, Math.max(x + 2, lerp(a - spread, b + spread, k / 4))),
-        footAt(xx) + chJit[ci][1],
-      ])
-    }
-    out.push(...sheet(top, bot, rand, { wet: n === 1 ? 6 : 0 }))
-  })
-  // Foot: spray and foam.
-  for (const [a, b] of chans) {
-    const m = (a + b) / 2
-    out.push(...mist(a - 2.5, b + 2.5, footAt(m) + 0.5, mistH, rand))
-    out.push(...foam(m, (b - a) / 2, footAt(m), rand))
-  }
-  // A dark pool band closes the foot of each sheet.
-  chans.forEach(([a, b], ci) => {
-    const fy = footAt((a + b) / 2) + chJit[ci][1]
-    for (let k = 0; k < 3; k++)
+  if (connected) {
+    const top = ridgeLine(x0, x1, lipAt, rand, 1.5)
+    const bot = ridgeLine(
+      x0 - 1,
+      x1 + 1,
+      (xx) => footAt(xx) + Math.sin(((xx - x) / w) * 17) * 2.5,
+      rand,
+      1.5,
+    )
+    out.push(...sheet(top, bot, rand, { streaks: 0.4, rag: 1.8 }))
+    for (let i = 0; i < 10; i++) {
+      const f = 0.6 + i * 0.035,
+        xx = x0 + (x1 - x0) * f,
+        ly = lipAt(xx),
+        fy = footAt(xx)
       out.push(
-        hline(
-          'hair',
-          Math.max(x + 2, a - spread),
-          Math.min(x + w - 2, b + spread),
-          fy + 1.4 + k * 1.9,
+        stroke(
+          'fine',
+          quad(
+            [xx, ly + 2 + rand() * 4],
+            [xx + 1.4, (ly + fy) / 2],
+            [xx - 1, fy - 2 - rand() * 5],
+            8,
+          ),
         ),
       )
-  })
+    }
+    // Short, uneven wet ledges interrupt the lip, never dividing the whole drop into teeth.
+    bts.forEach(([a, b], i) => {
+      const yy = lipAt((a + b) / 2),
+        depth = h * (0.06 + (0.1 * ((i * 7) % 5)) / 4)
+      const ledge: Pt[] = [
+        [a - 1, yy - 3],
+        [b + 1, yy - 2],
+        [b - 1, yy + depth * 0.45],
+        [(a + b) / 2 - 1, yy + depth],
+        [a + 1, yy + depth * 0.6],
+      ]
+      out.push(
+        occlude(ledge, { halo: 0.5 }),
+        ...toneFill(ledge, 'T4', { gap: 2.2, weight: 'hair' }),
+      )
+    })
+    out.push(...mist(x0 - 1, x1 + 1, footAt(x + w * 0.5) + 1, mistH, rand))
+    for (const f of [0.18, 0.43, 0.72, 0.9])
+      out.push(...foam(x + w * f, 9, footAt(x + w * f), rand))
+  } else {
+    chans.forEach(([a, b], ci) => {
+      const top: Pt[] = [],
+        bot: Pt[] = []
+      for (let k = 0; k <= 4; k++) {
+        const xx = lerp(a, b, k / 4)
+        top.push([xx, lipAt(xx) + chJit[ci][0]])
+        bot.push([
+          Math.min(x + w - 2, Math.max(x + 2, lerp(a - spread, b + spread, k / 4))),
+          footAt(xx) + chJit[ci][1],
+        ])
+      }
+      out.push(...sheet(top, bot, rand, { wet: n === 1 ? 6 : 0 }))
+    })
+    for (const [a, b] of chans) {
+      const m = (a + b) / 2
+      out.push(
+        ...mist(a - 2.5, b + 2.5, footAt(m) + 0.5, mistH, rand),
+        ...foam(m, (b - a) / 2, footAt(m), rand),
+      )
+    }
+    chans.forEach(([a, b], ci) => {
+      const fy = footAt((a + b) / 2) + chJit[ci][1]
+      for (let k = 0; k < 3; k++)
+        out.push(
+          hline(
+            'hair',
+            Math.max(x + 2, a - spread),
+            Math.min(x + w - 2, b + spread),
+            fy + 1.4 + k * 1.9,
+          ),
+        )
+    })
+  }
   // A T5 gorge cut in front of the foot hides the plunge (Victoria Falls).
   const gorge = num(p, 'gorge', 0)
   if (gorge > 0) {
@@ -448,7 +497,9 @@ function ribbon([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
   const sway = (rand() - 0.5) * 3
   const e = streamEdges(
     (t) => [cx + sway * t, lerp(yTop, yBot, t)],
-    (t) => (wid / 2) * (1 - 0.72 * Math.sin(Math.PI * Math.min(1, t * 0.9)) + 0.45 * t * t),
+    (t) =>
+      (wid / 2) *
+      (1 - num(p, 'neck', 0.72) * Math.sin(Math.PI * Math.min(1, t * 0.9)) + 0.45 * t * t),
     12,
   )
   out.push(...stream(e.a, e.b, rand, { wet: 0, marks: 3 }))
@@ -682,9 +733,33 @@ export const waterfallB: KitModule = (box, p) => {
     ['ribbon', 'curtain', 'horseshoe', 'two-step', 'cleft', 'cascade'] as const,
     'curtain',
   )
-  if (profile === 'ribbon') return ribbon(box, p, rand)
-  if (profile === 'cleft') return cleft(box, p, rand)
-  if (profile === 'cascade') return cascade(box, p, rand)
-  if (profile === 'two-step') return twoStep(box, p, rand)
-  return curtain(box, p, rand, profile === 'horseshoe')
+  let nodes: SvgNode[]
+  if (profile === 'ribbon') nodes = ribbon(box, p, rand)
+  else if (profile === 'cleft') nodes = cleft(box, p, rand)
+  else if (profile === 'cascade') nodes = cascade(box, p, rand)
+  else if (profile === 'two-step') nodes = twoStep(box, p, rand)
+  else nodes = curtain(box, p, rand, profile === 'horseshoe')
+  if (p.foreground === true) {
+    const [x, y, w, h] = box
+    for (const f of Array.isArray(p.rocks) ? (p.rocks as number[]) : [0.24, 0.72]) {
+      const cx = x + w * f,
+        by = y + h + 4
+      const rock: Pt[] = [
+        [cx - 7, by],
+        [cx - 4, by - 7],
+        [cx + 1, by - 9],
+        [cx + 6, by - 5],
+        [cx + 8, by],
+      ]
+      nodes.push(
+        occlude(rock, { halo: 1 }),
+        stroke('line', rock, true),
+        stroke('fine', [
+          [cx + 1, by - 8],
+          [cx + 4, by - 1],
+        ]),
+      )
+    }
+  }
+  return nodes
 }

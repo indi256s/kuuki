@@ -26,7 +26,10 @@
       "module": "natural-arch",
       "box": [28, 54, 144, 72],
       "params": {
-        "seed": 4
+        "seed": 4,
+        "holeTop": 0.25,
+        "holeL": 0.21,
+        "holeR": 0.76
       }
     }
   ]

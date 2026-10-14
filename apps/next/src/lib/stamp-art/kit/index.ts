@@ -1,3 +1,17 @@
+import { fasilB, brokenColumnsB, coastArcadeB } from './forts-b'
+import {
+  falajB,
+  bananaB,
+  cliffOverhangB,
+  distantBaobabB,
+  fogoB,
+  elminaB,
+  shoebillB,
+  thousandHillsB,
+  motuB,
+  basaltTablesB,
+} from './scenes-b'
+import { sidiLaneB, casbahB, meroeB } from './towns-b'
 import { lionMountainB } from './lion-mountain-b'
 import { mulanjeB } from './mulanje-b'
 import { masadaB } from './masada-b'
@@ -39,6 +53,7 @@ import { amphitheatre } from './amphitheatre'
 import { rooftops } from './rooftops'
 import { atoll } from './atoll'
 import { dunes } from './dunes'
+import { dunesB } from './dunes-b'
 import { pyramid, steppedPyramid } from './pyramid'
 import { palace, gloriette } from './palace'
 import { belfry } from './clock-tower'
@@ -187,6 +202,22 @@ import { dubrovnik, gediminas, guaita, ohridBoat, samuelsFortress, valletta } fr
 
 /** Kit modules by recipe tag. */
 export const kit = {
+  'sidi-lane-b': sidiLaneB,
+  'casbah-b': casbahB,
+  'meroe-b': meroeB,
+  'elmina-b': elminaB,
+  'shoebill-b': shoebillB,
+  'thousand-hills-b': thousandHillsB,
+  'motu-b': motuB,
+  'basalt-tables-b': basaltTablesB,
+  'fasil-b': fasilB,
+  'broken-columns-b': brokenColumnsB,
+  'coast-arcade-b': coastArcadeB,
+  'fogo-b': fogoB,
+  'falaj-b': falajB,
+  'banana-b': bananaB,
+  'cliff-overhang-b': cliffOverhangB,
+  'distant-baobab-b': distantBaobabB,
   sky,
   'distance-mountains': distanceMountains,
   'distance-trees': distanceTrees,
@@ -391,6 +422,7 @@ export const kit = {
   'pigeon-rocks': pigeonRocks,
   shibam,
   'olive-b': oliveB,
+  'dunes-b': dunesB,
   'hill-terraces-b': hillTerracesB,
   'inland-sea-b': inlandSeaB,
   palmyra,

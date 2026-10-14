@@ -2,8 +2,8 @@
 // low doorway with a lintel, a shaded return wall at the right and rubble at the foot. The box
 // bottom is the ground.
 import { mulberry32 } from '../hash'
-import { type Pt, type SvgNode, body, fill, hline, hatch, rectPts, stroke } from '../grid'
-import { type KitModule, num } from './util'
+import { type Pt, type SvgNode, body, fill, hline, hatch, quad, rectPts, stroke } from '../grid'
+import { type KitModule, bool, num } from './util'
 
 export const ruinWall: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 12)))
@@ -22,6 +22,15 @@ export const ruinWall: KitModule = ([x, y, w, h], p) => {
     const top = base - Math.min(h * 0.98, hh)
     if (i > 0) crown.push([fx, crown[crown.length - 1][1]])
     crown.push([fx, top])
+  }
+  if (bool(p, 'crumble', false)) {
+    const rounded: Pt[] = []
+    for (let i = 0; i + 1 < crown.length; i++) {
+      const a = crown[i],
+        b = crown[i + 1]
+      rounded.push(...quad(a, [(a[0] + b[0]) / 2 + 1, (a[1] + b[1]) / 2 + 1], b, 3))
+    }
+    crown.splice(0, crown.length, ...rounded)
   }
   const face: Pt[] = [[x, base], ...crown, [x + faceW, base]]
   // Return wall in shade.

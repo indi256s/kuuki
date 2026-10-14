@@ -33,27 +33,31 @@
   "layers": [
     {
       "module": "waterfall-b",
-      "box": [27, 53, 146, 73],
+      "box": [33, 55, 134, 71],
       "params": {
         "profile": "horseshoe",
         "channels": 6,
         "lipY": 0.26,
-        "drop": 0.56,
-        "bow": 13,
-        "buttress": 12,
-        "ends": 0.07,
-        "endTall": 6,
-        "canopy": 6,
-        "islets": 6,
-        "mist": 0.3,
+        "drop": 0.47,
+        "bow": 18,
+        "buttress": 8,
+        "ends": 0.22,
+        "endTall": 12,
+        "canopy": 8,
+        "islets": 0,
+        "mist": 0.16,
         "seed": 9,
-        "footBow": 8,
+        "footBow": 7,
         "lipJit": 2,
         "spread": 0.55,
-        "weights": [0.5, 0.8, 1.2, 1.2, 0.8, 0.5],
+        "weights": [0.3, 0.9, 1.6, 0.8, 1.4, 0.5],
         "wall": 0,
-        "ribLen": 1,
-        "taper": 3.4
+        "ribLen": 0.2,
+        "taper": 3.4,
+        "connected": true,
+        "perspective": -12,
+        "foreground": true,
+        "rocks": [0.12, 0.36, 0.66, 0.87]
       }
     }
   ]

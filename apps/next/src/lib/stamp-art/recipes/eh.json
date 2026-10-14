@@ -2,31 +2,26 @@
   "iso2": "EH",
   "tier": "engraved",
   "shape": "rectangle",
-  "horizon": 0.7,
+  "horizon": 0.6,
   "backdrop": [
     {
       "module": "sky",
       "params": {
-        "clouds": [150, 64, 40],
+        "clouds": [150, 58, 36],
         "weight": "hair",
-        "gap": [2.6, 3.4]
+        "gap": [2.6, 3.6]
       }
     },
     {
-      "module": "ground",
+      "module": "dunes-b",
       "params": {
-        "line": false
-      }
-    },
-    {
-      "module": "dunes",
-      "params": {
-        "crests": [0.5, 0.6, 0.7, 0.8, 0.9],
-        "amp": 7,
-        "wave": 130,
-        "lee": [16, 18, 20, 22, 24],
-        "gap": 1.5,
-        "band": true
+        "seed": 4,
+        "slip": 0.16,
+        "ridges": [
+          [0.65, 0.6, 0.18, 0.8, 0.35],
+          [0.2, 0.83, 0.42, 0.7, 0.42],
+          [0.8, 1.04, 0.48, 0.85, 0.38]
+        ]
       }
     }
   ],

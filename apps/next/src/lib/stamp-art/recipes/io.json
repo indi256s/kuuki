@@ -4,19 +4,28 @@
   "shape": "circle",
   "ink": "indigo",
   "cluster": "atoll",
-  "horizon": 0.5,
+  "horizon": 0.62,
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [3, 4.2], "weight": "hair", "clouds": [60, 58, 30, 142, 66, 26] }
+      "params": {
+        "gap": [3, 4.2],
+        "weight": "hair",
+        "clouds": [60, 58, 30, 142, 66, 26]
+      }
     },
-    { "module": "ground", "params": { "water": true } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
   ],
   "layers": [
     {
-      "module": "reef-ring-b",
-      "box": [48, 108, 104, 44],
-      "params": { "seed": 11 }
+      "module": "motu-b",
+      "box": [49, 58, 80, 65],
+      "params": {}
     }
   ]
 }

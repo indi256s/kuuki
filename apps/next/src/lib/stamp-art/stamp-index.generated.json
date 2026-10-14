@@ -1170,7 +1170,7 @@
     "tier": "engraved"
   },
   "GH": {
-    "cluster": "triumphal-arch",
+    "cluster": "fort",
     "ink": "ochre-dark",
     "iso3": "GHA",
     "name": {
@@ -3045,7 +3045,7 @@
     "tier": "engraved"
   },
   "SS": {
-    "cluster": "bridge",
+    "cluster": "wetland",
     "ink": "plum",
     "iso3": "SSD",
     "name": {

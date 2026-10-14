@@ -30,7 +30,10 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
       pts.push([px, y0 + sag(px) * 0.9 + (i % 2 ? dir * 1.5 : -dir * 1.5)])
     return pts
   }
-  out.push(stroke('fine', zig(wallTop + 6.2, 1)), stroke('fine', zig(wallTop + 8.2, -1)))
+  out.push(
+    stroke(p.chevron === true ? 'line' : 'fine', zig(wallTop + 6.2, 1)),
+    stroke(p.chevron === true ? 'hair' : 'fine', zig(wallTop + 10.2, -1)),
+  )
   // Shaded right end of the wall.
   const shade: Pt[] = [
     [x + w * 0.78, wallTop + sag(x + w * 0.78)],
@@ -65,7 +68,7 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
   // Conical tower in front.
   const tx = x + w * num(p, 'towerAt', 0.4)
   const bw = w * 0.115,
-    tw = w * 0.08,
+    tw = bw * num(p, 'taper', 0.69565),
     tTop = y + 9
   const L = (t: number): Pt => [tx - (bw + (tw - bw) * t), base - t * (base - tTop - 6)]
   const R = (t: number): Pt => [tx + (bw + (tw - bw) * t), base - t * (base - tTop - 6)]

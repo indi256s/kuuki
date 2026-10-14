@@ -40,7 +40,7 @@
   "layers": [
     {
       "module": "qasr-farid",
-      "box": [62, 38, 76, 94],
+      "box": [61, 44, 78, 84],
       "params": {}
     }
   ]

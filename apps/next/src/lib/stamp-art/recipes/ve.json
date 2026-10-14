@@ -38,13 +38,14 @@
       "box": [27, 53, 146, 73],
       "params": {
         "profile": "ribbon",
-        "width": 0.08,
+        "width": 0.12,
         "lipY": 0.15,
-        "drop": 0.45,
+        "drop": 0.65,
         "axis": 0.74,
-        "mist": 0.16,
+        "mist": 0.12,
         "seed": 2,
-        "fracture": 6.5
+        "fracture": 6.5,
+        "neck": 0.35
       }
     }
   ]

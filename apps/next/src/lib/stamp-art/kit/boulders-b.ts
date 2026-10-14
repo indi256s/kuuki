@@ -2,7 +2,7 @@
 // dome with a flat footing, shaded by arcs that hug its lower-right edge. `boulders` lists
 // [x fraction, width fraction, height fraction, seed] from back to front; the box bottom is the sand.
 import { mulberry32 } from '../hash'
-import { type Pt, type SvgNode, fill, hline, occlude, stroke } from '../grid'
+import { type Pt, type SvgNode, fill, hline, occlude, stroke, hatchPoly } from '../grid'
 import { type KitModule, nums } from './util'
 
 function dome(cx: number, base: number, a: number, b: number, seed: number): Pt[] {
@@ -34,13 +34,8 @@ export const bouldersB: KitModule = ([x, y, w, h], p) => {
     const pts = dome(cx, base - 0.5, a, b, seed)
     const body: Pt[] = [...pts, [cx - a, base]]
     out.push(occlude(body, { halo: 1.8 }))
-    // Contour shading: shifted inner domes, drawn on the right-hand side only.
-    for (let k = 1; k <= 6; k++) {
-      const f = 1 - k * 0.075
-      const arc = dome(cx - a * 0.11 * k, base - 0.5, a * f, b * f * 0.98, seed + 1)
-      const run = arc.filter((_, j) => j >= 0 && j <= 26 - k * 2)
-      if (run.length > 2) out.push(stroke('fine', run))
-    }
+    const shade: Pt[] = [...pts.filter(([px]) => px >= cx), [cx + a, base], [cx, base]]
+    out.push(...hatchPoly(shade, { angle: 90, gap: 2.4, weight: 'hair' }))
     // A crack on the lit side and a shadow wedge at the footing.
     const crackX = cx - a * 0.25
     out.push(
