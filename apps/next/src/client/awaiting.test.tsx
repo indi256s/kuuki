@@ -71,7 +71,7 @@ const cases: Array<[number, number, string, string]> = [
   ],
 ]
 it.each(cases)(
-  'names the row with real plurals, only non-zero parts and the visible label first (%i flights, %i rows)',
+  'names and routes the review row for %i flights and %i draft rows',
   async (flights, rows, en, ru) => {
     for (const [locale, name] of [
       ['en', en],
@@ -83,20 +83,33 @@ it.each(cases)(
           actionableCount: flights + rows,
           awaitingFlightCount: flights,
           draftRowCount: rows,
+          drafts: [
+            { batchId: 'processing', reviewRowCount: 0 },
+            ...(rows > 0 ? [{ batchId: 'batch/one', reviewRowCount: 1 }] : []),
+            ...(rows > 1 ? [{ batchId: 'batch-two', reviewRowCount: rows - 1 }] : []),
+          ],
         })
       const { unmount } = render(
         <AwaitingProvider ownerId={`owner-${locale}`}>
           <Menu open trigger={<button type="button">x</button>}>
-            <QueueMenuItem locale={locale} />
+            <QueueMenuItem locale={locale} field={locale === 'ru'} />
           </Menu>
         </AwaitingProvider>,
       )
       const link = await screen.findByRole('menuitem', { name })
       expect(link).toHaveTextContent(String(flights + rows))
+      expect(link).toHaveAttribute(
+        'href',
+        flights > 0
+          ? '/journal?queue=awaiting'
+          : rows === 1
+            ? '/import?batch=batch%2Fone'
+            : '/import',
+      )
       expect(
         link
           .getAttribute('aria-label')!
-          .startsWith(link.querySelector('.queue-label')!.textContent!),
+          .startsWith(link.querySelector('.queue-label, .account-field-key')!.textContent!),
       ).toBe(true)
       expect(link.getAttribute('aria-label')).not.toMatch(/\b0 /)
       unmount()

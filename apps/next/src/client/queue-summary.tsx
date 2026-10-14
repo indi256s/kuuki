@@ -52,11 +52,18 @@ export function QueueMenuItem({
   const queue = useAwaiting()
   const waiting = queue.data
   count ??= waiting?.actionableCount
+  const batches = (waiting?.drafts ?? []).filter((draft) => draft.reviewRowCount > 0)
+  const href =
+    waiting?.awaitingFlightCount === 0 && waiting.draftRowCount > 0
+      ? batches.length === 1
+        ? `/import?batch=${encodeURIComponent(batches[0]!.batchId)}`
+        : '/import'
+      : QUEUE_HREF
   const label = LABEL[locale]
   const lang = locale === 'ru' ? 'ru' : undefined
   const row = (trailing: ReactNode, name?: string) => (
     <MenuItem asChild>
-      <Link href={QUEUE_HREF} aria-label={name}>
+      <Link href={href} aria-label={name}>
         {field ? (
           <>
             <span className="account-field-key" lang={lang}>
