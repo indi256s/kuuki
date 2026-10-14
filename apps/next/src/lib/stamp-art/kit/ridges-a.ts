@@ -30,13 +30,13 @@ export const ridgesA: KitModule = ([x, y, w, h], p) => {
       ])
     }
     const poly: Pt[] = [...ridge, [x + w, y + h], [x, y + h]]
-    out.push(occlude(poly), stroke(k === layers - 1 ? 'line' : 'hair', ridge))
-    const depth = k === layers - 1 ? h * 0.3 : h * (0.22 - 0.05 * front)
+    out.push(occlude(poly), stroke('hair', ridge))
+    const depth = h * (0.16 + 0.05 * front)
     const band: Pt[] = [
       ...ridge,
       ...[...ridge].reverse().map(([px, py]): Pt => [px, Math.min(y + h, py + depth)]),
     ]
-    out.push(...toneFill(band, k === 0 ? 'T2' : 'T4', { gap: k === 0 ? [2.6, 2.6] : [3.4, 3.4] }))
+    out.push(...toneFill(band, k === 0 ? 'T2' : 'T4', { gap: k === 0 ? [3.2, 3.2] : [3.8, 3.8] }))
   }
   return out
 }

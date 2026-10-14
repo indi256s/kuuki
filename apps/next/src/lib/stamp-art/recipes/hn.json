@@ -43,36 +43,34 @@
   ],
   "layers": [
     {
-      "module": "stepped-pyramid",
+      "module": "copan-stair-a",
       "box": [44, 58, 112, 66],
       "params": {
         "terraces": 5,
         "temple": 0.16,
         "top": 0.5,
-        "stair": 0.5,
+        "stair": 0.45,
         "side": 0.06,
         "templeW": 0.34,
-        "treads": 22
+        "treads": 14
       }
     }
   ],
   "signature": [
     {
       "part": "stela",
-      "box": [31, 92, 18, 40],
+      "box": [32, 99, 13, 33],
       "params": {
-        "count": 2,
-        "heights": [1, 0.75],
-        "slabW": 7
+        "count": 1,
+        "slabW": 8
       }
     },
     {
       "part": "stela",
-      "box": [151, 92, 18, 40],
+      "box": [155, 103, 13, 29],
       "params": {
-        "count": 2,
-        "heights": [0.75, 1],
-        "slabW": 7
+        "count": 1,
+        "slabW": 8
       }
     }
   ]

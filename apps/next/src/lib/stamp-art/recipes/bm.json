@@ -32,24 +32,19 @@
   ],
   "layers": [
     {
-      "module": "mountains",
-      "box": [38, 112, 124, 20],
-      "params": {
-        "peaks": [[0.5, 1]],
-        "jag": 0.5,
-        "weight": "line",
-        "shade": "right",
-        "shadeDepth": 14
-      }
+      "module": "cottages-a",
+      "box": [44, 106, 112, 29],
+      "params": {}
     },
     {
       "module": "lighthouse",
-      "box": [86, 43, 28, 73],
+      "box": [87, 46, 26, 79],
       "params": {
         "taper": 0.58,
-        "ribs": 3,
+        "ribs": 2,
         "windows": 3,
-        "shade": 0.3
+        "shade": 0.15,
+        "brackets": 3
       }
     }
   ]

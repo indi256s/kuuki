@@ -41,7 +41,7 @@
         "shadeGap": 2.8,
         "crag": 0.8,
         "seed": 4,
-        "walls": [[0.1, 0.5]],
+        "walls": [0.1, 0.5],
         "wallH": 10
       }
     },

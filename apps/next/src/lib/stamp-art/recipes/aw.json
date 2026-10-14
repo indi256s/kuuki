@@ -17,30 +17,25 @@
     {
       "module": "ground",
       "params": {
-        "water": true
+        "water": false
       }
     }
   ],
   "layers": [
     {
+      "module": "sand-a",
+      "box": [48, 115, 104, 23],
+      "params": {}
+    },
+    {
       "module": "lighthouse",
-      "box": [84, 58, 26, 72],
+      "box": [84, 49, 25, 84],
       "params": {
         "taper": 0.66,
         "ribs": 0,
         "windows": 2,
-        "shade": 0.3,
-        "base": 0.06
-      }
-    },
-    {
-      "module": "dunes",
-      "box": [46, 108, 108, 34],
-      "params": {
-        "crests": [0.45, 0.75],
-        "amp": 5,
-        "wave": 90,
-        "lee": [12, 16]
+        "shade": 0.15,
+        "base": 0.04
       }
     }
   ]

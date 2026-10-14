@@ -3,7 +3,7 @@
   "tier": "engraved",
   "shape": "cut-rect",
   "ink": "plum",
-  "horizon": 0.72,
+  "horizon": 0.78,
   "backdrop": [
     {
       "module": "sky",
@@ -50,26 +50,22 @@
   "layers": [
     {
       "module": "volcano",
-      "box": [40, 76, 120, 48],
+      "box": [38, 67, 124, 62],
       "params": {
         "profile": "cone",
         "summit": 8,
         "concavity": 0.5,
-        "snow": 0.28,
-        "gullies": 9,
-        "trees": 8,
+        "snow": 0,
+        "gullies": 7,
+        "trees": 4,
         "axis": 0.46
       }
-    }
-  ],
-  "signature": [
+    },
     {
-      "part": "plume",
-      "box": [84, 54, 60, 24],
+      "module": "plume-a",
+      "box": [77, 53, 49, 23],
       "params": {
-        "puffs": 6,
-        "r0": 3.5,
-        "r1": 9
+        "lean": 0.35
       }
     }
   ]

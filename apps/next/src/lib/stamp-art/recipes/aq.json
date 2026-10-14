@@ -9,7 +9,7 @@
     {
       "module": "sky",
       "params": {
-        "gap": [3.0, 4.2],
+        "gap": [2.6, 3.8],
         "clouds": [40, 60, 40, 156, 70, 34, 100, 50, 28],
         "weight": "hair"
       }
@@ -32,13 +32,18 @@
         "seed": 14
       }
     },
-    { "module": "ground", "params": { "water": true } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
   ],
   "layers": [
     {
-      "module": "iceberg",
-      "box": [42, 62, 112, 62],
-      "params": { "kind": "arch", "archW": 0.28, "archH": 0.5, "archX": 0.5, "lit": 0.5, "seed": 6 }
+      "module": "ice-arch-a",
+      "box": [31, 58, 136, 64],
+      "params": {}
     }
   ]
 }

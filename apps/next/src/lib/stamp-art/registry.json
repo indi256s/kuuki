@@ -142,7 +142,7 @@
     "motif": "Arched iceberg off the ice shelf",
     "kind": "nature",
     "silhouette": "a broad iceberg with a natural arch standing in flat water before snow-capped peaks",
-    "modules": ["iceberg", "distance-mountains"],
+    "modules": ["ice-arch-a"],
     "signature": null,
     "backdrop": null,
     "cluster": "station",
@@ -150,7 +150,7 @@
     "replaced": "Research station on stilts: neutral nature only for Antarctica",
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: arch iceberg"
+    "notes": "Thin ragged ice arch, faceted buttresses and pale reflection."
   },
   {
     "iso2": "AR",
@@ -159,15 +159,15 @@
     "motif": "Obelisco de Buenos Aires on Avenida 9 de Julio",
     "kind": "object",
     "silhouette": "wide flat base with a short plinth step; a tall, straight-sided tapering shaft rising to a point; symmetric, narrow top half, wide bottom third",
-    "modules": ["obelisk", "rooftops"],
+    "modules": ["avenue-a", "obelisk"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "obelisk (lane A) over a low rooftop band."
+    "notes": "Obelisco enlarged above a converging avenue with tree bands and distant building masses; no lettering."
   },
   {
     "iso2": "AS",
@@ -227,7 +227,7 @@
     "motif": "California Lighthouse",
     "kind": "architecture",
     "silhouette": "tall, slender tapered tower, widest at the base, narrowing to a lantern room at the top; a small low platform at the foot; no other buildings in the frame",
-    "modules": ["lighthouse", "dunes", "water"],
+    "modules": ["sand-a", "lighthouse"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
@@ -235,7 +235,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: dune or boulder base, plain white taper"
+    "notes": "Lighthouse enlarged above angular sand ridges and shaded slip faces."
   },
   {
     "iso2": "AZ",
@@ -277,8 +277,8 @@
     "name": "Barbados",
     "motif": "Garrison Main Guard House with its clock cupola",
     "kind": "architecture",
-    "silhouette": "low, long, symmetric stone wall with a row of arched openings across the bottom; a square clock tower rising from the centre with a short pyramid-capped top; flat roofline either side",
-    "modules": ["arcade-house-a", "tower"],
+    "silhouette": "Long low arcaded guardhouse with an enlarged central domed clock cupola, lit square shaft and clock face",
+    "modules": ["arcade-house-a", "clock-cupola-a"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -286,7 +286,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Main Guard drawn with 3 arcade bays (lint paper share) and a hip-capped clock tower."
+    "notes": "Enlarged domed clock cupola above five open guardhouse arcade bays."
   },
   {
     "iso2": "BD",
@@ -431,7 +431,7 @@
     "motif": "Gibbs Hill Lighthouse",
     "kind": "architecture",
     "silhouette": "very tall, slender, tapering tower with a lantern at the top, on a grassy hilltop; a thin cast-iron frame showing through the outer skin; the only vertical element against a flat horizon",
-    "modules": ["lighthouse", "hills"],
+    "modules": ["cottages-a", "lighthouse"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
@@ -439,7 +439,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: tall slim cast-iron taper with a gallery on a hill"
+    "notes": "Cast-iron gallery brackets, panel ribs, rolling hills and white cottages."
   },
   {
     "iso2": "BN",
@@ -465,7 +465,7 @@
     "motif": "Gate of the Sun at Tiwanaku",
     "kind": "ruin",
     "silhouette": "two tall, straight uprights with a flat lintel across the top forming a rectangular gateway; a plain carved frieze band across the lintel; a stepped sunken court or platform at the base",
-    "modules": ["monolith-gate"],
+    "modules": ["ruin-wall", "monolith-gate"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -473,7 +473,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "monolith-gate (lane A): doorway, frieze panels, crack, stepped base; Illimani-style ridge behind."
+    "notes": "Broad Gate of the Sun monolith, abstract frieze block, one doorway, crack and Kalasasaya wall."
   },
   {
     "iso2": "BR",
@@ -482,7 +482,7 @@
     "motif": "Sugarloaf Mountain at the harbour entrance",
     "kind": "architecture",
     "silhouette": "two rounded granite domes side by side, the larger on the right and the smaller on the left; a thin cable line running between them; flat water across the bottom",
-    "modules": ["granite-dome", "cable-car", "distance-trees"],
+    "modules": ["granite-dome", "cable-car"],
     "signature": null,
     "backdrop": null,
     "cluster": "twin-peak",
@@ -490,7 +490,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Sugarloaf (bullet-profile granite-dome, power param) with Morro da Urca and a cable-car line; Christ the Redeemer dropped (rule 1)."
+    "notes": "Larger gondola suspended on the cable from Urca to Sugarloaf."
   },
   {
     "iso2": "BS",
@@ -507,7 +507,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Alternating paper and shaded treads, limestone joints and an enlarged palm."
   },
   {
     "iso2": "BT",
@@ -726,9 +726,9 @@
     "cluster": null,
     "status": "replaced",
     "replaced": "Moai on ahu platforms: Q43 (moai: sacred statues of a living culture)",
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "paine-towers (lane A): three needles on dark scree with a massif behind."
+    "notes": "Broader, angular granite crowns and shaded facets."
   },
   {
     "iso2": "CM",
@@ -787,8 +787,8 @@
     "name": "Costa Rica",
     "motif": "Arenal Volcano with its steam plume",
     "kind": "nature",
-    "silhouette": "a steep near-perfect cone over a lake with a plume of round steam puffs drifting right from the summit",
-    "modules": ["volcano", "plume"],
+    "silhouette": "A broad steep cone above a lake with an irregular tonal ash plume rising from its summit",
+    "modules": ["volcano", "plume-a"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -796,7 +796,7 @@
     "replaced": "Teatro Nacional: reads as a generic pediment next to GR; REVIEW offers cone-with-smoke for CR; owner can revert (earlier Q44 cut the volcano cluster)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: plume"
+    "notes": "Enlarged volcanic cone with an irregular tonal ash column; no circle outlines."
   },
   {
     "iso2": "CU",
@@ -1161,8 +1161,8 @@
     "name": "Falkland Islands",
     "motif": "Gentoo penguins on a tussac shore",
     "kind": "nature",
-    "silhouette": "Two upright penguins side by side on a low rock, tussock tufts, flat sea line",
-    "modules": ["water", "island"],
+    "silhouette": "Three gentoo penguins in varied profiles, dark backs and heads, white eye patches, projecting bills and stiff tails on a tussac shore",
+    "modules": ["penguin-a"],
     "signature": "new:penguin – upright penguin, bill and flippers",
     "backdrop": null,
     "cluster": null,
@@ -1170,7 +1170,7 @@
     "replaced": "Whalebone Arch: monument on contested territory (rule 5)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Neutral nature only.. Contested: neutral nature only, no buildings (rule 5)."
+    "notes": "Three gentoo profiles with white eye gaps, dark backs, bills, flippers and stiff tails above tussac."
   },
   {
     "iso2": "FM",
@@ -1295,18 +1295,18 @@
     "iso2": "GF",
     "iso3": "GUF",
     "name": "French Guiana",
-    "motif": "Ariane 6 launch complex at the Guiana Space Centre, on the coast north-west of Kourou",
+    "motif": "Generic two-booster launcher at the Guiana Space Centre",
     "kind": "object",
     "silhouette": "a tall rectangular lattice tower on the right, with a slim pointed rocket standing against it on the left; a flat, low ground line; the sea implied at the base",
-    "modules": ["platform"],
+    "modules": ["gantry-a"],
     "signature": "new:launch-gantry – a tall rectangular lattice tower, open-framed; new:rocket – a slender tapering rocket with a pointed nose",
     "backdrop": null,
     "cluster": null,
-    "status": "kept",
-    "replaced": null,
-    "confidence": "high",
+    "status": "replaced",
+    "replaced": "Named Ariane 6 launch complex replaced with owner-approved generic unbranded launcher",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "Industrial gantry, not a copyrighted design; check rule 6 if the owner disagrees."
+    "notes": "Owner-approved generic two-booster launcher with lattice tower, umbilical arms and coastal tree band; no logos or lettering."
   },
   {
     "iso2": "GG",
@@ -1465,18 +1465,18 @@
     "iso2": "GS",
     "iso3": "SGS",
     "name": "South Georgia",
-    "motif": "Grytviken whaling station chimney under glaciated peaks",
-    "kind": "ruin",
-    "silhouette": "Tall square chimney and low rusting tank sheds on a shore flat, serrated glaciated peaks behind",
-    "modules": ["mountains", "glacier", "water", "platform"],
-    "signature": "new:whaling-chimney – tall square brick chimney stack",
+    "motif": "Glaciated South Georgia peaks with a small king penguin colony",
+    "kind": "nature",
+    "silhouette": "Serrated snowy peaks above a crevassed glacier tongue and a small penguin colony on the shore",
+    "modules": ["polar-coast-a"],
+    "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Whaling church at Grytviken: church (rule 1); chimney and station kept",
+    "replaced": "Grytviken whaling station: contested-territory nature-only rule",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": null
+    "notes": "Owner decision: nature only; removed the chimney and station. Glaciated peaks, glacier and small king penguin colony."
   },
   {
     "iso2": "GT",
@@ -1508,9 +1508,9 @@
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Five latte stones receding in height, width and ground level."
   },
   {
     "iso2": "GW",
@@ -1570,7 +1570,7 @@
     "motif": "Copan Hieroglyphic Stairway",
     "kind": "ruin",
     "silhouette": "a stepped temple platform at the centre top, a broad central stairway running down the middle, and a low row of upright carved stelae along the base",
-    "modules": ["stepped-pyramid", "steps", "platform"],
+    "modules": ["copan-stair-a"],
     "signature": "new:stela – tall carved slab, rectangular, narrow",
     "backdrop": null,
     "cluster": "pyramid",
@@ -1578,7 +1578,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: stair with glyph risers and a standing stela"
+    "notes": "Copan stair risers carry abstract carved texture; flanking stelae remain plain slabs."
   },
   {
     "iso2": "HR",
@@ -1833,7 +1833,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Lighter ridge bands separated by mist; larger palm in the left third."
   },
   {
     "iso2": "JO",
@@ -2317,16 +2317,16 @@
     "name": "Saint Martin",
     "motif": "Marigot harbour quay",
     "kind": "object",
-    "silhouette": "Quay line with moored boats, a hillside behind",
+    "silhouette": "Broad fort wall on a harbour hill above a row of quay buildings, with a small moored sloop to the right",
     "modules": ["rock-hill", "fortress-wall", "rooftops", "sloop-a"],
     "signature": null,
     "backdrop": null,
     "cluster": "ship",
     "status": "replaced",
     "replaced": "Fort Louis, a French fort on the hill above Marigot harbour: Q44 (fort cluster cut)",
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: moored boats on a quay under a hill. Promoted research alternate."
+    "notes": "Dominant fort wall and harbour row, small sloop; retaining-wall parameter corrected to a flat pair."
   },
   {
     "iso2": "MG",
@@ -2471,7 +2471,7 @@
     "motif": "Mount Pelee over the ruined Saint-Pierre theatre",
     "kind": "nature",
     "silhouette": "Steep cone at the back, a curved flight of ruined stone steps and a broken arched wall in the foreground, sea line",
-    "modules": ["rock-hill", "ruin-wall", "steps"],
+    "modules": ["rock-hill", "theatre-arches-a", "steps"],
     "signature": "new:ruined-wall – broken arched wall with a jagged top",
     "backdrop": null,
     "cluster": "volcano",
@@ -2479,7 +2479,7 @@
     "replaced": "Ruined church facade in the foreground: church (rule 1); theatre ruins instead",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Steep notched cone via rock-hill (not the Fuji cone profile) to stay distinct in the volcano cluster; ruined wall and steps at the foot."
+    "notes": "Broader Mount Pelee mass and three legible theatre ruin arches."
   },
   {
     "iso2": "MR",
@@ -2513,7 +2513,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Lopsided dome massif via rock-hill with an ash plume and rubble of Plymouth at the foot; ink slate to stay distinct in the volcano cluster."
+    "notes": "Irregular tonal ash column replaces the chain of circular puffs."
   },
   {
     "iso2": "MT",
@@ -2879,15 +2879,15 @@
     "motif": "Machu Picchu terraces below Huayna Picchu",
     "kind": "ruin",
     "silhouette": "stepped stone terraces across the middle, a steep green peak on one side (Huayna Picchu) rising higher than the terraces, a mountain behind it",
-    "modules": ["terraces", "mountains"],
+    "modules": ["rock-hill", "terraces-a"],
     "signature": "new:trapezoid-niche – battered trapezoid doorway or niche with a slanted jamb",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Sharper Huayna Picchu shoulder, lighter terrace courses and distinct ruin houses."
   },
   {
     "iso2": "PF",
@@ -3014,16 +3014,16 @@
     "name": "Puerto Rico",
     "motif": "El Morro",
     "kind": "architecture",
-    "silhouette": "Close-up bastion corner: lit left face, shaded right face meeting at a vertical edge, flat parapet band, a big domed sentry box (garita) on the salient and a small one at the right end, sea-cut rock at the foot, sea behind",
-    "modules": ["garita", "sky", "ground"],
+    "silhouette": "Close-up battered bastion corner: lit left face and shaded right face meet at a sloping salient, with flat parapet strips, a large domed sentry box and a smaller one at the right end, sea-cut rock and sea behind",
+    "modules": ["garita"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: sentry box (garita) at a bastion corner, sea cliff. Drawn close-up so it differs from CU (flat curtain with lighthouse), KN and HT (stepped hill forts)"
+    "notes": "Bastion salient battered at 30 degrees from vertical, with attached sentry boxes."
   },
   {
     "iso2": "PS",
@@ -3490,8 +3490,8 @@
     "name": "El Salvador",
     "motif": "Joya de Ceren",
     "kind": "ruin",
-    "silhouette": "Few small thatched huts with steep conical roofs on low earth platforms, ash-covered ground",
-    "modules": ["thatch-hut", "distance-mountains"],
+    "silhouette": "One large earthen house with a broad pitched thatched roof and dark doorway, Loma Caldera behind",
+    "modules": ["earthen-house-a"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3499,7 +3499,7 @@
     "replaced": "Santa Ana volcano: Q44 (volcano cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "thatch-hut (lane A): three thatched huts on low platforms."
+    "notes": "One large earthen house with a broad thatched roof and Loma Caldera in the distance."
   },
   {
     "iso2": "SX",
@@ -3508,7 +3508,7 @@
     "motif": "Maho Beach landing airliner",
     "kind": "object",
     "silhouette": "Airliner on final approach, nose slightly up, gear down, long lit fuselage with a window band and swept fin, low over the dunes and surf of the beach",
-    "modules": ["jet-a", "dunes", "ground"],
+    "modules": ["jet-a", "sand-a"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3516,7 +3516,7 @@
     "replaced": "Sint Maarten Courthouse: a working court and government building (Q42, active seat of power); the low landing jet over Maho Beach is the island's own picture and fits a flight journal",
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: airliner, gear down, over the beach. New module jet-a"
+    "notes": "Generic airliner above pale sand ridges, sea band and fence; no livery."
   },
   {
     "iso2": "SY",
@@ -4035,15 +4035,15 @@
     "motif": "Mount Yasur",
     "kind": "nature",
     "silhouette": "A single truncated cone with a short plume of smoke and sparks rising from the top, on a low coastal line. Symmetric",
-    "modules": ["volcano", "eruption-a", "water"],
+    "modules": ["volcano", "eruption-a"],
     "signature": "eruption-a: ash column with arcing bombs",
     "backdrop": null,
     "cluster": "volcano",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: low cone with an ash plume and arcing eruption lines"
+    "notes": "Wider cone and a tonal ash column with ballistic ejecta, no spiral puff outlines."
   },
   {
     "iso2": "WF",

@@ -23,17 +23,14 @@
   "layers": [
     {
       "module": "jet-a",
-      "box": [28, 68, 144, 50],
+      "box": [30, 66, 140, 48],
       "params": {}
     },
     {
-      "module": "dunes",
-      "box": [34, 110, 130, 28],
+      "module": "sand-a",
+      "box": [34, 116, 130, 24],
       "params": {
-        "crests": [0.35, 0.7],
-        "amp": 5,
-        "wave": 80,
-        "lee": [14, 18]
+        "fence": true
       }
     }
   ]

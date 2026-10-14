@@ -25,7 +25,7 @@ export const cableCar: KitModule = ([x, y, w, h], p) => {
   // Gondola hung from the cable at `at` along its length.
   const at = Math.round(num(p, 'at', 0.45) * 18)
   const [gx, gy] = cable[at]
-  out.push(vline('fine', gx, gy, gy + 2.2))
-  out.push(fill(rectPts(gx - 2.4, gy + 2.2, 4.8, 3.4)))
+  out.push(vline('hair', gx, gy, gy + 3.2))
+  out.push(fill(rectPts(gx - 3.4, gy + 3.2, 6.8, 4.4)))
   return out
 }

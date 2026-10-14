@@ -26,9 +26,19 @@
   ],
   "layers": [
     {
-      "module": "obelisk",
-      "box": [78, 44, 44, 87],
+      "module": "avenue-a",
+      "box": [49, 107, 102, 29],
       "params": {}
+    },
+    {
+      "module": "obelisk",
+      "box": [82, 43, 36, 92],
+      "params": {
+        "width": 0.24,
+        "taper": 0.75,
+        "cap": 0.08,
+        "plinth": 0.05
+      }
     }
   ]
 }

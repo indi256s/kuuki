@@ -13,10 +13,11 @@ export const gantryA: KitModule = ([x, y, w, h], p) => {
   const bays = Math.max(4, Math.round(num(p, 'bays', 8)))
   const bayH = (h - 3) / bays
   out.push(occlude(rectPts(tx, y, tw, h)))
-  const leg = 2
+  out.push(...hatch(rectPts(tx + tw * 0.7, y, tw * 0.3, h), 'v', 3.6, 'fine', 0.2))
+  const leg = 1.6
   out.push(
-    ...body(rectPts(tx, y, leg, h), 'line'),
-    ...body(rectPts(tx + tw - leg, y, leg, h), 'line'),
+    ...body(rectPts(tx, y, leg, h), 'hair'),
+    ...body(rectPts(tx + tw - leg, y, leg, h), 'hair'),
   )
   for (let i = 0; i < bays; i++) {
     const t = y + bayH * i
@@ -24,7 +25,7 @@ export const gantryA: KitModule = ([x, y, w, h], p) => {
     const x0 = tx + leg,
       x1 = tx + tw - leg
     out.push(
-      stroke('fine', [
+      stroke('hair', [
         [x0, i % 2 ? b : t],
         [x1, i % 2 ? t : b],
       ]),
@@ -62,7 +63,7 @@ export const gantryA: KitModule = ([x, y, w, h], p) => {
       [bx + bw / 2, boosterTop + bw * 1.1],
       [bx + bw / 2, base - 5],
     ]
-    out.push(...body(bp, 'line'))
+    out.push(...body(bp, 'hair'))
     if (s === 1)
       out.push(
         ...hatch(
@@ -88,7 +89,7 @@ export const gantryA: KitModule = ([x, y, w, h], p) => {
     [rcx + rw / 2, coreTop],
     [rcx + rw / 2, base - 5],
   ]
-  out.push(...body(core, 'line'))
+  out.push(...body(core, 'hair'))
   out.push(
     ...hatch(
       rectPts(rcx + rw * 0.12, coreTop, rw * 0.38, base - 5 - coreTop),

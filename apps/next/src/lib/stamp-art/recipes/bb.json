@@ -28,22 +28,19 @@
   "layers": [
     {
       "module": "arcade-house-a",
-      "box": [36, 98, 128, 32],
+      "box": [40, 99, 120, 34],
       "params": {
-        "bays": 3,
-        "roof": 0.12,
-        "pier": 7
+        "bays": 5,
+        "roof": 0.15,
+        "pier": 8,
+        "archGap": 4,
+        "door": false
       }
     },
     {
-      "module": "tower",
-      "box": [88, 58, 24, 40],
-      "params": {
-        "cap": "hip",
-        "storeys": 2,
-        "openings": 2,
-        "shade": 0.1
-      }
+      "module": "clock-cupola-a",
+      "box": [84, 55, 32, 47],
+      "params": {}
     }
   ]
 }

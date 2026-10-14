@@ -1,32 +1,31 @@
-// Ash plume (lane A, `-a` until consolidated): a column of stacked round puffs that rises from
-// the bottom-left of the box and leans right as it widens. Every puff hides the one behind it and
-// carries a crescent of fine hatching on its right (shaded) side. The box bottom is the vent.
-import { type Pt, type SvgNode, hatch, occlude, stroke } from '../grid'
+// Ash column with an irregular lit edge; tone defines the billows without circle outlines.
+import { mulberry32 } from '../hash'
+import { type Pt, occlude } from '../grid'
+import { hatchMass } from './mass-b'
 import { type KitModule, num } from './util'
 
-const circle = (cx: number, cy: number, r: number, n = 20): Pt[] =>
-  Array.from({ length: n }, (_, i) => {
-    const a = (i / n) * Math.PI * 2
-    return [cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.92] as Pt
-  })
-
 export const plumeA: KitModule = ([x, y, w, h], p) => {
-  const puffs = Math.max(3, Math.round(num(p, 'puffs', 6)))
-  const lean = num(p, 'lean', 0.7)
-  const out: SvgNode[] = []
-  // Draw from the top (back, biggest) down to the vent (front, smallest).
-  for (let i = puffs - 1; i >= 0; i--) {
-    const f = i / (puffs - 1)
-    const r = Math.min(w, h) * (0.16 + 0.3 * f)
-    const cx = x + r + (w - 2 * r) * lean * Math.pow(f, 1.4) + (i % 2 ? -1.2 : 1.2)
-    const cy = y + h - r - (h - 2 * r) * Math.pow(f, 0.9)
-    const ring = circle(cx, cy, r)
-    out.push(occlude(ring), stroke('hair', ring, true))
-    const shade: Pt[] = ring
-      .filter((q) => q[0] >= cx + r * 0.2)
-      .concat([[cx + r * 0.2, cy + r * 0.8]])
-    const crescent: Pt[] = [...ring.filter((q) => q[0] > cx + r * 0.25 && q[1] > cy - r * 0.8)]
-    if (crescent.length > 3 && shade.length > 3) out.push(...hatch(crescent, 'v', 2.6, 'fine', 0.4))
+  const lean = num(p, 'lean', 0.35)
+  const left: Pt[] = []
+  const right: Pt[] = []
+  for (let i = 0; i <= 24; i++) {
+    const t = i / 24
+    const cy = y + h * t
+    const cx = x + w * (0.5 + lean * 0.32 * (1 - t))
+    const half = w * (0.06 + 0.34 * (1 - t)) * (1 + 0.16 * Math.sin(i * 1.9))
+    left.push([cx - half, cy])
+    right.push([cx + half, cy + Math.sin(i * 2.1) * 0.8])
   }
-  return out
+  const poly: Pt[] = [...left, ...right.reverse()]
+  return [
+    occlude(poly, { halo: 1.6 }),
+    ...hatchMass(poly, mulberry32(Math.round(num(p, 'seed', 5))), {
+      angle: -62,
+      gap: 2.1,
+      weight: 'fine',
+      thr: 0.32,
+      wx: 0.6,
+      wy: 0.2,
+    }),
+  ]
 }
