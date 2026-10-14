@@ -1,6 +1,6 @@
 'use client'
 
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState, useSyncExternalStore } from 'react'
 import { formatCount, type Locale } from '../../../lib/format'
 import type { PassportEntry } from '../model'
 import './atlas.css'
@@ -20,6 +20,14 @@ export type PassportAtlasProps = {
 // The MapLibre island (~0.5 MB) is fetched only when the map view is shown; until it is ready, and whenever
 // WebGL, the worker or the geometry fails, the accessible list below stands in for it.
 const AtlasMap = lazy(() => import('./map'))
+const noSubscription = () => () => {}
+/** False on the server and during hydration: MapLibre needs the browser, so the island never renders on the server. */
+const useClient = () =>
+  useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  )
 
 const COUNT = {
   en: { one: '{count} country on the map', other: '{count} countries on the map' },
@@ -55,6 +63,7 @@ export function PassportAtlas({
   onSelectCountry,
 }: PassportAtlasProps) {
   const [failed, setFailed] = useState(false)
+  const client = useClient()
   const copy = COPY[locale]
   const visitedCodes = useMemo(() => entries.map((entry) => entry.code), [entries])
   const pendingCodes = useMemo(() => pending.map((entry) => entry.code), [pending])
@@ -65,6 +74,8 @@ export function PassportAtlas({
           <p role="status" className="passport-atlas-note">
             {copy.unavailable}
           </p>
+        ) : !client ? (
+          <div className="passport-atlas-canvas" aria-hidden="true" />
         ) : (
           <Suspense fallback={<div className="passport-atlas-canvas" aria-hidden="true" />}>
             <AtlasMap

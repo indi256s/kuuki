@@ -21,12 +21,12 @@ export const REMARKS_MAX = 88
 export const REMARKS_CORPUS: Record<RemarksTrigger, [Line, Line, Line]> = {
   zero: [
     {
-      en: 'Nothing logged yet. The passport is in mint condition.',
-      ru: 'Пока ничего не записано. Паспорт в идеальном состоянии.',
+      en: 'No flights logged yet. The logbook is in mint condition.',
+      ru: 'Перелётов пока не записано. Бортовой журнал в идеальном состоянии.',
     },
     {
-      en: 'No flights on record. Visitors see a very tidy page.',
-      ru: 'Перелётов в журнале нет. Посетители видят очень аккуратную страницу.',
+      en: 'No flights on record. The flight block is very tidy.',
+      ru: 'Перелётов в журнале нет. Блок перелётов в образцовом порядке.',
     },
     {
       en: 'No flights yet. A spotless record, technically.',
