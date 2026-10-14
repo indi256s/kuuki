@@ -12,7 +12,14 @@ import { copy } from './copy'
 /** The member has no ground journeys at all. `action` is the Add chooser. */
 export function EmptyGround({ locale, action }: { locale: Locale; action: React.ReactNode }) {
   const t = copy[locale]
-  return <EmptyState title={t.emptyTitle} description={t.emptyDescription} action={action} />
+  return (
+    <EmptyState
+      headingLevel={2}
+      title={t.emptyTitle}
+      description={t.emptyDescription}
+      action={action}
+    />
+  )
 }
 
 /** Journeys exist, but the current filter hides them all. Names the filter and offers to drop it. */
@@ -33,6 +40,7 @@ export function NoneUnderFilter({
       : t.noRoadTitle
   return (
     <EmptyState
+      headingLevel={2}
       title={title}
       action={
         <Button variant="secondary" onClick={onShowAll}>

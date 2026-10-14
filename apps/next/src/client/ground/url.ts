@@ -40,20 +40,6 @@ export function groundHref(view: GroundView): string {
 /** Query key a form reads to come back to the list it was opened from. */
 export const RETURN_PARAM = 'return'
 
-/**
- * Accepts only a ground-travel list address with the filters this page writes. Anything else (another path, another
- * host, an extra key) is refused, so a form never navigates to an arbitrary URL.
- */
-export function groundReturnPath(value: string | null | undefined): string {
-  if (!value || !value.startsWith(GROUND_PATH)) return GROUND_PATH
-  const rest = value.slice(GROUND_PATH.length)
-  if (rest !== '' && !rest.startsWith('?')) return GROUND_PATH
-  const params = new URLSearchParams(rest.slice(1))
-  if ([...params.keys()].some((key) => !['mode', 'status', 'journey'].includes(key)))
-    return GROUND_PATH
-  return groundHref(parseGroundUrl(params.toString()))
-}
-
 /** `new` and `edit` links carry the list address so Cancel and Save can return to the same filters. */
 export function withReturn(path: string, view: GroundView): string {
   const joiner = path.includes('?') ? '&' : '?'

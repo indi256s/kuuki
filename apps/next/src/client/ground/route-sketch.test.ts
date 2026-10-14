@@ -6,7 +6,7 @@ describe('route sketch', () => {
   it('joins a loop back to its first dot and keeps every dot inside the box', () => {
     const sketch = sketchOf([tbilisi, kars, baku, tbilisi])
     expect(sketch.dots).toHaveLength(3)
-    expect(sketch.path).toEqual([0, 1, 2, 0])
+    expect(sketch.segments).toEqual([[0, 1, 2, 0]])
     for (const dot of sketch.dots) {
       expect(dot.x).toBeGreaterThanOrEqual(0)
       expect(dot.x).toBeLessThanOrEqual(SKETCH_WIDTH)
@@ -20,6 +20,14 @@ describe('route sketch', () => {
     expect(sketch.dots).toHaveLength(2)
     expect(sketch.missing.map((item) => item.name)).toEqual(['Nowhere'])
     expect(sketchOf([nowhere]).dots).toEqual([])
+  })
+
+  it('breaks the line at a place without coordinates instead of joining across it', () => {
+    const sketch = sketchOf([tbilisi, kars, nowhere, baku, tbilisi])
+    expect(sketch.segments).toEqual([
+      [0, 1],
+      [2, 0],
+    ])
   })
 
   it('centres a single place', () => {

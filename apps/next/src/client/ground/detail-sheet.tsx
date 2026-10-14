@@ -369,7 +369,16 @@ export function GroundDetail({
           </Alert>
         )}
         {issue?.kind === 'conflict' && (
-          <Alert variant="warning" urgent title={t.conflictTitle}>
+          <Alert
+            variant="warning"
+            urgent
+            title={t.conflictTitle}
+            action={
+              <Button dense onClick={actions.clearNotice}>
+                {t.dismiss}
+              </Button>
+            }
+          >
             {t.conflictDescription}
           </Alert>
         )}
@@ -386,7 +395,16 @@ export function GroundDetail({
           />
         )}
         {issue?.kind === 'rejected' && (
-          <Alert variant="danger" urgent title={t.actionFailed}>
+          <Alert
+            variant="danger"
+            urgent
+            title={t.actionFailed}
+            action={
+              <Button dense onClick={actions.clearNotice}>
+                {t.dismiss}
+              </Button>
+            }
+          >
             {issue.message}
           </Alert>
         )}
@@ -407,6 +425,9 @@ export function GroundDetail({
                 </Button>
                 <Button dense disabled={!online || state.checking} onClick={actions.retry}>
                   {t.retrySame}
+                </Button>
+                <Button dense disabled={state.checking} onClick={actions.dismiss}>
+                  {t.dismiss}
                 </Button>
               </div>
             }

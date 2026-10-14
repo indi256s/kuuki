@@ -17,7 +17,7 @@ function Block({ locale, mode, totals }: { locale: Locale; mode: Mode; totals: M
   const trainNote = coverageNote(locale, totals.trainMinutesCoverage)
   return (
     <section className="gt-totals-block" aria-label={heading}>
-      <h3 className="gt-totals-title">{heading}</h3>
+      <h2 className="gt-totals-title">{heading}</h2>
       {totals.journeys === 0 ? (
         <p className="gt-totals-none">{t.totalsNone}</p>
       ) : (

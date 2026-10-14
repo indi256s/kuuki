@@ -17,6 +17,14 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+.gt-results {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.gt-results[data-refreshing] {
+  opacity: 0.6;
+}
 .gt-note {
   margin: 0;
   font-size: 13px;
@@ -334,7 +342,8 @@
   width: 45%;
 }
 @media (max-width: 700px) {
-  .gt-page {
+  .gt-page,
+  .gt-results {
     gap: var(--space-4);
   }
   .gt-card {

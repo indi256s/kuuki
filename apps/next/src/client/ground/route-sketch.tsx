@@ -1,5 +1,5 @@
 'use client'
-// A schematic of the route: cities as dots joined by straight lines in visit order. It is not a map and never a way to
+// A schematic of the route: cities as dots joined by straight lines in visit order (broken at a place without coordinates). It is not a map and never a way to
 // pick countries; places without coordinates are named below it instead of being placed at (0, 0).
 
 import { placeKey, placeLabel, type GroundPlaceSnapshot } from '@kuuki/shared/groundTravel'
@@ -13,8 +13,11 @@ const PAD = 14
 export type Sketch = {
   /** Distinct plotted places, in first-visit order. */
   dots: { key: string; x: number; y: number }[]
-  /** Visit order as indexes into `dots`; a repeated city returns to its dot. */
-  path: number[]
+  /**
+   * Visit order as runs of indexes into `dots`; a repeated city returns to its dot. A place without coordinates ends a
+   * run, so known points are never joined across it.
+   */
+  segments: number[][]
   /** Visited places with no coordinates. */
   missing: GroundPlaceSnapshot[]
 }
@@ -25,7 +28,7 @@ export function sketchOf(places: readonly GroundPlaceSnapshot[]): Sketch {
   const missingByKey = new Map<string, GroundPlaceSnapshot>()
   for (const place of places)
     if (place.lat === null || place.lon === null) missingByKey.set(placeKey(place), place)
-  if (located.length === 0) return { dots: [], path: [], missing: [...missingByKey.values()] }
+  if (located.length === 0) return { dots: [], segments: [], missing: [...missingByKey.values()] }
   const meanLat = located.reduce((sum, place) => sum + place.lat!, 0) / located.length
   const scale = Math.cos((meanLat * Math.PI) / 180)
   const flat = located.map((place) => ({
@@ -55,17 +58,26 @@ export function sketchOf(places: readonly GroundPlaceSnapshot[]): Sketch {
   })
   const index = new Map<string, number>()
   const dots: Sketch['dots'] = []
-  const path: number[] = []
-  for (const point of flat) {
+  const segments: number[][] = []
+  let run: number[] = []
+  let next = 0
+  for (const visited of places) {
+    if (visited.lat === null || visited.lon === null) {
+      if (run.length > 0) segments.push(run)
+      run = []
+      continue
+    }
+    const point = flat[next++]
     let at = index.get(point.key)
     if (at === undefined) {
       at = dots.length
       index.set(point.key, at)
       dots.push({ key: point.key, ...place(point.x, point.y) })
     }
-    path.push(at)
+    run.push(at)
   }
-  return { dots, path, missing: [...missingByKey.values()] }
+  if (run.length > 0) segments.push(run)
+  return { dots, segments, missing: [...missingByKey.values()] }
 }
 
 const round = (value: number) => Math.round(value * 10) / 10
@@ -79,7 +91,9 @@ export function RouteSketch({
 }) {
   const t = copy[locale]
   const sketch = sketchOf(places)
-  const points = sketch.path.map((at) => `${sketch.dots[at].x},${sketch.dots[at].y}`).join(' ')
+  const lines = sketch.segments
+    .filter((run) => run.length > 1)
+    .map((run) => run.map((at) => `${sketch.dots[at].x},${sketch.dots[at].y}`).join(' '))
   return (
     <figure className="gt-sketch">
       {sketch.dots.length > 0 && (
@@ -89,8 +103,9 @@ export function RouteSketch({
           aria-label={t.sketchLabel}
           className="gt-sketch-svg"
         >
-          {sketch.path.length > 1 && (
+          {lines.map((points) => (
             <polyline
+              key={points}
               points={points}
               fill="none"
               stroke="var(--map-route)"
@@ -98,7 +113,7 @@ export function RouteSketch({
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-          )}
+          ))}
           {sketch.dots.map((dot) => (
             <circle
               key={dot.key}

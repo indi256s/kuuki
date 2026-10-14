@@ -16,6 +16,8 @@ export type GroundList = {
   list: GroundJourneyList | null
   /** No list yet and no failure: show the skeleton. */
   loading: boolean
+  /** A cached list is showing while a newer read is in flight. */
+  refreshing: boolean
   /** The last read for this view failed. With `list` set, the rows are an older answer (refresh failed). */
   failed: boolean
   /** The cut-off the groups were computed with; null until the browser's zone is read. */
@@ -54,6 +56,8 @@ export function useGroundList(cancelled: boolean): GroundList {
   const [today, setToday] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
   const [lists, setLists] = useState<Lists>({})
+  // The request token (zone date + reload count) each view last got an answer for; a token behind the current one means a read is in flight.
+  const [answered, setAnswered] = useState<Partial<Record<Key, string>>>({})
   const [failedKeys, setFailedKeys] = useState<ReadonlySet<Key>>(() => new Set())
   const reload = useCallback(() => setVersion((value) => value + 1), [])
 
@@ -75,19 +79,25 @@ export function useGroundList(cancelled: boolean): GroundList {
 
   useEffect(() => {
     if (today === null) return
+    const token = `${today}|${version}`
     return read(
       (signal) => listJourneys({ cancelled, today }, { signal }),
       (value) => {
         setLists((old) => ({ ...old, [key]: value }))
         setFailedKeys((old) => without(old, key))
+        setAnswered((old) => ({ ...old, [key]: token }))
       },
-      () => setFailedKeys((old) => new Set(old).add(key)),
+      () => {
+        setFailedKeys((old) => new Set(old).add(key))
+        setAnswered((old) => ({ ...old, [key]: token }))
+      },
     )
   }, [read, cancelled, key, today, version])
 
   const list = lists[key] ?? null
   const failed = failedKeys.has(key)
-  return { list, loading: list === null && !failed, failed, today, reload }
+  const refreshing = list !== null && today !== null && answered[key] !== `${today}|${version}`
+  return { list, loading: list === null && !failed, refreshing, failed, today, reload }
 }
 
 function without(set: ReadonlySet<Key>, key: Key): ReadonlySet<Key> {

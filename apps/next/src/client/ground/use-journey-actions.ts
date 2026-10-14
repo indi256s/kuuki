@@ -2,6 +2,8 @@
 // The detail sheet's action state machine. One command at a time; every new attempt gets a fresh operation key, but a
 // command whose answer was lost keeps its key until the owner resolves it (Check result / Try the same change again /
 // dismiss). 409 never retries by itself: the latest version is loaded and the owner chooses again.
+// State is kept per journey id, so one journey's notice or unresolved command never shows on (or blocks) another; an
+// unresolved command stays on its own journey until it is resolved or dismissed.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
 import type { GroundJourneyDto } from '@kuuki/shared/groundTravel'
@@ -14,7 +16,7 @@ import {
   type SheetAction,
 } from './journey-actions'
 
-export type ActionState = {
+type ActionState = {
   /** The action in flight; the sheet is not dismissible and the buttons wait. */
   busy: SheetAction | null
   /** A command whose answer was lost, kept with its key. */
@@ -27,7 +29,7 @@ export type ActionState = {
   saved: null | { action: SheetAction; pending: boolean }
 }
 
-export const idleActions: ActionState = {
+const idleActions: ActionState = {
   busy: null,
   unknown: null,
   checking: false,
@@ -46,13 +48,17 @@ type Deps = {
 }
 
 export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps) {
-  const [state, setState] = useState<ActionState>(idleActions)
+  const [states, setStates] = useState<Readonly<Record<string, ActionState>>>({})
+  const id = journey?.id ?? null
+  const state = (id && states[id]) || idleActions
   const working = useRef(false)
   const controller = useRef<AbortController | null>(null)
   const deps = useRef({ onSaved, onDeleted, onStale })
   useEffect(() => {
     deps.current = { onSaved, onDeleted, onStale }
   })
+  // Opening another journey ends what is in flight for the previous one (it becomes unknown there, not lost).
+  useEffect(() => () => controller.current?.abort(), [id])
   useEffect(() => {
     const abort = () => controller.current?.abort()
     window.addEventListener('kuuki:identity-reset', abort)
@@ -62,34 +68,47 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
     }
   }, [])
 
-  const settle = useCallback((pending: PendingCommand, outcome: Outcome) => {
-    switch (outcome.kind) {
-      case 'saved': {
-        const { result } = outcome
-        setState({
-          ...idleActions,
-          saved: { action: pending.action, pending: result.derivedState === 'pending' },
-        })
-        if (result.outcome === 'deleted' || result.current === null) deps.current.onDeleted()
-        else deps.current.onSaved(result.current)
-        return
+  const put = useCallback(
+    (at: string, next: ActionState | ((old: ActionState) => ActionState)) =>
+      setStates((old) => {
+        const before = old[at] ?? idleActions
+        return { ...old, [at]: typeof next === 'function' ? next(before) : next }
+      }),
+    [],
+  )
+
+  const settle = useCallback(
+    (pending: PendingCommand, outcome: Outcome) => {
+      const at = pending.journeyId
+      switch (outcome.kind) {
+        case 'saved': {
+          const { result } = outcome
+          put(at, {
+            ...idleActions,
+            saved: { action: pending.action, pending: result.derivedState === 'pending' },
+          })
+          if (result.outcome === 'deleted' || result.current === null) deps.current.onDeleted()
+          else deps.current.onSaved(result.current)
+          return
+        }
+        case 'conflict':
+          put(at, { ...idleActions, issue: { kind: 'conflict' } })
+          deps.current.onStale()
+          return
+        case 'gone':
+          put(at, { ...idleActions, issue: { kind: 'gone' } })
+          deps.current.onStale()
+          return
+        case 'unknown':
+          put(at, { ...idleActions, unknown: pending })
+          return
+        case 'rejected':
+          put(at, { ...idleActions, issue: { kind: 'rejected', message: outcome.message } })
+          return
       }
-      case 'conflict':
-        setState({ ...idleActions, issue: { kind: 'conflict' } })
-        deps.current.onStale()
-        return
-      case 'gone':
-        setState({ ...idleActions, issue: { kind: 'gone' } })
-        deps.current.onStale()
-        return
-      case 'unknown':
-        setState({ ...idleActions, unknown: pending })
-        return
-      case 'rejected':
-        setState({ ...idleActions, issue: { kind: 'rejected', message: outcome.message } })
-        return
-    }
-  }, [])
+    },
+    [put],
+  )
 
   const send = useCallback(
     async (pending: PendingCommand): Promise<Outcome> => {
@@ -97,12 +116,12 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
       const generation = getAuthGeneration()
       const next = new AbortController()
       controller.current = next
-      setState({ ...idleActions, busy: pending.action })
+      put(pending.journeyId, { ...idleActions, busy: pending.action })
       try {
         const outcome = await runCommand(pending, next.signal)
         if (next.signal.aborted || generation !== getAuthGeneration()) {
           // The session ended while the answer was in flight: whether it landed is unknown, and nothing here applies.
-          setState({ ...idleActions, unknown: pending })
+          put(pending.journeyId, { ...idleActions, unknown: pending })
           return { kind: 'unknown' }
         }
         settle(pending, outcome)
@@ -111,7 +130,7 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
         working.current = false
       }
     },
-    [settle],
+    [put, settle],
   )
 
   /** A new action with a new key. Ignored while another is in flight or an unresolved command exists. */
@@ -133,22 +152,25 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
     const pending = state.unknown
     if (!pending || working.current) return
     working.current = true
-    setState((old) => ({ ...old, checking: true, notRecorded: false }))
+    put(pending.journeyId, (old) => ({ ...old, checking: true, notRecorded: false }))
     const next = new AbortController()
     controller.current = next
     try {
       const resolution = await resolveCommand(pending, next.signal)
-      if (next.signal.aborted) return
+      if (next.signal.aborted) {
+        put(pending.journeyId, (old) => ({ ...old, checking: false }))
+        return
+      }
       if (resolution.kind === 'failed') {
-        setState((old) => ({ ...old, checking: false }))
+        put(pending.journeyId, (old) => ({ ...old, checking: false }))
         return
       }
       if (resolution.kind === 'not-recorded') {
-        setState({ ...idleActions, notRecorded: true, unknown: pending })
+        put(pending.journeyId, { ...idleActions, notRecorded: true, unknown: pending })
         return
       }
       const { status } = resolution
-      setState({
+      put(pending.journeyId, {
         ...idleActions,
         saved: { action: pending.action, pending: status.derivedState === 'pending' },
       })
@@ -157,17 +179,16 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
     } finally {
       working.current = false
     }
-  }, [state.unknown])
+  }, [put, state.unknown])
 
   /** Drops an unresolved command (and its key); the owner starts over from what the sheet shows. */
   const dismiss = useCallback(() => {
-    setState(idleActions)
+    if (id) put(id, idleActions)
     deps.current.onStale()
-  }, [])
+  }, [id, put])
 
-  const clearNotice = useCallback(
-    () => setState((old) => ({ ...old, saved: null, issue: null })),
-    [],
-  )
+  const clearNotice = useCallback(() => {
+    if (id) put(id, (old) => ({ ...old, saved: null, issue: null }))
+  }, [id, put])
   return { state, run, retry, check, dismiss, clearNotice }
 }

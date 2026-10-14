@@ -310,6 +310,62 @@ describe('detail sheet', () => {
     ).toBeInTheDocument()
   })
 
+  it('keeps an unresolved change on its own journey and leaves other journeys free', async () => {
+    const u = user()
+    vi.mocked(api.sendCommand).mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(api.readJourney).mockImplementation(async (id) =>
+      id === upcoming.id ? upcoming : undatedPlan,
+    )
+    mount(`journey=${upcoming.id}`)
+    let dialog = await screen.findByRole('dialog')
+    await u.click(within(dialog).getByRole('button', { name: 'Cancel plan' }))
+    await within(dialog).findByText('We could not confirm that change')
+    await u.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    await u.click(
+      document.querySelector(`[data-journey-card="${undatedPlan.id}"] a`) as HTMLElement,
+    )
+    dialog = await screen.findByRole('dialog')
+    expect(within(dialog).queryByText('We could not confirm that change')).toBeNull()
+    expect(within(dialog).getByRole('button', { name: 'Cancel plan' })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    await u.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    await u.click(document.querySelector(`[data-journey-card="${upcoming.id}"] a`) as HTMLElement)
+    dialog = await screen.findByRole('dialog')
+    await within(dialog).findByText('We could not confirm that change')
+    await u.click(within(dialog).getByRole('button', { name: 'Dismiss' }))
+    expect(within(dialog).queryByText('We could not confirm that change')).toBeNull()
+    expect(within(dialog).getByRole('button', { name: 'Cancel plan' })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
+
+  it('toggling Cancelled before its list is cached keeps the toolbar and shows a list skeleton', async () => {
+    const u = user()
+    mount()
+    await screen.findByRole('heading', { level: 2, name: 'Plans' })
+    let answer!: (value: ReturnType<typeof listOf>) => void
+    vi.mocked(api.listJourneys).mockImplementation(
+      () => new Promise((resolve) => (answer = resolve)),
+    )
+    const toggle = screen.getByRole('button', { name: 'Cancelled' })
+    await u.click(toggle)
+    expect(screen.getByRole('button', { name: 'Cancelled' })).toBe(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
+    expect(screen.getByText('Loading ground travel…', { selector: '.sr-only' })).toBeInTheDocument()
+    answer(listOf([]))
+    await waitFor(() =>
+      expect(screen.queryByText('Loading ground travel…', { selector: '.sr-only' })).toBeNull(),
+    )
+  })
+
   it('Back to plans states what is removed and sends reopen only after confirming', async () => {
     const u = user()
     vi.mocked(api.readJourney).mockResolvedValue(recent)

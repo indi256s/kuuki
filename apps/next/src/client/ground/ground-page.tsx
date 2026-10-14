@@ -11,7 +11,7 @@ import { SegmentedControl, type SegmentOption } from '../ui/segmented-control'
 import { AddChooser } from './add-chooser'
 import { copy, journeys as journeyForms } from './copy'
 import { GroundDetail } from './detail-sheet'
-import { GroundSkeleton } from './ground-skeleton'
+import { GroundListSkeleton } from './ground-skeleton'
 import { JourneyCard } from './journey-card'
 import { sectionsOf, visibleJourneys } from './list-model'
 import {
@@ -52,8 +52,6 @@ export function GroundTravelPage({
     [list, today, view.mode],
   )
   const sections = useMemo(() => (today ? sectionsOf(visible, today) : []), [visible, today])
-
-  if (!list && !data.failed) return <GroundSkeleton locale={locale} />
 
   const options: SegmentOption<Choice>[] = [
     { value: 'all', label: t.all },
@@ -104,10 +102,16 @@ export function GroundTravelPage({
           {t.cancelledFilter}
         </Button>
       </FilterToolbar>
-      {!list ? (
+      {data.loading ? (
+        <GroundListSkeleton locale={locale} />
+      ) : !list ? (
         <ReadError locale={locale} onRetry={data.reload} />
       ) : (
-        <>
+        <div
+          className="gt-results"
+          aria-busy={data.refreshing || undefined}
+          data-refreshing={data.refreshing || undefined}
+        >
           {data.failed && <RefreshFailed locale={locale} onRetry={data.reload} />}
           <p role="status" className="gt-count">
             {t.resultCount(formatCount(locale, visible.length, journeyForms), filterName)}
@@ -141,7 +145,7 @@ export function GroundTravelPage({
               </section>
             ))
           )}
-        </>
+        </div>
       )}
       <GroundDetail
         locale={locale}

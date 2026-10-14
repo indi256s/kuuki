@@ -13,6 +13,7 @@ import {
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import { trackPrivateOperation } from '../activity'
 import { useWriteFeedback } from '../write-feedback'
+import { NavigationLink } from '../navigation-link'
 import { Stamp } from '../signature/stamp'
 import { Button } from '../ui/button'
 import { DestructiveConfirm } from '../ui/destructive-confirm'
@@ -469,7 +470,9 @@ export function CountrySheet({
                     const Icon = journey.mode === 'rail' ? Train : Car
                     return (
                       <li key={journey.id}>
-                        <a href={`/ground-travel?journey=${encodeURIComponent(journey.id)}`}>
+                        <NavigationLink
+                          href={`/ground-travel?journey=${encodeURIComponent(journey.id)}`}
+                        >
                           <Icon size={18} aria-hidden="true" />
                           <span>
                             {journey.title ||
@@ -477,7 +480,7 @@ export function CountrySheet({
                               JOURNEY_FALLBACK[journey.mode][locale]}{' '}
                             · {dates ?? (ru ? 'дата неизвестна' : 'date unknown')}
                           </span>
-                        </a>
+                        </NavigationLink>
                       </li>
                     )
                   })}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groundHref, groundReturnPath, parseGroundUrl, withReturn } from './url'
+import { groundHref, parseGroundUrl, withReturn } from './url'
 import { uuid } from './test-fixtures'
 
 describe('ground-travel url', () => {
@@ -16,21 +16,6 @@ describe('ground-travel url', () => {
       cancelled: false,
       journey: null,
     })
-  })
-
-  it('accepts only ground-travel list addresses as a return context', () => {
-    expect(groundReturnPath('/ground-travel?mode=road&status=cancelled')).toBe(
-      '/ground-travel?mode=road&status=cancelled',
-    )
-    for (const bad of [
-      'https://example.com/ground-travel',
-      '//evil.example/ground-travel',
-      '/journal',
-      '/ground-travelx',
-      '/ground-travel?next=/signin',
-      null,
-    ])
-      expect(groundReturnPath(bad)).toBe('/ground-travel')
   })
 
   it('carries the current list address on form links', () => {
