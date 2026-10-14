@@ -88,6 +88,20 @@ export const receiptStatement = (db: D1Database, userId: string, key: string, in
 
 const round1 = (km: number | null) => (km === null ? null : Math.round(km * 10) / 10)
 
+/** Owner-wide child reads; exported so tests can EXPLAIN the exact SQL that runs. */
+export const childReadSql = {
+  legs: (childScope: string) =>
+    `SELECT journey_id, id, from_place, to_place, from_station, to_station, train_number, operator,
+            departure_date, departure_time, arrival_date, arrival_time, duration_minutes, duration_source
+     FROM ground_rail_legs WHERE user_id = ?${childScope} ORDER BY journey_id, ordinal`,
+  points: (childScope: string) =>
+    `SELECT journey_id, id, place, arrival_date, departure_date, nights, note
+     FROM ground_road_points WHERE user_id = ?${childScope} ORDER BY journey_id, ordinal`,
+  countries: (childScope: string) =>
+    `SELECT journey_id, country_code FROM ground_journey_countries
+     WHERE user_id = ?${childScope} ORDER BY journey_id, country_code`,
+}
+
 /** Live journeys of one owner (optionally a single id) with children, countries and metrics; unsorted. */
 export async function readOwnerJourneys(
   db: D1Database,
@@ -104,25 +118,9 @@ export async function readOwnerJourneys(
          FROM ground_journeys WHERE user_id = ? AND deleted_at IS NULL${scope}`,
       )
       .bind(...args),
-    db
-      .prepare(
-        `SELECT journey_id, id, from_place, to_place, from_station, to_station, train_number, operator,
-                departure_date, departure_time, arrival_date, arrival_time, duration_minutes, duration_source
-         FROM ground_rail_legs WHERE user_id = ?${childScope} ORDER BY journey_id, ordinal`,
-      )
-      .bind(...args),
-    db
-      .prepare(
-        `SELECT journey_id, id, place, arrival_date, departure_date, nights, note
-         FROM ground_road_points WHERE user_id = ?${childScope} ORDER BY journey_id, ordinal`,
-      )
-      .bind(...args),
-    db
-      .prepare(
-        `SELECT journey_id, country_code FROM ground_journey_countries
-         WHERE user_id = ?${childScope} ORDER BY journey_id, country_code`,
-      )
-      .bind(...args),
+    db.prepare(childReadSql.legs(childScope)).bind(...args),
+    db.prepare(childReadSql.points(childScope)).bind(...args),
+    db.prepare(childReadSql.countries(childScope)).bind(...args),
   ])
 
   const group = <T extends { journey_id: string }>(rows: T[]) => {
@@ -248,10 +246,11 @@ export async function readJourneyList(
     journeys,
     // Completed-only totals of every mode, whatever the list filter (the client hides them for cancelled-only).
     totals: { rail: modeTotals(all, 'rail'), road: modeTotals(all, 'road') },
+    // No row means nothing was ever written (revision 0): nothing to publish, so the account is ready.
     derivedState:
-      state &&
-      state.revision === state.published_revision &&
-      state.evidence_revision === state.published_revision
+      !state ||
+      (state.revision === state.published_revision &&
+        state.evidence_revision === state.published_revision)
         ? 'ready'
         : 'pending',
     revision: state?.revision ?? 0,

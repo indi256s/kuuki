@@ -99,6 +99,16 @@ describe('catalog search', () => {
     }
   })
 
+  it('reads no bucket under three characters and finds the city from the third', async () => {
+    const { db, dispose } = await setup()
+    try {
+      expect(await results(db, 'pa')).toEqual([])
+      expect((await results(db, 'par')).map((p) => p.id)).toContain('2988507')
+    } finally {
+      await dispose()
+    }
+  })
+
   it('finds a place by a colloquial alias that is not its display name', async () => {
     const { db, dispose } = await setup()
     try {

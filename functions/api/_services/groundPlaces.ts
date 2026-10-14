@@ -118,7 +118,8 @@ const manualSnapshot = (row: ManualPlaceRow): GroundPlaceSnapshot => ({
  * Up to GROUND_LIMITS.searchResults places for a typed query: the owner's own manual places and catalog
  * matches, exact-name matches first (manual before catalog), then prefix matches (manual, then by
  * population). One catalog bucket is read per keystroke; an empty or unloaded catalog just yields manual
- * matches. A query under GROUND_LIMITS.searchMinChars folded characters returns nothing.
+ * matches. A query under GROUND_LIMITS.searchMinChars (3, the catalog bucket width) folded characters returns
+ * nothing, manual matches included: one gate keeps the picker's "keep typing" state consistent.
  */
 export async function searchGroundPlaces(
   db: D1Database,
@@ -213,8 +214,8 @@ export function parseManualPlaceInput(
   if (typeof v.name !== 'string') return { ok: false, error: 'name is required' }
   const name = v.name.trim()
   if (
-    name.length < 1 ||
-    name.length > GROUND_LIMITS.placeName ||
+    Array.from(name).length < 1 ||
+    Array.from(name).length > GROUND_LIMITS.placeName ||
     /[\p{Cc}\p{Cf}]/u.test(name) ||
     placeNameKey(name) === ''
   )

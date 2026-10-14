@@ -17,7 +17,8 @@ export const GROUND_LIMITS = {
   /** Receipt lifetime from the first successful commit; replay never extends it. */
   receiptDays: 37,
   searchResults: 10,
-  searchMinChars: 2,
+  /** Catalog prefix buckets hold three folded characters, so a shorter query has no bucket to read. */
+  searchMinChars: 3,
 } as const
 
 // ---------------------------------------------------------------------------
@@ -81,7 +82,8 @@ const optionalText = (value: unknown, max: number): string | null | undefined =>
   if (value === null || value === undefined) return null
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
-  if (trimmed.length > max) return undefined
+  // SQLite length() counts characters, so count code points rather than UTF-16 units.
+  if ([...trimmed].length > max) return undefined
   return trimmed.length === 0 ? null : trimmed
 }
 
@@ -522,7 +524,7 @@ const GROUP_ORDER: Record<ListGroup, number> = {
 type Sortable = Pick<GroundJourneyDto, 'id' | 'status' | 'startDate' | 'createdAt'>
 
 const tieBreak = (a: Sortable, b: Sortable) =>
-  b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)
+  b.createdAt.localeCompare(a.createdAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 
 /**
  * Plans first (upcoming by nearest date, then past-dated plans newest first, then undated), then history

@@ -101,6 +101,8 @@ CREATE TABLE ground_rail_legs (
   UNIQUE (journey_id, ordinal),
   CHECK ((duration_minutes IS NULL) = (duration_source IS NULL))
 );
+-- Owner-wide child reads and account deletion lead with user_id; UNIQUE (journey_id, ordinal) cannot serve them.
+CREATE INDEX idx_ground_rail_legs_user ON ground_rail_legs(user_id, journey_id, ordinal);
 
 CREATE TABLE ground_road_points (
   id             TEXT PRIMARY KEY,
@@ -115,6 +117,7 @@ CREATE TABLE ground_road_points (
   FOREIGN KEY (journey_id, user_id) REFERENCES ground_journeys(id, user_id) ON DELETE CASCADE,
   UNIQUE (journey_id, ordinal)
 );
+CREATE INDEX idx_ground_road_points_user ON ground_road_points(user_id, journey_id, ordinal);
 
 -- Owner-confirmed crossed countries of a completed journey; never written to ground_visits.
 CREATE TABLE ground_journey_countries (
@@ -125,6 +128,8 @@ CREATE TABLE ground_journey_countries (
   FOREIGN KEY (journey_id, user_id) REFERENCES ground_journeys(id, user_id) ON DELETE CASCADE
 );
 CREATE INDEX idx_ground_journey_countries_user ON ground_journey_countries(user_id, country_code);
+-- Owner-wide reads order by (journey_id, country_code); the primary key leads with journey_id.
+CREATE INDEX idx_ground_journey_countries_owner ON ground_journey_countries(user_id, journey_id, country_code);
 
 -- ---------------------------------------------------------------------------
 -- 4. Operation receipts (37 days from commit, never extended by replay). No FK to the journey, so a

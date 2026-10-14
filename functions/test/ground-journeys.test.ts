@@ -11,6 +11,8 @@ import {
   onRequestDelete as deleteJourney,
 } from '../api/ground-journeys/[id]'
 import { onRequestGet as operationStatus } from '../api/ground-journeys/operations/[key]'
+import { childReadSql } from '../api/_services/groundJourneyRead'
+import { GROUND_BODY_MAX_BYTES } from '../api/_services/groundJourneys'
 
 const owner = { id: 'gt-owner', email: 'gt-owner@example.test' }
 const other = { id: 'gt-other', email: 'gt-other@example.test' }
@@ -65,7 +67,7 @@ const leg = (from = paris, to = lyon, extra: Record<string, unknown> = {}) => ({
   durationMinutes: null,
   ...extra,
 })
-const point = (place = paris) => ({
+const point = (place = paris): Record<string, unknown> => ({
   id: uuid(),
   place,
   arrivalDate: null,
@@ -539,6 +541,203 @@ describe('ground journeys API', () => {
       })
       expect(over.status).toBe(400)
       expect(await count(t.db, 'ground_rail_legs')).toBe(100)
+    } finally {
+      await t.dispose()
+    }
+  })
+
+  it('reads owner-wide children through user-leading indexes, never scanning', async () => {
+    const t = await setup()
+    try {
+      for (const scope of ['', ' AND journey_id = ?']) {
+        for (const name of ['legs', 'points', 'countries'] as const) {
+          const plan = await t.db
+            .prepare(`EXPLAIN QUERY PLAN ${childReadSql[name](scope)}`)
+            .bind(...(scope ? [owner.id, uuid()] : [owner.id]))
+            .all<{ detail: string }>()
+          const details = plan.results.map((row) => row.detail)
+          expect(
+            details.filter((d) => d.startsWith('SCAN')),
+            `${name}: ${details.join(' | ')}`,
+          ).toEqual([])
+          expect(
+            details.filter((d) => d.includes('TEMP B-TREE')),
+            `${name}: ${details.join(' | ')}`,
+          ).toEqual([])
+        }
+      }
+    } finally {
+      await t.dispose()
+    }
+  })
+
+  it('reports a fresh account as ready before anything was ever written', async () => {
+    const t = await setup()
+    try {
+      expect(await count(t.db, 'user_derived_state')).toBe(0)
+      expect((await t.list()).body).toMatchObject({
+        derivedState: 'ready',
+        revision: 0,
+        publishedRevision: 0,
+      })
+    } finally {
+      await t.dispose()
+    }
+  })
+
+  it('refuses an operation key that the receipt CHECK would count differently', async () => {
+    const t = await setup()
+    try {
+      // 8 emoji are 16 UTF-16 units but 8 characters; 4 emoji are 8 units and used to pass the length test.
+      for (const operationKey of ['😀'.repeat(4), 'short', 'a'.repeat(129), 'has space 123']) {
+        const refused = await t.create({
+          operationKey,
+          journeyId: uuid(),
+          status: 'planned',
+          journey: rail(),
+        })
+        expect(refused.status, operationKey).toBe(400)
+        expect(refused.body.code).toBe('VALIDATION')
+      }
+      expect(await count(t.db, 'ground_operation_receipts')).toBe(0)
+    } finally {
+      await t.dispose()
+    }
+  })
+
+  it('accepts the documented maximal road payload and counts characters, not UTF-16 units', async () => {
+    const t = await setup()
+    try {
+      const wide = (n: number) => '😀'.repeat(n) // 4 UTF-8 bytes, 2 UTF-16 units, 1 character
+      const heavy = {
+        ...paris,
+        name: wide(200),
+        nameRu: wide(200),
+        nameEn: wide(200),
+        region: wide(200),
+      }
+      const points = Array.from({ length: 100 }, () => ({ ...point(heavy), note: wide(10_000) }))
+      const input = {
+        operationKey: key(),
+        journeyId: uuid(),
+        status: 'completed',
+        countries: ['FR'],
+        journey: road(points, { title: wide(200), note: wide(10_000) }),
+      }
+      const size = new TextEncoder().encode(JSON.stringify(input)).length
+      expect(size).toBeGreaterThan(512 * 1024)
+      expect(size).toBeLessThan(GROUND_BODY_MAX_BYTES)
+      const saved = await t.create(input)
+      expect(saved.status).toBe(201)
+      expect(saved.body.current.points).toHaveLength(100)
+      expect([...saved.body.current.points[99].note]).toHaveLength(10_000)
+      expect(await count(t.db, 'ground_road_points')).toBe(100)
+      const over = await t.create({
+        ...input,
+        operationKey: key(),
+        journeyId: uuid(),
+        journey: road(points, { title: wide(201) }),
+      })
+      expect(over.status).toBe(400)
+    } finally {
+      await t.dispose()
+    }
+  })
+
+  it('refuses arrival dates before departure dates and accepts equal ones', async () => {
+    const t = await setup()
+    try {
+      const attempt = (journey: Record<string, unknown>) =>
+        t.create({ operationKey: key(), journeyId: uuid(), status: 'planned', journey })
+      const backwardsLeg = leg(paris, lyon, {
+        departureDate: '2099-01-02',
+        arrivalDate: '2099-01-01',
+      })
+      const sameDayLeg = leg(paris, lyon, {
+        departureDate: '2099-01-01',
+        arrivalDate: '2099-01-01',
+      })
+      const backwardsPoint = { ...point(), arrivalDate: '2099-01-03', departureDate: '2099-01-02' }
+      const sameDayPoint = {
+        ...point(lyon),
+        arrivalDate: '2099-01-03',
+        departureDate: '2099-01-03',
+      }
+      for (const journey of [rail({}, [backwardsLeg]), road([backwardsPoint, point(lyon)])]) {
+        const refused = await attempt(journey)
+        expect(refused.status).toBe(400)
+        expect(refused.body.code).toBe('VALIDATION')
+      }
+      expect((await attempt(rail({}, [sameDayLeg]))).status).toBe(201)
+      expect((await attempt(road([sameDayPoint, point()]))).status).toBe(201)
+    } finally {
+      await t.dispose()
+    }
+  })
+
+  it('commits nothing when the version moves between classification and the mutation batch', async () => {
+    const t = await setup()
+    try {
+      const id = await t.createPlanned(rail({}, [leg(paris, lyon), leg(lyon, nice)]))
+      const legIds = async () =>
+        (
+          await t.db
+            .prepare('SELECT id FROM ground_rail_legs WHERE journey_id = ? ORDER BY ordinal')
+            .bind(id)
+            .all<{ id: string }>()
+        ).results.map((row) => row.id)
+      const ranOn = (action: string, body: Record<string, unknown>, bump: boolean) => {
+        let armed = bump
+        // classify() passes with the current version; the competing write lands right before the mutation batch
+        // (the only batch of more than four statements), so only the CAS and the finalize CHECK can catch it.
+        const racing = new Proxy(t.db, {
+          get(target, prop) {
+            const value = Reflect.get(target, prop, target)
+            if (prop === 'batch')
+              return async (statements: D1PreparedStatement[]) => {
+                if (armed && statements.length > 4) {
+                  armed = false
+                  await target
+                    .prepare('UPDATE ground_journeys SET version = version + 1 WHERE id = ?')
+                    .bind(id)
+                    .run()
+                }
+                return target.batch(statements)
+              }
+            return typeof value === 'function' ? value.bind(target) : value
+          },
+        })
+        return patchJourney({
+          ...apiContext(
+            racing,
+            csrfRequest(`/api/ground-journeys/${id}`, 'PATCH', { action, ...body }),
+          ),
+          data: { user: owner },
+          params: { id },
+        } as never)
+      }
+      const legsBefore = await legIds()
+      const receipts = await count(t.db, 'ground_operation_receipts')
+      const revision = await t.revision()
+      let version = 1
+      for (const [action, body] of [
+        ['update', { journey: rail({ title: 'Loser' }, [leg(nice, paris)]) }],
+        ['cancel', {}],
+      ] as const) {
+        const lost = await ranOn(
+          action,
+          { operationKey: key(), expectedVersion: version, ...body },
+          true,
+        )
+        expect(lost.status, action).toBe(409)
+        expect(((await lost.json()) as any).code, action).toBe('VERSION_CONFLICT')
+        version += 1
+        expect(await count(t.db, 'ground_operation_receipts'), action).toBe(receipts)
+        expect(await t.revision(), action).toBe(revision)
+        expect(await legIds(), action).toEqual(legsBefore)
+        const current = (await t.get(id)).body
+        expect(current).toMatchObject({ version, status: 'planned', title: 'Paris to Lyon' })
+      }
     } finally {
       await t.dispose()
     }

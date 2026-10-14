@@ -104,3 +104,17 @@ it('rejects malformed or half-located snapshots', () => {
   expect(parsePlaceSnapshot({ ...place('abc', null, null) })).toBeNull()
   expect(parsePlaceSnapshot({ ...place('1', null, null), countryCode: 'ge' })).toBeNull()
 })
+
+it('breaks list ties by id in binary order, whatever the locale', () => {
+  const j = (id: string) => ({
+    id,
+    status: 'completed' as const,
+    startDate: '2026-01-01',
+    createdAt: '2026-01-01T00:00:00Z',
+  })
+  // localeCompare puts 'a' before 'B'; code-unit order puts 'B' first.
+  expect([j('a'), j('B')].sort(compareJourneys('2026-10-13')).map((row) => row.id)).toEqual([
+    'B',
+    'a',
+  ])
+})

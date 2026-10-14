@@ -55,7 +55,8 @@ function text(value: unknown, max: number, field: string): string | null {
   if (value === null || value === undefined) return null
   if (typeof value !== 'string') throw invalid(`${field} must be text`)
   const trimmed = value.trim()
-  if (trimmed.length > max) throw invalid(`${field} is too long`)
+  // SQLite length() counts characters, so count code points rather than UTF-16 units.
+  if ([...trimmed].length > max) throw invalid(`${field} is too long`)
   return trimmed.length === 0 ? null : trimmed
 }
 
@@ -84,10 +85,15 @@ function place(value: unknown, field: string): GroundPlaceSnapshot {
   return parsed
 }
 
+/** Dates only: times sit in the place's own zone, which may be unknown. ISO dates compare as text. */
+function assertDatesInOrder(from: string | null, to: string | null, message: string) {
+  if (from && to && to < from) throw invalid(message)
+}
+
 function parseLeg(value: unknown): RailLegInput {
   if (!isRecord(value)) throw invalid('leg must be an object')
   if (!isUuid(value.id)) throw invalid('leg id must be a UUID')
-  return {
+  const leg = {
     id: value.id.toLowerCase(),
     from: place(value.from, 'leg from'),
     to: place(value.to, 'leg to'),
@@ -101,12 +107,14 @@ function parseLeg(value: unknown): RailLegInput {
     arrivalTime: time(value.arrivalTime, 'arrivalTime'),
     durationMinutes: integer(value.durationMinutes, 1, 20_160, 'durationMinutes'),
   }
+  assertDatesInOrder(leg.departureDate, leg.arrivalDate, 'arrivalDate is before departureDate')
+  return leg
 }
 
 function parsePoint(value: unknown): RoadPointInput {
   if (!isRecord(value)) throw invalid('point must be an object')
   if (!isUuid(value.id)) throw invalid('point id must be a UUID')
-  return {
+  const point = {
     id: value.id.toLowerCase(),
     place: place(value.place, 'point place'),
     arrivalDate: date(value.arrivalDate, 'arrivalDate'),
@@ -114,6 +122,8 @@ function parsePoint(value: unknown): RoadPointInput {
     nights: integer(value.nights, 0, 3650, 'nights'),
     note: text(value.note, GROUND_LIMITS.note, 'point note'),
   }
+  assertDatesInOrder(point.arrivalDate, point.departureDate, 'departureDate is before arrivalDate')
+  return point
 }
 
 function parseJourney(value: unknown): GroundJourneyInput {
@@ -161,6 +171,9 @@ function parseCountries(value: unknown): string[] | undefined {
   return value as string[]
 }
 
+// ASCII only, so JS length and the receipt table's SQL length() CHECK count the same thing.
+const OPERATION_KEY = /^[A-Za-z0-9._:-]{8,128}$/
+
 const CONTENT_ACTIONS = new Set(['create', 'update', 'complete'])
 const PATCH_ACTIONS = new Set(['update', 'complete', 'reopen', 'cancel', 'restore'])
 
@@ -180,8 +193,8 @@ export function parseGroundCommand(
   if (typeof action !== 'string' || (route.method === 'PATCH' && !PATCH_ACTIONS.has(action)))
     throw invalid('Unknown action')
   const { operationKey } = body
-  if (typeof operationKey !== 'string' || operationKey.length < 8 || operationKey.length > 128)
-    throw invalid('operationKey must be 8-128 characters')
+  if (typeof operationKey !== 'string' || !OPERATION_KEY.test(operationKey))
+    throw invalid('operationKey must be 8-128 characters of A-Z a-z 0-9 . _ : -')
   const journeyId = route.journeyId ?? body.journeyId
   if (!isUuid(journeyId)) throw invalid('journeyId must be a UUID')
   if (route.journeyId && body.journeyId !== undefined && body.journeyId !== route.journeyId)
@@ -282,8 +295,19 @@ const operationReused = () =>
     cause: 'operation_reused',
   })
 
-/** 100 legs with two place snapshots each exceed the 128 KB JSON default. */
-export const GROUND_BODY_MAX_BYTES = 512 * 1024
+/**
+ * Largest documented request, at 4 UTF-8 bytes per character (supplementary-plane text):
+ *   place snapshot  name, nameRu, nameEn, region 4 x 200 x 4 = 3 200 + ids/timezone/version/keys ~800 = 4 000
+ *   road point      note 10 000 x 4 = 40 000 + snapshot 4 000 + id/dates/nights/keys 200       = 44 200
+ *   rail leg        2 snapshots 8 000 + stations 2 x 200 x 4 + operator 200 x 4 + train 40 x 4 + keys ~500 = 11 000
+ *   journey         title 200 x 4 + note 10 000 x 4 + 300 countries x 5 + envelope ~500          = 42 800
+ *   100 road points 4 420 000 + 42 800 = 4 462 800 bytes
+ * 5 MiB (5 242 880) leaves ~17% headroom. The 128 KB JSON default is far below it.
+ */
+export const GROUND_BODY_MAX_BYTES = 5 * 1024 * 1024
+
+/** D1 caps one bound string at 2 MB, so child rows go in several INSERTs; 20 x 44 200 bytes stays under 1 MB. */
+const CHILD_CHUNK = 20
 
 export interface GroundMutationResponse {
   status: 200 | 201
@@ -458,6 +482,12 @@ async function assertChildrenUsable(
     await fail(stateConflict('A child id is already in use', 'id_in_use'))
 }
 
+function chunked<T>(rows: T[]): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < rows.length; i += CHILD_CHUNK) out.push(rows.slice(i, i + CHILD_CHUNK))
+  return out
+}
+
 function guardSql() {
   return `EXISTS (SELECT 1 FROM ground_operation_receipts
             WHERE user_id = ? AND operation_key = ? AND batch_nonce = ? AND applied = 1 AND complete = 0)`
@@ -630,10 +660,11 @@ function mutationStatements(
           source: duration.source,
         }
       })
-      statements.push(
-        db
-          .prepare(
-            `INSERT INTO ground_rail_legs
+      for (const chunk of chunked(legs))
+        statements.push(
+          db
+            .prepare(
+              `INSERT INTO ground_rail_legs
              (id, journey_id, user_id, ordinal, from_place, to_place, from_station, to_station, train_number, operator,
               departure_date, departure_time, arrival_date, arrival_time, duration_minutes, duration_source)
              SELECT json_extract(value, '$.id'), ?, ?, json_extract(value, '$.ordinal'), json_extract(value, '$.from'),
@@ -643,9 +674,9 @@ function mutationStatements(
                     json_extract(value, '$.arrivalDate'), json_extract(value, '$.arrivalTime'),
                     json_extract(value, '$.minutes'), json_extract(value, '$.source')
              FROM json_each(?) WHERE ${guardSql()} AND ${live}`,
-          )
-          .bind(id, userId, JSON.stringify(legs), ...guard, id, userId, fields.mode),
-      )
+            )
+            .bind(id, userId, JSON.stringify(chunk), ...guard, id, userId, fields.mode),
+        )
     } else {
       const points = fields.points.map((point, ordinal) => ({
         id: point.id,
@@ -656,18 +687,19 @@ function mutationStatements(
         nights: point.nights,
         note: point.note,
       }))
-      statements.push(
-        db
-          .prepare(
-            `INSERT INTO ground_road_points
+      for (const chunk of chunked(points))
+        statements.push(
+          db
+            .prepare(
+              `INSERT INTO ground_road_points
              (id, journey_id, user_id, ordinal, place, arrival_date, departure_date, nights, note)
              SELECT json_extract(value, '$.id'), ?, ?, json_extract(value, '$.ordinal'), json_extract(value, '$.place'),
                     json_extract(value, '$.arrivalDate'), json_extract(value, '$.departureDate'),
                     json_extract(value, '$.nights'), json_extract(value, '$.note')
              FROM json_each(?) WHERE ${guardSql()} AND ${live}`,
-          )
-          .bind(id, userId, JSON.stringify(points), ...guard, id, userId, fields.mode),
-      )
+            )
+            .bind(id, userId, JSON.stringify(chunk), ...guard, id, userId, fields.mode),
+        )
     }
     const countries = 'countries' in command ? command.countries : undefined
     if (countries && countries.length > 0) {
