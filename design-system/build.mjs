@@ -46,12 +46,6 @@ try {
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true })
 }
-// The new light fill needs an independent readable panel role in figures.
-for (const [key, value] of Object.entries(specimens))
-  specimens[key] = value.replaceAll(
-    'color-mix(in oklab, var(--accent) 80%, var(--text))',
-    'var(--figure-live-fill)',
-  )
 const primitives = {}
 const hueName = (value) => {
   const { c, h } = converter('oklch')(value)

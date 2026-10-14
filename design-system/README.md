@@ -39,7 +39,7 @@ npm --prefix design-system run build
 
 `catalog.html`, `catalog.css` and `catalog.js` own the gallery and visual state specimens. Buttons, four isometric figures, Ticket and three neutral Stamps are rendered from project components by `specimens.tsx` during build. Fields, feedback, charts and the page layout are visual contract examples, not a replacement React component library. The existing app primitives remain the implementation owners. Rebuilding picks up current component markup/styles but does not automatically import new application palette values.
 
-One explicit figure adaptation replaces the source's mixed accent panel paint with `--figure-live-fill` (the accent fill). The lighter Shu needs its dark foreground to remain readable on that panel. Decorative side shading and glow remain source behavior. This is a proposed semantic role, not an application component edit.
+Figures paint their live part, panel included, with `--figure-live-fill` (the accent fill, or a category colour where the part depicts one). The lighter Shu needs its dark foreground to remain readable on that panel. Decorative side shading and glow remain source behavior.
 
 Font snapshots and their OFL licenses are in `assets/`; all three fonts are embedded by build. Commissioner owns UI text; Paper Mono owns ticket data. Typography, geometry and surface conventions follow DESIGN.md; motion durations follow the current AGENTS.md.
 

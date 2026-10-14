@@ -310,7 +310,10 @@ export function hangars(
     }
     const on = `var(--lit-${key}, ${lit === key ? 1 : 0})`
     s.group(`shed-${key}-unlit`, () => lighting(false), { vars: { opacity: `calc(1 - ${on})` } })
-    s.group(`shed-${key}-lit`, () => lighting(true), { vars: { opacity: on } })
+    // A shed is a maker, so its lit parts take that maker's colour (the chart's), not the accent.
+    s.group(`shed-${key}-lit`, () => lighting(true), {
+      vars: { opacity: on, '--figure-live-fill': `var(--cat-maker-${key})` },
+    })
   }
   // Two light poles on the apron's flanks, each with a shadow thrown toward the front.
   for (const px of [PX0 + 4, PX1 - 4]) {

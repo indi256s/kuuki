@@ -1021,8 +1021,12 @@ h2 {
   --auth-sheet-edge: inset 0 1px 0 rgb(255 255 255/6%);
   --auth-watermark-opacity: 0.13;
 }
-:root[data-theme='dark'] :is(.read-panel, .capture-card, .auth-shell, .ticket) {
+:root[data-theme='dark'] :is(.read-panel, .capture-card, .auth-shell) {
   border-color: transparent;
+  box-shadow: inset 0 1px 0 var(--surface-highlight);
+}
+/* A ticket sits inside surfaces, so it keeps its hairline in dark. */
+:root[data-theme='dark'] .ticket {
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
 

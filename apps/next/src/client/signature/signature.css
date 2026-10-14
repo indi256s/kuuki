@@ -11,9 +11,6 @@
   color: var(--text);
   overflow: hidden;
 }
-:root[data-theme='dark'] .ticket {
-  border-color: transparent;
-}
 .ticket-main {
   display: grid;
   gap: var(--space-3);

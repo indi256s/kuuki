@@ -22,7 +22,7 @@
   --iso-line: var(--iso-ghost-line);
   --iso-crease: var(--iso-ghost-line);
   --iso-detail: color-mix(in oklab, var(--iso-ghost-line) 50%, var(--ladder-bg, var(--surface)));
-  --accent: var(--iso-ghost-line);
+  --figure-live-fill: var(--iso-ghost-line);
   --accent-foreground: var(--ladder-bg, var(--surface));
 }
 .ladder-figure[data-state='later'] {

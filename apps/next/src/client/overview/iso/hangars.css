@@ -2,6 +2,14 @@
    stand marking crossfade between their unlit and lit drawings (sibling parts whose opacity reads --lit-<key>, see hangars.ts).
    The fade is enabled only once a pick has happened (data-picked on the host), so first render, a swipe and a reset to the headline
    change the lighting at once. Opacity only, and a new pick retargets from wherever the fade is. Reduced motion swaps at once. */
+/* The name on a lit plate sits on a maker colour. Measured against all 34 maker values: --background reaches 4.5:1 on 20 in light (--accent-foreground on 1),
+   --accent-foreground on all 34 in dark. Not every maker clears 4.5:1 in light, so the name is decorative (the figure is aria-hidden; the maker is named in text). */
+.iso-hangars [data-part$='-lit'] {
+  --figure-live-ink: var(--background);
+}
+:root[data-theme='dark'] .iso-hangars [data-part$='-lit'] {
+  --figure-live-ink: var(--accent-foreground);
+}
 @media (prefers-reduced-motion: no-preference) {
   .iso-hangars-host[data-picked] .iso-hangars [data-part^='shed-'] {
     transition: opacity var(--dur-fast) var(--ease-out);

@@ -12,14 +12,15 @@ const PAINT: Record<Exclude<Paint, `maker${string}`>, string> = {
   detail: 'var(--iso-detail)',
   glass: 'var(--iso-glass)',
   ghost: 'var(--iso-ghost)',
-  accent: 'var(--accent)',
-  'accent-side': 'color-mix(in oklab, var(--accent) 80%, black)',
-  // Mixed toward the text colour, so it darkens in light and lightens in dark: on-accent text keeps 4.5:1 on it for every accent.
-  'accent-plate': 'color-mix(in oklab, var(--accent) 80%, var(--text))',
+  // Every live paint derives from one role: --figure-live-fill is the accent fill unless a figure part depicts a category and sets it.
+  accent: 'var(--figure-live-fill)',
+  'accent-side': 'color-mix(in oklab, var(--figure-live-fill) 80%, black)',
+  'accent-plate': 'var(--figure-live-fill)',
   shadow: 'var(--iso-shadow)',
   shade: 'var(--iso-shadow)',
   land: 'color-mix(in oklab, var(--iso-detail) 35%, transparent)',
-  'on-accent': 'var(--accent-foreground)',
+  // Ink on the live fill: the accent foreground, unless a part on a category fill sets --figure-live-ink.
+  'on-accent': 'var(--figure-live-ink, var(--accent-foreground))',
   ink: 'var(--text)',
   muted: 'var(--text-muted)',
   none: 'none',

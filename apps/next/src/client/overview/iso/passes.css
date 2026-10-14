@@ -1,8 +1,8 @@
 .iso-passes {
-  --pass-repeat-accent: color-mix(in oklab, var(--accent) 35%, var(--iso-front));
+  --pass-repeat-accent: color-mix(in oklab, var(--figure-live-fill) 35%, var(--iso-front));
 }
 .iso-passes [data-part='supporting-pass'] {
-  --accent: var(--pass-repeat-accent);
+  --figure-live-fill: var(--pass-repeat-accent);
 }
 
 /* Routes: on hover the top boarding pass slides out of the stack. */

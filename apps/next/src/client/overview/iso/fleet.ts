@@ -1,3 +1,4 @@
+import { makerOf } from '@kuuki/data/aircraft-makers'
 import { GEOMETRY, type Geometry } from './fleet-geometry.generated'
 import { Scene, fitK, hull, r1, type IsoFigureData, type P3, type Paint, type Pt } from './scene'
 
@@ -701,7 +702,12 @@ export function fleet(
     }
     const LIFT = lift(k),
       [, liftY] = s.vector(0, 0, LIFT),
-      vars = { '--lift-y': `${liftY}px` }
+      maker = makerOf(order[i].icao),
+      // The lit plane is a specific aircraft type, drawn in its maker's colour as the chart's bar is; no known maker leaves it on the accent.
+      vars = {
+        '--lift-y': `${liftY}px`,
+        ...(maker === 'unknown' ? {} : { '--figure-live-fill': `var(--cat-maker-${maker})` }),
+      }
     s.group('shadow', shadow)
     // The rod is built LIFT longer below the block top and clipped there, so it slides out of the block as the plane rises.
     const a = 3 / k
