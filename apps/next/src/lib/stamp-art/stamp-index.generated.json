@@ -106,7 +106,7 @@
   },
   "AO": {
     "cluster": "waterfall",
-    "ink": "umber",
+    "ink": "plum",
     "iso3": "AGO",
     "name": {
       "en": "Angola",
@@ -117,7 +117,7 @@
       "en": "Angola",
       "ru": "Ангола"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AQ": {
     "cluster": "ice",
@@ -541,48 +541,48 @@
   },
   "CD": {
     "cluster": "river-quay",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "COD",
     "name": {
       "en": "Congo - Kinshasa",
       "ru": "Конго - Киншаса"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Congo - Kinshasa",
       "ru": "Конго - Киншаса"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CF": {
     "cluster": "river-quay",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "CAF",
     "name": {
       "en": "Central African Republic",
       "ru": "Центрально-Африканская Республика"
     },
-    "shape": "cut-rect",
+    "shape": "oval",
     "short": {
       "en": "CENTRAL AFR. REP.",
       "ru": "ЦАР"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CG": {
     "cluster": null,
-    "ink": "umber",
+    "ink": "oxblood",
     "iso3": "COG",
     "name": {
       "en": "Congo - Brazzaville",
       "ru": "Конго - Браззавиль"
     },
-    "shape": "rectangle",
+    "shape": "cut-rect",
     "short": {
       "en": "Congo - Brazzaville",
       "ru": "Конго - Браззавиль"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CH": {
     "cluster": null,
@@ -646,7 +646,7 @@
   },
   "CM": {
     "cluster": null,
-    "ink": "oxblood",
+    "ink": "slate",
     "iso3": "CMR",
     "name": {
       "en": "Cameroon",
@@ -657,7 +657,7 @@
       "en": "Cameroon",
       "ru": "Камерун"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CN": {
     "cluster": null,
@@ -1081,7 +1081,7 @@
   },
   "GA": {
     "cluster": "waterfall",
-    "ink": "ochre-dark",
+    "ink": "teal",
     "iso3": "GAB",
     "name": {
       "en": "Gabon",
@@ -1092,7 +1092,7 @@
       "en": "Gabon",
       "ru": "Габон"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GB": {
     "cluster": null,
@@ -1261,7 +1261,7 @@
   },
   "GQ": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "moss",
     "iso3": "GNQ",
     "name": {
       "en": "Equatorial Guinea",
@@ -1272,7 +1272,7 @@
       "en": "Equatorial Guinea",
       "ru": "ЭКВ. ГВИНЕЯ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GR": {
     "cluster": "classical-ruin",
@@ -1561,7 +1561,7 @@
   },
   "IS": {
     "cluster": "waterfall",
-    "ink": "indigo",
+    "ink": "umber",
     "iso3": "ISL",
     "name": {
       "en": "Iceland",
@@ -1651,7 +1651,7 @@
   },
   "KE": {
     "cluster": "twin-peak",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "KEN",
     "name": {
       "en": "Kenya",
@@ -1662,7 +1662,7 @@
       "en": "Kenya",
       "ru": "Кения"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KG": {
     "cluster": null,
@@ -1846,7 +1846,7 @@
   },
   "LC": {
     "cluster": "twin-peak",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "LCA",
     "name": {
       "en": "St. Lucia",
@@ -2446,7 +2446,7 @@
   },
   "NP": {
     "cluster": "twin-peak",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "NPL",
     "name": {
       "en": "Nepal",
@@ -3061,7 +3061,7 @@
   },
   "ST": {
     "cluster": "volcano",
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "STP",
     "name": {
       "en": "São Tomé & Príncipe",
@@ -3072,7 +3072,7 @@
       "en": "São Tomé & Príncipe",
       "ru": "САН-ТОМЕ И ПРИНС."
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SV": {
     "cluster": null,
@@ -3151,7 +3151,7 @@
   },
   "TD": {
     "cluster": "rock-arch",
-    "ink": "plum",
+    "ink": "ochre-dark",
     "iso3": "TCD",
     "name": {
       "en": "Chad",
@@ -3162,7 +3162,7 @@
       "en": "Chad",
       "ru": "Чад"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TF": {
     "cluster": "station",
@@ -3391,7 +3391,7 @@
   },
   "UG": {
     "cluster": "waterfall",
-    "ink": "oxblood",
+    "ink": "ochre-dark",
     "iso3": "UGA",
     "name": {
       "en": "Uganda",
@@ -3556,7 +3556,7 @@
   },
   "VU": {
     "cluster": "volcano",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "VUT",
     "name": {
       "en": "Vanuatu",
@@ -3661,7 +3661,7 @@
   },
   "ZM": {
     "cluster": "waterfall",
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "ZMB",
     "name": {
       "en": "Zambia",

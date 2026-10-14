@@ -1,0 +1,49 @@
+{
+  "iso2": "KE",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "indigo",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [30, 58, 28, 160, 66, 24],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "tone": "T3"
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "mount-kenya",
+      "box": [30, 52, 140, 74],
+      "params": {
+        "seed": 3
+      }
+    },
+    {
+      "module": "acacia",
+      "box": [124, 98, 34, 30],
+      "params": {
+        "seed": 3,
+        "crown": 0.38
+      }
+    },
+    {
+      "module": "acacia",
+      "box": [34, 104, 22, 22],
+      "params": {
+        "seed": 5,
+        "lean": -0.08,
+        "crown": 0.38
+      }
+    }
+  ]
+}
