@@ -1,6 +1,7 @@
 'use client'
 /**
- * The Journal detail sheet (spec "Detail sheet", D5): the open flight (`view.flight` in the Journal store), read first, with inline edits.
+ * The Journal detail sheet (spec "Detail sheet", D5): the open flight (`view.flight` in the Journal store), read first as a journey,
+ * with an Edit mode that saves related changes together.
  *
  * `<JournalDetail>` renders inside `JournalStoreProvider` and the member shell's `ToastProvider`, and stays mounted for the page's
  * lifetime (it renders nothing while no flight is open), so a toast's Undo still works after the sheet closes. Props:
@@ -9,7 +10,7 @@
  *   meant as the second column of the page grid beside the ledger; pass `compact={docked && view.flight !== null}` to the ledger.
  *   False renders the modal `Sheet` (`side="right"`, or the `.flight-full-sheet` bottom sheet at ≤700px), opened only after mount, so a
  *   `?flight=` deep link renders the same markup on the server and the client and opens once hydrated.
- * - `initialField`: `{ flightId, field }` starts editing that field when that flight's content mounts (the ledger's "Add aircraft"
+ * - `initialField`: `{ flightId, field }` opens that flight's content in Edit with that field focused (the ledger's "Add aircraft"
  *   maps `field: 'aircraft'` to `'aircraft_icao'`).
  * - Review mode extension points (ticket 12): `top` renders above the read-first content ("Did you take this flight?"), `status`
  *   beside the title ("Review 2 of 3"), and `footer` in the sheet footer ("Next to review"). This component does not read `view.review`.
@@ -21,8 +22,8 @@
  *
  * Focus: the docked pane takes focus on open (its title, or the requested field) and returns it to the opener
  * (or the flight row/Journal title when the opener has gone) on close; Escape inside it closes it. The overlay does the same through Radix.
+ * While Edit is open, Escape first leaves Edit, and Escape or a close request with unsaved changes asks before discarding them.
  */
-import Link from 'next/link'
 import { X } from '@keyline-icons/react'
 import {
   useCallback,
@@ -43,15 +44,14 @@ import { useToast } from '../ui/toast'
 import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
 import { Crossfade } from './crossfade'
-import { FlightDetail, type FlightEditor } from './flight-detail'
-import type { EditableField, EditRecord, FlightDto, InlineEditOutcome } from './flight-edits'
+import { FlightDetail, type CloseGuard, type FlightEditor } from './flight-detail'
+import type { Changes, EditableField, EditOutcome, EditRecord, FlightDto } from './flight-edits'
 import { flightCode, type JournalFlight, type JournalPayload } from './model'
 import { OfflineNote } from './states'
 import { useJournalStore } from './store'
 import './detail-sheet.css'
 
 export const DOCK_QUERY = '(min-width: 1280px)'
-const CONFIRM_MS = 1200
 
 const subscribeDock = (notify: () => void) => {
   const query = window.matchMedia(DOCK_QUERY)
@@ -102,14 +102,14 @@ const copy = {
     region: 'Flight details',
     close: 'Close flight details',
     flight: 'Flight',
-    fullEditor: 'Open full editor',
     missing: 'This flight is no longer in your journal.',
     closeMissing: 'Close',
-    saved: (field: EditableField) => `${fieldNames.en[field]} saved`,
+    saved: (fields: EditableField[]) =>
+      fields.length === 1 ? `${fieldNames.en[fields[0]]} saved` : 'Flight saved',
     undo: 'Undo',
     undone: 'Change undone',
     undoRefused:
-      'This flight changed after that edit, so it cannot be undone. Edit the field again instead.',
+      'This flight changed after that edit, so it cannot be undone. Edit the flight again instead.',
     busy: 'Another change to this flight is still saving. Try again in a moment.',
     offline: 'Offline. Connect to change flights.',
     editorFailed: 'Could not load the editor. Try again.',
@@ -119,14 +119,14 @@ const copy = {
     region: 'Сведения о перелёте',
     close: 'Закрыть сведения о перелёте',
     flight: 'Перелёт',
-    fullEditor: 'Открыть полный редактор',
     missing: 'Этого перелёта больше нет в журнале.',
     closeMissing: 'Закрыть',
-    saved: (field: EditableField) => `Сохранено: ${fieldNames.ru[field]}`,
+    saved: (fields: EditableField[]) =>
+      fields.length === 1 ? `Сохранено: ${fieldNames.ru[fields[0]]}` : 'Перелёт сохранён',
     undo: 'Отменить',
     undone: 'Изменение отменено',
     undoRefused:
-      'Перелёт изменился после этой правки, поэтому её нельзя отменить. Измените поле ещё раз.',
+      'Перелёт изменился после этой правки, поэтому её нельзя отменить. Измените перелёт ещё раз.',
     busy: 'Другое изменение этого перелёта ещё сохраняется. Повторите через мгновение.',
     offline: 'Нет сети. Подключитесь, чтобы изменить перелёты.',
     editorFailed: 'Не удалось загрузить редактор. Повторите.',
@@ -135,12 +135,11 @@ const copy = {
 } as const
 
 type EditorState = 'idle' | 'loading' | 'ready' | 'failed'
-type Confirmation = { flightId: number; field: EditableField; key: number }
 /** The latest saved edit, offered for Undo inside the modal overlay. */
 type UndoOffer = { record: EditRecord; message: string }
 
 /**
- * The write side: one save per flight at a time, the lazily loaded write module, Undo records and the in-place confirmation.
+ * The write side: one save per flight at a time, the lazily loaded write module and Undo records.
  * A save or Undo answered after a sign-out or owner switch is dropped, never applied.
  */
 function useFlightEdits({
@@ -208,33 +207,9 @@ function useFlightEdits({
   }
   const seqs = useRef(new Map<number, number>())
 
-  const [confirmed, setConfirmed] = useState<Confirmation | null>(null)
-  const confirmKey = useRef(0)
-  const confirmTimer = useRef<number | null>(null)
-  useEffect(
-    () => () => {
-      if (confirmTimer.current !== null) window.clearTimeout(confirmTimer.current)
-    },
-    [],
-  )
-  const confirm = (flightId: number, field: EditableField) => {
-    const key = ++confirmKey.current
-    setConfirmed({ flightId, field, key })
-    if (confirmTimer.current !== null) window.clearTimeout(confirmTimer.current)
-    confirmTimer.current = window.setTimeout(() => {
-      confirmTimer.current = null
-      setConfirmed((current) => (current?.key === key ? null : current))
-    }, CONFIRM_MS)
-  }
-
   const current = (id: number) => latest.current.payload.flights.find((flight) => flight.id === id)
   /** Applies the server's row at once, then lets the refetch recompute firsts, connections and refs. */
-  const settle = (
-    mod: FlightEditor,
-    flightId: number,
-    field: EditableField,
-    dto: FlightDto,
-  ): JournalFlight | null => {
+  const settle = (mod: FlightEditor, flightId: number, dto: FlightDto): JournalFlight | null => {
     const before = current(flightId)
     feedback.acknowledge(dto)
     if (!before) {
@@ -248,7 +223,6 @@ function useFlightEdits({
       window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
     else void refresh()
     seqs.current.set(flightId, (seqs.current.get(flightId) ?? 0) + 1)
-    confirm(flightId, field)
     return merged
   }
   const dropped = (generation: number) =>
@@ -282,7 +256,7 @@ function useFlightEdits({
       const { outcome, flight: dto } = await mod.undoWrite(record, lang, generation)
       if (dropped(generation)) return
       if (outcome.status === 'saved' && dto) {
-        settle(mod, record.flightId, record.field, dto)
+        settle(mod, record.flightId, dto)
         toast.show({ kind: 'success', message: say.undone })
       } else {
         toast.show({
@@ -296,29 +270,20 @@ function useFlightEdits({
     }
   }
 
-  const save = async (
-    flight: JournalFlight,
-    field: EditableField,
-    draft: string,
-  ): Promise<InlineEditOutcome> => {
+  const save = async (flight: JournalFlight, changes: Changes): Promise<EditOutcome> => {
     if (!latest.current.online) return { status: 'rejected', message: t.offline }
     if (identityReset.current) return { status: 'rejected', message: t.sessionChanged }
     if (savingRef.current.has(flight.id)) return { status: 'rejected', message: t.busy }
+    const fields = Object.keys(changes) as EditableField[]
+    if (!fields.length) return { status: 'saved' }
     const generation = getAuthGeneration()
     mark(flight.id, true)
     try {
       const mod = await loadEditor()
       if (!mod) return { status: 'rejected', message: t.editorFailed }
-      const base = current(flight.id) ?? flight
-      const problem = mod.validateDraft(base, field, draft, locale)
-      if (problem) return { status: 'rejected', message: problem }
-      const value = mod.normalizeDraft(field, draft)
-      const previous = base[field] ?? null
-      if (value === previous) return { status: 'saved' }
-      const { outcome, flight: dto } = await mod.writeFlightField(
+      const { outcome, flight: dto } = await mod.writeFlightFields(
         flight.id,
-        field,
-        value,
+        changes,
         locale,
         generation,
       )
@@ -328,12 +293,11 @@ function useFlightEdits({
           ? { status: 'unknown', message: t.sessionChanged }
           : outcome
       if (outcome.status === 'saved' && dto) {
-        const merged = settle(mod, flight.id, field, dto)
+        const merged = settle(mod, flight.id, dto)
         if (merged && dto.undo_token) {
           const record: EditRecord = {
             flightId: flight.id,
-            field,
-            previous,
+            fields,
             undoToken: dto.undo_token,
             after: mod.editableValues(merged),
             seq: seqs.current.get(flight.id)!,
@@ -342,13 +306,13 @@ function useFlightEdits({
             setOffer(null)
             toast.show({
               kind: 'success',
-              message: t.saved(field),
+              message: t.saved(fields),
               actionLabel: t.undo,
               onAction: () => {
                 void undo(record)
               },
             })
-          } else setOffer({ record, message: t.saved(field) })
+          } else setOffer({ record, message: t.saved(fields) })
         }
       } else void refresh() // unknown: the list shows what landed; rejected: a conflict needs the current row
       return outcome
@@ -358,7 +322,7 @@ function useFlightEdits({
   }
 
   const dismissOffer = useCallback(() => setOffer(null), [])
-  return { editor, editorState, loadEditor, save, undo, saving, confirmed, offer, dismissOffer }
+  return { editor, editorState, loadEditor, save, undo, saving, offer, dismissOffer }
 }
 
 export type JournalDetailProps = {
@@ -404,6 +368,11 @@ export function JournalDetail({
       : undefined
   const idle = id === null ? (placeholder ?? null) : null
 
+  /** Filled by the content while Edit is open: Escape and close requests ask it first. */
+  const guard = useRef<CloseGuard | null>(null)
+  const requestClose = () => {
+    if (!guard.current?.('close', closeSheet)) closeSheet()
+  }
   const paneTitle = useRef<HTMLHeadingElement | null>(null)
   const body = useRef<HTMLDivElement | null>(null)
   /** A swap started inside the sheet (a connection leg): the clicked button unmounts, so focus moves to the title. */
@@ -469,7 +438,7 @@ export function JournalDetail({
   const paneKeys = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Escape' || event.defaultPrevented) return
     event.preventDefault()
-    closeSheet()
+    if (!guard.current?.('escape', closeSheet)) closeSheet()
   }
 
   const title = flight ? (
@@ -503,9 +472,9 @@ export function JournalDetail({
         loadEditor={loadEditor}
         onSave={edits.save}
         busy={edits.saving.has(flight.id)}
-        confirmedField={edits.confirmed?.flightId === flight.id ? edits.confirmed.field : null}
         initialField={initialField?.flightId === flight.id ? initialField.field : null}
         onOpenFlight={swap}
+        guardRef={guard}
       />
     </Crossfade>
   ) : (
@@ -520,11 +489,6 @@ export function JournalDetail({
     <>
       {status}
       {flight && !online && <OfflineNote locale={locale} id={offlineNoteId} />}
-      {flight && (
-        <Link className="journal-text-link jd-full-editor" href={`/journal/${flight.id}/edit`}>
-          {t.fullEditor}
-        </Link>
-      )}
       {flight && top}
     </>
   )
@@ -560,7 +524,7 @@ export function JournalDetail({
             type="button"
             className="ui-icon-button"
             aria-label={t.close}
-            onClick={closeSheet}
+            onClick={requestClose}
           >
             <X size={20} strokeWidth={2} aria-hidden="true" />
           </button>
@@ -584,7 +548,10 @@ export function JournalDetail({
     <Sheet
       open={mounted && mobile !== null && (id !== null || idle !== null)}
       onOpenChange={(open) => {
-        if (!open) closeSheet()
+        if (!open) requestClose()
+      }}
+      onEscapeKeyDown={(event) => {
+        if (guard.current?.('escape', closeSheet)) event.preventDefault()
       }}
       title={idle ? idle.title : title}
       side={mobile ? 'bottom' : 'right'}

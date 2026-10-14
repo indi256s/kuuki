@@ -265,7 +265,7 @@
     min-height: 360px;
     padding: 16px;
   }
-  /* The phone globe card is a grid (globe.css): the filter corner gets its own column beside Fullscreen, so it reserves nothing. */
+  /* Common filters sit outside the phone card, leaving the corner free. */
   .ov3-globe-region .globe-top-left {
     inline-size: auto;
     min-inline-size: 0;

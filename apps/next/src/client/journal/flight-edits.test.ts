@@ -5,13 +5,15 @@ import { calculateFlightDistance } from '@kuuki/client/geo'
 import { formatDistanceKm } from '../../lib/format'
 import {
   canUndo,
+  draftsOf,
   editableValues,
   failureOutcome,
   mergeSavedFlight,
+  previewChanges,
   previewConsequence,
   undoWrite,
-  validateDraft,
-  writeFlightField,
+  validateDrafts,
+  writeFlightFields,
   type EditRecord,
   type FlightDto,
 } from './flight-edits'
@@ -92,17 +94,44 @@ describe('consequence preview', () => {
       previewConsequence(flight(), 'date', '2024-05-05', 'en', { today: '2026-10-09' }),
     ).toBeNull()
   })
+
+  it('forecasts a route with both ends changed from the new origin, and the date beside it', () => {
+    expect(
+      previewChanges(flight(), { origin: 'MUC', destination: 'AYT', date: '2030-01-01' }, 'en', {
+        today: '2026-10-09',
+      }),
+    ).toEqual([
+      `Distance becomes ${formatDistanceKm('en', distanceBetween('MUC', 'AYT'))}, duration will be recalculated.`,
+      'This flight becomes upcoming and loses its confirmation.',
+    ])
+  })
 })
 
 describe('draft validation', () => {
-  it('uses the full form rules for the edited field only', () => {
-    expect(validateDraft(flight(), 'destination', 'TBS', 'en')).toBe('Choose a different airport.')
-    expect(validateDraft(flight(), 'origin', 'IST', 'en')).toBe('Choose a different airport.')
-    expect(validateDraft(flight(), 'departure_time', '25:00', 'en')).toBe(
-      'Use HH:MM, for example 14:30.',
+  it('checks the changed drafts together with the full form rules', () => {
+    const drafts = (changes: Partial<ReturnType<typeof draftsOf>>) => ({
+      ...draftsOf(flight()),
+      ...changes,
+    })
+    expect(validateDrafts(flight(), drafts({ destination: 'TBS' }), 'en')).toEqual({
+      destination: 'Choose a different airport.',
+    })
+    // A changed origin that now equals the kept destination owns the same-airport message.
+    expect(validateDrafts(flight(), drafts({ origin: 'IST' }), 'en')).toEqual({
+      origin: 'Choose a different airport.',
+    })
+    expect(validateDrafts(flight(), drafts({ departure_time: '25:00', date: '' }), 'ru')).toEqual({
+      departure_time: 'Формат ЧЧ:ММ, например 14:30.',
+      date: 'Выберите дату.',
+    })
+    expect(validateDrafts(flight(), drafts({ aircraft_icao: '' }), 'en')).toEqual({})
+  })
+
+  it('never blocks an edit on a legacy value the catalogue no longer knows', () => {
+    const legacy = flight({ aircraft_icao: 'ZZZZ' })
+    expect(validateDrafts(legacy, { ...draftsOf(legacy), flight_number: 'TK382' }, 'en')).toEqual(
+      {},
     )
-    expect(validateDraft(flight(), 'aircraft_icao', '', 'en')).toBeNull()
-    expect(validateDraft(flight(), 'date', '', 'ru')).toBe('Введите дату.')
   })
 })
 
@@ -128,24 +157,26 @@ describe('writes and outcomes', () => {
     )
   })
 
-  it('sends only the changed field and returns the server row', async () => {
-    vi.mocked(api.patch).mockResolvedValue(dto({ origin: 'MUC' }))
-    const result = await writeFlightField(7, 'origin', 'MUC', 'en')
+  it('sends the changed fields together in one PATCH and returns the server row', async () => {
+    vi.mocked(api.patch).mockResolvedValue(dto({ origin: 'MUC', aircraft_icao: null }))
+    const result = await writeFlightFields(7, { origin: 'MUC', aircraft_icao: null }, 'en')
     expect(result.outcome).toEqual({ status: 'saved' })
     expect(result.flight?.origin).toBe('MUC')
+    expect(api.patch).toHaveBeenCalledTimes(1)
     const [path, body] = vi.mocked(api.patch).mock.calls[0]
     expect(path).toBe('/api/flights/7')
-    expect(Object.keys(body as object).filter((key) => key !== 'timezone')).toEqual([
-      'origin',
-      'offer_undo',
-    ])
+    expect(
+      Object.fromEntries(Object.entries(body as object).filter(([key]) => key !== 'timezone')),
+    ).toEqual({ origin: 'MUC', aircraft_icao: null, offer_undo: true })
   })
 
-  it('is unknown when the PATCH aborts, or when the answer does not carry the sent value', async () => {
+  it('is unknown when the PATCH aborts, or when the answer does not carry every sent value', async () => {
     vi.mocked(api.patch).mockRejectedValue(new DOMException('Session changed', 'AbortError'))
-    expect((await writeFlightField(7, 'origin', 'MUC', 'en')).outcome.status).toBe('unknown')
-    vi.mocked(api.patch).mockResolvedValue(dto({ origin: 'TBS' }))
-    expect((await writeFlightField(7, 'origin', 'MUC', 'en')).outcome.status).toBe('unknown')
+    expect((await writeFlightFields(7, { origin: 'MUC' }, 'en')).outcome.status).toBe('unknown')
+    vi.mocked(api.patch).mockResolvedValue(dto({ origin: 'MUC', flight_number: 'TK381' }))
+    expect(
+      (await writeFlightFields(7, { origin: 'MUC', flight_number: 'TK382' }, 'en')).outcome.status,
+    ).toBe('unknown')
   })
 
   it('drops an answer that arrives after the session changed', async () => {
@@ -153,7 +184,7 @@ describe('writes and outcomes', () => {
       advanceAuthGeneration()
       return dto({ origin: 'MUC' })
     })
-    const result = await writeFlightField(7, 'origin', 'MUC', 'en')
+    const result = await writeFlightFields(7, { origin: 'MUC' }, 'en')
     expect(result.outcome.status).toBe('unknown')
     expect(result.flight).toBeUndefined()
   })
@@ -162,8 +193,7 @@ describe('writes and outcomes', () => {
     vi.mocked(api.patch).mockResolvedValue(dto({ aircraft_icao: 'B738' }))
     const record: EditRecord = {
       flightId: 7,
-      field: 'aircraft_icao',
-      previous: null,
+      fields: ['aircraft_icao'],
       after: editableValues(flight({ aircraft_icao: 'A320' })),
       seq: 1,
       undoToken: 'signed-snapshot',
@@ -181,8 +211,7 @@ describe('writes and outcomes', () => {
     const saved = flight({ origin: 'MUC' })
     const record: EditRecord = {
       flightId: 7,
-      field: 'origin',
-      previous: 'TBS',
+      fields: ['origin'],
       after: editableValues(saved),
       seq: 1,
       undoToken: 'signed-snapshot',

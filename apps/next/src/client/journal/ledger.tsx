@@ -12,12 +12,10 @@ import { MakerSwatch } from '../ui/category-mark'
 import { Checkbox } from '../ui/checkbox'
 import { ContextMenu, ContextMenuButton, type ContextMenuItem } from '../ui/context-menu'
 import { SwipeActions, SwipeActionsRow, type SwipeAction } from '../ui/swipe-actions'
-import { FirstsGlyph } from './firsts-glyph'
 import { useProgressiveCount } from './progressive'
 import type { LedgerItem } from './filter'
 import {
   flightCode,
-  type FlightFirsts,
   type JournalFlight,
   type JournalRefs,
   type JournalSort,
@@ -122,7 +120,6 @@ function Unknown({ label }: { label: string }) {
 
 type RowProps = {
   flight: JournalFlight
-  firsts: FlightFirsts | null
   refs: JournalRefs
   locale: Locale
   active: boolean
@@ -140,7 +137,6 @@ type RowProps = {
 // "Any row is selected" reaches the checkboxes through `data-selecting` on the table, not through a prop.
 const FlightRow = memo(function FlightRow({
   flight,
-  firsts,
   refs,
   locale,
   active,
@@ -225,7 +221,6 @@ const FlightRow = memo(function FlightRow({
           {cities[1]}
         </span>
       </button>
-      {firsts && <FirstsGlyph firsts={firsts} flight={flight} refs={refs} locale={locale} />}
       {items && (
         <span className="jr-more-slot" data-no-open>
           <ContextMenuButton label={actionLabel} className="jr-more" />
@@ -438,7 +433,6 @@ export function JournalLedger({
   const renderFlight = (item: Extract<LedgerItem, { kind: 'flight' }>) => (
     <FlightRow
       flight={item.flight}
-      firsts={item.firsts}
       refs={refs}
       locale={locale}
       active={activeId === item.flight.id}
@@ -525,7 +519,6 @@ export function JournalLedger({
             <FlightRow
               key={item.flight.id}
               flight={item.flight}
-              firsts={item.firsts}
               refs={refs}
               locale={locale}
               active={activeId === item.flight.id}

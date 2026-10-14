@@ -3,140 +3,185 @@
   display: grid;
   gap: var(--space-6);
 }
-.jd-list {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-}
-.jd-row {
-  display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr);
-  align-items: start;
-  gap: var(--space-3);
-}
-.jd-label {
-  padding-block: 8px;
-  font-size: 13px;
-  line-height: 24px;
-  color: var(--text-muted);
-}
-.jd-value {
-  margin: 0;
-  min-width: 0;
-}
-.jd-static {
-  padding-block: 8px;
-  line-height: 24px;
-}
-.jd-settled {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-.jd-trigger.arc-inline-trigger {
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  white-space: normal;
-  text-align: start;
-  padding-block: var(--space-1);
-}
-.jd-add {
-  color: var(--accent-text);
-}
-.jd-code,
-.jd-mono {
+.jd-code {
   font-family: var(--font-mono);
 }
-.jd-place,
-.jd-meta {
+.jd-meta,
+.jd-quiet {
   color: var(--text-muted);
 }
 
-/* Confirms in place: the value settles, the check shows, then fades by about 1.2s (a timer unmounts it). Reduced motion: no fade. */
-.jd-check {
-  flex: none;
-  color: var(--success-fill);
-  animation: jd-check 1.2s var(--ease-out) forwards;
+/* Status on the left, Edit on the right; Edit alone still sits right, under the close button. */
+.jd-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: calc(var(--space-2) * -1);
 }
-@keyframes jd-check {
-  0% {
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+/* The same written state, dot and tint as the ledger's status label (DESIGN: Journal color follows meaning). */
+.jd-status {
+  margin: 0;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.jd-status::before {
+  content: '';
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+  vertical-align: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+.jd-status[data-state='awaiting'] {
+  background: var(--journal-awaiting-tint);
+  color: var(--warning-text);
+}
+.jd-status[data-state='upcoming'] {
+  background: var(--journal-upcoming-tint);
+  color: var(--info-text);
+}
+.jd-edit {
+  margin-inline-start: auto;
 }
 
-.jd-editor {
+/* The journey: departure, the time between, arrival. Columns: local time (absent when neither time is known), the rail, the place.
+   The rail's line runs from the departure dot to the arrival dot: it spans the first two rows and reaches one dot-centre into the third. */
+.jd-journey {
+  --jd-dot-centre: 12px;
   display: grid;
-  gap: var(--space-2);
-  padding-block: var(--space-1);
+  grid-template-columns: [time] auto [rail] 12px [place] minmax(0, 1fr);
+  grid-template-rows: auto minmax(var(--space-8), auto) auto;
 }
-/* The row's label names the field; the picker's own label stays for assistive technology only. */
-.jd-editor :is(.flight-combobox, .flight-calendar) > label,
-.jd-editor .ui-field-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-.jd-editor .ui-field {
+.jd-journey > * {
   margin: 0;
 }
-.jd-editor-actions {
+.jd-when {
+  grid-column: time;
+  display: grid;
+  align-content: start;
+  padding-inline-end: var(--space-4);
+  text-align: end;
+}
+.jd-when[data-end='departure'],
+.jd-dot[data-end='departure'],
+.jd-where[data-end='departure'] {
+  grid-row: 1;
+}
+.jd-when[data-end='arrival'],
+.jd-dot[data-end='arrival'],
+.jd-where[data-end='arrival'] {
+  grid-row: 3;
+}
+.jd-clock {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.jd-offset,
+.jd-day {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+/* Long day words wrap here instead of widening the time column for both stops. */
+.jd-day {
+  max-width: 6rem;
+  justify-self: end;
+}
+.jd-dot {
+  grid-column: rail;
+  justify-self: center;
+  width: 9px;
+  height: 9px;
+  margin-top: calc(var(--jd-dot-centre) - 4.5px);
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+  background: var(--surface);
+}
+.jd-dot[data-end='arrival'] {
+  border-color: var(--text);
+  background: var(--text);
+}
+.jd-line {
+  grid-column: rail;
+  grid-row: 1 / 3;
+  justify-self: center;
+  width: 1.5px;
+  margin-top: calc(var(--jd-dot-centre) + 6px);
+  margin-bottom: calc((var(--jd-dot-centre) - 6px) * -1);
+  background: var(--hairline);
+}
+.jd-where {
+  grid-column: place;
+  display: grid;
+  padding-inline-start: var(--space-4);
+  min-width: 0;
+}
+.jd-city {
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.jd-airport {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.jd-span {
+  grid-column: place;
+  grid-row: 2;
+  align-self: center;
+  padding: var(--space-3) 0 var(--space-3) var(--space-4);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.jd-history {
+  margin: calc(var(--space-2) * -1) 0 0;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* Supporting facts: label over value, two per row. */
+.jd-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  margin: 0;
+}
+.jd-fact {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.jd-fact dt {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.jd-fact dd {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-/* Touch: Save and Cancel carry their words, so the editor never relies on a keyboard. Fine pointers keep the 44px icons. */
-.jd-action-text {
-  display: none;
-}
-/* Press feedback like every other button (DESIGN: 0.96 over --dur-press); off when the action is unavailable. */
-.jd-editor-actions .arc-inline-icon {
-  transition: transform var(--dur-press) var(--ease-out);
-}
-.jd-editor-actions .arc-inline-icon:active:not([aria-disabled='true']) {
-  transform: scale(0.96);
-}
-@media (pointer: coarse) {
-  .jd-editor-actions .arc-inline-icon {
-    display: inline-flex;
-    gap: var(--space-2);
-    width: auto;
-    padding-inline: var(--space-3);
-    font: inherit;
-    font-weight: 500;
-  }
-  .jd-action-text {
-    display: inline;
-  }
-}
-.jd-editor-status,
-.jd-editor-note {
+  align-items: baseline;
+  column-gap: var(--space-2);
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--text-muted);
+  min-width: 0;
+  line-height: 22px;
+  overflow-wrap: anywhere;
 }
-.jd-preview {
-  margin: 0;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--text);
+.jd-fact dd .ui-maker-swatch {
+  align-self: center;
 }
 
 .jd-section {
@@ -148,16 +193,6 @@
   font-size: 15px;
   line-height: 24px;
   font-weight: 500;
-}
-.jd-text {
-  margin: 0;
-}
-.jd-firsts {
-  display: grid;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 .jd-leg {
   display: grid;
@@ -199,22 +234,61 @@
   }
 }
 
+/* Edit mode: visible labels, related fields grouped by space, Save and Cancel together at the end. */
+.jd-content[data-mode='edit'] {
+  gap: var(--space-4);
+}
+.jd-form {
+  display: grid;
+  gap: var(--space-5);
+}
+.jd-form-group {
+  display: grid;
+  gap: var(--space-3);
+}
+.jd-form-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.jd-input .ui-field {
+  margin: 0;
+}
+.jd-preview {
+  display: grid;
+  gap: var(--space-1);
+}
+.jd-preview p,
+.jd-form-note,
+.jd-form-error,
+.jd-discard p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+.jd-form-note {
+  color: var(--text-muted);
+}
+.jd-form-error {
+  color: var(--danger-text);
+}
+.jd-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.jd-discard {
+  display: grid;
+  gap: var(--space-3);
+}
+
 @media (max-width: 700px) {
-  .jd-row,
   .jd-leg {
     grid-template-columns: 6.5rem minmax(0, 1fr);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .jd-check {
-    animation: none;
-  }
-  .jd-editor-actions .arc-inline-icon {
-    transition: none;
-  }
-  .jd-editor-actions .arc-inline-icon:active {
-    transform: none;
-  }
   .jd-leg-open {
     transition: none;
   }

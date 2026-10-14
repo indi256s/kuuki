@@ -1,8 +1,8 @@
 'use client'
-// The detail sheet's content: one flight, read first, with each editable value an inline field (spec "Detail sheet").
+// The detail sheet's content: one flight read as a journey (cities, local times, the time between them), one history fact and a
+// compact block of supporting facts. Edit switches the same panel to labeled fields that save together.
 // Presentational: the container (detail-sheet.tsx) owns writes, Undo, the lazily loaded editor catalogue and the layout.
 import { makerOf } from '@kuuki/data/aircraft-makers'
-import { Check, X } from '@keyline-icons/react'
 import {
   useCallback,
   useEffect,
@@ -10,10 +10,9 @@ import {
   useMemo,
   useRef,
   useState,
-  type FocusEvent,
+  type FormEvent,
   type KeyboardEvent,
-  type MouseEvent,
-  type ReactNode,
+  type RefObject,
 } from 'react'
 import {
   connectionChains,
@@ -25,48 +24,48 @@ import { Calendar } from '../ui/calendar'
 import { MakerSwatch } from '../ui/category-mark'
 import { Combobox, type Choice } from '../ui/combobox'
 import { Field } from '../ui/field'
-import { useMobile } from '../ui/use-mobile'
-import { firstsLabels } from './firsts-glyph'
-import type { EditableField, InlineEditOutcome } from './flight-edits'
-import type { JournalFlight, JournalPayload } from './model'
+import { arrivalOrdinal } from './arrivals'
+import type { Changes, Drafts, EditableField, EditOutcome, FieldErrors } from './flight-edits'
+import { flightCode, type JournalFlight, type JournalPayload } from './model'
 import './flight-detail.css'
 
 /** The lazily loaded write module (flight-edits.ts). Only its types are imported here, so the catalogues stay out of the page bundle. */
 export type FlightEditor = typeof import('./flight-edits')
 
+/**
+ * Asked by the container before Escape or a close request ends the sheet. True: the content handled it (left Edit, or is asking
+ * whether to discard changes and will call `proceed` on Discard).
+ */
+export type CloseGuard = (kind: 'escape' | 'close', proceed: () => void) => boolean
+
+const ordinalRules = new Intl.PluralRules('en', { type: 'ordinal' })
+const ordinalSuffix: Partial<Record<Intl.LDMLPluralRule, string>> = {
+  one: 'st',
+  two: 'nd',
+  few: 'rd',
+}
+
 const copy = {
   en: {
+    departs: 'Departs',
+    arrives: 'Arrives',
     from: 'From',
     to: 'To',
+    flightTime: (duration: string, estimated: boolean) => (estimated ? `≈ ${duration}` : duration),
+    flightTimeLabel: (duration: string, estimated: boolean) =>
+      `${estimated ? 'About ' : ''}${duration} in the air`,
+    nextDay: 'next day',
+    arrival: (ordinal: number, city: string) =>
+      `${ordinal}${ordinalSuffix[ordinalRules.select(ordinal)] ?? 'th'} recorded arrival in ${city}`,
+    facts: 'Flight facts',
     date: 'Date',
-    departure: 'Departure',
-    arrival: 'Arrival',
-    airline: 'Airline',
-    flightNumber: 'Flight number',
+    flight: 'Flight',
     aircraft: 'Aircraft',
     distance: 'Distance',
-    duration: 'Duration',
-    notRecorded: 'Not recorded',
-    localTime: 'Local time, HH:MM',
-    add: {
-      departure_time: 'Add time',
-      arrival_time: 'Add time',
-      airline_iata: 'Add airline',
-      flight_number: 'Add flight number',
-      aircraft_icao: 'Add aircraft',
-    } as Partial<Record<EditableField, string>>,
-    change: (label: string, value: string) => `Change ${label.toLowerCase()}, now ${value}`,
-    save: 'Save',
-    cancel: 'Cancel editing',
-    cancelShort: 'Cancel',
-    saving: 'Saving…',
-    loading: 'Loading the editor…',
-    loadFailed: 'Could not load the editor.',
-    retry: 'Try again',
-    hint: 'Enter or leaving the field saves, Escape cancels.',
-    unknown:
-      'Could not confirm the change: it may or may not be saved. The list is refreshing. Check it, then save again if needed.',
-    nextDay: 'next day',
+    edit: 'Edit',
+    editName: 'Edit flight',
+    awaiting: 'Waiting for your confirmation',
+    upcoming: 'Upcoming flight',
     connection: 'Connection',
     previousLeg: 'Previous leg',
     nextLeg: 'Next leg',
@@ -74,53 +73,50 @@ const copy = {
       `${estimated ? '≈ ' : ''}${duration} transfer in ${airport}`,
     transferUnknown: (airport: string) => `Connection in ${airport}`,
     open: (route: string, date: string) => `Open ${route}, ${date}`,
-    firsts: 'Firsts',
-    record: 'In your journal',
-    imported: (date: string) => `Imported on ${date}`,
-    added: (date: string) => `Added by you on ${date}`,
-    importedNoDate: 'Imported',
-    addedNoDate: 'Added by you',
-    confirmation: {
-      save: 'Saved as a flight you already took',
-      user: 'Confirmed by you',
-      automatic: 'Confirmed automatically seven days after the flight',
-      legacy: 'Carried over from your earlier journal',
-    },
-    awaiting: 'Waiting for your confirmation',
-    upcoming: 'Upcoming flight',
+    form: 'Edit flight',
+    field: {
+      origin: 'From',
+      destination: 'To',
+      date: 'Date',
+      departure_time: 'Departure time',
+      arrival_time: 'Arrival time',
+      airline_iata: 'Airline',
+      flight_number: 'Flight number',
+      aircraft_icao: 'Aircraft',
+    } satisfies Record<EditableField, string>,
+    localTime: 'Local time, HH:MM',
+    save: 'Save changes',
+    saving: 'Saving…',
+    cancel: 'Cancel',
+    loading: 'Loading the editor…',
+    loadFailed: 'Could not load the editor.',
+    retry: 'Try again',
+    invalid: 'Check the highlighted fields.',
+    discard: 'Discard your changes to this flight?',
+    discardYes: 'Discard',
+    discardNo: 'Keep editing',
+    unknown:
+      'Could not confirm the change: it may or may not be saved. The list is refreshing. Check it, then save again if needed.',
   },
   ru: {
+    departs: 'Вылет',
+    arrives: 'Прилёт',
     from: 'Откуда',
     to: 'Куда',
+    flightTime: (duration: string, estimated: boolean) => (estimated ? `≈ ${duration}` : duration),
+    flightTimeLabel: (duration: string, estimated: boolean) =>
+      `В воздухе ${estimated ? 'около ' : ''}${duration}`,
+    nextDay: 'на следующий день',
+    arrival: (ordinal: number, city: string) => `${city}: ${ordinal}-й прилёт в журнале`,
+    facts: 'Сведения о рейсе',
     date: 'Дата',
-    departure: 'Вылет',
-    arrival: 'Прилёт',
-    airline: 'Авиакомпания',
-    flightNumber: 'Номер рейса',
+    flight: 'Рейс',
     aircraft: 'Самолёт',
     distance: 'Расстояние',
-    duration: 'В пути',
-    notRecorded: 'Нет данных',
-    localTime: 'Местное время, ЧЧ:ММ',
-    add: {
-      departure_time: 'Добавить время',
-      arrival_time: 'Добавить время',
-      airline_iata: 'Добавить авиакомпанию',
-      flight_number: 'Добавить номер рейса',
-      aircraft_icao: 'Добавить самолёт',
-    } as Partial<Record<EditableField, string>>,
-    change: (label: string, value: string) => `Изменить: ${label.toLowerCase()}, сейчас ${value}`,
-    save: 'Сохранить',
-    cancel: 'Отменить редактирование',
-    cancelShort: 'Отменить',
-    saving: 'Сохраняем…',
-    loading: 'Загружаем редактор…',
-    loadFailed: 'Не удалось загрузить редактор.',
-    retry: 'Повторить',
-    hint: 'Enter или выход из поля сохраняет, Escape отменяет.',
-    unknown:
-      'Не удалось подтвердить изменение: оно могло сохраниться, а могло и нет. Список обновляется. Проверьте его и при необходимости сохраните снова.',
-    nextDay: 'на следующий день',
+    edit: 'Изменить',
+    editName: 'Изменить перелёт',
+    awaiting: 'Ждёт вашего подтверждения',
+    upcoming: 'Предстоящий перелёт',
     connection: 'Пересадка',
     previousLeg: 'Предыдущий рейс',
     nextLeg: 'Следующий рейс',
@@ -128,20 +124,30 @@ const copy = {
       `Пересадка в ${airport}: ${estimated ? '≈ ' : ''}${duration}`,
     transferUnknown: (airport: string) => `Пересадка в ${airport}`,
     open: (route: string, date: string) => `Открыть ${route}, ${date}`,
-    firsts: 'Впервые',
-    record: 'В журнале',
-    imported: (date: string) => `Импортирован ${date}`,
-    added: (date: string) => `Добавлен вами ${date}`,
-    importedNoDate: 'Импортирован',
-    addedNoDate: 'Добавлен вами',
-    confirmation: {
-      save: 'Сохранён как уже совершённый перелёт',
-      user: 'Подтверждён вами',
-      automatic: 'Подтверждён автоматически через семь дней после перелёта',
-      legacy: 'Перенесён из прежнего журнала',
-    },
-    awaiting: 'Ждёт вашего подтверждения',
-    upcoming: 'Предстоящий перелёт',
+    form: 'Изменить перелёт',
+    field: {
+      origin: 'Откуда',
+      destination: 'Куда',
+      date: 'Дата',
+      departure_time: 'Время вылета',
+      arrival_time: 'Время прилёта',
+      airline_iata: 'Авиакомпания',
+      flight_number: 'Номер рейса',
+      aircraft_icao: 'Самолёт',
+    } satisfies Record<EditableField, string>,
+    localTime: 'Местное время, ЧЧ:ММ',
+    save: 'Сохранить',
+    saving: 'Сохраняем…',
+    cancel: 'Отменить',
+    loading: 'Загружаем редактор…',
+    loadFailed: 'Не удалось загрузить редактор.',
+    retry: 'Повторить',
+    invalid: 'Проверьте отмеченные поля.',
+    discard: 'Отменить изменения этого перелёта?',
+    discardYes: 'Отменить изменения',
+    discardNo: 'Продолжить',
+    unknown:
+      'Не удалось подтвердить изменение: оно могло сохраниться, а могло и нет. Список обновляется. Проверьте его и при необходимости сохраните снова.',
   },
 } as const
 
@@ -191,6 +197,12 @@ function localDay(timeZone: string, at: Date): string | null {
   } catch {
     return null
   }
+}
+
+function nextDay(day: string): string {
+  const date = new Date(`${day}T00:00:00Z`)
+  date.setUTCDate(date.getUTCDate() + 1)
+  return date.toISOString().slice(0, 10)
 }
 
 const instantOf = (value: string | null, fallbackDay: string) =>
@@ -262,24 +274,198 @@ function connectionOf(
   }
 }
 
-// ---- Inline field ----
+// ---- Reading ----
+
+type ReadingProps = {
+  flight: JournalFlight
+  payload: JournalPayload
+  locale: Locale
+  t: Copy
+  onOpenFlight: (id: number) => void
+}
+
+function JourneyReading({ flight, payload, locale, t, onOpenFlight }: ReadingProps) {
+  const refs = payload.refs
+  const endpoint = (code: string, country: string | null) => {
+    const ref = refs.airports[code]
+    return {
+      city: ref?.city ?? ref?.name ?? code,
+      country: countryName(locale, country ?? ref?.country ?? null),
+    }
+  }
+  const origin = endpoint(flight.origin, flight.origin_country),
+    destination = endpoint(flight.destination, flight.destination_country)
+  const time = (value: string | null, zone: string | null, utc: string | null) => {
+    if (!value) return null
+    const at = instantOf(utc, flight.date)
+    return {
+      clock: clock(value),
+      offset: utcOffset(zone, at),
+      day: zone && utc ? localDay(zone, at) : null,
+    }
+  }
+  const departure = time(flight.departure_time, flight.origin_tz, flight.departure_utc)
+  const arrival = time(flight.arrival_time, flight.dest_tz, flight.arrival_utc)
+  // The arrival's local day, when it is not the flight's date (overnight, or a date-line crossing).
+  const arrivalDay =
+    arrival?.day && arrival.day !== flight.date
+      ? arrival.day === nextDay(flight.date)
+        ? t.nextDay
+        : formatDateOnly(locale, arrival.day, 'medium')
+      : null
+  const estimated = flight.duration_source === 'estimate'
+  const duration = positive(flight.duration_minutes)
+    ? formatDuration(locale, flight.duration_minutes!)
+    : null
+  const history = arrivalOrdinal(payload, flight)
+
+  const airlineName = flight.airline_iata
+    ? (refs.airlines[flight.airline_iata]?.name ?? null)
+    : null
+  const code = flightCode(flight)
+  const aircraftName = flight.aircraft_icao
+    ? (refs.aircraft[flight.aircraft_icao]?.name ?? null)
+    : null
+  const distance = positive(flight.distance_km)
+    ? formatDistanceKm(locale, Math.round(flight.distance_km!))
+    : null
+  const connection = useMemo(() => connectionOf(payload, flight), [payload, flight])
+
+  const stop = (
+    end: 'departure' | 'arrival',
+    place: { city: string; country: string | null },
+    airport: string,
+    at: ReturnType<typeof time>,
+    day: string | null,
+  ) => (
+    <>
+      {at && (
+        <p className="jd-when" data-end={end}>
+          <span className="sr-only">{end === 'departure' ? t.departs : t.arrives} </span>
+          <span className="jd-clock">{at.clock}</span>
+          {at.offset && <span className="jd-offset">{at.offset}</span>}
+          {day && <span className="jd-day">{day}</span>}
+        </p>
+      )}
+      <span className="jd-dot" data-end={end} aria-hidden="true" />
+      <p className="jd-where" data-end={end}>
+        <span className="sr-only">{end === 'departure' ? t.from : t.to} </span>
+        <span className="jd-city">{place.city}</span>
+        <span className="jd-airport">
+          <span className="jd-code">{airport}</span>
+          {place.country && (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="sr-only">, </span>
+              {place.country}
+            </>
+          )}
+        </span>
+      </p>
+    </>
+  )
+
+  const legButton = (leg: Leg, label: string) => {
+    const route = `${leg.flight.origin} → ${leg.flight.destination}`
+    const legDate = formatDateOnly(locale, leg.flight.date, 'medium')
+    return (
+      <div className="jd-leg">
+        <span className="jd-leg-label">{label}</span>
+        <button
+          type="button"
+          className="jd-leg-open"
+          aria-label={t.open(route, legDate)}
+          onClick={() => onOpenFlight(leg.flight.id)}
+        >
+          <span className="jd-code">
+            {leg.flight.origin}
+            <span aria-hidden="true"> → </span>
+            {leg.flight.destination}
+          </span>
+          <span className="jd-meta">{legDate}</span>
+        </button>
+        <span className="jd-meta">
+          {leg.minutes === null
+            ? t.transferUnknown(leg.airport)
+            : t.transfer(
+                formatDuration(locale, leg.minutes),
+                leg.airport,
+                leg.label === 'estimated',
+              )}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="jd-journey" data-times={departure || arrival ? undefined : 'none'}>
+        {stop('departure', origin, flight.origin, departure, null)}
+        <span className="jd-line" aria-hidden="true" />
+        <p className="jd-span">
+          {duration && (
+            <>
+              <span aria-hidden="true">{t.flightTime(duration, estimated)}</span>
+              <span className="sr-only">{t.flightTimeLabel(duration, estimated)}</span>
+            </>
+          )}
+        </p>
+        {stop('arrival', destination, flight.destination, arrival, arrivalDay)}
+      </div>
+      {history && <p className="jd-history">{t.arrival(history.ordinal, history.city)}</p>}
+      <dl className="jd-facts" aria-label={t.facts}>
+        <div className="jd-fact">
+          <dt>{t.date}</dt>
+          <dd>{formatDateOnly(locale, flight.date, 'long')}</dd>
+        </div>
+        {(airlineName || code || flight.airline_iata) && (
+          <div className="jd-fact">
+            <dt>{t.flight}</dt>
+            <dd>
+              {airlineName && <span>{airlineName}</span>}
+              {(code ?? (airlineName ? null : flight.airline_iata)) && (
+                <span className="jd-code">{code ?? flight.airline_iata}</span>
+              )}
+            </dd>
+          </div>
+        )}
+        {flight.aircraft_icao && (
+          <div className="jd-fact">
+            <dt>{t.aircraft}</dt>
+            <dd>
+              <MakerSwatch maker={makerOf(flight.aircraft_icao)} size={10} />
+              <span>{aircraftName ?? flight.aircraft_icao}</span>
+              {aircraftName && <span className="jd-code jd-quiet">{flight.aircraft_icao}</span>}
+            </dd>
+          </div>
+        )}
+        {distance && (
+          <div className="jd-fact">
+            <dt>{t.distance}</dt>
+            <dd>{distance}</dd>
+          </div>
+        )}
+      </dl>
+      {(connection.previous || connection.next) && (
+        <section className="jd-section" aria-labelledby={`jd-connection-${flight.id}`}>
+          <h3 id={`jd-connection-${flight.id}`} className="jd-heading">
+            {t.connection}
+          </h3>
+          {connection.previous && legButton(connection.previous, t.previousLeg)}
+          {connection.next && legButton(connection.next, t.nextLeg)}
+        </section>
+      )}
+    </>
+  )
+}
+
+// ---- Editing ----
 
 /** Which control edits the field: a typeable date, a catalogue picker, or plain text (times and the flight number). */
 type InputKind =
   | { kind: 'date' }
   | { kind: 'choices'; choices: Choice[] }
   | { kind: 'text'; time: boolean }
-type InputProps = {
-  input: InputKind
-  locale: Locale
-  hint: string
-  label: string
-  value: string
-  onChange: (value: string) => void
-  inputRef: (node: HTMLInputElement | null) => void
-  error?: string
-  disabled: boolean
-}
 
 function FieldInput({
   input,
@@ -291,7 +477,17 @@ function FieldInput({
   inputRef,
   error,
   disabled,
-}: InputProps) {
+}: {
+  input: InputKind
+  locale: Locale
+  hint: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  inputRef: (node: HTMLInputElement | null) => void
+  error?: string
+  disabled: boolean
+}) {
   if (input.kind === 'date')
     return (
       <Calendar
@@ -334,334 +530,279 @@ function FieldInput({
   )
 }
 
-type DetailFieldProps = {
-  field: EditableField
-  label: string
-  /** The saved value as edit text. */
-  value: string
-  display: ReactNode
-  /** Text for the trigger's accessible name. */
-  valueText: string
-  /** No value yet: the trigger reads as an Add action. */
-  empty: boolean
-  t: Copy
-  editing: boolean
-  onEditingChange: (field: EditableField, editing: boolean) => void
-  /** Null while the editor module loads; `failed` offers a retry. */
-  input: InputKind | null
+/** A focused picker or calendar owns Escape first: it closes its list, the form stays. */
+const pickerOwnsEscape = () =>
+  !!(document.activeElement as Element | null)?.closest(
+    '[aria-expanded="true"], .flight-calendar-popover, .flight-search-sheet',
+  )
+
+type EditFormProps = {
+  flight: JournalFlight
   locale: Locale
-  editorState: 'loading' | 'ready' | 'failed'
-  onRetryEditor: () => void
-  onSave: (field: EditableField, draft: string) => Promise<InlineEditOutcome>
-  preview: (field: EditableField, draft: string) => string | null
-  /** Blocks starting (offline, or another save of this flight in flight). */
-  disabled: boolean
-  disabledReasonId?: string
-  /** The value just settled: show the check. */
-  confirmed: boolean
+  t: Copy
+  editor: FlightEditor
+  initialField: EditableField | null
+  onSave: (flight: JournalFlight, changes: Changes) => Promise<EditOutcome>
+  onDone: () => void
+  guardRef: RefObject<CloseGuard | null>
 }
 
-const FOCUSABLE = 'input,button,select,textarea,a[href],[tabindex]'
+const ORDER: readonly EditableField[] = [
+  'origin',
+  'destination',
+  'date',
+  'departure_time',
+  'arrival_time',
+  'airline_iata',
+  'flight_number',
+  'aircraft_icao',
+]
 
-function DetailField({
-  field,
-  label,
-  value,
-  display,
-  valueText,
-  empty,
-  t,
-  editing,
-  onEditingChange,
-  input: inputKind,
+function FlightEditForm({
+  flight,
   locale,
-  editorState,
-  onRetryEditor,
+  t,
+  editor,
+  initialField,
   onSave,
-  preview,
-  disabled,
-  disabledReasonId,
-  confirmed,
-}: DetailFieldProps) {
-  const [draft, setDraft] = useState(value)
-  const draftRef = useRef(value)
+  onDone,
+  guardRef,
+}: EditFormProps) {
+  // Changes are measured against the flight as it was when Edit started, so a refresh that lands meanwhile is never reverted.
+  const [base] = useState(flight)
+  const [drafts, setDrafts] = useState<Drafts>(() => editor.draftsOf(flight))
+  const [errors, setErrors] = useState<FieldErrors>({})
   const [problem, setProblem] = useState<{ kind: 'rejected' | 'unknown'; message: string } | null>(
     null,
   )
   const [saving, setSaving] = useState(false)
+  const [discarding, setDiscarding] = useState<{ proceed: (() => void) | null } | null>(null)
   const inFlight = useRef(false)
   const mounted = useRef(true)
-  // Enter saves straight away until the draft is touched, so opening a picker and pressing Enter never takes its highlighted suggestion.
-  const touched = useRef(false)
-  const trigger = useRef<HTMLButtonElement | null>(null)
-  const group = useRef<HTMLDivElement | null>(null)
-  const input = useRef<HTMLInputElement | null>(null)
-  // Mounted already editing (the sheet opened on this field): the field takes focus as soon as it attaches.
-  const wanted = useRef<'field' | 'trigger' | null>(editing ? 'field' : null)
-  const hintId = useId(),
-    previewId = useId()
-  const mobile = useMobile() === true
+  const inputs = useRef(new Map<EditableField, HTMLInputElement>())
+  const keepEditing = useRef<HTMLButtonElement | null>(null)
+  const problemId = useId()
 
-  const inputRef = useCallback((node: HTMLInputElement | null) => {
-    input.current = node
-    if (node && wanted.current === 'field') {
-      wanted.current = null
-      node.focus()
-    }
-  }, [])
+  const airports = useMemo(() => editor.airportChoices(locale), [editor, locale])
+  const inputFor = (field: EditableField): InputKind =>
+    field === 'date'
+      ? { kind: 'date' }
+      : field === 'origin' || field === 'destination'
+        ? { kind: 'choices', choices: airports }
+        : field === 'airline_iata'
+          ? { kind: 'choices', choices: editor.airlineChoices }
+          : field === 'aircraft_icao'
+            ? { kind: 'choices', choices: editor.aircraftChoices }
+            : { kind: 'text', time: field === 'departure_time' || field === 'arrival_time' }
+
+  const changes = editor.changesOf(base, drafts)
+  const dirty = Object.keys(changes).length > 0
+  const preview = problem ? [] : editor.previewChanges(base, changes, locale)
+
+  const [focusField] = useState(initialField)
   useEffect(() => {
     mounted.current = true
+    // Opened on a field (the ledger's "Add aircraft"); otherwise the heading keeps focus, so no picker list opens unasked.
+    if (focusField) inputs.current.get(focusField)?.focus()
     return () => {
       mounted.current = false
     }
-  }, [])
+  }, [focusField])
   useEffect(() => {
-    if (wanted.current === 'field' && editing && input.current) {
-      wanted.current = null
-      input.current.focus()
-    } else if (wanted.current === 'trigger' && !editing && trigger.current) {
-      wanted.current = null
-      trigger.current.focus()
-    }
-  })
-
-  const focusInside = () => {
-    const active = document.activeElement
-    return !active || active === document.body || !!group.current?.contains(active)
-  }
-  const close = (focus: boolean) => {
-    wanted.current = focus ? 'trigger' : null
-    setProblem(null)
-    onEditingChange(field, false)
-  }
-  // An unknown outcome reconciled by the refetch: the saved value now is the draft, so the edit is done.
+    if (discarding) keepEditing.current?.focus()
+  }, [discarding])
+  // An unknown outcome reconciled by the refetch: the flight now holds every sent value, so the edit is done.
   useEffect(() => {
-    if (editing && !saving && problem?.kind === 'unknown' && draft.trim() === value) {
-      wanted.current = focusInside() ? 'trigger' : null
-      onEditingChange(field, false)
-    }
-  }, [editing, saving, problem, draft, value, field, onEditingChange])
+    if (problem?.kind !== 'unknown' || saving) return
+    const sent = Object.entries(changes) as [EditableField, string | null][]
+    if (sent.length && sent.every(([field, value]) => (flight[field] ?? null) === value)) onDone()
+  }, [problem, saving, changes, flight, onDone])
 
-  const start = () => {
-    if (disabled || inFlight.current) return
-    touched.current = false
-    draftRef.current = value
-    setDraft(value)
+  const guard = useCallback<CloseGuard>(
+    (kind, proceed) => {
+      if (inFlight.current) return true
+      if (kind === 'escape' && pickerOwnsEscape()) return true
+      if (discarding) {
+        // A second Escape answers the question with "Keep editing".
+        if (kind === 'escape') setDiscarding(null)
+        return true
+      }
+      if (dirty) {
+        setDiscarding({ proceed: kind === 'close' ? proceed : null })
+        return true
+      }
+      if (kind === 'escape') {
+        onDone()
+        return true
+      }
+      return false
+    },
+    [discarding, dirty, onDone],
+  )
+  useEffect(() => {
+    guardRef.current = guard
+    return () => {
+      if (guardRef.current === guard) guardRef.current = null
+    }
+  }, [guard, guardRef])
+
+  const change = (field: EditableField, value: string) => {
+    setDrafts((current) => ({ ...current, [field]: value }))
+    setErrors((current) => {
+      if (!current[field]) return current
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
     setProblem(null)
-    wanted.current = 'field'
-    onEditingChange(field, true)
+    setDiscarding(null)
   }
-  const change = (next: string) => {
-    touched.current = true
-    draftRef.current = next
-    setDraft(next)
-    setProblem(null)
-  }
-  const submit = async () => {
-    if (inFlight.current || !editing) return
-    const next = draftRef.current.trim()
-    if (next === value) {
-      close(focusInside())
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    if (inFlight.current) return
+    if (!dirty) {
+      onDone()
       return
     } // nothing changed on purpose: no request
+    const found = editor.validateDrafts(base, drafts, locale)
+    const first = ORDER.find((field) => found[field])
+    if (first) {
+      setErrors(found)
+      setProblem(null)
+      inputs.current.get(first)?.focus()
+      return
+    }
     inFlight.current = true
     setSaving(true)
     setProblem(null)
-    let outcome: InlineEditOutcome
+    setDiscarding(null)
+    let outcome: EditOutcome
     try {
-      outcome = await onSave(field, next)
+      outcome = await onSave(flight, changes)
     } catch {
       outcome = { status: 'unknown', message: t.unknown }
     }
     inFlight.current = false
     if (!mounted.current) return
     setSaving(false)
-    const here = focusInside()
-    if (outcome.status === 'saved') {
-      wanted.current = here ? 'trigger' : null
-      onEditingChange(field, false)
-    } else {
-      wanted.current = here ? 'field' : null
-      touched.current = false
-      setProblem({ kind: outcome.status, message: outcome.message })
-    }
-  }
-  const cancel = () => {
-    if (!inFlight.current) close(true)
+    if (outcome.status === 'saved') onDone()
+    else setProblem({ kind: outcome.status, message: outcome.message })
   }
 
-  const captureKeys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') touched.current = true
-    if (
-      event.key === 'Enter' &&
-      !event.nativeEvent.isComposing &&
-      event.nativeEvent.keyCode !== 229 &&
-      !(event.target as HTMLElement).closest('button')
-    ) {
-      if (inFlight.current) {
-        event.preventDefault()
-        return
-      }
-      if (!touched.current) {
-        event.preventDefault()
-        event.stopPropagation()
-        void submit()
-      }
-    }
-    if (event.key === 'Escape' && inFlight.current) {
-      event.preventDefault()
-      event.stopPropagation()
-    }
+  const cancel = () => {
+    if (!inFlight.current) onDone()
   }
-  const bubbleKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+  const keys = (event: KeyboardEvent<HTMLFormElement>) => {
     if (
+      event.key !== 'Escape' ||
       event.defaultPrevented ||
       event.nativeEvent.isComposing ||
       event.nativeEvent.keyCode === 229
     )
       return
-    // A picker consumes Enter and Escape while its list is open; whatever reaches here is the deliberate press.
-    if (event.key === 'Enter' && !(event.target as HTMLElement).closest('button')) {
-      event.preventDefault()
-      void submit()
-    } else if (event.key === 'Escape') {
-      event.preventDefault()
-      event.stopPropagation()
-      cancel()
-    }
-  }
-  // Leaving the field saves (spec: Enter or blur). Focus moving within the editor, into the phone search sheet, or out of the window does not.
-  const blur = (event: FocusEvent<HTMLDivElement>) => {
-    const next = event.relatedTarget as Element | null
-    if (next && (group.current?.contains(next) || next.closest('.flight-search-sheet'))) return
-    if (!document.hasFocus()) return
-    void submit()
-  }
-  // A press on the editor's own text keeps focus in the field instead of blurring it.
-  const keepFocus = (event: MouseEvent<HTMLDivElement>) => {
-    if (!(event.target as Element).closest(FOCUSABLE)) event.preventDefault()
+    event.preventDefault()
+    event.stopPropagation()
+    guard('escape', () => {})
   }
 
-  const forecast = editing && !problem ? preview(field, draft) : null
-  return (
-    <div className="jd-row" data-field={field} data-editing={editing || undefined}>
-      <dt className="jd-label">{label}</dt>
-      <dd className="jd-value">
-        {editing ? (
-          <div
-            ref={group}
-            className="jd-editor"
-            role="group"
-            aria-label={label}
-            aria-describedby={
-              [mobile ? null : hintId, forecast ? previewId : null].filter(Boolean).join(' ') ||
-              undefined
-            }
-            data-saving={saving || undefined}
-            onKeyDownCapture={captureKeys}
-            onKeyDown={bubbleKeys}
-            onBlur={blur}
-            onMouseDown={keepFocus}
-          >
-            {inputKind ? (
-              <FieldInput
-                input={inputKind}
-                locale={locale}
-                hint={t.localTime}
-                label={label}
-                value={draft}
-                onChange={change}
-                inputRef={inputRef}
-                error={problem?.kind === 'rejected' ? problem.message : undefined}
-                disabled={saving}
-              />
-            ) : editorState === 'failed' ? (
-              <p role="alert" className="jd-editor-note">
-                {t.loadFailed}{' '}
-                <Button dense variant="secondary" onClick={onRetryEditor}>
-                  {t.retry}
-                </Button>
-              </p>
-            ) : (
-              <p role="status" className="jd-editor-note">
-                {t.loading}
-              </p>
-            )}
-            {forecast && (
-              <p id={previewId} className="jd-preview" aria-live="polite">
-                {forecast}
-              </p>
-            )}
-            <div className="jd-editor-actions">
-              <button
-                type="button"
-                className="arc-inline-icon"
-                data-role="save"
-                aria-label={`${t.save}: ${label}`}
-                aria-disabled={saving || !inputKind || undefined}
-                onClick={() => {
-                  if (inputKind) void submit()
-                }}
-              >
-                <Check size={16} strokeWidth={2} aria-hidden="true" />
-                <span className="jd-action-text">{t.save}</span>
-              </button>
-              <button
-                type="button"
-                className="arc-inline-icon"
-                data-role="cancel"
-                aria-label={t.cancel}
-                aria-disabled={saving || undefined}
-                onClick={cancel}
-              >
-                <X size={16} strokeWidth={2} aria-hidden="true" />
-                <span className="jd-action-text">{t.cancelShort}</span>
-              </button>
-              {saving && (
-                <span role="status" className="jd-editor-status">
-                  {t.saving}
-                </span>
-              )}
-            </div>
-            {problem?.kind === 'unknown' && (
-              <p role="alert" className="arc-inline-unknown">
-                {problem.message}
-              </p>
-            )}
-            {/* Keyboard instructions only where a keyboard is the likely input; phones get the visible Save and Cancel. */}
-            {!mobile && (
-              <span id={hintId} className="sr-only">
-                {t.hint}
-              </span>
-            )}
-          </div>
-        ) : (
-          <span className="jd-settled">
-            <button
-              ref={trigger}
-              type="button"
-              className="arc-inline-trigger jd-trigger"
-              data-empty={empty || undefined}
-              aria-label={t.change(label, valueText)}
-              aria-disabled={disabled || undefined}
-              aria-describedby={disabled ? disabledReasonId : undefined}
-              onClick={disabled ? (event) => event.preventDefault() : start}
-            >
-              {display}
-            </button>
-            {confirmed && (
-              <Check
-                className="jd-check"
-                data-testid="field-saved"
-                size={16}
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-            )}
-          </span>
-        )}
-      </dd>
+  const field = (name: EditableField) => (
+    <div className="jd-input" data-field={name}>
+      <FieldInput
+        input={inputFor(name)}
+        locale={locale}
+        hint={t.localTime}
+        label={t.field[name]}
+        value={drafts[name]}
+        onChange={(value) => change(name, value)}
+        inputRef={(node) => {
+          if (node) inputs.current.set(name, node)
+          else inputs.current.delete(name)
+        }}
+        error={errors[name]}
+        disabled={saving}
+      />
     </div>
+  )
+
+  const invalid = ORDER.some((name) => errors[name])
+  return (
+    <form
+      className="jd-form"
+      aria-label={t.form}
+      aria-describedby={problem ? problemId : undefined}
+      aria-busy={saving || undefined}
+      noValidate
+      onSubmit={(event) => void submit(event)}
+      onKeyDown={keys}
+    >
+      <div className="jd-form-group">
+        {field('origin')}
+        {field('destination')}
+      </div>
+      <div className="jd-form-group">
+        {field('date')}
+        <div className="jd-form-pair">
+          {field('departure_time')}
+          {field('arrival_time')}
+        </div>
+      </div>
+      <div className="jd-form-group">
+        {field('airline_iata')}
+        {field('flight_number')}
+        {field('aircraft_icao')}
+      </div>
+      {preview.length > 0 && (
+        <div className="jd-preview" aria-live="polite">
+          {preview.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+      )}
+      {invalid && (
+        <p className="jd-form-note" role="alert">
+          {t.invalid}
+        </p>
+      )}
+      {problem && (
+        <p
+          id={problemId}
+          role="alert"
+          className={problem.kind === 'unknown' ? 'arc-inline-unknown' : 'jd-form-error'}
+        >
+          {problem.message}
+        </p>
+      )}
+      {discarding ? (
+        <div className="jd-discard" role="alertdialog" aria-label={t.discard}>
+          <p>{t.discard}</p>
+          <div className="jd-form-actions">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const proceed = discarding.proceed
+                onDone()
+                proceed?.()
+              }}
+            >
+              {t.discardYes}
+            </Button>
+            <Button ref={keepEditing} variant="ghost" onClick={() => setDiscarding(null)}>
+              {t.discardNo}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="jd-form-actions">
+          <Button type="submit" variant="primary" loading={saving} loadingLabel={t.saving}>
+            {t.save}
+          </Button>
+          <Button variant="ghost" disabled={saving} onClick={cancel}>
+            {t.cancel}
+          </Button>
+        </div>
+      )}
+    </form>
   )
 }
 
@@ -671,22 +812,22 @@ export type FlightDetailProps = {
   flight: JournalFlight
   payload: JournalPayload
   locale: Locale
-  /** False: every field is read-only and its trigger points at `offlineNoteId`. */
+  /** False: Edit is unavailable and points at `offlineNoteId`. */
   online: boolean
   offlineNoteId: string
   /** The loaded write module, or null while it loads. */
   editor: FlightEditor | null
   editorState: 'idle' | 'loading' | 'ready' | 'failed'
   loadEditor: () => void
-  onSave: (flight: JournalFlight, field: EditableField, draft: string) => Promise<InlineEditOutcome>
-  /** A save of this flight is in flight: other fields cannot start. */
+  onSave: (flight: JournalFlight, changes: Changes) => Promise<EditOutcome>
+  /** A save or Undo of this flight is in flight: Edit cannot start. */
   busy: boolean
-  /** The field whose value just settled. */
-  confirmedField: EditableField | null
-  /** Start editing this field when the content mounts (the ledger's "Add aircraft"). */
+  /** Open in Edit with this field focused (the ledger's "Add aircraft"). */
   initialField?: EditableField | null
   /** Swap the sheet to another flight (a connection leg). */
   onOpenFlight: (id: number) => void
+  /** Filled while editing; the container asks it before Escape or a close request. */
+  guardRef: RefObject<CloseGuard | null>
 }
 
 export function FlightDetail({
@@ -700,338 +841,115 @@ export function FlightDetail({
   loadEditor,
   onSave,
   busy,
-  confirmedField,
   initialField,
   onOpenFlight,
+  guardRef,
 }: FlightDetailProps) {
   const t = copy[locale]
-  const refs = payload.refs
-  const [editing, setEditing] = useState<EditableField | null>(() =>
-    initialField && online ? initialField : null,
-  )
+  const [editing, setEditing] = useState(() => !!initialField && online)
+  const editButton = useRef<HTMLButtonElement | null>(null)
+  const editHeading = useRef<HTMLHeadingElement | null>(null)
+  const returnFocus = useRef(false)
+  // Edit started from the button: the heading takes focus and names the mode.
+  const focusHeading = useRef(false)
   useEffect(() => {
     if (editing && !editor && editorState !== 'loading' && editorState !== 'failed') loadEditor()
   }, [editing, editor, editorState, loadEditor])
-  const setFieldEditing = useCallback((field: EditableField, on: boolean) => {
-    setEditing((current) => (on ? field : current === field ? null : current))
+  useEffect(() => {
+    if (editing && focusHeading.current) {
+      focusHeading.current = false
+      editHeading.current?.focus()
+    } else if (!editing && returnFocus.current) {
+      returnFocus.current = false
+      editButton.current?.focus()
+    }
+  }, [editing])
+
+  const done = useCallback(() => {
+    // Focus returns to Edit only when it was inside Edit; a close or swap moves it elsewhere.
+    const active = document.activeElement
+    returnFocus.current = !active || active === document.body || !!active.closest('.jd-content')
+    setEditing(false)
   }, [])
-
-  const airports = useMemo(() => editor?.airportChoices(locale) ?? null, [editor, locale])
-  const choicesFor = (field: EditableField): Choice[] | null =>
-    field === 'origin' || field === 'destination'
-      ? airports
-      : field === 'airline_iata'
-        ? (editor?.airlineChoices ?? null)
-        : field === 'aircraft_icao'
-          ? (editor?.aircraftChoices ?? null)
-          : null
-  const inputFor = (field: EditableField): InputKind | null => {
-    if (!editor) return null
-    if (field === 'date') return { kind: 'date' }
-    const choices = choicesFor(field)
-    return choices
-      ? { kind: 'choices', choices }
-      : { kind: 'text', time: field === 'departure_time' || field === 'arrival_time' }
+  const unavailable = !online || busy
+  const start = () => {
+    focusHeading.current = true
+    setEditing(true)
   }
-  const save = useCallback(
-    (field: EditableField, draft: string) => onSave(flight, field, draft),
-    [onSave, flight],
-  )
-  const preview = useCallback(
-    (field: EditableField, draft: string) =>
-      editor?.previewConsequence(flight, field, draft, locale) ?? null,
-    [editor, flight, locale],
-  )
 
-  const fieldProps = (field: EditableField) => ({
-    field,
-    t,
-    locale,
-    editing: editing === field,
-    onEditingChange: setFieldEditing,
-    input: inputFor(field),
-    editorState:
-      editorState === 'failed'
-        ? ('failed' as const)
-        : editor
-          ? ('ready' as const)
-          : ('loading' as const),
-    onRetryEditor: loadEditor,
-    onSave: save,
-    preview,
-    disabled: !online || (busy && editing !== field),
-    disabledReasonId: !online ? offlineNoteId : undefined,
-    confirmed: confirmedField === field,
-  })
-
-  // Values
-  const airport = (code: string, country: string | null) => {
-    const ref = refs.airports[code]
-    const place = [
-      ref?.city ?? ref?.name ?? null,
-      countryName(locale, country ?? ref?.country ?? null),
-    ]
-      .filter(Boolean)
-      .join(', ')
-    return {
-      display: (
-        <>
-          <span className="jd-code">{code}</span>
-          {place && <span className="jd-place">{place}</span>}
-        </>
-      ),
-      text: place ? `${code}, ${place}` : code,
-    }
-  }
-  const origin = airport(flight.origin, flight.origin_country),
-    destination = airport(flight.destination, flight.destination_country)
-  const date = formatDateOnly(locale, flight.date, 'long')
-  const time = (
-    value: string | null,
-    zone: string | null,
-    utc: string | null,
-    arriving: boolean,
-  ) => {
-    if (!value) return null
-    const at = instantOf(utc, flight.date)
-    const offset = utcOffset(zone, at)
-    const day = arriving && zone && utc ? localDay(zone, at) : null
-    const otherDay =
-      day && day !== flight.date
-        ? day === nextDay(flight.date)
-          ? t.nextDay
-          : formatDateOnly(locale, day, 'medium')
-        : null
-    const text = [clock(value), offset, otherDay].filter(Boolean).join(' ')
-    return {
-      display: (
-        <>
-          <span className="jd-mono">{clock(value)}</span>
-          {offset && <span className="jd-meta">{offset}</span>}
-          {otherDay && <span className="jd-meta">{otherDay}</span>}
-        </>
-      ),
-      text,
-    }
-  }
-  const departure = time(flight.departure_time, flight.origin_tz, flight.departure_utc, false)
-  const arrival = time(flight.arrival_time, flight.dest_tz, flight.arrival_utc, true)
-  const airlineName = flight.airline_iata
-    ? (refs.airlines[flight.airline_iata]?.name ?? null)
-    : null
-  const aircraftName = flight.aircraft_icao
-    ? (refs.aircraft[flight.aircraft_icao]?.name ?? null)
-    : null
-  const empty = (field: EditableField) => <span className="jd-add">{t.add[field]}</span>
-
-  const distance = positive(flight.distance_km)
-    ? formatDistanceKm(locale, Math.round(flight.distance_km!))
-    : null
-  const duration = positive(flight.duration_minutes)
-    ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes!)}`
-    : null
-  const connection = useMemo(() => connectionOf(payload, flight), [payload, flight])
-  const firsts = payload.firsts[flight.id]
-  const firstLines = firsts ? firstsLabels(firsts, refs, locale, flight) : []
-  const added = /^\d{4}-\d{2}-\d{2}/.test(flight.created_at ?? '')
-    ? formatDateOnly(locale, flight.created_at.slice(0, 10), 'long')
-    : null
-  const origination =
-    flight.source === 'ai_import'
-      ? added
-        ? t.imported(added)
-        : t.importedNoDate
-      : added
-        ? t.added(added)
-        : t.addedNoDate
-  const standing =
+  const status =
     flight.lifecycle_state === 'awaiting'
       ? t.awaiting
       : flight.lifecycle_state === 'upcoming'
         ? t.upcoming
-        : flight.confirmation_source
-          ? t.confirmation[flight.confirmation_source]
-          : null
+        : null
 
-  const legButton = (leg: Leg, label: string) => {
-    const route = `${leg.flight.origin} → ${leg.flight.destination}`
-    const legDate = formatDateOnly(locale, leg.flight.date, 'medium')
+  if (editing)
     return (
-      <div className="jd-leg">
-        <span className="jd-leg-label">{label}</span>
-        <button
-          type="button"
-          className="jd-leg-open"
-          aria-label={t.open(route, legDate)}
-          onClick={() => onOpenFlight(leg.flight.id)}
-        >
-          <span className="jd-code">
-            {leg.flight.origin}
-            <span aria-hidden="true"> → </span>
-            {leg.flight.destination}
-          </span>
-          <span className="jd-meta">{legDate}</span>
-        </button>
-        <span className="jd-meta">
-          {leg.minutes === null
-            ? t.transferUnknown(leg.airport)
-            : t.transfer(
-                formatDuration(locale, leg.minutes),
-                leg.airport,
-                leg.label === 'estimated',
-              )}
-        </span>
+      <div className="jd-content" data-mode="edit">
+        <h3 ref={editHeading} tabIndex={-1} className="jd-heading">
+          {t.form}
+        </h3>
+        {editor ? (
+          <FlightEditForm
+            flight={flight}
+            locale={locale}
+            t={t}
+            editor={editor}
+            initialField={initialField ?? null}
+            onSave={onSave}
+            onDone={done}
+            guardRef={guardRef}
+          />
+        ) : editorState === 'failed' ? (
+          <div className="jd-form-actions">
+            <p role="alert" className="jd-form-note">
+              {t.loadFailed}
+            </p>
+            <Button dense variant="secondary" onClick={loadEditor}>
+              {t.retry}
+            </Button>
+            <Button dense variant="ghost" onClick={done}>
+              {t.cancel}
+            </Button>
+          </div>
+        ) : (
+          <p role="status" className="jd-form-note">
+            {t.loading}
+          </p>
+        )}
       </div>
     )
-  }
 
   return (
-    <div className="jd-content">
-      <dl className="jd-list">
-        <DetailField
-          {...fieldProps('origin')}
-          label={t.from}
-          value={flight.origin}
-          display={origin.display}
-          valueText={origin.text}
-          empty={false}
-        />
-        <DetailField
-          {...fieldProps('destination')}
-          label={t.to}
-          value={flight.destination}
-          display={destination.display}
-          valueText={destination.text}
-          empty={false}
-        />
-        <DetailField
-          {...fieldProps('date')}
-          label={t.date}
-          value={flight.date}
-          display={date}
-          valueText={date}
-          empty={false}
-        />
-        <DetailField
-          {...fieldProps('departure_time')}
-          label={t.departure}
-          value={flight.departure_time ?? ''}
-          display={departure?.display ?? empty('departure_time')}
-          valueText={departure?.text ?? t.notRecorded}
-          empty={!departure}
-        />
-        <DetailField
-          {...fieldProps('arrival_time')}
-          label={t.arrival}
-          value={flight.arrival_time ?? ''}
-          display={arrival?.display ?? empty('arrival_time')}
-          valueText={arrival?.text ?? t.notRecorded}
-          empty={!arrival}
-        />
-      </dl>
-      <dl className="jd-list">
-        <DetailField
-          {...fieldProps('airline_iata')}
-          label={t.airline}
-          value={flight.airline_iata ?? ''}
-          empty={!flight.airline_iata}
-          display={
-            flight.airline_iata ? (
-              <>
-                {airlineName && <span>{airlineName}</span>}
-                <span className="jd-code">{flight.airline_iata}</span>
-              </>
-            ) : (
-              empty('airline_iata')
-            )
-          }
-          valueText={
-            flight.airline_iata
-              ? [airlineName, flight.airline_iata].filter(Boolean).join(', ')
-              : t.notRecorded
-          }
-        />
-        <DetailField
-          {...fieldProps('flight_number')}
-          label={t.flightNumber}
-          value={flight.flight_number ?? ''}
-          empty={!flight.flight_number}
-          display={
-            flight.flight_number ? (
-              <span className="jd-mono">{flight.flight_number}</span>
-            ) : (
-              empty('flight_number')
-            )
-          }
-          valueText={flight.flight_number ?? t.notRecorded}
-        />
-        <DetailField
-          {...fieldProps('aircraft_icao')}
-          label={t.aircraft}
-          value={flight.aircraft_icao ?? ''}
-          empty={!flight.aircraft_icao}
-          display={
-            flight.aircraft_icao ? (
-              <>
-                <MakerSwatch maker={makerOf(flight.aircraft_icao)} size={10} />
-                {aircraftName && <span>{aircraftName}</span>}
-                <span className="jd-code">{flight.aircraft_icao}</span>
-              </>
-            ) : (
-              empty('aircraft_icao')
-            )
-          }
-          valueText={
-            flight.aircraft_icao
-              ? [aircraftName, flight.aircraft_icao].filter(Boolean).join(', ')
-              : t.notRecorded
-          }
-        />
-      </dl>
-      <dl className="jd-list">
-        <div className="jd-row">
-          <dt className="jd-label">{t.distance}</dt>
-          <dd className="jd-value jd-static">{distance ?? t.notRecorded}</dd>
-        </div>
-        <div className="jd-row">
-          <dt className="jd-label">{t.duration}</dt>
-          <dd className="jd-value jd-static">{duration ?? t.notRecorded}</dd>
-        </div>
-      </dl>
-      {(connection.previous || connection.next) && (
-        <section className="jd-section" aria-labelledby={`jd-connection-${flight.id}`}>
-          <h3 id={`jd-connection-${flight.id}`} className="jd-heading">
-            {t.connection}
-          </h3>
-          {connection.previous && legButton(connection.previous, t.previousLeg)}
-          {connection.next && legButton(connection.next, t.nextLeg)}
-        </section>
-      )}
-      {firstLines.length > 0 && (
-        <section className="jd-section" aria-labelledby={`jd-firsts-${flight.id}`}>
-          <h3 id={`jd-firsts-${flight.id}`} className="jd-heading">
-            {t.firsts}
-          </h3>
-          <ul className="jd-firsts">
-            {firstLines.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <section className="jd-section" aria-labelledby={`jd-record-${flight.id}`}>
-        <h3 id={`jd-record-${flight.id}`} className="jd-heading">
-          {t.record}
-        </h3>
-        <p className="jd-text">{origination}</p>
-        {standing && <p className="jd-text">{standing}</p>}
-      </section>
+    <div className="jd-content" data-mode="read">
+      <div className="jd-bar">
+        {status && (
+          <p className="jd-status" data-state={flight.lifecycle_state}>
+            {status}
+          </p>
+        )}
+        <Button
+          ref={editButton}
+          dense
+          variant="secondary"
+          className="jd-edit"
+          data-action="edit-flight"
+          aria-label={t.editName}
+          disabled={unavailable}
+          aria-describedby={!online ? offlineNoteId : undefined}
+          onClick={start}
+        >
+          {t.edit}
+        </Button>
+      </div>
+      <JourneyReading
+        flight={flight}
+        payload={payload}
+        locale={locale}
+        t={t}
+        onOpenFlight={onOpenFlight}
+      />
     </div>
   )
-}
-
-function nextDay(day: string): string {
-  const date = new Date(`${day}T00:00:00Z`)
-  date.setUTCDate(date.getUTCDate() + 1)
-  return date.toISOString().slice(0, 10)
 }

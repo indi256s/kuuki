@@ -33,7 +33,7 @@ export function shouldDismiss({
 
 export type SheetProps = Pick<
   BottomSheetProps,
-  'detents' | 'initialDetent' | 'onDetentChange' | 'titleAction'
+  'detents' | 'initialDetent' | 'onDetentChange' | 'titleAction' | 'onEscapeKeyDown'
 > & {
   initialFocusRef?: RefObject<HTMLElement | null>
   onCloseAutoFocus?: (event: Event) => void
@@ -83,6 +83,7 @@ function SideSheetContent({
   className = '',
   initialFocusRef,
   onCloseAutoFocus,
+  onEscapeKeyDown,
 }: Omit<SheetProps, 'open' | 'side'>) {
   const contentRef = useRef<HTMLDivElement>(null)
   // Capture each Portal mount before a child autoFocus can replace the opener, as Dialog does.
@@ -141,6 +142,7 @@ function SideSheetContent({
       className={`ui-sheet ${className}`}
       data-side="right"
       {...(description ? {} : { 'aria-describedby': undefined })}
+      onEscapeKeyDown={onEscapeKeyDown}
       onCloseAutoFocus={(event) => {
         onCloseAutoFocus?.(event)
         if (!event.defaultPrevented && !trigger && opener?.isConnected) {

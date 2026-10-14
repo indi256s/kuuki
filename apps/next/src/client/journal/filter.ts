@@ -6,7 +6,6 @@ import {
   type ConnectionLabel,
 } from '../../../../../functions/api/_services/connections'
 import type {
-  FlightFirsts,
   JournalAlliance,
   JournalFilters,
   JournalFlight,
@@ -20,7 +19,6 @@ export type LedgerItem =
   | {
       kind: 'flight'
       flight: JournalFlight
-      firsts: FlightFirsts | null
       chain: { id: string; index: number; length: number } | null
     }
   | { kind: 'connector'; key: string; airport: string; minutes: number | null; estimated: boolean }
@@ -243,7 +241,6 @@ export function selectJournal(
     items.push({
       kind: 'flight',
       flight,
-      firsts: payload.firsts[flight.id] ?? null,
       chain: byDate ? (index.chains.get(flight.id) ?? null) : null,
     })
   })
