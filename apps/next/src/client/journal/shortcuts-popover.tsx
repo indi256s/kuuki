@@ -19,7 +19,7 @@ const copy = {
     open: 'Open the flight',
     close: 'Close the sheet or clear the search',
     select: 'Select',
-    edit: 'Edit the focused field',
+    edit: 'Edit the open flight',
     show: 'Show shortcuts',
   },
   ru: {
@@ -30,7 +30,7 @@ const copy = {
     open: 'Открыть перелёт',
     close: 'Закрыть карточку или очистить поиск',
     select: 'Выбрать',
-    edit: 'Изменить поле',
+    edit: 'Изменить открытый перелёт',
     show: 'Показать сочетания',
   },
 } as const

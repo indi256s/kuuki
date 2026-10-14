@@ -65,17 +65,10 @@ function Harness({
           ))}
         </tbody>
       </table>
-      <aside aria-label="Flight details">
-        <div className="jd-row" data-field="aircraft">
-          <button type="button" className="jd-trigger" aria-label="Change aircraft">
-            A320
-          </button>
-        </div>
-        <div className="jd-row" data-field="seat">
-          <button type="button" className="jd-trigger" aria-label="Change seat">
-            12A
-          </button>
-        </div>
+      <aside className="journal-detail" aria-label="Flight details">
+        <button type="button" data-action="edit-flight">
+          Edit flight
+        </button>
         <button type="button">Close details</button>
       </aside>
     </>
@@ -129,7 +122,7 @@ describe('useJournalKeys', () => {
     render(<Harness on={on} />)
     const outside = screen.getByRole('button', { name: 'Outside' })
     const toolbar = screen.getByRole('button', { name: 'Period filter' })
-    const sheetField = screen.getByRole('button', { name: 'Change aircraft' })
+    const sheetField = screen.getByRole('button', { name: 'Edit flight' })
     for (const target of [document.body, outside, sheetField]) {
       if (target instanceof HTMLElement && target !== document.body) target.focus()
       for (const key of ['j', 'k', '/', '?']) press(target, key)
@@ -162,7 +155,7 @@ describe('useJournalKeys', () => {
     checkbox.focus()
     press(checkbox, 'ArrowDown')
     expect(row(2)).toHaveFocus()
-    const trigger = screen.getByRole('button', { name: 'Change aircraft' })
+    const trigger = screen.getByRole('button', { name: 'Edit flight' })
     trigger.focus()
     press(trigger, 'ArrowDown')
     expect(trigger).toHaveFocus()
@@ -181,18 +174,14 @@ describe('useJournalKeys', () => {
     expect(on.onToggleSelect).toHaveBeenCalledTimes(1)
   })
 
-  it('e clicks the trigger of the focused sheet row', () => {
+  it('e starts Edit from inside the open flight details only', () => {
     render(<Harness on={handlers()} />)
     const clicked = vi.fn()
-    const seat = screen.getByRole('button', { name: 'Change seat' })
-    seat.addEventListener('click', clicked)
-    const aircraft = screen.getByRole('button', { name: 'Change aircraft' })
-    aircraft.addEventListener('click', clicked)
-    press(seat, 'e')
-    expect(clicked).toHaveBeenCalledTimes(1)
-    expect(clicked.mock.calls[0][0].target).toBe(seat)
+    screen.getByRole('button', { name: 'Edit flight' }).addEventListener('click', clicked)
     press(screen.getByRole('button', { name: 'Close details' }), 'e')
+    expect(clicked).toHaveBeenCalledTimes(1)
     press(row(1), 'e')
+    press(screen.getByRole('button', { name: 'Outside' }), 'e')
     expect(clicked).toHaveBeenCalledTimes(1)
   })
 
