@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RailTicketCandidate } from '../../../../../../../functions/api/_services/railTicketOcr'
+import { emptyLeg } from '../model'
 import {
   findRepeats,
   legFromPreview,
@@ -13,6 +14,20 @@ import {
   statusForFailure,
   stopRows,
 } from './model'
+
+const place = (name: string) => ({
+  source: 'geonames' as const,
+  id: name,
+  name,
+  nameRu: null,
+  nameEn: name,
+  countryCode: 'DE',
+  region: null,
+  lat: 52.5,
+  lon: 13.4,
+  timezone: 'Europe/Berlin',
+  catalogVersion: 'v1',
+})
 
 const candidate = (patch: Partial<RailTicketCandidate> = {}): RailTicketCandidate => ({
   fromStation: 'Berlin Hbf',
@@ -113,14 +128,39 @@ describe('previews never invent a year', () => {
     ).toBe('')
   })
 
-  it('carries city text into the station field only when the station is absent, and never a place', () => {
+  it('keeps a printed city out of the station field and never turns it into a place', () => {
     const leg = legFromPreview(
       previewFromCandidate(candidate({ fromStation: null, fromCity: 'Berlin', toCity: 'Praha' })),
     )
-    expect(leg.fromStation).toBe('Berlin')
+    expect(leg.fromStation).toBe('')
     expect(leg.toStation).toBe('Praha hl.n.')
+    expect(leg.fromCity).toBe('Berlin')
+    expect(leg.toCity).toBe('Praha')
     expect(leg.from).toBeNull()
     expect(leg.to).toBeNull()
+  })
+
+  it('replaces only the fields the ticket states on an existing leg', () => {
+    const old = {
+      ...emptyLeg(),
+      from: place('Berlin'),
+      to: place('Praha'),
+      durationManual: '270',
+      operator: 'DB',
+      arrivalTime: '13:00',
+    }
+    const leg = legFromPreview(
+      previewFromCandidate(candidate({ operator: null, arrivalTime: '14:10', fromCity: 'Berlin' })),
+      old,
+    )
+    expect(leg.id).toBe(old.id)
+    expect(leg.from).toBe(old.from)
+    expect(leg.to).toBe(old.to)
+    expect(leg.durationManual).toBe('270')
+    expect(leg.operator).toBe('DB')
+    expect(leg.arrivalTime).toBe('14:10')
+    expect(leg.trainNumber).toBe('EC 171')
+    expect(leg.fromCity).toBeUndefined()
   })
 
   it('starts cancelled and other-passenger tickets unticked', () => {

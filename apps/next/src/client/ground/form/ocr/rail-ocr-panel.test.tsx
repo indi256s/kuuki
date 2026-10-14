@@ -9,6 +9,7 @@ import type {
   RailTicketCandidate,
 } from '../../../../../../../functions/api/_services/railTicketOcr'
 import { emptyLeg, type LegDraft } from '../model'
+import { previewFromCandidate } from './model'
 import { applyLegCandidates } from '../rail-editor'
 
 vi.mock('../../api', () => ({ readRailTicket: vi.fn() }))
@@ -56,8 +57,13 @@ function Harness({ initial = [] }: { initial?: LegDraft[] }) {
         api={{
           legs,
           disabled: false,
-          onCandidates: (candidates, mode, id) =>
-            setLegs((current) => applyLegCandidates(current, candidates, mode, id)),
+          restoredRows: [],
+          onUnaddedChange: () => {},
+          onCandidates: (candidates, mode, id) => {
+            const next = applyLegCandidates(legs, candidates, mode, id)
+            if (next) setLegs(next)
+            return next !== null
+          },
         }}
       />
       <ul aria-label="form legs">
@@ -88,7 +94,7 @@ beforeEach(() => {
 })
 
 describe('RailOcrPanel', () => {
-  it('reads two files at a time and shows one live line per file, with plurals', async () => {
+  it('reads two files at a time and shows a status line per file, with plurals', async () => {
     const [a, b, c] = [deferred(), deferred(), deferred()]
     vi.mocked(readRailTicket)
       .mockReturnValueOnce(a.promise)
@@ -229,5 +235,59 @@ describe('RailOcrPanel', () => {
     expect(screen.getAllByRole('group')).toHaveLength(3)
     expect(screen.getByText('Cancelled ticket')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Add to route (2)' })).toBeTruthy()
+  })
+  it('moves focus to a neighbouring Remove after removing a row, and keeps the rows out of the live region', async () => {
+    vi.mocked(readRailTicket).mockResolvedValue(result(candidate()))
+    render(<Harness />)
+    choose(pdf('a.pdf'), pdf('b.pdf'))
+    await screen.findAllByText('1 train')
+    expect(
+      within(screen.getByRole('list', { name: 'Tickets' })).queryAllByRole('status'),
+    ).toHaveLength(0)
+    await userEvent.click(screen.getByRole('button', { name: 'Remove a.pdf' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove b.pdf' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remove b.pdf' }))
+    expect(document.activeElement?.textContent).toContain('Choose tickets')
+  })
+
+  it('does not submit the surrounding form on Enter in a preview field', async () => {
+    vi.mocked(readRailTicket).mockResolvedValue(result(candidate()))
+    render(<Harness />)
+    choose(pdf('a.pdf'))
+    const input = await screen.findByLabelText('Train number')
+    expect(fireEvent.keyDown(input, { key: 'Enter' })).toBe(false)
+  })
+
+  it('reports unadded previews for the draft and restores them without a file', async () => {
+    const report = vi.fn()
+    const stored = {
+      id: 'row-1',
+      fileName: 'saved.pdf',
+      fileSize: null,
+      previews: [previewFromCandidate(candidate({ trainNumber: 'EC 99' }))],
+    }
+    render(
+      <RailOcrPanel
+        locale="en"
+        api={{
+          legs: [],
+          disabled: false,
+          restoredRows: [stored],
+          onUnaddedChange: report,
+          onCandidates: () => true,
+        }}
+      />,
+    )
+    expect(screen.getByText('saved.pdf')).toBeTruthy()
+    expect((screen.getByLabelText('Train number') as HTMLInputElement).value).toBe('EC 99')
+    expect(report).toHaveBeenLastCalledWith([expect.objectContaining({ id: 'row-1' })])
+    await userEvent.click(screen.getByRole('button', { name: /Add to route/ }))
+    expect(report).toHaveBeenLastCalledWith([])
+  })
+
+  it('refuses a hand-off past 100 legs instead of cutting it', () => {
+    const legs = Array.from({ length: 100 }, () => emptyLeg())
+    expect(applyLegCandidates(legs, [emptyLeg()], 'append')).toBeNull()
+    expect(applyLegCandidates(legs, [emptyLeg()], 'replace', legs[3]!.id)).toHaveLength(100)
   })
 })

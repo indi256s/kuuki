@@ -32,6 +32,9 @@ export interface LegDraft {
   arrivalTime: string
   /** Minutes the owner typed. Empty means "let the schedule decide"; a schedule-derived value is never copied here. */
   durationManual: string
+  /** A city printed on a ticket, kept while the place is unset so the picker can search for it. Never a place. */
+  fromCity?: string
+  toCity?: string
 }
 
 export interface PointDraft {

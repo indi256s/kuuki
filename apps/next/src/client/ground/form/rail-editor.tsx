@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Plus } from '@keyline-icons/react'
 import { GROUND_LIMITS, placeLabel, railLegDuration } from '@kuuki/shared/groundTravel'
 import type { Locale } from '../../../lib/format'
@@ -10,6 +10,7 @@ import { Field } from '../../ui/field'
 import { knownDuration } from '../format'
 import { DateField, errorText, TimeField } from './fields'
 import { emptyLeg, legPreview, parseWholeNumber, type FormErrors, type LegDraft } from './model'
+import type { Preview } from './ocr/model'
 import { moved, OrderedRows } from './ordered-rows'
 import { PlacePicker } from './place-picker'
 
@@ -22,26 +23,42 @@ import { PlacePicker } from './place-picker'
  */
 export type RailCandidateMode = 'append' | 'replace'
 
-export interface RailOcrSlotApi {
-  legs: readonly LegDraft[]
-  onCandidates: (candidates: LegDraft[], mode: RailCandidateMode, replaceLegId?: string) => void
-  disabled: boolean
+/** Previews received and not yet added, as the draft keeps them (see draft.ts). */
+export interface StoredOcrRow {
+  id: string
+  fileName: string
+  fileSize: number | null
+  previews: Preview[]
 }
 
+export interface RailOcrSlotApi {
+  legs: readonly LegDraft[]
+  /** Returns false, changing nothing, when the result would pass the leg limit. */
+  onCandidates: (candidates: LegDraft[], mode: RailCandidateMode, replaceLegId?: string) => boolean
+  disabled: boolean
+  /** Rows restored from the draft when the form opened; read once, at mount. */
+  restoredRows: readonly StoredOcrRow[]
+  /** Reports the rows still holding unadded previews, so the draft can keep them across a reload. */
+  onUnaddedChange: (rows: StoredOcrRow[]) => void
+}
+
+/** The route after the hand-off, or null when it would pass the leg limit (nothing is cut off silently). */
 export function applyLegCandidates(
   legs: readonly LegDraft[],
   candidates: readonly LegDraft[],
   mode: RailCandidateMode,
   replaceLegId?: string,
-): LegDraft[] {
+): LegDraft[] | null {
   if (candidates.length === 0) return [...legs]
-  const room = (list: LegDraft[]) => list.slice(0, GROUND_LIMITS.children)
+  const room = (list: LegDraft[]) => (list.length <= GROUND_LIMITS.children ? list : null)
   if (mode === 'append') return room([...legs, ...candidates])
   if (replaceLegId === undefined) return room([...candidates])
   const index = legs.findIndex((leg) => leg.id === replaceLegId)
   if (index < 0) return room([...legs, ...candidates])
   return room([...legs.slice(0, index), ...candidates, ...legs.slice(index + 1)])
 }
+
+const ignoreUnadded = () => {}
 
 export function RailEditor({
   legs,
@@ -50,6 +67,7 @@ export function RailEditor({
   errors,
   disabled,
   ocrSlot,
+  ocrDraft,
 }: {
   legs: LegDraft[]
   onChange: (legs: LegDraft[]) => void
@@ -58,6 +76,8 @@ export function RailEditor({
   disabled: boolean
   /** Where the OCR panel mounts: rendered above the legs with the candidate entry point. */
   ocrSlot?: (api: RailOcrSlotApi) => ReactNode
+  /** The unadded OCR previews the draft keeps: restored into the slot, reported back on change. */
+  ocrDraft?: Pick<RailOcrSlotApi, 'restoredRows' | 'onUnaddedChange'>
 }) {
   const ru = locale === 'ru'
   const root = useRef<HTMLDivElement>(null)
@@ -90,8 +110,13 @@ export function RailEditor({
       {ocrSlot?.({
         legs,
         disabled,
-        onCandidates: (candidates, mode, replaceLegId) =>
-          onChange(applyLegCandidates(legs, candidates, mode, replaceLegId)),
+        restoredRows: ocrDraft?.restoredRows ?? [],
+        onUnaddedChange: ocrDraft?.onUnaddedChange ?? ignoreUnadded,
+        onCandidates: (candidates, mode, replaceLegId) => {
+          const next = applyLegCandidates(legs, candidates, mode, replaceLegId)
+          if (next) onChange(next)
+          return next !== null
+        },
       })}
       <OrderedRows
         items={legs}
@@ -159,6 +184,14 @@ function LegFields({
 }) {
   const ru = locale === 'ru'
   const error = (field: string) => errorText(errors[`leg:${leg.id}:${field}`], locale)
+  // A printed city asks for a search, never a choice: the owner still picks the place from the list.
+  const [find, setFind] = useState<{ side: 'from' | 'to'; nonce: number } | null>(null)
+  const pending = {
+    from: !leg.from && leg.fromCity ? leg.fromCity : null,
+    to: !leg.to && leg.toCity ? leg.toCity : null,
+  }
+  const prefill = (side: 'from' | 'to') =>
+    find?.side === side && pending[side] ? { text: pending[side], nonce: find.nonce } : undefined
   const detailsFilled = [
     leg.fromStation,
     leg.toStation,
@@ -188,19 +221,41 @@ function LegFields({
           label={ru ? 'Откуда' : 'From'}
           locale={locale}
           value={leg.from}
-          onChange={(from) => onChange({ from })}
+          onChange={(from) => onChange({ from, fromCity: undefined })}
           error={error('from')}
           disabled={disabled}
+          prefill={prefill('from')}
         />
         <PlacePicker
           label={ru ? 'Куда' : 'To'}
           locale={locale}
           value={leg.to}
-          onChange={(to) => onChange({ to })}
+          onChange={(to) => onChange({ to, toCity: undefined })}
           error={error('to')}
           disabled={disabled}
+          prefill={prefill('to')}
         />
       </div>
+      {(pending.from || pending.to) && (
+        <div className="gt-actions">
+          {(['from', 'to'] as const).map((side) => {
+            const city = pending[side]
+            if (!city) return null
+            const sideLabel = side === 'from' ? (ru ? 'Откуда' : 'From') : ru ? 'Куда' : 'To'
+            const text = ru ? `Найти «${city}»` : `Find “${city}”`
+            return (
+              <Button
+                key={side}
+                disabled={disabled}
+                aria-label={`${text}: ${sideLabel}`}
+                onClick={() => setFind({ side, nonce: (find?.nonce ?? 0) + 1 })}
+              >
+                {text}
+              </Button>
+            )
+          })}
+        </div>
+      )}
       <div className="gt-pair">
         <DateField
           label={ru ? 'Дата отправления' : 'Departure date'}

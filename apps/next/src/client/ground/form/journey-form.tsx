@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  Fragment,
   type FormEvent,
   type ReactNode,
 } from 'react'
@@ -36,6 +37,7 @@ import { MetricsPreview } from './metrics-preview'
 import {
   blankState,
   buildCommandBody,
+  type CommandBody,
   countriesAnswered,
   newId,
   routeCountryCodes,
@@ -44,13 +46,14 @@ import {
   validateState,
   type FormState,
 } from './model'
-import { RailEditor, type RailOcrSlotApi } from './rail-editor'
+import { RailEditor, type RailOcrSlotApi, type StoredOcrRow } from './rail-editor'
 import { RoadEditor } from './road-editor'
 import { savedHref } from './return-context'
 import {
   attemptSave,
   checkSave,
   commandFor,
+  rereadSaved,
   saveReducer,
   type Attempt,
   type CheckOutcome,
@@ -80,6 +83,15 @@ const useOnline = () =>
     () => navigator.onLine !== false,
     () => true,
   )
+
+/** Whether the form still says what the frozen command sent: same route, dates, title, note and countries. */
+function sameContent(command: GroundCommand, body: CommandBody | null): boolean {
+  if (!body || !('journey' in command) || !('journey' in body)) return false
+  return (
+    JSON.stringify([command.journey, command.countries]) ===
+    JSON.stringify([body.journey, body.countries])
+  )
+}
 
 const deps: SaveDeps = {
   send: (command, signal) => sendCommand(command, { signal }),
@@ -121,6 +133,7 @@ interface Boot {
   journeyId: string
   baseVersion: number | null
   pending: GroundCommand | null
+  ocr: StoredOcrRow[]
   restored: boolean
   unreadable: boolean
 }
@@ -138,6 +151,7 @@ function boot(
     journeyId: existing?.id ?? newId(),
     baseVersion: existing?.version ?? null,
     pending: null,
+    ocr: [],
     restored: false,
     unreadable: false,
   }
@@ -151,6 +165,7 @@ function boot(
     journeyId: existing?.id ?? draft.journeyId,
     baseVersion: existing ? (draft.baseVersion ?? existing.version) : null,
     pending: draft.pending,
+    ocr: draft.ocr ?? [],
     restored: true,
     unreadable: false,
   }
@@ -179,6 +194,13 @@ function FormBody({
   const [reviewSaved, setReviewSaved] = useState(false)
   const [existingStatus, setExistingStatus] = useState(existing?.status)
   const [baseVersion, setBaseVersion] = useState(initial.baseVersion)
+  const [ocrRows, setOcrRows] = useState(initial.ocr)
+  const [ocrEpoch, setOcrEpoch] = useState(0)
+  const [laterEdits, setLaterEdits] = useState(false)
+  const [rebased, setRebased] = useState(false)
+  const [rereading, setRereading] = useState(false)
+  const [rereadFailed, setRereadFailed] = useState(false)
+  const focusCountries = useRef(false)
   const journeyId = initial.journeyId
   const [save, dispatch] = useReducer(saveReducer, initial.pending, (pending) =>
     pending
@@ -206,8 +228,11 @@ function FormBody({
   )
   useEffect(() => {
     alive.current = true
+    // A write queued for the owner who just left must not land after the identity reset.
+    const unwatch = writer.watchIdentityReset()
     return () => {
       alive.current = false
+      unwatch()
       writer.flush()
     }
   }, [writer])
@@ -215,11 +240,21 @@ function FormBody({
   const pending = save.phase === 'saving' || save.phase === 'unknown' ? save.command : null
   useEffect(() => {
     if (!touched || finished.current) return
-    const draft: Draft = { v: 1, journeyId, baseVersion, state, pending }
+    const draft: Draft = { v: 1, journeyId, baseVersion, state, pending, ocr: ocrRows }
     writer.schedule(draft)
     // A write in flight is unconfirmed the moment the page may go away: record it now, not after the debounce.
     if (pending) writer.flush()
-  }, [state, touched, pending, baseVersion, journeyId, writer])
+  }, [state, touched, pending, baseVersion, journeyId, ocrRows, writer])
+
+  // What the async save paths compare against: the form as it is now, not as it was when the request left.
+  const latest = useRef({ state, existingStatus, baseVersion })
+  useEffect(() => {
+    latest.current = { state, existingStatus, baseVersion }
+  })
+  const onUnaddedChange = useCallback((rows: StoredOcrRow[]) => {
+    setOcrRows((current) => (current.length === 0 && rows.length === 0 ? current : rows))
+    if (rows.length > 0) setTouched(true)
+  }, [])
 
   const change = useCallback((next: (current: FormState) => FormState) => {
     setTouched(true)
@@ -240,7 +275,27 @@ function FormBody({
   const saving = save.phase === 'saving'
   const countriesMissing = review && !countriesAnswered(state)
 
-  const finish = (result: { journeyId: string; derivedState: 'ready' | 'pending' }) => {
+  const finish = (
+    result: { journeyId: string; derivedState: 'ready' | 'pending'; savedVersion: number },
+    command: GroundCommand,
+  ) => {
+    // A late answer must not erase what was typed after the request left: keep the form and the draft, move the
+    // baseline to what was saved, and say the newer edits still need their own save.
+    const now = latest.current
+    if (!sameContent(command, buildCommandBody(now.state, bodyTarget(now)))) {
+      attempt.current = null
+      setBaseVersion(result.savedVersion)
+      setExistingStatus(
+        command.action === 'create'
+          ? command.status
+          : command.action === 'complete'
+            ? 'completed'
+            : now.existingStatus,
+      )
+      setLaterEdits(true)
+      dispatch({ type: 'dismiss' })
+      return
+    }
     finished.current = true
     writer.cancel()
     removeDraft(ownerId, kind)
@@ -258,13 +313,20 @@ function FormBody({
     router.push(savedHref(returnTo, result.journeyId))
   }
 
+  const bodyTarget = (now: typeof latest.current) => ({
+    journeyId,
+    existing: now.existingStatus,
+    expectedVersion: now.baseVersion ?? undefined,
+  })
+
   const settle = (outcome: SaveOutcome, command: GroundCommand) => {
     if (!alive.current) return
-    if (outcome.kind === 'saved') return finish(outcome.result)
+    if (outcome.kind === 'saved') return finish(outcome.result, command)
     dispatch({ type: 'outcome', outcome, command })
   }
 
   const run = async (command: GroundCommand) => {
+    setLaterEdits(false)
     dispatch({ type: 'start', command })
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
@@ -307,7 +369,7 @@ function FormBody({
     try {
       const outcome: CheckOutcome = await checkSave(command, deps, controller.signal)
       if (!alive.current) return
-      if (outcome.kind === 'saved') return finish(outcome.result)
+      if (outcome.kind === 'saved') return finish(outcome.result, command)
       dispatch({ type: 'check-done', outcome })
     } finally {
       release()
@@ -317,27 +379,62 @@ function FormBody({
   const applyOnTop = () => {
     if (save.phase !== 'conflict' || !save.current) return
     const current = save.current
+    // The baseline moves first, so even a refused apply leaves the next save aimed at the version on the server.
+    setExistingStatus(current.status)
+    setBaseVersion(current.version)
+    attempt.current = null
     const body = buildCommandBody(state, {
       journeyId,
       existing: current.status,
       expectedVersion: current.version,
     })
     if (!body) {
+      // The saved journey was completed elsewhere and this edit is still a plan: it needs the countries answer.
+      setState((value) => ({ ...value, status: 'completed' }))
       setShowErrors(true)
+      setRebased(true)
+      focusCountries.current = true
       dispatch({ type: 'dismiss' })
       return
     }
-    setExistingStatus(current.status)
-    setBaseVersion(current.version)
     const next = commandFor(body, attempt.current, newId)
     attempt.current = next.attempt
     void run(next.command)
   }
 
+  const reread = async () => {
+    if (save.phase !== 'conflict' || rereading) return
+    setRereading(true)
+    setRereadFailed(false)
+    const controller = new AbortController()
+    const release = trackPrivateOperation(controller)
+    try {
+      const outcome = await rereadSaved(journeyId, deps, controller.signal)
+      if (!alive.current) return
+      if (outcome.kind === 'read') dispatch({ type: 'conflict-read', current: outcome.current })
+      else if (outcome.kind === 'gone')
+        dispatch({ type: 'outcome', outcome: { kind: 'gone' }, command: save.command })
+      else if (outcome.kind === 'failed') setRereadFailed(true)
+    } finally {
+      release()
+      if (alive.current) setRereading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!focusCountries.current || !review) return
+    focusCountries.current = false
+    document.getElementById('gt-countries-h')?.focus()
+  })
+
   const discard = () => {
     writer.cancel()
     removeDraft(ownerId, kind)
     attempt.current = null
+    setOcrRows([])
+    setOcrEpoch((epoch) => epoch + 1)
+    setLaterEdits(false)
+    setRebased(false)
     setState(existing ? stateFromDto(existing, complete) : blankState(mode))
     setRestored(false)
     setUnreadable(false)
@@ -352,7 +449,9 @@ function FormBody({
   }
   const children = state.mode === 'rail' ? state.legs.length : state.points.length
 
-  const intent = existing
+  // A journey created by this very form is stored from then on: further saves are edits of it.
+  const stored = existing !== undefined || existingStatus !== undefined
+  const intent = stored
     ? review && existingStatus !== 'completed'
       ? 'complete'
       : 'edit'
@@ -431,7 +530,7 @@ function FormBody({
           </p>
         )}
         <fieldset className="gt-sections" disabled={saving}>
-          {!existing && (
+          {!stored && (
             <section className="gt-section" aria-labelledby="gt-status-h">
               <h2 id="gt-status-h" className="gt-h">
                 {ru ? 'Что это за поездка' : 'What kind of journey'}
@@ -476,7 +575,8 @@ function FormBody({
                 locale={locale}
                 errors={showErrors ? errors : {}}
                 disabled={saving}
-                ocrSlot={ocrSlot}
+                ocrSlot={ocrSlot && ((api) => <Fragment key={ocrEpoch}>{ocrSlot(api)}</Fragment>)}
+                ocrDraft={{ restoredRows: ocrRows, onUnaddedChange }}
               />
             ) : (
               <RoadEditor
@@ -512,7 +612,7 @@ function FormBody({
           </section>
           {review && (
             <section className="gt-section" aria-labelledby="gt-countries-h">
-              <h2 id="gt-countries-h" className="gt-h">
+              <h2 id="gt-countries-h" className="gt-h" tabIndex={-1}>
                 {ru ? 'Страны' : 'Countries'}
               </h2>
               <CountriesFieldset
@@ -546,6 +646,20 @@ function FormBody({
             />
           </section>
         </fieldset>
+        {laterEdits && (
+          <p className="gt-muted" role="status">
+            {ru
+              ? 'Сохранено. Ваши более поздние правки ещё не сохранены.'
+              : 'Saved. Your later edits are not saved yet.'}
+          </p>
+        )}
+        {rebased && save.phase === 'idle' && (
+          <p className="gt-muted" role="status">
+            {ru
+              ? 'Это путешествие уже отмечено как состоявшееся. Отметьте страны, которые вы пересекли, и сохраните снова.'
+              : 'This journey was completed elsewhere. Choose the countries you crossed, then save again.'}
+          </p>
+        )}
         <SaveNotices
           locale={locale}
           save={save}
@@ -557,6 +671,9 @@ function FormBody({
           onCheck={() => void check()}
           onRetry={() => save.phase === 'unknown' && void run(save.command)}
           onApplyOnTop={applyOnTop}
+          rereading={rereading}
+          rereadFailed={rereadFailed}
+          onReread={() => void reread()}
           onLeave={() => router.push(returnTo)}
         />
       </form>
@@ -633,6 +750,9 @@ function SaveNotices({
   onCheck,
   onRetry,
   onApplyOnTop,
+  rereading,
+  rereadFailed,
+  onReread,
   onLeave,
 }: {
   locale: Locale
@@ -645,6 +765,9 @@ function SaveNotices({
   onCheck: () => void
   onRetry: () => void
   onApplyOnTop: () => void
+  rereading: boolean
+  rereadFailed: boolean
+  onReread: () => void
   onLeave: () => void
 }) {
   const ru = locale === 'ru'
@@ -746,11 +869,27 @@ function SaveNotices({
           </dl>
         )}
         {!current && (
-          <p className="gt-muted">
-            {ru
-              ? 'Сохранённую версию прочитать не удалось.'
-              : 'We could not read the saved version.'}
-          </p>
+          <>
+            <p className="gt-muted" role={rereadFailed ? 'status' : undefined}>
+              {rereadFailed
+                ? ru
+                  ? 'Прочитать не удалось и в этот раз. Ваши правки остались в форме.'
+                  : 'Still could not read it. Your edits are still in the form.'
+                : ru
+                  ? 'Сохранённую версию прочитать не удалось.'
+                  : 'We could not read the saved version.'}
+            </p>
+            <div className="gt-actions">
+              <Button
+                variant="primary"
+                loading={rereading}
+                loadingLabel={ru ? 'Читаем…' : 'Reading…'}
+                onClick={onReread}
+              >
+                {ru ? 'Прочитать сохранённую версию ещё раз' : 'Retry reading the saved version'}
+              </Button>
+            </div>
+          </>
         )}
       </div>
     )

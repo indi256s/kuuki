@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearCapturePreferences } from '../../capture/capture-preferences'
 import {
   createDraftWriter,
@@ -88,5 +88,88 @@ describe('ground drafts', () => {
       Storage.prototype.setItem = original
     }
     expect(results).toEqual([true, false])
+  })
+  it('drops a malformed pending save instead of trusting it', () => {
+    const base = draft()
+    const key = draftStorageKey('owner-a', 'new-rail')
+    const stored = (pending: unknown) => {
+      localStorage.setItem(key, JSON.stringify({ ...base, pending }))
+      const read = readDraft('owner-a', 'new-rail', 'rail')
+      return read.status === 'ok' ? read.draft.pending : 'invalid'
+    }
+    const good = {
+      action: 'update',
+      operationKey: 'k',
+      journeyId: base.journeyId,
+      expectedVersion: 2,
+      journey: { mode: 'rail', title: null, note: null, startDate: null, endDate: null, legs: [] },
+    }
+    expect(stored(good)).not.toBeNull()
+    expect(stored({ ...good, action: 'nuke' })).toBeNull()
+    expect(stored({ ...good, expectedVersion: undefined })).toBeNull()
+    expect(
+      stored({ ...good, journey: { ...good.journey, legs: [{ from: null, to: null }] } }),
+    ).toBeNull()
+    expect(stored({ ...good, journeyId: newId() })).toBeNull()
+  })
+
+  it('keeps unadded OCR previews as editable fields only', () => {
+    const base = draft()
+    const row = {
+      id: 'row-1',
+      fileName: 'ticket.pdf',
+      fileSize: 1200,
+      file: 'must not survive',
+      rawText: 'must not survive',
+      previews: [
+        {
+          id: 'p1',
+          fromStation: 'Berlin Hbf',
+          toStation: '',
+          fromCity: 'Berlin',
+          toCity: '',
+          trainNumber: 'EC 171',
+          operator: '',
+          departureDate: { value: '', partial: { month: 3, day: 12 }, year: '' },
+          arrivalDate: { value: '', partial: null, year: '' },
+          departureTime: '08:30',
+          arrivalTime: '',
+          uncertain: ['fromStation'],
+          cancelled: false,
+          otherPassenger: false,
+          include: true,
+          added: true,
+        },
+      ],
+    }
+    localStorage.setItem(
+      draftStorageKey('owner-a', 'new-rail'),
+      JSON.stringify({ ...base, ocr: [row] }),
+    )
+    const read = readDraft('owner-a', 'new-rail', 'rail')
+    const ocr = read.status === 'ok' ? read.draft.ocr : []
+    expect(ocr).toHaveLength(1)
+    expect(Object.keys(ocr![0]!).sort()).toEqual(['fileName', 'fileSize', 'id', 'previews'])
+    expect(ocr![0]!.previews[0]).toMatchObject({
+      trainNumber: 'EC 171',
+      departureDate: { partial: { month: 3, day: 12 } },
+      added: false,
+    })
+  })
+
+  it('stops a queued write once the identity resets', () => {
+    vi.useFakeTimers()
+    try {
+      const writer = createDraftWriter('owner-a', 'new-rail', () => {})
+      const unwatch = writer.watchIdentityReset()
+      writer.schedule(draft())
+      window.dispatchEvent(new Event('kuuki:identity-reset'))
+      writer.schedule(draft())
+      vi.advanceTimersByTime(1000)
+      expect(readDraft('owner-a', 'new-rail', 'rail').status).toBe('none')
+      unwatch()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

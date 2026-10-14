@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { writeDraft } from './draft'
+import { ApiError } from '@kuuki/client/apiClient'
+import type { GroundJourneyDto } from '@kuuki/shared/groundTravel'
+import { readDraft, writeDraft } from './draft'
 import { blankState, emptyLeg, newId } from './model'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }))
+const push = vi.hoisted(() => vi.fn())
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push, replace: vi.fn() }) }))
 vi.mock('../api', () => ({
   searchPlaces: vi.fn(async () => []),
   readJourney: vi.fn(),
@@ -15,9 +18,63 @@ vi.mock('../api', () => ({
 }))
 
 const { JourneyForm } = await import('./journey-form')
+const api = await import('../api')
+
+const geo = (id: string, name: string) => ({
+  source: 'geonames' as const,
+  id,
+  name,
+  nameRu: null,
+  nameEn: name,
+  countryCode: 'GE',
+  region: null,
+  lat: 41.7,
+  lon: 44.8,
+  timezone: null,
+  catalogVersion: 'v1',
+})
+const roadJourney = (patch: Partial<GroundJourneyDto> = {}) =>
+  ({
+    id: '00000000-0000-4000-8000-0000000000aa',
+    mode: 'road',
+    status: 'planned',
+    version: 2,
+    title: null,
+    note: null,
+    startDate: null,
+    endDate: null,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
+    confirmedAt: null,
+    countries: [],
+    metrics: {},
+    points: [
+      {
+        id: '00000000-0000-4000-8000-0000000000a1',
+        place: geo('1', 'Tbilisi'),
+        arrivalDate: null,
+        departureDate: null,
+        nights: null,
+        note: null,
+      },
+      {
+        id: '00000000-0000-4000-8000-0000000000a2',
+        place: geo('2', 'Kutaisi'),
+        arrivalDate: null,
+        departureDate: null,
+        nights: null,
+        note: null,
+      },
+    ],
+    ...patch,
+  }) as GroundJourneyDto
 
 beforeEach(() => {
   localStorage.clear()
+  push.mockReset()
+  vi.mocked(api.sendCommand).mockReset()
+  vi.mocked(api.readOperation).mockReset()
+  vi.mocked(api.readJourney).mockReset()
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     value: () => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
@@ -104,5 +161,116 @@ describe('JourneyForm', () => {
     expect(screen.getByRole('alert').textContent).toBe('We could not confirm the save')
     expect(screen.getByRole('button', { name: 'Check result' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Retry original save' })).toBeTruthy()
+  })
+  it('keeps the form and the draft when a late success arrives after newer edits', async () => {
+    const state = blankState('road')
+    state.title = 'Edited after the request left'
+    const journeyId = newId()
+    const pending = {
+      action: 'create' as const,
+      operationKey: 'key-late-1',
+      journeyId,
+      status: 'planned' as const,
+      journey: {
+        mode: 'road' as const,
+        title: null,
+        note: null,
+        startDate: null,
+        endDate: null,
+        points: [],
+      },
+    }
+    writeDraft('owner-a', 'new-road', { v: 1, journeyId, baseVersion: null, state, pending })
+    vi.mocked(api.readOperation).mockResolvedValue({
+      status: 'saved',
+      journeyId,
+      action: 'create',
+      savedVersion: 3,
+      accountRevision: 1,
+      derivedState: 'ready',
+      current: null,
+    })
+    render(<JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Check result' }))
+    expect(await screen.findByText('Saved. Your later edits are not saved yet.')).toBeTruthy()
+    expect(push).not.toHaveBeenCalled()
+    expect((screen.getByLabelText(/^Title/) as HTMLInputElement).value).toBe(
+      'Edited after the request left',
+    )
+    await waitFor(() => {
+      const stored = readDraft('owner-a', 'new-road', 'road')
+      expect(stored.status === 'ok' && [stored.draft.pending, stored.draft.baseVersion]).toEqual([
+        null,
+        3,
+      ])
+    })
+  })
+
+  it('applies edits on top of a version completed elsewhere by asking for the countries first', async () => {
+    const existing = roadJourney()
+    const done = roadJourney({ status: 'completed', version: 3, countries: ['GE'] })
+    vi.mocked(api.sendCommand).mockRejectedValueOnce(
+      new ApiError(409, 'Conflict', 'VERSION_CONFLICT', { current: done }),
+    )
+    render(
+      <JourneyForm
+        ownerId="owner-a"
+        locale="en"
+        mode="road"
+        existing={existing}
+        returnTo="/ground-travel"
+      />,
+    )
+    await userEvent.type(screen.getByLabelText(/^Title/), 'Edited')
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Apply my changes on top' }))
+    expect(screen.getByText(/completed elsewhere/)).toBeTruthy()
+    const countries = screen.getByRole('group', { name: 'Countries you actually crossed' })
+    await userEvent.click(within(countries).getByRole('checkbox', { name: 'None of these' }))
+    vi.mocked(api.sendCommand).mockResolvedValueOnce({
+      outcome: 'saved',
+      journeyId: existing.id,
+      action: 'update',
+      savedVersion: 4,
+      accountRevision: 1,
+      derivedState: 'ready',
+      replayed: false,
+      current: null,
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(api.sendCommand).toHaveBeenCalledTimes(2))
+    expect(vi.mocked(api.sendCommand).mock.calls[1]![0]).toMatchObject({
+      action: 'update',
+      expectedVersion: 3,
+      countries: [],
+    })
+  })
+
+  it('offers to read the saved version again when the conflict re-read failed', async () => {
+    const existing = roadJourney()
+    vi.mocked(api.sendCommand).mockRejectedValueOnce(new ApiError(409, 'Conflict'))
+    vi.mocked(api.readJourney).mockRejectedValueOnce(new Error('down'))
+    render(
+      <JourneyForm
+        ownerId="owner-a"
+        locale="en"
+        mode="road"
+        existing={existing}
+        returnTo="/ground-travel"
+      />,
+    )
+    await userEvent.type(screen.getByLabelText(/^Title/), 'Edited')
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await screen.findByText('We could not read the saved version.')
+    vi.mocked(api.readJourney).mockResolvedValueOnce(roadJourney({ version: 5 }))
+    await userEvent.click(screen.getByRole('button', { name: 'Retry reading the saved version' }))
+    expect(await screen.findByRole('button', { name: 'Apply my changes on top' })).toBeTruthy()
+  })
+
+  it('does not submit the journey form on Enter in the country search', async () => {
+    render(<JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />)
+    await userEvent.click(screen.getByRole('radio', { name: 'Already happened' }))
+    const search = screen.getByLabelText(/^Add another country/)
+    expect(fireEvent.keyDown(search, { key: 'Enter' })).toBe(false)
   })
 })

@@ -11,6 +11,7 @@ import {
   OCR_CONCURRENCY,
   OCR_MAX_FILES,
   patchPreview,
+  rowFromStored,
   retryRow,
   settleRow,
   startRow,
@@ -19,16 +20,17 @@ import {
   type OcrRow,
   type Preview,
 } from './model'
+import type { StoredOcrRow } from '../rail-editor'
 
 /**
  * Runs the per-file requests, two at a time, in the order the files were chosen. Stop aborts what is running and
  * starts nothing new; an answer is applied only if its request was not aborted, its row is still reading that
  * attempt, and the session is the one that sent it. Received rows are never rolled back.
  */
-export function useRailOcr() {
-  const [rows, setRows] = useState<OcrRow[]>([])
+export function useRailOcr(restored: readonly StoredOcrRow[] = []) {
+  const [rows, setRows] = useState<OcrRow[]>(() => restored.map(rowFromStored))
   const [cutOff, setCutOff] = useState(false)
-  const rowsRef = useRef<OcrRow[]>([])
+  const rowsRef = useRef<OcrRow[]>(rows)
   const inflight = useRef(new Map<string, AbortController>())
   const alive = useRef(false)
 
@@ -47,7 +49,8 @@ export function useRailOcr() {
       while (alive.current && inflight.current.size < OCR_CONCURRENCY) {
         const next = rowsRef.current.find((row) => row.status === 'waiting')
         const started = next && startRow(rowsRef.current, next.id)
-        if (!next || !started) return
+        if (!next?.file || !started) return
+        const file = next.file
         commit(started)
         const attempt = next.attempt + 1
         const generation = getAuthGeneration()
@@ -63,7 +66,7 @@ export function useRailOcr() {
         }
         void (async () => {
           try {
-            const base64 = await fileToBase64(next.file)
+            const base64 = await fileToBase64(file)
             if (controller.signal.aborted) return finish({ status: 'failed' })
             const result = await readRailTicket(base64, { signal: controller.signal })
             finish({ candidates: result.candidates })

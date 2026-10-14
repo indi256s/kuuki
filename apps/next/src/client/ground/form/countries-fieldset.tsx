@@ -6,6 +6,7 @@ import { Button } from '../../ui/button'
 import { Checkbox } from '../../ui/checkbox'
 import { Field } from '../../ui/field'
 import { countryNamer, searchCountries } from '../../passport/model'
+import { blockImplicitSubmit } from './fields'
 
 export interface CountriesValue {
   countries: string[]
@@ -117,6 +118,7 @@ export function CountriesFieldset({
           value={query}
           autoComplete="off"
           onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={blockImplicitSubmit}
           hint={
             ru ? 'Название на любом языке или код страны' : 'Name in any language or country code'
           }

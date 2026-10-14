@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { GROUND_LIMITS, placeLabel } from '@kuuki/shared/groundTravel'
 import type { RailCandidateField } from '../../../../../../../functions/api/_services/railTicketOcr'
 import { formatCount, type Locale } from '../../../../lib/format'
@@ -9,6 +9,7 @@ import { Button } from '../../../ui/button'
 import { Checkbox } from '../../../ui/checkbox'
 import { DestructiveConfirm } from '../../../ui/destructive-confirm'
 import { Field } from '../../../ui/field'
+import { blockImplicitSubmit } from '../fields'
 import type { RailOcrSlotApi } from '../rail-editor'
 import { T, files as fileForms, statusText, trains, unclear } from './copy'
 import {
@@ -21,6 +22,7 @@ import {
   isUncertain,
   legFromPreview,
   OCR_ACCEPT,
+  unaddedRows,
   type OcrRow,
   type Preview,
   type PreviewDate,
@@ -42,9 +44,32 @@ const sizeText = (locale: Locale, bytes: number) =>
 export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Locale }) {
   const ru = locale === 'ru'
   const l = ru ? 'ru' : 'en'
-  const ocr = useRailOcr()
+  const ocr = useRailOcr(api.restoredRows)
   const [confirming, setConfirming] = useState(false)
+  const [refused, setRefused] = useState(false)
   const headingId = useId()
+  const root = useRef<HTMLElement>(null)
+  // After Remove, focus goes to a surviving row's Remove (the one that took its place, else the one before),
+  // else back to the file picker, so the keyboard position never falls to the page.
+  const focusAfterRemove = useRef<string | 'picker' | null>(null)
+  const { onUnaddedChange } = api
+  const unadded = useMemo(() => unaddedRows(ocr.rows), [ocr.rows])
+  useEffect(() => onUnaddedChange(unadded), [unadded, onUnaddedChange])
+  useEffect(() => {
+    const target = focusAfterRemove.current
+    if (target === null) return
+    focusAfterRemove.current = null
+    const node =
+      target === 'picker'
+        ? root.current?.querySelector<HTMLElement>('button')
+        : root.current?.querySelector<HTMLElement>(`[data-remove-row="${target}"]`)
+    node?.focus()
+  }, [ocr.rows])
+  const removeRow = (id: string) => {
+    const index = ocr.rows.findIndex((row) => row.id === id)
+    focusAfterRemove.current = (ocr.rows[index + 1] ?? ocr.rows[index - 1])?.id ?? 'picker'
+    ocr.remove(id)
+  }
   const previews = useMemo(() => allPreviews(ocr.rows), [ocr.rows])
   const repeats = useMemo(() => findRepeats(previews, api.legs), [previews, api.legs])
   const selected = previews.filter((preview) => preview.include)
@@ -52,8 +77,16 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
     `${T.legName[l]} ${index + 1}${leg.from || leg.to ? `: ${leg.from ? placeLabel(leg.from, locale) : '?'} → ${leg.to ? placeLabel(leg.to, locale) : '?'}` : ''}`
 
   const give = (list: Preview[], mode: 'append' | 'replace', legId?: string) => {
-    api.onCandidates(list.map(legFromPreview), mode, legId)
-    ocr.added(new Set(list.map((preview) => preview.id)))
+    // Replace this leg starts from the old leg, so its places, id and typed duration stay.
+    const base = legId === undefined ? undefined : api.legs.find((leg) => leg.id === legId)
+    const taken = api.onCandidates(
+      list.map((preview) => legFromPreview(preview, base)),
+      mode,
+      legId,
+    )
+    setRefused(!taken)
+    if (taken) ocr.added(new Set(list.map((preview) => preview.id)))
+    return taken
   }
   const room = GROUND_LIMITS.children
   const addReason = api.disabled
@@ -73,7 +106,7 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
   const done = ocr.rows.filter((row) => row.status !== 'waiting' && row.status !== 'reading').length
 
   return (
-    <section className="gt-ocr" aria-labelledby={headingId}>
+    <section ref={root} className="gt-ocr" aria-labelledby={headingId}>
       <h3 id={headingId} className="gt-ocr-heading">
         {T.heading[l]}
       </h3>
@@ -88,18 +121,15 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
         note={null}
         onFilesChange={ocr.add}
       />
-      {ocr.cutOff && (
-        <p className="gt-muted" role="status">
-          {T.cutOff[l]}
-        </p>
-      )}
       {ocr.rows.length > 0 && (
         <>
           <div className="gt-ocr-bar">
+            {/* The one polite region of the panel: progress and the cut-off note. Rows below are plain text. */}
             <p className="gt-muted" role="status">
               {ocr.busy
                 ? `${T.summaryReading[l]} ${done}/${ocr.rows.length}`
                 : `${formatCount(locale, ocr.rows.length, fileForms)}`}
+              {ocr.cutOff ? ` ${T.cutOff[l]}` : ''}
             </p>
             {ocr.busy && (
               <Button dense onClick={ocr.stop}>
@@ -118,13 +148,18 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
                 legs={api.legs}
                 legName={legLabel}
                 onRetry={() => ocr.retry(row.id)}
-                onRemove={() => ocr.remove(row.id)}
+                onRemove={() => removeRow(row.id)}
                 onEdit={ocr.edit}
                 onReplaceLeg={(preview, legId) => give([preview], 'replace', legId)}
               />
             ))}
           </ul>
         </>
+      )}
+      {refused && (
+        <p className="gt-error-text" role="alert">
+          {T.routeFull[l]}
+        </p>
       )}
       {previews.length > 0 && (
         <div className="gt-actions">
@@ -192,18 +227,22 @@ function OcrFileRow({
   return (
     <li className="gt-ocr-row" data-status={row.status}>
       <div className="gt-ocr-file">
-        <span className="gt-ocr-name">{row.file.name}</span>
-        <span className="gt-muted">{sizeText(locale, row.file.size)}</span>
-        <p className="gt-ocr-status" role="status">
-          {text}
-        </p>
+        <span className="gt-ocr-name">{row.fileName}</span>
+        {row.fileSize !== null && (
+          <span className="gt-muted">{sizeText(locale, row.fileSize)}</span>
+        )}
+        <p className="gt-ocr-status">{text}</p>
         <div className="gt-ocr-file-actions">
           {canRetry(row.status) && !isRefused(row.status) && (
-            <Button dense disabled={busyForm} onClick={onRetry}>
+            <Button disabled={busyForm} onClick={onRetry}>
               {T.retry[l]}
             </Button>
           )}
-          <Button dense aria-label={`${T.remove[l]} ${row.file.name}`} onClick={onRemove}>
+          <Button
+            data-remove-row={row.id}
+            aria-label={`${T.remove[l]} ${row.fileName}`}
+            onClick={onRemove}
+          >
             {T.remove[l]}
           </Button>
         </div>
@@ -213,7 +252,7 @@ function OcrFileRow({
           key={preview.id}
           preview={preview}
           index={index}
-          fileName={row.file.name}
+          fileName={row.fileName}
           locale={locale}
           repeat={repeats.has(preview.id)}
           disabled={busyForm}
@@ -264,7 +303,7 @@ function PreviewCard({
   const legend = `${fileName} · ${T.train[l]} ${index + 1}`
   const targetId = legs.some((leg) => leg.id === target) ? target : ''
   return (
-    <fieldset className="gt-ocr-preview" disabled={disabled}>
+    <fieldset className="gt-ocr-preview" disabled={disabled} onKeyDown={blockImplicitSubmit}>
       <legend>{legend}</legend>
       <Checkbox
         label={T.include[l]}

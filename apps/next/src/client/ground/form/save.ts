@@ -91,6 +91,28 @@ export async function checkSave(
   }
 }
 
+export type RereadOutcome =
+  | { kind: 'read'; current: GroundJourneyDto }
+  | { kind: 'gone' }
+  | { kind: 'failed' }
+  | { kind: 'aborted' }
+
+/** Reads the saved version again after a 409 whose first read failed, so the conflict panel is never a dead end. */
+export async function rereadSaved(
+  id: string,
+  deps: Pick<SaveDeps, 'read'>,
+  signal: AbortSignal,
+): Promise<RereadOutcome> {
+  try {
+    return { kind: 'read', current: await deps.read(id, signal) }
+  } catch (error) {
+    if (sessionChanged(error)) return { kind: 'aborted' }
+    if (error instanceof ApiError && (error.status === 404 || error.status === 410))
+      return { kind: 'gone' }
+    return { kind: 'failed' }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Operation keys
 // ---------------------------------------------------------------------------
@@ -143,6 +165,7 @@ export type SaveEvent =
   | { type: 'check-start' }
   | { type: 'check-done'; outcome: CheckOutcome }
   | { type: 'dismiss' }
+  | { type: 'conflict-read'; current: GroundJourneyDto }
 
 /** `saved` and `aborted` are handled by the caller (navigate / nothing); the reducer returns to idle for them. */
 export function saveReducer(state: SaveState, event: SaveEvent): SaveState {
@@ -175,5 +198,7 @@ export function saveReducer(state: SaveState, event: SaveEvent): SaveState {
       }
     case 'dismiss':
       return { phase: 'idle' }
+    case 'conflict-read':
+      return state.phase === 'conflict' ? { ...state, current: event.current } : state
   }
 }

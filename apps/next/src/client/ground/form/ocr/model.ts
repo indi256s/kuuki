@@ -9,6 +9,7 @@ import type {
   RailTicketDate,
 } from '../../../../../../../functions/api/_services/railTicketOcr'
 import { emptyLeg, newId, type LegDraft } from '../model'
+import type { StoredOcrRow } from '../rail-editor'
 
 export const OCR_MAX_FILES = 10
 export const OCR_CONCURRENCY = 2
@@ -85,9 +86,9 @@ export function previewFromCandidate(candidate: RailTicketCandidate): Preview {
   const flagged = candidate.cancelled === true || candidate.otherPassenger === true
   return {
     id: newId(),
-    // City text goes in only when the station is absent; the place itself is still chosen by the owner.
-    fromStation: candidate.fromStation ?? fromCity,
-    toStation: candidate.toStation ?? toCity,
+    // A city is not a station: the station stays empty when the ticket printed none.
+    fromStation: candidate.fromStation ?? '',
+    toStation: candidate.toStation ?? '',
     fromCity,
     toCity,
     trainNumber: candidate.trainNumber ?? '',
@@ -121,17 +122,27 @@ export const dateNeedsYear = (date: PreviewDate): boolean =>
 export const isUncertain = (preview: Preview, field: RailCandidateField): boolean =>
   preview.uncertain.includes(field)
 
-export function legFromPreview(preview: Preview): LegDraft {
+/**
+ * The leg a preview becomes. With `base` (Replace this leg) the old leg is the starting point: its id, places and
+ * typed duration stay, and only the fields the preview states overwrite. Without it the leg is new. Printed
+ * cities travel as hints for the place pickers while the leg has no place; they are never turned into a place.
+ */
+export function legFromPreview(preview: Preview, base: LegDraft = emptyLeg()): LegDraft {
+  const stated = (value: string, old: string) => value.trim() || old
+  const city = (printed: string, place: LegDraft['from'], old: string | undefined) =>
+    place ? undefined : printed.trim() || old
   return {
-    ...emptyLeg(),
-    fromStation: preview.fromStation.trim(),
-    toStation: preview.toStation.trim(),
-    trainNumber: preview.trainNumber.trim(),
-    operator: preview.operator.trim(),
-    departureDate: resolveDate(preview.departureDate),
-    arrivalDate: resolveDate(preview.arrivalDate),
-    departureTime: preview.departureTime.trim(),
-    arrivalTime: preview.arrivalTime.trim(),
+    ...base,
+    fromCity: city(preview.fromCity, base.from, base.fromCity),
+    toCity: city(preview.toCity, base.to, base.toCity),
+    fromStation: stated(preview.fromStation, base.fromStation),
+    toStation: stated(preview.toStation, base.toStation),
+    trainNumber: stated(preview.trainNumber, base.trainNumber),
+    operator: stated(preview.operator, base.operator),
+    departureDate: resolveDate(preview.departureDate) || base.departureDate,
+    arrivalDate: resolveDate(preview.arrivalDate) || base.arrivalDate,
+    departureTime: stated(preview.departureTime, base.departureTime),
+    arrivalTime: stated(preview.arrivalTime, base.arrivalTime),
   }
 }
 
@@ -187,7 +198,10 @@ export type RowStatus =
 
 export interface OcrRow {
   id: string
-  file: File
+  /** Null for a row restored from the draft: only its previews survive a reload, never the file. */
+  file: File | null
+  fileName: string
+  fileSize: number | null
   status: RowStatus
   previews: Preview[]
   /** Counts attempts so an answer to an older attempt (before Stop or Retry) is recognised and dropped. */
@@ -204,7 +218,37 @@ export const canRetry = (status: RowStatus): boolean =>
 
 export function newRow(file: File): OcrRow {
   const refused = precheckFile(file)
-  return { id: newId(), file, status: refused ?? 'waiting', previews: [], attempt: 0 }
+  return {
+    id: newId(),
+    file,
+    fileName: file.name,
+    fileSize: file.size,
+    status: refused ?? 'waiting',
+    previews: [],
+    attempt: 0,
+  }
+}
+
+/** A row rebuilt from the draft: already read, nothing to retry. */
+export const rowFromStored = (stored: StoredOcrRow): OcrRow => ({
+  id: stored.id,
+  file: null,
+  fileName: stored.fileName,
+  fileSize: stored.fileSize,
+  status: 'found',
+  previews: stored.previews,
+  attempt: 0,
+})
+
+/** What the draft keeps: rows with previews not yet added, nothing but the editable preview fields. */
+export function unaddedRows(rows: readonly OcrRow[]): StoredOcrRow[] {
+  const kept: StoredOcrRow[] = []
+  for (const row of rows) {
+    const previews = row.previews.filter((preview) => !preview.added)
+    if (row.status === 'found' && previews.length > 0)
+      kept.push({ id: row.id, fileName: row.fileName, fileSize: row.fileSize, previews })
+  }
+  return kept
 }
 
 /** How a failed request maps to a row status. */

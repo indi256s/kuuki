@@ -1,9 +1,14 @@
 'use client'
 
-import { useId, type TextareaHTMLAttributes } from 'react'
+import { useId, type KeyboardEvent, type TextareaHTMLAttributes } from 'react'
 import type { Locale } from '../../../lib/format'
 import { Field } from '../../ui/field'
 import type { ErrorCode } from './model'
+
+/** Enter in a helper input (country search, ticket preview) must not submit the whole journey form. */
+export function blockImplicitSubmit(event: KeyboardEvent<HTMLElement>) {
+  if (event.key === 'Enter' && event.target instanceof HTMLInputElement) event.preventDefault()
+}
 
 export function errorText(code: ErrorCode | undefined, locale: Locale): string | undefined {
   if (!code) return undefined
