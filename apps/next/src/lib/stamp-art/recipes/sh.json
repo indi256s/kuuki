@@ -1,0 +1,31 @@
+{
+  "iso2": "SH",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "teal",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 62, 32, 148, 58, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "jacobs-ladder",
+      "box": [32, 64, 136, 60],
+      "params": {}
+    }
+  ]
+}

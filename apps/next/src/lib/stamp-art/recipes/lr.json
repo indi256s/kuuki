@@ -1,0 +1,47 @@
+{
+  "iso2": "LR",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "moss",
+  "cluster": "waterfall",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [40, 58, 30, 100, 70, 24, 150, 58, 34],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "horizonY": 84,
+        "height": 16,
+        "amp": 3,
+        "seed": 5,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "waterfall",
+      "box": [34, 58, 130, 66],
+      "params": {
+        "steps": 4,
+        "topHalf": 11,
+        "spread": 30,
+        "sway": 0.08,
+        "rockGap": 5.2
+      }
+    }
+  ]
+}

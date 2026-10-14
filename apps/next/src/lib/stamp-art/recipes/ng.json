@@ -1,0 +1,57 @@
+{
+  "iso2": "NG",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "umber",
+  "cluster": "monolith",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [48, 60, 32, 150, 56, 26],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "monolith-b",
+      "box": [32, 52, 130, 76],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.08, 0.8],
+          [0.12, 0.5],
+          [0.17, 0.28],
+          [0.26, 0.12],
+          [0.4, 0.05],
+          [0.6, 0.03],
+          [0.76, 0.1],
+          [0.86, 0.3],
+          [0.92, 0.6],
+          [0.96, 0.85],
+          [1, 1]
+        ]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "box": [36, 110, 128, 18],
+      "params": {
+        "horizonY": 128,
+        "height": 8,
+        "amp": 2.4,
+        "seed": 6,
+        "swell": 2
+      }
+    }
+  ]
+}
