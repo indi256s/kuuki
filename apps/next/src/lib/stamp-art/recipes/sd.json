@@ -1,0 +1,95 @@
+{
+  "iso2": "SD",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "clouds": [60, 70, 34],
+        "weight": "hair",
+        "gap": [2.6, 3.4]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    },
+    {
+      "module": "dunes",
+      "params": {
+        "crests": [0.8, 0.88],
+        "lee": [12, 16],
+        "gap": 1.5,
+        "band": true,
+        "amp": 5
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "pyramid",
+      "box": [28, 92, 22, 36],
+      "params": {
+        "apex": 0.5,
+        "depth": 0.04,
+        "gap": 3.2,
+        "courses": 0
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [128, 94, 20, 34],
+      "params": {
+        "apex": 0.5,
+        "depth": 0.04,
+        "gap": 3.2,
+        "courses": 0
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [148, 86, 24, 42],
+      "params": {
+        "apex": 0.5,
+        "depth": 0.04,
+        "gap": 3.2,
+        "courses": 0
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [52, 72, 26, 58],
+      "params": {
+        "apex": 0.5,
+        "depth": 0.04,
+        "gap": 3.2,
+        "courses": 0
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [102, 76, 26, 54],
+      "params": {
+        "apex": 0.5,
+        "depth": 0.04,
+        "gap": 3.2,
+        "courses": 0
+      }
+    },
+    {
+      "module": "pyramid",
+      "box": [78, 86, 22, 44],
+      "params": {
+        "apex": 0.5,
+        "depth": 0.04,
+        "gap": 3.2,
+        "courses": 0
+      }
+    }
+  ]
+}

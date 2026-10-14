@@ -871,7 +871,7 @@
   },
   "DZ": {
     "cluster": "hill-town",
-    "ink": "teal",
+    "ink": "indigo",
     "iso3": "DZA",
     "name": {
       "en": "Algeria",
@@ -882,7 +882,7 @@
       "en": "Algeria",
       "ru": "Алжир"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "EC": {
     "cluster": null,
@@ -942,7 +942,7 @@
       "en": "Western Sahara",
       "ru": "Западная Сахара"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ER": {
     "cluster": null,
@@ -1546,7 +1546,7 @@
   },
   "IR": {
     "cluster": "classical-ruin",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "IRN",
     "name": {
       "en": "Iran",
@@ -1906,7 +1906,7 @@
   },
   "LS": {
     "cluster": "thatched-house",
-    "ink": "oxblood",
+    "ink": "ochre-dark",
     "iso3": "LSO",
     "name": {
       "en": "Lesotho",
@@ -1917,7 +1917,7 @@
       "en": "Lesotho",
       "ru": "Лесото"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LT": {
     "cluster": "castle",
@@ -1966,7 +1966,7 @@
   },
   "LY": {
     "cluster": "classical-ruin",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "LBY",
     "name": {
       "en": "Libya",
@@ -1977,11 +1977,11 @@
       "en": "Libya",
       "ru": "Ливия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MA": {
     "cluster": "hill-town",
-    "ink": "umber",
+    "ink": "oxblood",
     "iso3": "MAR",
     "name": {
       "en": "Morocco",
@@ -1992,7 +1992,7 @@
       "en": "Morocco",
       "ru": "Марокко"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MC": {
     "cluster": null,
@@ -2866,7 +2866,7 @@
   },
   "SD": {
     "cluster": "pyramid",
-    "ink": "slate",
+    "ink": "umber",
     "iso3": "SDN",
     "name": {
       "en": "Sudan",
@@ -2877,7 +2877,7 @@
       "en": "Sudan",
       "ru": "Судан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SE": {
     "cluster": null,
@@ -3121,7 +3121,7 @@
   },
   "SZ": {
     "cluster": "monolith",
-    "ink": "teal",
+    "ink": "moss",
     "iso3": "SWZ",
     "name": {
       "en": "Eswatini",
@@ -3132,7 +3132,7 @@
       "en": "Eswatini",
       "ru": "Эсватини"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TC": {
     "cluster": "lighthouse",
@@ -3181,7 +3181,7 @@
   },
   "TG": {
     "cluster": "thatched-house",
-    "ink": "slate",
+    "ink": "oxblood",
     "iso3": "TGO",
     "name": {
       "en": "Togo",
@@ -3271,7 +3271,7 @@
   },
   "TN": {
     "cluster": "hill-town",
-    "ink": "ochre-dark",
+    "ink": "teal",
     "iso3": "TUN",
     "name": {
       "en": "Tunisia",
@@ -3586,7 +3586,7 @@
   },
   "WS": {
     "cluster": "thatched-house",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "WSM",
     "name": {
       "en": "Samoa",
@@ -3616,7 +3616,7 @@
   },
   "YE": {
     "cluster": "hill-town",
-    "ink": "indigo",
+    "ink": "umber",
     "iso3": "YEM",
     "name": {
       "en": "Yemen",

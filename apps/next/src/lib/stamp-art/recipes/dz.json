@@ -1,0 +1,32 @@
+{
+  "iso2": "DZ",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "clouds": [130, 62, 34, 164, 58, 22],
+        "weight": "hair",
+        "gap": [2.7, 3.5]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "cube-town",
+      "box": [28, 66, 138, 58],
+      "params": {
+        "cols": 10
+      }
+    }
+  ]
+}
