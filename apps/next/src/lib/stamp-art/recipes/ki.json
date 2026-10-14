@@ -3,32 +3,77 @@
   "tier": "engraved",
   "shape": "rectangle",
   "ink": "teal",
-  "cluster": "atoll",
+  "cluster": "thatched-house",
   "horizon": 0.72,
   "backdrop": [
     {
-      "module": "lagoon-ring",
+      "module": "sky",
       "params": {
-        "part": "sea",
-        "cx": 100,
-        "cy": 100,
-        "rx": 67,
-        "ry": 42,
-        "band": 13
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [48, 64, 30, 150, 58, 26]
+      }
+    },
+    {
+      "module": "maneaba-a",
+      "params": {
+        "part": "lagoon",
+        "top": 112
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": true
       }
     }
   ],
   "layers": [
     {
-      "module": "lagoon-ring",
-      "box": [26, 52, 148, 96],
+      "module": "palm",
+      "box": [34, 52, 36, 72],
       "params": {
-        "part": "land",
-        "cx": 100,
-        "cy": 100,
-        "rx": 67,
-        "ry": 42,
-        "band": 13
+        "lean": -0.2,
+        "fronds": 8,
+        "frond": 0.62,
+        "seed": 3
+      }
+    },
+    {
+      "module": "palm",
+      "box": [50, 78, 26, 46],
+      "params": {
+        "lean": 0.2,
+        "fronds": 7,
+        "frond": 0.6,
+        "seed": 8
+      }
+    },
+    {
+      "module": "palm",
+      "box": [132, 56, 34, 68],
+      "params": {
+        "lean": 0.2,
+        "fronds": 8,
+        "frond": 0.62,
+        "seed": 5
+      }
+    },
+    {
+      "module": "palm",
+      "box": [120, 84, 24, 40],
+      "params": {
+        "lean": -0.2,
+        "fronds": 7,
+        "frond": 0.6,
+        "seed": 11
+      }
+    },
+    {
+      "module": "maneaba-a",
+      "box": [34, 60, 132, 66],
+      "params": {
+        "part": "house"
       }
     }
   ]

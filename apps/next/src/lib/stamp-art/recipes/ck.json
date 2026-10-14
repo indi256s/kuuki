@@ -23,9 +23,13 @@
   ],
   "layers": [
     {
-      "module": "rock-hill",
+      "module": "cliff-a",
       "box": [28, 58, 144, 60],
       "params": {
+        "seed": 8,
+        "strata": 9,
+        "fractures": 2,
+        "shade": [0.7, 1.0],
         "profile": [
           [0, 1],
           [0.04, 0.7],
@@ -45,32 +49,31 @@
           [0.86, 0.6],
           [0.94, 0.72],
           [1, 1]
-        ],
-        "shadeFrom": 0.5,
-        "shadeGap": 2.4,
-        "crag": 0.7,
-        "seed": 8,
-        "strata": 6
-      }
-    },
-    {
-      "module": "island-b",
-      "box": [28, 108, 72, 18],
-      "params": {
-        "hump": 0.3,
-        "seed": 5,
-        "palms": [
-          [0.2, 24, 0.2],
-          [0.5, 18, -0.2],
-          [0.82, 26, 0.25]
         ]
       }
     },
     {
-      "module": "ngalawa",
-      "box": [88, 86, 72, 40],
+      "module": "island-b",
+      "box": [38, 106, 62, 20],
       "params": {
-        "mast": 0.5
+        "hump": 0.3,
+        "seed": 5,
+        "palms": [
+          [0.15, 30, 0.15],
+          [0.4, 22, -0.15],
+          [0.7, 28, 0.2]
+        ]
+      }
+    },
+    {
+      "module": "dugout-a",
+      "box": [108, 118, 44, 22],
+      "params": {
+        "prow": 0.8,
+        "stern": 0.35,
+        "carve": 1,
+        "depth": 3,
+        "gap": 3.4
       }
     }
   ]

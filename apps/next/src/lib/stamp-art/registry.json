@@ -175,8 +175,8 @@
     "name": "American Samoa",
     "motif": "Pago Pago harbour under Rainmaker Mountain",
     "kind": "nature",
-    "silhouette": "Two steep, rounded hillsides rising from the water at both edges; a thatched fale (hipped roof on posts) on the quay in the middle, water along the bottom",
-    "modules": ["rock-hill", "thatch-hut", "water"],
+    "silhouette": "A steep twin-summit massif filling the right 60% of the window, diagonal lit faces and stratified shaded flanks, a calm harbour, a low palm headland on the left",
+    "modules": ["cliff-a", "island-b", "palm", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -184,7 +184,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": null
+    "notes": "Rainmaker massif; the hut is dropped"
   },
   {
     "iso2": "AT",
@@ -600,8 +600,8 @@
     "name": "Cocos (Keeling) Islands",
     "motif": "Coconut palm on a low atoll",
     "kind": "nature",
-    "silhouette": "A thin, low island strip across the bottom; one tall, leaning palm in the centre; a thin lagoon line under it. Not symmetric",
-    "modules": ["island-b", "palm", "ground"],
+    "silhouette": "A low atoll strip with a grove of coconut palms of mixed heights, a second islet to the right, calm water",
+    "modules": ["island-b", "palm", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "atoll",
@@ -609,7 +609,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: one tall leaning palm on a thin strip plus a small second islet. Distinct from VC by a single dominant palm and no boat"
+    "notes": "Palm module rebuilt: arched drooping fronds with leaflet ticks and a small core"
   },
   {
     "iso2": "CD",
@@ -702,8 +702,8 @@
     "name": "Cook Islands",
     "motif": "Rarotonga peak with an outrigger canoe",
     "kind": "nature",
-    "silhouette": "A broad, rounded volcanic peak across the back, a low coastal fringe along the bottom, a thin outrigger canoe on the water in the front",
-    "modules": ["rock-hill", "island-b", "ngalawa", "water"],
+    "silhouette": "Layered rock peaks with a needle summit, a low palm islet at the foot and a small carved canoe on the water",
+    "modules": ["cliff-a", "island-b", "palm", "dugout-a", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -711,7 +711,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Canoe cut to under 30% of the width, extra hatching dropped, strata and a lighter shaded flank on the peaks"
   },
   {
     "iso2": "CL",
@@ -853,18 +853,18 @@
     "iso2": "CX",
     "iso3": "CXR",
     "name": "Christmas Island",
-    "motif": "Flying Fish Cove cliffs and jetty",
+    "motif": "Red crab migration",
     "kind": "nature",
-    "silhouette": "Rock cliff face rising from a calm cove, a long straight jetty running out into the water, forest rim on top",
-    "modules": ["cliff", "palm", "jetty-a", "ground"],
+    "silhouette": "One large foreground crab with claws raised and legs splayed, three smaller crabs on boulders and the ground, a dark rainforest edge behind",
+    "modules": ["red-crab-a", "distance-trees", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Red crab migration: too small at 96px (REVIEW)",
+    "replaced": "Flying Fish Cove cliffs and jetty (curtain cliff plus a crane)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Flying Fish Cove: columnar cliff face with a palm rim and a timber jetty with a cantilever gantry crane. New module jetty-a"
+    "notes": "part: red crab front view with raised pincers"
   },
   {
     "iso2": "CY",
@@ -1924,18 +1924,18 @@
     "iso2": "KI",
     "iso3": "KIR",
     "name": "Kiribati",
-    "motif": "Ring atoll with palms on the rim",
+    "motif": "Maneaba meeting house",
     "kind": "nature",
-    "silhouette": "A long, low island strip across the bottom, two palms on it, a lagoon line behind. Symmetric-ish",
-    "modules": ["lagoon-ring"],
-    "signature": "new:lagoon-ring – aerial ring of land with a single pass, islets and palm tufts",
+    "silhouette": "A steep thatched roof with eaves nearly to the ground, thatch courses and a ragged eave, open side of stout coral posts with a dark interior between them, palms and lagoon behind",
+    "modules": ["maneaba-a", "palm", "sky", "ground"],
+    "signature": null,
     "backdrop": null,
-    "cluster": "atoll",
-    "status": "kept",
-    "replaced": null,
+    "cluster": "thatched-house",
+    "status": "replaced",
+    "replaced": "Ring atoll from above (read as a cookie or map): eye-level maneaba instead",
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: large closed lagoon ring from above with one pass, palm tufts on the rim"
+    "notes": "part: open thatched meeting house between two palm pairs, lagoon strip behind"
   },
   {
     "iso2": "KM",
@@ -2810,8 +2810,8 @@
     "name": "Niue",
     "motif": "Matapa Chasm at Hikutavake",
     "kind": "nature",
-    "silhouette": "Two tall, rough limestone cliffs with a narrow chasm between them, the water in the gap; a low palm line on the top",
-    "modules": ["rock-hill", "palm", "water"],
+    "silhouette": "Looking down the slot: tall coral walls in dark layered ledges with undercut pockets left and right, a narrow lit gap of sea at the end, a pool with stepping rocks in the foreground",
+    "modules": ["chasm-a", "sky"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2819,7 +2819,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Matapa Chasm rebuilt as one-point perspective; walls break at every ledge instead of curtain lines"
   },
   {
     "iso2": "NZ",
@@ -2995,18 +2995,18 @@
     "iso2": "PN",
     "iso3": "PCN",
     "name": "Pitcairn",
-    "motif": "Bounty Bay cliffs with a ship's anchor",
+    "motif": "Bounty Bay cove",
     "kind": "nature",
-    "silhouette": "Steep dark cliffs on both sides rising from a small bay; a ship's anchor in the centre on the ground line; a low water band",
-    "modules": ["rock-hill", "anchor-a"],
-    "signature": "new:anchor-a – ship's anchor standing upright",
+    "silhouette": "Steep layered cliffs on both sides of the cove, a boat shed and slipway at the head with a longboat at the foot, calm water",
+    "modules": ["cliff-a", "slipway-a", "sky", "ground"],
+    "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Two crags frame the bay (rock-hill) instead of the generic cliff."
+    "notes": "Anchor dropped; the bay itself is the subject, with the shed, slipway and longboat at the waterline"
   },
   {
     "iso2": "PR",
@@ -3218,8 +3218,8 @@
     "name": "Solomon Islands",
     "motif": "Marovo Lagoon islets with a dugout canoe",
     "kind": "nature",
-    "silhouette": "A low, wide lagoon with a row of small, rounded islets across the middle, a dugout canoe on the water in front",
-    "modules": ["island-b", "dugout-a", "water"],
+    "silhouette": "A foreground dugout with a high carved prow across 70% of the width, layered forested islets in diagonal and vertical hatching behind it, calm lagoon lines",
+    "modules": ["forest-islet-a", "dugout-a", "sky", "ground"],
     "signature": "dugout-a: a plain dugout with an upswept prow",
     "backdrop": null,
     "cluster": null,
@@ -3227,7 +3227,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": null
+    "notes": "Marovo: layered forested islets replace the generic palm humps; the canoe prow is carved"
   },
   {
     "iso2": "SC",
@@ -3762,8 +3762,8 @@
     "name": "Trinidad and Tobago",
     "motif": "Pigeon Point jetty, Tobago",
     "kind": "object",
-    "silhouette": "Long straight jetty running out to sea to a thatched shelter, palms leaning on the shore, flat water",
-    "modules": ["island-b", "palm", "jetty-a", "ground"],
+    "silhouette": "A palm shore on the left, a timber jetty on posts running right across the window and a large open thatched hut centred on it",
+    "modules": ["island-b", "palm", "jetty-a", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3771,24 +3771,24 @@
     "replaced": "Red House (Parliament): Q42 (Red House is the active Parliament)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Pigeon Point: palms on the shore islet, long timber jetty on posts running out to the open thatched shelter. New module jetty-a"
+    "notes": "Jetty hut centred and enlarged, palms on the left"
   },
   {
     "iso2": "TV",
     "iso3": "TUV",
     "name": "Tuvalu",
-    "motif": "Funafuti atoll with its airstrip",
+    "motif": "Funafuti airstrip from the lagoon end",
     "kind": "nature",
-    "silhouette": "A long, thin island strip across the bottom, two palms on it, a lagoon band above. Not symmetric",
-    "modules": ["airstrip", "ground"],
-    "signature": "new:airstrip – aerial strip with a black runway, palm tufts, ocean and lagoon hatching",
+    "silhouette": "The strip as a receding paper trapezoid with a vanishing centreline, palms on both shoulders shrinking into the distance, sparse lagoon lines on the left, denser ocean with surf on the right, a small twin-prop on short final seen from behind",
+    "modules": ["airstrip", "sky"],
+    "signature": null,
     "backdrop": null,
     "cluster": "atoll",
-    "status": "kept",
-    "replaced": null,
+    "status": "replaced",
+    "replaced": "Aerial strip (read as a ruler): rebuilt at eye level",
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: thin strip atoll seen from above with its runway"
+    "notes": "part: eye-level airstrip with palms on both edges and a twin-prop on final (generic, no livery)"
   },
   {
     "iso2": "TW",
@@ -3949,8 +3949,8 @@
     "name": "Saint Vincent and the Grenadines",
     "motif": "Tobago Cays",
     "kind": "nature",
-    "silhouette": "Low sandy islets with a few palms in a row over shallow water, a sailing boat at anchor",
-    "modules": ["island-b", "palm", "sloop-a", "ground"],
+    "silhouette": "Several low cays with mixed palms over shallow water, a gaff-rigged island cutter with a four-sided sail between them",
+    "modules": ["island-b", "palm", "catboat-a", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "atoll",
@@ -3958,7 +3958,7 @@
     "replaced": "La Soufriere, St Vincent: Q44 (volcano cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: two palm islets in shallow water with a sloop at anchor between them. Reef edge reads as the water glints"
+    "notes": "part: three cays with a gaff-rigged boat, a different hull and sail from sloop-a (AI, MF)"
   },
   {
     "iso2": "VE",
@@ -4068,8 +4068,8 @@
     "name": "Samoa",
     "motif": "Samoan fale",
     "kind": "architecture",
-    "silhouette": "A steep, thatched, hipped roof on top, open posts underneath, on a low platform; a palm on each side. Symmetric",
-    "modules": ["fale-a", "palm"],
+    "silhouette": "A long oval thatch roof, lit dome over a steeper skirt of vertical thatch ending in a ragged eave, nine posts with a dark interior between them on a stone platform, palms on both sides",
+    "modules": ["fale-a", "palm", "sky", "distance-trees", "ground"],
     "signature": "new:fale-a – rounded thatch dome roof on open posts over a low platform",
     "backdrop": null,
     "cluster": "thatched-house",
@@ -4077,7 +4077,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: round open dome roof on posts"
+    "notes": "Rebuilt: the old dome read as an observatory; the roof is now low and oval on a ring of posts"
   },
   {
     "iso2": "XK",
