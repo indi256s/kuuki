@@ -1,0 +1,96 @@
+{
+  "iso2": "MO",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "plum",
+  "cluster": "lighthouse",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [48, 52, 34, 152, 60, 28, 112, 40, 24],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 10,
+        "amp": 2.4,
+        "seed": 7,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [49, 80, 102, 50.4],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.07, 0.74],
+          [0.17, 0.46],
+          [0.3, 0.2],
+          [0.42, 0.06],
+          [0.58, 0.06],
+          [0.7, 0.2],
+          [0.84, 0.48],
+          [0.94, 0.76],
+          [1, 1]
+        ],
+        "shadeFrom": 0.74,
+        "crag": 0.6,
+        "strata": 6,
+        "walls": [0.26, 0.74],
+        "wallH": 14,
+        "courses": 4,
+        "seed": 3
+      }
+    },
+    {
+      "module": "rock-hill",
+      "box": [50, 118, 100, 12.4],
+      "params": {
+        "profile": [
+          [0, 0.6],
+          [0.15, 0.35],
+          [0.32, 0.55],
+          [0.5, 0.3],
+          [0.7, 0.5],
+          [0.86, 0.25],
+          [1, 0.55],
+          [1, 1],
+          [0, 1]
+        ],
+        "shadeFrom": 0,
+        "crag": 1.4,
+        "strata": 0,
+        "shadeGap": 2.4,
+        "seed": 8
+      }
+    },
+    {
+      "module": "lighthouse",
+      "box": [91, 36, 18, 48],
+      "params": {
+        "taper": 0.72,
+        "lantern": 0.14,
+        "dome": 0.08,
+        "base": 0.08,
+        "bands": 0,
+        "windows": 2,
+        "shade": 0.3
+      }
+    }
+  ]
+}

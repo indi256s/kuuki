@@ -1,0 +1,40 @@
+{
+  "iso2": "TM",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "plum",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [58, 52, 36, 146, 56, 30],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "darvaza",
+      "box": [48, 70, 104, 60.4],
+      "params": {}
+    },
+    {
+      "module": "dunes",
+      "box": [54, 112, 92, 22],
+      "params": {
+        "crests": [0.5, 0.82],
+        "amp": 4,
+        "wave": 80,
+        "lee": [6, 7]
+      }
+    }
+  ]
+}

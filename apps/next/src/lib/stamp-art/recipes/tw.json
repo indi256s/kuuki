@@ -1,0 +1,15 @@
+{
+  "iso2": "TW",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "teal",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 3.6], "clouds": [60, 44, 30, 140, 50, 26], "weight": "hair" }
+    },
+    { "module": "ground", "params": { "line": false } }
+  ],
+  "layers": [{ "module": "taroko", "box": [44, 44, 112, 86.4], "params": { "seed": 9 } }]
+}

@@ -1,0 +1,35 @@
+{
+  "iso2": "KZ",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [58, 50, 34, 138, 56, 30],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "charyn",
+      "box": [46, 52, 108, 78.4],
+      "params": {
+        "seed": 6,
+        "benches": 7,
+        "rim": 0.4,
+        "foot": 0.1
+      }
+    }
+  ]
+}

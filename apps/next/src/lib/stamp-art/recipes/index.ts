@@ -88,9 +88,13 @@ import je from './je.json'
 import jm from './jm.json'
 import jp from './jp.json'
 import ke from './ke.json'
+import kg from './kg.json'
 import km from './km.json'
 import kn from './kn.json'
+import kp from './kp.json'
+import kr from './kr.json'
 import ky from './ky.json'
+import kz from './kz.json'
 import lc from './lc.json'
 import li from './li.json'
 import lr from './lr.json'
@@ -107,6 +111,8 @@ import mf from './mf.json'
 import mg from './mg.json'
 import mk from './mk.json'
 import ml from './ml.json'
+import mn from './mn.json'
+import mo from './mo.json'
 import mq from './mq.json'
 import mr from './mr.json'
 import ms from './ms.json'
@@ -152,12 +158,16 @@ import td from './td.json'
 import tf from './tf.json'
 import tg from './tg.json'
 import th from './th.json'
+import tj from './tj.json'
+import tm from './tm.json'
 import tn from './tn.json'
+import tw from './tw.json'
 import tz from './tz.json'
 import ua from './ua.json'
 import ug from './ug.json'
 import us from './us.json'
 import uy from './uy.json'
+import uz from './uz.json'
 import va from './va.json'
 import ve from './ve.json'
 import vn from './vn.json'
@@ -258,9 +268,13 @@ export const RECIPE_FILES: Record<string, unknown> = {
   jm,
   jp,
   ke,
+  kg,
   km,
   kn,
+  kp,
+  kr,
   ky,
+  kz,
   lc,
   li,
   lr,
@@ -277,6 +291,8 @@ export const RECIPE_FILES: Record<string, unknown> = {
   mg,
   mk,
   ml,
+  mn,
+  mo,
   mq,
   mr,
   ms,
@@ -322,12 +338,16 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tf,
   tg,
   th,
+  tj,
+  tm,
   tn,
+  tw,
   tz,
   ua,
   ug,
   us,
   uy,
+  uz,
   va,
   ve,
   vn,
