@@ -555,7 +555,7 @@
     "tier": "engraved"
   },
   "CF": {
-    "cluster": "river-quay",
+    "cluster": null,
     "ink": "umber",
     "iso3": "CAF",
     "name": {

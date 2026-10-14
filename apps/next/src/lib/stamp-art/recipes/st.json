@@ -17,8 +17,8 @@
     {
       "module": "distance-trees",
       "params": {
-        "height": 12,
-        "amp": 3,
+        "height": 9,
+        "amp": 2.5,
         "seed": 7,
         "swell": 2
       }
@@ -32,14 +32,13 @@
   ],
   "layers": [
     {
-      "module": "volcanic-plug",
-      "box": [30, 50, 140, 76],
+      "module": "cao-grande-b",
+      "box": [31, 42, 138, 84],
       "params": {
         "seed": 6,
-        "forest": 0.5,
-        "topW": 0.06,
-        "footW": 0.12,
-        "axis": 0.5
+        "mist": 0.8,
+        "footW": 0.27,
+        "canopy": 0.28
       }
     }
   ]

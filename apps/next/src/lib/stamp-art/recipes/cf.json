@@ -3,7 +3,6 @@
   "tier": "engraved",
   "shape": "oval",
   "ink": "umber",
-  "cluster": "river-quay",
   "horizon": 0.72,
   "backdrop": [
     {
@@ -15,27 +14,19 @@
       }
     },
     {
-      "module": "distance-trees",
-      "params": {
-        "height": 18,
-        "amp": 3,
-        "seed": 9,
-        "swell": 2
-      }
-    },
-    {
       "module": "ground",
       "params": {
-        "water": true,
         "line": false
       }
     }
   ],
   "layers": [
     {
-      "module": "pirogue",
-      "box": [52, 84, 96, 38],
-      "params": {}
+      "module": "dzanga-bai-b",
+      "box": [46, 60, 108, 72],
+      "params": {
+        "seed": 9
+      }
     }
   ]
 }

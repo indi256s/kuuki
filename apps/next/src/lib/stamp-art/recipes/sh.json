@@ -24,7 +24,7 @@
   "layers": [
     {
       "module": "jacobs-ladder",
-      "box": [32, 64, 136, 60],
+      "box": [30, 56, 140, 68],
       "params": {}
     }
   ]

@@ -26,11 +26,9 @@
   ],
   "layers": [
     {
-      "module": "rainforest-b",
-      "box": [32, 60, 136, 68],
+      "module": "ceiba-b",
+      "box": [30, 56, 140, 68],
       "params": {
-        "rows": 3,
-        "emergent": 3,
         "seed": 7
       }
     }
