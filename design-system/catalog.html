@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ru">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  /><title>Kuuki · Дизайн-система</title
+  ><style>
+    /* STYLES */
+  </style>
+  <body>
+    <div id="catalog" data-theme="light" data-accent="shu">
+      <a class="skip" href="#colors">К содержимому</a>
+      <header class="header">
+        <div>
+          <p class="eyebrow">Kuuki / отдельная дизайн-система / draft 01</p>
+          <h1>Белый лист</h1>
+          <p class="muted">Цвет, элементы и характер Kuuki.</p>
+        </div>
+        <div class="controls">
+          <label
+            ><small>Тема</small
+            ><select id="theme">
+              <option value="light">Светлая</option>
+              <option value="dark">Тёмная</option>
+            </select></label
+          ><label
+            ><small>Акцент</small
+            ><select id="accent">
+              <option value="shu">Shu · светлая киноварь</option>
+              <option value="ai">Ai · индиго</option>
+              <option value="matcha">Matcha</option>
+              <option value="asagi">Asagi</option>
+              <option value="sakura">Sakura</option>
+            </select></label
+          >
+        </div>
+      </header>
+      <nav aria-label="Разделы каталога">
+        <a href="#colors">Цвет</a><a href="#elements">Элементы</a><a href="#data">Графики</a
+        ><a href="#signature">Фигуры и страницы</a><a href="#foundation">Основа</a
+        ><a href="#tokens">Токены</a>
+      </nav>
+      <main>
+        <section id="colors">
+          <div class="section-head">
+            <h2>01 / Цвет</h2>
+            <p class="muted">
+              Выбранная основа — Shu. Четыре других акцента перенесены из текущей системы для
+              сравнения.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="panel">
+              <h3>Поверхности</h3>
+              <div id="surface-swatches" class="swatches"></div>
+              <p class="small muted" style="margin-top: 16px">
+                Светлая страница белая. Карточки отделяются тоном и тонкой границей; тень появляется
+                у плавающих слоёв.
+              </p>
+            </article>
+            <article class="panel">
+              <h3>Один акцент, разные задачи</h3>
+              <div id="accent-swatches" class="swatches"></div>
+              <div class="row" style="margin-top: 16px">
+                <span class="tag">✓ Фильтр применён</span><a href="#tokens">Текстовая ссылка ↗</a>
+              </div>
+              <div id="accent-picks" class="accent-picks" aria-label="Акценты"></div>
+            </article>
+          </div>
+          <div class="contract">
+            <strong>Воздух создают нейтральные поверхности.</strong
+            ><span class="muted"
+              >Цвет — у главного действия, ссылки и живой части фигуры. Статусы и категории
+              сохраняют собственные роли.</span
+            >
+          </div>
+        </section>
+        <section id="elements">
+          <div class="section-head">
+            <h2>02 / Элементы и состояния</h2>
+            <p class="muted">
+              Кнопки ниже — разметка настоящего компонента Kuuki. Остальные образцы показывают
+              визуальный контракт.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="panel">
+              <h3>Действия</h3>
+              <div class="stack">
+                <div class="row">{{primary}}{{secondary}}</div>
+                <div class="row">{{ghost}}{{danger}}</div>
+                <div class="row">
+                  {{loading}}<button class="ui-button" disabled>Продолжить</button>
+                </div>
+                <p class="small muted">Продолжить можно после выбора аэропортов.</p>
+                <div class="row">
+                  <button class="ui-button focus-sample">Фокус с клавиатуры</button>
+                </div>
+              </div>
+            </article>
+            <article class="panel">
+              <h3>Ввод</h3>
+              <div class="stack">
+                <label
+                  >Аэропорт вылета<input value="Тбилиси · TBS" autocomplete="off" /><small
+                    class="muted"
+                    >Название города или код аэропорта</small
+                  ></label
+                ><label
+                  >Номер рейса<input
+                    value="ABC?"
+                    aria-invalid="true"
+                    aria-describedby="flight-error"
+                  /><small id="flight-error" style="color: var(--danger-text)"
+                    >! Проверьте номер рейса</small
+                  ></label
+                ><label>Поиск<input placeholder="Рейс, аэропорт, страна" type="search" /></label>
+              </div>
+            </article>
+            <article class="panel">
+              <h3>Выбор и фильтры</h3>
+              <div class="stack">
+                <div class="segment" role="group" aria-label="Период">
+                  <button aria-pressed="true">Всё время</button
+                  ><button aria-pressed="false">2026</button>
+                </div>
+                <label style="display: flex; align-items: center"
+                  ><input
+                    type="checkbox"
+                    checked
+                    style="width: 20px; height: 20px; accent-color: var(--focus)"
+                  />
+                  Только подтверждённые</label
+                >
+                <div class="row">
+                  <span class="tag">✓ Португалия</span><span class="tag">✓ 2026</span>
+                </div>
+                <div class="inset">
+                  <small class="muted"
+                    >Выбранное состояние имеет контур, подпись или отметку.</small
+                  >
+                </div>
+              </div>
+            </article>
+            <article class="panel">
+              <h3>Обратная связь</h3>
+              <div class="status" data-tone="success">
+                <span aria-hidden="true">✓</span><span>Перелёт добавлен</span>
+              </div>
+              <div class="status" data-tone="warning">
+                <span aria-hidden="true">!</span><span>Нужно уточнить аэропорт</span>
+              </div>
+              <div class="status" data-tone="danger">
+                <span aria-hidden="true">×</span><span>Не удалось сохранить</span>
+              </div>
+              <div class="status" data-tone="info">
+                <span aria-hidden="true">ⓘ</span><span>Импорт ещё выполняется</span>
+              </div>
+              <p class="small muted">Статус — текст и знак. Фон всей карточки не окрашивается.</p>
+            </article>
+            <article class="panel floating">
+              <h3>Плавающий слой</h3>
+              <p>Добавить ещё один перелёт?</p>
+              <div class="row">
+                <button class="ui-button" id="open-dialog">Открыть диалог</button>
+              </div>
+              <p class="small muted" style="margin-top: 16px">
+                Непрозрачная поверхность, радиус 20 px, тень. Фокус возвращается к кнопке.
+              </p>
+            </article>
+            <article class="panel">
+              <h3>Состояния данных</h3>
+              <div class="stack">
+                <div>
+                  <div
+                    style="
+                      height: 12px;
+                      width: 55%;
+                      background: var(--skeleton);
+                      border-radius: 6px;
+                    "
+                    role="img"
+                    aria-label="Образец загрузки"
+                  ></div>
+                  <small class="muted">Загрузка · без бесконечного шиммера</small>
+                </div>
+                <div>
+                  <strong>Перелётов пока нет</strong><br /><small class="muted"
+                    >Добавьте первый перелёт.</small
+                  >
+                </div>
+                <div>
+                  <span style="color: var(--warning-text)">! Часть данных недоступна</span
+                  ><br /><small class="muted">Показаны 8 из 12 перелётов.</small>
+                </div>
+                <div>
+                  <span style="color: var(--danger-text)">× Не удалось загрузить журнал</span
+                  ><br /><button class="ui-button">Повторить</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section id="data">
+          <div class="section-head">
+            <h2>03 / Цвет данных</h2>
+            <p class="muted">
+              Демонстрационные значения. Нейтральные отметки + цвет выбранного значения. Категории
+              остаются постоянными.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="panel">
+              <p class="eyebrow">Время вылета</p>
+              <div class="hero-number" id="selected-hour">08:00</div>
+              <div id="bars" class="chart" aria-label="Перелёты по времени вылета"></div>
+              <p id="bar-reading" class="small" aria-live="polite">
+                ✓ Выбрано 08:00 · 28 перелётов
+              </p>
+              <small class="muted"
+                >После выбора цвет получает выбранный столбец, даже если он не самый высокий.</small
+              >
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Воздушные суда</p>
+              <div class="hero-number">60% Airbus</div>
+              <div class="figure">{{aircraft}}</div>
+              <div
+                id="waffle"
+                class="waffle"
+                role="img"
+                aria-label="100 перелётов: Airbus 60, Boeing 30, Embraer 6, неизвестный производитель 4"
+              ></div>
+              <div class="legend">
+                <span
+                  ><i class="key" style="--cell-fill: var(--cat-maker-airbus)"></i>Airbus 60</span
+                ><span
+                  ><i class="key" style="--cell-fill: var(--cat-maker-boeing)"></i>Boeing 30</span
+                ><span
+                  ><i class="key" style="--cell-fill: var(--cat-maker-embraer)"></i>Embraer 6</span
+                ><span>? Неизвестно 4</span>
+              </div>
+            </article>
+            <article class="panel">
+              <h3>Количество</h3>
+              <div class="heat">
+                <span class="heat-cell" style="background: var(--heat-0); color: var(--text)"
+                  >0</span
+                ><span
+                  class="heat-cell low"
+                  style="background: var(--heat-1); color: var(--heat-1-text)"
+                  >1</span
+                ><span
+                  class="heat-cell low"
+                  style="background: var(--heat-2); color: var(--heat-2-text)"
+                  >3</span
+                ><span
+                  class="heat-cell low"
+                  style="background: var(--heat-3); color: var(--heat-3-text)"
+                  >7</span
+                ><span
+                  class="heat-cell"
+                  style="background: var(--heat-4); color: var(--heat-4-text)"
+                  >11</span
+                ><span class="heat-cell missing">—</span>
+              </div>
+              <p class="small">Шкала образца: 0 · 1–2 · 3–5 · 6–8 · 9–11</p>
+              <small class="muted"
+                >Ноль известен. Пунктир означает отсутствие данных. Бледные уровни имеют читаемый
+                контур.</small
+              >
+            </article>
+            <article class="panel">
+              <h3>Сравнение серий</h3>
+              <div id="series" class="series"></div>
+              <p class="small muted" style="margin-top: 16px">
+                Серия сохраняет слот, цвет, тип линии и маркер. Смена акцента не меняет категорию
+                производителя.
+              </p>
+            </article>
+          </div>
+        </section>
+        <section id="signature">
+          <div class="section-head">
+            <h2>04 / Характер и страницы</h2>
+            <p class="muted">
+              Фигуры, билет и штампы взяты из компонентов проекта. Свечение остаётся внутри
+              иллюстрации.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="panel">
+              <p class="eyebrow">Перелёты</p>
+              <div class="hero-number">100</div>
+              <div class="figure">{{flights}}</div>
+              <p class="small muted">
+                Карточка без тени. Главный показатель читается раньше рисунка.
+              </p>
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Любимый маршрут</p>
+              <div class="hero-number">TBS–LIS</div>
+              <div class="figure">{{ranking}}</div>
+              <p class="small muted">24 перелёта · подписи нейтральные, живая часть — акцент.</p>
+            </article>
+            <article class="panel page-sample">
+              <p class="eyebrow">Среднее время вылета</p>
+              <div class="hero-number">08:45</div>
+              <div class="figure">{{hours}}</div>
+            </article>
+            <article class="panel page-sample">
+              <div class="page-nav">
+                <strong>Kuuki</strong><span>Обзор</span><span class="active">Журнал</span
+                ><span>Паспорт</span>
+              </div>
+              <h3>Журнал</h3>
+              <p class="small muted">Образец страницы · демонстрационный рейс</p>
+              {{ticket}}
+            </article>
+            <article class="panel page-sample">
+              <h3>Паспорт</h3>
+              <div class="stamp-grid">{{stampJP}}{{stampPT}}{{stampGE}}</div>
+              <p class="small muted" style="margin-top: 20px">
+                Цвет чернил штампа определяется отдельно; название и подпись остаются читаемыми.
+                Здесь нейтральные чернила.
+              </p>
+            </article>
+          </div>
+        </section>
+        <section id="foundation">
+          <div class="section-head">
+            <h2>05 / Типографика, размеры, движение</h2>
+            <p class="muted">Основа из DESIGN.md. Длительности — из текущего AGENTS.md.</p>
+          </div>
+          <div class="grid">
+            <article class="panel">
+              <p class="eyebrow">Commissioner / Paper Mono</p>
+              <div
+                class="sample-type"
+                style="
+                  font-size: 30px;
+                  line-height: 36px;
+                  font-weight: 600;
+                  letter-spacing: -0.02em;
+                "
+              >
+                Ваш журнал перелётов
+              </div>
+              <div class="sample-type" style="font-size: 22px; line-height: 28px; font-weight: 600">
+                Следующий маршрут
+              </div>
+              <div class="sample-type" style="font-size: 17px; line-height: 24px; font-weight: 600">
+                Лиссабон, Португалия
+              </div>
+              <p>Основной текст · 15 / 24</p>
+              <p class="small muted">Вторичный текст · 13 / 20</p>
+              <p class="mono">TBS → LIS · 12 OCT 2026 · 08:45</p>
+            </article>
+            <article class="panel">
+              <h3>Геометрия</h3>
+              <div class="spacing">{{spacing}}</div>
+              <p class="small" style="margin-top: 20px">
+                Радиусы: 6 чип · 10 контрол · 14 карточка · 20 диалог
+              </p>
+              <p class="small muted">
+                База 4 px. Поля страницы 24 / 16 px. Цели касания ≥44 px. Разделы 48 / 32 px.
+              </p>
+            </article>
+            <article class="panel">
+              <h3>Движение</h3>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>Нажатие</td>
+                    <td>120 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Tooltip / dropdown</td>
+                    <td>150–250 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Диалог / sheet</td>
+                    <td>200–300 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Переход страницы</td>
+                    <td>300–400 ms</td>
+                  </tr>
+                </tbody>
+              </table>
+              <small class="muted"
+                >Частые действия без анимации. Reduced motion отключает движение.</small
+              >
+            </article>
+            <article class="panel">
+              <h3>Правила применения</h3>
+              <div class="stack small">
+                <div>Одна основная залитая кнопка на рабочий экран.</div>
+                <div>Ссылки используют accent-text, заливки — accent.</div>
+                <div>Hairline обозначает карточку. Control-border обозначает ввод.</div>
+                <div>Данные не затухают по opacity при наведении или выборе.</div>
+                <div>Поверхности без градиентов, стекла и декоративного свечения.</div>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section id="tokens">
+          <div class="section-head">
+            <h2>06 / Семантические токены</h2>
+            <p class="muted" id="check-summary"></p>
+          </div>
+          <div class="panel">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Роль</th>
+                    <th>Значение</th>
+                    <th>Назначение</th>
+                  </tr>
+                </thead>
+                <tbody id="token-table"></tbody>
+              </table>
+            </div>
+          </div>
+          <p class="small muted" style="margin-top: 16px">
+            Primitive → semantic → component. HEX сохраняет формат проекта; OKLCH использован при
+            расчёте нейтральных поверхностей и шкал. Проверены непрозрачные пары токенов.
+            Композитинг SVG, все чернила штампов и поведение приложения целиком этой проверкой не
+            покрыты.
+          </p>
+        </section>
+      </main>
+      <footer class="footer">
+        Самостоятельный проект дизайн-системы. Основная палитра приложения и DESIGN.md пока не
+        изменены. Демо-контролы не сохраняют данные.
+      </footer>
+      <div class="notice" id="notice" role="status" hidden></div>
+      <dialog id="dialog" aria-labelledby="dialog-title">
+        <form method="dialog">
+          <h2 id="dialog-title">Добавить перелёт</h2>
+          <p class="muted">Демонстрационный диалог</p>
+          <div class="stack">
+            <label>Откуда<input value="TBS" autofocus /></label
+            ><label>Куда<input value="LIS" /></label><button class="ui-button">Закрыть</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+    <script>
+      /* SCRIPT */
+    </script>
+  </body>
+</html>

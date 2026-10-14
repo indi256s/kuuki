@@ -9,6 +9,10 @@
     "**/*.generated.*",
     "packages/data/src/country-neighbors.ts",
     "**/next-env.d.ts",
-    "apps/next/public/maps/**"
+    "apps/next/public/maps/**",
+    "design-system/index.html",
+    "design-system/tokens.css",
+    "design-system/tokens.json",
+    "design-system/contrast-report.json"
   ]
 }
