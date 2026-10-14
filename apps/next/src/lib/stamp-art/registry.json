@@ -564,18 +564,18 @@
     "iso2": "BZ",
     "iso3": "BLZ",
     "name": "Belize",
-    "motif": "Great Blue Hole",
-    "kind": "nature",
-    "silhouette": "a dark elliptical sinkhole ringed by a broken surf-white reef crest and pale shallows in flat water, a small palm cay on the horizon",
-    "modules": ["atoll", "palm"],
+    "motif": "Xunantunich El Castillo",
+    "kind": "ruin",
+    "silhouette": "a broad terraced pyramid wider than tall: three battered tiers, a flat-topped temple block with a stucco frieze band across its upper third and a dark doorway, a small block above, jungle crowns on both sides",
+    "modules": ["castillo-a", "distance-trees"],
     "signature": null,
     "backdrop": null,
     "cluster": "pyramid",
     "status": "replaced",
-    "replaced": "Caana at Caracol: fourth stepped Maya pyramid beside MX, GT and HN (REVIEW section 4)",
+    "replaced": "Great Blue Hole: an aerial dark ellipse reads as a black puddle at eye level (art director, final pass 2)",
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: reef ring with a deep hole and a palm cay"
+    "notes": "castillo-a: wide battered terraces, T4 right faces, frieze band in T4."
   },
   {
     "iso2": "CA",
@@ -771,7 +771,7 @@
     "motif": "Castillo San Felipe de Barajas",
     "kind": "architecture",
     "silhouette": "a massive, stepped fortress with thick, angled bastion walls on a hillside; a few tall towers and a lower stepped base; a flat sea and city wall at the bottom",
-    "modules": ["bastion-fort"],
+    "modules": ["san-felipe-a"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -779,7 +779,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "bastion-fort (lane A): battered stepped terraces with lit and shaded bastion faces, garitas, watch tower on a hill."
+    "notes": "san-felipe-a (lane A): three battered tiers with shifted salients climbing a hill, T4 shaded faces, lit parapets, garitas, reducto tower. No longer shares a module with KN."
   },
   {
     "iso2": "CR",
@@ -957,8 +957,8 @@
     "name": "Dominica",
     "motif": "Boiling Lake crater",
     "kind": "nature",
-    "silhouette": "Round crater rim of dark forested slopes around a flat lake with steam lines rising",
-    "modules": ["crater-lake-a", "water"],
+    "silhouette": "eye-level crater: solid near lip, T4 far inner wall with a forest crown, a T1 lake band and one hatched steam column drifting right",
+    "modules": ["crater-eye-a"],
     "signature": "new:crater-lake – flat lake in a round rim with steam lines",
     "backdrop": null,
     "cluster": null,
@@ -966,7 +966,7 @@
     "replaced": "Morne Trois Pitons: Q44 (volcano cluster cut)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Boiling Lake as a wide steaming lake under a ridge; crater rim dropped for legibility."
+    "notes": "crater-eye-a: eye-level Boiling Lake; steam is hatching with an eroded lit edge, no circles."
   },
   {
     "iso2": "DO",
@@ -1178,16 +1178,16 @@
     "name": "Micronesia",
     "motif": "Nan Madol",
     "kind": "ruin",
-    "silhouette": "A flat stone platform across the lower half with squared-off basalt walls and blocks; a few short, square towers on top; water channels cut through",
+    "silhouette": "a U-shaped basalt enclosure wall built in horizontal courses, T5 column ends staggering at the corners, corner towers leaning out like prows over a lower middle, a pale T1 channel at the foot, mangrove behind; no door",
     "modules": ["nan-madol"],
-    "signature": "new:nan-madol – log-cabin basalt prism walls with corner towers and a gateway",
+    "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "nan-madol redrawn: no gateway."
   },
   {
     "iso2": "FO",
@@ -1365,8 +1365,8 @@
     "name": "Greenland",
     "motif": "Ilulissat Icefjord",
     "kind": "nature",
-    "silhouette": "a tall, tabular iceberg with a flat top and jagged edges, standing in the water; a broad glacier wall behind it, a shallow curve across the top; flat water at the base",
-    "modules": ["glacier", "water"],
+    "silhouette": "four to six icebergs receding across the fjord, the nearest a tall jagged twin-spire berg in lit paper with T4 shadow facets on a pale T1 foot, low hills behind",
+    "modules": ["bergs-a"],
     "signature": "new:iceberg – a tabular iceberg with a flat top",
     "backdrop": null,
     "cluster": "ice",
@@ -1374,7 +1374,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: flat-topped tabular iceberg before a glacier wall"
+    "notes": "bergs-a: jagged berg silhouettes, no box-shaped berg."
   },
   {
     "iso2": "GM",
@@ -1604,7 +1604,7 @@
     "motif": "Citadelle Laferriere",
     "kind": "architecture",
     "silhouette": "a massive, nearly vertical-walled block on a mountain ridge. Flat parapet crown with corner bastions, thick fortress walls in the middle, rock or hill base",
-    "modules": ["rock-hill", "citadelle"],
+    "modules": ["citadelle"],
     "signature": "new:citadelle – ship-shaped mountaintop fortress with prow, gun ports and stepped second tier",
     "backdrop": null,
     "cluster": "fort",
@@ -1612,7 +1612,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: prow-shaped citadel on a mountain peak"
+    "notes": "citadelle redrawn: ship-shaped fortress with a leaning stem and lit prow face pointing left, T4 flank with gun-port rows, set-back crenellated tier and tower, on a T3 forest mountain."
   },
   {
     "iso2": "HU",
@@ -1960,8 +1960,8 @@
     "name": "Saint Kitts and Nevis",
     "motif": "Brimstone Hill Fortress National Park",
     "kind": "architecture",
-    "silhouette": "steep hill base, fortress walls stepping upward in tiers, flat parapet at top with a small tower. Roughly symmetric",
-    "modules": ["bastion-fort"],
+    "silhouette": "a steep conical hill with the compact polygonal Fort George citadel and T5 embrasures on the summit, the Nevis cone in T2 across the sea on the right",
+    "modules": ["brimstone-a"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -1969,7 +1969,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Shared bastion-fort with CO (distinct hill height, tiers and ink)."
+    "notes": "brimstone-a (lane A): hill, citadel and Nevis cone; shares only the tier helper (fort-a) with CO."
   },
   {
     "iso2": "KP",
@@ -2896,32 +2896,32 @@
     "motif": "Mount Otemanu on Bora Bora",
     "kind": "nature",
     "silhouette": "bulky volcanic plug with sheer fluted walls and a rounded crown on forested shoulders, lower Mount Pahia on its left, lagoon with a palm motu in front",
-    "modules": ["otemanu", "island-b", "distance-mountains"],
+    "modules": ["otemanu", "island-b"],
     "signature": "new:otemanu – plug spire with sheer walls on forested shoulders",
     "backdrop": null,
-    "cluster": "stilts",
+    "cluster": null,
     "status": "replaced",
     "replaced": "Mount Otemanu on Bora Bora: Q44 (volcano cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Plug spire per REVIEW (cluster volcano); the overwater bungalows idea is dropped."
+    "notes": "otemanu redrawn with strata and fracture on the lit side, T4 on the right (no drapes), Pahia shoulder in T2, forest crowns at the foot; palm motu in the lagoon. Removed from the stilts cluster."
   },
   {
     "iso2": "PG",
     "iso3": "PNG",
     "name": "Papua New Guinea",
-    "motif": "Mount Wilhelm",
+    "motif": "Raggiana bird-of-paradise",
     "kind": "nature",
-    "silhouette": "Single broad high peak with a slightly serrated summit, rock slope above a cloud-forest base",
-    "modules": ["massif-b"],
+    "silhouette": "a bird in profile on a branch, solid body with a lit head and beak, long flank plumes cascading as lit ribbons over a T2 rainforest",
+    "modules": ["paradise-a", "rainforest-a"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Kokoda Track: unreadable forested ridge and WWII theme (rule 7)",
-    "confidence": "low",
+    "replaced": "Mount Wilhelm: read as an iceberg or curtain (art director, final pass 2); owner allows the bird as nature",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Mount Wilhelm drawn as a gullied massif over a dark forest skirt; no haus tambaran (Parliament House is an active seat of power)."
+    "notes": "paradise-a: Raggiana on a branch; flag-free (species only)."
   },
   {
     "iso2": "PH",
@@ -4051,8 +4051,8 @@
     "name": "Wallis and Futuna",
     "motif": "Talietumu fort ruins",
     "kind": "ruin",
-    "silhouette": "A long, low fortified stone wall with a stepped top on a low ground line, a short tower on one end. Asymmetric",
-    "modules": ["rock-hill", "ruin-wall"],
+    "silhouette": "a three-tier battered basalt platform whose lowest tier tapers at both ends so the ramparts curve away, stone joints on lit faces, T4 on the right, coconut palms around it",
+    "modules": ["talietumu-a", "palm"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -4060,7 +4060,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "Ruined stone wall crowning a hill."
+    "notes": "talietumu-a: stepped platform with joints; palms from the palm module."
   },
   {
     "iso2": "WS",

@@ -2550,7 +2550,7 @@
     "tier": "engraved"
   },
   "PF": {
-    "cluster": "stilts",
+    "cluster": null,
     "ink": "ochre-dark",
     "iso3": "PYF",
     "name": {
@@ -3196,7 +3196,7 @@
   },
   "TH": {
     "cluster": "stilts",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "THA",
     "name": {
       "en": "Thailand",

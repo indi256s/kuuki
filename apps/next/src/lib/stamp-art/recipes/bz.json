@@ -3,58 +3,37 @@
   "tier": "engraved",
   "shape": "cut-rect",
   "ink": "teal",
-  "horizon": 0.5,
+  "horizon": 0.72,
   "backdrop": [
     {
       "module": "sky",
       "params": {
         "gap": [2.8, 3.6],
-        "clouds": [48, 66, 44, 120, 84, 36, 158, 62, 28],
+        "clouds": [46, 66, 40, 152, 62, 32],
         "weight": "hair"
       }
     },
     {
       "module": "distance-trees",
       "params": {
-        "height": 5,
-        "amp": 1.6,
+        "height": 8,
+        "amp": 2,
         "seed": 6,
-        "swell": 1.2
+        "swell": 2
       }
     },
     {
       "module": "ground",
       "params": {
-        "water": true
+        "line": true
       }
     }
   ],
   "layers": [
     {
-      "module": "atoll",
-      "box": [32, 104, 112, 42],
-      "params": {
-        "hole": 0.5,
-        "cay": [152, 114, 26, 6]
-      }
-    },
-    {
-      "module": "palm",
-      "box": [124, 64, 40, 52],
-      "params": {
-        "lean": -0.3,
-        "seed": 3,
-        "frond": 0.55
-      }
-    },
-    {
-      "module": "palm",
-      "box": [138, 72, 26, 44],
-      "params": {
-        "lean": 0.2,
-        "seed": 8,
-        "frond": 0.7
-      }
+      "module": "castillo-a",
+      "box": [34, 58, 132, 66],
+      "params": {}
     }
   ]
 }

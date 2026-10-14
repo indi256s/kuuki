@@ -1,78 +1,142 @@
-// Citadelle Laferriere (Haiti): a ship-shaped mountaintop fortress seen from its bow. A lit prow
-// face on the left, a long shaded flank with rows of gun ports, a stepped second tier with a
-// crenellated crown and a low square tower at the stern. The box bottom is the foundation line.
-import { type Pt, type SvgNode, body, fill, hatch, hline, rectPts, stroke } from '../grid'
+// Citadelle Laferriere (Haiti): a ship-shaped fortress on a forested summit, prow to the viewer's
+// left. The hull's stem leans out over the slope; its lit prow face is paper with course lines,
+// the long flank on the right is T4 with rows of T5 gun ports, a set-back second tier carries a
+// crenellated parapet and a square tower. The mountain below is T3 forest. The box is mountain
+// plus fortress; its bottom is the foot of the mountain.
+import { mulberry32 } from '../hash'
+import {
+  type Pt,
+  type SvgNode,
+  body,
+  fill,
+  hline,
+  occlude,
+  rectPts,
+  stroke,
+  toneFill,
+} from '../grid'
+import { canopyNodes } from './mass-b'
+import { clipPoly, rough } from './rock-b'
 import { type KitModule, num } from './util'
 
 export const citadelle: KitModule = ([x, y, w, h], p) => {
+  const rand = mulberry32(Math.round(num(p, 'seed', 2)))
+  const X = (u: number) => x + w * u
+  const Y = (v: number) => y + h * v
   const base = y + h
   const out: SvgNode[] = []
-  const tier1Top = y + h * 0.4
-  const bow = w * num(p, 'bow', 0.34)
-  const jx = x + bow
-  // Long shaded flank (battered: the base is wider than the top).
+  // Forest mountain under the fortress, T3 with crowns along the slopes.
+  const mt: Pt[] = rough(
+    [
+      [X(0.04), base],
+      [X(0.07), Y(0.9)],
+      [X(0.16), Y(0.8)],
+      [X(0.3), Y(0.7)],
+      [X(0.4), Y(0.62)],
+      [X(0.7), Y(0.6)],
+      [X(0.82), Y(0.7)],
+      [X(0.94), Y(0.84)],
+      [X(0.96), base],
+    ],
+    rand,
+    0.9,
+    6,
+  )
+  const cut = (yy: number) => X(0.6) + (yy - Y(0.6)) * 0.25
+  const dark = clipPoly(mt, ([px, py]) => px - cut(py))
+  const lit = clipPoly(mt, ([px, py]) => cut(py) - px)
+  out.push(
+    occlude(mt),
+    ...toneFill(lit, 'T3', { angle: 64, gap: 3.4, weight: 'hair' }),
+    ...toneFill(dark, 'T4', { gap: 2.5 }),
+  )
+  out.push(stroke('line', mt.slice(0, -1)))
+  for (const [u0, u1, v] of [
+    [0.08, 0.28, 0.9],
+    [0.2, 0.4, 0.76],
+  ])
+    out.push(...canopyNodes(X(u0), X(u1), Y(v), 6, rand, { crowns: 2, thr: 0.3 }))
+  // Hull: stem leaning out to the prow tip, flat top, lit prow face and shaded flank.
+  const foot = Y(0.6)
+  const tip: Pt = [X(0.1), Y(0.38)]
+  const keel: Pt = [X(0.27), foot]
+  const sal = X(0.5)
+  const topR = Y(0.33)
+  const prow: Pt[] = [tip, [sal, Y(0.35)], [sal, foot - 0.4], keel]
   const flank: Pt[] = [
-    [jx, base],
-    [jx, tier1Top + 2],
-    [x + w - 2, tier1Top],
-    [x + w, base],
-  ]
-  out.push(...body(flank, 'line'))
-  out.push(...hatch(flank, 'v', 2.2, 'hair', 0.5))
-  // Lit prow face: a tall wedge whose point leans out to the left.
-  const prow: Pt[] = [
-    [x, base],
-    [x + bow * 0.12, tier1Top + h * 0.06],
-    [jx, tier1Top + 1],
-    [jx, base],
+    [sal, Y(0.35)],
+    [X(0.96), topR],
+    [X(0.96), foot],
+    [sal, foot - 0.4],
   ]
   out.push(...body(prow, 'line'))
-  // Course joints on the prow.
-  for (let i = 1; i < 6; i++) {
-    const ly = tier1Top + ((base - tier1Top) * i) / 6
-    out.push(hline('fine', x + (bow * 0.08 * (6 - i)) / 6 + 1, jx - 1, ly))
+  const sh = (v: number): Pt => [
+    X(0.72),
+    Y(0.35) + (topR - Y(0.35)) * ((0.72 - 0.5) / 0.46) + (v - Y(0.35)) * 0,
+  ]
+  out.push(...body(flank, 'line'))
+  out.push(
+    ...toneFill([sh(0), [X(0.96), topR], [X(0.96), foot], [X(0.72), foot - 0.4]], 'T4', {
+      gap: 2.3,
+      inset: 0.3,
+    }),
+  )
+  // Course lines follow the stem on the lit prow.
+  for (let i = 1; i < 5; i++) {
+    const t = i / 5
+    const a: Pt = [tip[0] + (keel[0] - tip[0]) * t, tip[1] + (keel[1] - tip[1]) * t]
+    const b: Pt = [sal, Y(0.35) + (foot - Y(0.35)) * t]
+    out.push(
+      stroke('fine', [
+        [a[0] + 1.2, a[1]],
+        [b[0] - 1, b[1]],
+      ]),
+    )
   }
-  // Gun ports: a row on the prow, two rows along the flank.
-  for (const fy of [0.34, 0.6]) {
-    const py = tier1Top + (base - tier1Top) * fy
-    out.push(fill(rectPts(x + bow * 0.4, py, 3.4, 3.4)))
-    for (let px = jx + 6; px < x + w - 6; px += 9.5) out.push(fill(rectPts(px, py, 3.4, 3.4)))
+  // Gun ports: a row on the prow, two along the flank.
+  for (const v of [0.45, 0.53]) {
+    const py = Y(v)
+    for (const u of [0.3, 0.38, 0.45])
+      out.push(fill(rectPts(X(u) - (v > 0.5 ? 0 : 1.5), py, 3, 3.2)))
   }
-  // Second tier: a crenellated block stepping back toward the stern.
-  const t2x = x + w * 0.42
-  const t2w = w * 0.5
-  const t2Top = y + h * 0.12
-  const merlons = 8
-  const pitch = t2w / merlons
-  const crown: Pt[] = [[t2x, tier1Top + 1]]
+  for (const v of [0.41, 0.5]) {
+    const py = Y(v)
+    for (let u = 0.55; u < 0.94; u += 0.07) out.push(fill(rectPts(X(u), py, 3.2, 3.4)))
+  }
+  out.push(
+    stroke('bold', [
+      [X(0.22), foot],
+      [X(0.98), foot],
+    ]),
+  )
+  // Second tier set back: lit wall, crenellated parapet, ports.
+  const t2x0 = X(0.4),
+    t2x1 = X(0.9)
+  const t2Top = Y(0.12),
+    t2Foot = Y(0.34)
+  const merlons = 9
+  const pitch = (t2x1 - t2x0) / merlons
+  const crown: Pt[] = [[t2x0, t2Foot]]
   for (let i = 0; i < merlons; i++) {
-    const a = t2x + pitch * i
+    const a = t2x0 + pitch * i
     crown.push(
       [a, t2Top],
       [a + pitch * 0.58, t2Top],
-      [a + pitch * 0.58, t2Top + 3],
-      [a + pitch, t2Top + 3],
+      [a + pitch * 0.58, t2Top + 2.6],
+      [a + pitch, t2Top + 2.6],
     )
   }
-  crown.push([t2x + t2w, tier1Top + 1])
+  crown.push([t2x1, t2Foot])
   out.push(...body(crown, 'line'))
-  out.push(
-    ...hatch(rectPts(t2x + 0.5, t2Top + 4, t2w - 1, tier1Top - t2Top - 4), 'v', 2.4, 'hair', 0.5),
-  )
-  for (let px = t2x + 6; px < t2x + t2w - 5; px += 9.5)
-    out.push(fill(rectPts(px, t2Top + 8, 3, 3.4)))
-  // Square tower at the stern with a flat cap.
-  const tw = w * 0.14
-  const tx = x + w - tw - 3
-  const tTop = y
-  out.push(...body(rectPts(tx, tTop, tw, t2Top - tTop + 3), 'line'))
-  out.push(...body(rectPts(tx - 1.5, tTop - 2.4, tw + 3, 2.6), 'line'))
-  out.push(fill(rectPts(tx + tw / 2 - 1.2, tTop + 5, 2.4, 5)))
-  out.push(
-    stroke('bold', [
-      [x, base],
-      [x + w, base],
-    ]),
-  )
+  const shade2 = rectPts(X(0.7), t2Top + 3.4, t2x1 - X(0.7), t2Foot - t2Top - 3.4)
+  out.push(...toneFill(shade2, 'T4', { gap: 2.3, inset: 0.3 }))
+  for (let u = 0.44; u < 0.68; u += 0.065) out.push(fill(rectPts(X(u), Y(0.21), 2.8, 3.2)))
+  out.push(hline('bold', t2x0 - 1, t2x1 + 1, t2Foot))
+  // Square tower with a flat cap at the stern.
+  const tw = w * 0.1,
+    tx = X(0.66)
+  out.push(...body(rectPts(tx, y + 2, tw, t2Top - y + 0.6), 'line'))
+  out.push(...body(rectPts(tx - 1.5, y + 0.4, tw + 3, 2.6), 'line'))
+  out.push(fill(rectPts(tx + tw / 2 - 1.2, y + 6, 2.4, 4.4)))
   return out
 }

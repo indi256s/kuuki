@@ -10,7 +10,7 @@
       "params": {
         "gap": [2.8, 3.6],
         "weight": "hair",
-        "clouds": [150, 64, 34, 46, 72, 28]
+        "clouds": [150, 60, 34, 46, 70, 28]
       }
     },
     {
@@ -22,8 +22,8 @@
   ],
   "layers": [
     {
-      "module": "crater-lake-a",
-      "box": [34, 58, 132, 72],
+      "module": "crater-eye-a",
+      "box": [32, 44, 136, 112],
       "params": {}
     }
   ]
