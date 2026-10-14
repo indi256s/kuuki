@@ -181,7 +181,7 @@
   },
   "AU": {
     "cluster": "bridge",
-    "ink": "plum",
+    "ink": "umber",
     "iso3": "AUS",
     "name": {
       "en": "Australia",
@@ -196,7 +196,7 @@
   },
   "AW": {
     "cluster": "lighthouse",
-    "ink": "slate",
+    "ink": "moss",
     "iso3": "ABW",
     "name": {
       "en": "Aruba",
@@ -331,18 +331,18 @@
   },
   "BI": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "moss",
     "iso3": "BDI",
     "name": {
       "en": "Burundi",
       "ru": "Бурунди"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Burundi",
       "ru": "Бурунди"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BJ": {
     "cluster": "stilts",
@@ -361,7 +361,7 @@
   },
   "BL": {
     "cluster": "lighthouse",
-    "ink": "moss",
+    "ink": "plum",
     "iso3": "BLM",
     "name": {
       "en": "St. Barthélemy",
@@ -811,18 +811,18 @@
   },
   "DJ": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "umber",
     "iso3": "DJI",
     "name": {
       "en": "Djibouti",
       "ru": "Джибути"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Djibouti",
       "ru": "Джибути"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "DK": {
     "cluster": "castle",
@@ -946,7 +946,7 @@
   },
   "ER": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "ERI",
     "name": {
       "en": "Eritrea",
@@ -957,7 +957,7 @@
       "en": "Eritrea",
       "ru": "Эритрея"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ES": {
     "cluster": "castle",
@@ -976,18 +976,18 @@
   },
   "ET": {
     "cluster": "castle",
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "ETH",
     "name": {
       "en": "Ethiopia",
       "ru": "Эфиопия"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Ethiopia",
       "ru": "Эфиопия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "FI": {
     "cluster": "fort",
@@ -1156,7 +1156,7 @@
   },
   "GG": {
     "cluster": "castle",
-    "ink": "plum",
+    "ink": "slate",
     "iso3": "GGY",
     "name": {
       "en": "Guernsey",
@@ -1591,7 +1591,7 @@
   },
   "JE": {
     "cluster": "castle",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "JEY",
     "name": {
       "en": "Jersey",
@@ -2116,7 +2116,7 @@
   },
   "MM": {
     "cluster": "bridge",
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "MMR",
     "name": {
       "en": "Myanmar (Burma)",
@@ -2146,7 +2146,7 @@
   },
   "MO": {
     "cluster": "lighthouse",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "MAC",
     "name": {
       "en": "Macao SAR China",
@@ -2266,18 +2266,18 @@
   },
   "MW": {
     "cluster": "mesa",
-    "ink": "teal",
+    "ink": "oxblood",
     "iso3": "MWI",
     "name": {
       "en": "Malawi",
       "ru": "Малави"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Malawi",
       "ru": "Малави"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MX": {
     "cluster": "pyramid",
@@ -2322,7 +2322,7 @@
       "en": "Mozambique",
       "ru": "Мозамбик"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NA": {
     "cluster": null,
@@ -2341,7 +2341,7 @@
   },
   "NC": {
     "cluster": "lighthouse",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "NCL",
     "name": {
       "en": "New Caledonia",
@@ -2806,18 +2806,18 @@
   },
   "RW": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "umber",
     "iso3": "RWA",
     "name": {
       "en": "Rwanda",
       "ru": "Руанда"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Rwanda",
       "ru": "Руанда"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SA": {
     "cluster": "rock-cut",
@@ -3016,18 +3016,18 @@
   },
   "SO": {
     "cluster": "lighthouse",
-    "ink": "umber",
+    "ink": "slate",
     "iso3": "SOM",
     "name": {
       "en": "Somalia",
       "ru": "Сомали"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Somalia",
       "ru": "Сомали"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SR": {
     "cluster": null,
@@ -3046,18 +3046,18 @@
   },
   "SS": {
     "cluster": "bridge",
-    "ink": "ochre-dark",
+    "ink": "plum",
     "iso3": "SSD",
     "name": {
       "en": "South Sudan",
       "ru": "Южный Судан"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "South Sudan",
       "ru": "Южный Судан"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ST": {
     "cluster": "volcano",
@@ -3391,7 +3391,7 @@
   },
   "UG": {
     "cluster": "waterfall",
-    "ink": "ochre-dark",
+    "ink": "indigo",
     "iso3": "UGA",
     "name": {
       "en": "Uganda",
@@ -3402,7 +3402,7 @@
       "en": "Uganda",
       "ru": "Уганда"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "UM": {
     "cluster": null,
@@ -3661,7 +3661,7 @@
   },
   "ZM": {
     "cluster": "waterfall",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "ZMB",
     "name": {
       "en": "Zambia",

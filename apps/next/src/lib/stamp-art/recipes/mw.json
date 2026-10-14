@@ -1,0 +1,33 @@
+{
+  "iso2": "MW",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "oxblood",
+  "cluster": "mesa",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [40, 58, 28, 150, 56, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "massif-b",
+      "box": [28, 52, 144, 74],
+      "params": {
+        "seed": 12
+      }
+    }
+  ]
+}
