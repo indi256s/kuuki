@@ -1,11 +1,13 @@
 'use client'
 
-import { Camera, Upload, X } from '@keyline-icons/react'
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Camera, Clipboard, Upload, X } from '@keyline-icons/react'
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Locale } from '../../lib/format'
 import { useLocale } from '../preferences'
 import { Button } from '../ui/button'
+import { Menu, MenuItem } from '../ui/menu'
+import { ChevronIcon } from '../ui/icon-morph'
 import { NavigationLink as Link } from '../navigation-link'
 import { FloatingActionBar } from '../ui/floating-action-bar'
 import { TextShimmer } from '../ui/text-shimmer'
@@ -35,11 +37,12 @@ const C = {
   title: { en: 'Import flights', ru: 'Импорт перелётов' },
   choose: { en: 'Choose files', ru: 'Выбрать файлы' },
   more: { en: 'Add files', ru: 'Добавить файлы' },
+  moreSources: { en: 'Add more', ru: 'Добавить ещё' },
   photo: { en: 'Take a photo', ru: 'Сфотографировать' },
   paste: { en: 'Paste text', ru: 'Вставить текст' },
   online: {
-    en: 'Photos and PDFs may be sent for online recognition.',
-    ru: 'Фото и PDF могут быть отправлены на онлайн-распознавание.',
+    en: 'Files and pasted text are sent for online recognition.',
+    ru: 'Файлы и вставленный текст отправляются на онлайн-распознавание.',
   },
   queued: { en: 'Waiting to read', ru: 'Ожидает чтения' },
   local: { en: 'Reading barcode', ru: 'Чтение штрихкода' },
@@ -53,8 +56,8 @@ const C = {
     ru: 'Выберите файл или вставьте текст снова, чтобы продолжить.',
   },
   partial: {
-    en: 'Reading stopped early. Found flights are retained; try again for the remaining pages.',
-    ru: 'Чтение прервано. Найденные перелёты сохранены; повторите чтение остальных страниц.',
+    en: 'Recognition stopped early. Found flights remain for review. Try recognition again.',
+    ru: 'Распознавание прервано. Найденные перелёты остались для проверки. Повторите распознавание.',
   },
   saveFailed: {
     en: 'Couldn’t finish saving. Your remaining flights are kept here.',
@@ -64,12 +67,23 @@ const C = {
     en: 'Saving confirms that you took the past flights. Future flights are saved as bookings.',
     ru: 'Сохраняя, вы подтверждаете прошлые перелёты. Будущие сохраняются как брони.',
   },
+  confirmPast: {
+    en: 'Saving confirms you took these flights.',
+    ru: 'Сохраняя, вы подтверждаете, что летели этими рейсами.',
+  },
+  confirmFuture: { en: 'Saved as bookings.', ru: 'Сохранятся как брони.' },
+  reading: {
+    en: 'Wait until recognition finishes.',
+    ru: 'Дождитесь завершения распознавания.',
+  },
+  unsentText: {
+    en: 'Read or clear the entered text.',
+    ru: 'Распознайте или очистите введённый текст.',
+  },
   save: { en: 'Save flights', ru: 'Сохранить перелёты' },
   saveOne: { en: 'Save flight', ru: 'Сохранить перелёт' },
   close: { en: 'Close import', ru: 'Закрыть импорт' },
   pending: { en: 'Wait until the files are submitted.', ru: 'Дождитесь отправки файлов.' },
-  show: { en: 'Show added flight', ru: 'Показать добавленный перелёт' },
-  saved: { en: 'Flights saved', ru: 'Перелёты сохранены' },
 } as const
 
 function retained(ownerId: string, batchId: string | null): RetainedEntry[] {
@@ -130,8 +144,14 @@ export function UnifiedImport({
   const savingNow = useRef(false)
   const [error, setError] = useState(false)
   const [textOpen, setTextOpen] = useState(initialSource === 'text')
+  const [sourceMenuOpen, setSourceMenuOpen] = useState(false)
   const [text, setText] = useState('')
   const root = useRef<HTMLDivElement>(null)
+  const sourceActions = useRef<HTMLDivElement>(null)
+  const moreButton = useRef<HTMLButtonElement>(null)
+  const hadSources = useRef(false)
+  const reasonId = useId()
+  const closeReasonId = useId()
   const fileInput = useRef<HTMLInputElement>(null)
   const cameraInput = useRef<HTMLInputElement>(null)
   const [saver] = useState(
@@ -200,6 +220,7 @@ export function UnifiedImport({
         !entry.runs.some((run) => run !== entry.barcode && run.batchId())),
   )
   const unsent = dirty.size > 0 || Object.keys(states).length > 0 || text.trim().length > 0
+  const unsentReason = text.trim() ? C.unsentText[locale] : S.unsavedBlock[locale]
   const guard = useSettingsGuard(unsent, pendingSource || saving, locale)
   useEffect(() => {
     const reset = () => {
@@ -262,6 +283,26 @@ export function UnifiedImport({
   const chosen = review.filter((draft) => safe(draft) && (draft.selected || implicitSingleton))
   const selectedIds = new Set(chosen.map((draft) => draft.id))
   const reading = entries.some((entry) => ['queued', 'local', 'online'].includes(entry.phase))
+  const today = localToday()
+  const hasPast = chosen.some((draft) => draft.fields.date && draft.fields.date <= today)
+  const hasFuture = chosen.some((draft) => draft.fields.date && draft.fields.date > today)
+  const confirmation =
+    hasPast && hasFuture
+      ? C.confirm[locale]
+      : hasFuture
+        ? C.confirmFuture[locale]
+        : hasPast
+          ? C.confirmPast[locale]
+          : null
+  useEffect(() => {
+    if (entries.length && !hadSources.current) {
+      const active = document.activeElement
+      if (active === document.body || sourceActions.current?.contains(active)) {
+        moreButton.current?.focus()
+      }
+    }
+    hadSources.current = entries.length > 0
+  }, [entries.length])
   useEffect(() => {
     const bar = root.current?.querySelector<HTMLElement>('.ui-action-bar')
     if (!bar) return
@@ -293,11 +334,18 @@ export function UnifiedImport({
     }
   }, [review.length])
   const reason = unsent
-    ? S.unsavedBlock[locale]
+    ? unsentReason
     : reading
-      ? C.pending[locale]
+      ? C.reading[locale]
       : chosen.length === 0
         ? S.nothingChosen[locale]
+        : undefined
+  const closeReason = saving
+    ? S.pausedWhileSaving[locale]
+    : unsent
+      ? unsentReason
+      : pendingSource
+        ? C.pending[locale]
         : undefined
   const save = async () => {
     if (savingNow.current || reason) return
@@ -325,10 +373,11 @@ export function UnifiedImport({
         const first = savedIds[0]
         const destination = `/journal?flight=${first}`
         announceShellNotice(ownerId, {
-          message: C.saved,
+          message: {
+            en: count('en', 'savedFlights', savedIds.length),
+            ru: count('ru', 'savedFlights', savedIds.length),
+          },
           kind: 'success',
-          actionLabel: C.show,
-          onAction: () => router.push(destination),
         })
         try {
           if (
@@ -368,42 +417,73 @@ export function UnifiedImport({
         <Button
           variant="ghost"
           aria-label={C.close[locale]}
-          disabledReason={
-            saving
-              ? S.pausedWhileSaving[locale]
-              : unsent
-                ? S.unsavedBlock[locale]
-                : pendingSource
-                  ? C.pending[locale]
-                  : undefined
+          disabled={Boolean(closeReason)}
+          aria-describedby={
+            closeReason
+              ? closeReason === reason && review.length
+                ? reasonId
+                : closeReasonId
+              : undefined
           }
           onClick={() => router.push('/journal')}
         >
           <X size={20} aria-hidden="true" />
         </Button>
       </div>
+      {closeReason && !(closeReason === reason && review.length) ? (
+        <p id={closeReasonId} className="import-hint">
+          {closeReason}
+        </p>
+      ) : null}
       <p className="import-privacy">{C.online[locale]}</p>
-      <div className="import-actions">
-        <Button
-          variant={entries.length ? 'secondary' : 'primary'}
-          icon={<Upload size={18} aria-hidden="true" />}
-          disabled={saving}
-          onClick={() => fileInput.current?.click()}
-        >
-          {entries.length ? C.more[locale] : C.choose[locale]}
-        </Button>
-        {/* Desktop browsers ignore `capture`, so there this would only repeat Choose files. */}
-        <Button
-          className="unified-import-camera"
-          icon={<Camera size={18} aria-hidden="true" />}
-          disabled={saving}
-          onClick={() => cameraInput.current?.click()}
-        >
-          {C.photo[locale]}
-        </Button>
-        <Button variant="ghost" disabled={saving} onClick={() => setTextOpen(!textOpen)}>
-          {C.paste[locale]}
-        </Button>
+      <div ref={sourceActions} className="unified-import-sources">
+        {entries.length ? (
+          <Menu
+            open={sourceMenuOpen && !saving}
+            onOpenChange={(open) => setSourceMenuOpen(open && !saving)}
+            trigger={
+              <Button ref={moreButton} variant="ghost" disabled={saving}>
+                {C.moreSources[locale]} <ChevronIcon size={16} aria-hidden="true" />
+              </Button>
+            }
+          >
+            <MenuItem disabled={saving} onSelect={() => fileInput.current?.click()}>
+              <Upload size={18} aria-hidden="true" />
+              {C.more[locale]}
+            </MenuItem>
+            <MenuItem disabled={saving} onSelect={() => cameraInput.current?.click()}>
+              <Camera className="unified-import-camera" size={18} aria-hidden="true" />
+              {C.photo[locale]}
+            </MenuItem>
+            <MenuItem disabled={saving} onSelect={() => setTextOpen(true)}>
+              <Clipboard size={18} aria-hidden="true" />
+              {C.paste[locale]}
+            </MenuItem>
+          </Menu>
+        ) : (
+          <div className="import-actions unified-import-source-actions">
+            <Button
+              variant="primary"
+              icon={<Upload size={18} aria-hidden="true" />}
+              disabled={saving}
+              onClick={() => fileInput.current?.click()}
+            >
+              {C.choose[locale]}
+            </Button>
+            {/* Desktop browsers ignore `capture`, so there this would only repeat Choose files. */}
+            <Button
+              className="unified-import-camera"
+              icon={<Camera size={18} aria-hidden="true" />}
+              disabled={saving}
+              onClick={() => cameraInput.current?.click()}
+            >
+              {C.photo[locale]}
+            </Button>
+            <Button variant="ghost" disabled={saving} onClick={() => setTextOpen(!textOpen)}>
+              {C.paste[locale]}
+            </Button>
+          </div>
+        )}
         <input
           ref={fileInput}
           className="sr-only"
@@ -458,7 +538,10 @@ export function UnifiedImport({
       <ul className="unified-import-files" aria-live="polite">
         {entries.map((entry) => (
           <li key={entry.id}>
-            <span className="unified-import-file-name">{entry.label || S.title[locale]}</span>
+            <span className="unified-import-file-name" title={entry.label || S.title[locale]}>
+              <span>{(entry.label || S.title[locale]).replace(/\.(pdf|png|jpe?g)$/i, '')}</span>
+              <span>{entry.label.match(/\.(pdf|png|jpe?g)$/i)?.[0]}</span>
+            </span>
             <span className="import-hint">
               {entry.phase === 'queued' || entry.phase === 'local' || entry.phase === 'online' ? (
                 <TextShimmer>
@@ -489,7 +572,7 @@ export function UnifiedImport({
               <Button
                 dense
                 disabledReason={
-                  saving ? S.pausedWhileSaving[locale] : unsent ? S.unsavedBlock[locale] : undefined
+                  saving ? S.pausedWhileSaving[locale] : unsent ? unsentReason : undefined
                 }
                 onClick={() => session.retry(entry)}
               >
@@ -609,14 +692,8 @@ export function UnifiedImport({
         <FloatingActionBar
           label={S.barLabel[locale]}
           countLabel={
-            <span className="import-hint">
-              {chosen.length && review.length > 1 ? (
-                <span>
-                  {count(locale, 'selected', chosen.length)}
-                  <br />
-                </span>
-              ) : null}
-              {C.confirm[locale]}
+            <span id={reasonId} className="import-hint">
+              {reason ?? confirmation}
             </span>
           }
         >
@@ -624,10 +701,15 @@ export function UnifiedImport({
             variant="primary"
             loading={saving}
             loadingLabel={S.saving[locale]}
-            disabledReason={reason}
+            disabled={Boolean(reason)}
+            aria-describedby={reason || confirmation ? reasonId : undefined}
             onClick={() => void save()}
           >
-            {review.length === 1 ? C.saveOne[locale] : C.save[locale]}
+            {review.length > 1 && chosen.length > 0
+              ? count(locale, 'saveSelected', chosen.length)
+              : review.length === 1 || chosen.length === 1
+                ? C.saveOne[locale]
+                : C.save[locale]}
           </Button>
         </FloatingActionBar>
       ) : null}

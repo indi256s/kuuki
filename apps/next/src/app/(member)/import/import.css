@@ -921,6 +921,20 @@
 .unified-import-heading h1 {
   margin: 0;
 }
+.unified-import-heading > .ui-button {
+  flex: none;
+}
+.unified-import-source-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.unified-import-source-actions > .ui-button[data-variant='ghost'] {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.unified-import-source-actions > .ui-button {
+  white-space: normal;
+}
 .unified-import-files,
 .unified-import-rows {
   list-style: none;
@@ -929,16 +943,34 @@
 .unified-import-files {
   display: grid;
   gap: var(--space-3);
-  margin-block: var(--space-5);
+  margin: 0;
 }
 .unified-import-files > li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: var(--space-1);
 }
 .unified-import-file-name {
-  overflow-wrap: anywhere;
+  display: flex;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+.unified-import-file-name > :first-child {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.unified-import-file-name > :last-child {
+  flex: none;
+}
+.unified-import-files > li > .import-hint {
+  min-block-size: 20px;
+}
+.unified-import-files:empty,
+.unified-import-rows:empty {
+  display: none;
 }
 .unified-import .import-row .import-questions {
   margin-block: var(--space-2);
@@ -962,6 +994,10 @@
 }
 .unified-import .ui-action-bar-count {
   max-width: 48ch;
+  font-weight: 400;
+}
+.unified-import .import-edit-summary {
+  color: var(--text);
 }
 .unified-import-text {
   display: grid;
@@ -969,8 +1005,22 @@
 }
 /* Desktop browsers ignore `capture`; there the camera would only repeat Choose files. */
 @media (hover: hover) and (pointer: fine) {
-  .unified-import-camera {
+  .unified-import-camera,
+  .ui-menu-item:has(.unified-import-camera) {
     display: none;
+  }
+  .unified-import-source-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .unified-import-rows > .import-row {
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+  @starting-style {
+    .unified-import-rows > .import-row {
+      opacity: 0;
+    }
   }
 }
 @media (max-width: 700px) {
@@ -1003,5 +1053,5 @@
 }
 .unified-import-heading h1 {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }

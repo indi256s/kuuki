@@ -1101,6 +1101,9 @@
 }
 .ui-toast-copy .ui-toast-action {
   margin: var(--space-1) 0 0 calc(-1 * var(--space-2));
+  max-inline-size: 100%;
+  white-space: normal;
+  text-align: start;
   text-decoration: underline;
   text-underline-offset: 3px;
 }

@@ -314,10 +314,10 @@ function ToastView({
             <span>{actionLabel}</span>
           </button>
         ) : null
-        return description ? (
+        return description || action ? (
           <div className="ui-toast-copy">
             <p className="ui-toast-message">{message}</p>
-            {description.split('\n').map((line) => (
+            {description?.split('\n').map((line) => (
               <p className="ui-toast-description" key={line}>
                 {line}
               </p>
