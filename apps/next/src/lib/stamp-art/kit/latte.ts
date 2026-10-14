@@ -80,8 +80,19 @@ export const latte: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   for (let i = 0; i < count; i++) {
     const cx = x + (w * (i + 0.5)) / count
-    const hh = h * (i % 2 ? 0.86 : 1)
-    out.push(...one(cx, base, pw, hh, (i % 2 ? -1 : 1) * 0.8, rand))
+    const perspective =
+      p.recede === true ? 1 - (0.55 * i) / Math.max(1, count - 1) : i % 2 ? 0.86 : 1
+    const hh = h * perspective
+    out.push(
+      ...one(
+        cx,
+        base - (p.recede === true ? (h * 0.3 * i) / count : 0),
+        pw * perspective,
+        hh,
+        (i % 2 ? -1 : 1) * 0.8,
+        rand,
+      ),
+    )
   }
   out.push(hline('bold', x - 4, x + w + 4, base))
   out.push(

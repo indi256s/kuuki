@@ -29,8 +29,12 @@
   "layers": [
     {
       "module": "gantry-a",
-      "box": [34, 54, 132, 72],
-      "params": {}
+      "box": [38, 53, 124, 79],
+      "params": {
+        "tower": 0.17,
+        "bays": 5,
+        "rocketAt": 0.58
+      }
     }
   ]
 }

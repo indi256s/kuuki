@@ -47,11 +47,32 @@ export const queensStaircase: KitModule = ([x, y, w, h], p) => {
     const t = (yy - pathTop) / (y + h - pathTop)
     out.push(hline('hair', x + 4 + (i % 2) * 6, cx - half(Math.min(1, t)) - 3, yy))
   }
+  for (let i = 0; i < 5; i++) {
+    const yy = y + h * (0.34 + i * 0.12)
+    const xx = x + 9 + (i % 2) * 8
+    out.push(
+      stroke('fine', [
+        [xx, yy],
+        [xx, yy + h * 0.1],
+        [xx + 11, yy + h * 0.1],
+      ]),
+    )
+  }
   // The flight: treads across the path, risers at the edges.
   for (let i = 0; i < steps; i++) {
     const sy = pathTop + ((y + h - pathTop) * (i + 1)) / steps
     const hw = half((i + 1) / steps)
-    out.push(hline(i % 4 === 3 ? 'line' : 'hair', cx - hw, cx + hw, sy))
+    const prev = pathTop + ((y + h - pathTop) * i) / steps
+    const phw = half(i / steps)
+    const tread: Pt[] = [
+      [cx - phw, prev],
+      [cx + phw, prev],
+      [cx + hw, sy],
+      [cx - hw, sy],
+    ]
+    out.push(...body(tread, 'hair'))
+    if (i % 2) out.push(...toneFill(tread, 'T4', { gap: 2.4, weight: 'fine' }))
+    out.push(hline('hair', cx - hw, cx + hw, sy))
   }
   out.push(
     occlude([

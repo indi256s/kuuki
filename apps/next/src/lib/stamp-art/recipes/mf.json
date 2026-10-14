@@ -25,7 +25,7 @@
   "layers": [
     {
       "module": "rock-hill",
-      "box": [30, 58, 100, 58],
+      "box": [30, 69, 101, 55],
       "params": {
         "profile": [
           [0, 1],
@@ -39,22 +39,22 @@
         "shadeGap": 2.6,
         "crag": 0.5,
         "seed": 4,
-        "walls": [[0.4, 0.62]],
+        "walls": [0.4, 0.62],
         "wallH": 8
       }
     },
     {
       "module": "fortress-wall",
-      "box": [62, 54, 30, 13],
+      "box": [45, 63, 73, 24],
       "params": {
-        "merlons": 5,
+        "merlons": 7,
         "merlonH": 0.25,
-        "courses": 2
+        "courses": 3
       }
     },
     {
       "module": "rooftops",
-      "box": [96, 94, 42, 20],
+      "box": [104, 99, 57, 24],
       "params": {
         "height": 10,
         "seed": 11
@@ -62,7 +62,7 @@
     },
     {
       "module": "sloop-a",
-      "box": [124, 62, 46, 60],
+      "box": [139, 97, 25, 34],
       "params": {}
     }
   ]

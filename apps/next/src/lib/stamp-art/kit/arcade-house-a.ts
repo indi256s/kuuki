@@ -82,10 +82,10 @@ export const arcadeHouseA: KitModule = ([x, y, w, h], p) => {
       arch.push([ax + aw / 2 - (aw / 2) * Math.cos(t), spring - (aw / 2) * Math.sin(t)])
     }
     arch.push([ax + aw, spring], [ax + aw, wallBot])
-    out.push(...toneFill(arch, 'T4', { gap: 2.4, inset: 0.1, weight: 'fine' }))
+    out.push(...toneFill(arch, 'T4', { gap: num(p, 'archGap', 2.4), inset: 0.1, weight: 'fine' }))
     out.push(stroke('line', arch))
     // A doorway or shuttered window in the shade behind: central bay gets a solid door.
-    if (i === Math.floor(bays / 2))
+    if (p.door !== false && i === Math.floor(bays / 2))
       out.push(
         fill(
           rectPts(

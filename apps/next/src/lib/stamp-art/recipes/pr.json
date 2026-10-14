@@ -26,7 +26,9 @@
     {
       "module": "garita",
       "box": [27, 51, 145, 96],
-      "params": {}
+      "params": {
+        "batter": 0.577
+      }
     }
   ]
 }

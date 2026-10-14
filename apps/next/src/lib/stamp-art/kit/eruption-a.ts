@@ -1,10 +1,9 @@
-// Eruption (lane A, motif-specific): a strombolian vent. A narrow ash column rises from the bottom
-// centre of the box and billows wider with height (stacked round puffs, each with a shaded crescent
-// on the right), flanked by arcing lines of thrown bombs that end in small solid dots. The box
-// bottom is the vent.
+// Strombolian vent: an irregular tonal ash column and ballistic arcs ending in small bombs.
+// The box bottom is the vent; the column shares the contour-free plume drawing.
 import { mulberry32 } from '../hash'
-import { type Pt, type SvgNode, fill, hatch, occlude, stroke } from '../grid'
+import { type Pt, type SvgNode, fill, stroke } from '../grid'
 import { type KitModule, num } from './util'
+import { plumeA } from './plume-a'
 
 const ellipse = (cx: number, cy: number, r: number, n = 20): Pt[] =>
   Array.from({ length: n }, (_, i) => {
@@ -14,12 +13,10 @@ const ellipse = (cx: number, cy: number, r: number, n = 20): Pt[] =>
 
 export const eruptionA: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 7)))
-  const puffs = Math.max(4, Math.round(num(p, 'puffs', 6)))
   const sway = num(p, 'sway', 0.18)
   const colH = h * num(p, 'column', 0.82)
   const vx = x + w / 2
   const base = y + h
-  const rMax = w * num(p, 'bulb', 0.2)
   const out: SvgNode[] = []
   // Bombs first, behind the column: each is a parabola from the vent with a dot at its end.
   const arcs = Math.round(num(p, 'arcs', 6))
@@ -37,16 +34,8 @@ export const eruptionA: KitModule = ([x, y, w, h], p) => {
     const [ex, ey] = pts[12]
     out.push(fill(ellipse(ex, ey, 1.8, 8)))
   }
-  // Column, biggest puff (top) first so each lower puff overlaps the one above.
-  for (let i = puffs - 1; i >= 0; i--) {
-    const f = i / (puffs - 1)
-    const r = rMax * (0.34 + 0.66 * Math.pow(f, 0.8))
-    const cy = base - 2 - r - (colH - 2 * r) * Math.pow(f, 0.95)
-    const cx = vx + w * sway * Math.pow(f, 1.5) + (i % 2 ? -0.9 : 0.9)
-    const ring = ellipse(cx, cy, r)
-    out.push(occlude(ring), stroke('hair', ring, true))
-    const crescent = ring.filter((q) => q[0] > cx + r * 0.25 && q[1] > cy - r * 0.8)
-    if (crescent.length > 3) out.push(...hatch(crescent, 'v', 2.4, 'hair', 0.4))
-  }
+  out.push(
+    ...plumeA([x + w * 0.2, base - colH, w * 0.6, colH], { lean: sway, seed: num(p, 'seed', 7) }),
+  )
   return out
 }

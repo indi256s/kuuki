@@ -23,7 +23,7 @@
   "layers": [
     {
       "module": "penguin-a",
-      "box": [38, 54, 124, 72],
+      "box": [29, 59, 142, 74],
       "params": {}
     }
   ]

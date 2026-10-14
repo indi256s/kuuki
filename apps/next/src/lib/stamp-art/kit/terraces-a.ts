@@ -4,7 +4,7 @@
 // fractions, `stairX` the stair position.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatch, occlude, stroke, toneFill } from '../grid'
-import { type KitModule, nums, num } from './util'
+import { type KitModule, nums, num, weight } from './util'
 
 function yAtX(line: Pt[], x: number): number {
   for (let i = 0; i + 1 < line.length; i++) {
@@ -44,7 +44,7 @@ export const terracesA: KitModule = ([x, y, w, h], p) => {
     // Flat: horizontal fine hatching up to the next wall; wall face: vertical hair, bold top.
     out.push(occlude(band))
     out.push(...hatch(band, 'v', 4.2, 'fine', 0.6, 0.3))
-    out.push(stroke('bold', topL))
+    out.push(stroke(weight(p, 'wallWeight', 'bold'), topL))
   }
   // Stair: a paper strip descending along the whole slope with step ticks.
   const sTop = yAtX(ridge, stairX)

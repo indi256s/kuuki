@@ -22,12 +22,14 @@
       "module": "queens-staircase",
       "box": [34, 60, 132, 70],
       "params": {
-        "steps": 14
+        "steps": 8,
+        "gapTop": 0.14,
+        "gapBot": 0.42
       }
     },
     {
       "module": "palm",
-      "box": [34, 60, 30, 40],
+      "box": [36, 54, 42, 69],
       "params": {
         "lean": -0.2,
         "fronds": 7

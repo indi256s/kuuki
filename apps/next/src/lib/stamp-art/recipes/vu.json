@@ -34,26 +34,24 @@
   "layers": [
     {
       "module": "volcano",
-      "box": [28, 90, 144, 36],
+      "box": [28, 78, 144, 52],
       "params": {
         "profile": "cone",
-        "summit": 20,
-        "concavity": 0.2,
+        "summit": 24,
+        "concavity": 0.18,
         "snow": 0,
-        "gullies": 4,
+        "gullies": 6,
         "trees": 0,
         "spacing": 1.8
       }
     },
     {
       "module": "eruption-a",
-      "box": [60, 54, 80, 38],
+      "box": [63, 53, 74, 28],
       "params": {
-        "puffs": 7,
-        "arcs": 6,
+        "arcs": 4,
         "sway": 0.12,
-        "bulb": 0.15,
-        "column": 1.0
+        "column": 1
       }
     }
   ]

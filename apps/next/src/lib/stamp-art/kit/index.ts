@@ -1,3 +1,14 @@
+import {
+  avenueA,
+  clockCupolaA,
+  sandA,
+  iceArchA,
+  polarCoastA,
+  cottagesA,
+  copanStairA,
+  theatreArchesA,
+  earthenHouseA,
+} from './final-scenes-a'
 import { lionMountainB } from './lion-mountain-b'
 import { mulanjeB } from './mulanje-b'
 import { masadaB } from './masada-b'
@@ -194,6 +205,15 @@ import { dubrovnik, gediminas, guaita, ohridBoat, samuelsFortress, valletta } fr
 
 /** Kit modules by recipe tag. */
 export const kit = {
+  'avenue-a': avenueA,
+  'clock-cupola-a': clockCupolaA,
+  'sand-a': sandA,
+  'ice-arch-a': iceArchA,
+  'polar-coast-a': polarCoastA,
+  'cottages-a': cottagesA,
+  'copan-stair-a': copanStairA,
+  'theatre-arches-a': theatreArchesA,
+  'earthen-house-a': earthenHouseA,
   sky,
   'distance-mountains': distanceMountains,
   'distance-trees': distanceTrees,
