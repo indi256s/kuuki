@@ -214,7 +214,9 @@ describe('detail sheet', () => {
   async function openPlan() {
     vi.mocked(api.readJourney).mockResolvedValue(upcoming)
     mount(`journey=${upcoming.id}`)
-    return screen.findByRole('dialog')
+    const dialog = await screen.findByRole('dialog')
+    await within(dialog).findByRole('button', { name: 'Cancel plan' })
+    return dialog
   }
 
   it('opens from ?journey= with the sketch label and the form links', async () => {
