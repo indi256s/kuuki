@@ -192,16 +192,9 @@ export function ChapterCard({
       {chart.table && state === 'ready' ? <TableView table={chart.table} /> : null}
       {details && state === 'ready' ? (
         <div className="ov3-card-details">
-          {span === 'sheet' ? (
-            <Disclosure summary={<span className="ov3-card-heading">{details.heading}</span>}>
-              <DetailsBody details={details} />
-            </Disclosure>
-          ) : (
-            <>
-              <h3 className="ov3-card-heading">{details.heading}</h3>
-              <DetailsBody details={details} />
-            </>
-          )}
+          <Disclosure summary={<span className="ov3-card-heading">{details.heading}</span>}>
+            <DetailsBody details={details} />
+          </Disclosure>
         </div>
       ) : null}
     </div>

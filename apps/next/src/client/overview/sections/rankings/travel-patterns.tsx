@@ -86,6 +86,13 @@ function PatternEvidence({
   const description = (item: Pattern['categories'][number], total: number) =>
     `${label(item.key)}: ${flights(locale, item.count)} · ${total > 0 ? percent(item.count / total) : '—'}`
   const unknown = pattern.categories.find((item) => item.key === 'unknown')?.count ?? 0
+  const aircraftReview =
+    unknown > 0 && pattern.id === 'makers' && scope && scope.coverage.total > scope.coverage.typed
+  const hasDetails =
+    filtered ||
+    pattern.id === 'daytime' ||
+    aircraftReview ||
+    (selection && selection.key !== 'unknown')
   return (
     <article className="ov3-pattern">
       <div className="ov3-pattern-heading">
@@ -137,85 +144,79 @@ function PatternEvidence({
       ) : (
         <p>{copy(locale, 'No flights in this selection', 'В выборке нет перелётов')}</p>
       )}
-      <details open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}>
-        <summary>
-          {copy(
-            locale,
-            filtered ? 'Inspect breakdown & lifetime baseline' : 'Inspect breakdown',
-            filtered ? 'Данные и вся история' : 'Посмотреть данные',
-          )}
-        </summary>
-        {selection && <p role="status">{description(selection, pattern.total)}</p>}
-        {pattern.id === 'daytime' && (
-          <p>
+      {hasDetails && (
+        <details open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}>
+          <summary>
             {copy(
               locale,
-              'Day: 06:00–21:59. Night: 22:00–05:59. Departure airport local time.',
-              'День: 06:00–21:59. Ночь: 22:00–05:59. Местное время аэропорта вылета.',
+              filtered ? 'Lifetime comparison' : 'Details',
+              filtered ? 'Сравнение со всей историей' : 'Подробности',
             )}
-          </p>
-        )}
-        <table>
-          <caption>{title}</caption>
-          <thead>
-            <tr>
-              <th>{copy(locale, 'Category', 'Категория')}</th>
-              <th>{copy(locale, 'Selected flights', 'Перелёты в выборке')}</th>
-              {filtered && (
-                <th>{copy(locale, 'Whole lifetime journal', 'Вся история перелётов')}</th>
+          </summary>
+          {selection && <p role="status">{label(selection.key)}</p>}
+          {pattern.id === 'daytime' && (
+            <p>
+              {copy(
+                locale,
+                'Day: 06:00–21:59. Night: 22:00–05:59. Departure airport local time.',
+                'День: 06:00–21:59. Ночь: 22:00–05:59. Местное время аэропорта вылета.',
               )}
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              ...new Set(
-                [...pattern.categories, ...(filtered ? baseline.categories : [])].map(
-                  (item) => item.key,
-                ),
-              ),
-            ].map((key) => {
-              const count = pattern.categories.find((item) => item.key === key)?.count ?? 0
-              const lifetime = baseline.categories.find((item) => item.key === key)?.count ?? 0
-              return (
-                <tr key={key}>
-                  <th scope="row">{label(key)}</th>
-                  <td>
-                    {count} · {pattern.total ? percent(count / pattern.total) : '—'}
-                  </td>
-                  {filtered && (
-                    <td>
-                      {lifetime} · {baseline.total ? percent(lifetime / baseline.total) : '—'}
-                    </td>
-                  )}
+            </p>
+          )}
+          {filtered && (
+            <table>
+              <caption>{title}</caption>
+              <thead>
+                <tr>
+                  <th>{copy(locale, 'Category', 'Категория')}</th>
+                  <th>{copy(locale, 'Selected flights', 'Перелёты в выборке')}</th>
+                  <th>{copy(locale, 'Whole lifetime journal', 'Вся история перелётов')}</th>
                 </tr>
-              )
-            })}
-          </tbody>
-        </table>
-        {filtered && (
-          <p>
-            {copy(locale, 'Whole lifetime journal', 'Вся история перелётов')}:{' '}
-            {flights(locale, baseline.total)}
-          </p>
-        )}
-        <div className="ov3-pattern-actions">
-          {selection && selection.key !== 'unknown' && (
-            <Button dense variant="secondary" onClick={filterSelection}>
-              {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
-            </Button>
+              </thead>
+              <tbody>
+                {[
+                  ...new Set(
+                    [...pattern.categories, ...baseline.categories].map((item) => item.key),
+                  ),
+                ].map((key) => {
+                  const count = pattern.categories.find((item) => item.key === key)?.count ?? 0
+                  const lifetime = baseline.categories.find((item) => item.key === key)?.count ?? 0
+                  return (
+                    <tr key={key}>
+                      <th scope="row">{label(key)}</th>
+                      <td>
+                        {count} · {pattern.total ? percent(count / pattern.total) : '—'}
+                      </td>
+                      <td>
+                        {lifetime} · {baseline.total ? percent(lifetime / baseline.total) : '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
-          {unknown > 0 &&
-            pattern.id === 'makers' &&
-            (scope && scope.coverage.total > scope.coverage.typed ? (
-              <PayloadAircraftReview />
-            ) : null)}
-          {unknown > 0 && pattern.id === 'daytime' && (
-            <Link className="ui-button" data-variant="ghost" href="/journal">
-              {copy(locale, 'Add times', 'Указать время')}
-            </Link>
+          {filtered && (
+            <p>
+              {copy(locale, 'Whole lifetime journal', 'Вся история перелётов')}:{' '}
+              {flights(locale, baseline.total)}
+            </p>
           )}
-        </div>
-      </details>
+          <div className="ov3-pattern-actions">
+            {selection && selection.key !== 'unknown' && (
+              <Button dense variant="secondary" onClick={filterSelection}>
+                {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
+              </Button>
+            )}
+            {aircraftReview && <PayloadAircraftReview />}
+            {unknown > 0 && pattern.id === 'daytime' && (
+              <Link className="ui-button" data-variant="ghost" href="/journal">
+                {copy(locale, 'Add times', 'Указать время')}
+              </Link>
+            )}
+          </div>
+        </details>
+      )}
     </article>
   )
 }
