@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 // The floating import dock: the batches this tab follows while the member is elsewhere, in the shell's toast corner.
 // It only follows reading. Ready runs call the member back to /import, where review and saving stay (decision 1).
 // It announces stage and state transitions, never every found count.
@@ -447,7 +449,8 @@ function cachedItem(entry: RunEntry, locale: Locale, today: string) {
 }
 
 /** Mounted inside the shell's import runs: shows every run no page is showing. */
-export function ImportDock({ locale }: { locale: Locale }) {
+export function ImportDock({ locale: initialLocale }: { locale: Locale }) {
+  const locale = useLocale(initialLocale)
   const store = useImportRunsStore()
   const entries = useImportRuns()
   const docked = useMemo(() => entries.filter((entry) => !entry.viewed), [entries])

@@ -5,7 +5,7 @@ import { AwaitingProvider } from './awaiting'
 import { AddMenu } from './add-menu'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
-import { Preferences } from './preferences'
+import { GuestActions } from './guest-actions'
 import { PageShell } from './page-shell'
 import { ShellNotices } from './shell-notices'
 import { AddOriginTracker } from './capture/add-origin'
@@ -110,21 +110,12 @@ export function BrandShell({
   actions?: boolean
   children: ReactNode
 }) {
-  const ru = locale === 'ru'
   return (
     <>
       <header className="site-header">
         <div className="site-header-inner">
           <Wordmark />
-          <div className="guest-actions">
-            {actions && (
-              <nav aria-label={ru ? 'Аккаунт' : 'Account'}>
-                <Link href="/signin">{ru ? 'Войти' : 'Sign in'}</Link>
-                <Link href="/signup">{ru ? 'Создать аккаунт' : 'Sign up'}</Link>
-              </nav>
-            )}
-            <Preferences initialLocale={locale} />
-          </div>
+          <GuestActions locale={locale} actions={actions} />
         </div>
       </header>
       <PageShell>{children}</PageShell>

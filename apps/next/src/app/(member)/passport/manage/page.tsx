@@ -1,3 +1,4 @@
+import { LocaleText } from '../../../../client/locale-text'
 import { redirect } from 'next/navigation'
 import { requireOnboardedMember } from '../../../../server/gates'
 import { pageMetadata } from '../../../../server/metadata'
@@ -24,8 +25,12 @@ export default async function ManagePassport({
   return (
     <IdentitySnapshot ownerId={identity.id}>
       <div className="page-heading">
-        <p className="eyebrow">{locale === 'ru' ? 'Паспорт' : 'Passport'}</p>
-        <h1>{locale === 'ru' ? 'Самолёты в журнале' : 'Aircraft in journal'}</h1>
+        <p className="eyebrow">
+          <LocaleText locale={locale} en="Passport" ru="Паспорт" />
+        </p>
+        <h1>
+          <LocaleText locale={locale} en="Aircraft in journal" ru="Самолёты в журнале" />
+        </h1>
       </div>
       <PassportManage ownerId={identity.id} locale={locale} />
     </IdentitySnapshot>

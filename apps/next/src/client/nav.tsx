@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
 import {
@@ -69,7 +71,8 @@ export function MobilePageTitle() {
   )
 }
 
-export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
+export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }) {
+  const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const nav = useRef<HTMLElement>(null)
   // The sticky header wraps on narrow desktops and long labels; sticky content below reads its real height.
@@ -189,7 +192,8 @@ const TABS = [
  * Add card, the shared Menu anchored above it at the rail's width over a scrim. The rail stays above the scrim and live:
  * a tab tap closes the card at once and navigates. The card also closes on any route change and when the keyboard opens.
  */
-export function TabBar({ locale = 'en' }: { locale?: Locale }) {
+export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
+  const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const ru = locale === 'ru'
   const titleId = useId()

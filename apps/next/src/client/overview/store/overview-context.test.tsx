@@ -229,7 +229,13 @@ it('failed saves keep local choices and toast once per episode, with a new edit 
   expect(announceShellNotice).toHaveBeenCalledTimes(1)
   expect(announceShellNotice).toHaveBeenCalledWith(
     'owner',
-    expect.objectContaining({ kind: 'error', message: expect.stringContaining('choices remain') }),
+    expect.objectContaining({
+      kind: 'error',
+      message: {
+        en: expect.stringContaining('choices remain'),
+        ru: expect.stringContaining('Ваш выбор остаётся'),
+      },
+    }),
   )
   saver.mockImplementation(async (prefs) => prefs)
   act(() => current.actions.add('countries', 'JP'))

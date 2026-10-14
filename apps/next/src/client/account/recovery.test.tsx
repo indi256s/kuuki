@@ -130,6 +130,8 @@ it('does not retire the credential or claim success for a malformed 2xx completi
 it('retires an expired/consumed reset link, focuses the expired heading and offers a new link', async () => {
   window.__kuukiResetToken = 'A'.repeat(43)
   post.mockRejectedValue(new ApiError(400, 'used', 'INVALID_RECOVERY'))
+  document.documentElement.lang = 'ru'
+  document.documentElement.dataset.locale = 'ru'
   const { unmount } = render(<ResetPasswordForm locale="ru" />)
   await userEvent.type(
     await screen.findByLabelText('Новый пароль', { exact: true }),
@@ -143,6 +145,8 @@ it('retires an expired/consumed reset link, focuses the expired heading and offe
     '/forgot-password',
   )
   unmount()
+  document.documentElement.lang = 'en'
+  document.documentElement.dataset.locale = 'en'
   render(<ResetPasswordForm locale="en" />)
   expect(await screen.findByRole('heading', { name: 'This link has expired' })).toHaveFocus()
   expect(screen.queryByRole('button', { name: 'Save password' })).toBeNull()

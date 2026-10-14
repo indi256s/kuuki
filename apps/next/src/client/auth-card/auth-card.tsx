@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { api, ApiError, beginIdentityOperation } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
@@ -160,7 +162,7 @@ const statusOf = (error: unknown) => (error instanceof ApiError ? error.status :
  * stays on the form with an error, and an unknown email turns the card into the create step in place.
  */
 export function AuthCard({
-  locale,
+  locale: initialLocale,
   initialEmail = '',
   initialStep = 'form',
   initialNotice,
@@ -179,6 +181,7 @@ export function AuthCard({
   /** Set on `/welcome/*`: the card opens at this onboarding step. */
   welcome?: WelcomeInit
 }) {
+  const locale = useLocale(initialLocale)
   const [state, setState] = useState<CardState>(
     welcome
       ? { step: 'welcome', init: welcome }

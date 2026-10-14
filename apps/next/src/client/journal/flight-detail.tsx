@@ -572,9 +572,12 @@ function FlightEditForm({
   const [base] = useState(flight)
   const [drafts, setDrafts] = useState<Drafts>(() => editor.draftsOf(flight))
   const [errors, setErrors] = useState<FieldErrors>({})
-  const [problem, setProblem] = useState<{ kind: 'rejected' | 'unknown'; message: string } | null>(
-    null,
-  )
+  const [problem, setProblem] = useState<{
+    kind: 'rejected' | 'unknown'
+    message: string
+    messageCopy?: Record<Locale, string>
+  } | null>(null)
+  const problemText = problem?.messageCopy?.[locale] ?? problem?.message
   const [saving, setSaving] = useState(false)
   const [discarding, setDiscarding] = useState<{ proceed: (() => void) | null } | null>(null)
   const inFlight = useRef(false)
@@ -595,6 +598,7 @@ function FlightEditForm({
             ? { kind: 'choices', choices: editor.aircraftChoices }
             : { kind: 'text', time: field === 'departure_time' || field === 'arrival_time' }
 
+  const localizedErrors = editor.validateDrafts(base, drafts, locale)
   const changes = editor.changesOf(base, drafts)
   const dirty = Object.keys(changes).length > 0
   const preview = problem ? [] : editor.previewChanges(base, changes, locale)
@@ -681,13 +685,22 @@ function FlightEditForm({
     try {
       outcome = await onSave(flight, changes)
     } catch {
-      outcome = { status: 'unknown', message: t.unknown }
+      outcome = {
+        status: 'unknown',
+        message: t.unknown,
+        messageCopy: { en: copy.en.unknown, ru: copy.ru.unknown },
+      }
     }
     inFlight.current = false
     if (!mounted.current) return
     setSaving(false)
     if (outcome.status === 'saved') onDone()
-    else setProblem({ kind: outcome.status, message: outcome.message })
+    else
+      setProblem({
+        kind: outcome.status,
+        message: outcome.message,
+        messageCopy: outcome.messageCopy,
+      })
   }
 
   const cancel = () => {
@@ -719,7 +732,7 @@ function FlightEditForm({
           if (node) inputs.current.set(name, node)
           else inputs.current.delete(name)
         }}
-        error={errors[name]}
+        error={errors[name] ? localizedErrors[name] : undefined}
         disabled={saving}
       />
     </div>
@@ -770,7 +783,7 @@ function FlightEditForm({
           role="alert"
           className={problem.kind === 'unknown' ? 'arc-inline-unknown' : 'jd-form-error'}
         >
-          {problem.message}
+          {problemText}
         </p>
       )}
       {discarding ? (

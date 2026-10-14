@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { NavigationLink as Link } from './navigation-link'
 import { QueueMenuItem } from './queue-summary'
 import { ClipboardPaste, PenLine, ScanLine, Upload } from '@keyline-icons/react'
@@ -58,7 +60,8 @@ function Label({ action }: { action: Action }) {
 }
 
 /** Radix menu items for the desktop Add menu and the mobile Add card; the queue row comes last, only with work in it. */
-export function AddActions({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
+export function AddActions({ locale: initialLocale = 'en' }: { locale?: 'en' | 'ru' }) {
+  const locale = useLocale(initialLocale)
   return (
     <>
       {ADD_ACTIONS.map((action) => (

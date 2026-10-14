@@ -193,7 +193,7 @@ export function JournalDeleteProvider({
         async (cause) => {
           if (controller.signal.aborted || identityReset.current) return
           setNotice((current) => (current?.key === op.key ? null : current))
-          const { unhide: show, toast: toasts, locale: lang } = latest.current
+          const { unhide: show, toast: toasts } = latest.current
           // A transport failure, timeout, 5xx or missing flight cannot prove this DELETE did not commit.
           const rejected =
             cause instanceof ApiError &&
@@ -205,8 +205,11 @@ export function JournalDeleteProvider({
             show(ids)
             toasts.show({
               kind: 'error',
-              message: formatCount(lang, ids.length, failed),
-              actionLabel: copy[lang].retry,
+              message: {
+                en: formatCount('en', ids.length, failed),
+                ru: formatCount('ru', ids.length, failed),
+              },
+              actionLabel: { en: copy.en.retry, ru: copy.ru.retry },
               onAction: () => scheduleRef.current(ids, op.options),
             })
             return
@@ -218,14 +221,17 @@ export function JournalDeleteProvider({
               if (!mounted.current || controller.signal.aborted || identityReset.current) return
               latest.current.unhide(ids)
               window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
-              toasts.show({ kind: 'error', message: copy[lang].unknown })
+              toasts.show({
+                kind: 'error',
+                message: { en: copy.en.unknown, ru: copy.ru.unknown },
+              })
             } catch {
               if (!mounted.current || controller.signal.aborted || identityReset.current) return
               toasts.show({
                 kind: 'error',
-                message: copy[lang].refreshFailed,
+                message: { en: copy.en.refreshFailed, ru: copy.ru.refreshFailed },
                 duration: 0,
-                actionLabel: copy[lang].refresh,
+                actionLabel: { en: copy.en.refresh, ru: copy.ru.refresh },
                 onAction: () => {
                   void reconcile()
                 },
@@ -356,7 +362,9 @@ export function JournalDeleteProvider({
       dropped?.controller.abort()
       running.forEach((controller) => controller.abort())
       if (dropped && !identityReset.current)
-        latest.current.toast.show({ message: copy[latest.current.locale].cancelled })
+        latest.current.toast.show({
+          message: { en: copy.en.cancelled, ru: copy.ru.cancelled },
+        })
     }
   }, [])
 

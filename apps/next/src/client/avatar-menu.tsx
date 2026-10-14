@@ -67,7 +67,7 @@ export function AvatarMenu({
   const accentSave = useAccentSave(profileAccent, () =>
     toast.show({
       kind: 'error',
-      message: text('Could not save the accent.', 'Не удалось сохранить акцент.'),
+      message: { en: 'Could not save the accent.', ru: 'Не удалось сохранить акцент.' },
     }),
   )
 
@@ -91,7 +91,7 @@ export function AvatarMenu({
         setPublicProfile(!next)
         toast.show({
           kind: 'error',
-          message: text('Could not change visibility.', 'Не удалось изменить видимость.'),
+          message: { en: 'Could not change visibility.', ru: 'Не удалось изменить видимость.' },
         })
       }
     } finally {
@@ -107,7 +107,10 @@ export function AvatarMenu({
       )
     } catch {
       if (mounted.current)
-        toast.show({ kind: 'error', message: text('Could not sign out.', 'Не удалось выйти.') })
+        toast.show({
+          kind: 'error',
+          message: { en: 'Could not sign out.', ru: 'Не удалось выйти.' },
+        })
     }
   }
 

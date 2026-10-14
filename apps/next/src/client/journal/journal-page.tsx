@@ -1,4 +1,6 @@
 'use client'
+
+import { useLocale } from '../preferences'
 // The Journal's composition root: reads the store and hands plain props to the presentational pieces
 // (header, Next up, toolbar, ledger, states). Callbacks passed to the ledger stay stable so memoised rows do not re-render.
 // It mounts the page's one deferred delete (`journal-delete.tsx`) around everything that removes flights.
@@ -36,13 +38,14 @@ const OFFLINE_NOTE_ID = 'journal-offline-note'
 
 export function JournalShell({
   ownerId,
-  locale,
+  locale: initialLocale,
   historicalReviewAvailable = false,
 }: {
   ownerId: string
   locale: Locale
   historicalReviewAvailable?: boolean | null
 }) {
+  const locale = useLocale(initialLocale)
   const { hide, unhide, refresh } = useJournalStore()
   return (
     <JournalDeleteProvider locale={locale} hide={hide} unhide={unhide} refresh={refresh}>

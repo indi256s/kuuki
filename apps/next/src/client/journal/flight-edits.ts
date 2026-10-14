@@ -50,8 +50,8 @@ export type FlightDto = Omit<JournalFlight, 'origin_country' | 'destination_coun
 /** Rejected: the server answered no (drafts stay, the form shows why). Unknown: the request may or may not have landed (drafts stay, outcome is not claimed). */
 export type EditOutcome =
   | { status: 'saved' }
-  | { status: 'rejected'; message: string }
-  | { status: 'unknown'; message: string }
+  | { status: 'rejected'; message: string; messageCopy?: Record<Locale, string> }
+  | { status: 'unknown'; message: string; messageCopy?: Record<Locale, string> }
 /** A save attempt: `invalid` never left the browser and names each field's problem. */
 export type SaveOutcome = EditOutcome | { status: 'invalid'; errors: FieldErrors }
 export type FieldErrors = Partial<Record<EditableField, string>>
@@ -269,7 +269,10 @@ export const sessionChangedMessage = (locale: Locale) =>
   )
 
 /** 4xx: the server said no and nothing changed. 5xx, a dropped connection or an abort: unknown. */
-export function failureOutcome(cause: unknown, locale: Locale): EditOutcome {
+export function failureOutcome(
+  cause: unknown,
+  locale: Locale,
+): Exclude<EditOutcome, { status: 'saved' }> {
   if (cause instanceof ApiError && cause.status >= 400 && cause.status < 500) {
     if (cause.code === 'STATE_CONFLICT')
       return {
@@ -298,7 +301,13 @@ export async function writeFlightFields(
   undoToken?: string,
 ): Promise<FlightWrite> {
   if (generation !== getAuthGeneration())
-    return { outcome: { status: 'rejected', message: sessionChangedMessage(locale) } }
+    return {
+      outcome: {
+        status: 'rejected',
+        message: sessionChangedMessage(locale),
+        messageCopy: { en: sessionChangedMessage('en'), ru: sessionChangedMessage('ru') },
+      },
+    }
   const controller = new AbortController()
   const untrack = trackPrivateOperation(controller)
   try {
@@ -309,17 +318,43 @@ export async function writeFlightFields(
       }),
     )
     if (generation !== getAuthGeneration())
-      return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
+      return {
+        outcome: {
+          status: 'unknown',
+          message: sessionChangedMessage(locale),
+          messageCopy: { en: sessionChangedMessage('en'), ru: sessionChangedMessage('ru') },
+        },
+      }
     const echoed = (Object.keys(changes) as EditableField[]).every(
       (field) => (dto?.[field] ?? null) === changes[field],
     )
     if (!dto || dto.id !== flightId || (!undoToken && !echoed))
-      return { outcome: { status: 'unknown', message: unknownMessage(locale) } }
+      return {
+        outcome: {
+          status: 'unknown',
+          message: unknownMessage(locale),
+          messageCopy: { en: unknownMessage('en'), ru: unknownMessage('ru') },
+        },
+      }
     return { outcome: { status: 'saved' }, flight: dto }
   } catch (cause) {
     if (generation !== getAuthGeneration())
-      return { outcome: { status: 'unknown', message: sessionChangedMessage(locale) } }
-    return { outcome: failureOutcome(cause, locale) }
+      return {
+        outcome: {
+          status: 'unknown',
+          message: sessionChangedMessage(locale),
+          messageCopy: { en: sessionChangedMessage('en'), ru: sessionChangedMessage('ru') },
+        },
+      }
+    return {
+      outcome: {
+        ...failureOutcome(cause, locale),
+        messageCopy: {
+          en: failureOutcome(cause, 'en').message,
+          ru: failureOutcome(cause, 'ru').message,
+        },
+      },
+    }
   } finally {
     untrack()
   }

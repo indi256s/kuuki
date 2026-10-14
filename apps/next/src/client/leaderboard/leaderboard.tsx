@@ -1,4 +1,6 @@
 'use client'
+
+import { useLocale } from '../preferences'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -358,7 +360,8 @@ export function LeaderboardRows({
   )
 }
 
-export function LeaderboardLoading({ locale }: { locale: Locale }) {
+export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }) {
+  const locale = useLocale(initialLocale)
   return (
     <div className="leaderboard-loading" aria-busy="true">
       <p role="status">{locale === 'ru' ? 'Загружаем рейтинг…' : 'Loading rankings…'}</p>

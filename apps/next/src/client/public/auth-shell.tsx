@@ -1,3 +1,4 @@
+import { LocaleText } from '../locale-text'
 import type { ReactNode } from 'react'
 import type { Locale } from '../../lib/format'
 import './auth.css'
@@ -8,7 +9,13 @@ export function AuthBrand({ locale }: { locale: Locale }) {
       <span className="auth-kana" aria-hidden="true">
         くうき
       </span>
-      <p>{locale === 'ru' ? 'Личный журнал перелётов.' : 'Your personal flight journal.'}</p>
+      <p>
+        <LocaleText
+          locale={locale}
+          en="Your personal flight journal."
+          ru="Личный журнал перелётов."
+        />
+      </p>
     </div>
   )
 }
@@ -19,7 +26,7 @@ export function AuthPanel({
   description,
   children,
 }: {
-  title: string
+  title: ReactNode
   description?: string
   children: ReactNode
 }) {
@@ -40,7 +47,7 @@ export function AuthShell({
   children,
 }: {
   locale: Locale
-  title: string
+  title: ReactNode
   description?: string
   children: ReactNode
 }) {

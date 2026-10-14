@@ -1,4 +1,6 @@
 'use client'
+
+import { useLocale } from '../preferences'
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDateOnly, type Locale } from '../../lib/format'
@@ -13,7 +15,7 @@ import { FlightForm } from './flight-form'
 /** Shared Journal detail: omit `initialEditing` to open the Ticket with named edit/delete actions. */
 export function FlightDetailSheet({
   ownerId,
-  locale,
+  locale: initialLocale,
   flightId,
   open = true,
   onOpenChange,
@@ -34,6 +36,7 @@ export function FlightDetailSheet({
   /** Focus is about to leave the closing sheet; `preventDefault()` lets the caller place it (the row that opened the sheet). */
   onCloseAutoFocus?: (event: Event) => void
 }) {
+  const locale = useLocale(initialLocale)
   const router = useRouter()
   const mobile = useMobile()
   if (!open || mobile === null) return null
@@ -75,7 +78,14 @@ export function FlightDetailSheet({
   )
 }
 /** Add a flight. A confirmed save closes it, returns to the screen it was opened from and reports the save in a toast. */
-export function FlightCaptureDialog({ ownerId, locale }: { ownerId: string; locale: Locale }) {
+export function FlightCaptureDialog({
+  ownerId,
+  locale: initialLocale,
+}: {
+  ownerId: string
+  locale: Locale
+}) {
+  const locale = useLocale(initialLocale)
   const router = useRouter()
   const mobile = useMobile()
   const ru = locale === 'ru'
@@ -95,22 +105,22 @@ export function FlightCaptureDialog({ ownerId, locale }: { ownerId: string; loca
       onCreated={(flight, route) => {
         const totals =
           flight.derived_state === 'ready'
-            ? ru
-              ? 'Итоги обновлены.'
-              : 'Totals updated.'
+            ? { en: 'Totals updated.', ru: 'Итоги обновлены.' }
             : flight.derived_state === 'pending' && typeof flight.revision === 'number'
-              ? ru
-                ? 'Итоги обновляются.'
-                : 'Totals are updating.'
-              : ru
-                ? 'Итоги ещё не подтвердили обновление.'
-                : 'Totals have not confirmed publication yet.'
+              ? { en: 'Totals are updating.', ru: 'Итоги обновляются.' }
+              : {
+                  en: 'Totals have not confirmed publication yet.',
+                  ru: 'Итоги ещё не подтвердили обновление.',
+                }
         announceShellNotice(ownerId, {
           kind: 'success',
           duration: 8000,
-          message: ru ? 'Перелёт сохранён' : 'Flight saved',
-          description: `${route.origin} → ${route.destination} · ${formatDateOnly(locale, route.date)}\n${totals}`,
-          actionLabel: ru ? 'Открыть перелёт' : 'View flight',
+          message: { en: 'Flight saved', ru: 'Перелёт сохранён' },
+          description: {
+            en: `${route.origin} → ${route.destination} · ${formatDateOnly('en', route.date)}\n${totals.en}`,
+            ru: `${route.origin} → ${route.destination} · ${formatDateOnly('ru', route.date)}\n${totals.ru}`,
+          },
+          actionLabel: { en: 'View flight', ru: 'Открыть перелёт' },
           onAction: () => router.push(`/journal?flight=${flight.id}`),
         })
         followPublication(flight, () => router.refresh())
