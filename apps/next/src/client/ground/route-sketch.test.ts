@@ -35,4 +35,12 @@ describe('route sketch', () => {
     expect(dot.x).toBe(SKETCH_WIDTH / 2)
     expect(dot.y).toBe(SKETCH_HEIGHT / 2)
   })
+
+  it('keeps an eastbound connection across the date line in one Pacific view', () => {
+    const west = { ...tbilisi, id: 'west', lat: -16, lon: 179 }
+    const east = { ...kars, id: 'east', lat: -16, lon: -179 }
+    const map = sketchOf([west, east])
+    expect(map.dots[0].x).toBeLessThan(map.dots[1].x)
+    expect(map.dots[0].y).toBe(map.dots[1].y)
+  })
 })

@@ -77,7 +77,7 @@ describe('list', () => {
     mount()
     await screen.findByRole('heading', { level: 2, name: 'History' })
     const done = document.querySelector(`[data-journey-card="${undatedDone.id}"]`) as HTMLElement
-    expect(within(done).getByText(/Date unknown/)).toBeInTheDocument()
+    expect(within(done).getByText(/Undated/)).toBeInTheDocument()
     expect(within(done).getByText(/Distance unknown/)).toBeInTheDocument()
     expect(done).not.toHaveTextContent(/\b0 km\b/)
     const dated = document.querySelector(`[data-journey-card="${recent.id}"]`) as HTMLElement
@@ -219,10 +219,11 @@ describe('detail sheet', () => {
     return dialog
   }
 
-  it('opens from ?journey= with the sketch label and the form links', async () => {
+  it('opens from ?journey= with the named map and the form links', async () => {
     const dialog = await openPlan()
-    // The drawing is hidden from assistive technology; its caption names it.
-    expect(within(dialog).getByText('Route sketch (straight lines)')).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('img', { name: /Approximate route: Tbilisi, Kars/ }),
+    ).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: 'Edit' })).toHaveAttribute(
       'href',
       expect.stringContaining(`/ground-travel/${upcoming.id}/edit?return=`),
@@ -242,7 +243,10 @@ describe('detail sheet', () => {
     const dialog = await screen.findByRole('dialog')
     await waitFor(() => expect(dialog.querySelectorAll('.gt-step')).toHaveLength(2))
     expect(dialog.querySelectorAll('.gt-sketch-svg polyline')).toHaveLength(2)
-    expect(dialog.querySelectorAll('.gt-sketch-svg g')).toHaveLength(3)
+    const map = within(dialog).getByRole('img', { name: /Approximate route/ })
+    for (const name of ['Tbilisi', 'Kars', 'Baku']) {
+      expect(within(map).getByText(name, { selector: 'text' })).toBeInTheDocument()
+    }
   })
 
   it('cancels a plan with a fresh key and the loaded version, then says totals are updating', async () => {

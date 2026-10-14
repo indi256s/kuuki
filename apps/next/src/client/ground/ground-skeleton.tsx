@@ -26,7 +26,7 @@ export function GroundListSkeleton({
         {Array.from({ length: cards }, (_, index) => (
           <Fragment key={index}>
             {index === Math.max(1, cards - 1) && (
-              <div className="gt-card gt-skeleton-card gt-skeleton-totals">
+              <div className="gt-totals gt-skeleton-totals">
                 {bar('is-meta')}
                 {bar('is-meta')}
               </div>

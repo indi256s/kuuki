@@ -1,8 +1,9 @@
 'use client'
 // Per-mode totals of COMPLETED journeys. Distances are straight-line approximations ("≈"); a total built from only
-// some journeys says so (coverage note) and a total with nothing known is the word, never 0.
+// some journeys says so (coverage note). Missing optional measures are omitted, never shown as zero.
 
 import { useId } from 'react'
+import { Car, Train } from '@keyline-icons/react'
 import type { ModeTotals } from '@kuuki/shared/groundTravel'
 import { formatCount, type Locale } from '../../lib/format'
 import { approxDistance, coverageNote, knownDuration } from './format'
@@ -13,41 +14,39 @@ type Mode = 'rail' | 'road'
 function Line({ locale, mode, totals }: { locale: Locale; mode: Mode; totals: ModeTotals }) {
   const t = copy[locale]
   const name = mode === 'rail' ? t.totalsRail : t.totalsRoad
-  if (totals.journeys === 0)
-    return (
-      <li className="gt-totals-line">
-        <strong>{name}</strong> · {t.totalsNone}
-      </li>
-    )
+  const Icon = mode === 'rail' ? Train : Car
   const distanceKnown = totals.distanceCoverage.known > 0
   const distanceNote = coverageNote(locale, totals.distanceCoverage)
   const trainNote = coverageNote(locale, totals.trainMinutesCoverage)
   return (
     <li className="gt-totals-line">
-      <strong>{name}</strong> · {formatCount(locale, totals.journeys, journeys)} ·{' '}
-      {distanceKnown ? approxDistance(locale, totals.distanceKm) : t.distanceUnknown}
-      {distanceKnown && distanceNote && <small> ({distanceNote})</small>}
-      {mode === 'rail' ? (
-        <>
-          {' · '}
-          {totals.trainMinutes === null
-            ? t.timeUnknown
-            : knownDuration(locale, totals.trainMinutes)}
-          {totals.trainMinutes !== null && trainNote && <small> ({trainNote})</small>}
-        </>
-      ) : (
-        <>
-          {' · '}
-          {totals.uniqueCities === null
-            ? t.citiesUnknown
-            : formatCount(locale, totals.uniqueCities, cities)}
-        </>
-      )}
+      <p className="gt-mode">
+        <Icon size={16} strokeWidth={2} aria-hidden="true" />
+        {name}
+      </p>
+      <p className="gt-totals-values">
+        <span>{formatCount(locale, totals.journeys, journeys)}</span>
+        {distanceKnown && (
+          <span>
+            {approxDistance(locale, totals.distanceKm)}
+            {distanceNote && <small> ({distanceNote})</small>}
+          </span>
+        )}
+        {mode === 'rail' && totals.trainMinutes !== null && (
+          <span>
+            {knownDuration(locale, totals.trainMinutes)}
+            {trainNote && <small> ({trainNote})</small>}
+          </span>
+        )}
+        {mode === 'road' && totals.uniqueCities !== null && (
+          <span>{formatCount(locale, totals.uniqueCities, cities)}</span>
+        )}
+      </p>
     </li>
   )
 }
 
-/** One line per mode. The heading is for assistive technology only: the lines say what they are. */
+/** Completed modes only; optional missing facts remain available in journey details. */
 export function GroundTotals({
   locale,
   totals,
@@ -59,16 +58,22 @@ export function GroundTotals({
 }) {
   const t = copy[locale]
   const headingId = useId()
+  const showRail = mode !== 'road' && totals.rail.journeys > 0
+  const showRoad = mode !== 'rail' && totals.road.journeys > 0
+  if (!showRail && !showRoad) return null
   return (
     <div className="gt-totals">
       <h2 id={headingId} className="sr-only">
         {t.totalsLabel}
       </h2>
       <ul className="gt-totals-lines" aria-labelledby={headingId}>
-        {mode !== 'road' && <Line locale={locale} mode="rail" totals={totals.rail} />}
-        {mode !== 'rail' && <Line locale={locale} mode="road" totals={totals.road} />}
+        {showRail && <Line locale={locale} mode="rail" totals={totals.rail} />}
+        {showRoad && <Line locale={locale} mode="road" totals={totals.road} />}
       </ul>
-      <p className="gt-note">{t.straightLine}</p>
+      {((showRail && totals.rail.distanceCoverage.known > 0) ||
+        (showRoad && totals.road.distanceCoverage.known > 0)) && (
+        <p className="gt-note">{t.straightLine}</p>
+      )}
     </div>
   )
 }

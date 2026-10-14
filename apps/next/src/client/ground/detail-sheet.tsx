@@ -174,6 +174,7 @@ function Body({ locale, journey }: { locale: Locale; journey: GroundJourneyDto }
           {statusWord(locale, journey.status)}
         </span>
       </p>
+      <RouteSketch places={places} locale={locale} />
       <dl className="gt-facts">
         <Row label={t.dates}>{dateRange(locale, journey.startDate, journey.endDate)}</Row>
         <Row label={t.distance}>
@@ -205,7 +206,6 @@ function Body({ locale, journey }: { locale: Locale; journey: GroundJourneyDto }
           </Row>
         )}
       </dl>
-      <RouteSketch places={places} locale={locale} />
       <h3 className="gt-detail-heading">{t.route}</h3>
       <Steps locale={locale} journey={journey} />
       {journey.note && (
