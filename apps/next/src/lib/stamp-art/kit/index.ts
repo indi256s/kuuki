@@ -87,6 +87,16 @@ import { saoSebastiao } from './sao-sebastiao'
 import { cleftFallsB } from './cleft-falls-b'
 import { wingStationB } from './wing-station-b'
 import { chimneysB } from './chimneys-b'
+import { victoriaFalls } from './victoria-falls'
+import { greatZimbabwe } from './great-zimbabwe'
+import { baobab } from './baobab'
+import { ngalawa } from './ngalawa'
+import { leMorne } from './le-morne'
+import { shieldB } from './shield-b'
+import { bouldersB } from './boulders-b'
+import { reefRingB } from './reef-ring-b'
+import { stationB } from './station-b'
+import { choungui } from './choungui'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -197,6 +207,16 @@ export const kit = {
   pirogue: pirogue,
   'outcrops-b': outcropsB,
   'sloop-a': sloopA,
+  'victoria-falls': victoriaFalls,
+  'great-zimbabwe': greatZimbabwe,
+  baobab: baobab,
+  ngalawa: ngalawa,
+  'le-morne': leMorne,
+  'shield-b': shieldB,
+  'boulders-b': bouldersB,
+  'reef-ring-b': reefRingB,
+  'station-b': stationB,
+  choungui: choungui,
   'queens-staircase': queensStaircase,
   'crater-lake-a': craterLakeA,
   'massif-b': massifB,

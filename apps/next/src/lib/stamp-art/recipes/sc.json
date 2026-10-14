@@ -1,0 +1,45 @@
+{
+  "iso2": "SC",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "slate",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [130, 54, 34] }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.64],
+          [0.5, 0.62],
+          [0.78, 0.57],
+          [1, 0.62]
+        ],
+        "jag": 1,
+        "litGap": 3.4,
+        "seed": 9
+      }
+    },
+    { "module": "ground", "params": { "water": true, "line": false } }
+  ],
+  "layers": [
+    {
+      "module": "palm",
+      "box": [96, 57, 58, 69],
+      "params": { "lean": -0.35, "seed": 3, "frond": 0.5 }
+    },
+    {
+      "module": "palm",
+      "box": [128, 66, 40, 60],
+      "params": { "lean": -0.15, "seed": 8, "frond": 0.62 }
+    },
+    {
+      "module": "boulders-b",
+      "box": [28, 52, 146, 74],
+      "params": { "boulders": [0.02, 0.42, 0.9, 3, 0.4, 0.4, 0.55, 8, 0.7, 0.24, 0.3, 5] }
+    }
+  ]
+}
