@@ -3,7 +3,6 @@
   "tier": "engraved",
   "shape": "cut-rect",
   "ink": "indigo",
-  "cluster": "triumphal-arch",
   "horizon": 0.72,
   "backdrop": [
     {
@@ -15,31 +14,42 @@
       }
     },
     {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.44],
+          [0.2, 0.38],
+          [0.45, 0.45],
+          [0.7, 0.37],
+          [1, 0.42]
+        ],
+        "jag": 0.8,
+        "litGap": 3.4,
+        "seed": 6
+      }
+    },
+    {
       "module": "distance-trees",
       "params": {
-        "height": 14,
-        "amp": 2.5,
+        "height": 10,
+        "amp": 2,
         "seed": 6,
         "swell": 2
       }
     },
     {
       "module": "ground",
-      "params": {}
+      "params": {
+        "water": true,
+        "tone": "T1",
+        "gap": [3.0, 2.4]
+      }
     }
   ],
   "layers": [
     {
-      "module": "triumphal-arch",
-      "box": [44, 62, 112, 62],
-      "params": {
-        "opening": "arch",
-        "openW": 0.34,
-        "atticH": 0.3,
-        "entH": 0.12,
-        "panels": 3,
-        "hatchGap": 2.6
-      }
+      "module": "soroca",
+      "box": [28, 54, 144, 70]
     }
   ]
 }

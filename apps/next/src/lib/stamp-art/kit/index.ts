@@ -164,6 +164,8 @@ import { atauro } from './atauro'
 import { tongkonan } from './tongkonan'
 import { kinabalu } from './kinabalu'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
+import { castleCornet, kingsGate, kiek, mirCastle, soroca, whiteTower } from './castles-c2'
+import { dubrovnik, gediminas, guaita, ohridBoat, samuelsFortress, valletta } from './hills-c2'
 
 /** Kit modules by recipe tag. */
 export const kit = {
@@ -356,6 +358,18 @@ export const kit = {
   palmyra,
   'qasr-farid': qasrFarid,
   'fairy-chimney': fairyChimney,
+  'kings-gate': kingsGate,
+  'white-tower': whiteTower,
+  kiek,
+  soroca,
+  'mir-castle': mirCastle,
+  'castle-cornet': castleCornet,
+  'samuels-fortress': samuelsFortress,
+  'ohrid-boat': ohridBoat,
+  gediminas,
+  dubrovnik,
+  guaita,
+  valletta,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

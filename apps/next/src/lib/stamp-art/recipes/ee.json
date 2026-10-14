@@ -10,14 +10,7 @@
       "params": {
         "weight": "hair",
         "gap": [3, 4.4],
-        "clouds": [40, 60, 26]
-      }
-    },
-    {
-      "module": "rooftops",
-      "params": {
-        "height": 22,
-        "seed": 9
+        "clouds": [40, 60, 26, 150, 58, 24]
       }
     },
     {
@@ -26,24 +19,8 @@
   ],
   "layers": [
     {
-      "module": "castle",
-      "box": [28, 52, 144, 72],
-      "params": {
-        "top": [
-          [0, 0.72],
-          [1, 0.72]
-        ],
-        "hill": false,
-        "wallH": 14,
-        "from": 0.02,
-        "to": 0.98,
-        "capH": 0.5,
-        "towers": [
-          [0.5, 38, 30, 1, "cone"],
-          [0.14, 13, 16, 1, "cone"],
-          [0.88, 13, 18, 0, "battle"]
-        ]
-      }
+      "module": "kiek",
+      "box": [28, 54, 144, 70]
     }
   ]
 }

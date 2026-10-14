@@ -549,8 +549,8 @@
     "name": "Belarus",
     "motif": "Mir Castle complex",
     "kind": "architecture",
-    "silhouette": "a long low castle block with a tall gate tower in the centre of the front, a corner tower at each end, and a rectangular courtyard behind",
-    "modules": ["castle", "distance-trees", "ground"],
+    "silhouette": "Mir Castle: five brick towers under steep spires (two front corners, two behind the roof, the gate tower in the centre, half-lit spires) and the palace block with its steep roof between them, T1 pond in front",
+    "modules": ["mir-castle", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
@@ -558,7 +558,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: closed square plan, five towers, pond reflection"
+    "notes": "Final pass 2: was thin and empty; chunkier towers, five spires, the palace block between."
   },
   {
     "iso2": "BZ",
@@ -1025,8 +1025,8 @@
     "name": "Estonia",
     "motif": "Kiek in de Kok artillery tower",
     "kind": "architecture",
-    "silhouette": "a tall, round-to-square tower of stone standing on the city wall, with a flat top, rising above the surrounding Old Town roofs",
-    "modules": ["castle", "rooftops"],
+    "silhouette": "a fat round drum tower with sagging courses, gun ports and a tall conical roof in front, the town wall with smaller cone-roofed towers in T2 behind, the Toompea slope",
+    "modules": ["kiek", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -1034,7 +1034,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Final pass 2: was a square tower with a gable; Kiek in de Kok is a round cannon tower with a cone roof."
   },
   {
     "iso2": "EG",
@@ -1125,10 +1125,10 @@
     "iso2": "FI",
     "iso3": "FIN",
     "name": "Finland",
-    "motif": "Suomenlinna sea fortress",
+    "motif": "Suomenlinna King's Gate",
     "kind": "architecture",
-    "silhouette": "Low rounded bastion walls and casemates at the water edge, a squat gate tower on a rocky islet, flat sea",
-    "modules": ["castle", "water"],
+    "silhouette": "a stone gate with a stepped attic and an oval window on the waterline, an arched dark passage, low grassy T3 bastion earthworks either side with stone revetments and embrasures, T1 sea",
+    "modules": ["kings-gate", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -1136,7 +1136,7 @@
     "replaced": "Helsinki Cathedral: cathedral (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: rounded island bastions with a squat gate tower. Promoted research alternate."
+    "notes": "Final pass 2: was a generic toy castle (twin of ET and GB); now the King's Gate with its stepped attic."
   },
   {
     "iso2": "FJ",
@@ -1244,10 +1244,10 @@
     "iso2": "GB",
     "iso3": "GBR",
     "name": "United Kingdom",
-    "motif": "Tower of London",
+    "motif": "White Tower, Tower of London",
     "kind": "architecture",
-    "silhouette": "Squat grey keep with four corner turrets inside a low curtain wall with round towers, river in front",
-    "modules": ["castle", "tower", "water"],
+    "silhouette": "a 3-storey white keep with arched windows and four corner turrets topped by ogee cupolas (three square, one larger round turret), a lower crenellated curtain wall in front, T1 river",
+    "modules": ["white-tower", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -1255,7 +1255,7 @@
     "replaced": "Elizabeth Tower at the Palace of Westminster: Q42 (Elizabeth Tower belongs to the active Parliament)",
     "confidence": "high",
     "facts": "unchecked",
-    "notes": "Historic fortress and museum, not an active seat of power."
+    "notes": "Final pass 2: was a generic toy castle; the ogee cupolas are the tell. Historic fortress and museum, not an active seat of power."
   },
   {
     "iso2": "GD",
@@ -1314,8 +1314,8 @@
     "name": "Guernsey",
     "motif": "Castle Cornet on its islet",
     "kind": "architecture",
-    "silhouette": "a low grey fort on a small islet at the harbour mouth, with squat round bastions and a tall keep in the centre; the causeway runs to the town",
-    "modules": ["rock-hill", "castle", "tower"],
+    "silhouette": "Castle Cornet on a rocky islet: curtain wall, gate tower, tall keep under a hipped roof, round bastion, a long low breakwater with a small beacon running left to the shore, flat sea",
+    "modules": ["castle-cornet", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
@@ -1323,7 +1323,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: islet castle joined to the quay by a breakwater"
+    "notes": "Final pass 2: was a twin of JE; the islet and breakwater are the tell (JE stays on its headland)."
   },
   {
     "iso2": "GH",
@@ -1586,8 +1586,8 @@
     "name": "Croatia",
     "motif": "Dubrovnik city walls",
     "kind": "architecture",
-    "silhouette": "a sloping line of crenellated wall running up the hill and along the water, with round and square towers at intervals and red tiled roofs behind",
-    "modules": ["castle", "distance-mountains", "water"],
+    "silhouette": "the fat round Minceta tower top left with a projecting crenellated crown and a small turret, crenellated walls descending to the sea around a banded block of T4 tile roofs, T1 sea, Lokrum in T2",
+    "modules": ["dubrovnik", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "sea-wall",
@@ -1595,7 +1595,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "Dubrovnik: wall sloping down to the sea, round towers with cone roofs, red roofs behind; sea in front."
+    "notes": "Final pass 2: was a generic wall on a slope; Minceta and the roof block are the tell."
   },
   {
     "iso2": "HT",
@@ -2181,8 +2181,8 @@
     "name": "Lithuania",
     "motif": "Gediminas Tower on Castle Hill",
     "kind": "architecture",
-    "silhouette": "a tall round brick tower with a conical cap, standing on a hill, with a low wall at its foot. Symmetric",
-    "modules": ["rock-hill", "castle", "distance-trees"],
+    "silhouette": "an octagonal 3-storey brick tower with arched windows and a stepped parapet at about half the subject height on a steep wooded hill (vertical foliage hatch under scalloped tree crowns), low wall pieces on the crown; no flag",
+    "modules": ["gediminas", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
@@ -2190,7 +2190,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: single conical-capped brick tower on a hill"
+    "notes": "Final pass 2: was a tiny hut on a pyramid; the tower is now the octagonal Gediminas Tower on a wooded hill. No flag on the pole."
   },
   {
     "iso2": "LU",
@@ -2281,18 +2281,18 @@
     "iso2": "MD",
     "iso3": "MDA",
     "name": "Moldova",
-    "motif": "Triumphal Arch on Great National Assembly Square",
+    "motif": "Soroca Fortress",
     "kind": "architecture",
-    "silhouette": "a freestanding arch with a tall central opening, columns on each side, and an attic on top. Symmetric",
-    "modules": ["triumphal-arch", "distance-trees"],
+    "silhouette": "a circular stone fort seen across the Dniester: four round towers with conical roofs, a square gate tower with a hipped roof and dark arch, walls at about 40% of tower height, T1 river in front, the far bank in T2",
+    "modules": ["soroca", "distance-mountains", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
-    "cluster": "triumphal-arch",
-    "status": "kept",
-    "replaced": null,
+    "cluster": null,
+    "status": "replaced",
+    "replaced": "Triumphal Arch on Great National Assembly Square: 1840 victory arch facing Government House, commemorates a war; crude render and a cluster clash with DE (owner decision, final pass)",
     "confidence": "medium",
-    "facts": "checked",
-    "notes": "part: low two-tier arch"
+    "facts": "unchecked",
+    "notes": "Owner decision: Soroca Fortress replaces the arch. Medieval fortress, not an active seat of power."
   },
   {
     "iso2": "ME",
@@ -2366,18 +2366,18 @@
     "iso2": "MK",
     "iso3": "MKD",
     "name": "North Macedonia",
-    "motif": "Lake Ohrid shoreline",
-    "kind": "nature",
-    "silhouette": "Mountains running down to still water, long low ridge line, flat reflection",
-    "modules": ["distance-mountains", "distance-trees", "boats-c", "water"],
+    "motif": "Samuel's Fortress",
+    "kind": "architecture",
+    "silhouette": "crenellated walls and three square towers on a hill crest, a gate arch, old-town roofs descending the right slope in two tiers, T1 Lake Ohrid water with one wooden boat; no churches",
+    "modules": ["samuels-fortress", "ohrid-boat", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Samuel's Fortress: Q44 (castle cluster cut)",
-    "confidence": "low",
+    "replaced": "Lake Ohrid shoreline: generic shoreline (art-director redo 59, owner brief: Samuel's Fortress above the lake)",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Galicica range over the lake, sailboats on the water; neutral nature."
+    "notes": "Final pass 2: fortress on the hill, galicica range behind, one plovka-style boat on the lake."
   },
   {
     "iso2": "ML",
@@ -2521,8 +2521,8 @@
     "name": "Malta",
     "motif": "Valletta's Grand Harbour bastions",
     "kind": "architecture",
-    "silhouette": "horizontal fortified walls that step down to the water. An arcade runs along the upper terrace",
-    "modules": ["fortress-wall", "arcade", "water", "quay"],
+    "silhouette": "battered Valletta bastion walls rising from the water (T4 slope, white cordon), a 7-arch Upper Barrakka arcade on top, a hexagonal gardjola sentry box with a pyramid cap at the bastion tip, foreground right; no domes",
+    "modules": ["valletta", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "sea-wall",
@@ -2530,7 +2530,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: stepped bastions dropping to the harbour, arcaded terrace on top"
+    "notes": "Final pass 2: the right-hand object read as a bench; the gardjola is now the tip of the bastion."
   },
   {
     "iso2": "MU",
@@ -3388,8 +3388,8 @@
     "name": "San Marino",
     "motif": "Three towers of Monte Titano",
     "kind": "architecture",
-    "silhouette": "three separate towers on a rocky ridge, of differing heights. Cesta, the tallest and central on the highest peak, is the tower most often drawn",
-    "modules": ["tower", "flat-parapet", "conical", "mountains"],
+    "silhouette": "Monte Titano: a sheer T4 cliff on the right half, Guaita (squat crenellated tower with its wall) on the crest at 40% height, Cesta small in T2 further along the left ridge",
+    "modules": ["guaita", "distance-mountains", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3397,7 +3397,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "Towers also appear on the flag and arms; the monument itself is the motif."
+    "notes": "Final pass 2: the towers were tiny; two towers only (third dropped), the mountain fills the window."
   },
   {
     "iso2": "SN",

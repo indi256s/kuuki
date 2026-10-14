@@ -173,8 +173,10 @@ export const distanceTrees: KitModule = ([x, y, w, h], p) => {
 export const ground: KitModule = ([x, y, w, h], p) => {
   const horizon = num(p, 'horizonY', y + h * 0.7)
   const bottom = y + h
+  const gap = nums(p, 'gap', [])
   const lines = toneFill(rectPts(x, horizon, w, bottom - horizon), hatchTone(p, 'tone', 'T3'), {
     ramp: [horizon, bottom],
+    ...(gap.length === 2 ? { gap: [gap[0], gap[1]] as [number, number] } : {}),
   })
   const out: SvgNode[] = []
   if (p.water === true) {
