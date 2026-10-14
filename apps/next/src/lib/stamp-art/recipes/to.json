@@ -1,0 +1,40 @@
+{
+  "iso2": "TO",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "indigo",
+  "cluster": "megalith",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [152, 60, 34, 100, 58, 28, 46, 74, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 12,
+        "amp": 3,
+        "seed": 11,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "haamonga",
+      "box": [36, 60, 118, 64],
+      "params": {}
+    }
+  ]
+}
