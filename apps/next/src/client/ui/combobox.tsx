@@ -1,5 +1,13 @@
 'use client'
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+} from 'react'
 import { foldSearchText } from '@kuuki/shared'
 import { formatCount, type Locale } from '../../lib/format'
 import { Sheet } from './sheet'
@@ -377,6 +385,7 @@ export function AsyncCombobox<T>({
   inputRef,
   shortQueryText,
   footer,
+  prefill,
 }: {
   label: string
   locale: Locale
@@ -394,28 +403,47 @@ export function AsyncCombobox<T>({
   shortQueryText?: (query: string) => string | null
   /** Rendered under the options, e.g. "Add a place manually". `close` dismisses the list. */
   footer?: (close: () => void, query: string) => ReactNode
+  /** A new `nonce` puts `text` in the field as an unresolved query, opens the list and focuses the field. */
+  prefill?: { text: string; nonce: number }
 }) {
   const copy = asyncCopy[locale]
   const id = useId()
   const mobile = useMobile() === true
   const [open, setOpen] = useState(false)
-  const [text, setText] = useState<string | null>(null)
+  const [typed, setTyped] = useState<{ text: string; base: string } | null>(null)
   const [active, setActive] = useState(0)
   const originRef = useRef<HTMLInputElement>(null)
   const restoringFocus = useRef(false)
   const searchRef = useRef<HTMLInputElement>(null)
+  // The typed text is an unresolved query. It outlives closing the list, but not a choice made elsewhere
+  // (swap, reset, OCR hand-off): when the committed label moves on, the stale text goes.
+  if (typed !== null && typed.base !== (selected?.label ?? '')) setTyped(null)
+  const text = typed?.text ?? null
+  const setText = (next: string | null) =>
+    setTyped(next === null ? null : { text: next, base: selected?.label ?? '' })
+  const [prefilled, setPrefilled] = useState(prefill?.nonce)
+  if (prefill && prefill.nonce !== prefilled) {
+    setPrefilled(prefill.nonce)
+    setTyped({ text: prefill.text, base: selected?.label ?? '' })
+    setActive(0)
+    setOpen(true)
+  }
+  useEffect(() => {
+    if (prefill) originRef.current?.focus()
+    // Only a new nonce is a request; re-rendering with the same one must not steal focus again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill?.nonce])
   const query = text ?? ''
   const { state, retry } = useAsyncSearch(query, search, { minChars })
   const results = state.status === 'ready' ? state.results : []
   const options = results.map(toOption)
   const current = Math.min(active, Math.max(0, options.length - 1))
-  const close = () => {
-    setOpen(false)
-    setText(null)
-  }
+  // Closing keeps the typed text as an unresolved query; only a choice replaces it.
+  const close = () => setOpen(false)
   const choose = (item: T) => {
     onSelect(item)
-    close()
+    setTyped(null)
+    setOpen(false)
   }
   const status =
     state.status === 'idle'
@@ -501,7 +529,12 @@ export function AsyncCombobox<T>({
     <>
       <p role="status">{status}</p>
       {state.status === 'error' && (
-        <button type="button" className="flight-combobox-action" onClick={retry}>
+        <button
+          type="button"
+          className="flight-combobox-action"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={retry}
+        >
           {copy.retry}
         </button>
       )}
@@ -531,7 +564,7 @@ export function AsyncCombobox<T>({
     <div
       className="flight-combobox"
       onBlur={(event) => {
-        // Leaving the field closes the list and drops the typed query. It never picks a result.
+        // Leaving the field closes the list and keeps the typed query as is. It never picks a result.
         if (!mobile && !event.currentTarget.contains(event.relatedTarget)) close()
       }}
     >

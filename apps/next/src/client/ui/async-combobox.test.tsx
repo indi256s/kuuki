@@ -93,4 +93,24 @@ describe('AsyncCombobox', () => {
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(onSelect).toHaveBeenCalledWith({ key: 'one', label: 'Kars' })
   })
+  it('keeps the typed text as an unresolved query after Escape or blur, without choosing', async () => {
+    const { input, onSelect } = setup(async () => [{ key: 'one', label: 'Kars' }])
+    input.focus()
+    await type(input, 'kar')
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(screen.queryByRole('option')).toBeNull()
+    expect((input as HTMLInputElement).value).toBe('kar')
+    fireEvent.blur(input, { relatedTarget: screen.getByText('elsewhere') })
+    expect((input as HTMLInputElement).value).toBe('kar')
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('keeps focus on Retry until the click lands', async () => {
+    const { input } = setup(async () => {
+      throw new Error('down')
+    })
+    await type(input, 'kars')
+    // preventDefault on mousedown is what stops the browser moving focus (and the blur closing the list).
+    expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Retry' }))).toBe(false)
+  })
 })

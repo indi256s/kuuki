@@ -43,6 +43,7 @@ export function PlacePicker({
   hint,
   disabled,
   inputRef,
+  prefill,
 }: {
   label: string
   locale: Locale
@@ -52,6 +53,8 @@ export function PlacePicker({
   hint?: string
   disabled?: boolean
   inputRef?: Ref<HTMLInputElement>
+  /** Opens the search with this text typed in; the owner still picks the place. See AsyncCombobox. */
+  prefill?: { text: string; nonce: number }
 }) {
   const ru = locale === 'ru'
   const country = useMemo(() => countryNamer(locale), [locale])
@@ -80,10 +83,12 @@ export function PlacePicker({
         hint={hint}
         disabled={disabled}
         inputRef={inputRef}
+        prefill={prefill}
         footer={(close, query) => (
           <button
             type="button"
             className="flight-combobox-action"
+            onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
               setManual(query)
               close()
