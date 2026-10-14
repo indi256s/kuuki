@@ -1,0 +1,53 @@
+{
+  "iso2": "BG",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "teal",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 56, 30, 146, 50, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.42],
+          [0.25, 0.34],
+          [0.5, 0.4],
+          [0.75, 0.3],
+          [1, 0.38]
+        ],
+        "jag": 0.9,
+        "litGap": 3.0,
+        "seed": 3
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 3,
+        "seed": 9,
+        "swell": 3
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "pinnacles",
+      "box": [28, 54, 144, 74]
+    }
+  ]
+}

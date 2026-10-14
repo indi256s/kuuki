@@ -1,0 +1,57 @@
+{
+  "iso2": "BY",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "ochre-dark",
+  "cluster": "castle",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 56, 30, 146, 50, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 12,
+        "amp": 2.5,
+        "seed": 8,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "castle",
+      "box": [30, 58, 140, 78],
+      "params": {
+        "top": [
+          [0, 0.62],
+          [1, 0.62]
+        ],
+        "hill": false,
+        "wallH": 20,
+        "roofs": 0,
+        "from": 0.02,
+        "to": 0.98,
+        "towers": [
+          [0.1, 17, 26, 0, "cone"],
+          [0.9, 17, 26, 0, "cone"],
+          [0.5, 15, 8, 0, "cone"]
+        ],
+        "gate": 0.5,
+        "shadeFrom": 0.8
+      }
+    }
+  ]
+}

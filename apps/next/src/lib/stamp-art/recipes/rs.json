@@ -1,0 +1,67 @@
+{
+  "iso2": "RS",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "plum",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 56, 30, 146, 50, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.46],
+          [0.2, 0.38],
+          [0.45, 0.44],
+          [0.7, 0.36],
+          [1, 0.44]
+        ],
+        "jag": 0.8,
+        "litGap": 3.0,
+        "seed": 7
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "fortress-wall",
+      "box": [27, 98, 50, 26],
+      "params": {
+        "merlons": 7,
+        "courses": 3
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [123, 98, 50, 26],
+      "params": {
+        "merlons": 7,
+        "courses": 3
+      }
+    },
+    {
+      "module": "tower",
+      "box": [70, 54, 60, 70],
+      "params": {
+        "cap": "battle",
+        "taper": 0.94,
+        "crown": 0.14,
+        "storeys": 3,
+        "merlons": 5
+      }
+    }
+  ]
+}

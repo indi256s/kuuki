@@ -1,0 +1,46 @@
+{
+  "iso2": "SI",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "cluster": "castle",
+  "horizon": 0.78,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [36, 52, 30, 142, 44, 26]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.4],
+          [0.18, 0.22],
+          [0.38, 0.3],
+          [0.55, 0.14],
+          [0.78, 0.26],
+          [1, 0.34]
+        ],
+        "jag": 1.2,
+        "litGap": 3.0,
+        "seed": 5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "cliff-castle",
+      "box": [30, 54, 140, 76]
+    }
+  ]
+}

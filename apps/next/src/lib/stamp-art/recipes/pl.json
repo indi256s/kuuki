@@ -1,0 +1,27 @@
+{
+  "iso2": "PL",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 54, 30, 146, 56, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "cloth-hall",
+      "box": [26, 72, 148, 56]
+    }
+  ]
+}

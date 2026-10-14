@@ -49,6 +49,12 @@ import { chateau } from './chateau'
 import { monolithGate } from './monolith-gate'
 import { colonialRow } from './colonial-row'
 import { bastionFort } from './bastion-fort'
+import { cliffCastle } from './cliff-castle'
+import { pinnacles } from './pinnacles'
+import { chateauC } from './chateau-c'
+import { bastionTurrets } from './bastion-turrets'
+import { charlesBridge } from './charles-bridge'
+import { clothHall } from './cloth-hall'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -124,10 +130,16 @@ export const kit = {
   'cable-car': cableCar,
   bridge: bridge,
   'thatch-hut': thatchHut,
-  chateau: chateau,
+  chateau,
   'monolith-gate': monolithGate,
   'colonial-row': colonialRow,
   'bastion-fort': bastionFort,
+  'cliff-castle': cliffCastle,
+  pinnacles,
+  'chateau-c': chateauC,
+  'bastion-turrets': bastionTurrets,
+  'charles-bridge': charlesBridge,
+  'cloth-hall': clothHall,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

@@ -1,0 +1,36 @@
+{
+  "iso2": "RO",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [34, 54, 30, 146, 56, 26]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 22,
+        "amp": 3.5,
+        "seed": 4,
+        "swell": 4
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "chateau-c",
+      "box": [30, 53, 142, 75]
+    }
+  ]
+}

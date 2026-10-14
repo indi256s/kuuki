@@ -1,0 +1,45 @@
+{
+  "iso2": "MD",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "cluster": "triumphal-arch",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 52, 30, 146, 60, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 2.5,
+        "seed": 6,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {}
+    }
+  ],
+  "layers": [
+    {
+      "module": "triumphal-arch",
+      "box": [44, 62, 112, 62],
+      "params": {
+        "opening": "arch",
+        "openW": 0.34,
+        "atticH": 0.3,
+        "entH": 0.12,
+        "panels": 3,
+        "hatchGap": 2.6
+      }
+    }
+  ]
+}
