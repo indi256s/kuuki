@@ -1,0 +1,40 @@
+{
+  "iso2": "SX",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "teal",
+  "horizon": 0.64,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 62, 34, 36, 112, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "jet-a",
+      "box": [28, 68, 144, 50],
+      "params": {}
+    },
+    {
+      "module": "dunes",
+      "box": [34, 110, 130, 28],
+      "params": {
+        "crests": [0.35, 0.7],
+        "amp": 5,
+        "wave": 80,
+        "lee": [14, 18]
+      }
+    }
+  ]
+}

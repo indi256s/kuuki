@@ -210,7 +210,7 @@
     "motif": "Sydney Harbour Bridge",
     "kind": "object",
     "silhouette": "Single steel through-arch spanning the full width, a stone pylon at each end, deck at the arch foot, water below",
-    "modules": ["bridge", "gate-arch", "tower", "water"],
+    "modules": ["harbour-bridge", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "bridge",
@@ -218,7 +218,7 @@
     "replaced": "Sydney Opera House: modern signature architecture (rule 6)",
     "confidence": "high",
     "facts": "unchecked",
-    "notes": "part: steel through-arch with four stone pylons"
+    "notes": "part: steel through-arch with lattice, hanger rods and two battered stone pylons. New module harbour-bridge"
   },
   {
     "iso2": "AW",
@@ -601,7 +601,7 @@
     "motif": "Coconut palm on a low atoll",
     "kind": "nature",
     "silhouette": "A thin, low island strip across the bottom; one tall, leaning palm in the centre; a thin lagoon line under it. Not symmetric",
-    "modules": ["palm", "island", "water"],
+    "modules": ["island-b", "palm", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "atoll",
@@ -609,7 +609,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: leaning palm over a thin strip with two islets"
+    "notes": "part: one tall leaning palm on a thin strip plus a small second islet. Distinct from VC by a single dominant palm and no boat"
   },
   {
     "iso2": "CD",
@@ -856,7 +856,7 @@
     "motif": "Flying Fish Cove cliffs and jetty",
     "kind": "nature",
     "silhouette": "Rock cliff face rising from a calm cove, a long straight jetty running out into the water, forest rim on top",
-    "modules": ["cliff", "quay", "water", "forest"],
+    "modules": ["cliff", "palm", "jetty-a", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -864,7 +864,7 @@
     "replaced": "Red crab migration: too small at 96px (REVIEW)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": null
+    "notes": "Flying Fish Cove: columnar cliff face with a palm rim and a timber jetty with a cantilever gantry crane. New module jetty-a"
   },
   {
     "iso2": "CY",
@@ -3014,8 +3014,8 @@
     "name": "Puerto Rico",
     "motif": "El Morro",
     "kind": "architecture",
-    "silhouette": "massive sandstone walls and bastions on a rocky headland, flat parapet, a sentry tower at one corner. Asymmetric in the headland",
-    "modules": ["fortress-wall", "flat-parapet", "cliff", "tower"],
+    "silhouette": "Close-up bastion corner: lit left face, shaded right face meeting at a vertical edge, flat parapet band, a big domed sentry box (garita) on the salient and a small one at the right end, sea-cut rock at the foot, sea behind",
+    "modules": ["garita", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -3023,7 +3023,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "unchecked",
-    "notes": "part: sentry box (garita) at a bastion corner, sea cliff"
+    "notes": "part: sentry box (garita) at a bastion corner, sea cliff. Drawn close-up so it differs from CU (flat curtain with lighthouse), KN and HT (stepped hill forts)"
   },
   {
     "iso2": "PS",
@@ -3505,18 +3505,18 @@
     "iso2": "SX",
     "iso3": "SXM",
     "name": "Sint Maarten",
-    "motif": "Sint Maarten Courthouse",
-    "kind": "architecture",
-    "silhouette": "low white two-storey wooden block with a tall central cupola on top, window grid below, symmetric",
-    "modules": ["dome", "window-grid", "pediment"],
+    "motif": "Maho Beach landing airliner",
+    "kind": "object",
+    "silhouette": "Airliner on final approach, nose slightly up, gear down, long lit fuselage with a window band and swept fin, low over the dunes and surf of the beach",
+    "modules": ["jet-a", "dunes", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
-    "status": "kept",
-    "replaced": null,
+    "status": "replaced",
+    "replaced": "Sint Maarten Courthouse: a working court and government building (Q42, active seat of power); the low landing jet over Maho Beach is the island's own picture and fits a flight journal",
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Check that the 1793 Courthouse is a museum/heritage building and not an active government seat (Q42); replace if active."
+    "notes": "part: airliner, gear down, over the beach. New module jet-a"
   },
   {
     "iso2": "SY",
@@ -3559,7 +3559,7 @@
     "motif": "Grand Turk Lighthouse",
     "kind": "architecture",
     "silhouette": "tall slim tapering tower on a low base, water and island line in front. Symmetric",
-    "modules": ["lighthouse", "island", "water"],
+    "modules": ["lighthouse", "rock-hill", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
@@ -3567,7 +3567,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: stout cast-iron tower with a bracketed gallery on a bluff"
+    "notes": "part: stout cast-iron tower with a bracketed gallery on a bluff. lighthouse got a `brackets` param (default 0)"
   },
   {
     "iso2": "TD",
@@ -3763,7 +3763,7 @@
     "motif": "Pigeon Point jetty, Tobago",
     "kind": "object",
     "silhouette": "Long straight jetty running out to sea to a thatched shelter, palms leaning on the shore, flat water",
-    "modules": ["quay", "thatched", "palm", "water"],
+    "modules": ["island-b", "palm", "jetty-a", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3771,7 +3771,7 @@
     "replaced": "Red House (Parliament): Q42 (Red House is the active Parliament)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "unverified detail; promoted research alternate (Pigeon Point)."
+    "notes": "Pigeon Point: palms on the shore islet, long timber jetty on posts running out to the open thatched shelter. New module jetty-a"
   },
   {
     "iso2": "TV",
@@ -3950,7 +3950,7 @@
     "motif": "Tobago Cays",
     "kind": "nature",
     "silhouette": "Low sandy islets with a few palms in a row over shallow water, a sailing boat at anchor",
-    "modules": ["island", "palm", "ship", "water"],
+    "modules": ["island-b", "palm", "sloop-a", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "atoll",
@@ -3958,7 +3958,7 @@
     "replaced": "La Soufriere, St Vincent: Q44 (volcano cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: three islets with a reef edge and a sailboat. Promoted research alternate."
+    "notes": "part: two palm islets in shallow water with a sloop at anchor between them. Reef edge reads as the water glints"
   },
   {
     "iso2": "VE",
@@ -3984,7 +3984,7 @@
     "motif": "Two-masted sailing schooner in a harbour",
     "kind": "object",
     "silhouette": "two triangular sails on raked masts above a low hull line on the water. Roughly symmetric",
-    "modules": ["ship", "water"],
+    "modules": ["schooner-a", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "ship",
@@ -3992,7 +3992,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: two-masted schooner with a high stern"
+    "notes": "part: two-masted gaff schooner with a high stern, shaded headsails. New module schooner-a"
   },
   {
     "iso2": "VI",
@@ -4001,7 +4001,7 @@
     "motif": "Fort Christian",
     "kind": "architecture",
     "silhouette": "low red-walled fort with a central tower on top, flat parapet, waterfront line below. Symmetric",
-    "modules": ["tower", "clock-tower", "fortress-wall", "flat-parapet"],
+    "modules": ["fort-christian", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -4009,7 +4009,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: squat clock tower rising from the fort block. Fort Christian tower carries a clock."
+    "notes": "part: squat clock tower rising from the fort block, bastion wings. Fort Christian is a museum. New module fort-christian"
   },
   {
     "iso2": "VN",

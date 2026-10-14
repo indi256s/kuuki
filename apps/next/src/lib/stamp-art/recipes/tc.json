@@ -1,0 +1,56 @@
+{
+  "iso2": "TC",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "teal",
+  "cluster": "lighthouse",
+  "horizon": 0.8,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 72, 40, 150, 62, 34]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [40, 110, 120, 30],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.18, 0.55],
+          [0.34, 0.2],
+          [0.55, 0.18],
+          [0.78, 0.3],
+          [1, 1]
+        ],
+        "shadeFrom": 0.4,
+        "shadeGap": 2.6,
+        "crag": 0.4,
+        "seed": 6
+      }
+    },
+    {
+      "module": "lighthouse",
+      "box": [82, 43, 36, 72],
+      "params": {
+        "taper": 0.74,
+        "brackets": 3,
+        "windows": 2,
+        "shade": 0.32,
+        "lantern": 0.13
+      }
+    }
+  ]
+}

@@ -103,6 +103,23 @@ export const lighthouse: KitModule = ([x, y, w, h], p) => {
       [cx + gw / 2 + 1, gallery + galleryH],
     ]),
   )
+  const brackets = Math.round(num(p, 'brackets', 0))
+  if (brackets > 0) {
+    // Cast-iron brackets under the gallery: diagonal struts from the shaft to the slab edge.
+    const drop = h * 0.09
+    for (let i = 0; i < brackets; i++) {
+      const f = (i + 0.5) / brackets
+      const ex = cx - gw / 2 + 1 + f * (gw / 2 - 1)
+      const sxx = cx - half(shaftTop + drop) * (1 - f * 0.55)
+      for (const m of [1, -1])
+        out.push(
+          stroke('hair', [
+            [cx + m * (cx - ex), shaftTop + galleryH],
+            [cx + m * (cx - sxx), shaftTop + drop * (0.45 + f * 0.55)],
+          ]),
+        )
+    }
+  }
   for (let rx = cx - gw / 2 + 1.2; rx < cx + gw / 2; rx += 3) {
     out.push(vline('fine', rx, gallery - h * 0.03, gallery))
   }
