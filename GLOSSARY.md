@@ -104,6 +104,21 @@ A country's mark in the passport. **Pressed** when supported by logged, legacy,
 claim or ground-visit evidence; **pending** when its only evidence is awaiting
 flights. Pending does not increase the pressed-stamp total.
 
+### Passport
+
+A traveler's collection of country stamps across flights, ground journeys and
+manual country records, together with the traveler's identity and achievements.
+Its visited-country total counts each pressed country once; pending stamps and
+planned journeys do not increase it.
+_Avoid_: Flight passport
+
+### Hidden country
+
+A country the traveler has removed from their passport presentation without
+deleting the underlying travel records or changing factual travel statistics.
+It can be restored; hiding it in the passport is not global privacy protection.
+_Avoid_: Deleted country
+
 ### Country evidence
 
 The recomputable per-country record of why a country counts (flights, legacy
@@ -205,22 +220,11 @@ The internal `dateLine` name denotes the antimeridian, not the International Dat
 
 ## Profile vocabulary
 
-### Passport
-
-The one page that shows where a traveler has been: identity, the visited
-total, the stamp collection (cards or atlas), pending countries, achievements,
-rankings and a small flight block. `/passport` is the owner view; `/fly/[username]`
-is the public view of the same structure, and `/passport?as=visitor` previews it.
-Countries come from flights, ground journeys and manual marks; one country is
-one stamp whatever its sources. Travel is still entered in its own journal.
-_Avoid_: separate Profile page, Stamps page
-
 ### Profile
 
-The identity part of the Passport (name, handle, avatar, visibility) and the
-settings behind it. Since the unified Passport (ADR 0007) the profile has no
-page of its own: `/me` and "My profile" lead to `/passport`. Analysis belongs
-to Overview.
+A traveler's identity and curated travel summary within their passport.
+Visitors see its permitted public information; the owner also sees private
+details and controls. Analysis belongs to Overview, not the profile.
 _Avoid_: Flight profile, account page
 
 ### Profile visibility
@@ -235,22 +239,11 @@ Which countries a public Passport shows (`profiles.passport_publication`).
 **Flights** (the default, and every pre-existing profile) publishes flight
 countries only, as the profile did before ADR 0007. **All** publishes every
 pressed country from any source, never pending ones. The owner opts in from
-Settings after a preview, and opting out restores the flight-only set. In both
-modes the public Passport carries country codes only: no dates, counts,
-sources, notes or routes.
-
-### Hidden country
-
-A pressed country the owner removed from their Passport presentation
-(`passport_hidden_countries`). It leaves the cards, the atlas and both public
-publication modes, but its records, evidence and statistics stay, and the
-owner's visited total still counts it, with the hidden number shown beside it.
-Hiding is reversible (Undo, or Restore from Hidden) and does not remove the
-country from other public surfaces such as the flight Overview.
-The preference counts only while the country is pressed: if it loses its
-last support or falls back to pending, the owner sees it as usual (pending
-block), while the public projection keeps leaving it out.
-_Avoid_: deleted country, removed stamp
+Settings after a preview, and opting out restores the flight-only set. Hidden
+countries are left out in both modes, and the public Passport carries country
+codes only: no dates, counts, sources, notes or routes. A hidden preference
+affects the owner's view only while its country is pressed; a country that
+loses its last support or falls back to pending shows as usual to the owner.
 
 ### Achievement ladder
 
