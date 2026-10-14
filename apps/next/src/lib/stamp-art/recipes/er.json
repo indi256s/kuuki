@@ -1,0 +1,37 @@
+{
+  "iso2": "ER",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [40, 58, 28, 150, 56, 26]
+      }
+    },
+    {
+      "module": "rooftops",
+      "params": {
+        "height": 20,
+        "seed": 4
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "wing-station-b",
+      "box": [28, 60, 144, 66],
+      "params": {}
+    }
+  ]
+}

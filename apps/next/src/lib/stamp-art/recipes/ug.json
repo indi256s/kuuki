@@ -1,0 +1,42 @@
+{
+  "iso2": "UG",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "indigo",
+  "cluster": "waterfall",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [34, 56, 30, 100, 52, 22, 152, 58, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 3,
+        "seed": 4,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "cleft-falls-b",
+      "box": [44, 52, 112, 74],
+      "params": {
+        "seed": 1
+      }
+    }
+  ]
+}

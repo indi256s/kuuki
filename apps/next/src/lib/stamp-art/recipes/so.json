@@ -1,0 +1,37 @@
+{
+  "iso2": "SO",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "slate",
+  "cluster": "lighthouse",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [40, 58, 28, 150, 56, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "lighthouse",
+      "box": [80, 52, 40, 74],
+      "params": {
+        "base": 0.1,
+        "taper": 0.7,
+        "bands": 0,
+        "windows": 3
+      }
+    }
+  ]
+}

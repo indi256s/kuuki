@@ -14,6 +14,7 @@ import bb from './bb.json'
 import be from './be.json'
 import bf from './bf.json'
 import bg from './bg.json'
+import bi from './bi.json'
 import bj from './bj.json'
 import bl from './bl.json'
 import bm from './bm.json'
@@ -38,6 +39,7 @@ import cv from './cv.json'
 import cw from './cw.json'
 import cz from './cz.json'
 import de from './de.json'
+import dj from './dj.json'
 import dk from './dk.json'
 import dm from './dm.json'
 import do_ from './do.json'
@@ -46,7 +48,9 @@ import ec from './ec.json'
 import ee from './ee.json'
 import eg from './eg.json'
 import eh from './eh.json'
+import er from './er.json'
 import es from './es.json'
+import et from './et.json'
 import fi from './fi.json'
 import fk from './fk.json'
 import fo from './fo.json'
@@ -87,7 +91,9 @@ import mk from './mk.json'
 import ml from './ml.json'
 import mr from './mr.json'
 import mt from './mt.json'
+import mw from './mw.json'
 import mx from './mx.json'
+import mz from './mz.json'
 import na from './na.json'
 import ne from './ne.json'
 import ng from './ng.json'
@@ -102,6 +108,7 @@ import py from './py.json'
 import ro from './ro.json'
 import rs from './rs.json'
 import ru from './ru.json'
+import rw from './rw.json'
 import sd from './sd.json'
 import sh from './sh.json'
 import si from './si.json'
@@ -109,7 +116,9 @@ import sk from './sk.json'
 import sl from './sl.json'
 import sm from './sm.json'
 import sn from './sn.json'
+import so from './so.json'
 import sr from './sr.json'
+import ss from './ss.json'
 import st from './st.json'
 import sv from './sv.json'
 import sz from './sz.json'
@@ -119,6 +128,7 @@ import th from './th.json'
 import tn from './tn.json'
 import tz from './tz.json'
 import ua from './ua.json'
+import ug from './ug.json'
 import us from './us.json'
 import uy from './uy.json'
 import va from './va.json'
@@ -144,6 +154,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   be,
   bf,
   bg,
+  bi,
   bj,
   bl,
   bm,
@@ -168,6 +179,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cw,
   cz,
   de,
+  dj,
   dk,
   dm,
   do: do_,
@@ -176,7 +188,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ee,
   eg,
   eh,
+  er,
   es,
+  et,
   fi,
   fk,
   fo,
@@ -217,7 +231,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ml,
   mr,
   mt,
+  mw,
   mx,
+  mz,
   na,
   ne,
   ng,
@@ -232,6 +248,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ro,
   rs,
   ru,
+  rw,
   sd,
   sh,
   si,
@@ -239,7 +256,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   sl,
   sm,
   sn,
+  so,
   sr,
+  ss,
   st,
   sv,
   sz,
@@ -249,6 +268,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tn,
   tz,
   ua,
+  ug,
   us,
   uy,
   va,

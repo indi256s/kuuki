@@ -1,0 +1,32 @@
+{
+  "iso2": "MZ",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "plum",
+  "cluster": "fort",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [40, 58, 28, 150, 56, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "sao-sebastiao",
+      "box": [27, 60, 146, 66],
+      "params": {}
+    }
+  ]
+}
