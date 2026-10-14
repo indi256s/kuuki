@@ -49,6 +49,15 @@ import { chateau } from './chateau'
 import { monolithGate } from './monolith-gate'
 import { colonialRow } from './colonial-row'
 import { bastionFort } from './bastion-fort'
+import { waterfallA } from './waterfall-a'
+import { terracesA } from './terraces-a'
+import { tortoiseA } from './tortoise-a'
+import { penguinA } from './penguin-a'
+import { gantryA } from './gantry-a'
+import { whalingChimneyA } from './whaling-chimney-a'
+import { arcadeHouseA } from './arcade-house-a'
+import { woodenRowA } from './wooden-row-a'
+import { portonA } from './porton-a'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -128,6 +137,15 @@ export const kit = {
   'monolith-gate': monolithGate,
   'colonial-row': colonialRow,
   'bastion-fort': bastionFort,
+  'waterfall-a': waterfallA,
+  'terraces-a': terracesA,
+  'tortoise-a': tortoiseA,
+  'arcade-house-a': arcadeHouseA,
+  'wooden-row-a': woodenRowA,
+  'porton-a': portonA,
+  'penguin-a': penguinA,
+  'gantry-a': gantryA,
+  'whaling-chimney-a': whalingChimneyA,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

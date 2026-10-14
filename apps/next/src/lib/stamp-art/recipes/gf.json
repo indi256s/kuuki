@@ -1,0 +1,36 @@
+{
+  "iso2": "GF",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "oxblood",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [46, 60, 34, 140, 66, 30]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 22,
+        "amp": 3,
+        "seed": 4,
+        "swell": 3
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "gantry-a",
+      "box": [34, 54, 132, 72],
+      "params": {}
+    }
+  ]
+}

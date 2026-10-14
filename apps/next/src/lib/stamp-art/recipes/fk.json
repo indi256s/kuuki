@@ -1,0 +1,30 @@
+{
+  "iso2": "FK",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "indigo",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [40, 58, 36, 148, 64, 30]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "penguin-a",
+      "box": [38, 54, 124, 72],
+      "params": {}
+    }
+  ]
+}

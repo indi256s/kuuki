@@ -1,0 +1,54 @@
+{
+  "iso2": "SR",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "moss",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [44, 62, 36, 150, 66, 30]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 20,
+        "amp": 3,
+        "seed": 7,
+        "swell": 3
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "palm",
+      "box": [44, 56, 26, 70],
+      "params": {
+        "lean": 0.2,
+        "seed": 2
+      }
+    },
+    {
+      "module": "palm",
+      "box": [126, 56, 26, 70],
+      "params": {
+        "lean": -0.2,
+        "seed": 5
+      }
+    },
+    {
+      "module": "wooden-row-a",
+      "box": [30, 60, 140, 66],
+      "params": {
+        "n": 3
+      }
+    }
+  ]
+}
