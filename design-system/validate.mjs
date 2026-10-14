@@ -1,5 +1,6 @@
 import fs from 'node:fs'
-import { wcagContrast, displayable, converter } from 'culori'
+import { wcagContrast, displayable, converter, differenceCiede2000 } from 'culori'
+const deltaE = differenceCiede2000()
 const palette = JSON.parse(fs.readFileSync(new URL('./palette.json', import.meta.url)))
 const checks = []
 const gamut = []
@@ -59,6 +60,24 @@ for (const [name, t] of Object.entries(palette.themes)) {
       (l, i) => i === 0 || (name.startsWith('light') ? l < lightness[i - 1] : l > lightness[i - 1]),
     ),
   })
+  // Role uniqueness: thresholds are CIEDE2000 distances between roles that can share a view.
+  const distinct = (a, b, threshold, rule) => {
+    const distance = deltaE(t[a], t[b])
+    checks.push({ name, rule, fg: a, bg: b, distance, threshold, pass: distance >= threshold })
+  }
+  // Status is never conveyed by colour alone (icon or label), so 10 suffices.
+  for (const status of ['danger', 'info', 'success', 'warning'])
+    distinct('accent-text', status + '-text', 10, 'Accent/status text distance')
+  // mark-peak is the selected reading: the accent's text colour, apart from ramps and slots.
+  // Category charts never use it; they show selection with --selection-contour.
+  checks.push({
+    name,
+    rule: 'mark-peak equals accent-text',
+    pass: t['mark-peak'] === t['accent-text'],
+  })
+  for (let i = 1; i <= 4; i++) distinct('mark-peak', 'heat-' + i, 8, 'Selection/heat distance')
+  for (let i = 1; i <= 5; i++) distinct('mark-peak', 'cmp-' + i, 8, 'Selection/comparison distance')
+  distinct('accent', 'accent-hover', 6, 'Accent hover distance')
   const accentHue = converter('oklch')(t.accent).h
   for (const status of ['danger', 'success', 'warning', 'info']) {
     const hue = converter('oklch')(t[status + '-fill']).h

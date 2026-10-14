@@ -10,9 +10,19 @@ This catalog does not replace [DESIGN.md](../DESIGN.md), change application toke
 - Dark: separately composed neutral White Sheet surfaces. Existing dark accent roles are retained. The card is darker than the page; the floating layer is lighter.
 - Ai, Matcha, Asagi and Sakura retain current accent values. Their presence is a comparison of inherited choices, not approval of a new palette.
 - Ordinary quantity marks are neutral; the picked reading is colored. `mark-peak` is the compatibility name for **selection**, not a permanent maximum. The initial reading may be the maximum; subsequent selections need not be.
+- `mark-peak` equals `accent-text` in every combination: the selection is never louder than the primary action. Ramps and slots stay apart from it (CIEDE2000 ≥ 8 to every `heat-*` and `cmp-*`). Category-coloured charts never use `mark-peak`; they show selection with `--selection-contour`.
 - Categories keep fixed colors. Comparison series keep slots, dashes and markers. Heat levels encode quantity under their own numeric legend. Known zero has a fill; missing data has a dashed outline.
 
 The proposed `mark-rest` is independent of `heat-3`. The current app and PNG exporter still share that older mapping; this catalog does not migrate either consumer.
+
+## Contracts
+
+- **States.** `outline` belongs to focus only. Selected and pressed controls draw an inset `box-shadow` (or border) in `--selection-contour`, so focus stays visible on a selected item. Under forced colors, pressed uses a `Highlight` border.
+- **Surfaces.** A surface nested inside a surface keeps a `--hairline` border (or an inset) in both themes.
+- **Figures.** When an isometric figure depicts a category, its live part takes that category's colour; the accent lights it only when no category applies.
+- **Status.** Status is never conveyed by colour alone: an icon or label accompanies it. Status text is kept CIEDE2000 ≥ 10 from `accent-text`.
+- **Hover.** `accent-hover` moves lightness away from its foreground, CIEDE2000 ≥ 6 from `accent`.
+- **Motion.** Tokens mirror `apps/next/src/app/styles.css`: press 120 ms, fast 150, base 200, sheet 300. `--dur-moment` (450) and `--dur-horizon` (500) are reserved for rare moments. Frequent and keyboard actions do not animate; reduced motion is honoured.
 
 ## Files and commands
 
@@ -25,7 +35,7 @@ npm --prefix design-system run build
 
 `palette.json` is the reviewed proposal data: 70+ opaque roles for each of ten theme/accent combinations. Edit it deliberately and run check before build. HEX matches the application notation. Initial neutral surfaces and heat adjustments were computed in OKLCH using Culori 4.0.2, then mapped to sRGB.
 
-`build.mjs` reruns validation against the current palette, then generates `tokens.css`, `tokens.json` and `index.html`. Components consume semantic roles; generated hue-named primitives contain the values. A consumer sets **both** `data-theme="light|dark"` and `data-accent="shu|ai|matcha|asagi|sakura"` on its root. The standalone catalog switches these attributes locally; there is no second media-query theme mechanism.
+`build.mjs` reruns validation against the current palette, then generates `tokens.css`, `tokens.json` and `index.html`. Components consume semantic roles; generated hue-named primitives contain the values. A consumer sets `data-theme="light|dark"` and `data-accent="shu|ai|matcha|asagi|sakura"` on its root; a root without `data-accent` receives Shu. The standalone catalog switches these attributes locally; there is no second media-query theme mechanism.
 
 `catalog.html`, `catalog.css` and `catalog.js` own the gallery and visual state specimens. Buttons, four isometric figures, Ticket and three neutral Stamps are rendered from project components by `specimens.tsx` during build. Fields, feedback, charts and the page layout are visual contract examples, not a replacement React component library. The existing app primitives remain the implementation owners. Rebuilding picks up current component markup/styles but does not automatically import new application palette values.
 
@@ -35,7 +45,7 @@ Font snapshots and their OFL licenses are in `assets/`; all three fonts are embe
 
 ## Verification and limits
 
-`validate.mjs` writes [contrast-report.json](contrast-report.json), including every measured pair and threshold, and exits nonzero for a failure. It checks ten combinations, sRGB displayability, text/control/focus/status/data contrast, monotonic heat lightness and at least 15° between the accent and each status hue. Thresholds: 4.5:1 text, 3:1 controls/marks, and the existing project's 1.4:1 selected-versus-rest distinction. Selection also has a contour and readable label. Hairlines and known-zero fills are decorative/context roles and are not claimed to meet 3:1.
+`validate.mjs` writes [contrast-report.json](contrast-report.json), including every measured pair and threshold, and exits nonzero for a failure. It checks ten combinations, sRGB displayability, text/control/focus/status/data contrast, monotonic heat lightness, at least 15° between the accent and each status hue, and the role distances above. The 15° rule with Sakura keeps danger between hue 10° and 18°. Thresholds: 4.5:1 text, 3:1 controls/marks, and the existing project's 1.4:1 selected-versus-rest distinction. Selection also has a contour and readable label. Hairlines and known-zero fills are decorative/context roles and are not claimed to meet 3:1.
 
 Status foregrounds are independent of accent foregrounds. Filled success/warning/info examples require black text in light mode; dark danger uses dark text. An accent swap cannot change them.
 

@@ -1,8 +1,8 @@
 {
   "combinations": 10,
-  "checks": 1200,
+  "checks": 1350,
   "gamutChecks": 710,
-  "minimumTextContrast": 4.521022020542436,
+  "minimumTextContrast": 4.558346986859412,
   "failures": [],
   "coverage": "Declared opaque pairs only. Browser compositing, disabled exceptions, airline/stamp inks, and complete application behavior are outside this check.",
   "pairs": [
@@ -34,7 +34,7 @@
       "name": "light-shu",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -58,7 +58,7 @@
       "name": "light-shu",
       "fg": "info-text",
       "bg": "background",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -90,7 +90,7 @@
       "name": "light-shu",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 5.586014471155282,
+      "ratio": 5.312900475723507,
       "threshold": 3,
       "pass": true
     },
@@ -234,7 +234,7 @@
       "name": "light-shu",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.1200786068476365,
+      "ratio": 7.088578189487296,
       "threshold": 4.5,
       "pass": true
     },
@@ -258,7 +258,7 @@
       "name": "light-shu",
       "fg": "info-text",
       "bg": "surface",
-      "ratio": 6.541887383619731,
+      "ratio": 6.939763372974109,
       "threshold": 4.5,
       "pass": true
     },
@@ -290,7 +290,7 @@
       "name": "light-shu",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 5.3517921036639216,
+      "ratio": 5.090129816231718,
       "threshold": 3,
       "pass": true
     },
@@ -434,7 +434,7 @@
       "name": "light-shu",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 6.63843262341796,
+      "ratio": 6.609063088360433,
       "threshold": 4.5,
       "pass": true
     },
@@ -458,7 +458,7 @@
       "name": "light-shu",
       "fg": "info-text",
       "bg": "surface-inset",
-      "ratio": 6.099353816737561,
+      "ratio": 6.470315022877138,
       "threshold": 4.5,
       "pass": true
     },
@@ -490,7 +490,7 @@
       "name": "light-shu",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 4.989763913637852,
+      "ratio": 4.745802075416355,
       "threshold": 3,
       "pass": true
     },
@@ -634,7 +634,7 @@
       "name": "light-shu",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -658,7 +658,7 @@
       "name": "light-shu",
       "fg": "info-text",
       "bg": "surface-floating",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -690,7 +690,7 @@
       "name": "light-shu",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.586014471155282,
+      "ratio": 5.312900475723507,
       "threshold": 3,
       "pass": true
     },
@@ -850,7 +850,7 @@
       "name": "light-shu",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 4.521022020542436,
+      "ratio": 6.752005747545652,
       "threshold": 4.5,
       "pass": true
     },
@@ -858,7 +858,7 @@
       "name": "light-shu",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.6611758994704495,
+      "ratio": 1.5799569213668148,
       "threshold": 1.4,
       "pass": true
     },
@@ -866,7 +866,7 @@
       "name": "light-shu",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 5.161646276383207,
+      "ratio": 5.221342946977445,
       "threshold": 4.5,
       "pass": true
     },
@@ -933,8 +933,139 @@
     },
     {
       "name": "light-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 14.570257317822996,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 42.32134624670651,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 53.17393850019517,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 18.99173231865276,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 40.01858587042883,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 31.56168090826729,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 12.692182717048665,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 9.36274960072108,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 9.171851499769195,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 36.04864264035076,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 39.07123938876778,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 38.53106563080387,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 27.79486266569683,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.076073227088812,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "light-shu",
       "rule": "Accent/status hue distance: danger",
-      "distance": 21.18916263589944,
+      "distance": 15.037364419584303,
       "pass": true
     },
     {
@@ -983,7 +1114,7 @@
       "name": "light-ai",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -1007,7 +1138,7 @@
       "name": "light-ai",
       "fg": "info-text",
       "bg": "background",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -1039,7 +1170,7 @@
       "name": "light-ai",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 5.203955131115491,
+      "ratio": 5.444482306148274,
       "threshold": 3,
       "pass": true
     },
@@ -1055,7 +1186,7 @@
       "name": "light-ai",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 5.421732461488358,
+      "ratio": 7.605518045159236,
       "threshold": 3,
       "pass": true
     },
@@ -1119,7 +1250,7 @@
       "name": "light-ai",
       "fg": "cmp-1",
       "bg": "background",
-      "ratio": 5.203955131115491,
+      "ratio": 7.608414724442757,
       "threshold": 3,
       "pass": true
     },
@@ -1183,7 +1314,7 @@
       "name": "light-ai",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.1200786068476365,
+      "ratio": 7.088578189487296,
       "threshold": 4.5,
       "pass": true
     },
@@ -1207,7 +1338,7 @@
       "name": "light-ai",
       "fg": "info-text",
       "bg": "surface",
-      "ratio": 6.541887383619731,
+      "ratio": 6.939763372974109,
       "threshold": 4.5,
       "pass": true
     },
@@ -1239,7 +1370,7 @@
       "name": "light-ai",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 4.985752565149599,
+      "ratio": 5.216194402116558,
       "threshold": 3,
       "pass": true
     },
@@ -1255,7 +1386,7 @@
       "name": "light-ai",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 5.19439846162281,
+      "ratio": 7.286617610558851,
       "threshold": 3,
       "pass": true
     },
@@ -1319,7 +1450,7 @@
       "name": "light-ai",
       "fg": "cmp-1",
       "bg": "surface",
-      "ratio": 4.985752565149599,
+      "ratio": 7.289392831675166,
       "threshold": 3,
       "pass": true
     },
@@ -1383,7 +1514,7 @@
       "name": "light-ai",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 6.63843262341796,
+      "ratio": 6.609063088360433,
       "threshold": 4.5,
       "pass": true
     },
@@ -1407,7 +1538,7 @@
       "name": "light-ai",
       "fg": "info-text",
       "bg": "surface-inset",
-      "ratio": 6.099353816737561,
+      "ratio": 6.470315022877138,
       "threshold": 4.5,
       "pass": true
     },
@@ -1439,7 +1570,7 @@
       "name": "light-ai",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 4.648485544660664,
+      "ratio": 4.863338876034082,
       "threshold": 3,
       "pass": true
     },
@@ -1455,7 +1586,7 @@
       "name": "light-ai",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 4.8430173472390745,
+      "ratio": 6.793705902879341,
       "threshold": 3,
       "pass": true
     },
@@ -1519,7 +1650,7 @@
       "name": "light-ai",
       "fg": "cmp-1",
       "bg": "surface-inset",
-      "ratio": 4.648485544660664,
+      "ratio": 6.7962933909413445,
       "threshold": 3,
       "pass": true
     },
@@ -1583,7 +1714,7 @@
       "name": "light-ai",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -1607,7 +1738,7 @@
       "name": "light-ai",
       "fg": "info-text",
       "bg": "surface-floating",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -1639,7 +1770,7 @@
       "name": "light-ai",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.203955131115491,
+      "ratio": 5.444482306148274,
       "threshold": 3,
       "pass": true
     },
@@ -1655,7 +1786,7 @@
       "name": "light-ai",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.421732461488358,
+      "ratio": 7.605518045159236,
       "threshold": 3,
       "pass": true
     },
@@ -1719,7 +1850,7 @@
       "name": "light-ai",
       "fg": "cmp-1",
       "bg": "surface-floating",
-      "ratio": 5.203955131115491,
+      "ratio": 7.608414724442757,
       "threshold": 3,
       "pass": true
     },
@@ -1799,7 +1930,7 @@
       "name": "light-ai",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 5.151097119136243,
+      "ratio": 8.360555533126252,
       "threshold": 4.5,
       "pass": true
     },
@@ -1807,7 +1938,7 @@
       "name": "light-ai",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.5475586199021731,
+      "ratio": 1.6190868890098495,
       "threshold": 1.4,
       "pass": true
     },
@@ -1815,7 +1946,7 @@
       "name": "light-ai",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 5.161646276383207,
+      "ratio": 5.221342946977445,
       "threshold": 4.5,
       "pass": true
     },
@@ -1871,7 +2002,7 @@
       "name": "light-ai",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 5.421732461488358,
+      "ratio": 7.605518045159236,
       "threshold": 4.5,
       "pass": true
     },
@@ -1882,8 +2013,139 @@
     },
     {
       "name": "light-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 37.13047518586785,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 12.107521655356242,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 45.18812485789643,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 47.13534036644049,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 39.396831437053685,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 28.98179852327027,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 15.462533878329694,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.157417620012207,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 8.100725104867246,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 29.687208410703192,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 41.83680226694258,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 39.124379250733185,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 19.775680735785453,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.323204355255522,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "light-ai",
       "rule": "Accent/status hue distance: danger",
-      "distance": 100.0850122317321,
+      "distance": 106.23681044804724,
       "pass": true
     },
     {
@@ -1932,7 +2194,7 @@
       "name": "light-matcha",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -1956,7 +2218,7 @@
       "name": "light-matcha",
       "fg": "info-text",
       "bg": "background",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -1988,7 +2250,7 @@
       "name": "light-matcha",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 4.93042830193805,
+      "ratio": 5.3565875198389685,
       "threshold": 3,
       "pass": true
     },
@@ -2004,7 +2266,7 @@
       "name": "light-matcha",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 5.143573507867436,
+      "ratio": 7.472331210383234,
       "threshold": 3,
       "pass": true
     },
@@ -2068,7 +2330,7 @@
       "name": "light-matcha",
       "fg": "cmp-1",
       "bg": "background",
-      "ratio": 4.93042830193805,
+      "ratio": 7.479389450447107,
       "threshold": 3,
       "pass": true
     },
@@ -2132,7 +2394,7 @@
       "name": "light-matcha",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.1200786068476365,
+      "ratio": 7.088578189487296,
       "threshold": 4.5,
       "pass": true
     },
@@ -2156,7 +2418,7 @@
       "name": "light-matcha",
       "fg": "info-text",
       "bg": "surface",
-      "ratio": 6.541887383619731,
+      "ratio": 6.939763372974109,
       "threshold": 4.5,
       "pass": true
     },
@@ -2188,7 +2450,7 @@
       "name": "light-matcha",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 4.723694754148385,
+      "ratio": 5.1319850564816045,
       "threshold": 3,
       "pass": true
     },
@@ -2204,7 +2466,7 @@
       "name": "light-matcha",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 4.927902751803427,
+      "ratio": 7.159015318379542,
       "threshold": 3,
       "pass": true
     },
@@ -2268,7 +2530,7 @@
       "name": "light-matcha",
       "fg": "cmp-1",
       "bg": "surface",
-      "ratio": 4.723694754148385,
+      "ratio": 7.1657776054510585,
       "threshold": 3,
       "pass": true
     },
@@ -2332,7 +2594,7 @@
       "name": "light-matcha",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 6.63843262341796,
+      "ratio": 6.609063088360433,
       "threshold": 4.5,
       "pass": true
     },
@@ -2356,7 +2618,7 @@
       "name": "light-matcha",
       "fg": "info-text",
       "bg": "surface-inset",
-      "ratio": 6.099353816737561,
+      "ratio": 6.470315022877138,
       "threshold": 4.5,
       "pass": true
     },
@@ -2388,7 +2650,7 @@
       "name": "light-matcha",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 4.404154938521166,
+      "ratio": 4.7848259693476125,
       "threshold": 3,
       "pass": true
     },
@@ -2404,7 +2666,7 @@
       "name": "light-matcha",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 4.59454904909915,
+      "ratio": 6.674735415894637,
       "threshold": 3,
       "pass": true
     },
@@ -2468,7 +2730,7 @@
       "name": "light-matcha",
       "fg": "cmp-1",
       "bg": "surface-inset",
-      "ratio": 4.404154938521166,
+      "ratio": 6.68104026020651,
       "threshold": 3,
       "pass": true
     },
@@ -2532,7 +2794,7 @@
       "name": "light-matcha",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -2556,7 +2818,7 @@
       "name": "light-matcha",
       "fg": "info-text",
       "bg": "surface-floating",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -2588,7 +2850,7 @@
       "name": "light-matcha",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 4.93042830193805,
+      "ratio": 5.3565875198389685,
       "threshold": 3,
       "pass": true
     },
@@ -2604,7 +2866,7 @@
       "name": "light-matcha",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.143573507867436,
+      "ratio": 7.472331210383234,
       "threshold": 3,
       "pass": true
     },
@@ -2668,7 +2930,7 @@
       "name": "light-matcha",
       "fg": "cmp-1",
       "bg": "surface-floating",
-      "ratio": 4.93042830193805,
+      "ratio": 7.479389450447107,
       "threshold": 3,
       "pass": true
     },
@@ -2748,7 +3010,7 @@
       "name": "light-matcha",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 4.717221946673478,
+      "ratio": 7.4981786209165495,
       "threshold": 4.5,
       "pass": true
     },
@@ -2756,7 +3018,7 @@
       "name": "light-matcha",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.4662168727881235,
+      "ratio": 1.5929486286347514,
       "threshold": 1.4,
       "pass": true
     },
@@ -2764,7 +3026,7 @@
       "name": "light-matcha",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 5.161646276383207,
+      "ratio": 5.221342946977445,
       "threshold": 4.5,
       "pass": true
     },
@@ -2820,7 +3082,7 @@
       "name": "light-matcha",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 5.143573507867436,
+      "ratio": 7.472331210383234,
       "threshold": 4.5,
       "pass": true
     },
@@ -2831,8 +3093,139 @@
     },
     {
       "name": "light-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 50.676537837922446,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 42.943112996329084,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 12.032113600069454,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 26.70158812915215,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 35.88401903580434,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 27.213106403048744,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 15.909895086217304,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.005502669412472,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 8.076746306209934,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 23.760197259930766,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 46.024528386714785,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 46.279090081079666,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 22.045810286082467,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.134136979481378,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "light-matcha",
       "rule": "Accent/status hue distance: danger",
-      "distance": 113.12712233806467,
+      "distance": 106.97532412174952,
       "pass": true
     },
     {
@@ -2881,7 +3274,7 @@
       "name": "light-asagi",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -2905,7 +3298,7 @@
       "name": "light-asagi",
       "fg": "info-text",
       "bg": "background",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -2937,7 +3330,7 @@
       "name": "light-asagi",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 6.9414166770778465,
+      "ratio": 5.368145182837836,
       "threshold": 3,
       "pass": true
     },
@@ -2953,7 +3346,7 @@
       "name": "light-asagi",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 5.1488434605565025,
+      "ratio": 7.586546000361474,
       "threshold": 3,
       "pass": true
     },
@@ -3017,7 +3410,7 @@
       "name": "light-asagi",
       "fg": "cmp-1",
       "bg": "background",
-      "ratio": 6.9414166770778465,
+      "ratio": 7.493469078519844,
       "threshold": 3,
       "pass": true
     },
@@ -3081,7 +3474,7 @@
       "name": "light-asagi",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.1200786068476365,
+      "ratio": 7.088578189487296,
       "threshold": 4.5,
       "pass": true
     },
@@ -3105,7 +3498,7 @@
       "name": "light-asagi",
       "fg": "info-text",
       "bg": "surface",
-      "ratio": 6.541887383619731,
+      "ratio": 6.939763372974109,
       "threshold": 4.5,
       "pass": true
     },
@@ -3137,7 +3530,7 @@
       "name": "light-asagi",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 6.650362105657637,
+      "ratio": 5.143058105055601,
       "threshold": 3,
       "pass": true
     },
@@ -3153,7 +3546,7 @@
       "name": "light-asagi",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 4.9329517346396985,
+      "ratio": 7.26844106625104,
       "threshold": 3,
       "pass": true
     },
@@ -3217,7 +3610,7 @@
       "name": "light-asagi",
       "fg": "cmp-1",
       "bg": "surface",
-      "ratio": 6.650362105657637,
+      "ratio": 7.179266872750902,
       "threshold": 3,
       "pass": true
     },
@@ -3281,7 +3674,7 @@
       "name": "light-asagi",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 6.63843262341796,
+      "ratio": 6.609063088360433,
       "threshold": 4.5,
       "pass": true
     },
@@ -3305,7 +3698,7 @@
       "name": "light-asagi",
       "fg": "info-text",
       "bg": "surface-inset",
-      "ratio": 6.099353816737561,
+      "ratio": 6.470315022877138,
       "threshold": 4.5,
       "pass": true
     },
@@ -3337,7 +3730,7 @@
       "name": "light-asagi",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 6.200490640269267,
+      "ratio": 4.795149968695544,
       "threshold": 3,
       "pass": true
     },
@@ -3353,7 +3746,7 @@
       "name": "light-asagi",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 4.599256487629836,
+      "ratio": 6.776758932013328,
       "threshold": 3,
       "pass": true
     },
@@ -3417,7 +3810,7 @@
       "name": "light-asagi",
       "fg": "cmp-1",
       "bg": "surface-inset",
-      "ratio": 6.200490640269267,
+      "ratio": 6.693617030359464,
       "threshold": 3,
       "pass": true
     },
@@ -3481,7 +3874,7 @@
       "name": "light-asagi",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -3505,7 +3898,7 @@
       "name": "light-asagi",
       "fg": "info-text",
       "bg": "surface-floating",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -3537,7 +3930,7 @@
       "name": "light-asagi",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 6.9414166770778465,
+      "ratio": 5.368145182837836,
       "threshold": 3,
       "pass": true
     },
@@ -3553,7 +3946,7 @@
       "name": "light-asagi",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.1488434605565025,
+      "ratio": 7.586546000361474,
       "threshold": 3,
       "pass": true
     },
@@ -3617,7 +4010,7 @@
       "name": "light-asagi",
       "fg": "cmp-1",
       "bg": "surface-floating",
-      "ratio": 6.9414166770778465,
+      "ratio": 7.493469078519844,
       "threshold": 3,
       "pass": true
     },
@@ -3697,7 +4090,7 @@
       "name": "light-asagi",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 4.6695925603244355,
+      "ratio": 7.413322074143609,
       "threshold": 4.5,
       "pass": true
     },
@@ -3705,7 +4098,7 @@
       "name": "light-asagi",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 2.0642470855896624,
+      "ratio": 1.5963856607668845,
       "threshold": 1.4,
       "pass": true
     },
@@ -3713,7 +4106,7 @@
       "name": "light-asagi",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 5.161646276383207,
+      "ratio": 5.221342946977445,
       "threshold": 4.5,
       "pass": true
     },
@@ -3769,7 +4162,7 @@
       "name": "light-asagi",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 5.1488434605565025,
+      "ratio": 7.586546000361474,
       "threshold": 4.5,
       "pass": true
     },
@@ -3780,8 +4173,139 @@
     },
     {
       "name": "light-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 46.6145435755432,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 18.5591648522767,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 22.903193673662273,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 35.64951807873721,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 35.52341460184309,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 27.400092102288443,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 15.867665319961388,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.265190598737979,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 8.105111469215833,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 23.680692721153477,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 41.88200350903401,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 25.648269478019024,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 21.40436780337475,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.215817992006905,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "light-asagi",
       "rule": "Accent/status hue distance: danger",
-      "distance": 167.4403929094007,
+      "distance": 173.59219112571586,
       "pass": true
     },
     {
@@ -3830,7 +4354,7 @@
       "name": "light-sakura",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -3854,7 +4378,7 @@
       "name": "light-sakura",
       "fg": "info-text",
       "bg": "background",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -3886,7 +4410,7 @@
       "name": "light-sakura",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 7.581350313823436,
+      "ratio": 5.425221045061437,
       "threshold": 3,
       "pass": true
     },
@@ -3902,7 +4426,7 @@
       "name": "light-sakura",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 5.628990248832414,
+      "ratio": 7.6053488550346815,
       "threshold": 3,
       "pass": true
     },
@@ -4030,7 +4554,7 @@
       "name": "light-sakura",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.1200786068476365,
+      "ratio": 7.088578189487296,
       "threshold": 4.5,
       "pass": true
     },
@@ -4054,7 +4578,7 @@
       "name": "light-sakura",
       "fg": "info-text",
       "bg": "surface",
-      "ratio": 6.541887383619731,
+      "ratio": 6.939763372974109,
       "threshold": 4.5,
       "pass": true
     },
@@ -4086,7 +4610,7 @@
       "name": "light-sakura",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 7.263463235575705,
+      "ratio": 5.197740768399096,
       "threshold": 3,
       "pass": true
     },
@@ -4102,7 +4626,7 @@
       "name": "light-sakura",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 5.3929659009766455,
+      "ratio": 7.286455514599864,
       "threshold": 3,
       "pass": true
     },
@@ -4230,7 +4754,7 @@
       "name": "light-sakura",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 6.63843262341796,
+      "ratio": 6.609063088360433,
       "threshold": 4.5,
       "pass": true
     },
@@ -4254,7 +4778,7 @@
       "name": "light-sakura",
       "fg": "info-text",
       "bg": "surface-inset",
-      "ratio": 6.099353816737561,
+      "ratio": 6.470315022877138,
       "threshold": 4.5,
       "pass": true
     },
@@ -4286,7 +4810,7 @@
       "name": "light-sakura",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 6.772117832473048,
+      "ratio": 4.846133559793221,
       "threshold": 3,
       "pass": true
     },
@@ -4302,7 +4826,7 @@
       "name": "light-sakura",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 5.028152461630555,
+      "ratio": 6.793554772089686,
       "threshold": 3,
       "pass": true
     },
@@ -4430,7 +4954,7 @@
       "name": "light-sakura",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 7.4316904250419045,
+      "ratio": 7.398811384934606,
       "threshold": 4.5,
       "pass": true
     },
@@ -4454,7 +4978,7 @@
       "name": "light-sakura",
       "fg": "info-text",
       "bg": "surface-floating",
-      "ratio": 6.828194534789573,
+      "ratio": 7.2434836549960915,
       "threshold": 4.5,
       "pass": true
     },
@@ -4486,7 +5010,7 @@
       "name": "light-sakura",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 7.581350313823436,
+      "ratio": 5.425221045061437,
       "threshold": 3,
       "pass": true
     },
@@ -4502,7 +5026,7 @@
       "name": "light-sakura",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.628990248832414,
+      "ratio": 7.6053488550346815,
       "threshold": 3,
       "pass": true
     },
@@ -4646,7 +5170,7 @@
       "name": "light-sakura",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 5.13490809404356,
+      "ratio": 8.317565578824363,
       "threshold": 4.5,
       "pass": true
     },
@@ -4654,7 +5178,7 @@
       "name": "light-sakura",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 2.2545513427861885,
+      "ratio": 1.6133589513405002,
       "threshold": 1.4,
       "pass": true
     },
@@ -4662,7 +5186,7 @@
       "name": "light-sakura",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 5.161646276383207,
+      "ratio": 5.221342946977445,
       "threshold": 4.5,
       "pass": true
     },
@@ -4718,7 +5242,7 @@
       "name": "light-sakura",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 5.628990248832414,
+      "ratio": 7.6053488550346815,
       "threshold": 4.5,
       "pass": true
     },
@@ -4729,8 +5253,139 @@
     },
     {
       "name": "light-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 15.006704704328405,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 38.526652714051416,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 62.047182561876156,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 36.75937920382627,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 39.60854072524443,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 28.28376094744233,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 14.621910024744182,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.11622048613662,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 8.22390902684717,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 34.28222987739559,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 53.30789213334112,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 36.23582356923925,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 23.11346718678216,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.178710243396272,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "light-sakura",
       "rule": "Accent/status hue distance: danger",
-      "distance": 16.554824029410327,
+      "distance": 22.70662224572544,
       "pass": true
     },
     {
@@ -4779,7 +5434,7 @@
       "name": "dark-shu",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.017229405144213,
+      "ratio": 5.6993962550696065,
       "threshold": 4.5,
       "pass": true
     },
@@ -4835,7 +5490,7 @@
       "name": "dark-shu",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 6.356306702216039,
+      "ratio": 6.306843123075584,
       "threshold": 3,
       "pass": true
     },
@@ -4851,7 +5506,7 @@
       "name": "dark-shu",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 6.356306702216039,
+      "ratio": 8.812477352120155,
       "threshold": 3,
       "pass": true
     },
@@ -4979,7 +5634,7 @@
       "name": "dark-shu",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.618449506348398,
+      "ratio": 6.18770743822171,
       "threshold": 4.5,
       "pass": true
     },
@@ -5035,7 +5690,7 @@
       "name": "dark-shu",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 6.900900463963326,
+      "ratio": 6.847198958949314,
       "threshold": 3,
       "pass": true
     },
@@ -5051,7 +5706,7 @@
       "name": "dark-shu",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 6.900900463963326,
+      "ratio": 9.56751017484891,
       "threshold": 3,
       "pass": true
     },
@@ -5179,7 +5834,7 @@
       "name": "dark-shu",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 8.121534910286245,
+      "ratio": 6.596313584841569,
       "threshold": 4.5,
       "pass": true
     },
@@ -5235,7 +5890,7 @@
       "name": "dark-shu",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 7.356602414150813,
+      "ratio": 7.299354722564385,
       "threshold": 3,
       "pass": true
     },
@@ -5251,7 +5906,7 @@
       "name": "dark-shu",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 7.356602414150813,
+      "ratio": 10.19930207909169,
       "threshold": 3,
       "pass": true
     },
@@ -5379,7 +6034,7 @@
       "name": "dark-shu",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 5.619179006812966,
+      "ratio": 4.563899217049666,
       "threshold": 4.5,
       "pass": true
     },
@@ -5435,7 +6090,7 @@
       "name": "dark-shu",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.089932667125464,
+      "ratio": 5.05032377172522,
       "threshold": 3,
       "pass": true
     },
@@ -5451,7 +6106,7 @@
       "name": "dark-shu",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.089932667125464,
+      "ratio": 7.056757713912962,
       "threshold": 3,
       "pass": true
     },
@@ -5595,7 +6250,7 @@
       "name": "dark-shu",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 4.931261660316766,
+      "ratio": 7.412426883991017,
       "threshold": 4.5,
       "pass": true
     },
@@ -5603,7 +6258,7 @@
       "name": "dark-shu",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.5739786374608564,
+      "ratio": 1.561730232758754,
       "threshold": 1.4,
       "pass": true
     },
@@ -5611,7 +6266,7 @@
       "name": "dark-shu",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 4.9658182314007036,
+      "ratio": 4.558346986859412,
       "threshold": 4.5,
       "pass": true
     },
@@ -5667,7 +6322,7 @@
       "name": "dark-shu",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 7.626411994094215,
+      "ratio": 10.573370059764702,
       "threshold": 4.5,
       "pass": true
     },
@@ -5678,8 +6333,139 @@
     },
     {
       "name": "dark-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 11.73856820261404,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 37.03411950521502,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 44.45100820479208,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 15.577255041282761,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 35.93424661516076,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 22.403453737869526,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 10.793652217763531,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.216050827661578,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 12.81475977368493,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 33.701281569330824,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 39.28355996319728,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 26.397116053255868,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 24.067372646298764,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.007958544416265,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "dark-shu",
       "rule": "Accent/status hue distance: danger",
-      "distance": 20.747638653433505,
+      "distance": 21.650834324694394,
       "pass": true
     },
     {
@@ -5728,7 +6514,7 @@
       "name": "dark-ai",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.017229405144213,
+      "ratio": 5.6993962550696065,
       "threshold": 4.5,
       "pass": true
     },
@@ -5784,7 +6570,7 @@
       "name": "dark-ai",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 6.495261435149917,
+      "ratio": 6.344955717499993,
       "threshold": 3,
       "pass": true
     },
@@ -5800,7 +6586,7 @@
       "name": "dark-ai",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 6.495261435149917,
+      "ratio": 8.898123504450703,
       "threshold": 3,
       "pass": true
     },
@@ -5864,7 +6650,7 @@
       "name": "dark-ai",
       "fg": "cmp-1",
       "bg": "background",
-      "ratio": 5.819646564923478,
+      "ratio": 4.6214360204957945,
       "threshold": 3,
       "pass": true
     },
@@ -5928,7 +6714,7 @@
       "name": "dark-ai",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.618449506348398,
+      "ratio": 6.18770743822171,
       "threshold": 4.5,
       "pass": true
     },
@@ -5984,7 +6770,7 @@
       "name": "dark-ai",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 7.051760519322044,
+      "ratio": 6.88857695294299,
       "threshold": 3,
       "pass": true
     },
@@ -6000,7 +6786,7 @@
       "name": "dark-ai",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 7.051760519322044,
+      "ratio": 9.66049429283499,
       "threshold": 3,
       "pass": true
     },
@@ -6064,7 +6850,7 @@
       "name": "dark-ai",
       "fg": "cmp-1",
       "bg": "surface",
-      "ratio": 6.318260518483398,
+      "ratio": 5.017390046156446,
       "threshold": 3,
       "pass": true
     },
@@ -6128,7 +6914,7 @@
       "name": "dark-ai",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 8.121534910286245,
+      "ratio": 6.596313584841569,
       "threshold": 4.5,
       "pass": true
     },
@@ -6184,7 +6970,7 @@
       "name": "dark-ai",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 7.517424534864822,
+      "ratio": 7.343465118315806,
       "threshold": 3,
       "pass": true
     },
@@ -6200,7 +6986,7 @@
       "name": "dark-ai",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 7.517424534864822,
+      "ratio": 10.29842641662216,
       "threshold": 3,
       "pass": true
     },
@@ -6264,7 +7050,7 @@
       "name": "dark-ai",
       "fg": "cmp-1",
       "bg": "surface-inset",
-      "ratio": 6.735487756450525,
+      "ratio": 5.3487141162288365,
       "threshold": 3,
       "pass": true
     },
@@ -6328,7 +7114,7 @@
       "name": "dark-ai",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 5.619179006812966,
+      "ratio": 4.563899217049666,
       "threshold": 4.5,
       "pass": true
     },
@@ -6384,7 +7170,7 @@
       "name": "dark-ai",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.201203294479752,
+      "ratio": 5.08084315168561,
       "threshold": 3,
       "pass": true
     },
@@ -6400,7 +7186,7 @@
       "name": "dark-ai",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.201203294479752,
+      "ratio": 7.125340488310692,
       "threshold": 3,
       "pass": true
     },
@@ -6464,7 +7250,7 @@
       "name": "dark-ai",
       "fg": "cmp-1",
       "bg": "surface-floating",
-      "ratio": 4.6601919242822785,
+      "ratio": 3.700702195750081,
       "threshold": 3,
       "pass": true
     },
@@ -6544,7 +7330,7 @@
       "name": "dark-ai",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 6.7221993549614165,
+      "ratio": 10.212298534655055,
       "threshold": 4.5,
       "pass": true
     },
@@ -6552,7 +7338,7 @@
       "name": "dark-ai",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.6083872636424335,
+      "ratio": 1.5711678531022335,
       "threshold": 1.4,
       "pass": true
     },
@@ -6560,7 +7346,7 @@
       "name": "dark-ai",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 4.9658182314007036,
+      "ratio": 4.558346986859412,
       "threshold": 4.5,
       "pass": true
     },
@@ -6616,7 +7402,7 @@
       "name": "dark-ai",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 7.793132401325923,
+      "ratio": 10.676129865730957,
       "threshold": 4.5,
       "pass": true
     },
@@ -6627,8 +7413,139 @@
     },
     {
       "name": "dark-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 32.22886863311542,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 12.251477604083151,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 37.77364130878763,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 38.221552022302646,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 35.27963362273954,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 21.862389728255078,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 10.497887939915142,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.194481447099678,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 8.05976420877626,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 22.23072076313304,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 37.85434585762673,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 34.541557564121156,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 20.759928571388585,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.089169162932496,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "dark-ai",
       "rule": "Accent/status hue distance: danger",
-      "distance": 99.81845311823645,
+      "distance": 98.91525744697555,
       "pass": true
     },
     {
@@ -6677,7 +7594,7 @@
       "name": "dark-matcha",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.017229405144213,
+      "ratio": 5.6993962550696065,
       "threshold": 4.5,
       "pass": true
     },
@@ -6733,7 +7650,7 @@
       "name": "dark-matcha",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 6.748517460768848,
+      "ratio": 6.391555548753513,
       "threshold": 3,
       "pass": true
     },
@@ -6749,7 +7666,7 @@
       "name": "dark-matcha",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 6.748517460768848,
+      "ratio": 8.916049734615221,
       "threshold": 3,
       "pass": true
     },
@@ -6813,7 +7730,7 @@
       "name": "dark-matcha",
       "fg": "cmp-1",
       "bg": "background",
-      "ratio": 6.059870099524512,
+      "ratio": 4.623936619330227,
       "threshold": 3,
       "pass": true
     },
@@ -6877,7 +7794,7 @@
       "name": "dark-matcha",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.618449506348398,
+      "ratio": 6.18770743822171,
       "threshold": 4.5,
       "pass": true
     },
@@ -6933,7 +7850,7 @@
       "name": "dark-matcha",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 7.3267149396438125,
+      "ratio": 6.939169350727368,
       "threshold": 3,
       "pass": true
     },
@@ -6949,7 +7866,7 @@
       "name": "dark-matcha",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 7.3267149396438125,
+      "ratio": 9.67995640123456,
       "threshold": 3,
       "pass": true
     },
@@ -7013,7 +7930,7 @@
       "name": "dark-matcha",
       "fg": "cmp-1",
       "bg": "surface",
-      "ratio": 6.579065853884415,
+      "ratio": 5.020104890556686,
       "threshold": 3,
       "pass": true
     },
@@ -7077,7 +7994,7 @@
       "name": "dark-matcha",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 8.121534910286245,
+      "ratio": 6.596313584841569,
       "threshold": 4.5,
       "pass": true
     },
@@ -7133,7 +8050,7 @@
       "name": "dark-matcha",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 7.810535609699666,
+      "ratio": 7.3973983923315405,
       "threshold": 3,
       "pass": true
     },
@@ -7149,7 +8066,7 @@
       "name": "dark-matcha",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 7.810535609699666,
+      "ratio": 10.31917370813642,
       "threshold": 3,
       "pass": true
     },
@@ -7213,7 +8130,7 @@
       "name": "dark-matcha",
       "fg": "cmp-1",
       "bg": "surface-inset",
-      "ratio": 7.013515409516053,
+      "ratio": 5.351608235767749,
       "threshold": 3,
       "pass": true
     },
@@ -7277,7 +8194,7 @@
       "name": "dark-matcha",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 5.619179006812966,
+      "ratio": 4.563899217049666,
       "threshold": 4.5,
       "pass": true
     },
@@ -7333,7 +8250,7 @@
       "name": "dark-matcha",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.404002841187394,
+      "ratio": 5.118158846867079,
       "threshold": 3,
       "pass": true
     },
@@ -7349,7 +8266,7 @@
       "name": "dark-matcha",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.404002841187394,
+      "ratio": 7.139695255754651,
       "threshold": 3,
       "pass": true
     },
@@ -7413,7 +8330,7 @@
       "name": "dark-matcha",
       "fg": "cmp-1",
       "bg": "surface-floating",
-      "ratio": 4.852555457613963,
+      "ratio": 3.7027045975049107,
       "threshold": 3,
       "pass": true
     },
@@ -7493,7 +8410,7 @@
       "name": "dark-matcha",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 7.373542566218217,
+      "ratio": 11.610858998831036,
       "threshold": 4.5,
       "pass": true
     },
@@ -7501,7 +8418,7 @@
       "name": "dark-matcha",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.6710997148829412,
+      "ratio": 1.5827071230491585,
       "threshold": 1.4,
       "pass": true
     },
@@ -7509,7 +8426,7 @@
       "name": "dark-matcha",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 4.9658182314007036,
+      "ratio": 4.558346986859412,
       "threshold": 4.5,
       "pass": true
     },
@@ -7565,7 +8482,7 @@
       "name": "dark-matcha",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 8.096993571316897,
+      "ratio": 10.697638081608568,
       "threshold": 4.5,
       "pass": true
     },
@@ -7576,8 +8493,139 @@
     },
     {
       "name": "dark-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 52.25608193245577,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 49.771972497347235,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 10.64926539155256,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 27.86255502549992,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 36.8050348052633,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 22.698601745543524,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 9.52231610727419,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.059366927393292,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 8.15927332209629,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 31.051184997489152,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 40.028888320309825,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 40.123854520469784,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 27.624879570572997,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.176532017333282,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "dark-matcha",
       "rule": "Accent/status hue distance: danger",
-      "distance": 113.33706145368478,
+      "distance": 114.24025712494567,
       "pass": true
     },
     {
@@ -7626,7 +8674,7 @@
       "name": "dark-asagi",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.017229405144213,
+      "ratio": 5.6993962550696065,
       "threshold": 4.5,
       "pass": true
     },
@@ -7682,7 +8730,7 @@
       "name": "dark-asagi",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 6.75935670998514,
+      "ratio": 6.417040886212648,
       "threshold": 3,
       "pass": true
     },
@@ -7698,7 +8746,7 @@
       "name": "dark-asagi",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 6.75935670998514,
+      "ratio": 9.00867345647146,
       "threshold": 3,
       "pass": true
     },
@@ -7826,7 +8874,7 @@
       "name": "dark-asagi",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.618449506348398,
+      "ratio": 6.18770743822171,
       "threshold": 4.5,
       "pass": true
     },
@@ -7882,7 +8930,7 @@
       "name": "dark-asagi",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 7.338482870841918,
+      "ratio": 6.96683821337597,
       "threshold": 3,
       "pass": true
     },
@@ -7898,7 +8946,7 @@
       "name": "dark-asagi",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 7.338482870841918,
+      "ratio": 9.780515910880132,
       "threshold": 3,
       "pass": true
     },
@@ -8026,7 +9074,7 @@
       "name": "dark-asagi",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 8.121534910286245,
+      "ratio": 6.596313584841569,
       "threshold": 4.5,
       "pass": true
     },
@@ -8082,7 +9130,7 @@
       "name": "dark-asagi",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 7.823080637919333,
+      "ratio": 7.426894372286686,
       "threshold": 3,
       "pass": true
     },
@@ -8098,7 +9146,7 @@
       "name": "dark-asagi",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 7.823080637919333,
+      "ratio": 10.426373679399239,
       "threshold": 3,
       "pass": true
     },
@@ -8226,7 +9274,7 @@
       "name": "dark-asagi",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 5.619179006812966,
+      "ratio": 4.563899217049666,
       "threshold": 4.5,
       "pass": true
     },
@@ -8282,7 +9330,7 @@
       "name": "dark-asagi",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.41268257475876,
+      "ratio": 5.13856671227432,
       "threshold": 3,
       "pass": true
     },
@@ -8298,7 +9346,7 @@
       "name": "dark-asagi",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.41268257475876,
+      "ratio": 7.213865450761515,
       "threshold": 3,
       "pass": true
     },
@@ -8442,7 +9490,7 @@
       "name": "dark-asagi",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 7.190125518322202,
+      "ratio": 11.198060071527918,
       "threshold": 4.5,
       "pass": true
     },
@@ -8450,7 +9498,7 @@
       "name": "dark-asagi",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.673783780884132,
+      "ratio": 1.5890179224816614,
       "threshold": 1.4,
       "pass": true
     },
@@ -8458,7 +9506,7 @@
       "name": "dark-asagi",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 4.9658182314007036,
+      "ratio": 4.558346986859412,
       "threshold": 4.5,
       "pass": true
     },
@@ -8514,7 +9562,7 @@
       "name": "dark-asagi",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 8.10999869899604,
+      "ratio": 10.808769701965367,
       "threshold": 4.5,
       "pass": true
     },
@@ -8525,8 +9573,139 @@
     },
     {
       "name": "dark-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 52.69365166007502,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 18.148556825578464,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 23.21005097895901,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 37.24927711324988,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 36.35190230542509,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 22.21301068047166,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 9.513914822930214,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.215307086404342,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 9.223000456346288,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 25.693071994761382,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 46.57237442532201,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 32.116373497482904,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 25.61998102320231,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.006216819126065,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "dark-asagi",
       "rule": "Accent/status hue distance: danger",
-      "distance": 166.33539014077027,
+      "distance": 165.4321944695094,
       "pass": true
     },
     {
@@ -8575,7 +9754,7 @@
       "name": "dark-sakura",
       "fg": "danger-text",
       "bg": "background",
-      "ratio": 7.017229405144213,
+      "ratio": 5.6993962550696065,
       "threshold": 4.5,
       "pass": true
     },
@@ -8631,7 +9810,7 @@
       "name": "dark-sakura",
       "fg": "mark-peak",
       "bg": "background",
-      "ratio": 6.298632761139821,
+      "ratio": 6.2496801100499315,
       "threshold": 3,
       "pass": true
     },
@@ -8647,7 +9826,7 @@
       "name": "dark-sakura",
       "fg": "heat-4",
       "bg": "background",
-      "ratio": 6.298632761139821,
+      "ratio": 8.724587486139596,
       "threshold": 3,
       "pass": true
     },
@@ -8775,7 +9954,7 @@
       "name": "dark-sakura",
       "fg": "danger-text",
       "bg": "surface",
-      "ratio": 7.618449506348398,
+      "ratio": 6.18770743822171,
       "threshold": 4.5,
       "pass": true
     },
@@ -8831,7 +10010,7 @@
       "name": "dark-sakura",
       "fg": "mark-peak",
       "bg": "surface",
-      "ratio": 6.8382851520570105,
+      "ratio": 6.785138350235651,
       "threshold": 3,
       "pass": true
     },
@@ -8847,7 +10026,7 @@
       "name": "dark-sakura",
       "fg": "heat-4",
       "bg": "surface",
-      "ratio": 6.8382851520570105,
+      "ratio": 9.47209010697971,
       "threshold": 3,
       "pass": true
     },
@@ -8975,7 +10154,7 @@
       "name": "dark-sakura",
       "fg": "danger-text",
       "bg": "surface-inset",
-      "ratio": 8.121534910286245,
+      "ratio": 6.596313584841569,
       "threshold": 4.5,
       "pass": true
     },
@@ -9031,7 +10210,7 @@
       "name": "dark-sakura",
       "fg": "mark-peak",
       "bg": "surface-inset",
-      "ratio": 7.289852291157697,
+      "ratio": 7.233195932668668,
       "threshold": 3,
       "pass": true
     },
@@ -9047,7 +10226,7 @@
       "name": "dark-sakura",
       "fg": "heat-4",
       "bg": "surface-inset",
-      "ratio": 7.289852291157697,
+      "ratio": 10.097580933378797,
       "threshold": 3,
       "pass": true
     },
@@ -9175,7 +10354,7 @@
       "name": "dark-sakura",
       "fg": "danger-text",
       "bg": "surface-floating",
-      "ratio": 5.619179006812966,
+      "ratio": 4.563899217049666,
       "threshold": 4.5,
       "pass": true
     },
@@ -9231,7 +10410,7 @@
       "name": "dark-sakura",
       "fg": "mark-peak",
       "bg": "surface-floating",
-      "ratio": 5.04374916930536,
+      "ratio": 5.004549409193414,
       "threshold": 3,
       "pass": true
     },
@@ -9247,7 +10426,7 @@
       "name": "dark-sakura",
       "fg": "heat-4",
       "bg": "surface-floating",
-      "ratio": 5.04374916930536,
+      "ratio": 6.9863782434245785,
       "threshold": 3,
       "pass": true
     },
@@ -9391,7 +10570,7 @@
       "name": "dark-sakura",
       "fg": "accent-hover-foreground",
       "bg": "accent-hover",
-      "ratio": 6.60293629240839,
+      "ratio": 10.121432908142928,
       "threshold": 4.5,
       "pass": true
     },
@@ -9399,7 +10578,7 @@
       "name": "dark-sakura",
       "fg": "mark-peak",
       "bg": "mark-rest",
-      "ratio": 1.5596971442219456,
+      "ratio": 1.5475752579329,
       "threshold": 1.4,
       "pass": true
     },
@@ -9407,7 +10586,7 @@
       "name": "dark-sakura",
       "fg": "danger-foreground",
       "bg": "danger-fill",
-      "ratio": 4.9658182314007036,
+      "ratio": 4.558346986859412,
       "threshold": 4.5,
       "pass": true
     },
@@ -9463,7 +10642,7 @@
       "name": "dark-sakura",
       "fg": "heat-4-text",
       "bg": "heat-4",
-      "ratio": 7.557213754207993,
+      "ratio": 10.467918205492193,
       "threshold": 4.5,
       "pass": true
     },
@@ -9474,8 +10653,139 @@
     },
     {
       "name": "dark-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "danger-text",
+      "distance": 11.849405416281773,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "info-text",
+      "distance": 36.06120515104906,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "success-text",
+      "distance": 54.665836701541984,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Accent/status text distance",
+      "fg": "accent-text",
+      "bg": "warning-text",
+      "distance": 31.005401409532052,
+      "threshold": 10,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "mark-peak equals accent-text",
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-1",
+      "distance": 36.155482327916104,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-2",
+      "distance": 22.468841043392207,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-3",
+      "distance": 10.409750826631274,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/heat distance",
+      "fg": "mark-peak",
+      "bg": "heat-4",
+      "distance": 8.176201541632453,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-1",
+      "distance": 11.890189694872877,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-2",
+      "distance": 33.76136494085496,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-3",
+      "distance": 52.33501094598555,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-4",
+      "distance": 38.3629855497047,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Selection/comparison distance",
+      "fg": "mark-peak",
+      "bg": "cmp-5",
+      "distance": 17.15932855732599,
+      "threshold": 8,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
+      "rule": "Accent hover distance",
+      "fg": "accent",
+      "bg": "accent-hover",
+      "distance": 7.080982281535403,
+      "threshold": 6,
+      "pass": true
+    },
+    {
+      "name": "dark-sakura",
       "rule": "Accent/status hue distance: danger",
-      "distance": 16.541245959356388,
+      "distance": 15.638050288095485,
       "pass": true
     },
     {

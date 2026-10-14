@@ -72,9 +72,28 @@ let css =
     .map(([k, v]) => `  ${k}: ${v};`)
     .join('\n') +
   '\n}\n'
+// Motion follows the application's tokens (apps/next/src/app/styles.css).
+css += `:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-icon: cubic-bezier(0.2, 0, 0, 1);
+  --ease-horizon: cubic-bezier(0, 0, 0.15, 1);
+  --dur-press: 120ms;
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-sheet: 300ms;
+  /* Rare moments only (first run, a finished import); never routine UI. */
+  --dur-moment: 450ms;
+  --dur-horizon: 500ms;
+}
+`
 for (const [key, tokens] of Object.entries(palette.themes)) {
   const [theme, accent] = key.split('-')
-  const selector = `:root[data-theme="${theme}"][data-accent="${accent}"], #catalog[data-theme="${theme}"][data-accent="${accent}"]`
+  // Without data-accent the root falls back to the default accent.
+  const fallback =
+    accent === palette.selected ? `, :root[data-theme="${theme}"]:not([data-accent])` : ''
+  const selector = `:root[data-theme="${theme}"][data-accent="${accent}"], #catalog[data-theme="${theme}"][data-accent="${accent}"]${fallback}`
   css +=
     selector +
     ' {\n' +
