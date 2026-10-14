@@ -1,0 +1,30 @@
+{
+  "iso2": "NP",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "plum",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 3.6], "clouds": [40, 56, 30, 150, 64, 34], "weight": "hair" }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.15, 0.32],
+          [0.3, 0.46],
+          [0.75, 0.42],
+          [0.9, 0.26],
+          [1, 0.4]
+        ],
+        "snow": 0.4,
+        "seed": 8
+      }
+    },
+    { "module": "ground", "params": { "line": false } }
+  ],
+  "layers": [{ "module": "machapuchare", "box": [42, 36, 116, 96] }]
+}

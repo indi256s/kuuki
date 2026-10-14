@@ -1,0 +1,17 @@
+{
+  "iso2": "BN",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "teal",
+  "cluster": "stilts",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 3.6], "clouds": [48, 44, 28, 150, 52, 30], "weight": "hair" }
+    },
+    { "module": "distance-trees", "params": { "height": 10, "amp": 2.4, "seed": 11, "swell": 2 } },
+    { "module": "ground", "params": { "water": true, "line": false } }
+  ],
+  "layers": [{ "module": "kampong-ayer", "box": [44, 57, 112, 76] }]
+}

@@ -1,5 +1,6 @@
 import { type Recipe, parseRecipe } from '../recipe'
 import ad from './ad.json'
+import af from './af.json'
 import ag from './ag.json'
 import ai from './ai.json'
 import al from './al.json'
@@ -11,6 +12,7 @@ import at from './at.json'
 import aw from './aw.json'
 import ba from './ba.json'
 import bb from './bb.json'
+import bd from './bd.json'
 import be from './be.json'
 import bf from './bf.json'
 import bg from './bg.json'
@@ -18,9 +20,11 @@ import bi from './bi.json'
 import bj from './bj.json'
 import bl from './bl.json'
 import bm from './bm.json'
+import bn from './bn.json'
 import bo from './bo.json'
 import br from './br.json'
 import bs from './bs.json'
+import bt from './bt.json'
 import bw from './bw.json'
 import by from './by.json'
 import bz from './bz.json'
@@ -81,7 +85,9 @@ import ht from './ht.json'
 import hu from './hu.json'
 import ie from './ie.json'
 import im from './im.json'
+import in_ from './in.json'
 import io from './io.json'
+import ir from './ir.json'
 import is from './is.json'
 import it from './it.json'
 import je from './je.json'
@@ -97,6 +103,7 @@ import ky from './ky.json'
 import kz from './kz.json'
 import lc from './lc.json'
 import li from './li.json'
+import lk from './lk.json'
 import lr from './lr.json'
 import ls from './ls.json'
 import lt from './lt.json'
@@ -118,6 +125,7 @@ import mr from './mr.json'
 import ms from './ms.json'
 import mt from './mt.json'
 import mu from './mu.json'
+import mv from './mv.json'
 import mw from './mw.json'
 import mx from './mx.json'
 import mz from './mz.json'
@@ -127,9 +135,11 @@ import ng from './ng.json'
 import ni from './ni.json'
 import nl from './nl.json'
 import no from './no.json'
+import np from './np.json'
 import pa from './pa.json'
 import pe from './pe.json'
 import ph from './ph.json'
+import pk from './pk.json'
 import pl from './pl.json'
 import pm from './pm.json'
 import py from './py.json'
@@ -180,6 +190,7 @@ import zw from './zw.json'
 /** Raw recipes by lowercase iso2. check:stamps fails when a recipes/*.json file is missing here. */
 export const RECIPE_FILES: Record<string, unknown> = {
   ad,
+  af,
   ag,
   ai,
   al,
@@ -191,6 +202,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   aw,
   ba,
   bb,
+  bd,
   be,
   bf,
   bg,
@@ -198,9 +210,11 @@ export const RECIPE_FILES: Record<string, unknown> = {
   bj,
   bl,
   bm,
+  bn,
   bo,
   br,
   bs,
+  bt,
   bw,
   by,
   bz,
@@ -261,7 +275,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   hu,
   ie,
   im,
+  in: in_,
   io,
+  ir,
   is,
   it,
   je,
@@ -277,6 +293,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   kz,
   lc,
   li,
+  lk,
   lr,
   ls,
   lt,
@@ -298,6 +315,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ms,
   mt,
   mu,
+  mv,
   mw,
   mx,
   mz,
@@ -307,9 +325,11 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ni,
   nl,
   no,
+  np,
   pa,
   pe,
   ph,
+  pk,
   pl,
   pm,
   py,

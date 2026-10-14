@@ -1,0 +1,30 @@
+{
+  "iso2": "BT",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "moss",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 3.6], "clouds": [46, 42, 30, 152, 48, 28], "weight": "hair" }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.44],
+          [0.2, 0.26],
+          [0.42, 0.4],
+          [0.62, 0.2],
+          [0.85, 0.36],
+          [1, 0.28]
+        ],
+        "snow": 0.45,
+        "seed": 10
+      }
+    },
+    { "module": "ground", "params": { "line": false } }
+  ],
+  "layers": [{ "module": "bhutan-house", "box": [44, 52, 112, 80] }]
+}
