@@ -73,6 +73,7 @@ const layers = [
   'globe-airport-dots',
   'globe-microstate-dots',
   'globe-route-casing',
+  'globe-airport-labels',
 ]
 // Routes used the land ramp, so a route over a country in its own bucket measured 1:1. They now draw in ink over a land-toned halo: one of the two holds 3:1 on every bucket, theme and accent.
 // The core stays fine (1.25–2.5px by visit bucket); the halo is solid for its first half-pixel and blurs out over 2px, so it separates the line without outlining it.
@@ -197,7 +198,7 @@ function GlobeLayers({
         ? [
             {
               type: 'Feature' as const,
-              properties: {},
+              properties: { iata: airport.iata, priority: -airport.count },
               geometry: { type: 'Point' as const, coordinates: position },
             },
           ]
@@ -261,6 +262,7 @@ function GlobeLayers({
     if (!map || !ready || !land) return
     let disposed = false
     try {
+      map.setFontFaces({ 'Paper Mono': [{ url: '/fonts/PaperMono.woff2' }] })
       map.addSource('globe-countries', { type: 'geojson', data: land, promoteId: 'id' })
       for (const id of sources.slice(1)) map.addSource(id, { type: 'geojson', data: empty() })
       map.addLayer({
@@ -310,6 +312,23 @@ function GlobeLayers({
         type: 'circle',
         source: sources[3],
         paint: { 'circle-radius': 3, 'circle-opacity': ['get', 'opacity'] },
+      })
+      map.addLayer({
+        id: layers[7],
+        type: 'symbol',
+        source: sources[2],
+        layout: {
+          'text-field': ['get', 'iata'],
+          'text-font': ['Paper Mono'],
+          'text-size': 12,
+          'text-variable-anchor': ['top', 'bottom', 'right', 'left'],
+          'text-radial-offset': 0.8,
+          'text-padding': 3,
+          'text-pitch-alignment': 'viewport',
+          'text-rotation-alignment': 'viewport',
+          'symbol-sort-key': ['get', 'priority'],
+        },
+        paint: { 'text-halo-width': 1.5 },
       })
       ;(map.getSource(sources[1]) as GeoJSONSource).setData(latestData.current.routes)
       ;(map.getSource(sources[2]) as GeoJSONSource).setData(latestData.current.airports)
@@ -416,6 +435,8 @@ function GlobeLayers({
     map.setPaintProperty(layers[4], 'circle-color', token('--globe-route'))
     map.setPaintProperty(layers[4], 'circle-stroke-color', token('--globe-route-casing'))
     map.setPaintProperty(layers[5], 'circle-color', bucket(['get', 'bucket']))
+    map.setPaintProperty(layers[7], 'text-color', token('--text'))
+    map.setPaintProperty(layers[7], 'text-halo-color', token('--surface'))
   }, [
     map,
     land,
