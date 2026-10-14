@@ -267,6 +267,8 @@ export type MenuTrayOption<T extends string> = {
   label: string
   /** A colour for a swatch cell; the label is then accessible-only. */
   swatch?: string
+  /** The check colour on that swatch; defaults to the page background. */
+  swatchInk?: string
   /** An icon for the cell; the label is then accessible-only. */
   icon?: ReactNode
 }
@@ -350,7 +352,9 @@ export function MenuTray<T extends string>({
           const content = option.swatch ? (
             <span
               className="ui-menu-tray-dot"
-              style={{ '--swatch': option.swatch } as CSSProperties}
+              style={
+                { '--swatch': option.swatch, '--swatch-ink': option.swatchInk } as CSSProperties
+              }
               aria-hidden="true"
             >
               {option.value === current ? <Check size={12} strokeWidth={3} /> : null}

@@ -126,6 +126,10 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     expect(hex('--accent-tint')).toBe(theme.tint)
     expect(hex('--heat-contour')).toBe(theme.contour)
     expect(hex(`--swatch-${accent}`)).toBe(theme.fill)
+    expect(
+      ratio(hex(`--swatch-${accent}-ink`), hex(`--swatch-${accent}`)),
+      'picker check on its dot',
+    ).toBeGreaterThanOrEqual(4.5)
     theme.comparison.forEach((color, index) => {
       expect(hex(`--cmp-${index + 1}`)).toBe(color)
       expect(hex(`--kc-chart-${index + 1}`)).toBe(color)

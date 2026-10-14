@@ -149,6 +149,12 @@
   --swatch-matcha: #59702a;
   --swatch-asagi: #0c747d;
   --swatch-sakura: #964969;
+  /* The check on a picker dot: each accent's own foreground, since the picker shows every accent at once. */
+  --swatch-shu-ink: #202020;
+  --swatch-ai-ink: #ffffff;
+  --swatch-matcha-ink: #ffffff;
+  --swatch-asagi-ink: #ffffff;
+  --swatch-sakura-ink: #ffffff;
   color-scheme: light;
   --surface-highlight: transparent;
   --mark-1: var(--cmp-1);
@@ -334,6 +340,11 @@
   --swatch-matcha: #b7ce92;
   --swatch-asagi: #85cfd8;
   --swatch-sakura: #e8a9c0;
+  --swatch-shu-ink: var(--background);
+  --swatch-ai-ink: var(--background);
+  --swatch-matcha-ink: var(--background);
+  --swatch-asagi-ink: var(--background);
+  --swatch-sakura-ink: var(--background);
   color-scheme: dark;
   --surface-highlight: rgb(255 255 255 / 5%);
   --mark-rest: #8d8c89;

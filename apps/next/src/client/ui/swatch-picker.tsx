@@ -77,7 +77,12 @@ export function SwatchPicker({ locale, label, value, onChange }: SwatchPickerPro
         >
           <span
             className="ui-swatch-dot"
-            style={{ '--swatch': `var(--swatch-${accent})` } as CSSProperties}
+            style={
+              {
+                '--swatch': `var(--swatch-${accent})`,
+                '--swatch-ink': `var(--swatch-${accent}-ink)`,
+              } as CSSProperties
+            }
             aria-hidden="true"
           >
             {accent === current ? <Check size={16} strokeWidth={2.5} /> : null}

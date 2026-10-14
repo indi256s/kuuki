@@ -220,6 +220,7 @@ export function AvatarMenu({
               value: item,
               label: NAMES[item][appearance.locale],
               swatch: `var(--swatch-${item})`,
+              swatchInk: `var(--swatch-${item}-ink)`,
             }))}
           />
         </div>

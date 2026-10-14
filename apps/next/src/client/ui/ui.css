@@ -874,7 +874,7 @@
   height: 20px;
   border-radius: var(--radius-full);
   background: var(--swatch);
-  color: var(--background);
+  color: var(--swatch-ink, var(--background));
 }
 .ui-swatch[aria-checked='true'] {
   border-color: var(--selection-contour);
