@@ -14,7 +14,10 @@ export const jettyA: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
 
   // Posts down into the water, then the deck: a dark band with a bold top edge.
-  const deckEnd = hut ? end - w * 0.04 : end
+  const hutAt = typeof p.hutAt === 'number' ? p.hutAt : undefined
+  const hw = w * num(p, 'hutW', 0.15)
+  const hutX = hutAt === undefined ? end - hw - w * 0.01 : x + w * hutAt
+  const deckEnd = hut && hutAt === undefined ? end - w * 0.04 : end
   for (let px = x + 3; px < deckEnd; px += 8) out.push(vline('line', px, deckY + 4, water + 3))
   out.push(...body(rectPts(x, deckY, deckEnd - x, 4), 'hair'))
   out.push(...toneFill(rectPts(x + 0.5, deckY + 0.5, deckEnd - x - 1, 3), 'T4', { inset: 0.3 }))
@@ -32,14 +35,13 @@ export const jettyA: KitModule = ([x, y, w, h], p) => {
   )
 
   // Fence on the shore half of the deck.
-  const fenceEnd = hut ? end - w * 0.3 : x + w * 0.55
+  const fenceEnd = hut ? (hutAt === undefined ? end - w * 0.3 : hutX - hw * 1.3) : x + w * 0.55
   for (let fx = x + 2; fx < fenceEnd; fx += 9) out.push(vline('hair', fx, deckY - 6, deckY))
   out.push(hline('hair', x + 2, fenceEnd, deckY - 6))
 
   if (hut) {
     // Open thatched shelter: four posts under a steep conical roof, lit left and shaded right.
-    const hw = w * 0.15
-    const cx = end - hw - w * 0.01
+    const cx = hutX
     const apex = y
     const eave = y + h * 0.5
     for (const f of [-0.72, -0.24, 0.24, 0.72])
@@ -59,7 +61,7 @@ export const jettyA: KitModule = ([x, y, w, h], p) => {
           [cx, eave - 0.4],
         ],
         'T4',
-        { inset: 0.4, gap: [3.2, 3.2] },
+        { inset: 0.4, gap: [4.2, 4.2] },
       ),
     )
     for (const f of [-0.7, -0.4, -0.15])

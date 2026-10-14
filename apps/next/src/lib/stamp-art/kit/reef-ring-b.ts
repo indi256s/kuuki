@@ -79,7 +79,7 @@ export const reefRingB: KitModule = ([x, y, w, h], p) => {
         ...palm([px - 11, py - 22 - rand() * 4, 22, 23 + rand() * 4], {
           lean,
           seed: Math.round(rand() * 40),
-          frond: 0.55,
+          frond: 0.44,
           fronds: 6,
         }),
       )

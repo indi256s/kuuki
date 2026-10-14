@@ -17,50 +17,52 @@
       "module": "ground",
       "params": {
         "water": true,
+        "tone": "T1",
         "line": false
       }
     }
   ],
   "layers": [
     {
-      "module": "island-b",
-      "box": [33, 104, 52, 22],
+      "module": "forest-islet-a",
+      "box": [58, 90, 62, 36],
       "params": {
-        "hump": 0.42,
-        "seed": 3,
-        "palms": [
-          [0.3, 28, 0.2],
-          [0.62, 20, -0.15]
-        ]
+        "tone": "T2",
+        "crest": 0,
+        "clumps": 5,
+        "seed": 2,
+        "gap": 3.2
       }
     },
     {
-      "module": "island-b",
-      "box": [100, 108, 64, 22],
+      "module": "forest-islet-a",
+      "box": [98, 84, 70, 42],
       "params": {
-        "hump": 0.4,
-        "seed": 9,
-        "palms": [
-          [0.25, 30, -0.2],
-          [0.55, 36, 0.15],
-          [0.8, 22, 0.3]
-        ]
+        "tone": "T4",
+        "clumps": 5,
+        "seed": 7,
+        "gap": 3.4
       }
     },
     {
-      "module": "island-b",
-      "box": [78, 112, 28, 14],
+      "module": "forest-islet-a",
+      "box": [30, 94, 58, 32],
       "params": {
-        "hump": 0.3,
-        "seed": 14,
-        "palms": [[0.5, 16, 0.1]]
+        "tone": "T4",
+        "clumps": 4,
+        "seed": 11,
+        "gap": 3.4
       }
     },
     {
       "module": "dugout-a",
-      "box": [50, 124, 84, 26],
+      "box": [34, 102, 112, 46],
       "params": {
-        "prow": 0.62
+        "prow": 0.66,
+        "stern": 0.28,
+        "carve": 1,
+        "depth": 8,
+        "gap": 3.4
       }
     }
   ]

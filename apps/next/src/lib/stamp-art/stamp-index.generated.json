@@ -1695,7 +1695,7 @@
     "tier": "engraved"
   },
   "KI": {
-    "cluster": "atoll",
+    "cluster": "thatched-house",
     "ink": "teal",
     "iso3": "KIR",
     "name": {
@@ -2161,7 +2161,7 @@
   },
   "MP": {
     "cluster": "atoll",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "MNP",
     "name": {
       "en": "Northern Mariana Islands",

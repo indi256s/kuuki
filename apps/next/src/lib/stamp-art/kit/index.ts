@@ -9,6 +9,13 @@ import { karst } from './karst'
 import { lighthouse } from './lighthouse'
 import { mesa } from './mesa'
 import { palm } from './palm'
+import { catboatA } from './catboat-a'
+import { redCrabA } from './red-crab-a'
+import { forestIsletA } from './forest-islet-a'
+import { maneabaA } from './maneaba-a'
+import { slipwayA } from './slipway-a'
+import { chasmA } from './chasm-a'
+import { cliffA } from './cliff-a'
 import { peak } from './peak'
 import { acacia } from './savanna'
 import { volcano } from './volcano'
@@ -192,6 +199,13 @@ export const kit = {
   iceberg,
   lighthouse,
   palm,
+  'catboat-a': catboatA,
+  'red-crab-a': redCrabA,
+  'forest-islet-a': forestIsletA,
+  'maneaba-a': maneabaA,
+  'slipway-a': slipwayA,
+  'chasm-a': chasmA,
+  'cliff-a': cliffA,
   rooftops,
   amphitheatre,
   pyramid,

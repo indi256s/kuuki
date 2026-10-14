@@ -3,91 +3,21 @@
   "tier": "engraved",
   "shape": "octagon",
   "ink": "indigo",
-  "horizon": 0.76,
+  "horizon": 0.6,
   "backdrop": [
     {
-      "module": "sky",
+      "module": "chasm-a",
       "params": {
-        "gap": [2.8, 3.6],
-        "weight": "hair",
-        "clouds": [100, 56, 30, 40, 60, 26]
-      }
-    },
-    {
-      "module": "ground",
-      "params": {
-        "water": true,
-        "line": false
+        "part": "walls"
       }
     }
   ],
   "layers": [
     {
-      "module": "palm",
-      "box": [48, 56, 32, 24],
+      "module": "chasm-a",
+      "box": [20, 36, 160, 128],
       "params": {
-        "lean": -0.15,
-        "frond": 0.6,
-        "fronds": 9,
-        "seed": 4
-      }
-    },
-    {
-      "module": "palm",
-      "box": [122, 54, 32, 24],
-      "params": {
-        "lean": 0.2,
-        "frond": 0.6,
-        "fronds": 9,
-        "seed": 9
-      }
-    },
-    {
-      "module": "rock-hill",
-      "box": [30, 66, 65, 62],
-      "params": {
-        "profile": [
-          [0, 1],
-          [0, 0.5],
-          [0.05, 0.28],
-          [0.15, 0.12],
-          [0.3, 0.15],
-          [0.45, 0.04],
-          [0.6, 0.08],
-          [0.8, 0.0],
-          [0.97, 0.04],
-          [1, 0.2],
-          [1, 1]
-        ],
-        "shadeFrom": 0.42,
-        "shadeGap": 2.8,
-        "crag": 0.6,
-        "seed": 2,
-        "strata": 6
-      }
-    },
-    {
-      "module": "rock-hill",
-      "box": [106, 62, 64, 66],
-      "params": {
-        "profile": [
-          [0, 1],
-          [0, 0.15],
-          [0.03, 0.05],
-          [0.2, 0.0],
-          [0.4, 0.1],
-          [0.55, 0.04],
-          [0.75, 0.14],
-          [0.9, 0.28],
-          [0.99, 0.55],
-          [1, 1]
-        ],
-        "shadeFrom": 0.0,
-        "shadeTo": 0.5,
-        "shadeGap": 2.8,
-        "crag": 0.6,
-        "seed": 6,
-        "strata": 6
+        "part": "rocks"
       }
     }
   ]

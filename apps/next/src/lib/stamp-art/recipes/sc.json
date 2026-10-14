@@ -7,7 +7,11 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [130, 54, 34] }
+      "params": {
+        "gap": [2.6, 3.2],
+        "weight": "hair",
+        "clouds": [130, 54, 34]
+      }
     },
     {
       "module": "distance-mountains",
@@ -23,23 +27,41 @@
         "seed": 9
       }
     },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
   ],
   "layers": [
     {
       "module": "palm",
       "box": [96, 57, 58, 69],
-      "params": { "lean": -0.35, "seed": 3, "frond": 0.5 }
+      "params": {
+        "lean": -0.35,
+        "seed": 3,
+        "frond": 0.6,
+        "fronds": 9
+      }
     },
     {
       "module": "palm",
       "box": [128, 66, 40, 60],
-      "params": { "lean": -0.15, "seed": 8, "frond": 0.62 }
+      "params": {
+        "lean": -0.15,
+        "seed": 8,
+        "frond": 0.62,
+        "fronds": 9
+      }
     },
     {
       "module": "boulders-b",
       "box": [28, 52, 146, 74],
-      "params": { "boulders": [0.02, 0.42, 0.9, 3, 0.4, 0.4, 0.55, 8, 0.7, 0.24, 0.3, 5] }
+      "params": {
+        "boulders": [0.02, 0.42, 0.9, 3, 0.4, 0.4, 0.55, 8, 0.7, 0.24, 0.3, 5]
+      }
     }
   ]
 }

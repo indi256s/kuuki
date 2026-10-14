@@ -4,17 +4,20 @@
   "shape": "rectangle",
   "ink": "oxblood",
   "cluster": "atoll",
-  "horizon": 0.72,
+  "horizon": 0.6,
   "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [48, 64, 30, 150, 58, 26]
+      }
+    },
     {
       "module": "airstrip",
       "params": {
-        "part": "sea",
-        "x0": 32,
-        "y0": 132,
-        "x1": 168,
-        "y1": 68,
-        "bow": 9
+        "part": "sea"
       }
     }
   ],
@@ -23,14 +26,7 @@
       "module": "airstrip",
       "box": [26, 52, 148, 96],
       "params": {
-        "part": "land",
-        "x0": 32,
-        "y0": 132,
-        "x1": 168,
-        "y1": 68,
-        "width": 24,
-        "runway": 8,
-        "bow": 9
+        "part": "land"
       }
     }
   ]

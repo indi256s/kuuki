@@ -3,68 +3,66 @@
   "tier": "engraved",
   "shape": "cut-rect",
   "ink": "moss",
-  "horizon": 0.8,
+  "horizon": 0.56,
   "backdrop": [
     {
       "module": "sky",
       "params": {
         "gap": [2.8, 3.6],
         "weight": "hair",
-        "clouds": [150, 62, 34, 44, 80, 28]
+        "clouds": [150, 62, 34, 44, 70, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 40,
+        "amp": 5,
+        "seed": 9,
+        "swell": 3
       }
     },
     {
       "module": "ground",
-      "params": {
-        "water": true
-      }
+      "params": {}
     }
   ],
   "layers": [
     {
-      "module": "cliff",
-      "box": [26, 68, 92, 64],
+      "module": "red-crab-a",
+      "box": [46, 124, 22, 22],
       "params": {
-        "side": "left",
-        "wobble": [0, 2, -1.5, 3, 0.5, -2.5, 1, -1, 0],
-        "gap": 3.2
+        "seed": 2
       }
     },
     {
-      "module": "palm",
-      "box": [34, 54, 16, 14],
+      "module": "red-crab-a",
+      "box": [130, 126, 22, 20],
       "params": {
-        "lean": -0.2,
-        "fronds": 7,
-        "seed": 2,
-        "frond": 0.7
+        "seed": 5
       }
     },
     {
-      "module": "palm",
-      "box": [52, 55, 18, 14],
+      "module": "red-crab-a",
+      "box": [34, 100, 28, 44],
       "params": {
-        "lean": 0.15,
-        "fronds": 7,
-        "seed": 5,
-        "frond": 0.7
+        "rock": 0.4,
+        "seed": 4
       }
     },
     {
-      "module": "palm",
-      "box": [76, 55, 16, 13],
+      "module": "red-crab-a",
+      "box": [136, 98, 30, 46],
       "params": {
-        "lean": -0.1,
-        "fronds": 7,
-        "seed": 9,
-        "frond": 0.7
+        "rock": 0.4,
+        "seed": 6
       }
     },
     {
-      "module": "jetty-a",
-      "box": [96, 70, 72, 62],
+      "module": "red-crab-a",
+      "box": [62, 78, 76, 68],
       "params": {
-        "crane": true
+        "seed": 3
       }
     }
   ]

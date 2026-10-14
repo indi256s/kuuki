@@ -32,28 +32,49 @@
   ],
   "layers": [
     {
-      "module": "fale-a",
-      "box": [54, 58, 92, 66],
-      "params": {}
-    },
-    {
       "module": "palm",
-      "box": [36, 72, 28, 52],
+      "box": [34, 60, 30, 64],
       "params": {
         "lean": -0.25,
         "fronds": 8,
-        "frond": 0.6
+        "frond": 0.62,
+        "seed": 3
       }
     },
     {
       "module": "palm",
-      "box": [132, 76, 28, 48],
+      "box": [52, 84, 24, 40],
+      "params": {
+        "lean": 0.2,
+        "fronds": 7,
+        "frond": 0.6,
+        "seed": 7
+      }
+    },
+    {
+      "module": "palm",
+      "box": [134, 58, 30, 66],
       "params": {
         "lean": 0.25,
         "fronds": 8,
-        "frond": 0.6,
+        "frond": 0.62,
         "seed": 6
       }
+    },
+    {
+      "module": "palm",
+      "box": [126, 86, 24, 38],
+      "params": {
+        "lean": -0.2,
+        "fronds": 7,
+        "frond": 0.6,
+        "seed": 12
+      }
+    },
+    {
+      "module": "fale-a",
+      "box": [44, 62, 112, 64],
+      "params": {}
     }
   ]
 }
