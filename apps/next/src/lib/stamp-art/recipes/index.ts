@@ -29,11 +29,13 @@ import gm from './gm.json'
 import gn from './gn.json'
 import gr from './gr.json'
 import gt from './gt.json'
+import gw from './gw.json'
 import hn from './hn.json'
 import hr from './hr.json'
 import it from './it.json'
 import jp from './jp.json'
 import li from './li.json'
+import lr from './lr.json'
 import ls from './ls.json'
 import lu from './lu.json'
 import ly from './ly.json'
@@ -41,15 +43,23 @@ import ma from './ma.json'
 import mc from './mc.json'
 import me from './me.json'
 import mk from './mk.json'
+import ml from './ml.json'
+import mr from './mr.json'
 import mt from './mt.json'
 import mx from './mx.json'
 import na from './na.json'
+import ne from './ne.json'
+import ng from './ng.json'
 import nl from './nl.json'
 import ph from './ph.json'
 import pm from './pm.json'
 import sd from './sd.json'
+import sh from './sh.json'
+import sl from './sl.json'
 import sm from './sm.json'
+import sn from './sn.json'
 import sz from './sz.json'
+import tg from './tg.json'
 import th from './th.json'
 import tn from './tn.json'
 import tz from './tz.json'
@@ -89,11 +99,13 @@ export const RECIPE_FILES: Record<string, unknown> = {
   gn,
   gr,
   gt,
+  gw,
   hn,
   hr,
   it,
   jp,
   li,
+  lr,
   ls,
   lu,
   ly,
@@ -101,15 +113,23 @@ export const RECIPE_FILES: Record<string, unknown> = {
   mc,
   me,
   mk,
+  ml,
+  mr,
   mt,
   mx,
   na,
+  ne,
+  ng,
   nl,
   ph,
   pm,
   sd,
+  sh,
+  sl,
   sm,
+  sn,
   sz,
+  tg,
   th,
   tn,
   tz,

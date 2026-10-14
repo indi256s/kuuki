@@ -1,0 +1,64 @@
+{
+  "iso2": "SL",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "oxblood",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [40, 62, 30, 100, 76, 24, 150, 60, 34],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "distance-mountains",
+      "box": [30, 50, 140, 70],
+      "params": {
+        "ridge": [
+          [0, 0.7],
+          [0.1, 0.52],
+          [0.22, 0.34],
+          [0.34, 0.18],
+          [0.44, 0.27],
+          [0.54, 0.1],
+          [0.66, 0.28],
+          [0.78, 0.44],
+          [0.9, 0.58],
+          [1, 0.66]
+        ],
+        "jag": 1.2,
+        "litGap": 9,
+        "shade": "T2",
+        "snow": 0,
+        "horizonY": 116
+      }
+    },
+    {
+      "module": "bay-city",
+      "box": [36, 106, 128, 18],
+      "params": {
+        "height": 13
+      }
+    },
+    {
+      "module": "boats-c",
+      "box": [46, 112, 108, 12],
+      "params": {
+        "count": 4,
+        "hullH": 4
+      }
+    }
+  ]
+}

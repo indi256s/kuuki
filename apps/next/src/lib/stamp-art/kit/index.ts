@@ -39,6 +39,12 @@ import { kolmanskop } from './kolmanskop'
 import { ruinWall } from './ruin-wall'
 import { standingStonesB } from './standing-stones-b'
 import { veranda } from './veranda'
+import { waterfall } from './waterfall'
+import { tataSomba } from './tata-somba'
+import { granaries } from './granaries'
+import { monolithB } from './monolith-b'
+import { jacobsLadder } from './jacobs-ladder'
+import { trussBridgeB } from './truss-bridge-b'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -108,6 +114,12 @@ export const kit = {
   'ruin-wall': ruinWall,
   'standing-stones-b': standingStonesB,
   veranda,
+  waterfall,
+  'tata-somba': tataSomba,
+  granaries,
+  'monolith-b': monolithB,
+  'jacobs-ladder': jacobsLadder,
+  'truss-bridge-b': trussBridgeB,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

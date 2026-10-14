@@ -1,0 +1,34 @@
+{
+  "iso2": "SN",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "indigo",
+  "cluster": "bridge",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 62, 32, 148, 58, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "truss-bridge-b",
+      "box": [30, 70, 140, 54],
+      "params": {
+        "spans": 7
+      }
+    }
+  ]
+}

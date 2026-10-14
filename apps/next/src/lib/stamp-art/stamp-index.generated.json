@@ -1336,7 +1336,7 @@
   },
   "GW": {
     "cluster": "palm-island",
-    "ink": "indigo",
+    "ink": "teal",
     "iso3": "GNB",
     "name": {
       "en": "Guinea-Bissau",
@@ -1347,7 +1347,7 @@
       "en": "Guinea-Bissau",
       "ru": "Гвинея-Бисау"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GY": {
     "cluster": "waterfall",
@@ -1891,7 +1891,7 @@
   },
   "LR": {
     "cluster": "waterfall",
-    "ink": "oxblood",
+    "ink": "moss",
     "iso3": "LBR",
     "name": {
       "en": "Liberia",
@@ -1902,7 +1902,7 @@
       "en": "Liberia",
       "ru": "Либерия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LS": {
     "cluster": "thatched-house",
@@ -2101,7 +2101,7 @@
   },
   "ML": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "umber",
     "iso3": "MLI",
     "name": {
       "en": "Mali",
@@ -2112,7 +2112,7 @@
       "en": "Mali",
       "ru": "Мали"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MM": {
     "cluster": "bridge",
@@ -2202,7 +2202,7 @@
       "en": "Mauritania",
       "ru": "Мавритания"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MS": {
     "cluster": "volcano",
@@ -2367,7 +2367,7 @@
       "en": "Niger",
       "ru": "Нигер"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NF": {
     "cluster": null,
@@ -2386,7 +2386,7 @@
   },
   "NG": {
     "cluster": "monolith",
-    "ink": "plum",
+    "ink": "umber",
     "iso3": "NGA",
     "name": {
       "en": "Nigeria",
@@ -2397,7 +2397,7 @@
       "en": "Nigeria",
       "ru": "Нигерия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "NI": {
     "cluster": null,
@@ -2922,7 +2922,7 @@
       "en": "St. Helena",
       "ru": "о-в Св. Елены"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SI": {
     "cluster": "castle",
@@ -2982,7 +2982,7 @@
       "en": "Sierra Leone",
       "ru": "Сьерра-Леоне"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SM": {
     "cluster": null,
@@ -3001,7 +3001,7 @@
   },
   "SN": {
     "cluster": "bridge",
-    "ink": "ochre-dark",
+    "ink": "indigo",
     "iso3": "SEN",
     "name": {
       "en": "Senegal",
@@ -3012,7 +3012,7 @@
       "en": "Senegal",
       "ru": "Сенегал"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SO": {
     "cluster": "lighthouse",
@@ -3046,7 +3046,7 @@
   },
   "SS": {
     "cluster": "bridge",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "SSD",
     "name": {
       "en": "South Sudan",
@@ -3181,7 +3181,7 @@
   },
   "TG": {
     "cluster": "thatched-house",
-    "ink": "oxblood",
+    "ink": "slate",
     "iso3": "TGO",
     "name": {
       "en": "Togo",
@@ -3192,7 +3192,7 @@
       "en": "Togo",
       "ru": "Того"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TH": {
     "cluster": "stilts",
@@ -3391,7 +3391,7 @@
   },
   "UG": {
     "cluster": "waterfall",
-    "ink": "slate",
+    "ink": "oxblood",
     "iso3": "UGA",
     "name": {
       "en": "Uganda",
@@ -3496,7 +3496,7 @@
   },
   "VE": {
     "cluster": "waterfall",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "VEN",
     "name": {
       "en": "Venezuela",
@@ -3586,7 +3586,7 @@
   },
   "WS": {
     "cluster": "thatched-house",
-    "ink": "slate",
+    "ink": "oxblood",
     "iso3": "WSM",
     "name": {
       "en": "Samoa",
