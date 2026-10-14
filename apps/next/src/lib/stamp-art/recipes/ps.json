@@ -1,0 +1,35 @@
+{
+  "iso2": "PS",
+  "tier": "engraved",
+  "ink": "moss",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [60, 52, 30, 150, 62, 26]
+      }
+    },
+    {
+      "module": "hill-terraces-b",
+      "params": {
+        "rows": 6
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "olive-b",
+      "box": [68, 42, 88, 92],
+      "params": {}
+    }
+  ]
+}

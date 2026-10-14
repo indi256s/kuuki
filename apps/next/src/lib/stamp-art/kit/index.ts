@@ -125,6 +125,13 @@ import { dhow } from './dhow'
 import { drumB } from './drum-b'
 import { ziggurat } from './ziggurat'
 import { pigeonRocks } from './pigeon-rocks'
+import { shibam } from './shibam'
+import { oliveB } from './olive-b'
+import { hillTerracesB } from './hill-terraces-b'
+import { inlandSeaB } from './inland-sea-b'
+import { palmyra } from './palmyra'
+import { qasrFarid } from './qasr-farid'
+import { fairyChimney } from './fairy-chimney'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -280,6 +287,13 @@ export const kit = {
   'drum-b': drumB,
   ziggurat,
   'pigeon-rocks': pigeonRocks,
+  shibam,
+  'olive-b': oliveB,
+  'hill-terraces-b': hillTerracesB,
+  'inland-sea-b': inlandSeaB,
+  palmyra,
+  'qasr-farid': qasrFarid,
+  'fairy-chimney': fairyChimney,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit
