@@ -1,0 +1,63 @@
+{
+  "iso2": "PE",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "slate",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [44, 62, 36, 150, 62, 30]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.5],
+          [0.2, 0.3],
+          [0.4, 0.45],
+          [0.6, 0.2],
+          [0.8, 0.4],
+          [1, 0.3]
+        ],
+        "jag": 1,
+        "seed": 8
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [104, 52, 46, 76],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.1, 0.5],
+          [0.28, 0.14],
+          [0.42, 0.03],
+          [0.6, 0],
+          [0.76, 0.1],
+          [0.92, 0.5],
+          [1, 1]
+        ],
+        "shadeFrom": 0.78,
+        "seed": 3
+      }
+    },
+    {
+      "module": "terraces-a",
+      "box": [28, 80, 142, 46],
+      "params": {
+        "huts": [0.14, 0.3, 0.45],
+        "tiers": 3
+      }
+    }
+  ]
+}

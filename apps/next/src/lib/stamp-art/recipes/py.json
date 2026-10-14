@@ -1,0 +1,46 @@
+{
+  "iso2": "PY",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "ochre-dark",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [44, 62, 36, 150, 66, 30]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 3,
+        "seed": 2,
+        "swell": 3
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "arcade-house-a",
+      "box": [30, 68, 122, 58],
+      "params": {
+        "bays": 5
+      }
+    },
+    {
+      "module": "palm",
+      "box": [146, 56, 26, 70],
+      "params": {
+        "lean": -0.2,
+        "seed": 4
+      }
+    }
+  ]
+}

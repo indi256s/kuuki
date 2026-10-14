@@ -106,7 +106,7 @@
   },
   "AO": {
     "cluster": "waterfall",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "AGO",
     "name": {
       "en": "Angola",
@@ -886,7 +886,7 @@
   },
   "EC": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "umber",
     "iso3": "ECU",
     "name": {
       "en": "Ecuador",
@@ -897,7 +897,7 @@
       "en": "Ecuador",
       "ru": "Эквадор"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "EE": {
     "cluster": null,
@@ -1021,18 +1021,18 @@
   },
   "FK": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "indigo",
     "iso3": "FLK",
     "name": {
       "en": "Falkland Islands",
       "ru": "Фолклендские о-ва"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Falkland Islands",
       "ru": "Фолклендские о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "FM": {
     "cluster": null,
@@ -1081,7 +1081,7 @@
   },
   "GA": {
     "cluster": "waterfall",
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "GAB",
     "name": {
       "en": "Gabon",
@@ -1141,18 +1141,18 @@
   },
   "GF": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "oxblood",
     "iso3": "GUF",
     "name": {
       "en": "French Guiana",
       "ru": "Французская Гвиана"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "French Guiana",
       "ru": "Французская Гвиана"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GG": {
     "cluster": "castle",
@@ -1291,7 +1291,7 @@
   },
   "GS": {
     "cluster": null,
-    "ink": "ochre-dark",
+    "ink": "plum",
     "iso3": "SGS",
     "name": {
       "en": "South Georgia & South Sandwich Islands",
@@ -1302,7 +1302,7 @@
       "en": "S. GEORGIA",
       "ru": "Ю. ГЕОРГИЯ И САНДВИЧ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GT": {
     "cluster": "pyramid",
@@ -1351,18 +1351,18 @@
   },
   "GY": {
     "cluster": "waterfall",
-    "ink": "ochre-dark",
+    "ink": "moss",
     "iso3": "GUY",
     "name": {
       "en": "Guyana",
       "ru": "Гайана"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Guyana",
       "ru": "Гайана"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "HK": {
     "cluster": null,
@@ -2536,18 +2536,18 @@
   },
   "PE": {
     "cluster": null,
-    "ink": "teal",
+    "ink": "slate",
     "iso3": "PER",
     "name": {
       "en": "Peru",
       "ru": "Перу"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Peru",
       "ru": "Перу"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PF": {
     "cluster": "stilts",
@@ -2716,18 +2716,18 @@
   },
   "PY": {
     "cluster": null,
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "PRY",
     "name": {
       "en": "Paraguay",
       "ru": "Парагвай"
     },
-    "shape": "cut-rect",
+    "shape": "rectangle",
     "short": {
       "en": "Paraguay",
       "ru": "Парагвай"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "QA": {
     "cluster": "dunes",
@@ -3031,18 +3031,18 @@
   },
   "SR": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "moss",
     "iso3": "SUR",
     "name": {
       "en": "Suriname",
       "ru": "Суринам"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Suriname",
       "ru": "Суринам"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SS": {
     "cluster": "bridge",
@@ -3436,18 +3436,18 @@
   },
   "UY": {
     "cluster": null,
-    "ink": "indigo",
+    "ink": "teal",
     "iso3": "URY",
     "name": {
       "en": "Uruguay",
       "ru": "Уругвай"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Uruguay",
       "ru": "Уругвай"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "UZ": {
     "cluster": null,
@@ -3496,18 +3496,18 @@
   },
   "VE": {
     "cluster": "waterfall",
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "VEN",
     "name": {
       "en": "Venezuela",
       "ru": "Венесуэла"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Venezuela",
       "ru": "Венесуэла"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "VG": {
     "cluster": "ship",
@@ -3661,7 +3661,7 @@
   },
   "ZM": {
     "cluster": "waterfall",
-    "ink": "plum",
+    "ink": "slate",
     "iso3": "ZMB",
     "name": {
       "en": "Zambia",

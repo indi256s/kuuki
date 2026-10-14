@@ -1,0 +1,41 @@
+{
+  "iso2": "EC",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [44, 60, 36, 150, 66, 30]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "volcano",
+      "box": [30, 58, 92, 68],
+      "params": {
+        "profile": "cone",
+        "summit": 22,
+        "snow": 0.0,
+        "gullies": 7,
+        "concavity": 0.3
+      }
+    },
+    {
+      "module": "tortoise-a",
+      "box": [44, 56, 128, 70],
+      "params": {}
+    }
+  ]
+}

@@ -26,19 +26,24 @@ import cv from './cv.json'
 import cz from './cz.json'
 import de from './de.json'
 import dz from './dz.json'
+import ec from './ec.json'
 import eg from './eg.json'
 import eh from './eh.json'
 import es from './es.json'
+import fk from './fk.json'
 import fr from './fr.json'
 import ge from './ge.json'
+import gf from './gf.json'
 import gh from './gh.json'
 import gi from './gi.json'
 import gl from './gl.json'
 import gm from './gm.json'
 import gn from './gn.json'
 import gr from './gr.json'
+import gs from './gs.json'
 import gt from './gt.json'
 import gw from './gw.json'
+import gy from './gy.json'
 import hn from './hn.json'
 import hr from './hr.json'
 import hu from './hu.json'
@@ -64,9 +69,11 @@ import ng from './ng.json'
 import ni from './ni.json'
 import nl from './nl.json'
 import pa from './pa.json'
+import pe from './pe.json'
 import ph from './ph.json'
 import pl from './pl.json'
 import pm from './pm.json'
+import py from './py.json'
 import ro from './ro.json'
 import rs from './rs.json'
 import sd from './sd.json'
@@ -75,6 +82,7 @@ import si from './si.json'
 import sl from './sl.json'
 import sm from './sm.json'
 import sn from './sn.json'
+import sr from './sr.json'
 import sv from './sv.json'
 import sz from './sz.json'
 import tg from './tg.json'
@@ -82,7 +90,9 @@ import th from './th.json'
 import tn from './tn.json'
 import tz from './tz.json'
 import us from './us.json'
+import uy from './uy.json'
 import va from './va.json'
+import ve from './ve.json'
 import vn from './vn.json'
 import xk from './xk.json'
 import za from './za.json'
@@ -116,19 +126,24 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cz,
   de,
   dz,
+  ec,
   eg,
   eh,
   es,
+  fk,
   fr,
   ge,
+  gf,
   gh,
   gi,
   gl,
   gm,
   gn,
   gr,
+  gs,
   gt,
   gw,
+  gy,
   hn,
   hr,
   hu,
@@ -154,9 +169,11 @@ export const RECIPE_FILES: Record<string, unknown> = {
   ni,
   nl,
   pa,
+  pe,
   ph,
   pl,
   pm,
+  py,
   ro,
   rs,
   sd,
@@ -165,6 +182,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   sl,
   sm,
   sn,
+  sr,
   sv,
   sz,
   tg,
@@ -172,7 +190,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tn,
   tz,
   us,
+  uy,
   va,
+  ve,
   vn,
   xk,
   za,

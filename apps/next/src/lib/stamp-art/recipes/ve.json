@@ -1,0 +1,45 @@
+{
+  "iso2": "VE",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [120, 60, 36, 40, 66, 30]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.62],
+          [0.52, 0.5],
+          [0.56, 0.22],
+          [0.8, 0.2],
+          [0.84, 0.5],
+          [1, 0.58]
+        ],
+        "jag": 0.5,
+        "seed": 4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "waterfall-a",
+      "box": [28, 54, 140, 72],
+      "params": {
+        "kind": "tepui",
+        "fallW": 4
+      }
+    }
+  ]
+}
