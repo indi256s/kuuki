@@ -1,0 +1,30 @@
+{
+  "iso2": "KP",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [52, 44, 34, 146, 50, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "paektu",
+      "box": [48, 40, 104, 90.4],
+      "params": {}
+    }
+  ]
+}

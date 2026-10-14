@@ -1,0 +1,16 @@
+{
+  "iso2": "UZ",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "ochre-dark",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 3.6], "clouds": [48, 46, 30, 148, 52, 28], "weight": "hair" }
+    },
+    { "module": "distance-trees", "params": { "height": 12, "amp": 2.4, "seed": 5, "swell": 2 } },
+    { "module": "ground", "params": { "line": false } }
+  ],
+  "layers": [{ "module": "ark-bukhara", "box": [42, 50, 116, 80.4], "params": {} }]
+}

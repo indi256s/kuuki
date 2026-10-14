@@ -88,6 +88,14 @@ import { craterLakeA } from './crater-lake-a'
 import { massifB } from './massif-b'
 import { saoSebastiao } from './sao-sebastiao'
 import { cleftFallsB } from './cleft-falls-b'
+import { taroko } from './taroko'
+import { charyn } from './charyn'
+import { yurt } from './yurt'
+import { paektu } from './paektu'
+import { darvaza } from './darvaza'
+import { arkBukhara } from './ark-bukhara'
+import { tashRabat } from './tash-rabat'
+import { geunjeongjeon } from './geunjeongjeon'
 import { wingStationB } from './wing-station-b'
 import { chimneysB } from './chimneys-b'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
@@ -176,6 +184,14 @@ export const kit = {
   'charles-bridge': charlesBridge,
   'cloth-hall': clothHall,
   waterfall,
+  taroko,
+  charyn,
+  yurt,
+  paektu,
+  darvaza,
+  'ark-bukhara': arkBukhara,
+  'tash-rabat': tashRabat,
+  geunjeongjeon,
   'water-wheel-c': waterWheelC,
   'funicular-c': funicularC,
   'junk-c': junkC,

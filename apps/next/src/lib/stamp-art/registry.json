@@ -1893,7 +1893,7 @@
     "motif": "Tash Rabat caravanserai",
     "kind": "architecture",
     "silhouette": "Low stone block with one arched portal and a row of flat domes over vaulted rooms, hillside behind",
-    "modules": ["arcade", "dome", "gate-arch", "hills"],
+    "modules": ["tash-rabat", "rock-hill", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -1901,7 +1901,7 @@
     "replaced": "Burana Tower: Q43 (standalone minaret of a living religion)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "tash-rabat module: ashlar block, projecting pointed-arch portal, row of low domes, hillside behind."
   },
   {
     "iso2": "KH",
@@ -1975,10 +1975,10 @@
     "iso2": "KP",
     "iso3": "PRK",
     "name": "North Korea",
-    "motif": "Mount Kumgang granite spires",
+    "motif": "Paektu crater lake (Heaven Lake)",
     "kind": "nature",
-    "silhouette": "Row of sharp granite spires and cliffs of uneven height fanning across the sky, forest at the base",
-    "modules": ["mountains", "cliff", "forest"],
+    "silhouette": "A deep caldera seen from the rim: a jagged ring of peaks on the far side, a still lake below, dark near-rim slopes at the corners",
+    "modules": ["paektu"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -1986,7 +1986,7 @@
     "replaced": "Ryugyong Hotel: regime landmark and 1987 modern tower (rules 6, 7)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Mount Kumgang spires replaced with the Paektu caldera: neutral nature only, no regime symbols or monuments; one drawn view, lake and rim only."
   },
   {
     "iso2": "KR",
@@ -1995,7 +1995,7 @@
     "motif": "Geunjeongjeon throne hall",
     "kind": "architecture",
     "silhouette": "a wide hall with a big hipped curved roof over two tiers, set on a stepped stone terrace with a broad flight of steps; symmetric",
-    "modules": ["hip", "curved-eave", "platform", "steps"],
+    "modules": ["geunjeongjeon", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2003,7 +2003,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "Palace hall as architecture, no royal insignia."
+    "notes": "Palace hall as architecture, no royal insignia. Two stacked hipped roofs with upswept eaves on a two-tier terrace; Bugaksan ridge behind."
   },
   {
     "iso2": "KW",
@@ -2046,7 +2046,7 @@
     "motif": "Charyn Canyon",
     "kind": "nature",
     "silhouette": "Layered sandstone walls carved into jagged towers on both sides, a narrow river on the floor",
-    "modules": ["cliff", "water", "mountains"],
+    "modules": ["charyn"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2054,7 +2054,7 @@
     "replaced": "Baiterek: 2002 modern tower and regime symbol (rules 6, 7)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "charyn module: wide canyon in stratified benches with a far mesa and river tree band."
   },
   {
     "iso2": "LA",
@@ -2420,15 +2420,15 @@
     "motif": "Ger on the steppe",
     "kind": "architecture",
     "silhouette": "Low round body with a door opening at the bottom; conical roof rising to a small ring or crown at the top. Steppe hills run along the bottom",
-    "modules": ["conical", "hills"],
-    "signature": "new:felt-drum – cylindrical felt wall with a door arch; new:tent – domed felt roof with a crown ring",
+    "modules": ["yurt"],
+    "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "yurt module: shallow cone roof with crown ring, pipe, ropes and painted door; a second smaller ger beside it."
   },
   {
     "iso2": "MO",
@@ -2437,7 +2437,7 @@
     "motif": "Guia Fortress and Lighthouse",
     "kind": "architecture",
     "silhouette": "Low hilltop fort wall with a slim white lighthouse tower rising from the middle",
-    "modules": ["lighthouse", "fortress-wall", "hills"],
+    "modules": ["rock-hill", "lighthouse"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
@@ -2445,7 +2445,7 @@
     "replaced": "Ruins of St. Paul's: Q43 (church ruin of a living religion)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: lighthouse rising inside a fort wall on a hill. Promoted research alternate; draw the lighthouse only, not the chapel in the fort."
+    "notes": "part: lighthouse rising from a fort wall on Guia Hill. Chapel and casinos not drawn."
   },
   {
     "iso2": "MP",
@@ -3644,7 +3644,7 @@
     "motif": "Ismoil Somoni Peak",
     "kind": "nature",
     "silhouette": "Single broad peak with a central summit and ridges running down either side; glacier fields below; lower ridges in the bottom third",
-    "modules": ["mountains", "glacier"],
+    "modules": ["rock-hill", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3652,7 +3652,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "drawn with rock-hill: a broad white massif with a lit left face, shaded right face, lower ridges and a second peak."
   },
   {
     "iso2": "TK",
@@ -3695,15 +3695,15 @@
     "motif": "Darvaza gas crater",
     "kind": "nature",
     "silhouette": "Flat desert horizon at the bottom with low dunes; a round crater in the middle with a raised rim; tall flame tongues rising from the crater above it",
-    "modules": ["desert-dunes"],
-    "signature": "new:gas-crater – round pit with a rim and flame tongues",
+    "modules": ["darvaza", "dunes"],
+    "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Crater fire is being put out (REVIEW, 2023-25); may be dark."
+    "notes": "Darvaza drawn as a collapse pit with a cracked rim and dunes, no flames, because the fire is being put out (REVIEW, 2023-25)."
   },
   {
     "iso2": "TN",
@@ -3797,7 +3797,7 @@
     "motif": "Taroko Gorge",
     "kind": "nature",
     "silhouette": "Two tall marble cliff walls close together forming a V, a narrow river between, a small road-tunnel arch low on one wall",
-    "modules": ["cliff", "mountains", "water", "gate-arch"],
+    "modules": ["taroko"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3805,7 +3805,7 @@
     "replaced": "Taipei 101: 2004 signature architecture (rule 6)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Taroko Gorge: narrow marble slot with a road-tunnel arch and a far ridge; Taipei 101 avoided (copyright-sensitive)."
   },
   {
     "iso2": "TZ",
@@ -3916,7 +3916,7 @@
     "motif": "Ark of Bukhara citadel",
     "kind": "architecture",
     "silhouette": "Massive sloping mud-brick walls on a high mound, a ramp up to a gate between two round towers, a flat-roofed pavilion above",
-    "modules": ["fortress-wall", "gate-arch", "tower", "platform", "steps"],
+    "modules": ["ark-bukhara"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3924,7 +3924,7 @@
     "replaced": "Registan: madrasahs with minarets and domes (rule 1)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "unverified"
+    "notes": "ark-bukhara module: battered fluted walls, ramp to a gate between round towers, columned pavilion above. unverified detail."
   },
   {
     "iso2": "VA",
