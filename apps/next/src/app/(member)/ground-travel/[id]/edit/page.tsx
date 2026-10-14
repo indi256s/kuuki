@@ -4,7 +4,7 @@ import { requireOnboardedMember } from '../../../../../server/gates'
 import { pageMetadata } from '../../../../../server/metadata'
 import { getRequestLocale } from '../../../../../server/locale'
 import { IdentitySnapshot } from '../../../../../client/activity'
-import { EditJourney } from '../../../../../client/ground/form/edit-journey'
+import { EditJourneyWithOcr } from '../../../../../client/ground/form/ocr/with-ocr'
 import { safeReturn } from '../../../../../client/ground/form/return-context'
 import '../../../../../client/ground/form/ground-form.css'
 
@@ -39,7 +39,7 @@ export default async function EditJourneyPage({
               : 'Edit journey'}
         </h1>
       </div>
-      <EditJourney
+      <EditJourneyWithOcr
         ownerId={own.ownerId}
         locale={locale}
         id={id.toLowerCase()}

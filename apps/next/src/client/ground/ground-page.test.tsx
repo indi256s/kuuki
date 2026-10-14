@@ -355,8 +355,9 @@ describe('detail sheet', () => {
     vi.mocked(api.readJourney).mockRejectedValue(new ApiError(404, 'nope', 'NOT_FOUND'))
     mount(`journey=${uuid(99)}`)
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText('This journey is not in your list.')).toBeInTheDocument()
-    expect(cards().length).toBe(6)
+    // The dialog mounts before the detail read rejects and before the list answers: wait for both outcomes.
+    expect(await within(dialog).findByText('This journey is not in your list.')).toBeInTheDocument()
+    await waitFor(() => expect(cards().length).toBe(6))
   })
 
   it('a failed detail read keeps the list copy and offers Retry', async () => {

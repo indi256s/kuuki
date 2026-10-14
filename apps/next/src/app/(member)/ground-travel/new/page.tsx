@@ -4,7 +4,7 @@ import { requireOnboardedMember } from '../../../../server/gates'
 import { pageMetadata } from '../../../../server/metadata'
 import { getRequestLocale } from '../../../../server/locale'
 import { IdentitySnapshot } from '../../../../client/activity'
-import { JourneyForm } from '../../../../client/ground/form/journey-form'
+import { JourneyFormWithOcr } from '../../../../client/ground/form/ocr/with-ocr'
 import { safeReturn } from '../../../../client/ground/form/return-context'
 import '../../../../client/ground/form/ground-form.css'
 
@@ -42,7 +42,7 @@ export default async function NewJourney({
         </h1>
       </div>
       {mode ? (
-        <JourneyForm
+        <JourneyFormWithOcr
           key={mode}
           ownerId={own.ownerId}
           locale={locale}

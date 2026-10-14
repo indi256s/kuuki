@@ -34,8 +34,6 @@ export function placeDetail(
     .join(' · ')
 }
 
-const CATALOG_MIN_CHARS = 3
-
 export function PlacePicker({
   label,
   locale,
@@ -71,6 +69,7 @@ export function PlacePicker({
             : null
         }
         search={search}
+        minChars={GROUND_LIMITS.searchMinChars}
         toOption={(place) => ({
           key: placeKey(place),
           label: placeLabel(place, locale),
@@ -81,13 +80,6 @@ export function PlacePicker({
         hint={hint}
         disabled={disabled}
         inputRef={inputRef}
-        shortQueryText={(query) =>
-          query.length < CATALOG_MIN_CHARS
-            ? ru
-              ? 'Продолжайте: каталог ищет от 3 букв.'
-              : 'Keep typing: the catalog searches from 3 letters.'
-            : null
-        }
         footer={(close, query) => (
           <button
             type="button"
