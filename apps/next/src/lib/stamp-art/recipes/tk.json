@@ -2,8 +2,6 @@
   "iso2": "TK",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "ochre-dark",
-  "cluster": "atoll",
   "horizon": 0.7,
   "backdrop": [
     {

@@ -2,7 +2,6 @@
   "iso2": "PH",
   "tier": "engraved",
   "shape": "oval",
-  "ink": "plum",
   "horizon": 0.71,
   "backdrop": [
     {
@@ -13,8 +12,21 @@
         "weight": "hair"
       }
     },
-    { "module": "distance-trees", "params": { "height": 9, "amp": 2.2, "seed": 6, "swell": 2 } },
-    { "module": "ground", "params": { "water": true } }
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 9,
+        "amp": 2.2,
+        "seed": 6,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
   ],
   "layers": [
     {

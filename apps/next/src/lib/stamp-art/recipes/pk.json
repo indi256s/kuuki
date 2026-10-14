@@ -7,10 +7,32 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [2.8, 3.6], "clouds": [48, 46, 30, 150, 54, 28], "weight": "hair" }
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [48, 46, 30, 150, 54, 28],
+        "weight": "hair"
+      }
     },
-    { "module": "distance-trees", "params": { "height": 10, "amp": 2.2, "seed": 9, "swell": 2 } },
-    { "module": "ground", "params": { "line": false } }
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 10,
+        "amp": 2.2,
+        "seed": 9,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
   ],
-  "layers": [{ "module": "alamgiri-gate", "box": [51, 54, 98, 78] }]
+  "layers": [
+    {
+      "module": "alamgiri-gate",
+      "box": [51, 54, 98, 78]
+    }
+  ]
 }

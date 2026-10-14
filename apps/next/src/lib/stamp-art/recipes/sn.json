@@ -2,8 +2,6 @@
   "iso2": "SN",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "indigo",
-  "cluster": "bridge",
   "horizon": 0.72,
   "backdrop": [
     {

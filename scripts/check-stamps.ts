@@ -7,7 +7,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stampFiles } from '../apps/next/src/lib/stamp-art/build'
-import { stampIndexJson } from '../apps/next/src/lib/stamp-art/stamp-index'
+import { buildStampIndex, stampIndexJson } from '../apps/next/src/lib/stamp-art/stamp-index'
 import { lintGeometry } from '../apps/next/src/lib/stamp-art/lint'
 import { SHAPE_NAMES } from '../apps/next/src/lib/stamp-art/frame'
 import { measureImpression, measureRaster } from '../apps/next/src/lib/stamp-art/lint-raster'
@@ -19,6 +19,24 @@ const RECIPES_DIR = join(ROOT, 'apps', 'next', 'src', 'lib', 'stamp-art', 'recip
 
 async function main() {
   const failures: string[] = []
+
+  const clusters = new Map<string, { iso2: string; ink: string }[]>()
+  for (const [iso2, entry] of Object.entries(buildStampIndex())) {
+    if (!entry.cluster) continue
+    const members = clusters.get(entry.cluster) ?? []
+    members.push({ iso2, ink: entry.ink })
+    clusters.set(entry.cluster, members)
+  }
+  for (const [cluster, members] of clusters) {
+    if (members.length > 8)
+      failures.push(`${cluster}: ${members.length} members exceeds eight inks`)
+    const inks = new Map<string, string>()
+    for (const { iso2, ink } of members) {
+      const previous = inks.get(ink)
+      if (previous) failures.push(`${cluster}: ${previous} and ${iso2} share ${ink}`)
+      else inks.set(ink, iso2)
+    }
+  }
 
   for (const file of readdirSync(RECIPES_DIR)) {
     if (file.endsWith('.json') && !(file.slice(0, -5) in RECIPE_FILES)) {

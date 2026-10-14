@@ -2,8 +2,6 @@
   "iso2": "VC",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "plum",
-  "cluster": "atoll",
   "horizon": 0.72,
   "backdrop": [
     {

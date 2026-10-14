@@ -2,8 +2,6 @@
   "iso2": "TN",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "teal",
-  "cluster": "hill-town",
   "horizon": 0.72,
   "backdrop": [
     {

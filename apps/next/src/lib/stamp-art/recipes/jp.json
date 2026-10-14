@@ -46,7 +46,8 @@
     {
       "module": "ground",
       "params": {
-        "water": true
+        "water": true,
+        "lineLate": true
       }
     }
   ],
@@ -64,5 +65,6 @@
         "clouds": [0.66]
       }
     }
-  ]
+  ],
+  "ink": "ochre-dark"
 }

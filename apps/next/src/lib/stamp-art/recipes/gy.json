@@ -2,13 +2,12 @@
   "iso2": "GY",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "moss",
   "horizon": 0.74,
   "backdrop": [
     {
       "module": "sky",
       "params": {
-        "gap": [3, 4.4],
+        "gap": [2.5, 3.4],
         "weight": "hair",
         "clouds": [44, 62, 36, 150, 70, 30]
       }

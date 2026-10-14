@@ -2,8 +2,6 @@
   "iso2": "BL",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "moss",
-  "cluster": "lighthouse",
   "horizon": 0.74,
   "backdrop": [
     {
@@ -42,7 +40,8 @@
         "crag": 0.8,
         "seed": 4,
         "walls": [0.1, 0.5],
-        "wallH": 10
+        "wallH": 14,
+        "courses": 3
       }
     },
     {

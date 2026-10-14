@@ -2,8 +2,6 @@
   "iso2": "CD",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "indigo",
-  "cluster": "river-quay",
   "horizon": 0.72,
   "backdrop": [
     {

@@ -2,8 +2,6 @@
   "iso2": "JE",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "plum",
-  "cluster": "castle",
   "horizon": 0.72,
   "backdrop": [
     {
@@ -60,6 +58,15 @@
           [0.72, 14, 20, 1, "hip"],
           [0.93, 10, 12, 1, "battle"]
         ]
+      }
+    },
+    {
+      "module": "house",
+      "box": [46, 107, 24, 20],
+      "params": {
+        "roof": "hip",
+        "roofH": 0.4,
+        "shade": 0.3
       }
     }
   ]

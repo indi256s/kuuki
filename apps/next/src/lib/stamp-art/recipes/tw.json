@@ -7,9 +7,26 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [2.8, 3.6], "clouds": [60, 44, 30, 140, 50, 26], "weight": "hair" }
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [60, 44, 30, 140, 50, 26],
+        "weight": "hair"
+      }
     },
-    { "module": "ground", "params": { "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
   ],
-  "layers": [{ "module": "taroko", "box": [44, 44, 112, 86.4], "params": { "seed": 9 } }]
+  "layers": [
+    {
+      "module": "taroko",
+      "box": [44, 44, 112, 86.4],
+      "params": {
+        "seed": 9
+      }
+    }
+  ]
 }

@@ -2,13 +2,12 @@
   "iso2": "BR",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "moss",
   "horizon": 0.76,
   "backdrop": [
     {
       "module": "sky",
       "params": {
-        "gap": [2.2, 3.0],
+        "gap": [2, 2.6],
         "weight": "hair",
         "clouds": [34, 62, 52, 100, 56, 44, 166, 66, 52, 128, 80, 34]
       }
@@ -31,13 +30,16 @@
     {
       "module": "distance-trees",
       "params": {
-        "height": 12,
+        "height": 16,
         "amp": 2,
         "seed": 9
       }
     },
     {
-      "module": "ground"
+      "module": "ground",
+      "params": {
+        "gap": [3, 2.4]
+      }
     }
   ],
   "layers": [

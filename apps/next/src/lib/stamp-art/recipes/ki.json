@@ -2,8 +2,6 @@
   "iso2": "KI",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "teal",
-  "cluster": "thatched-house",
   "horizon": 0.72,
   "backdrop": [
     {

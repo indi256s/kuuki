@@ -2,8 +2,6 @@
   "iso2": "PM",
   "tier": "engraved",
   "shape": "octagon",
-  "ink": "indigo",
-  "cluster": "lighthouse",
   "horizon": 0.74,
   "backdrop": [
     {
@@ -14,13 +12,24 @@
         "weight": "hair"
       }
     },
-    { "module": "ground", "params": { "water": true } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
   ],
   "layers": [
     {
       "module": "lighthouse",
       "box": [78, 56, 30, 88],
-      "params": { "taper": 0.7, "bands": 2, "windows": 0, "base": 0.1, "lantern": 0.14 }
+      "params": {
+        "taper": 0.7,
+        "bands": 2,
+        "windows": 0,
+        "base": 0.1,
+        "lantern": 0.14
+      }
     }
   ]
 }

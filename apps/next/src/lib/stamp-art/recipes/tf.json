@@ -2,8 +2,6 @@
   "iso2": "TF",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "slate",
-  "cluster": "station",
   "horizon": 0.74,
   "backdrop": [
     {

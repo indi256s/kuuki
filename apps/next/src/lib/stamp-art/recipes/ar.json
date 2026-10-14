@@ -31,6 +31,72 @@
       "params": {}
     },
     {
+      "module": "house",
+      "box": [33, 95, 17, 23],
+      "params": {
+        "roof": "flat",
+        "roofH": 0.22,
+        "shade": 0.1,
+        "door": false,
+        "weight": "line"
+      }
+    },
+    {
+      "module": "house",
+      "box": [51, 99, 18, 23],
+      "params": {
+        "roof": "flat",
+        "roofH": 0.22,
+        "shade": 0.1,
+        "door": false,
+        "weight": "line"
+      }
+    },
+    {
+      "module": "house",
+      "box": [131, 99, 18, 23],
+      "params": {
+        "roof": "flat",
+        "roofH": 0.22,
+        "shade": 0.1,
+        "door": false,
+        "weight": "line"
+      }
+    },
+    {
+      "module": "house",
+      "box": [151, 95, 17, 23],
+      "params": {
+        "roof": "flat",
+        "roofH": 0.22,
+        "shade": 0.1,
+        "door": false,
+        "weight": "line"
+      }
+    },
+    {
+      "module": "house",
+      "box": [71, 102, 14, 19],
+      "params": {
+        "roof": "flat",
+        "roofH": 0.22,
+        "shade": 0.1,
+        "door": false,
+        "weight": "line"
+      }
+    },
+    {
+      "module": "house",
+      "box": [115, 102, 14, 19],
+      "params": {
+        "roof": "flat",
+        "roofH": 0.22,
+        "shade": 0.1,
+        "door": false,
+        "weight": "line"
+      }
+    },
+    {
       "module": "obelisk",
       "box": [82, 43, 36, 92],
       "params": {

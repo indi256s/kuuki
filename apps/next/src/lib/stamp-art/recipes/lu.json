@@ -2,8 +2,6 @@
   "iso2": "LU",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "slate",
-  "cluster": "bridge",
   "horizon": 0.75,
   "backdrop": [
     {

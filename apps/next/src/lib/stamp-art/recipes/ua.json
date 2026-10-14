@@ -38,6 +38,24 @@
     {
       "module": "potemkin-c",
       "box": [42, 58, 116, 70]
+    },
+    {
+      "module": "platform",
+      "box": [47, 116, 10, 12],
+      "params": {
+        "courses": 1,
+        "batter": 1,
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "platform",
+      "box": [143, 116, 10, 12],
+      "params": {
+        "courses": 1,
+        "batter": 1,
+        "weight": "hair"
+      }
     }
   ]
 }

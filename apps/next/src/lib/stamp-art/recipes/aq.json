@@ -2,14 +2,12 @@
   "iso2": "AQ",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "teal",
-  "cluster": "ice",
   "horizon": 0.72,
   "backdrop": [
     {
       "module": "sky",
       "params": {
-        "gap": [2.6, 3.8],
+        "gap": [2.5, 3.6],
         "clouds": [40, 60, 40, 156, 70, 34, 100, 50, 28],
         "weight": "hair"
       }

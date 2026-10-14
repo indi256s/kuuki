@@ -13,8 +13,27 @@
         "weight": "hair"
       }
     },
-    { "module": "distance-trees", "params": { "height": 10, "amp": 2.2, "seed": 4, "swell": 2 } },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 10,
+        "amp": 2.2,
+        "seed": 4,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
   ],
-  "layers": [{ "module": "taj-mahal", "box": [49, 57, 102, 75] }]
+  "layers": [
+    {
+      "module": "taj-mahal",
+      "box": [49, 57, 102, 75]
+    }
+  ]
 }

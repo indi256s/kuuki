@@ -2,8 +2,6 @@
   "iso2": "CV",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "teal",
-  "cluster": "volcano",
   "horizon": 0.72,
   "backdrop": [
     {

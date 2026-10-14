@@ -61,7 +61,7 @@
   },
   "AI": {
     "cluster": "ship",
-    "ink": "indigo",
+    "ink": "plum",
     "iso3": "AIA",
     "name": {
       "en": "Anguilla",
@@ -76,7 +76,7 @@
   },
   "AL": {
     "cluster": "hill-town",
-    "ink": "ochre-dark",
+    "ink": "plum",
     "iso3": "ALB",
     "name": {
       "en": "Albania",
@@ -106,7 +106,7 @@
   },
   "AO": {
     "cluster": "waterfall",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "AGO",
     "name": {
       "en": "Angola",
@@ -121,7 +121,7 @@
   },
   "AQ": {
     "cluster": "ice",
-    "ink": "teal",
+    "ink": "indigo",
     "iso3": "ATA",
     "name": {
       "en": "Antarctica",
@@ -181,7 +181,7 @@
   },
   "AU": {
     "cluster": "bridge",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "AUS",
     "name": {
       "en": "Australia",
@@ -196,7 +196,7 @@
   },
   "AW": {
     "cluster": "lighthouse",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "ABW",
     "name": {
       "en": "Aruba",
@@ -300,8 +300,8 @@
     "tier": "engraved"
   },
   "BG": {
-    "cluster": null,
-    "ink": "teal",
+    "cluster": "pinnacle",
+    "ink": "ochre-dark",
     "iso3": "BGR",
     "name": {
       "en": "Bulgaria",
@@ -376,7 +376,7 @@
   },
   "BM": {
     "cluster": "lighthouse",
-    "ink": "oxblood",
+    "ink": "plum",
     "iso3": "BMU",
     "name": {
       "en": "Bermuda",
@@ -420,8 +420,8 @@
     "tier": "engraved"
   },
   "BR": {
-    "cluster": "twin-peak",
-    "ink": "moss",
+    "cluster": "granite-dome",
+    "ink": "oxblood",
     "iso3": "BRA",
     "name": {
       "en": "Brazil",
@@ -465,8 +465,8 @@
     "tier": "engraved"
   },
   "BW": {
-    "cluster": null,
-    "ink": "umber",
+    "cluster": "palm-island",
+    "ink": "ochre-dark",
     "iso3": "BWA",
     "name": {
       "en": "Botswana",
@@ -496,7 +496,7 @@
   },
   "BZ": {
     "cluster": "pyramid",
-    "ink": "teal",
+    "ink": "oxblood",
     "iso3": "BLZ",
     "name": {
       "en": "Belize",
@@ -541,7 +541,7 @@
   },
   "CD": {
     "cluster": "river-quay",
-    "ink": "indigo",
+    "ink": "plum",
     "iso3": "COD",
     "name": {
       "en": "Congo - Kinshasa",
@@ -585,8 +585,8 @@
     "tier": "engraved"
   },
   "CH": {
-    "cluster": null,
-    "ink": "oxblood",
+    "cluster": "twin-peak",
+    "ink": "slate",
     "iso3": "CHE",
     "name": {
       "en": "Switzerland",
@@ -615,8 +615,8 @@
     "tier": "engraved"
   },
   "CK": {
-    "cluster": null,
-    "ink": "ochre-dark",
+    "cluster": "palm-island",
+    "ink": "indigo",
     "iso3": "COK",
     "name": {
       "en": "Cook Islands",
@@ -630,8 +630,8 @@
     "tier": "engraved"
   },
   "CL": {
-    "cluster": null,
-    "ink": "teal",
+    "cluster": "pinnacle",
+    "ink": "indigo",
     "iso3": "CHL",
     "name": {
       "en": "Chile",
@@ -645,8 +645,8 @@
     "tier": "engraved"
   },
   "CM": {
-    "cluster": null,
-    "ink": "slate",
+    "cluster": "volcanic-plug",
+    "ink": "indigo",
     "iso3": "CMR",
     "name": {
       "en": "Cameroon",
@@ -676,7 +676,7 @@
   },
   "CO": {
     "cluster": "fort",
-    "ink": "oxblood",
+    "ink": "indigo",
     "iso3": "COL",
     "name": {
       "en": "Colombia",
@@ -690,7 +690,7 @@
     "tier": "engraved"
   },
   "CR": {
-    "cluster": null,
+    "cluster": "volcano",
     "ink": "plum",
     "iso3": "CRI",
     "name": {
@@ -706,7 +706,7 @@
   },
   "CU": {
     "cluster": "fort",
-    "ink": "umber",
+    "ink": "oxblood",
     "iso3": "CUB",
     "name": {
       "en": "Cuba",
@@ -736,7 +736,7 @@
   },
   "CW": {
     "cluster": "stepped-gable",
-    "ink": "oxblood",
+    "ink": "moss",
     "iso3": "CUW",
     "name": {
       "en": "Curaçao",
@@ -765,8 +765,8 @@
     "tier": "engraved"
   },
   "CY": {
-    "cluster": null,
-    "ink": "oxblood",
+    "cluster": "castle",
+    "ink": "indigo",
     "iso3": "CYP",
     "name": {
       "en": "Cyprus",
@@ -781,7 +781,7 @@
   },
   "CZ": {
     "cluster": "bridge",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "CZE",
     "name": {
       "en": "Czechia",
@@ -810,8 +810,8 @@
     "tier": "engraved"
   },
   "DJ": {
-    "cluster": null,
-    "ink": "umber",
+    "cluster": "pinnacle",
+    "ink": "oxblood",
     "iso3": "DJI",
     "name": {
       "en": "Djibouti",
@@ -826,7 +826,7 @@
   },
   "DK": {
     "cluster": "castle",
-    "ink": "indigo",
+    "ink": "oxblood",
     "iso3": "DNK",
     "name": {
       "en": "Denmark",
@@ -871,7 +871,7 @@
   },
   "DZ": {
     "cluster": "hill-town",
-    "ink": "indigo",
+    "ink": "teal",
     "iso3": "DZA",
     "name": {
       "en": "Algeria",
@@ -900,8 +900,8 @@
     "tier": "engraved"
   },
   "EE": {
-    "cluster": null,
-    "ink": "oxblood",
+    "cluster": "castle-tower",
+    "ink": "slate",
     "iso3": "EST",
     "name": {
       "en": "Estonia",
@@ -916,7 +916,7 @@
   },
   "EG": {
     "cluster": "pyramid",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "EGY",
     "name": {
       "en": "Egypt",
@@ -961,7 +961,7 @@
   },
   "ES": {
     "cluster": "castle",
-    "ink": "oxblood",
+    "ink": "slate",
     "iso3": "ESP",
     "name": {
       "en": "Spain",
@@ -976,7 +976,7 @@
   },
   "ET": {
     "cluster": "castle",
-    "ink": "teal",
+    "ink": "moss",
     "iso3": "ETH",
     "name": {
       "en": "Ethiopia",
@@ -990,8 +990,8 @@
     "tier": "engraved"
   },
   "FI": {
-    "cluster": "fort",
-    "ink": "teal",
+    "cluster": "fort-gate",
+    "ink": "umber",
     "iso3": "FIN",
     "name": {
       "en": "Finland",
@@ -1081,7 +1081,7 @@
   },
   "GA": {
     "cluster": "waterfall",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "GAB",
     "name": {
       "en": "Gabon",
@@ -1095,8 +1095,8 @@
     "tier": "engraved"
   },
   "GB": {
-    "cluster": null,
-    "ink": "umber",
+    "cluster": "castle-tower",
+    "ink": "moss",
     "iso3": "GBR",
     "name": {
       "en": "United Kingdom",
@@ -1156,7 +1156,7 @@
   },
   "GG": {
     "cluster": "castle",
-    "ink": "slate",
+    "ink": "plum",
     "iso3": "GGY",
     "name": {
       "en": "Guernsey",
@@ -1171,7 +1171,7 @@
   },
   "GH": {
     "cluster": "fort",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "GHA",
     "name": {
       "en": "Ghana",
@@ -1201,7 +1201,7 @@
   },
   "GL": {
     "cluster": "ice",
-    "ink": "slate",
+    "ink": "oxblood",
     "iso3": "GRL",
     "name": {
       "en": "Greenland",
@@ -1231,7 +1231,7 @@
   },
   "GN": {
     "cluster": "palm-island",
-    "ink": "ochre-dark",
+    "ink": "oxblood",
     "iso3": "GIN",
     "name": {
       "en": "Guinea",
@@ -1276,7 +1276,7 @@
   },
   "GR": {
     "cluster": "classical-ruin",
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "GRC",
     "name": {
       "en": "Greece",
@@ -1306,7 +1306,7 @@
   },
   "GT": {
     "cluster": "pyramid",
-    "ink": "umber",
+    "ink": "moss",
     "iso3": "GTM",
     "name": {
       "en": "Guatemala",
@@ -1336,7 +1336,7 @@
   },
   "GW": {
     "cluster": "palm-island",
-    "ink": "teal",
+    "ink": "slate",
     "iso3": "GNB",
     "name": {
       "en": "Guinea-Bissau",
@@ -1351,7 +1351,7 @@
   },
   "GY": {
     "cluster": "waterfall",
-    "ink": "moss",
+    "ink": "ochre-dark",
     "iso3": "GUY",
     "name": {
       "en": "Guyana",
@@ -1381,7 +1381,7 @@
   },
   "HN": {
     "cluster": "pyramid",
-    "ink": "indigo",
+    "ink": "plum",
     "iso3": "HND",
     "name": {
       "en": "Honduras",
@@ -1396,7 +1396,7 @@
   },
   "HR": {
     "cluster": "sea-wall",
-    "ink": "indigo",
+    "ink": "moss",
     "iso3": "HRV",
     "name": {
       "en": "Croatia",
@@ -1470,8 +1470,8 @@
     "tier": "engraved"
   },
   "IL": {
-    "cluster": null,
-    "ink": "teal",
+    "cluster": "mesa",
+    "ink": "plum",
     "iso3": "ISR",
     "name": {
       "en": "Israel",
@@ -1516,7 +1516,7 @@
   },
   "IO": {
     "cluster": "atoll",
-    "ink": "indigo",
+    "ink": "plum",
     "iso3": "IOT",
     "name": {
       "en": "British Indian Ocean Territory",
@@ -1531,7 +1531,7 @@
   },
   "IQ": {
     "cluster": "pyramid",
-    "ink": "oxblood",
+    "ink": "teal",
     "iso3": "IRQ",
     "name": {
       "en": "Iraq",
@@ -1591,7 +1591,7 @@
   },
   "JE": {
     "cluster": "castle",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "JEY",
     "name": {
       "en": "Jersey",
@@ -1651,7 +1651,7 @@
   },
   "KE": {
     "cluster": "twin-peak",
-    "ink": "indigo",
+    "ink": "moss",
     "iso3": "KEN",
     "name": {
       "en": "Kenya",
@@ -1696,7 +1696,7 @@
   },
   "KI": {
     "cluster": "thatched-house",
-    "ink": "teal",
+    "ink": "oxblood",
     "iso3": "KIR",
     "name": {
       "en": "Kiribati",
@@ -1711,7 +1711,7 @@
   },
   "KM": {
     "cluster": "ship",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "COM",
     "name": {
       "en": "Comoros",
@@ -1726,7 +1726,7 @@
   },
   "KN": {
     "cluster": "fort",
-    "ink": "indigo",
+    "ink": "plum",
     "iso3": "KNA",
     "name": {
       "en": "St. Kitts & Nevis",
@@ -1771,7 +1771,7 @@
   },
   "KW": {
     "cluster": "ship",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "KWT",
     "name": {
       "en": "Kuwait",
@@ -1800,7 +1800,7 @@
     "tier": "engraved"
   },
   "KZ": {
-    "cluster": null,
+    "cluster": "pinnacle",
     "ink": "slate",
     "iso3": "KAZ",
     "name": {
@@ -1846,7 +1846,7 @@
   },
   "LC": {
     "cluster": "twin-peak",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "LCA",
     "name": {
       "en": "St. Lucia",
@@ -1891,7 +1891,7 @@
   },
   "LR": {
     "cluster": "waterfall",
-    "ink": "moss",
+    "ink": "oxblood",
     "iso3": "LBR",
     "name": {
       "en": "Liberia",
@@ -1906,7 +1906,7 @@
   },
   "LS": {
     "cluster": "thatched-house",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "LSO",
     "name": {
       "en": "Lesotho",
@@ -1920,8 +1920,8 @@
     "tier": "engraved"
   },
   "LT": {
-    "cluster": "castle",
-    "ink": "moss",
+    "cluster": "castle-tower",
+    "ink": "plum",
     "iso3": "LTU",
     "name": {
       "en": "Lithuania",
@@ -1936,7 +1936,7 @@
   },
   "LU": {
     "cluster": "bridge",
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "LUX",
     "name": {
       "en": "Luxembourg",
@@ -1951,7 +1951,7 @@
   },
   "LV": {
     "cluster": "stepped-gable",
-    "ink": "oxblood",
+    "ink": "plum",
     "iso3": "LVA",
     "name": {
       "en": "Latvia",
@@ -1966,7 +1966,7 @@
   },
   "LY": {
     "cluster": "classical-ruin",
-    "ink": "teal",
+    "ink": "ochre-dark",
     "iso3": "LBY",
     "name": {
       "en": "Libya",
@@ -1981,7 +1981,7 @@
   },
   "MA": {
     "cluster": "hill-town",
-    "ink": "oxblood",
+    "ink": "umber",
     "iso3": "MAR",
     "name": {
       "en": "Morocco",
@@ -2010,8 +2010,8 @@
     "tier": "engraved"
   },
   "MD": {
-    "cluster": null,
-    "ink": "indigo",
+    "cluster": "castle-tower",
+    "ink": "teal",
     "iso3": "MDA",
     "name": {
       "en": "Moldova",
@@ -2041,7 +2041,7 @@
   },
   "MF": {
     "cluster": "ship",
-    "ink": "moss",
+    "ink": "ochre-dark",
     "iso3": "MAF",
     "name": {
       "en": "St. Martin",
@@ -2146,7 +2146,7 @@
   },
   "MO": {
     "cluster": "lighthouse",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "MAC",
     "name": {
       "en": "Macao SAR China",
@@ -2176,7 +2176,7 @@
   },
   "MQ": {
     "cluster": "volcano",
-    "ink": "oxblood",
+    "ink": "umber",
     "iso3": "MTQ",
     "name": {
       "en": "Martinique",
@@ -2206,7 +2206,7 @@
   },
   "MS": {
     "cluster": "volcano",
-    "ink": "slate",
+    "ink": "ochre-dark",
     "iso3": "MSR",
     "name": {
       "en": "Montserrat",
@@ -2221,7 +2221,7 @@
   },
   "MT": {
     "cluster": "sea-wall",
-    "ink": "ochre-dark",
+    "ink": "plum",
     "iso3": "MLT",
     "name": {
       "en": "Malta",
@@ -2266,7 +2266,7 @@
   },
   "MW": {
     "cluster": "mesa",
-    "ink": "oxblood",
+    "ink": "umber",
     "iso3": "MWI",
     "name": {
       "en": "Malawi",
@@ -2281,7 +2281,7 @@
   },
   "MX": {
     "cluster": "pyramid",
-    "ink": "moss",
+    "ink": "umber",
     "iso3": "MEX",
     "name": {
       "en": "Mexico",
@@ -2310,8 +2310,8 @@
     "tier": "engraved"
   },
   "MZ": {
-    "cluster": "fort",
-    "ink": "plum",
+    "cluster": "fort-gate",
+    "ink": "ochre-dark",
     "iso3": "MOZ",
     "name": {
       "en": "Mozambique",
@@ -2385,8 +2385,8 @@
     "tier": "engraved"
   },
   "NG": {
-    "cluster": "monolith",
-    "ink": "umber",
+    "cluster": "granite-dome",
+    "ink": "slate",
     "iso3": "NGA",
     "name": {
       "en": "Nigeria",
@@ -2416,7 +2416,7 @@
   },
   "NL": {
     "cluster": "stepped-gable",
-    "ink": "indigo",
+    "ink": "teal",
     "iso3": "NLD",
     "name": {
       "en": "Netherlands",
@@ -2430,7 +2430,7 @@
     "tier": "engraved"
   },
   "NO": {
-    "cluster": null,
+    "cluster": "stepped-gable",
     "ink": "umber",
     "iso3": "NOR",
     "name": {
@@ -2446,7 +2446,7 @@
   },
   "NP": {
     "cluster": "twin-peak",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "NPL",
     "name": {
       "en": "Nepal",
@@ -2460,8 +2460,8 @@
     "tier": "engraved"
   },
   "NR": {
-    "cluster": null,
-    "ink": "oxblood",
+    "cluster": "pinnacle",
+    "ink": "moss",
     "iso3": "NRU",
     "name": {
       "en": "Nauru",
@@ -2490,8 +2490,8 @@
     "tier": "engraved"
   },
   "NZ": {
-    "cluster": null,
-    "ink": "ochre-dark",
+    "cluster": "twin-peak",
+    "ink": "umber",
     "iso3": "NZL",
     "name": {
       "en": "New Zealand",
@@ -2520,8 +2520,8 @@
     "tier": "engraved"
   },
   "PA": {
-    "cluster": null,
-    "ink": "ochre-dark",
+    "cluster": "canal-lock",
+    "ink": "plum",
     "iso3": "PAN",
     "name": {
       "en": "Panama",
@@ -2550,8 +2550,8 @@
     "tier": "engraved"
   },
   "PF": {
-    "cluster": null,
-    "ink": "ochre-dark",
+    "cluster": "volcanic-plug",
+    "ink": "oxblood",
     "iso3": "PYF",
     "name": {
       "en": "French Polynesia",
@@ -2565,8 +2565,8 @@
     "tier": "engraved"
   },
   "PG": {
-    "cluster": null,
-    "ink": "slate",
+    "cluster": "bird",
+    "ink": "plum",
     "iso3": "PNG",
     "name": {
       "en": "Papua New Guinea",
@@ -2581,7 +2581,7 @@
   },
   "PH": {
     "cluster": "volcano",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "PHL",
     "name": {
       "en": "Philippines",
@@ -2626,7 +2626,7 @@
   },
   "PM": {
     "cluster": "lighthouse",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "SPM",
     "name": {
       "en": "St. Pierre & Miquelon",
@@ -2656,7 +2656,7 @@
   },
   "PR": {
     "cluster": "fort",
-    "ink": "oxblood",
+    "ink": "teal",
     "iso3": "PRI",
     "name": {
       "en": "Puerto Rico",
@@ -2760,7 +2760,7 @@
     "tier": "engraved"
   },
   "RO": {
-    "cluster": null,
+    "cluster": "castle",
     "ink": "umber",
     "iso3": "ROU",
     "name": {
@@ -2775,8 +2775,8 @@
     "tier": "engraved"
   },
   "RS": {
-    "cluster": null,
-    "ink": "plum",
+    "cluster": "castle-tower",
+    "ink": "umber",
     "iso3": "SRB",
     "name": {
       "en": "Serbia",
@@ -2791,7 +2791,7 @@
   },
   "RU": {
     "cluster": "twin-peak",
-    "ink": "slate",
+    "ink": "ochre-dark",
     "iso3": "RUS",
     "name": {
       "en": "Russia",
@@ -2835,8 +2835,8 @@
     "tier": "engraved"
   },
   "SB": {
-    "cluster": null,
-    "ink": "indigo",
+    "cluster": "palm-island",
+    "ink": "moss",
     "iso3": "SLB",
     "name": {
       "en": "Solomon Islands",
@@ -2866,7 +2866,7 @@
   },
   "SD": {
     "cluster": "pyramid",
-    "ink": "umber",
+    "ink": "ochre-dark",
     "iso3": "SDN",
     "name": {
       "en": "Sudan",
@@ -2880,7 +2880,7 @@
     "tier": "engraved"
   },
   "SE": {
-    "cluster": null,
+    "cluster": "stepped-gable",
     "ink": "ochre-dark",
     "iso3": "SWE",
     "name": {
@@ -2925,8 +2925,8 @@
     "tier": "engraved"
   },
   "SI": {
-    "cluster": "castle",
-    "ink": "umber",
+    "cluster": "castle-tower",
+    "ink": "ochre-dark",
     "iso3": "SVN",
     "name": {
       "en": "Slovenia",
@@ -2941,7 +2941,7 @@
   },
   "SJ": {
     "cluster": "ice",
-    "ink": "teal",
+    "ink": "slate",
     "iso3": "SJM",
     "name": {
       "en": "Svalbard & Jan Mayen",
@@ -2985,8 +2985,8 @@
     "tier": "engraved"
   },
   "SM": {
-    "cluster": null,
-    "ink": "moss",
+    "cluster": "castle-tower",
+    "ink": "indigo",
     "iso3": "SMR",
     "name": {
       "en": "San Marino",
@@ -3001,7 +3001,7 @@
   },
   "SN": {
     "cluster": "bridge",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "SEN",
     "name": {
       "en": "Senegal",
@@ -3016,7 +3016,7 @@
   },
   "SO": {
     "cluster": "lighthouse",
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "SOM",
     "name": {
       "en": "Somalia",
@@ -3046,7 +3046,7 @@
   },
   "SS": {
     "cluster": "wetland",
-    "ink": "plum",
+    "ink": "umber",
     "iso3": "SSD",
     "name": {
       "en": "South Sudan",
@@ -3060,8 +3060,8 @@
     "tier": "engraved"
   },
   "ST": {
-    "cluster": "volcano",
-    "ink": "teal",
+    "cluster": "volcanic-plug",
+    "ink": "slate",
     "iso3": "STP",
     "name": {
       "en": "São Tomé & Príncipe",
@@ -3090,8 +3090,8 @@
     "tier": "engraved"
   },
   "SX": {
-    "cluster": null,
-    "ink": "teal",
+    "cluster": "aircraft",
+    "ink": "plum",
     "iso3": "SXM",
     "name": {
       "en": "Sint Maarten",
@@ -3106,7 +3106,7 @@
   },
   "SY": {
     "cluster": "classical-ruin",
-    "ink": "oxblood",
+    "ink": "indigo",
     "iso3": "SYR",
     "name": {
       "en": "Syria",
@@ -3120,7 +3120,7 @@
     "tier": "engraved"
   },
   "SZ": {
-    "cluster": "monolith",
+    "cluster": "granite-dome",
     "ink": "moss",
     "iso3": "SWZ",
     "name": {
@@ -3136,7 +3136,7 @@
   },
   "TC": {
     "cluster": "lighthouse",
-    "ink": "teal",
+    "ink": "oxblood",
     "iso3": "TCA",
     "name": {
       "en": "Turks & Caicos Islands",
@@ -3151,7 +3151,7 @@
   },
   "TD": {
     "cluster": "rock-arch",
-    "ink": "ochre-dark",
+    "ink": "plum",
     "iso3": "TCD",
     "name": {
       "en": "Chad",
@@ -3166,7 +3166,7 @@
   },
   "TF": {
     "cluster": "station",
-    "ink": "slate",
+    "ink": "plum",
     "iso3": "ATF",
     "name": {
       "en": "French Southern Territories",
@@ -3181,7 +3181,7 @@
   },
   "TG": {
     "cluster": "thatched-house",
-    "ink": "slate",
+    "ink": "moss",
     "iso3": "TGO",
     "name": {
       "en": "Togo",
@@ -3196,7 +3196,7 @@
   },
   "TH": {
     "cluster": "stilts",
-    "ink": "ochre-dark",
+    "ink": "indigo",
     "iso3": "THA",
     "name": {
       "en": "Thailand",
@@ -3210,8 +3210,8 @@
     "tier": "engraved"
   },
   "TJ": {
-    "cluster": null,
-    "ink": "teal",
+    "cluster": "twin-peak",
+    "ink": "indigo",
     "iso3": "TJK",
     "name": {
       "en": "Tajikistan",
@@ -3226,7 +3226,7 @@
   },
   "TK": {
     "cluster": "atoll",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "TKL",
     "name": {
       "en": "Tokelau",
@@ -3271,7 +3271,7 @@
   },
   "TN": {
     "cluster": "hill-town",
-    "ink": "teal",
+    "ink": "ochre-dark",
     "iso3": "TUN",
     "name": {
       "en": "Tunisia",
@@ -3300,8 +3300,8 @@
     "tier": "engraved"
   },
   "TR": {
-    "cluster": null,
-    "ink": "indigo",
+    "cluster": "pinnacle",
+    "ink": "plum",
     "iso3": "TUR",
     "name": {
       "en": "Türkiye",
@@ -3315,8 +3315,8 @@
     "tier": "engraved"
   },
   "TT": {
-    "cluster": null,
-    "ink": "indigo",
+    "cluster": "palm-island",
+    "ink": "plum",
     "iso3": "TTO",
     "name": {
       "en": "Trinidad & Tobago",
@@ -3330,8 +3330,8 @@
     "tier": "engraved"
   },
   "TV": {
-    "cluster": "atoll",
-    "ink": "oxblood",
+    "cluster": "aircraft",
+    "ink": "teal",
     "iso3": "TUV",
     "name": {
       "en": "Tuvalu",
@@ -3361,7 +3361,7 @@
   },
   "TZ": {
     "cluster": "volcano",
-    "ink": "ochre-dark",
+    "ink": "slate",
     "iso3": "TZA",
     "name": {
       "en": "Tanzania",
@@ -3391,7 +3391,7 @@
   },
   "UG": {
     "cluster": "waterfall",
-    "ink": "indigo",
+    "ink": "slate",
     "iso3": "UGA",
     "name": {
       "en": "Uganda",
@@ -3405,8 +3405,8 @@
     "tier": "engraved"
   },
   "UM": {
-    "cluster": null,
-    "ink": "oxblood",
+    "cluster": "bird",
+    "ink": "teal",
     "iso3": "UMI",
     "name": {
       "en": "U.S. Outlying Islands",
@@ -3481,7 +3481,7 @@
   },
   "VC": {
     "cluster": "atoll",
-    "ink": "plum",
+    "ink": "ochre-dark",
     "iso3": "VCT",
     "name": {
       "en": "St. Vincent & Grenadines",
@@ -3496,7 +3496,7 @@
   },
   "VE": {
     "cluster": "waterfall",
-    "ink": "teal",
+    "ink": "moss",
     "iso3": "VEN",
     "name": {
       "en": "Venezuela",
@@ -3511,7 +3511,7 @@
   },
   "VG": {
     "cluster": "ship",
-    "ink": "umber",
+    "ink": "indigo",
     "iso3": "VGB",
     "name": {
       "en": "British Virgin Islands",
@@ -3526,7 +3526,7 @@
   },
   "VI": {
     "cluster": "fort",
-    "ink": "slate",
+    "ink": "umber",
     "iso3": "VIR",
     "name": {
       "en": "U.S. Virgin Islands",
@@ -3541,7 +3541,7 @@
   },
   "VN": {
     "cluster": "karst",
-    "ink": "teal",
+    "ink": "moss",
     "iso3": "VNM",
     "name": {
       "en": "Vietnam",
@@ -3556,7 +3556,7 @@
   },
   "VU": {
     "cluster": "volcano",
-    "ink": "umber",
+    "ink": "moss",
     "iso3": "VUT",
     "name": {
       "en": "Vanuatu",
@@ -3586,7 +3586,7 @@
   },
   "WS": {
     "cluster": "thatched-house",
-    "ink": "oxblood",
+    "ink": "plum",
     "iso3": "WSM",
     "name": {
       "en": "Samoa",
@@ -3601,7 +3601,7 @@
   },
   "XK": {
     "cluster": "twin-peak",
-    "ink": "ochre-dark",
+    "ink": "oxblood",
     "iso3": "XKX",
     "name": {
       "en": "Kosovo",
@@ -3616,7 +3616,7 @@
   },
   "YE": {
     "cluster": "hill-town",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "YEM",
     "name": {
       "en": "Yemen",
@@ -3646,7 +3646,7 @@
   },
   "ZA": {
     "cluster": "mesa",
-    "ink": "slate",
+    "ink": "ochre-dark",
     "iso3": "ZAF",
     "name": {
       "en": "South Africa",
@@ -3661,7 +3661,7 @@
   },
   "ZM": {
     "cluster": "waterfall",
-    "ink": "slate",
+    "ink": "plum",
     "iso3": "ZMB",
     "name": {
       "en": "Zambia",

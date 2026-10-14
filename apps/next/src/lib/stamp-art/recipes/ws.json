@@ -2,8 +2,6 @@
   "iso2": "WS",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "oxblood",
-  "cluster": "thatched-house",
   "horizon": 0.72,
   "backdrop": [
     {

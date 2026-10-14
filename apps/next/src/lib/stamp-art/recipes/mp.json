@@ -2,7 +2,6 @@
   "iso2": "MP",
   "tier": "engraved",
   "horizon": 0.72,
-  "cluster": "atoll",
   "backdrop": [
     {
       "module": "sky",

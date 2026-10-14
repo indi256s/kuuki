@@ -14,7 +14,10 @@
       }
     },
     {
-      "module": "ground"
+      "module": "ground",
+      "params": {
+        "lineLate": true
+      }
     }
   ],
   "layers": [
@@ -28,5 +31,6 @@
       "part": "quadriga",
       "box": [83, 64.8, 34, 11]
     }
-  ]
+  ],
+  "ink": "umber"
 }

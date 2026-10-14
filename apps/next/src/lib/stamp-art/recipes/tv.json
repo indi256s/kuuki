@@ -2,8 +2,6 @@
   "iso2": "TV",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "oxblood",
-  "cluster": "atoll",
   "horizon": 0.6,
   "backdrop": [
     {

@@ -7,7 +7,11 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [2.8, 3.6], "clouds": [50, 48, 30, 148, 56, 28], "weight": "hair" }
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 48, 30, 148, 56, 28],
+        "weight": "hair"
+      }
     },
     {
       "module": "distance-mountains",
@@ -23,7 +27,17 @@
         "seed": 5
       }
     },
-    { "module": "ground", "params": { "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
   ],
-  "layers": [{ "module": "herat-citadel", "box": [50, 62, 100, 70] }]
+  "layers": [
+    {
+      "module": "herat-citadel",
+      "box": [50, 62, 100, 70]
+    }
+  ]
 }

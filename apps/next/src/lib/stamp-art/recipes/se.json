@@ -2,45 +2,81 @@
   "iso2": "SE",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "ochre-dark",
   "horizon": 0.72,
   "backdrop": [
     {
       "module": "sky",
-      "params": { "weight": "hair", "gap": [3, 4.4], "clouds": [40, 60, 26, 150, 58, 24] }
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
     },
-    { "module": "ground", "params": { "water": true } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
   ],
   "layers": [
     {
       "module": "stepped-gable",
       "box": [30, 70, 24, 56],
-      "params": { "style": "stepped", "steps": 5, "rows": 4, "cols": 2 }
+      "params": {
+        "style": "stepped",
+        "steps": 5,
+        "rows": 4,
+        "cols": 2
+      }
     },
     {
       "module": "stepped-gable",
       "box": [54, 58, 22, 68],
-      "params": { "style": "bell", "rows": 5, "cols": 2 }
+      "params": {
+        "style": "bell",
+        "rows": 5,
+        "cols": 2
+      }
     },
     {
       "module": "stepped-gable",
       "box": [76, 66, 24, 60],
-      "params": { "style": "stepped", "steps": 3, "rows": 4, "cols": 2 }
+      "params": {
+        "style": "stepped",
+        "steps": 3,
+        "rows": 4,
+        "cols": 2
+      }
     },
     {
       "module": "stepped-gable",
       "box": [100, 56, 22, 70],
-      "params": { "style": "neck", "rows": 6, "cols": 2 }
+      "params": {
+        "style": "neck",
+        "rows": 6,
+        "cols": 2
+      }
     },
     {
       "module": "stepped-gable",
       "box": [122, 68, 24, 58],
-      "params": { "style": "stepped", "steps": 4, "rows": 4, "cols": 2 }
+      "params": {
+        "style": "stepped",
+        "steps": 4,
+        "rows": 4,
+        "cols": 2
+      }
     },
     {
       "module": "stepped-gable",
       "box": [146, 76, 22, 50],
-      "params": { "style": "stepped", "steps": 3, "rows": 3, "cols": 2 }
+      "params": {
+        "style": "stepped",
+        "steps": 3,
+        "rows": 3,
+        "cols": 2
+      }
     }
   ]
 }

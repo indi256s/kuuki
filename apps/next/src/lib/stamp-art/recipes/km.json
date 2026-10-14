@@ -2,13 +2,15 @@
   "iso2": "KM",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "plum",
-  "cluster": "ship",
   "horizon": 0.74,
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [150, 56, 30] }
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [150, 56, 30]
+      }
     },
     {
       "module": "distance-mountains",
@@ -25,7 +27,13 @@
         "seed": 8
       }
     },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
   ],
   "layers": [
     {

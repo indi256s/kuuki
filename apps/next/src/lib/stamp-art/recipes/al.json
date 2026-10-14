@@ -2,8 +2,6 @@
   "iso2": "AL",
   "tier": "engraved",
   "shape": "octagon",
-  "ink": "ochre-dark",
-  "cluster": "hill-town",
   "horizon": 0.72,
   "backdrop": [
     {

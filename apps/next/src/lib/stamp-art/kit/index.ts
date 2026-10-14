@@ -114,7 +114,6 @@ import { clothHall } from './cloth-hall'
 import { junkC } from './junk-c'
 import { funicularC } from './funicular-c'
 import { waterWheelC } from './water-wheel-c'
-import { waterfall } from './waterfall'
 import { waterfallB } from './waterfall-b'
 import { canopyB, plumeB } from './mass-b'
 import { gorgePinnaclesB, rockStrataB } from './rock-b'
@@ -132,7 +131,6 @@ import { granaries } from './granaries'
 import { monolithB } from './monolith-b'
 import { jacobsLadder } from './jacobs-ladder'
 import { trussBridgeB } from './truss-bridge-b'
-import { waterfallA } from './waterfall-a'
 import { terracesA } from './terraces-a'
 import { tortoiseA } from './tortoise-a'
 import { penguinA } from './penguin-a'
@@ -141,7 +139,6 @@ import { whalingChimneyA } from './whaling-chimney-a'
 import { arcadeHouseA } from './arcade-house-a'
 import { woodenRowA } from './wooden-row-a'
 import { portonA } from './porton-a'
-import { kalandula } from './kalandula'
 import { mountKenya } from './mount-kenya'
 import { volcanicPlug } from './volcanic-plug'
 import { naturalArch } from './natural-arch'
@@ -173,7 +170,6 @@ import { tashRabat } from './tash-rabat'
 import { geunjeongjeon } from './geunjeongjeon'
 import { wingStationB } from './wing-station-b'
 import { chimneysB } from './chimneys-b'
-import { victoriaFalls } from './victoria-falls'
 import { greatZimbabwe } from './great-zimbabwe'
 import { baobab } from './baobab'
 import { ngalawa } from './ngalawa'
@@ -349,7 +345,6 @@ export const kit = {
   'bastion-turrets': bastionTurrets,
   'charles-bridge': charlesBridge,
   'cloth-hall': clothHall,
-  waterfall,
   'waterfall-b': waterfallB,
   'plume-b': plumeB,
   'canopy-b': canopyB,
@@ -371,7 +366,6 @@ export const kit = {
   'monolith-b': monolithB,
   'jacobs-ladder': jacobsLadder,
   'truss-bridge-b': trussBridgeB,
-  'waterfall-a': waterfallA,
   'terraces-a': terracesA,
   'tortoise-a': tortoiseA,
   'arcade-house-a': arcadeHouseA,
@@ -380,7 +374,6 @@ export const kit = {
   'penguin-a': penguinA,
   'gantry-a': gantryA,
   'whaling-chimney-a': whalingChimneyA,
-  kalandula: kalandula,
   'mount-kenya': mountKenya,
   'volcanic-plug': volcanicPlug,
   'natural-arch': naturalArch,
@@ -390,7 +383,6 @@ export const kit = {
   pirogue: pirogue,
   'outcrops-b': outcropsB,
   'sloop-a': sloopA,
-  'victoria-falls': victoriaFalls,
   'great-zimbabwe': greatZimbabwe,
   baobab: baobab,
   ngalawa: ngalawa,

@@ -2,8 +2,6 @@
   "iso2": "MM",
   "tier": "engraved",
   "shape": "circle",
-  "ink": "umber",
-  "cluster": "bridge",
   "horizon": 0.55,
   "backdrop": [
     {

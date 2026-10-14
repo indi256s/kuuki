@@ -2,18 +2,33 @@
   "iso2": "MX",
   "tier": "engraved",
   "shape": "octagon",
-  "ink": "moss",
   "horizon": 0.72,
   "backdrop": [
-    { "module": "sky" },
-    { "module": "distance-trees", "params": { "height": 40, "swell": 5 } },
-    { "module": "ground" }
+    {
+      "module": "sky"
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 40,
+        "swell": 5
+      }
+    },
+    {
+      "module": "ground"
+    }
   ],
   "layers": [
     {
       "module": "stepped-pyramid",
       "box": [32, 46, 124, 80],
-      "params": { "terraces": 9, "temple": 0.17, "top": 0.4, "stair": 0.24, "side": 0.1 }
+      "params": {
+        "terraces": 9,
+        "temple": 0.17,
+        "top": 0.4,
+        "stair": 0.24,
+        "side": 0.1
+      }
     }
   ]
 }

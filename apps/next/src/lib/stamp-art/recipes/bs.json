@@ -20,11 +20,11 @@
   "layers": [
     {
       "module": "queens-staircase",
-      "box": [34, 60, 132, 70],
+      "box": [34, 56, 132, 78],
       "params": {
-        "steps": 8,
-        "gapTop": 0.14,
-        "gapBot": 0.42
+        "steps": 10,
+        "gapTop": 0.2,
+        "gapBot": 0.48
       }
     },
     {

@@ -2,8 +2,6 @@
   "iso2": "TO",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "indigo",
-  "cluster": "megalith",
   "horizon": 0.72,
   "backdrop": [
     {

@@ -2,8 +2,6 @@
   "iso2": "IO",
   "tier": "engraved",
   "shape": "circle",
-  "ink": "indigo",
-  "cluster": "atoll",
   "horizon": 0.62,
   "backdrop": [
     {

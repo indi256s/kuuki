@@ -2,8 +2,6 @@
   "iso2": "LT",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "moss",
-  "cluster": "castle",
   "horizon": 0.72,
   "backdrop": [
     {

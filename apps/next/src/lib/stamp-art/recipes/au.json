@@ -2,8 +2,6 @@
   "iso2": "AU",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "ochre-dark",
-  "cluster": "bridge",
   "horizon": 0.8,
   "backdrop": [
     {

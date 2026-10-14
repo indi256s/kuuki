@@ -2,15 +2,13 @@
   "iso2": "SI",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "umber",
-  "cluster": "castle",
   "horizon": 0.78,
   "backdrop": [
     {
       "module": "sky",
       "params": {
         "weight": "hair",
-        "gap": [3, 4.4],
+        "gap": [2.8, 4],
         "clouds": [36, 52, 30, 142, 44, 26]
       }
     },

@@ -2,8 +2,6 @@
   "iso2": "TC",
   "tier": "engraved",
   "shape": "octagon",
-  "ink": "teal",
-  "cluster": "lighthouse",
   "horizon": 0.8,
   "backdrop": [
     {

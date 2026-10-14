@@ -2,8 +2,6 @@
   "iso2": "SO",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "slate",
-  "cluster": "lighthouse",
   "horizon": 0.74,
   "backdrop": [
     {

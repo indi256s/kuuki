@@ -2,8 +2,6 @@
   "iso2": "VI",
   "tier": "engraved",
   "shape": "cut-rect",
-  "ink": "slate",
-  "cluster": "fort",
   "horizon": 0.8,
   "backdrop": [
     {

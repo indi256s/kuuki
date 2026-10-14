@@ -167,7 +167,7 @@ export const distanceTrees: KitModule = ([x, y, w, h], p) => {
 
 /**
  * Ground or water below the horizon: T3 horizontal hair lines, gap 3.6 at the horizon closing to
- * 2.2 at the bottom, and one bold ground line drawn last across the whole box. `water: true`
+ * 2.2 at the bottom, and one bold ground line behind the subject. `water: true`
  * breaks the lines into glints.
  */
 export const ground: KitModule = ([x, y, w, h], p) => {
@@ -194,7 +194,9 @@ export const ground: KitModule = ([x, y, w, h], p) => {
       }
     }
   } else out.push(...lines)
-  if (p.line !== false) out.push({ ...hline('bold', x, x + w, horizon), late: true })
+  if (p.line !== false)
+    // The accepted six retain their original horizon placement through their recipes.
+    out.push({ ...hline('bold', x, x + w, horizon), late: p.lineLate === true })
   return out
 }
 

@@ -2,8 +2,6 @@
   "iso2": "ZM",
   "tier": "engraved",
   "shape": "rectangle",
-  "ink": "slate",
-  "cluster": "waterfall",
   "horizon": 0.74,
   "backdrop": [
     {

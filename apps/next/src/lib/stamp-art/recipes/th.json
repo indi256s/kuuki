@@ -3,7 +3,9 @@
   "tier": "engraved",
   "shape": "circle",
   "backdrop": [
-    { "module": "sky" },
+    {
+      "module": "sky"
+    },
     {
       "module": "distance-mountains",
       "params": {
@@ -18,8 +20,25 @@
         "litGap": 2.4
       }
     },
-    { "module": "ground", "params": { "water": true } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "lineLate": true
+      }
+    }
   ],
-  "layers": [{ "module": "stilt-house", "box": [64.5, 49, 71, 80] }],
-  "signature": [{ "part": "kalae-finial", "box": [92, 39.4, 16, 9.6] }]
+  "layers": [
+    {
+      "module": "stilt-house",
+      "box": [64.5, 49, 71, 80]
+    }
+  ],
+  "signature": [
+    {
+      "part": "kalae-finial",
+      "box": [92, 39.4, 16, 9.6]
+    }
+  ],
+  "ink": "indigo"
 }

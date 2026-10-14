@@ -28,7 +28,10 @@
       }
     },
     {
-      "module": "ground"
+      "module": "ground",
+      "params": {
+        "lineLate": true
+      }
     },
     {
       "module": "basalt",
@@ -44,5 +47,6 @@
       "module": "temple",
       "box": [66.8, 59.4, 74.5, 69.6]
     }
-  ]
+  ],
+  "ink": "oxblood"
 }

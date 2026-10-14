@@ -40,7 +40,8 @@
     {
       "module": "ground",
       "params": {
-        "water": true
+        "water": true,
+        "lineLate": true
       }
     }
   ],
@@ -117,5 +118,6 @@
         "endX": 0.5
       }
     }
-  ]
+  ],
+  "ink": "slate"
 }
