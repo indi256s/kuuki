@@ -134,6 +134,12 @@ import { persepolis } from './persepolis'
 import { machapuchare } from './machapuchare'
 import { bhutanHouse } from './bhutan-house'
 import { kampongAyer } from './kampong-ayer'
+import { tonleSap } from './tonle-sap'
+import { stoneJars } from './stone-jars'
+import { uBeinBridge } from './u-bein-bridge'
+import { shophouseRow } from './shophouse-row'
+import { atauro } from './atauro'
+import { kinabalu } from './kinabalu'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -274,6 +280,12 @@ export const kit = {
   machapuchare,
   'bhutan-house': bhutanHouse,
   'kampong-ayer': kampongAyer,
+  'tonle-sap': tonleSap,
+  'stone-jars': stoneJars,
+  'u-bein-bridge': uBeinBridge,
+  'shophouse-row': shophouseRow,
+  atauro: atauro,
+  kinabalu: kinabalu,
   'queens-staircase': queensStaircase,
   'crater-lake-a': craterLakeA,
   'massif-b': massifB,

@@ -1,0 +1,40 @@
+{
+  "iso2": "KH",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "umber",
+  "cluster": "stilts",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [56, 46, 30, 148, 54, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 12,
+        "amp": 2.6,
+        "seed": 5,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "tonle-sap",
+      "box": [41, 54, 118, 78]
+    }
+  ]
+}

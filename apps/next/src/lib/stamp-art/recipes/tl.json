@@ -1,0 +1,30 @@
+{
+  "iso2": "TL",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "moss",
+  "horizon": 0.7,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [56, 44, 28, 140, 52, 26],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "atauro",
+      "box": [48, 56, 104, 74]
+    }
+  ]
+}

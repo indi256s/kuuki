@@ -1,0 +1,33 @@
+{
+  "iso2": "SG",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [52, 42, 28, 148, 46, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "shophouse-row",
+      "box": [44, 58, 112, 72],
+      "params": {
+        "bays": 4,
+        "heights": [0.86, 1, 1, 0.86]
+      }
+    }
+  ]
+}

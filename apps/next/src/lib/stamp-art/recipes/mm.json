@@ -1,0 +1,44 @@
+{
+  "iso2": "MM",
+  "tier": "engraved",
+  "shape": "circle",
+  "ink": "umber",
+  "cluster": "bridge",
+  "horizon": 0.52,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 44, 30, 150, 50, 30],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 11,
+        "amp": 2.2,
+        "seed": 8,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "u-bein-bridge",
+      "box": [57, 80, 103, 62],
+      "params": {
+        "hz": 0.34,
+        "height": 46
+      }
+    }
+  ]
+}
