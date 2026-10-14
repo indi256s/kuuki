@@ -70,6 +70,9 @@ import { whalingChimneyA } from './whaling-chimney-a'
 import { arcadeHouseA } from './arcade-house-a'
 import { woodenRowA } from './wooden-row-a'
 import { portonA } from './porton-a'
+import { sloopA } from './sloop-a'
+import { queensStaircase } from './queens-staircase'
+import { craterLakeA } from './crater-lake-a'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -170,6 +173,9 @@ export const kit = {
   'penguin-a': penguinA,
   'gantry-a': gantryA,
   'whaling-chimney-a': whalingChimneyA,
+  'sloop-a': sloopA,
+  'queens-staircase': queensStaircase,
+  'crater-lake-a': craterLakeA,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

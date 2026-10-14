@@ -1,0 +1,37 @@
+{
+  "iso2": "BS",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "moss",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [46, 64, 34, 148, 60, 30]
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "queens-staircase",
+      "box": [34, 60, 132, 70],
+      "params": {
+        "steps": 14
+      }
+    },
+    {
+      "module": "palm",
+      "box": [34, 60, 30, 40],
+      "params": {
+        "lean": -0.2,
+        "fronds": 7
+      }
+    }
+  ]
+}

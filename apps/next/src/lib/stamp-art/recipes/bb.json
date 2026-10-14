@@ -1,0 +1,49 @@
+{
+  "iso2": "BB",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "teal",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 62, 34, 46, 72, 28]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 9,
+        "amp": 2,
+        "seed": 4
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "arcade-house-a",
+      "box": [36, 98, 128, 32],
+      "params": {
+        "bays": 3,
+        "roof": 0.12,
+        "pier": 7
+      }
+    },
+    {
+      "module": "tower",
+      "box": [88, 58, 24, 40],
+      "params": {
+        "cap": "hip",
+        "storeys": 2,
+        "openings": 2,
+        "shade": 0.1
+      }
+    }
+  ]
+}

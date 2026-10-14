@@ -1,0 +1,49 @@
+{
+  "iso2": "AG",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "plum",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [48, 64, 34, 146, 56, 30]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "colonial-row",
+      "box": [34, 102, 38, 26],
+      "params": {
+        "seed": 3,
+        "minW": 22
+      }
+    },
+    {
+      "module": "veranda",
+      "box": [72, 62, 62, 66],
+      "params": {
+        "bays": 4
+      }
+    },
+    {
+      "module": "colonial-row",
+      "box": [134, 102, 34, 26],
+      "params": {
+        "seed": 6,
+        "minW": 18
+      }
+    }
+  ]
+}

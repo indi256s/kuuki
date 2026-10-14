@@ -1,0 +1,31 @@
+{
+  "iso2": "AI",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "indigo",
+  "cluster": "ship",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 60, 34, 44, 76, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "sloop-a",
+      "box": [34, 56, 132, 72],
+      "params": {}
+    }
+  ]
+}
