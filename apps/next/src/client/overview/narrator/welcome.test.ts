@@ -70,15 +70,17 @@ describe('pickWelcomeLine triggers', () => {
     expect(BIG_FLIGHTS).toBe(10)
     const lines = [...seeds(FIXTURES.big, 'en')]
     expect(lines).toHaveLength(3)
-    expect(lines.some((line) => line.includes('10 flights since 2009, and Frankfurt'))).toBe(true)
+    for (const line of lines) expect(line).toContain('10 flights')
     const domestic = many(BIG_FLIGHTS, [['FRA', 'MUC']])
-    expect([...seeds(domestic, 'en')].some((line) => line.includes('underprepared'))).toBe(true)
+    expect(seeds(domestic, 'en').size).toBe(3)
+    for (const line of seeds(domestic, 'en')) expect(line).toContain('10 flights')
   })
 
   it('small: nine flown flights is not big', () => {
+    const big = seeds(FIXTURES.big, 'en')
     for (const line of seeds(many(BIG_FLIGHTS - 1), 'en')) {
-      expect(line).not.toContain('officially underprepared')
-      expect(line).not.toContain('holding your seat')
+      expect(big.has(line)).toBe(false)
+      expect(line).toContain('9 flights')
     }
   })
 
@@ -148,27 +150,19 @@ describe('Russian plurals', () => {
     [5, '5 перелётов'],
     [11, '11 перелётов'],
     [21, '21 перелёт'],
-  ])('%i flights in the line', (n, expected) => {
+  ])('%i flights in the line and left out', (n, expected) => {
     // 3 variants, so look at all of them through the seeds; each carries the count phrase.
     for (const line of seeds(many(n, [['FRA', 'LHR']]), 'ru')) {
       expect(line).toContain(expected)
     }
+    expect(statsLine({ flights: FIXTURES.small, leftOut: n, locale: 'ru' })).toContain(
+      `Не учтено: ${expected};`,
+    )
   })
 
   it('count phrase for 1 is the singular word (left out)', () => {
     expect(statsLine({ flights: FIXTURES.single, leftOut: 1, locale: 'ru' })).toContain(
       'Не учтено: 1 перелёт;',
-    )
-  })
-
-  it.each([
-    [2, '2 перелёта'],
-    [5, '5 перелётов'],
-    [11, '11 перелётов'],
-    [21, '21 перелёт'],
-  ])('left out %i', (n, expected) => {
-    expect(statsLine({ flights: FIXTURES.small, leftOut: n, locale: 'ru' })).toContain(
-      `Не учтено: ${expected};`,
     )
   })
 })

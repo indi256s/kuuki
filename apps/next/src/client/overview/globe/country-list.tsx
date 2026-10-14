@@ -9,12 +9,8 @@ import { useOverview } from '../store/overview-context'
 
 const copy = {
   note: {
-    en: 'A flight counts once in each country it touches, so an international flight counts twice.',
-    ru: 'Перелёт учитывается один раз в каждой затронутой стране, поэтому международный учитывается дважды.',
-  },
-  hint: {
-    en: 'Click a country to filter the page',
-    ru: 'Нажмите на страну, чтобы отфильтровать страницу',
+    en: 'One visit per flight in each country.',
+    ru: 'Одно посещение на перелёт в каждой стране.',
   },
 }
 
@@ -29,7 +25,6 @@ export function CountryList() {
     <section className="ov3-hero globe-country-card" aria-labelledby={heading}>
       <div>
         <h2 id={heading}>{t(S.legend, locale)}</h2>
-        {countries.length ? <p className="globe-country-note">{t(copy.hint, locale)}</p> : null}
       </div>
       {/* The list scrolls inside what the band leaves; it is out of flow so the globe and figures set the band's height. */}
       <div className="globe-country-slot">

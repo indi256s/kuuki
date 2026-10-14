@@ -84,9 +84,7 @@ it('daily activity uses actual weighted leap-day evidence, applies an exact day,
   admit({ ...payload, mode: 'aggregate', rows: aggregateRows(payload.rows) })
   view.rerender(<Section span="full" />)
   expect(screen.queryByRole('group', { name: /Completed flights by day/ })).toBeNull()
-  expect(
-    screen.getByText('Daily activity is unavailable in this older monthly summary.'),
-  ).toBeInTheDocument()
+  expect(screen.getByText('Monthly data only.')).toBeInTheDocument()
 })
 
 it('names the daily scale and the monthly base in both languages, and tells a known zero from a day with no data', () => {
@@ -102,7 +100,7 @@ it('names the daily scale and the monthly base in both languages, and tells a kn
   for (const label of ['0', '1', '2', '3', '4+'])
     expect(screen.getAllByText(label).length).toBeGreaterThan(0)
   expect(screen.getByText('No data (before the journal or after today)')).toBeInTheDocument()
-  expect(screen.getByText(/^Share of your busiest month: \d+ flights?$/)).toBeInTheDocument()
+  expect(screen.getByText(/^Share of busiest month: \d+ flights?$/)).toBeInTheDocument()
   const calendar = screen.getByRole('group', { name: /^Completed flights by day/ })
   const days = [...calendar.querySelectorAll('[data-kc-key]')]
   const before = days[0].getAttribute('aria-label')!
@@ -111,9 +109,7 @@ it('names the daily scale and the monthly base in both languages, and tells a kn
   context.current = { ...context.current, locale: 'ru' }
   view.rerender(<Section span="full" />)
   expect(screen.getByText('Завершённых перелётов в день')).toBeInTheDocument()
-  expect(
-    screen.getByText(/^Доля от вашего самого активного месяца: \d+ перелёт/),
-  ).toBeInTheDocument()
+  expect(screen.getByText(/^Доля от самого активного месяца: \d+ перелёт/)).toBeInTheDocument()
 })
 
 it('never reads a missing monthly measurement as zero: unmeasured and future months say no data, empty months stay 0', () => {
@@ -149,7 +145,7 @@ it('a pick on the chart moves the hero and the stamper and does not filter', () 
   const view = render(<Section span="full" />)
   expect(hero(view)).toHaveTextContent('March')
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
-    'Busiest month · longest gap 11 months, which the passport took personally',
+    'Busiest month · longest gap 11 months',
   )
   expect(top().queryByRole('button', { name: /^Only/ })).toBeNull()
   fireEvent.click(stage().getByRole('button', { name: /^May ·/ }))

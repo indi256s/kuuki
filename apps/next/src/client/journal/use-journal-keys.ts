@@ -71,7 +71,8 @@ function moveRowFocus(
 
 /**
  * Journal keyboard layer: one `keydown` listener on `document` while `enabled`.
- * `/` search, j/k or arrows move row focus, `x` selects, `e` edits the focused sheet field, Esc closes the sheet or clears the search,
+ * `/` and `?` belong to the ledger, filter toolbar and shortcuts button; j/k belong to the ledger.
+ * Arrows move row focus, `x` selects, `e` starts Edit from inside the open flight's details, Esc closes the sheet or clears the search,
  * `?` lists them. Enter is native (the row button opens the sheet). Nothing here is destructive.
  */
 export function useJournalKeys(options: JournalKeyOptions): void {
@@ -96,6 +97,9 @@ export function useJournalKeys(options: JournalKeyOptions): void {
       const target = event.target instanceof Element ? event.target : document.body
       const o = latest.current
       const editable = isEditable(target)
+      const inLedger = o.ledgerRef.current?.contains(target) ?? false
+      const inJournalControls =
+        inLedger || target.closest('.journal-toolbar, .journal-shortcuts-button') !== null
       // Other modal widgets own all their keys; the flight sheet keeps its edit/close shortcuts.
       if (isOverlay(target) && !target.closest('.journal-detail-sheet')) return
 
@@ -115,6 +119,7 @@ export function useJournalKeys(options: JournalKeyOptions): void {
 
       switch (event.key) {
         case '/': {
+          if (!inJournalControls) return
           const search = o.searchRef.current
           if (!search) return
           event.preventDefault()
@@ -124,13 +129,12 @@ export function useJournalKeys(options: JournalKeyOptions): void {
         }
         case 'j':
         case 'k':
-          if (isOverlay(target)) return
+          if (!inLedger || isOverlay(target)) return
           if (moveRowFocus(o.ledgerRef.current, target, event.key === 'j' ? 1 : -1, o.onMove))
             event.preventDefault()
           return
         case 'ArrowDown':
         case 'ArrowUp': {
-          const inLedger = o.ledgerRef.current?.contains(target) ?? false
           if (!inLedger && target !== document.body && target !== document.documentElement) return
           if (
             moveRowFocus(o.ledgerRef.current, target, event.key === 'ArrowDown' ? 1 : -1, o.onMove)
@@ -149,8 +153,8 @@ export function useJournalKeys(options: JournalKeyOptions): void {
         }
         case 'e': {
           const trigger = target
-            .closest('.jd-row[data-field]')
-            ?.querySelector<HTMLElement>('.jd-trigger')
+            .closest('.journal-detail, .journal-detail-sheet')
+            ?.querySelector<HTMLElement>('[data-action="edit-flight"]')
           if (trigger) {
             event.preventDefault()
             trigger.click()
@@ -158,6 +162,7 @@ export function useJournalKeys(options: JournalKeyOptions): void {
           return
         }
         case '?':
+          if (!inJournalControls) return
           event.preventDefault()
           o.onShowShortcuts()
           return

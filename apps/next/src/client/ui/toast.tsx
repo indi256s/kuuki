@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleAlert, CircleCheck, Info, X } from '@keyline-icons/react'
+import { CircleAlert, Info, X } from '@keyline-icons/react'
 import {
   createContext,
   useCallback,
@@ -59,7 +59,31 @@ const DEFAULT_KIND_LABELS: KindLabels = {
   success: 'Success',
   error: 'Error',
 }
-const ICONS = { info: Info, success: CircleCheck, error: CircleAlert } as const
+/** Arc toast: a swipe past this distance (px) or speed (px/ms) throws the toast off in that direction. */
+const SWIPE = { distance: 80, velocity: 0.48 }
+
+/** Arc's success check, drawn in once the toast has risen. */
+function DrawnCheck() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        className="ui-toast-check"
+        d="M4 12.5l5 5L20 6.5"
+        pathLength={1}
+        stroke="currentColor"
+        strokeWidth={2.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+const ICONS = {
+  info: <Info size={18} strokeWidth={2} aria-hidden="true" />,
+  success: <DrawnCheck />,
+  error: <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />,
+} as const
 
 export function ToastProvider({
   children,
@@ -157,6 +181,10 @@ function ToastView({
   const startedAt = useRef(0)
   const timer = useRef<number | null>(null)
   const holds = useRef({ pointer: false, focus: false, hidden: false })
+  const drag = useRef<{ id: number; x: number; t: number; dx: number; v: number } | null>(null)
+  const [offset, setOffset] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [thrown, setThrown] = useState(false)
 
   const stop = useCallback(() => {
     if (timer.current !== null) {
@@ -201,6 +229,46 @@ function ToastView({
       className="ui-toast"
       data-kind={item.kind}
       data-state={item.leaving ? 'closed' : 'open'}
+      data-dragging={dragging || undefined}
+      data-thrown={thrown || undefined}
+      style={offset ? { translate: `${offset}px 0` } : undefined}
+      onPointerDown={(event) => {
+        if (item.leaving || (event.target as Element).closest('button')) return
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+        if (event.pointerType === 'mouse' && event.button !== 0) return
+        drag.current = { id: event.pointerId, x: event.clientX, t: event.timeStamp, dx: 0, v: 0 }
+        event.currentTarget.setPointerCapture?.(event.pointerId)
+        setDragging(true)
+      }}
+      onPointerMove={(event) => {
+        const d = drag.current
+        if (!d || d.id !== event.pointerId) return
+        const dx = event.clientX - d.x
+        const dt = event.timeStamp - d.t
+        if (dt > 0) d.v = (dx - d.dx) / dt
+        d.dx = dx
+        d.t = event.timeStamp
+        setOffset(dx)
+      }}
+      onPointerUp={(event) => {
+        const d = drag.current
+        if (!d || d.id !== event.pointerId) return
+        drag.current = null
+        setDragging(false)
+        if (Math.abs(d.dx) < SWIPE.distance && Math.abs(d.v) < SWIPE.velocity) {
+          setOffset(0) // springs home through the CSS transition
+          return
+        }
+        const direction = Math.sign(d.dx || d.v)
+        setThrown(true)
+        setOffset(direction * (event.currentTarget.offsetWidth + 48))
+        onDismiss(item.id)
+      }}
+      onPointerCancel={() => {
+        drag.current = null
+        setDragging(false)
+        setOffset(0)
+      }}
       onPointerEnter={() => {
         holds.current.pointer = true
         sync()
@@ -219,10 +287,7 @@ function ToastView({
       }}
     >
       <span className="ui-toast-icon" data-kind={item.kind}>
-        {(() => {
-          const Icon = ICONS[item.kind]
-          return <Icon size={18} strokeWidth={2} aria-hidden="true" />
-        })()}
+        {ICONS[item.kind]}
         <span className="sr-only">{kindLabels[item.kind]}: </span>
       </span>
       {(() => {

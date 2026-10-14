@@ -205,6 +205,7 @@ function Inner({
     if (!target) return
     event.preventDefault()
     // The heading is not focusable by itself; RouteFocus prepares it the same way.
+    // oxlint-disable-next-line react/immutability -- a DOM node in an event handler, not a React value
     if (!opened) target.tabIndex = -1
     target.focus({ preventScroll: !opened })
   }

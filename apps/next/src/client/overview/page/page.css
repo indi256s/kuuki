@@ -21,12 +21,34 @@
   color: var(--text-muted);
 }
 .ov3-overview-workspace {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
+.ov3-overview-workspace:not(:has([data-region='figures'])) > .ov3-common-controls {
+  inline-size: calc(100% - 2 * var(--space-5) - var(--ov-filter-reserve, 120px));
+}
+.ov3-common-controls {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: var(--space-5);
+  inset-inline-start: var(--space-5);
+  inline-size: calc(
+    (100% - 16px) - clamp(360px, 33%, 480px) - 2 * var(--space-5) - var(--ov-filter-reserve, 120px)
+  );
+}
+.ov3-globe-band > .ov3-globe-region {
+  grid-column: 1;
+  grid-row: 1;
+}
+.ov3-globe-band > [data-region='figures'] {
+  grid-column: 2;
+  grid-row: 1;
+}
 .ov3-globe-band {
+  grid-row: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(360px, 33%, 480px);
   gap: 16px;
@@ -80,6 +102,7 @@
 }
 /* In flow under the globe card, never over it. On wide screens the note drops under both buttons. */
 .ov3-first-run {
+  grid-row: 2;
   max-width: 520px;
   display: grid;
   gap: 8px;
@@ -180,6 +203,12 @@
 /* Very wide screens: the globe card had spare space at its sides, so the globe key (Visits per country) docks as a third card after the figures, and the row grows taller (up to the viewport less the header) so the round globe fills more of its card; height, not width, limits its size.
    2176px is where the band reaches ~2080px: the shell caps at 2560px with a gutter that reaches 48px. A media query, not measurement, so the server's first paint already has the final layout. */
 @media (min-width: 2176px) {
+  .ov3-overview-workspace:has([data-region='figures']) > .ov3-common-controls {
+    inline-size: calc(
+      100% - 32px - clamp(360px, 20%, 480px) - clamp(320px, 15%, 380px) - 2 * var(--space-5) -
+        var(--ov-filter-reserve, 120px)
+    );
+  }
   .ov3-overview-workspace > .ov3-globe-band:has(> [data-region='figures']) {
     --ov-globe-h: max(720px, min(42vw, 100svh - 260px));
     grid-template-columns: minmax(0, 1fr) clamp(360px, 20%, 480px) clamp(320px, 15%, 380px);
@@ -195,8 +224,15 @@
   }
 }
 @media (min-width: 701px) and (max-width: 1023px) {
+  .ov3-common-controls {
+    inline-size: calc(100% - 2 * var(--space-5) - var(--ov-filter-reserve, 120px));
+  }
   .ov3-globe-band {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .ov3-globe-band > [data-region='figures'] {
+    grid-column: 1;
+    grid-row: 2;
   }
   .ov3-hero .ui-skeleton {
     height: 240px !important;
@@ -204,11 +240,23 @@
 }
 @media (max-width: 700px) {
   .ov3-page {
-    padding-block: 20px 104px;
+    padding-block: 0;
   }
-  .ov3-page h1 {
-    font-size: 24px;
-    line-height: 30px;
+  .ov3-globe-band,
+  .ov3-first-run {
+    grid-row: auto;
+  }
+  .ov3-common-controls,
+  .ov3-overview-workspace:not(:has([data-region='figures'])) > .ov3-common-controls {
+    position: relative;
+    inset: auto;
+    inline-size: 100%;
+    min-block-size: 44px;
+  }
+  .ov3-globe-band > .ov3-globe-region,
+  .ov3-globe-band > [data-region='figures'] {
+    grid-column: auto;
+    grid-row: auto;
   }
   .ov3-globe-band {
     grid-template-columns: minmax(0, 1fr);
@@ -217,7 +265,7 @@
     min-height: 360px;
     padding: 16px;
   }
-  /* The phone globe card is a grid (globe.css): the filter corner gets its own column beside Fullscreen, so it reserves nothing. */
+  /* Common filters sit outside the phone card, leaving the corner free. */
   .ov3-globe-region .globe-top-left {
     inline-size: auto;
     min-inline-size: 0;

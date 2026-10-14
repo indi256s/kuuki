@@ -3,7 +3,6 @@ import { isEmptyFilter, rowCountries } from './filter'
 import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
 import type { Records } from './records'
 import type { Routes } from './routes'
-import type { Goal } from './goals'
 import type { Crossings } from './crossings'
 import type { Continents } from './continents'
 import type { Fleet } from './fleet'
@@ -62,7 +61,6 @@ export interface OverviewScope {
   globe: GlobeData
   next: NextFlight[]
   replay: ReplayItem[]
-  goals: Goal[]
 }
 
 const metric = (value: number | null): number =>

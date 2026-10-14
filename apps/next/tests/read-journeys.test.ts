@@ -52,7 +52,7 @@ test('Journal filters restore on reload, replace history, and open a flight with
   await expect(sheet).toBeVisible()
   await page.waitForURL((url) => url.searchParams.has('flight'))
   const id = new URL(page.url()).searchParams.get('flight')!
-  await expect(sheet.getByRole('link', { name: 'Open full editor', exact: true })).toBeVisible()
+  await expect(sheet.getByRole('button', { name: 'Edit flight', exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
   await page.waitForURL((url) => !url.searchParams.has('flight'))
   await expect(sheet).toHaveCount(0)

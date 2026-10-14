@@ -83,11 +83,18 @@
 .ov-filter-option[aria-selected='true'] {
   font-weight: 600;
 }
-.ov-filter-option input {
-  flex: none;
-  inline-size: 18px;
-  block-size: 18px;
-  accent-color: var(--accent);
+.ov-filter-option > .ui-checkbox-copy {
+  flex: 1;
+}
+.ov-filter-option.ui-checkbox {
+  padding-block: 0;
+}
+.ov-filter-option .ui-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  font-weight: 400;
 }
 .ov-filter-option-text {
   display: flex;
@@ -152,5 +159,20 @@
 @media (hover: hover) and (pointer: fine) {
   .ov-filter-option:hover {
     background: var(--surface-inset);
+  }
+}
+
+@media (min-width: 701px) {
+  .ov-filter-period {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .ov3-common-controls .ov-filter-all {
+    display: none;
+  }
+  .ov3-common-controls :is(.ov-filter-add, .ov-filter-overflow) {
+    box-shadow: none;
+    background: var(--surface);
   }
 }

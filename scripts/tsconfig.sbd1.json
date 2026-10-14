@@ -14,25 +14,19 @@
   },
   "include": [
     "./_cli.ts",
-    "./sb-to-d1.ts",
-    "./sb-to-d1.smoke.ts",
-    "./derive.ts",
-    "./ship-oracle.ts",
-    "./validate.ts",
     "./migration-preflight.ts",
     "./migration-target.ts",
-    "./remote-migration-proposal.ts",
     "./migration-remote-reader.ts",
-    "./migration-remote-validate.ts",
     "./smoke-local-runtime.ts",
     "./smoke-next-runtime.ts",
     "./generate-country-regions.ts",
-    "./fit-block-time.ts",
-    "./overview-backfill-proposal.ts",
     "./overview-parity.ts",
     "./restore-export-local.ts",
     "./verify-import-provider.ts",
     "./evaluate-import.ts",
-    "../functions/env.d.ts"
+    "../functions/env.d.ts",
+    "./evaluate-aircraft.ts",
+    "./inventory-aircraft.ts",
+    "./aircraft-evaluation.test.ts"
   ]
 }

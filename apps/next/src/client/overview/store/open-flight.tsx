@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useOverview } from './overview-context'
 
-export type MakerMetric = 'flights' | 'hours' | 'km'
 function flightId(raw: string | null): number | null {
   if (!raw || !/^[1-9]\d*$/.test(raw)) return null
   const id = Number(raw)
@@ -29,7 +28,7 @@ function useOverviewURL() {
       window.removeEventListener('hashchange', traverse)
     }
   }, [navigation])
-  const change = (key: 'flight' | 'makers', value: string | null, mode: 'push' | 'replace') => {
+  const change = (value: string | null, mode: 'push' | 'replace') => {
     if (!isCurrent()) return
     const requested = navigation.getRequested()
     const base = new URL(
@@ -38,8 +37,8 @@ function useOverviewURL() {
         : url + window.location.hash,
       window.location.href,
     )
-    if (value) base.searchParams.set(key, value)
-    else base.searchParams.delete(key)
+    if (value) base.searchParams.set('flight', value)
+    else base.searchParams.delete('flight')
     const target = base.pathname + base.search + base.hash
     if (target === (requested ?? url + window.location.hash)) return
     navigation.request(target)
@@ -54,20 +53,8 @@ export function useOpenFlight() {
   return (id: number) => {
     if (aggregate || ownerKey === 'dev' || !Number.isSafeInteger(id) || id <= 0) return
     navigation.captureOpener()
-    change('flight', String(id), 'push')
+    change(String(id), 'push')
   }
-}
-export function useMakerMetric(): readonly [MakerMetric, (metric: MakerMetric) => void] {
-  const { params, change } = useOverviewURL()
-  const raw = params.get('makers')
-  const metric = raw === 'hours' || raw === 'km' ? raw : 'flights'
-  return [
-    metric,
-    (next) => {
-      if (next === 'flights' || next === 'hours' || next === 'km')
-        change('makers', next === 'flights' ? null : next, 'replace')
-    },
-  ]
 }
 export function OverviewFlightSheet() {
   const { aggregate, ownerKey, locale, navigation, revalidate, isCurrent } = useOverview()
@@ -113,7 +100,7 @@ export function OverviewFlightSheet() {
       locale={locale}
       flightId={id}
       onOpenChange={(open) => {
-        if (!open) change('flight', null, 'replace')
+        if (!open) change(null, 'replace')
       }}
       onCloseAutoFocus={(event) => {
         event.preventDefault()

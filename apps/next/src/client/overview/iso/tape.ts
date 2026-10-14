@@ -1,4 +1,4 @@
-import { Scene, roundRect, type P3 } from './scene'
+import { Scene, roundRect, visibleRun, type P3 } from './scene'
 
 /** How far the blade pays out on hover, in iso units along the blade. */
 const TAPE_PAY = 20
@@ -47,17 +47,11 @@ export function tape(label: string, k = 1, km = KM_MAX) {
     s.box(6, y - 3.6, 8, 30, 3.6, h - 8 + 1.6, { top: 'detail', front: 'side', side: 'side' })
     s.prism(profile, y, d)
     // Seam where the two shells meet: the profile outline halfway through the case, so it wraps the corners; only the facets the viewer sees.
-    const n = profile.length,
-      seen = profile.map(([a0, b0], i) => {
-        const [a1, b1] = profile[(i + 1) % n]
-        return b1 - b0 + (a0 - a1) > 1e-6
-      })
-    const from = seen.findIndex((v, i) => v && !seen[(i + n - 1) % n])
-    const run: P3[] = []
-    for (let j = from; seen[j % n]; j++) run.push([profile[j % n][0], y + d / 2, profile[j % n][1]])
-    const last = profile[(from + run.length) % n]
-    run.push([last[0], y + d / 2, last[1]])
-    s.line(run, 'crease', 0.9)
+    s.line(
+      visibleRun(profile).map(([a, b]): P3 => [a, y + d / 2, b]),
+      'crease',
+      0.9,
+    )
     // Thumb lock: a ridged slider in a track on the top, its front flush with where the front edge starts to round.
     s.poly(
       [

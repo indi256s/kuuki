@@ -2,6 +2,7 @@
 // src/app/styles.css stays the single UI token source; this table feeds consumers that cannot read
 // CSS variables (PNG renderer, favicon, meta theme-color). apps/next/src/app/tokens.test.ts fails
 // when a resolved CSS token drifts from any value below.
+import type { MakerSlot } from '../../../data/src/aircraft-makers'
 
 export const MODES = ['light', 'dark'] as const
 export type Mode = (typeof MODES)[number]
@@ -29,42 +30,8 @@ export type AccentTheme = {
   contour: string
 }
 
-export const MAKER_KEYS = [
-  'airbus',
-  'boeing',
-  'embraer',
-  'atr',
-  'aerospatiale',
-  'antonov',
-  'bae-systems',
-  'beechcraft',
-  'bombardier',
-  'cessna',
-  'concorde',
-  'dassault',
-  'de-havilland',
-  'douglas',
-  'fairchild-dornier',
-  'fokker',
-  'gulfstream',
-  'harbin',
-  'hawker-siddeley',
-  'ilyushin',
-  'learjet',
-  'lockheed',
-  'mcdonnell-douglas',
-  'namc',
-  'partenavia',
-  'pilatus',
-  'piper',
-  'saab',
-  'shorts',
-  'sukhoi',
-  'tupolev',
-  'yakovlev',
-  'other',
-] as const
-export type MakerKey = (typeof MAKER_KEYS)[number]
+/** The domain's maker slots (type-only import: the palette must not load the aircraft reference). */
+export type MakerKey = MakerSlot
 
 export const REGION_KEYS = [
   'africa',
@@ -318,6 +285,9 @@ export const MAKERS: Record<Mode, Record<MakerKey, string>> = {
     other: '#9b9084',
   },
 }
+
+/** In palette order. `MAKERS` is typed by the domain's slots, so a maker without a colour fails the type check. */
+export const MAKER_KEYS = Object.keys(MAKERS.light) as MakerKey[]
 
 export const REGIONS: Record<Mode, Record<RegionKey, string>> = {
   light: {

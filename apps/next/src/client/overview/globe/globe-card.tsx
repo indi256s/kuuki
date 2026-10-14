@@ -15,7 +15,7 @@ export type GlobeCardProps = {
   children: (mode: { fullscreen: boolean; active: boolean }) => ReactNode
   onFullscreenChange?: (open: boolean) => void
   disclosure?: ReactNode
-  topLeft?: ReactNode
+  topLeft?: ReactNode | ((fullscreen: boolean) => ReactNode)
   topRight?: ReactNode
   bottomLeft?: ReactNode
   bottomRight?: ReactNode
@@ -52,45 +52,53 @@ export function GlobeCard({
       </ul>
     </div>
   )
-  const surface = (fullscreen: boolean, opener?: ReactNode) => (
-    <div className={`globe-card${fullscreen ? ' globe-card-fullscreen' : ''}`}>
-      <div className="globe-card-content">
-        {children({ fullscreen, active: fullscreen || !open })}
-      </div>
-      {topLeft && (
-        <div
-          onPointerDown={(event) => event.stopPropagation()}
-          className="globe-corner globe-top-left"
-        >
-          {topLeft}
+  const surface = (fullscreen: boolean, opener?: ReactNode) => {
+    const filters = typeof topLeft === 'function' ? topLeft(fullscreen) : topLeft
+    return (
+      <div className={`globe-card${fullscreen ? ' globe-card-fullscreen' : ''}`}>
+        <div className="globe-card-content">
+          {children({ fullscreen, active: fullscreen || !open })}
         </div>
-      )}
-      <div
-        onPointerDown={(event) => event.stopPropagation()}
-        className="globe-corner globe-top-right"
-      >
-        {topRight}
-        {opener}
-      </div>
-      <div className="globe-bottom">
-        {bottomLeft && (
-          <div onPointerDown={(event) => event.stopPropagation()} className="globe-bottom-left">
-            {bottomLeft}
+        {filters && (
+          <div
+            onPointerDown={(event) => event.stopPropagation()}
+            className="globe-corner globe-top-left"
+          >
+            {filters}
           </div>
         )}
-        <div onPointerDown={(event) => event.stopPropagation()} className="globe-bottom-right">
-          {legend}
+        <div
+          onPointerDown={(event) => event.stopPropagation()}
+          className="globe-corner globe-top-right"
+        >
+          {topRight}
+          {opener}
+        </div>
+        <div className="globe-bottom">
+          {bottomLeft && (
+            <div onPointerDown={(event) => event.stopPropagation()} className="globe-bottom-left">
+              {bottomLeft}
+            </div>
+          )}
+          <div onPointerDown={(event) => event.stopPropagation()} className="globe-bottom-right">
+            {legend}
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
   return (
     <>
       {surface(
         false,
-        <Button ref={openerRef} aria-label={fullscreenLabel} onClick={() => changeOpen(true)}>
+        <Button
+          ref={openerRef}
+          className="globe-fullscreen"
+          aria-label={fullscreenLabel}
+          onClick={() => changeOpen(true)}
+        >
           <Maximize size={16} strokeWidth={2} aria-hidden="true" />
-          <span>{fullscreenLabel}</span>
+          <span className="globe-fullscreen-label">{fullscreenLabel}</span>
         </Button>,
       )}
       {disclosure}

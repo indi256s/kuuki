@@ -77,9 +77,7 @@ describe('MissingAircraftReview', () => {
     render(<MissingAircraftReview locale="en" count={3} read={read} aircraftApi={aircraftApi()} />)
     await open()
     expect(read).toHaveBeenCalledWith(null, expect.any(AbortSignal))
-    expect(
-      await screen.findByRole('dialog', { name: 'Aircraft for flights without one' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('dialog', { name: 'Missing aircraft' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled()
     expect(screen.queryByText(/without an aircraft\.$/)).toBeNull()
     expect(screen.queryByRole('button', { name: /show the next/i })).toBeNull()
@@ -318,9 +316,7 @@ describe('MissingAircraftReview', () => {
     await screen.findByText(/Not saved.*DOWN/)
     await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
     expect(read).toHaveBeenCalledTimes(1)
-    expect(
-      screen.getByText('Leaving this review discards unsaved suggestions and retry outcomes.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Unsaved suggestions will be lost.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Keep reviewing' }))
     expect(screen.getByText(/Not saved.*DOWN/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))

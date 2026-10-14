@@ -35,6 +35,12 @@ function Harness({
     <>
       <input ref={searchRef} aria-label="Search" defaultValue="tbs" />
       <button type="button">Outside</button>
+      <div className="journal-toolbar" role="toolbar">
+        <button type="button">Period filter</button>
+      </div>
+      <button type="button" className="journal-shortcuts-button">
+        Shortcuts
+      </button>
       <textarea aria-label="Note" />
       <select aria-label="Sort">
         <option>Date</option>
@@ -59,17 +65,10 @@ function Harness({
           ))}
         </tbody>
       </table>
-      <aside aria-label="Flight details">
-        <div className="jd-row" data-field="aircraft">
-          <button type="button" className="jd-trigger" aria-label="Change aircraft">
-            A320
-          </button>
-        </div>
-        <div className="jd-row" data-field="seat">
-          <button type="button" className="jd-trigger" aria-label="Change seat">
-            12A
-          </button>
-        </div>
+      <aside className="journal-detail" aria-label="Flight details">
+        <button type="button" data-action="edit-flight">
+          Edit flight
+        </button>
         <button type="button">Close details</button>
       </aside>
     </>
@@ -88,7 +87,7 @@ describe('useJournalKeys', () => {
   it('/ focuses and selects the search field', () => {
     render(<Harness on={handlers()} />)
     const search = screen.getByRole('textbox', { name: 'Search' }) as HTMLInputElement
-    press(document.body, '/')
+    press(screen.getByRole('button', { name: 'Period filter' }), '/')
     expect(search).toHaveFocus()
     expect(search.selectionStart).toBe(0)
     expect(search.selectionEnd).toBe(3)
@@ -96,8 +95,7 @@ describe('useJournalKeys', () => {
 
   it('j and k move between flight rows, clamped at the ends', () => {
     render(<Harness on={handlers()} />)
-    press(document.body, 'j')
-    expect(row(1)).toHaveFocus()
+    row(1).focus()
     press(row(1), 'j')
     expect(row(2)).toHaveFocus()
     press(row(2), 'k')
@@ -113,20 +111,36 @@ describe('useJournalKeys', () => {
   it('reports the row it moved to, so the docked sheet can follow', () => {
     const on = { ...handlers(), onMove: vi.fn() }
     render(<Harness on={on} />)
-    press(document.body, 'j')
+    press(document.body, 'ArrowDown')
     press(row(1), 'ArrowDown')
     expect(on.onMove).toHaveBeenNthCalledWith(1, 1)
     expect(on.onMove).toHaveBeenNthCalledWith(2, 2)
   })
 
-  it('k from outside the ledger starts at the last row; j works from an unrelated button', () => {
-    render(<Harness on={handlers()} />)
-    press(document.body, 'k')
-    expect(row(3)).toHaveFocus()
+  it('keeps character shortcuts within the owning Journal controls', () => {
+    const on = handlers()
+    render(<Harness on={on} />)
     const outside = screen.getByRole('button', { name: 'Outside' })
-    outside.focus()
-    press(outside, 'j')
-    expect(row(1)).toHaveFocus()
+    const toolbar = screen.getByRole('button', { name: 'Period filter' })
+    const sheetField = screen.getByRole('button', { name: 'Edit flight' })
+    for (const target of [document.body, outside, sheetField]) {
+      if (target instanceof HTMLElement && target !== document.body) target.focus()
+      for (const key of ['j', 'k', '/', '?']) press(target, key)
+      expect(row(1)).not.toHaveFocus()
+      expect(row(3)).not.toHaveFocus()
+      expect(screen.getByRole('textbox', { name: 'Search' })).not.toHaveFocus()
+    }
+    expect(on.onShowShortcuts).not.toHaveBeenCalled()
+    toolbar.focus()
+    press(toolbar, 'j')
+    press(toolbar, 'k')
+    expect(toolbar).toHaveFocus()
+    press(toolbar, '?', { shiftKey: true })
+    expect(on.onShowShortcuts).toHaveBeenCalledTimes(1)
+    const shortcuts = screen.getByRole('button', { name: 'Shortcuts' })
+    shortcuts.focus()
+    press(shortcuts, '/')
+    expect(screen.getByRole('textbox', { name: 'Search' })).toHaveFocus()
   })
 
   it('arrows move between rows from the body or the ledger, but not from other widgets', () => {
@@ -141,7 +155,7 @@ describe('useJournalKeys', () => {
     checkbox.focus()
     press(checkbox, 'ArrowDown')
     expect(row(2)).toHaveFocus()
-    const trigger = screen.getByRole('button', { name: 'Change aircraft' })
+    const trigger = screen.getByRole('button', { name: 'Edit flight' })
     trigger.focus()
     press(trigger, 'ArrowDown')
     expect(trigger).toHaveFocus()
@@ -160,18 +174,14 @@ describe('useJournalKeys', () => {
     expect(on.onToggleSelect).toHaveBeenCalledTimes(1)
   })
 
-  it('e clicks the trigger of the focused sheet row', () => {
+  it('e starts Edit from inside the open flight details only', () => {
     render(<Harness on={handlers()} />)
     const clicked = vi.fn()
-    const seat = screen.getByRole('button', { name: 'Change seat' })
-    seat.addEventListener('click', clicked)
-    const aircraft = screen.getByRole('button', { name: 'Change aircraft' })
-    aircraft.addEventListener('click', clicked)
-    press(seat, 'e')
-    expect(clicked).toHaveBeenCalledTimes(1)
-    expect(clicked.mock.calls[0][0].target).toBe(seat)
+    screen.getByRole('button', { name: 'Edit flight' }).addEventListener('click', clicked)
     press(screen.getByRole('button', { name: 'Close details' }), 'e')
+    expect(clicked).toHaveBeenCalledTimes(1)
     press(row(1), 'e')
+    press(screen.getByRole('button', { name: 'Outside' }), 'e')
     expect(clicked).toHaveBeenCalledTimes(1)
   })
 
@@ -216,7 +226,7 @@ describe('useJournalKeys', () => {
   it('? shows the shortcuts', () => {
     const on = handlers()
     render(<Harness on={on} />)
-    press(document.body, '?', { shiftKey: true })
+    press(row(1), '?', { shiftKey: true })
     expect(on.onShowShortcuts).toHaveBeenCalledTimes(1)
   })
 
@@ -300,53 +310,16 @@ describe('ShortcutsPopover', () => {
   }
 
   it.each([
-    [
-      'en',
-      'Keyboard shortcuts',
-      [
-        'Search',
-        'Move between flights',
-        'Open the flight',
-        'Close the sheet or clear the search',
-        'Select',
-        'Edit the focused field',
-        'Show shortcuts',
-      ],
-      'or',
-    ],
-    [
-      'ru',
-      'Сочетания клавиш',
-      [
-        'Поиск',
-        'Перейти к перелёту',
-        'Открыть перелёт',
-        'Закрыть карточку или очистить поиск',
-        'Выбрать',
-        'Изменить поле',
-        'Показать сочетания',
-      ],
-      'или',
-    ],
-  ] as const)('lists the keys in %s', async (locale, title, labels, or) => {
+    ['en', 'Keyboard shortcuts', 'Move between flights'],
+    ['ru', 'Сочетания клавиш', 'Перейти к перелёту'],
+  ] as const)('opens and closes the shortcuts in %s', async (locale, title, label) => {
     const user = userEvent.setup()
     render(<Popover locale={locale} />)
     await user.click(screen.getByRole('button', { name: title }))
     const dialog = await screen.findByRole('dialog', { name: title })
-    expect(within(dialog).getByRole('heading', { name: title })).toBeInTheDocument()
-    for (const label of labels) expect(within(dialog).getByText(label)).toBeInTheDocument()
-    for (const key of ['/', '↑', '↓', 'j', 'k', 'Enter', 'Esc', 'x', 'e', '?'])
-      expect(within(dialog).getByText(key, { selector: 'kbd' })).toBeInTheDocument()
-    expect(within(dialog).getByText('↑', { selector: 'kbd' }).parentElement).toHaveTextContent(
-      `↑ ↓ ${or} j k`,
-    )
+    expect(within(dialog).getByText(label)).toBeInTheDocument()
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('renders without an anchor', async () => {
-    render(<ShortcutsPopover open onOpenChange={() => {}} locale="en" />)
-    expect(await screen.findByRole('dialog', { name: 'Keyboard shortcuts' })).toBeInTheDocument()
   })
 })
 

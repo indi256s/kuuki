@@ -22,6 +22,7 @@ import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
 import { copy, flights, percent, filterLabel, moreAirlines, number } from './display'
 import { AirportFigure, GateSignFigure } from './figure'
+import { TravelPatterns } from './travel-patterns'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
@@ -74,13 +75,12 @@ export function Section({ span }: { span: Span }) {
   }
   const scoped = !!scope && !isEmptyFilter(scope.filter)
   const state =
-    !scope || !all || !payload ? 'loading' : top.length === 0 && scoped ? 'empty' : 'ready'
+    !scope || !all || !payload
+      ? 'loading'
+      : scope.figures.flights === 0 && scoped
+        ? 'empty'
+        : 'ready'
   if (!scope || !all || !payload || state === 'empty') {
-    const noun = {
-      airlines: copy(locale, 'airlines', 'авиакомпаний'),
-      airports: copy(locale, 'airports', 'аэропортов'),
-      routes: copy(locale, 'routes', 'маршрутов'),
-    }[category]
     return (
       <ChapterCard
         state={state}
@@ -95,11 +95,7 @@ export function Section({ span }: { span: Span }) {
         chart={{ caption: '', plot: null }}
         empty={{
           title: copy(locale, 'Nothing left to rank', 'Ранжировать нечего'),
-          line: copy(
-            locale,
-            `This filter leaves no ${noun}. A podium needs someone standing on it.`,
-            `Фильтр не оставил ${noun}. Для пьедестала нужен хотя бы один участник.`,
-          ),
+          line: '',
           action: (
             <Button
               dense
@@ -164,35 +160,6 @@ export function Section({ span }: { span: Span }) {
     'Airlines · previous and selected period · top 5',
     'Авиакомпании · прошлый и выбранный период · топ-5',
   )
-  const pairPick = (id: 'makers' | 'haul' | 'daytime', side: 'left' | 'right') => {
-    if (!isCurrent()) return
-    if (id === 'makers') actions.add('makers', side === 'left' ? 'airbus' : 'boeing')
-    else if (id === 'haul') {
-      actions.add('haul', side === 'left' ? 'short' : 'long')
-      if (side === 'left') actions.add('haul', 'medium')
-    } else {
-      actions.add('departureBands', side === 'left' ? 'morning' : 'night')
-      if (side === 'left') {
-        actions.add('departureBands', 'afternoon')
-        actions.add('departureBands', 'evening')
-      }
-    }
-  }
-  const daytime = scope.rankings.versus.find((pair) => pair.id === 'daytime')!
-  const pairEmpty = {
-    makers: copy(locale, 'No Airbus or Boeing flights', 'Перелётов на Airbus и Boeing нет'),
-    haul: copy(locale, 'No distances recorded', 'Расстояния не указаны'),
-    daytime: copy(locale, 'No departure times recorded', 'Время вылета не указано'),
-  }
-  const pairNames = {
-    makers: ['Airbus', 'Boeing'],
-    haul: [
-      copy(locale, 'Short & medium haul', 'Ближние и средние'),
-      copy(locale, 'Long haul', 'Дальние'),
-    ],
-    daytime: [copy(locale, 'Daytime', 'Дневные'), copy(locale, 'Red-eye', 'Ночные')],
-  }
-
   // The reading: the leader until a row is picked. Its figure code, hero value and caption all come from the same row.
   const leader = scope.rankings.leaders[category]
   const reading = top.find((row) => row.key === r.reading) ?? top[0] ?? null
@@ -210,39 +177,12 @@ export function Section({ span }: { span: Span }) {
     airports: copy(locale, 'airport', 'аэропорт'),
     routes: copy(locale, 'route', 'маршрут'),
   }[category]
-  const topLabel = {
-    airlines: copy(locale, 'Top airline', 'Главная авиакомпания'),
-    airports: copy(locale, 'Top airport', 'Главный аэропорт'),
-    routes: copy(locale, 'Top route', 'Главный маршрут'),
-  }[category]
   const ofWhat =
     category === 'airports'
       ? copy(locale, 'of airport visits', 'посещений аэропортов')
       : category === 'airlines'
         ? copy(locale, 'of flights with an airline', 'перелётов с указанной авиакомпанией')
         : copy(locale, 'of your flights', 'ваших перелётов')
-  const dry = tied
-    ? copy(locale, 'Neither blinked.', 'Никто не моргнул.')
-    : {
-        airlines: copy(
-          locale,
-          'Brand loyalty, or just the only gate nearby.',
-          'Верность бренду или просто единственный гейт рядом.',
-        ),
-        airports:
-          scope.home?.iata === reading?.key
-            ? copy(locale, 'Of course it is.', 'Ещё бы.')
-            : copy(
-                locale,
-                'Some people have a favourite café. You have this.',
-                'У кого-то любимое кафе. У вас вот это.',
-              ),
-        routes: copy(
-          locale,
-          'The same two airports again. Bold.',
-          'Опять те же два аэропорта. Смело.',
-        ),
-      }[category]
   const fact = tied
     ? copy(
         locale,
@@ -253,9 +193,9 @@ export function Section({ span }: { span: Span }) {
       ? copy(locale, 'your home airport', 'ваш домашний аэропорт')
       : `${share} ${ofWhat}`
   const caption = !reading
-    ? copy(locale, `No ${nounOne} on file.`, 'Здесь пока пусто.')
+    ? ''
     : r.isHeadline
-      ? `${readingName} · ${topLabel} · ${fact}. ${dry}`
+      ? `${readingName} · ${fact}`
       : `${ordinal(rank)} ${nounOne} · ${readingName} · ${share} ${ofWhat}`
   const code = !reading ? '' : category === 'routes' ? signCode(reading.key) : reading.key
   const shortName = !reading
@@ -381,9 +321,6 @@ export function Section({ span }: { span: Span }) {
         )}
       </LazyChart>
       {/* These toggle lines in this chart only, unlike the names above, which filter the page. */}
-      <p className="ov3-bump-hint">
-        {copy(locale, 'Show or hide lines', 'Показать или скрыть линии')}
-      </p>
       <div
         className="ov3-bump-dashes"
         role="group"
@@ -458,29 +395,6 @@ export function Section({ span }: { span: Span }) {
       </div>
       {shown.length === 0 && (
         <p role="status">{copy(locale, 'No series shown', 'Все ряды скрыты')}</p>
-      )}
-    </div>
-  )
-  const headToHead = (
-    <div className="ov3-rankings" data-span={span}>
-      {scope.rankings.versus.map((pair) =>
-        pair.left.count + pair.right.count === 0 ? (
-          <p key={pair.id}>{pairEmpty[pair.id]}</p>
-        ) : (
-          <div className="ov3-score" key={pair.id}>
-            <button onClick={() => pairPick(pair.id, 'left')}>{pairNames[pair.id][0]}</button>
-            <strong>
-              {pair.left.count} : {pair.right.count}
-            </strong>
-            <button onClick={() => pairPick(pair.id, 'right')}>{pairNames[pair.id][1]}</button>
-          </div>
-        ),
-      )}
-      {daytime.left.count + daytime.right.count > 0 && daytime.excluded > 0 && (
-        <p>
-          {copy(locale, 'Daytime v red-eye leaves out', 'Дневные и ночные: вне подсчёта —')}{' '}
-          {flights(locale, daytime.excluded)} {copy(locale, 'without times', 'без времени')}
-        </p>
       )}
     </div>
   )
@@ -627,15 +541,6 @@ export function Section({ span }: { span: Span }) {
             <p>
               {copy(locale, 'Airline not recorded', 'Авиакомпания не указана')}:{' '}
               {flights(locale, scope.figures.flights - shareTotal)}
-            </p>
-          )}
-          {!comparison && (
-            <p className="ov3-share-note" role="status">
-              {copy(
-                locale,
-                'Select a continuous period with available detail to compare with the previous period.',
-                'Выберите непрерывный период с доступными данными для сравнения с прошлым периодом.',
-              )}
             </p>
           )}
         </div>
@@ -815,8 +720,14 @@ export function Section({ span }: { span: Span }) {
         ),
       }}
       details={{
-        heading: copy(locale, 'Head to head', 'Лицом к лицу'),
-        extra: headToHead,
+        heading: copy(locale, 'Travel patterns', 'Привычки в путешествиях'),
+        extra: (
+          <TravelPatterns
+            patterns={scope.rankings.patterns}
+            baseline={all.rankings.patterns}
+            filtered={scoped}
+          />
+        ),
         more: [
           { summary: copy(locale, 'Rank by year', 'Рейтинг по годам'), content: bump },
           { summary: shareCaption, content: sharesBlock },

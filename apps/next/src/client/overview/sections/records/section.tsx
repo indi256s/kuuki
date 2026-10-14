@@ -3,10 +3,11 @@
 import type { ReactNode } from 'react'
 import type { RecordRef } from '@kuuki/shared/overview/model'
 import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
-import { routeKey } from '@kuuki/shared/overview/filter'
+import { isEmptyFilter, routeKey } from '@kuuki/shared/overview/filter'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import { dateInstant } from '@kuuki/shared/overview/records'
 import { formatDateOnly, formatDuration } from '../../../../lib/format'
+import { Disclosure } from '../../../ui/disclosure'
 import { Button } from '../../../ui/button'
 import { StageRows } from '../../charts/stage-rows'
 import { LazyChart } from '../../charts/lazy-chart'
@@ -18,13 +19,9 @@ import { useReading } from '../../layout/use-reading'
 import { useOverview } from '../../store/overview-context'
 import { useOpenFlight } from '../../store/open-flight'
 import type { Span } from '../registry'
-import { copy, filterLabel, flights, number, percent } from '../rankings/display'
-import { hhmm } from '../clock/departure'
+import { copy, flights, number, percent } from '../rankings/display'
 import { RecordMapFigure, type Leg } from './figure'
 import './records.css'
-
-/** Derived degrees read as a fact at one decimal; more digits only look like noise. */
-const tenth = (value: number) => Math.round(value * 10) / 10
 
 type Route = { origin: string; destination: string; km: number; flights: number }
 const keyOf = (route: Pick<Route, 'origin' | 'destination'>) =>
@@ -33,7 +30,7 @@ const arrow = (route: Pick<Route, 'origin' | 'destination'>) =>
   `${route.origin} → ${route.destination}`
 
 export function Section({ span }: { span: Span }) {
-  const { scope, payload, filter, locale, aggregate, ownerKey, actions, bus, isCurrent } =
+  const { scope, all, payload, filter, locale, aggregate, ownerKey, actions, bus, isCurrent } =
     useOverview()
   const openFlight = useOpenFlight()
   const gate = scope?.records
@@ -69,9 +66,9 @@ export function Section({ span }: { span: Span }) {
     if (isCurrent()) actions.add('routes', routeKey(route.origin, route.destination))
   }
 
-  const state = !scope || !payload ? 'loading' : data && reading ? 'ready' : 'empty'
+  const state = !scope || !payload ? 'loading' : data ? 'ready' : 'empty'
   const gated = scope ? SECTION_GATES.records.gate(scope) : null
-  if (state !== 'ready' || !data || !reading || !payload) {
+  if (state !== 'ready' || !data || !payload) {
     return (
       <ChapterCard
         state={state === 'loading' ? 'loading' : 'empty'}
@@ -79,19 +76,15 @@ export function Section({ span }: { span: Span }) {
         hero={{ value: '', caption: null }}
         chart={{ caption: '', plot: null }}
         empty={{
-          title: copy(locale, 'No records to show', 'Рекордов не видно'),
+          title: copy(locale, 'Records', 'Рекорды'),
           line:
             gated?.status === 'below'
               ? copy(
                   locale,
-                  `Records start at ${flights(locale, gated.need)}, and this filter leaves ${flights(locale, gated.have)}. The cabinet stays locked.`,
-                  `Порог для рекордов — ${flights(locale, gated.need)}, а фильтр оставил ${flights(locale, gated.have)}. Витрина закрыта.`,
+                  `${number(locale, gated.have)} of ${flights(locale, gated.need)} required`,
+                  `Перелётов ${number(locale, gated.have)} из ${number(locale, gated.need)} нужных`,
                 )
-              : copy(
-                  locale,
-                  'No flight in this filter has a known distance. Hard to set a record without a ruler.',
-                  'Ни у одного перелёта в выборке нет известного расстояния. Без линейки рекорд не ставится.',
-                ),
+              : copy(locale, 'Distance unknown', 'Расстояние неизвестно'),
           action: (
             <Button
               dense
@@ -109,9 +102,24 @@ export function Section({ span }: { span: Span }) {
   }
 
   const short = data.shortest,
-    north = data.northernmost,
-    early = data.earliestDeparture,
     busy = data.busiestYear
+  const lifetime = all?.records.status === 'ready' ? all.records.value : null
+  const filtered = !isEmptyFilter(filter)
+  const meaningfulRange = short && lead && short.value > 0 && short.value < lead.value
+  const places = (record: Pick<RecordRef, 'origin' | 'destination'>) =>
+    [record.origin, record.destination]
+      .map((iata) => airports?.[iata]?.city || airports?.[iata]?.name || iata)
+      .join(' → ')
+  const baseline =
+    all && lifetime?.shortest && lifetime.longest ? (
+      <p>
+        {copy(
+          locale,
+          `Whole journal: ${number(locale, lifetime.shortest.value)}–${number(locale, lifetime.longest.value)} km across ${flights(locale, all.figures.flights)}.`,
+          `Весь журнал: ${number(locale, lifetime.shortest.value)}–${number(locale, lifetime.longest.value)} км · ${flights(locale, all.figures.flights)}.`,
+        )}
+      </p>
+    ) : null
   const open = (record: { flightId: number | null; origin: string; destination: string }) => {
     if (!aggregate && ownerKey !== 'dev' && record.flightId !== null && isCurrent()) {
       bus.setFocusRoute(routeKey(record.origin, record.destination))
@@ -122,13 +130,9 @@ export function Section({ span }: { span: Span }) {
     record: { flightId: number | null; origin: string; destination: string } | null,
   ) =>
     record && !aggregate && ownerKey !== 'dev' && record.flightId !== null ? (
-      <button
-        className="ov3-record-open"
-        aria-label={`${copy(locale, 'Open flight', 'Открыть перелёт')} · ${arrow(record)}`}
-        onClick={() => open(record)}
-      >
-        ↗
-      </button>
+      <Button dense variant="secondary" onClick={() => open(record)}>
+        {copy(locale, 'Open flight', 'Открыть перелёт')} ↗
+      </Button>
     ) : null
   const route = (record: Pick<RecordRef, 'origin' | 'destination'> | null) =>
     record ? arrow(record) : '—'
@@ -159,36 +163,28 @@ export function Section({ span }: { span: Span }) {
       value: short ? `${number(locale, short.value)} ${copy(locale, 'km', 'км')}` : '—',
     },
     {
-      record: copy(locale, 'Furthest north', 'Самая северная точка'),
-      route: north?.iata ?? '—',
-      value: north ? `${number(locale, tenth(north.lat))}°` : '—',
-    },
-    {
-      record: copy(locale, 'Earliest departure', 'Самый ранний вылет'),
-      route: route(early),
-      value: early ? hhmm(early.depMinute) : '—',
-    },
-    {
       record: copy(locale, 'Busiest year', 'Самый активный год'),
       route: busy ? String(busy.year) : '—',
       value: busy ? flights(locale, busy.flights) : '—',
     },
   ]
 
-  const rank = keys.indexOf(keyOf(reading))
+  const rank = reading ? keys.indexOf(keyOf(reading)) : -1
   const ordinal = (n: number) =>
     locale === 'ru' ? `${n}-й` : (['1st', '2nd', '3rd', '4th', '5th'][n - 1] ?? `${n}th`)
-  const caption: ReactNode = r.isHeadline
-    ? copy(
-        locale,
-        `Longest flight · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} of the way round the equator, in one sitting.`,
-        `Самый длинный перелёт · ${arrow(reading)}. ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} длины экватора за один присест.`,
-      )
-    : copy(
-        locale,
-        `${ordinal(rank + 1)} longest · ${arrow(reading)} · ${flights(locale, reading.flights)}`,
-        `${ordinal(rank + 1)} по длине · ${arrow(reading)} · ${flights(locale, reading.flights)}`,
-      )
+  const caption: ReactNode = !reading
+    ? copy(locale, 'Distance unknown', 'Расстояние неизвестно')
+    : r.isHeadline
+      ? copy(
+          locale,
+          `Longest flight · ${arrow(reading)} · ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} of the equator`,
+          `Самый длинный перелёт · ${arrow(reading)} · ${percent(reading.km / EARTH_CIRCUMFERENCE_KM)} длины экватора`,
+        )
+      : copy(
+          locale,
+          `${ordinal(rank + 1)} longest · ${arrow(reading)} · ${flights(locale, reading.flights)}`,
+          `${ordinal(rank + 1)} по длине · ${arrow(reading)} · ${flights(locale, reading.flights)}`,
+        )
   const chartCaption = copy(locale, 'Longest routes · km', 'Самые длинные маршруты · км')
   const points = routes.map((row) => ({
     key: keyOf(row),
@@ -203,98 +199,185 @@ export function Section({ span }: { span: Span }) {
       <div className="ov3-record-small-grid">
         <div className="ov3-record-inset">
           <p>{copy(locale, 'Shortest flight', 'Самый короткий перелёт')}</p>
-          {affordance(short)}
           <strong>
             {short ? `${number(locale, short.value)} ${copy(locale, 'km', 'км')}` : '—'}
           </strong>
-          <button className="ov3-record-route" onClick={() => filterRecord(short)}>
-            {route(short)}
-          </button>
-          <div className="ov3-record-track">
-            <b style={{ left: percent(short?.shareOfLongest ?? 0) }} />
-          </div>
-          <p>
-            {short && short.shareOfLongest > 0
-              ? `1/${Math.round(1 / short.shareOfLongest)} ${copy(locale, 'of your longest', 'самого длинного')}`
-              : '—'}
-          </p>
-        </div>
-        <div className="ov3-record-inset">
-          <p>{copy(locale, 'Furthest north', 'Самая северная точка')}</p>
-          {affordance(north?.flight ?? null)}
-          <strong>
-            {north ? `${number(locale, tenth(north.lat))}° ${copy(locale, 'N', 'с. ш.')}` : '—'}
-          </strong>
-          <button
-            className="ov3-record-route"
-            onClick={() => {
-              if (north && isCurrent()) actions.add('airports', north.iata)
-            }}
-          >
-            {north?.iata ?? '—'}
-          </button>
-          <div className="ov3-record-track ov3-record-arctic">
-            <b style={{ left: percent(Math.max(0, Math.min(1, (north?.lat ?? 0) / 90))) }} />
-          </div>
-          <p>
-            {north && north.lat >= 66.56
-              ? `${number(locale, tenth(north.lat - 66.56))}° ${copy(locale, 'inside the Arctic Circle', 'за полярным кругом')}`
-              : copy(locale, 'Arctic Circle at 66.56°', 'Полярный круг: 66,56°')}
-          </p>
-        </div>
-        <div className="ov3-record-inset">
-          <p>{copy(locale, 'Earliest departure', 'Самый ранний вылет')}</p>
-          {early ? (
+          <p className="ov3-record-route">{route(short)}</p>
+          {short && <p>{places(short)}</p>}
+          {meaningfulRange ? (
             <>
-              {affordance(early)}
-              <strong>{hhmm(early.depMinute)}</strong>
-              <button className="ov3-record-route" onClick={() => filterRecord(early)}>
-                {route(early)}
-              </button>
-              <div className="ov3-record-track ov3-record-night">
-                <b style={{ left: percent(early.depMinute / 1440) }} />
+              <p>{copy(locale, 'Your distance range', 'Ваш диапазон расстояний')}</p>
+              <div className="ov3-record-range" aria-hidden="true" />
+              <div className="ov3-record-range-labels">
+                <span>
+                  {copy(locale, 'Shortest', 'Самый короткий')}
+                  <b>
+                    {number(locale, short.value)} {copy(locale, 'km', 'км')}
+                  </b>
+                </span>
+                <span>
+                  {copy(locale, 'Longest', 'Самый длинный')}
+                  <b>
+                    {number(locale, lead.value)} {copy(locale, 'km', 'км')}
+                  </b>
+                </span>
               </div>
-              <p>00:00–24:00</p>
+              <p>
+                {copy(
+                  locale,
+                  `Longest is about ${number(locale, Math.round((lead.value / short.value) * 10) / 10)}× the shortest · airport-to-airport`,
+                  `Самый длинный примерно в ${number(locale, Math.round((lead.value / short.value) * 10) / 10)} раза длиннее короткого · между аэропортами`,
+                )}
+              </p>
             </>
           ) : (
-            <>
-              <p>{copy(locale, 'No departure times recorded', 'Время вылета не указано')}</p>
-              <a className="ov3-record-link" href="/journal">
-                {copy(locale, 'Add times →', 'Указать время →')}
-              </a>
-            </>
+            <p>
+              {copy(
+                locale,
+                'No distance range in this selection.',
+                'В этой выборке нет диапазона расстояний.',
+              )}
+            </p>
+          )}
+          {short && (
+            <Disclosure summary={copy(locale, 'Flight evidence', 'Данные перелёта')}>
+              <p>
+                {places(short)}
+                {short.date && dateInstant(short.date) !== null
+                  ? ` · ${formatDateOnly(locale, short.date, 'medium')}`
+                  : ''}
+              </p>
+              <p>
+                {copy(
+                  locale,
+                  'Great-circle distance, not the flown path.',
+                  'Расстояние по большой окружности, а не пройденный путь.',
+                )}
+              </p>
+              {filtered && baseline}
+              <div className="ov3-record-actions">
+                {affordance(short)}
+                <Button dense variant="secondary" onClick={() => filterRecord(short)}>
+                  {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
+                </Button>
+              </div>
+            </Disclosure>
           )}
         </div>
         <div className="ov3-record-inset">
           <p>{copy(locale, 'Busiest year', 'Самый активный год')}</p>
           <strong>{busy?.year ?? '—'}</strong>
-          <button
-            className="ov3-record-route"
-            onClick={() => {
-              if (busy && isCurrent()) actions.setPeriod({ years: [busy.year] })
-            }}
-          >
-            {busy ? flights(locale, busy.flights) : '—'}
-          </button>
-          <div className="ov3-record-months" aria-hidden="true">
-            {busy?.months.map((month) => (
-              <i
-                key={month.key}
-                style={{
-                  height: `${Math.max(2, (month.flights / Math.max(1, ...busy.months.map((row) => row.flights))) * 48)}px`,
-                  background:
-                    month.month === busy.peakMonth ? 'var(--mark-peak)' : 'var(--mark-rest)',
+          <p>{busy ? flights(locale, busy.flights) : '—'}</p>
+          {busy && busy.months.filter((month) => month.flights > 0).length >= 2 && (
+            <>
+              <div
+                className="ov3-record-months"
+                role="img"
+                aria-label={busy.months
+                  .map((month) => `${monthName(month.month)}: ${flights(locale, month.flights)}`)
+                  .join('; ')}
+              >
+                {busy.months.map((month) => (
+                  <span className="ov3-record-month" key={month.key}>
+                    <b>{month.flights || '—'}</b>
+                    <i
+                      style={{
+                        height: `${month.flights === 0 ? 2 : (month.flights / Math.max(1, ...busy.months.map((row) => row.flights))) * 48}px`,
+                        background:
+                          month.flights === 0
+                            ? 'var(--zero)'
+                            : month.month === busy.peakMonth
+                              ? 'var(--mark-peak)'
+                              : 'var(--mark-rest)',
+                      }}
+                    />
+                  </span>
+                ))}
+              </div>
+              <div className="ov3-record-range-labels">
+                <span>{monthName(1)}</span>
+                <span>{monthName(12)}</span>
+              </div>
+              <p>
+                {copy(locale, 'Peak', 'Пик')}: {monthName(busy.peakMonth)},{' '}
+                {flights(locale, busy.months[busy.peakMonth - 1].flights)}
+              </p>
+            </>
+          )}
+          {busy && (
+            <Disclosure summary={copy(locale, 'Year evidence', 'Данные года')}>
+              <p>
+                {copy(
+                  locale,
+                  `${monthName(busy.peakMonth)} accounts for ${busy.months[busy.peakMonth - 1].flights} of ${busy.flights} flights in ${busy.year}.`,
+                  `${monthName(busy.peakMonth)}: ${busy.months[busy.peakMonth - 1].flights} из ${busy.flights} перелётов за ${busy.year} год.`,
+                )}
+              </p>
+              {filtered && all && (
+                <p>
+                  {copy(
+                    locale,
+                    `Whole journal: ${flights(locale, all.figures.flights)}. Busiest year: ${lifetime?.busiestYear ? `${lifetime.busiestYear.year} · ${flights(locale, lifetime.busiestYear.flights)}` : '—'}.`,
+                    `Весь журнал: ${flights(locale, all.figures.flights)}. Самый активный год: ${lifetime?.busiestYear ? `${lifetime.busiestYear.year} · ${flights(locale, lifetime.busiestYear.flights)}` : '—'}.`,
+                  )}
+                </p>
+              )}
+              <TableView
+                table={{
+                  caption: copy(locale, 'Monthly flights', 'Перелёты по месяцам'),
+                  columns: [
+                    { key: 'month', label: copy(locale, 'Month', 'Месяц') },
+                    { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+                  ],
+                  rows: busy.months.map((month) => ({
+                    month: monthName(month.month),
+                    flights: month.flights,
+                  })),
                 }}
               />
-            ))}
-          </div>
-          <p>
-            {busy
-              ? `${copy(locale, 'Peak', 'Пик')}: ${monthName(busy.peakMonth)}, ${flights(locale, busy.months[busy.peakMonth - 1].flights)}`
-              : '—'}
-          </p>
+              <Button
+                dense
+                variant="secondary"
+                onClick={() => {
+                  if (isCurrent()) actions.setPeriod({ years: [busy.year] })
+                }}
+              >
+                {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
+              </Button>
+            </Disclosure>
+          )}
         </div>
       </div>
+      {!lead && (data.longestDuration || data.shortestDuration) && (
+        <Disclosure summary={copy(locale, 'Duration evidence', 'Данные длительности')}>
+          {[
+            {
+              label: copy(locale, 'Longest time in the air', 'Самый долгий перелёт'),
+              record: data.longestDuration,
+            },
+            {
+              label: copy(locale, 'Shortest time in the air', 'Самый быстрый перелёт'),
+              record: data.shortestDuration,
+            },
+          ].map(
+            ({ label, record }) =>
+              record && (
+                <div className="ov3-record-inset" key={label}>
+                  <p>{label}</p>
+                  <strong>{formatDuration(locale, record.value)}</strong>
+                  <p className="ov3-record-route">{arrow(record)}</p>
+                  <p>{places(record)}</p>
+                  <div className="ov3-record-actions">
+                    {affordance(record)}
+                    <Button dense variant="secondary" onClick={() => filterRecord(record)}>
+                      {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
+                    </Button>
+                  </div>
+                </div>
+              ),
+          )}
+        </Disclosure>
+      )}
       <TableView
         table={{
           caption: copy(locale, 'Records', 'Рекорды'),
@@ -312,10 +395,14 @@ export function Section({ span }: { span: Span }) {
     <div className="ov3-records" data-span={span}>
       <div className="ov3-record-inset ov3-record-lead">
         <p>{copy(locale, 'Longest flight', 'Самый длинный перелёт')}</p>
-        {affordance(lead)}
-        <button className="ov3-record-route" onClick={() => filterRecord(lead)}>
-          {route(lead)}
-        </button>
+        <p className="ov3-record-route">{route(lead)}</p>
+        <div className="ov3-record-actions">
+          {affordance(lead)}
+          <Button dense variant="secondary" onClick={() => filterRecord(lead)}>
+            {copy(locale, 'Filter Overview', 'Фильтровать обзор')}
+          </Button>
+        </div>
+        {filtered && baseline}
         <p>
           {[
             payload.refs.airports[lead.origin]?.city ?? lead.origin,
@@ -381,16 +468,22 @@ export function Section({ span }: { span: Span }) {
       figure={
         <RecordMapFigure legs={legs} reading={r.reading} picked={r.picked && !reducedMotion()} />
       }
-      figureButton={{
-        label: copy(locale, 'Show next longest route', 'Показать следующий по длине маршрут'),
-        onPress: r.next,
-      }}
+      figureButton={
+        routes.length > 1
+          ? {
+              label: copy(locale, 'Show next longest route', 'Показать следующий по длине маршрут'),
+              onPress: r.next,
+            }
+          : undefined
+      }
       hero={{
-        value: kmText(reading),
-        unit: copy(locale, 'km', 'км'),
+        value: reading ? kmText(reading) : '—',
+        unit: reading ? copy(locale, 'km', 'км') : undefined,
         caption,
         only:
-          r.isHeadline || filter.routes?.includes(routeKey(reading.origin, reading.destination))
+          !reading ||
+          r.isHeadline ||
+          filter.routes?.includes(routeKey(reading.origin, reading.destination))
             ? null
             : {
                 label: copy(locale, `Only ${arrow(reading)}`, `Только ${arrow(reading)}`),
@@ -399,54 +492,60 @@ export function Section({ span }: { span: Span }) {
       }}
       rollValue={r.picked}
       chart={{
-        table: {
-          caption: chartCaption,
-          columns: [
-            { key: 'route', label: copy(locale, 'Route', 'Маршрут') },
-            {
-              key: 'km',
-              label: copy(locale, 'Distance, km', 'Расстояние, км'),
-              numeric: true,
-            },
-            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
-          ],
-          rows: routes.map((row) => ({
-            route: arrow(row),
-            km: kmText(row),
-            flights: row.flights,
-          })),
-        },
-        caption: chartCaption,
-        plot: (
-          <LazyChart height={points.length * 24} label={chartCaption}>
-            {(inView) => (
-              <StageRows
-                points={points}
-                value={(point) => point.datum.km}
-                format={(point) => kmText(point.datum)}
-                name={(point) => arrow(point.datum)}
-                mono
-                span={span}
-                selectedKey={r.reading}
-                appliedKeys={appliedKeys}
-                inView={inView}
-                ariaLabel={chartCaption}
-                onPick={(point) => r.pick(point.key)}
-                actions={(point) => [
-                  { label: filterLabel(locale), run: () => filterRoute(point.datum) },
-                ]}
-                tip={(selected) => <span>{selected[0].label}</span>}
-              />
-            )}
-          </LazyChart>
-        ),
+        table: routes.length
+          ? {
+              caption: chartCaption,
+              columns: [
+                { key: 'route', label: copy(locale, 'Route', 'Маршрут') },
+                {
+                  key: 'km',
+                  label: copy(locale, 'Distance, km', 'Расстояние, км'),
+                  numeric: true,
+                },
+                { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+              ],
+              rows: routes.map((row) => ({
+                route: arrow(row),
+                km: kmText(row),
+                flights: row.flights,
+              })),
+            }
+          : undefined,
+        caption: reading ? chartCaption : '',
+        plot:
+          routes.length > 1 ? (
+            <LazyChart height={points.length * 24} label={chartCaption}>
+              {(inView) => (
+                <StageRows
+                  points={points}
+                  value={(point) => point.datum.km}
+                  format={(point) => kmText(point.datum)}
+                  name={(point) => arrow(point.datum)}
+                  mono
+                  span={span}
+                  selectedKey={r.reading}
+                  appliedKeys={appliedKeys}
+                  inView={inView}
+                  ariaLabel={chartCaption}
+                  onPick={(point) => r.pick(point.key)}
+                  actions={(point) => [
+                    {
+                      label: copy(locale, 'Filter Overview', 'Фильтровать обзор'),
+                      run: () => filterRoute(point.datum),
+                    },
+                  ]}
+                  tip={(selected) => <span>{selected[0].label}</span>}
+                />
+              )}
+            </LazyChart>
+          ) : null,
       }}
       details={{
         heading: copy(locale, 'Record cabinet', 'Витрина рекордов'),
         more: witnesses
           ? [
               {
-                summary: copy(locale, 'Witnesses and provenance', 'Свидетели и происхождение'),
+                summary: copy(locale, 'Flight details', 'Данные перелёта'),
                 content: witnesses,
               },
             ]

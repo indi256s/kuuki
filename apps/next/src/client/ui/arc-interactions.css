@@ -1,21 +1,4 @@
-/* Arc-derived interaction primitives: inline edit, context menu, confirm morph. Tokens only; no resets, no focus suppression. */
-.arc-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Inline edit */
-.arc-inline {
-  position: relative;
-  min-width: 0;
-}
+/* Arc-derived Journal editing controls and context menu. */
 .arc-inline-trigger {
   position: relative;
   z-index: 1;
@@ -58,33 +41,6 @@
     min-height: 44px;
   }
 }
-.arc-inline-editor {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + var(--space-1));
-  left: calc(var(--space-3) * -1);
-  width: min(22rem, calc(100vw - 2 * var(--page-gutter)));
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--surface-floating);
-  color: var(--text);
-  box-shadow: var(--shadow-floating), var(--ring-floating);
-  white-space: normal;
-  text-align: left;
-  animation: arc-rise var(--dur-fast) var(--ease-out);
-}
-.arc-inline-editor[data-saving] {
-  opacity: 0.8;
-}
-.arc-inline-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
 .arc-inline-icon {
   display: inline-grid;
   place-items: center;
@@ -109,14 +65,10 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-.arc-inline-status,
 .arc-inline-unknown {
   margin: 0;
   font-size: 13px;
   line-height: 18px;
-}
-.arc-inline-status {
-  color: var(--text-muted);
 }
 .arc-inline-unknown {
   padding-inline-start: var(--space-3);
@@ -173,52 +125,7 @@
   }
 }
 
-/* Confirm morph */
-.arc-confirm {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--danger-text);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text);
-  transform-origin: top left;
-  animation: arc-rise var(--dur-base) var(--ease-out);
-}
-.arc-confirm-prompt {
-  margin: 0;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.arc-confirm-consequence {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 20px;
-}
-.arc-confirm-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-@keyframes arc-rise {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .arc-inline-editor,
-  .arc-confirm {
-    animation: none;
-  }
   .arc-inline-trigger,
   .arc-context-button {
     transition: none;

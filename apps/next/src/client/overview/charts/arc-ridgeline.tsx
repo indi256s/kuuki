@@ -84,6 +84,7 @@ export function ArcRidgeline<T>({
 
   let slot = 0
   const placed = rows.map((row, i) => {
+    // oxlint-disable-next-line react/immutability -- false positive: .map runs during render, not after it
     if (row.gapBefore && i > 0) slot += 1
     return { row, base: MARGIN.top + (PADDING + slot++) * step }
   })

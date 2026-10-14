@@ -7,8 +7,9 @@ import './next-up.css'
 
 // Board 22.1/22.6 "Next up": the nearest flight leads with its cities, codes, date, optional departure time and flight number,
 // and a split-flap day count, the section's one aviation motif. Later flights sit quietly beside or below it.
-// Motion (board "Next up · motion"): the flaps flip only when the day changes while the page is open; first paint is settled,
-// today and tomorrow are words, reduced motion swaps instantly. Rows stay static (no press scale).
+// Motion (board "Next up · motion"): the flaps flip in once when the count arrives after hydration (a hard load) and again only
+// when the day changes while the page is open; client navigation paints them settled. Today and tomorrow are words that arrive
+// with the same flip; reduced motion swaps instantly. Rows stay static (no press scale).
 
 const copy = {
   en: { title: 'Next up', to: 'to', then: 'Then', today: 'Today', tomorrow: 'Tomorrow' },
@@ -82,10 +83,10 @@ function shortDate(locale: Locale, day: string, withYear: boolean): string {
   return format.format(new Date(`${day}T00:00:00Z`)).replaceAll(' ', ' ')
 }
 
-/** One split-flap digit. It flips only when its digit changes after mount, i.e. a day change seen while the page is open. */
-function Flap({ digit, index }: { digit: string; index: number }) {
+/** One split-flap digit. It flips in when `entering`, then only when its digit changes after mount (a day change seen while open). */
+function Flap({ digit, index, entering }: { digit: string; index: number; entering: boolean }) {
   const [shown, setShown] = useState(digit)
-  const [flips, setFlips] = useState(0)
+  const [flips, setFlips] = useState(entering ? 1 : 0)
   if (shown !== digit) {
     setShown(digit)
     setFlips(flips + 1)
@@ -106,6 +107,11 @@ function Flap({ digit, index }: { digit: string; index: number }) {
 
 export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
   const today = useSyncExternalStore(subscribe, localDay, serverDay)
+  // The day of the first render. Null means hydration: the count arrives a frame later, so it flips in instead of popping.
+  // A later day than this means the page stayed open across midnight, so a Today/Tomorrow word that replaces the flaps
+  // arrives the same way.
+  const [firstToday] = useState(today)
+  const hydrating = firstToday === null
   if (!flights.length) return null
   const t = copy[locale]
   const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
@@ -140,75 +146,93 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
   return (
     <section className="journal-next" aria-labelledby="journal-next-title">
       <h2 id="journal-next-title">{t.title}</h2>
+      {/* A boarding pass: the lead's button stretches over the whole ticket, later flights sit above it, the stub keeps the
+          count. The stub is reserved through hydration, so the count arriving does not move the ticket. */}
       <div className="journal-next-card">
-        <button
-          type="button"
-          className="journal-next-lead"
-          aria-label={first.name}
-          onClick={() => onOpen(lead.id)}
-        >
-          {first.days !== null && (
-            <span className="journal-next-count" aria-hidden="true">
-              {first.word ? (
-                <span className="journal-next-word">{first.word}</span>
+        <div className="journal-next-main">
+          <button
+            type="button"
+            className="journal-next-lead"
+            aria-label={first.name}
+            onClick={() => onOpen(lead.id)}
+          >
+            <span className="journal-next-cities">
+              {leadCities[0] ?? lead.origin} → {leadCities[1] ?? lead.destination}
+            </span>
+            <span className="journal-next-date">
+              {[first.date, first.time].filter(Boolean).join(' · ')}
+            </span>
+            <span className="journal-next-meta">
+              <span>
+                {lead.origin} → {lead.destination}
+              </span>
+              {first.number && <span>{first.number}</span>}
+            </span>
+          </button>
+          {later.length > 0 && (
+            <div className="journal-next-later">
+              <span className="journal-next-then" aria-hidden="true">
+                {t.then}
+              </span>
+              <ul>
+                {later.map((flight) => {
+                  const info = describe(flight)
+                  const when =
+                    info.word ??
+                    (info.days !== null ? formatCount(locale, info.days, dayCount) : null)
+                  return (
+                    <li key={flight.id}>
+                      <button
+                        type="button"
+                        className="journal-next-item"
+                        aria-label={info.name}
+                        onClick={() => onOpen(flight.id)}
+                      >
+                        <span className="journal-next-item-route">
+                          {city(flight.origin) ?? flight.origin} →{' '}
+                          {city(flight.destination) ?? flight.destination}
+                        </span>
+                        <span className="journal-next-item-sub">
+                          <span className="journal-next-item-date">{info.date}</span>
+                          {when && <span className="journal-next-item-when">{when}</span>}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+        {(today === null || first.days !== null) && (
+          // The lead button carries the spoken name and keyboard access; the stub is a pointer shortcut to the same flight.
+          <div className="journal-next-stub" aria-hidden="true" onClick={() => onOpen(lead.id)}>
+            {first.days !== null &&
+              (first.word ? (
+                <span
+                  key={first.word}
+                  className="journal-next-word"
+                  data-flip={today !== firstToday || undefined}
+                >
+                  {first.word}
+                </span>
               ) : (
-                <>
+                <span className="journal-next-count">
                   <span className="journal-next-flaps">
                     {[...String(first.days)].map((digit, index, all) => (
-                      <Flap key={all.length - index} digit={digit} index={index} />
+                      <Flap
+                        key={all.length - index}
+                        digit={digit}
+                        index={index}
+                        entering={hydrating}
+                      />
                     ))}
                   </span>
                   <span className="journal-next-unit">
                     {formatCount(locale, first.days, dayWord)}
                   </span>
-                </>
-              )}
-            </span>
-          )}
-          <span className="journal-next-trip">
-            <span className="journal-next-route">
-              {(leadCities[0] || leadCities[1]) && (
-                <span className="journal-next-cities">
-                  {leadCities[0] ?? lead.origin} → {leadCities[1] ?? lead.destination}
                 </span>
-              )}
-              <span className="journal-next-codes">
-                {lead.origin} → {lead.destination}
-              </span>
-            </span>
-            <span className="journal-next-meta">
-              {[first.date, first.time, first.number].filter(Boolean).join(' · ')}
-            </span>
-          </span>
-        </button>
-        {later.length > 0 && (
-          <div className="journal-next-later">
-            <span className="journal-next-then" aria-hidden="true">
-              {t.then}
-            </span>
-            <ul>
-              {later.map((flight) => {
-                const info = describe(flight)
-                const when =
-                  info.word ??
-                  (info.days !== null ? formatCount(locale, info.days, dayCount) : null)
-                return (
-                  <li key={flight.id}>
-                    <button
-                      type="button"
-                      className="journal-next-item"
-                      aria-label={info.name}
-                      onClick={() => onOpen(flight.id)}
-                    >
-                      <span className="journal-next-item-route">
-                        {flight.origin} → {flight.destination} · {info.date}
-                      </span>
-                      {when && <span className="journal-next-item-when">{when}</span>}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
+              ))}
           </div>
         )}
       </div>

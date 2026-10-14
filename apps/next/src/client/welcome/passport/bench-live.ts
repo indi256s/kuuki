@@ -1,5 +1,6 @@
 // The passport bench's live layer: one rAF loop that writes attributes on refs inside the generated SVG, so React never
 // re-renders per frame. Ported from the approved prototype (.scratch/onboarding-passport-figure/live.js).
+import { initials } from '../../profile/data-page-art'
 import { mrzLines } from '../../profile/mrz'
 import { BENCH } from './bench.generated'
 import {
@@ -79,14 +80,6 @@ const pressDepth = (age: number) => {
   if (age < PRESS_S) return 1 - easeOutCubic((age - PRESS.down - PRESS.hold) / PRESS.up)
   return 0
 }
-const initials = (name: string) =>
-  name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => [...w][0]?.toLocaleUpperCase() ?? '')
-    .join('')
 
 /**
  * Mounts the bench in `stage` showing `init` as it already is: countries on the page are simply there, an open cover is
@@ -457,7 +450,8 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
 
   function clearEntry() {
     A.entryOn = false
-    A.presses = A.presses.filter((p) => p.slot !== 'entry' || A.clock - p.t0 >= PRESS_S)
+    // Finished entry presses go too: snap() replays every kept press and would ink the cleared stamp again.
+    A.presses = A.presses.filter((p) => p.slot !== 'entry')
     entry.setAttribute('opacity', '0')
     A.scan = null
     scanLine.setAttribute('opacity', '0')

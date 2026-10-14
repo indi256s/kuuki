@@ -210,6 +210,10 @@ function badgeStatements(
     else if ('airlines' in criteria) earned = stats.airlines_count >= n('airlines')
     else if ('aircraft' in criteria) earned = stats.aircraft_count >= n('aircraft')
     else if ('continents' in criteria) earned = stats.continents_count >= n('continents')
+    else if ('countries' in criteria) earned = stats.countries_count >= n('countries')
+    else if ('airports' in criteria) earned = stats.airports_count >= n('airports')
+    else if ('airtime_minutes' in criteria)
+      earned = stats.total_duration_minutes >= n('airtime_minutes')
     else if ('flight_minutes' in criteria)
       earned = stats.longest_flight_minutes >= n('flight_minutes')
     else if ('night_departure' in criteria) earned = stats.has_night_departure === 1

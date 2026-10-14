@@ -2,7 +2,6 @@ import { expect, it, vi, afterEach } from 'vitest'
 import { createApiDatabase } from './harness'
 import { createUserWithProfile } from '../api/_lib/users'
 import * as users from '../api/_lib/users'
-import { createSession } from '../api/_lib/session'
 import { completeActivation } from '../api/_lib/activation'
 import { completePasswordRecovery } from '../api/_lib/passwordRecovery'
 import { onRequest as middleware } from '../_middleware'
@@ -292,51 +291,29 @@ for (const [name, extra] of Object.entries(unconfigured)) {
   })
 }
 
-it('bypasses session handling in the middleware so an existing session cookie is never touched', async () => {
+it('bypasses session handling in the middleware so a stale session cookie is never touched', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
-    const member = await createUserWithProfile(
-      db,
-      { email: 'member@example.test', password: 'old-password' },
-      SECRET,
-    )
-    const { token: legacyToken } = await createSession(db, member.id)
-    // Older than the 24h slide window, so the middleware would renew it if it ran.
-    await db
-      .prepare('UPDATE sessions SET last_seen_at = ? WHERE user_id = ?')
-      .bind(new Date(Date.now() - 48 * 3600_000).toISOString(), member.id)
-      .run()
-    const sessionRow = () =>
-      db
-        .prepare('SELECT last_seen_at, expires_at FROM sessions WHERE user_id = ?')
-        .bind(member.id)
-        .first<{ last_seen_at: string; expires_at: string }>()
-    const before = await sessionRow()
     mockMail()
-    for (const cookie of [
-      `kuuki_session=${legacyToken}; kuuki_csrf=csrf-token`,
-      'kuuki_auth_session=stale-token',
-    ]) {
-      const request = new Request(`${ORIGIN}/api/auth/link/request`, {
-        method: 'POST',
-        headers: { Origin: ORIGIN, Cookie: cookie, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'missing@example.test' }),
-      })
-      const context = {
-        request,
-        env: { ...env(db), BETTER_AUTH_SECRET: 'synthetic-better-auth-test-secret-32-characters' },
-        data: { user: null },
-        waitUntil() {},
-        passThroughOnException() {},
-        params: {},
-        next: () => linkRequest({ request, env: env(db), waitUntil() {} } as never),
-      }
-      const response = await middleware(context as never)
-      expect(response.status).toBe(200)
-      expect(await response.json()).toEqual({ ok: true })
-      expect(response.headers.getSetCookie()).toEqual([])
+    const cookie = 'kuuki_auth_session=stale-token'
+    const request = new Request(`${ORIGIN}/api/auth/link/request`, {
+      method: 'POST',
+      headers: { Origin: ORIGIN, Cookie: cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'missing@example.test' }),
+    })
+    const context = {
+      request,
+      env: { ...env(db), BETTER_AUTH_SECRET: 'synthetic-better-auth-test-secret-32-characters' },
+      data: { user: null },
+      waitUntil() {},
+      passThroughOnException() {},
+      params: {},
+      next: () => linkRequest({ request, env: env(db), waitUntil() {} } as never),
     }
-    expect(await sessionRow()).toEqual(before)
+    const response = await middleware(context as never)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ ok: true })
+    expect(response.headers.getSetCookie()).toEqual([])
   } finally {
     await dispose()
   }

@@ -267,24 +267,28 @@ export type MenuTrayOption<T extends string> = {
   label: string
   /** A colour for a swatch cell; the label is then accessible-only. */
   swatch?: string
+  /** An icon for the cell; the label is then accessible-only. */
+  icon?: ReactNode
 }
 
 /**
  * A preference picked in place inside a menu, as a radio group with one stop in the menu's Up/Down order: only the
- * selected cell is a menu item. Left and Right select the neighbour at once, and no pick closes the menu. Text cells
- * show their label and mark the selected one with a control outline; swatch cells show a dot and a check, and keep the
- * name for assistive tech.
+ * selected cell is a menu item. Left and Right select the neighbour at once, and no pick closes the menu. The cells
+ * share the tray's width equally and one thumb slides under the selected cell. Swatch and icon cells keep their name
+ * for assistive tech; a swatch adds a check. `hideLabel` keeps the row label accessible-only.
  */
 export function MenuTray<T extends string>({
   label,
   value,
   options,
   onValueChange,
+  hideLabel,
 }: {
   label: string
   value: T
   options: readonly MenuTrayOption<T>[]
   onValueChange: (value: T) => void
+  hideLabel?: boolean
 }) {
   const id = useId()
   const selected = useRef<HTMLDivElement>(null)
@@ -317,7 +321,15 @@ export function MenuTray<T extends string>({
     const index = options.findIndex((option) => option.value === current)
     choose(options[(index + delta + options.length) % options.length].value)
   }
-  const swatches = options.some((option) => option.swatch)
+  const kind = options.some((option) => option.swatch)
+    ? 'swatch'
+    : options.some((option) => option.icon)
+      ? 'icon'
+      : 'text'
+  const index = Math.max(
+    0,
+    options.findIndex((option) => option.value === current),
+  )
   return (
     <DropdownMenu.RadioGroup
       className="ui-menu-tray-row"
@@ -325,10 +337,15 @@ export function MenuTray<T extends string>({
       value={current}
       onValueChange={(next) => pick(next as T)}
     >
-      <span id={id} className="ui-menu-tray-label">
+      <span id={id} className={hideLabel ? 'sr-only' : 'ui-menu-tray-label'}>
         {label}
       </span>
-      <span className="ui-menu-tray" data-kind={swatches ? 'swatch' : 'text'}>
+      <span
+        className="ui-menu-tray"
+        data-kind={kind}
+        style={{ '--n': options.length, '--i': index } as CSSProperties}
+      >
+        <span className="ui-menu-tray-thumb" aria-hidden="true" />
         {options.map((option) => {
           const content = option.swatch ? (
             <span
@@ -339,9 +356,9 @@ export function MenuTray<T extends string>({
               {option.value === current ? <Check size={12} strokeWidth={3} /> : null}
             </span>
           ) : (
-            option.label
+            (option.icon ?? option.label)
           )
-          const name = option.swatch ? option.label : undefined
+          const name = option.swatch || option.icon ? option.label : undefined
           return option.value === current ? (
             <DropdownMenu.RadioItem
               key={option.value}

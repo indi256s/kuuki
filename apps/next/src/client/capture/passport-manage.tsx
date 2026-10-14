@@ -14,12 +14,12 @@ import {
   AIRCRAFT_BATCH,
   countAircraftRun,
   retryableAircraft,
-  summarizeAircraftRun,
   type AircraftOutcome,
   type AircraftRunCounts,
 } from '../import/aircraft-review'
 import { S } from '../import/copy'
 import { acceptAircraftBatch } from '../import/import-api'
+import { AircraftAnnouncement } from '../import/aircraft-announcement'
 import { formatDateOnly } from '../../lib/format'
 import type { Locale } from '../../server/locale'
 import './capture.css'
@@ -40,8 +40,8 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   // Counts for the submission that just finished only; cleared when the next one starts so every completion is announced.
   const [last, setLast] = useState<AircraftRunCounts | null>(null)
   // Flights seen so far and the type sent for each, so a saved row keeps its label after the reload and a retry resends the same type.
-  const seen = useRef(new Map<number, Flight>())
-  const sent = useRef(new Map<number, string>())
+  const [seen, setSeen] = useState(() => new Map<number, Flight>())
+  const [sent, setSent] = useState(() => new Map<number, string>())
   const flightRequest = useRef<{ controller: AbortController; release: () => void } | null>(null)
   const current = (controller: AbortController, generation: number) =>
     !controller.signal.aborted && generation === getAuthGeneration()
@@ -56,7 +56,11 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     void getAllFlights(ownerId, { signal: controller.signal })
       .then((rows) => {
         if (current(controller, generation)) {
-          for (const row of rows) seen.current.set(row.id, row)
+          setSeen((old) => {
+            const next = new Map(old)
+            for (const row of rows) next.set(row.id, row)
+            return next
+          })
           setFlights(rows)
           setFlightStatus('ready')
         }
@@ -85,7 +89,11 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     setBusy(true)
     setMessage('')
     setLast(null)
-    for (const item of items) sent.current.set(item.id, item.aircraft_icao)
+    setSent((old) => {
+      const next = new Map(old)
+      for (const item of items) next.set(item.id, item.aircraft_icao)
+      return next
+    })
     try {
       const run = await acceptAircraft(items, acceptAircraftBatch)
       if (!current(controller, generation)) return
@@ -116,7 +124,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   const chosen = selected.filter((id) => eligible.some((row) => row.id === id))
   const retryIds = retryableAircraft({ rows: outcomes, acks: [], uncertain: false })
   const label = (id: number) => {
-    const row = seen.current.get(id)
+    const row = seen.get(id)
     return row
       ? `${formatDateOnly(locale, row.date, 'medium')} · ${row.origin} → ${row.destination} · ${row.flight_number ?? '—'}`
       : String(id)
@@ -125,8 +133,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     if (outcome.status === 'saved')
       return (
         <>
-          <span>{S.aircraftSavedTag[locale]}</span> ·{' '}
-          <span>{sent.current.get(id) ?? outcome.icao}</span>
+          <span>{S.aircraftSavedTag[locale]}</span> · <span>{sent.get(id) ?? outcome.icao}</span>
         </>
       )
     if (outcome.status === 'uncertain')
@@ -146,9 +153,6 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
     return null
   }
   const reported = [...outcomes].filter(([, outcome]) => outcome.status !== 'unsent')
-  const savedN = last?.saved ?? 0
-  // The announcement covers the submission that just finished. Nothing saved is a problem, so it is assertive; anything saved is polite.
-  const summary = summarizeAircraftRun(locale, last)
   return (
     <div className="capture-manage">
       <section className="capture-card">
@@ -238,7 +242,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
                 onClick={() =>
                   void accept(
                     retryIds.flatMap((id) => {
-                      const icao = sent.current.get(id)
+                      const icao = sent.get(id)
                       return icao ? [{ id, aircraft_icao: icao }] : []
                     }),
                   )
@@ -250,9 +254,10 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
           </>
         )}
       </section>
-      <p role="status">
-        {[
-          savedN > 0 ? summary : '',
+      <AircraftAnnouncement
+        locale={locale}
+        counts={last}
+        status={[
           message,
           message
             ? feedback.status === 'ready'
@@ -268,8 +273,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
         ]
           .filter(Boolean)
           .join(' ')}
-      </p>
-      <p role="alert">{savedN === 0 ? summary : ''}</p>
+      />
     </div>
   )
 }

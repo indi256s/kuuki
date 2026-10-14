@@ -126,18 +126,14 @@ export function Section({ span }: { span: Span }) {
       ? gap
         ? copy(
             locale,
-            `Busiest month · longest gap ${formatCount('en', gap.months, MONTHS)}, which the passport took personally`,
-            `Самый активный месяц · самый долгий перерыв — ${formatCount('ru', gap.months, MONTHS)}, паспорт обиделся`,
+            `Busiest month · longest gap ${formatCount('en', gap.months, MONTHS)}`,
+            `Самый активный месяц · самый долгий перерыв — ${formatCount('ru', gap.months, MONTHS)}`,
           )
-        : copy(
-            locale,
-            'Busiest month · no empty month between flights, which the passport finds suspicious',
-            'Самый активный месяц · ни одного пустого месяца между перелётами, паспорт подозревает неладное',
-          )
+        : copy(locale, 'Busiest month', 'Самый активный месяц')
       : copy(
           locale,
-          `Busiest year · ${share} of your flights, and the calendar is still recovering`,
-          `Самый активный год · ${share} перелётов, календарь до сих пор приходит в себя`,
+          `Busiest year · ${share} of your flights`,
+          `Самый активный год · ${share} перелётов`,
         )
   } else if (reading) {
     caption = calendar
@@ -305,14 +301,10 @@ export function Section({ span }: { span: Span }) {
         line: missing
           ? copy(
               locale,
-              `This filter leaves ${formatCount('en', missing.have, MONTHS)} with flights, and the stamper wants ${formatCount('en', missing.need, MONTHS)}. Clear the filter and it gets back to work.`,
-              `Фильтр оставил ${formatCount('ru', missing.have, MONTHS)} с перелётами, а штампу нужно ${formatCount('ru', missing.need, MONTHS)}. Сбросьте фильтр, и он снова застучит.`,
+              `Months with flights ${missing.have} of ${missing.need} required`,
+              `Месяцев с перелётами ${missing.have} из ${missing.need} нужных`,
             )
-          : copy(
-              locale,
-              'This filter leaves too few months with flights. The stamper has nothing to keep time to.',
-              'Фильтр оставил слишком мало месяцев с перелётами. Штампу не под что отбивать ритм.',
-            ),
+          : '',
         action: (
           <Button
             variant="secondary"

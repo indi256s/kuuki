@@ -53,7 +53,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
       .click()
     await page.waitForURL((url) => url.pathname === `/${route}`)
     await routeSettled(page)
-    await expect(page.locator('h1')).toHaveText(route === 'overview' ? /^Hi(?:,| ·|$)/ : heading)
+    await expect(page.locator('h1')).toHaveText(heading)
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
     ).toBeVisible()
@@ -63,6 +63,78 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
       ),
     ).toHaveAttribute('aria-current', 'page')
   }
+})
+
+test('desktop tab navigation keeps the header and incoming page geometry stable', async ({
+  page,
+  baseURL,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await signIn(page, baseURL!)
+  await page.goto('/overview')
+  await expect(page.locator('.ov-globe')).toBeVisible()
+  await page.evaluate(() => document.fonts.ready.then(() => undefined))
+
+  await page.evaluate(() => {
+    const header = document.querySelector<HTMLElement>('.site-header-inner')!
+    const nav = document.querySelector<HTMLElement>('.desktop-nav')!
+    const main = document.getElementById('main')!
+    const samples: Array<{ headerX: number; headerWidth: number; navX: number }> = []
+    const journal: Array<{ x: number; width: number }> = []
+    let recording = true
+    const sample = () => {
+      const rect = header.getBoundingClientRect()
+      samples.push({
+        headerX: rect.x,
+        headerWidth: rect.width,
+        navX: nav.getBoundingClientRect().x,
+      })
+      if (
+        location.pathname === '/journal' &&
+        document.querySelector('[data-testid="journal-data"]')
+      ) {
+        const incoming = main.getBoundingClientRect()
+        journal.push({ x: incoming.x, width: incoming.width })
+      }
+      if (recording) requestAnimationFrame(sample)
+    }
+    sample()
+    Object.assign(window, {
+      stopNavigationGeometry: () => {
+        recording = false
+        return { samples, journal }
+      },
+    })
+  })
+  await page.locator('.desktop-nav a[href="/journal"]').click()
+  await page.waitForURL('**/journal')
+  await expect(page.getByTestId('journal-data')).toBeVisible()
+  await routeSettled(page)
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  )
+  const geometry = await page.evaluate(() =>
+    (
+      window as Window & {
+        stopNavigationGeometry?: () => {
+          samples: Array<{ headerX: number; headerWidth: number; navX: number }>
+          journal: Array<{ x: number; width: number }>
+        }
+      }
+    ).stopNavigationGeometry!(),
+  )
+  const spread = (values: number[]) => Math.max(...values) - Math.min(...values)
+  expect(geometry.samples.length).toBeGreaterThan(2)
+  expect(geometry.journal.length).toBeGreaterThan(1)
+  expect(spread(geometry.samples.map((frame) => frame.headerX))).toBeLessThanOrEqual(1)
+  expect(spread(geometry.samples.map((frame) => frame.headerWidth))).toBeLessThanOrEqual(1)
+  expect(spread(geometry.samples.map((frame) => frame.navX))).toBeLessThanOrEqual(1)
+  expect(spread(geometry.journal.map((frame) => frame.x))).toBeLessThanOrEqual(1)
+  expect(spread(geometry.journal.map((frame) => frame.width))).toBeLessThanOrEqual(1)
+  expect(geometry.journal.at(-1)?.width).toBe(1200)
 })
 
 test('fresh documents, RSC and API reads isolate account data without response cookies', async ({

@@ -8,7 +8,7 @@
 import { HttpError } from '../_lib/http'
 import { toOwnFlight, FLIGHT_COLUMNS, type FlightRow } from '../_lib/flights'
 import { sha256Hex } from '../_lib/crypto'
-import { connectionChains } from './connections'
+import { connectionChains, type ConnectionLeg } from './connections'
 import {
   deriveCountryEvidence,
   prospectiveTransit,
@@ -70,20 +70,49 @@ export interface ReviewCandidate {
   affectedCountries: string[]
 }
 
-const isReviewable = (flight: ReviewRow) =>
+interface ReviewEligibilityFlight extends ConnectionLeg {
+  lifecycle_state: EvidenceFlight['lifecycle_state']
+  confirmation_source: string | null
+  arrival_transit: number | null
+}
+
+const isReviewable = (flight: ReviewEligibilityFlight) =>
   flight.lifecycle_state === 'logged' &&
   (flight.confirmation_source === 'legacy' || flight.confirmation_source === 'save') &&
   flight.arrival_transit === null
 
-/** Every candidate in a snapshot, with the countries a transit decision would suppress. */
-export async function reviewCandidates(flights: ReviewRow[]): Promise<ReviewCandidate[]> {
+function eligibleConnections<T extends ReviewEligibilityFlight>(flights: T[]) {
   const decisions = connectionChains(flights)
   const byId = new Map(flights.map((flight) => [flight.id, flight]))
-  const out: ReviewCandidate[] = []
-  for (const flight of flights) {
+  return flights.flatMap((flight) => {
     const decision = decisions.get(flight.id)
-    if (!isReviewable(flight) || !prospectiveTransit(decision)) continue
-    const leg = byId.get(decision.toId)!
+    if (!isReviewable(flight) || !prospectiveTransit(decision)) return []
+    return [{ flight, decision, leg: byId.get(decision.toId)! }]
+  })
+}
+
+/** Small Journal availability read; details, tokens and stamp simulation stay behind the disclosure. */
+export async function readTransitReviewAvailability(
+  db: D1Database,
+  userId: string,
+  flights: ReviewEligibilityFlight[],
+) {
+  const eligible = eligibleConnections(flights)
+  if (!eligible.length) return false
+  const marker = await db
+    .prepare('SELECT candidate_set_digest FROM transit_cleanup_markers WHERE user_id = ?')
+    .bind(userId)
+    .first<{ candidate_set_digest: string }>()
+  return (
+    marker?.candidate_set_digest !==
+    (await candidateSetDigest(eligible.map(({ flight }) => flight.id)))
+  )
+}
+
+/** Every candidate in a snapshot, with the countries a transit decision would suppress. */
+export async function reviewCandidates(flights: ReviewRow[]): Promise<ReviewCandidate[]> {
+  const out: ReviewCandidate[] = []
+  for (const { flight, decision, leg } of eligibleConnections(flights)) {
     const affected = new Set<string>()
     if (flight.destination_country) affected.add(flight.destination_country)
     if (leg.origin_country) affected.add(leg.origin_country)
@@ -127,8 +156,7 @@ const reviewTokenOf = (flight: EvidenceFlight, legId: number, label: string, leg
     ]),
   )
 
-const candidateSetDigest = (candidates: ReviewCandidate[]) =>
-  digestOf(candidates.map((candidate) => candidate.flightId).sort((a, b) => a - b))
+const candidateSetDigest = (flightIds: number[]) => digestOf(flightIds.sort((a, b) => a - b))
 
 interface EvidenceInputs {
   claims: string[]
@@ -174,7 +202,7 @@ export async function readTransitReview(db: D1Database, userId: string) {
   ])
   const flights = rowsOf<ReviewRow>(flightsRead)
   const candidates = await reviewCandidates(flights)
-  const digest = await candidateSetDigest(candidates)
+  const digest = await candidateSetDigest(candidates.map((candidate) => candidate.flightId))
   const flightRows = new Map(rowsOf<FlightRow>(page).map((row) => [row.id, row]))
 
   // Apply every candidate in memory and compare pressed countries: a country another flight, a claim, a ground
@@ -367,7 +395,7 @@ export async function reviewTransit(
 
     const nonce = crypto.randomUUID()
     const candidates = await reviewCandidates(snapshot.flights)
-    const setDigest = await candidateSetDigest(candidates)
+    const setDigest = await candidateSetDigest(candidates.map((candidate) => candidate.flightId))
 
     if (action === 'dismiss') {
       // No canonical change: the receipt and the marker commit together, there is nothing to publish.

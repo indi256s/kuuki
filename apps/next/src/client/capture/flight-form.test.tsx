@@ -130,6 +130,22 @@ beforeEach(() => {
 })
 
 describe.each(['en', 'ru'] as const)('manual flight (%s)', (locale) => {
+  it('focuses the first inline error and rejects impossible dates', async () => {
+    render(<FlightForm ownerId="a" locale={locale} />)
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    await waitFor(() => expect(routeRow(locale, 'from')).toHaveFocus())
+    await fill(locale)
+    fireEvent.change(screen.getByLabelText(words[locale].date), {
+      target: { value: '2026-02-30' },
+    })
+    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
+    expect(mocks.create).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(words[locale].date)).toHaveAttribute('aria-invalid', 'true')
+  })
+})
+
+describe('manual flight', () => {
+  const locale = 'en' as Locale
   it('creates with route/date only via keyboard and publishes the acknowledgement', async () => {
     const onSaved = vi.fn()
     render(<FlightForm ownerId="a" locale={locale} onSaved={onSaved} />)
@@ -214,18 +230,6 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', (locale) => {
     })
     await userEvent.click(override)
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
-  })
-  it('focuses the first inline error and rejects impossible dates', async () => {
-    render(<FlightForm ownerId="a" locale={locale} />)
-    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    await waitFor(() => expect(routeRow(locale, 'from')).toHaveFocus())
-    await fill(locale)
-    fireEvent.change(screen.getByLabelText(words[locale].date), {
-      target: { value: '2026-02-30' },
-    })
-    await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
-    expect(mocks.create).not.toHaveBeenCalled()
-    expect(screen.getByLabelText(words[locale].date)).toHaveAttribute('aria-invalid', 'true')
   })
   it('loads edit values, excludes the edited ID and clears optional values explicitly', async () => {
     render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} initialEditing />)

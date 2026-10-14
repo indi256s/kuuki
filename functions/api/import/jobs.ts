@@ -1,7 +1,7 @@
 // POST /api/import/jobs — start a persisted import batch (ADR 0001 §6, C5).
-// Same gates as /api/import/parse (CSRF, auth, the shared `import-parse:` rate limit) and the same extraction, but the
-// result is a server-owned batch of review drafts the member can reload, edit and convert. Idempotent on
-// `submissionOperationId`: a replay returns the stored batch and never calls the provider again.
+// CSRF, auth and the per-user `import-parse:` rate limit gate a provider extraction. The result is a server-owned batch
+// of review drafts the member can reload, edit and convert. Idempotent on `submissionOperationId`: a replay returns the
+// stored batch and never calls the provider again.
 // `type: 'boarding_pass'` admits legs the browser decoded itself: validated here, persisted as unverified review drafts
 // through the same batch writer, with no provider call and no import job.
 import { type ParseRequest } from './_shared'

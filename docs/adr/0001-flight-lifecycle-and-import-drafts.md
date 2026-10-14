@@ -403,7 +403,7 @@ The banner shows only when candidates exist and no marker does. The GET stays re
 - **Synchronous batch writer (controller ruling R3, T10 scope).** `POST /api/import/jobs` exists in T10 regardless of H5. It authenticates, CSRF-checks and rate-limits (`parse.ts:267`), and is idempotent on `submission_operation_id`.
   - **No job binding:** it runs the parse normalization extracted from `parse.ts` (`extractFlights`, the same prompt, schema, model and limits) synchronously in the request. It then writes the batch plus all drafts in one D1 batch through the shared `persistDraftRows` (status `review`, `partial` or `failed` with a structured `error_code`) and returns the batch snapshot.
   - **H5 option (a) with a binding:** the same endpoint dispatches to the DO (§9).
-  - Clients poll `GET /api/import/batches/:id`, which is also T10. The synchronous `POST /api/import/parse` stays for old clients.
+  - Clients poll `GET /api/import/batches/:id`, which is also T10. The synchronous `POST /api/import/parse` stays for old clients. _(Amended 2026-10-13: removed once no client called it; `extractFlights` in `import/_extract.ts` is the shared extraction.)_
 
 **Draft endpoints.**
 

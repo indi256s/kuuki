@@ -24,3 +24,7 @@ jobs:
           pnpm-version: ${{ env.PNPM_VERSION }}
           node-version: ${{ env.NODE_VERSION }}
       - run: pnpm verify:cloudflare
+      - name: Install browser runtime
+        run: pnpm --filter @kuuki/next exec playwright install --with-deps chromium
+      - name: Verify browser journeys
+        run: pnpm test:next:navigation

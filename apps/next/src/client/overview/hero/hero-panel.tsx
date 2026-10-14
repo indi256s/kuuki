@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import {
@@ -11,6 +11,7 @@ import {
   type Locale,
 } from '../../../lib/format'
 import { forms, S, t } from '../copy'
+import { useMobile } from '../../ui/use-mobile'
 import { IsoFigure } from '../iso/iso-figure'
 import { heroGlyph, type HeroGlyph } from '../iso/hero-glyphs'
 import { fitBox, type IsoFigureData } from '../iso/scene'
@@ -53,6 +54,18 @@ const estimatedForms: CountForms = {
     other: '{count} оценённых',
   },
 }
+const mobileEstimatedForms: CountForms = {
+  en: {
+    one: '{count} flight with estimated duration',
+    other: '{count} flights with estimated duration',
+  },
+  ru: {
+    one: '{count} перелёт с оценённой длительностью',
+    few: '{count} перелёта с оценённой длительностью',
+    many: '{count} перелётов с оценённой длительностью',
+    other: '{count} перелёта с оценённой длительностью',
+  },
+}
 const countryForms: CountForms = {
   en: { one: '{count} country or territory', other: '{count} countries & territories' },
   ru: forms.countries.ru,
@@ -88,10 +101,15 @@ const MAX_K = 1.6
 export function HeroPanel() {
   const { scope, all, payload, filter, locale, ownerKey } = useOverview()
   const { replayStarted } = useOverviewUI()
+  const mobile = useMobile()
   const reduced = useReducedMotion() ?? false
   const card = useRef<HTMLElement>(null)
   const zero = scope ? scope.figures.flights === 0 && !isEmptyFilter(filter) : false
-  const { state, handlers } = useTakeover(card, !!scope && !zero && !replayStarted, reduced)
+  const { state, handlers } = useTakeover(
+    card,
+    !!scope && !zero && !replayStarted && mobile === false,
+    reduced,
+  )
   const stickers = useMemo(
     () => (payload && scope ? pickStickers(payload, filter, scope) : { stickers: [], lit: null }),
     [payload, filter, scope],
@@ -112,6 +130,25 @@ export function HeroPanel() {
       case 'airports':
         return formatNumber(locale, f.airports)
     }
+  }
+  const groupSeparator = new Intl.NumberFormat(locale)
+    .formatToParts(1000)
+    .find((part) => part.type === 'group')?.value
+  const displayedValue = (record: HeroRecord) => {
+    const text = value(record)
+    if (record === 'air' || zero || !groupSeparator) return text
+    const groups = text.split(groupSeparator)
+    return groups.map((group, index) => (
+      <Fragment key={index}>
+        {group}
+        {index < groups.length - 1 ? (
+          <>
+            {groupSeparator}
+            <wbr />
+          </>
+        ) : null}
+      </Fragment>
+    ))
   }
   const label = (record: HeroRecord): string => {
     switch (record) {
@@ -157,11 +194,25 @@ export function HeroPanel() {
       {...handlers}
     >
       <dl className="ov3-hero-list">
-        {HERO_RECORDS.map((record) => (
+        {(['flights', 'countries', 'km', 'air', 'airports'] as const).map((record) => (
           <div className="ov3-hero-row" data-record={record} key={record}>
-            <dt className="ov3-hero-label">{label(record)}</dt>
+            <dt className="ov3-hero-label">
+              {record === 'air' ? t(copy.air, locale) : label(record)}
+              {record === 'air' && f.estimatedFlights > 0 ? (
+                <span className="ov3-hero-estimates-desktop">
+                  {' '}
+                  · {formatCount(locale, f.estimatedFlights, estimatedForms)}
+                </span>
+              ) : null}
+              {record === 'airports' && f.estimatedFlights > 0 && !zero ? (
+                <span className="ov3-hero-estimates-mobile">
+                  {' '}
+                  · {formatCount(locale, f.estimatedFlights, mobileEstimatedForms)}
+                </span>
+              ) : null}
+            </dt>
             <dd className="ov3-hero-value" aria-label={names[record]}>
-              {value(record)}
+              {displayedValue(record)}
             </dd>
             <span className="ov3-hero-glyph" aria-hidden="true">
               <IsoFigure figure={glyphs[record]} />
@@ -176,7 +227,10 @@ export function HeroPanel() {
           state={state}
           card={card}
           reduced={reduced}
-          rail={HERO_RECORDS.map((record) => ({ record, value: railValue(locale, record, f) }))}
+          rail={HERO_RECORDS.map((record) => ({
+            record,
+            value: railValue(locale, record, f),
+          }))}
           value={value(state.record)}
           label={label(state.record)}
           line={recordLine(state.record, scope, all, ownerKey, locale, state.turn)}

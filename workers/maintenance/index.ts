@@ -85,7 +85,6 @@ export default {
         db
           .prepare('DELETE FROM auth_rate_limits WHERE expires_at <= ?')
           .bind(Math.floor(now.getTime() / 1000)),
-        db.prepare('DELETE FROM sessions WHERE expires_at <= ?').bind(instant),
         db.prepare('DELETE FROM auth_sessions WHERE expiresAt <= ?').bind(instant),
         db.prepare('DELETE FROM auth_verifications WHERE expiresAt <= ?').bind(instant),
         db.prepare('DELETE FROM flight_idempotency WHERE created_at < ?').bind(idempotencyCutoff),

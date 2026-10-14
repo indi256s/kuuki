@@ -93,17 +93,17 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll }: HeatStat
         : `${number(locale, max / 60)} ${copy(locale, 'h', 'ч')}`
   const monthlyBase = `${
     metric === 'flights'
-      ? copy(locale, 'Share of your busiest month', 'Доля от вашего самого активного месяца')
+      ? copy(locale, 'Share of busiest month', 'Доля от самого активного месяца')
       : metric === 'distanceKm'
         ? copy(
             locale,
-            'Share of your busiest month by distance',
-            'Доля от вашего самого активного месяца по расстоянию',
+            'Share of busiest month by distance',
+            'Доля от самого активного месяца по расстоянию',
           )
         : copy(
             locale,
-            'Share of your busiest month by hours',
-            'Доля от вашего самого активного месяца по часам',
+            'Share of busiest month by hours',
+            'Доля от самого активного месяца по часам',
           )
   }: ${baseText}`
   const monthlyKey: HeatKeyEntry[] = [
@@ -381,13 +381,7 @@ export function DailyActivity({ activityYear, setActivityYear }: DailyState) {
           </div>
         </>
       ) : (
-        <p>
-          {copy(
-            locale,
-            'Daily activity is unavailable in this older monthly summary.',
-            'В старой месячной сводке нет дневной активности.',
-          )}
-        </p>
+        <p>{copy(locale, 'Monthly data only.', 'Данные только по месяцам.')}</p>
       )}
     </div>
   )

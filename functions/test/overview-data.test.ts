@@ -450,8 +450,12 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
           clockShiftMinutes: 300,
           previousBestKm: 100,
         },
+      },
+    })
+    expect(computeOverview(serialized, {}).clock).toMatchObject({
+      status: 'ready',
+      value: {
         earliestDeparture: { flightId: null, date: '2026-03-30', value: 425, depMinute: 425 },
-        northernmost: { flight: { flightId: null, date: '2026-03-31', value: null } },
       },
     })
     expect(aggregateRows(serialized.rows, 'day')).toEqual(serialized.rows)

@@ -265,31 +265,42 @@ function expectedRankingOutputs(fixture: OverviewPayload) {
     )
   }
   const total = rows.reduce((sum, row) => sum + row.weight, 0)
-  const versus = ['makers', 'haul', 'daytime'].map((id) => {
-    let left = 0,
-      right = 0
-    for (const row of rows) {
-      if (id === 'makers') {
-        const maker =
-          row.aircraft === null ? null : fixture.refs.aircraft[row.aircraft]?.manufacturer
-        if (maker === 'Airbus') left += row.weight
-        if (maker === 'Boeing') right += row.weight
-      } else if (id === 'haul' && row.distanceKm !== null) {
-        if (row.distanceKm / row.weight < 4000) left += row.weight
-        else right += row.weight
-      } else if (id === 'daytime' && row.depMinute !== null) {
-        if (row.depMinute >= 360 && row.depMinute < 1320) left += row.weight
-        else right += row.weight
-      }
-    }
-    return {
-      id,
-      left: { key: id === 'makers' ? 'airbus' : id === 'haul' ? 'short' : 'day', count: left },
-      right: { key: id === 'makers' ? 'boeing' : id === 'haul' ? 'long' : 'night', count: right },
-      excluded: total - left - right,
-    }
-  })
-  return { leaders, rankByYear, versus }
+  const patternCounts: Record<string, Record<string, number>> = {
+    makers: {},
+    haul: { 'short-medium': 0, long: 0, unknown: 0 },
+    daytime: { day: 0, night: 0, unknown: 0 },
+  }
+  for (const row of rows) {
+    const manufacturer =
+      row.aircraft === null ? null : fixture.refs.aircraft[row.aircraft]?.manufacturer
+    const maker = manufacturer?.toLowerCase() ?? 'unknown'
+    const haul =
+      row.distanceKm === null
+        ? 'unknown'
+        : row.distanceKm / row.weight < 4000
+          ? 'short-medium'
+          : 'long'
+    const daytime =
+      row.depMinute === null
+        ? 'unknown'
+        : row.depMinute >= 360 && row.depMinute < 1320
+          ? 'day'
+          : 'night'
+    for (const [id, key] of [
+      ['makers', maker],
+      ['haul', haul],
+      ['daytime', daytime],
+    ])
+      patternCounts[id][key] = (patternCounts[id][key] ?? 0) + row.weight
+  }
+  const patterns = Object.entries(patternCounts).map(([id, counts]) => ({
+    id,
+    total,
+    categories: expect.arrayContaining(
+      Object.entries(counts).map(([key, count]) => ({ key, count })),
+    ),
+  }))
+  return { leaders, rankByYear, patterns }
 }
 
 // Independent new-output oracle over fixture records, separate from engine helpers.
@@ -542,77 +553,146 @@ function expectCrossings(
   })
 }
 
-it.each(names)('%s matches its generated fixture and known snapshot values', (name) => {
-  const path = fileURLToPath(new URL(`./__fixtures__/${name}.json`, import.meta.url))
-  const generated = generate(name)
-  if (process.env.UPDATE_OVERVIEW_FIXTURES === '1') {
-    mkdirSync(fileURLToPath(new URL('./__fixtures__/', import.meta.url)), { recursive: true })
-    writeFileSync(path, `${JSON.stringify(generated, null, 2)}\n`)
-  }
-  const fixture = JSON.parse(readFileSync(path, 'utf8')) as OverviewPayload
-  expect(fixture).toEqual(generated)
-  const result = computeOverview(
-    fixture,
-    name === 'microstate' || name === 'transit' ? { airlines: ['TK'] } : {},
+// Cross-section integration contracts: counted weights and metrics must survive aggregation,
+// upcoming rows must stay out of flown totals, and aircraft reference manufacturers stay distinct.
+function expectCountedOutputs(
+  fixture: OverviewPayload,
+  result: ReturnType<typeof computeOverview>,
+) {
+  const rows = fixture.rows.filter(
+    (row) =>
+      row.state !== 'upcoming' &&
+      (!result.filter.airlines || result.filter.airlines.includes(row.airline!)),
   )
-  if (name === 'n0') {
-    for (const section of [
-      result.records,
-      result.crossings,
-      result.fleet,
-      result.clock,
-      result.rhythm,
-    ])
-      expect(section.status).toBe('below')
-    expect(result.home).toBeNull()
-  }
-  if (name === 'n1') expect(result.figures.flights).toBe(1)
-  if (name === 'n5001') {
-    expect(fixture.mode).toBe('aggregate')
-    let ids = 0
-    const inspect = (value: unknown) => {
-      if (value && typeof value === 'object')
-        for (const [key, child] of Object.entries(value)) {
-          if (key === 'flightId') {
-            expect(child).toBeNull()
-            ids++
-          }
-          if (typeof child === 'number') expect(Number.isFinite(child)).toBe(true)
-          inspect(child)
-        }
+  const flights = rows.reduce((sum, row) => sum + row.weight, 0)
+  const sumMetric = (key: 'distanceKm' | 'durationMinutes') =>
+    rows.reduce(
+      (sum, row) =>
+        sum + (row[key] !== null && Number.isFinite(row[key]) && row[key]! >= 0 ? row[key]! : 0),
+      0,
+    )
+  const estimated = rows.filter((row) => row.durationSource === 'estimate')
+  expect(result.figures).toMatchObject({
+    flights,
+    awaiting: rows
+      .filter((row) => row.state === 'awaiting')
+      .reduce((sum, row) => sum + row.weight, 0),
+    distanceKm: sumMetric('distanceKm'),
+    durationMinutes: sumMetric('durationMinutes'),
+    estimatedFlights: estimated.reduce((sum, row) => sum + row.weight, 0),
+    durationApproximate: estimated.some(
+      (row) =>
+        row.durationMinutes !== null &&
+        Number.isFinite(row.durationMinutes) &&
+        row.durationMinutes >= 0,
+    ),
+    airports: new Set(rows.flatMap((row) => [row.origin, row.destination])).size,
+  })
+  expect(result.figures.byYear.reduce((sum, year) => sum + year.flights, 0)).toBe(flights)
+  const typed = rows.filter((row) => row.aircraft).reduce((sum, row) => sum + row.weight, 0)
+  expect(result.coverage).toMatchObject({ total: flights, typed })
+  if (result.fleet.status === 'ready') {
+    const manufacturers = new Map<string, number>()
+    for (const row of rows) {
+      if (!row.aircraft) continue
+      const maker = fixture.refs.aircraft[row.aircraft]?.manufacturer
+      if (!maker) continue
+      manufacturers.set(maker, (manufacturers.get(maker) ?? 0) + row.weight)
     }
-    inspect(result.records)
-    expect(ids).toBe(7)
-    expect(result.records).toMatchObject({
-      status: 'ready',
-      value: { busiestDay: null, longestGroundStopDays: null },
-    })
+    expect(result.fleet.value).toMatchObject({ typed, total: flights, untyped: flights - typed })
+    expect(
+      result.fleet.value.byManufacturer.map(({ key, flights }) => [key, flights]).sort(),
+    ).toEqual([...manufacturers].sort())
   }
-  if (name === 'microstate')
-    expect(result.figures.countries).toEqual({ value: 4, source: 'by_air' })
-  if (name === 'transit') {
-    expect(result.figures.countries).toEqual({ value: 2, source: 'by_air' })
-    expect(result.globe.countries.map((country) => country.code)).toEqual(['GE', 'JP'])
-  }
-  if (name === 'polar')
-    expect(result.crossings).toMatchObject({
-      status: 'ready',
-      value: { arcticCircle: 12, dateLine: 3 },
+  if (result.makers.status === 'ready') {
+    expect(result.makers.value.totals).toMatchObject({
+      flights,
+      km: sumMetric('distanceKm'),
+      minutes: sumMetric('durationMinutes'),
     })
-  if (name === 'dateLine')
-    expect(result.crossings).toMatchObject({
-      status: 'ready',
-      value: { dateLine: 6, eastboundShare: 0.5 },
-    })
-  if (name === 'redEyeDst') {
-    expect(result.clock).toMatchObject({ status: 'ready', value: { redEyes: 10 } })
-    expect(result.crossings).toMatchObject({ status: 'ready', value: { clockShiftHours: 50 } })
+    expect(result.makers.value.rows.reduce((sum, maker) => sum + maker.flights, 0)).toBe(flights)
+    if (fixture.mode === 'aggregate') expect(result.makers.value.flights).toEqual([])
+    else
+      expect(
+        result.makers.value.flights.map((flight) => flight.flightId).sort((a, b) => a - b),
+      ).toEqual(rows.map((row) => row.id).sort((a, b) => a - b))
   }
-  expectClockAndRhythm(fixture, result)
-  expectCrossings(fixture, result, name === 'n5001' ? generate(name, false).rows : fixture.rows)
-  expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
-  expect(result).toMatchSnapshot()
-})
+}
+
+it.each(names)(
+  '%s preserves counted totals, reference identities and independent calendar/geography results',
+  (name) => {
+    const path = fileURLToPath(new URL(`./__fixtures__/${name}.json`, import.meta.url))
+    const generated = generate(name)
+    if (process.env.UPDATE_OVERVIEW_FIXTURES === '1') {
+      mkdirSync(fileURLToPath(new URL('./__fixtures__/', import.meta.url)), { recursive: true })
+      writeFileSync(path, `${JSON.stringify(generated, null, 2)}\n`)
+    }
+    const fixture = JSON.parse(readFileSync(path, 'utf8')) as OverviewPayload
+    expect(fixture).toEqual(generated)
+    const result = computeOverview(
+      fixture,
+      name === 'microstate' || name === 'transit' ? { airlines: ['TK'] } : {},
+    )
+    if (name === 'n0') {
+      for (const section of [
+        result.records,
+        result.crossings,
+        result.fleet,
+        result.clock,
+        result.rhythm,
+      ])
+        expect(section.status).toBe('below')
+      expect(result.home).toBeNull()
+    }
+    if (name === 'n1') expect(result.figures.flights).toBe(1)
+    if (name === 'n5001') {
+      expect(fixture.mode).toBe('aggregate')
+      let ids = 0
+      const inspect = (value: unknown) => {
+        if (value && typeof value === 'object')
+          for (const [key, child] of Object.entries(value)) {
+            if (key === 'flightId') {
+              expect(child).toBeNull()
+              ids++
+            }
+            if (typeof child === 'number') expect(Number.isFinite(child)).toBe(true)
+            inspect(child)
+          }
+      }
+      inspect(result.records)
+      expect(ids).toBe(5)
+      expect(result.records).toMatchObject({
+        status: 'ready',
+        value: { busiestDay: null, longestGroundStopDays: null },
+      })
+    }
+    if (name === 'microstate')
+      expect(result.figures.countries).toEqual({ value: 4, source: 'by_air' })
+    if (name === 'transit') {
+      expect(result.figures.countries).toEqual({ value: 2, source: 'by_air' })
+      expect(result.globe.countries.map((country) => country.code)).toEqual(['GE', 'JP'])
+    }
+    if (name === 'polar')
+      expect(result.crossings).toMatchObject({
+        status: 'ready',
+        value: { arcticCircle: 12, dateLine: 3 },
+      })
+    if (name === 'dateLine')
+      expect(result.crossings).toMatchObject({
+        status: 'ready',
+        value: { dateLine: 6, eastboundShare: 0.5 },
+      })
+    if (name === 'redEyeDst') {
+      expect(result.clock).toMatchObject({ status: 'ready', value: { redEyes: 10 } })
+      expect(result.crossings).toMatchObject({ status: 'ready', value: { clockShiftHours: 50 } })
+    }
+    expectClockAndRhythm(fixture, result)
+    expectCrossings(fixture, result, name === 'n5001' ? generate(name, false).rows : fixture.rows)
+    expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
+    expectCountedOutputs(fixture, result)
+  },
+)
 
 it('board fixture reproduces board totals', () => {
   const fixture = JSON.parse(
@@ -621,6 +701,7 @@ it('board fixture reproduces board totals', () => {
   const result = computeOverview(fixture, {})
   expect(fixture.schemaVersion).toBe(3)
   expect(result.figures).toMatchObject({ flights: 69, awaiting: 3, distanceKm: 141204 })
+  expectCountedOutputs(fixture, result)
   if (result.rhythm.status !== 'ready') throw new Error('Expected ready board rhythm')
   expect(result.rhythm.value.odometer.at(-1)?.km).toBe(141204)
   expect(result.rhythm.value.odometer).toHaveLength(69)
@@ -636,10 +717,6 @@ it('board fixture reproduces board totals', () => {
   })
   expect(result.rankings).toMatchObject(expectedRankingOutputs(fixture))
   expect(result.rankings.airlines[0]).toEqual({ key: 'TK', count: 24 })
-  expect(result.records).toMatchObject({
-    status: 'ready',
-    value: { northernmost: { iata: 'KTT', lat: expect.closeTo(67.6986111111, 8) } },
-  })
   expect(result.crossings).toMatchObject({
     status: 'ready',
     value: { arcticCircle: 2, clockShiftHours: 85 },

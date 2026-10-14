@@ -5,6 +5,8 @@ import { BadgeNotifications } from './badge-notifications'
 import { unseenBadges } from './unseen'
 import { api } from '@kuuki/client/apiClient'
 import type { EarnedBadge } from './achievements'
+import { ToastProvider } from '../ui/toast'
+import type { ReactElement } from 'react'
 vi.mock('../activity', () => ({
   IdentitySnapshot: ({ children }: { children: React.ReactNode }) => children,
   trackPrivateOperation: () => () => {},
@@ -27,6 +29,7 @@ const award = (id: number, user = 'u'): EarnedBadge => ({
     criteria: { flights: id },
   },
 })
+const withToasts = (node: ReactElement) => <ToastProvider>{node}</ToastProvider>
 beforeEach(() => vi.mocked(api.get).mockReset())
 afterEach(() => vi.restoreAllMocks())
 it('baselines a new device, aggregates actual deltas and persists them per account', () => {
@@ -78,18 +81,18 @@ it('announces a single batch, clears on identity reset and rejects late account 
   vi.mocked(api.get)
     .mockResolvedValueOnce([])
     .mockResolvedValueOnce([award(1), award(2)])
-  render(<BadgeNotifications ownerId="u" locale="ru" />)
+  render(withToasts(<BadgeNotifications ownerId="u" locale="ru" />))
   await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
   await act(async () => {
     window.dispatchEvent(new Event('kuuki:lifecycle-changed'))
   })
-  const notice = await screen.findByRole('status')
+  const notice = (await screen.findByText('Новые достижения')).closest('.ui-toast')!
   expect(notice).toHaveTextContent('Новые достижения')
-  expect(notice).toHaveTextContent('Стартовая площадка')
-  expect(notice).toHaveTextContent('Низкая орбита')
-  expect(notice).toHaveAttribute('data-first', 'true')
+  // One line per ladder: a batch that climbs two rungs names only the higher one.
+  expect(notice).toHaveTextContent('Завсегдатай')
+  expect(notice).not.toHaveTextContent('Взлёт')
   act(() => window.dispatchEvent(new Event('kuuki:identity-reset')))
-  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  await waitFor(() => expect(screen.queryByText('Новые достижения')).not.toBeInTheDocument())
 })
 it('does not baseline failures or accept a previous account response after rerender', async () => {
   let resolve!: (data: EarnedBadge[]) => void
@@ -101,27 +104,38 @@ it('does not baseline failures or accept a previous account response after reren
         }),
     )
     .mockResolvedValueOnce([])
-  const view = render(<BadgeNotifications ownerId="old" locale="en" />)
-  view.rerender(<BadgeNotifications ownerId="new" locale="en" />)
+  const view = render(withToasts(<BadgeNotifications ownerId="old" locale="en" />))
+  view.rerender(withToasts(<BadgeNotifications ownerId="new" locale="en" />))
   await act(async () => resolve([award(1, 'old')]))
-  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  expect(screen.queryByText('New achievements')).not.toBeInTheDocument()
   vi.mocked(api.get).mockResolvedValueOnce([award(1, 'new')])
   await act(async () => window.dispatchEvent(new Event('focus')))
-  expect(await screen.findByRole('status')).toHaveTextContent('Launch Pad')
+  expect(await screen.findByText('Wheels up')).toBeInTheDocument()
+})
+
+it('never toasts hidden legacy rows', async () => {
+  const legacy = { ...award(1, 'legacy-owner'), id: 9, badge_id: 9 }
+  legacy.badge = { ...legacy.badge, id: 9, code: 'first_flight' }
+  vi.mocked(api.get).mockResolvedValueOnce([]).mockResolvedValueOnce([legacy])
+  render(withToasts(<BadgeNotifications ownerId="legacy-owner" locale="en" />))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+  await act(async () => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+  expect(screen.queryByText('New achievements')).not.toBeInTheDocument()
 })
 it('does not turn a failed first read into a historical celebration on retry', async () => {
   vi.mocked(api.get)
     .mockRejectedValueOnce(new Error('offline'))
     .mockResolvedValueOnce([award(1, 'retry-owner')])
     .mockResolvedValueOnce([award(1, 'retry-owner'), award(2, 'retry-owner')])
-  render(<BadgeNotifications ownerId="retry-owner" locale="en" />)
+  render(withToasts(<BadgeNotifications ownerId="retry-owner" locale="en" />))
   await act(async () => {})
   await act(async () => window.dispatchEvent(new Event('focus')))
-  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  expect(screen.queryByText('New achievements')).not.toBeInTheDocument()
   await act(async () => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))
-  const notice = await screen.findByRole('status')
-  expect(notice).toHaveTextContent('Low Orbit')
-  expect(notice).not.toHaveTextContent('Launch Pad')
+  const notice = (await screen.findByText('New achievements')).closest('.ui-toast')!
+  expect(notice).toHaveTextContent('Regular')
+  expect(notice).not.toHaveTextContent('Wheels up')
 })
 
 it('keeps a dismissed first badge seen through focus and remount when reads work but storage writes fail', async () => {
@@ -132,17 +146,18 @@ it('keeps a dismissed first badge seen through focus and remount when reads work
   })
   const badge = award(1, ownerId)
   vi.mocked(api.get).mockResolvedValueOnce([]).mockResolvedValue([badge])
-  const view = render(<BadgeNotifications ownerId={ownerId} locale="en" />)
+  const view = render(withToasts(<BadgeNotifications ownerId={ownerId} locale="en" />))
   await act(async () => {})
   await act(async () => window.dispatchEvent(new Event('focus')))
-  expect(await screen.findByRole('status')).toHaveAttribute('data-first', 'true')
+  expect(await screen.findByText('Wheels up')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+  await waitFor(() => expect(screen.queryByText('New achievements')).not.toBeInTheDocument())
   await act(async () => window.dispatchEvent(new Event('focus')))
-  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  expect(screen.queryByText('New achievements')).not.toBeInTheDocument()
   view.unmount()
-  render(<BadgeNotifications ownerId={ownerId} locale="en" />)
+  render(withToasts(<BadgeNotifications ownerId={ownerId} locale="en" />))
   await act(async () => {})
-  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  expect(screen.queryByText('New achievements')).not.toBeInTheDocument()
 })
 it('merges another tab’s seen badge identities with the local baseline', () => {
   const ownerId = 'cross-tab-badge-owner'

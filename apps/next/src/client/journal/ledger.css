@@ -98,7 +98,7 @@
 .jr-sort-cue {
   flex: none;
   opacity: 0;
-  color: var(--text);
+  color: var(--accent-text);
   transition:
     opacity var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
@@ -113,7 +113,7 @@
 }
 .jr-headrow th[aria-sort='ascending'],
 .jr-headrow th[aria-sort='descending'] {
-  color: var(--text);
+  color: var(--accent-text);
 }
 @media (hover: hover) and (pointer: fine) {
   .jr-sort:hover {
@@ -172,33 +172,48 @@
   justify-items: start;
 }
 .jr-date-text {
+  display: grid;
   font: 400 13px/20px var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+.jr-date-year {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.jr-identity {
+  display: none;
+}
 .jr-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-xs);
   font-size: 12px;
   line-height: 16px;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
 }
 .jr-badge::before {
   content: '';
+  display: inline-block;
+  margin-inline-end: var(--space-1);
+  vertical-align: 1px;
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
   background: currentColor;
 }
 .jr-badge[data-state='awaiting'] {
+  background: var(--journal-awaiting-tint);
   color: var(--warning-text);
 }
 .jr-badge[data-state='upcoming'] {
+  background: var(--journal-upcoming-tint);
   color: var(--info-text);
 }
 
-/* Route: the focusable button names the row; the glyph and the "more" button sit beside it. */
+/* Route: the focusable button names the row; the "more" button sits beside it. */
 .jr-route-inner {
   display: flex;
   align-items: flex-start;
@@ -228,36 +243,15 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.jr-codes > span {
+  color: var(--accent-text);
+}
 .jr-cities {
   overflow: hidden;
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.journal-firsts {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  color: var(--accent-text);
-  border-radius: var(--radius-xs);
-}
-.journal-firsts:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-.journal-firsts-line {
-  display: block;
-}
-@media (pointer: coarse) {
-  .journal-firsts {
-    width: 44px;
-    height: 44px;
-    margin-block: -10px;
-  }
-}
-
 /* Airline, aircraft, metrics. */
 .journal-ledger .jr-airline {
   display: grid;
@@ -304,6 +298,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.journal-ledger .jr-aircraft .ui-button {
+  color: var(--text-muted);
+}
 .journal-ledger .jr-row :is(.jr-duration, .jr-distance) {
   text-align: end;
   font: 400 13px/20px var(--font-mono);
@@ -320,7 +317,7 @@
   position: absolute;
   inset: 0;
 }
-.journal-ledger :is(.jr-open, .journal-firsts, .jr-aircraft .ui-button, .jr-select) {
+.journal-ledger :is(.jr-open, .jr-aircraft .ui-button, .jr-select) {
   position: relative;
   z-index: 1;
 }
@@ -361,9 +358,9 @@
     padding-block-start: 0;
   }
   .journal-ledger .jr-row[data-kind='flight'] {
-    contain-intrinsic-block-size: auto 124px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'route date' 'airline aircraft' 'distance distance';
+    contain-intrinsic-block-size: auto 108px;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-areas: 'route route' 'date date' 'aircraft distance';
     gap: var(--space-2) var(--space-3);
     align-items: start;
     padding: var(--space-4);
@@ -382,23 +379,38 @@
   }
   .journal-ledger .jr-row .jr-date {
     grid-area: date;
-    justify-items: end;
-    text-align: end;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+  }
+  .journal-ledger .jr-date-text {
+    display: none;
+  }
+  .jr-identity {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-3);
+    font: 400 13px/20px var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .jr-identity time {
+    color: var(--text-muted);
   }
   .journal-ledger .jr-row .jr-route {
     grid-area: route;
   }
   .journal-ledger .jr-row .jr-airline {
-    grid-area: airline;
+    display: none;
   }
   .journal-ledger .jr-row .jr-aircraft {
     grid-area: aircraft;
-    justify-self: end;
     min-width: 0;
+    color: var(--text-muted);
   }
   .journal-ledger .jr-row .jr-distance {
     grid-area: distance;
-    text-align: start;
+    color: var(--text-muted);
     padding-inline-end: 44px;
   }
   .journal-ledger .jr-row .jr-duration,

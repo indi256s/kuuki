@@ -68,11 +68,19 @@
   --danger-fill: #ca3056;
   --info-text: #175d9b;
   --info-fill: #2b7ec9;
+  /* Journal status labels retain their named state alongside the color. */
+  --journal-awaiting-tint: color-mix(in oklch, var(--warning-fill) 10%, var(--surface));
+  --journal-upcoming-tint: color-mix(in oklch, var(--info-fill) 10%, var(--surface));
   --rank-gold: #775800;
   --rank-silver: #595e64;
   --rank-bronze: #8a4b24;
   --surface-floating: var(--surface);
   --shadow-floating: 0 1px 2px rgb(0 0 0/8%), 0 8px 24px rgb(0 0 0/8%);
+  /* The floating shadow as a filter, for a floating surface whose edge a mask cuts (the account menu's notches). */
+  --filter-floating: drop-shadow(0 1px 2px rgb(0 0 0/8%)) drop-shadow(0 8px 24px rgb(0 0 0/8%));
+  /* The selected cell's thumb in a menu tray: raised above --surface-inset in both themes. */
+  --surface-thumb: #fff;
+  --shadow-thumb: inset 0 0 0 1px rgb(0 0 0/7%), 0 1px 2px rgb(0 0 0/10%);
   --shadow-modal: 0 2px 4px rgb(0 0 0/10%), 0 16px 48px rgb(0 0 0/12%);
   --ring-floating: 0 0 0 0 transparent;
   --scrim: rgb(0 0 0/40%);
@@ -94,8 +102,16 @@
   --holder-ovi-shift: color-mix(in oklch, var(--accent) 55%, var(--surface));
   --holder-uv: #6a52b8;
   --holder-uv-shade: rgb(48 45 42/7%);
+  /* Next up boarding pass (DESIGN.md "Journal redesign"): the same night-jade ticket in both themes. Hue 178° sits in the
+     gap between success (150°) and Asagi (206°). On it the flaps take the accent tuned for ink (the dark fill), so every
+     accent clears 3:1 on the paper in light too; dark keeps its own fill (tokens.test.ts). */
+  --pass-paper: #273d38;
+  --pass-ink: #ebf4f2;
+  --pass-ink-muted: #afdcd1;
+  --pass-flap: var(--accent-on-ink);
+  --pass-flap-foreground: #292827;
   --map-land: var(--surface-inset);
-  --map-water: #e4edf1;
+  --map-water: #d9e5eb;
   --map-border: #b1aaa2;
   --map-route: var(--accent);
   --globe-route: var(--text);
@@ -165,6 +181,8 @@
   --iso-detail: #cfc8c1;
   --iso-glass: var(--accent-tint);
   --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  /* Locked rung strokes in achievement ladder thumbnails (next and later rungs). */
+  --iso-ghost-line: #a39a91;
   --iso-glow: 0.4;
   --iso-shadow: rgb(48 45 42 / 14%);
   --accent: #c23417;
@@ -240,7 +258,7 @@
   --surface: #353331;
   --surface-inset: #403d3a;
   --map-land: #55504b;
-  --map-water: #26363f;
+  --map-water: #333c40;
   --map-border: #80766d;
   --text: #f1efeb;
   --text-muted: #c4beb7;
@@ -259,6 +277,10 @@
   --rank-bronze: #eca57d;
   --surface-floating: #3c3a37;
   --shadow-floating: 0 0 0 0 transparent;
+  /* Dark has no floating shadow; a tight light edge stands in for --ring-floating along the cut outline. */
+  --filter-floating: drop-shadow(0 0 0.5px rgb(255 255 255/45%));
+  --surface-thumb: #4b4744;
+  --shadow-thumb: inset 0 0 0 1px rgb(255 255 255/9%), 0 1px 2px rgb(0 0 0/30%);
   --shadow-modal: 0 0 0 0 transparent;
   --ring-floating: 0 0 0 1px rgb(255 255 255/8%);
   --scrim: rgb(0 0 0/60%);
@@ -277,6 +299,8 @@
   --holder-ovi-shift: color-mix(in oklch, var(--accent) 55%, var(--text));
   --holder-uv: #b9a6ff;
   --holder-uv-shade: rgb(0 0 0/32%);
+  --pass-flap: var(--accent);
+  --pass-flap-foreground: var(--accent-foreground);
   --swatch-shu: #ea846f;
   --swatch-ai: #acbbef;
   --swatch-matcha: #b7ce92;
@@ -304,6 +328,7 @@
   --iso-detail: #5f5954;
   --iso-glass: #262423;
   --iso-ghost: #45403c;
+  --iso-ghost-line: #897e70;
   --iso-glow: 0.75;
   --iso-shadow: rgb(0 0 0 / 35%);
   --accent: #ea846f;

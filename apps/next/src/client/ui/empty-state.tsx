@@ -9,8 +9,7 @@ import './empty-state.css'
 
 export type EmptyStateProps = {
   title: string
-  /** One line: what is missing and what to do about it. */
-  description: string
+  description?: string
   /** The one next step, e.g. a Button. */
   action?: ReactNode
   className?: string
@@ -22,7 +21,7 @@ export function EmptyState({ title, description, action, className, label }: Emp
   return (
     <section className={clsx('ui-empty', className)} aria-label={label}>
       <h3 className="ui-empty-title">{title}</h3>
-      <p className="ui-empty-description">{description}</p>
+      {description ? <p className="ui-empty-description">{description}</p> : null}
       {action ? <div className="ui-empty-action">{action}</div> : null}
     </section>
   )

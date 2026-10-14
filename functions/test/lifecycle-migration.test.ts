@@ -2,7 +2,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { migrationStatements } from '../../scripts/_migrations'
 import { repairUserDerivedState } from '../api/_services/derivedState'
 import {
   LIFECYCLE_MIGRATION,
@@ -916,11 +915,4 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
       await dispose()
     }
   })
-})
-
-it('splits every 0006 statement with the wrangler splitter, keeping trigger bodies whole', () => {
-  const statements = migrationStatements(LIFECYCLE_MIGRATION)
-  const triggers = statements.filter((statement) => /CREATE\s+TRIGGER/i.test(statement))
-  expect(triggers).toHaveLength(6)
-  for (const trigger of triggers) expect(trigger.trim()).toMatch(/END;?$/)
 })

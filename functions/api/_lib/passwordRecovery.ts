@@ -104,10 +104,6 @@ export async function completePasswordRecovery(
       AND EXISTS (SELECT 1 FROM users WHERE users.id = auth_accounts.userId AND users.password_hash = ?)`)
       .bind(passwordHash, now, id, claim, passwordHash),
     db
-      .prepare(`DELETE FROM sessions WHERE user_id = ${owner} AND EXISTS
-      (SELECT 1 FROM users WHERE users.id = sessions.user_id AND users.password_hash = ?)`)
-      .bind(id, claim, passwordHash),
-    db
       .prepare(`DELETE FROM auth_sessions WHERE userId = ${owner} AND EXISTS
       (SELECT 1 FROM users WHERE users.id = auth_sessions.userId AND users.password_hash = ?)`)
       .bind(id, claim, passwordHash),

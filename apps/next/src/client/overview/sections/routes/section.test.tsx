@@ -69,7 +69,7 @@ it('under a filter that leaves too few flights it shows the empty state, and the
   const rare = all.rankings.routes.at(-1)!.key
   const { actions } = setup({ routes: [rare] })
   render(<Section span="full" />)
-  expect(screen.getByText(/^Routes need 5 flights$/)).toBeInTheDocument()
+  expect(screen.getByText('Too few flights for routes')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
   expect(actions.clear).toHaveBeenCalledOnce()
 })

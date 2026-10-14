@@ -76,10 +76,10 @@ it('wires desktop keys to real search, selection and the docked sheet, which fol
       </JournalStoreProvider>
     </ToastProvider>,
   )
-  fireEvent.keyDown(document.body, { key: '/' })
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Keyboard shortcuts' }), { key: '/' })
   expect(screen.getByRole('searchbox', { name: 'Search flights' })).toHaveFocus()
   screen.getByRole('searchbox').blur()
-  fireEvent.keyDown(document.body, { key: 'j' })
+  fireEvent.keyDown(document.body, { key: 'ArrowDown' })
   const first = screen.getByRole('button', { name: /^LHR to IST/ })
   expect(first).toHaveFocus()
   await user.keyboard('x')
@@ -93,7 +93,7 @@ it('wires desktop keys to real search, selection and the docked sheet, which fol
   await waitFor(() =>
     expect(screen.queryByRole('complementary', { name: 'Flight details' })).not.toBeInTheDocument(),
   )
-  fireEvent.keyDown(document.body, { key: '?' })
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Keyboard shortcuts' }), { key: '?' })
   expect(await screen.findByRole('dialog', { name: 'Keyboard shortcuts' })).toBeInTheDocument()
 })
 

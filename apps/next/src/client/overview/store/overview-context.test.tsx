@@ -9,12 +9,12 @@ import { api, advanceAuthGeneration, getAuthGeneration } from '@kuuki/client/api
 import { withIdentityMutation } from '../../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../../lifecycle-sync'
 import userEvent from '@testing-library/user-event'
-import { OverviewFlightSheet, useOpenFlight, useMakerMetric } from './open-flight'
+import { OverviewFlightSheet, useOpenFlight } from './open-flight'
 import { createUIBus } from './ui-bus'
 import fixture from '../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
 import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import { DEFAULT_PREFS, type OverviewPrefs } from '@kuuki/shared/overview/prefs'
-import { OverviewProvider, useOverview, useFilterActions, useOverviewUI } from './overview-context'
+import { OverviewProvider, useOverview, useOverviewUI } from './overview-context'
 import * as dataStores from '../data-store'
 
 const auth = vi.hoisted(() => ({
@@ -45,7 +45,7 @@ vi.mock('../../shell-notices', () => ({ announceShellNotice: vi.fn() }))
 const payload = { ...fixture, etag: 'W/"ov3-owner-1-0"' } as OverviewPayload
 function Controls() {
   const overview = useOverview(),
-    actions = useFilterActions()
+    actions = overview.actions
   return (
     <>
       <output>{overview.scope?.figures.flights}</output>
@@ -490,8 +490,7 @@ it('two same-owner providers isolate hover/focus subscriptions', () => {
 })
 
 function URLControls() {
-  const open = useOpenFlight(),
-    [metric, setMetric] = useMakerMetric()
+  const open = useOpenFlight()
   return (
     <>
       <main>
@@ -515,16 +514,14 @@ function URLControls() {
         </button>
         <button
           onClick={() => {
-            setMetric('hours')
             open(7)
-            setMetric('km')
+            open(8)
+            open(9)
           }}
         >
           rapid
         </button>
-        <button onClick={() => setMetric('flights')}>flights</button>
-        <button onClick={() => setMetric('hours')}>hours</button>
-        <output data-testid="metric">{metric}</output>
+        <button onClick={() => open(9)}>latest flight</button>
       </main>
       <OverviewFlightSheet />
     </>
@@ -557,39 +554,28 @@ function urlView(ownerKey = 'owner', data = payload, live = false) {
     },
   }
 }
-it('rapid flight and maker changes compose, preserve repeated query/hash and never save prefs', async () => {
+it('rapid flight opens keep the latest request and preserve repeated query/hash without saving prefs', async () => {
   vi.useFakeTimers()
   auth.pathname = '/dev/overview'
-  auth.query = 'tag=a&tag=b&makers=invalid'
-  window.history.replaceState(null, '', '/dev/overview?tag=a&tag=b&makers=invalid#rankings')
+  auth.query = 'tag=a&tag=b'
+  window.history.replaceState(null, '', '/dev/overview?tag=a&tag=b#rankings')
   urlView()
-  expect(screen.getByTestId('metric').textContent).toBe('flights')
   act(() => screen.getByText('rapid').click())
   expect(window.history.pushState).toHaveBeenLastCalledWith(
     null,
     '',
-    '/dev/overview?tag=a&tag=b&makers=hours&flight=7#rankings',
-  )
-  expect(window.history.replaceState).toHaveBeenLastCalledWith(
-    null,
-    '',
-    '/dev/overview?tag=a&tag=b&makers=km&flight=7#rankings',
-  )
-  act(() => screen.getByRole('button', { name: 'flights' }).click())
-  expect(window.history.replaceState).toHaveBeenLastCalledWith(
-    null,
-    '',
-    '/dev/overview?tag=a&tag=b&flight=7#rankings',
+    '/dev/overview?tag=a&tag=b&flight=9#rankings',
   )
   await advance()
   expect(api.put).not.toHaveBeenCalled()
 })
-it('an intermediate URL commit does not discard a more recent requested change', () => {
+it('an intermediate URL commit does not discard a more recent requested flight', () => {
   const view = urlView()
   act(() => screen.getByText('rapid').click())
-  view.navigate('/overview?makers=hours')
-  act(() => screen.getByRole('button', { name: 'flights' }).click())
-  expect(window.history.replaceState).toHaveBeenLastCalledWith(null, '', '/overview?flight=7')
+  vi.mocked(window.history.pushState).mockClear()
+  view.navigate('/overview?flight=7')
+  act(() => screen.getByRole('button', { name: 'latest flight' }).click())
+  expect(window.history.pushState).not.toHaveBeenCalled()
 })
 it.each(['aggregate', 'dev'])(
   '%s prevents both opening and a direct flight private read',
@@ -617,7 +603,7 @@ it.each(['0', '-1', '1.5', '9007199254740992', 'foo', '1e2', ''])(
     expect(screen.queryByRole('dialog')).toBeNull()
   },
 )
-it('Back/Forward updates metric and sheet, restores the opener and revalidates the retained store on close', async () => {
+it('Back/Forward updates the sheet, restores the opener and revalidates the retained store on close', async () => {
   auth.getFlight.mockResolvedValue({
     id: 7,
     date: '2026-10-05',
@@ -640,29 +626,26 @@ it('Back/Forward updates metric and sheet, restores the opener and revalidates t
     opener.focus()
     opener.click()
   })
-  view.navigate('/overview?tag=a&tag=b&flight=7&makers=km#fleet')
+  view.navigate('/overview?tag=a&tag=b&flight=7#fleet')
   await screen.findByRole('article', { name: /TBS.*IST/ }, { timeout: 5000 })
   expect(auth.getFlight).toHaveBeenCalledWith(
     7,
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
   )
-  expect(screen.getByTestId('metric').textContent).toBe('km')
   await userEvent.click(screen.getByRole('button', { name: 'Close flight' }))
   expect(window.history.replaceState).toHaveBeenLastCalledWith(
     null,
     '',
-    '/overview?tag=a&tag=b&makers=km#fleet',
+    '/overview?tag=a&tag=b#fleet',
   )
-  view.navigate('/overview?tag=a&tag=b&makers=km#fleet')
+  view.navigate('/overview?tag=a&tag=b#fleet')
   await waitFor(() => expect(opener).toHaveFocus())
   await waitFor(() => expect(current.scope?.figures.flights).toBe(1))
   expect(fetcher).toHaveBeenCalledTimes(1)
-  view.navigate('/overview?makers=hours&flight=7', true)
+  view.navigate('/overview?flight=7', true)
   await screen.findByRole('article', { name: /TBS.*IST/ })
-  expect(screen.getByTestId('metric').textContent).toBe('hours')
   view.navigate('/overview', true)
   await waitFor(() => expect(screen.getByRole('heading', { name: 'Overview' })).toHaveFocus())
-  expect(screen.getByTestId('metric').textContent).toBe('flights')
 })
 it('a foreign/missing flight stays an error without displaying private content', async () => {
   auth.query = 'flight=7'
@@ -763,16 +746,12 @@ it('lifecycle publication refreshes the retained scope without a router refresh'
   expect(auth.refresh).not.toHaveBeenCalled()
 })
 
-it('hash-only navigation becomes the base for later metric changes', () => {
+it('hash-only navigation becomes the base for later flight opens', () => {
   const view = urlView()
   view.navigate('/overview#fleet')
   act(() => window.dispatchEvent(new HashChangeEvent('hashchange')))
-  act(() => screen.getByRole('button', { name: 'hours' }).click())
-  expect(window.history.replaceState).toHaveBeenLastCalledWith(
-    null,
-    '',
-    '/overview?makers=hours#fleet',
-  )
+  act(() => screen.getByRole('button', { name: 'open' }).click())
+  expect(window.history.pushState).toHaveBeenLastCalledWith(null, '', '/overview?flight=7#fleet')
 })
 
 it('a disappeared opener falls back to the heading, and a late sheet response cannot steal focus', async () => {
@@ -790,7 +769,7 @@ it('a disappeared opener falls back to the heading, and a late sheet response ca
   await userEvent.click(screen.getByRole('button', { name: 'Close flight' }))
   view.navigate('/overview')
   await waitFor(() => expect(screen.getByRole('heading', { name: 'Overview' })).toHaveFocus())
-  const other = screen.getByRole('button', { name: 'hours' })
+  const other = screen.getByRole('button', { name: 'latest flight' })
   act(() => other.focus())
   await act(async () => result.reject(new Error('late read')))
   expect(other).toHaveFocus()
@@ -960,7 +939,7 @@ it.each([false, true])(
     expect(current.isCurrent()).toBe(true)
   },
 )
-it('failed real signout keeps metric, flight URL and real sheet close usable; actual reset retires them', async () => {
+it('failed real signout keeps flight URL and real sheet close usable; actual reset retires them', async () => {
   auth.getFlight.mockResolvedValue({
     id: 7,
     date: '2026-10-05',
@@ -978,19 +957,13 @@ it('failed real signout keeps metric, flight URL and real sheet close usable; ac
   vi.stubGlobal('fetch', fetcher)
   const view = urlView('owner', payload, true)
   await act(rejectSignout)
-  act(() => screen.getByText('hours').click())
-  expect(window.history.replaceState).toHaveBeenLastCalledWith(null, '', '/overview?makers=hours')
   act(() => screen.getByText('open').click())
-  expect(window.history.pushState).toHaveBeenLastCalledWith(
-    null,
-    '',
-    '/overview?makers=hours&flight=7',
-  )
-  view.navigate('/overview?makers=hours&flight=7')
+  expect(window.history.pushState).toHaveBeenLastCalledWith(null, '', '/overview?flight=7')
+  view.navigate('/overview?flight=7')
   await screen.findByRole('button', { name: 'Edit flight' })
   await userEvent.click(screen.getByRole('button', { name: 'Close flight' }))
-  expect(window.history.replaceState).toHaveBeenLastCalledWith(null, '', '/overview?makers=hours')
-  view.navigate('/overview?makers=hours')
+  expect(window.history.replaceState).toHaveBeenLastCalledWith(null, '', '/overview')
+  view.navigate('/overview')
   await waitFor(() => expect(current.all?.figures.flights).toBe(0))
   const requests = fetcher.mock.calls.length
   act(() => window.dispatchEvent(new Event('kuuki:identity-reset')))

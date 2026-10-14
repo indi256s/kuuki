@@ -19,7 +19,7 @@ import {
 } from '../../../../packages/shared/src/theme/palette'
 import { airlineColor } from '../lib/airline'
 import { contrast, oklchToRgb, parseHex, rgbToOklch, toHex, type Rgb } from '../lib/color'
-import { NEUTRAL_INK, SURFACE_COLOR, THEME_COLOR, resolveAccent } from '../lib/theme-colors'
+import { NEUTRAL_INK, SURFACE_COLOR, THEME_COLOR } from '../lib/theme-colors'
 
 // --- styles.css -> resolved token sets ---------------------------------------------------------
 
@@ -143,6 +143,15 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     for (const name of ['--text', '--text-muted', '--accent-text', '--accent-on-tint']) {
       expect(ratio(hex(name), hex('--accent-tint')), `${name} on tint`).toBeGreaterThanOrEqual(4.5)
     }
+  })
+
+  it('keeps the boarding pass inks readable and the accent flaps visible on its paper', () => {
+    const paper = hex('--pass-paper')
+    for (const name of ['--pass-ink', '--pass-ink-muted']) {
+      expect(ratio(hex(name), paper), `${name} on the pass`).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(ratio(hex('--pass-flap'), paper), '--pass-flap on the pass').toBeGreaterThanOrEqual(3)
+    expect(ratio(hex('--pass-flap-foreground'), hex('--pass-flap'))).toBeGreaterThanOrEqual(4.5)
   })
 
   it('keeps the action label readable on the accent fill', () => {
@@ -273,27 +282,6 @@ describe('non-CSS colour constants', () => {
     expect(THEME_COLOR[mode]).toBe(SURFACES[mode].background)
     expect(SURFACE_COLOR[mode]).toBe(SURFACES[mode].surface)
     expect(NEUTRAL_INK[mode]).toBe(SURFACES[mode].muted)
-  })
-
-  it('resolves legacy and unknown accent names', () => {
-    for (const accent of ACCENT_KEYS) expect(resolveAccent(accent)).toBe(accent)
-    const legacy = {
-      terracotta: 'shu',
-      kincha: 'shu',
-      sumi: 'shu',
-      yellow: 'shu',
-      red: 'shu',
-      orange: 'shu',
-      blue: 'ai',
-      cyan: 'asagi',
-      teal: 'asagi',
-      purple: 'sakura',
-      coral: 'sakura',
-    }
-    for (const [from, to] of Object.entries(legacy)) expect(resolveAccent(from)).toBe(to)
-    for (const bad of [undefined, null, 4, '', 'SHU', 'toString', '__proto__', 'green']) {
-      expect(resolveAccent(bad)).toBe('shu')
-    }
   })
 })
 

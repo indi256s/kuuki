@@ -11,7 +11,8 @@ import {
 import { getRequestLocale } from '../../../../server/locale'
 import { pageMetadata } from '../../../../server/metadata'
 import { IdentitySnapshot } from '../../../../client/activity'
-import { BadgeCabinet } from '../../../../client/profile/profile'
+import { AchievementCabinet } from '../../../../client/profile/ladders/cabinet'
+import { holderInitials, toTiles } from '../../../../client/profile/ladders/model'
 import { OwnerAccent } from '../../../../client/owner-accent'
 import { documentNumber, mrzLines } from '../../../../client/profile/mrz'
 import { remarksLine } from '../../../../client/profile/remarks'
@@ -61,6 +62,8 @@ export async function ProfileData({ username }: { username: string }) {
   const profile = privateOwner && own ? own.profile : data.profile
   const stats = privateOwner ? privateStats : data.stats
   const badges = privateOwner ? privateBadges : data.badges
+  // Legacy rows, cities and duplicates are hidden: the cabinet shows one tile per ladder (D10, amended).
+  const tiles = toTiles(badges)
   const handle = profile.username ?? username
   const name = profile.display_name || profile.username || (ru ? 'Участник Kuuki' : 'Kuuki member')
   const stamps = profileStamps(
@@ -118,23 +121,29 @@ export async function ProfileData({ username }: { username: string }) {
         {(owner || stamps.total > 0) && (
           <StampStrip {...stamps} owner={owner} locale={locale} index={index++} />
         )}
-        {(owner || badges.length > 0) && (
+        {(owner || tiles.length > 0) && (
           <Block index={index++} className="profile-cabinet" label="profile-badges-title">
             <BlockHead
               id="profile-badges-title"
               title={ru ? 'Достижения' : 'Achievements'}
               aside={
-                badges.length > 0 && (
+                tiles.length > 0 && (
                   <p className="profile-block-aside">
                     {ru
-                      ? `Получено: ${formatNumber(locale, badges.length)}`
-                      : `${formatNumber(locale, badges.length)} earned`}
+                      ? `Получено: ${formatNumber(locale, tiles.length)}`
+                      : `${formatNumber(locale, tiles.length)} earned`}
                   </p>
                 )
               }
             />
-            {badges.length > 0 ? (
-              <BadgeCabinet badges={badges} locale={locale} ownerId={owner ? profile.id : null} />
+            {tiles.length > 0 ? (
+              <AchievementCabinet
+                badges={badges}
+                stats={stats}
+                locale={locale}
+                ownerId={owner ? profile.id : null}
+                initials={holderInitials(profile.display_name || profile.username || '')}
+              />
             ) : (
               <p className="profile-quiet">
                 {ru ? 'Достижений пока нет.' : 'No achievements yet.'}

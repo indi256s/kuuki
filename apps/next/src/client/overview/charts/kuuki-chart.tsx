@@ -10,6 +10,7 @@ import {
   type ReactNode,
   type SVGProps,
 } from 'react'
+import { X } from '@keyline-icons/react'
 import { createPortal } from 'react-dom'
 import { Button } from '../../ui/button'
 import { useLocale } from '../../preferences'
@@ -380,9 +381,14 @@ export function KuukiChart<T>({
                       {action.label}
                     </Button>
                   ))}
-                  <Button onClick={dismiss}>
-                    {document.documentElement.lang === 'ru' ? 'Закрыть' : 'Close'}
-                  </Button>
+                  <button
+                    type="button"
+                    className="ui-icon-button"
+                    aria-label={t({ en: 'Close', ru: 'Закрыть' }, locale)}
+                    onClick={dismiss}
+                  >
+                    <X size={18} strokeWidth={2} aria-hidden="true" />
+                  </button>
                 </div>
               )}
             </div>,

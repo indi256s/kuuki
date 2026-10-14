@@ -590,24 +590,6 @@ describe('POST /api/import/jobs with boarding pass legs', () => {
   })
 })
 
-describe('POST /api/import/parse stays', () => {
-  it('still answers old clients without creating an import batch', async () => {
-    const { onRequestPost: parse } = await import('../api/import/parse')
-    answer([providerFlight()])
-    const { csrfRequest, testOrigin } = await import('./harness')
-    const response = await parse({
-      request: csrfRequest('/api/import/parse', 'POST', { type: 'text', content: 'x' }),
-      env: { GEMINI_API_KEY: 'k', PAGES_ORIGIN: testOrigin, DB: db },
-      data: { user: USER },
-      params: {},
-      waitUntil() {},
-    } as never)
-    expect(response.status).toBe(200)
-    expect(((await response.json()) as { flights: unknown[] }).flights).toHaveLength(1)
-    expect(await count(db, 'import_batches')).toBe(0)
-  })
-})
-
 describe('GET /api/import/batches/:id', () => {
   it('returns the persisted snapshot to its owner only', async () => {
     const created = await seed([providerFlight()])

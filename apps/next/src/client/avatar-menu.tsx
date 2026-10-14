@@ -2,13 +2,14 @@
 
 import { NavigationLink as Link } from './navigation-link'
 import { useRouter } from 'next/navigation'
-import { Check, CircleUser, LogOut, Settings, Trophy } from '@keyline-icons/react'
-import { useEffect, useRef, useState } from 'react'
+import { Monitor, Moon, Sun } from '@keyline-icons/react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation, withIdentityMutation } from './activity'
 import { deviceAccent, setAccent, setLocale, setTheme, useAccentSave } from './appearance'
 import { useAppearance } from './preferences'
 import { Menu, MenuCheckboxItem, MenuGroup, MenuItem, MenuTray } from './ui/menu'
+import { documentNumber } from './profile/mrz'
 import { QueueMenuItem } from './queue-summary'
 import { NAMES } from './ui/swatch-picker'
 import { ACCENTS, type Accent } from '../lib/theme-colors'
@@ -22,6 +23,7 @@ export function AvatarMenu({
   displayName,
   isPublic,
   profileAccent,
+  flights,
   locale = 'en',
 }: {
   id?: string
@@ -30,6 +32,8 @@ export function AvatarMenu({
   displayName?: string | null
   isPublic: boolean
   profileAccent?: string | null
+  /** The flight total, printed as the passport's document number on the stub. */
+  flights?: number | null
   locale?: 'en' | 'ru'
 }) {
   const router = useRouter()
@@ -37,6 +41,12 @@ export function AvatarMenu({
   const ru = appearance.locale === 'ru'
   const text = (en: string, ruText: string) => (ru ? ruText : en)
   const [publicProfile, setPublicProfile] = useState(isPublic)
+  // The server value wins again after router.refresh() re-renders the shell.
+  const [serverPublic, setServerPublic] = useState(isPublic)
+  if (serverPublic !== isPublic) {
+    setServerPublic(isPublic)
+    setPublicProfile(isPublic)
+  }
   const [busy, setBusy] = useState(false)
   const toast = useToast()
   const mounted = useRef(true)
@@ -60,10 +70,6 @@ export function AvatarMenu({
       message: text('Could not save the accent.', 'Не удалось сохранить акцент.'),
     }),
   )
-  // The server value wins again after router.refresh() re-renders the shell.
-  useEffect(() => {
-    setPublicProfile(isPublic)
-  }, [isPublic])
 
   async function toggleVisibility(next: boolean) {
     if (busy) return
@@ -106,6 +112,8 @@ export function AvatarMenu({
   }
 
   const profileHref = `/fly/${encodeURIComponent(username)}`
+  const name = displayName?.trim() || username
+  const icon = { size: 18, strokeWidth: 1.75, 'aria-hidden': true } as const
   return (
     <Menu
       align="end"
@@ -119,98 +127,103 @@ export function AvatarMenu({
           aria-label={text('Account menu', 'Меню аккаунта')}
         >
           <span aria-hidden="true">
-            <ProfileAvatar
-              id={id}
-              url={avatarUrl}
-              name={displayName?.trim() || username}
-              size={40}
-            />
+            <ProfileAvatar id={id} url={avatarUrl} name={name} size={40} />
           </span>
         </button>
       }
     >
-      <MenuGroup>
+      {/* The stub takes this device's accent, as the tray does, not an owner page's. */}
+      <div
+        className="account-stub"
+        style={{ '--stub-accent': `var(--swatch-${accent})` } as CSSProperties}
+      >
+        <div className="account-eyebrow" aria-hidden="true">
+          <span>Kuuki · {text('Boarding pass', 'Посадочный')}</span>
+          {typeof flights === 'number' ? <span>No. {documentNumber(flights)}</span> : null}
+        </div>
         <MenuItem asChild>
-          <Link href={profileHref} className="avatar-profile">
-            <CircleUser size={20} strokeWidth={2} aria-hidden="true" />
-            <span className="avatar-profile-text">
-              <span className="avatar-profile-title">{text('My profile', 'Мой профиль')}</span>
-              <span className="avatar-profile-sub">
-                @{username} ·{' '}
-                <span className="avatar-status">
-                  {publicProfile ? text('Public', 'Публичный') : text('Hidden', 'Скрыт')}
-                </span>
-              </span>
+          <Link href={profileHref} className="account-who">
+            <span className="account-who-text">
+              <span className="account-name">{name}</span>
+              <span className="account-handle">@{username}</span>
+            </span>
+            <span aria-hidden="true">
+              <ProfileAvatar id={id} url={avatarUrl} name={name} size={48} />
             </span>
           </Link>
         </MenuItem>
-        <QueueMenuItem locale={appearance.locale} />
-        <MenuItem asChild>
-          <Link href="/leaderboard">
-            <Trophy size={20} strokeWidth={2} aria-hidden="true" />
-            {text('Leaderboard', 'Рейтинг')}
-          </Link>
-        </MenuItem>
-        <MenuItem asChild>
-          <Link href="/settings">
-            <Settings size={20} strokeWidth={2} aria-hidden="true" />
-            {text('Settings', 'Настройки')}
-          </Link>
-        </MenuItem>
-      </MenuGroup>
-      <MenuGroup>
-        <MenuCheckboxItem
-          checked={publicProfile}
-          disabled={busy}
-          onCheckedChange={(next) => void toggleVisibility(next === true)}
-          onSelect={(event) => event.preventDefault()}
-        >
-          <span
-            className="avatar-box"
-            data-checked={publicProfile ? '' : undefined}
-            aria-hidden="true"
+        <div className="account-fields">
+          <MenuCheckboxItem
+            checked={publicProfile}
+            disabled={busy}
+            aria-label={text('Public profile', 'Публичный профиль')}
+            onCheckedChange={(next) => void toggleVisibility(next === true)}
+            onSelect={(event) => event.preventDefault()}
           >
-            {publicProfile ? <Check size={14} strokeWidth={3} /> : null}
-          </span>
-          {text('Public profile', 'Публичный профиль')}
-        </MenuCheckboxItem>
-        <MenuTray
-          label={text('Theme', 'Тема')}
-          value={appearance.theme}
-          onValueChange={(value) => setTheme(value)}
-          options={[
-            { value: 'light', label: text('Light', 'Светлая') },
-            { value: 'dark', label: text('Dark', 'Тёмная') },
-            { value: 'system', label: text('System', 'Системная') },
-          ]}
-        />
-        <MenuTray
-          label={text('Accent', 'Акцент')}
-          value={accent}
-          onValueChange={(next) => {
-            setAccent(next)
-            accentSave.save(next)
-          }}
-          options={ACCENTS.map((name) => ({
-            value: name,
-            label: NAMES[name][appearance.locale],
-            swatch: `var(--swatch-${name})`,
-          }))}
-        />
-        <MenuTray
-          label={text('Language', 'Язык')}
-          value={appearance.locale}
-          onValueChange={(value) => setLocale(value)}
-          options={[
-            { value: 'en', label: 'EN' },
-            { value: 'ru', label: 'RU' },
-          ]}
-        />
-      </MenuGroup>
-      <MenuItem data-signout="" onSelect={() => void signOut()}>
-        <LogOut size={20} strokeWidth={2} aria-hidden="true" />
-        {text('Sign out', 'Выйти')}
-      </MenuItem>
+            <span className="account-field-key">{text('Profile', 'Профиль')}</span>
+            <span className="account-field-value">
+              <span className="account-switch" />
+              <span className="account-field-word">
+                <span data-off={publicProfile ? undefined : ''}>{text('Public', 'Открыт')}</span>
+                <span data-off={publicProfile ? '' : undefined}>{text('Hidden', 'Скрыт')}</span>
+              </span>
+            </span>
+          </MenuCheckboxItem>
+          <QueueMenuItem locale={appearance.locale} field />
+        </div>
+      </div>
+      <div className="account-body">
+        <MenuGroup>
+          <MenuItem asChild>
+            <Link href="/leaderboard">{text('Leaderboard', 'Рейтинг')}</Link>
+          </MenuItem>
+          <MenuItem asChild>
+            <Link href="/settings">{text('Settings', 'Настройки')}</Link>
+          </MenuItem>
+        </MenuGroup>
+        <div className="account-appearance">
+          <MenuTray
+            label={text('Theme', 'Тема')}
+            hideLabel
+            value={appearance.theme}
+            onValueChange={(value) => setTheme(value)}
+            options={[
+              { value: 'light', label: text('Light', 'Светлая'), icon: <Sun {...icon} /> },
+              { value: 'dark', label: text('Dark', 'Тёмная'), icon: <Moon {...icon} /> },
+              { value: 'system', label: text('System', 'Системная'), icon: <Monitor {...icon} /> },
+            ]}
+          />
+          <MenuTray
+            label={text('Language', 'Язык')}
+            hideLabel
+            value={appearance.locale}
+            onValueChange={(value) => setLocale(value)}
+            options={[
+              { value: 'en', label: 'EN' },
+              { value: 'ru', label: 'RU' },
+            ]}
+          />
+        </div>
+        <div className="account-accent">
+          <MenuTray
+            label={text('Accent', 'Акцент')}
+            hideLabel
+            value={accent}
+            onValueChange={(next) => {
+              setAccent(next)
+              accentSave.save(next)
+            }}
+            options={ACCENTS.map((item) => ({
+              value: item,
+              label: NAMES[item][appearance.locale],
+              swatch: `var(--swatch-${item})`,
+            }))}
+          />
+        </div>
+        <MenuItem data-signout="" onSelect={() => void signOut()}>
+          {text('Sign out', 'Выйти')}
+        </MenuItem>
+      </div>
     </Menu>
   )
 }

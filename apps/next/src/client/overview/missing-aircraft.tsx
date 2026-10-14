@@ -325,7 +325,6 @@ export function MissingAircraftReview({
               ) : null}
               {work.dirty && saved > 0 ? (
                 <>
-                  <p className="muted">{t(S.reviewRetained, locale)}</p>
                   <Button
                     dense
                     disabled={busy || work.busy}

@@ -6,6 +6,7 @@ import './ui.css'
 
 export const PopoverRoot = RadixPopover.Root
 export const PopoverTrigger = RadixPopover.Trigger
+export const PopoverAnchor = RadixPopover.Anchor
 
 export const PopoverContent = forwardRef<HTMLDivElement, RadixPopover.PopoverContentProps>(
   function PopoverContent(props, ref) {

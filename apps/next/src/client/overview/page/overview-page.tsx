@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
+import { useEffect, useRef, useState, type ComponentProps } from 'react'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
@@ -9,7 +9,6 @@ import { OverviewFlightSheet } from '../store/open-flight'
 import { HeroPanel } from '../hero/hero-panel'
 import { NextStrip } from '../hero/next-strip'
 import { OverviewGlobe } from '../globe/globe'
-import { referenceLabels } from '../labels'
 import { S, t } from '../copy'
 import { Button } from '../../ui/button'
 import { Skeleton } from '../../ui/skeleton'
@@ -26,26 +25,24 @@ import { CountryList } from '../globe/country-list'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
-import { NextUp } from '../next-up/next-up'
 import { SECTIONS } from '../sections/registry'
-import { scopeTitle } from './scope-title'
 import { FirstRun, ZeroResult } from './page-states'
 import './page.css'
 
 type Props = Omit<ComponentProps<typeof OverviewProvider>, 'children'> & { name: string }
-export function OverviewPage({ name, ...provider }: Props) {
+export function OverviewPage({ name: _name, ...provider }: Props) {
   return (
     <OverviewProvider {...provider}>
-      <PageContent name={name} />
+      <PageContent />
       <OverviewFlightSheet />
     </OverviewProvider>
   )
 }
-function PageContent({ name }: { name: string }) {
+function PageContent() {
   const { scope, all, payload, filter, layout, locale, setLayout, isCurrent, actions, revalidate } =
     useOverview()
   const mobile = useMobile()
-  const labels = useMemo(() => referenceLabels(locale), [locale])
+  const [fullscreen, setFullscreen] = useState(false)
   const firstRun =
     scope?.figures.flights === 0 &&
     isEmptyFilter(filter) &&
@@ -185,22 +182,11 @@ function PageContent({ name }: { name: string }) {
       </SectionFrame>
     )
   }
-  // Display name, else the username (as on the public profile); a bare "Hi" read as unfinished, so an unnamed account gets a full greeting.
-  const greeting = t(
-    {
-      en: name ? `Hi, ${name}` : 'Welcome back',
-      ru: name ? `Здравствуйте, ${name}` : 'С возвращением',
-    },
-    locale,
-  )
   return (
     <div ref={page} className="ov3-page" lang={locale}>
-      <div className="ov3-page-heading">
-        <h1 tabIndex={-1}>
-          {greeting}
-          <span className="ov3-scope">{scopeTitle(filter, labels, locale)}</span>
-        </h1>
-      </div>
+      <h1 className="sr-only" tabIndex={-1}>
+        {locale === 'ru' ? 'Обзор' : 'Overview'}
+      </h1>
       {payload?.mode === 'aggregate' &&
       payload.aggregateResolution !== 'day' &&
       filter.period &&
@@ -208,9 +194,7 @@ function PageContent({ name }: { name: string }) {
       filter.period.from.length === 10 ? (
         <div role="alert">
           <p>
-            {locale === 'ru'
-              ? 'В этой старой сводке нет точных дат. Обновите данные или сбросьте диапазон.'
-              : 'This older summary has no exact-day detail. Refresh the data or clear the range.'}
+            {locale === 'ru' ? 'В этой сводке нет точных дат.' : 'This summary has no exact dates.'}
           </p>
           <Button onClick={() => void revalidate()}>{t(S.retry, locale)}</Button>
           <Button onClick={() => actions.setPeriod(null)}>
@@ -224,36 +208,35 @@ function PageContent({ name }: { name: string }) {
         </>
       ) : (
         <>
-          <div data-region="next">
-            <NextStrip />
-          </div>
+          <NextStrip />
           {!payload.derivedReady ? (
             <p role="status" className="status-note">
               {t(S.countriesUpdating, locale)}
             </p>
           ) : null}
           <div className="ov3-overview-workspace">
+            <div className="ov3-common-controls">{!fullscreen ? <FilterBar /> : null}</div>
+            {firstRun ? <FirstRun /> : null}
             {/* On very wide screens CSS docks the country list as a third card (page.css); both it and the disclosure render, so the server's first paint is already final. */}
             <div className="ov3-globe-band">
+              {!firstRun ? (
+                <div data-region="figures">
+                  <HeroPanel />
+                </div>
+              ) : null}
               <section
                 className="ov3-globe-region ov-globe"
                 aria-label={t(S.map, locale)}
                 data-globe={firstRun ? 'blank' : zero ? 'ghost' : 'ready'}
               >
-                <OverviewGlobe topLeft={<FilterBar />} />
+                <OverviewGlobe
+                  topLeft={(expanded) => (expanded ? <FilterBar /> : null)}
+                  onFullscreenChange={setFullscreen}
+                />
               </section>
-              {!firstRun ? (
-                <>
-                  <div data-region="figures">
-                    <HeroPanel />
-                  </div>
-                  <CountryList />
-                </>
-              ) : null}
+              {!firstRun ? <CountryList /> : null}
             </div>
-            {firstRun ? <FirstRun /> : null}
           </div>
-          {!firstRun && !zero ? <NextUp goals={scope.goals} /> : null}
           {zero ? (
             <ZeroResult />
           ) : !firstRun && mobile !== null ? (

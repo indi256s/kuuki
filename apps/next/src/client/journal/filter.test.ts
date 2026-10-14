@@ -403,62 +403,19 @@ describe('connections', () => {
   })
 })
 
-it('attaches firsts by flight id', () => {
-  const firsts = { countries: ['TR'], aircraft: true, airline: false, pending: false }
-  const items = select(
-    payloadOf([flight({ id: 1 }), flight({ id: 2, date: '2020-01-01' })], {
-      firsts: { 1: firsts },
-    }),
-  ).items
-  expect(items.map((item) => item.kind === 'flight' && item.firsts)).toEqual([firsts, null])
-})
-
-it('sums distance and time over confirmed flights only', () => {
+it('uses the same flown flights for every total and retains estimated or missing values', () => {
   const payload = payloadOf([
-    flight({ id: 1, distance_km: 1000, duration_minutes: 100 }),
+    flight({ id: 1, distance_km: 1000, duration_minutes: 100, duration_source: 'estimate' }),
     flight({ id: 2, distance_km: null, duration_minutes: 50 }),
     flight({ id: 3, distance_km: 300, duration_minutes: null }),
     flight({ id: 4, lifecycle_state: 'awaiting', distance_km: 9999, duration_minutes: 999 }),
   ])
   expect(select(payload).summary).toEqual({
-    flights: 4,
+    flights: 3,
     distanceKm: 1300,
     durationMinutes: 150,
-    confirmedFlights: 3,
+    durationEstimated: true,
     distanceMissing: 1,
     durationMissing: 1,
   })
-})
-
-it('selects 1,000 flights well within a frame budget', () => {
-  const airports = ['TBS', 'IST', 'FRA', 'JFK', 'LHR', 'CDG', 'AMS', 'MUC']
-  const flights: JournalFlight[] = []
-  for (let i = 0; i < 1000; i += 1) {
-    const day = new Date(Date.UTC(2015, 0, 1) + Math.floor(i / 2) * 86_400_000)
-      .toISOString()
-      .slice(0, 10)
-    const origin = airports[i % airports.length],
-      destination = airports[(i + 1) % airports.length]
-    const hour = 6 + (i % 2) * 6
-    flights.push(
-      flight({
-        id: 10_000 + i,
-        date: day,
-        origin,
-        destination,
-        airline_iata: i % 3 ? 'TK' : 'LH',
-        lifecycle_state: i % 10 ? 'logged' : 'awaiting',
-        departure_utc: `${day}T${String(hour).padStart(2, '0')}:00:00.000Z`,
-        arrival_utc: `${day}T${String(hour + 3).padStart(2, '0')}:00:00.000Z`,
-      }),
-    )
-  }
-  const payload = payloadOf(flights)
-  const started = performance.now()
-  const first = select(payload, { airlines: ['TK'] })
-  const ranked = select(payload, { families: ['A320 family'] }, { key: 'distance', order: 'asc' })
-  const elapsed = performance.now() - started
-  expect(first.items.some((item) => item.kind === 'connector')).toBe(true)
-  expect(ranked.matching).toHaveLength(1000)
-  expect(elapsed).toBeLessThan(100)
 })

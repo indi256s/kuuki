@@ -6,4 +6,9 @@ PAGES_ORIGIN=http://localhost:8800
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GEMINI_API_KEY=
+# Optional aircraft-search provider; Gemini remains the default.
+ENRICH_PROVIDER=gemini
+ANTHROPIC_API_KEY=
+ANTHROPIC_WORKSPACE_ID=
+ANTHROPIC_ENRICH_MODEL=claude-haiku-5-5
 MAINTENANCE_MODE=false

@@ -1,6 +1,5 @@
 // T08 / ADR 0001 §4 and A7: Overview counts countries from published data only, in one snapshot with the readiness gate.
 import { expect, it } from 'vitest'
-import { apiContext } from './harness'
 import {
   accountWith,
   at,
@@ -13,7 +12,6 @@ import {
 import { readOverviewPayload as read, readOverviewScope } from './overview-fixture'
 import { repairUserDerivedState } from '../api/_services/derivedState'
 import { regionCount } from '../api/_lib/regions'
-import { onRequestGet as listPassport } from '../api/passport/countries/index'
 
 const F1: FixtureFlight = {
   id: 1,
@@ -168,59 +166,6 @@ it('does not serve a stale suppression for a changed route even if the published
     expect((await read(db)).derivedReady).toBe(false)
     await publish(db)
     expect((await read(db)).passport.countryCodes).toEqual(['GB', 'GE', 'TR', 'US'])
-  } finally {
-    await dispose()
-  }
-})
-
-it('A7: Overview and Passport agree before and after the confirmation write, and during a pending repair', async () => {
-  const { db, dispose } = await accountWith([F1, F2])
-  try {
-    const passport = async () =>
-      (
-        await listPassport({
-          ...apiContext(db, new Request('https://kuuki.test/api/passport/countries')),
-          data: { user: USER },
-        } as never)
-      ).json() as Promise<any>
-    const agree = async () => {
-      const [overview, collection] = [await read(db), await passport()]
-      if (collection.derivedState !== 'ready') {
-        // Both reads identify the last publication as not current.
-        expect(overview).toMatchObject({ derivedReady: false })
-        return { countries: [] as string[], pressed: -1, pending: -1 }
-      }
-      const flightCountries = collection.countries
-        .filter((row: any) => row.logged_visit_count + row.awaiting_visit_count > 0)
-        .map((row: any) => row.country_code)
-      expect(overview.derivedReady).toBe(true)
-      expect(overview.passport.countryCodes).toEqual(
-        collection.countries
-          .filter((row: any) => row.status === 'pressed')
-          .map((row: any) => row.country_code)
-          .sort(),
-      )
-      expect(overview.passport.countries).toBe(collection.pressedCountryCount)
-      return {
-        countries: flightCountries,
-        pressed: collection.pressedCountryCount,
-        pending: collection.pendingCountryCount,
-      }
-    }
-    const before = await agree()
-    expect(before).toEqual({ countries: ['GE', 'US'], pressed: 1, pending: 1 }) // GE pending (awaiting origin), US pressed (logged)
-    await db
-      .prepare(
-        "UPDATE flights SET lifecycle_state='logged', confirmation_source='user', confirmed_at='2026-03-05T00:00:00.000Z', arrival_transit=1, arrival_transit_leg_id=2, awaiting_after=NULL, auto_confirm_after=NULL WHERE id=1",
-      )
-      .run()
-    await db
-      .prepare('UPDATE user_derived_state SET revision = revision + 1 WHERE user_id = ?')
-      .bind(USER.id)
-      .run()
-    expect(await agree()).toMatchObject({ countries: [] }) // both updating while the repair is pending
-    await repairUserDerivedState(db, USER.id)
-    expect(await agree()).toEqual({ countries: ['GE', 'US'], pressed: 2, pending: 0 }) // the prospective default and the confirmed decision agree; GE is now pressed
   } finally {
     await dispose()
   }

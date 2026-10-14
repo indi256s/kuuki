@@ -1,6 +1,7 @@
 'use client'
 
 import { makerOf } from '@kuuki/data/aircraft-makers'
+import { dayToEpoch } from '@kuuki/shared/overview/range'
 import { ChevronIcon } from '../ui/icon-morph'
 import { memo, useMemo, useRef, type MouseEvent } from 'react'
 import { formatDateOnly, formatDuration, formatNumber, type Locale } from '../../lib/format'
@@ -11,10 +12,15 @@ import { MakerSwatch } from '../ui/category-mark'
 import { Checkbox } from '../ui/checkbox'
 import { ContextMenu, ContextMenuButton, type ContextMenuItem } from '../ui/context-menu'
 import { SwipeActions, SwipeActionsRow, type SwipeAction } from '../ui/swipe-actions'
-import { FirstsGlyph } from './firsts-glyph'
 import { useProgressiveCount } from './progressive'
 import type { LedgerItem } from './filter'
-import type { FlightFirsts, JournalFlight, JournalRefs, JournalSort, JournalSortKey } from './model'
+import {
+  flightCode,
+  type JournalFlight,
+  type JournalRefs,
+  type JournalSort,
+  type JournalSortKey,
+} from './model'
 import './ledger.css'
 
 // Presentation adapted from Arc "sortable-data-table" (uiarc.dev, MIT, see ui/ARC-LICENSE.txt): the sortable header buttons, the aria-sort cue and the selectable rows.
@@ -91,6 +97,18 @@ export type JournalLedgerProps = {
 const positive = (value: number | null) =>
   typeof value === 'number' && Number.isFinite(value) && value > 0
 
+const shortDateFormats = {
+  en: new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+  ru: new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+}
+
+function dayAndMonth(locale: Locale, date: string) {
+  const epoch = dayToEpoch(date)
+  if (epoch === null) return date
+  const parts = shortDateFormats[locale].formatToParts(new Date(epoch))
+  return `${parts.find((part) => part.type === 'day')?.value} ${parts.find((part) => part.type === 'month')?.value}`
+}
+
 function Unknown({ label }: { label: string }) {
   return (
     <>
@@ -102,7 +120,6 @@ function Unknown({ label }: { label: string }) {
 
 type RowProps = {
   flight: JournalFlight
-  firsts: FlightFirsts | null
   refs: JournalRefs
   locale: Locale
   active: boolean
@@ -120,7 +137,6 @@ type RowProps = {
 // "Any row is selected" reaches the checkboxes through `data-selecting` on the table, not through a prop.
 const FlightRow = memo(function FlightRow({
   flight,
-  firsts,
   refs,
   locale,
   active,
@@ -138,6 +154,7 @@ const FlightRow = memo(function FlightRow({
   const t = copy[locale]
   const openButton = useRef<HTMLButtonElement>(null)
   const date = formatDateOnly(locale, flight.date, 'medium')
+  const code = flightCode(flight)
   const route = t.routeName(flight.origin, flight.destination)
   const status =
     flight.lifecycle_state === 'awaiting'
@@ -204,7 +221,6 @@ const FlightRow = memo(function FlightRow({
           {cities[1]}
         </span>
       </button>
-      {firsts && <FirstsGlyph firsts={firsts} flight={flight} refs={refs} locale={locale} />}
       {items && (
         <span className="jr-more-slot" data-no-open>
           <ContextMenuButton label={actionLabel} className="jr-more" />
@@ -233,7 +249,16 @@ const FlightRow = memo(function FlightRow({
         </Cell>
       )}
       <Cell role="cell" className="jr-date">
-        <span className="jr-date-text">{date}</span>
+        <time className="jr-date-text" dateTime={flight.date} aria-label={date}>
+          <span>{dayAndMonth(locale, flight.date)}</span>
+          {date !== flight.date && <span className="jr-date-year">{flight.date.slice(0, 4)}</span>}
+        </time>
+        {mobile && (
+          <span className="jr-identity">
+            <time dateTime={flight.date}>{date}</time>
+            {code && <span>{code}</span>}
+          </span>
+        )}
         {status && (
           <span className="jr-badge" data-state={flight.lifecycle_state}>
             {status}
@@ -369,7 +394,12 @@ export function JournalLedger({
         ? { key, order: sort.order === 'desc' ? 'asc' : 'desc' }
         : { key, order: 'desc' },
     )
-  const header = (key: JournalSortKey | null, label: string, className: string) => {
+  const header = (
+    key: JournalSortKey | null,
+    label: string,
+    className: string,
+    visibleLabel = label,
+  ) => {
     if (!key)
       return (
         <th role="columnheader" scope="col" className={className}>
@@ -382,10 +412,11 @@ export function JournalLedger({
         role="columnheader"
         scope="col"
         className={className}
+        aria-label={label}
         aria-sort={active ? (sort.order === 'asc' ? 'ascending' : 'descending') : 'none'}
       >
-        <button type="button" className="jr-sort" onClick={() => sortBy(key)}>
-          <span>{label}</span>
+        <button type="button" className="jr-sort" aria-label={label} onClick={() => sortBy(key)}>
+          <span>{visibleLabel}</span>
           <ChevronIcon
             className="jr-sort-cue"
             state={sort.order === 'asc'}
@@ -402,7 +433,6 @@ export function JournalLedger({
   const renderFlight = (item: Extract<LedgerItem, { kind: 'flight' }>) => (
     <FlightRow
       flight={item.flight}
-      firsts={item.firsts}
       refs={refs}
       locale={locale}
       active={activeId === item.flight.id}
@@ -478,7 +508,7 @@ export function JournalLedger({
           {header(null, t.airline, 'jr-airline')}
           {header(null, t.aircraft, 'jr-aircraft')}
           {!compact && header('duration', t.duration, 'jr-duration')}
-          {!compact && header('distance', t.distance, 'jr-distance')}
+          {!compact && header('distance', t.distance, 'jr-distance', t.km)}
         </tr>
       </thead>
       <tbody role="rowgroup" className="jr-body" aria-busy={mounted < visible.length || undefined}>
@@ -489,7 +519,6 @@ export function JournalLedger({
             <FlightRow
               key={item.flight.id}
               flight={item.flight}
-              firsts={item.firsts}
               refs={refs}
               locale={locale}
               active={activeId === item.flight.id}

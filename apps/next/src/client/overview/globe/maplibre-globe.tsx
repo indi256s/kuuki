@@ -6,7 +6,15 @@ import type {
   GeoJSONSource,
   ExpressionSpecification,
 } from 'maplibre-gl'
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type RefObject,
+} from 'react'
 import { coordinates } from '@kuuki/shared/geo'
 import { routeKey } from '@kuuki/shared/overview/filter'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
@@ -88,12 +96,19 @@ function GlobeLayers({
   props,
   host,
   select,
+  selectedRoute,
 }: {
   props: MaplibreGlobeProps
   host: RefObject<HTMLDivElement | null>
   select: (route: GlobeRouteCard | null) => void
+  selectedRoute: string | null
 }) {
   const { map, ready, themeRevision } = useMap()
+  const { hoverRoute, focusRoute } = useSyncExternalStore(
+    props.bus.subscribe,
+    props.bus.getSnapshot,
+    props.bus.getServerSnapshot,
+  )
   const [land, setLand] = useState<GlobeLand | null>(null)
   const latest = useRef(props)
   useEffect(() => {
@@ -328,8 +343,9 @@ function GlobeLayers({
               key: route.key,
               count: route.count,
               distanceKm: latest.current.routeDistances.get(route.key) ?? null,
-              x: Math.max(0, Math.min(event.point.x, (host.current?.clientWidth ?? 300) - 280)),
-              y: Math.max(0, Math.min(event.point.y, (host.current?.clientHeight ?? 300) - 160)),
+              // The popover flips and shifts at the edges itself; the anchor stays on the clicked arc.
+              x: event.point.x,
+              y: event.point.y,
             }
           : null,
       )
@@ -504,21 +520,25 @@ function GlobeLayers({
     update()
     return props.bus.subscribe(update)
   }, [map, land, props.bus, props.active])
-  const planes = props.reduced
-    ? props.globe.routes.map((route) => ({
-        key: route.key,
-        origin: route.a,
-        destination: route.b,
-        progress: 0.5,
-        launchMs: null,
-      }))
-    : props.replay.planes.map((plane) => ({
-        key: plane.key,
-        origin: plane.item.origin,
-        destination: plane.item.destination,
-        progress: (props.replay.absoluteMs - plane.launchMs) / PLANE_MS,
-        launchMs: plane.launchMs,
-      }))
+  const highlightedRoute = selectedRoute ?? hoverRoute ?? focusRoute
+  const planes =
+    props.reduced || props.replay.planes.length === 0
+      ? props.globe.routes
+          .filter((route) => route.key === highlightedRoute)
+          .map((route) => ({
+            key: route.key,
+            origin: route.a,
+            destination: route.b,
+            progress: 0.5,
+            launchMs: null,
+          }))
+      : props.replay.planes.map((plane) => ({
+          key: plane.key,
+          origin: plane.item.origin,
+          destination: plane.item.destination,
+          progress: (props.replay.absoluteMs - plane.launchMs) / PLANE_MS,
+          launchMs: plane.launchMs,
+        }))
   return props.active && land
     ? planes.map((plane) => {
         const from = point(plane.origin),
@@ -562,7 +582,7 @@ function ReplayFlightPlane({
     />
   )
 }
-const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'cover') =>
+const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'contain') =>
   globeZoom(
     map.getContainer().clientWidth,
     map.getContainer().clientHeight,
@@ -573,7 +593,7 @@ const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'co
 // Zoom out stops where the whole sphere shows and stays there; zoom in goes a few cities deep past the cover fit.
 // On a globe MapLibre applies both limits at the equator and corrects them for the center's latitude itself, so they are fitted at 0°.
 function setZoomLimits(map: LibreMap) {
-  map.setMaxZoom(fitZoom(map, 0) + GLOBE_ZOOM_RANGE)
+  map.setMaxZoom(fitZoom(map, 0, 'cover') + GLOBE_ZOOM_RANGE)
   map.setMinZoom(fitZoom(map, 0, 'contain'))
 }
 function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {
@@ -593,7 +613,11 @@ export function MaplibreGlobe(props: MaplibreGlobeProps) {
   const [choice, setChoice] = useState<{ filter: OverviewFilter; route: GlobeRouteCard } | null>(
     null,
   )
-  const selected = choice?.filter === props.filter ? choice.route : null
+  const selected =
+    choice?.filter === props.filter &&
+    props.globe.routes.some((route) => route.key === choice.route.key)
+      ? choice.route
+      : null
   return (
     <div ref={host} className="maplibre-globe" data-reduced={props.reduced}>
       {/* oxlint-disable-next-line @next/next/no-css-tags */}
@@ -608,21 +632,20 @@ export function MaplibreGlobe(props: MaplibreGlobeProps) {
           props={props}
           host={host}
           select={(route) => setChoice(route ? { filter: props.filter, route } : null)}
+          selectedRoute={selected?.key ?? null}
         />
       </MapCanvas>
-      {selected &&
-        props.active &&
-        props.globe.routes.some((route) => route.key === selected.key) && (
-          <RouteCard
-            route={selected}
-            locale={props.locale}
-            onClose={() => setChoice(null)}
-            onScope={() => {
-              if (props.isCurrent()) props.onScope(selected.key)
-              setChoice(null)
-            }}
-          />
-        )}
+      {selected && props.active && (
+        <RouteCard
+          route={selected}
+          locale={props.locale}
+          onClose={() => setChoice(null)}
+          onScope={() => {
+            if (props.isCurrent()) props.onScope(selected.key)
+            setChoice(null)
+          }}
+        />
+      )}
     </div>
   )
 }

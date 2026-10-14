@@ -50,7 +50,7 @@ export async function getUserByEmail(
     .first<{ id: string; email: string; password_hash: string }>()
 }
 
-/** Fetch a user's stored password hash by id (re-auth gate for verify-password). */
+/** Fetch a user's stored password hash by id (re-auth gate for account deletion). */
 export async function getPasswordHashById(db: D1Database, userId: string): Promise<string | null> {
   const row = await db
     .prepare(

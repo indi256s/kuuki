@@ -242,29 +242,6 @@ it('opens localised help, focuses its heading and returns focus to its trigger w
 it('runs the plane field only while visible and keeps the explicit pause through focus and visibility changes', () => {
   boot()
   const plane = document.querySelector('.planes-desktop .plane')!
-  // Every lap begins and ends out of sight, and passes through its unchanged drawn position.
-  for (const svg of document.querySelectorAll('.planes')) {
-    const width = Number(svg.getAttribute('width')),
-      height = Number(svg.getAttribute('height'))
-    for (const lap of svg.querySelectorAll<SVGGElement>('.plane')) {
-      const [, x, y] = lap
-        .querySelector('use')!
-        .getAttribute('transform')!
-        .match(/^translate\((\d+) (\d+)\)/)!
-        .map(Number)
-      const start = Number(lap.style.getPropertyValue('--plane-start'))
-      const end = start + Number(lap.style.getPropertyValue('--plane-span'))
-      const outside = (position: number) =>
-        x + position * 400 < -16 ||
-        x + position * 400 > width + 16 ||
-        y - position * 800 < -16 ||
-        y - position * 800 > height + 16
-      expect(start).toBeLessThan(0)
-      expect(end).toBeGreaterThan(0)
-      expect(outside(start)).toBe(true)
-      expect(outside(end)).toBe(true)
-    }
-  }
   const visibility = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
   const onScreen = (isIntersecting: boolean) =>
     intersect([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)

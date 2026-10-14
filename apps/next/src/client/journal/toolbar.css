@@ -83,6 +83,8 @@
 /* Applied-filter count on the phone's Filters button and on More: a number, not a colour cue. */
 .journal-filter-count {
   margin-inline-start: 0;
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
 }
 /* On More the count is a corner badge, so applying a filter never widens the button or shifts the row. */
 .journal-more .journal-filter-count {

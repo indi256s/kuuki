@@ -69,14 +69,9 @@ const second = flight({
   duration_source: 'estimate',
 })
 const items: LedgerItem[] = [
-  { kind: 'flight', flight: second, firsts: null, chain: null },
+  { kind: 'flight', flight: second, chain: null },
   { kind: 'connector', key: 'connector-1-2', airport: 'IST', minutes: 165, estimated: false },
-  {
-    kind: 'flight',
-    flight: first,
-    firsts: { countries: ['GE'], aircraft: true, airline: true, pending: false },
-    chain: null,
-  },
+  { kind: 'flight', flight: first, chain: null },
 ]
 
 function setup(overrides: Partial<JournalLedgerProps> = {}) {
@@ -121,7 +116,7 @@ it('renders flight rows with their status, the connector band and no per-row uni
 
 it('keeps airline identity and the flight number when a local logo fails to load', () => {
   setup({
-    items: [{ kind: 'flight', flight: first, firsts: null, chain: null }],
+    items: [{ kind: 'flight', flight: first, chain: null }],
     refs: { ...refs, airlines: {} },
   })
   const open = screen.getByRole('button', { name: /Turkish Airlines, TK381/ })
@@ -136,6 +131,15 @@ it('keeps airline identity and the flight number when a local logo fails to load
   expect(row.getByText('Turkish Airlines')).toBeInTheDocument()
   expect(row.getByText('TK381')).toBeInTheDocument()
   expect(open).toHaveAccessibleName(/Turkish Airlines, TK381/)
+})
+
+it('preserves an impossible legacy date instead of normalizing it to another day', () => {
+  setup({
+    items: [{ kind: 'flight', flight: flight({ date: '2024-02-31' }), chain: null }],
+  })
+  const date = screen.getByLabelText('2024-02-31')
+  expect(date).toHaveTextContent('2024-02-31')
+  expect(date).not.toHaveTextContent('2 Mar')
 })
 
 it('sorts from the headers: the active column flips, another column starts descending, and aria-sort follows', async () => {
@@ -200,41 +204,9 @@ it('marks the open row and hides Duration and Distance in compact mode', () => {
   expect(within(row).queryByText('1,203')).not.toBeInTheDocument()
 })
 
-it('names the firsts in a tooltip on keyboard focus', async () => {
-  const user = userEvent.setup()
-  setup()
-  const glyph = screen.getByRole('img', { name: /First visit to Georgia/ })
-  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
-  // jsdom matches :focus-visible only on buttons and inputs; a keyboard-focused tabindex span matches it in browsers.
-  const matches = Element.prototype.matches
-  vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
-    this: Element,
-    selector: string,
-  ) {
-    return selector === ':focus-visible'
-      ? this === document.activeElement
-      : matches.call(this, selector)
-  })
-  for (let step = 0; step < 12 && document.activeElement !== glyph; step += 1) await user.tab()
-  expect(glyph).toHaveFocus()
-  const tooltip = screen.getByRole('tooltip')
-  expect(tooltip).toHaveTextContent('First visit to Georgia')
-  expect(tooltip).toHaveTextContent('First Airbus A350-900')
-  expect(tooltip).toHaveTextContent('First flight with Turkish Airlines')
-  expect(tooltip).not.toHaveTextContent('pending')
-})
-
-it('labels pending firsts, leaves out rows pending deletion with their connector, and offers row actions', () => {
-  const pending = { countries: [], aircraft: false, airline: true, pending: true }
+it('leaves out rows pending deletion with their connector, and offers row actions', () => {
   const rowMenu = vi.fn(() => [{ id: 'open', label: 'Open', onSelect: vi.fn() }])
-  const view = setup({
-    items: [items[0], items[1], { ...items[2], kind: 'flight', firsts: pending } as LedgerItem],
-    rowMenu,
-  })
-  const glyph = screen.getByRole('img', {
-    name: 'First flight with Turkish Airlines (pending confirmation)',
-  })
-  expect(glyph).toBeInTheDocument()
+  const view = setup({ rowMenu })
   expect(screen.getAllByRole('button', { name: /^Actions: / })).toHaveLength(2)
 
   view.rerender(<JournalLedger {...view.props} rowMenu={rowMenu} hidden={new Set([1])} />)
@@ -268,7 +240,11 @@ it('mobile card swipes and the accessible menu invoke the same actions, and the 
   const confirm = vi.fn(),
     remove = vi.fn(),
     select = vi.fn()
-  const pending = { kind: 'flight' as const, flight: second, firsts: null, chain: null }
+  const pending = {
+    kind: 'flight' as const,
+    flight: { ...second, flight_number: '381' },
+    chain: null,
+  }
   setup({
     mobile: true,
     items: [pending],
@@ -282,6 +258,8 @@ it('mobile card swipes and the accessible menu invoke the same actions, and the 
       trailing: [{ label: 'Delete flight', icon: null, onSelect: remove }],
     }),
   })
+  const identity = screen.getByText('TK 381').parentElement!
+  expect(identity).toHaveTextContent('Mar 12, 2024')
   const actionButton = screen.getByRole('button', { name: /Actions:/ })
   await user.click(actionButton)
   await user.click(await screen.findByRole('menuitem', { name: 'I flew' }))

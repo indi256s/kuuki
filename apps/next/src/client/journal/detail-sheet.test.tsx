@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -118,6 +118,9 @@ function Page() {
       <button type="button" data-flight-row="1" onClick={() => store.openFlight(1)}>
         TBS to IST
       </button>
+      <button type="button" onClick={() => store.openFlight(2)}>
+        Open upcoming flight
+      </button>
       <JournalDetail ownerId="owner" locale="en" docked={docked} />
     </>
   )
@@ -165,60 +168,81 @@ afterEach(() => {
 })
 
 describe('Journal detail sheet', () => {
-  it.each([{ isComposing: true }, { keyCode: 229 }])(
-    'keeps IME confirmation in the field until a deliberate Enter saves (%j)',
-    async (composition) => {
-      const user = userEvent.setup()
-      mount([flight(1)])
-      const dialog = await screen.findByRole('dialog')
-      await user.click(
-        within(dialog).getByRole('button', { name: 'Change flight number, now TK381' }),
-      )
-      const input = await within(dialog).findByRole('textbox', { name: 'Flight number' })
-      fireEvent.keyDown(input, { key: 'Enter', ...composition })
-      expect(input).toBeInTheDocument()
-      fireEvent.change(input, { target: { value: 'TK382' } })
-      fireEvent.keyDown(input, { key: 'Enter', ...composition })
-      expect(api.patch).not.toHaveBeenCalled()
-      expect(input).toHaveValue('TK382')
-      fireEvent.keyDown(input, { key: 'Enter' })
-      await within(dialog).findByRole('button', { name: 'Change flight number, now TK382' })
-      expect(api.patch).toHaveBeenCalledTimes(1)
-    },
-  )
-
-  it('saves a field inline, confirms it in place, applies the server row and offers Undo inside the overlay that restores the server snapshot', async () => {
-    const user = userEvent.setup()
-    const base = flight(1)
-    mount([base])
+  it('reads as a journey: cities lead, local times with quiet offsets, the time between and one arrival fact', async () => {
+    mount([
+      flight(1),
+      flight(3, { date: '2023-01-02', origin: 'AMS', origin_country: 'NL' }),
+      flight(4, { date: '2025-01-02', lifecycle_state: 'upcoming', is_upcoming: true }),
+    ])
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(/^Istanbul, T/)).toBeInTheDocument()
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Change flight number, now TK381' }),
-    )
-    const input = await within(dialog).findByRole('textbox', { name: 'Flight number' })
-    expect(input).toHaveFocus()
-    await user.clear(input)
-    await user.type(input, 'TK382{Enter}')
+    expect(within(dialog).getByText('Tbilisi')).toHaveClass('jd-city')
+    expect(within(dialog).getByText('Istanbul')).toHaveClass('jd-city')
+    expect(within(dialog).getByText('05:10')).toBeInTheDocument()
+    expect(within(dialog).getByText('UTC+4')).toBeInTheDocument()
+    expect(within(dialog).getByText('UTC+3')).toBeInTheDocument()
+    expect(within(dialog).getByText('2 h 40 min in the air')).toBeInTheDocument()
+    // The upcoming flight does not count: this is the second logged arrival in Istanbul.
+    expect(within(dialog).getByText('2nd recorded arrival in Istanbul')).toBeInTheDocument()
+    expect(within(dialog).getByText('Turkish Airlines')).toBeInTheDocument()
+    expect(within(dialog).getByText('Airbus A321')).toBeInTheDocument()
+    expect(within(dialog).queryByText(/Firsts|In your journal|Added by you|Confirmed/)).toBeNull()
+    expect(within(dialog).queryByRole('link', { name: 'Open full editor' })).toBeNull()
+  })
+
+  it('omits unknown times and empty facts without prompting, and labels an awaiting flight without an arrival fact', async () => {
+    mount([
+      flight(1, {
+        lifecycle_state: 'awaiting',
+        departure_time: null,
+        arrival_time: null,
+        departure_utc: null,
+        arrival_utc: null,
+        aircraft_icao: null,
+        duration_source: 'estimate',
+      }),
+    ])
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Waiting for your confirmation')).toBeInTheDocument()
+    expect(within(dialog).getByText('About 2 h 40 min in the air')).toBeInTheDocument()
+    expect(within(dialog).queryByText(/^UTC/)).toBeNull()
+    expect(within(dialog).queryByText('Aircraft')).toBeNull()
+    expect(within(dialog).queryByText(/^Add /)).toBeNull()
+    expect(within(dialog).queryByText(/recorded arrival/)).toBeNull()
+  })
+
+  it('saves related changes together, returns to reading and offers Undo inside the overlay that restores the server snapshot', async () => {
+    const user = userEvent.setup()
+    mount([flight(1)])
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Edit flight' }))
+    const number = await within(dialog).findByRole('textbox', { name: 'Flight number' })
+    expect(within(dialog).getByRole('heading', { name: 'Edit flight' })).toHaveFocus()
+    await user.clear(number)
+    await user.type(number, 'TK382')
+    const departure = within(dialog).getByRole('textbox', { name: /^Departure time/ })
+    await user.clear(departure)
+    await user.type(departure, '05:20')
+    expect(api.patch).not.toHaveBeenCalled()
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
 
     await waitFor(() =>
-      expect(
-        within(dialog).getByRole('button', { name: 'Change flight number, now TK382' }),
-      ).toHaveFocus(),
+      expect(within(dialog).getByRole('button', { name: 'Edit flight' })).toHaveFocus(),
     )
-    expect(within(dialog).getByTestId('field-saved')).toBeInTheDocument()
-    expect(payloadNow().flights[0]).toMatchObject({ flight_number: 'TK382', origin_country: 'GE' })
+    expect(api.patch).toHaveBeenCalledTimes(1)
     const [path, body] = vi.mocked(api.patch).mock.calls[0]
     expect(path).toBe('/api/flights/1')
-    expect(body).toMatchObject({ flight_number: 'TK382' })
-    expect(Object.keys(body as object).filter((key) => key !== 'timezone')).toEqual([
-      'flight_number',
-      'offer_undo',
-    ])
+    expect(
+      Object.fromEntries(Object.entries(body as object).filter(([key]) => key !== 'timezone')),
+    ).toEqual({ departure_time: '05:20', flight_number: 'TK382', offer_undo: true })
+    expect(payloadNow().flights[0]).toMatchObject({
+      flight_number: 'TK382',
+      departure_time: '05:20',
+      origin_country: 'GE',
+    })
     await waitFor(() => expect(api.get).toHaveBeenCalled()) // background refresh
 
     // The overlay is modal, so its Undo lives inside it rather than in a toast behind the focus trap.
-    expect(within(dialog).getByText('Flight number saved')).toBeInTheDocument()
+    expect(within(dialog).getByText('Flight saved')).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Undo' }))
     await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(2))
     const [undoPath, undoBody] = vi.mocked(api.patch).mock.calls[1]
@@ -227,11 +251,7 @@ describe('Journal detail sheet', () => {
       Object.fromEntries(Object.entries(undoBody as object).filter(([key]) => key !== 'timezone')),
     ).toEqual({ undo_token: 'signed-snapshot' })
     expect(await screen.findByText('Change undone')).toBeInTheDocument()
-    await waitFor(() =>
-      expect(
-        within(dialog).getByRole('button', { name: 'Change flight number, now TK381' }),
-      ).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(within(dialog).getByText('05:10')).toBeInTheDocument())
   })
 
   it('offers Undo in a toast beside the docked pane, and refuses it when the flight changed again since', async () => {
@@ -239,21 +259,21 @@ describe('Journal detail sheet', () => {
     dock()
     mount([flight(1)], '')
     await user.click(screen.getByRole('button', { name: 'TBS to IST' }))
-    const dialog = await screen.findByRole('complementary', { name: 'Flight details' })
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Change flight number, now TK381' }),
-    )
-    await user.clear(await within(dialog).findByRole('textbox', { name: 'Flight number' }))
-    await user.type(within(dialog).getByRole('textbox', { name: 'Flight number' }), 'TK382{Enter}')
-    await within(dialog).findByRole('button', { name: 'Change flight number, now TK382' })
+    const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+    await user.click(within(pane).getByRole('button', { name: 'Edit flight' }))
+    const number = await within(pane).findByRole('textbox', { name: 'Flight number' })
+    await user.clear(number)
+    await user.type(number, 'TK382{Enter}')
+    await within(pane).findByRole('button', { name: 'Edit flight' })
     expect(screen.getByText('Flight number saved')).toBeInTheDocument()
     const firstUndo = screen.getByRole('button', { name: 'Undo' })
-    expect(dialog).not.toContainElement(firstUndo)
-    await user.click(within(dialog).getByRole('button', { name: /^Change aircraft/ }))
-    const aircraft = await within(dialog).findByRole('combobox', { name: 'Aircraft' })
+    expect(pane).not.toContainElement(firstUndo)
+    await user.click(within(pane).getByRole('button', { name: 'Edit flight' }))
+    const aircraft = await within(pane).findByRole('combobox', { name: 'Aircraft' })
     await user.clear(aircraft)
     await user.type(aircraft, 'A333')
-    await user.keyboard('{Enter}{Enter}') // the first Enter takes A333 from the list, the second saves
+    await user.keyboard('{Enter}') // takes A333 from the list
+    await user.click(within(pane).getByRole('button', { name: 'Save changes' }))
     await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(2))
     await user.click(firstUndo)
     expect(
@@ -262,31 +282,38 @@ describe('Journal detail sheet', () => {
     expect(api.patch).toHaveBeenCalledTimes(2)
   })
 
-  it('keeps the editor open with the server message when the change is rejected', async () => {
+  it('checks every changed field before sending, and keeps the form with the server message when the change is rejected', async () => {
     const user = userEvent.setup()
+    mount([flight(1)])
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Edit flight' }))
+    const departure = await within(dialog).findByRole('textbox', { name: /^Departure time/ })
+    await user.clear(departure)
+    await user.type(departure, '25:00')
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+    expect(await within(dialog).findByText('Use HH:MM, for example 14:30.')).toBeInTheDocument()
+    expect(departure).toHaveFocus()
+    expect(api.patch).not.toHaveBeenCalled()
+
     vi.mocked(api.patch).mockRejectedValueOnce(
       new ApiError(400, 'Invalid flight', 'INVALID_FLIGHT'),
     )
-    mount([flight(1)])
-    const dialog = await screen.findByRole('dialog')
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Change flight number, now TK381' }),
-    )
-    await user.type(
-      await within(dialog).findByRole('textbox', { name: 'Flight number' }),
-      '0{Enter}',
-    )
+    await user.clear(departure)
+    await user.type(departure, '05:20')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Flight number' }), '0')
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
     expect(
       await within(dialog).findByText('Check the flight details and try again.'),
     ).toBeInTheDocument()
     expect(within(dialog).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+    expect(departure).toHaveValue('05:20')
   })
 
   it('shows the consequence preview before an airport change is saved', async () => {
     const user = userEvent.setup()
     mount([flight(1)])
     const dialog = await screen.findByRole('dialog')
-    await user.click(within(dialog).getByRole('button', { name: /^Change from/ }))
+    await user.click(within(dialog).getByRole('button', { name: 'Edit flight' }))
     const input = await within(dialog).findByRole('combobox', { name: 'From' })
     await user.clear(input)
     await user.type(input, 'MUC')
@@ -298,15 +325,43 @@ describe('Journal detail sheet', () => {
     expect(api.patch).not.toHaveBeenCalled()
   })
 
-  it('makes every field read-only offline and points at the note', async () => {
+  it('leaves Edit on Escape without closing the overlay, and asks before Escape or Close discards changes', async () => {
+    const user = userEvent.setup()
+    mount([flight(1)])
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Edit flight' }))
+    await within(dialog).findByRole('textbox', { name: 'Flight number' })
+    await user.keyboard('{Escape}')
+    expect(within(dialog).getByRole('button', { name: 'Edit flight' })).toHaveFocus()
+    expect(screen.getByRole('dialog')).toBe(dialog)
+
+    await user.click(within(dialog).getByRole('button', { name: 'Edit flight' }))
+    await user.type(await within(dialog).findByRole('textbox', { name: 'Flight number' }), '0')
+    await user.keyboard('{Escape}')
+    const question = within(dialog).getByRole('alertdialog', {
+      name: 'Discard your changes to this flight?',
+    })
+    expect(within(question).getByRole('button', { name: 'Keep editing' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(within(dialog).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Close flight details' }))
+    expect(screen.getByRole('dialog')).toBe(dialog)
+    await user.click(within(dialog).getByRole('button', { name: 'Discard' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(api.patch).not.toHaveBeenCalled()
+    expect(payloadNow().flights[0].flight_number).toBe('TK381')
+  })
+
+  it('makes Edit unavailable offline and points at the note', async () => {
     setOnline(false)
     mount([flight(1)])
     const dialog = await screen.findByRole('dialog')
     const note = within(dialog).getByText('Offline. Connect to change flights.')
-    const trigger = within(dialog).getByRole('button', { name: 'Change flight number, now TK381' })
-    expect(trigger).toHaveAttribute('aria-disabled', 'true')
-    expect(trigger).toHaveAttribute('aria-describedby', note.id)
-    await userEvent.setup().click(trigger)
+    const edit = within(dialog).getByRole('button', { name: 'Edit flight' })
+    expect(edit).toHaveAttribute('aria-disabled', 'true')
+    expect(edit).toHaveAttribute('aria-describedby', expect.stringContaining(note.id))
+    await userEvent.setup().click(edit)
     expect(within(dialog).queryByRole('textbox')).toBeNull()
   })
 
@@ -358,6 +413,19 @@ describe('Journal detail sheet', () => {
       await user.keyboard('{Escape}')
     })
     await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+  })
+
+  it('returns focus to an upcoming flight opener outside the ledger after Escape', async () => {
+    const user = userEvent.setup()
+    dock()
+    mount([flight(1), flight(2, { is_upcoming: true, lifecycle_state: 'upcoming' })], '')
+    const opener = screen.getByRole('button', { name: 'Open upcoming flight' })
+    await user.click(opener)
+    const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+    expect(within(pane).getByRole('heading', { level: 2 })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull())
+    expect(opener).toHaveFocus()
   })
 
   it('returns focus to the originating row when the pane closes', async () => {

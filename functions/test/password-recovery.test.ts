@@ -3,7 +3,6 @@ import { createApiDatabase } from './harness'
 import { createUserWithProfile } from '../api/_lib/users'
 import * as users from '../api/_lib/users'
 import { verifyPassword, sha256Hex } from '../api/_lib/crypto'
-import { createSession } from '../api/_lib/session'
 import { requestPasswordRecovery, completePasswordRecovery } from '../api/_lib/passwordRecovery'
 import { requestPasswordReset } from '../api/auth/password-reset/request'
 import { completePasswordReset } from '../api/auth/password-reset/complete'
@@ -35,7 +34,7 @@ function env(db: D1Database) {
   } as Env
 }
 
-it('uses a one-use fragment token, changes both credential hashes, and revokes both session families', async () => {
+it('uses a one-use fragment token, changes both credential hashes, and revokes every session', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
     const user = await createUserWithProfile(
@@ -43,7 +42,6 @@ it('uses a one-use fragment token, changes both credential hashes, and revokes b
       { email: 'person@example.test', password: 'old-password' },
       SECRET,
     )
-    await createSession(db, user.id)
     await db
       .prepare(
         `INSERT INTO auth_sessions(id, expiresAt,token,createdAt,updatedAt,userId) VALUES('sid','2999-01-01','auth-token','2026-01-01','2026-01-01',?)`,
@@ -95,14 +93,6 @@ it('uses a one-use fragment token, changes both credential hashes, and revokes b
       (await verifyPassword('new-password-1', userHash, SECRET)) ||
         (await verifyPassword('new-password-2', userHash, SECRET)),
     ).toBe(true)
-    expect(
-      (
-        await db
-          .prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?')
-          .bind(user.id)
-          .first<{ n: number }>()
-      )?.n,
-    ).toBe(0)
     expect(
       (
         await db

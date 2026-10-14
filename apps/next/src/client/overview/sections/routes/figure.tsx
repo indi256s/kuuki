@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { passStack } from '../../iso/passes'
 import { useFigure, type FigureSize } from '../../iso/use-figure'
 import { IsoFigure } from '../../iso/iso-figure'
@@ -44,9 +44,11 @@ export function PassCardFigure({
   }>({ route, repeat: !!topRepeat, deal: 0, dealing: false, leaving: null })
   let deal = seen.deal
   if (seen.route !== route) {
+    // Under reduced motion passes.css runs no deal, so no animationend would ever clear one: a pick swaps the print like any change.
+    const dealt = picked && !matchMedia('(prefers-reduced-motion: reduce)').matches
     // A pick mid-deal keeps the running deal (same part, new print, same leaving pass) and lets it settle from where it is.
-    deal = !picked ? 0 : seen.dealing ? seen.deal : seen.deal === 1 ? 2 : 1
-    const leaving = !picked
+    deal = !dealt ? 0 : seen.dealing ? seen.deal : seen.deal === 1 ? 2 : 1
+    const leaving = !dealt
       ? null
       : seen.dealing
         ? seen.leaving
@@ -54,16 +56,21 @@ export function PassCardFigure({
     setSeen({ route, repeat: !!topRepeat, deal, dealing: deal !== 0, leaving })
   }
   const leaving = seen.dealing ? seen.leaving : null
+  const settle = () => setSeen((old) => ({ ...old, dealing: false, leaving: null }))
+  // Reduced motion switched on mid-deal removes the animation with no animationend; React has no prop for its cancel event.
+  const stack = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const node = stack.current
+    const cancel = () => setSeen((old) => ({ ...old, dealing: false, leaving: null }))
+    node?.addEventListener('animationcancel', cancel)
+    return () => node?.removeEventListener('animationcancel', cancel)
+  }, [])
   const figure = useMemo(
     () => passStack(share, route, k, topRepeat, leaving ?? undefined),
     [share, route, k, topRepeat, leaving],
   )
   return (
-    <div
-      className="ov3-passes"
-      data-deal={deal || undefined}
-      onAnimationEnd={() => setSeen((old) => ({ ...old, dealing: false, leaving: null }))}
-    >
+    <div className="ov3-passes" data-deal={deal || undefined} ref={stack} onAnimationEnd={settle}>
       <IsoFigure figure={figure} className="iso-passes" />
     </div>
   )

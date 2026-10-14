@@ -9,7 +9,7 @@ export const hhmm = (minute: number) => `${pad(Math.floor(minute / 60))}:${pad(m
  */
 export function departures(scope: OverviewScope) {
   const records = scope.records.status === 'ready' ? scope.records.value : null
-  const earliest = records?.earliestDeparture ?? null,
+  const earliest = scope.clock.status === 'ready' ? scope.clock.value.earliestDeparture : null,
     peak = scope.clock.status === 'ready' ? scope.clock.value.peakHour : null
   return {
     earliest,

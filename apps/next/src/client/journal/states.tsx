@@ -13,11 +13,9 @@ import './states.css'
 const copy = {
   en: {
     emptyTitle: 'Your journal is empty',
-    emptyDescription: 'Import your flights to start your logbook.',
     import: 'Import flights',
-    addByHand: 'or add one by hand',
+    addByHand: 'Add manually',
     noMatchesTitle: 'Nothing matches these filters',
-    noMatchesDescription: 'Remove a filter or search for something else.',
     clearFilters: 'Clear filters',
     refreshFailedTitle: 'Could not refresh the list',
     refreshFailedDescription: 'Showing the last loaded flights.',
@@ -27,11 +25,9 @@ const copy = {
   },
   ru: {
     emptyTitle: 'Журнал пока пуст',
-    emptyDescription: 'Импортируйте перелёты, чтобы начать журнал.',
     import: 'Импортировать перелёты',
-    addByHand: 'или добавьте вручную',
+    addByHand: 'Добавить вручную',
     noMatchesTitle: 'По этим фильтрам ничего не найдено',
-    noMatchesDescription: 'Уберите фильтр или измените запрос.',
     clearFilters: 'Сбросить фильтры',
     refreshFailedTitle: 'Не удалось обновить список',
     refreshFailedDescription: 'Показаны последние загруженные перелёты.',
@@ -47,7 +43,6 @@ export function EmptyJournal({ locale }: { locale: Locale }) {
   return (
     <EmptyState
       title={t.emptyTitle}
-      description={t.emptyDescription}
       action={
         <div className="journal-empty-actions">
           <Link className="ui-button" data-variant="primary" href="/import">
@@ -74,7 +69,6 @@ export function NoMatches({
   return (
     <EmptyState
       title={t.noMatchesTitle}
-      description={t.noMatchesDescription}
       action={
         <Button variant="secondary" onClick={onClearFilters}>
           {t.clearFilters}

@@ -353,20 +353,12 @@ it('an alias cannot become a fresh save when another flow settles its hold', asy
   expect((await saveManualRows('u1', [checked])).saved).toHaveLength(1)
 })
 
-it.each(['removed', 'replaced'])(
-  'an inline original retry keeps its captured key when its receipt is %s',
-  async (change) => {
-    post.mockRejectedValueOnce(new TypeError('Lost response'))
-    const row = newManualRow(values())
-    const lost = (await saveManualRows('u1', [row])).rows.get(row.key)!
-    if (change === 'removed') settleUnconfirmedSave('u1', row.operationId)
-    else {
-      const storageKey = `kuuki-flight-create-operation:u1:${row.operationId}`
-      const receipt = JSON.parse(localStorage.getItem(storageKey)!)
-      localStorage.setItem(storageKey, JSON.stringify({ ...receipt, key: crypto.randomUUID() }))
-    }
-    const retry = await saveManualRows('u1', [lost], new Set([row.key]))
-    expect(retry.failures.get(row.key)?.kind).toBe('settled')
-    expect(post).toHaveBeenCalledTimes(1)
-  },
-)
+it('an inline original retry keeps its captured key when its receipt is removed', async () => {
+  post.mockRejectedValueOnce(new TypeError('Lost response'))
+  const row = newManualRow(values())
+  const lost = (await saveManualRows('u1', [row])).rows.get(row.key)!
+  settleUnconfirmedSave('u1', row.operationId)
+  const retry = await saveManualRows('u1', [lost], new Set([row.key]))
+  expect(retry.failures.get(row.key)?.kind).toBe('settled')
+  expect(post).toHaveBeenCalledTimes(1)
+})

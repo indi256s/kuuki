@@ -121,31 +121,29 @@
     flex-direction: column;
   }
 }
-.journal-data input[type='checkbox'] {
+.journal-data input[type='checkbox']:not(.ui-checkbox-input) {
   accent-color: var(--accent);
   outline: 1px solid var(--control-border);
   outline-offset: -1px;
   border-radius: var(--radius-xs);
 }
-.journal-data input[type='checkbox']:focus-visible {
+.journal-data input[type='checkbox']:not(.ui-checkbox-input):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-label.connection-row,
-.connection-row label {
+.connection-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-height: 44px;
-}
-.connection-row {
-  display: block;
   padding: var(--space-4);
   background: var(--surface-inset);
   border-radius: var(--radius-sm);
 }
-.connection-row input {
-  margin-right: var(--space-2);
+.connection-row .ui-checkbox-label {
+  display: block;
+  min-height: 44px;
+  font-weight: 400;
 }
 
 .read-panel {

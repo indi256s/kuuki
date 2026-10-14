@@ -1,11 +1,13 @@
 'use client'
 
 import { Anchor } from '@radix-ui/react-popover'
+import { ChevronLeft, ChevronRight } from '@keyline-icons/react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { formatNumber } from '../../../lib/format'
 import { referenceLabels } from '../labels'
 import { useOverview } from '../store/overview-context'
 import { Button } from '../../ui/button'
+import { Checkbox } from '../../ui/checkbox'
 import { PopoverRoot, PopoverContent } from '../../ui/popover'
 import { Sheet } from '../../ui/sheet'
 import { periodDays } from '@kuuki/shared/overview/range'
@@ -219,7 +221,8 @@ export function FilterPanel({
               setBrowse(true)
             }}
           >
-            {locale === 'ru' ? 'Все фильтры ›' : 'Browse all facets ›'}
+            {locale === 'ru' ? 'Все фильтры' : 'All filters'}
+            <ChevronRight size={16} aria-hidden="true" />
           </Button>
         </>
       ) : facet ? (
@@ -232,16 +235,20 @@ export function FilterPanel({
               setCustom(false)
             }}
           >
-            {locale === 'ru' ? '‹ Все фильтры' : '‹ All facets'}
+            <ChevronLeft size={16} aria-hidden="true" />
+            {locale === 'ru' ? 'Все фильтры' : 'All filters'}
           </Button>
           <h3>{facetName(facet, locale)}</h3>
           {index
             .filter((option) => option.facet === facet)
             .map((option) => (
-              <label className="ov-filter-option" key={option.value}>
-                <input type="checkbox" checked={selected(option)} onChange={() => toggle(option)} />
-                {details(option)}
-              </label>
+              <Checkbox
+                className="ov-filter-option"
+                key={option.value}
+                label={details(option)}
+                checked={selected(option)}
+                onChange={() => toggle(option)}
+              />
             ))}
           {facet === 'period' ? (
             <>

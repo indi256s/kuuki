@@ -58,19 +58,6 @@ export function Section({ span }: { span: Span }) {
   const reading = rows.find((row) => row.id === r.reading) ?? null
 
   // The caption: the headline reads like a sentence about the whole tray, a pick about its own continent.
-  const holes = TOTAL - count
-  const dry =
-    holes === 0
-      ? copy(locale, 'Every socket is filled. Show-off.', 'Все гнёзда заняты. Есть чем хвастаться.')
-      : copy(
-          locale,
-          holes === 1
-            ? 'The tray still has a hole in it.'
-            : `The tray still has ${holes} holes in it.`,
-          holes === 1
-            ? 'В лотке осталась одна дырка.'
-            : `В лотке ещё ${holes} ${new Intl.PluralRules('ru').select(holes) === 'few' ? 'дырки' : 'дырок'}.`,
-        )
   const newest = byFlights(rows)
     .filter((row) => row.id !== headline && row.firstYear !== null)
     .reduce<(typeof rows)[number] | null>(
@@ -96,17 +83,12 @@ export function Section({ span }: { span: Span }) {
       ]
         .filter(Boolean)
         .join(' · ')
-        .concat('. ', dry)
     } else {
       value = number(locale, reading.flights)
       unit = flightsUnit(locale, reading.flights)
       caption =
         reading.flights === 0
-          ? copy(
-              locale,
-              `${name(reading.id)} · not flown. An empty socket, outlined so you can't pretend otherwise.`,
-              `${name(reading.id)} · не бывали. Пустое гнездо обведено, чтобы не делать вид, что всё в порядке.`,
-            )
+          ? copy(locale, `${name(reading.id)} · not flown`, `${name(reading.id)} · не бывали`)
           : reading.firstYear === null
             ? copy(
                 locale,
@@ -267,8 +249,8 @@ export function Section({ span }: { span: Span }) {
             <p className="ov3-sample">
               {copy(
                 locale,
-                'Crossings are estimated on the shortest arcs between airports; the actual route may have done something else entirely.',
-                'Пересечения рассчитаны по кратчайшим дугам между аэропортами; реальный маршрут мог вести себя как угодно.',
+                'Crossings estimated from shortest airport-to-airport arcs.',
+                'Пересечения оценены по кратчайшим дугам между аэропортами.',
               )}
             </p>
           </>
@@ -288,14 +270,10 @@ export function Section({ span }: { span: Span }) {
         line: below
           ? copy(
               locale,
-              `Continents need ${flights(locale, below.need)} with a known airport, and this filter leaves ${number(locale, below.have)}. The tray stays empty.`,
-              `Для континентов нужно ${flights(locale, below.need)} с известным аэропортом, а фильтр оставил ${number(locale, below.have)}. Лоток пуст.`,
+              `Flights with a known airport ${number(locale, below.have)} of ${number(locale, below.need)} required`,
+              `Перелётов с известным аэропортом ${number(locale, below.have)} из ${number(locale, below.need)} нужных`,
             )
-          : copy(
-              locale,
-              'This filter leaves no flight with an airport to place. The tray stays empty.',
-              'Фильтр не оставил перелётов с известным аэропортом. Лоток пуст.',
-            ),
+          : copy(locale, 'No flights with a known airport', 'Нет перелётов с известным аэропортом'),
         action: (
           <Button
             variant="secondary"

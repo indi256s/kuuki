@@ -28,29 +28,6 @@ export function CoverageNote({
     </p>
   )
 }
-// Dots up to 12 needed flights, a thin bar beyond. Decorative children; the meter role carries the value.
-export function UnlockMeter({ have, need, label }: { have: number; need: number; label: string }) {
-  if (!(need > 0)) return null
-  const value = Math.max(0, Math.min(have, need))
-  return (
-    <div
-      className="ov3-unlock"
-      role="meter"
-      aria-valuemin={0}
-      aria-valuemax={need}
-      aria-valuenow={value}
-      aria-label={label}
-    >
-      {need <= 12 ? (
-        Array.from({ length: need }, (_, index) => (
-          <i key={index} className={index < value ? 'on' : undefined} aria-hidden="true" />
-        ))
-      ) : (
-        <b style={{ inlineSize: `${(value / need) * 100}%` }} aria-hidden="true" />
-      )}
-    </div>
-  )
-}
 export const filterLabel = (locale: Locale) => copy(locale, 'Add filter', 'Добавить фильтр')
 
 export const types = (locale: Locale, value: number) =>
