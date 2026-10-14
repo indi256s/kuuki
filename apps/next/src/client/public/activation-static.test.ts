@@ -69,7 +69,7 @@ it('builds isolated HTML with the canonical dark/accent tokens, one same-origin 
   const theme = document.getElementById('activation-tokens')!.textContent!
   expect(theme).toMatch(/:root\[data-theme=['"]?dark['"]?\]/)
   expect(theme).toMatch(/:root\[data-theme=['"]?dark['"]?\]\[data-accent=['"]?asagi['"]?\]/)
-  expect(theme).toMatch(/--background:\s*#292827/)
+  expect(theme).toMatch(/--background:\s*#2e2e2e/)
   expect(document.querySelector('link')).toBeNull()
   expect(compiled).not.toContain('@font-face')
   expect(compiled).not.toMatch(/\burl\((?!#)/)

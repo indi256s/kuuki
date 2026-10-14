@@ -1,7 +1,7 @@
-// Palette v1 (Kuuki color system). Values are copied from the accepted proposal and are normative.
-// src/app/styles.css stays the single UI token source; this table feeds consumers that cannot read
-// CSS variables (PNG renderer, favicon, meta theme-color). apps/next/src/app/tokens.test.ts fails
-// when a resolved CSS token drifts from any value below.
+// Mirror of the shared roles in src/app/styles.css, whose values follow design-system/palette.json (the White Sheet
+// spec). styles.css stays the single UI token source; this table feeds consumers that cannot read CSS variables (PNG
+// renderer, favicon, meta theme-color). apps/next/src/app/tokens.test.ts fails when a resolved CSS token drifts from
+// any value below, and when styles.css drifts from palette.json.
 import type { MakerSlot } from '../../../data/src/aircraft-makers'
 
 export const MODES = ['light', 'dark'] as const
@@ -25,6 +25,10 @@ export type AccentTheme = {
   foreground: string
   tint: string
   text: string
+  /** The rest of a peak-vs-rest metric; independent of the heat ramp. */
+  markRest: string
+  /** The selected reading; equals `text`. */
+  markPeak: string
   comparison: readonly [string, string, string, string, string]
   heat: readonly [HeatStep, HeatStep, HeatStep, HeatStep]
   contour: string
@@ -45,16 +49,16 @@ export type RegionKey = (typeof REGION_KEYS)[number]
 
 export const SURFACES: Record<Mode, Surfaces> = {
   light: {
-    background: '#fbfaf8',
-    surface: '#ffffff',
-    inset: '#f2f0ed',
+    background: '#ffffff',
+    surface: '#fafafa',
+    inset: '#f2f2f2',
     text: '#302d2a',
     muted: '#66605b',
   },
   dark: {
-    background: '#292827',
-    surface: '#353331',
-    inset: '#403d3a',
+    background: '#2e2e2e',
+    surface: '#282828',
+    inset: '#232323',
     text: '#f1efeb',
     muted: '#c4beb7',
   },
@@ -63,16 +67,18 @@ export const SURFACES: Record<Mode, Surfaces> = {
 export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
   shu: {
     light: {
-      fill: '#c23417',
-      foreground: '#ffffff',
-      tint: '#f3edec',
-      text: '#a55140',
+      fill: '#ec684d',
+      foreground: '#202020',
+      tint: '#fff0ec',
+      text: '#ae4e3b',
+      markRest: '#8d8c89',
+      markPeak: '#ae4e3b',
       comparison: ['#864132', '#6b7542', '#386061', '#767ece', '#9a4e8f'],
       heat: [
-        { color: '#e8dad7', foreground: '#302d2a' },
-        { color: '#daafa6', foreground: '#302d2a' },
-        { color: '#c87b6a', foreground: '#000000' },
-        { color: '#a3503f', foreground: '#ffffff' },
+        { color: '#f5dfda', foreground: '#202020' },
+        { color: '#f1bcb0', foreground: '#202020' },
+        { color: '#cb7361', foreground: '#202020' },
+        { color: '#c82800', foreground: '#ffffff' },
       ],
       contour: '#886842',
     },
@@ -81,12 +87,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#292827',
       tint: '#4f3e3a',
       text: '#e2a193',
+      markRest: '#8d8c89',
+      markPeak: '#e2a193',
       comparison: ['#d6725d', '#a5b469', '#609fa1', '#bcc1e7', '#db8bce'],
       heat: [
-        { color: '#6a4d47', foreground: '#f1efeb' },
+        { color: '#6a4d47', foreground: '#ffffff' },
         { color: '#966257', foreground: '#ffffff' },
-        { color: '#c87b6a', foreground: '#000000' },
-        { color: '#e2a294', foreground: '#000000' },
+        { color: '#c87b6a', foreground: '#202020' },
+        { color: '#ffc2b4', foreground: '#202020' },
       ],
       contour: '#d1a168',
     },
@@ -97,12 +105,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#ffffff',
       tint: '#edeef3',
       text: '#5264b6',
-      comparison: ['#5567ba', '#c26287', '#846a42', '#508967', '#385f67'],
+      markRest: '#8d8c89',
+      markPeak: '#5264b6',
+      comparison: ['#3e4d9e', '#c26287', '#846a42', '#508967', '#385f67'],
       heat: [
-        { color: '#dadee8', foreground: '#302d2a' },
-        { color: '#b0b9d8', foreground: '#302d2a' },
-        { color: '#7d8ece', foreground: '#000000' },
-        { color: '#5465b1', foreground: '#ffffff' },
+        { color: '#dadee8', foreground: '#202020' },
+        { color: '#b0b9d8', foreground: '#202020' },
+        { color: '#7d8ece', foreground: '#202020' },
+        { color: '#404e98', foreground: '#ffffff' },
       ],
       contour: '#886842',
     },
@@ -111,12 +121,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#292827',
       tint: '#3d4250',
       text: '#a2b0df',
-      comparison: ['#99a8dd', '#e8b3c5', '#cba468', '#79cc9c', '#5f9daa'],
+      markRest: '#8d8c89',
+      markPeak: '#a2b0df',
+      comparison: ['#8695c8', '#e8b3c5', '#cba468', '#79cc9c', '#5f9daa'],
       heat: [
-        { color: '#4d546c', foreground: '#f1efeb' },
+        { color: '#4d546c', foreground: '#ffffff' },
         { color: '#636f9b', foreground: '#ffffff' },
-        { color: '#7d8ece', foreground: '#000000' },
-        { color: '#a5b2e0', foreground: '#000000' },
+        { color: '#7d8ece', foreground: '#202020' },
+        { color: '#c2d0ff', foreground: '#202020' },
       ],
       contour: '#d1a168',
     },
@@ -127,12 +139,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#ffffff',
       tint: '#eaf2e0',
       text: '#5f713f',
-      comparison: ['#647742', '#385f66', '#8677ce', '#c76174', '#6f5133'],
+      markRest: '#8d8c89',
+      markPeak: '#5f713f',
+      comparison: ['#495b26', '#385f66', '#8677ce', '#c76174', '#6f5133'],
       heat: [
-        { color: '#d8e3c7', foreground: '#302d2a' },
-        { color: '#b0c392', foreground: '#302d2a' },
-        { color: '#859c5e', foreground: '#000000' },
-        { color: '#617441', foreground: '#ffffff' },
+        { color: '#d8e3c7', foreground: '#202020' },
+        { color: '#b0c392', foreground: '#202020' },
+        { color: '#859c5e', foreground: '#202020' },
+        { color: '#495b28', foreground: '#ffffff' },
       ],
       contour: '#886842',
     },
@@ -141,12 +155,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#292827',
       tint: '#3f4537',
       text: '#9fbc6c',
-      comparison: ['#9bb769', '#5f9ea9', '#c3bfe7', '#e8b5bb', '#b78758'],
+      markRest: '#8d8c89',
+      markPeak: '#9fbc6c',
+      comparison: ['#85a053', '#5f9ea9', '#c3bfe7', '#e8b5bb', '#b78758'],
       heat: [
-        { color: '#515944', foreground: '#f1efeb' },
+        { color: '#515944', foreground: '#ffffff' },
         { color: '#6a7852', foreground: '#ffffff' },
-        { color: '#859c5e', foreground: '#000000' },
-        { color: '#a4c16f', foreground: '#000000' },
+        { color: '#859c5e', foreground: '#202020' },
+        { color: '#bedc89', foreground: '#202020' },
       ],
       contour: '#d1a168',
     },
@@ -157,12 +173,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#ffffff',
       tint: '#e5f1f2',
       text: '#437277',
-      comparison: ['#386064', '#7a6bc1', '#c76175', '#645733', '#477e49'],
+      markRest: '#8d8c89',
+      markPeak: '#437277',
+      comparison: ['#335b5f', '#7a6bc1', '#c76175', '#645733', '#477e49'],
       heat: [
-        { color: '#c7e5e8', foreground: '#302d2a' },
-        { color: '#90c6cc', foreground: '#302d2a' },
-        { color: '#649da4', foreground: '#000000' },
-        { color: '#45757a', foreground: '#ffffff' },
+        { color: '#c7e5e8', foreground: '#202020' },
+        { color: '#90c6cc', foreground: '#202020' },
+        { color: '#649da4', foreground: '#202020' },
+        { color: '#2b5b60', foreground: '#ffffff' },
       ],
       contour: '#886842',
     },
@@ -171,12 +189,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#292827',
       tint: '#394546',
       text: '#74bec6',
+      markRest: '#8d8c89',
+      markPeak: '#74bec6',
       comparison: ['#5f9ea5', '#b6b1e2', '#e8b5bb', '#a59059', '#74c076'],
       heat: [
-        { color: '#47595b', foreground: '#f1efeb' },
+        { color: '#47595b', foreground: '#ffffff' },
         { color: '#56797c', foreground: '#ffffff' },
-        { color: '#649da4', foreground: '#000000' },
-        { color: '#77c3cb', foreground: '#000000' },
+        { color: '#649da4', foreground: '#202020' },
+        { color: '#92dfe7', foreground: '#202020' },
       ],
       contour: '#d1a168',
     },
@@ -187,12 +207,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#ffffff',
       tint: '#f3edef',
       text: '#a64b72',
+      markRest: '#8d8c89',
+      markPeak: '#a64b72',
       comparison: ['#863a5b', '#75603a', '#50886b', '#3e6886', '#8d74cb'],
       heat: [
-        { color: '#e8d9de', foreground: '#302d2a' },
-        { color: '#daacbc', foreground: '#302d2a' },
-        { color: '#c37895', foreground: '#000000' },
-        { color: '#a04b6f', foreground: '#ffffff' },
+        { color: '#e8d9de', foreground: '#202020' },
+        { color: '#daacbc', foreground: '#202020' },
+        { color: '#c37895', foreground: '#202020' },
+        { color: '#89375b', foreground: '#ffffff' },
       ],
       contour: '#886842',
     },
@@ -201,12 +223,14 @@ export const THEMES: Record<AccentKey, Record<Mode, AccentTheme>> = {
       foreground: '#292827',
       tint: '#4e3d43',
       text: '#e29cb6',
+      markRest: '#8d8c89',
+      markPeak: '#e29cb6',
       comparison: ['#cf6e95', '#ba9960', '#7acca2', '#66a6d3', '#c7bde7'],
       heat: [
-        { color: '#684c56', foreground: '#f1efeb' },
+        { color: '#684c56', foreground: '#ffffff' },
         { color: '#936073', foreground: '#ffffff' },
-        { color: '#c37895', foreground: '#000000' },
-        { color: '#e29db7', foreground: '#000000' },
+        { color: '#c37895', foreground: '#202020' },
+        { color: '#ffbdd5', foreground: '#202020' },
       ],
       contour: '#d1a168',
     },
@@ -323,14 +347,14 @@ export type Neutrals = {
 
 export const NEUTRALS: Record<Mode, Neutrals> = {
   light: {
-    zero: '#f2f0ed',
+    zero: '#f2f2f2',
     missing: '#837b74',
     makerUnknown: '#7a726b',
     markGhost: '#978c7f',
     brandNeutral: '#8a8076',
   },
   dark: {
-    zero: '#403d3a',
+    zero: '#232323',
     missing: '#958b82',
     makerUnknown: '#a39a90',
     markGhost: '#897e70',

@@ -289,12 +289,12 @@ it.each(['shu', 'asagi'] as AccentKey[])(
         expect(response.status).toBe(200)
         const png = await readPng(response)
         const surfaces = SURFACES[mode]
-        const { comparison, heat } = THEMES[accent][mode]
+        const { markPeak, markRest } = THEMES[accent][mode]
         expectPixel(png, 0, 0, surfaces.background)
         expectPixel(png, 1199, 1499, surfaces.background)
-        expectPixel(png, ...BARS.peak, comparison[0])
-        // Every other hour is the live `--mark-rest`, heat level 3.
-        expectPixel(png, ...BARS.other, heat[2].color)
+        expectPixel(png, ...BARS.peak, markPeak)
+        // Every other hour is the live `--mark-rest`.
+        expectPixel(png, ...BARS.other, markRest)
         // An hour without flights draws no bar: its column is still the card background.
         expectPixel(png, ...BARS.empty, surfaces.background)
         // The figure rows are text in the snapshot's text color (glyph stems reach full coverage).
@@ -318,8 +318,8 @@ it('without a mode the card is light, in the owner accent; a missing accent fall
   const { db, dispose } = await clockAccount(null)
   try {
     const png = await readPng(await shareGet(db))
-    expectPixel(png, 0, 0, '#fbfaf8')
-    expectPixel(png, ...BARS.peak, THEMES.shu.light.comparison[0])
+    expectPixel(png, 0, 0, SURFACES.light.background)
+    expectPixel(png, ...BARS.peak, THEMES.shu.light.markPeak)
   } finally {
     await dispose()
   }
@@ -331,7 +331,7 @@ it('request parameters cannot supply an accent or a color', async () => {
     const query = '?mode=dark&accent=sakura&theme_color=sakura&color=%23ff0000&background=%23ff0000'
     const png = await readPng(await shareGet(db, query))
     expectPixel(png, 0, 0, SURFACES.dark.background)
-    expectPixel(png, ...BARS.peak, THEMES.asagi.dark.comparison[0])
+    expectPixel(png, ...BARS.peak, THEMES.asagi.dark.markPeak)
   } finally {
     await dispose()
   }

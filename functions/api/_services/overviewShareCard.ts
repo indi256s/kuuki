@@ -24,14 +24,14 @@ export function resolveShareAccent(stored: string | null | undefined): AccentKey
 /** The one color snapshot the card background, text and chart SVG all draw from. */
 export function shareCardSnapshot({ mode, accent }: ShareCardTheme) {
   const surfaces = SURFACES[mode]
-  const { comparison, heat } = THEMES[accent][mode]
+  const { markPeak, markRest } = THEMES[accent][mode]
   return {
     background: surfaces.background,
     text: surfaces.text,
     muted: surfaces.muted,
-    // Same roles as the Clock dial: the peak hour takes comparison slot 1, every other hour `--mark-rest` (heat level 3).
-    peak: comparison[0],
-    bar: heat[2].color,
+    // Same roles as the Clock dial: the peak hour takes `--mark-peak`, every other hour `--mark-rest`.
+    peak: markPeak,
+    bar: markRest,
   }
 }
 

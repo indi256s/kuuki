@@ -19,7 +19,7 @@ Move `apps/next` onto the White Sheet design system. The specification is the ve
 
 ## Waves
 
-Each wave has one owner and lands as its own commit. Waves 1 and 2 land together because `tokens.test.ts` fails while CSS and mirror disagree.
+Each wave has one owner and lands as its own commit. Waves 1 and 2 land together because `tokens.test.ts` fails while CSS and mirror disagree. Wave 6 joined them: the PNG card reads the mirror, so its test fails until it uses `markPeak`/`markRest`.
 
 | Wave | Owns                                                                                                                                                                                                        | Work                                                                                                                                                                                                                                                                                                 | Gate                                                                         |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |

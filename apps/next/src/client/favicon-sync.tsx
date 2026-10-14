@@ -6,7 +6,7 @@ import { resolveAccent, type Accent } from '../lib/theme-colors'
 
 // Hairline strokes of app/icon.svg, which the shared palette has no entry for.
 /* oxlint-disable kuuki/design-tokens -- the icon is a standalone image and cannot read CSS variables */
-const HAIRLINE: Record<Mode, string> = { light: '#dedad5', dark: '#554f4a' }
+const HAIRLINE: Record<Mode, string> = { light: '#e3e3e3', dark: '#454545' }
 /* oxlint-enable kuuki/design-tokens */
 const GLYPH =
   'M6.75 21.96V9.92H9.18V14.92H10.88L14.01 9.92H16.8L12.92 15.77L16.8 21.96H13.94L10.98 17.16H9.18V21.96ZM21.22 22.08Q19.25 22.08 18.18 21.07Q17.12 20.05 17.12 18.01V13H19.5V17.84Q19.5 18.46 19.68 18.92Q19.86 19.39 20.23 19.66Q20.61 19.94 21.22 19.94Q21.88 19.94 22.24 19.65Q22.6 19.36 22.73 18.87Q22.87 18.39 22.87 17.84V13H25.25V18.01Q25.25 20.14 24.19 21.11Q23.12 22.08 21.22 22.08Z'

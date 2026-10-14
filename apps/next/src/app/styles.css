@@ -50,14 +50,14 @@
   --tabbar-h: 56px;
   --z-tabbar: 30;
   --z-header: 20;
-  --background: #fbfaf8;
-  --surface: #fff;
-  --surface-inset: #f2f0ed;
+  --background: #ffffff;
+  --surface: #fafafa;
+  --surface-inset: #f2f2f2;
   --text: #302d2a;
   --text-muted: #66605b;
-  --hairline: #dedad5;
+  --hairline: #e3e3e3;
   --control-border: #837b74;
-  --danger-text: #a02442;
+  --danger-text: #ad0138;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -65,8 +65,8 @@
   --success-fill: #2a904b;
   --warning-text: #824c00;
   --warning-fill: #ae6700;
-  --danger-fill: #ca3056;
-  --info-text: #175d9b;
+  --danger-fill: #d8073f;
+  --info-text: #005b90;
   --info-fill: #2b7ec9;
   /* Journal status labels retain their named state alongside the color. */
   --journal-awaiting-tint: color-mix(in oklch, var(--warning-fill) 10%, var(--surface));
@@ -74,12 +74,12 @@
   --rank-gold: #775800;
   --rank-silver: #595e64;
   --rank-bronze: #8a4b24;
-  --surface-floating: var(--surface);
+  --surface-floating: #ffffff;
   --shadow-floating: 0 1px 2px rgb(0 0 0/8%), 0 8px 24px rgb(0 0 0/8%);
   /* The floating shadow as a filter, for a floating surface whose edge a mask cuts (the account menu's notches). */
   --filter-floating: drop-shadow(0 1px 2px rgb(0 0 0/8%)) drop-shadow(0 8px 24px rgb(0 0 0/8%));
   /* The selected cell's thumb in a menu tray: raised above --surface-inset in both themes. */
-  --surface-thumb: #fff;
+  --surface-thumb: #ffffff;
   --shadow-thumb: inset 0 0 0 1px rgb(0 0 0/7%), 0 1px 2px rgb(0 0 0/10%);
   --shadow-modal: 0 2px 4px rgb(0 0 0/10%), 0 16px 48px rgb(0 0 0/12%);
   --ring-floating: 0 0 0 0 transparent;
@@ -143,8 +143,8 @@
   --dur-horizon: 500ms;
   --font-sans: Commissioner, system-ui, sans-serif;
   --font-mono: 'Paper Mono', Commissioner, ui-monospace, monospace;
-  --accent-hover: color-mix(in oklch, var(--accent) 82%, var(--text));
-  --swatch-shu: #c23417;
+  --accent-hover: #ff8369;
+  --swatch-shu: #ec684d;
   --swatch-ai: #4e5ea2;
   --swatch-matcha: #59702a;
   --swatch-asagi: #0c747d;
@@ -155,9 +155,9 @@
   --mark-2: var(--cmp-2);
   --mark-3: var(--cmp-3);
   --mark-4: var(--cmp-4);
-  --mark-rest: var(--heat-3);
-  /* The peak of a peak-vs-rest metric (a stage chart's picked reading): comparison slot 1 in light, per Color v1. */
-  --mark-peak: var(--mark-1);
+  --mark-rest: #8d8c89;
+  /* The selected reading; equals accent-text; category-coloured charts never use it. */
+  --mark-peak: #ae4e3b;
   --mark-ghost: #978c7f;
   --brand-l-min: 0.4;
   --brand-l-max: 0.56;
@@ -173,38 +173,38 @@
   --kc-chart-4: var(--cmp-4);
   --kc-chart-5: var(--cmp-5);
   /* Iso-glow figures (Overview cards): faces, silhouette (--iso-line), interior creases (--iso-crease), glass and unlit segments. The accent glows; --iso-glow is its blurred copy's opacity; --iso-shadow is the contact shadow fill. */
-  --iso-top: var(--surface);
+  --iso-top: #fafafa;
   --iso-front: #f1eeea;
   --iso-side: #dcd7d1;
   --iso-line: #5f5954;
   --iso-crease: #a9a199;
   --iso-detail: #cfc8c1;
-  --iso-glass: var(--accent-tint);
-  --iso-ghost: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  --iso-glass: #fff0ec;
+  --iso-ghost: #f7e0db;
   /* Locked rung strokes in achievement ladder thumbnails (next and later rungs). */
   --iso-ghost-line: #a39a91;
   --iso-glow: 0.4;
   --iso-shadow: rgb(48 45 42 / 14%);
-  --accent: #c23417;
-  --accent-foreground: #ffffff;
-  --accent-text: #a55140;
-  --accent-on-tint: #a55140;
-  --accent-tint: #f3edec;
+  --accent: #ec684d;
+  --accent-foreground: #202020;
+  --accent-text: #ae4e3b;
+  --accent-on-tint: #ae4e3b;
+  --accent-tint: #fff0ec;
   /* The accent as it reads on ink (the light theme's dark gate signs): the dark theme's accent. */
   --accent-on-ink: #ea846f;
-  --focus: #c23417;
+  --focus: #ae4e3b;
   --cmp-1: #864132;
   --cmp-2: #6b7542;
   --cmp-3: #386061;
   --cmp-4: #767ece;
   --cmp-5: #9a4e8f;
-  --heat-1: #e8dad7;
-  --heat-2: #daafa6;
-  --heat-3: #c87b6a;
-  --heat-4: #a3503f;
-  --heat-1-text: #302d2a;
-  --heat-2-text: #302d2a;
-  --heat-3-text: #000000;
+  --heat-1: #f5dfda;
+  --heat-2: #f1bcb0;
+  --heat-3: #cb7361;
+  --heat-4: #c82800;
+  --heat-1-text: #202020;
+  --heat-2-text: #202020;
+  --heat-3-text: #202020;
   --heat-4-text: #ffffff;
   --heat-contour: #886842;
   --cat-maker-airbus: #568db2;
@@ -249,7 +249,7 @@
   --cat-region-oceania: #487a6d;
   --zero: var(--surface-inset);
   /* Loading placeholder fill: its own role, so it reads on both surface and floating sheets. */
-  --skeleton: var(--hairline);
+  --skeleton: #d1d1d1;
   --missing: #837b74;
   --brand-neutral: #8a8076;
   /* Passport stamp inks (lib/stamp-art/inks.ts, drift-tested): independent of the accent, 4.5:1 on --surface. */
@@ -261,6 +261,17 @@
   --stamp-ink-teal: #005f5f;
   --stamp-ink-umber: #794228;
   --stamp-ink-ochre-dark: #725600;
+  --danger-foreground: #ffffff;
+  --success-foreground: #000000;
+  --warning-foreground: #000000;
+  --info-foreground: #000000;
+  --selection-contour: #302d2a;
+  --selection-text: #302d2a;
+  --hover-surface: #f2f2f2;
+  --disabled-text: #66605b;
+  --disabled-surface: #f2f2f2;
+  --accent-hover-foreground: #202020;
+  --figure-live-fill: #ec684d;
 }
 :root[data-theme='dark'] {
   --stamp-ink-indigo: #a2bcff;
@@ -271,32 +282,32 @@
   --stamp-ink-teal: #72d0d0;
   --stamp-ink-umber: #daa28a;
   --stamp-ink-ochre-dark: #e0b771;
-  --background: #292827;
-  --surface: #353331;
-  --surface-inset: #403d3a;
+  --background: #2e2e2e;
+  --surface: #282828;
+  --surface-inset: #232323;
   --map-land: #55504b;
   --map-water: #333c40;
   --map-border: #80766d;
   --text: #f1efeb;
   --text-muted: #c4beb7;
-  --hairline: #554f4a;
+  --hairline: #454545;
   --control-border: #958b82;
-  --danger-text: #f0a7af;
+  --danger-text: #fd838e;
   --success-text: #76c788;
   --success-fill: #4eb068;
   --warning-text: #e1a263;
   --warning-fill: #cf8634;
-  --danger-fill: #f25776;
+  --danger-fill: #ff2f6c;
   --info-text: #73b6fa;
   --info-fill: #4c9deb;
   --rank-gold: #d5b36a;
   --rank-silver: #b2b8bf;
   --rank-bronze: #eca57d;
-  --surface-floating: #3c3a37;
+  --surface-floating: #3d3d3c;
   --shadow-floating: 0 0 0 0 transparent;
   /* Dark has no floating shadow; a tight light edge stands in for --ring-floating along the cut outline. */
   --filter-floating: drop-shadow(0 0 0.5px rgb(255 255 255/45%));
-  --surface-thumb: #4b4744;
+  --surface-thumb: #484848;
   --shadow-thumb: inset 0 0 0 1px rgb(255 255 255/9%), 0 1px 2px rgb(0 0 0/30%);
   --shadow-modal: 0 0 0 0 transparent;
   --ring-floating: 0 0 0 1px rgb(255 255 255/8%);
@@ -325,9 +336,8 @@
   --swatch-sakura: #e8a9c0;
   color-scheme: dark;
   --surface-highlight: rgb(255 255 255 / 5%);
-  --mark-rest: var(--heat-3);
-  /* Dark comparison-1 sits on heat-3's lightness, so the peak takes the next ramp step to stand apart from the rest. */
-  --mark-peak: var(--heat-4);
+  --mark-rest: #8d8c89;
+  --mark-peak: #e2a193;
   --mark-ghost: #897e70;
   --brand-l-min: 0.72;
   --brand-l-max: 0.86;
@@ -337,14 +347,14 @@
   --cat-alliance-skyteam: #a9bbd0;
   --heat-0: var(--surface-inset);
   --heat-0-text: var(--text);
-  --iso-top: #4b4844;
+  --iso-top: #282828;
   --iso-front: #393735;
   --iso-side: #292725;
   --iso-line: #a8a098;
   --iso-crease: #756f68;
   --iso-detail: #5f5954;
-  --iso-glass: #262423;
-  --iso-ghost: #45403c;
+  --iso-glass: #4f3e3a;
+  --iso-ghost: #4b3935;
   --iso-ghost-line: #897e70;
   --iso-glow: 0.75;
   --iso-shadow: rgb(0 0 0 / 35%);
@@ -362,11 +372,11 @@
   --heat-1: #6a4d47;
   --heat-2: #966257;
   --heat-3: #c87b6a;
-  --heat-4: #e2a294;
-  --heat-1-text: #f1efeb;
+  --heat-4: #ffc2b4;
+  --heat-1-text: #ffffff;
   --heat-2-text: #ffffff;
-  --heat-3-text: #000000;
-  --heat-4-text: #000000;
+  --heat-3-text: #202020;
+  --heat-4-text: #202020;
   --heat-contour: #d1a168;
   --cat-maker-airbus: #a2cae7;
   --cat-maker-boeing: #71bca5;
@@ -411,6 +421,20 @@
   --zero: var(--surface-inset);
   --missing: #958b82;
   --brand-neutral: #958b82;
+  --danger-foreground: #202020;
+  --success-foreground: #202020;
+  --warning-foreground: #202020;
+  --info-foreground: #202020;
+  --accent-hover-foreground: #292827;
+  --selection-contour: #f1efeb;
+  --selection-text: #f1efeb;
+  --hover-surface: #232323;
+  --disabled-text: #c4beb7;
+  --disabled-surface: #232323;
+  --skeleton: #585858;
+  --accent-on-ink: #ea846f;
+  --accent-hover: #ff9f8a;
+  --figure-live-fill: #ea846f;
 }
 :root[data-accent='ai'] {
   --accent: #4e5ea2;
@@ -420,7 +444,7 @@
   --accent-tint: #edeef3;
   --accent-on-ink: #acbbef;
   --focus: #4e5ea2;
-  --cmp-1: #5567ba;
+  --cmp-1: #3e4d9e;
   --cmp-2: #c26287;
   --cmp-3: #846a42;
   --cmp-4: #508967;
@@ -428,20 +452,23 @@
   --heat-1: #dadee8;
   --heat-2: #b0b9d8;
   --heat-3: #7d8ece;
-  --heat-4: #5465b1;
-  --heat-1-text: #302d2a;
-  --heat-2-text: #302d2a;
-  --heat-3-text: #000000;
-  --heat-4-text: #ffffff;
+  --heat-4: #404e98;
+  --mark-peak: #5264b6;
+  --accent-hover: #3b498b;
+  --accent-hover-foreground: #ffffff;
+  --iso-glass: #edeef3;
+  --iso-ghost: #dbdeea;
+  --figure-live-fill: #4e5ea2;
 }
 :root[data-theme='dark'][data-accent='ai'] {
-  --accent: #acbbef;
   --accent-foreground: #292827;
+  --accent-hover-foreground: #292827;
+  --accent: #acbbef;
   --accent-text: #a2b0df;
   --accent-on-tint: #a2b0df;
   --accent-tint: #3d4250;
   --focus: #acbbef;
-  --cmp-1: #99a8dd;
+  --cmp-1: #8695c8;
   --cmp-2: #e8b3c5;
   --cmp-3: #cba468;
   --cmp-4: #79cc9c;
@@ -449,11 +476,13 @@
   --heat-1: #4d546c;
   --heat-2: #636f9b;
   --heat-3: #7d8ece;
-  --heat-4: #a5b2e0;
-  --heat-1-text: #f1efeb;
-  --heat-2-text: #ffffff;
-  --heat-3-text: #000000;
-  --heat-4-text: #000000;
+  --heat-4: #c2d0ff;
+  --accent-on-ink: #acbbef;
+  --mark-peak: #a2b0df;
+  --accent-hover: #cad6ff;
+  --iso-glass: #3d4250;
+  --iso-ghost: #40424c;
+  --figure-live-fill: #acbbef;
 }
 :root[data-accent='matcha'] {
   --accent: #59702a;
@@ -463,7 +492,7 @@
   --accent-tint: #eaf2e0;
   --accent-on-ink: #b7ce92;
   --focus: #59702a;
-  --cmp-1: #647742;
+  --cmp-1: #495b26;
   --cmp-2: #385f66;
   --cmp-3: #8677ce;
   --cmp-4: #c76174;
@@ -471,20 +500,23 @@
   --heat-1: #d8e3c7;
   --heat-2: #b0c392;
   --heat-3: #859c5e;
-  --heat-4: #617441;
-  --heat-1-text: #302d2a;
-  --heat-2-text: #302d2a;
-  --heat-3-text: #000000;
-  --heat-4-text: #ffffff;
+  --heat-4: #495b28;
+  --mark-peak: #5f713f;
+  --accent-hover: #465c13;
+  --accent-hover-foreground: #ffffff;
+  --iso-glass: #eaf2e0;
+  --iso-ghost: #dde1d5;
+  --figure-live-fill: #59702a;
 }
 :root[data-theme='dark'][data-accent='matcha'] {
-  --accent: #b7ce92;
   --accent-foreground: #292827;
+  --accent-hover-foreground: #292827;
+  --accent: #b7ce92;
   --accent-text: #9fbc6c;
   --accent-on-tint: #9fbc6c;
   --accent-tint: #3f4537;
   --focus: #b7ce92;
-  --cmp-1: #9bb769;
+  --cmp-1: #85a053;
   --cmp-2: #5f9ea9;
   --cmp-3: #c3bfe7;
   --cmp-4: #e8b5bb;
@@ -492,11 +524,13 @@
   --heat-1: #515944;
   --heat-2: #6a7852;
   --heat-3: #859c5e;
-  --heat-4: #a4c16f;
-  --heat-1-text: #f1efeb;
-  --heat-2-text: #ffffff;
-  --heat-3-text: #000000;
-  --heat-4-text: #000000;
+  --heat-4: #bedc89;
+  --accent-on-ink: #b7ce92;
+  --mark-peak: #9fbc6c;
+  --accent-hover: #d5edb0;
+  --iso-glass: #3f4537;
+  --iso-ghost: #42463b;
+  --figure-live-fill: #b7ce92;
 }
 :root[data-accent='asagi'] {
   --accent: #0c747d;
@@ -506,7 +540,7 @@
   --accent-tint: #e5f1f2;
   --accent-on-ink: #85cfd8;
   --focus: #0c747d;
-  --cmp-1: #386064;
+  --cmp-1: #335b5f;
   --cmp-2: #7a6bc1;
   --cmp-3: #c76175;
   --cmp-4: #645733;
@@ -514,15 +548,18 @@
   --heat-1: #c7e5e8;
   --heat-2: #90c6cc;
   --heat-3: #649da4;
-  --heat-4: #45757a;
-  --heat-1-text: #302d2a;
-  --heat-2-text: #302d2a;
-  --heat-3-text: #000000;
-  --heat-4-text: #ffffff;
+  --heat-4: #2b5b60;
+  --mark-peak: #437277;
+  --accent-hover: #005f67;
+  --accent-hover-foreground: #ffffff;
+  --iso-glass: #e5f1f2;
+  --iso-ghost: #cfe2e3;
+  --figure-live-fill: #0c747d;
 }
 :root[data-theme='dark'][data-accent='asagi'] {
-  --accent: #85cfd8;
   --accent-foreground: #292827;
+  --accent-hover-foreground: #292827;
+  --accent: #85cfd8;
   --accent-text: #74bec6;
   --accent-on-tint: #74bec6;
   --accent-tint: #394546;
@@ -535,11 +572,13 @@
   --heat-1: #47595b;
   --heat-2: #56797c;
   --heat-3: #649da4;
-  --heat-4: #77c3cb;
-  --heat-1-text: #f1efeb;
-  --heat-2-text: #ffffff;
-  --heat-3-text: #000000;
-  --heat-4-text: #000000;
+  --heat-4: #92dfe7;
+  --accent-on-ink: #85cfd8;
+  --mark-peak: #74bec6;
+  --accent-hover: #a2edf6;
+  --iso-glass: #394546;
+  --iso-ghost: #394648;
+  --figure-live-fill: #85cfd8;
 }
 :root[data-accent='sakura'] {
   --accent: #964969;
@@ -557,15 +596,18 @@
   --heat-1: #e8d9de;
   --heat-2: #daacbc;
   --heat-3: #c37895;
-  --heat-4: #a04b6f;
-  --heat-1-text: #302d2a;
-  --heat-2-text: #302d2a;
-  --heat-3-text: #000000;
-  --heat-4-text: #ffffff;
+  --heat-4: #89375b;
+  --mark-peak: #a64b72;
+  --accent-hover: #7f3455;
+  --accent-hover-foreground: #ffffff;
+  --iso-glass: #f3edef;
+  --iso-ghost: #e8dae0;
+  --figure-live-fill: #964969;
 }
 :root[data-theme='dark'][data-accent='sakura'] {
-  --accent: #e8a9c0;
   --accent-foreground: #292827;
+  --accent-hover-foreground: #292827;
+  --accent: #e8a9c0;
   --accent-text: #e29cb6;
   --accent-on-tint: #e29cb6;
   --accent-tint: #4e3d43;
@@ -578,11 +620,13 @@
   --heat-1: #684c56;
   --heat-2: #936073;
   --heat-3: #c37895;
-  --heat-4: #e29db7;
-  --heat-1-text: #f1efeb;
-  --heat-2-text: #ffffff;
-  --heat-3-text: #000000;
-  --heat-4-text: #000000;
+  --heat-4: #ffbdd5;
+  --accent-on-ink: #e8a9c0;
+  --mark-peak: #e29cb6;
+  --accent-hover: #ffc7db;
+  --iso-glass: #4e3d43;
+  --iso-ghost: #4b3f43;
+  --figure-live-fill: #e8a9c0;
 }
 * {
   box-sizing: border-box;

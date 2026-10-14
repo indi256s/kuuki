@@ -89,6 +89,28 @@ const surfacesOf = (decls: Decls) => ({
   inset: hexOf(decls, '--surface-inset'),
 })
 
+// --- CSS equals the design-system spec ----------------------------------------------------------
+
+type PaletteSpec = { themes: Record<string, Record<string, string>> }
+const spec = JSON.parse(
+  readFileSync(
+    fileURLToPath(new URL('../../../../design-system/palette.json', import.meta.url)),
+    'utf8',
+  ),
+) as PaletteSpec
+
+describe.each(combos)('$mode / $accent against design-system/palette.json', ({ mode, accent }) => {
+  it('resolves every spec role to the spec value', () => {
+    const decls = cascade(mode, accent)
+    const theme = spec.themes[`${mode}-${accent}`]
+    expect(Object.keys(theme).length).toBeGreaterThan(0)
+    const drift = Object.entries(theme)
+      .map(([role, value]) => [role, value.toLowerCase(), hexOf(decls, `--${role}`)] as const)
+      .filter(([, expected, actual]) => expected !== actual)
+    expect(drift).toEqual([])
+  })
+})
+
 // --- CSS equals the shared table ---------------------------------------------------------------
 
 describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
@@ -102,7 +124,6 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     expect(hex('--accent-text')).toBe(theme.text)
     expect(hex('--accent-on-tint')).toBe(theme.text)
     expect(hex('--accent-tint')).toBe(theme.tint)
-    expect(hex('--focus')).toBe(theme.fill)
     expect(hex('--heat-contour')).toBe(theme.contour)
     expect(hex(`--swatch-${accent}`)).toBe(theme.fill)
     theme.comparison.forEach((color, index) => {
@@ -119,14 +140,14 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     )
   })
 
-  it('draws the rest of a peak-vs-rest metric in the accent ramp, readable on the surface', () => {
-    expect(hex('--mark-rest')).toBe(hex('--heat-3'))
-    expect(hex('--mark-rest')).toBe(theme.heat[2].color)
+  it('draws the rest of a peak-vs-rest metric readable on the surface, apart from the selection', () => {
+    expect(hex('--mark-rest')).toBe(theme.markRest)
     expect(
       ratio(hex('--mark-rest'), hex('--surface')),
       '--mark-rest on surface',
     ).toBeGreaterThanOrEqual(3)
-    expect(hex('--mark-peak')).toBe(mode === 'dark' ? theme.heat[3].color : theme.comparison[0])
+    expect(hex('--mark-peak')).toBe(hex('--accent-text'))
+    expect(hex('--mark-peak')).toBe(theme.markPeak)
     expect(
       ratio(hex('--mark-peak'), hex('--mark-rest')),
       'peak against rest',
