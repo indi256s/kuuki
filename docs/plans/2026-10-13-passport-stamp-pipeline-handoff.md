@@ -3,7 +3,7 @@
 Plan: [2026-10-13-passport-stamp-pipeline.md](2026-10-13-passport-stamp-pipeline.md).
 Owning checkout: `/Users/indi256/.t3/worktrees/kuuki/feat-passport-stamps`, branch `feat/passport-stamps`.
 Final source candidate: `479b5ebc436f693e0bfabe957517ce7e36b4b626`; initial art/review candidate `fcf07d6a0145214eb0581d6368fe9a120dd13159`. Review base: `f3b47eda3b14e97f192d6970b9d35b97e3dc33ee` (merge-base with main).
-Not pushed, landed or deployed. Passport, country-sheet and import integration remain outside this branch's scope.
+Local main integration authorized by the owner on 2026-10-14. Containing merge: `3dd0df80`, including current main `4f9ef904` and the stamp pipeline. Transfer uses fast-forward and preserves unrelated staged, unstaged and untracked work. No push or deployment; Passport, country-sheet and import integration remain outside this branch's scope.
 
 ## Delivered source
 
@@ -25,6 +25,8 @@ Not pushed, landed or deployed. Passport, country-sheet and import integration r
 - Full navigation/Playwright suite: intentionally skipped per owner instruction on 2026-10-14 ("можно не проверять полные сценарии и бразуреные тесты"). Focused browser checks had already completed; no further browser suite was run.
 - Independent final review: completed once on codex / gpt-6.1-sol / low. Three P2 findings confirmed: concurrent owner mark saves can lose updates, clean replay dries its only layer to zero, and the dev sheet can show stale committed SVG with current recipe lint. All three fixed in `479b5ebc`: server/client write queues and atomic JSON publication; drying scoped to worn layers; live server-rendered art/metadata/rings. Four focused regressions (server concurrency, client blur/mark ordering, clean-layer motion, live preview) failed against the original code and pass after fixes. Final full gate: exit 0. Primary inspected the entire fixes diff, tested live preview and replay in the browser, and confirmed owner review.json unchanged. No second independent review was run. Report `/tmp/stamps-final-code-review.md`. Reviewer read engine/component/dev routes in detail and structurally audited the kit inventory; did not read every one of the 24,534 kit lines or verify every landmark photograph. Primary read each final worker diff and inspected the full sheet.
 - Primary inspected all 246 worn 96px sheet drawings in light/dark and representative 160px pages. Focused agent-browser checks: 246 cards and hosts, no missing masks, Rest stays tilted on card hover, compare Replay reaches both copies, reduced motion removes tilt/scale and uses the base opacity fade, no console errors. Owner review marks were not changed by these checks. After review fixes, a temporary AR recipe mutation changed the live SVG hash, shape and ink without generation; restoration returned AR to octagon/oxblood and left assets untouched. The clean copy retained opacity 1 during both normal and reduced-motion replay, with the latter using `cs-fade-in` at 0.2s and rotate/scale none. All 30 worst-case samples have rings; a fresh browser session has zero errors.
+
+- Local main integration checks after merge `57de9a66`: Next typecheck, `check:stamps` (246 countries), and focused stamp tests (10 files / 25 tests) passed. Latest main `4f9ef904` was then merged without conflicts; final integration typecheck passed on `3dd0df80` (log `/tmp/stamps-latest-main-typecheck.log`). No further full navigation or browser suite was run.
 
 ## Motifs and remaining judgement
 
@@ -90,4 +92,4 @@ Countries outside these clusters keep their explicit or hashed ink. The six refe
 
 ## Ready for the owner
 
-W1–W4 source work is complete. The pipeline and 246-country contact sheet are ready, with the final local gate green and all confirmed review findings fixed. Tracked source is clean; only this final handoff is added in the documentation commit, and checkout-local scratch evidence is retained. No further implementation blocker remains. Future owner art notes can be entered on `/dev/stamps`; no push, deployment, landing or Passport/import integration was performed.
+W1–W4 source work is complete. The pipeline and 246-country contact sheet are ready, with the final local gate green and all confirmed review findings fixed. The feature checkout retains local scratch evidence. Main retains the parallel work in its working tree and index. No further implementation blocker remains. Future owner art notes can be entered on `/dev/stamps`; local main landing is authorized and contains merge `3dd0df80`; no push, deployment or Passport/import integration was performed.
