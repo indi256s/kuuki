@@ -1,4 +1,5 @@
 import type { KitModule } from '../kit'
+import { albatross } from './albatross'
 import { kalaeFinial } from './kalae-finial'
 import { kotorWalls } from './kotor-walls'
 import { latticeTower } from './lattice-tower'
@@ -6,6 +7,7 @@ import { plume } from './plume'
 import { quadriga } from './quadriga'
 import { seaplane } from './seaplane'
 import { stela } from './stela'
+import { stickChart } from './stick-chart'
 
 /** One-off country parts by recipe name. */
 export const signatures = {
@@ -16,6 +18,8 @@ export const signatures = {
   plume,
   stela,
   seaplane,
+  albatross,
+  'stick-chart': stickChart,
 } satisfies Record<string, KitModule>
 
 export type SignatureName = keyof typeof signatures

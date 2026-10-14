@@ -137,11 +137,13 @@ import md from './md.json'
 import me from './me.json'
 import mf from './mf.json'
 import mg from './mg.json'
+import mh from './mh.json'
 import mk from './mk.json'
 import ml from './ml.json'
 import mm from './mm.json'
 import mn from './mn.json'
 import mo from './mo.json'
+import mp from './mp.json'
 import mq from './mq.json'
 import mr from './mr.json'
 import ms from './ms.json'
@@ -161,6 +163,7 @@ import ni from './ni.json'
 import nl from './nl.json'
 import no from './no.json'
 import np from './np.json'
+import nr from './nr.json'
 import nu from './nu.json'
 import nz from './nz.json'
 import om from './om.json'
@@ -175,6 +178,8 @@ import pm from './pm.json'
 import pn from './pn.json'
 import pr from './pr.json'
 import ps from './ps.json'
+import pt from './pt.json'
+import pw from './pw.json'
 import py from './py.json'
 import qa from './qa.json'
 import re from './re.json'
@@ -221,6 +226,7 @@ import tw from './tw.json'
 import tz from './tz.json'
 import ua from './ua.json'
 import ug from './ug.json'
+import um from './um.json'
 import us from './us.json'
 import uy from './uy.json'
 import uz from './uz.json'
@@ -380,11 +386,13 @@ export const RECIPE_FILES: Record<string, unknown> = {
   me,
   mf,
   mg,
+  mh,
   mk,
   ml,
   mm,
   mn,
   mo,
+  mp,
   mq,
   mr,
   ms,
@@ -404,6 +412,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   nl,
   no,
   np,
+  nr,
   nu,
   nz,
   om,
@@ -418,6 +427,8 @@ export const RECIPE_FILES: Record<string, unknown> = {
   pn,
   pr,
   ps,
+  pt,
+  pw,
   py,
   qa,
   re,
@@ -464,6 +475,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tz,
   ua,
   ug,
+  um,
   us,
   uy,
   uz,

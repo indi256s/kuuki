@@ -1,0 +1,45 @@
+{
+  "iso2": "MP",
+  "tier": "engraved",
+  "horizon": 0.56,
+  "cluster": "atoll",
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.8],
+        "weight": "hair",
+        "clouds": [46, 52, 30, 140, 58, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "managaha",
+      "box": [44, 108, 112, 50],
+      "params": {
+        "seed": 6
+      }
+    },
+    {
+      "module": "island-b",
+      "box": [72, 92, 56, 44],
+      "params": {
+        "hump": 0.2,
+        "seed": 8,
+        "palms": [
+          [0.28, 40, -0.2],
+          [0.58, 50, 0.12],
+          [0.86, 30, 0.3]
+        ]
+      }
+    }
+  ]
+}

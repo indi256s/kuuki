@@ -1,0 +1,27 @@
+{
+  "iso2": "UM",
+  "tier": "engraved",
+  "horizon": 0.78,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 4], "weight": "hair", "clouds": [44, 112, 30, 150, 96, 26] }
+    },
+    { "module": "ground", "params": { "water": true, "line": false } }
+  ],
+  "layers": [
+    {
+      "module": "island-b",
+      "box": [52, 122, 96, 20],
+      "params": {
+        "hump": 0.2,
+        "seed": 5,
+        "palms": [
+          [0.3, 26, -0.18],
+          [0.72, 20, 0.2]
+        ]
+      }
+    }
+  ],
+  "signature": [{ "part": "albatross", "box": [28, 54, 144, 56], "params": { "droop": 0.3 } }]
+}
