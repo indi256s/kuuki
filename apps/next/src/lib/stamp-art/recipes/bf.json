@@ -1,0 +1,39 @@
+{
+  "iso2": "BF",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 60, 34, 150, 54, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 7,
+        "amp": 2.2,
+        "seed": 2,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "ruin-wall",
+      "box": [26, 56, 146, 70],
+      "params": {}
+    }
+  ]
+}

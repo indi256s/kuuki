@@ -1,0 +1,51 @@
+{
+  "iso2": "CI",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 60, 34, 150, 54, 28],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2.2,
+        "seed": 6,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "veranda",
+      "box": [34, 72, 96, 54],
+      "params": {
+        "bays": 5
+      }
+    },
+    {
+      "module": "palm",
+      "box": [122, 58, 40, 68],
+      "params": {
+        "lean": 0.18,
+        "frond": 0.6,
+        "fronds": 9
+      }
+    }
+  ]
+}

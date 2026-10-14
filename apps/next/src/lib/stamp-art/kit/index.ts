@@ -33,6 +33,12 @@ import { boatsC } from './boats-c'
 import { hillTown } from './hill-town'
 import { castle } from './castle'
 import { windmill } from './windmill'
+import { ganvie } from './ganvie'
+import { islandB } from './island-b'
+import { kolmanskop } from './kolmanskop'
+import { ruinWall } from './ruin-wall'
+import { standingStonesB } from './standing-stones-b'
+import { veranda } from './veranda'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -96,6 +102,12 @@ export const kit = {
   'hill-town': hillTown,
   castle,
   windmill,
+  ganvie,
+  'island-b': islandB,
+  kolmanskop,
+  'ruin-wall': ruinWall,
+  'standing-stones-b': standingStonesB,
+  veranda,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

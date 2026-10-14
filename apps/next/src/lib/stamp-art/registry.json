@@ -329,7 +329,7 @@
     "motif": "Ruins of Loropéni",
     "kind": "ruin",
     "silhouette": "tall rectangular stone walls, broken uneven top, no roof, a gate-arch in the lower centre. Symmetric rectangle",
-    "modules": ["fortress-wall", "flat-parapet", "gate-arch"],
+    "modules": ["ruin-wall", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -337,7 +337,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Round 2: Laterite wall with broken crown, doorway and rubble."
   },
   {
     "iso2": "BG",
@@ -397,7 +397,7 @@
     "motif": "Ganvie stilt village",
     "kind": "architecture",
     "silhouette": "a low row of pitched roofs above water on tall posts; the roofs are the top band, the posts and water the bottom",
-    "modules": ["thatched", "water", "stilts", "platform"],
+    "modules": ["ganvie"],
     "signature": null,
     "backdrop": null,
     "cluster": "stilts",
@@ -405,7 +405,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: thatched pitched huts on posts with a dugout canoe"
+    "notes": "part: thatched pitched huts on posts with a dugout canoe. Round 2: Thatched huts on posts and a dugout canoe; replaces the Thai stilt-house module to avoid the TH collision."
   },
   {
     "iso2": "BL",
@@ -533,7 +533,7 @@
     "motif": "Okavango Delta",
     "kind": "nature",
     "silhouette": "a flat horizon band of water with clumps of palms on low islands. Horizontal and asymmetric",
-    "modules": ["water", "island", "palm"],
+    "modules": ["island-b", "palm", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -541,7 +541,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Round 2: Two low palm islands on flat water."
   },
   {
     "iso2": "BY",
@@ -686,7 +686,7 @@
     "motif": "Grand-Bassam colonial verandas on the lagoon",
     "kind": "architecture",
     "silhouette": "Low row of colonial houses with deep arcaded verandas on slim posts, flat parapets and shuttered windows, lagoon in front, palms between",
-    "modules": ["colonnade", "window-grid", "flat-parapet", "palm", "water"],
+    "modules": ["veranda", "palm", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -694,7 +694,7 @@
     "replaced": "Basilica of Our Lady of Peace: basilica (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Promoted research alternate. Round 2: Grand-Bassam veranda house with arcade, hipped roof and palm."
   },
   {
     "iso2": "CK",
@@ -822,7 +822,7 @@
     "motif": "Mount Fogo, Fogo island",
     "kind": "nature",
     "silhouette": "one symmetric conical peak on a low island, water in front. Single centred shape",
-    "modules": ["volcano", "island", "water"],
+    "modules": ["volcano", "distance-mountains", "bay-city", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "volcano",
@@ -830,7 +830,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: cone rising inside a ring-shaped caldera wall"
+    "notes": "part: cone rising inside a ring-shaped caldera wall. Round 2: Truncated Fogo cone inside caldera shoulders, small port town at its foot."
   },
   {
     "iso2": "CW",
@@ -1332,7 +1332,7 @@
     "motif": "Black Star Gate",
     "kind": "architecture",
     "silhouette": "a large central gate, a flat-topped arch frame with a plain finial on the crown, a wide flat square below; symmetric",
-    "modules": ["triumphal-arch", "steps", "platform"],
+    "modules": ["triumphal-arch", "steps"],
     "signature": null,
     "backdrop": null,
     "cluster": "triumphal-arch",
@@ -1340,7 +1340,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: single wide arch on a stepped square. Star finial dropped (flag-adjacent, rule 7)."
+    "notes": "part: single wide arch on a stepped square. Star finial dropped (flag-adjacent, rule 7).. Round 2: Black Star Gate as a plain flat-topped gate on steps; star finial dropped."
   },
   {
     "iso2": "GI",
@@ -1383,7 +1383,7 @@
     "motif": "Wassu Stone Circles",
     "kind": "ruin",
     "silhouette": "ring of tall squared pillars of uneven height on a flat plain, a circle of stones seen from the front as a row of upright stones with a flat horizon",
-    "modules": ["platform"],
+    "modules": ["standing-stones-b"],
     "signature": "new:standing-stones – row of tall squared pillars, uneven heights",
     "backdrop": null,
     "cluster": "megalith",
@@ -1391,7 +1391,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: ring of tall uneven pillars"
+    "notes": "part: ring of tall uneven pillars. Round 2: Ring of squared laterite pillars, uneven heights."
   },
   {
     "iso2": "GN",
@@ -1400,7 +1400,7 @@
     "motif": "Îles de Los, off Conakry",
     "kind": "nature",
     "silhouette": "a low island with a few palms on a flat waterline, with a small fort-like outline on the top. Asymmetric",
-    "modules": ["island", "palm", "water", "quay"],
+    "modules": ["island-b", "palm", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "palm-island",
@@ -1408,7 +1408,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: small island with a few palms and a quay"
+    "notes": "part: small island with a few palms and a quay. Round 2: Island with palms and a short quay."
   },
   {
     "iso2": "GP",
@@ -2641,7 +2641,7 @@
     "motif": "Kolmanskop ghost town",
     "kind": "ruin",
     "silhouette": "a row of low flat-roofed houses with grid windows; dune slope climbs over their lower walls on one side; a sand line across the base; asymmetric by the drift",
-    "modules": ["flat-parapet", "window-grid", "desert-dunes"],
+    "modules": ["kolmanskop", "sky", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2649,7 +2649,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Round 2: Gabled Kolmanskop houses with sand drifted over the lower walls."
   },
   {
     "iso2": "NC",
@@ -3712,7 +3712,7 @@
     "motif": "Sidi Bou Said hillside village",
     "kind": "architecture",
     "silhouette": "Whitewashed cubic houses stacked up a hillside, arched doors and barred windows, a few small domes and flat parapets, sea behind",
-    "modules": ["flat-parapet", "window-grid", "gate-arch", "dome", "hills", "water"],
+    "modules": ["cube-town", "distance-mountains", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "hill-town",
@@ -3720,7 +3720,7 @@
     "replaced": "El Jem amphitheatre: amphitheatre collision with the Colosseum (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: blue arched doors and lattice windows by the sea. Promoted REVIEW/research alternate."
+    "notes": "part: blue arched doors and lattice windows by the sea. Promoted REVIEW/research alternate. Round 2: Sidi Bou Said cubes stepping down to the bay with a distant hill."
   },
   {
     "iso2": "TO",
