@@ -162,7 +162,7 @@
 }
 .journal-next-flap-digit[data-flip],
 .journal-next-word[data-flip] {
-  animation: journal-next-flip 160ms var(--ease-out) backwards;
+  animation: journal-next-flip var(--dur-fast) var(--ease-out) backwards;
 }
 @keyframes journal-next-flip {
   from {

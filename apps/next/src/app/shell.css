@@ -471,7 +471,13 @@ a.ui-menu-item {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tab-bar {
+  .tab-bar,
+  .tab,
+  .main-nav a,
+  .account-stub,
+  .account-switch,
+  .account-switch::after,
+  .account-field-word > span {
     transition: none;
   }
   .add-button {
