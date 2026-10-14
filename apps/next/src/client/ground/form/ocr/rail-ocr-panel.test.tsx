@@ -4,10 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
-import type {
-  RailOcrResult,
-  RailTicketCandidate,
-} from '../../../../../../../functions/api/_services/railTicketOcr'
+import type { RailOcrResult, RailTicketCandidate } from '@kuuki/shared/railTicketOcr'
 import { emptyLeg, type LegDraft } from '../model'
 import { previewFromCandidate } from './model'
 import { applyLegCandidates } from '../rail-editor'

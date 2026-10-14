@@ -14,12 +14,13 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  placeKey,
   placeLabel,
+  railRouteRuns,
   type GroundCommand,
   type GroundJourneyDto,
   type GroundMode,
   type GroundPlaceSnapshot,
+  type GroundStatus,
 } from '@kuuki/shared/groundTravel'
 import { formatCount, formatDateOnly, type Locale } from '../../../lib/format'
 import { trackPrivateOperation } from '../../activity'
@@ -130,6 +131,7 @@ interface Boot {
   state: FormState
   journeyId: string
   baseVersion: number | null
+  savedStatus?: GroundStatus
   pending: GroundCommand | null
   ocr: StoredOcrRow[]
   restored: boolean
@@ -148,6 +150,7 @@ function boot(
     state: base,
     journeyId: existing?.id ?? newId(),
     baseVersion: existing?.version ?? null,
+    savedStatus: existing?.status,
     pending: null,
     ocr: [],
     restored: false,
@@ -161,7 +164,8 @@ function boot(
   return {
     state: existing && complete ? { ...draft.state, status: 'completed' } : draft.state,
     journeyId: existing?.id ?? draft.journeyId,
-    baseVersion: existing ? (draft.baseVersion ?? existing.version) : null,
+    baseVersion: draft.baseVersion ?? existing?.version ?? null,
+    savedStatus: existing?.status ?? draft.savedStatus,
     pending: draft.pending,
     ocr: draft.ocr ?? [],
     restored: true,
@@ -190,7 +194,7 @@ function FormBody({
   const [touched, setTouched] = useState(initial.restored)
   const [showErrors, setShowErrors] = useState(false)
   const [reviewSaved, setReviewSaved] = useState(false)
-  const [existingStatus, setExistingStatus] = useState(existing?.status)
+  const [existingStatus, setExistingStatus] = useState(initial.savedStatus)
   const [baseVersion, setBaseVersion] = useState(initial.baseVersion)
   const [ocrRows, setOcrRows] = useState(initial.ocr)
   const [ocrEpoch, setOcrEpoch] = useState(0)
@@ -238,11 +242,19 @@ function FormBody({
   const pending = save.phase === 'saving' || save.phase === 'unknown' ? save.command : null
   useEffect(() => {
     if (!touched || finished.current) return
-    const draft: Draft = { v: 1, journeyId, baseVersion, state, pending, ocr: ocrRows }
+    const draft: Draft = {
+      v: 1,
+      journeyId,
+      baseVersion,
+      savedStatus: existingStatus,
+      state,
+      pending,
+      ocr: ocrRows,
+    }
     writer.schedule(draft)
     // A write in flight is unconfirmed the moment the page may go away: record it now, not after the debounce.
     if (pending) writer.flush()
-  }, [state, touched, pending, baseVersion, journeyId, ocrRows, writer])
+  }, [state, touched, pending, baseVersion, existingStatus, journeyId, ocrRows, writer])
 
   // What the async save paths compare against: the form as it is now, not as it was when the request left.
   const latest = useRef({ state, existingStatus, baseVersion })
@@ -728,15 +740,9 @@ function commandRoute(command: GroundCommand, locale: Locale): string {
   const journey = command.journey
   const label = (place: GroundPlaceSnapshot) => placeLabel(place, locale)
   if (journey.mode === 'road') return journey.points.map((point) => label(point.place)).join(' → ')
-  const names: string[] = []
-  let previous: GroundPlaceSnapshot | null = null
-  for (const leg of journey.legs) {
-    if (names.length === 0 || (previous && placeKey(previous) !== placeKey(leg.from)))
-      names.push(label(leg.from))
-    names.push(label(leg.to))
-    previous = leg.to
-  }
-  return names.join(' → ')
+  return railRouteRuns(journey.legs)
+    .map((run) => run.map(label).join(' → '))
+    .join(' · ')
 }
 
 function SaveNotices({

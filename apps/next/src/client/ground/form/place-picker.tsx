@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState, type Ref } from 'react'
+import { ApiError } from '@kuuki/client/apiClient'
 import {
   GROUND_LIMITS,
   placeKey,
   placeLabel,
   type GroundPlaceOption,
   type GroundPlaceSnapshot,
+  type ManualPlaceInput,
 } from '@kuuki/shared/groundTravel'
 import type { Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
@@ -158,8 +160,11 @@ export function ManualPlaceForm({
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [unconfirmed, setUnconfirmed] = useState(false)
   const fieldId = useId()
   const operationId = useRef(newId())
+  const pending = useRef<ManualPlaceInput | null>(null)
+  const inFlight = useRef(false)
   const nameRef = useRef<HTMLInputElement>(null)
   const alive = useRef(true)
   useEffect(() => {
@@ -181,35 +186,52 @@ export function ManualPlaceForm({
       (latValue === null) !== (lonValue === null),
   }
   const submit = async () => {
+    if (inFlight.current) return
     setSubmitted(true)
-    if (problems.name || problems.country || problems.coordinates) return
+    if (!pending.current && (problems.name || problems.country || problems.coordinates)) return
+    pending.current ??= {
+      id: operationId.current,
+      name: name.trim(),
+      countryCode,
+      lat: latValue as number | null,
+      lon: lonValue as number | null,
+      timezone: null,
+    }
+    inFlight.current = true
     setBusy(true)
     setFailure('')
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
     try {
-      const place = await createManualPlace(
-        {
-          id: operationId.current,
-          name: name.trim(),
-          countryCode,
-          lat: latValue as number | null,
-          lon: lonValue as number | null,
-          timezone: null,
-        },
-        { signal: controller.signal },
-      )
+      const place = await createManualPlace(pending.current, { signal: controller.signal })
       if (alive.current) onCreated(place)
     } catch (error) {
-      if (alive.current && !controller.signal.aborted)
+      const rejected =
+        error instanceof ApiError &&
+        error.status >= 400 &&
+        error.status < 500 &&
+        error.status !== 408 &&
+        error.status !== 429
+      if (rejected) {
+        pending.current = null
+        operationId.current = newId()
+      }
+      if (alive.current && !controller.signal.aborted) {
+        setUnconfirmed(!rejected)
         setFailure(
-          error instanceof Error && error.message
-            ? error.message
-            : ru
-              ? 'Не удалось добавить место. Повторите попытку.'
-              : 'Could not add the place. Try again.',
+          !rejected
+            ? ru
+              ? 'Не удалось подтвердить добавление. Повторите ту же попытку.'
+              : 'Could not confirm the place was added. Retry the same request.'
+            : error instanceof Error && error.message
+              ? error.message
+              : ru
+                ? 'Не удалось добавить место. Повторите попытку.'
+                : 'Could not add the place. Try again.',
         )
+      }
     } finally {
+      inFlight.current = false
       release()
       if (alive.current) setBusy(false)
     }
@@ -234,6 +256,7 @@ export function ManualPlaceForm({
         ref={nameRef}
         label={ru ? 'Название места' : 'Place name'}
         value={name}
+        disabled={busy || unconfirmed}
         maxLength={GROUND_LIMITS.placeName}
         autoComplete="off"
         onChange={(event) => setName(event.target.value)}
@@ -249,6 +272,7 @@ export function ManualPlaceForm({
           id={`${fieldId}-country`}
           className="ui-field-input gt-select"
           value={countryCode}
+          disabled={busy || unconfirmed}
           aria-invalid={submitted && problems.country ? true : undefined}
           aria-describedby={submitted && problems.country ? `${fieldId}-country-error` : undefined}
           onChange={(event) => setCountryCode(event.target.value)}
@@ -274,6 +298,7 @@ export function ManualPlaceForm({
           optionalLabel={ru ? 'необязательно' : 'optional'}
           inputMode="decimal"
           value={lat}
+          disabled={busy || unconfirmed}
           autoComplete="off"
           onChange={(event) => setLat(event.target.value)}
         />
@@ -282,6 +307,7 @@ export function ManualPlaceForm({
           optionalLabel={ru ? 'необязательно' : 'optional'}
           inputMode="decimal"
           value={lon}
+          disabled={busy || unconfirmed}
           autoComplete="off"
           onChange={(event) => setLon(event.target.value)}
           error={

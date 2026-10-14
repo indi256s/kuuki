@@ -169,6 +169,15 @@ describe('JourneyForm', () => {
   it('keeps the form and the draft when a late success arrives after newer edits', async () => {
     const state = blankState('road')
     state.title = 'Edited after the request left'
+    const route = roadJourney()
+    if (route.mode === 'road')
+      state.points = route.points.map((point) => ({
+        ...point,
+        arrivalDate: '',
+        departureDate: '',
+        nights: '',
+        note: '',
+      }))
     const journeyId = newId()
     const pending = {
       action: 'create' as const,
@@ -181,7 +190,7 @@ describe('JourneyForm', () => {
         note: null,
         startDate: null,
         endDate: null,
-        points: [],
+        points: route.mode === 'road' ? route.points : [],
       },
     }
     writeDraft('owner-a', 'new-road', { v: 1, journeyId, baseVersion: null, state, pending })
@@ -192,9 +201,11 @@ describe('JourneyForm', () => {
       savedVersion: 3,
       accountRevision: 1,
       derivedState: 'ready',
-      current: null,
+      current: roadJourney({ id: journeyId, version: 3 }),
     })
-    render(<JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />)
+    const { unmount } = render(
+      <JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />,
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Check result' }))
     expect(await screen.findByText('Saved. Your later edits are not saved yet.')).toBeTruthy()
     expect(push).not.toHaveBeenCalled()
@@ -207,6 +218,17 @@ describe('JourneyForm', () => {
         null,
         3,
       ])
+    })
+    unmount()
+    render(<JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />)
+    vi.mocked(api.sendCommand).mockRejectedValue(new TypeError('Failed to fetch'))
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(api.sendCommand).toHaveBeenCalled())
+    expect(vi.mocked(api.sendCommand).mock.calls[0]![0]).toMatchObject({
+      action: 'update',
+      journeyId,
+      expectedVersion: 3,
+      journey: { title: 'Edited after the request left' },
     })
   })
 

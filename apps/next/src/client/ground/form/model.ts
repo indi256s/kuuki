@@ -6,6 +6,7 @@ import {
   isIsoDate,
   isLocalTime,
   placeKey,
+  railRouteRuns,
   type GroundCommand,
   type GroundJourneyDto,
   type GroundJourneyInput,
@@ -397,15 +398,9 @@ export function routeSummary(
 ): string {
   const label = (place: GroundPlaceSnapshot | null) => (place ? name(place) : '?')
   if (state.mode === 'rail') {
-    const names: string[] = []
-    let previous: GroundPlaceSnapshot | null = null
-    for (const leg of state.legs) {
-      // A leg that does not start where the last one ended keeps its own start, so the text never hides a gap.
-      if (names.length === 0 || !samePlace(previous, leg.from)) names.push(label(leg.from))
-      names.push(label(leg.to))
-      previous = leg.to
-    }
-    return names.join(' → ')
+    return railRouteRuns(state.legs)
+      .map((run) => run.map(label).join(' → '))
+      .join(' · ')
   }
   return state.points.map((point) => label(point.place)).join(' → ')
 }

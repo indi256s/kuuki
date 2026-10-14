@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RailTicketCandidate } from '../../../../../../../functions/api/_services/railTicketOcr'
+import type { RailTicketCandidate } from '@kuuki/shared/railTicketOcr'
 import { emptyLeg } from '../model'
 import {
   findRepeats,

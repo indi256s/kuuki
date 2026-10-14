@@ -23,11 +23,15 @@ export type Sketch = {
 }
 
 /** Equirectangular projection scaled by cos(mean latitude), fitted into the box with equal padding. */
-export function sketchOf(places: readonly GroundPlaceSnapshot[]): Sketch {
-  const located = places.filter((place) => place.lat !== null && place.lon !== null)
+export function sketchOf(places: readonly (GroundPlaceSnapshot | null)[]): Sketch {
+  const located = places.filter(
+    (place): place is GroundPlaceSnapshot =>
+      place !== null && place.lat !== null && place.lon !== null,
+  )
   const missingByKey = new Map<string, GroundPlaceSnapshot>()
   for (const place of places)
-    if (place.lat === null || place.lon === null) missingByKey.set(placeKey(place), place)
+    if (place && (place.lat === null || place.lon === null))
+      missingByKey.set(placeKey(place), place)
   if (located.length === 0) return { dots: [], segments: [], missing: [...missingByKey.values()] }
   const meanLat = located.reduce((sum, place) => sum + place.lat!, 0) / located.length
   const scale = Math.cos((meanLat * Math.PI) / 180)
@@ -62,7 +66,7 @@ export function sketchOf(places: readonly GroundPlaceSnapshot[]): Sketch {
   let run: number[] = []
   let next = 0
   for (const visited of places) {
-    if (visited.lat === null || visited.lon === null) {
+    if (!visited || visited.lat === null || visited.lon === null) {
       if (run.length > 0) segments.push(run)
       run = []
       continue
@@ -86,7 +90,7 @@ export function RouteSketch({
   places,
   locale,
 }: {
-  places: readonly GroundPlaceSnapshot[]
+  places: readonly (GroundPlaceSnapshot | null)[]
   locale: Locale
 }) {
   const t = copy[locale]

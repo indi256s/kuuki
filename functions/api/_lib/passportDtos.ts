@@ -1,4 +1,5 @@
 // Owner-safe Passport DTOs strip user_id and shape ground visits for browser consumers.
+import { parsePlaceSnapshot, railRouteRuns } from '../../../packages/shared/src/groundTravel'
 
 export interface GroundVisitRow {
   id: string
@@ -42,11 +43,10 @@ export interface PassportJourneyRow {
 }
 
 /** Source name of a stored place snapshot; a malformed legacy value is skipped, never thrown on. */
-function snapshotName(raw: unknown): string | null {
+function snapshotPlace(raw: unknown) {
   try {
     const value = typeof raw === 'string' ? JSON.parse(raw) : raw
-    const name = (value as { name?: unknown } | null)?.name
-    return typeof name === 'string' && name.trim() ? name.trim() : null
+    return parsePlaceSnapshot(value)
   } catch {
     return null
   }
@@ -54,21 +54,17 @@ function snapshotName(raw: unknown): string | null {
 
 /** Rail legs chain `from → to`; a leg that starts where the previous one ended adds only its destination. */
 export function railRouteLabel(legs: Array<{ from_place: string; to_place: string }>): string {
-  const names: string[] = []
-  let previousTo: string | null = null
-  for (const leg of legs) {
-    const from = snapshotName(leg.from_place)
-    const to = snapshotName(leg.to_place)
-    if (from && !(previousTo !== null && previousTo === from && names.length > 0)) names.push(from)
-    if (to) names.push(to)
-    previousTo = to
-  }
-  return names.join(' → ')
+  return railRouteRuns(
+    legs.map((leg) => ({ from: snapshotPlace(leg.from_place), to: snapshotPlace(leg.to_place) })),
+  )
+    .map((run) => run.flatMap((place) => (place ? [place.name] : [])).join(' → '))
+    .filter(Boolean)
+    .join(' · ')
 }
 
 export function roadRouteLabel(points: Array<{ place: string }>): string {
   return points
-    .map((point) => snapshotName(point.place))
+    .map((point) => snapshotPlace(point.place)?.name ?? null)
     .filter((name): name is string => name !== null)
     .join(' → ')
 }

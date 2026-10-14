@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { GROUND_LIMITS, placeLabel } from '@kuuki/shared/groundTravel'
-import type { RailCandidateField } from '../../../../../../../functions/api/_services/railTicketOcr'
+import type { RailCandidateField } from '@kuuki/shared/railTicketOcr'
 import { formatCount, formatDateOnly, type Locale } from '../../../../lib/format'
 import { FileDropzone } from '../../../import/file-dropzone'
 import { Button } from '../../../ui/button'

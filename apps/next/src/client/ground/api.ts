@@ -13,7 +13,7 @@ import type {
   GroundPlaceSnapshot,
   ManualPlaceInput,
 } from '@kuuki/shared/groundTravel'
-import type { RailOcrResult } from '../../../../../functions/api/_services/railTicketOcr'
+import type { RailOcrResult } from '@kuuki/shared/railTicketOcr'
 
 type Signal = { signal?: AbortSignal }
 

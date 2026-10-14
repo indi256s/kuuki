@@ -7,6 +7,7 @@ import {
   parsePlaceSnapshot,
   type GroundCommand,
   type GroundMode,
+  type GroundStatus,
 } from '@kuuki/shared/groundTravel'
 import type { FormState, LegDraft, PointDraft } from './model'
 import type { Preview, PreviewDate } from './ocr/model'
@@ -23,6 +24,8 @@ export interface Draft {
   journeyId: string
   /** The version the edit started from; the server's 409 decides whether it is still current. */
   baseVersion: number | null
+  /** Saved baseline after this form created a journey while newer edits remained. */
+  savedStatus?: GroundStatus
   state: FormState
   /** A save whose result is not known yet, frozen with its operation key. */
   pending: GroundCommand | null
@@ -207,6 +210,12 @@ export function parseDraft(raw: unknown, mode: GroundMode): Draft | null {
     v: DRAFT_VERSION,
     journeyId: raw.journeyId,
     baseVersion,
+    savedStatus:
+      raw.savedStatus === 'planned' ||
+      raw.savedStatus === 'completed' ||
+      raw.savedStatus === 'cancelled'
+        ? raw.savedStatus
+        : undefined,
     pending,
     ocr: mode === 'rail' ? parseOcr(raw.ocr) : [],
     state: {

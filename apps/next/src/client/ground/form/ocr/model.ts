@@ -7,7 +7,7 @@ import type {
   RailCandidateField,
   RailTicketCandidate,
   RailTicketDate,
-} from '../../../../../../../functions/api/_services/railTicketOcr'
+} from '@kuuki/shared/railTicketOcr'
 import { emptyLeg, newId, type LegDraft } from '../model'
 import type { StoredOcrRow } from '../rail-editor'
 

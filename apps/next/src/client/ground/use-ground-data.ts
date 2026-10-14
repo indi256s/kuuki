@@ -118,6 +118,7 @@ export type JourneyRead =
 /** The journey behind `?journey=<id>`, read by owner and id whatever the list filter shows. */
 export function useJourneyRead(id: string | null, seed: GroundJourneyDto | null) {
   const read = useRead()
+  const cancelRead = useRef<(() => void) | null>(null)
   const [state, setState] = useState<{ id: string | null; value: JourneyRead }>({
     id: null,
     value: { status: 'loading', journey: null },
@@ -130,7 +131,7 @@ export function useJourneyRead(id: string | null, seed: GroundJourneyDto | null)
   const reload = useCallback(() => setVersion((value) => value + 1), [])
   useEffect(() => {
     if (id === null) return
-    return read(
+    const cancel = read(
       (signal) => readJourney(id, { signal }),
       (journey) => setState({ id, value: { status: 'ready', journey } }),
       (error) =>
@@ -142,13 +143,14 @@ export function useJourneyRead(id: string | null, seed: GroundJourneyDto | null)
               : { status: 'error', journey: seedRef.current },
         }),
     )
+    cancelRead.current = cancel
+    return cancel
   }, [read, id, version])
   /** Puts a server-confirmed journey in place at once (an action's answer), before any refetch. */
-  const apply = useCallback(
-    (journey: GroundJourneyDto) =>
-      setState({ id: journey.id, value: { status: 'ready', journey } }),
-    [],
-  )
+  const apply = useCallback((journey: GroundJourneyDto) => {
+    cancelRead.current?.()
+    setState({ id: journey.id, value: { status: 'ready', journey } })
+  }, [])
   const value = useMemo<JourneyRead>(
     () =>
       state.id === id

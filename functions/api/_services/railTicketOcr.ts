@@ -4,6 +4,14 @@
 import { GoogleGenAI, Type } from '@google/genai'
 import { isIsoDate, isLocalTime } from '../../../packages/shared/src/groundTravel'
 import { IMPORT_MAX_FILE_BYTES } from '../../../packages/shared/src/constants'
+import {
+  RAIL_CANDIDATE_FIELDS,
+  type RailCandidateField,
+  type RailFileMime,
+  type RailOcrResult,
+  type RailTicketCandidate,
+  type RailTicketDate,
+} from '../../../packages/shared/src/railTicketOcr'
 import { decodedBase64Size } from '../import/_body'
 import {
   DEFAULT_MODEL,
@@ -15,55 +23,6 @@ import {
 import { HttpError } from '../_lib/http'
 
 export const RAIL_OCR_MAX_CANDIDATES = 100
-
-/** Month and day printed without a year. The year is never inferred. */
-export interface RailPartialDate {
-  month: number
-  day: number
-}
-/** `YYYY-MM-DD` only when the year is printed; a partial date or null otherwise. */
-export type RailTicketDate = string | RailPartialDate | null
-
-export const RAIL_CANDIDATE_FIELDS = [
-  'fromStation',
-  'toStation',
-  'fromCity',
-  'toCity',
-  'departureDate',
-  'arrivalDate',
-  'departureTime',
-  'arrivalTime',
-  'trainNumber',
-  'operator',
-] as const
-export type RailCandidateField = (typeof RAIL_CANDIDATE_FIELDS)[number]
-
-export interface RailTicketCandidate {
-  fromStation: string | null
-  toStation: string | null
-  fromCity: string | null
-  toCity: string | null
-  departureDate: RailTicketDate
-  arrivalDate: RailTicketDate
-  /** HH:MM local time as printed. */
-  departureTime: string | null
-  arrivalTime: string | null
-  trainNumber: string | null
-  operator: string | null
-  /** Names of the fields above that the source states unclearly. */
-  uncertain: RailCandidateField[]
-  cancelled: boolean | null
-  otherPassenger: boolean | null
-}
-
-export type RailOcrWarning = { code: 'ROWS_DROPPED'; count: number }
-
-export interface RailOcrResult {
-  candidates: RailTicketCandidate[]
-  warnings: RailOcrWarning[]
-}
-
-export type RailFileMime = 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/webp'
 
 const text = (bytes: Uint8Array, start: number, end: number) =>
   String.fromCharCode(...bytes.subarray(start, end))

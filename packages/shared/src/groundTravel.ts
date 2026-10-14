@@ -57,6 +57,21 @@ export interface ManualPlaceInput {
 export const placeKey = (place: Pick<GroundPlaceSnapshot, 'source' | 'id'>) =>
   `${place.source}:${place.id}`
 
+/** Consecutive rail legs share a run only when the previous destination is the next origin. */
+export function railRouteRuns<T extends Pick<GroundPlaceSnapshot, 'source' | 'id'> | null>(
+  legs: readonly { from: T; to: T }[],
+): T[][] {
+  const runs: T[][] = []
+  let previous: T | undefined
+  for (const leg of legs) {
+    if (previous && leg.from && placeKey(previous) === placeKey(leg.from))
+      runs[runs.length - 1].push(leg.to)
+    else runs.push([leg.from, leg.to])
+    previous = leg.to
+  }
+  return runs
+}
+
 /** Locale display name: language name first, then the source name. ASCII transliteration is not a translation. */
 export function placeLabel(place: GroundPlaceSnapshot, locale: 'ru' | 'en'): string {
   return (locale === 'ru' ? place.nameRu : place.nameEn) ?? place.name

@@ -343,6 +343,20 @@ describe('journey evidence survives manual edits and loses only its own support'
 })
 
 describe('Passport journey contributions', () => {
+  it('keeps distinct rail places with identical names in the route', async () => {
+    const { db, dispose } = await withJourneys([{ id: 'rail', countries: ['TR'] }], [], [])
+    try {
+      await db
+        .prepare('UPDATE ground_rail_legs SET from_place = ? WHERE journey_id = ? AND ordinal = 1')
+        .bind(place('3', 'Kars', 'TR'), 'rail')
+        .run()
+      await publish(db)
+      const detail = await readCountryDetail(db, USER.id, 'TR')
+      expect(detail.journeys[0].route).toBe('Tbilisi → Kars · Kars → Tbilisi')
+    } finally {
+      await dispose()
+    }
+  })
   it('lists own live completed journeys apart from manual ground visits', async () => {
     const { db, dispose } = await withJourneys(
       [

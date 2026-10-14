@@ -12,6 +12,7 @@ import { Car, Train } from '@keyline-icons/react'
 import { useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import {
   placeLabel,
+  railRouteRuns,
   type GroundJourneyDto,
   type GroundPlaceSnapshot,
 } from '@kuuki/shared/groundTravel'
@@ -159,7 +160,7 @@ function Body({ locale, journey }: { locale: Locale; journey: GroundJourneyDto }
   const Icon = journey.mode === 'rail' ? Train : Car
   const places =
     journey.mode === 'rail'
-      ? journey.legs.flatMap((leg, index) => (index === 0 ? [leg.from, leg.to] : [leg.to]))
+      ? railRouteRuns(journey.legs).flatMap((run, index) => (index === 0 ? run : [null, ...run]))
       : journey.points.map((point) => point.place)
   const distanceNote = coverageNote(locale, metrics.distanceCoverage)
   return (

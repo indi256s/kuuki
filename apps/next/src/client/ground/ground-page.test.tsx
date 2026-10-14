@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
@@ -7,7 +7,7 @@ import type { GroundMutationResult } from '@kuuki/shared/groundTravel'
 import * as api from './api'
 import { announceShellNotice } from '../shell-notices'
 import { GroundTravelPage } from './ground-page'
-import { listOf, rail, road, uuid } from './test-fixtures'
+import { baku, listOf, rail, road, tbilisi, uuid } from './test-fixtures'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
@@ -231,6 +231,18 @@ describe('detail sheet', () => {
     )
   })
 
+  it('draws separate rail legs without inventing a connection between them', async () => {
+    const journey = rail({ id: 1, status: 'planned' })
+    if (journey.mode !== 'rail') throw new Error('Expected rail fixture')
+    journey.legs.push({ ...journey.legs[0], id: uuid(9000), from: baku, to: tbilisi })
+    vi.mocked(api.readJourney).mockResolvedValue(journey)
+    mount(`journey=${journey.id}`)
+    const dialog = await screen.findByRole('dialog')
+    await waitFor(() => expect(dialog.querySelectorAll('.gt-step')).toHaveLength(2))
+    expect(dialog.querySelectorAll('.gt-sketch-svg polyline')).toHaveLength(2)
+    expect(dialog.querySelectorAll('.gt-sketch-svg g')).toHaveLength(3)
+  })
+
   it('cancels a plan with a fresh key and the loaded version, then says totals are updating', async () => {
     const u = user()
     vi.mocked(api.sendCommand).mockResolvedValue(savedResult({ derivedState: 'pending' }))
@@ -262,6 +274,20 @@ describe('detail sheet', () => {
     await waitFor(() =>
       expect(vi.mocked(api.listJourneys).mock.calls.length).toBeGreaterThan(lists),
     )
+  })
+
+  it('keeps a confirmed change when an older detail read arrives afterwards', async () => {
+    let answer!: (value: typeof upcoming) => void
+    vi.mocked(api.readJourney).mockImplementation(
+      () => new Promise((resolve) => (answer = resolve)),
+    )
+    vi.mocked(api.sendCommand).mockResolvedValue(savedResult())
+    mount(`journey=${upcoming.id}`)
+    const dialog = await screen.findByRole('dialog')
+    await user().click(await within(dialog).findByRole('button', { name: 'Cancel plan' }))
+    await within(dialog).findByRole('button', { name: 'Restore plan' })
+    await act(async () => answer(upcoming))
+    expect(within(dialog).getByRole('button', { name: 'Restore plan' })).toBeInTheDocument()
   })
 
   it('lost response: keeps the key, retry reuses it, and Check result resolves it', async () => {
