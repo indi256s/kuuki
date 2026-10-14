@@ -586,18 +586,18 @@
   },
   "CH": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "oxblood",
     "iso3": "CHE",
     "name": {
       "en": "Switzerland",
       "ru": "Швейцария"
     },
-    "shape": "cut-rect",
+    "shape": "oval",
     "short": {
       "en": "Switzerland",
       "ru": "Швейцария"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CI": {
     "cluster": null,
@@ -721,7 +721,7 @@
   },
   "CV": {
     "cluster": "volcano",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "CPV",
     "name": {
       "en": "Cape Verde",
@@ -2176,7 +2176,7 @@
   },
   "MQ": {
     "cluster": "volcano",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "MTQ",
     "name": {
       "en": "Martinique",
@@ -2206,7 +2206,7 @@
   },
   "MS": {
     "cluster": "volcano",
-    "ink": "umber",
+    "ink": "indigo",
     "iso3": "MSR",
     "name": {
       "en": "Montserrat",
@@ -2581,7 +2581,7 @@
   },
   "PH": {
     "cluster": "volcano",
-    "ink": "ochre-dark",
+    "ink": "plum",
     "iso3": "PHL",
     "name": {
       "en": "Philippines",
@@ -2592,7 +2592,7 @@
       "en": "Philippines",
       "ru": "Филиппины"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PK": {
     "cluster": null,
@@ -2746,7 +2746,7 @@
   },
   "RE": {
     "cluster": "volcano",
-    "ink": "indigo",
+    "ink": "oxblood",
     "iso3": "REU",
     "name": {
       "en": "Réunion",
@@ -3061,7 +3061,7 @@
   },
   "ST": {
     "cluster": "volcano",
-    "ink": "oxblood",
+    "ink": "slate",
     "iso3": "STP",
     "name": {
       "en": "São Tomé & Príncipe",
@@ -3361,7 +3361,7 @@
   },
   "TZ": {
     "cluster": "volcano",
-    "ink": "slate",
+    "ink": "ochre-dark",
     "iso3": "TZA",
     "name": {
       "en": "Tanzania",
@@ -3372,7 +3372,7 @@
       "en": "Tanzania",
       "ru": "Танзания"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "UA": {
     "cluster": null,
@@ -3541,18 +3541,18 @@
   },
   "VN": {
     "cluster": "karst",
-    "ink": "moss",
+    "ink": "teal",
     "iso3": "VNM",
     "name": {
       "en": "Vietnam",
       "ru": "Вьетнам"
     },
-    "shape": "oval",
+    "shape": "rectangle",
     "short": {
       "en": "Vietnam",
       "ru": "Вьетнам"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "VU": {
     "cluster": "volcano",
@@ -3646,7 +3646,7 @@
   },
   "ZA": {
     "cluster": "mesa",
-    "ink": "umber",
+    "ink": "slate",
     "iso3": "ZAF",
     "name": {
       "en": "South Africa",
@@ -3657,7 +3657,7 @@
       "en": "South Africa",
       "ru": "ЮАР"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "ZM": {
     "cluster": "waterfall",

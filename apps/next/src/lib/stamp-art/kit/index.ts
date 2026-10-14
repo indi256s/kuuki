@@ -4,6 +4,10 @@ import { statue } from './object'
 import type { KitModule } from './util'
 import { gate, house, rampart, stiltHouse, switchbackWall, temple } from './building'
 import { basalt, distanceMountains, distanceTrees, ground, sky } from './vignette'
+import { karst } from './karst'
+import { mesa } from './mesa'
+import { peak } from './peak'
+import { acacia } from './savanna'
 import { volcano } from './volcano'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
@@ -18,6 +22,10 @@ export const kit = {
   mountains,
   'twin-peak': twinPeak,
   volcano,
+  acacia,
+  mesa,
+  karst,
+  peak,
   cliff,
   platform,
   steps,

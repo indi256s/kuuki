@@ -1,0 +1,57 @@
+{
+  "iso2": "ZA",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [50, 54, 40, 112, 52, 34, 160, 58, 24],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 7,
+        "amp": 1.6,
+        "seed": 3,
+        "swell": 0.8
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "mesa",
+      "box": [27, 64, 146, 58],
+      "params": {
+        "ridge": [
+          [0.1, 0.58],
+          [0.14, 0.26],
+          [0.18, 0.2],
+          [0.24, 0.32],
+          [0.3, 0.06],
+          [0.45, 0.0],
+          [0.52, 0.04],
+          [0.6, 0.02],
+          [0.84, 0.06],
+          [0.89, 0.26],
+          [0.91, 0.5]
+        ],
+        "cliff": 0.58,
+        "skirt": 0.08,
+        "lit": 0.4,
+        "cloud": [0.58, 0.9, 11]
+      }
+    }
+  ]
+}

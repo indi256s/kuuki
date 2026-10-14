@@ -22,8 +22,9 @@ function edgeX(edge: Edge, y: number): number {
 
 /** A stratovolcano. The box ground is the base of the cone, the box top its summit. */
 export const volcano: KitModule = ([x, y, w, h], p) => {
-  // Only the cone is built; shield and plume profiles arrive with later waves.
-  str(p, 'profile', ['cone'] as const, 'cone')
+  // `cone` is the Fuji and Mayon shape; `massif` is a broad flat-topped dome (Kilimanjaro): a wide
+  // rim plateau with a shallow crater dip. Shield and plume profiles arrive with later waves.
+  const profile = str(p, 'profile', ['cone', 'massif'] as const, 'cone')
   const rand = mulberry32(Math.round(num(p, 'seed', 21)))
   const base = y + h
   const top = y
@@ -59,7 +60,18 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
 
   // Summit: short flat rim with three small crater notches.
   const s = rim
-  const rimLine: Pt[] = [
+  const massifRim: Pt[] = [
+    [cx - s, top + 0.6],
+    [cx - s * 0.82, top - 0.6],
+    [cx - s * 0.55, top + 0.2],
+    [cx - s * 0.25, top + 1.6],
+    [cx + s * 0.1, top + 2],
+    [cx + s * 0.4, top + 1.2],
+    [cx + s * 0.62, top - 0.4],
+    [cx + s * 0.86, top - 1.2],
+    [cx + s * 1.08, top + 0.8],
+  ]
+  const coneRim: Pt[] = [
     [cx - s, top],
     [cx - s * 0.6, top - 0.9],
     [cx - s * 0.3, top + 0.8],
@@ -68,6 +80,7 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
     [cx + s * 0.72, top - 0.5],
     [cx + s * 1.08, top + 0.4],
   ]
+  const rimLine = profile === 'massif' ? massifRim : coneRim
   const silhouette: Pt[] = [...L, ...R.slice().reverse()]
   const outline: Pt[] = [...L.slice().reverse(), ...rimLine, ...R]
   const out: SvgNode[] = [occlude(silhouette)]
