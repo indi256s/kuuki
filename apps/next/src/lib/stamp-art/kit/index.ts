@@ -149,6 +149,7 @@ import { stoneJars } from './stone-jars'
 import { uBeinBridge } from './u-bein-bridge'
 import { shophouseRow } from './shophouse-row'
 import { atauro } from './atauro'
+import { tongkonan } from './tongkonan'
 import { kinabalu } from './kinabalu'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
@@ -295,6 +296,7 @@ export const kit = {
   'u-bein-bridge': uBeinBridge,
   'shophouse-row': shophouseRow,
   atauro: atauro,
+  tongkonan: tongkonan,
   kinabalu: kinabalu,
   'queens-staircase': queensStaircase,
   'crater-lake-a': craterLakeA,

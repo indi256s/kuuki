@@ -93,6 +93,7 @@ import hn from './hn.json'
 import hr from './hr.json'
 import ht from './ht.json'
 import hu from './hu.json'
+import id from './id.json'
 import ie from './ie.json'
 import il from './il.json'
 import im from './im.json'
@@ -325,6 +326,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   hr,
   ht,
   hu,
+  id,
   ie,
   il,
   im,
