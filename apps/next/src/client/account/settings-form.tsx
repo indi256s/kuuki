@@ -228,6 +228,7 @@ export function SettingsForm({
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
     let downloaded = 0,
+      csvDownloaded = false,
       limited = false
     try {
       for (const kind of kinds) {
@@ -236,8 +237,8 @@ export function SettingsForm({
           limited = true
           setError(
             ru
-              ? 'Достигнут лимит: 5 CSV-файлов в день. Повторите после указанного времени.'
-              : 'Daily limit reached: 5 CSV files. Try again after the reset time.',
+              ? 'Достигнут лимит: 5 файлов в день. Повторите после указанного времени.'
+              : 'Daily limit reached: 5 files. Try again after the reset time.',
           )
           break
         }
@@ -245,15 +246,20 @@ export function SettingsForm({
         if (controller.signal.aborted || generation !== getAuthGeneration()) return
         if (total) {
           downloaded++
+          if (kind !== 'journeys') csvDownloaded = true
           limit.record()
         }
       }
       if (!controller.signal.aborted && generation === getAuthGeneration())
         setMessage(
           downloaded
-            ? ru
-              ? 'CSV-файлы загружены.'
-              : 'CSV files downloaded.'
+            ? csvDownloaded
+              ? ru
+                ? 'CSV-файлы загружены.'
+                : 'CSV files downloaded.'
+              : ru
+                ? 'JSON-файл загружен.'
+                : 'JSON file downloaded.'
             : limited
               ? ''
               : ru
@@ -300,6 +306,7 @@ export function SettingsForm({
     flights: text('Flights', 'Перелёты'),
     claims: text('Country claims', 'Отметки стран'),
     ground: text('Ground visits', 'Наземные посещения'),
+    journeys: text('Ground journeys', 'Наземные поездки'),
   }
   const resetTime = new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
@@ -523,14 +530,16 @@ export function SettingsForm({
       </section>
       <section aria-labelledby="settings-data-heading">
         <h2 id="settings-data-heading">{text('Data', 'Данные')}</h2>
-        {(['flights', 'claims', 'ground'] as const).map((kind) => (
+        {(['flights', 'claims', 'ground', 'journeys'] as const).map((kind) => (
           <div className="settings-export-row" key={kind}>
             <div>
               <h3>{labels[kind]}</h3>
               <p>
                 {counts === null
                   ? text('Count unavailable', 'Количество недоступно')
-                  : `${text('Records', 'Записи')}: ${formatNumber(locale, counts[kind])}`}
+                  : kind === 'journeys'
+                    ? `${text('Journeys', 'Поездки')}: ${formatNumber(locale, counts.journeys)} · ${text('Manual places', 'Свои места')}: ${formatNumber(locale, counts.manualPlaces)}`
+                    : `${text('Records', 'Записи')}: ${formatNumber(locale, counts[kind])}`}
               </p>
             </div>
             <Button
@@ -542,7 +551,9 @@ export function SettingsForm({
                   ? text('Checking daily allowance…', 'Проверяем дневной лимит…')
                   : limit.remaining === 0
                     ? text('Daily limit reached.', 'Дневной лимит достигнут.')
-                    : counts?.[kind] === 0
+                    : (kind === 'journeys'
+                          ? (counts?.journeys ?? 1) + (counts?.manualPlaces ?? 1)
+                          : counts?.[kind]) === 0
                       ? text('No records to export.', 'Нет записей для экспорта.')
                       : undefined
               }
@@ -552,7 +563,9 @@ export function SettingsForm({
                 ? text('Download flights', 'Скачать перелёты')
                 : kind === 'claims'
                   ? text('Download country claims', 'Скачать страны')
-                  : text('Download ground visits', 'Скачать наземные посещения')}
+                  : kind === 'ground'
+                    ? text('Download ground visits', 'Скачать наземные посещения')
+                    : text('Download ground journeys (JSON)', 'Скачать наземные поездки (JSON)')}
             </Button>
           </div>
         ))}
@@ -642,10 +655,10 @@ export function SettingsForm({
         onClose={() => setDeleteOpen(false)}
         counts={counts}
         locale={locale}
-        download={() => download(['flights', 'claims', 'ground'])}
+        download={() => download(['flights', 'claims', 'ground', 'journeys'])}
         exporting={exporting}
         exportOutcome={{ message, error }}
-        exportInfo={`${text('Limit: 5 CSV files per day. Remaining', 'Лимит: 5 CSV-файлов в день. Осталось')}: ${limit.remaining ?? '…'}. ${text('Resets', 'Обновится')}: ${resetTime} UTC.`}
+        exportInfo={`${text('Limit: 5 files per day. Remaining', 'Лимит: 5 файлов в день. Осталось')}: ${limit.remaining ?? '…'}. ${text('Resets', 'Обновится')}: ${resetTime} UTC.`}
         onBusy={setIdentityBusy}
         allowDocumentExit={guard.allowDocumentExit}
       />

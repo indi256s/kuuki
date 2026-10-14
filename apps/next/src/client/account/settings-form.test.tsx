@@ -16,6 +16,7 @@ const m = vi.hoisted(() => ({
   exportFlights: vi.fn(),
   exportClaims: vi.fn(),
   exportGround: vi.fn(),
+  exportJourneys: vi.fn(),
   identity: vi.fn(),
 }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: m.refresh, push: m.push }) }))
@@ -32,7 +33,10 @@ vi.mock('@kuuki/client/export', () => ({
   exportFlights: m.exportFlights,
   exportClaims: m.exportClaims,
 }))
-vi.mock('./ground-export', () => ({ exportGroundVisits: m.exportGround }))
+vi.mock('./ground-export', () => ({
+  exportGroundVisits: m.exportGround,
+  exportGroundJourneys: m.exportJourneys,
+}))
 const profile = {
   id: 'a',
   username: 'member-a',
@@ -49,7 +53,15 @@ const profile = {
   onboarded_at: '2026-01-01T00:00:00.000Z',
   updated_at: '',
 }
-const counts = { flights: 12, completed: 10, claims: 2, ground: 1, drafts: 3 }
+const counts = {
+  flights: 12,
+  completed: 10,
+  claims: 2,
+  ground: 1,
+  drafts: 3,
+  journeys: 4,
+  manualPlaces: 2,
+}
 const mount = (locale: 'en' | 'ru' = 'en', data = counts) =>
   render(<SettingsForm ownerId="a" profile={profile} locale={locale} counts={data} />)
 beforeEach(() => {
@@ -132,6 +144,30 @@ describe('Settings work and data outcomes', () => {
     expect(m.exportFlights).toHaveBeenCalledTimes(1)
     expect(JSON.parse(localStorage.getItem('kuuki-export-count:a')!)).toMatchObject({ count: 1 })
   })
+  it('exports ground journeys as JSON from the API export and spends one allowance', async () => {
+    mount()
+    expect(screen.getByText('Journeys: 4 · Manual places: 2')).toBeVisible()
+    const body = { journeys: [{ id: 'j1' }], manualPlaces: [] }
+    m.get.mockResolvedValueOnce(body)
+    await userEvent.click(screen.getByRole('button', { name: 'Download ground journeys (JSON)' }))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('JSON file downloaded'),
+    )
+    expect(m.get).toHaveBeenCalledWith(
+      '/api/ground-journeys/export',
+      undefined,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
+    expect(m.exportJourneys).toHaveBeenCalledWith(body)
+    expect(JSON.parse(localStorage.getItem('kuuki-export-count:a')!)).toMatchObject({ count: 1 })
+  })
+  it('disables the journeys export when there are no journeys or manual places', () => {
+    mount('en', { ...counts, journeys: 0, manualPlaces: 0 })
+    expect(screen.getByRole('button', { name: 'Download ground journeys (JSON)' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+  })
   it('honors current legacy usage and announces the daily reset time', async () => {
     localStorage.setItem(
       'kuuki-export-count',
@@ -142,7 +178,7 @@ describe('Settings work and data outcomes', () => {
       JSON.stringify({ date: new Date().toISOString().slice(0, 10), count: 99 }),
     )
     mount()
-    expect(await screen.findAllByText('Daily limit reached.')).toHaveLength(3)
+    expect(await screen.findAllByText('Daily limit reached.')).toHaveLength(4)
     expect(screen.getByText(/Resets.*UTC/)).toHaveTextContent('Remaining: 0')
     await userEvent.click(screen.getByRole('button', { name: 'Download flights' }))
     expect(m.flights).not.toHaveBeenCalled()
@@ -185,7 +221,7 @@ describe('Settings work and data outcomes', () => {
   })
   it('renders unknown counts as unavailable, never as an empty account', async () => {
     render(<SettingsForm ownerId="a" profile={profile} locale="en" />)
-    expect(screen.getAllByText('Count unavailable')).toHaveLength(3)
+    expect(screen.getAllByText('Count unavailable')).toHaveLength(4)
     expect(screen.getByRole('button', { name: 'Download flights' })).not.toHaveAttribute(
       'aria-disabled',
     )
@@ -324,6 +360,16 @@ describe.each(['en', 'ru'] as const)('deletion (%s)', (locale) => {
     )
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByText('12')).toBeVisible()
+    for (const [label, value] of ru
+      ? [
+          ['Наземные поездки', '4'],
+          ['Свои места', '2'],
+        ]
+      : [
+          ['Ground journeys', '4'],
+          ['Manual places', '2'],
+        ])
+      expect(within(dialog).getByText(label).nextElementSibling).toHaveTextContent(value)
     await userEvent.click(
       within(dialog).getByRole('button', { name: ru ? 'Продолжить' : 'Continue' }),
     )

@@ -142,28 +142,44 @@ export function SettingsDelete({
           <>
             <p>
               {ru
-                ? 'Будут удалены профиль, перелёты, отметки стран, наземные посещения, черновики импорта и достижения. Все сеансы будут завершены.'
-                : 'Your profile, flights, country claims, ground visits, import drafts, and achievements will be deleted. All sessions will end.'}
+                ? 'Будут удалены профиль, перелёты, отметки стран, наземные посещения, наземные поездки, свои места, черновики импорта и достижения. Все сеансы будут завершены.'
+                : 'Your profile, flights, country claims, ground visits, ground journeys, manual places, import drafts, and achievements will be deleted. All sessions will end.'}
             </p>
             <dl className="settings-counts">
-              {(['flights', 'claims', 'ground', 'drafts'] as const).map((kind, index) => (
-                <div key={kind}>
-                  <dt>
-                    {
-                      (ru
-                        ? ['Перелёты', 'Отметки стран', 'Наземные посещения', 'Черновики импорта']
-                        : ['Flights', 'Country claims', 'Ground visits', 'Import drafts'])[index]
-                    }
-                  </dt>
-                  <dd>
-                    {counts
-                      ? formatNumber(locale, counts[kind])
-                      : ru
-                        ? 'Количество недоступно'
-                        : 'Count unavailable'}
-                  </dd>
-                </div>
-              ))}
+              {(['flights', 'claims', 'ground', 'journeys', 'manualPlaces', 'drafts'] as const).map(
+                (kind, index) => (
+                  <div key={kind}>
+                    <dt>
+                      {
+                        (ru
+                          ? [
+                              'Перелёты',
+                              'Отметки стран',
+                              'Наземные посещения',
+                              'Наземные поездки',
+                              'Свои места',
+                              'Черновики импорта',
+                            ]
+                          : [
+                              'Flights',
+                              'Country claims',
+                              'Ground visits',
+                              'Ground journeys',
+                              'Manual places',
+                              'Import drafts',
+                            ])[index]
+                      }
+                    </dt>
+                    <dd>
+                      {counts
+                        ? formatNumber(locale, counts[kind])
+                        : ru
+                          ? 'Количество недоступно'
+                          : 'Count unavailable'}
+                    </dd>
+                  </div>
+                ),
+              )}
             </dl>
             <Button variant="primary" onClick={() => setStep(2)}>
               {ru ? 'Продолжить' : 'Continue'}
@@ -174,8 +190,8 @@ export function SettingsDelete({
           <>
             <p>
               {ru
-                ? 'Сохраните доступные CSV-файлы до удаления. Они содержат ваши записи; восстановить аккаунт из них автоматически нельзя.'
-                : 'Download the available CSV files before deleting. They contain your records; they cannot automatically restore your account.'}
+                ? 'Сохраните доступные CSV- и JSON-файлы до удаления. Они содержат ваши записи; восстановить аккаунт из них автоматически нельзя.'
+                : 'Download the available CSV and JSON files before deleting. They contain your records; they cannot automatically restore your account.'}
             </p>
             <p>{exportInfo}</p>
             <div className="settings-actions">

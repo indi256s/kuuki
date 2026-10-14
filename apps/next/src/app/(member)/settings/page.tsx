@@ -25,7 +25,7 @@ export default async function Settings() {
       (SELECT COUNT(*) FROM ground_journeys WHERE user_id = ? AND deleted_at IS NULL) AS journeys,
       (SELECT COUNT(*) FROM ground_manual_places WHERE user_id = ?) AS manualPlaces`)
       .bind(...Array<string>(7).fill(own.ownerId))
-      .first<SettingsCounts & { journeys: number; manualPlaces: number }>()
+      .first<SettingsCounts>()
   } catch {
     /* Keep Settings usable; unavailable counts must never become an empty account. */
   }

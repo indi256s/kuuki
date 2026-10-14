@@ -2,6 +2,7 @@ import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { getAllFlights } from '@kuuki/client/flights'
 import type { CountryClaim } from '@kuuki/client/passport'
 import { useEffect, useRef, useState } from 'react'
+import { exportJourneysUrl } from '../ground/api'
 
 export type SettingsCounts = {
   flights: number
@@ -9,8 +10,12 @@ export type SettingsCounts = {
   claims: number
   ground: number
   drafts: number
+  /** Live ground journeys (rail and road), plans and cancelled ones included. */
+  journeys: number
+  /** Places the owner typed in by hand for ground journeys. */
+  manualPlaces: number
 }
-export type ExportKind = 'flights' | 'claims' | 'ground'
+export type ExportKind = 'flights' | 'claims' | 'ground' | 'journeys'
 const LIMIT = 5
 const LEGACY_KEY = 'kuuki-export-count'
 const day = () => new Date().toISOString().slice(0, 10)
@@ -94,6 +99,18 @@ export async function downloadSettingsData(
     if (!current() || rows.length === 0) return 0
     helpers.exportClaims(rows.map((row) => ({ ...row, user_id: ownerId })))
     return rows.length
+  }
+  if (kind === 'journeys') {
+    const body = await api.get<import('./ground-export').GroundJourneysExport>(
+      exportJourneysUrl,
+      undefined,
+      { signal },
+    )
+    if (!current() || body.journeys.length + body.manualPlaces.length === 0) return 0
+    const { exportGroundJourneys } = await import('./ground-export')
+    if (!current()) return 0
+    exportGroundJourneys(body)
+    return body.journeys.length + body.manualPlaces.length
   }
   const rows = await api.get<Parameters<typeof import('./ground-export').exportGroundVisits>[0]>(
     '/api/passport/ground-visits',
