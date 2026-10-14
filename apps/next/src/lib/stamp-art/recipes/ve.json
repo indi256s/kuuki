@@ -34,11 +34,17 @@
   ],
   "layers": [
     {
-      "module": "waterfall-a",
-      "box": [28, 54, 140, 72],
+      "module": "waterfall-b",
+      "box": [27, 53, 146, 73],
       "params": {
-        "kind": "tepui",
-        "fallW": 4
+        "profile": "ribbon",
+        "width": 0.08,
+        "lipY": 0.15,
+        "drop": 0.45,
+        "axis": 0.74,
+        "mist": 0.16,
+        "seed": 2,
+        "fracture": 6.5
       }
     }
   ]

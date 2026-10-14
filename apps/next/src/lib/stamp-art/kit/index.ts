@@ -63,6 +63,9 @@ import { junkC } from './junk-c'
 import { funicularC } from './funicular-c'
 import { waterWheelC } from './water-wheel-c'
 import { waterfall } from './waterfall'
+import { waterfallB } from './waterfall-b'
+import { canopyB, plumeB } from './mass-b'
+import { gorgePinnaclesB, rockStrataB } from './rock-b'
 import { tataSomba } from './tata-somba'
 import { greatHouseA } from './great-house-a'
 import { millRuinA } from './mill-ruin-a'
@@ -254,6 +257,11 @@ export const kit = {
   'charles-bridge': charlesBridge,
   'cloth-hall': clothHall,
   waterfall,
+  'waterfall-b': waterfallB,
+  'plume-b': plumeB,
+  'canopy-b': canopyB,
+  'rock-strata-b': rockStrataB,
+  'gorge-pinnacles-b': gorgePinnaclesB,
   taroko,
   charyn,
   yurt,

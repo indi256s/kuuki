@@ -8,15 +8,45 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [150, 50, 34] }
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [150, 54, 34, 40, 56, 30, 96, 52, 24]
+      }
     },
-    { "module": "ground", "params": { "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
   ],
   "layers": [
     {
-      "module": "victoria-falls",
-      "box": [26, 48, 146, 78],
-      "params": { "seed": 6 }
+      "module": "waterfall-b",
+      "box": [27, 53, 146, 73],
+      "params": {
+        "profile": "curtain",
+        "channels": 7,
+        "lipY": 0.3,
+        "drop": 0.48,
+        "buttress": 8,
+        "ribLen": 1,
+        "ends": 0.03,
+        "canopy": 7,
+        "spray": [0.58, 0.26, 0.22],
+        "gorge": 9,
+        "mist": 0.24,
+        "seed": 4,
+        "lipJit": 5,
+        "bow": 4,
+        "footBow": 2,
+        "spread": 0.3,
+        "wall": 0,
+        "taper": 6,
+        "weights": [1.1, 0.8, 1.3, 0.9, 1.2, 1.0, 0.9],
+        "toothGap": 1.6
+      }
     }
   ]
 }

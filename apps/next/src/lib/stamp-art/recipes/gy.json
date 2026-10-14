@@ -19,11 +19,21 @@
   ],
   "layers": [
     {
-      "module": "waterfall-a",
-      "box": [26, 56, 148, 70],
+      "module": "waterfall-b",
+      "box": [27, 53, 146, 73],
       "params": {
-        "kind": "plateau",
-        "fallW": 11
+        "profile": "curtain",
+        "channels": 1,
+        "lipY": 0.3,
+        "drop": 0.68,
+        "ends": 0.43,
+        "endTall": 6,
+        "canopy": 10,
+        "mist": 0.34,
+        "seed": 3,
+        "recess": 16,
+        "wallStrata": 0,
+        "spread": 1.2
       }
     }
   ]

@@ -9,7 +9,7 @@
     {
       "module": "sky",
       "params": {
-        "gap": [3, 4.4],
+        "gap": [2.4, 3.4],
         "weight": "hair",
         "clouds": [34, 56, 30, 100, 52, 22, 152, 58, 28]
       }
@@ -32,10 +32,13 @@
   ],
   "layers": [
     {
-      "module": "cleft-falls-b",
-      "box": [44, 52, 112, 74],
+      "module": "waterfall-b",
+      "box": [27, 53, 146, 73],
       "params": {
-        "seed": 1
+        "profile": "cleft",
+        "width": 7,
+        "seed": 3,
+        "fracture": 6.5
       }
     }
   ]
