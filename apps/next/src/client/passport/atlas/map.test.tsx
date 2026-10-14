@@ -32,6 +32,7 @@ const map = {
   setFilter: vi.fn(),
   setLayoutProperty: vi.fn(),
   fitBounds: vi.fn(),
+  setRenderWorldCopies: vi.fn(),
   zoomIn: vi.fn(),
   zoomOut: vi.fn(),
   getZoom: () => 1,

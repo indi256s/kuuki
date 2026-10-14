@@ -372,7 +372,10 @@ const STRINGS = {
 function Controls({ locale }: { locale: Locale }) {
   const { map, ready } = useMap()
   useEffect(() => {
-    if (map && ready) map.fitBounds(WORLD_BOUNDS, { padding: 16, duration: 0 })
+    if (!map || !ready) return
+    // One world: repeated copies would draw a visited country twice beside the single list entry.
+    map.setRenderWorldCopies(false)
+    map.fitBounds(WORLD_BOUNDS, { padding: 16, duration: 0 })
   }, [map, ready])
   if (!ready) return null
   const text = STRINGS[locale]
