@@ -89,3 +89,12 @@
   line-height: 16px;
   color: var(--text-muted);
 }
+.stamp-sheet-error {
+  margin: 0;
+  color: var(--danger-text);
+  font-size: 12px;
+  line-height: 16px;
+}
+.stamp-sheet-error:empty {
+  display: none;
+}

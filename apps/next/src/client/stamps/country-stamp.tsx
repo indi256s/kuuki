@@ -20,6 +20,7 @@ export type CountryStampProps = {
   /**
    * Immutable ID of the press event. The full impression (scale-in and ink drying into the worn
    * layer) plays once per ID per browser session; remounts and refetches never replay it.
+   * The memory is shared with the legacy `Stamp`: the same ID never replays across both.
    */
   impressionId?: string
   /** No motion at all (grids, print). */
@@ -170,9 +171,8 @@ export function CountryStamp({
   const [played, setPlayed] = useState<string | null>(null)
   useLayoutEffect(() => {
     if (isStatic || pending || !impressionId) return
-    const key = `country:${impressionId}`
-    if (wasPressed(key)) return
-    markPressed(key)
+    if (wasPressed(impressionId)) return
+    markPressed(impressionId)
     // oxlint-disable-next-line hooks-compat/set-state-in-effect -- one-shot, derived from browser-session memory that cannot be read during render
     setPlayed(impressionId)
   }, [isStatic, pending, impressionId])

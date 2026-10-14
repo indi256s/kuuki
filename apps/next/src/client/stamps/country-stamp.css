@@ -197,5 +197,10 @@
   }
   .cs-tilt[data-impress] {
     animation-name: cs-fade-in;
+    animation-duration: var(--dur-base);
+  }
+  /* The dry keyframes are opacity only; no scale reaches the full-density layer. */
+  .cs-tilt[data-impress] .cs-full {
+    animation-duration: var(--dur-base);
   }
 }

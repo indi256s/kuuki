@@ -45,5 +45,7 @@ describe('stamp review route', () => {
       '{\n  "JP": {\n    "status": "accepted",\n    "at": "2026-10-14"\n  },\n  "TH": {\n    "status": "redo",\n    "note": "thinner roof",\n    "at": "2026-10-14"\n  }\n}\n',
     )
     expect(applyUpdate(b, { iso2: 'JP', status: null }, '2026-10-14')).not.toHaveProperty('JP')
+    const noteOnly = applyUpdate(b, { iso2: 'JP', status: null, note: 'later' }, '2026-10-14')
+    expect(noteOnly.JP).toEqual({ note: 'later', at: '2026-10-14' })
   })
 })

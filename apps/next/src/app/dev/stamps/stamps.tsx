@@ -1,7 +1,7 @@
 'use client'
 
 import './stamps.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SHAPE_NAMES } from '../../../lib/stamp-art/frame'
 import { setTheme } from '../../../client/appearance'
 import { CountryStamp } from '../../../client/stamps/country-stamp'
@@ -55,13 +55,38 @@ export function StampSheet({
     return s.filter === 'all' || (s.filter === 'unmarked' ? !status : status === s.filter)
   })
 
-  async function save(iso2: string, status: ReviewStatus | null, note: string) {
-    const res = await fetch('/dev/stamps/review', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ iso2, status, note }),
-    })
-    if (res.ok) setReview((await res.json()) as ReviewFile)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  // The card to focus once the list has re-rendered without the card that was just marked.
+  const focusAfter = useRef<string | null | undefined>(undefined)
+  useEffect(() => {
+    const target = focusAfter.current
+    if (target === undefined) return
+    focusAfter.current = undefined
+    const accept = target
+      ? gridRef.current?.querySelector<HTMLElement>(`[data-iso2="${target}"] [data-accept]`)
+      : null
+    ;(accept ?? headingRef.current)?.focus()
+  }, [review])
+
+  /** Resolves true when the mark reached the file. */
+  async function save(iso2: string, status: ReviewStatus | null, note: string): Promise<boolean> {
+    try {
+      const res = await fetch('/dev/stamps/review', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ iso2, status, note }),
+      })
+      if (!res.ok) return false
+      if (s.filter === 'unmarked' && status) {
+        const i = shown.findIndex((r) => r.iso2 === iso2)
+        focusAfter.current = (shown[i + 1] ?? shown[i - 1])?.iso2 ?? null
+      }
+      setReview((await res.json()) as ReviewFile)
+      return true
+    } catch {
+      return false
+    }
   }
 
   return (
@@ -127,8 +152,10 @@ export function StampSheet({
       </div>
 
       <section>
-        <h2>{t('Recipes and fallback examples', 'Рецепты и запасные примеры')}</h2>
-        <div className="stamp-sheet-grid">
+        <h2 ref={headingRef} tabIndex={-1}>
+          {t('Recipes and fallback examples', 'Рецепты и запасные примеры')}
+        </h2>
+        <div className="stamp-sheet-grid" ref={gridRef}>
           {shown.map((row) => (
             <Card
               key={row.iso2}
@@ -188,17 +215,23 @@ function Card({
   s: SheetState
   title: string
   mark: ReviewFile[string] | undefined
-  onSave: (iso2: string, status: ReviewStatus | null, note: string) => Promise<void>
+  onSave: (iso2: string, status: ReviewStatus | null, note: string) => Promise<boolean>
   t: (en: string, rus: string) => string
 }) {
   const meta = stampMeta(row.iso2)
   // Built in the click handler, so markup never carries it during SSR; the timestamp keeps a replay after a reload from hitting the session's pressed memory.
   const [impressionId, setImpressionId] = useState<string>()
   const [note, setNote] = useState(mark?.note ?? '')
+  const [failed, setFailed] = useState(false)
+  async function commit(status: ReviewStatus | null, text: string) {
+    const ok = await onSave(row.iso2, status, text)
+    setFailed(!ok)
+    return ok
+  }
   const common = { iso2: row.iso2, locale: s.locale, size: s.size } as const
   const strip = 64
   return (
-    <article className="stamp-sheet-card" data-stamp-host data-review={mark?.status}>
+    <article className="stamp-sheet-card" data-iso2={row.iso2} data-review={mark?.status}>
       <header>
         <h3>
           {row.iso2} · {title}
@@ -215,15 +248,31 @@ function Card({
               : t('Lint: no recipe', 'Линтер: рецепта нет')}
         </p>
       </header>
-      <div className="stamp-sheet-row stamp-sheet-main">
+      <div
+        className="stamp-sheet-row stamp-sheet-main"
+        data-stamp-host
+        role="group"
+        tabIndex={0}
+        aria-label={t(`Stamp ${row.iso2}`, `Штамп ${row.iso2}`)}
+      >
         {s.compare ? (
           <>
             <figure>
-              <CountryStamp {...common} status="inked" impressionId={impressionId} worn />
+              <CountryStamp
+                {...common}
+                status="inked"
+                impressionId={impressionId && `${impressionId}-w`}
+                worn
+              />
               <figcaption>{t('Worn', 'Износ')}</figcaption>
             </figure>
             <figure>
-              <CountryStamp {...common} status="inked" impressionId={impressionId} worn={false} />
+              <CountryStamp
+                {...common}
+                status="inked"
+                impressionId={impressionId && `${impressionId}-c`}
+                worn={false}
+              />
               <figcaption>{t('Clean', 'Чистый')}</figcaption>
             </figure>
           </>
@@ -235,8 +284,7 @@ function Card({
         {(
           [
             ['rest', t('Rest', 'Покой'), undefined, 'inked'],
-            ['hover', t('Hover', 'Наведение'), 'hover', 'inked'],
-            ['focus', t('Focus', 'Фокус'), 'focus', 'inked'],
+            ['hover', t('Straight', 'Прямо'), 'hover', 'inked'],
             ['press', t('Pressed', 'Нажатие'), 'press', 'inked'],
             ['pending', t('Pending', 'Ожидает'), undefined, 'pending'],
           ] as const
@@ -248,6 +296,7 @@ function Card({
               size={strip}
               status={status}
               pose={pose}
+              static={!pose}
               worn={s.worn}
             />
             <figcaption>{label}</figcaption>
@@ -262,19 +311,30 @@ function Card({
           <Button
             dense
             variant={mark?.status === 'accepted' ? 'primary' : 'secondary'}
-            onClick={() => void onSave(row.iso2, 'accepted', note)}
+            aria-pressed={mark?.status === 'accepted'}
+            data-accept
+            onClick={() => void commit('accepted', note)}
           >
             {t('Accept', 'Принять')}
           </Button>
           <Button
             dense
             variant={mark?.status === 'redo' ? 'primary' : 'secondary'}
-            onClick={() => void onSave(row.iso2, 'redo', note)}
+            aria-pressed={mark?.status === 'redo'}
+            onClick={() => void commit('redo', note)}
           >
             {t('Redo', 'Переделать')}
           </Button>
           {mark ? (
-            <Button dense variant="ghost" onClick={() => void onSave(row.iso2, null, '')}>
+            <Button
+              dense
+              variant="ghost"
+              onClick={() =>
+                void commit(null, '').then((ok) => {
+                  if (ok) setNote('')
+                })
+              }
+            >
               {t('Clear', 'Сбросить')}
             </Button>
           ) : null}
@@ -286,9 +346,14 @@ function Card({
           rows={2}
           onChange={(e) => setNote(e.target.value)}
           onBlur={() => {
-            if (mark && note !== (mark.note ?? '')) void onSave(row.iso2, mark.status, note)
+            if (note !== (mark?.note ?? '')) void commit(mark?.status ?? null, note)
           }}
         />
+        <p className="stamp-sheet-error" role="alert">
+          {failed
+            ? t('Could not save. Try again.', 'Не удалось сохранить. Попробуйте ещё раз.')
+            : null}
+        </p>
       </div>
     </article>
   )

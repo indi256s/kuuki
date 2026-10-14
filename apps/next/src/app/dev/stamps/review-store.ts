@@ -1,6 +1,6 @@
 // Owner marks (B2) for the contact sheet: pure helpers, the route handler does the file IO.
 export type ReviewStatus = 'accepted' | 'redo'
-export type ReviewEntry = { status: ReviewStatus; note?: string; at: string }
+export type ReviewEntry = { status?: ReviewStatus; note?: string; at: string }
 export type ReviewFile = Record<string, ReviewEntry>
 
 export type ReviewUpdate = {
@@ -22,12 +22,17 @@ export function parseUpdate(body: unknown): ReviewUpdate | null {
   return { iso2, status, note }
 }
 
-/** Applies one update. A cleared mark with no note removes the entry; keys come out sorted. */
+/** Applies one update. A cleared mark with no note removes the entry; a note alone keeps a status-less entry; keys come out sorted. */
 export function applyUpdate(file: ReviewFile, update: ReviewUpdate, today: string): ReviewFile {
   const next = { ...file }
   const note = update.note?.trim()
-  if (update.status === null) delete next[update.iso2]
-  else next[update.iso2] = { status: update.status, ...(note ? { note } : {}), at: today }
+  if (update.status === null && !note) delete next[update.iso2]
+  else
+    next[update.iso2] = {
+      ...(update.status ? { status: update.status } : {}),
+      ...(note ? { note } : {}),
+      at: today,
+    }
   return Object.fromEntries(Object.entries(next).sort(([a], [b]) => a.localeCompare(b)))
 }
 
@@ -37,7 +42,11 @@ export const serializeReview = (file: ReviewFile): string =>
     Object.fromEntries(
       Object.entries(file).map(([k, v]) => [
         k,
-        { status: v.status, ...(v.note ? { note: v.note } : {}), at: v.at },
+        {
+          ...(v.status ? { status: v.status } : {}),
+          ...(v.note ? { note: v.note } : {}),
+          at: v.at,
+        },
       ]),
     ),
     null,
