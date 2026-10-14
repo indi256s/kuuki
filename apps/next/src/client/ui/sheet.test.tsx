@@ -85,6 +85,25 @@ describe('Sheet', () => {
     expect(trigger).toHaveFocus()
   })
 
+  it('stays mounted, closed, while its exit animation plays', async () => {
+    // Presence reads the Content node's animation; a dropped ref made the sheet vanish before its exit could play.
+    const style = document.createElement('style')
+    style.textContent =
+      ".ui-sheet[data-state='open'] { animation-name: ui-sheet-in-r } .ui-sheet[data-state='closed'] { animation-name: ui-sheet-out-r }"
+    document.head.appendChild(style)
+    try {
+      const user = userEvent.setup()
+      render(<Harness />)
+      await user.click(screen.getByRole('button', { name: 'Open sheet' }))
+      const dialog = await screen.findByRole('dialog', { name: 'Country' })
+      await user.click(screen.getByRole('button', { name: 'Close' }))
+      expect(dialog).toBeInTheDocument()
+      expect(dialog).toHaveAttribute('data-state', 'closed')
+    } finally {
+      style.remove()
+    }
+  })
+
   it('has a visible close button as the keyboard alternative', async () => {
     const user = userEvent.setup()
     render(<Harness />)
@@ -155,6 +174,30 @@ describe('Sheet', () => {
     pointer(handle, 'pointerMove', 130, 1050)
     pointer(handle, 'pointerUp', 160, 1100) // 60px in 100ms = 0.6 px/ms
     expect(onChange).toHaveBeenLastCalledWith(false)
+  })
+
+  it('drops the dragged offset when reopened during a drag-dismiss exit', async () => {
+    const style = document.createElement('style')
+    style.textContent =
+      ".ui-sheet[data-state='open'] { animation-name: ui-sheet-in-r } .ui-sheet[data-state='closed'] { animation-name: ui-sheet-out-r }"
+    document.head.appendChild(style)
+    try {
+      render(<Harness />)
+      const trigger = screen.getByRole('button', { name: 'Open sheet' })
+      await userEvent.click(trigger)
+      const dialog = await screen.findByRole('dialog', { name: 'Country' })
+      const handle = screen.getByTestId('sheet-handle')
+      pointer(handle, 'pointerDown', 100, 1000)
+      pointer(handle, 'pointerMove', 130, 1050)
+      pointer(handle, 'pointerUp', 160, 1100)
+      expect(dialog).toHaveAttribute('data-state', 'closed')
+      expect(dialog.style.transform).toBe('translateX(30px)')
+      fireEvent.click(trigger)
+      await waitFor(() => expect(dialog).toHaveAttribute('data-state', 'open'))
+      expect(dialog.style.transform).toBe('')
+    } finally {
+      style.remove()
+    }
   })
 
   it('snaps back after a slow short drag', async () => {

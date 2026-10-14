@@ -20,6 +20,8 @@
   padding: var(--space-5) var(--space-6) var(--space-2);
 }
 .jd-title {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   font-family: var(--font-mono);
   font-size: 22px;
@@ -109,10 +111,34 @@
   }
 }
 
-/* The title's identity line: date and flight number under the route, so the flight is known before any decision. */
+/* Edit beside Close in the header (docked pane and Sheet). Auto margin pushes the pair right; an empty slot (editing) takes no gap.
+   The dense button's 32px face centres with the 44px close button, which sits 6px above the header line. */
+.jd-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+}
+.jd-actions:empty {
+  display: none;
+}
+
+/* The overlay detail panel opens in about 200ms and leaves in 160ms on the existing drawer curve, scoped to the Journal so other
+   right sheets keep --dur-sheet. Reduced motion keeps the shared fade. */
+@media (prefers-reduced-motion: no-preference) {
+  .journal-detail-sheet.ui-sheet[data-side='right'][data-state='open'] {
+    animation-duration: var(--dur-base);
+  }
+  .journal-detail-sheet.ui-sheet[data-side='right'][data-state='closed'] {
+    animation-duration: calc(var(--dur-base) * 0.8);
+  }
+}
+
+/* The title's identity line: the date under the route, so the flight is known before any decision. The flight number leads the
+   facts below. Sans, not mono: it is a date, not a code. */
 .jd-title-meta {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 13px;
   line-height: 20px;
   font-weight: 400;

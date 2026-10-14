@@ -71,6 +71,8 @@ export const copy = {
     datePassed: 'Date passed',
     datePassedHint: 'Complete it to add it to your history.',
     roundTrip: (place: string) => `${place} and back`,
+    /** Read between the endpoints of a card route; the schematic shows the direction visually. */
+    routeJoin: ' to ',
     distance: 'Distance',
     distanceUnknown: 'Distance unknown',
     onTrains: 'On trains',
@@ -185,6 +187,7 @@ export const copy = {
     datePassed: 'Дата прошла',
     datePassedHint: 'Завершите поездку, и она попадёт в историю.',
     roundTrip: (place: string) => `${place} и обратно`,
+    routeJoin: ' — ',
     distance: 'Расстояние',
     distanceUnknown: 'Расстояние неизвестно',
     onTrains: 'В поездах',
