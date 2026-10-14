@@ -63,6 +63,9 @@ export async function getOwnPassport() {
   }
 }
 
+/** What the owner page renders. */
+export type OwnPassport = NonNullable<Awaited<ReturnType<typeof getOwnPassport>>>
+
 /** The visitor view of a public passport (null when the username is unknown). */
 export function getPublicPassport(username: string) {
   return getPublicProfile(username)

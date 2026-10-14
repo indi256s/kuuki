@@ -34,7 +34,7 @@ describe('RouteFocus', () => {
     const input = document.getElementById('q') as HTMLInputElement
     const view = render(<RouteFocus />)
     input.focus()
-    for (const next of ['q=a', 'q=ab&country=JP', 'sort=visits&layer=routes']) {
+    for (const next of ['q=a', 'q=ab&country=JP', 'sort=name&region=asia&src=flights']) {
       search = new URLSearchParams(next)
       view.rerender(<RouteFocus />)
       expect(document.activeElement).toBe(input)
@@ -47,6 +47,15 @@ describe('RouteFocus', () => {
     const h1 = page()
     const view = render(<RouteFocus />)
     search = new URLSearchParams('view=map')
+    view.rerender(<RouteFocus />)
+    expect(document.activeElement).toBe(h1)
+  })
+
+  it('treats the visitor preview as a mode change that moves focus', () => {
+    pathname = '/passport'
+    const h1 = page()
+    const view = render(<RouteFocus />)
+    search = new URLSearchParams('as=visitor')
     view.rerender(<RouteFocus />)
     expect(document.activeElement).toBe(h1)
   })

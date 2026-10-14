@@ -597,7 +597,7 @@ export function SettingsForm({
       </p>
       {profile.username ? (
         <p>
-          <Link prefetch={false} href={`/fly/${encodeURIComponent(profile.username)}`}>
+          <Link prefetch={false} href="/passport">
             {text('View my profile', 'Мой профиль')}
           </Link>
         </p>

@@ -82,13 +82,12 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
 
   await page.goto('/passport')
   const data = page.getByTestId('passport-data')
-  await expect(data.locator('.passport-figures strong').first()).toHaveText('3')
-  await expect(data.getByText('of 246')).toBeVisible()
-  await expect(data.getByRole('link', { name: '1 waiting for confirmation' })).toBeVisible()
-  // Under Recent, the unpressed slot leads the page.
-  await expect(data.locator('.passport-cell').first()).toHaveAttribute('data-status', 'pending')
+  await expect(data.getByText('Visited 2 countries')).toBeVisible()
+  // The unpressed slot sits in its own block, apart from the collection, with an entry above the collection.
+  await expect(data.getByRole('button', { name: 'Awaiting confirmation · 1' })).toBeVisible()
+  await expect(data.locator('#passport-pending .passport-card')).toHaveCount(1)
 
-  const stamp = data.getByRole('button', { name: /^Greece, claimed without flights/ })
+  const stamp = data.getByRole('button', { name: /^Greece/ })
   await stamp.focus()
   await page.keyboard.press('Enter')
   await page.waitForURL((url) => url.searchParams.get('country') === 'GR')
@@ -99,7 +98,8 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await page.waitForURL((url) => !url.searchParams.has('country'))
   await expect(stamp).toBeFocused()
 
-  await data.getByRole('radio', { name: 'A–Z' }).click()
+  await data.getByRole('button', { name: 'Sort stamps' }).click()
+  await page.getByRole('menuitemradio', { name: 'Name' }).click()
   await page.waitForURL((url) => url.searchParams.get('sort') === 'name')
   await expect(page.locator('main h1')).not.toBeFocused()
 
@@ -113,17 +113,14 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await page.waitForURL((url) => url.search === '?sort=name')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 
-  // The cover's Add country returns focus to itself when dismissed; the aircraft helper stays one link away.
-  const add = data.getByRole('button', { name: '＋ Add country' })
-  await add.click()
+  // The owner menu's Add country returns focus to the menu button when dismissed.
+  const menu = data.getByRole('button', { name: 'Passport menu' })
+  await menu.click()
+  await page.getByRole('menuitem', { name: 'Add country' }).click()
   await expect(page.getByRole('dialog', { name: 'Add country' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  await expect(add).toBeFocused()
-  await expect(data.getByRole('link', { name: 'Aircraft in journal' })).toHaveAttribute(
-    'href',
-    '/passport/manage',
-  )
+  await expect(menu).toBeFocused()
 
   await data
     .getByRole('link', { name: 'United States: waiting for confirmation. Open the arrival card' })
@@ -170,9 +167,7 @@ test('a country is added from search, claimed, visited by sea, and removed with 
   await sheet.getByRole('button', { name: 'Claim without a visit' }).click()
   await expect(sheet.getByRole('status').filter({ hasText: 'Country claimed.' })).toBeVisible()
   // The modal sheet hides the page from the accessibility tree, so the new stamp is found by its markup.
-  await expect(
-    data.locator('.stamp[data-kind="claim"] .stamp-code', { hasText: 'IS' }),
-  ).toBeAttached()
+  await expect(data.locator('.passport-card[data-code="IS"]')).toBeAttached()
 
   await sheet.getByRole('radio', { name: 'By sea' }).click()
   await sheet.getByRole('textbox', { name: /^Year/ }).fill('2019')

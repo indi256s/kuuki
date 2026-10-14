@@ -3,27 +3,25 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { ProfileData } from '../../app/(public)/fly/[username]/page'
-import { getPublicProfile } from '../../server/public'
+import { getPublicPassport } from '../../server/passport'
 import { getOptionalPublicViewer } from '../../server/identity'
-import {
-  getOwnProfile,
-  getOwnProfileStats,
-  getOwnBadges,
-  getOwnStamps,
-  getProfileShareUrl,
-} from '../../server/profile'
 import { getRequestLocale } from '../../server/locale'
-vi.mock('../../server/public', () => ({ getPublicProfile: vi.fn() }))
+vi.mock('../../server/passport', () => ({ getPublicPassport: vi.fn() }))
 vi.mock('../../server/identity', () => ({ getOptionalPublicViewer: vi.fn() }))
-vi.mock('../../server/profile', () => ({
-  getOwnProfile: vi.fn(),
-  getOwnProfileStats: vi.fn(),
-  getOwnBadges: vi.fn(),
-  getOwnStamps: vi.fn(),
-  getProfileShareUrl: vi.fn(),
-}))
 vi.mock('../../server/locale', () => ({ getRequestLocale: vi.fn() }))
 vi.mock('../../server/metadata', () => ({ pageMetadata: vi.fn() }))
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(window.location.search),
+  usePathname: () => '/fly/traveler',
+  redirect: (href: string) => {
+    throw new Error(`NEXT_REDIRECT ${href}`)
+  },
+}))
+vi.mock('next/link', async () => ({
+  default: (await import('../../test/next-link')).linkStandIn(() => {}),
+}))
+vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('./badge-notifications', () => ({ BadgeNotifications: () => null }))
 vi.mock('./avatar', () => ({ ProfileAvatar: () => <span aria-hidden="true" /> }))
 vi.mock('../activity', () => ({
@@ -99,7 +97,7 @@ const founding = {
 beforeEach(() => {
   vi.mocked(getRequestLocale).mockResolvedValue('en')
   vi.mocked(getOptionalPublicViewer).mockResolvedValue(null)
-  vi.mocked(getPublicProfile).mockResolvedValue({
+  vi.mocked(getPublicPassport).mockResolvedValue({
     profile,
     stats,
     badges: [],
@@ -108,44 +106,38 @@ beforeEach(() => {
     derivedState: 'ready',
     publication: 'flights',
   })
-  vi.mocked(getOwnProfileStats).mockClear()
-  vi.mocked(getOwnProfile).mockClear()
-  vi.mocked(getOwnBadges).mockClear()
-  vi.mocked(getOwnStamps).mockReset()
-  vi.mocked(getOwnStamps).mockResolvedValue([
-    { code: 'NO', lastVisit: '2026-09-14' },
-    { code: 'GE', lastVisit: '2025-11-02' },
-  ])
-  vi.mocked(getProfileShareUrl).mockResolvedValue('https://configured.example/fly/traveler')
 })
-it('visitor sees the holder page and headline numbers, dateless stamps, the join card, and no owner or unbuilt actions', async () => {
+it('visitor sees the identity, the permitted stamps by name only, the flight block and the join card, and no owner controls', async () => {
   const view = render(await ProfileData({ username: 'traveler' }))
   expect(screen.getByRole('heading', { level: 1, name: 'Traveler' })).toBeVisible()
-  expect(screen.getByText('12,345')).toBeVisible()
+  expect(screen.getByText('@traveler')).toBeVisible()
+  expect(screen.getByText('A biography')).toBeVisible()
+  // The flight block is labelled and keeps only the stats the public read carries.
+  const flights = within(screen.getByRole('region', { name: 'On flights' }))
+  expect(flights.getByText('12,345')).toBeVisible()
   expect(screen.queryByText('Airlines')).not.toBeInTheDocument()
   expect(screen.queryByText('Aircraft types')).not.toBeInTheDocument()
   // Stamps: names only, ordered by name, never the owner's dates (spec: no new disclosure).
-  const stamps = within(screen.getByRole('region', { name: 'Stamps' }))
-  expect(stamps.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
-    'GeorgiaGE',
-    'NorwayNO',
+  const stamps = within(screen.getByRole('list', { name: 'Stamps' }))
+  expect(stamps.getAllByRole('button').map((item) => item.textContent)).toEqual([
+    'Georgia',
+    'Norway',
   ])
-  expect(getOwnStamps).not.toHaveBeenCalled()
-  expect(view.container.textContent).not.toMatch(/\d{2}·\d{2}/)
+  expect(screen.getByText('Visited 2 countries')).toBeVisible()
   // Visitors never see empty blocks, Remarks, owner controls or actions that wait for /compare.
   expect(screen.queryByRole('heading', { name: 'Achievements' })).not.toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: 'Leaderboard' })).not.toBeInTheDocument()
-  expect(screen.queryByText('Remarks')).not.toBeInTheDocument()
+  expect(screen.queryByText('Only you see this')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /share/i })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Passport menu' })).not.toBeInTheDocument()
   expect(view.container.textContent).not.toMatch(/compare/i)
   expect(screen.getByRole('link', { name: 'Start your own flight journal' })).toHaveAttribute(
     'href',
     '/signup',
   )
-  expect(getOwnProfileStats).not.toHaveBeenCalled()
 })
 it('names each gate sign by rank and category and links it to its leaderboard', async () => {
-  vi.mocked(getPublicProfile).mockResolvedValue({
+  vi.mocked(getPublicPassport).mockResolvedValue({
     profile,
     stats,
     badges: [],
@@ -170,7 +162,7 @@ it.each([
   ['ru', 'Founding crew', 'Спасибо, что были с нами с самого начала.'],
 ] as const)('opens the earned founding crew keepsake in %s', async (locale, label, thanks) => {
   vi.mocked(getRequestLocale).mockResolvedValue(locale)
-  vi.mocked(getPublicProfile).mockResolvedValue({
+  vi.mocked(getPublicPassport).mockResolvedValue({
     profile,
     stats,
     rankings: [],
@@ -189,10 +181,10 @@ it.each([
   [null, 'Start your own journal', '/signup'],
   [{ id: 'someone-else', email: 'x@example.test' }, 'Back to your journal', '/journal'],
 ] as const)(
-  'a visitor on a private profile gets the closed cover, no name and no private reads (viewer %#)',
+  'a visitor on a private profile gets the closed cover and no name (viewer %#)',
   async (viewer, link, href) => {
     vi.mocked(getOptionalPublicViewer).mockResolvedValue(viewer as never)
-    vi.mocked(getPublicProfile).mockResolvedValue(privateRead)
+    vi.mocked(getPublicPassport).mockResolvedValue(privateRead)
     const view = render(await ProfileData({ username: 'traveler' }))
     expect(
       screen.getByRole('heading', { level: 1, name: 'This passport is private.' }),
@@ -200,75 +192,42 @@ it.each([
     expect(screen.getByRole('link', { name: link })).toHaveAttribute('href', href)
     expect(view.container.textContent).not.toContain('Traveler')
     expect(view.container.textContent).not.toContain('@traveler')
-    expect(getOwnProfile).not.toHaveBeenCalled()
-    expect(getOwnProfileStats).not.toHaveBeenCalled()
-    expect(getOwnBadges).not.toHaveBeenCalled()
-    expect(getOwnStamps).not.toHaveBeenCalled()
   },
 )
-it('private owner sees the full page under a decorative PRIVATE stamp, the Private chip and dated stamps', async () => {
+it('sends a private owner to the visitor preview instead of a closed cover', async () => {
   vi.mocked(getOptionalPublicViewer).mockResolvedValue(owner)
-  vi.mocked(getPublicProfile).mockResolvedValue(privateRead)
-  vi.mocked(getOwnProfile).mockResolvedValue({
-    ownerId: 'owner',
-    profile: {
-      ...profile,
-      is_public: false,
-      gemini_api_key: 'PRIVATE-KEY',
-      home_airport: null,
-      locale: 'en',
-      updated_at: '2026-10-04',
-    },
-  } as Awaited<ReturnType<typeof getOwnProfile>>)
-  vi.mocked(getOwnProfileStats).mockResolvedValue(stats)
-  vi.mocked(getOwnBadges).mockResolvedValue([])
-  const view = render(await ProfileData({ username: 'traveler' }))
-  expect(screen.getByRole('heading', { level: 1, name: 'Traveler' })).toBeVisible()
-  expect(screen.getByText('12,345')).toBeVisible()
-  expect(screen.getByText('PRIVATE').closest('[aria-hidden="true"]')).not.toBeNull()
-  expect(screen.getByRole('link', { name: 'Private profile, change in Settings' })).toHaveAttribute(
-    'href',
-    '/settings',
+  vi.mocked(getPublicPassport).mockResolvedValue(privateRead)
+  await expect(ProfileData({ username: 'traveler' })).rejects.toThrow(
+    'NEXT_REDIRECT /passport?as=visitor',
   )
-  expect(screen.getByText('Your profile is private. Others see a closed passport.')).toBeVisible()
-  // No disabled Share on a private profile (audit decision).
+})
+it('shows the owner on their own public page the same public read, with a slim link back to the passport', async () => {
+  vi.mocked(getOptionalPublicViewer).mockResolvedValue(owner)
+  render(await ProfileData({ username: 'traveler' }))
+  expect(screen.getByText('This is your public page.')).toBeVisible()
+  expect(screen.getByRole('link', { name: 'Back to my passport' })).toHaveAttribute(
+    'href',
+    '/passport',
+  )
+  // No owner controls and no private reads: the page is the visitor projection.
   expect(screen.queryByRole('button', { name: 'Share profile' })).not.toBeInTheDocument()
-  expect(screen.getByText('Remarks')).toBeVisible()
-  expect(screen.getByText('Norway, September 2026')).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'Open passport →' })).toHaveAttribute('href', '/passport')
-  expect(
-    screen.getByText(
-      'Rankings appear after five flights with a public profile and participation on.',
-    ),
-  ).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Passport menu' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /change in Settings/ })).not.toBeInTheDocument()
   expect(
     screen.queryByRole('link', { name: 'Start your own flight journal' }),
   ).not.toBeInTheDocument()
-  expect(view.container.innerHTML).not.toContain('PRIVATE-KEY')
-  expect(getOwnProfileStats).toHaveBeenCalledWith('owner')
-})
-it('public owner gets Share profile and the Public chip instead of the old duplicate Settings links', async () => {
-  vi.mocked(getOptionalPublicViewer).mockResolvedValue(owner)
-  render(await ProfileData({ username: 'traveler' }))
-  expect(screen.getByRole('button', { name: 'Share profile' })).toBeVisible()
-  expect(screen.getByRole('link', { name: 'Public profile, change in Settings' })).toHaveAttribute(
-    'href',
-    '/settings',
-  )
-  expect(screen.getAllByRole('link', { name: /settings/i })).toHaveLength(1)
-  expect(screen.queryByText('PRIVATE')).not.toBeInTheDocument()
 })
 it('missing profile shows the not-found cover with a home link; an unavailable read throws', async () => {
-  vi.mocked(getPublicProfile).mockResolvedValue(null)
+  vi.mocked(getPublicPassport).mockResolvedValue(null)
   render(await ProfileData({ username: 'missing' }))
   expect(screen.getByRole('heading', { level: 1, name: 'No such passport.' })).toBeVisible()
   expect(screen.getByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/')
-  vi.mocked(getPublicProfile).mockRejectedValueOnce(new Error('D1 unavailable'))
+  vi.mocked(getPublicPassport).mockRejectedValueOnce(new Error('D1 unavailable'))
   await expect(ProfileData({ username: 'missing' })).rejects.toThrow('D1 unavailable')
 })
 
 it('does not show unknown distance or duration as a visitor zero after saved flights', async () => {
-  vi.mocked(getPublicProfile).mockResolvedValue({
+  vi.mocked(getPublicPassport).mockResolvedValue({
     profile,
     stats: { ...stats, total_distance_km: 0, total_duration_minutes: 0 },
     badges: [],

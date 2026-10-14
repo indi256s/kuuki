@@ -4,18 +4,23 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import PublicLayout from '../../app/(public)/layout'
 import { ProfileData } from '../../app/(public)/fly/[username]/page'
 import { getOptionalPublicViewer } from '../../server/identity'
-import { getPublicProfile } from '../../server/public'
+import { getPublicPassport } from '../../server/passport'
 vi.mock('../../server/identity', () => ({ getOptionalPublicViewer: vi.fn() }))
-vi.mock('../../server/public', () => ({ getPublicProfile: vi.fn() }))
+vi.mock('../../server/passport', () => ({ getPublicPassport: vi.fn() }))
 vi.mock('../../server/locale', () => ({ getRequestLocale: () => Promise.resolve('en') }))
 vi.mock('../../server/metadata', () => ({ pageMetadata: vi.fn() }))
-vi.mock('../../server/profile', () => ({
-  getOwnProfile: vi.fn(),
-  getOwnProfileStats: vi.fn(),
-  getOwnBadges: vi.fn(),
-  getOwnStamps: () => Promise.resolve([]),
-  getProfileShareUrl: () => Promise.resolve('https://configured.example/fly/B'),
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(''),
+  usePathname: () => '/fly/B',
+  redirect: (href: string) => {
+    throw new Error(`NEXT_REDIRECT ${href}`)
+  },
 }))
+vi.mock('next/link', async () => ({
+  default: (await import('../../test/next-link')).linkStandIn(() => {}),
+}))
+vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../route-transitions', () => ({
   RouteStage: ({ children }: { children: React.ReactNode }) => children,
 }))
@@ -53,7 +58,7 @@ beforeEach(() =>
 it.each(['public', 'private', 'missing'] as const)(
   'keeps one account A notification manager while A visits B’s %s profile',
   async (state) => {
-    vi.mocked(getPublicProfile).mockResolvedValue(
+    vi.mocked(getPublicPassport).mockResolvedValue(
       state === 'missing'
         ? null
         : state === 'private'
@@ -83,7 +88,7 @@ it.each(['public', 'private', 'missing'] as const)(
   },
 )
 it('does not duplicate notifications on own public profile or mount private notifications for guests', async () => {
-  vi.mocked(getPublicProfile).mockResolvedValue({
+  vi.mocked(getPublicPassport).mockResolvedValue({
     profile,
     stats: null,
     badges: [],

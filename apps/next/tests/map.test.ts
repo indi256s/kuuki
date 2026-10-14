@@ -60,28 +60,16 @@ test('the overview globe fills the card and keeps its canvas visible in fullscre
   await expect(fullscreen.locator('.maplibregl-canvas')).toHaveCount(0)
 })
 
-test('the opened map uses local assets, selectable routes and survives a theme change', async ({
+test('the Passport map view drops the retired route-map params and survives a theme change', async ({
   page,
   baseURL,
 }) => {
-  expect(
-    (
-      await page.request.post('/api/auth/sign-in/email', {
-        headers: { Origin: baseURL! },
-        data: { email: 'a@example.test', password: 'rehearsal-password-2026' },
-      })
-    ).status(),
-  ).toBe(200)
-  const assets: string[] = []
-  page.on('request', (request) => {
-    if (new URL(request.url()).pathname.startsWith('/maps/')) assets.push(request.url())
-  })
+  await signIn(page, baseURL!)
+  // `layer` and `year` belonged to the old route map; the canonical URL keeps only the view.
   await page.goto('/passport?view=map&layer=routes&year=2026')
-  const routes = page.getByRole('list', { name: 'Route list', exact: true })
-  await expect(routes.getByRole('button', { name: /BOS ↔ JFK/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
-  await routes.getByRole('button').first().click()
-  await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
+  await page.waitForURL((url) => url.pathname === '/passport' && url.search === '?view=map')
+  const map = page.getByRole('radio', { name: 'Map', exact: true })
+  await expect(map).toHaveAttribute('aria-checked', 'true')
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.getByRole('button', { name: 'Account menu' }).click()
   await page.getByRole('menuitemradio', { name: 'Dark' }).click()
@@ -89,18 +77,15 @@ test('the opened map uses local assets, selectable routes and survives a theme c
   // A tray pick keeps the account menu open; close it before using the page.
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toBeHidden()
-  await expect(routes.getByRole('button').first()).toHaveAttribute('aria-pressed', 'true')
-  await page.getByRole('button', { name: 'Fit routes' }).click()
-  expect(assets.some((url) => url.endsWith('maplibre-gl-worker.mjs'))).toBe(true)
-  expect(assets.some((url) => url.endsWith('countries-110m-2.0.2-r2.geojson'))).toBe(true)
-  expect(assets.every((url) => new URL(url).origin === baseURL)).toBe(true)
-  await page.getByRole('button', { name: 'Close map', exact: true }).click()
-  await expect(page.locator('.maplibregl-canvas')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Open map', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Fit routes' })).toBeVisible({ timeout: 20_000 })
+  await expect(map).toHaveAttribute('aria-checked', 'true')
+  await page.getByRole('radio', { name: 'Cards', exact: true }).click()
+  await page.waitForURL((url) => url.search === '')
 })
 
-test('WebGL failure keeps a keyboard usable route and country list', async ({ page, baseURL }) => {
+test('WebGL failure leaves the Passport map view and the Overview globe usable', async ({
+  page,
+  baseURL,
+}) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext
     HTMLCanvasElement.prototype.getContext = function (
@@ -121,17 +106,10 @@ test('WebGL failure keeps a keyboard usable route and country list', async ({ pa
     ).status(),
   ).toBe(200)
   await page.goto('/passport?view=map&layer=routes')
-  await expect(page.getByRole('status').filter({ hasText: 'Map unavailable.' })).toBeVisible()
-  const route = page
-    .getByRole('list', { name: 'Route list', exact: true })
-    .getByRole('button')
-    .first()
-  await route.focus()
-  await page.keyboard.press('Enter')
-  await expect(route).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('list', { name: 'Visited countries', exact: true })).toContainText(
-    'United States',
-  )
+  await page.waitForURL((url) => url.pathname === '/passport' && url.search === '?view=map')
+  // The view switch still works without WebGL; the atlas fallback itself is covered by its own lane.
+  await page.getByRole('radio', { name: 'Cards', exact: true }).click()
+  await expect(page.getByRole('list', { name: 'Stamps' })).toBeVisible()
   await page.goto('/overview')
   await expect(page.getByRole('status').filter({ hasText: 'Globe unavailable.' })).toBeVisible()
   await expect(page.locator('.globe-viewport svg')).toHaveCount(0)

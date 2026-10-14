@@ -59,7 +59,6 @@ export function MobilePageTitle() {
     { href: '/settings', label: 'Settings', ru: 'Настройки' },
     { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
     { href: '/import', label: 'Import', ru: 'Импорт' },
-    { href: '/me', label: 'Me', ru: 'Я' },
     { href: '/fly', label: 'Profile', ru: 'Профиль' },
   ].find((item) => isActive(pathname, item.href))
   return (

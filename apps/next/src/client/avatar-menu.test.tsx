@@ -51,7 +51,7 @@ describe('AvatarMenu', () => {
     trigger.focus()
     await user.keyboard('{Enter}')
     const profile = await screen.findByRole('menuitem', { name: 'ana@ana' })
-    expect(profile).toHaveAttribute('href', '/fly/ana')
+    expect(profile).toHaveAttribute('href', '/passport')
     await waitFor(() => expect(profile).toHaveFocus())
     await user.keyboard('{ArrowDown}')
     expect(screen.getByRole('menuitemcheckbox', { name: 'Public profile' })).toHaveFocus()

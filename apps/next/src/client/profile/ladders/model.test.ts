@@ -5,6 +5,7 @@ import {
   LADDERS,
   ladderOf,
   ladderValue,
+  nearestRung,
   nextStep,
   toTiles,
   visibleBadges,
@@ -122,5 +123,38 @@ describe('copy coverage', () => {
       const remaining = largest[ladder.id] ?? (ladder.unit === 'count' ? max - 1 : max)
       expect(toGo(ladder.id, remaining, 'ru').length).toBeLessThanOrEqual(26)
     }
+  })
+})
+
+describe('nearestRung', () => {
+  it('picks the ladder with the smallest share of its next threshold missing', () => {
+    // flights 20/25 is 20% short, countries 4/5 is 20% short too, distance 9,000/10,000 is 10% short.
+    const near = nearestRung(
+      [],
+      stats({ total_flights: 20, countries_count: 4, total_distance_km: 9000 }),
+    )
+    expect(near).toEqual({ ladder: 'distance', rung: 1, rungs: 5, remaining: 1000 })
+  })
+
+  it('counts from the earned rung and skips finished ladders and missing stats', () => {
+    const earned = ['flights-1', 'flights-2'].map(badge)
+    expect(nearestRung(earned, stats({ total_flights: 49 }))).toEqual({
+      ladder: 'flights',
+      rung: 3,
+      rungs: 5,
+      remaining: 1,
+    })
+    expect(nearestRung(earned, null)).toBeNull()
+    const maxed = stats({
+      total_flights: 999,
+      total_distance_km: 9_999_999,
+      total_duration_minutes: 999_999,
+      countries_count: 999,
+      airports_count: 999,
+      continents_count: 9,
+      airlines_count: 99,
+      aircraft_count: 99,
+    })
+    expect(nearestRung([], maxed)).toBeNull()
   })
 })

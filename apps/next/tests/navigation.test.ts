@@ -46,15 +46,17 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
   for (const [route, heading] of [
     ['journal', 'Journal'],
     ['ground-travel', 'Ground travel'],
-    ['passport', 'Passport'],
+    // The Passport's H1 is the holder's name, so only its presence is asserted.
+    ['passport', null],
     ['overview', 'Overview'],
-  ]) {
+  ] as const) {
     await page
       .locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="/${route}"]:visible`)
       .click()
     await page.waitForURL((url) => url.pathname === `/${route}`)
     await routeSettled(page)
-    await expect(page.locator('h1')).toHaveText(heading)
+    if (heading) await expect(page.locator('h1')).toHaveText(heading)
+    else await expect(page.locator('main h1')).toBeVisible()
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
     ).toBeVisible()
@@ -64,6 +66,13 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
       ),
     ).toHaveAttribute('aria-current', 'page')
   }
+})
+
+test('the old profile entry /me lands on the Passport', async ({ page, baseURL }) => {
+  await signIn(page, baseURL!)
+  await page.goto('/me')
+  await page.waitForURL((url) => url.pathname === '/passport')
+  await expect(page.getByTestId('passport-data')).toBeVisible()
 })
 
 test('desktop tab navigation keeps the header and incoming page geometry stable', async ({

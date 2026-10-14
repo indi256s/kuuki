@@ -131,8 +131,10 @@ async function ready(page: Page, route: string, count: number) {
     ).toBeVisible()
   } else {
     await expect(
-      page.getByTestId('passport-data').locator('.passport-figures strong').first(),
-    ).toHaveText(count ? '1' : '0')
+      page
+        .getByTestId('passport-data')
+        .getByText(count ? 'Visited 1 country' : 'Visited 0 countries'),
+    ).toBeVisible()
   }
 }
 async function shellNavigation(

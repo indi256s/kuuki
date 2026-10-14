@@ -17,7 +17,7 @@ export const LADDER_NAME: Record<LadderId, Pair> = {
   flights: p('Flights', 'Перелёты'),
   distance: p('Distance', 'Расстояние'),
   'time-aloft': p('Time aloft', 'Время в воздухе'),
-  countries: p('Countries and territories', 'Страны и территории'),
+  countries: p('Countries on flights', 'Страны в перелётах'),
   airports: p('Airports', 'Аэропорты'),
   continents: p('Continents', 'Континенты'),
   airlines: p('Airlines', 'Авиакомпании'),
@@ -260,7 +260,7 @@ const hours: CountForms = {
 
 const NORMAL: Record<Exclude<LadderId, 'distance' | 'time-aloft'>, Pair> = {
   flights: p('Flights logged: {n}.', 'Перелётов в журнале: {n}.'),
-  countries: p('Countries and territories: {n}.', 'Стран и территорий: {n}.'),
+  countries: p('Countries on flights: {n}.', 'Стран в перелётах: {n}.'),
   airports: p('Airports: {n}.', 'Аэропортов: {n}.'),
   continents: p('Continents: {n}.', 'Континентов: {n}.'),
   airlines: p('Airlines flown: {n}.', 'Авиакомпаний: {n}.'),

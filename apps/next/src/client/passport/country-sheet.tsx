@@ -14,7 +14,7 @@ import type { DerivedAck } from '@kuuki/client/derivedState'
 import { trackPrivateOperation } from '../activity'
 import { useWriteFeedback } from '../write-feedback'
 import { NavigationLink } from '../navigation-link'
-import { Stamp } from '../signature/stamp'
+import { CountryStamp } from '../stamps'
 import { Button } from '../ui/button'
 import { DestructiveConfirm } from '../ui/destructive-confirm'
 import { Field } from '../ui/field'
@@ -30,7 +30,6 @@ import {
 } from '../../lib/format'
 import { journalHref } from '../../lib/url-state'
 import type { CountryDetail } from '../../server/passport'
-import { stampProps } from './collection'
 import {
   arrivalFlightId,
   arrivalHref,
@@ -40,6 +39,7 @@ import {
   removalOutcome,
   type PassportEntry,
 } from './model'
+import { SHEET_STAMP_SIZE } from './stamp-sizes'
 import './passport.css'
 
 type GroundEntry = Extract<CountryDetail['entries'][number], { kind: 'ground' }>
@@ -243,7 +243,12 @@ export function CountrySheet({
       <div className="passport-sheet">
         {entry ? (
           <div className="passport-sheet-stamp">
-            <Stamp {...stampProps(entry, locale, name)} static />
+            <CountryStamp
+              iso2={entry.code}
+              status={entry.status === 'pending' ? 'pending' : 'inked'}
+              size={SHEET_STAMP_SIZE}
+              static
+            />
           </div>
         ) : null}
         {status === 'pending' ? (

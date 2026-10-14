@@ -11,7 +11,6 @@ import {
   formatMonthYear,
   formatCount,
   formatNumber,
-  formatRelativeDate,
   type Locale,
 } from '../../lib/format'
 import { PASSPORT_SORTS, type PassportFilters, type PassportSource } from '../../lib/url-state'
@@ -37,6 +36,13 @@ export const REGION_LABELS: Record<RegionId, Record<Locale, string>> = {
   asia: { en: 'Asia', ru: 'Азия' },
   europe: { en: 'Europe', ru: 'Европа' },
   oceania: { en: 'Oceania', ru: 'Океания' },
+}
+
+export const SOURCE_LABELS: Record<PassportSource, Record<Locale, string>> = {
+  flights: { en: 'Flights', ru: 'Перелёты' },
+  trains: { en: 'Trains', ru: 'Поезда' },
+  road: { en: 'Road trips', ru: 'Поездки на авто' },
+  manual: { en: 'Manual', ru: 'Вручную' },
 }
 
 /**
@@ -331,59 +337,6 @@ export const foundText = (locale: Locale, found: number, of: number) =>
   locale === 'ru'
     ? `Найдено ${formatNumber(locale, found)} из ${formatNumber(locale, of)}`
     : `Found ${formatNumber(locale, found)} of ${formatNumber(locale, of)}`
-
-export type RegionGroup = { region: RegionId | null; entries: PassportEntry[] }
-/** Groups keep the sorted order: a group is placed where its first member sorts. */
-export function groupByRegion(sorted: PassportEntry[]): RegionGroup[] {
-  const groups = new Map<RegionId | null, PassportEntry[]>()
-  for (const entry of sorted) {
-    const list = groups.get(entry.region) ?? []
-    list.push(entry)
-    groups.set(entry.region, list)
-  }
-  return [...groups].map(([region, entries]) => ({ region, entries }))
-}
-
-export type HeaderFigures = {
-  /** Pressed + pending (C3: the total includes pending with the explicit waiting caption). */
-  total: number
-  pressed: number
-  pending: number
-  newThisYear: number
-  latest: PassportEntry | null
-}
-export function headerFigures(
-  data: Pick<PassportData, 'pressedCountryCount' | 'pendingCountryCount'>,
-  entries: PassportEntry[],
-  now = new Date(),
-): HeaderFigures {
-  const year = String(now.getUTCFullYear())
-  const pressed = entries.filter((entry) => entry.status === 'pressed')
-  const dated = pressed.filter((entry) => entry.first)
-  const latest = dated.reduce<PassportEntry | null>(
-    (best, entry) => (!best || pointKey(entry.first) > pointKey(best.first) ? entry : best),
-    null,
-  )
-  return {
-    total: data.pressedCountryCount + data.pendingCountryCount,
-    pressed: data.pressedCountryCount,
-    pending: data.pendingCountryCount,
-    newThisYear: dated.filter((entry) => String(entry.first!.year) === year).length,
-    latest,
-  }
-}
-
-/** «×12 · 2 мес. назад»: readable text under the stamp. Claim-only stamps carry their own label instead. */
-export function stampCaption(
-  locale: Locale,
-  entry: PassportEntry,
-  now = new Date(),
-): string | undefined {
-  if (entry.visits === 0) return undefined
-  const count = `×${formatNumber(locale, entry.visits)}`
-  if (!entry.last) return count
-  return `${count} · ${entry.last.date ? formatRelativeDate(locale, entry.last.date, now) : entry.last.year}`
-}
 
 export type Suggestions = { recent: string[]; neighbors: string[] }
 /**

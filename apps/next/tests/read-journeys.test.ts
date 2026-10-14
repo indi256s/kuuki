@@ -100,7 +100,7 @@ test('withdrawing public visibility blocks new document, RSC and API statistics'
     expect((await visible.json()).stats.total_flights).toBe(1)
     const visitorPage = await visitor.newPage()
     await visitorPage.goto('/fly/fixture-a')
-    await expect(visitorPage.locator('main')).toContainText('Statistics')
+    await expect(visitorPage.locator('main')).toContainText('On flights')
     await update(false)
     const hidden = await visitor.request.get('/api/public/profiles/fixture-a')
     expect(await hidden.json()).toMatchObject({
@@ -120,7 +120,7 @@ test('withdrawing public visibility blocks new document, RSC and API statistics'
     expect(await rsc.text()).not.toContain('a@example.test')
     await visitorPage.goto('/fly/fixture-a')
     await expect(visitorPage.locator('main')).toContainText('This passport is private.')
-    await expect(visitorPage.getByRole('heading', { name: 'Statistics', exact: true })).toHaveCount(
+    await expect(visitorPage.getByRole('heading', { name: 'On flights', exact: true })).toHaveCount(
       0,
     )
   } finally {

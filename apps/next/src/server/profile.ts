@@ -39,22 +39,6 @@ export async function getProfileShareUrl(username: string) {
   return new URL(`/fly/${encodeURIComponent(username)}`, PAGES_ORIGIN).href
 }
 
-/** The owner's own stamps with their last visit (owner-only: visitors get codes without dates). */
-export async function getOwnStamps(userId: string) {
-  const identity = await getRequestIdentity()
-  if (!identity || identity.id !== userId) return []
-  const rows = await (
-    await getRequestEnv()
-  ).DB.prepare(
-    `SELECT country_code, last_visit FROM country_visit_evidence
-      WHERE user_id = ? AND logged_visit_count + awaiting_visit_count > 0
-      ORDER BY last_visit DESC, country_code`,
-  )
-    .bind(userId)
-    .all<{ country_code: string; last_visit: string | null }>()
-  return rows.results.map((row) => ({ code: row.country_code, lastVisit: row.last_visit }))
-}
-
 /** The owner's leaderboard entries (empty when ineligible), the `GET /api/me/rankings` read. */
 export async function readOwnRankings(db: D1Database, userId: string) {
   const { results } = await db
