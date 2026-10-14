@@ -41,7 +41,7 @@ export type KuukiChartProps<T> = {
   tapPicks?: boolean
   tip?: (points: readonly ChartPoint<T>[]) => ReactNode
   actions?: (point: ChartPoint<T>) => readonly TipAction[]
-  /** The data as a "View as table" disclosure under the chart. Stage charts leave it to the card's Details, outside their fixed stage. */
+  /** Semantic data for screen readers. Stage charts leave it to the card, outside their fixed stage. */
   table?: ChartTable
   /** Count-driven charts: the SVG's natural width for the measured host width (left-aligned, scrolls when wider). Default fills the host. */
   fit?: (available: number) => number

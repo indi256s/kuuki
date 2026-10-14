@@ -546,7 +546,7 @@ Fine-pointer wheel zoom is disabled on the card and enabled in Fullscreen. Coars
 
 Aircraft distributes its rows across the full plot height: 176px in the sheet and 206px on desktop. Five types or six maker slots fit without extending the chart; its caption wraps without truncation beside the view toggle.
 
-The "Only …" slot sits on the hero's value line at the right and is absolutely positioned, so it appearing reflows nothing. A transparent button of at least 44px over the figure stage steps through the chart's readings in order. Spacing groups the content; there are no dividers. Details holds whatever does not fit a stage: counters, ledgers, the coverage line and Disclosures for deeper analyses. Stage charts put their "View as table" disclosure there, since the stage has a fixed height.
+The "Only …" slot sits on the hero's value line at the right and is absolutely positioned, so it appearing reflows nothing. A transparent button of at least 44px over the figure stage steps through the chart's readings in order. Spacing groups the content; there are no dividers. Details holds whatever does not fit a stage: counters, ledgers, the coverage line and Disclosures for deeper analyses. Chart tables are screen-reader alternatives only: no visible "View as table" control or duplicate table. Stage charts expose their semantic table outside the collapsible Details so it remains available without opening them.
 
 Chapter captions stay factual. Controls carry their own action labels; helper copy stays only for data coverage, estimates, restrictions or destructive consequences. Threshold placeholders show the available count and required minimum; the narrator owns the card’s only witty line.
 
