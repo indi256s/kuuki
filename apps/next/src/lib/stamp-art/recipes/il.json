@@ -1,0 +1,69 @@
+{
+  "iso2": "IL",
+  "tier": "engraved",
+  "ink": "teal",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [2.8, 4],
+        "clouds": [52, 60, 34, 150, 72, 28]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.34],
+          [0.2, 0.22],
+          [0.45, 0.34],
+          [0.7, 0.2],
+          [1, 0.3]
+        ],
+        "jag": 0.7,
+        "litGap": 2.6,
+        "seed": 21
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "mesa",
+      "box": [54, 52, 92, 78],
+      "params": {
+        "ridge": [
+          [0.03, 0.6],
+          [0.09, 0.12],
+          [0.18, 0.05],
+          [0.5, 0.02],
+          [0.82, 0.06],
+          [0.92, 0.14],
+          [0.97, 0.6]
+        ],
+        "cliff": 0.62,
+        "lit": 0.3,
+        "seed": 8,
+        "skirt": 0.05
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [80, 46, 40, 9],
+      "params": {
+        "merlons": 9,
+        "merlonH": 0.3,
+        "courses": 1,
+        "joints": 0
+      }
+    }
+  ]
+}

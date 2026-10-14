@@ -1,0 +1,90 @@
+{
+  "iso2": "BH",
+  "tier": "engraved",
+  "ink": "teal",
+  "cluster": "gulf-fort",
+  "horizon": 0.76,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [48, 62, 34, 150, 60, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [50, 100, 100, 30],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.06, 0.7],
+          [0.14, 0.3],
+          [0.22, 0.05],
+          [0.78, 0.05],
+          [0.86, 0.3],
+          [0.94, 0.7],
+          [1, 1]
+        ],
+        "walls": [0.22, 0.78],
+        "wallH": 5,
+        "courses": 2,
+        "shadeFrom": 0.62,
+        "seed": 5,
+        "crag": 0,
+        "strata": 4,
+        "shadeGap": 3
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [58, 78, 84, 24],
+      "params": {
+        "merlons": 12,
+        "merlonH": 0.22,
+        "courses": 2,
+        "joints": 8
+      }
+    },
+    {
+      "module": "tower",
+      "box": [58, 60, 18, 42],
+      "params": {
+        "cap": "battle",
+        "taper": 0.9,
+        "crown": 0.12,
+        "shade": 0.35
+      }
+    },
+    {
+      "module": "tower",
+      "box": [124, 60, 18, 42],
+      "params": {
+        "cap": "battle",
+        "taper": 0.9,
+        "crown": 0.12,
+        "shade": 0.35
+      }
+    },
+    {
+      "module": "tower",
+      "box": [91, 52, 18, 50],
+      "params": {
+        "cap": "battle",
+        "taper": 0.88,
+        "crown": 0.12,
+        "shade": 0.4
+      }
+    }
+  ]
+}

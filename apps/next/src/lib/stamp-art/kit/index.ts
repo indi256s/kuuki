@@ -120,6 +120,11 @@ import { fortChristian } from './fort-christian'
 import { jettyA } from './jetty-a'
 import { jetA } from './jet-a'
 import { schoonerA } from './schooner-a'
+import { khazneh } from './khazneh'
+import { dhow } from './dhow'
+import { drumB } from './drum-b'
+import { ziggurat } from './ziggurat'
+import { pigeonRocks } from './pigeon-rocks'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -270,6 +275,11 @@ export const kit = {
   'fort-christian': fortChristian,
   garita,
   'harbour-bridge': harbourBridge,
+  khazneh,
+  dhow,
+  'drum-b': drumB,
+  ziggurat,
+  'pigeon-rocks': pigeonRocks,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit
