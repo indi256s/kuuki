@@ -1,8 +1,9 @@
 'use client'
-import { useId, useRef, useState, type KeyboardEvent, type Ref } from 'react'
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { foldSearchText } from '@kuuki/shared'
 import { formatCount, type Locale } from '../../lib/format'
 import { Sheet } from './sheet'
+import { useAsyncSearch } from './use-async-search'
 import { useMobile } from './use-mobile'
 import './flight-controls.css'
 
@@ -323,6 +324,241 @@ export function Combobox({
             restoringFocus.current = false
           }}
           closeLabel={locale === 'ru' ? 'Закрыть поиск' : 'Close search'}
+          className="flight-search-sheet flight-full-sheet"
+        >
+          <div className="flight-search-input">{input(true)}</div>
+          {list}
+        </Sheet>
+      )}
+    </div>
+  )
+}
+
+export type AsyncOption = { key: string; label: string; detail?: string }
+
+const asyncCopy = {
+  en: {
+    searching: 'Searching…',
+    keepTyping: (min: number) => `Type at least ${min} letters.`,
+    none: (query: string) => `No match for “${query}”.`,
+    failed: 'Search failed.',
+    retry: 'Retry',
+    found: (count: number) => `${count} found`,
+    close: 'Close search',
+  },
+  ru: {
+    searching: 'Ищем…',
+    keepTyping: (min: number) => `Введите хотя бы ${min} буквы.`,
+    none: (query: string) => `Ничего не найдено по запросу «${query}».`,
+    failed: 'Поиск не удался.',
+    retry: 'Повторить',
+    found: (count: number) => `Найдено: ${count}`,
+    close: 'Закрыть поиск',
+  },
+}
+
+/**
+ * A combobox whose options come from a search request. The typed text is only a query: a place is chosen by
+ * Enter on a highlighted option or a click, never by leaving the field, so the only match is not taken for
+ * the answer. Loading, no result and failure are separate states; a failure keeps the typed text and the
+ * previous choice, and a response for an older query is dropped (see useAsyncSearch).
+ */
+export function AsyncCombobox<T>({
+  label,
+  locale,
+  selected,
+  onSelect,
+  search,
+  toOption,
+  minChars = 2,
+  error,
+  hint,
+  disabled,
+  inputRef,
+  shortQueryText,
+  footer,
+}: {
+  label: string
+  locale: Locale
+  /** The committed choice, shown when no query is being typed. */
+  selected: { label: string; detail?: string } | null
+  onSelect: (item: T) => void
+  search: (query: string, signal: AbortSignal) => Promise<T[]>
+  toOption: (item: T) => AsyncOption
+  minChars?: number
+  error?: string
+  hint?: string
+  disabled?: boolean
+  inputRef?: Ref<HTMLInputElement>
+  /** Replaces the "no match" line for a query that is too short for the whole catalog to answer. */
+  shortQueryText?: (query: string) => string | null
+  /** Rendered under the options, e.g. "Add a place manually". `close` dismisses the list. */
+  footer?: (close: () => void, query: string) => ReactNode
+}) {
+  const copy = asyncCopy[locale]
+  const id = useId()
+  const mobile = useMobile() === true
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState<string | null>(null)
+  const [active, setActive] = useState(0)
+  const originRef = useRef<HTMLInputElement>(null)
+  const restoringFocus = useRef(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const query = text ?? ''
+  const { state, retry } = useAsyncSearch(query, search, { minChars })
+  const results = state.status === 'ready' ? state.results : []
+  const options = results.map(toOption)
+  const current = Math.min(active, Math.max(0, options.length - 1))
+  const close = () => {
+    setOpen(false)
+    setText(null)
+  }
+  const choose = (item: T) => {
+    onSelect(item)
+    close()
+  }
+  const status =
+    state.status === 'idle'
+      ? query.trim() === ''
+        ? ''
+        : copy.keepTyping(minChars)
+      : state.status === 'loading'
+        ? copy.searching
+        : state.status === 'error'
+          ? copy.failed
+          : options.length > 0
+            ? copy.found(options.length)
+            : (shortQueryText?.(query.trim()) ?? copy.none(query.trim()))
+  const keydown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
+    if (event.key === 'Escape' && open) {
+      event.preventDefault()
+      event.stopPropagation()
+      close()
+      return
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!open) {
+        setOpen(true)
+        return
+      }
+      setActive(
+        Math.max(0, Math.min(options.length - 1, current + (event.key === 'ArrowDown' ? 1 : -1))),
+      )
+    }
+    if (event.key === 'Enter' && open) {
+      // Enter inside an open search never submits the surrounding form; it picks the highlighted option only.
+      event.preventDefault()
+      if (results[current]) choose(results[current])
+    }
+  }
+  const input = (inSheet: boolean) => (
+    <input
+      id={inSheet ? `${id}-search` : id}
+      ref={
+        inSheet
+          ? searchRef
+          : (node) => {
+              originRef.current = node
+              if (typeof inputRef === 'function') inputRef(node)
+              else if (inputRef) inputRef.current = node
+            }
+      }
+      role="combobox"
+      aria-label={inSheet ? label : undefined}
+      aria-expanded={open}
+      aria-controls={open && options.length > 0 ? `${id}-list` : undefined}
+      aria-activedescendant={open && options[current] ? `${id}-option-${current}` : undefined}
+      aria-autocomplete="list"
+      aria-busy={open && state.status === 'loading'}
+      aria-invalid={!!error}
+      aria-describedby={
+        [error ? `${id}-error` : '', hint ? `${id}-hint` : ''].filter(Boolean).join(' ') ||
+        undefined
+      }
+      autoComplete="off"
+      disabled={disabled}
+      value={text ?? (inSheet ? '' : (selected?.label ?? ''))}
+      onChange={(event) => {
+        setText(event.target.value)
+        setActive(0)
+        setOpen(true)
+      }}
+      onClick={() => {
+        if (!disabled && !open) setOpen(true)
+      }}
+      onFocus={(event) => {
+        if (!disabled && !restoringFocus.current) {
+          setOpen(true)
+          if (!inSheet) event.target.select()
+        }
+      }}
+      onKeyDown={keydown}
+    />
+  )
+  const list = (
+    <>
+      <p role="status">{status}</p>
+      {state.status === 'error' && (
+        <button type="button" className="flight-combobox-action" onClick={retry}>
+          {copy.retry}
+        </button>
+      )}
+      {options.length > 0 && (
+        <ul id={`${id}-list`} role="listbox" aria-label={label}>
+          {options.map((option, index) => (
+            <li
+              key={option.key}
+              id={`${id}-option-${index}`}
+              role="option"
+              aria-selected={current === index}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => choose(results[index])}
+            >
+              <span className="flight-choice-text">
+                <span className="flight-choice-label">{highlight(option.label, query.trim())}</span>
+                {option.detail && <small>{option.detail}</small>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {footer?.(close, query.trim())}
+    </>
+  )
+  return (
+    <div
+      className="flight-combobox"
+      onBlur={(event) => {
+        // Leaving the field closes the list and drops the typed query. It never picks a result.
+        if (!mobile && !event.currentTarget.contains(event.relatedTarget)) close()
+      }}
+    >
+      <label htmlFor={id}>{label}</label>
+      {input(false)}
+      {hint && <small id={`${id}-hint`}>{hint}</small>}
+      {!open && selected?.detail && <small>{selected.detail}</small>}
+      {error && (
+        <p role="alert" id={`${id}-error`}>
+          {error}
+        </p>
+      )}
+      {open && !mobile && <div className="flight-search-popover">{list}</div>}
+      {mobile && (
+        <Sheet
+          initialDetent={1}
+          open={open}
+          onOpenChange={(next) => (next ? setOpen(true) : close())}
+          title={label}
+          initialFocusRef={searchRef}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            restoringFocus.current = true
+            originRef.current?.focus()
+            restoringFocus.current = false
+          }}
+          closeLabel={copy.close}
           className="flight-search-sheet flight-full-sheet"
         >
           <div className="flight-search-input">{input(true)}</div>

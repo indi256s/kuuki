@@ -329,3 +329,21 @@
     transition: none;
   }
 }
+
+/* Inline actions inside a search list ("Retry", "Add a place manually"): a text button at the 44px target. */
+.flight-combobox-action {
+  min-height: 44px;
+  margin: 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-text, var(--text));
+  font: inherit;
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+}
+.flight-combobox-action:hover {
+  background: var(--surface-inset);
+}
