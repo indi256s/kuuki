@@ -10,10 +10,9 @@ import { isCatalogCountry } from '../../../client/passport/model'
 import { IdentitySnapshot } from '../../../client/activity'
 import { ReadFreshness } from '../../../client/freshness'
 import { PassportView } from '../../../client/reads/passport'
-import type { OverviewPeriod } from '@kuuki/shared/overview'
 import '../../reads.css'
 
-async function PassportData({ period }: { period?: OverviewPeriod }) {
+async function PassportData() {
   const [owned, locale] = await Promise.all([getOwnPassport(), getRequestLocale()])
   if (!owned) redirect('/signin')
   return (
@@ -25,7 +24,7 @@ async function PassportData({ period }: { period?: OverviewPeriod }) {
         derivedState={owned.data.derivedState}
         locale={locale}
       />
-      <PassportView ownerId={owned.ownerId} locale={locale} initial={owned.data} period={period} />
+      <PassportView ownerId={owned.ownerId} locale={locale} initial={owned.data} />
     </IdentitySnapshot>
   )
 }
@@ -39,7 +38,6 @@ export default async function Passport({
   const locale = await getRequestLocale()
   const normalized = normalizePassportQuery(await searchParams, isCatalogCountry)
   if (!normalized.canonical) redirect(withQuery('/passport', normalized.query))
-  const period = (normalized.state.year ?? undefined) as OverviewPeriod | undefined
   return (
     <>
       <div className="page-heading">
@@ -54,7 +52,7 @@ export default async function Passport({
           </p>
         }
       >
-        <PassportData period={period} />
+        <PassportData />
       </Suspense>
     </>
   )

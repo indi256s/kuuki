@@ -3,17 +3,20 @@
 // transit-suppressed hubs have no published row, so they never appear at all.
 import catalog from '@kuuki/data/countries.json'
 import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
+import { catalogRegionOf } from '../../../../../functions/api/_lib/regions'
 import type { CountryDetail, PassportData } from '../../server/passport'
 import type { StampKind } from '../signature/stamp'
 import {
   formatDateOnly,
   formatMonthYear,
+  formatCount,
   formatNumber,
   formatRelativeDate,
   type Locale,
 } from '../../lib/format'
-import { PASSPORT_SORTS } from '../../lib/url-state'
+import { PASSPORT_SORTS, type PassportFilters, type PassportSource } from '../../lib/url-state'
 
+export type { PassportFilters, PassportSource }
 export type PassportSort = (typeof PASSPORT_SORTS)[number]
 export type RegionId = NonNullable<PassportData['countries'][number]['region']>
 type CatalogCountry = {
@@ -116,6 +119,8 @@ export type PassportEntry = {
   /** Completed rail/road journeys that confirmed this country. */
   journeys: number
   region: RegionId | null
+  /** Evidence kinds behind the country, in the fixed filter order; a mixed country carries several. */
+  sources: PassportSource[]
 }
 
 export const catalogCountry = (code: string): CatalogCountry | undefined =>
@@ -135,8 +140,13 @@ export function countryNamer(locale: Locale): (code: string) => string {
 }
 
 export function passportEntries(
-  data: Pick<PassportData, 'countries' | 'groundVisits'>,
+  data: Pick<PassportData, 'countries' | 'groundVisits'> &
+    Partial<Pick<PassportData, 'journeyModes'>>,
 ): PassportEntry[] {
+  const modes = new Map<string, Set<'rail' | 'road'>>()
+  for (const { country_code, mode } of data.journeyModes ?? []) {
+    modes.set(country_code, (modes.get(country_code) ?? new Set()).add(mode))
+  }
   const ground = new Map<string, { years: number[]; sea: number; other: number }>()
   for (const visit of data.groundVisits) {
     const item = ground.get(visit.country_code) ?? { years: [], sea: 0, other: 0 }
@@ -161,6 +171,12 @@ export function passportEntries(
               ? 'claim'
               : 'air'
     const { first, last } = chronology([row.first_visit, row.last_visit], visits?.years ?? [])
+    const journeyModes = modes.get(row.country_code)
+    const sources: PassportSource[] = []
+    if (flights > 0) sources.push('flights')
+    if (journeyModes?.has('rail')) sources.push('trains')
+    if (journeyModes?.has('road')) sources.push('road')
+    if (row.claimed === 1 || row.ground_visit_count > 0) sources.push('manual')
     return {
       code: row.country_code,
       status: row.status,
@@ -173,11 +189,30 @@ export function passportEntries(
       ground: row.ground_visit_count,
       journeys: row.ground_journey_count,
       region: row.region,
+      sources,
     }
   })
 }
 
-/** Recent puts pending slots first, then the latest visit; visits and name fall back to the name. */
+/** Countries a visitor sees: published codes only, so no dates, counts or sources. */
+export function visitorEntries(codes: string[]): PassportEntry[] {
+  return codes.map((code) => ({
+    code,
+    status: 'pressed',
+    kind: 'claim',
+    visits: 0,
+    first: null,
+    last: null,
+    firstYear: null,
+    claimed: false,
+    ground: 0,
+    journeys: 0,
+    region: catalogRegionOf(code),
+    sources: [],
+  }))
+}
+
+/** Recent: latest visit first, undated last. Records: most visits first. Ties fall back to the name. */
 export function sortEntries(
   entries: PassportEntry[],
   sort: PassportSort,
@@ -188,17 +223,117 @@ export function sortEntries(
     name(a.code).localeCompare(name(b.code), locale)
   const compare: Record<PassportSort, (a: PassportEntry, b: PassportEntry) => number> = {
     recent: (a, b) =>
-      (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) ||
+      Number(!a.last) - Number(!b.last) ||
       pointKey(b.last).localeCompare(pointKey(a.last)) ||
       byName(a, b),
-    visits: (a, b) => b.visits - a.visits || byName(a, b),
+    records: (a, b) => b.visits - a.visits || byName(a, b),
     name: byName,
   }
   return [...entries].sort(compare[sort])
 }
 
+/** Pending slots are shown in their own block, apart from the pressed collection. */
+export function splitPending(entries: PassportEntry[]): {
+  collection: PassportEntry[]
+  pending: PassportEntry[]
+} {
+  return {
+    collection: entries.filter((entry) => entry.status === 'pressed'),
+    pending: entries.filter((entry) => entry.status === 'pending'),
+  }
+}
+
+const fold = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase()
+
+/** Code, English, native and localized names, case- and accent-insensitive; the needle is already folded. */
+const matchesNeedle = (code: string, needle: string, name: (code: string) => string) => {
+  const item = catalogCountry(code)
+  return [code, item?.name, item?.nativeName, name(code)].some(
+    (value) => value && fold(value).includes(needle),
+  )
+}
+
+/**
+ * AND across search, region and sources; OR within sources, so a mixed country matches each of its sources.
+ * Visitors have no source evidence, so their sources group is ignored. Entries pass through unchanged.
+ */
+export function filterEntries(
+  entries: PassportEntry[],
+  filters: PassportFilters,
+  name: (code: string) => string,
+  { visitor = false }: { visitor?: boolean } = {},
+): PassportEntry[] {
+  const needle = fold(filters.q.trim())
+  const sources = visitor ? [] : filters.sources
+  return entries.filter(
+    (entry) =>
+      (!needle || matchesNeedle(entry.code, needle, name)) &&
+      (!filters.region || entry.region === filters.region) &&
+      (!sources.length || sources.some((source) => entry.sources.includes(source))),
+  )
+}
+
+/** Filters behind the Filter button; the always-visible search is not counted. */
+export const activeFilterCount = (
+  filters: PassportFilters,
+  { visitor = false }: { visitor?: boolean } = {},
+) => (filters.region ? 1 : 0) + (visitor ? 0 : filters.sources.length)
+
+/**
+ * The one catalog country to offer as "Add {country}" when the query finds nothing in the collection: the query
+ * must match exactly one catalog country, and that country must not be in `entries` already.
+ */
+export function searchSuggestion(
+  query: string,
+  entries: PassportEntry[],
+  name: (code: string) => string,
+): string | null {
+  const needle = fold(query.trim())
+  if (!needle || entries.some((entry) => matchesNeedle(entry.code, needle, name))) return null
+  const matches = Object.keys(COUNTRIES).filter((code) => matchesNeedle(code, needle, name))
+  return matches.length === 1 ? matches[0] : null
+}
+
+const VISITED_FORMS = {
+  en: { one: 'Visited {count} country', other: 'Visited {count} countries' },
+  ru: {
+    one: 'Посещена {count} страна',
+    few: 'Посещено {count} страны',
+    many: 'Посещено {count} стран',
+    other: 'Посещено {count} страны',
+  },
+}
+const HIDDEN_FORMS = {
+  en: { one: '{count} hidden', other: '{count} hidden' },
+  ru: {
+    one: '{count} скрыта',
+    few: '{count} скрыты',
+    many: '{count} скрыто',
+    other: '{count} скрыто',
+  },
+}
+
+/** «Visited 12 countries · 3 hidden»; the hidden part appears only when something is hidden. */
+export function totalsText(
+  locale: Locale,
+  { visited, hidden }: { visited: number; hidden: number },
+): string {
+  const text = formatCount(locale, visited, VISITED_FORMS)
+  return hidden > 0 ? `${text} · ${formatCount(locale, hidden, HIDDEN_FORMS)}` : text
+}
+
+/** «Found 3 of 12» while a filter or search is active. */
+export const foundText = (locale: Locale, found: number, of: number) =>
+  locale === 'ru'
+    ? `Найдено ${formatNumber(locale, found)} из ${formatNumber(locale, of)}`
+    : `Found ${formatNumber(locale, found)} of ${formatNumber(locale, of)}`
+
 export type RegionGroup = { region: RegionId | null; entries: PassportEntry[] }
-/** Groups keep the sorted order: a group is placed where its first member sorts, so a pending slot leads the page. */
+/** Groups keep the sorted order: a group is placed where its first member sorts. */
 export function groupByRegion(sorted: PassportEntry[]): RegionGroup[] {
   const groups = new Map<RegionId | null, PassportEntry[]>()
   for (const entry of sorted) {
@@ -285,11 +420,6 @@ export function suggestCountries(
 
 /** Catalog search over code, English, native and localized names (case- and accent-insensitive). */
 export function searchCountries(query: string, name: (code: string) => string): string[] {
-  const fold = (value: string) =>
-    value
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .toLocaleLowerCase()
   const needle = fold(query.trim())
   const codes = Object.keys(COUNTRIES)
   if (!needle) return codes.sort((a, b) => name(a).localeCompare(name(b)))

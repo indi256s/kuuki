@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tan
 import { api } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
-import { RouteMapPanel, type MapLayer } from '../maps/panel'
+import { RouteMapPanel } from '../maps/panel'
 import type { CountryVisit } from '../maps/preview'
 import { Button } from '../ui/button'
 import { SegmentedControl } from '../ui/segmented-control'
@@ -30,20 +30,17 @@ import {
 import type { PassportData } from '../../server/passport'
 import type { Locale } from '../../server/locale'
 import { normalizePassportQuery, withQuery } from '../../lib/url-state'
-import type { OverviewPeriod } from '@kuuki/shared/overview'
 
-type Patch = Partial<Record<'view' | 'sort' | 'country' | 'layer', string | null>>
+type Patch = Partial<Record<'view' | 'sort' | 'country', string | null>>
 
 function Inner({
   ownerId,
   locale: initialLocale,
   initial,
-  period,
 }: {
   ownerId: string
   locale: Locale
   initial: PassportData
-  period?: OverviewPeriod
 }) {
   const locale = useLocale(initialLocale)
   const router = useRouter()
@@ -255,20 +252,20 @@ function Inner({
         <SegmentedControl
           label={ru ? 'Вид паспорта' : 'Passport view'}
           value={state.view}
-          onChange={(view) => navigate({ view: view === 'stamps' ? null : view }, 'push')}
+          onChange={(view) => navigate({ view: view === 'cards' ? null : view }, 'push')}
           options={[
-            { value: 'stamps', label: ru ? 'Штампы' : 'Stamps' },
+            { value: 'cards', label: ru ? 'Штампы' : 'Stamps' },
             { value: 'map', label: ru ? 'Карта' : 'Map' },
           ]}
         />
-        {state.view === 'stamps' && entries.length ? (
+        {state.view === 'cards' && entries.length ? (
           <SegmentedControl<PassportSort>
             label={ru ? 'Порядок штампов' : 'Sort stamps'}
             value={state.sort}
             onChange={(sort) => navigate({ sort: sort === 'recent' ? null : sort })}
             options={[
               { value: 'recent', label: ru ? 'Недавние' : 'Recent' },
-              { value: 'visits', label: ru ? 'По визитам' : 'Most visits' },
+              { value: 'records', label: ru ? 'По визитам' : 'Most visits' },
               { value: 'name', label: ru ? 'А–Я' : 'A–Z' },
             ]}
           />
@@ -278,7 +275,6 @@ function Inner({
         <RouteMapPanel
           ownerId={ownerId}
           locale={locale}
-          period={period}
           countryVisits={countryVisits}
           initiallyOpen
           revision={data.revision}
@@ -287,10 +283,6 @@ function Inner({
             void collection.refetch()
           }}
           onSelectCountry={openCountry}
-          layer={state.layer}
-          onLayerChange={(layer: MapLayer) =>
-            navigate({ layer: layer === 'countries' ? null : layer })
-          }
           describeCountry={(visit) =>
             visit.pending ? (ru ? ' · ждёт отметки' : ' · waiting for confirmation') : null
           }
@@ -346,12 +338,7 @@ function Inner({
   )
 }
 
-export function PassportView(props: {
-  ownerId: string
-  locale: Locale
-  initial: PassportData
-  period?: OverviewPeriod
-}) {
+export function PassportView(props: { ownerId: string; locale: Locale; initial: PassportData }) {
   const [client] = useState(() => new QueryClient())
   return (
     <QueryClientProvider client={client}>

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { normalizeJournalQuery, journalHref } from './url-state'
+import { normalizeJournalQuery, journalHref, normalizePassportQuery } from './url-state'
 const now = new Date('2026-10-05T00:00:00Z')
 const qs = (value: string) => new URLSearchParams(value)
 
@@ -31,4 +31,49 @@ it('Journal paging bookmarks are dropped: the list is in memory', () => {
   expect(normalized.state).toEqual({ airport: 'TBS' })
   expect(normalized.query).toBe('airport=TBS')
   expect(normalized.canonical).toBe(false)
+})
+
+const noCountry = () => false
+
+it('Passport legacy keys are rewritten: stamps view and layer, year and period are dropped, visits sorts as records', () => {
+  const stamps = normalizePassportQuery(
+    qs('view=stamps&sort=visits&layer=routes&year=2026&period=2025'),
+    noCountry,
+  )
+  expect(stamps.state).toMatchObject({ view: 'cards', sort: 'records' })
+  expect(stamps.query).toBe('sort=records')
+  expect(stamps.canonical).toBe(false)
+  expect(normalizePassportQuery(qs(stamps.query), noCountry).canonical).toBe(true)
+  expect(normalizePassportQuery(qs('view=map'), noCountry).query).toBe('view=map')
+})
+
+it('Passport sources are deduped, ordered and filtered, and search text is trimmed and capped', () => {
+  const normalized = normalizePassportQuery(
+    qs(`src=manual,bogus,flights,manual,road&q=%20%20Новая%20%20Зеландия%20&region=europe`),
+    noCountry,
+  )
+  expect(normalized.state).toMatchObject({
+    q: 'Новая Зеландия',
+    region: 'europe',
+    sources: ['flights', 'road', 'manual'],
+  })
+  expect(normalized.query).toBe(
+    new URLSearchParams({
+      q: 'Новая Зеландия',
+      region: 'europe',
+      src: 'flights,road,manual',
+    }).toString(),
+  )
+  expect(normalizePassportQuery(qs('q=' + 'a'.repeat(80)), noCountry).state.q).toHaveLength(64)
+  expect(normalizePassportQuery(qs('q=%20&src=bogus&region=mars'), noCountry).query).toBe('')
+})
+
+it('Passport as=visitor is kept and any other value is dropped', () => {
+  expect(normalizePassportQuery(qs('as=visitor'), noCountry).state.as).toBe('visitor')
+  expect(normalizePassportQuery(qs('as=admin'), noCountry).state.as).toBeNull()
+})
+
+it('Passport country deep links keep catalog validation', () => {
+  expect(normalizePassportQuery(qs('country=ge'), (code) => code === 'GE').state.country).toBe('GE')
+  expect(normalizePassportQuery(qs('country=zz'), noCountry).state.country).toBeNull()
 })
