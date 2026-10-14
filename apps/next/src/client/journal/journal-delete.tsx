@@ -22,7 +22,9 @@
  * Committed: `refresh()` and `LIFECYCLE_CHANGED_EVENT` (badges, queue and the store's own refetch). Failed: the rows come back
  * on a definite rejection and an error toast offers Try again. An uncertain response reconciles the list before unhiding;
  * a failed reconciliation keeps the rows hidden and offers a read-only refresh. Unmounted while pending (leaving the Journal):
- * nothing is sent and a notice says so, except after a sign-out or owner switch. Requests in flight are aborted on unmount.
+ * nothing is sent and a notice says so, except after a sign-out or owner switch. Document reloads preserve the countdown
+ * in owner-scoped session storage. Interrupted requests reconcile through a read after reload; they are never replayed.
+ * Requests in flight are aborted on unmount.
  */
 import {
   createContext,
@@ -42,6 +44,7 @@ import { trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { Button } from '../ui/button'
 import { ToastSlot, useToast } from '../ui/toast'
+import { readDeleteReceipts, writeDeleteReceipts, type DeleteReceipt } from './delete-receipts'
 import './journal-delete.css'
 
 export const DELETE_UNDO_MS = 6000
@@ -144,6 +147,7 @@ export function focusRowOrHeading(ids: readonly number[]) {
 }
 
 export type JournalDeleteProviderProps = {
+  ownerId: string
   locale: Locale
   hide: (ids: number[]) => void
   unhide: (ids: number[]) => void
@@ -152,6 +156,7 @@ export type JournalDeleteProviderProps = {
 }
 
 export function JournalDeleteProvider({
+  ownerId,
   locale,
   hide,
   unhide,
@@ -163,6 +168,19 @@ export function JournalDeleteProvider({
   const pendingOp = useRef<Operation | null>(null)
   const inFlight = useRef(new Set<AbortController>())
   const keys = useRef(0)
+  const receipts = useRef(new Map<number, DeleteReceipt>())
+  const documentLeaving = useRef(false)
+  const storageAvailable = useRef(true)
+  const persist = useCallback(() => {
+    storageAvailable.current = writeDeleteReceipts(ownerId, [...receipts.current.values()])
+  }, [ownerId])
+  const settle = useCallback(
+    (key: number) => {
+      receipts.current.delete(key)
+      persist()
+    },
+    [persist],
+  )
   const latest = useRef({ locale, hide, unhide, refresh, toast })
   useEffect(() => {
     latest.current = { locale, hide, unhide, refresh, toast }
@@ -171,81 +189,100 @@ export function JournalDeleteProvider({
   const identityReset = useRef(false)
   const mounted = useRef(true)
 
-  const scheduleRef = useRef<JournalDelete['scheduleDelete']>(() => {})
-  const send = useCallback((op: Operation) => {
-    if (pendingOp.current === op) pendingOp.current = null
-    const { controller, ids } = op
-    inFlight.current.add(controller)
-    setNotice((current) => (current?.key === op.key ? { ...current, sending: true } : current))
-    const release = trackPrivateOperation(controller)
-    const request =
-      ids.length === 1
-        ? api.delete<DerivedAck>(`/api/flights/${ids[0]}`, undefined, { signal: controller.signal })
-        : api.post<DerivedAck>('/api/flights/bulk-delete', { ids }, { signal: controller.signal })
-    void request
-      .then(
-        () => {
-          if (controller.signal.aborted || identityReset.current) return
-          setNotice((current) => (current?.key === op.key ? null : current))
-          void latest.current.refresh()
+  const reconcileOperation = useCallback(
+    async (op: Operation) => {
+      const { controller, ids } = op
+      const toasts = latest.current.toast
+      const reconcile = async () => {
+        if (!mounted.current || controller.signal.aborted || identityReset.current) return
+        try {
+          await latest.current.refresh({ throwOnError: true })
+          if (!mounted.current || controller.signal.aborted || identityReset.current) return
+          settle(op.key)
+          latest.current.unhide(ids)
           window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
-        },
-        async (cause) => {
-          if (controller.signal.aborted || identityReset.current) return
-          setNotice((current) => (current?.key === op.key ? null : current))
-          const { unhide: show, toast: toasts } = latest.current
-          // A transport failure, timeout, 5xx or missing flight cannot prove this DELETE did not commit.
-          const rejected =
-            cause instanceof ApiError &&
-            cause.status >= 400 &&
-            cause.status < 500 &&
-            cause.status !== 408 &&
-            cause.status !== 404
-          if (rejected) {
-            show(ids)
-            toasts.show({
-              kind: 'error',
-              message: {
-                en: formatCount('en', ids.length, failed),
-                ru: formatCount('ru', ids.length, failed),
-              },
-              actionLabel: { en: copy.en.retry, ru: copy.ru.retry },
-              onAction: () => scheduleRef.current(ids, op.options),
+          toasts.show({
+            kind: 'error',
+            message: { en: copy.en.unknown, ru: copy.ru.unknown },
+          })
+        } catch {
+          if (!mounted.current || controller.signal.aborted || identityReset.current) return
+          toasts.show({
+            kind: 'error',
+            message: { en: copy.en.refreshFailed, ru: copy.ru.refreshFailed },
+            duration: 0,
+            actionLabel: { en: copy.en.refresh, ru: copy.ru.refresh },
+            onAction: () => {
+              void reconcile()
+            },
+          })
+        }
+      }
+      await reconcile()
+    },
+    [settle],
+  )
+
+  const scheduleRef = useRef<JournalDelete['scheduleDelete']>(() => {})
+  const send = useCallback(
+    (op: Operation) => {
+      if (pendingOp.current === op) pendingOp.current = null
+      const { controller, ids } = op
+      receipts.current.set(op.key, { key: op.key, ids, remaining: null })
+      persist()
+      inFlight.current.add(controller)
+      setNotice((current) => (current?.key === op.key ? { ...current, sending: true } : current))
+      const release = trackPrivateOperation(controller)
+      const request =
+        ids.length === 1
+          ? api.delete<DerivedAck>(`/api/flights/${ids[0]}`, undefined, {
+              signal: controller.signal,
             })
-            return
-          }
-          const reconcile = async () => {
-            if (!mounted.current || controller.signal.aborted || identityReset.current) return
-            try {
-              await latest.current.refresh({ throwOnError: true })
-              if (!mounted.current || controller.signal.aborted || identityReset.current) return
-              latest.current.unhide(ids)
-              window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
+          : api.post<DerivedAck>('/api/flights/bulk-delete', { ids }, { signal: controller.signal })
+      void request
+        .then(
+          () => {
+            if (controller.signal.aborted || identityReset.current) return
+            settle(op.key)
+            setNotice((current) => (current?.key === op.key ? null : current))
+            void latest.current.refresh()
+            window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
+          },
+          async (cause) => {
+            if (controller.signal.aborted || identityReset.current) return
+            setNotice((current) => (current?.key === op.key ? null : current))
+            const { unhide: show, toast: toasts } = latest.current
+            // A transport failure, timeout, 5xx or missing flight cannot prove this DELETE did not commit.
+            const rejected =
+              cause instanceof ApiError &&
+              cause.status >= 400 &&
+              cause.status < 500 &&
+              cause.status !== 408 &&
+              cause.status !== 404
+            if (rejected) {
+              settle(op.key)
+              show(ids)
               toasts.show({
                 kind: 'error',
-                message: { en: copy.en.unknown, ru: copy.ru.unknown },
-              })
-            } catch {
-              if (!mounted.current || controller.signal.aborted || identityReset.current) return
-              toasts.show({
-                kind: 'error',
-                message: { en: copy.en.refreshFailed, ru: copy.ru.refreshFailed },
-                duration: 0,
-                actionLabel: { en: copy.en.refresh, ru: copy.ru.refresh },
-                onAction: () => {
-                  void reconcile()
+                message: {
+                  en: formatCount('en', ids.length, failed),
+                  ru: formatCount('ru', ids.length, failed),
                 },
+                actionLabel: { en: copy.en.retry, ru: copy.ru.retry },
+                onAction: () => scheduleRef.current(ids, op.options),
               })
+              return
             }
-          }
-          await reconcile()
-        },
-      )
-      .finally(() => {
-        release()
-        inFlight.current.delete(controller)
-      })
-  }, [])
+            await reconcileOperation(op)
+          },
+        )
+        .finally(() => {
+          release()
+          inFlight.current.delete(controller)
+        })
+    },
+    [persist, settle, reconcileOperation],
+  )
 
   const focusOnShow = useRef(true)
   /** Runs once the notice has left after an Undo (the restored rows are rendered by then). */
@@ -268,6 +305,8 @@ export function JournalDeleteProvider({
         options,
       }
       pendingOp.current = op
+      receipts.current.set(op.key, { key: op.key, ids: list, remaining: op.remaining })
+      persist()
       afterClear.current = null
       focusOnShow.current = options.focusUndo !== false
       setNotice({
@@ -278,7 +317,7 @@ export function JournalDeleteProvider({
         sending: false,
       })
     },
-    [send],
+    [send, persist],
   )
   useEffect(() => {
     scheduleRef.current = scheduleDelete
@@ -289,12 +328,13 @@ export function JournalDeleteProvider({
     if (!op) return
     op.controller.abort()
     pendingOp.current = null
+    settle(op.key)
     latest.current.unhide(op.ids)
     setNotice(null)
     // Called in the same event as the unhide, so a caller that navigates (review mode) renders once, already restored.
     if (op.options.onUndo) op.options.onUndo()
     else afterClear.current = () => focusRowOrHeading(op.ids)
-  }, [])
+  }, [settle])
 
   // The countdown runs only while an operation is pending.
   const counting = notice !== null && !notice.sending
@@ -349,24 +389,88 @@ export function JournalDeleteProvider({
 
   useEffect(() => {
     mounted.current = true
+    let disposed = false
+    documentLeaving.current = false
     const reset = () => {
       identityReset.current = true
+      pendingOp.current?.controller.abort()
+      pendingOp.current = null
+      setNotice(null)
+      receipts.current.clear()
+      persist()
     }
+    const leaving = () => {
+      documentLeaving.current = true
+      const op = pendingOp.current
+      if (op) {
+        const remaining = Math.max(0, op.remaining - (document.hidden ? 0 : Date.now() - op.last))
+        receipts.current.set(op.key, { key: op.key, ids: op.ids, remaining })
+        persist()
+      }
+    }
+    const returned = () => {
+      documentLeaving.current = false
+    }
+    const warn = (event: BeforeUnloadEvent) => {
+      if (identityReset.current || storageAvailable.current || !receipts.current.size) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    // Read before deferring: a new user action must not restore its own freshly written receipt.
+    let stored: DeleteReceipt[] = []
+    try {
+      stored = readDeleteReceipts(ownerId)
+    } catch {
+      storageAvailable.current = false
+      stored = []
+    }
+    // Defer restoration so Strict Mode's setup/cleanup rehearsal cannot cancel a restored operation.
+    void Promise.resolve().then(() => {
+      if (disposed || identityReset.current || pendingOp.current || receipts.current.size) return
+      keys.current = Math.max(keys.current, ...stored.map((receipt) => receipt.key))
+      for (const receipt of stored) {
+        if (receipt.remaining !== null) {
+          scheduleRef.current(receipt.ids, { focusUndo: false })
+          // Scheduling fills the ref synchronously; discard the earlier null narrowing.
+          const op = pendingOp.current as Operation | null
+          if (op) op.remaining = receipt.remaining
+        } else {
+          receipts.current.set(receipt.key, receipt)
+          latest.current.hide(receipt.ids)
+          void reconcileOperation({
+            ...receipt,
+            remaining: 0,
+            last: Date.now(),
+            controller: new AbortController(),
+            options: {},
+          })
+        }
+      }
+      persist()
+    })
+    window.addEventListener('pagehide', leaving)
+    window.addEventListener('pageshow', returned)
+    window.addEventListener('beforeunload', warn)
     window.addEventListener('kuuki:identity-reset', reset)
     const running = inFlight.current
     return () => {
+      disposed = true
       mounted.current = false
+      window.removeEventListener('pagehide', leaving)
+      window.removeEventListener('pageshow', returned)
+      window.removeEventListener('beforeunload', warn)
       window.removeEventListener('kuuki:identity-reset', reset)
       const dropped = pendingOp.current
       pendingOp.current = null
       dropped?.controller.abort()
+      if (dropped && !documentLeaving.current) settle(dropped.key)
       running.forEach((controller) => controller.abort())
-      if (dropped && !identityReset.current)
+      if (dropped && !identityReset.current && !documentLeaving.current)
         latest.current.toast.show({
           message: { en: copy.en.cancelled, ru: copy.ru.cancelled },
         })
     }
-  }, [])
+  }, [persist, settle, reconcileOperation, ownerId])
 
   // `notice` keeps its identity until a field changes, so `pending` does too.
   const pending = useMemo<PendingDelete | null>(

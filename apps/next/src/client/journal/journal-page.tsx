@@ -48,7 +48,14 @@ export function JournalShell({
   const locale = useLocale(initialLocale)
   const { hide, unhide, refresh } = useJournalStore()
   return (
-    <JournalDeleteProvider locale={locale} hide={hide} unhide={unhide} refresh={refresh}>
+    <JournalDeleteProvider
+      key={ownerId}
+      ownerId={ownerId}
+      locale={locale}
+      hide={hide}
+      unhide={unhide}
+      refresh={refresh}
+    >
       <JournalContent
         ownerId={ownerId}
         locale={locale}
