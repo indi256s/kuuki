@@ -164,12 +164,15 @@ import pk from './pk.json'
 import pl from './pl.json'
 import pm from './pm.json'
 import pr from './pr.json'
+import ps from './ps.json'
 import py from './py.json'
+import qa from './qa.json'
 import re from './re.json'
 import ro from './ro.json'
 import rs from './rs.json'
 import ru from './ru.json'
 import rw from './rw.json'
+import sa from './sa.json'
 import sb from './sb.json'
 import sc from './sc.json'
 import sd from './sd.json'
@@ -187,6 +190,7 @@ import ss from './ss.json'
 import st from './st.json'
 import sv from './sv.json'
 import sx from './sx.json'
+import sy from './sy.json'
 import sz from './sz.json'
 import tc from './tc.json'
 import td from './td.json'
@@ -196,6 +200,7 @@ import th from './th.json'
 import tj from './tj.json'
 import tm from './tm.json'
 import tn from './tn.json'
+import tr from './tr.json'
 import tt from './tt.json'
 import tw from './tw.json'
 import tz from './tz.json'
@@ -212,6 +217,7 @@ import vi from './vi.json'
 import vn from './vn.json'
 import vu from './vu.json'
 import xk from './xk.json'
+import ye from './ye.json'
 import yt from './yt.json'
 import za from './za.json'
 import zm from './zm.json'
@@ -384,12 +390,15 @@ export const RECIPE_FILES: Record<string, unknown> = {
   pl,
   pm,
   pr,
+  ps,
   py,
+  qa,
   re,
   ro,
   rs,
   ru,
   rw,
+  sa,
   sb,
   sc,
   sd,
@@ -407,6 +416,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   st,
   sv,
   sx,
+  sy,
   sz,
   tc,
   td,
@@ -416,6 +426,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   tj,
   tm,
   tn,
+  tr,
   tt,
   tw,
   tz,
@@ -432,6 +443,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   vn,
   vu,
   xk,
+  ye,
   yt,
   za,
   zm,

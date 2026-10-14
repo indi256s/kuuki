@@ -2671,7 +2671,7 @@
   },
   "PS": {
     "cluster": null,
-    "ink": "ochre-dark",
+    "ink": "moss",
     "iso3": "PSE",
     "name": {
       "en": "Palestine",
@@ -2682,7 +2682,7 @@
       "en": "Palestine",
       "ru": "Палестина"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PT": {
     "cluster": null,
@@ -2742,7 +2742,7 @@
       "en": "Qatar",
       "ru": "Катар"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "RE": {
     "cluster": "volcano",
@@ -2832,7 +2832,7 @@
       "en": "Saudi Arabia",
       "ru": "Саудовская Аравия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SB": {
     "cluster": null,
@@ -3106,7 +3106,7 @@
   },
   "SY": {
     "cluster": "classical-ruin",
-    "ink": "ochre-dark",
+    "ink": "oxblood",
     "iso3": "SYR",
     "name": {
       "en": "Syria",
@@ -3117,7 +3117,7 @@
       "en": "Syria",
       "ru": "Сирия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SZ": {
     "cluster": "monolith",
@@ -3312,7 +3312,7 @@
       "en": "Türkiye",
       "ru": "Турция"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TT": {
     "cluster": null,
@@ -3627,7 +3627,7 @@
       "en": "Yemen",
       "ru": "Йемен"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "YT": {
     "cluster": null,

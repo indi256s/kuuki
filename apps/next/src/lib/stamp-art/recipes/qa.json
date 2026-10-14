@@ -1,0 +1,31 @@
+{
+  "iso2": "QA",
+  "tier": "engraved",
+  "ink": "indigo",
+  "cluster": "dunes",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [140, 50, 30]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "inland-sea-b",
+      "box": [38, 36, 124, 98],
+      "params": {}
+    }
+  ]
+}
