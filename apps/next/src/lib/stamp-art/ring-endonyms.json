@@ -1150,11 +1150,10 @@
     "english": "Rwanda"
   },
   "SA": {
-    "endonym": "المملكة العربية السعودية",
+    "endonym": "السعودية",
     "lang": "ar",
     "script": "Arabic",
-    "english": "Saudi Arabia",
-    "endonymShort": "السعودية"
+    "english": "Saudi Arabia"
   },
   "SB": {
     "endonym": "Solomon Islands",
