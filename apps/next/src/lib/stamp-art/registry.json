@@ -754,7 +754,7 @@
     "motif": "Great Wall at Badaling",
     "kind": "architecture",
     "silhouette": "a long wall line on a ridge, with stepped crenellations and square watchtowers at the peaks; the wall runs horizontally across the frame",
-    "modules": ["fortress-wall", "tower", "mountains"],
+    "modules": ["castle", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -762,7 +762,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": null
+    "notes": "drawn with the castle module: square watchtowers stepping up a ridge (Badaling); no dedicated wall module"
   },
   {
     "iso2": "CO",
@@ -1315,7 +1315,7 @@
     "motif": "Castle Cornet on its islet",
     "kind": "architecture",
     "silhouette": "a low grey fort on a small islet at the harbour mouth, with squat round bastions and a tall keep in the centre; the causeway runs to the town",
-    "modules": ["fortress-wall", "island", "quay", "tower"],
+    "modules": ["rock-hill", "castle", "tower"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
@@ -1553,7 +1553,7 @@
     "motif": "Victoria Peak and the Peak Tram",
     "kind": "object",
     "silhouette": "Steep hill rising to a rounded peak, a straight funicular track climbing the slope to a small summit station, harbour water at the foot",
-    "modules": ["hills", "water"],
+    "modules": ["rock-hill", "funicular-c", "junk-c", "rooftops"],
     "signature": "new:funicular – straight steep track with a small car on a hillside",
     "backdrop": null,
     "cluster": null,
@@ -1561,7 +1561,7 @@
     "replaced": "Bank of China Tower: 1990 signature architecture (rule 6); Tian Tan Buddha is a religious statue (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Promoted research alternate.; Victoria Peak hill with the Peak Tram track and a junk under sail; oval window, so the subject is small"
   },
   {
     "iso2": "HN",
@@ -1655,7 +1655,7 @@
     "motif": "Cliffs of Moher with O'Brien's Tower",
     "kind": "nature",
     "silhouette": "a long, steep, flat-topped cliff line running horizontally to the sea, with a small round stone tower on the highest point",
-    "modules": ["cliff", "tower", "water"],
+    "modules": ["rock-hill", "tower"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -1689,7 +1689,7 @@
     "motif": "Laxey Wheel",
     "kind": "object",
     "silhouette": "a large spoked wheel standing upright on a tall A-frame of stone and timber, over a valley with hills behind. Symmetric about the wheel's centre",
-    "modules": ["hills", "water"],
+    "modules": ["water-wheel-c", "distance-mountains"],
     "signature": "new:water-wheel – large spoked wheel on a tall frame",
     "backdrop": null,
     "cluster": null,
@@ -1697,7 +1697,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": null
+    "notes": "new module water-wheel-c: spoked wheel on a stone pier with a stair tower and walkway"
   },
   {
     "iso2": "IN",
@@ -1774,7 +1774,7 @@
     "motif": "Gullfoss waterfall",
     "kind": "nature",
     "silhouette": "Broad river stepping down in two tiers, then turning sharply into a narrow canyon, spray mist, low cliff walls",
-    "modules": ["waterfall", "cliff", "water", "terraces"],
+    "modules": ["waterfall", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -1782,7 +1782,7 @@
     "replaced": "Hallgrimskirkja: church (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: two tiers then a right-angle turn into a canyon. Promoted research alternate."
+    "notes": "part: two tiers then a right-angle turn into a canyon. Promoted research alternate.; waterfall cascade (lane B module) over distance-mountains; the two-tier Gullfoss canyon is not modelled, so it reads as a generic cascade"
   },
   {
     "iso2": "IT",
@@ -1808,7 +1808,7 @@
     "motif": "Mont Orgueil Castle",
     "kind": "architecture",
     "silhouette": "low curtain walls and towers running along a rocky spur, a taller keep at the back. The sea and cliff form the base",
-    "modules": ["fortress-wall", "tower", "cliff", "water"],
+    "modules": ["rock-hill", "castle"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
@@ -2760,7 +2760,7 @@
     "motif": "Bryggen wharf",
     "kind": "architecture",
     "silhouette": "a line of tall pointed gables stepped along a quay in front of the water. Symmetric in the row; each house is a gable",
-    "modules": ["gable", "window-grid", "quay", "water"],
+    "modules": ["stepped-gable"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2768,7 +2768,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": null
+    "notes": "stepped-gable style pointed: steep triangular Bryggen gables, alternating dark and lit"
   },
   {
     "iso2": "NP",
@@ -3270,7 +3270,7 @@
     "motif": "Gamla stan waterfront gables",
     "kind": "architecture",
     "silhouette": "Row of tall narrow gabled houses of uneven height along a quay, a couple with stepped gables, calm water",
-    "modules": ["gable", "stepped-gable", "window-grid", "quay", "water"],
+    "modules": ["stepped-gable"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3338,7 +3338,7 @@
     "motif": "Svalbard glacier front under serrated peaks",
     "kind": "nature",
     "silhouette": "Jagged serrated peaks above a glacier tongue ending in a cliff at the water, small ice pieces floating",
-    "modules": ["mountains", "glacier", "water"],
+    "modules": ["mountains", "iceberg"],
     "signature": null,
     "backdrop": null,
     "cluster": "ice",

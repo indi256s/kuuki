@@ -28,7 +28,7 @@ export const waterfall: KitModule = ([x, y, w, h], p) => {
   )
   out.push(stroke('line', crest))
   // Ledges across the rock, short and uneven.
-  for (let k = 1; k < 7; k++) {
+  for (let k = 1; k < 7 && num(p, 'ledges', 1) > 0; k++) {
     const ly = y + h * 0.1 + (fallH * k) / 7
     for (let sx = x + rand() * 8; sx < x + w - 6; sx += 20 + rand() * 10)
       out.push(hline('hair', sx, sx + 12 + rand() * 10, ly + (rand() - 0.5) * 2))

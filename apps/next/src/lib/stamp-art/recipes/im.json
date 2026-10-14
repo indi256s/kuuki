@@ -1,0 +1,35 @@
+{
+  "iso2": "IM",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
+    },
+    {
+      "module": "distance-mountains"
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "water-wheel-c",
+      "box": [28, 56, 144, 68],
+      "params": {
+        "axis": 0.66
+      }
+    }
+  ]
+}

@@ -55,6 +55,9 @@ import { chateauC } from './chateau-c'
 import { bastionTurrets } from './bastion-turrets'
 import { charlesBridge } from './charles-bridge'
 import { clothHall } from './cloth-hall'
+import { junkC } from './junk-c'
+import { funicularC } from './funicular-c'
+import { waterWheelC } from './water-wheel-c'
 import { waterfall } from './waterfall'
 import { tataSomba } from './tata-somba'
 import { granaries } from './granaries'
@@ -156,6 +159,9 @@ export const kit = {
   'charles-bridge': charlesBridge,
   'cloth-hall': clothHall,
   waterfall,
+  'water-wheel-c': waterWheelC,
+  'funicular-c': funicularC,
+  'junk-c': junkC,
   'tata-somba': tataSomba,
   granaries,
   'monolith-b': monolithB,
