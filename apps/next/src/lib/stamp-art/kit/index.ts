@@ -57,6 +57,12 @@ import { charlesBridge } from './charles-bridge'
 import { clothHall } from './cloth-hall'
 import { waterfall } from './waterfall'
 import { tataSomba } from './tata-somba'
+import { greatHouseA } from './great-house-a'
+import { millRuinA } from './mill-ruin-a'
+import { citadelle } from './citadelle'
+import { pitons } from './pitons'
+import { ridgesA } from './ridges-a'
+import { plumeA } from './plume-a'
 import { granaries } from './granaries'
 import { monolithB } from './monolith-b'
 import { jacobsLadder } from './jacobs-ladder'
@@ -194,6 +200,12 @@ export const kit = {
   'sloop-a': sloopA,
   'queens-staircase': queensStaircase,
   'crater-lake-a': craterLakeA,
+  'great-house-a': greatHouseA,
+  'mill-ruin-a': millRuinA,
+  citadelle,
+  pitons,
+  'ridges-a': ridgesA,
+  'plume-a': plumeA,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

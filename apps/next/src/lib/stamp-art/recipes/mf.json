@@ -1,0 +1,69 @@
+{
+  "iso2": "MF",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "moss",
+  "cluster": "ship",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 58, 32, 150, 64, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [30, 58, 100, 58],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.1, 0.5],
+          [0.3, 0.2],
+          [0.5, 0.15],
+          [0.8, 0.4],
+          [1, 1]
+        ],
+        "shadeFrom": 0.6,
+        "shadeGap": 2.6,
+        "crag": 0.5,
+        "seed": 4,
+        "walls": [[0.4, 0.62]],
+        "wallH": 8
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [62, 54, 30, 13],
+      "params": {
+        "merlons": 5,
+        "merlonH": 0.25,
+        "courses": 2
+      }
+    },
+    {
+      "module": "rooftops",
+      "box": [96, 94, 42, 20],
+      "params": {
+        "height": 10,
+        "seed": 11
+      }
+    },
+    {
+      "module": "sloop-a",
+      "box": [124, 62, 46, 60],
+      "params": {}
+    }
+  ]
+}

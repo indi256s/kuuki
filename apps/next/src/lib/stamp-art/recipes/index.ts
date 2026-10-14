@@ -53,6 +53,7 @@ import fo from './fo.json'
 import fr from './fr.json'
 import ga from './ga.json'
 import gb from './gb.json'
+import gd from './gd.json'
 import ge from './ge.json'
 import gf from './gf.json'
 import gh from './gh.json'
@@ -60,6 +61,7 @@ import gi from './gi.json'
 import gl from './gl.json'
 import gm from './gm.json'
 import gn from './gn.json'
+import gp from './gp.json'
 import gq from './gq.json'
 import gr from './gr.json'
 import gs from './gs.json'
@@ -68,10 +70,15 @@ import gw from './gw.json'
 import gy from './gy.json'
 import hn from './hn.json'
 import hr from './hr.json'
+import ht from './ht.json'
 import hu from './hu.json'
 import it from './it.json'
+import jm from './jm.json'
 import jp from './jp.json'
 import ke from './ke.json'
+import kn from './kn.json'
+import ky from './ky.json'
+import lc from './lc.json'
 import li from './li.json'
 import lr from './lr.json'
 import ls from './ls.json'
@@ -83,9 +90,12 @@ import ma from './ma.json'
 import mc from './mc.json'
 import md from './md.json'
 import me from './me.json'
+import mf from './mf.json'
 import mk from './mk.json'
 import ml from './ml.json'
+import mq from './mq.json'
 import mr from './mr.json'
+import ms from './ms.json'
 import mt from './mt.json'
 import mx from './mx.json'
 import na from './na.json'
@@ -183,6 +193,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   fr,
   ga,
   gb,
+  gd,
   ge,
   gf,
   gh,
@@ -190,6 +201,7 @@ export const RECIPE_FILES: Record<string, unknown> = {
   gl,
   gm,
   gn,
+  gp,
   gq,
   gr,
   gs,
@@ -198,10 +210,15 @@ export const RECIPE_FILES: Record<string, unknown> = {
   gy,
   hn,
   hr,
+  ht,
   hu,
   it,
+  jm,
   jp,
   ke,
+  kn,
+  ky,
+  lc,
   li,
   lr,
   ls,
@@ -213,9 +230,12 @@ export const RECIPE_FILES: Record<string, unknown> = {
   mc,
   md,
   me,
+  mf,
   mk,
   ml,
+  mq,
   mr,
+  ms,
   mt,
   mx,
   na,

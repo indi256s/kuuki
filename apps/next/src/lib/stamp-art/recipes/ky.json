@@ -1,0 +1,41 @@
+{
+  "iso2": "KY",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "plum",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [46, 60, 30, 150, 68, 26]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 10,
+        "amp": 2.5,
+        "seed": 7
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "great-house-a",
+      "box": [56, 48, 88, 76],
+      "params": {
+        "bays": 4,
+        "roof": 0.36
+      }
+    }
+  ]
+}

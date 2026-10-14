@@ -1,0 +1,39 @@
+{
+  "iso2": "KN",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "indigo",
+  "cluster": "fort",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 58, 32, 150, 64, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "bastion-fort",
+      "box": [32, 56, 136, 72],
+      "params": {
+        "tiers": 2,
+        "hill": 0.4,
+        "batter": 6,
+        "shift": 0.3,
+        "width": 0.62,
+        "drop": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "iso2": "LC",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "teal",
+  "cluster": "twin-peak",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [46, 60, 30, 152, 64, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "pitons",
+      "box": [52, 44, 96, 82],
+      "params": {}
+    },
+    {
+      "module": "mountains",
+      "box": [52, 104, 96, 22],
+      "params": {
+        "peaks": [
+          [0.1, 0.4],
+          [0.5, 0.3],
+          [0.9, 0.4]
+        ],
+        "jag": 1.0,
+        "shadeDepth": 10,
+        "shadeGap": 2.6,
+        "shade": "none"
+      }
+    }
+  ]
+}

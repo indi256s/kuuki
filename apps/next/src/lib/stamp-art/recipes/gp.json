@@ -1,0 +1,40 @@
+{
+  "iso2": "GP",
+  "tier": "engraved",
+  "shape": "oval",
+  "ink": "oxblood",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [46, 62, 30, 150, 70, 26]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2,
+        "seed": 5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "mill-ruin-a",
+      "box": [76, 52, 60, 80],
+      "params": {
+        "seed": 3
+      }
+    }
+  ]
+}

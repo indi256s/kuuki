@@ -1,0 +1,67 @@
+{
+  "iso2": "MQ",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "oxblood",
+  "cluster": "volcano",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 66, 34, 150, 60, 30]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [34, 56, 132, 66],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.1, 0.88],
+          [0.26, 0.62],
+          [0.38, 0.34],
+          [0.44, 0.12],
+          [0.48, 0.04],
+          [0.52, 0.14],
+          [0.57, 0.06],
+          [0.62, 0.16],
+          [0.7, 0.4],
+          [0.84, 0.76],
+          [1, 1]
+        ],
+        "shadeFrom": 0.62,
+        "shadeGap": 2.4,
+        "crag": 0.4,
+        "seed": 6,
+        "strata": 12
+      }
+    },
+    {
+      "module": "ruin-wall",
+      "box": [38, 106, 54, 20],
+      "params": {
+        "seed": 5
+      }
+    },
+    {
+      "module": "steps",
+      "box": [112, 108, 52, 18],
+      "params": {
+        "count": 5,
+        "dir": "front"
+      }
+    }
+  ]
+}

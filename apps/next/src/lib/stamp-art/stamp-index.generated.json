@@ -1111,7 +1111,7 @@
   },
   "GD": {
     "cluster": null,
-    "ink": "indigo",
+    "ink": "slate",
     "iso3": "GRD",
     "name": {
       "en": "Grenada",
@@ -1122,7 +1122,7 @@
       "en": "Grenada",
       "ru": "Гренада"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GE": {
     "cluster": null,
@@ -1246,18 +1246,18 @@
   },
   "GP": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "oxblood",
     "iso3": "GLP",
     "name": {
       "en": "Guadeloupe",
       "ru": "Гваделупа"
     },
-    "shape": "rectangle",
+    "shape": "oval",
     "short": {
       "en": "Guadeloupe",
       "ru": "Гваделупа"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GQ": {
     "cluster": null,
@@ -1411,18 +1411,18 @@
   },
   "HT": {
     "cluster": "fort",
-    "ink": "indigo",
+    "ink": "moss",
     "iso3": "HTI",
     "name": {
       "en": "Haiti",
       "ru": "Гаити"
     },
-    "shape": "rectangle",
+    "shape": "octagon",
     "short": {
       "en": "Haiti",
       "ru": "Гаити"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "HU": {
     "cluster": null,
@@ -1606,18 +1606,18 @@
   },
   "JM": {
     "cluster": null,
-    "ink": "plum",
+    "ink": "moss",
     "iso3": "JAM",
     "name": {
       "en": "Jamaica",
       "ru": "Ямайка"
     },
-    "shape": "rectangle",
+    "shape": "oval",
     "short": {
       "en": "Jamaica",
       "ru": "Ямайка"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "JO": {
     "cluster": "rock-cut",
@@ -1726,18 +1726,18 @@
   },
   "KN": {
     "cluster": "fort",
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "KNA",
     "name": {
       "en": "St. Kitts & Nevis",
       "ru": "Сент-Китс и Невис"
     },
-    "shape": "octagon",
+    "shape": "cut-rect",
     "short": {
       "en": "St. Kitts & Nevis",
       "ru": "Сент-Китс и Невис"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KP": {
     "cluster": null,
@@ -1786,18 +1786,18 @@
   },
   "KY": {
     "cluster": null,
-    "ink": "moss",
+    "ink": "plum",
     "iso3": "CYM",
     "name": {
       "en": "Cayman Islands",
       "ru": "о-ва Кайман"
     },
-    "shape": "rectangle",
+    "shape": "oval",
     "short": {
       "en": "Cayman Islands",
       "ru": "о-ва Кайман"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KZ": {
     "cluster": null,
@@ -1846,18 +1846,18 @@
   },
   "LC": {
     "cluster": "twin-peak",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "LCA",
     "name": {
       "en": "St. Lucia",
       "ru": "Сент-Люсия"
     },
-    "shape": "rectangle",
+    "shape": "oval",
     "short": {
       "en": "St. Lucia",
       "ru": "Сент-Люсия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LI": {
     "cluster": null,
@@ -2041,7 +2041,7 @@
   },
   "MF": {
     "cluster": "ship",
-    "ink": "umber",
+    "ink": "moss",
     "iso3": "MAF",
     "name": {
       "en": "St. Martin",
@@ -2052,7 +2052,7 @@
       "en": "St. Martin",
       "ru": "Сен-Мартен"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MG": {
     "cluster": null,
@@ -2176,18 +2176,18 @@
   },
   "MQ": {
     "cluster": "volcano",
-    "ink": "umber",
+    "ink": "oxblood",
     "iso3": "MTQ",
     "name": {
       "en": "Martinique",
       "ru": "Мартиника"
     },
-    "shape": "octagon",
+    "shape": "cut-rect",
     "short": {
       "en": "Martinique",
       "ru": "Мартиника"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MR": {
     "cluster": null,
@@ -2206,7 +2206,7 @@
   },
   "MS": {
     "cluster": "volcano",
-    "ink": "indigo",
+    "ink": "slate",
     "iso3": "MSR",
     "name": {
       "en": "Montserrat",
@@ -2217,7 +2217,7 @@
       "en": "Montserrat",
       "ru": "Монтсеррат"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MT": {
     "cluster": "sea-wall",
@@ -2311,7 +2311,7 @@
   },
   "MZ": {
     "cluster": "fort",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "MOZ",
     "name": {
       "en": "Mozambique",
@@ -2446,7 +2446,7 @@
   },
   "NP": {
     "cluster": "twin-peak",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "NPL",
     "name": {
       "en": "Nepal",
@@ -2746,7 +2746,7 @@
   },
   "RE": {
     "cluster": "volcano",
-    "ink": "oxblood",
+    "ink": "umber",
     "iso3": "REU",
     "name": {
       "en": "Réunion",
@@ -3511,7 +3511,7 @@
   },
   "VG": {
     "cluster": "ship",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "VGB",
     "name": {
       "en": "British Virgin Islands",
@@ -3556,7 +3556,7 @@
   },
   "VU": {
     "cluster": "volcano",
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "VUT",
     "name": {
       "en": "Vanuatu",
