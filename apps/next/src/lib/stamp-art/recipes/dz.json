@@ -22,10 +22,15 @@
   ],
   "layers": [
     {
-      "module": "cube-town",
-      "box": [28, 66, 138, 58],
+      "module": "casbah-b",
+      "box": [28, 50, 144, 68],
+      "params": {}
+    },
+    {
+      "module": "bay-city",
+      "box": [28, 117, 144, 10],
       "params": {
-        "cols": 10
+        "height": 6
       }
     }
   ]

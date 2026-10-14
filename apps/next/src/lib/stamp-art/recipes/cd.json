@@ -26,7 +26,9 @@
     {
       "module": "riverboat",
       "box": [32, 62, 122, 62],
-      "params": {}
+      "params": {
+        "housing": true
+      }
     }
   ]
 }

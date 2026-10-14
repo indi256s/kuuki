@@ -33,9 +33,9 @@ export const dhow: KitModule = ([x, y, w, h], p) => {
   // Sail, drawn first so the hull overlaps its foot.
   const mx = px(num(p, 'mast', 0.48))
   const deckY = base - 15 * k
-  const peak: Pt = [px(0.27), y + 5]
-  const tack: Pt = [px(0.74), base - 27 * k]
-  const clew: Pt = [px(0.25), base - 30 * k]
+  const peak: Pt = [px(0.13), p.shallowYard === true ? y + h * 0.27 : y + 5]
+  const tack: Pt = [px(0.86), base - 27 * k]
+  const clew: Pt = [px(0.19), base - 30 * k]
   const leech = quad(peak, [px(0.22), (peak[1] + clew[1]) / 2], clew, 12)
   const foot = quad(clew, [px(0.45), clew[1] + 1.5 * k], tack, 16)
   const sail: Pt[] = [...leech, ...foot.slice(1)]

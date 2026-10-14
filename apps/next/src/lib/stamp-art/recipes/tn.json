@@ -15,20 +15,6 @@
       }
     },
     {
-      "module": "distance-mountains",
-      "params": {
-        "ridge": [
-          [0, 0.6],
-          [0.5, 0.55],
-          [0.7, 0.38],
-          [0.82, 0.5],
-          [1, 0.58]
-        ],
-        "jag": 0.8,
-        "litGap": 2.4
-      }
-    },
-    {
       "module": "ground",
       "params": {
         "water": true,
@@ -38,13 +24,9 @@
   ],
   "layers": [
     {
-      "module": "cube-town",
-      "box": [30, 68, 138, 58],
-      "params": {
-        "dir": 1,
-        "cols": 7,
-        "seed": 11
-      }
+      "module": "sidi-lane-b",
+      "box": [30, 53, 140, 75],
+      "params": {}
     }
   ]
 }

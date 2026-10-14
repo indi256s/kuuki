@@ -1,11 +1,39 @@
 {
   "iso2": "MH",
   "tier": "engraved",
-  "horizon": 0.86,
+  "horizon": 0.78,
   "backdrop": [
-    { "module": "sky", "params": { "gap": [2.8, 3.2], "weight": "hair", "clouds": [] } },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.2],
+        "weight": "hair",
+        "clouds": []
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    },
+    {
+      "module": "motu-b",
+      "box": [46, 78, 108, 40],
+      "params": {
+        "centred": true
+      }
+    }
   ],
   "layers": [],
-  "signature": [{ "part": "stick-chart", "box": [54, 60, 90, 58], "params": { "tilt": -5 } }]
+  "signature": [
+    {
+      "part": "stick-chart",
+      "box": [67, 72, 66, 52],
+      "params": {
+        "tilt": 12
+      }
+    }
+  ]
 }

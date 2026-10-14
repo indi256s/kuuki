@@ -24,7 +24,9 @@
     {
       "module": "kolmanskop",
       "box": [28, 60, 144, 66],
-      "params": {}
+      "params": {
+        "interior": true
+      }
     }
   ]
 }

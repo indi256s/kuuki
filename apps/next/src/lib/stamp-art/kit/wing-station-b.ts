@@ -19,6 +19,7 @@ export const wingStationB: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const cx = x + w / 2
   const cabW = w * num(p, 'cabin', 0.2)
+  const thick = p.thick === true ? 1.6 : 1
   const roofY = y + h * 0.42
   const cabTop = y + h * 0.26
   const out: SvgNode[] = []
@@ -31,8 +32,8 @@ export const wingStationB: KitModule = ([x, y, w, h], p) => {
       [cx + s * w * 0.28, roofY - 6],
       [tip, roofY - 8],
       [cx + s * w * 0.46, roofY - 5],
-      [cx + s * w * 0.28, roofY + 0.6],
-      [root, roofY + 4],
+      [cx + s * w * 0.28, roofY + 2.5 * thick],
+      [root, roofY + 4 * thick],
     ]
     out.push(occlude(wing, { halo: 1.2 }), ...body(wing, 'line'))
     out.push(
@@ -61,7 +62,7 @@ export const wingStationB: KitModule = ([x, y, w, h], p) => {
   for (let k = 0; k < 4; k++)
     out.push(fill(rectPts(cx - cabW / 2 + 2.4 + k * ((cabW - 6) / 4), cabTop + 10, 2, 8)))
   out.push(hline('bold', cx - cabW / 2 - 1, cx + cabW / 2 + 1, cabTop))
-  const stem: Pt[] = rectPts(cx - cabW * 0.32, roofY + 4, cabW * 0.64, base - roofY - 4)
+  const stem: Pt[] = rectPts(cx - cabW * 0.32, roofY + 4 * thick, cabW * 0.64, base - roofY - 4)
   out.push(occlude(stem), ...body(stem, 'line'))
   out.push(
     ...toneFill(

@@ -33,28 +33,17 @@
   ],
   "layers": [
     {
-      "module": "island-b",
-      "box": [36, 98, 54, 28],
+      "module": "motu-b",
+      "box": [42, 76, 64, 47],
       "params": {
-        "hump": 0.26,
-        "seed": 3,
-        "palms": [
-          [0.3, 44, -0.15],
-          [0.7, 36, 0.1]
-        ]
+        "centred": true
       }
     },
     {
-      "module": "island-b",
-      "box": [96, 92, 58, 34],
+      "module": "canopy-b",
+      "box": [103, 98, 54, 22],
       "params": {
-        "hump": 0.3,
-        "seed": 8,
-        "palms": [
-          [0.15, 40, 0.1],
-          [0.45, 58, -0.08],
-          [0.8, 46, 0.14]
-        ]
+        "seed": 4
       }
     }
   ]

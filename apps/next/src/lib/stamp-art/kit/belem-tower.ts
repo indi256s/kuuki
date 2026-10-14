@@ -35,7 +35,7 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
   const platH = h * 0.17
   const py = base - platH
   const tcx = x + w * num(p, 'at', 0.4)
-  const tw = w * 0.31
+  const tw = w * num(p, 'towerWidth', 0.31)
   const T = h - platH
   const cord = (cx: number, wid: number, yy: number) =>
     out.push(hline('bold', cx - wid / 2 - 1.4, cx + wid / 2 + 1.4, yy))
@@ -53,7 +53,8 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
           inset: 0.2,
         }),
       )
-    cord(tcx, s.w, s.y0 - s.h)
+    if (p.towerWidth === undefined) cord(tcx, s.w, s.y0 - s.h)
+    else out.push(hline('hair', tcx - s.w / 2, tcx + s.w / 2, s.y0 - s.h))
   }
   storey(s1)
   storey(s2)
@@ -133,8 +134,9 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
   }
 
   // bulwark terrace in front: plumb wall, merlons, gun ports, a corner turret
-  const bx0 = x + w * 0.06
-  const bx1 = x + w * 0.94
+  const bw = w * num(p, 'bulwarkWidth', 0.88)
+  const bx0 = tcx - bw / 2
+  const bx1 = tcx + bw / 2
   out.push(...body(rectPts(bx0, py, bx1 - bx0, base - py), 'line'))
   for (let mx = bx0 + 3; mx < bx1 - 9; mx += 7.2)
     out.push(...body(rectPts(mx, py - 3.6, 4.2, 3.8), 'hair'))
@@ -149,5 +151,7 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
       [x + w - 6, base + 2.6],
     ]),
   )
-  return out
+  return p.towerWidth === undefined
+    ? out
+    : out.map((n) => (n.kind === 'stroke' && n.weight === 'line' ? { ...n, weight: 'hair' } : n))
 }

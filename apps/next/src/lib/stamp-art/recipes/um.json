@@ -5,9 +5,19 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [2.8, 4], "weight": "hair", "clouds": [44, 112, 30, 150, 96, 26] }
+      "params": {
+        "gap": [2.8, 4],
+        "weight": "hair",
+        "clouds": [44, 112, 30, 150, 96, 26]
+      }
     },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
   ],
   "layers": [
     {
@@ -23,5 +33,13 @@
       }
     }
   ],
-  "signature": [{ "part": "albatross", "box": [28, 54, 144, 56], "params": { "droop": 0.3 } }]
+  "signature": [
+    {
+      "part": "albatross",
+      "box": [39, 66, 122, 52],
+      "params": {
+        "droop": -0.07
+      }
+    }
+  ]
 }

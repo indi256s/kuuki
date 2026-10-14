@@ -3,17 +3,7 @@
 // cowrie shells at the joints. The whole chart is rotated a few degrees so it reads as handmade.
 // The box is the chart before rotation. The chart is a lit paper field; background hatching stops
 // a halo short of its outline.
-import {
-  type Pt,
-  type SvgNode,
-  cubic,
-  fill,
-  occlude,
-  quad,
-  rectPts,
-  stroke,
-  toneFill,
-} from '../grid'
+import { type Pt, type SvgNode, cubic, fill, occlude, quad, rectPts, stroke } from '../grid'
 import type { KitModule } from '../kit'
 import { num } from '../kit/util'
 
@@ -35,8 +25,6 @@ export const stickChart: KitModule = ([x, y, w, h], p) => {
   const r = x + w
   const t = y
   const b = y + h
-  const shadow = R(rectPts(l - 2, t + 5, w + 8, h + 6))
-  out.push(occlude(shadow), ...toneFill(shadow, 'T4', { gap: 2.4, inset: 0.4 }))
   out.push(occlude(R(rectPts(l - 3, t - 3, w + 6, h + 6)), { halo: 3 }))
   const stick = (pts: Pt[], wt: 'bold' | 'line' | 'hair' = 'line') => out.push(stroke(wt, R(pts)))
   // frame, with sticks overshooting the corners
@@ -93,8 +81,8 @@ export const stickChart: KitModule = ([x, y, w, h], p) => {
     quad([cx, b], [cx + w * 0.22, cy + h * 0.22], [r, cy], 14),
     quad([r, cy], [cx + w * 0.22, cy - h * 0.22], [cx, t], 14),
   ]
-  stick(d1)
-  stick(d2)
+  stick(d1, 'hair')
+  stick(d2, 'hair')
   for (const bow of bows) stick(bow)
   // cowrie shells: oval fills with a pale slit, at the joints and one on each bow
   const shell = ([px, py]: Pt, s = 1) => {
@@ -119,6 +107,6 @@ export const stickChart: KitModule = ([x, y, w, h], p) => {
     [r, cy],
   ] as Pt[])
     shell(s, 1.15)
-  for (const s of [d1[5], d1[15], d2[5], d2[15], ...bows.map((bw) => bw[7])]) shell(s, 0.9)
+
   return out
 }

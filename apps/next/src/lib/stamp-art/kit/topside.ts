@@ -13,8 +13,8 @@ const row = (n: number, hb: number, lo: number, hi: number, shift: number): Spir
     const hf = lo + (hi - lo) * (0.5 + 0.5 * Math.sin(i * 2.3 + shift) * Math.cos(i * 0.9 + shift))
     return [0.05 + (0.9 * i) / (n - 1), hb * (0.85 + (0.3 * ((i * 7) % 5)) / 4), hf]
   })
-const BACK = row(10, 0.05, 0.45, 0.72, 0.4)
-const FRONT = row(9, 0.056, 0.58, 1, 1.9)
+const BACK = row(7, 0.075, 0.45, 0.72, 0.4)
+const FRONT = row(6, 0.095, 0.58, 1, 1.9)
 
 export const topside: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 4)))
@@ -33,7 +33,7 @@ export const topside: KitModule = ([x, y, w, h], p) => {
         const t = i / rows
         const yy = top + (base - top) * t
         // jagged flank: sharp at the tip, rough ledges lower down
-        const prof = Math.pow(t, 0.72)
+        const prof = 0.2 + 0.8 * Math.pow(t, 0.55)
         const jl = (rand() - 0.4) * 3.4 * t
         const jr = (rand() - 0.4) * 3.4 * t
         left.push([apex[0] - half * prof - jl, yy])

@@ -3,7 +3,7 @@
   "tier": "engraved",
   "shape": "octagon",
   "ink": "ochre-dark",
-  "cluster": "triumphal-arch",
+  "cluster": "fort",
   "horizon": 0.72,
   "backdrop": [
     {
@@ -15,42 +15,46 @@
       }
     },
     {
-      "module": "distance-trees",
-      "params": {
-        "height": 9,
-        "amp": 2.2,
-        "seed": 4,
-        "swell": 2
-      }
-    },
-    {
       "module": "ground",
+      "box": [0, 0, 200, 200],
       "params": {
+        "water": true,
         "line": false
       }
     }
   ],
   "layers": [
     {
-      "module": "steps",
-      "box": [44, 116, 112, 10],
+      "module": "elmina-b",
+      "box": [38, 60, 124, 66],
+      "params": {}
+    },
+    {
+      "module": "pirogue",
+      "box": [48, 132, 27, 8],
       "params": {
-        "count": 2,
-        "narrow": 0.9
+        "awning": false
       }
     },
     {
-      "module": "triumphal-arch",
-      "box": [54, 56, 92, 60],
+      "module": "pirogue",
+      "box": [74, 137, 27, 8],
       "params": {
-        "bays": 1,
-        "opening": "square",
-        "openW": 0.5,
-        "openH": 0.92,
-        "atticH": 0.16,
-        "entH": 0.1,
-        "dark": "hatch",
-        "hatchGap": 3.4
+        "awning": false
+      }
+    },
+    {
+      "module": "pirogue",
+      "box": [100, 132, 27, 8],
+      "params": {
+        "awning": false
+      }
+    },
+    {
+      "module": "pirogue",
+      "box": [126, 137, 27, 8],
+      "params": {
+        "awning": false
       }
     }
   ]

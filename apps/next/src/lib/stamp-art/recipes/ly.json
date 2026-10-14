@@ -29,26 +29,9 @@
   ],
   "layers": [
     {
-      "module": "colonnade",
-      "box": [27, 92, 48, 32],
-      "params": {
-        "count": 5,
-        "order": "ionic",
-        "entablature": 0.16,
-        "stylobate": 1,
-        "colW": 0.4
-      }
-    },
-    {
-      "module": "colonnade",
-      "box": [125, 92, 48, 32],
-      "params": {
-        "count": 5,
-        "order": "ionic",
-        "entablature": 0.16,
-        "stylobate": 1,
-        "colW": 0.4
-      }
+      "module": "broken-columns-b",
+      "box": [31, 76, 42, 48],
+      "params": {}
     },
     {
       "module": "triumphal-arch",
@@ -61,6 +44,11 @@
         "dark": "fill",
         "panels": 3
       }
+    },
+    {
+      "module": "broken-columns-b",
+      "box": [127, 74, 42, 50],
+      "params": {}
     }
   ]
 }

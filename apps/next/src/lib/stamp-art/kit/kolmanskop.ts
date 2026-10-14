@@ -33,7 +33,7 @@ function house(
     const ex = gable[0][0] + (gable[2][0] - gable[0][0]) * t
     if (t > 0.5 && t < 0.72) continue
     out.push(
-      stroke('hair', [
+      stroke('fine', [
         [apex[0] + (ex - apex[0]) * 0.25, apex[1] + roof * 0.3],
         [ex, top - 0.8],
       ]),
@@ -62,6 +62,20 @@ export const kolmanskop: KitModule = ([x, y, w, h], p) => {
   ]
   for (const [f, wf, hf, rf] of spec)
     out.push(...house(x + w * f, base - 3, w * wf, h * hf, h * rf, rand))
+  if (p.interior === true) {
+    const dx = x + w * 0.43,
+      dy = base - h * 0.48,
+      dw = w * 0.14,
+      dh = h * 0.5
+    out.push(fill(rectPts(dx, dy, dw, dh)))
+    const crest = quad(
+      [dx, base - 2],
+      [dx + dw * 0.5, base - h * 0.36],
+      [dx + dw, base - h * 0.24],
+      10,
+    )
+    out.push(...body([...crest, [dx + dw, base], [dx, base]], 'hair'))
+  }
   // Drift: sand climbs the right-hand houses, crest falling to the left.
   const crest = quad(
     [x + w * 0.2, base],
@@ -72,7 +86,7 @@ export const kolmanskop: KitModule = ([x, y, w, h], p) => {
   const sand: Pt[] = [...crest, [x + w, base + 2], [x, base + 2], [x, base]]
   out.push(...body(sand, 'bold'))
   const lee: Pt[] = [...crest.slice(6), [x + w, base - 0.5], [x + w * 0.45, base - 0.5]]
-  out.push(...hatch(lee, 'h', 2.2, 'hair', 0.8))
+  out.push(...hatch(lee, 'h', 3.4, 'fine', 0.8))
   out.push(hline('bold', x, x + w, base + 2))
   return out
 }

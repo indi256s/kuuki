@@ -7,15 +7,28 @@
   "backdrop": [
     {
       "module": "sky",
-      "params": { "gap": [3, 4.4], "weight": "hair", "clouds": [44, 70, 30, 150, 78, 26] }
+      "params": {
+        "gap": [3, 4.4],
+        "weight": "hair",
+        "clouds": [44, 70, 30, 150, 78, 26]
+      }
     },
-    { "module": "ground", "params": { "water": true, "line": false } }
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
   ],
   "layers": [
     {
       "module": "choungui",
-      "box": [28, 54, 144, 74],
-      "params": { "seed": 13 }
+      "box": [38, 49, 124, 79],
+      "params": {
+        "seed": 13,
+        "horn": true
+      }
     }
   ]
 }

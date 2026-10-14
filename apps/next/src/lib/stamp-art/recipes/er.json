@@ -31,7 +31,10 @@
     {
       "module": "wing-station-b",
       "box": [28, 60, 144, 66],
-      "params": {}
+      "params": {
+        "cabin": 0.24,
+        "thick": true
+      }
     }
   ]
 }

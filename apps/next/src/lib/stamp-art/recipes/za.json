@@ -23,8 +23,11 @@
   "layers": [
     {
       "module": "table-mountain",
-      "box": [28, 60, 142, 64],
-      "params": {}
+      "box": [30, 57, 140, 67],
+      "params": {
+        "cloud": false,
+        "cliff": 0.5
+      }
     },
     {
       "module": "bay-city",

@@ -22,8 +22,8 @@
     "name": "United Arab Emirates",
     "motif": "Al Ain oasis palms under Jebel Hafeet",
     "kind": "nature",
-    "silhouette": "Row of palms across the base, a long serrated ridge rising behind, flat sky",
-    "modules": ["mesa", "palm", "sky", "ground"],
+    "silhouette": "Eight mixed-height palms, a serrated Jebel Hafeet ridge and a lit falaj channel.",
+    "modules": ["sky", "mesa", "ground", "falaj-b", "palm"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -31,7 +31,7 @@
     "replaced": "Burj Khalifa: modern trademarked skyline (rule 6)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Eight mixed-height palms, a serrated Jebel Hafeet ridge and a lit falaj channel."
   },
   {
     "iso2": "AF",
@@ -124,8 +124,8 @@
     "name": "Angola",
     "motif": "Kalandula Falls",
     "kind": "nature",
-    "silhouette": "Very wide, low curtain of water spilling over a long straight ledge in several parallel streams, spray at the foot",
-    "modules": ["waterfall-b", "canopy-b", "sky", "distance-trees", "ground"],
+    "silhouette": "Asymmetric horseshoe seen obliquely",
+    "modules": ["sky", "distance-trees", "ground", "waterfall-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -133,7 +133,7 @@
     "replaced": "Fortaleza de Sao Miguel: fort cluster collision (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Final pass: horseshoe of six falls under a forested rim, rock teeth hanging between the sheets, spray and a dark pool band at the foot"
+    "notes": "Asymmetric horseshoe seen obliquely; connected paper water under short irregular wet breaks replaces the evenly separated temple columns."
   },
   {
     "iso2": "AQ",
@@ -328,8 +328,8 @@
     "name": "Burkina Faso",
     "motif": "Ruins of Loropéni",
     "kind": "ruin",
-    "silhouette": "tall rectangular stone walls, broken uneven top, no roof, a gate-arch in the lower centre. Symmetric rectangle",
-    "modules": ["ruin-wall", "distance-trees", "ground"],
+    "silhouette": "Irregular rounded broken crown replaces square laterite steps.",
+    "modules": ["sky", "distance-trees", "ground", "ruin-wall"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -337,7 +337,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Round 2: Laterite wall with broken crown, doorway and rubble."
+    "notes": "Irregular rounded broken crown replaces square laterite steps."
   },
   {
     "iso2": "BG",
@@ -362,8 +362,8 @@
     "name": "Bahrain",
     "motif": "Bahrain Fort",
     "kind": "architecture",
-    "silhouette": "a broad, steep-sided mound (flat-topped) with a crenellated fortress wall and a gate-arch and tower on the top; asymmetric in the mound, symmetric in the gateway",
-    "modules": ["rock-hill", "fortress-wall", "tower"],
+    "silhouette": "Wide fort on a low tell replaces the triangular mound.",
+    "modules": ["sky", "ground", "rock-hill", "fortress-wall", "drum-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "gulf-fort",
@@ -371,7 +371,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: fort wall and gate crowning a tall mound"
+    "notes": "Wide fort on a low tell replaces the triangular mound."
   },
   {
     "iso2": "BI",
@@ -379,16 +379,16 @@
     "name": "Burundi",
     "motif": "Lake Tanganyika shore at Bujumbura",
     "kind": "nature",
-    "silhouette": "a low, long horizontal waterline, a quay in the foreground, a hill band behind. Asymmetric",
-    "modules": ["pirogue", "palm", "sky", "distance-mountains", "ground"],
+    "silhouette": "Foreground pirogue spans sixty percent of the window",
+    "modules": ["sky", "distance-mountains", "ground", "palm", "pirogue"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Foreground pirogue spans sixty percent of the window; taller leaning shore palm."
   },
   {
     "iso2": "BJ",
@@ -532,8 +532,8 @@
     "name": "Botswana",
     "motif": "Okavango Delta",
     "kind": "nature",
-    "silhouette": "a flat horizon band of water with clumps of palms on low islands. Horizontal and asymmetric",
-    "modules": ["island-b", "palm", "water"],
+    "silhouette": "Arched palm grove with a foreground mokoro on the delta water.",
+    "modules": ["sky", "distance-trees", "ground", "motu-b", "pirogue"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -541,7 +541,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Round 2: Two low palm islands on flat water."
+    "notes": "Arched palm grove with a foreground mokoro on the delta water."
   },
   {
     "iso2": "BY",
@@ -617,16 +617,16 @@
     "name": "Congo (Democratic Republic)",
     "motif": "Congo River at Kinshasa",
     "kind": "nature",
-    "silhouette": "wide water band, a quay line, one steamship on the water, a low skyline. Asymmetric",
-    "modules": ["riverboat", "water"],
+    "silhouette": "Upper paddle wheel is hidden in a broad housing",
+    "modules": ["sky", "ground", "riverboat"],
     "signature": null,
     "backdrop": null,
     "cluster": "river-quay",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: sternwheel river steamer at a quay"
+    "notes": "Upper paddle wheel is hidden in a broad housing; the exposed lower part meets the water."
   },
   {
     "iso2": "CF",
@@ -821,16 +821,16 @@
     "name": "Cabo Verde",
     "motif": "Mount Fogo, Fogo island",
     "kind": "nature",
-    "silhouette": "one symmetric conical peak on a low island, water in front. Single centred shape",
-    "modules": ["volcano", "distance-mountains", "bay-city", "water"],
+    "silhouette": "Dark cone inside the caldera rim, without a snow cap or eruption plume.",
+    "modules": ["sky", "ground", "fogo-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "volcano",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: cone rising inside a ring-shaped caldera wall. Round 2: Truncated Fogo cone inside caldera shoulders, small port town at its foot."
+    "notes": "Dark cone inside the caldera rim, without a snow cap or eruption plume."
   },
   {
     "iso2": "CW",
@@ -872,8 +872,8 @@
     "name": "Cyprus",
     "motif": "Kolossi Castle",
     "kind": "architecture",
-    "silhouette": "Tall square keep with a crenellated top and a lower attached hall, thick stone walls",
-    "modules": ["tower", "fortress-wall", "distance-mountains"],
+    "silhouette": "Lone crenellated Kolossi keep with projecting crown",
+    "modules": ["sky", "distance-mountains", "ground", "tower"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -881,7 +881,7 @@
     "replaced": "Paphos harbour fort: Q44 (fort cluster cut)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Lone crenellated Kolossi keep with projecting crown; gabled shed removed."
   },
   {
     "iso2": "CZ",
@@ -923,16 +923,16 @@
     "name": "Djibouti",
     "motif": "Lake Abbe travertine chimneys",
     "kind": "nature",
-    "silhouette": "Cluster of slender travertine chimneys of uneven height on a flat plain, thin steam wisps, low hills far behind",
-    "modules": ["chimneys-b", "sky", "distance-mountains", "ground"],
+    "silhouette": "Squat broad-based knobbly travertine chimneys of varying height with steam wisps.",
+    "modules": ["sky", "distance-mountains", "ground", "chimneys-b"],
     "signature": "new:chimneys-b – slender travertine chimneys of uneven height with steam wisps",
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
     "replaced": "Harbour with dhows: generic and collides with the Gulf dhow (cluster rule)",
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Lake straddles the Ethiopian border; draw no border cue."
+    "notes": "Squat broad-based knobbly travertine chimneys of varying height with steam wisps."
   },
   {
     "iso2": "DK",
@@ -991,8 +991,8 @@
     "name": "Algeria",
     "motif": "Casbah of Algiers",
     "kind": "architecture",
-    "silhouette": "white cubic houses stacked up a hill, arches at the base, one tower on the crest, water in front. Asymmetric",
-    "modules": ["hills", "terraces", "gate-arch", "tower", "water"],
+    "silhouette": "Five overlapping rows of irregular whitewashed blocks over the quay and harbour.",
+    "modules": ["sky", "ground", "casbah-b", "bay-city"],
     "signature": null,
     "backdrop": null,
     "cluster": "hill-town",
@@ -1000,7 +1000,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: white cubes with arches and one small tower above a bay"
+    "notes": "Five overlapping rows of irregular whitewashed blocks over the quay and harbour."
   },
   {
     "iso2": "EC",
@@ -1059,16 +1059,16 @@
     "name": "Western Sahara",
     "motif": "Desert dunes, no place name",
     "kind": "nature",
-    "silhouette": "flat horizon with low dunes. Asymmetric",
-    "modules": ["desert-dunes"],
+    "silhouette": "Three asymmetric receding dunes",
+    "modules": ["sky", "dunes-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "dunes",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: bare dune line, no sea. Contested: neutral nature only, no buildings (rule 5)."
+    "notes": "Three asymmetric receding dunes; knife crests and shaded slip faces replace wave curls."
   },
   {
     "iso2": "ER",
@@ -1076,8 +1076,8 @@
     "name": "Eritrea",
     "motif": "Fiat Tagliero service station, Asmara",
     "kind": "architecture",
-    "silhouette": "horizontal, two swept curved wings projecting out from a central pillar and a low base. Asymmetric in profile but symmetric in front view",
-    "modules": ["wing-station-b", "sky", "rooftops", "ground"],
+    "silhouette": "Thicker tapering cantilevers and a wider central cabin",
+    "modules": ["sky", "rooftops", "ground", "wing-station-b"],
     "signature": "new:wing-station-b – cantilever cabin with two swept concrete wings and pump islands",
     "backdrop": null,
     "cluster": null,
@@ -1085,7 +1085,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Thicker tapering cantilevers and a wider central cabin; no lettering."
   },
   {
     "iso2": "ES",
@@ -1110,16 +1110,16 @@
     "name": "Ethiopia",
     "motif": "Fasil Ghebbi castle complex, Gondar",
     "kind": "architecture",
-    "silhouette": "a square castle wall with corner towers, a tall central keep, crenellations along the top. Symmetric",
-    "modules": ["castle", "sky", "distance-mountains", "ground"],
+    "silhouette": "Round shaded corner towers with domed caps distinguish Fasil Ghebbi.",
+    "modules": ["sky", "distance-mountains", "ground", "fasil-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "castle",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: round domed turrets and stepped crenels in a boxy compound. Secular Fasil Ghebbi, not Lalibela."
+    "notes": "Round shaded corner towers with domed caps distinguish Fasil Ghebbi."
   },
   {
     "iso2": "FI",
@@ -1229,16 +1229,16 @@
     "name": "Gabon",
     "motif": "Kongou Falls, Ivindo National Park",
     "kind": "nature",
-    "silhouette": "forest band on both sides, a central white cascade stepping down. Symmetric",
-    "modules": ["waterfall-b", "canopy-b", "sky", "distance-trees", "ground"],
+    "silhouette": "Wide multilevel forest cascade replaces uniform face-on separated sheets.",
+    "modules": ["sky", "distance-trees", "ground", "waterfall-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "Final pass: wide five-channel cascade among forest, rock islets with canopy, spray and a dark pool band at the foot"
+    "notes": "Wide multilevel forest cascade replaces uniform face-on separated sheets."
   },
   {
     "iso2": "GB",
@@ -1329,18 +1329,18 @@
     "iso2": "GH",
     "iso3": "GHA",
     "name": "Ghana",
-    "motif": "Black Star Gate",
+    "motif": "Elmina Castle and fishing canoes on Benya lagoon",
     "kind": "architecture",
-    "silhouette": "a large central gate, a flat-topped arch frame with a plain finial on the crown, a wide flat square below; symmetric",
-    "modules": ["triumphal-arch", "steps"],
+    "silhouette": "Elmina Castle with four fishing canoes replaces the Black Star Gate: state parade ground and flag emblem are excluded by the owner motif rules.",
+    "modules": ["sky", "ground", "elmina-b", "pirogue"],
     "signature": null,
     "backdrop": null,
-    "cluster": "triumphal-arch",
-    "status": "kept",
-    "replaced": null,
+    "cluster": "fort",
+    "status": "replaced",
+    "replaced": "Black Star Gate: active state parade ground and flag emblem",
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: single wide arch on a stepped square. Star finial dropped (flag-adjacent, rule 7).. Round 2: Black Star Gate as a plain flat-topped gate on steps; star finial dropped."
+    "notes": "Elmina Castle with four fishing canoes replaces the Black Star Gate: state parade ground and flag emblem are excluded by the owner motif rules."
   },
   {
     "iso2": "GI",
@@ -1382,8 +1382,8 @@
     "name": "Gambia",
     "motif": "Wassu Stone Circles",
     "kind": "ruin",
-    "silhouette": "ring of tall squared pillars of uneven height on a flat plain, a circle of stones seen from the front as a row of upright stones with a flat horizon",
-    "modules": ["standing-stones-b"],
+    "silhouette": "Twelve rounded laterite pillars in a perspective ring; larger near stones and a distant baobab.",
+    "modules": ["sky", "distant-baobab-b", "distance-trees", "ground", "standing-stones-b"],
     "signature": "new:standing-stones – row of tall squared pillars, uneven heights",
     "backdrop": null,
     "cluster": "megalith",
@@ -1391,7 +1391,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: ring of tall uneven pillars. Round 2: Ring of squared laterite pillars, uneven heights."
+    "notes": "Twelve rounded laterite pillars in a perspective ring; larger near stones and a distant baobab."
   },
   {
     "iso2": "GN",
@@ -1399,16 +1399,16 @@
     "name": "Guinea",
     "motif": "Îles de Los, off Conakry",
     "kind": "nature",
-    "silhouette": "a low island with a few palms on a flat waterline, with a small fort-like outline on the top. Asymmetric",
-    "modules": ["island-b", "palm", "water"],
+    "silhouette": "Ridged rocky islands with leaning palms, distinct from the low Bijagos mangroves.",
+    "modules": ["sky", "ground", "rock-hill", "palm"],
     "signature": null,
     "backdrop": null,
     "cluster": "palm-island",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: small island with a few palms and a quay. Round 2: Island with palms and a short quay."
+    "notes": "Ridged rocky islands with leaning palms, distinct from the low Bijagos mangroves."
   },
   {
     "iso2": "GP",
@@ -1518,16 +1518,16 @@
     "name": "Guinea-Bissau",
     "motif": "Bijagós archipelago",
     "kind": "nature",
-    "silhouette": "a flat horizon of low islands with palm clusters on the water. Asymmetric",
-    "modules": ["island-b", "palm", "water", "distance-trees"],
+    "silhouette": "Low palm motu and mangrove foliage band, without a rocky high island.",
+    "modules": ["sky", "distance-trees", "ground", "motu-b", "canopy-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "palm-island",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: round thatched hut among palms on a flat island"
+    "notes": "Low palm motu and mangrove foliage band, without a rocky high island."
   },
   {
     "iso2": "GY",
@@ -1535,8 +1535,8 @@
     "name": "Guyana",
     "motif": "Kaieteur Falls on the Potaro River in the interior",
     "kind": "nature",
-    "silhouette": "a flat, wide, horizontal plateau cliff on top; a single white column of water falling straight down the middle; a dark rainforest gorge at the base",
-    "modules": ["waterfall-b", "canopy-b", "sky", "ground"],
+    "silhouette": "Plunge pool foam revised through the shared waterfall module",
+    "modules": ["sky", "ground", "waterfall-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -1544,7 +1544,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Final pass: one tall plunge (height about 2.5x width) from a forest-topped amphitheatre, dark recess behind the water, spray at the foot"
+    "notes": "Plunge pool foam revised through the shared waterfall module; tall single plunge retained."
   },
   {
     "iso2": "HK",
@@ -1720,18 +1720,18 @@
     "iso2": "IO",
     "iso3": "IOT",
     "name": "British Indian Ocean Territory",
-    "motif": "Chagos-type reef ring around a lagoon with palm islets",
+    "motif": "Chagos palm motu and lagoon at eye level",
     "kind": "nature",
-    "silhouette": "a closed oval reef ring seen at a low angle: foam-edged outer reef, sandy reef flat carrying palm islets, a pale lagoon with a dark deep patch; no buildings, no boats",
-    "modules": ["reef-ring-b", "palm", "sky", "ground"],
+    "silhouette": "Eye-level left-hand palm motu above a lagoon replaces the aerial reef ellipse.",
+    "modules": ["sky", "ground", "motu-b"],
     "signature": "new:reef-ring-b – closed reef ring with palm islets and a deep lagoon patch",
     "backdrop": null,
     "cluster": "atoll",
     "status": "replaced",
     "replaced": "Reef ring with a sailing yacht: the yacht is dropped, contested territory gets neutral nature only (rule 5)",
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: closed reef ring with islets and a dark deep-water patch. Contested: neutral nature only, no buildings or vessels (rule 5)."
+    "notes": "Eye-level left-hand palm motu above a lagoon replaces the aerial reef ellipse."
   },
   {
     "iso2": "IQ",
@@ -1773,8 +1773,8 @@
     "name": "Iceland",
     "motif": "Gullfoss waterfall",
     "kind": "nature",
-    "silhouette": "Broad river stepping down in two tiers, then turning sharply into a narrow canyon, spray mist, low cliff walls",
-    "modules": ["waterfall-b", "sky", "distance-mountains", "ground"],
+    "silhouette": "Plunge pool foam revised through the shared waterfall module",
+    "modules": ["sky", "distance-mountains", "ground", "waterfall-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
@@ -1782,7 +1782,7 @@
     "replaced": "Hallgrimskirkja: church (rule 1)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Final pass: diagonal upper step, then an upright lower plunge into a T5 crevice at right angles, basalt banks, spray"
+    "notes": "Plunge pool foam revised through the shared waterfall module; diagonal upper fall and crevice retained."
   },
   {
     "iso2": "IT",
@@ -2011,8 +2011,8 @@
     "name": "Kuwait",
     "motif": "Traditional dhow",
     "kind": "object",
-    "silhouette": "Long low hull with a high stern and a tall slanting lateen mast and yard, calm water line below",
-    "modules": ["dhow"],
+    "silhouette": "Shallow lateen yard, aft sail, raised stern and raked bow.",
+    "modules": ["sky", "ground", "dhow"],
     "signature": null,
     "backdrop": null,
     "cluster": "ship",
@@ -2020,7 +2020,7 @@
     "replaced": "Kuwait Towers: 1979 signature architecture (rule 6)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: high-sterned dhow with a lateen sail. Promoted research alternate."
+    "notes": "Shallow lateen yard, aft sail, raised stern and raked bow."
   },
   {
     "iso2": "KY",
@@ -2147,16 +2147,16 @@
     "name": "Liberia",
     "motif": "Kpatawee Falls",
     "kind": "nature",
-    "silhouette": "Low wide stepped cascade over rock ledges in rainforest",
-    "modules": ["waterfall-b", "canopy-b", "sky", "distance-trees", "ground"],
+    "silhouette": "Plunge pool foam revised through the shared waterfall module",
+    "modules": ["sky", "distance-trees", "ground", "waterfall-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
     "status": "replaced",
     "replaced": "Temple of Justice: 1965 modernist building (rule 6); round 2 Q44: dropped Cape Mesurado headland with palm and lighthouse (lighthouse cluster would exceed 8 after MO)",
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Final pass: six low rock-step tiers with bold wavy lips and dark rock humps, forested banks, spray at the foot"
+    "notes": "Plunge pool foam revised through the shared waterfall module; low rock steps retained."
   },
   {
     "iso2": "LS",
@@ -2232,16 +2232,16 @@
     "name": "Libya",
     "motif": "Leptis Magna",
     "kind": "ruin",
-    "silhouette": "a monumental triumphal arch with a colonnade running off on each side, a flat horizon. Symmetric",
-    "modules": ["triumphal-arch", "colonnade", "arcade"],
+    "silhouette": "Columns are broken at four mixed heights beside the surviving arch.",
+    "modules": ["sky", "distance-mountains", "ground", "broken-columns-b", "triumphal-arch"],
     "signature": null,
     "backdrop": null,
     "cluster": "classical-ruin",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: Severan arch with a colonnade"
+    "notes": "Columns are broken at four mixed heights beside the surviving arch."
   },
   {
     "iso2": "MA",
@@ -2351,16 +2351,16 @@
     "name": "Marshall Islands",
     "motif": "Stick chart",
     "kind": "object",
-    "silhouette": "A lattice of curved and crossed lines in a rough square frame, with small round shells at the joints. Symmetric in a loose way",
-    "modules": ["stick-chart", "sky", "ground"],
-    "signature": "new:stick-chart (signatures/stick-chart.ts)",
+    "silhouette": "Stick chart tilted 12 degrees in foreground sand",
+    "modules": ["sky", "ground", "motu-b"],
+    "signature": "stick-chart",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Stick chart tilted 12 degrees in foreground sand; five cowries and lighter curved swell sticks."
   },
   {
     "iso2": "MK",
@@ -2385,8 +2385,8 @@
     "name": "Mali",
     "motif": "Dogon cliffs of Bandiagara",
     "kind": "nature",
-    "silhouette": "Long sheer sandstone escarpment with small clay granaries under pointed thatched caps clinging in rows at its foot, flat plain below",
-    "modules": ["rock-hill", "granaries"],
+    "silhouette": "Nine square granaries with tall conical thatch caps under a dark overhanging cliff band.",
+    "modules": ["sky", "ground", "rock-hill", "cliff-overhang-b", "granaries"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2394,7 +2394,7 @@
     "replaced": "Great Mosque of Djenne: mosque (rule 1); Timbuktu mosques also religious",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Nine square granaries with tall conical thatch caps under a dark overhanging cliff band."
   },
   {
     "iso2": "MM",
@@ -2451,10 +2451,10 @@
     "iso2": "MP",
     "iso3": "MNP",
     "name": "Northern Mariana Islands",
-    "motif": "Managaha islet in its lagoon ring",
+    "motif": "Managaha beach islet with Saipan ridge",
     "kind": "nature",
-    "silhouette": "A flat sandy islet across the lower third, one or two palms on it, a wide lagoon band below. Not symmetric",
-    "modules": ["managaha", "island-b", "palm", "sky", "ground"],
+    "silhouette": "Eye-level central beach islet with palms and ironwood",
+    "modules": ["sky", "distance-mountains", "ground", "motu-b", "canopy-b"],
     "signature": "new:managaha (kit/managaha.ts) - Managaha reef ring",
     "backdrop": null,
     "cluster": "atoll",
@@ -2462,7 +2462,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: round Managaha islet in a wide lagoon ring"
+    "notes": "Eye-level central beach islet with palms and ironwood; Saipan ridge recedes on the right."
   },
   {
     "iso2": "MQ",
@@ -2487,16 +2487,16 @@
     "name": "Mauritania",
     "motif": "Ouadane ksar ruins",
     "kind": "ruin",
-    "silhouette": "Low ruined stone walls and flat-roofed houses stepping up a rocky escarpment, a few broken towers, desert behind",
-    "modules": ["rock-hill", "ruin-wall", "dunes", "distance-mountains"],
+    "silhouette": "Roofless dry-stone ruins step down the slope",
+    "modules": ["sky", "distance-mountains", "ground", "rock-hill", "casbah-b"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
     "replaced": "Chinguetti Friday Mosque minaret: mosque (rule 1)",
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Roofless dry-stone ruins step down the slope; broken roof edges and dark openings."
   },
   {
     "iso2": "MS",
@@ -2640,8 +2640,8 @@
     "name": "Namibia",
     "motif": "Kolmanskop ghost town",
     "kind": "ruin",
-    "silhouette": "a row of low flat-roofed houses with grid windows; dune slope climbs over their lower walls on one side; a sand line across the base; asymmetric by the drift",
-    "modules": ["kolmanskop", "sky", "ground"],
+    "silhouette": "Sand drift enters the dark doorway",
+    "modules": ["sky", "ground", "kolmanskop"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -2649,7 +2649,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Round 2: Gabled Kolmanskop houses with sand drifted over the lower walls."
+    "notes": "Sand drift enters the dark doorway; lighter roof and dune hatching preserve white walls."
   },
   {
     "iso2": "NC",
@@ -2674,16 +2674,16 @@
     "name": "Niger",
     "motif": "Air and Tenere dunes and mountains",
     "kind": "nature",
-    "silhouette": "Smooth dune slopes in the foreground, a low jagged mountain range on the horizon",
-    "modules": ["dunes", "distance-mountains"],
+    "silhouette": "Knife-edge asymmetric dunes with shaded slip faces and Air granite behind.",
+    "modules": ["sky", "distance-mountains", "ground", "dunes-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "dunes",
     "status": "replaced",
     "replaced": "Agadez Grand Mosque: mosque (rule 1)",
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: dunes with a jagged mountain range. Promoted research alternate."
+    "notes": "Knife-edge asymmetric dunes with shaded slip faces and Air granite behind."
   },
   {
     "iso2": "NF",
@@ -2708,8 +2708,8 @@
     "name": "Nigeria",
     "motif": "Zuma Rock",
     "kind": "nature",
-    "silhouette": "one massive, steep-sided monolith with a rounded shoulder and flat-ish crest, filling the frame; broad base; asymmetric by the face",
-    "modules": ["monolith-b", "distance-trees"],
+    "silhouette": "Taller Zuma Rock with a vertical streak face, distinct from low Sibebe.",
+    "modules": ["sky", "ground", "monolith-b", "distance-trees"],
     "signature": null,
     "backdrop": null,
     "cluster": "monolith",
@@ -2717,7 +2717,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: tall slab-sided dome with vertical streaks"
+    "notes": "Taller Zuma Rock with a vertical streak face, distinct from low Sibebe."
   },
   {
     "iso2": "NI",
@@ -2793,16 +2793,16 @@
     "name": "Nauru",
     "motif": "Topside's limestone pinnacles",
     "kind": "nature",
-    "silhouette": "A band of tall, thin, jagged spikes across the middle, a low flat strip below, a thin water line. Not symmetric",
-    "modules": ["topside", "sky", "ground"],
+    "silhouette": "Fewer broad limestone pinnacles of varied widths and heights, with fluted shaded faces.",
+    "modules": ["sky", "ground", "topside"],
     "signature": "new:topside (kit/topside.ts)",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Fewer broad limestone pinnacles of varied widths and heights, with fluted shaded faces."
   },
   {
     "iso2": "NU",
@@ -2844,8 +2844,8 @@
     "name": "Oman",
     "motif": "Nizwa Fort round tower",
     "kind": "architecture",
-    "silhouette": "A large round drum in the centre rising above the wall line; a flat crenellated top; low curtain walls running out to both sides; a broad base",
-    "modules": ["drum-b", "fortress-wall", "palm"],
+    "silhouette": "A squat 1.3:1 crenellated drum, cylindrical right shading and low flanking palms.",
+    "modules": ["sky", "distance-mountains", "ground", "palm", "fortress-wall", "drum-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "gulf-fort",
@@ -2853,7 +2853,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: huge cylindrical tower set in a long wall"
+    "notes": "A squat 1.3:1 crenellated drum, cylindrical right shading and low flanking palms."
   },
   {
     "iso2": "PA",
@@ -3048,16 +3048,16 @@
     "name": "Portugal",
     "motif": "Belém Tower",
     "kind": "architecture",
-    "silhouette": "a stout square tower with an arcaded upper gallery, a round corner turret, and a flat top. It sits on the water",
-    "modules": ["belem-tower", "distance-trees", "sky", "ground"],
+    "silhouette": "Tower widened to 1.6 times the bulwark",
+    "modules": ["sky", "distance-trees", "ground", "belem-tower"],
     "signature": "new:belem-tower (kit/belem-tower.ts)",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Tower widened to 1.6 times the bulwark; lighter details and smaller bastion."
   },
   {
     "iso2": "PW",
@@ -3065,16 +3065,16 @@
     "name": "Palau",
     "motif": "Rock Islands Southern Lagoon",
     "kind": "nature",
-    "silhouette": "A band of rounded, flat-topped limestone islets over the water, the centre one tallest, a low lagoon line below",
-    "modules": ["mushroom-islets", "sky", "ground"],
+    "silhouette": "Five receding limestone mushroom islets with dark undercut waterline notches.",
+    "modules": ["sky", "ground", "mushroom-islets"],
     "signature": "new:mushroom-islets (kit/mushroom-islets.ts)",
     "backdrop": null,
     "cluster": "karst",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: mushroom-topped islets"
+    "notes": "Five receding limestone mushroom islets with dark undercut waterline notches."
   },
   {
     "iso2": "PY",
@@ -3099,8 +3099,8 @@
     "name": "Qatar",
     "motif": "Khor Al Adaid inland sea",
     "kind": "nature",
-    "silhouette": "Large sand dunes sloping down into a flat sea inlet, low horizon",
-    "modules": ["inland-sea-b", "sky", "ground"],
+    "silhouette": "Dunes descend into an inlet occupying the foreground",
+    "modules": ["sky", "dunes-b"],
     "signature": "new:inland-sea-b – tall dune with rounded crest, lee face hatched along the fall line, sliding into a flat inlet",
     "backdrop": null,
     "cluster": "dunes",
@@ -3108,7 +3108,7 @@
     "replaced": "Museum of Islamic Art: 2008 Pei design (rule 6)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: dunes sliding into a sea inlet. Promoted research alternate."
+    "notes": "Dunes descend into an inlet occupying the foreground; distant dunes and water reflections."
   },
   {
     "iso2": "RE",
@@ -3184,16 +3184,16 @@
     "name": "Rwanda",
     "motif": "Rolling \"Land of a Thousand Hills\"",
     "kind": "nature",
-    "silhouette": "a sequence of rounded hills stepping back in layers, each terraced with bands; no focal object; symmetric only by repetition",
-    "modules": ["terraces-a", "sky", "distance-mountains", "ground"],
+    "silhouette": "Six overlapping rounded hill bands with contour terraces, mist and foreground banana plants.",
+    "modules": ["sky", "ground", "thousand-hills-b", "banana-b"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Six overlapping rounded hill bands with contour terraces, mist and foreground banana plants."
   },
   {
     "iso2": "SA",
@@ -3201,8 +3201,8 @@
     "name": "Saudi Arabia",
     "motif": "Hegra: Qasr al-Farid",
     "kind": "ruin",
-    "silhouette": "A single free-standing sandstone block carved with a pediment above four pilasters and a central doorway, desert floor",
-    "modules": ["qasr-farid", "distance-mountains", "sky", "ground"],
+    "silhouette": "Rounded sandstone outcrop with a two-tier stepped facade crown, four pilasters and unfinished base.",
+    "modules": ["sky", "distance-mountains", "ground", "qasr-farid"],
     "signature": "new:qasr-farid – free-standing sandstone block with a carved four-pilaster facade",
     "backdrop": null,
     "cluster": "rock-cut",
@@ -3210,7 +3210,7 @@
     "replaced": "Kingdom Centre: 2002 signature architecture (rule 6)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: free-standing monolith, not a cliff wall. Promoted research alternate. Nabataean tomb, so a ruin."
+    "notes": "Rounded sandstone outcrop with a two-tier stepped facade crown, four pilasters and unfinished base."
   },
   {
     "iso2": "SB",
@@ -3235,8 +3235,8 @@
     "name": "Seychelles",
     "motif": "Anse Source d'Argent granite boulders",
     "kind": "nature",
-    "silhouette": "Smooth rounded granite boulders heaped on a shore, palms leaning above, flat sea",
-    "modules": ["boulders-b", "palm", "distance-mountains", "ground"],
+    "silhouette": "Vertical right-hand granite fluting and a leaning palm replace smooth nested domes.",
+    "modules": ["sky", "distance-mountains", "ground", "boulders-b", "palm"],
     "signature": "new:boulders-b – huge rounded granite boulders with contour shading",
     "backdrop": null,
     "cluster": null,
@@ -3244,7 +3244,7 @@
     "replaced": "Victoria Clock Tower: clock-tower collision with GB (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: smooth granite boulders with palms leaning over. Promoted research alternate."
+    "notes": "Vertical right-hand granite fluting and a leaning palm replace smooth nested domes."
   },
   {
     "iso2": "SD",
@@ -3252,16 +3252,16 @@
     "name": "Sudan",
     "motif": "Pyramids of Meroë",
     "kind": "ruin",
-    "silhouette": "a row of small, steep-sided pyramids of unequal height, each with a narrow base and a tapering top; a low desert ground line; many small units rather than one large pyramid",
-    "modules": ["pyramid", "desert-dunes"],
+    "silhouette": "Six steep pyramids recede at varied heights, with broken tops and nearest pylon chapels.",
+    "modules": ["sky", "ground", "meroe-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "pyramid",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: group of steep narrow pyramids, small and close"
+    "notes": "Six steep pyramids recede at varied heights, with broken tops and nearest pylon chapels."
   },
   {
     "iso2": "SE",
@@ -3405,8 +3405,8 @@
     "name": "Senegal",
     "motif": "Pont Faidherbe",
     "kind": "architecture",
-    "silhouette": "a long, low lattice-steel deck with repeated arched truss openings and a raised central swing span; water below both ends; symmetric about the swing span",
-    "modules": ["truss-bridge-b", "water"],
+    "silhouette": "Parallel truss chords with X bracing receding right replace shallow arch tents.",
+    "modules": ["sky", "ground", "truss-bridge-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "bridge",
@@ -3414,7 +3414,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: iron lattice truss with a swing-span cabin"
+    "notes": "Parallel truss chords with X bracing receding right replace shallow arch tents."
   },
   {
     "iso2": "SO",
@@ -3422,16 +3422,16 @@
     "name": "Somalia",
     "motif": "Mogadishu Lighthouse",
     "kind": "architecture",
-    "silhouette": "a tall, slim tapering tower with a lantern room on top, rising from a low quay; symmetric",
-    "modules": ["lighthouse", "sky", "ground"],
+    "silhouette": "Coast and arcade row added beside the lighthouse.",
+    "modules": ["sky", "ground", "coast-arcade-b", "lighthouse"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: tower rising from an arcaded quay"
+    "notes": "Coast and arcade row added beside the lighthouse."
   },
   {
     "iso2": "SR",
@@ -3454,18 +3454,18 @@
     "iso2": "SS",
     "iso3": "SSD",
     "name": "South Sudan",
-    "motif": "Juba's White Nile bridge",
-    "kind": "architecture",
-    "silhouette": "a low, long bridge deck on several piers over a broad river; flat horizon; symmetric about the centre span",
-    "modules": ["bridge", "sky", "distance-trees", "ground"],
+    "motif": "Shoebill in Sudd papyrus",
+    "kind": "nature",
+    "silhouette": "Shoebill with a large clog bill in Sudd papyrus replaces the generic Juba bridge and separates it from the bridge cluster.",
+    "modules": ["sky", "distance-trees", "ground", "shoebill-b"],
     "signature": null,
     "backdrop": null,
-    "cluster": "bridge",
-    "status": "kept",
-    "replaced": null,
-    "confidence": "low",
+    "cluster": "wetland",
+    "status": "replaced",
+    "replaced": "Generic Juba bridge silhouette and crowded bridge cluster",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: low steel truss on piers over the river"
+    "notes": "Shoebill with a large clog bill in Sudd papyrus replaces the generic Juba bridge and separates it from the bridge cluster."
   },
   {
     "iso2": "ST",
@@ -3541,8 +3541,8 @@
     "name": "Eswatini",
     "motif": "Sibebe Rock",
     "kind": "nature",
-    "silhouette": "a broad, low-profile dome with smooth, sloping sides and a bald crown; a dark tree line at the base; symmetric",
-    "modules": ["hills"],
+    "silhouette": "Long low 2.5:1 granite dome separates Sibebe from tall Zuma Rock.",
+    "modules": ["sky", "distance-mountains", "ground", "granite-dome", "distance-trees"],
     "signature": "new:granite-dome – broad bald dome of exposed granite",
     "backdrop": null,
     "cluster": "monolith",
@@ -3550,7 +3550,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: smooth bald dome with low rounded flanks"
+    "notes": "Long low 2.5:1 granite dome separates Sibebe from tall Zuma Rock."
   },
   {
     "iso2": "TC",
@@ -3575,16 +3575,16 @@
     "name": "Chad",
     "motif": "Ennedi natural sandstone arch",
     "kind": "nature",
-    "silhouette": "a massive, flat-topped sandstone arch spanning a gap, with a plateau edge behind; symmetric about the arch",
-    "modules": ["natural-arch"],
+    "silhouette": "Higher and wider open-sky aperture under a thinner ragged arch span.",
+    "modules": ["sky", "ground", "natural-arch"],
     "signature": "new:natural-arch – sandstone span with no built structure",
     "backdrop": null,
     "cluster": "rock-arch",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: single sandstone span in a cliff"
+    "notes": "Higher and wider open-sky aperture under a thinner ragged arch span."
   },
   {
     "iso2": "TF",
@@ -3592,16 +3592,16 @@
     "name": "French Southern Territories",
     "motif": "Port-aux-Francais research base",
     "kind": "architecture",
-    "silhouette": "A row of low, flat-roofed station buildings on a shelf above a dark cliff, a radio mast on the right, water below",
-    "modules": ["station-b", "sky", "distance-mountains", "ground"],
+    "silhouette": "Stepped basalt tables dominate the bay above three small shore huts.",
+    "modules": ["sky", "ground", "basalt-tables-b"],
     "signature": "new:station-b – row of flat-roofed blocks on a shelf above a sea cliff with a lattice mast",
     "backdrop": null,
     "cluster": "station",
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: flat-roofed blocks with a lattice radio mast on a sea cliff, Kerguelen ridges behind."
+    "notes": "Stepped basalt tables dominate the bay above three small shore huts."
   },
   {
     "iso2": "TG",
@@ -3709,10 +3709,10 @@
     "iso2": "TN",
     "iso3": "TUN",
     "name": "Tunisia",
-    "motif": "Sidi Bou Said hillside village",
+    "motif": "Sidi Bou Said lane with arched door and mashrabiya",
     "kind": "architecture",
-    "silhouette": "Whitewashed cubic houses stacked up a hillside, arched doors and barred windows, a few small domes and flat parapets, sea behind",
-    "modules": ["cube-town", "distance-mountains", "water"],
+    "silhouette": "A receding Sidi Bou Said lane, studded arched door and projecting lattice bay replace the cube pile.",
+    "modules": ["sky", "ground", "sidi-lane-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "hill-town",
@@ -3720,7 +3720,7 @@
     "replaced": "El Jem amphitheatre: amphitheatre collision with the Colosseum (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: blue arched doors and lattice windows by the sea. Promoted REVIEW/research alternate. Round 2: Sidi Bou Said cubes stepping down to the bay with a distant hill."
+    "notes": "A receding Sidi Bou Said lane, studded arched door and projecting lattice bay replace the cube pile."
   },
   {
     "iso2": "TO",
@@ -3847,8 +3847,8 @@
     "name": "Uganda",
     "motif": "Murchison Falls",
     "kind": "nature",
-    "silhouette": "River forced through a very narrow rock cleft, dropping as one tall white plume into a pool, rock walls close on both sides",
-    "modules": ["waterfall-b", "plume-b", "canopy-b", "sky", "distance-trees", "ground"],
+    "silhouette": "Plunge pool foam revised through the shared waterfall module",
+    "modules": ["sky", "distance-trees", "ground", "waterfall-b"],
     "signature": "new:cleft-falls-b – river squeezed through a narrow rock cleft with mist banks",
     "backdrop": null,
     "cluster": "waterfall",
@@ -3856,7 +3856,7 @@
     "replaced": "Rwenzori twin peaks: twin-peak collision with KE (REVIEW)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Final pass: a narrow jet bursting diagonally from a 7-unit rock cleft between two rock masses, hatched spray plume where it lands"
+    "notes": "Plunge pool foam revised through the shared waterfall module; cleft jet retained."
   },
   {
     "iso2": "UM",
@@ -3864,16 +3864,16 @@
     "name": "United States Minor Outlying Islands",
     "motif": "Laysan albatross over a low atoll",
     "kind": "nature",
-    "silhouette": "A seabird in flight with long, straight wings spread wide, over a low atoll strip. Symmetric",
-    "modules": ["albatross", "island-b", "sky", "ground"],
+    "silhouette": "Lower gliding albatross with slight wing dihedral above the atoll.",
+    "modules": ["sky", "ground", "island-b"],
     "signature": "new:albatross (signatures/albatross.ts)",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "Kept against REVIEW: the wide wing line is the silhouette. Midway war theme avoided."
+    "notes": "Lower gliding albatross with slight wing dihedral above the atoll."
   },
   {
     "iso2": "US",
@@ -3966,16 +3966,16 @@
     "name": "Venezuela",
     "motif": "Angel Falls",
     "kind": "nature",
-    "silhouette": "flat-topped tepui mesa on one side, a single thin fall dropping down its face, a cliff edge and a low stream at the base",
-    "modules": ["waterfall-b", "canopy-b", "sky", "distance-mountains", "ground"],
+    "silhouette": "Longer wider Angel Falls ribbon, reduced midstream pinch and small mist footprint improve the worn 96px read.",
+    "modules": ["sky", "distance-mountains", "ground", "waterfall-b"],
     "signature": null,
     "backdrop": null,
     "cluster": "waterfall",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Final pass: tepui wall with a thin ribbon (8% of width) falling from the lip at 15% to a hatched mist at 70%, forest apron at the foot"
+    "notes": "Longer wider Angel Falls ribbon, reduced midstream pinch and small mist footprint improve the worn 96px read."
   },
   {
     "iso2": "VG",
@@ -4119,16 +4119,16 @@
     "name": "Mayotte",
     "motif": "Mont Choungui",
     "kind": "nature",
-    "silhouette": "a single rounded green peak over a low island band with a pale lagoon edge; asymmetric",
-    "modules": ["choungui", "palm", "sky", "ground"],
+    "silhouette": "Horn summit and lighter lit face replace the rounded Choungui hump",
+    "modules": ["sky", "ground", "choungui"],
     "signature": "new:choungui – rounded forested peak with spurs, shoulder and reef surf",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "low",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "Contested: neutral nature only, no buildings (rule 5). Rounded forested peak over a reef lagoon."
+    "notes": "Horn summit and lighter lit face replace the rounded Choungui hump; neutral nature only."
   },
   {
     "iso2": "ZA",
@@ -4136,16 +4136,16 @@
     "name": "South Africa",
     "motif": "Table Mountain",
     "kind": "nature",
-    "silhouette": "a long, flat-topped plateau with near-vertical sides and a dip at the centre; a low city band at the base; symmetric-ish",
-    "modules": ["mountains", "cliff", "flat-parapet"],
+    "silhouette": "Dead-flat table, vertical buttress gullies and distinct side peaks over Table Bay.",
+    "modules": ["sky", "ground", "table-mountain", "bay-city"],
     "signature": null,
     "backdrop": null,
     "cluster": "mesa",
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: long level top with a cloud tablecloth over the edge"
+    "notes": "Dead-flat table, vertical buttress gullies and distinct side peaks over Table Bay."
   },
   {
     "iso2": "ZM",
@@ -4153,8 +4153,8 @@
     "name": "Zambia",
     "motif": "Victoria Falls, Zambian bank",
     "kind": "nature",
-    "silhouette": "a horizontal band of water falling into a dark gorge with a tall white plume rising above; asymmetric; flat rim line",
-    "modules": ["waterfall-b", "canopy-b", "plume-b", "sky", "ground"],
+    "silhouette": "Continuous oblique water curtain with uneven short rock breaks, spray and foreground gorge replaces vertical teeth.",
+    "modules": ["sky", "ground", "waterfall-b"],
     "signature": "new:victoria-falls – white veils standing out of a dark basalt wall under a billowing spray plume",
     "backdrop": null,
     "cluster": "waterfall",
@@ -4162,7 +4162,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "Final pass: full-width curtain seen face-on in seven channels split by tapering rock teeth, a T5 gorge cut in front, a hatched spray column rising above the lip"
+    "notes": "Continuous oblique water curtain with uneven short rock breaks, spray and foreground gorge replaces vertical teeth."
   },
   {
     "iso2": "ZW",
@@ -4170,15 +4170,15 @@
     "name": "Zimbabwe",
     "motif": "Great Zimbabwe",
     "kind": "ruin",
-    "silhouette": "rounded, high dry-stone enclosure walls with a solid, tapering conical tower rising in front; symmetric about the tower",
-    "modules": ["great-zimbabwe", "sky", "distance-trees", "ground"],
+    "silhouette": "Stronger chevron band and an upward-tapering conical tower.",
+    "modules": ["sky", "distance-trees", "ground", "great-zimbabwe"],
     "signature": "new:great-zimbabwe – coursed dry-stone enclosure wall with chevron band and conical tower",
     "backdrop": null,
     "cluster": null,
     "status": "kept",
     "replaced": null,
-    "confidence": "high",
+    "confidence": "medium",
     "facts": "checked",
-    "notes": "part: conical tower in front of the Great Enclosure wall. Omit the Zimbabwe Bird (flag symbol). Different from ZM, which is Victoria Falls."
+    "notes": "Stronger chevron band and an upward-tapering conical tower."
   }
 ]

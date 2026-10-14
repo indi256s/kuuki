@@ -67,14 +67,14 @@
     },
     {
       "module": "drum-b",
-      "box": [62, 56, 76, 74],
+      "box": [54, 60, 92, 70],
       "params": {
         "taper": 0.95,
         "crownW": 1.1,
-        "crownH": 0.17,
+        "crownH": 0.1,
         "merlons": 11,
         "merlonH": 5,
-        "bands": 3,
+        "bands": 2,
         "slits": 4,
         "shade": 0.34,
         "door": 0.1

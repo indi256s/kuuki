@@ -94,21 +94,19 @@ export const qasrFarid: KitModule = ([x, y, w, h], p) => {
   // Pediment and entablature.
   const ped: Pt[] = [
     [u(-0.04), v(0.2)],
-    [u(0.5), v(-0.05)],
+    [u(-0.04), v(0.08)],
+    [u(0.17), v(0.08)],
+    [u(0.17), v(-0.04)],
+    [u(0.37), v(-0.04)],
+    [u(0.37), v(-0.15)],
+    [u(0.63), v(-0.15)],
+    [u(0.63), v(-0.04)],
+    [u(0.83), v(-0.04)],
+    [u(0.83), v(0.08)],
+    [u(1.04), v(0.08)],
     [u(1.04), v(0.2)],
   ]
   out.push(...body(ped, 'line'))
-  out.push(
-    ...toneFill(
-      [
-        [u(0.2), v(0.17)],
-        [u(0.5), v(0.05)],
-        [u(0.8), v(0.17)],
-      ],
-      'T4',
-      { angle: 0, gap: 1.8, weight: 'fine' },
-    ),
-  )
   out.push(hline('bold', u(-0.04), u(1.04), v(0.2)))
   out.push(hline('line', u(0), u(1), v(0.3)))
   // Four pilasters, doorway between the middle pair.

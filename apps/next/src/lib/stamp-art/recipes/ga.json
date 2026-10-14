@@ -35,23 +35,27 @@
       "module": "waterfall-b",
       "box": [38, 52, 124, 70],
       "params": {
-        "profile": "curtain",
+        "profile": "cascade",
         "channels": 5,
-        "lipY": 0.3,
+        "lipY": 0.28,
         "drop": 0.58,
         "buttress": 7,
         "ends": 0.08,
         "endTall": 0,
-        "canopy": 7,
+        "canopy": 12,
         "islets": 8,
-        "mist": 0.3,
+        "mist": 0.14,
         "seed": 21,
         "spread": 0.45,
         "wallCanopy": 0,
         "lipJit": 5,
         "wall": 0,
         "ribLen": 1,
-        "taper": 3.4
+        "taper": 3.4,
+        "steps": 3,
+        "edgeTop": 0.28,
+        "edgeBot": 0.08,
+        "foreground": true
       }
     }
   ]

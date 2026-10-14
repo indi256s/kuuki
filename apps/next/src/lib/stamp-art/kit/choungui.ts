@@ -14,8 +14,11 @@ export const choungui: KitModule = ([x, y, w, h], p) => {
   // Left shoulder then the main dome, steeper on the right.
   const shoulder = quad(P(0.02, 0.98), P(0.14, 0.52), P(0.3, 0.5), 12)
   const saddle = quad(P(0.3, 0.5), P(0.38, 0.5), P(0.43, 0.34), 8)
-  const dome = quad(P(0.43, 0.34), P(0.55, 0.0), P(0.7, 0.06), 14)
-  const right = quad(P(0.7, 0.06), P(0.84, 0.22), P(0.9, 0.62), 12)
+  const dome =
+    p.horn === true
+      ? quad(P(0.43, 0.34), P(0.55, 0.2), P(0.64, 0), 12)
+      : quad(P(0.43, 0.34), P(0.55, 0.0), P(0.7, 0.06), 14)
+  const right = quad(p.horn === true ? P(0.64, 0) : P(0.7, 0.06), P(0.84, 0.22), P(0.9, 0.62), 12)
   const toe = quad(P(0.9, 0.62), P(0.93, 0.92), P(0.99, 0.98), 8)
   const outline: Pt[] = [
     ...shoulder,
@@ -50,7 +53,7 @@ export const choungui: KitModule = ([x, y, w, h], p) => {
   out.push(
     ...toneFill(lit, 'T2', {
       angle: -62,
-      gap: [4, 3],
+      gap: p.horn === true ? [5.5, 4.2] : [4, 3],
       weight: 'fine',
       inset: 0.5,
       ramp: [y, base],

@@ -24,66 +24,46 @@
   "layers": [
     {
       "module": "rock-hill",
-      "box": [50, 100, 100, 30],
+      "box": [50, 109, 100, 16],
       "params": {
         "profile": [
           [0, 1],
-          [0.06, 0.7],
-          [0.14, 0.3],
-          [0.22, 0.05],
-          [0.78, 0.05],
-          [0.86, 0.3],
-          [0.94, 0.7],
+          [0.15, 0.4],
+          [0.5, 0.1],
+          [0.85, 0.4],
           [1, 1]
         ],
-        "walls": [0.22, 0.78],
-        "wallH": 5,
-        "courses": 2,
-        "shadeFrom": 0.62,
-        "seed": 5,
-        "crag": 0,
-        "strata": 4,
-        "shadeGap": 3
+        "shadeFrom": 0.75,
+        "strata": 5
       }
     },
     {
       "module": "fortress-wall",
-      "box": [58, 78, 84, 24],
+      "box": [48, 84, 104, 25],
       "params": {
-        "merlons": 12,
-        "merlonH": 0.22,
-        "courses": 2,
-        "joints": 8
+        "merlons": 13,
+        "merlonH": 0.2,
+        "courses": 2
       }
     },
     {
-      "module": "tower",
-      "box": [58, 60, 18, 42],
+      "module": "drum-b",
+      "box": [53, 70, 23, 39],
       "params": {
-        "cap": "battle",
-        "taper": 0.9,
-        "crown": 0.12,
-        "shade": 0.35
+        "crownH": 0.06,
+        "merlons": 5,
+        "bands": 1,
+        "slits": 1
       }
     },
     {
-      "module": "tower",
-      "box": [124, 60, 18, 42],
+      "module": "drum-b",
+      "box": [129, 71, 23, 38],
       "params": {
-        "cap": "battle",
-        "taper": 0.9,
-        "crown": 0.12,
-        "shade": 0.35
-      }
-    },
-    {
-      "module": "tower",
-      "box": [91, 52, 18, 50],
-      "params": {
-        "cap": "battle",
-        "taper": 0.88,
-        "crown": 0.12,
-        "shade": 0.4
+        "crownH": 0.06,
+        "merlons": 5,
+        "bands": 1,
+        "slits": 1
       }
     }
   ]

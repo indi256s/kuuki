@@ -3,7 +3,7 @@
   "tier": "engraved",
   "ink": "indigo",
   "cluster": "dunes",
-  "horizon": 0.74,
+  "horizon": 0.7,
   "backdrop": [
     {
       "module": "sky",
@@ -14,18 +14,17 @@
       }
     },
     {
-      "module": "ground",
+      "module": "dunes-b",
       "params": {
-        "water": true,
-        "line": false
+        "ridges": [
+          [0.7, 0.4, 0.12, 0.55, 0.3, 1],
+          [0.26, 0.66, 0.24, 0.75, 0.4, 1],
+          [0.85, 0.82, 0.15, 0.65, 0.25, 1]
+        ],
+        "slip": 0.45,
+        "wetGap": 4.6
       }
     }
   ],
-  "layers": [
-    {
-      "module": "inland-sea-b",
-      "box": [38, 36, 124, 98],
-      "params": {}
-    }
-  ]
+  "layers": []
 }

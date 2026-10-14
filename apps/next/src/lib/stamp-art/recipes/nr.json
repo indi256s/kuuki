@@ -21,7 +21,7 @@
   "layers": [
     {
       "module": "topside",
-      "box": [30, 56, 140, 70],
+      "box": [48, 55, 104, 76],
       "params": {
         "seed": 4
       }
