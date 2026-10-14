@@ -57,7 +57,7 @@
     "motif": "Nelson's Dockyard",
     "kind": "architecture",
     "silhouette": "low, flat-topped stone warehouses across the bottom; a two-storey hipped-roof building with arched openings in the middle; a short flagstaff at one side",
-    "modules": ["hip", "gate-arch", "window-grid", "flat-parapet", "quay"],
+    "modules": ["colonial-row", "veranda"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -65,7 +65,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Dockyard drawn as a hipped veranda house between low arcaded rows; flagstaff omitted."
   },
   {
     "iso2": "AI",
@@ -74,7 +74,7 @@
     "motif": "Racing sloop on a flat lagoon",
     "kind": "object",
     "silhouette": "flat horizontal waterline across the bottom; one racing sloop with a very tall mast and long boom, low hull, rigging as thin lines",
-    "modules": ["ship", "water"],
+    "modules": ["sloop-a", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "ship",
@@ -227,7 +227,7 @@
     "motif": "California Lighthouse",
     "kind": "architecture",
     "silhouette": "tall, slender tapered tower, widest at the base, narrowing to a lantern room at the top; a small low platform at the foot; no other buildings in the frame",
-    "modules": ["lighthouse", "cliff"],
+    "modules": ["lighthouse", "dunes", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
@@ -278,7 +278,7 @@
     "motif": "Garrison Main Guard House with its clock cupola",
     "kind": "architecture",
     "silhouette": "low, long, symmetric stone wall with a row of arched openings across the bottom; a square clock tower rising from the centre with a short pyramid-capped top; flat roofline either side",
-    "modules": ["clock-tower", "arcade", "colonnade", "window-grid", "flat-parapet"],
+    "modules": ["arcade-house-a", "tower"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -286,7 +286,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": null
+    "notes": "Main Guard drawn with 3 arcade bays (lint paper share) and a hip-capped clock tower."
   },
   {
     "iso2": "BD",
@@ -414,7 +414,7 @@
     "motif": "Gustavia lighthouse",
     "kind": "architecture",
     "silhouette": "a short, squat white tower with a red cap on a low hilltop; below it, a crumbling stone fort wall stepped down the slope; flat water in the background",
-    "modules": ["lighthouse", "fortress-wall", "hills"],
+    "modules": ["lighthouse", "rock-hill", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "lighthouse",
@@ -499,7 +499,7 @@
     "motif": "Queen's Staircase",
     "kind": "architecture",
     "silhouette": "two near-vertical rock walls framing a narrow, steep stepped path; a gate-like opening at the top; no other buildings in the frame",
-    "modules": ["steps", "cliff", "palm"],
+    "modules": ["queens-staircase", "palm"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -805,7 +805,7 @@
     "motif": "Castillo de los Tres Reyes del Morro",
     "kind": "architecture",
     "silhouette": "a low, wide stone fort at the bottom with angled walls; a tall, tapering stone lighthouse tower rising from the ramparts at one side; the sea at the base",
-    "modules": ["lighthouse", "fortress-wall", "cliff", "water"],
+    "modules": ["lighthouse", "fortress-wall", "tower", "rock-hill", "water"],
     "signature": null,
     "backdrop": null,
     "cluster": "fort",
@@ -813,7 +813,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: lighthouse on the ramparts, headland"
+    "notes": "Morro fort wall with a battle tower and its tall lighthouse at the right."
   },
   {
     "iso2": "CV",
@@ -839,15 +839,15 @@
     "motif": "Handelskade pastel row with the Queen Emma pontoon bridge",
     "kind": "architecture",
     "silhouette": "a flat row of tall, narrow houses across the bottom, each with a stepped gable of different height; a flat water line in front; symmetric in a long line",
-    "modules": ["stepped-gable", "window-grid", "quay", "water", "bridge"],
-    "signature": "new:pontoon-bridge – flat floating bridge on pontoons with a swing section",
+    "modules": ["stepped-gable", "water"],
+    "signature": null,
     "backdrop": null,
     "cluster": "stepped-gable",
     "status": "kept",
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "part: pastel row on a quay with a floating pontoon bridge"
+    "notes": "Pontoon bridge not drawn (no budget); row of five gable styles on the quay."
   },
   {
     "iso2": "CX",
@@ -958,7 +958,7 @@
     "motif": "Boiling Lake crater",
     "kind": "nature",
     "silhouette": "Round crater rim of dark forested slopes around a flat lake with steam lines rising",
-    "modules": ["water", "forest", "mountains"],
+    "modules": ["crater-lake-a", "water"],
     "signature": "new:crater-lake – flat lake in a round rim with steam lines",
     "backdrop": null,
     "cluster": null,
@@ -966,7 +966,7 @@
     "replaced": "Morne Trois Pitons: Q44 (volcano cluster cut)",
     "confidence": "low",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Boiling Lake as a wide steaming lake under a ridge; crater rim dropped for legibility."
   },
   {
     "iso2": "DO",
@@ -975,7 +975,7 @@
     "motif": "Alcázar de Colón",
     "kind": "architecture",
     "silhouette": "a low, long stone fortress wall with a crenellated top; a central gate arch; two corner towers; flat, symmetric front",
-    "modules": ["fortress-wall", "gate-arch", "tower", "flat-parapet"],
+    "modules": ["fortress-wall", "gate", "tower"],
     "signature": null,
     "backdrop": null,
     "cluster": null,

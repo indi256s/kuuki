@@ -1,0 +1,30 @@
+{
+  "iso2": "DM",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "teal",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [150, 64, 34, 46, 72, 28]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "crater-lake-a",
+      "box": [34, 58, 132, 72],
+      "params": {}
+    }
+  ]
+}

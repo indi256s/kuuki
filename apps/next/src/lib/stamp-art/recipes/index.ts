@@ -1,19 +1,25 @@
 import { type Recipe, parseRecipe } from '../recipe'
 import ad from './ad.json'
+import ag from './ag.json'
+import ai from './ai.json'
 import al from './al.json'
 import am from './am.json'
 import ao from './ao.json'
 import aq from './aq.json'
 import ar from './ar.json'
 import at from './at.json'
+import aw from './aw.json'
 import ba from './ba.json'
+import bb from './bb.json'
 import be from './be.json'
 import bf from './bf.json'
 import bg from './bg.json'
 import bj from './bj.json'
+import bl from './bl.json'
 import bm from './bm.json'
 import bo from './bo.json'
 import br from './br.json'
+import bs from './bs.json'
 import bw from './bw.json'
 import by from './by.json'
 import bz from './bz.json'
@@ -27,10 +33,14 @@ import cl from './cl.json'
 import cm from './cm.json'
 import co from './co.json'
 import cr from './cr.json'
+import cu from './cu.json'
 import cv from './cv.json'
+import cw from './cw.json'
 import cz from './cz.json'
 import de from './de.json'
 import dk from './dk.json'
+import dm from './dm.json'
+import do_ from './do.json'
 import dz from './dz.json'
 import ec from './ec.json'
 import ee from './ee.json'
@@ -120,20 +130,26 @@ import za from './za.json'
 /** Raw recipes by lowercase iso2. check:stamps fails when a recipes/*.json file is missing here. */
 export const RECIPE_FILES: Record<string, unknown> = {
   ad,
+  ag,
+  ai,
   al,
   am,
   ao,
   aq,
   ar,
   at,
+  aw,
   ba,
+  bb,
   be,
   bf,
   bg,
   bj,
+  bl,
   bm,
   bo,
   br,
+  bs,
   bw,
   by,
   bz,
@@ -147,10 +163,14 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cm,
   co,
   cr,
+  cu,
   cv,
+  cw,
   cz,
   de,
   dk,
+  dm,
+  do: do_,
   dz,
   ec,
   ee,

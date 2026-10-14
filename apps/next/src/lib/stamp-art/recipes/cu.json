@@ -1,0 +1,77 @@
+{
+  "iso2": "CU",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "umber",
+  "cluster": "fort",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [46, 64, 34, 150, 60, 30]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [34, 108, 132, 24],
+      "params": {
+        "profile": [
+          [0, 1],
+          [0.04, 0.5],
+          [0.12, 0.3],
+          [0.5, 0.25],
+          [0.9, 0.3],
+          [0.97, 0.55],
+          [1, 1]
+        ],
+        "shadeFrom": 0.7,
+        "shadeGap": 2.6,
+        "crag": 0.6,
+        "seed": 8,
+        "walls": [[0.12, 0.8]],
+        "wallH": 12,
+        "courses": 3
+      }
+    },
+    {
+      "module": "fortress-wall",
+      "box": [36, 88, 92, 26],
+      "params": {
+        "merlons": 10,
+        "merlonH": 0.22,
+        "courses": 3
+      }
+    },
+    {
+      "module": "tower",
+      "box": [40, 74, 14, 22],
+      "params": {
+        "cap": "battle",
+        "storeys": 1,
+        "openings": 0,
+        "shade": 0.35
+      }
+    },
+    {
+      "module": "lighthouse",
+      "box": [128, 58, 24, 70],
+      "params": {
+        "taper": 0.6,
+        "windows": 2,
+        "shade": 0.3,
+        "base": 0.1
+      }
+    }
+  ]
+}

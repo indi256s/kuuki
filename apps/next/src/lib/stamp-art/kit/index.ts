@@ -79,6 +79,9 @@ import { rainforestB } from './rainforest-b'
 import { riverboat } from './riverboat'
 import { pirogue } from './pirogue'
 import { outcropsB } from './outcrops-b'
+import { sloopA } from './sloop-a'
+import { queensStaircase } from './queens-staircase'
+import { craterLakeA } from './crater-lake-a'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -188,6 +191,9 @@ export const kit = {
   riverboat: riverboat,
   pirogue: pirogue,
   'outcrops-b': outcropsB,
+  'sloop-a': sloopA,
+  'queens-staircase': queensStaircase,
+  'crater-lake-a': craterLakeA,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

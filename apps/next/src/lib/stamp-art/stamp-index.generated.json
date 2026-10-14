@@ -46,33 +46,33 @@
   },
   "AG": {
     "cluster": null,
-    "ink": "indigo",
+    "ink": "plum",
     "iso3": "ATG",
     "name": {
       "en": "Antigua & Barbuda",
       "ru": "Антигуа и Барбуда"
     },
-    "shape": "rectangle",
+    "shape": "cut-rect",
     "short": {
       "en": "Antigua & Barbuda",
       "ru": "Антигуа и Барбуда"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AI": {
     "cluster": "ship",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "AIA",
     "name": {
       "en": "Anguilla",
       "ru": "Ангилья"
     },
-    "shape": "rectangle",
+    "shape": "octagon",
     "short": {
       "en": "Anguilla",
       "ru": "Ангилья"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AL": {
     "cluster": "hill-town",
@@ -196,18 +196,18 @@
   },
   "AW": {
     "cluster": "lighthouse",
-    "ink": "slate",
+    "ink": "ochre-dark",
     "iso3": "ABW",
     "name": {
       "en": "Aruba",
       "ru": "Аруба"
     },
-    "shape": "cut-rect",
+    "shape": "octagon",
     "short": {
       "en": "Aruba",
       "ru": "Аруба"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AZ": {
     "cluster": null,
@@ -241,7 +241,7 @@
   },
   "BB": {
     "cluster": null,
-    "ink": "indigo",
+    "ink": "teal",
     "iso3": "BRB",
     "name": {
       "en": "Barbados",
@@ -252,7 +252,7 @@
       "en": "Barbados",
       "ru": "Барбадос"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BD": {
     "cluster": null,
@@ -367,12 +367,12 @@
       "en": "St. Barthélemy",
       "ru": "Сен-Бартелеми"
     },
-    "shape": "octagon",
+    "shape": "cut-rect",
     "short": {
       "en": "St. Barthélemy",
       "ru": "Сен-Бартелеми"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BM": {
     "cluster": "lighthouse",
@@ -442,12 +442,12 @@
       "en": "Bahamas",
       "ru": "Багамы"
     },
-    "shape": "rectangle",
+    "shape": "cut-rect",
     "short": {
       "en": "Bahamas",
       "ru": "Багамы"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BT": {
     "cluster": null,
@@ -706,18 +706,18 @@
   },
   "CU": {
     "cluster": "fort",
-    "ink": "indigo",
+    "ink": "umber",
     "iso3": "CUB",
     "name": {
       "en": "Cuba",
       "ru": "Куба"
     },
-    "shape": "rectangle",
+    "shape": "octagon",
     "short": {
       "en": "Cuba",
       "ru": "Куба"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CV": {
     "cluster": "volcano",
@@ -736,18 +736,18 @@
   },
   "CW": {
     "cluster": "stepped-gable",
-    "ink": "moss",
+    "ink": "oxblood",
     "iso3": "CUW",
     "name": {
       "en": "Curaçao",
       "ru": "Кюрасао"
     },
-    "shape": "rectangle",
+    "shape": "cut-rect",
     "short": {
       "en": "Curaçao",
       "ru": "Кюрасао"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CX": {
     "cluster": null,
@@ -841,7 +841,7 @@
   },
   "DM": {
     "cluster": null,
-    "ink": "oxblood",
+    "ink": "teal",
     "iso3": "DMA",
     "name": {
       "en": "Dominica",
@@ -852,11 +852,11 @@
       "en": "Dominica",
       "ru": "Доминика"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "DO": {
     "cluster": null,
-    "ink": "umber",
+    "ink": "slate",
     "iso3": "DOM",
     "name": {
       "en": "Dominican Republic",
@@ -867,7 +867,7 @@
       "en": "DOMINICAN REP.",
       "ru": "ДОМИНИКАНА"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "DZ": {
     "cluster": "hill-town",
@@ -1411,7 +1411,7 @@
   },
   "HT": {
     "cluster": "fort",
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "HTI",
     "name": {
       "en": "Haiti",
@@ -1711,7 +1711,7 @@
   },
   "KM": {
     "cluster": "ship",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "COM",
     "name": {
       "en": "Comoros",
@@ -1726,7 +1726,7 @@
   },
   "KN": {
     "cluster": "fort",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "KNA",
     "name": {
       "en": "St. Kitts & Nevis",
@@ -1771,7 +1771,7 @@
   },
   "KW": {
     "cluster": "ship",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "KWT",
     "name": {
       "en": "Kuwait",
@@ -2041,7 +2041,7 @@
   },
   "MF": {
     "cluster": "ship",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "MAF",
     "name": {
       "en": "St. Martin",
@@ -2146,7 +2146,7 @@
   },
   "MO": {
     "cluster": "lighthouse",
-    "ink": "plum",
+    "ink": "slate",
     "iso3": "MAC",
     "name": {
       "en": "Macao SAR China",
@@ -2311,7 +2311,7 @@
   },
   "MZ": {
     "cluster": "fort",
-    "ink": "plum",
+    "ink": "moss",
     "iso3": "MOZ",
     "name": {
       "en": "Mozambique",
@@ -2341,7 +2341,7 @@
   },
   "NC": {
     "cluster": "lighthouse",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "NCL",
     "name": {
       "en": "New Caledonia",
@@ -2656,7 +2656,7 @@
   },
   "PR": {
     "cluster": "fort",
-    "ink": "umber",
+    "ink": "plum",
     "iso3": "PRI",
     "name": {
       "en": "Puerto Rico",
@@ -3016,7 +3016,7 @@
   },
   "SO": {
     "cluster": "lighthouse",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "SOM",
     "name": {
       "en": "Somalia",
@@ -3136,7 +3136,7 @@
   },
   "TC": {
     "cluster": "lighthouse",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "TCA",
     "name": {
       "en": "Turks & Caicos Islands",
@@ -3511,7 +3511,7 @@
   },
   "VG": {
     "cluster": "ship",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "VGB",
     "name": {
       "en": "British Virgin Islands",
