@@ -9,6 +9,10 @@ import { mesa } from './mesa'
 import { peak } from './peak'
 import { acacia } from './savanna'
 import { volcano } from './volcano'
+import { amphitheatre } from './amphitheatre'
+import { rooftops } from './rooftops'
+import { dunes } from './dunes'
+import { pyramid, steppedPyramid } from './pyramid'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -26,6 +30,11 @@ export const kit = {
   mesa,
   karst,
   peak,
+  dunes,
+  rooftops,
+  amphitheatre,
+  pyramid,
+  'stepped-pyramid': steppedPyramid,
   cliff,
   platform,
   steps,

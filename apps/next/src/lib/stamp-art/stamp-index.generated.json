@@ -916,7 +916,7 @@
   },
   "EG": {
     "cluster": "pyramid",
-    "ink": "slate",
+    "ink": "ochre-dark",
     "iso3": "EGY",
     "name": {
       "en": "Egypt",
@@ -927,7 +927,7 @@
       "en": "Egypt",
       "ru": "Египет"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "EH": {
     "cluster": "dunes",
@@ -1066,18 +1066,18 @@
   },
   "FR": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "indigo",
     "iso3": "FRA",
     "name": {
       "en": "France",
       "ru": "Франция"
     },
-    "shape": "rectangle",
+    "shape": "oval",
     "short": {
       "en": "France",
       "ru": "Франция"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GA": {
     "cluster": "waterfall",
@@ -1276,7 +1276,7 @@
   },
   "GR": {
     "cluster": "classical-ruin",
-    "ink": "teal",
+    "ink": "slate",
     "iso3": "GRC",
     "name": {
       "en": "Greece",
@@ -1287,7 +1287,7 @@
       "en": "Greece",
       "ru": "Греция"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GS": {
     "cluster": null,
@@ -1306,7 +1306,7 @@
   },
   "GT": {
     "cluster": "pyramid",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "GTM",
     "name": {
       "en": "Guatemala",
@@ -1546,7 +1546,7 @@
   },
   "IR": {
     "cluster": "classical-ruin",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "IRN",
     "name": {
       "en": "Iran",
@@ -1576,18 +1576,18 @@
   },
   "IT": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "oxblood",
     "iso3": "ITA",
     "name": {
       "en": "Italy",
       "ru": "Италия"
     },
-    "shape": "octagon",
+    "shape": "rectangle",
     "short": {
       "en": "Italy",
       "ru": "Италия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "JE": {
     "cluster": "castle",
@@ -1966,7 +1966,7 @@
   },
   "LY": {
     "cluster": "classical-ruin",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "LBY",
     "name": {
       "en": "Libya",
@@ -2281,7 +2281,7 @@
   },
   "MX": {
     "cluster": "pyramid",
-    "ink": "umber",
+    "ink": "moss",
     "iso3": "MEX",
     "name": {
       "en": "Mexico",
@@ -2292,7 +2292,7 @@
       "en": "Mexico",
       "ru": "Мексика"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "MY": {
     "cluster": null,
@@ -2866,7 +2866,7 @@
   },
   "SD": {
     "cluster": "pyramid",
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "SDN",
     "name": {
       "en": "Sudan",
@@ -3106,7 +3106,7 @@
   },
   "SY": {
     "cluster": "classical-ruin",
-    "ink": "indigo",
+    "ink": "ochre-dark",
     "iso3": "SYR",
     "name": {
       "en": "Syria",

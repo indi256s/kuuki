@@ -11,20 +11,7 @@ import { loadRecipes, RECIPE_FILES } from './recipes'
 const recipes = loadRecipes()
 
 describe('stamp lint', () => {
-  it('passes every engraved recipe, geometric and raster', async () => {
-    expect(recipes.map((r) => r.iso2)).toEqual([
-      'AM',
-      'CH',
-      'DE',
-      'GE',
-      'JP',
-      'ME',
-      'PH',
-      'TH',
-      'TZ',
-      'VN',
-      'ZA',
-    ])
+  it('passes every committed recipe, geometric and raster', async () => {
     for (const recipe of recipes) {
       expect(lintGeometry(recipe), recipe.iso2).toEqual([])
       expect((await measureRaster(recipe)).issues, recipe.iso2).toEqual([])

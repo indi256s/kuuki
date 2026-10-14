@@ -1,0 +1,86 @@
+{
+  "iso2": "GR",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky"
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.46],
+          [0.2, 0.38],
+          [0.4, 0.5],
+          [0.7, 0.44],
+          [1, 0.34]
+        ],
+        "jag": 0.8
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "platform",
+      "box": [28, 114, 144, 19],
+      "params": {
+        "batter": 26,
+        "flare": true,
+        "weight": "line"
+      }
+    },
+    {
+      "module": "platform",
+      "box": [34, 100, 132, 14],
+      "params": {
+        "batter": 2,
+        "courses": 2
+      }
+    },
+    {
+      "module": "colonnade",
+      "box": [28, 66, 78, 34],
+      "params": {
+        "count": 5,
+        "entablature": 0.2,
+        "stylobate": 2,
+        "flutes": 0,
+        "colW": 0.38
+      }
+    },
+    {
+      "module": "pediment",
+      "box": [31, 54, 72, 12],
+      "params": {
+        "pitch": 0.2,
+        "tympanum": "plain"
+      }
+    },
+    {
+      "module": "colonnade",
+      "box": [106, 74, 31.2, 26],
+      "params": {
+        "count": 2,
+        "stylobate": 2,
+        "flutes": 0,
+        "colW": 0.38
+      }
+    },
+    {
+      "module": "colonnade",
+      "box": [121.6, 88, 31.2, 12],
+      "params": {
+        "count": 2,
+        "stylobate": 2,
+        "flutes": 0,
+        "colW": 0.38
+      }
+    }
+  ]
+}
