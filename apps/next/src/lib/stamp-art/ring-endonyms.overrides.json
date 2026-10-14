@@ -13,7 +13,9 @@
   },
   "AS": {
     "endonym": "American Samoa",
-    "lang": "en"
+    "lang": "en",
+    "endonymShort": "Am. Samoa",
+    "englishShort": "Am. Samoa"
   },
   "BA": {
     "endonymShort": "BiH",
@@ -82,6 +84,9 @@
     "endonym": "Ghana",
     "lang": "en"
   },
+  "GL": {
+    "endonymShort": "Kalaallit"
+  },
   "GR": {
     "endonym": "Ελλάς",
     "lang": "el"
@@ -136,8 +141,8 @@
     "english": "Macao"
   },
   "MP": {
-    "endonymShort": "Northern Marianas",
-    "englishShort": "N. Mariana Islands"
+    "endonymShort": "N. Marianas",
+    "englishShort": "N. Marianas"
   },
   "MV": {
     "endonym": "ދިވެހިރާއްޖެ",
@@ -155,10 +160,20 @@
     "endonym": "New Zealand",
     "lang": "en"
   },
+  "PF": {
+    "endonymShort": "Polynésie",
+    "englishShort": "Fr. Polynesia"
+  },
+  "PG": {
+    "endonymShort": "Papua N.G."
+  },
   "PM": {
     "endonym": "Saint-Pierre-et-Miquelon",
-    "endonymShort": "St-Pierre-Miquelon",
-    "englishShort": "St. Pierre & Miquelon"
+    "endonymShort": "St-Pierre",
+    "englishShort": "St-Pierre"
+  },
+  "PN": {
+    "endonymShort": "Pitcairn"
   },
   "PS": {
     "endonym": "Palestinian Territories",
@@ -172,6 +187,9 @@
   "SA": {
     "endonym": "السعودية"
   },
+  "SB": {
+    "endonymShort": "Solomon Is."
+  },
   "SG": {
     "endonym": "Singapore",
     "lang": "en"
@@ -183,6 +201,10 @@
   "SS": {
     "endonym": "South Sudan",
     "lang": "en"
+  },
+  "ST": {
+    "endonymShort": "São Tomé",
+    "englishShort": "São Tomé"
   },
   "TC": {
     "endonymShort": "Turks & Caicos",
@@ -204,13 +226,23 @@
     "lang": "zh",
     "english": "Taiwan"
   },
+  "UM": {
+    "endonymShort": "U.S. Islands"
+  },
   "US": {
     "endonymShort": "USA",
     "englishShort": "USA"
   },
+  "VA": {
+    "endonymShort": "Vaticano",
+    "englishShort": "Vatican"
+  },
   "VC": {
     "endonymShort": "St. Vincent",
     "englishShort": "St. Vincent"
+  },
+  "WF": {
+    "endonymShort": "Wallis-Futuna"
   },
   "XK": {
     "endonym": "Kosovo",

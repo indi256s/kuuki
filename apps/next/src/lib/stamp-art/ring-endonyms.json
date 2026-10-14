@@ -65,7 +65,9 @@
     "endonym": "American Samoa",
     "lang": "en",
     "script": "Latin",
-    "english": "American Samoa"
+    "english": "American Samoa",
+    "endonymShort": "Am. Samoa",
+    "englishShort": "Am. Samoa"
   },
   "AT": {
     "endonym": "Österreich",
@@ -494,7 +496,8 @@
     "endonym": "Kalaallit Nunaat",
     "lang": "kl",
     "script": "Latin",
-    "english": "Greenland"
+    "english": "Greenland",
+    "endonymShort": "Kalaallit"
   },
   "GM": {
     "endonym": "Gambia",
@@ -885,8 +888,8 @@
     "lang": "en",
     "script": "Latin",
     "english": "Northern Mariana Islands",
-    "endonymShort": "Northern Marianas",
-    "englishShort": "N. Mariana Islands"
+    "endonymShort": "N. Marianas",
+    "englishShort": "N. Marianas"
   },
   "MQ": {
     "endonym": "Martinique",
@@ -1042,13 +1045,16 @@
     "endonym": "Polynésie française",
     "lang": "fr",
     "script": "Latin",
-    "english": "French Polynesia"
+    "english": "French Polynesia",
+    "endonymShort": "Polynésie",
+    "englishShort": "Fr. Polynesia"
   },
   "PG": {
     "endonym": "Papua New Guinea",
     "lang": "tpi",
     "script": "Latin",
-    "english": "Papua New Guinea"
+    "english": "Papua New Guinea",
+    "endonymShort": "Papua N.G."
   },
   "PH": {
     "endonym": "Pilipinas",
@@ -1073,14 +1079,15 @@
     "lang": "fr",
     "script": "Latin",
     "english": "St. Pierre & Miquelon",
-    "endonymShort": "St-Pierre-Miquelon",
-    "englishShort": "St. Pierre & Miquelon"
+    "endonymShort": "St-Pierre",
+    "englishShort": "St-Pierre"
   },
   "PN": {
     "endonym": "Pitcairn Islands",
     "lang": "en",
     "script": "Latin",
-    "english": "Pitcairn Islands"
+    "english": "Pitcairn Islands",
+    "endonymShort": "Pitcairn"
   },
   "PR": {
     "endonym": "Puerto Rico",
@@ -1159,7 +1166,8 @@
     "endonym": "Solomon Islands",
     "lang": "en",
     "script": "Latin",
-    "english": "Solomon Islands"
+    "english": "Solomon Islands",
+    "endonymShort": "Solomon Is."
   },
   "SC": {
     "endonym": "Seychelles",
@@ -1249,7 +1257,9 @@
     "endonym": "São Tomé e Príncipe",
     "lang": "pt",
     "script": "Latin",
-    "english": "São Tomé & Príncipe"
+    "english": "São Tomé & Príncipe",
+    "endonymShort": "São Tomé",
+    "englishShort": "São Tomé"
   },
   "SV": {
     "endonym": "El Salvador",
@@ -1391,7 +1401,8 @@
     "endonym": "U.S. Outlying Islands",
     "lang": "en",
     "script": "Latin",
-    "english": "U.S. Outlying Islands"
+    "english": "U.S. Outlying Islands",
+    "endonymShort": "U.S. Islands"
   },
   "US": {
     "endonym": "United States",
@@ -1417,7 +1428,9 @@
     "endonym": "Città del Vaticano",
     "lang": "it",
     "script": "Latin",
-    "english": "Vatican City"
+    "english": "Vatican City",
+    "endonymShort": "Vaticano",
+    "englishShort": "Vatican"
   },
   "VC": {
     "endonym": "St. Vincent & Grenadines",
@@ -1461,7 +1474,8 @@
     "endonym": "Wallis-et-Futuna",
     "lang": "fr",
     "script": "Latin",
-    "english": "Wallis & Futuna"
+    "english": "Wallis & Futuna",
+    "endonymShort": "Wallis-Futuna"
   },
   "WS": {
     "endonym": "Samoa",
