@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import {
   useEffect,
   useLayoutEffect,
@@ -60,7 +62,7 @@ const serverHost = () => ''
 export function SettingsForm({
   ownerId,
   profile,
-  locale,
+  locale: initialLocale,
   counts = null,
   hasPassword = true,
 }: {
@@ -70,6 +72,7 @@ export function SettingsForm({
   counts?: SettingsCounts | null
   hasPassword?: boolean | null
 }) {
+  const locale = useLocale(initialLocale)
   const ru = locale === 'ru',
     router = useRouter()
   const [draft, setDraft] = useState(() => values(profile)),
@@ -77,9 +80,11 @@ export function SettingsForm({
   const [saving, setSaving] = useState(false),
     [exporting, setExporting] = useState(false),
     [identityBusy, setIdentityBusy] = useState(false)
-  const [message, setMessage] = useState(''),
-    [error, setError] = useState(''),
+  const [messageCopy, setMessage] = useState<Record<Locale, string> | null>(null),
+    [errorCopy, setError] = useState<Record<Locale, string> | null>(null),
     [deleteOpen, setDeleteOpen] = useState(false)
+  const message = messageCopy?.[locale] ?? ''
+  const error = errorCopy?.[locale] ?? ''
   const busy = saving || exporting || identityBusy
   const running = useRef(false)
   const dirty = JSON.stringify(draft) !== JSON.stringify(baseline)
@@ -98,8 +103,8 @@ export function SettingsForm({
   }, [profile])
   const edit = <K extends keyof typeof draft>(field: K, value: (typeof draft)[K]) => {
     setDraft((previous) => ({ ...previous, [field]: value }))
-    setMessage('')
-    setError('')
+    setMessage(null)
+    setError(null)
   }
   // The accent saves on its own, like theme and language: it is not part of the dirty form or its payload.
   const { save: saveAccent, failed: accentError } = useAccentSave(profile.theme_color)
@@ -154,8 +159,8 @@ export function SettingsForm({
     if (running.current || !dirty || addressState !== 'ok') return
     running.current = true
     setSaving(true)
-    setError('')
-    setMessage('')
+    setError(null)
+    setMessage(null)
     const controller = new AbortController(),
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
@@ -186,7 +191,7 @@ export function SettingsForm({
         setDraft(next)
         setBaseline(next)
         setEditingAddress(false)
-        setMessage(ru ? 'Сохранено.' : 'Saved.')
+        setMessage({ en: 'Saved.', ru: 'Сохранено.' })
         router.refresh()
       }
     } catch (cause) {
@@ -204,12 +209,14 @@ export function SettingsForm({
         else
           setError(
             cause instanceof ApiError && cause.status === 400
-              ? ru
-                ? 'Проверьте данные профиля. Изменения не сохранены.'
-                : 'Check your profile details. Changes were not saved.'
-              : ru
-                ? 'Не удалось сохранить изменения. Повторите попытку.'
-                : 'Could not save changes. Try again.',
+              ? {
+                  en: 'Check your profile details. Changes were not saved.',
+                  ru: 'Проверьте данные профиля. Изменения не сохранены.',
+                }
+              : {
+                  en: 'Could not save changes. Try again.',
+                  ru: 'Не удалось сохранить изменения. Повторите попытку.',
+                },
           )
       }
     } finally {
@@ -222,8 +229,8 @@ export function SettingsForm({
     if (running.current || limit.remaining === null) return
     running.current = true
     setExporting(true)
-    setError('')
-    setMessage('')
+    setError(null)
+    setMessage(null)
     const controller = new AbortController(),
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
@@ -235,11 +242,10 @@ export function SettingsForm({
         if (controller.signal.aborted || generation !== getAuthGeneration()) return
         if (!limit.available()) {
           limited = true
-          setError(
-            ru
-              ? 'Достигнут лимит: 5 файлов в день. Повторите после указанного времени.'
-              : 'Daily limit reached: 5 files. Try again after the reset time.',
-          )
+          setError({
+            en: 'Daily limit reached: 5 files. Try again after the reset time.',
+            ru: 'Достигнут лимит: 5 файлов в день. Повторите после указанного времени.',
+          })
           break
         }
         const total = await downloadSettingsData(ownerId, kind, controller.signal)
@@ -254,28 +260,24 @@ export function SettingsForm({
         setMessage(
           downloaded
             ? csvDownloaded
-              ? ru
-                ? 'CSV-файлы загружены.'
-                : 'CSV files downloaded.'
-              : ru
-                ? 'JSON-файл загружен.'
-                : 'JSON file downloaded.'
+              ? { en: 'CSV files downloaded.', ru: 'CSV-файлы загружены.' }
+              : { en: 'JSON file downloaded.', ru: 'JSON-файл загружен.' }
             : limited
-              ? ''
-              : ru
-                ? 'Нет записей для экспорта.'
-                : 'No records to export.',
+              ? null
+              : { en: 'No records to export.', ru: 'Нет записей для экспорта.' },
         )
     } catch {
       if (!controller.signal.aborted && generation === getAuthGeneration())
         setError(
           downloaded
-            ? ru
-              ? 'Часть CSV-файлов загружена. Остальные не удалось скачать. Повторите экспорт нужного раздела.'
-              : 'Some CSV files downloaded. Others failed. Retry the remaining data section.'
-            : ru
-              ? 'Не удалось экспортировать данные. Повторите попытку.'
-              : 'Could not export data. Try again.',
+            ? {
+                en: 'Some CSV files downloaded. Others failed. Retry the remaining data section.',
+                ru: 'Часть CSV-файлов загружена. Остальные не удалось скачать. Повторите экспорт нужного раздела.',
+              }
+            : {
+                en: 'Could not export data. Try again.',
+                ru: 'Не удалось экспортировать данные. Повторите попытку.',
+              },
         )
     } finally {
       running.current = false
@@ -288,7 +290,7 @@ export function SettingsForm({
     if (running.current) return
     running.current = true
     setIdentityBusy(true)
-    setError('')
+    setError(null)
     try {
       await withIdentityMutation(async (token) => {
         const result = await api.post('/api/auth/signout', {}, { identityToken: token })
@@ -297,7 +299,10 @@ export function SettingsForm({
       }, '/signin')
     } catch {
       running.current = false
-      setError(ru ? 'Не удалось выйти. Повторите попытку.' : 'Could not sign out. Try again.')
+      setError({
+        en: 'Could not sign out. Try again.',
+        ru: 'Не удалось выйти. Повторите попытку.',
+      })
       setIdentityBusy(false)
     }
   }
@@ -507,12 +512,7 @@ export function SettingsForm({
         <SegmentedControl
           label={text('Language', 'Язык')}
           value={appearance.locale}
-          onChange={(next) =>
-            guard.request(() => {
-              guard.allowDocumentExit()
-              setLocale(next)
-            })
-          }
+          onChange={setLocale}
           options={[
             { value: 'en', label: 'English' },
             { value: 'ru', label: 'Русский' },
@@ -615,8 +615,8 @@ export function SettingsForm({
               setDraft(baseline)
               setEditingAddress(false)
               setNameInvalid(false)
-              setError('')
-              setMessage('')
+              setError(null)
+              setMessage(null)
             }}
           >
             {text('Discard', 'Отменить')}

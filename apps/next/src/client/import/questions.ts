@@ -57,7 +57,11 @@ export type Question =
 const MONTH_DAY = /^(\d{2})-(\d{2})$/
 /** A day and month printed without a year, as MM-DD; null when absent or not a real day (29 February is allowed). */
 export function monthDayOf(draft: Draft): { month: number; day: number } | null {
-  const match = MONTH_DAY.exec(draft.fields.date_month_day ?? '')
+  const match = MONTH_DAY.exec(
+    draft.fields.date_month_day ??
+      (!draft.yearExplicit && !draft.yearConfirmed ? draft.fields.date?.slice(5) : '') ??
+      '',
+  )
   if (!match) return null
   const [month, day] = [Number(match[1]), Number(match[2])]
   const probe = new Date(Date.UTC(2000, month - 1, day))
@@ -104,7 +108,7 @@ export function dateFor(evidence: DayEvidence, year: number): string | null {
 }
 
 const needsYear = (draft: Draft) =>
-  !draft.fields.date && !draft.yearExplicit && !draft.yearConfirmed && evidenceOf(draft) !== null
+  !draft.yearExplicit && !draft.yearConfirmed && evidenceOf(draft) !== null
 const needsAirline = (draft: Draft) =>
   draft.fields.airline_was_placeholder === true && draft.fields.airline_iata === 'ZZ'
 const optionsFor = (draft: Draft, endpoint: Endpoint) => draft.fields[`${endpoint}_options`] ?? []

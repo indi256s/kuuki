@@ -512,3 +512,23 @@ a.ui-menu-item {
 :root[data-route-transition='drill'] .route-stage > * {
   background: var(--background);
 }
+
+.member-route {
+  display: contents;
+}
+@media (max-width: 700px) {
+  .member-route[data-import-focused] .member-header,
+  .member-route[data-import-focused] .tab-bar,
+  body:has(.member-route[data-import-focused]) .import-dock-host {
+    display: none;
+  }
+  .member-route[data-import-focused] .page-shell {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  html:has(.member-route[data-import-focused]) {
+    scroll-padding-block-end: calc(
+      var(--import-footer-height, var(--space-12)) + var(--import-keyboard-inset, 0px) +
+        var(--space-4)
+    );
+  }
+}

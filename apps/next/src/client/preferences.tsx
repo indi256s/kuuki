@@ -8,8 +8,9 @@ function subscribe(listener: () => void) {
   return () => window.removeEventListener('kuuki:appearance', listener)
 }
 
-function localeSnapshot(): 'en' | 'ru' {
-  return document.documentElement.lang === 'ru' ? 'ru' : 'en'
+function localeSnapshot(fallback: 'en' | 'ru'): 'en' | 'ru' {
+  const locale = document.documentElement.lang
+  return locale === 'en' || locale === 'ru' ? locale : fallback
 }
 
 function themeSnapshot(): 'system' | 'light' | 'dark' {
@@ -22,7 +23,11 @@ function themeSnapshot(): 'system' | 'light' | 'dark' {
 
 /** Live locale only, so components that never show the theme don't re-render during a theme switch. */
 export function useLocale(initialLocale: 'en' | 'ru' = 'en') {
-  return useSyncExternalStore(subscribe, localeSnapshot, () => initialLocale)
+  return useSyncExternalStore(
+    subscribe,
+    () => localeSnapshot(initialLocale),
+    () => initialLocale,
+  )
 }
 
 /** Live locale and theme selection; the same cookie/attribute sources the first-paint bootstrap writes. */

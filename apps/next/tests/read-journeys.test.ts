@@ -183,7 +183,7 @@ async function journalAccount(page: Page, origin: string) {
   return { create, awaiting, headers }
 }
 
-test('Journal selects the full filtered dataset and deletes after Undo, preserving other years', async ({
+test('Journal selects the full filtered dataset and preserves deletion across reload, keeping other years', async ({
   page,
   baseURL,
 }) => {
@@ -233,6 +233,9 @@ test('Journal selects the full filtered dataset and deletes after Undo, preservi
   await page.getByRole('button', { name: 'Select all 21 matching', exact: true }).click()
   await actions.getByRole('button', { name: 'Delete', exact: true }).click()
   await expect(page.getByRole('dialog', { name: /Delete/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.locator('[data-kind="flight"]')).toHaveCount(0)
   await expect(
     page.getByRole('heading', { name: 'Nothing matches these filters', exact: true }),
   ).toBeVisible({ timeout: 15000 })

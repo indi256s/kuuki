@@ -1,12 +1,15 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { Plus } from '@keyline-icons/react'
 import { AddActions } from './add-actions'
 import { ChevronIcon } from './ui/icon-morph'
 import { Menu } from './ui/menu'
 
 /** Desktop capture entry: one "Add flight" button opening the four capture rows (and the review queue when it has items). */
-export function AddMenu({ locale = 'en' }: { locale?: 'en' | 'ru' }) {
+export function AddMenu({ locale: initialLocale = 'en' }: { locale?: 'en' | 'ru' }) {
+  const locale = useLocale(initialLocale)
   const ru = locale === 'ru'
   return (
     <Menu

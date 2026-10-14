@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import { useEffect, useId, useRef, useState } from 'react'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import type {
@@ -17,12 +19,13 @@ import { Disclosure } from '../ui/disclosure'
 import type { Locale } from '../../server/locale'
 
 export function HistoricalReview({
-  locale,
+  locale: initialLocale,
   available,
 }: {
   locale: Locale
   available: boolean | null
 }) {
+  const locale = useLocale(initialLocale)
   const [data, setData] = useState<Awaited<ReturnType<typeof readTransitReview>> | null>(null)
   const [error, setError] = useState(false)
   const [open, setOpen] = useState(false)
@@ -31,7 +34,7 @@ export function HistoricalReview({
   const [busy, setBusy] = useState(false)
   const [selected, setSelected] = useState<number[]>([])
   const [request, setRequest] = useState<ReviewRequest | null>(null)
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<'pending' | { removedCountries: string[] } | null>(null)
   const [version, setVersion] = useState(0)
   const writeController = useRef<AbortController | null>(null)
   const online = useOnline()
@@ -40,6 +43,18 @@ export function HistoricalReview({
   const offline = { 'aria-describedby': !online ? offlineId : undefined }
   const countryName = (code: string) =>
     new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? code
+  const noticeText =
+    notice === 'pending'
+      ? ru
+        ? 'Решения сохранены. Итоги обновляются.'
+        : 'Decisions saved. Totals are updating.'
+      : notice?.removedCountries.length
+        ? `${ru ? 'Удалены отметки' : 'Removed stamps'}: ${notice.removedCountries.map(countryName).join(', ')}`
+        : notice
+          ? ru
+            ? 'Проверка сохранена.'
+            : 'Review saved.'
+          : ''
   useEffect(() => {
     if (!requested) return
     const read = new AbortController()
@@ -101,9 +116,7 @@ export function HistoricalReview({
       })
       if (write.signal.aborted) return
       if (result.derivedState !== 'ready') {
-        setNotice(
-          ru ? 'Решения сохранены. Итоги обновляются.' : 'Decisions saved. Totals are updating.',
-        )
+        setNotice('pending')
         if (
           (await awaitPublication(result.revision, write.signal, () => !write.signal.aborted)) !==
           'ready'
@@ -114,13 +127,7 @@ export function HistoricalReview({
         })
         if (write.signal.aborted || result.derivedState !== 'ready') return
       }
-      setNotice(
-        result.removedCountries?.length
-          ? `${ru ? 'Удалены отметки' : 'Removed stamps'}: ${result.removedCountries.map(countryName).join(', ')}`
-          : ru
-            ? 'Проверка сохранена.'
-            : 'Review saved.',
-      )
+      setNotice({ removedCountries: result.removedCountries ?? [] })
       setRequest(null)
       setLoading(true)
       setVersion((value) => value + 1)
@@ -180,7 +187,7 @@ export function HistoricalReview({
       )}
       {notice && (
         <p role="status" aria-live="polite">
-          {notice}
+          {noticeText}
         </p>
       )}
       {showReview && (

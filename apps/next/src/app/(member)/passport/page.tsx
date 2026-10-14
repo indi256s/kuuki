@@ -1,3 +1,4 @@
+import { LocaleText } from '../../../client/locale-text'
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getOwnPassport } from '../../../server/passport'
@@ -42,12 +43,14 @@ export default async function Passport({
   return (
     <>
       <div className="page-heading">
-        <h1>{locale === 'ru' ? 'Паспорт' : 'Passport'}</h1>
+        <h1>
+          <LocaleText locale={locale} en="Passport" ru="Паспорт" />
+        </h1>
       </div>
       <Suspense
         fallback={
           <p className="loading" role="status">
-            {locale === 'ru' ? 'Загружаем паспорт…' : 'Loading passport…'}
+            <LocaleText locale={locale} en="Loading passport…" ru="Загружаем паспорт…" />
           </p>
         }
       >

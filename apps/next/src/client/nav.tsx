@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
 import {
@@ -67,7 +69,8 @@ export function MobilePageTitle() {
   )
 }
 
-export function PrimaryNav({ locale = 'en' }: { locale?: Locale }) {
+export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }) {
+  const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const nav = useRef<HTMLElement>(null)
   // The sticky header wraps on narrow desktops and long labels; sticky content below reads its real height.
@@ -201,7 +204,8 @@ const TABS: readonly {
  * Floating rail: four labeled destinations. Adding lives inside the pages (Journal's Add flight, the ground-travel
  * Add chooser), so the rail has no action key. The rail slides off-screen while the keyboard is open (`useKeyboardFlag`).
  */
-export function TabBar({ locale = 'en' }: { locale?: Locale }) {
+export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
+  const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const ru = locale === 'ru'
   useKeyboardFlag()

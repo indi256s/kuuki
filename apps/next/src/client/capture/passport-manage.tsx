@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from '../preferences'
+
 import { useEffect, useRef, useState } from 'react'
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { Button } from '../ui/button'
@@ -25,7 +27,14 @@ import type { Locale } from '../../server/locale'
 import './capture.css'
 import './passport-manage.css'
 
-export function PassportManage({ ownerId, locale }: { ownerId: string; locale: Locale }) {
+export function PassportManage({
+  ownerId,
+  locale: initialLocale,
+}: {
+  ownerId: string
+  locale: Locale
+}) {
+  const locale = useLocale(initialLocale)
   const ru = locale === 'ru',
     feedback = useWriteFeedback(ownerId)
   const [flights, setFlights] = useState<Flight[]>([])
@@ -35,7 +44,12 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
   const [selected, setSelected] = useState<number[]>([])
   const [plane, setPlane] = useState('')
   const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
+  const [savedNotice, setSavedNotice] = useState(false)
+  const message = savedNotice
+    ? ru
+      ? 'Сохранено. Итоги могут обновиться позже.'
+      : 'Saved. Totals may update later.'
+    : ''
   const [outcomes, setOutcomes] = useState<Map<number, AircraftOutcome>>(new Map())
   // Counts for the submission that just finished only; cleared when the next one starts so every completion is announced.
   const [last, setLast] = useState<AircraftRunCounts | null>(null)
@@ -87,7 +101,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
     setBusy(true)
-    setMessage('')
+    setSavedNotice(false)
     setLast(null)
     setSent((old) => {
       const next = new Map(old)
@@ -108,9 +122,7 @@ export function PassportManage({ ownerId, locale }: { ownerId: string; locale: L
       const ack = run.acks.filter((item) => item.derived_state).at(-1)
       if ([...run.rows.values()].some((outcome) => outcome.status === 'saved') && ack) {
         feedback.acknowledge(ack)
-        setMessage(
-          ru ? 'Сохранено. Итоги могут обновиться позже.' : 'Saved. Totals may update later.',
-        )
+        setSavedNotice(true)
       }
       // Saved rows leave the eligible set; an uncertain row may or may not have, so the list is read again after every outcome.
       loadFlights(true)

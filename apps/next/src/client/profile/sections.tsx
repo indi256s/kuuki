@@ -1,5 +1,4 @@
-// The profile's server-rendered layout (spec + boards 21.x): the holder page, the closed covers and the right-page
-// blocks. Client islands (Share, the badge cabinet, the founding crew keepsake, the avatar) are imported, not owned.
+// Profile layout: holder page, closed covers and right-page blocks. The live profile content owns locale updates.
 import { Globe, Lock } from '@keyline-icons/react'
 import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'

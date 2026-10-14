@@ -8,7 +8,7 @@ import {
   openCauses,
   suggestedYears,
 } from './questions'
-import { isChosenOn, readiness, withUnsent } from './review-model'
+import { isChosenOn, lowFields, readiness, withUnsent } from './review-model'
 
 const TODAY = '2026-10-12'
 
@@ -177,4 +177,18 @@ describe('withUnsent and the flown confirmation', () => {
     ).toBe(true)
     expect(withUnsent(confirmed, { fields: { origin: 'LAX' } }).fields.flown_confirmed).toBe(true)
   })
+})
+
+it('an explicit year answer clears the unresolved date score without asking for that year again', () => {
+  const before = ordinal('year-score', 60, { fieldConfidence: { date: 0.2, origin: 0.1 } })
+  const answer = answerYear(before, 2025, TODAY)!
+  const after = withUnsent(before, answer)
+  expect(after.fields.date).toBe('2025-03-01')
+  expect(buildQuestions([after], TODAY).some((question) => question.kind === 'year')).toBe(false)
+  expect(lowFields(after)).toEqual(['origin'])
+})
+
+it('asks inline for an unsupported extracted year even when a calendar date was supplied', () => {
+  const inferred = draft({ id: 'inferred', yearExplicit: false, yearConfirmed: false })
+  expect(buildQuestions([inferred], TODAY).map((question) => question.kind)).toContain('year')
 })

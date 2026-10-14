@@ -1,5 +1,6 @@
 'use client'
-import { useEffect } from 'react'
+
+import { useEffect, useEffectEvent } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from '../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
@@ -12,8 +13,27 @@ import { useToast } from '../ui/toast'
 import type { Locale } from '../../lib/format'
 
 /** Announces newly earned achievements in the shell's toast region, one line per ladder. */
-export function BadgeNotifications({ ownerId, locale }: { ownerId: string; locale: Locale }) {
+export function BadgeNotifications({ ownerId }: { ownerId: string; locale: Locale }) {
   const { show, dismiss } = useToast()
+  const announce = useEffectEvent((badges: EarnedBadge[], shown: Set<number>) => {
+    // One line per ladder: a batch that climbs several rungs names only the highest.
+    const description = (locale: Locale) =>
+      toTiles(badges)
+        .map((tile) =>
+          tile.kind === 'founding'
+            ? FOUNDING.name[locale]
+            : RUNG_NAME[tile.ladder][tile.rung - 1][locale],
+        )
+        .join('\n')
+    shown.add(
+      show({
+        kind: 'success',
+        message: NEW_ACHIEVEMENTS,
+        description: { en: description('en'), ru: description('ru') },
+        duration: 8000,
+      }),
+    )
+  })
   useEffect(() => {
     let stopped = false
     let active: AbortController | null = null
@@ -44,20 +64,7 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
           // Hidden rows (legacy, cities) never toast.
           const result = unseenBadges(ownerId, visibleBadges(badges), notificationStorage())
           if (!result.badges.length) return
-          // One line per ladder: a batch that climbs several rungs names only the highest.
-          const lines = toTiles(result.badges).map((tile) =>
-            tile.kind === 'founding'
-              ? FOUNDING.name[locale]
-              : RUNG_NAME[tile.ladder][tile.rung - 1][locale],
-          )
-          shown.add(
-            show({
-              kind: 'success',
-              message: NEW_ACHIEVEMENTS[locale],
-              description: lines.join('\n'),
-              duration: 8000,
-            }),
-          )
+          announce(result.badges, shown)
         })
         .catch(() => {})
         .finally(release)
@@ -75,6 +82,6 @@ export function BadgeNotifications({ ownerId, locale }: { ownerId: string; local
       window.removeEventListener('focus', load)
       window.removeEventListener('kuuki:identity-reset', clear)
     }
-  }, [ownerId, locale, show, dismiss])
+  }, [ownerId, show, dismiss])
   return null
 }

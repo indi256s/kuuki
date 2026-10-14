@@ -1,4 +1,6 @@
 'use client'
+
+import { useLocale } from '../preferences'
 /**
  * The Journal's in-memory store (spec "Data and state", D4). One provider per page owns the payload, the view state
  * the URL mirrors, row selection and optimistically hidden rows. Not shared with the Overview.
@@ -157,7 +159,8 @@ type Props = {
   children: ReactNode
 }
 
-function Store({ ownerId, locale, initial, initialQuery, children }: Props) {
+function Store({ ownerId, locale: initialLocale, initial, initialQuery, children }: Props) {
+  const locale = useLocale(initialLocale)
   const queryClient = useQueryClient()
   const online = useOnline()
   const identityReset = useRef(false)

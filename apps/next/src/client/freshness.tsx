@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
@@ -30,8 +32,9 @@ export function ReadFreshness({
   revision,
   publishedRevision,
   derivedState,
-  locale,
+  locale: initialLocale,
 }: Props) {
+  const locale = useLocale(initialLocale)
   const pending = isPublicationPending(revision, publishedRevision, derivedState)
   const router = useRouter()
   const [delayed, setDelayed] = useState(false)

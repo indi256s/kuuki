@@ -1,3 +1,4 @@
+import { LocaleText } from '../../../client/locale-text'
 import { requireOnboardedMember } from '../../../server/gates'
 import { pageMetadata } from '../../../server/metadata'
 import { getRequestLocale } from '../../../server/locale'
@@ -11,8 +12,12 @@ export default async function AddFlight() {
   return (
     <IdentitySnapshot ownerId={identity.id}>
       <div className="page-heading">
-        <p className="eyebrow">{locale === 'ru' ? 'Журнал' : 'Journal'}</p>
-        <h1>{locale === 'ru' ? 'Новый перелёт' : 'Add a flight'}</h1>
+        <p className="eyebrow">
+          <LocaleText locale={locale} en="Journal" ru="Журнал" />
+        </p>
+        <h1>
+          <LocaleText locale={locale} en="Add a flight" ru="Новый перелёт" />
+        </h1>
       </div>
       <FlightCaptureDialog ownerId={identity.id} locale={locale} />
     </IdentitySnapshot>

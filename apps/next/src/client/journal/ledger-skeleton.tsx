@@ -1,3 +1,7 @@
+'use client'
+
+import { useLocale } from '../preferences'
+
 import type { Locale } from '../../lib/format'
 import { FilterToolbar } from '../ui/filter-toolbar'
 import './header.css'
@@ -14,7 +18,14 @@ const copy = {
 
 const bar = (className: string) => <span className={`ledger-skeleton-bar ${className}`} />
 
-export function LedgerSkeleton({ locale, rows = 8 }: { locale: Locale; rows?: number }) {
+export function LedgerSkeleton({
+  locale: initialLocale,
+  rows = 8,
+}: {
+  locale: Locale
+  rows?: number
+}) {
+  const locale = useLocale(initialLocale)
   const t = copy[locale]
   return (
     <div className="ledger-skeleton journal-page">

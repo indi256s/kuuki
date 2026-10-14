@@ -47,13 +47,16 @@ function highlight(text: string, query: string) {
 /** Filters by code, name and aliases; an exact code ranks first, and an empty query lists recents first. */
 export function searchChoices(choices: Choice[], query: string, recents: string[] = []) {
   const needle = query.trim().toLocaleLowerCase()
-  const all = choices.filter(
-    (choice) =>
-      !needle ||
-      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`
-        .toLocaleLowerCase()
-        .includes(needle),
-  )
+  const words = foldSearchText(needle)
+    .split(/\s+/)
+    .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ''))
+    .filter(Boolean)
+  const all = choices.filter((choice) => {
+    const text = foldSearchText(
+      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`,
+    ).replace(/[^\p{L}\p{N}]/gu, '')
+    return !needle || (words.length > 0 && words.every((word) => text.includes(word)))
+  })
   const ordered = needle
     ? [...all].sort(
         (a, b) =>
@@ -91,7 +94,13 @@ export function ChoiceOptions({
 }) {
   return (
     <>
-      <p role="status">{formatCount(locale, count, counts)}</p>
+      <p role="status">
+        {count === 0
+          ? locale === 'ru'
+            ? 'Ничего не найдено'
+            : 'No matches'
+          : formatCount(locale, count, counts)}
+      </p>
       <ul id={`${id}-list`} role="listbox" aria-label={label}>
         {matches.map((choice, index) => (
           <li
@@ -311,7 +320,11 @@ export function Combobox({
           {error}
         </p>
       )}
-      {open && !mobile && <div className="flight-search-popover">{list}</div>}
+      {open && !mobile && (
+        <div className={matches.length ? 'flight-search-popover' : 'flight-search-empty'}>
+          {list}
+        </div>
+      )}
       {mobile && (
         <Sheet
           initialDetent={1}

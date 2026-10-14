@@ -136,7 +136,7 @@ const copy = {
 
 type EditorState = 'idle' | 'loading' | 'ready' | 'failed'
 /** The latest saved edit, offered for Undo inside the modal overlay. */
-type UndoOffer = { record: EditRecord; message: string }
+type UndoOffer = { record: EditRecord }
 
 /**
  * The write side: one save per flight at a time, the lazily loaded write module and Undo records.
@@ -230,23 +230,22 @@ function useFlightEdits({
 
   const undo = async (record: EditRecord) => {
     const { online: isOnline, locale: lang } = latest.current
-    const say = copy[lang]
     if (!isOnline) {
-      toast.show({ kind: 'error', message: say.offline })
+      toast.show({ kind: 'error', message: { en: copy.en.offline, ru: copy.ru.offline } })
       return
     }
     if (savingRef.current.has(record.flightId)) {
-      toast.show({ kind: 'error', message: say.busy })
+      toast.show({ kind: 'error', message: { en: copy.en.busy, ru: copy.ru.busy } })
       return
     }
     const mod = await loadEditor()
     if (!mod) {
-      toast.show({ kind: 'error', message: say.editorFailed })
+      toast.show({ kind: 'error', message: { en: copy.en.editorFailed, ru: copy.ru.editorFailed } })
       return
     }
     setOffer((current) => (current?.record === record ? null : current))
     if (!mod.canUndo(record, current(record.flightId), seqs.current.get(record.flightId))) {
-      toast.show({ kind: 'error', message: say.undoRefused })
+      toast.show({ kind: 'error', message: { en: copy.en.undoRefused, ru: copy.ru.undoRefused } })
       return
     }
     if (identityReset.current) return
@@ -257,11 +256,14 @@ function useFlightEdits({
       if (dropped(generation)) return
       if (outcome.status === 'saved' && dto) {
         settle(mod, record.flightId, dto)
-        toast.show({ kind: 'success', message: say.undone })
+        toast.show({ kind: 'success', message: { en: copy.en.undone, ru: copy.ru.undone } })
       } else {
         toast.show({
           kind: 'error',
-          message: outcome.status === 'saved' ? mod.unknownMessage(lang) : outcome.message,
+          message:
+            outcome.status === 'saved'
+              ? { en: mod.unknownMessage('en'), ru: mod.unknownMessage('ru') }
+              : (outcome.messageCopy ?? outcome.message),
         })
         void refresh()
       }
@@ -271,16 +273,36 @@ function useFlightEdits({
   }
 
   const save = async (flight: JournalFlight, changes: Changes): Promise<EditOutcome> => {
-    if (!latest.current.online) return { status: 'rejected', message: t.offline }
-    if (identityReset.current) return { status: 'rejected', message: t.sessionChanged }
-    if (savingRef.current.has(flight.id)) return { status: 'rejected', message: t.busy }
+    if (!latest.current.online)
+      return {
+        status: 'rejected',
+        message: t.offline,
+        messageCopy: { en: copy.en.offline, ru: copy.ru.offline },
+      }
+    if (identityReset.current)
+      return {
+        status: 'rejected',
+        message: t.sessionChanged,
+        messageCopy: { en: copy.en.sessionChanged, ru: copy.ru.sessionChanged },
+      }
+    if (savingRef.current.has(flight.id))
+      return {
+        status: 'rejected',
+        message: t.busy,
+        messageCopy: { en: copy.en.busy, ru: copy.ru.busy },
+      }
     const fields = Object.keys(changes) as EditableField[]
     if (!fields.length) return { status: 'saved' }
     const generation = getAuthGeneration()
     mark(flight.id, true)
     try {
       const mod = await loadEditor()
-      if (!mod) return { status: 'rejected', message: t.editorFailed }
+      if (!mod)
+        return {
+          status: 'rejected',
+          message: t.editorFailed,
+          messageCopy: { en: copy.en.editorFailed, ru: copy.ru.editorFailed },
+        }
       const { outcome, flight: dto } = await mod.writeFlightFields(
         flight.id,
         changes,
@@ -290,7 +312,11 @@ function useFlightEdits({
       // The answer belongs to a session that has ended: never applied, never refetched here (the page is leaving).
       if (dropped(generation))
         return outcome.status === 'saved'
-          ? { status: 'unknown', message: t.sessionChanged }
+          ? {
+              status: 'unknown',
+              message: t.sessionChanged,
+              messageCopy: { en: copy.en.sessionChanged, ru: copy.ru.sessionChanged },
+            }
           : outcome
       if (outcome.status === 'saved' && dto) {
         const merged = settle(mod, flight.id, dto)
@@ -306,13 +332,13 @@ function useFlightEdits({
             setOffer(null)
             toast.show({
               kind: 'success',
-              message: t.saved(fields),
-              actionLabel: t.undo,
+              message: { en: copy.en.saved(fields), ru: copy.ru.saved(fields) },
+              actionLabel: { en: copy.en.undo, ru: copy.ru.undo },
               onAction: () => {
                 void undo(record)
               },
             })
-          } else setOffer({ record, message: t.saved(fields) })
+          } else setOffer({ record })
         }
       } else void refresh() // unknown: the list shows what landed; rejected: a conflict needs the current row
       return outcome
@@ -497,7 +523,7 @@ export function JournalDetail({
     <div className="jd-undo" role="status">
       {offer && (
         <>
-          <p>{offer.message}</p>
+          <p>{t.saved(offer.record.fields)}</p>
           <Button
             variant="ghost"
             dense

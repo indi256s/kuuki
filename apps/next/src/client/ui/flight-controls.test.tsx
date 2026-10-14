@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Calendar } from './calendar'
 import { Combobox } from './combobox'
-import { airportChoices } from '../capture/reference-choices'
+import { aircraftChoices, airportChoices } from '../capture/reference-choices'
 import type { Locale } from '../../lib/format'
 
 beforeEach(() => {
@@ -42,6 +42,44 @@ function SearchHarness({ locale }: { locale: Locale }) {
     </>
   )
 }
+function AircraftHarness() {
+  const [value, setValue] = useState('')
+  return (
+    <Combobox
+      label="Aircraft"
+      locale="en"
+      choices={aircraftChoices}
+      value={value}
+      onChange={setValue}
+    />
+  )
+}
+it.each([
+  ['EMBRAER ERJ-190-400', 'E295'],
+  ['erj 190 300 embraer', 'E290'],
+  ['E195 E2', 'E295'],
+  ['295', 'E295'],
+])('selects aircraft by alternate designation %s', async (query, code) => {
+  render(<AircraftHarness />)
+  const input = screen.getByRole('combobox')
+  await userEvent.click(input)
+  fireEvent.change(input, { target: { value: query } })
+  expect(screen.getByRole('option', { name: new RegExp(code) })).toBeInTheDocument()
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(input).toHaveValue(code)
+  expect(input).toHaveAttribute('aria-expanded', 'false')
+})
+it.each(['en', 'ru'] as const)('announces an empty search without options (%s)', async (locale) => {
+  render(<SearchHarness locale={locale} />)
+  const input = screen.getByRole('combobox')
+  await userEvent.click(input)
+  fireEvent.change(input, { target: { value: 'no-such-airport' } })
+  expect(within(input.parentElement!).getByRole('status')).toHaveTextContent(
+    locale === 'ru' ? 'Ничего не найдено' : 'No matches',
+  )
+  expect(screen.queryByRole('option')).not.toBeInTheDocument()
+  expect(input).not.toHaveAttribute('aria-activedescendant')
+})
 describe.each(['en', 'ru'] as const)('flight controls (%s)', (locale) => {
   it.each(['SVO'])('matches a catalog airport by %s and selects by keyboard', async (query) => {
     render(<SearchHarness locale={locale} />)

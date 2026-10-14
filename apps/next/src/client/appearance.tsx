@@ -19,7 +19,7 @@ function cookie(name: string, value: string) {
   document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${year}; SameSite=Lax`
 }
 
-export function setLocale(locale: Locale, reload = true) {
+export function setLocale(locale: Locale) {
   cookie('kuuki_locale', locale)
   try {
     localStorage.setItem('kuuki-language', locale)
@@ -28,8 +28,7 @@ export function setLocale(locale: Locale, reload = true) {
   }
   document.documentElement.lang = locale
   document.documentElement.dataset.locale = locale
-  if (reload) window.location.reload()
-  else window.dispatchEvent(new Event('kuuki:appearance'))
+  window.dispatchEvent(new Event('kuuki:appearance'))
 }
 
 export function setTheme(theme: Theme) {

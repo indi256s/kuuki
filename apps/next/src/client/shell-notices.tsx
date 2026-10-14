@@ -1,5 +1,7 @@
 'use client'
 
+import { useLocale } from './preferences'
+
 import { useEffect, type ReactNode } from 'react'
 import { ToastProvider, useToast, type ToastInput } from './ui/toast'
 import type { Locale } from '../server/locale'
@@ -49,13 +51,14 @@ function Host({ ownerId }: { ownerId: string }) {
 /** The member shell's toast host, mounted once per owner shell so notices survive client navigation between member routes. */
 export function ShellNotices({
   ownerId,
-  locale,
+  locale: initialLocale,
   children,
 }: {
   ownerId: string
   locale: Locale
   children: ReactNode
 }) {
+  const locale = useLocale(initialLocale)
   const ru = locale === 'ru'
   return (
     <ToastProvider
