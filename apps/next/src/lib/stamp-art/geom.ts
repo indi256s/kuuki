@@ -16,8 +16,8 @@ export function pointInPoly(p: Pt, poly: Pt[]): boolean {
   return inside
 }
 
-/** Parts of segment a-b that lie outside `poly`. */
-function segmentOutside(a: Pt, b: Pt, poly: Pt[]): [Pt, Pt][] {
+/** Parts of segment a-b on the requested side of `poly`. */
+function segmentParts(a: Pt, b: Pt, poly: Pt[], keepInside: boolean): [Pt, Pt][] {
   const ts = [0, 1]
   const dx = b[0] - a[0],
     dy = b[1] - a[1]
@@ -39,7 +39,7 @@ function segmentOutside(a: Pt, b: Pt, poly: Pt[]): [Pt, Pt][] {
       t1 = ts[i + 1]
     if (t1 - t0 < 1e-6) continue
     const tm = (t0 + t1) / 2
-    if (!pointInPoly([a[0] + dx * tm, a[1] + dy * tm], poly)) {
+    if (pointInPoly([a[0] + dx * tm, a[1] + dy * tm], poly) === keepInside) {
       out.push([
         [a[0] + dx * t0, a[1] + dy * t0],
         [a[0] + dx * t1, a[1] + dy * t1],
@@ -69,51 +69,20 @@ export function clipStrokeOutside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   const [sx0, sy0, sx1, sy1] = ptsBounds(pts)
   if (sx1 < bx0 || sx0 > bx1 || sy1 < by0 || sy0 > by1) return [node]
   const segs: [Pt, Pt][] = []
-  for (let i = 0; i + 1 < pts.length; i++) segs.push(...segmentOutside(pts[i], pts[i + 1], poly))
+  for (let i = 0; i + 1 < pts.length; i++)
+    segs.push(...segmentParts(pts[i], pts[i + 1], poly, false))
   const lines = chain(segs)
   // A closed outline that survived whole stays closed.
   if (node.closed && lines.length === 1 && lines[0].length === pts.length) return [node]
   return lines.map((l) => ({ ...stroke(node.weight, l), ...(node.bg ? { bg: true } : {}) }))
 }
 
-/** Parts of segment a-b that lie inside `poly`. */
-function segmentInside(a: Pt, b: Pt, poly: Pt[]): [Pt, Pt][] {
-  const ts = [0, 1]
-  const dx = b[0] - a[0],
-    dy = b[1] - a[1]
-  for (let i = 0; i < poly.length; i++) {
-    const c = poly[i],
-      d = poly[(i + 1) % poly.length]
-    const ex = d[0] - c[0],
-      ey = d[1] - c[1]
-    const den = dx * ey - dy * ex
-    if (Math.abs(den) < EPS) continue
-    const t = ((c[0] - a[0]) * ey - (c[1] - a[1]) * ex) / den
-    const u = ((c[0] - a[0]) * dy - (c[1] - a[1]) * dx) / den
-    if (t > EPS && t < 1 - EPS && u >= -EPS && u <= 1 + EPS) ts.push(t)
-  }
-  ts.sort((m, n) => m - n)
-  const out: [Pt, Pt][] = []
-  for (let i = 0; i + 1 < ts.length; i++) {
-    const t0 = ts[i],
-      t1 = ts[i + 1]
-    if (t1 - t0 < 1e-6) continue
-    const tm = (t0 + t1) / 2
-    if (pointInPoly([a[0] + dx * tm, a[1] + dy * tm], poly)) {
-      out.push([
-        [a[0] + dx * t0, a[1] + dy * t0],
-        [a[0] + dx * t1, a[1] + dy * t1],
-      ])
-    }
-  }
-  return out
-}
-
 /** Keeps only the parts of a stroke that fall inside `poly`. */
 export function clipStrokeInside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   const pts = node.closed ? [...node.pts, node.pts[0]] : node.pts
   const segs: [Pt, Pt][] = []
-  for (let i = 0; i + 1 < pts.length; i++) segs.push(...segmentInside(pts[i], pts[i + 1], poly))
+  for (let i = 0; i + 1 < pts.length; i++)
+    segs.push(...segmentParts(pts[i], pts[i + 1], poly, true))
   return chain(segs).map((l) => ({ ...stroke(node.weight, l), ...(node.bg ? { bg: true } : {}) }))
 }
 

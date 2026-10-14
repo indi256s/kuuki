@@ -27,6 +27,23 @@ export async function GET() {
 
 export async function POST(request: Request) {
   if (process.env.NODE_ENV === 'production') return notFound()
+  const url = new URL(request.url)
+  const host = request.headers.get('host')
+  // Next dev uses its listen address in request.url; browser loopback aliases keep the same port.
+  if (
+    host &&
+    ['localhost', '127.0.0.1', '[::1]'].some(
+      (hostname) => host === `${hostname}${url.port ? `:${url.port}` : ''}`,
+    )
+  )
+    url.host = host
+  if (request.headers.get('origin') !== url.origin)
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+  if (
+    request.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase() !==
+    'application/json'
+  )
+    return NextResponse.json({ error: 'unsupported media type' }, { status: 415 })
   const update = parseUpdate(await request.json().catch(() => null))
   if (!update) return NextResponse.json({ error: 'bad request' }, { status: 400 })
   const operation = (queue.stampReviewWrite ?? Promise.resolve())

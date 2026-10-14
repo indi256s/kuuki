@@ -3,6 +3,7 @@
 // on the shaded side only, behind a slanted terminator. `rockMass` is the helper every waterfall
 // profile and the Diosso gorge use; `rockStrataB` exposes it as a kit module (a lone outcrop).
 import { mulberry32 } from '../hash'
+import { pointInPoly } from '../geom'
 import {
   type Pt,
   type SvgNode,
@@ -67,7 +68,7 @@ export function strata(
     const cx = x0 + (x1 - x0) * (0.12 + 0.76 * rand())
     const cy = y0 + (y1 - y0) * (0.2 + 0.6 * rand())
     const len = 4 + rand() * 6
-    if (pointIn(poly, [cx, cy]) && pointIn(poly, [cx + len * 0.35, cy + len])) {
+    if (pointInPoly([cx, cy], poly) && pointInPoly([cx + len * 0.35, cy + len], poly)) {
       out.push(
         stroke('fine', [
           [cx, cy],
@@ -97,18 +98,6 @@ export function rough(poly: Pt[], rand: () => number, amp = 1, step = 6): Pt[] {
     }
   }
   return out
-}
-
-function pointIn(poly: Pt[], p: Pt): boolean {
-  let inside = false
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i],
-      [xj, yj] = poly[j]
-    if (yi > p[1] !== yj > p[1] && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) {
-      inside = !inside
-    }
-  }
-  return inside
 }
 
 export type RockOpts = {
