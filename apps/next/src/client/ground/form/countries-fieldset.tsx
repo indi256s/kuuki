@@ -82,10 +82,12 @@ export function CountriesFieldset({
       disabled={disabled}
     >
       <legend>
-        {ru ? 'Страны, которые вы действительно пересекли' : 'Countries you actually crossed'}
+        {ru ? 'В каких странах вы побывали?' : 'Which countries were on your journey?'}
       </legend>
       <p id={`${id}-note`} className="gt-muted">
-        {ru ? 'Транзит без остановки тоже считается.' : 'Transit without stopping counts.'}
+        {ru
+          ? 'Включая страну поездки и транзит без остановок.'
+          : 'Include the country you travelled in and transit without stops.'}
       </p>
       {onRoute.length > 0 && (
         <div className="gt-countries-group">
@@ -162,7 +164,6 @@ export function CountriesFieldset({
       <Checkbox
         className="gt-country-row"
         label={ru ? 'Ни одной из них' : 'None of these'}
-        description={ru ? 'Граница не пересекалась.' : 'No border was crossed.'}
         checked={value.noCountries}
         disabled={disabled}
         onChange={(event) => onChange(chooseNone(value, event.target.checked))}

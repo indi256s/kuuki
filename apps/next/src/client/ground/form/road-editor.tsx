@@ -5,12 +5,12 @@ import { ArrowUTurnLeft, Plus } from '@keyline-icons/react'
 import { GROUND_LIMITS, placeLabel } from '@kuuki/shared/groundTravel'
 import { formatDateOnly, type Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
-import { Disclosure } from '../../ui/disclosure'
 import { Field } from '../../ui/field'
 import { DateField, errorText, TextAreaField } from './fields'
 import { emptyPoint, samePlace, type FormErrors, type PointDraft } from './model'
-import { moved, OrderedRows, RowFields } from './ordered-rows'
-import { PlacePicker } from './place-picker'
+import { moved, OrderedRows, RowDetails, RowFields } from './ordered-rows'
+import { countryNamer } from '../../passport/model'
+import { PlacePicker, placeDetail } from './place-picker'
 
 export function RoadEditor({
   ownerId,
@@ -71,7 +71,15 @@ export function RoadEditor({
         locale={locale}
         label={ru ? 'Пункты маршрута' : 'Route stops'}
         title={(point, index) =>
-          `${index === 0 ? (ru ? 'Старт' : 'Start') : `${ru ? 'Пункт' : 'Stop'} ${index + 1}`}${point.place ? `: ${name(point)}` : ''}`
+          index === 0
+            ? ru
+              ? 'Старт'
+              : 'Start'
+            : index === points.length - 1
+              ? ru
+                ? 'Финиш'
+                : 'Finish'
+              : `${ru ? 'Пункт' : 'Stop'} ${index + 1}`
         }
         name={(point, index) =>
           ru
@@ -90,43 +98,56 @@ export function RoadEditor({
         }
         disabled={disabled}
       >
-        {(point) => {
+        {(point, index) => {
           const error = (field: string) => errorText(errors[`point:${point.id}:${field}`], locale)
-          const detailsFilled = [
-            point.arrivalDate,
-            point.departureDate,
-            point.nights,
-            point.note,
-          ].some((value) => value.trim() !== '')
+          const detailsError = ['arrivalDate', 'departureDate', 'nights', 'note'].some(
+            (field) => !!error(field),
+          )
           const when = [
             point.arrivalDate && formatDateOnly(locale, point.arrivalDate, 'medium'),
             point.departureDate && formatDateOnly(locale, point.departureDate, 'medium'),
           ]
             .filter(Boolean)
             .join(' – ')
-          const summary = [point.place ? name(point) : '', when].filter(Boolean).join(' · ')
+          const summary = point.place ? name(point) : ''
+          const detail = [
+            point.place ? placeDetail(point.place, locale, countryNamer(locale)) : '',
+            when,
+          ]
+            .filter(Boolean)
+            .join(' · ')
           return (
             <RowFields
               locale={locale}
               summary={summary}
+              detail={detail}
+              disabled={disabled}
               complete={!!point.place}
               hasError={Object.keys(errors).some((key) => key.startsWith(`point:${point.id}:`))}
               fresh={fresh.has(point.id)}
             >
               <div className="gt-fields">
                 <PlacePicker
-                  label={ru ? 'Город' : 'City'}
+                  label={
+                    index === 0
+                      ? ru
+                        ? 'Откуда'
+                        : 'From'
+                      : index === points.length - 1
+                        ? ru
+                          ? 'Куда'
+                          : 'To'
+                        : ru
+                          ? 'Город'
+                          : 'City'
+                  }
                   locale={locale}
                   value={point.place}
                   onChange={(place) => update(point.id, { place })}
                   error={error('place')}
                   disabled={disabled}
                 />
-                <Disclosure
-                  layout="row"
-                  defaultOpen={detailsFilled}
-                  summary={ru ? 'Даты, ночёвки и заметка' : 'Dates, nights and a note'}
-                >
+                <RowDetails locale={locale} hasError={detailsError}>
                   <div className="gt-fields">
                     <div className="gt-pair">
                       <DateField
@@ -165,7 +186,7 @@ export function RoadEditor({
                       error={error('note')}
                     />
                   </div>
-                </Disclosure>
+                </RowDetails>
               </div>
             </RowFields>
           )

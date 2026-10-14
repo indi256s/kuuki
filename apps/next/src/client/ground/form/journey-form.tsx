@@ -27,7 +27,7 @@ import { trackPrivateOperation } from '../../activity'
 import { announceShellNotice } from '../../shell-notices'
 import { Alert } from '../../ui/alert'
 import { Button } from '../../ui/button'
-import { FloatingActionBar } from '../../ui/floating-action-bar'
+import { Disclosure } from '../../ui/disclosure'
 import { Field } from '../../ui/field'
 import { SegmentedControl } from '../../ui/segmented-control'
 import { countryNamer } from '../../passport/model'
@@ -193,6 +193,8 @@ function FormBody({
   const [storageFailed, setStorageFailed] = useState(false)
   const [touched, setTouched] = useState(initial.restored)
   const [showErrors, setShowErrors] = useState(false)
+  const [validationAttempt, setValidationAttempt] = useState(0)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [reviewSaved, setReviewSaved] = useState(false)
   const [existingStatus, setExistingStatus] = useState(initial.savedStatus)
   const [baseVersion, setBaseVersion] = useState(initial.baseVersion)
@@ -282,6 +284,7 @@ function FormBody({
   const name = useMemo(() => countryNamer(locale), [locale])
   const placeName = useCallback((place: GroundPlaceSnapshot) => placeLabel(place, locale), [locale])
   const routeCodes = useMemo(() => routeCountryCodes(state), [state])
+  if (showErrors && (errors.title || errors.note) && !detailsOpen) setDetailsOpen(true)
   const saving = save.phase === 'saving'
   const countriesMissing = review && !countriesAnswered(state)
 
@@ -347,6 +350,11 @@ function FormBody({
     }
   }
 
+  useEffect(() => {
+    if (validationAttempt === 0) return
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+  }, [validationAttempt])
+
   const submit = (event?: FormEvent) => {
     event?.preventDefault()
     if (saving || !online || save.phase === 'unknown' || save.phase === 'gone') return
@@ -360,9 +368,7 @@ function FormBody({
         : null
     if (!body) {
       setShowErrors(true)
-      queueMicrotask(() =>
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
-      )
+      setValidationAttempt((value) => value + 1)
       return
     }
     const next = commandFor(body, attempt.current, newId)
@@ -503,8 +509,8 @@ function FormBody({
             : 'This journey was deleted.'
           : countriesMissing
             ? ru
-              ? 'Отметьте пересечённые страны или «Ни одной из них».'
-              : 'Choose the countries you crossed, or “None of these”.'
+              ? 'Выберите страны поездки или «Ни одной из них».'
+              : 'Choose the countries on your journey, or “None of these”.'
             : undefined
 
   return (
@@ -554,24 +560,11 @@ function FormBody({
                   { value: 'completed', label: ru ? 'Уже была' : 'Already happened' },
                 ]}
               />
-              {review && (
-                <p className="gt-muted">
-                  {ru
-                    ? 'Старую поездку сразу сверяем целиком: маршрут, даты и страны, одним сохранением.'
-                    : 'An old trip is reviewed in one go: route, dates and countries, one save.'}
-                </p>
-              )}
             </section>
           )}
           <section className="gt-section" aria-labelledby="gt-route-h">
             <h2 id="gt-route-h" className="gt-h">
-              {review
-                ? ru
-                  ? 'Фактический маршрут'
-                  : 'The route you took'
-                : ru
-                  ? 'Маршрут'
-                  : 'Route'}
+              {ru ? 'Маршрут' : 'Route'}
             </h2>
             {errors.route && showErrors && (
               <p className="gt-error-text" role="alert">
@@ -599,7 +592,6 @@ function FormBody({
                 disabled={saving}
               />
             )}
-            <MetricsPreview state={state} locale={locale} />
           </section>
           <section className="gt-section" aria-labelledby="gt-dates-h">
             <h2 id="gt-dates-h" className="gt-h">
@@ -636,27 +628,35 @@ function FormBody({
               />
             </section>
           )}
-          <section className="gt-section" aria-labelledby="gt-about-h">
-            <h2 id="gt-about-h" className="gt-h">
-              {ru ? 'Название и заметка' : 'Name and note'}
-            </h2>
-            <Field
-              label={ru ? 'Название' : 'Title'}
-              optionalLabel={ru ? 'необязательно' : 'optional'}
-              value={state.title}
-              maxLength={200}
-              onChange={(event) => change((current) => ({ ...current, title: event.target.value }))}
-              error={shown('title')}
-            />
-            <TextAreaField
-              label={ru ? 'Заметка' : 'Note'}
-              optionalLabel={ru ? 'необязательно' : 'optional'}
-              value={state.note}
-              maxLength={10_000}
-              onChange={(event) => change((current) => ({ ...current, note: event.target.value }))}
-              error={shown('note')}
-            />
-          </section>
+          <Disclosure
+            summary={ru ? 'Подробности' : 'Details'}
+            open={detailsOpen || (showErrors && !!(errors.title || errors.note))}
+            onOpenChange={setDetailsOpen}
+          >
+            <div className="gt-fields">
+              <MetricsPreview state={state} locale={locale} />
+              <Field
+                label={ru ? 'Название' : 'Title'}
+                optionalLabel={ru ? 'необязательно' : 'optional'}
+                value={state.title}
+                maxLength={200}
+                onChange={(event) =>
+                  change((current) => ({ ...current, title: event.target.value }))
+                }
+                error={shown('title')}
+              />
+              <TextAreaField
+                label={ru ? 'Заметка' : 'Note'}
+                optionalLabel={ru ? 'необязательно' : 'optional'}
+                value={state.note}
+                maxLength={10_000}
+                onChange={(event) =>
+                  change((current) => ({ ...current, note: event.target.value }))
+                }
+                error={shown('note')}
+              />
+            </div>
+          </Disclosure>
         </fieldset>
         {laterEdits && (
           <p className="gt-muted" role="status">
@@ -668,8 +668,8 @@ function FormBody({
         {rebased && save.phase === 'idle' && (
           <p className="gt-muted" role="status">
             {ru
-              ? 'Это путешествие уже отмечено как состоявшееся. Отметьте страны, которые вы пересекли, и сохраните снова.'
-              : 'This journey was completed elsewhere. Choose the countries you crossed, then save again.'}
+              ? 'Это путешествие уже отмечено как состоявшееся. Выберите страны поездки и сохраните снова.'
+              : 'This journey was completed elsewhere. Choose the countries on your journey, then save again.'}
           </p>
         )}
         <SaveNotices
@@ -688,29 +688,31 @@ function FormBody({
           onReread={() => void reread()}
           onLeave={() => router.push(returnTo)}
         />
-      </form>
-      <FloatingActionBar
-        label={ru ? 'Действия с путешествием' : 'Journey actions'}
-        countLabel={
-          state.mode === 'rail'
+        <p className="gt-muted gt-count">
+          {state.mode === 'rail'
             ? formatCount(locale, children, LEGS)
-            : formatCount(locale, children, STOPS)
-        }
-      >
-        <Button onClick={() => router.push(returnTo)} disabled={saving}>
-          {ru ? 'Отмена' : 'Cancel'}
-        </Button>
-        <Button
-          variant="primary"
-          type="submit"
-          form={formId}
-          loading={saving}
-          loadingLabel={ru ? 'Сохраняем…' : 'Saving…'}
-          disabledReason={saveReason}
+            : formatCount(locale, children, STOPS)}
+        </p>
+        <div
+          className="gt-actions gt-save-actions"
+          role="group"
+          aria-label={ru ? 'Действия с путешествием' : 'Journey actions'}
         >
-          {saveLabel}
-        </Button>
-      </FloatingActionBar>
+          <Button onClick={() => router.push(returnTo)} disabled={saving}>
+            {ru ? 'Отмена' : 'Cancel'}
+          </Button>
+          <Button
+            variant="primary"
+            type="submit"
+            form={formId}
+            loading={saving}
+            loadingLabel={ru ? 'Сохраняем…' : 'Saving…'}
+            disabledReason={saveReason}
+          >
+            {saveLabel}
+          </Button>
+        </div>
+      </form>
     </>
   )
 }

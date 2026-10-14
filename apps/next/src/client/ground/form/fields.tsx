@@ -35,8 +35,8 @@ export function errorText(code: ErrorCode | undefined, locale: Locale): string |
       return ru ? 'Добавьте ещё пункты маршрута.' : 'Add more route entries.'
     case 'countries':
       return ru
-        ? 'Выберите пересечённые страны или «Ни одной из них».'
-        : 'Choose the countries you crossed, or “None of these”.'
+        ? 'Выберите страны поездки или «Ни одной из них».'
+        : 'Choose the countries on your journey, or “None of these”.'
   }
 }
 
@@ -64,6 +64,8 @@ export function DateField({
       locale={locale}
       error={error}
       disabled={disabled}
+      weekStartsOn={1}
+      displayFormat="readable"
     />
   )
 }

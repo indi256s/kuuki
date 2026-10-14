@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowDown, ArrowUp, GripVertical, X } from '@keyline-icons/react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { GripVertical } from '@keyline-icons/react'
 import type { Locale } from '../../../lib/format'
 import { announceShellNotice } from '../../shell-notices'
 import { Button } from '../../ui/button'
+import { Menu, MenuItem } from '../../ui/menu'
 import { Disclosure } from '../../ui/disclosure'
 
 /** Index a dragged row would take when released at pointer height `y`: the first row whose middle is below it. */
@@ -39,44 +40,89 @@ export function restored<T extends { id: string }>(
   return next
 }
 
-/**
- * The fields of one row. A row with its required fields filled reads as a summary line and an Edit button; a row with
- * something missing, an error, or just added stays open. Once open it stays open, so typing never folds it away.
- */
+/** Blank and invalid rows show their inputs; completed rows can be explicitly edited. */
 export function RowFields({
   locale,
   summary,
+  detail,
   complete,
   hasError,
   fresh,
+  disabled,
   children,
 }: {
   locale: Locale
   summary: string
+  detail?: string
   complete: boolean
   hasError: boolean
-  /** The row was added in this session; it starts open even when its place is already filled. */
   fresh: boolean
+  disabled?: boolean
   children: ReactNode
 }) {
   const [opened, setOpened] = useState(!complete || fresh)
+  const id = useId()
+  // Revealing a problem must not hide the focused input as soon as it is corrected.
+  if ((hasError || !complete) && !opened) setOpened(true)
+  const visible = opened || hasError || !complete
   return (
     <div className="gt-row-fields">
-      <Disclosure
-        layout="row"
-        open={opened || hasError || !complete}
-        onOpenChange={setOpened}
-        summary={locale === 'ru' ? 'Изменить' : 'Edit'}
-        description={summary}
-      >
+      {complete && !hasError && (
+        <div className="gt-row-summary">
+          <div>
+            <p className="gt-row-primary">{summary}</p>
+            {detail && <p className="gt-muted">{detail}</p>}
+          </div>
+          <Button
+            variant="ghost"
+            disabled={disabled}
+            aria-expanded={visible}
+            aria-controls={id}
+            onClick={() => setOpened(!opened)}
+          >
+            {visible
+              ? locale === 'ru'
+                ? 'Готово'
+                : 'Done'
+              : locale === 'ru'
+                ? 'Изменить'
+                : 'Edit'}
+          </Button>
+        </div>
+      )}
+      <div id={id} hidden={!visible} inert={!visible}>
         {children}
-      </Disclosure>
+      </div>
     </div>
   )
 }
 
+/** Optional fields stay compact, while validation always exposes the affected input. */
+export function RowDetails({
+  locale,
+  hasError,
+  children,
+}: {
+  locale: Locale
+  hasError: boolean
+  children: ReactNode
+}) {
+  const [opened, setOpened] = useState(false)
+  if (hasError && !opened) setOpened(true)
+  return (
+    <Disclosure
+      layout="row"
+      summary={locale === 'ru' ? 'Подробности' : 'Details'}
+      open={opened || hasError}
+      onOpenChange={setOpened}
+    >
+      {children}
+    </Disclosure>
+  )
+}
+
 /**
- * An ordered list whose rows can be moved with two buttons per row (the canonical way) or by dragging the grip
+ * An ordered list whose rows can be moved from their actions menu or by dragging the grip
  * (pointer only, Escape cancels). Reordering and removing keep focus where the member is working and announce
  * the result; a removed row can be brought back from the notice for a few seconds. Rows stay in the page flow;
  * nothing here clips a popover.
@@ -115,7 +161,7 @@ export function OrderedRows<T extends { id: string }>({
 }) {
   const ru = locale === 'ru'
   const list = useRef<HTMLOListElement>(null)
-  const pendingFocus = useRef<{ id: string; dir: Dir } | { next: string | null } | null>(null)
+  const pendingFocus = useRef<{ id: string } | { next: string | null } | null>(null)
   const [status, setStatus] = useState('')
   const [drag, setDrag] = useState<{ id: string; over: number } | null>(null)
   const dragRef = useRef<{ id: string; from: number; over: number } | null>(null)
@@ -134,15 +180,10 @@ export function OrderedRows<T extends { id: string }>({
     pendingFocus.current = null
     const root = list.current
     if (!root) return
-    if ('dir' in target) {
-      const row = root.querySelector<HTMLElement>(`[data-row-id="${target.id}"]`)
-      const wanted = row?.querySelector<HTMLElement>(`[data-dir="${target.dir}"]`)
-      const other = row?.querySelector<HTMLElement>(
-        `[data-dir="${target.dir === 'up' ? 'down' : 'up'}"]`,
-      )
-      ;(wanted?.getAttribute('aria-disabled') === 'true' ? other : wanted)?.focus()
+    if ('id' in target) {
+      root.querySelector<HTMLElement>(`[data-row-id="${target.id}"] [data-row-menu]`)?.focus()
     } else if (target.next) {
-      root.querySelector<HTMLElement>(`[data-row-id="${target.next}"] [data-legend]`)?.focus()
+      root.querySelector<HTMLElement>(`[data-row-id="${target.next}"] [data-row-menu]`)?.focus()
     }
   })
 
@@ -150,7 +191,7 @@ export function OrderedRows<T extends { id: string }>({
     const to = dir === 'up' ? index - 1 : index + 1
     if (to < 0 || to >= items.length) return
     const item = items[index]
-    pendingFocus.current = { id: item.id, dir }
+    pendingFocus.current = { id: item.id }
     onMove(index, to)
     setStatus(
       ru
@@ -181,7 +222,7 @@ export function OrderedRows<T extends { id: string }>({
     setDrag(null)
     if (commit && current && current.over !== current.from) {
       const item = items[current.from]
-      pendingFocus.current = { id: item.id, dir: current.over < current.from ? 'up' : 'down' }
+      pendingFocus.current = { id: item.id }
       onMove(current.from, current.over)
       setStatus(
         ru
@@ -239,57 +280,63 @@ export function OrderedRows<T extends { id: string }>({
             data-over={drag && drag.over === index && drag.id !== item.id ? '' : undefined}
           >
             <fieldset className="gt-row-fieldset">
-              <legend tabIndex={-1} data-legend>
-                {title(item, index)}
-              </legend>
-              <div className="gt-row-tools">
-                <span
-                  className="gt-grip"
-                  aria-hidden="true"
-                  onPointerDown={(event) => startDrag(event, index)}
-                  onPointerMove={dragMove}
-                  onPointerUp={() => endDrag(true)}
-                  onPointerCancel={() => endDrag(false)}
-                >
-                  <GripVertical size={18} />
+              <legend className="sr-only">{title(item, index)}</legend>
+              <div className="gt-row-header">
+                <span className="gt-row-label" aria-hidden="true">
+                  {title(item, index)}
                 </span>
-                <Button
-                  aria-label={ru ? `${name(item, index)}: выше` : `Move ${name(item, index)} up`}
-                  disabled={index === 0 || disabled}
-                  data-dir="up"
-                  className="gt-icon-button"
-                  icon={<ArrowUp size={18} />}
-                  onClick={() => index > 0 && move(index, 'up')}
-                >
-                  <span className="sr-only">{ru ? 'Выше' : 'Up'}</span>
-                </Button>
-                <Button
-                  aria-label={ru ? `${name(item, index)}: ниже` : `Move ${name(item, index)} down`}
-                  disabled={index === items.length - 1 || disabled}
-                  data-dir="down"
-                  className="gt-icon-button"
-                  icon={<ArrowDown size={18} />}
-                  onClick={() => index < items.length - 1 && move(index, 'down')}
-                >
-                  <span className="sr-only">{ru ? 'Ниже' : 'Down'}</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  aria-label={ru ? `${name(item, index)}: удалить` : `Remove ${name(item, index)}`}
-                  className="gt-icon-button"
-                  icon={<X size={18} />}
-                  disabled={disabled || !!removeDisabledReason}
-                  aria-describedby={removeDisabledReason ? `reason-${item.id}` : undefined}
-                  onClick={() => remove(index)}
-                >
-                  <span className="sr-only">{ru ? 'Удалить' : 'Remove'}</span>
-                </Button>
+                <div className="gt-row-tools">
+                  <span
+                    className="gt-grip"
+                    aria-hidden="true"
+                    onPointerDown={(event) => startDrag(event, index)}
+                    onPointerMove={dragMove}
+                    onPointerUp={() => endDrag(true)}
+                    onPointerCancel={() => endDrag(false)}
+                  >
+                    <GripVertical size={18} />
+                  </span>
+                  <Menu
+                    align="end"
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        className="gt-icon-button"
+                        data-row-menu
+                        disabled={disabled}
+                        aria-label={
+                          ru ? `${name(item, index)}: действия` : `Actions for ${name(item, index)}`
+                        }
+                      >
+                        <span aria-hidden="true">⋯</span>
+                      </Button>
+                    }
+                  >
+                    <MenuItem disabled={index === 0 || disabled} onSelect={() => move(index, 'up')}>
+                      {ru ? 'Выше' : 'Move up'}
+                    </MenuItem>
+                    <MenuItem
+                      disabled={index === items.length - 1 || disabled}
+                      onSelect={() => move(index, 'down')}
+                    >
+                      {ru ? 'Ниже' : 'Move down'}
+                    </MenuItem>
+                    <MenuItem
+                      danger
+                      disabled={disabled || !!removeDisabledReason}
+                      aria-describedby={removeDisabledReason ? `reason-${item.id}` : undefined}
+                      onSelect={() => remove(index)}
+                    >
+                      {ru ? 'Удалить' : 'Remove'}
+                    </MenuItem>
+                    {removeDisabledReason && (
+                      <p id={`reason-${item.id}`} className="gt-muted">
+                        {removeDisabledReason}
+                      </p>
+                    )}
+                  </Menu>
+                </div>
               </div>
-              {removeDisabledReason && (
-                <p id={`reason-${item.id}`} className="gt-muted">
-                  {removeDisabledReason}
-                </p>
-              )}
               {children(item, index)}
             </fieldset>
           </li>

@@ -364,3 +364,17 @@
 .flight-search-sheet li[aria-disabled='true'] {
   cursor: default;
 }
+
+/* Neutral input focus stays distinct from the danger border and the selected accent. */
+.flight-combobox input:focus-visible,
+.flight-calendar input:focus-visible,
+.flight-search-input input:focus-visible {
+  outline-color: var(--text);
+}
+.flight-async-result-count {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

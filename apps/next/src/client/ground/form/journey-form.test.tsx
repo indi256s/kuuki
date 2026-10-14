@@ -85,13 +85,15 @@ describe('JourneyForm', () => {
   it('asks for the countries answer before an old trip can be saved, with nothing pre-ticked', async () => {
     render(<JourneyForm ownerId="owner-a" locale="en" mode="road" returnTo="/ground-travel" />)
     await userEvent.click(screen.getByRole('radio', { name: 'Already happened' }))
-    const countries = screen.getByRole('group', { name: 'Countries you actually crossed' })
+    const countries = screen.getByRole('group', { name: 'Which countries were on your journey?' })
     expect(
       within(countries)
         .getAllByRole('checkbox')
         .every((box) => !(box as HTMLInputElement).checked),
     ).toBe(true)
-    expect(screen.getByText('Transit without stopping counts.')).toBeTruthy()
+    expect(
+      screen.getByText('Include the country you travelled in and transit without stops.'),
+    ).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Save journey' }).getAttribute('aria-disabled')).toBe(
       'true',
     )
@@ -99,6 +101,31 @@ describe('JourneyForm', () => {
     expect(
       screen.getByRole('button', { name: 'Save journey' }).getAttribute('aria-disabled'),
     ).toBeNull()
+  })
+
+  it('opens Details and focuses its invalid field after validation', async () => {
+    render(
+      <JourneyForm
+        ownerId="owner-a"
+        locale="en"
+        mode="road"
+        existing={roadJourney({ title: 'x'.repeat(201) })}
+        returnTo="/ground-travel"
+      />,
+    )
+    expect(screen.queryByRole('textbox', { name: /^Title/ })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(screen.getByRole('textbox', { name: /^Title/ })).toBeVisible()
+    expect(screen.getByRole('textbox', { name: /^Title/ })).toHaveFocus()
+    expect(api.sendCommand).not.toHaveBeenCalled()
+    await userEvent.keyboard('{End}{Backspace}')
+    expect(screen.getByRole('textbox', { name: /^Title/ })).toHaveFocus()
+    expect(screen.getByRole('button', { name: /^Details$/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    await userEvent.keyboard('{Backspace}')
+    expect(screen.getByRole('textbox', { name: /^Title/ })).toHaveValue('x'.repeat(199))
   })
 
   it('restores only the signed-in owner’s unfinished entry, with a way to discard it', () => {
@@ -247,11 +274,12 @@ describe('JourneyForm', () => {
         returnTo="/ground-travel"
       />,
     )
+    await userEvent.click(screen.getByRole('button', { name: /^Details$/ }))
     await userEvent.type(screen.getByLabelText(/^Title/), 'Edited')
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Apply my changes on top' }))
     expect(screen.getByText(/completed elsewhere/)).toBeTruthy()
-    const countries = screen.getByRole('group', { name: 'Countries you actually crossed' })
+    const countries = screen.getByRole('group', { name: 'Which countries were on your journey?' })
     await userEvent.click(within(countries).getByRole('checkbox', { name: 'None of these' }))
     vi.mocked(api.sendCommand).mockResolvedValueOnce({
       outcome: 'saved',
@@ -285,6 +313,7 @@ describe('JourneyForm', () => {
         returnTo="/ground-travel"
       />,
     )
+    await userEvent.click(screen.getByRole('button', { name: /^Details$/ }))
     await userEvent.type(screen.getByLabelText(/^Title/), 'Edited')
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     await screen.findByText('We could not read the saved version.')

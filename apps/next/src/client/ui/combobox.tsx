@@ -565,7 +565,16 @@ export function AsyncCombobox<T>({
   const footerOpen = query.trim().length >= minChars || state.status === 'error'
   const list = (
     <>
-      <p role="status">{status}</p>
+      <p
+        role="status"
+        className={
+          options.length > 0 && state.status !== 'error' && !loading
+            ? 'flight-async-result-count'
+            : undefined
+        }
+      >
+        {status}
+      </p>
       {state.status === 'error' && (
         <button
           type="button"

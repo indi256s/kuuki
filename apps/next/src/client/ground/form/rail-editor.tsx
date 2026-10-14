@@ -5,14 +5,14 @@ import { Plus } from '@keyline-icons/react'
 import { GROUND_LIMITS, placeLabel, railLegDuration } from '@kuuki/shared/groundTravel'
 import { formatDateOnly, type Locale } from '../../../lib/format'
 import { Button } from '../../ui/button'
-import { Disclosure } from '../../ui/disclosure'
 import { Field } from '../../ui/field'
 import { knownDuration } from '../format'
 import { DateField, errorText, TimeField } from './fields'
 import { emptyLeg, legPreview, parseWholeNumber, type FormErrors, type LegDraft } from './model'
 import type { Preview } from './ocr/model'
-import { moved, OrderedRows, RowFields } from './ordered-rows'
-import { PlacePicker } from './place-picker'
+import { moved, OrderedRows, RowDetails, RowFields } from './ordered-rows'
+import { countryNamer } from '../../passport/model'
+import { PlacePicker, placeDetail } from './place-picker'
 
 /**
  * How the OCR panel (a later change) hands recognized legs to the form.
@@ -128,9 +128,7 @@ export function RailEditor({
         ownerId={ownerId}
         locale={locale}
         label={ru ? 'Участки маршрута' : 'Route legs'}
-        title={(leg, index) =>
-          `${ru ? 'Участок' : 'Leg'} ${index + 1}${leg.from || leg.to ? `: ${name(leg.from)} → ${name(leg.to)}` : ''}`
-        }
+        title={(leg, index) => `${ru ? 'Участок' : 'Leg'} ${index + 1}`}
         name={(leg, index) =>
           ru
             ? `Участок ${index + 1}, ${name(leg.from)} — ${name(leg.to)}`
@@ -202,13 +200,16 @@ function LegFields({
   }
   const prefill = (side: 'from' | 'to') =>
     find?.side === side && pending[side] ? { text: pending[side], nonce: find.nonce } : undefined
-  const detailsFilled = [
-    leg.fromStation,
-    leg.toStation,
-    leg.trainNumber,
-    leg.operator,
-    leg.durationManual,
-  ].some((value) => value.trim() !== '')
+  const detailsError = [
+    'departureTime',
+    'arrivalTime',
+    'fromStation',
+    'toStation',
+    'trainNumber',
+    'operator',
+    'durationManual',
+  ].some((field) => !!error(field))
+  const country = countryNamer(locale)
   // With no typed duration the server derives one from the schedule; show that figure as a fact, never as a field value.
   const schedule = useMemo(() => {
     const input = legPreview(leg)
@@ -230,8 +231,12 @@ function LegFields({
   ]
     .filter(Boolean)
     .join(' ')
-  const summary = [
-    leg.from && leg.to ? `${placeLabel(leg.from, locale)} → ${placeLabel(leg.to, locale)}` : '',
+  const summary =
+    leg.from && leg.to ? `${placeLabel(leg.from, locale)} → ${placeLabel(leg.to, locale)}` : ''
+  const detail = [
+    leg.from && leg.to
+      ? `${placeDetail(leg.from, locale, country)} → ${placeDetail(leg.to, locale, country)}`
+      : '',
     when,
   ]
     .filter(Boolean)
@@ -240,6 +245,8 @@ function LegFields({
     <RowFields
       locale={locale}
       summary={summary}
+      detail={detail}
+      disabled={disabled}
       complete={!!leg.from && !!leg.to}
       hasError={Object.keys(errors).some((key) => key.startsWith(`leg:${leg.id}:`))}
       fresh={fresh}
@@ -294,16 +301,6 @@ function LegFields({
             error={error('departureDate')}
             disabled={disabled}
           />
-          <TimeField
-            label={ru ? 'Время отправления (местное)' : 'Departure time (local)'}
-            value={leg.departureTime}
-            locale={locale}
-            onChange={(departureTime) => onChange({ departureTime })}
-            error={error('departureTime')}
-            disabled={disabled}
-          />
-        </div>
-        <div className="gt-pair">
           <DateField
             label={ru ? 'Дата прибытия' : 'Arrival date'}
             value={leg.arrivalDate}
@@ -312,21 +309,27 @@ function LegFields({
             error={error('arrivalDate')}
             disabled={disabled}
           />
-          <TimeField
-            label={ru ? 'Время прибытия (местное)' : 'Arrival time (local)'}
-            value={leg.arrivalTime}
-            locale={locale}
-            onChange={(arrivalTime) => onChange({ arrivalTime })}
-            error={error('arrivalTime')}
-            disabled={disabled}
-          />
         </div>
-        <Disclosure
-          layout="row"
-          defaultOpen={detailsFilled}
-          summary={ru ? 'Станции, поезд и время в пути' : 'Stations, train and time on the train'}
-        >
+        <RowDetails locale={locale} hasError={detailsError}>
           <div className="gt-fields">
+            <div className="gt-pair">
+              <TimeField
+                label={ru ? 'Время отправления (местное)' : 'Departure time (local)'}
+                value={leg.departureTime}
+                locale={locale}
+                onChange={(departureTime) => onChange({ departureTime })}
+                error={error('departureTime')}
+                disabled={disabled}
+              />
+              <TimeField
+                label={ru ? 'Время прибытия (местное)' : 'Arrival time (local)'}
+                value={leg.arrivalTime}
+                locale={locale}
+                onChange={(arrivalTime) => onChange({ arrivalTime })}
+                error={error('arrivalTime')}
+                disabled={disabled}
+              />
+            </div>
             <div className="gt-pair">
               <Field
                 label={ru ? 'Станция отправления' : 'Departure station'}
@@ -379,7 +382,7 @@ function LegFields({
               error={error('durationManual')}
             />
           </div>
-        </Disclosure>
+        </RowDetails>
       </div>
     </RowFields>
   )

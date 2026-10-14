@@ -4,10 +4,7 @@
   gap: var(--space-6);
   max-width: 760px;
   min-width: 0;
-  /* Clears the floating action bar wherever the shell puts it. */
-  margin-block-end: calc(
-    var(--action-bar-bottom, var(--space-4)) + var(--space-12) + var(--space-6)
-  );
+  margin-block-end: var(--space-6);
 }
 .gt-sections,
 .gt-row-fieldset,
@@ -121,17 +118,6 @@
   display: grid;
   gap: var(--space-4);
 }
-.gt-row-fieldset > legend {
-  float: left;
-  width: 100%;
-  margin-block-end: var(--space-3);
-  padding: 0;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.gt-row-fieldset > legend + * {
-  clear: both;
-}
 .gt-row-tools {
   display: flex;
   flex-wrap: wrap;
@@ -156,23 +142,6 @@
   grid-template-columns: auto;
   width: 44px;
   padding: 0;
-}
-.gt-row-fields .ui-disclosure-text {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: baseline;
-  justify-content: space-between;
-  flex: 1;
-  gap: var(--space-3);
-}
-.gt-row-fields .ui-disclosure-summary {
-  flex: none;
-  font-size: 13px;
-}
-.gt-row-fields .ui-disclosure-description {
-  color: var(--text);
-  font-size: 15px;
-  line-height: 24px;
 }
 .gt-place {
   display: grid;
@@ -370,4 +339,66 @@
 }
 .gt-back:active {
   color: var(--text);
+}
+
+.gt-form .ui-field-error:empty {
+  display: none;
+}
+.gt-form .flight-calendar > small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.gt-count {
+  margin-block-end: calc(-1 * var(--space-4));
+}
+.gt-save-actions {
+  align-items: start;
+}
+.gt-row-summary {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.gt-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.gt-row-summary > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gt-row-primary {
+  margin: 0;
+  font-weight: 600;
+}
+.gt-row-summary .gt-muted {
+  margin-block-start: var(--space-1);
+}
+.gt-row-fields > div[id]:not([hidden]) {
+  margin-block-start: var(--space-3);
+}
+.gt-row-label {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.gt-row-tools {
+  margin-inline-start: auto;
+}
+.ui-button.gt-icon-button[data-row-menu] {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.gt-row-summary > .ui-button {
+  flex: none;
+  white-space: nowrap;
 }
