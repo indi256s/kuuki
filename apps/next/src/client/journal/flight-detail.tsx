@@ -1,8 +1,11 @@
 'use client'
-// The detail sheet's content: one flight read as a journey (cities, local times, the time between them), one history fact and a
-// compact block of supporting facts. Edit switches the same panel to labeled fields that save together.
+// The detail sheet's content: one flight read as a journey (cities, local times, the time between them), a compact block of
+// supporting facts and one quiet history fact. Edit (in the sheet header) switches the same panel to labeled fields that save
+// together.
 // Presentational: the container (detail-sheet.tsx) owns writes, Undo, the lazily loaded editor catalogue and the layout.
+import { MapPin } from '@keyline-icons/react'
 import { makerOf } from '@kuuki/data/aircraft-makers'
+import { createPortal } from 'react-dom'
 import {
   useCallback,
   useEffect,
@@ -58,7 +61,6 @@ const copy = {
     arrival: (ordinal: number, city: string) =>
       `${ordinal}${ordinalSuffix[ordinalRules.select(ordinal)] ?? 'th'} recorded arrival in ${city}`,
     facts: 'Flight facts',
-    date: 'Date',
     flight: 'Flight',
     aircraft: 'Aircraft',
     distance: 'Distance',
@@ -109,7 +111,6 @@ const copy = {
     nextDay: 'на следующий день',
     arrival: (ordinal: number, city: string) => `${city}: ${ordinal}-й прилёт в журнале`,
     facts: 'Сведения о рейсе',
-    date: 'Дата',
     flight: 'Рейс',
     aircraft: 'Самолёт',
     distance: 'Расстояние',
@@ -412,40 +413,46 @@ function JourneyReading({ flight, payload, locale, t, onOpenFlight }: ReadingPro
         </p>
         {stop('arrival', destination, flight.destination, arrival, arrivalDay)}
       </div>
-      {history && <p className="jd-history">{t.arrival(history.ordinal, history.city)}</p>}
-      <dl className="jd-facts" aria-label={t.facts}>
-        <div className="jd-fact">
-          <dt>{t.date}</dt>
-          <dd>{formatDateOnly(locale, flight.date, 'long')}</dd>
-        </div>
-        {(airlineName || code || flight.airline_iata) && (
-          <div className="jd-fact">
-            <dt>{t.flight}</dt>
-            <dd>
-              {airlineName && <span>{airlineName}</span>}
-              {(code ?? (airlineName ? null : flight.airline_iata)) && (
-                <span className="jd-code">{code ?? flight.airline_iata}</span>
-              )}
-            </dd>
-          </div>
-        )}
-        {flight.aircraft_icao && (
-          <div className="jd-fact">
-            <dt>{t.aircraft}</dt>
-            <dd>
-              <MakerSwatch maker={makerOf(flight.aircraft_icao)} size={10} />
-              <span>{aircraftName ?? flight.aircraft_icao}</span>
-              {aircraftName && <span className="jd-code jd-quiet">{flight.aircraft_icao}</span>}
-            </dd>
-          </div>
-        )}
-        {distance && (
-          <div className="jd-fact">
-            <dt>{t.distance}</dt>
-            <dd>{distance}</dd>
-          </div>
-        )}
-      </dl>
+      {/* The header carries the date; the flight number lives here, beside its airline. Absent facts are omitted. */}
+      {(airlineName || code || flight.airline_iata || distance || flight.aircraft_icao) && (
+        <dl className="jd-facts" aria-label={t.facts}>
+          {(airlineName || code || flight.airline_iata) && (
+            <div className="jd-fact">
+              <dt>{t.flight}</dt>
+              <dd className="jd-stack">
+                {airlineName && <span>{airlineName}</span>}
+                {(code ?? (airlineName ? null : flight.airline_iata)) && (
+                  <span className="jd-code">{code ?? flight.airline_iata}</span>
+                )}
+              </dd>
+            </div>
+          )}
+          {distance && (
+            <div className="jd-fact">
+              <dt>{t.distance}</dt>
+              <dd>{distance}</dd>
+            </div>
+          )}
+          {flight.aircraft_icao && (
+            <div className="jd-fact" data-wide="">
+              <dt>{t.aircraft}</dt>
+              <dd className="jd-aircraft">
+                <MakerSwatch maker={makerOf(flight.aircraft_icao)} size={10} />
+                <span className="jd-stack">
+                  <span>{aircraftName ?? flight.aircraft_icao}</span>
+                  {aircraftName && <span className="jd-code jd-quiet">{flight.aircraft_icao}</span>}
+                </span>
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+      {history && (
+        <p className="jd-history">
+          <MapPin size={16} strokeWidth={2} aria-hidden="true" />
+          {t.arrival(history.ordinal, history.city)}
+        </p>
+      )}
       {(connection.previous || connection.next) && (
         <section className="jd-section" aria-labelledby={`jd-connection-${flight.id}`}>
           <h3 id={`jd-connection-${flight.id}`} className="jd-heading">
@@ -841,6 +848,8 @@ export type FlightDetailProps = {
   onOpenFlight: (id: number) => void
   /** Filled while editing; the container asks it before Escape or a close request. */
   guardRef: RefObject<CloseGuard | null>
+  /** The sheet header's action slot: Edit sits beside Close there. Without it, Edit stays at the top of the content. */
+  actionSlot?: HTMLElement | null
 }
 
 export function FlightDetail({
@@ -857,6 +866,7 @@ export function FlightDetail({
   initialField,
   onOpenFlight,
   guardRef,
+  actionSlot,
 }: FlightDetailProps) {
   const t = copy[locale]
   const [editing, setEditing] = useState(() => !!initialField && online)
@@ -934,28 +944,34 @@ export function FlightDetail({
       </div>
     )
 
+  const edit = (
+    <Button
+      ref={editButton}
+      dense
+      variant="ghost"
+      className="jd-edit"
+      data-action="edit-flight"
+      aria-label={t.editName}
+      disabled={unavailable}
+      aria-describedby={!online ? offlineNoteId : undefined}
+      onClick={start}
+    >
+      {t.edit}
+    </Button>
+  )
   return (
     <div className="jd-content" data-mode="read">
-      <div className="jd-bar">
-        {status && (
-          <p className="jd-status" data-state={flight.lifecycle_state}>
-            {status}
-          </p>
-        )}
-        <Button
-          ref={editButton}
-          dense
-          variant="secondary"
-          className="jd-edit"
-          data-action="edit-flight"
-          aria-label={t.editName}
-          disabled={unavailable}
-          aria-describedby={!online ? offlineNoteId : undefined}
-          onClick={start}
-        >
-          {t.edit}
-        </Button>
-      </div>
+      {actionSlot && createPortal(edit, actionSlot)}
+      {(status || !actionSlot) && (
+        <div className="jd-bar">
+          {status && (
+            <p className="jd-status" data-state={flight.lifecycle_state}>
+              {status}
+            </p>
+          )}
+          {!actionSlot && edit}
+        </div>
+      )}
       <JourneyReading
         flight={flight}
         payload={payload}

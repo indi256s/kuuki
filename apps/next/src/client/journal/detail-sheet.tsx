@@ -46,7 +46,7 @@ import { useWriteFeedback } from '../write-feedback'
 import { Crossfade } from './crossfade'
 import { FlightDetail, type CloseGuard, type FlightEditor } from './flight-detail'
 import type { Changes, EditableField, EditOutcome, EditRecord, FlightDto } from './flight-edits'
-import { flightCode, type JournalFlight, type JournalPayload } from './model'
+import type { JournalFlight, JournalPayload } from './model'
 import { OfflineNote } from './states'
 import { useJournalStore } from './store'
 import './detail-sheet.css'
@@ -400,6 +400,9 @@ export function JournalDetail({
     if (!guard.current?.('close', closeSheet)) closeSheet()
   }
   const paneTitle = useRef<HTMLHeadingElement | null>(null)
+  /** Header slot beside Close; the content portals its Edit button here so identity and actions share one region. */
+  const [actionSlot, setActionSlot] = useState<HTMLElement | null>(null)
+  const actions = <span ref={setActionSlot} className="jd-actions" />
   const body = useRef<HTMLDivElement | null>(null)
   /** A swap started inside the sheet (a connection leg): the clicked button unmounts, so focus moves to the title. */
   const swapFromInside = useRef(false)
@@ -473,13 +476,9 @@ export function JournalDetail({
       <span aria-hidden="true"> → </span>
       <span className="sr-only">{locale === 'ru' ? ' в ' : ' to '}</span>
       {flight.destination}
-      {/* Identity before any decision: repeated routes differ by date and flight number (the review question sits below). */}
+      {/* Identity before any decision: the date sits under the route; the flight number leads the facts below. */}
       <span className="sr-only">,</span>
-      <span className="jd-title-meta">
-        {[formatDateOnly(locale, flight.date, 'medium'), flightCode(flight)]
-          .filter(Boolean)
-          .join(' · ')}
-      </span>
+      <span className="jd-title-meta">{formatDateOnly(locale, flight.date, 'long')}</span>
     </>
   ) : (
     t.flight
@@ -501,6 +500,7 @@ export function JournalDetail({
         initialField={initialField?.flightId === flight.id ? initialField.field : null}
         onOpenFlight={swap}
         guardRef={guard}
+        actionSlot={actionSlot}
       />
     </Crossfade>
   ) : (
@@ -546,6 +546,7 @@ export function JournalDetail({
           <h2 ref={paneTitle} tabIndex={-1} className="jd-title">
             {idle ? idle.title : title}
           </h2>
+          {!idle && actions}
           <button
             type="button"
             className="ui-icon-button"
@@ -580,6 +581,8 @@ export function JournalDetail({
         if (guard.current?.('escape', closeSheet)) event.preventDefault()
       }}
       title={idle ? idle.title : title}
+      titleAction={idle ? undefined : actions}
+      initialDetent={1}
       side={mobile ? 'bottom' : 'right'}
       className={mobile ? 'journal-detail-sheet flight-full-sheet' : 'journal-detail-sheet'}
       closeLabel={t.close}
