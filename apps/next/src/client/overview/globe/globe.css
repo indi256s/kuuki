@@ -266,18 +266,23 @@
     visibility: visible;
   }
 }
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 700px) {
+  .replay-transport {
+    position: relative;
+  }
   .replay-transport .ui-button {
     min-block-size: 44px;
     min-inline-size: 44px;
   }
-  .replay-transport[data-expanded='true'] .replay-scrubber {
+  .replay-transport .replay-scrubber {
     position: absolute;
     inset-inline-start: 0;
     inset-block-end: 48px;
-    inline-size: min(300px, calc(100vw - 48px));
     background: var(--surface);
     border-radius: var(--radius-sm);
+  }
+  .replay-transport[data-expanded='true'] .replay-scrubber {
+    inline-size: min(300px, calc(100vw - 48px));
   }
 }
 @media (prefers-reduced-motion: reduce) {

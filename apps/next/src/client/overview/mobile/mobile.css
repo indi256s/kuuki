@@ -1,4 +1,7 @@
 .ov3-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   font: inherit;
   color: var(--text);
   text-align: start;

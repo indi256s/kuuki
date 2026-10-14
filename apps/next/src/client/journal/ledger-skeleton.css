@@ -99,6 +99,11 @@
   }
   .ledger-skeleton-bar.is-mobile-filter {
     display: block;
+    height: 44px;
+  }
+  .ledger-skeleton-bar.is-more {
+    width: 44px;
+    height: 44px;
   }
   .ledger-skeleton-rows {
     gap: var(--space-3);
@@ -122,6 +127,7 @@
   }
   .ledger-skeleton-distance {
     grid-area: distance;
+    align-self: center;
     padding-inline-end: 44px;
   }
   .ledger-skeleton-date {
@@ -138,6 +144,8 @@
   }
   .ledger-skeleton-aircraft {
     grid-area: aircraft;
+    min-block-size: 32px;
+    align-content: center;
   }
   .ledger-skeleton-distance .is-text {
     width: 64px;

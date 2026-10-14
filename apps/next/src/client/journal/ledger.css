@@ -405,11 +405,15 @@
   }
   .journal-ledger .jr-row .jr-aircraft {
     grid-area: aircraft;
+    display: flex;
+    align-items: center;
+    min-block-size: 32px;
     min-width: 0;
     color: var(--text-muted);
   }
   .journal-ledger .jr-row .jr-distance {
     grid-area: distance;
+    align-self: center;
     color: var(--text-muted);
     padding-inline-end: 44px;
   }
@@ -423,7 +427,7 @@
   .journal-ledger .jr-more {
     inset-inline-end: var(--space-1);
     top: auto;
-    bottom: var(--space-1);
+    bottom: calc(var(--space-4) - 6px);
     margin-top: 0;
   }
 }
