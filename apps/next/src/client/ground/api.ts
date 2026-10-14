@@ -77,9 +77,16 @@ export function createManualPlace(
   return api.post<GroundPlaceSnapshot>('/api/ground-places/manual', place, options)
 }
 
-/** One file per call; the server detects the type from its bytes and stores nothing. */
+/**
+ * One file per call; the server detects the type from its bytes and stores nothing. The provider may take up to
+ * 90 s, so the client waits longer than its 30 s default, as flight import does.
+ */
 export function readRailTicket(base64: string, options: Signal = {}): Promise<RailOcrResult> {
-  return api.post<RailOcrResult>('/api/ground-journeys/ocr', { content: base64 }, options)
+  return api.post<RailOcrResult>(
+    '/api/ground-journeys/ocr',
+    { content: base64 },
+    { ...options, timeoutMs: 120_000 },
+  )
 }
 
 export const exportJourneysUrl = '/api/ground-journeys/export'
