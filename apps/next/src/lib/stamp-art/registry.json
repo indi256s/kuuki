@@ -668,7 +668,7 @@
     "name": "Switzerland",
     "motif": "Matterhorn",
     "kind": "nature",
-    "silhouette": "the crooked Matterhorn: summit hooking east, Hörnli ridge as a lit edge, shaded hatched north face with snow ledges, lit east face, chalets at the foot",
+    "silhouette": "the crooked Matterhorn at 70% height: summit leaning left, lit east face with snow streaks, shaded north face in vertical hatch with snow ledges, chalets at the foot",
     "modules": ["peak", "house"],
     "signature": null,
     "backdrop": null,
@@ -677,7 +677,7 @@
     "replaced": null,
     "confidence": "high",
     "facts": "checked",
-    "notes": "Redo: the pilot read as a flat triangle."
+    "notes": "Redo: the pilot read as a flat triangle; final pass replaced the radial north-face striping with the data-driven peak module (T2 lit rock, T4 shadow face, paper snow streaks)."
   },
   {
     "iso2": "CI",
@@ -1975,18 +1975,18 @@
     "iso2": "KP",
     "iso3": "PRK",
     "name": "North Korea",
-    "motif": "Paektu crater lake (Heaven Lake)",
+    "motif": "Kumgangsan (Diamond Mountains)",
     "kind": "nature",
-    "silhouette": "A deep caldera seen from the rim: a jagged ring of peaks on the far side, a still lake below, dark near-rim slopes at the corners",
-    "modules": ["paektu"],
+    "silhouette": "a crowd of faceted granite spires at 30-70% of the window height with T4 shadow facets, T5 pine clumps in the clefts and a T1 mist band across the middle",
+    "modules": ["peak"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Ryugyong Hotel: regime landmark and 1987 modern tower (rules 6, 7)",
-    "confidence": "low",
+    "replaced": "Paektu crater lake: central regime iconography (owner decision, final pass; earlier Ryugyong Hotel: regime landmark and 1987 modern tower)",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Mount Kumgang spires replaced with the Paektu caldera: neutral nature only, no regime symbols or monuments; one drawn view, lake and rim only."
+    "notes": "Owner decision: Kumgangsan replaces Paektu. Neutral nature only, no regime symbols."
   },
   {
     "iso2": "KR",
@@ -2111,18 +2111,18 @@
     "iso2": "LI",
     "iso3": "LIE",
     "name": "Liechtenstein",
-    "motif": "Alpine ridge above the Rhine valley",
-    "kind": "nature",
-    "silhouette": "Jagged row of peaks over a flat valley floor with a river band",
-    "modules": ["mountains", "water"],
+    "motif": "Gutenberg Castle (Balzers)",
+    "kind": "architecture",
+    "silhouette": "a small castle (30% of the window height) on a steep isolated knoll (40%): square keep with a crenellated parapet, hall with a slate gable, round turret, curtain wall with a gate; the Rhine valley below and the Alps in T2 behind",
+    "modules": ["gutenberg-c", "distance-mountains", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
     "status": "replaced",
-    "replaced": "Vaduz Castle: Q42 (Vaduz Castle is the active princely residence)",
-    "confidence": "low",
+    "replaced": "Vaduz Castle: Q42 (Vaduz Castle is the active princely residence); final pass also dropped the generic Alpine ridge",
+    "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Final pass: Gutenberg Castle in Balzers, a medieval hilltop castle that is not a seat of power, replaces the generic ridge."
   },
   {
     "iso2": "LK",
@@ -2776,8 +2776,8 @@
     "name": "Nepal",
     "motif": "Machhapuchhre",
     "kind": "nature",
-    "silhouette": "Single mountain with two summit points, a sharp central ridge and steep sides; the lower slopes spread wide. Symmetric about the vertical",
-    "modules": ["twin-peak", "mountains"],
+    "silhouette": "Machhapuchhre: the fishtail as two sharp summits side by side with a narrow notch, very steep, lit snow face with fluting lines, shaded right face in vertical hatch, Annapurna ridges in T2, lake in the foreground",
+    "modules": ["peak", "distance-mountains", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": "twin-peak",
@@ -2785,7 +2785,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "part: one tall peak with a V notch at the top (fishtail)"
+    "notes": "Final pass: redrawn with the peak module (no radial striping); notch between two horns, T4 shadow face with snow streaks."
   },
   {
     "iso2": "NR",
@@ -3167,8 +3167,8 @@
     "name": "Russia",
     "motif": "Mount Elbrus",
     "kind": "nature",
-    "silhouette": "Broad snow-capped massif with two rounded summits of near equal height and a saddle between, glacier skirt",
-    "modules": ["mountains", "twin-peak", "distance-trees", "dunes"],
+    "silhouette": "Mount Elbrus: two rounded snow domes with a saddle, T0 snow with T2 modelling on the shaded flanks, T2/T4 rock bands below the snowline, lower Caucasus in T2 behind",
+    "modules": ["peak", "distance-mountains", "distance-trees", "ground", "dunes"],
     "signature": null,
     "backdrop": null,
     "cluster": "twin-peak",
@@ -3176,7 +3176,7 @@
     "replaced": "St Basil's Cathedral: cathedral (rule 1); Spasskaya Tower rejected as seat-of-power imagery (rule 7); Kizhi is churches; round 2 Q42: dropped Admiralty building and spire (Admiralty is the Russian Navy HQ)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "part: two near-equal rounded summits with a saddle and glacier skirt. unverified; not in research."
+    "notes": "part: two near-equal rounded summits with a saddle. Final pass: sharp twin tents replaced by rounded domes via the peak module. unverified; not in research."
   },
   {
     "iso2": "RW",
@@ -3354,8 +3354,8 @@
     "name": "Slovakia",
     "motif": "High Tatras peaks",
     "kind": "nature",
-    "silhouette": "Jagged granite ridge of sharp horns of uneven height rising from a dark forest band",
-    "modules": ["mountains", "distance-trees"],
+    "silhouette": "High Tatras: a mass of granite horns of uneven height with T4 shadow faces and snow gullies, a spruce band at the foot and a tarn in the foreground",
+    "modules": ["peak", "distance-trees", "ground"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3363,7 +3363,7 @@
     "replaced": "Bratislava Castle: Q42 (Bratislava Castle houses the National Council)",
     "confidence": "medium",
     "facts": "unchecked",
-    "notes": "Promoted research alternate."
+    "notes": "Promoted research alternate. Final pass: the seismograph line became a faceted horn mass with the peak module."
   },
   {
     "iso2": "SL",
@@ -3643,8 +3643,8 @@
     "name": "Tajikistan",
     "motif": "Ismoil Somoni Peak",
     "kind": "nature",
-    "silhouette": "Single broad peak with a central summit and ridges running down either side; glacier fields below; lower ridges in the bottom third",
-    "modules": ["rock-hill", "distance-mountains"],
+    "silhouette": "Ismoil Somoni Peak: broad glaciated massif, lit white face, T4 buttresses on the shaded right, a lower subsidiary summit on the left, rock foothills at the foot",
+    "modules": ["peak", "rock-hill", "distance-mountains"],
     "signature": null,
     "backdrop": null,
     "cluster": null,
@@ -3652,7 +3652,7 @@
     "replaced": null,
     "confidence": "medium",
     "facts": "checked",
-    "notes": "drawn with rock-hill: a broad white massif with a lit left face, shaded right face, lower ridges and a second peak."
+    "notes": "Final pass: the tent fin was redrawn with the peak module (T0 glacier, T4 buttresses)."
   },
   {
     "iso2": "TK",
@@ -4085,8 +4085,8 @@
     "name": "Kosovo",
     "motif": "Bjeshkët e Nemuna",
     "kind": "nature",
-    "silhouette": "a serrated mountain ridge with two peaks, a valley below, forest on the lower slopes. Asymmetric",
-    "modules": ["peak", "mountains", "distance-trees"],
+    "silhouette": "Bjeshkët e Nemuna: a serrated ridge with two main summits, T4 shadow faces and snow gullies, forest at the foot. Asymmetric",
+    "modules": ["peak", "distance-mountains", "distance-trees"],
     "signature": null,
     "backdrop": null,
     "cluster": "twin-peak",
@@ -4094,7 +4094,7 @@
     "replaced": null,
     "confidence": "low",
     "facts": "checked",
-    "notes": "part: saw-tooth ridge over forested valleys. Contested: neutral nature only, no buildings (rule 5)."
+    "notes": "part: saw-tooth ridge over forested valleys. Contested: neutral nature only, no buildings (rule 5). Final pass: tent peaks replaced with the peak module."
   },
   {
     "iso2": "YE",

@@ -104,7 +104,7 @@ import { cleftFallsB } from './cleft-falls-b'
 import { taroko } from './taroko'
 import { charyn } from './charyn'
 import { yurt } from './yurt'
-import { paektu } from './paektu'
+import { gutenbergC } from './gutenberg-c'
 import { darvaza } from './darvaza'
 import { arkBukhara } from './ark-bukhara'
 import { tashRabat } from './tash-rabat'
@@ -147,7 +147,6 @@ import { heratCitadel } from './herat-citadel'
 import { ahsanManzil } from './ahsan-manzil'
 import { alamgiriGate } from './alamgiri-gate'
 import { persepolis } from './persepolis'
-import { machapuchare } from './machapuchare'
 import { bhutanHouse } from './bhutan-house'
 import { kampongAyer } from './kampong-ayer'
 import { shibam } from './shibam'
@@ -257,7 +256,7 @@ export const kit = {
   taroko,
   charyn,
   yurt,
-  paektu,
+  'gutenberg-c': gutenbergC,
   darvaza,
   'ark-bukhara': arkBukhara,
   'tash-rabat': tashRabat,
@@ -305,7 +304,6 @@ export const kit = {
   'ahsan-manzil': ahsanManzil,
   'alamgiri-gate': alamgiriGate,
   persepolis,
-  machapuchare,
   'bhutan-house': bhutanHouse,
   'kampong-ayer': kampongAyer,
   'tonle-sap': tonleSap,
