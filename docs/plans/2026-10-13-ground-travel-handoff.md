@@ -43,6 +43,25 @@ one import-runtime test: the fixture announced a provider call before its stream
 `main` fix `da3f4108` was cherry-picked as `f4214e66`; no import production code changed. All 911 API tests
 pass after this fixture fix. Remote CI success is a separate release gate.
 
+### Local main integration requested (14 October)
+
+The user corrected the destination to local `main`; do not push further updates. `fc545138` merges local
+`main` at `2fadf597` into the feature branch, preserving the new import flow, aircraft search and locale
+switching. The Settings conflict retains localized notices and the ground-journey JSON export.
+
+Integration checks: lint, typecheck, API typecheck and Next build pass; 911 API tests pass. The full Next
+unit run passed 1639 of 1645 tests, with six five-second timeouts under parallel verification load; all six
+affected files then passed (95 tests, one worker). The navigation run passed 50 of 52 tests; both account
+timeouts then passed in the five-test account suite without other verification load. No tests or timeouts
+were changed to obtain these results.
+
+Local `main` is still checked out at `/Users/indi256/Documents/kuuki/kuuki`, with other threads' staged and
+unstaged work. Its HEAD advanced during preparation. The user has been asked to pause those threads before
+the checkout update; no main files or index entries have been changed by this transfer. The 23 existing
+untracked files overlapping incoming additions matched the incoming contents exactly. Next: after the
+pause, take fresh preservation snapshots, update local main to the integrated feature tip and restore the
+uncommitted work with its staging state. Retain the snapshots until preservation is verified.
+
 ## Release gates (not done, separate approval)
 
 1. Apply migration 0011 remotely **before** deploying this code: `countryEvidenceRead` (used by every repair,
