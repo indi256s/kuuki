@@ -31,8 +31,7 @@
   outline-offset: 3px;
 }
 .ov3-pattern button:active {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
+  box-shadow: inset 0 0 0 2px var(--selection-contour);
 }
 .ov3-pattern-legend {
   display: grid;
@@ -54,8 +53,14 @@
   line-height: 20px;
 }
 .ov3-pattern-legend button[aria-pressed='true'] {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
+  box-shadow: inset 0 0 0 2px var(--selection-contour);
+}
+@media (forced-colors: active) {
+  .ov3-pattern button:active,
+  .ov3-pattern-legend button[aria-pressed='true'] {
+    box-shadow: none;
+    border: 2px solid Highlight;
+  }
 }
 .ov3-pattern-ratio {
   display: flex;
@@ -107,7 +112,6 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .ov3-pattern button:hover {
-    outline: 1px solid var(--text-muted);
-    outline-offset: 2px;
+    box-shadow: inset 0 0 0 1px var(--text-muted);
   }
 }

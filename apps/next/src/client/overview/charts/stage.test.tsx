@@ -54,3 +54,10 @@ it('columns expose every applied column, including a zero, independently of the 
   expect(screen.getByRole('button', { name: 'c, 0' })).toHaveAttribute('aria-pressed', 'true')
   expect(screen.getByRole('button', { name: 'b, 4' })).toHaveAttribute('aria-current', 'true')
 })
+
+it('rows with a category fill never render the peak overlay, even when picked', () => {
+  const { container, rerender } = render(<StageRows {...shared} span="sheet" />)
+  expect(container.querySelectorAll('.stage-peak').length).toBeGreaterThan(0)
+  rerender(<StageRows {...shared} span="sheet" fill={() => 'var(--cat-maker-airbus)'} />)
+  expect(container.querySelector('.stage-peak')).toBeNull()
+})

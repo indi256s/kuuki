@@ -13,7 +13,6 @@
   border-radius: var(--radius-md);
 }
 :root[data-theme='dark'] .ov3-hero-panel {
-  border-color: transparent;
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
 .ov3-hero-list {

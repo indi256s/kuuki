@@ -135,8 +135,15 @@
   border-radius: 2px;
 }
 .ov3-share-legend button[data-linked] i {
-  outline: 2px solid var(--text);
-  outline-offset: 1px;
+  box-shadow:
+    0 0 0 1px var(--surface),
+    0 0 0 3px var(--selection-contour);
+}
+@media (forced-colors: active) {
+  .ov3-share-legend button[data-linked] i {
+    box-shadow: none;
+    border: 2px solid Highlight;
+  }
 }
 .ov3-share-check {
   margin-inline-start: var(--space-2);
