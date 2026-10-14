@@ -124,7 +124,7 @@ export const castle: KitModule = ([x, y, w, h], p) => {
     if (t.cap === 'cone') {
       const cap: Pt[] = [
         [tx - 1.4, yTop],
-        [tx + t.w / 2, yTop - t.w * 1.05],
+        [tx + t.w / 2, yTop - t.w * num(p, 'capH', 1.05)],
         [tx + t.w + 1.4, yTop],
       ]
       out.push(occlude(cap), fill(cap))

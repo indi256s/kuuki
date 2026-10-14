@@ -837,7 +837,7 @@
       "en": "Denmark",
       "ru": "Дания"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "DM": {
     "cluster": null,
@@ -912,7 +912,7 @@
       "en": "Estonia",
       "ru": "Эстония"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "EG": {
     "cluster": "pyramid",
@@ -991,7 +991,7 @@
   },
   "FI": {
     "cluster": "fort",
-    "ink": "slate",
+    "ink": "teal",
     "iso3": "FIN",
     "name": {
       "en": "Finland",
@@ -1002,7 +1002,7 @@
       "en": "Finland",
       "ru": "Финляндия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "FJ": {
     "cluster": "thatched-house",
@@ -1062,7 +1062,7 @@
       "en": "Faroe Islands",
       "ru": "Фарерские о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "FR": {
     "cluster": null,
@@ -1107,7 +1107,7 @@
       "en": "UK",
       "ru": "Британия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GD": {
     "cluster": null,
@@ -1156,7 +1156,7 @@
   },
   "GG": {
     "cluster": "castle",
-    "ink": "moss",
+    "ink": "plum",
     "iso3": "GGY",
     "name": {
       "en": "Guernsey",
@@ -1411,7 +1411,7 @@
   },
   "HT": {
     "cluster": "fort",
-    "ink": "moss",
+    "ink": "slate",
     "iso3": "HTI",
     "name": {
       "en": "Haiti",
@@ -1591,7 +1591,7 @@
   },
   "JE": {
     "cluster": "castle",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "JEY",
     "name": {
       "en": "Jersey",
@@ -1651,7 +1651,7 @@
   },
   "KE": {
     "cluster": "twin-peak",
-    "ink": "slate",
+    "ink": "plum",
     "iso3": "KEN",
     "name": {
       "en": "Kenya",
@@ -1726,7 +1726,7 @@
   },
   "KN": {
     "cluster": "fort",
-    "ink": "plum",
+    "ink": "moss",
     "iso3": "KNA",
     "name": {
       "en": "St. Kitts & Nevis",
@@ -1846,7 +1846,7 @@
   },
   "LC": {
     "cluster": "twin-peak",
-    "ink": "plum",
+    "ink": "teal",
     "iso3": "LCA",
     "name": {
       "en": "St. Lucia",
@@ -1921,7 +1921,7 @@
   },
   "LT": {
     "cluster": "castle",
-    "ink": "teal",
+    "ink": "moss",
     "iso3": "LTU",
     "name": {
       "en": "Lithuania",
@@ -1932,7 +1932,7 @@
       "en": "Lithuania",
       "ru": "Литва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LU": {
     "cluster": "bridge",
@@ -1951,7 +1951,7 @@
   },
   "LV": {
     "cluster": "stepped-gable",
-    "ink": "plum",
+    "ink": "oxblood",
     "iso3": "LVA",
     "name": {
       "en": "Latvia",
@@ -1962,7 +1962,7 @@
       "en": "Latvia",
       "ru": "Латвия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "LY": {
     "cluster": "classical-ruin",
@@ -2311,7 +2311,7 @@
   },
   "MZ": {
     "cluster": "fort",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "MOZ",
     "name": {
       "en": "Mozambique",
@@ -2446,7 +2446,7 @@
   },
   "NP": {
     "cluster": "twin-peak",
-    "ink": "teal",
+    "ink": "umber",
     "iso3": "NPL",
     "name": {
       "en": "Nepal",
@@ -2791,7 +2791,7 @@
   },
   "RU": {
     "cluster": "twin-peak",
-    "ink": "umber",
+    "ink": "slate",
     "iso3": "RUS",
     "name": {
       "en": "Russia",
@@ -2802,7 +2802,7 @@
       "en": "Russia",
       "ru": "Россия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "RW": {
     "cluster": null,
@@ -2956,7 +2956,7 @@
   },
   "SK": {
     "cluster": null,
-    "ink": "ochre-dark",
+    "ink": "umber",
     "iso3": "SVK",
     "name": {
       "en": "Slovakia",
@@ -2967,7 +2967,7 @@
       "en": "Slovakia",
       "ru": "Словакия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "SL": {
     "cluster": null,
@@ -3387,7 +3387,7 @@
       "en": "Ukraine",
       "ru": "Украина"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "UG": {
     "cluster": "waterfall",

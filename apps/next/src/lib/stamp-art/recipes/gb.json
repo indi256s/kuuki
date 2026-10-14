@@ -1,0 +1,71 @@
+{
+  "iso2": "GB",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26, 150, 58, 24]
+      }
+    },
+    {
+      "module": "ground"
+    }
+  ],
+  "layers": [
+    {
+      "module": "castle",
+      "box": [28, 86, 144, 40],
+      "params": {
+        "top": [
+          [0, 0.5],
+          [1, 0.5]
+        ],
+        "hill": false,
+        "wallH": 20,
+        "gate": 0.5,
+        "from": 0.02,
+        "to": 0.98,
+        "towers": [
+          [0.08, 14, 10, 1, "battle"],
+          [0.92, 14, 10, 1, "battle"],
+          [0.22, 12, 6, 1, "battle"],
+          [0.78, 12, 6, 1, "battle"]
+        ]
+      }
+    },
+    {
+      "module": "tower",
+      "box": [74, 62, 52, 62],
+      "params": {
+        "cap": "battle",
+        "taper": 1,
+        "storeys": 2,
+        "shade": 0.28
+      }
+    },
+    {
+      "module": "tower",
+      "box": [70, 52, 11, 18],
+      "params": {
+        "cap": "hip",
+        "taper": 1,
+        "storeys": 1
+      }
+    },
+    {
+      "module": "tower",
+      "box": [119, 52, 11, 18],
+      "params": {
+        "cap": "hip",
+        "taper": 1,
+        "storeys": 1
+      }
+    }
+  ]
+}

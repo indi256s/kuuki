@@ -1,0 +1,48 @@
+{
+  "iso2": "FI",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "teal",
+  "cluster": "fort",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "weight": "hair",
+        "gap": [3, 4.4],
+        "clouds": [40, 60, 26]
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "castle",
+      "box": [28, 54, 144, 72],
+      "params": {
+        "top": [
+          [0, 0.66],
+          [0.3, 0.56],
+          [0.7, 0.56],
+          [1, 0.66]
+        ],
+        "hill": false,
+        "wallH": 20,
+        "gate": 0.5,
+        "from": 0.02,
+        "to": 0.98,
+        "towers": [
+          [0.5, 28, 22, 0, "battle"],
+          [0.16, 15, 10, 1, "battle"],
+          [0.84, 15, 10, 1, "battle"]
+        ]
+      }
+    }
+  ]
+}

@@ -25,11 +25,16 @@ import cr from './cr.json'
 import cv from './cv.json'
 import cz from './cz.json'
 import de from './de.json'
+import dk from './dk.json'
 import dz from './dz.json'
+import ee from './ee.json'
 import eg from './eg.json'
 import eh from './eh.json'
 import es from './es.json'
+import fi from './fi.json'
+import fo from './fo.json'
 import fr from './fr.json'
+import gb from './gb.json'
 import ge from './ge.json'
 import gh from './gh.json'
 import gi from './gi.json'
@@ -45,7 +50,9 @@ import it from './it.json'
 import jp from './jp.json'
 import li from './li.json'
 import ls from './ls.json'
+import lt from './lt.json'
 import lu from './lu.json'
+import lv from './lv.json'
 import ly from './ly.json'
 import ma from './ma.json'
 import mc from './mc.json'
@@ -63,14 +70,17 @@ import pl from './pl.json'
 import pm from './pm.json'
 import ro from './ro.json'
 import rs from './rs.json'
+import ru from './ru.json'
 import sd from './sd.json'
 import si from './si.json'
+import sk from './sk.json'
 import sm from './sm.json'
 import sv from './sv.json'
 import sz from './sz.json'
 import th from './th.json'
 import tn from './tn.json'
 import tz from './tz.json'
+import ua from './ua.json'
 import us from './us.json'
 import va from './va.json'
 import vn from './vn.json'
@@ -105,11 +115,16 @@ export const RECIPE_FILES: Record<string, unknown> = {
   cv,
   cz,
   de,
+  dk,
   dz,
+  ee,
   eg,
   eh,
   es,
+  fi,
+  fo,
   fr,
+  gb,
   ge,
   gh,
   gi,
@@ -125,7 +140,9 @@ export const RECIPE_FILES: Record<string, unknown> = {
   jp,
   li,
   ls,
+  lt,
   lu,
+  lv,
   ly,
   ma,
   mc,
@@ -143,14 +160,17 @@ export const RECIPE_FILES: Record<string, unknown> = {
   pm,
   ro,
   rs,
+  ru,
   sd,
   si,
+  sk,
   sm,
   sv,
   sz,
   th,
   tn,
   tz,
+  ua,
   us,
   va,
   vn,
