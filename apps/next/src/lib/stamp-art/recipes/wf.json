@@ -1,0 +1,62 @@
+{
+  "iso2": "WF",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "slate",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 62, 32, 150, 70, 30]
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 16,
+        "amp": 4,
+        "seed": 5,
+        "swell": 3
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "rock-hill",
+      "box": [32, 70, 136, 54],
+      "params": {
+        "seed": 5,
+        "profile": [
+          [0, 1],
+          [0.1, 0.7],
+          [0.28, 0.38],
+          [0.45, 0.2],
+          [0.7, 0.16],
+          [0.88, 0.4],
+          [1, 1]
+        ],
+        "walls": [[0.28, 0.62]],
+        "wallH": 18,
+        "courses": 4,
+        "shadeFrom": 0.72,
+        "strata": 6
+      }
+    },
+    {
+      "module": "ruin-wall",
+      "box": [48, 50, 86, 30],
+      "params": {
+        "seed": 7
+      }
+    }
+  ]
+}

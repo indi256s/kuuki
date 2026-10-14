@@ -118,6 +118,15 @@ import { reefRingB } from './reef-ring-b'
 import { stationB } from './station-b'
 import { choungui } from './choungui'
 import { harbourBridge } from './harbour-bridge'
+import { otemanu } from './otemanu'
+import { airstrip } from './airstrip'
+import { latte } from './latte'
+import { anchorA } from './anchor-a'
+import { outriggerA } from './outrigger-a'
+import { faleA } from './fale-a'
+import { nanMadol } from './nan-madol'
+import { haamonga } from './haamonga'
+import { lagoonRing } from './lagoon-ring'
 import { garita } from './garita'
 import { fortChristian } from './fort-christian'
 import { jettyA } from './jetty-a'
@@ -299,6 +308,15 @@ export const kit = {
   'fort-christian': fortChristian,
   garita,
   'harbour-bridge': harbourBridge,
+  otemanu,
+  airstrip,
+  latte,
+  'anchor-a': anchorA,
+  'outrigger-a': outriggerA,
+  'fale-a': faleA,
+  'nan-madol': nanMadol,
+  haamonga,
+  'lagoon-ring': lagoonRing,
   khazneh,
   dhow,
   'drum-b': drumB,

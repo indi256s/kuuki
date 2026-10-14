@@ -1,0 +1,37 @@
+{
+  "iso2": "TV",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "oxblood",
+  "cluster": "atoll",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "airstrip",
+      "params": {
+        "part": "sea",
+        "x0": 32,
+        "y0": 132,
+        "x1": 168,
+        "y1": 68,
+        "bow": 9
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "airstrip",
+      "box": [26, 52, 148, 96],
+      "params": {
+        "part": "land",
+        "x0": 32,
+        "y0": 132,
+        "x1": 168,
+        "y1": 68,
+        "width": 24,
+        "runway": 8,
+        "bow": 9
+      }
+    }
+  ]
+}

@@ -1047,7 +1047,7 @@
       "en": "Micronesia",
       "ru": "МИКРОНЕЗИЯ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "FO": {
     "cluster": null,
@@ -1332,7 +1332,7 @@
       "en": "Guam",
       "ru": "Гуам"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GW": {
     "cluster": "palm-island",
@@ -1707,7 +1707,7 @@
       "en": "Kiribati",
       "ru": "Кирибати"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "KM": {
     "cluster": "ship",
@@ -2562,7 +2562,7 @@
       "en": "French Polynesia",
       "ru": "ФРАНЦ. ПОЛИНЕЗИЯ"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PG": {
     "cluster": null,
@@ -2652,7 +2652,7 @@
       "en": "Pitcairn",
       "ru": "о-ва Питкэрн"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PR": {
     "cluster": "fort",
@@ -3237,7 +3237,7 @@
       "en": "Tokelau",
       "ru": "Токелау"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TL": {
     "cluster": null,
@@ -3297,7 +3297,7 @@
       "en": "Tonga",
       "ru": "Тонга"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TR": {
     "cluster": null,
@@ -3342,7 +3342,7 @@
       "en": "Tuvalu",
       "ru": "Тувалу"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "TW": {
     "cluster": null,
@@ -3582,7 +3582,7 @@
       "en": "Wallis & Futuna",
       "ru": "Уоллис и Футуна"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "WS": {
     "cluster": "thatched-house",
@@ -3597,7 +3597,7 @@
       "en": "Samoa",
       "ru": "Самоа"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "XK": {
     "cluster": "twin-peak",

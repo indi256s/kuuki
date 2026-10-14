@@ -1,0 +1,35 @@
+{
+  "iso2": "KI",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "teal",
+  "cluster": "atoll",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "lagoon-ring",
+      "params": {
+        "part": "sea",
+        "cx": 100,
+        "cy": 100,
+        "rx": 67,
+        "ry": 42,
+        "band": 13
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "lagoon-ring",
+      "box": [26, 52, 148, 96],
+      "params": {
+        "part": "land",
+        "cx": 100,
+        "cy": 100,
+        "rx": 67,
+        "ry": 42,
+        "band": 13
+      }
+    }
+  ]
+}
