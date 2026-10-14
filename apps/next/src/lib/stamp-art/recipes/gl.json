@@ -1,0 +1,43 @@
+{
+  "iso2": "GL",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "slate",
+  "cluster": "ice",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [3.0, 4.2], "clouds": [150, 62, 44, 46, 56, 36], "weight": "hair" }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.52],
+          [0.3, 0.46],
+          [0.55, 0.5],
+          [0.8, 0.44],
+          [1, 0.5]
+        ],
+        "jag": 1.4,
+        "litGap": 3.2,
+        "shade": "T4",
+        "seed": 8
+      }
+    },
+    { "module": "ground", "params": { "water": true } }
+  ],
+  "layers": [
+    {
+      "module": "iceberg",
+      "box": [44, 66, 92, 56],
+      "params": { "kind": "tabular", "lit": 0.45, "seed": 4 }
+    },
+    {
+      "module": "iceberg",
+      "box": [132, 98, 32, 26],
+      "params": { "kind": "tabular", "lit": 0.5, "seed": 9 }
+    }
+  ]
+}

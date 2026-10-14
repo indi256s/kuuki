@@ -59,12 +59,14 @@ export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
   const stairW = num(p, 'stair', 0.2)
   const side = num(p, 'side', 0.14)
   const templeW = num(p, 'templeW', 0.2)
-  const bodyH = h * (1 - templeShare)
-  const templeH = h - bodyH
+  const combShare = num(p, 'comb', 0)
+  const bodyH = h * (1 - templeShare - combShare)
+  const templeH = h - bodyH - h * combShare
+  const combH = h * combShare
   const front = w * (1 - side)
   const cx = x + front / 2
   const base = y + h
-  const top = y + templeH
+  const top = y + combH + templeH
   const out: SvgNode[] = []
   const stepH = bodyH / terraces
   const widthAt = (i: number) => front * (1 - (1 - topW) * (i / terraces)) // i = terraces climbed
@@ -121,7 +123,53 @@ export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
   }
   // Summit temple on the top terrace, a door and a lintel.
   const tw = front * templeW
-  const ty = y
+  const ty = y + combH
+  if (combH > 0) {
+    // Roof comb (Tikal Temple I): a tall tapering block set on the temple, its flanks stepping in
+    // toward a flat crest, the right third shaded and a few dark niches cut into the face.
+    const cw = tw * num(p, 'combW', 0.78)
+    const cwTop = cw * num(p, 'combTop', 0.7)
+    const steps = Math.max(2, Math.round(num(p, 'combSteps', 3)))
+    const poly: Pt[] = [[cx - cw / 2, ty + templeH * 0.12]]
+    for (let i = 0; i < steps; i++) {
+      const t0 = i / steps
+      const t1 = (i + 1) / steps
+      const half0 = (cw + (cwTop - cw) * t0) / 2
+      const half1 = (cw + (cwTop - cw) * t1) / 2
+      const yb = ty + templeH * 0.12 - (templeH * 0.12 + combH) * t0
+      const yt = ty + templeH * 0.12 - (templeH * 0.12 + combH) * t1
+      if (i === 0) poly[0] = [cx - half0, yb]
+      poly.push(
+        [cx - half0, yt + (yb - yt) * 0.15],
+        [cx - half1, yt + (yb - yt) * 0.15],
+        [cx - half1, yt],
+      )
+    }
+    const left = poly.slice()
+    const right = left.map(([px, py]): Pt => [2 * cx - px, py]).reverse()
+    const comb: Pt[] = [...left, ...right]
+    out.push(...body(comb, 'line'))
+    const shadeFrac = 0.32
+    out.push(
+      ...toneFill(
+        [
+          [cx + cwTop * (0.5 - shadeFrac), y],
+          [cx + cwTop / 2, y],
+          [cx + cw / 2, ty + templeH * 0.12],
+          [cx + cw * (0.5 - shadeFrac), ty + templeH * 0.12],
+        ],
+        'T4',
+        { inset: 0.5 },
+      ),
+    )
+    const nicheH = combH * 0.2
+    const nicheW = cw * 0.2
+    for (const f of [0.28, 0.58]) {
+      out.push(
+        fill(rectPts(cx - cw * 0.3 - nicheW / 2, ty - combH * f - nicheH / 2, nicheW, nicheH)),
+      )
+    }
+  }
   out.push(...body(rectPts(cx - tw / 2, ty + templeH * 0.12, tw, templeH * 0.88), 'line'))
   out.push(...body(rectPts(cx - tw / 2 - 1.2, ty, tw + 2.4, templeH * 0.2), 'line'))
   const dw = tw * 0.34

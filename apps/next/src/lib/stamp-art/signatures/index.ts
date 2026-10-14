@@ -2,7 +2,9 @@ import type { KitModule } from '../kit'
 import { kalaeFinial } from './kalae-finial'
 import { kotorWalls } from './kotor-walls'
 import { latticeTower } from './lattice-tower'
+import { plume } from './plume'
 import { quadriga } from './quadriga'
+import { stela } from './stela'
 
 /** One-off country parts by recipe name. */
 export const signatures = {
@@ -10,6 +12,8 @@ export const signatures = {
   'kalae-finial': kalaeFinial,
   quadriga,
   'lattice-tower': latticeTower,
+  plume,
+  stela,
 } satisfies Record<string, KitModule>
 
 export type SignatureName = keyof typeof signatures

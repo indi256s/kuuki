@@ -4,8 +4,11 @@ import { statue } from './object'
 import type { KitModule } from './util'
 import { gate, house, rampart, stiltHouse, switchbackWall, temple } from './building'
 import { basalt, distanceMountains, distanceTrees, ground, sky } from './vignette'
+import { iceberg } from './iceberg'
 import { karst } from './karst'
+import { lighthouse } from './lighthouse'
 import { mesa } from './mesa'
+import { palm } from './palm'
 import { peak } from './peak'
 import { acacia } from './savanna'
 import { volcano } from './volcano'
@@ -13,6 +16,7 @@ import { rockHill } from './rock-hill'
 import { ruinedTemple } from './ruined-temple'
 import { amphitheatre } from './amphitheatre'
 import { rooftops } from './rooftops'
+import { atoll } from './atoll'
 import { dunes } from './dunes'
 import { pyramid, steppedPyramid } from './pyramid'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
@@ -33,6 +37,10 @@ export const kit = {
   karst,
   peak,
   dunes,
+  atoll,
+  iceberg,
+  lighthouse,
+  palm,
   rooftops,
   amphitheatre,
   pyramid,

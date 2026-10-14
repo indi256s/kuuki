@@ -120,8 +120,8 @@
     "tier": "fallback"
   },
   "AQ": {
-    "cluster": "station",
-    "ink": "plum",
+    "cluster": "ice",
+    "ink": "teal",
     "iso3": "ATA",
     "name": {
       "en": "Antarctica",
@@ -132,7 +132,7 @@
       "en": "Antarctica",
       "ru": "Антарктида"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "AR": {
     "cluster": null,
@@ -376,7 +376,7 @@
   },
   "BM": {
     "cluster": "lighthouse",
-    "ink": "plum",
+    "ink": "oxblood",
     "iso3": "BMU",
     "name": {
       "en": "Bermuda",
@@ -387,7 +387,7 @@
       "en": "Bermuda",
       "ru": "Бермудские о-ва"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "BN": {
     "cluster": "stilts",
@@ -496,7 +496,7 @@
   },
   "BZ": {
     "cluster": "pyramid",
-    "ink": "oxblood",
+    "ink": "teal",
     "iso3": "BLZ",
     "name": {
       "en": "Belize",
@@ -507,7 +507,7 @@
       "en": "Belize",
       "ru": "Белиз"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CA": {
     "cluster": null,
@@ -691,7 +691,7 @@
   },
   "CR": {
     "cluster": null,
-    "ink": "slate",
+    "ink": "plum",
     "iso3": "CRI",
     "name": {
       "en": "Costa Rica",
@@ -702,7 +702,7 @@
       "en": "Costa Rica",
       "ru": "Коста-Рика"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "CU": {
     "cluster": "fort",
@@ -1201,7 +1201,7 @@
   },
   "GL": {
     "cluster": "ice",
-    "ink": "indigo",
+    "ink": "slate",
     "iso3": "GRL",
     "name": {
       "en": "Greenland",
@@ -1212,7 +1212,7 @@
       "en": "Greenland",
       "ru": "Гренландия"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GM": {
     "cluster": "megalith",
@@ -1306,7 +1306,7 @@
   },
   "GT": {
     "cluster": "pyramid",
-    "ink": "slate",
+    "ink": "umber",
     "iso3": "GTM",
     "name": {
       "en": "Guatemala",
@@ -1317,7 +1317,7 @@
       "en": "Guatemala",
       "ru": "Гватемала"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "GU": {
     "cluster": null,
@@ -1381,7 +1381,7 @@
   },
   "HN": {
     "cluster": "pyramid",
-    "ink": "plum",
+    "ink": "indigo",
     "iso3": "HND",
     "name": {
       "en": "Honduras",
@@ -1392,7 +1392,7 @@
       "en": "Honduras",
       "ru": "Гондурас"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "HR": {
     "cluster": "sea-wall",
@@ -1531,7 +1531,7 @@
   },
   "IQ": {
     "cluster": "pyramid",
-    "ink": "teal",
+    "ink": "oxblood",
     "iso3": "IRQ",
     "name": {
       "en": "Iraq",
@@ -2146,7 +2146,7 @@
   },
   "MO": {
     "cluster": "lighthouse",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "MAC",
     "name": {
       "en": "Macao SAR China",
@@ -2341,7 +2341,7 @@
   },
   "NC": {
     "cluster": "lighthouse",
-    "ink": "umber",
+    "ink": "teal",
     "iso3": "NCL",
     "name": {
       "en": "New Caledonia",
@@ -2626,7 +2626,7 @@
   },
   "PM": {
     "cluster": "lighthouse",
-    "ink": "ochre-dark",
+    "ink": "indigo",
     "iso3": "SPM",
     "name": {
       "en": "St. Pierre & Miquelon",
@@ -2637,7 +2637,7 @@
       "en": "St. Pierre & Miquelon",
       "ru": "Сен-Пьер и Микелон"
     },
-    "tier": "fallback"
+    "tier": "engraved"
   },
   "PN": {
     "cluster": null,
@@ -2866,7 +2866,7 @@
   },
   "SD": {
     "cluster": "pyramid",
-    "ink": "umber",
+    "ink": "slate",
     "iso3": "SDN",
     "name": {
       "en": "Sudan",
@@ -2941,7 +2941,7 @@
   },
   "SJ": {
     "cluster": "ice",
-    "ink": "oxblood",
+    "ink": "indigo",
     "iso3": "SJM",
     "name": {
       "en": "Svalbard & Jan Mayen",
@@ -3016,7 +3016,7 @@
   },
   "SO": {
     "cluster": "lighthouse",
-    "ink": "indigo",
+    "ink": "umber",
     "iso3": "SOM",
     "name": {
       "en": "Somalia",
@@ -3136,7 +3136,7 @@
   },
   "TC": {
     "cluster": "lighthouse",
-    "ink": "oxblood",
+    "ink": "ochre-dark",
     "iso3": "TCA",
     "name": {
       "en": "Turks & Caicos Islands",
@@ -3166,7 +3166,7 @@
   },
   "TF": {
     "cluster": "station",
-    "ink": "teal",
+    "ink": "plum",
     "iso3": "ATF",
     "name": {
       "en": "French Southern Territories",

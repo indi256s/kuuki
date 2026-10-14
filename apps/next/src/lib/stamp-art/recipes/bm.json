@@ -1,0 +1,56 @@
+{
+  "iso2": "BM",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "oxblood",
+  "cluster": "lighthouse",
+  "horizon": 0.74,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [44, 70, 44, 150, 60, 38, 36, 108, 30],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 8,
+        "amp": 2,
+        "seed": 5,
+        "swell": 2.5
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "mountains",
+      "box": [38, 112, 124, 20],
+      "params": {
+        "peaks": [[0.5, 1]],
+        "jag": 0.5,
+        "weight": "line",
+        "shade": "right",
+        "shadeDepth": 14
+      }
+    },
+    {
+      "module": "lighthouse",
+      "box": [86, 43, 28, 73],
+      "params": {
+        "taper": 0.58,
+        "ribs": 3,
+        "windows": 3,
+        "shade": 0.3
+      }
+    }
+  ]
+}
