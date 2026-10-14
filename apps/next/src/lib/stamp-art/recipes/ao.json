@@ -1,0 +1,34 @@
+{
+  "iso2": "AO",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "plum",
+  "cluster": "waterfall",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [3.2, 4.4],
+        "clouds": [30, 56, 40, 96, 66, 34, 146, 54, 40],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "kalandula",
+      "box": [34, 68, 132, 58],
+      "params": {
+        "streams": 6,
+        "seed": 9
+      }
+    }
+  ]
+}

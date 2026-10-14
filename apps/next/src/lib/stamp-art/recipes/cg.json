@@ -1,0 +1,32 @@
+{
+  "iso2": "CG",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "oxblood",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [30, 56, 40, 96, 66, 34, 146, 54, 40],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "gorge-b",
+      "box": [34, 62, 132, 64],
+      "params": {
+        "seed": 5
+      }
+    }
+  ]
+}

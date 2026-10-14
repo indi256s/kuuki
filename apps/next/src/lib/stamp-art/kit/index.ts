@@ -61,6 +61,15 @@ import { granaries } from './granaries'
 import { monolithB } from './monolith-b'
 import { jacobsLadder } from './jacobs-ladder'
 import { trussBridgeB } from './truss-bridge-b'
+import { kalandula } from './kalandula'
+import { mountKenya } from './mount-kenya'
+import { volcanicPlug } from './volcanic-plug'
+import { naturalArch } from './natural-arch'
+import { gorgeB } from './gorge-b'
+import { rainforestB } from './rainforest-b'
+import { riverboat } from './riverboat'
+import { pirogue } from './pirogue'
+import { outcropsB } from './outcrops-b'
 import { colonnade, fortressWall, pediment, tower, triumphalArch } from './wall'
 
 /** Kit modules by recipe tag. */
@@ -152,6 +161,15 @@ export const kit = {
   'monolith-b': monolithB,
   'jacobs-ladder': jacobsLadder,
   'truss-bridge-b': trussBridgeB,
+  kalandula: kalandula,
+  'mount-kenya': mountKenya,
+  'volcanic-plug': volcanicPlug,
+  'natural-arch': naturalArch,
+  'gorge-b': gorgeB,
+  'rainforest-b': rainforestB,
+  riverboat: riverboat,
+  pirogue: pirogue,
+  'outcrops-b': outcropsB,
 } satisfies Record<string, KitModule>
 
 export type KitTag = keyof typeof kit

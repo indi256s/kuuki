@@ -1,0 +1,61 @@
+{
+  "iso2": "GA",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "teal",
+  "cluster": "waterfall",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [36, 56, 28, 160, 60, 24],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 14,
+        "amp": 3,
+        "seed": 6,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "kalandula",
+      "box": [42, 60, 116, 66],
+      "params": {
+        "streams": 3,
+        "seed": 21
+      }
+    },
+    {
+      "module": "rainforest-b",
+      "box": [36, 78, 30, 48],
+      "params": {
+        "rows": 1,
+        "emergent": 1,
+        "seed": 2
+      }
+    },
+    {
+      "module": "rainforest-b",
+      "box": [132, 78, 30, 48],
+      "params": {
+        "rows": 1,
+        "emergent": 1,
+        "seed": 5
+      }
+    }
+  ]
+}

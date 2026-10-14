@@ -1,0 +1,46 @@
+{
+  "iso2": "ST",
+  "tier": "engraved",
+  "shape": "octagon",
+  "ink": "teal",
+  "cluster": "volcano",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [30, 56, 40, 96, 66, 34, 146, 54, 40],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 12,
+        "amp": 3,
+        "seed": 7,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "volcanic-plug",
+      "box": [30, 50, 140, 76],
+      "params": {
+        "seed": 6,
+        "forest": 0.5,
+        "topW": 0.06,
+        "footW": 0.12,
+        "axis": 0.5
+      }
+    }
+  ]
+}

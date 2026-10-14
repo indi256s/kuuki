@@ -1,0 +1,32 @@
+{
+  "iso2": "CD",
+  "tier": "engraved",
+  "shape": "rectangle",
+  "ink": "indigo",
+  "cluster": "river-quay",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "clouds": [30, 56, 40, 96, 66, 34, 146, 54, 40],
+        "weight": "hair"
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "line": false
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "riverboat",
+      "box": [32, 62, 122, 62],
+      "params": {}
+    }
+  ]
+}
