@@ -1,0 +1,31 @@
+{
+  "iso2": "GT",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "umber",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": { "gap": [2.8, 3.6], "clouds": [44, 60, 36, 150, 56, 30], "weight": "hair" }
+    },
+    { "module": "distance-trees", "params": { "height": 34, "amp": 3, "seed": 5, "swell": 5 } },
+    { "module": "ground" }
+  ],
+  "layers": [
+    {
+      "module": "stepped-pyramid",
+      "box": [62, 54, 76, 70],
+      "params": {
+        "terraces": 7,
+        "temple": 0.14,
+        "comb": 0.26,
+        "top": 0.4,
+        "stair": 0.22,
+        "side": 0.06,
+        "templeW": 0.36,
+        "treads": 9
+      }
+    }
+  ]
+}

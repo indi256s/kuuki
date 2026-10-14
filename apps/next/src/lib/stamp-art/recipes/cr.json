@@ -1,0 +1,76 @@
+{
+  "iso2": "CR",
+  "tier": "engraved",
+  "shape": "cut-rect",
+  "ink": "plum",
+  "horizon": 0.72,
+  "backdrop": [
+    {
+      "module": "sky",
+      "params": {
+        "gap": [2.8, 3.6],
+        "weight": "hair",
+        "clouds": [44, 66, 58, 160, 70, 52, 34, 100, 44, 164, 104, 40, 100, 50, 36]
+      }
+    },
+    {
+      "module": "distance-mountains",
+      "params": {
+        "ridge": [
+          [0, 0.62],
+          [0.12, 0.52],
+          [0.25, 0.6],
+          [0.5, 0.68],
+          [0.8, 0.62],
+          [0.92, 0.54],
+          [1, 0.62]
+        ],
+        "jag": 0.8,
+        "litGap": 3.2,
+        "seed": 4
+      }
+    },
+    {
+      "module": "distance-trees",
+      "params": {
+        "height": 9,
+        "amp": 2.4,
+        "seed": 6,
+        "swell": 2
+      }
+    },
+    {
+      "module": "ground",
+      "params": {
+        "water": true,
+        "seed": 12
+      }
+    }
+  ],
+  "layers": [
+    {
+      "module": "volcano",
+      "box": [40, 76, 120, 48],
+      "params": {
+        "profile": "cone",
+        "summit": 8,
+        "concavity": 0.5,
+        "snow": 0.28,
+        "gullies": 9,
+        "trees": 8,
+        "axis": 0.46
+      }
+    }
+  ],
+  "signature": [
+    {
+      "part": "plume",
+      "box": [84, 54, 60, 24],
+      "params": {
+        "puffs": 6,
+        "r0": 3.5,
+        "r1": 9
+      }
+    }
+  ]
+}
