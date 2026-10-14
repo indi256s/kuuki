@@ -26,7 +26,7 @@ export function shedSize(share: number) {
 }
 
 /**
- * Makers: arched hangars on an apron, floor area by share of flights; the lit one has coral doors, name and stand marking.
+ * Makers: arched hangars on an apron, floor area by share of flights; the lit one takes its maker colour on doors, name and stand marking.
  * `sheds` run largest first (one to three).
  * Geometry never depends on `lit`. Every shed draws its lighting twice, as sibling parts `shed-<key>-unlit` and `shed-<key>-lit`, layered by an inline opacity that reads `var(--lit-<key>, 0|1)`, the fallback being `lit`. A caller moves the light with a CSS opacity transition and either a new `lit` or `--lit-<key>` on the svg or a parent; no geometry is rebuilt. Nothing moves.
  */

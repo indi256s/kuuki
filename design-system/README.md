@@ -2,7 +2,7 @@
 
 Standalone proposed design system, based on the direction selected on 14 October 2026. Open [index.html](index.html) locally; it embeds fonts, styles, scripts and source-rendered specimens and needs no server.
 
-This catalog does not replace [DESIGN.md](../DESIGN.md), change application tokens, save preferences or write flight data. Its sample values are fictional. The application still owns its canonical tokens in `apps/next/src/app/styles.css`.
+This catalog is the spec for the shared colour roles. The application implements them: `apps/next/src/app/styles.css` equals `palette.json` for every catalog role in all ten theme/accent combinations, and `apps/next/src/app/tokens.test.ts` fails on drift. The catalog does not replace [DESIGN.md](../DESIGN.md), which stays the design reference, and it does not save preferences or write flight data. Its sample values are fictional.
 
 ## Direction
 
@@ -13,7 +13,7 @@ This catalog does not replace [DESIGN.md](../DESIGN.md), change application toke
 - `mark-peak` equals `accent-text` in every combination: the selection is never louder than the primary action. Ramps and slots stay apart from it (CIEDE2000 ≥ 8 to every `heat-*` and `cmp-*`). Category-coloured charts never use `mark-peak`; they show selection with `--selection-contour`.
 - Categories keep fixed colors. Comparison series keep slots, dashes and markers. Heat levels encode quantity under their own numeric legend. Known zero has a fill; missing data has a dashed outline.
 
-The proposed `mark-rest` is independent of `heat-3`. The current app and PNG exporter still share that older mapping; this catalog does not migrate either consumer.
+`mark-rest` is independent of `heat-3`. The app, `packages/shared/src/theme/palette.ts` and the PNG exporter all use it.
 
 ## Contracts
 
@@ -51,6 +51,6 @@ Status foregrounds are independent of accent foregrounds. Filled success/warning
 
 The report covers declared opaque token pairs. It does not prove composited SVG shading/glow, all stamp/airline inks, focus behavior of the production app, device persistence, import behavior, export fidelity or complete screen-reader support. The catalog uses native selects, buttons, inputs and dialog; prefers-reduced-motion and forced-colors fallbacks are included. Production component migration and application tests remain a separate task.
 
-Before migration, reconcile the selected roles in DESIGN.md, canonical app CSS, the shared theme mirror, token tests and the PNG exporter together. Preserve the chart implementation's stable categories/slots and unknown/missing distinctions. The inherited accent picker and delivery protocol remain the starting point; this catalog introduces no new stored accent names.
+When a role changes, update this catalog, DESIGN.md, canonical app CSS, the shared theme mirror, token tests and the PNG exporter together. Preserve the chart implementation's stable categories/slots and unknown/missing distinctions. The inherited accent picker and delivery protocol remain the starting point; this catalog introduces no new stored accent names.
 
 The catalog outlines heat levels 1–3; this matters because inherited Matcha/Asagi level 3 fills are below 3:1 on the new surface. Level 4 is checked directly at 3:1. Selection and low-level boundaries use independently checked contour roles.
