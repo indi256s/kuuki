@@ -40,6 +40,7 @@ export async function ProfileData({ username }: { username: string }) {
         username: profile.username,
         display_name: profile.display_name,
         avatar_url: profile.avatar_url,
+        avatar_face: profile.avatar_face,
         bio: profile.bio,
         is_public: profile.is_public,
         theme_color: profile.theme_color,

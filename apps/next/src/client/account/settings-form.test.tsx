@@ -44,6 +44,7 @@ const profile = {
   bio: 'About',
   home_airport: null,
   avatar_url: null,
+  avatar_face: null,
   gemini_api_key: null,
   is_public: true,
   show_on_leaderboards: true,

@@ -26,6 +26,7 @@ function privateShell(profile: ProfileRow) {
     display_name: null,
     bio: null,
     avatar_url: null,
+    avatar_face: null,
     theme_color: null,
     created_at: null,
     show_on_leaderboards: false,

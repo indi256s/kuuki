@@ -19,6 +19,7 @@ import {
   withSuffix,
 } from '../../../packages/shared/src/address'
 import { ACCENT_KEYS } from '../../../packages/shared/src/theme/palette'
+import { isAvatarFace } from '../../../packages/shared/src/avatar'
 
 interface UpdateBody {
   username?: string | null
@@ -27,6 +28,8 @@ interface UpdateBody {
   display_name?: string | null
   bio?: string | null
   avatar_url?: string | null
+  /** A character from AVATAR_FACES; null returns to the one derived from the id. */
+  avatar_face?: string | null
   gemini_api_key?: string | null
   home_airport?: string | null
   is_public?: boolean
@@ -40,6 +43,7 @@ const TEXT_FIELDS = [
   'display_name',
   'bio',
   'avatar_url',
+  'avatar_face',
   'gemini_api_key',
   'home_airport',
   'locale',
@@ -114,6 +118,14 @@ export function updateProfileRequest(
       !(ACCENT_KEYS as readonly unknown[]).includes(body.theme_color)
     ) {
       throw new HttpError(400, 'Invalid theme_color', 'BAD_REQUEST')
+    }
+
+    if (
+      body.avatar_face !== undefined &&
+      body.avatar_face !== null &&
+      !isAvatarFace(body.avatar_face)
+    ) {
+      throw new HttpError(400, 'Invalid avatar_face', 'BAD_REQUEST')
     }
 
     if (

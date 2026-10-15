@@ -14,6 +14,7 @@ export type IdentityProfile = {
   username: string | null
   display_name: string | null
   avatar_url: string | null
+  avatar_face?: string | null
 }
 
 /** The owner-only part of the identity row: visibility, Share, the narrator line and the menu. */
@@ -48,7 +49,13 @@ export function PassportIdentity({
   return (
     <header className="passport-identity">
       <div className="passport-identity-row">
-        <ProfileAvatar id={profile.id} url={profile.avatar_url} name={name} size={64} />
+        <ProfileAvatar
+          id={profile.id}
+          url={profile.avatar_url}
+          face={profile.avatar_face}
+          name={name}
+          size={64}
+        />
         <div className="passport-identity-text">
           <h1>{name}</h1>
           {handle || founding ? (

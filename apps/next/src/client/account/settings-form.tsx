@@ -22,6 +22,8 @@ import { Field } from '../ui/field'
 import { SwitchRow } from '../ui/switch-row'
 import { SegmentedControl } from '../ui/segmented-control'
 import { SwatchPicker } from '../ui/swatch-picker'
+import { AvatarFaceMark, ProfileAvatar, avatarFace } from '../profile/avatar'
+import { AVATAR_FACES, type AvatarFace } from '@kuuki/shared/avatar'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { countryNamer } from '../passport/model'
 import type { toOwnProfile } from '../../../../../functions/api/_lib/profiles'
@@ -42,11 +44,19 @@ const values = (profile: Profile) => ({
   bio: profile.bio ?? '',
   home_airport: profile.home_airport ?? '',
   avatar_url: profile.avatar_url ?? '',
+  avatar_face: profile.avatar_face ?? null,
   gemini_api_key: profile.gemini_api_key ?? '',
   is_public: profile.is_public,
   show_on_leaderboards: profile.show_on_leaderboards,
   passport_publication: profile.passport_publication,
 })
+const faceNames: Record<AvatarFace, Record<Locale, string>> = {
+  curious: { en: 'Curious', ru: 'Любопытный' },
+  jetlag: { en: 'Jet-lagged', ru: 'Джетлаг' },
+  sleepy: { en: 'Sleepy', ru: 'Сонный' },
+  content: { en: 'Content', ru: 'Довольный' },
+}
+const isPhoto = (url: string) => url.startsWith('https://') || url.startsWith('data:image/')
 const flightsLeft = {
   en: { one: '{count} more flight needed.', other: '{count} more flights needed.' },
   ru: {
@@ -389,19 +399,40 @@ export function SettingsForm({
       >
         <section aria-labelledby="settings-profile-heading">
           <h2 id="settings-profile-heading">{text('Profile', 'Профиль')}</h2>
-          <div
-            className="settings-avatar"
-            role="img"
-            aria-label={text('Avatar preview', 'Предпросмотр аватара')}
-            style={
-              draft.avatar_url.startsWith('https://') || draft.avatar_url.startsWith('data:image/')
-                ? { backgroundImage: `url(${JSON.stringify(draft.avatar_url)})` }
-                : undefined
-            }
-          >
-            {draft.avatar_url.startsWith('https://') || draft.avatar_url.startsWith('data:image/')
-              ? null
-              : (draft.display_name || profile.username || '?').slice(0, 1).toUpperCase()}
+          <div className="settings-avatar">
+            <div role="img" aria-label={text('Avatar preview', 'Предпросмотр аватара')}>
+              <ProfileAvatar
+                id={profile.id}
+                url={isPhoto(draft.avatar_url) ? draft.avatar_url : null}
+                face={draft.avatar_face}
+                name=""
+                size={72}
+              />
+            </div>
+            <fieldset className="settings-faces" disabled={busy}>
+              <legend className="ui-field-label">{text('Character', 'Характер')}</legend>
+              <div className="settings-faces-row">
+                {AVATAR_FACES.map((face) => (
+                  <label key={face} className="settings-face">
+                    <input
+                      type="radio"
+                      name="avatar_face"
+                      value={face}
+                      aria-label={faceNames[face][locale]}
+                      checked={avatarFace(profile.id, draft.avatar_face) === face}
+                      onChange={() => edit('avatar_face', face)}
+                    />
+                    <AvatarFaceMark id={profile.id} face={face} />
+                  </label>
+                ))}
+              </div>
+              <p className="settings-face-name" aria-hidden="true">
+                {faceNames[avatarFace(profile.id, draft.avatar_face)][locale]}
+                {isPhoto(draft.avatar_url)
+                  ? text(' · shows when the photo can’t', ' · появится, если фото не загрузится')
+                  : null}
+              </p>
+            </fieldset>
           </div>
           <Field
             label={text('Display name', 'Имя')}

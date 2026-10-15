@@ -43,6 +43,7 @@ const profile = {
   display_name: 'Traveler B',
   bio: null,
   avatar_url: null,
+  avatar_face: null,
   is_public: true,
   show_on_leaderboards: false,
   theme_color: null,

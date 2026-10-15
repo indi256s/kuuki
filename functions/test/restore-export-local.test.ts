@@ -90,6 +90,7 @@ it('restores a private export in chunks, preserves historical rows and applies o
         '0012_gro_isl_airport_reference.sql',
         '0013_unified_passport.sql',
         '0014_leaderboard_periods.sql',
+        '0015_avatar_face.sql',
       ],
     })
     expect(readFileSync(exportPath, 'utf8')).toBe(sql)

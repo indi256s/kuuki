@@ -50,6 +50,7 @@ export async function getOwnPassport() {
       username: own.username,
       display_name: own.display_name,
       avatar_url: own.avatar_url,
+      avatar_face: own.avatar_face,
       bio: own.bio,
       created_at: own.created_at,
       is_public: own.is_public,

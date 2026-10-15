@@ -559,36 +559,105 @@
     opacity: 1;
   }
 }
-.profile-avatar [data-facehash-face] {
-  transition: transform var(--dur-base) var(--ease-out) !important;
+/* Generated avatar: ink eyes on a tint of the same ink. Each character keeps a resting pose; a fine pointer meets
+   its gaze, and the account trigger glances down at the boarding pass while the menu is open. */
+.avatar-face {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+  container-type: size;
+  background: color-mix(in oklab, var(--avatar-ink) var(--avatar-tint, 16%), var(--surface));
+  color: var(--avatar-ink);
+}
+/* Dark inks are pale, so the paper needs more of them to read as tinted. */
+:root[data-theme='dark'] .avatar-face {
+  --avatar-tint: 26%;
+}
+.avatar-face svg {
+  inline-size: 62%;
+  block-size: auto;
+  overflow: visible;
+  transition:
+    translate var(--dur-base) var(--ease-out),
+    rotate var(--dur-base) var(--ease-out);
+}
+.avatar-face svg > g {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.avatar-face[data-face='curious'] svg {
+  translate: 0 -6cqh;
+}
+.avatar-face[data-face='sleepy'] svg {
+  translate: 0 7cqh;
+}
+.avatar-face[data-face='sleepy'] {
+  --avatar-idle: avatar-doze;
+}
+.avatar-face[data-face='jetlag'] svg {
+  rotate: -8deg;
+}
+@media (hover: hover) and (pointer: fine) {
+  .profile-avatar:hover .avatar-face svg {
+    translate: none;
+    rotate: none;
+  }
+}
+.avatar-button[data-state='open'] .avatar-face svg {
+  translate: -10cqw 8cqh;
+  rotate: none;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .profile-avatar [data-facehash-face] svg {
-    animation: profile-avatar-look 8s var(--ease-in-out) infinite;
+  /* Crossed eyes do not blink. */
+  .avatar-face:not([data-face='jetlag']) svg > g {
+    animation: var(--avatar-idle, avatar-blink) 9s linear var(--avatar-blink-delay, 0s) infinite;
+  }
+  /* The face on the pass and a newly picked face in Settings blink once as they appear; listed last, it overrides the idle blink while it runs. */
+  .account-who .avatar-face:not([data-face='jetlag']) svg > g,
+  .settings-avatar .profile-avatar .avatar-face:not([data-face='jetlag']) svg > g {
+    animation:
+      var(--avatar-idle, avatar-blink) 9s linear var(--avatar-blink-delay, 0s) infinite,
+      avatar-hello 260ms var(--ease-in-out) 180ms backwards;
+  }
+  /* The picker's faces hold still; the preview beside them carries the motion. */
+  .settings-face .avatar-face[data-face] svg > g {
+    animation: none;
   }
 }
-@keyframes profile-avatar-look {
+@keyframes avatar-blink {
   0%,
-  20%,
+  97%,
   100% {
-    transform: translate(0, 0);
+    scale: 1;
   }
-  35%,
-  50% {
-    transform: translate(8%, -1px);
+  98.5% {
+    scale: 1 0.1;
   }
-  65%,
-  80% {
-    transform: translate(-5%, 1px);
+}
+/* Sleepy lids stay down a beat longer. */
+@keyframes avatar-doze {
+  0%,
+  94%,
+  100% {
+    scale: 1;
+  }
+  95.5%,
+  97.5% {
+    scale: 1 0.1;
+  }
+}
+@keyframes avatar-hello {
+  0%,
+  100% {
+    scale: 1;
+  }
+  45% {
+    scale: 1 0.1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .profile-avatar [data-facehash-face] {
-    transform: none !important;
-    transition: none !important;
-  }
-  .profile-avatar [data-facehash-face] svg,
-  .profile-avatar [data-facehash-face] svg * {
-    animation: none !important;
+  .avatar-face svg {
+    transition: none;
   }
 }

@@ -41,6 +41,7 @@ interface Member {
   username: string | null
   display_name: string | null
   avatar_url: string | null
+  avatar_face: string | null
 }
 
 const PUBLISHED_PUBLIC = `p.is_public = 1 AND p.show_on_leaderboards = 1 AND ${PUBLISHED_DERIVED_STATE}`
@@ -73,7 +74,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
   const reads = await db.batch([
     // Sky members with their all-time values (user_stats).
     db.prepare(
-      `SELECT us.user_id, p.created_at, p.username, p.display_name, p.avatar_url,
+      `SELECT us.user_id, p.created_at, p.username, p.display_name, p.avatar_url, p.avatar_face,
               us.total_flights AS flights, us.total_distance_km AS distance, us.countries_count AS countries,
               us.airports_count AS cities, us.airlines_count AS airlines
        FROM user_stats us
@@ -104,7 +105,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
       .bind(year),
     // Ground members: consent includes publishing all countries (ADR 0007 refinement).
     db.prepare(
-      `SELECT p.id AS user_id, p.created_at, p.username, p.display_name, p.avatar_url,
+      `SELECT p.id AS user_id, p.created_at, p.username, p.display_name, p.avatar_url, p.avatar_face,
               g.rail, g.road, g.ground_countries
        FROM (${groundTotals(null)}) g
        JOIN profiles p ON p.id = g.user_id
@@ -162,6 +163,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
         username: m.username,
         display_name: m.display_name,
         avatar_url: m.avatar_url,
+        avatar_face: m.avatar_face,
       }),
     ]),
   )

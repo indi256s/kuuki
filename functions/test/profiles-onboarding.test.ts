@@ -162,3 +162,21 @@ it('stores only canonical accent names in theme_color and keeps the stored one o
     await dispose()
   }
 })
+
+it('stores a known avatar character, refuses others and null returns to the derived one', async () => {
+  const { dispose, users, patch } = await setup(1)
+  try {
+    const saved = await patch(users[0], { avatar_face: 'sleepy' })
+    expect(saved.status).toBe(200)
+    expect(await saved.json()).toMatchObject({ avatar_face: 'sleepy' })
+    for (const avatar_face of ['Sleepy', 'smile', '', 3]) {
+      const res = await patch(users[0], { avatar_face })
+      expect(res.status).toBe(400)
+      expect(await res.json()).toMatchObject({ code: 'BAD_REQUEST', error: 'Invalid avatar_face' })
+    }
+    const cleared = await patch(users[0], { avatar_face: null })
+    expect(await cleared.json()).toMatchObject({ avatar_face: null })
+  } finally {
+    await dispose()
+  }
+})

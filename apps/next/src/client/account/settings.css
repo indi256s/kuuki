@@ -65,16 +65,70 @@
   overflow-wrap: anywhere;
 }
 .settings-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--outline-media);
-  background: var(--surface);
-  background-size: cover;
-  background-position: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+.settings-faces {
   display: grid;
-  place-items: center;
-  font-size: 1.75rem;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.settings-faces legend {
+  padding: 0;
+  margin-block-end: var(--space-2);
+}
+.settings-face-name {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.settings-faces-row {
+  display: flex;
+  gap: var(--space-3);
+}
+/* The faces are the choice: a still 40px face per character, the selected one ringed. */
+.settings-face {
+  position: relative;
+  display: block;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--outline-media);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+.settings-face input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.settings-face:has(:checked) {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--selection-contour);
+}
+.settings-face:has(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 5px;
+}
+.settings-faces:disabled .settings-face {
+  cursor: default;
+  opacity: 0.6;
+}
+@media (forced-colors: active) {
+  .settings-face:has(:checked) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
 }
 .settings-savebar {
   position: fixed;

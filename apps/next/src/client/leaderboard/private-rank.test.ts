@@ -48,6 +48,7 @@ it.each([
         username: 'owner',
         display_name: null,
         avatar_url: null,
+        avatar_face: null,
       },
       period: 'publication',
     })

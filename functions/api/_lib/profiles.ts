@@ -8,6 +8,7 @@ export interface ProfileRow {
   display_name: string | null
   bio: string | null
   avatar_url: string | null
+  avatar_face?: string | null
   gemini_api_key: string | null
   home_airport: string | null
   is_public: number | null
@@ -28,6 +29,7 @@ export function toOwnProfile(row: ProfileRow) {
     display_name: row.display_name,
     bio: row.bio,
     avatar_url: row.avatar_url,
+    avatar_face: row.avatar_face ?? null,
     gemini_api_key: row.gemini_api_key,
     home_airport: row.home_airport,
     is_public: !!row.is_public,
@@ -49,6 +51,7 @@ export function toPublicProfile(row: ProfileRow) {
     display_name: row.display_name,
     bio: row.bio,
     avatar_url: row.avatar_url,
+    avatar_face: row.avatar_face ?? null,
     is_public: !!row.is_public,
     show_on_leaderboards: !!row.show_on_leaderboards,
     theme_color: row.theme_color,

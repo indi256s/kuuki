@@ -33,6 +33,7 @@ const entry = (rank: number, value: number, name = `user${rank}`): LeaderboardEn
   username: name,
   display_name: null,
   avatar_url: null,
+  avatar_face: null,
 })
 const ranks = (from: number, to: number, base = 100) =>
   Array.from({ length: to - from + 1 }, (_, index) => entry(from + index, base - from - index))

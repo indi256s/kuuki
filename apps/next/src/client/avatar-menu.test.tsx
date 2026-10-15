@@ -39,8 +39,7 @@ describe('AvatarMenu', () => {
   it('uses the reactive profile fallback without changing the accessible account trigger', () => {
     render(<AvatarMenu id="owner-1" username="ana" displayName="Ana" isPublic />)
     const trigger = screen.getByRole('button', { name: 'Account menu' })
-    expect(trigger.querySelector('.profile-avatar [data-facehash]')).not.toBeNull()
-    expect(trigger.querySelector('[data-interactive]')).not.toBeNull()
+    expect(trigger.querySelector('.profile-avatar .avatar-face[data-face]')).not.toBeNull()
     expect(trigger).not.toHaveTextContent('A')
   })
 

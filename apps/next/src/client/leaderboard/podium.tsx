@@ -81,6 +81,7 @@ export function Podium({
                       <ProfileAvatar
                         id={entry.user_id}
                         url={entry.avatar_url}
+                        face={entry.avatar_face}
                         name={name}
                         size={44}
                       />

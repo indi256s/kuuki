@@ -83,6 +83,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
                     <AvatarMenu
                       id={own.profile.id}
                       avatarUrl={own.profile.avatar_url}
+                      avatarFace={own.profile.avatar_face}
                       username={username}
                       displayName={own.profile.display_name}
                       isPublic={own.profile.is_public}

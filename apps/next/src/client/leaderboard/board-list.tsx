@@ -59,7 +59,13 @@ function Row({
         )}
         #{entry.rank}
       </span>
-      <ProfileAvatar id={entry.user_id} url={entry.avatar_url} name={name} size={36} />
+      <ProfileAvatar
+        id={entry.user_id}
+        url={entry.avatar_url}
+        face={entry.avatar_face}
+        name={name}
+        size={36}
+      />
       <span className="leaderboard-name">
         {entry.username ? (
           <Link href={`/fly/${encodeURIComponent(entry.username)}`}>{name}</Link>

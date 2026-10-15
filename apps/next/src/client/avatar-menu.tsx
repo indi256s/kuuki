@@ -20,6 +20,7 @@ export function AvatarMenu({
   username,
   id = username,
   avatarUrl,
+  avatarFace,
   displayName,
   isPublic,
   profileAccent,
@@ -28,6 +29,7 @@ export function AvatarMenu({
 }: {
   id?: string
   avatarUrl?: string | null
+  avatarFace?: string | null
   username: string
   displayName?: string | null
   isPublic: boolean
@@ -130,7 +132,7 @@ export function AvatarMenu({
           aria-label={text('Account menu', 'Меню аккаунта')}
         >
           <span aria-hidden="true">
-            <ProfileAvatar id={id} url={avatarUrl} name={name} size={40} />
+            <ProfileAvatar id={id} url={avatarUrl} face={avatarFace} name={name} size={40} />
           </span>
         </button>
       }
@@ -151,7 +153,7 @@ export function AvatarMenu({
               <span className="account-handle">@{username}</span>
             </span>
             <span aria-hidden="true">
-              <ProfileAvatar id={id} url={avatarUrl} name={name} size={48} />
+              <ProfileAvatar id={id} url={avatarUrl} face={avatarFace} name={name} size={48} />
             </span>
           </Link>
         </MenuItem>
