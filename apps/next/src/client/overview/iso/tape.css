@@ -1,8 +1,4 @@
-/* Retraction is a sprung snap home: it starts slow and lands fast. Payout takes the shared hover timing. */
-.iso-tape.iso {
-  --iso-dur: 160ms;
-  --iso-ease: cubic-bezier(0.55, 0, 1, 0.45);
-}
+/* Payout and retraction use the shared figure timing from iso.css. */
 @media (prefers-reduced-motion: no-preference) {
   .iso-tape :is([data-part='blade'], [data-part='blade-end']) {
     transform: translate(

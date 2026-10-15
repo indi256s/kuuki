@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
 import { FlightsStep } from './flights/flights-step'
 import { foundOf } from './found'
@@ -85,15 +85,37 @@ export function WelcomeFlow({
   const [fresh, setFresh] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const entered = useRef(false)
+  const reported = useRef<PassportPreview | null>(null)
 
-  useEffect(() => {
-    onPassport({
+  useLayoutEffect(() => {
+    const preview: PassportPreview = {
       step: place.step,
       name,
       found,
       open: place.step !== 'name',
       reading: place.step === 'flights' && reading,
-    })
+    }
+    const previous = reported.current
+    reported.current = preview
+    // The parent owns the passport geometry. Publish step changes before the morph's new snapshot, and scope the
+    // phone's same-step bench reveal to that same machinery without starting a transition inside a step morph.
+    const resize =
+      previous?.step === 'flights' &&
+      preview.step === 'flights' &&
+      previous.reading !== preview.reading &&
+      window.matchMedia('(max-width: 700px)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      !document.documentElement.dataset.welcomeMorph
+    let current = true
+    const publish = () => {
+      if (current) onPassport(preview)
+    }
+    if (resize) morph('layout', publish)
+    else publish()
+    // A step change or a newer import update may arrive before the browser runs the snapshot callback.
+    return () => {
+      current = false
+    }
   }, [name, found, place.step, reading, onPassport])
 
   // Focus the step's heading whenever a step is entered, but not on the first render of a reload.

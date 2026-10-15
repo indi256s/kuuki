@@ -13,6 +13,7 @@ import {
   type RefObject,
 } from 'react'
 import { BottomSheet, rubberBand, type BottomSheetProps } from './bottom-sheet'
+import { useKeyboardMotion } from './use-keyboard-motion'
 import './ui.css'
 
 /** Release past this share of the sheet's size dismisses it. */
@@ -57,6 +58,7 @@ export type SheetProps = Pick<
 type Sample = { t: number; p: number }
 
 export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetProps) {
+  const keyboard = useKeyboardMotion(open)
   if (contentProps.side !== 'right') {
     return (
       <BottomSheet {...contentProps} open={open} onOpenChange={onOpenChange} trigger={trigger} />
@@ -66,10 +68,11 @@ export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetPro
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="ui-overlay" />
+        <RadixDialog.Overlay className="ui-overlay" data-instant={keyboard ? '' : undefined} />
         <SideSheetContent
           {...contentProps}
           open={open}
+          instant={keyboard}
           trigger={trigger}
           onOpenChange={onOpenChange}
         />
@@ -97,7 +100,8 @@ function SideSheetContent({
   initialFocusRef,
   onCloseAutoFocus,
   onEscapeKeyDown,
-}: Omit<SheetProps, 'side'> & { ref?: Ref<HTMLDivElement> }) {
+  instant,
+}: Omit<SheetProps, 'side'> & { ref?: Ref<HTMLDivElement>; instant: boolean }) {
   const contentRef = useRef<HTMLDivElement | null>(null)
   const setContent = useCallback(
     (node: HTMLDivElement | null) => {
@@ -166,6 +170,7 @@ function SideSheetContent({
       ref={setContent}
       className={`ui-sheet ${className}`}
       data-side="right"
+      data-instant={instant ? '' : undefined}
       {...(description ? {} : { 'aria-describedby': undefined })}
       onEscapeKeyDown={onEscapeKeyDown}
       onCloseAutoFocus={(event) => {

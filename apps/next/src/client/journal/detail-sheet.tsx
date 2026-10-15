@@ -40,6 +40,7 @@ import { formatDateOnly, type Locale } from '../../lib/format'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
+import { useKeyboardMotion } from '../ui/use-keyboard-motion'
 import { useToast } from '../ui/toast'
 import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
@@ -464,6 +465,7 @@ export function JournalDetail({
     },
     [openFlight],
   )
+  const instant = useKeyboardMotion(dockOpen)
   const paneKeys = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Escape' || event.defaultPrevented) return
     event.preventDefault()
@@ -541,7 +543,12 @@ export function JournalDetail({
   if (docked) {
     if (id === null && !idle) return null
     return (
-      <aside className="journal-detail" aria-label={t.region} onKeyDown={paneKeys}>
+      <aside
+        className="journal-detail"
+        data-instant={instant ? '' : undefined}
+        aria-label={t.region}
+        onKeyDown={paneKeys}
+      >
         <div className="jd-header">
           <h2 ref={paneTitle} tabIndex={-1} className="jd-title">
             {idle ? idle.title : title}

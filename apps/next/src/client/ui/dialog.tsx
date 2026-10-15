@@ -2,7 +2,9 @@
 
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from '@keyline-icons/react'
-import { useRef, useState, type ReactNode, type Ref, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react'
+import { useKeyboardMotion } from './use-keyboard-motion'
+import { useTransitionPresence } from './use-transition-presence'
 import './ui.css'
 
 export type DialogProps = {
@@ -32,6 +34,9 @@ export function Dialog({
   dismissible = true,
   ...contentProps
 }: DialogProps) {
+  const keyboard = useKeyboardMotion(open)
+  const content = useRef<HTMLDivElement>(null)
+  const present = useTransitionPresence(content, open, keyboard)
   return (
     <RadixDialog.Root
       open={open}
@@ -40,9 +45,19 @@ export function Dialog({
       }}
     >
       {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
-      <RadixDialog.Portal>
-        <RadixDialog.Overlay className="ui-overlay" />
-        <MountedDialogContent {...contentProps} trigger={trigger} dismissible={dismissible} />
+      <RadixDialog.Portal forceMount={present || undefined}>
+        <RadixDialog.Overlay
+          className="ui-overlay ui-dialog-overlay"
+          data-instant={keyboard ? '' : undefined}
+        />
+        <MountedDialogContent
+          {...contentProps}
+          ref={content}
+          trigger={trigger}
+          dismissible={dismissible}
+          instant={keyboard}
+          open={open}
+        />
       </RadixDialog.Portal>
     </RadixDialog.Root>
   )
@@ -60,8 +75,21 @@ function MountedDialogContent({
   initialFocusRef,
   onCloseAutoFocus,
   className = '',
-}: Omit<DialogProps, 'open' | 'onOpenChange'> & { ref?: Ref<HTMLDivElement> }) {
+  instant,
+  open,
+}: Omit<DialogProps, 'onOpenChange'> & { ref?: Ref<HTMLDivElement>; instant: boolean }) {
   const titleRef = useRef<HTMLHeadingElement>(null)
+  const focused = useRef<HTMLElement | null>(null)
+  const wasOpen = useRef(open)
+  useLayoutEffect(() => {
+    if (open && !wasOpen.current) {
+      const target = focused.current?.isConnected
+        ? focused.current
+        : (initialFocusRef?.current ?? titleRef.current)
+      target?.focus()
+    }
+    wasOpen.current = open
+  }, [open, initialFocusRef])
   // Capture each Portal mount before a child autoFocus can replace the opener.
   const [opener] = useState(() => {
     if (typeof document === 'undefined') return null
@@ -72,6 +100,11 @@ function MountedDialogContent({
     <RadixDialog.Content
       ref={ref}
       className={`ui-dialog ${className}`}
+      inert={!open || undefined}
+      data-instant={instant ? '' : undefined}
+      onFocusCapture={(event) => {
+        if (event.target instanceof HTMLElement) focused.current = event.target
+      }}
       {...(description ? {} : { 'aria-describedby': undefined })}
       onCloseAutoFocus={(event) => {
         onCloseAutoFocus?.(event)

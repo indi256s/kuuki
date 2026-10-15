@@ -55,12 +55,14 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   const [open, setOpen] = useState(false)
   // Mounted while open and for the fade-out after it.
   const [present, setPresent] = useState(false)
+  const [instant, setInstant] = useState(false)
   const anchor = useRef<HTMLSpanElement>(null)
   const bubble = useRef<HTMLDivElement>(null)
   const showTimer = useRef(0)
   const hideTimer = useRef(0)
 
   const show = (delay: number) => {
+    setInstant(delay === 0)
     window.clearTimeout(showTimer.current)
     const run = () => {
       setOpen(true)
@@ -87,9 +89,9 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   )
   useEffect(() => {
     if (open) return
-    const timer = window.setTimeout(() => setPresent(false), EXIT_MS)
+    const timer = window.setTimeout(() => setPresent(false), instant ? 0 : EXIT_MS)
     return () => window.clearTimeout(timer)
-  }, [open])
+  }, [open, instant])
   useEffect(() => {
     if (!open) return
     const close = () => {
@@ -97,7 +99,10 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
       setOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close()
+      if (event.key === 'Escape') {
+        setInstant(true)
+        close()
+      }
     }
     document.addEventListener('keydown', onKeyDown)
     window.addEventListener('scroll', close, true)
@@ -170,6 +175,7 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
               role="tooltip"
               className="ui-tooltip"
               data-state={open ? 'open' : 'closed'}
+              data-instant={instant ? '' : undefined}
             >
               {content}
             </div>,

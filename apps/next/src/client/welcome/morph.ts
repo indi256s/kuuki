@@ -12,7 +12,7 @@ let latest = 0
  * the morphing parts only while it runs, so the theme sweep's own view transition never sees them. Without the API,
  * with the tab hidden or during a theme switch, the change applies at once.
  */
-export function morph(direction: MorphDirection, update: () => void) {
+export function morph(direction: MorphDirection | 'layout', update: () => void) {
   const root = document.documentElement
   const start = (document as Document & { startViewTransition?: StartViewTransition })
     .startViewTransition

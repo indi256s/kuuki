@@ -300,30 +300,34 @@
   color: var(--text);
   box-shadow: var(--shadow-modal), var(--ring-floating);
 }
-.ui-dialog[data-state='open'] {
-  animation: ui-dialog-in var(--dur-base) var(--ease-out);
+.ui-dialog,
+.ui-dialog-overlay {
+  opacity: 1;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.ui-dialog {
+  transform: scale(1);
+}
+.ui-dialog-overlay[data-state] {
+  animation: none;
+}
+.ui-dialog[data-state='closed'],
+.ui-dialog-overlay[data-state='closed'] {
+  opacity: 0;
+  transition-duration: var(--dur-fast);
 }
 .ui-dialog[data-state='closed'] {
-  animation: ui-dialog-out var(--dur-fast) var(--ease-out) forwards;
+  transform: scale(0.96);
 }
-@keyframes ui-dialog-in {
-  from {
+@starting-style {
+  .ui-dialog {
     opacity: 0;
     transform: scale(0.96);
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes ui-dialog-out {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
+  .ui-dialog-overlay {
     opacity: 0;
-    transform: scale(0.96);
   }
 }
 @keyframes ui-fade-in {
@@ -1183,11 +1187,16 @@
   .ui-swatch:active {
     transform: none;
   }
-  .ui-dialog[data-state='open'] {
-    animation: ui-fade-in var(--dur-fast) linear;
+  .ui-dialog[data-state],
+  .ui-dialog-overlay[data-state] {
+    animation: none;
+    transform: none;
+    transition: opacity var(--dur-fast) linear;
   }
-  .ui-dialog[data-state='closed'] {
-    animation: ui-fade-out var(--dur-fast) linear forwards;
+  @starting-style {
+    .ui-dialog[data-state] {
+      transform: none;
+    }
   }
   .ui-sheet {
     transition: none;
@@ -1433,4 +1442,15 @@
 }
 :root[data-theme='dark'] .ui-airline-mark[data-dark-logo] .ui-airline-logo-dark {
   display: block;
+}
+
+/* Keyboard actions settle surfaces and selection indicators in the committing frame. */
+.ui-dialog[data-instant],
+.ui-overlay[data-instant],
+.ui-sheet[data-side][data-instant] {
+  animation: none !important;
+  transition: none !important;
+}
+.ui-segmented[data-instant] .ui-segmented-thumb {
+  transition: none;
 }

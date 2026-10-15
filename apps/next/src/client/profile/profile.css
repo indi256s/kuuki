@@ -60,6 +60,10 @@
   animation: profile-rise var(--dur-base) var(--ease-out) both;
   animation-delay: calc(60ms + var(--block-i, 0) * 60ms);
 }
+/* Member Passport and its visitor preview stay readable immediately on every visit. */
+.passport-page:is([data-mode='owner'], [data-mode='preview']) .profile-block {
+  animation: none;
+}
 .profile-block-head {
   display: flex;
   align-items: baseline;

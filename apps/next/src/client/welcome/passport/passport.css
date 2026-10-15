@@ -86,6 +86,7 @@
     width: min(100%, calc(34svh * 600 / 376));
     aspect-ratio: 600 / 376;
     margin-inline: 0;
+    transition-duration: var(--dur-base);
   }
   .welcome-passport[data-bench] .wp-desk[data-tall] {
     padding-top: 4px;

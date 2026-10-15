@@ -1,17 +1,4 @@
-/* Keyline draws each glyph as one path; hover motion moves the complete icon. Navigation and Add do not animate on hover; only buttons that opt in through .ui-button do. */
+/* Shared sizing for the static Keyline Plus wrapper. */
 .animated-icon {
   flex-shrink: 0;
-  transform-origin: center;
-}
-
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .ui-button:not([aria-disabled='true']):hover .animated-icon-plus {
-    animation: icon-plus-turn var(--dur-base) var(--ease-out) forwards;
-  }
-}
-
-@keyframes icon-plus-turn {
-  to {
-    transform: rotate(180deg);
-  }
 }

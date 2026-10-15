@@ -15,7 +15,6 @@ import { HistoricalReview } from '../reads/historical-review'
 import { useAwaiting } from '../awaiting'
 import { useMobile } from '../ui/use-mobile'
 import { JournalBulkActions } from './bulk-actions'
-import { Crossfade } from './crossfade'
 import { JournalDetail, useDockedDetail } from './detail-sheet'
 import { downloadCsv, exportFileName, openFlightsCsv } from './export-csv'
 import type { EditableField } from './flight-edits'
@@ -210,12 +209,6 @@ function JournalContent({
     () => downloadCsv(exportFileName(new Date()), openFlightsCsv(selection.matching, payload.refs)),
     [selection.matching, payload.refs],
   )
-  // Facet and sort changes crossfade the rows; search narrows live without a fade.
-  const signature = useMemo(
-    () => JSON.stringify({ ...view.filters, q: undefined, sort: view.sort }),
-    [view.filters, view.sort],
-  )
-
   const confirmation = useMobileConfirmation({ locale, queue, online, refresh })
   const onConfirm = (id: number) => {
     const flight = payload.flights.find((item) => item.id === id)
@@ -307,26 +300,24 @@ function JournalContent({
           ) : selection.items.length === 0 ? (
             <NoMatches locale={locale} onClearFilters={resetFilters} />
           ) : (
-            <Crossfade signature={signature}>
-              <JournalLedger
-                items={selection.items}
-                refs={payload.refs}
-                locale={locale}
-                sort={view.sort}
-                onSortChange={setSort}
-                activeId={view.flight}
-                compact={split}
-                selected={visibleSelected}
-                selectable={selectable}
-                onToggleSelect={onToggleSelect}
-                onOpen={onOpen}
-                hidden={hidden}
-                mobile={mobile}
-                rowMenu={mobile ? rowMenu : undefined}
-                rowMenuReason={!online ? actionCopy.offline : undefined}
-                swipeActions={mobile ? swipeActions : undefined}
-              />
-            </Crossfade>
+            <JournalLedger
+              items={selection.items}
+              refs={payload.refs}
+              locale={locale}
+              sort={view.sort}
+              onSortChange={setSort}
+              activeId={view.flight}
+              compact={split}
+              selected={visibleSelected}
+              selectable={selectable}
+              onToggleSelect={onToggleSelect}
+              onOpen={onOpen}
+              hidden={hidden}
+              mobile={mobile}
+              rowMenu={mobile ? rowMenu : undefined}
+              rowMenuReason={!online ? actionCopy.offline : undefined}
+              swipeActions={mobile ? swipeActions : undefined}
+            />
           )}
         </div>
         <JournalDetail

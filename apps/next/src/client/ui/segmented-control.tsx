@@ -48,6 +48,7 @@ export function SegmentedControl<T extends string>({
   const current = useRef(0)
   const [thumb, setThumb] = useState<Thumb | null>(null)
   const [ready, setReady] = useState(false)
+  const [keyboard, setKeyboard] = useState(false)
   const selected = Math.max(
     0,
     options.findIndex((option) => option.value === value),
@@ -114,6 +115,7 @@ export function SegmentedControl<T extends string>({
     }
     if (!(event.key in keys)) return
     event.preventDefault()
+    setKeyboard(true)
     select(keys[event.key])
   }
 
@@ -126,6 +128,8 @@ export function SegmentedControl<T extends string>({
       data-ready={ready ? 'true' : undefined}
       data-dense={dense ? 'true' : undefined}
       style={{ '--n': options.length } as CSSProperties}
+      data-instant={keyboard ? '' : undefined}
+      onPointerDown={() => setKeyboard(false)}
       onKeyDown={onKeyDown}
     >
       {thumb ? (
@@ -150,7 +154,10 @@ export function SegmentedControl<T extends string>({
           aria-checked={option.value === value}
           tabIndex={index === selected ? 0 : -1}
           className="ui-segment"
-          onClick={() => select(index)}
+          onClick={(event) => {
+            setKeyboard(event.detail === 0)
+            select(index)
+          }}
         >
           {option.icon}
           {option.label}

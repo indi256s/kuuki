@@ -650,3 +650,13 @@ a.ui-menu-item {
 .edge-bottom::after {
   background: var(--edge-bottom-background);
 }
+
+.tab-add[data-instant],
+.tab-add[data-instant] .tab-add-icon,
+.add-button[data-instant] .icon-morph,
+.avatar-button[data-instant] .avatar-face svg {
+  transition: none;
+}
+.account-menu[data-instant] .account-who .avatar-face svg > g {
+  animation: none;
+}

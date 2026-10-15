@@ -12,10 +12,6 @@
   -webkit-mask-image: radial-gradient(closest-corner at 50% 50%, #000 40%, transparent 100%);
   mask-image: radial-gradient(closest-corner at 50% 50%, #000 40%, transparent 100%);
 }
-.auth-rings circle {
-  translate: calc(var(--ring-x, 0) * var(--ring-depth) * 1px)
-    calc(var(--ring-y, 0) * var(--ring-depth) * 1px);
-}
 @media (max-width: 700px) {
   .auth-rings {
     display: none;

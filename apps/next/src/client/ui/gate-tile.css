@@ -108,6 +108,15 @@
 .gate-tile[data-size='compact']:active {
   transform: scale(0.96);
 }
+@media (prefers-reduced-motion: reduce) {
+  .gate-tile[data-size='compact'],
+  .gate-tile[data-size='compact']:active,
+  :root[data-theme='dark'] .gate-tile[data-size='compact'],
+  :root[data-theme='dark'] .gate-tile[data-size='compact']:active {
+    transform: none;
+    transition: none;
+  }
+}
 @media (hover: hover) and (pointer: fine) {
   .gate-tile[data-size='compact']:not([aria-current='page']):hover {
     background: var(--surface-inset);

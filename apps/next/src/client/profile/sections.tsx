@@ -99,7 +99,7 @@ export type ProfileTotals = {
   countries_count: number
 }
 
-/** The order the right page stacks its blocks in; each one's entrance waits 60ms longer (spec "Motion"). */
+/** Public profile blocks enter in order; member Passport and its preview remain static. */
 export function Block({
   index,
   className = '',

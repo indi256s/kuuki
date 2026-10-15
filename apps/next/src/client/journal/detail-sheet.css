@@ -144,3 +144,7 @@
   font-weight: 400;
   color: var(--text-muted);
 }
+
+.journal-detail[data-instant] {
+  animation: none;
+}

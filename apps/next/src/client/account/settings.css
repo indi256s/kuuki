@@ -102,7 +102,6 @@
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 0 0 1px var(--outline-media);
-  transition: box-shadow var(--dur-fast) var(--ease-out);
 }
 .settings-face input {
   position: absolute;

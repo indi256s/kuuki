@@ -1,4 +1,4 @@
-/* Arc-derived expandable card. Height opens through grid rows, content fades; nothing runs while the card is still. */
+/* Arc-derived expandable card. Layout switches once; content fades without a delay. */
 .ui-xcard {
   display: flex;
   flex-direction: column;
@@ -100,7 +100,6 @@
 .ui-xcard-panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows var(--dur-base) var(--ease-out);
 }
 .ui-xcard[data-expanded] .ui-xcard-panel {
   grid-template-rows: 1fr;
@@ -113,7 +112,6 @@
 }
 .ui-xcard[data-expanded] .ui-xcard-panel-inner {
   opacity: 1;
-  transition: opacity var(--dur-base) var(--ease-out) var(--dur-press);
 }
 @keyframes ui-xcard-rise {
   from {
@@ -127,9 +125,6 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-xcard-panel {
-    transition: none;
-  }
   .ui-xcard-panel-inner,
   .ui-xcard[data-expanded] .ui-xcard-panel-inner {
     transition: opacity var(--dur-fast) linear;

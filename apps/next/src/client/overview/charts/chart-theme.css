@@ -115,14 +115,6 @@
 .kc-svg [role='button'] {
   cursor: pointer;
 }
-/* Geometry updates snap; only transform transitions are retained. */
-.kc[data-in-view='true'] .kc-svg :is(path, circle, rect) {
-  transition: transform 1100ms var(--ease-in-out);
-}
-/* Charts draw in CSS pixels, so a resize moves geometry; it must not animate. */
-.kc[data-resizing] .kc-svg :is(path, circle, rect) {
-  transition: none;
-}
 /* Count-driven charts keep their natural width, left-aligned, and scroll when the host is narrower. */
 .kc[data-scroll] {
   overflow-x: auto;
@@ -206,10 +198,5 @@
 @media (pointer: coarse) {
   .arc-brush {
     --brush-thumb: 44px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .kc[data-in-view='true'] .kc-svg :is(path, circle, rect) {
-    transition: none;
   }
 }

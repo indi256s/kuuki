@@ -23,6 +23,7 @@ import {
 import { X } from '@keyline-icons/react'
 // Adapted from Arc Bottom sheet (MIT, see ARC-LICENSE.txt).
 import styles from './bottom-sheet.module.css'
+import { useKeyboardMotion } from './use-keyboard-motion'
 import './ui.css'
 
 /**
@@ -107,6 +108,7 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultOpen)
   const open = openProp ?? uncontrolled
+  const keyboard = useKeyboardMotion(open)
   const setOpen = useCallback(
     (next: boolean) => {
       if (openProp === undefined) setUncontrolled(next)
@@ -122,7 +124,7 @@ export function BottomSheet({
       <AnimatePresence>
         {open && (
           <DialogPrimitive.Portal key="sheet" forceMount>
-            <Sheet {...props} trigger={trigger} onDismiss={dismiss} />
+            <Sheet {...props} trigger={trigger} onDismiss={dismiss} initialKeyboard={keyboard} />
           </DialogPrimitive.Portal>
         )}
       </AnimatePresence>
@@ -146,8 +148,13 @@ function Sheet({
   onEscapeKeyDown,
   trigger,
   onDismiss,
-}: Omit<BottomSheetProps, 'open' | 'defaultOpen' | 'onOpenChange'> & { onDismiss: () => void }) {
+  initialKeyboard,
+}: Omit<BottomSheetProps, 'open' | 'defaultOpen' | 'onOpenChange'> & {
+  onDismiss: () => void
+  initialKeyboard: boolean
+}) {
   const [isPresent, safeToRemove] = usePresence()
+  const instant = useKeyboardMotion(isPresent, initialKeyboard)
   const reduced = useReducedMotion() ?? false
   const detentKey = detents.join(',')
   const stops = useMemo(() => {
@@ -261,18 +268,19 @@ function Sheet({
         arrive.current = undefined
         callback?.()
       }
-      if (reduced) {
+      if (reduced || (instant && velocity === undefined)) {
         y.jump(target)
         done()
         return
       }
       animate(y, target, {
         ...settle,
+        bounce: velocity === undefined ? 0 : settle.bounce,
         ...(velocity === undefined ? {} : { velocity }),
         onComplete: done,
       })
     },
-    [offset, reduced, y],
+    [offset, reduced, instant, y],
   )
 
   const rest = useCallback(
@@ -298,10 +306,10 @@ function Sheet({
       // Collapsing takes the content back to its start, so the peek always shows the top of it.
       const body = bodyRef.current
       if (stop !== top && body && body.scrollTop > 0)
-        body.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+        body.scrollTo({ top: 0, behavior: reduced || instant ? 'auto' : 'smooth' })
       go(stop, velocity)
     },
-    [go, onDetentChange, reduced, stops, top, ru],
+    [go, onDetentChange, reduced, instant, stops, top, ru],
   )
 
   // Enter, leave, and a reopen caught mid-exit all retarget the same motion value from wherever it is.
@@ -319,6 +327,11 @@ function Sheet({
     }
     if (isPresent) {
       dismissVelocity.current = undefined
+      if (instant) {
+        y.jump(offset(detentRef.current))
+        presence.jump(1)
+        return
+      }
       if (reduced) {
         y.jump(offset(detentRef.current))
         animate(presence, 1, fade)
@@ -334,13 +347,19 @@ function Sheet({
     removePointerListeners.current?.()
     const velocity = dismissVelocity.current
     dismissVelocity.current = undefined
+    if (instant && velocity === undefined) {
+      presence.jump(0)
+      // Let Presence register the exit before removing it; a reopen cancels this task.
+      const remove = window.setTimeout(() => safeToRemove?.(), 0)
+      return () => window.clearTimeout(remove)
+    }
     if (reduced) {
       animate(presence, 0, { ...fade, onComplete: safeToRemove })
       return
     }
     // Only accepted closure starts the exit; a swipe contributes its release velocity.
     go('closed', velocity, safeToRemove)
-  }, [go, height, isPresent, offset, presence, reduced, safeToRemove, y])
+  }, [go, height, instant, isPresent, offset, presence, reduced, safeToRemove, y])
 
   // A viewport change (rotation, the mobile toolbar) moves every detent. Keep the sheet on its detent, retargeting any flight.
   useEffect(() => {
@@ -635,7 +654,7 @@ function Sheet({
       return
     }
     const step = event.key.startsWith('Arrow') ? 48 : body.clientHeight * 0.85
-    body.scrollBy({ top: down ? step : -step, behavior: reduced ? 'auto' : 'smooth' })
+    body.scrollBy({ top: down ? step : -step, behavior: reduced || instant ? 'auto' : 'smooth' })
   }
 
   const expanded = detent >= top

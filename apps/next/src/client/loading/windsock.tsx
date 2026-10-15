@@ -15,9 +15,10 @@ export function Windsock() {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const svg = ref.current?.querySelector('svg')
+    const element = ref.current
+    const svg = element?.querySelector('svg')
     const stack = svg?.querySelector<SVGGElement>('.ws-bands')
-    if (!svg || !stack) return
+    if (!element || !svg || !stack) return
     const one = <T extends Element>(selector: string) => svg.querySelector<T>(selector)!
     const bands = [...svg.querySelectorAll<SVGGElement>('.ws-band')].map((group) => ({
       band: Number(group.dataset.band),
@@ -73,6 +74,9 @@ export function Windsock() {
     }
 
     let frame = 0
+    let revealed = false
+    let visible = false
+    let drawnStill = false
     const start = performance.now() + REVEAL_MS
     const tick = (now: number) => {
       draw(Math.max(0, now - start) / 1000)
@@ -80,13 +84,30 @@ export function Windsock() {
     }
     const run = () => {
       cancelAnimationFrame(frame)
-      if (still.matches) draw(0)
-      else frame = requestAnimationFrame(tick)
+      frame = 0
+      if (!still.matches) drawnStill = false
+      if (!revealed || !visible || document.hidden) return
+      if (still.matches) {
+        if (!drawnStill) draw(0)
+        drawnStill = true
+      } else frame = requestAnimationFrame(tick)
     }
-    run()
+    const reveal = window.setTimeout(() => {
+      revealed = true
+      run()
+    }, REVEAL_MS)
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      run()
+    })
+    observer.observe(element)
+    document.addEventListener('visibilitychange', run)
     still.addEventListener('change', run)
     return () => {
+      window.clearTimeout(reveal)
       cancelAnimationFrame(frame)
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', run)
       still.removeEventListener('change', run)
     }
   }, [])

@@ -36,3 +36,8 @@
     transition: none;
   }
 }
+
+.ui-tooltip[data-instant] {
+  animation: none;
+  transition: none;
+}

@@ -96,6 +96,7 @@ export function Menu({
       ) : null}
       <DropdownMenu.Trigger
         asChild
+        data-instant={still}
         onPointerDown={() => setKeyboard(false)}
         onKeyDown={() => setKeyboard(true)}
       >

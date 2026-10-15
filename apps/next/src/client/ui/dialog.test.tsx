@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -124,4 +124,30 @@ describe('Dialog', () => {
     await user.click(await screen.findByRole('button', { name: 'Cancel' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Second opener' })).toHaveFocus())
   })
+})
+
+it('restores in-dialog focus when reopened before its pointer exit finishes', async () => {
+  const onOpenChange = vi.fn()
+  const view = (open: boolean) => (
+    <Dialog open={open} onOpenChange={onOpenChange} title="Edit flight">
+      <input aria-label="Notes" />
+    </Dialog>
+  )
+  const { rerender } = render(view(true))
+  const dialog = screen.getByRole('dialog')
+  let finish!: () => void
+  const finished = new Promise<void>((resolve) => {
+    finish = resolve
+  })
+  Object.defineProperty(dialog, 'getAnimations', { value: () => [{ finished }] })
+  const notes = screen.getByRole('textbox', { name: 'Notes' })
+  notes.focus()
+  rerender(view(false))
+  // In a browser, making the closing content inert removes focus from it.
+  notes.blur()
+  rerender(view(true))
+  expect(screen.getByRole('dialog')).toBe(dialog)
+  expect(notes).toHaveFocus()
+  await act(async () => finish())
+  expect(notes).toHaveFocus()
 })
