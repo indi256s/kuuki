@@ -3,6 +3,7 @@
 import { useLocale } from '../preferences'
 
 import {
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -109,12 +110,19 @@ const loadOnboarding = () =>
   ))
 const LazyWelcomeFlow = dynamic(() => loadOnboarding().then((loaded) => loaded.WelcomeFlow))
 
-/** Picks its component once per mount: loaded already after a morph, streamed on a /welcome/* document load. */
+/**
+ * Picks its component once per mount: loaded already after a morph, streamed on a /welcome/* document load. The
+ * boundary lets the server HTML hydrate on its own while the chunk loads, so React replays an early click on it.
+ */
 function Onboarding(props: ComponentProps<Onboarding['WelcomeFlow']>) {
   const [Flow] = useState(() =>
     typeof window !== 'undefined' && onboarding ? onboarding.WelcomeFlow : LazyWelcomeFlow,
   )
-  return <Flow {...props} />
+  return (
+    <Suspense>
+      <Flow {...props} />
+    </Suspense>
+  )
 }
 
 /**
