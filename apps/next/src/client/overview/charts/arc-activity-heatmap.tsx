@@ -9,8 +9,8 @@ type ActivityDay = { date: string; count: number; missing: boolean }
 export type DailyLevel = 0 | 1 | 2 | 3 | 4
 export const dailyLevel = (count: number): DailyLevel =>
   count > 0 ? (Math.min(4, Math.ceil(count)) as 1 | 2 | 3 | 4) : 0
-/** Levels 1 and 2 sit under 3:1 on the card surface in every theme and accent, so their cells carry `--heat-contour`. A known zero is the quiet `--heat-0` fill and a missing day is the dashed outline, so neither is contoured. */
-export const heatIsWeak = (level: number) => level === 1 || level === 2
+/** Levels 1–3 can sit under 3:1 on the card surface (level 3 for Matcha and Asagi in light), so their cells carry `--heat-contour`. A known zero is the quiet `--heat-0` fill and a missing day is the dashed outline, so neither is contoured. */
+export const heatIsWeak = (level: number) => level >= 1 && level <= 3
 
 // Arc Activity heatmap calendar model, MIT; see the source inventory and ui/ARC-LICENSE.txt. Levels are Kuuki's own absolute scale.
 /**

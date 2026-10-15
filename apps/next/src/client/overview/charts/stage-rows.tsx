@@ -87,6 +87,7 @@ export function StageRows<T>(props: StageRowsProps<T>) {
                     className="stage-bar"
                     data-axis="x"
                     data-outline={outline?.(point) || undefined}
+                    data-fill={fill ? '' : undefined}
                     style={{
                       transform: `scaleX(${num(width / length)})`,
                       ...(fill ? { '--stage-fill': fill(point) } : null),

@@ -130,6 +130,7 @@ const sourceStyles = [
   'ui/ui.css',
   'signature/signature.css',
   'overview/iso/iso.css',
+  'overview/iso/hangars.css',
   'overview/iso/clock.css',
 ]
   .map((p) => fs.readFileSync(path.join(root, 'apps/next/src/client', p), 'utf8'))

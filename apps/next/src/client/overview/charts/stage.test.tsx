@@ -60,4 +60,6 @@ it('rows with a category fill never render the peak overlay, even when picked', 
   expect(container.querySelectorAll('.stage-peak').length).toBeGreaterThan(0)
   rerender(<StageRows {...shared} span="sheet" fill={() => 'var(--cat-maker-airbus)'} />)
   expect(container.querySelector('.stage-peak')).toBeNull()
+  // The picked row is marked by the selection contour instead (stage.css).
+  expect(container.querySelector('[data-picked] > .stage-bar[data-fill]')).not.toBeNull()
 })

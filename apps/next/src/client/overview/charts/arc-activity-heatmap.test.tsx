@@ -11,7 +11,7 @@ import {
 
 it('maps flights per day onto fixed levels 0 / 1 / 2 / 3 / 4+', () => {
   expect([0, 1, 2, 3, 4, 5, 12].map(dailyLevel)).toEqual([0, 1, 2, 3, 4, 4, 4])
-  expect([0, 1, 2, 3, 4].map(heatIsWeak)).toEqual([false, true, true, false, false])
+  expect([0, 1, 2, 3, 4].map(heatIsWeak)).toEqual([false, true, true, true, false])
 })
 
 it('draws a known zero filled without contour, a missing day as an empty dashed outline, weak levels contoured and strong levels without contour', () => {

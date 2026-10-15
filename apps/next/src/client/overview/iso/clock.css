@@ -38,10 +38,10 @@
     animation: clock-press-b var(--dur-sheet) var(--ease-out);
   }
   [data-press='a'] .iso-clock [data-part='lit-both'] .iso-glow {
-    animation: clock-swell-a var(--dur-moment) var(--ease-out) 120ms;
+    animation: clock-swell-a var(--dur-sheet) var(--ease-out) var(--dur-press);
   }
   [data-press='b'] .iso-clock [data-part='lit-both'] .iso-glow {
-    animation: clock-swell-b var(--dur-moment) var(--ease-out) 120ms;
+    animation: clock-swell-b var(--dur-sheet) var(--ease-out) var(--dur-press);
   }
   /* Two names per animation, so each pick (which flips the side) starts it again. */
   @keyframes clock-press-a {

@@ -882,7 +882,8 @@ h2 {
 }
 @media (hover: hover) and (pointer: fine) {
   .button.primary:hover {
-    background: var(--accent-text);
+    background: var(--accent-hover);
+    color: var(--accent-hover-foreground);
   }
   .button.secondary:hover {
     background: var(--surface-inset);

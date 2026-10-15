@@ -26,7 +26,10 @@ const figures = {
 }
 const specimens: Record<string, string> = {}
 for (const [name, figure] of Object.entries(figures))
-  specimens[name] = render(<IsoFigure figure={figure} />, name)
+  specimens[name] = render(
+    <IsoFigure figure={figure} className={name === 'aircraft' ? 'iso-hangars' : undefined} />,
+    name,
+  )
 specimens.ticket = render(
   <Ticket
     state="logged"

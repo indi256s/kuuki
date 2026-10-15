@@ -56,6 +56,14 @@
 [data-picked] > .stage-bar .stage-peak {
   opacity: 1;
 }
+/* A picked category row keeps its fill; the selection contour marks it instead of the peak overlay. */
+[data-picked] > .stage-bar[data-fill] path {
+  stroke: var(--selection-contour);
+  stroke-width: 2px;
+}
+[data-picked] > .stage-bar[data-fill][data-outline] path {
+  stroke-width: 3px;
+}
 
 .stage-label {
   display: flex;
