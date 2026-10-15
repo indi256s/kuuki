@@ -15,6 +15,7 @@ export function ReplayTransport({
   timeMs,
   getFrame,
   paused,
+  started,
   setPaused,
   seek,
   reduced,
@@ -25,6 +26,8 @@ export function ReplayTransport({
   timeMs: number
   getFrame?: () => { timeMs: number }
   paused: boolean
+  /** Before the first Play the map is still and the transport is one labelled Play button. */
+  started: boolean
   setPaused: (paused: boolean) => void
   seek: (time: number, phase: 'preview' | 'commit' | 'cancel') => void
   reduced: boolean
@@ -34,7 +37,16 @@ export function ReplayTransport({
   const [cursor, setCursor] = useState({ timeline, draft: null as number | null })
   const draft = cursor.timeline === timeline ? cursor.draft : null
   const host = useRef<HTMLDivElement>(null),
-    label = useRef<HTMLButtonElement>(null)
+    label = useRef<HTMLButtonElement>(null),
+    play = useRef<HTMLButtonElement>(null)
+  // Play replaces itself with the full transport; focus moves to its Pause so the keyboard stays in place.
+  const handoff = useRef(false)
+  useEffect(() => {
+    if (started && handoff.current) {
+      handoff.current = false
+      play.current?.focus()
+    }
+  }, [started])
   const candidates = useMemo(() => monthCandidates(timeline, durationMs), [timeline, durationMs])
   const month = monthAt(timeline, timeMs, durationMs)
   const value =
@@ -122,6 +134,25 @@ export function ReplayTransport({
     return () => document.removeEventListener('pointerdown', outside)
   }, [expanded, finish])
   if (reduced || !timeline.length) return null
+  if (!started)
+    return (
+      <div className="replay-transport" data-still="">
+        <Button
+          className="replay-start"
+          dense
+          aria-label={
+            locale === 'ru' ? 'Воспроизвести маршруты по месяцам' : 'Replay routes month by month'
+          }
+          onClick={() => {
+            handoff.current = true
+            setPaused(false)
+          }}
+        >
+          <PlayPauseIcon state={false} size={16} />
+          {locale === 'ru' ? 'Воспроизвести' : 'Replay'}
+        </Button>
+      </div>
+    )
   return (
     <div
       ref={host}
@@ -138,6 +169,7 @@ export function ReplayTransport({
       }}
     >
       <Button
+        ref={play}
         className="replay-play"
         dense
         aria-label={

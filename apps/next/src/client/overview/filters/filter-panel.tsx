@@ -239,6 +239,20 @@ export function FilterPanel({
             {locale === 'ru' ? 'Все фильтры' : 'All filters'}
           </Button>
           <h3>{facetName(facet, locale)}</h3>
+          {facet === 'period' ? (
+            <Checkbox
+              className="ov-filter-option"
+              label={
+                <span className="ov-filter-option-text">
+                  {locale === 'ru' ? 'Всё время' : 'All time'}
+                </span>
+              }
+              checked={!filter.period}
+              onChange={() => {
+                if (isCurrent() && filter.period) actions.setPeriod(null)
+              }}
+            />
+          ) : null}
           {index
             .filter((option) => option.facet === facet)
             .map((option) => (

@@ -59,6 +59,7 @@ function makeProps(): MaplibreGlobeProps {
     onScope: vi.fn(),
     routeDistances: new Map(),
     timeline: [],
+    still: false,
     replay: {
       ...createReplaySchedule([], 12000).advance(0),
       seek: vi.fn(),
@@ -70,7 +71,7 @@ function makeProps(): MaplibreGlobeProps {
   }
 }
 
-it('keeps the whole globe inside the viewport on mount, filtering, resize and fullscreen', () => {
+it('keeps the whole globe inside the viewport on mount, resize and fullscreen, and leaves the camera alone on filtering', () => {
   const container = { clientWidth: 358, clientHeight: 358 }
   const fieldOfView = 36.86989764584402
   let latitude = 45
@@ -123,6 +124,8 @@ it('keeps the whole globe inside the viewport on mount, filtering, resize and fu
       reduced={false}
     />,
   )
+  // A filter keeps the member's view: no move towards the new centroid.
+  expect(latitude).toBe(0)
   expectContained()
   container.clientWidth = 960
   container.clientHeight = 520
@@ -131,6 +134,7 @@ it('keeps the whole globe inside the viewport on mount, filtering, resize and fu
   container.clientWidth = 390
   container.clientHeight = 844
   rerender(<MaplibreGlobe {...props} fullscreen />)
+  act(() => resize?.())
   expectContained()
   unmount()
 })

@@ -148,6 +148,24 @@
   min-width: 0;
   max-width: 100%;
 }
+/* Phones: search, then each segmented control across the row, then Filters and sort as two equal halves, all 44px tall. */
+@media (max-width: 700px) {
+  .passport-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .passport-toolbar > :is(.passport-search-field, .ui-segmented, .passport-map-sources) {
+    grid-column: 1 / -1;
+  }
+  .passport-toolbar > .ui-segmented {
+    width: 100%;
+  }
+  .passport-toolbar > .ui-button {
+    inline-size: 100%;
+    min-inline-size: 0;
+    padding-inline: 12px;
+  }
+}
 .passport-map-sources {
   margin: 0;
   color: var(--text-muted);

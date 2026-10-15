@@ -238,8 +238,6 @@ export const S = {
   scopeAll: p('All', 'Всё'),
   scopeFlights: p('Flights', 'Перелёты'),
   scopeGround: p('Ground', 'По земле'),
-  summaryAllTravel: p('All travel, all time', 'Все поездки, за всё время'),
-  summaryGround: p('All ground trips, all time', 'Все поездки по земле, за всё время'),
   aviationFacetNote: p(
     'Flight filters leave out ground trips',
     'Наземные поездки не подходят под фильтры перелётов',

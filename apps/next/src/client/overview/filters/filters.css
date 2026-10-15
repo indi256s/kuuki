@@ -1,13 +1,42 @@
+/* One row of scope, period and Filter, all 44px tall, then the applied conditions in a row of their own. */
 .ov-filter-bar {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
   gap: 8px;
   inline-size: 100%;
   min-inline-size: 0;
 }
-.ov-filter-bar > [data-filter-chip] {
+.ov-filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+}
+.ov-filter-period,
+.ov-filter-add {
+  flex: none;
+}
+.ov-filter-period > span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.ov-filter-add > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ov-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+}
+.ov-filter-chips > [data-filter-chip] {
   display: inline-flex;
   min-inline-size: 0;
   max-inline-size: 100%;
@@ -15,25 +44,28 @@
 .ov-filter-bar [hidden] {
   display: none;
 }
-.ov-filter-add,
 .ov-filter-overflow {
   flex: none;
-  background: var(--surface-floating);
-  box-shadow: var(--shadow-floating), var(--ring-floating);
-}
-.ov-filter-add > span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.ov-filter-overflow {
+  min-block-size: 32px;
+  padding-block: 5px;
   inline-size: calc(3ch + 24px);
   font-family: var(--font-mono);
 }
-.ov-filter-all {
-  color: var(--text-muted);
+.ov-filter-reset {
+  flex: none;
+  min-block-size: 32px;
+  padding-block: 5px;
   font-size: 13px;
-  line-height: 20px;
+  font-weight: 500;
+}
+/* Over the map in Fullscreen the controls float on the canvas. */
+.globe-card :is(.ov-filter-period, .ov-filter-add, .ov-filter-overflow) {
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
+}
+.globe-card .ov-filter-controls > .ui-segmented {
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
 }
 .ov-filter-popover {
   inline-size: min(400px, calc(100vw - 32px));
@@ -144,12 +176,11 @@
   outline-offset: 2px;
 }
 @media (pointer: coarse) {
-  .ov-filter-bar {
+  .ov-filter-chips {
     column-gap: 12px;
-    row-gap: 8px;
   }
-  .ov-filter-add,
-  .ov-filter-overflow {
+  .ov-filter-overflow,
+  .ov-filter-reset {
     min-block-size: 44px;
   }
   .ov-filter-content > .ui-field-input {
@@ -162,17 +193,19 @@
   }
 }
 
-@media (min-width: 701px) {
-  .ov-filter-period {
-    display: none;
-  }
-}
+/* Phones: scope across the row, then period and Filter as two stable halves. */
 @media (max-width: 700px) {
-  .ov3-common-controls .ov-filter-all {
-    display: none;
+  .ov-filter-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .ov3-common-controls :is(.ov-filter-add, .ov-filter-overflow) {
-    box-shadow: none;
-    background: var(--surface);
+  .ov-filter-controls > .ui-segmented {
+    grid-column: 1 / -1;
+    inline-size: 100%;
+  }
+  .ov-filter-period,
+  .ov-filter-add {
+    min-inline-size: 0;
+    padding-inline: 12px;
   }
 }

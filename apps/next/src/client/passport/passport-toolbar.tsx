@@ -96,6 +96,7 @@ export function PassportToolbar({
         />
       </div>
       <SegmentedControl
+        toolbar
         label={ru ? 'Вид паспорта' : 'Passport view'}
         value={state.view}
         onChange={(view) => navigate({ view: view === 'cards' ? null : view }, 'push')}
@@ -171,6 +172,7 @@ function MapScopeControl({
     )
   return (
     <SegmentedControl
+      toolbar
       label={ru ? 'Что показывает карта' : 'What the map shows'}
       value={scope}
       onChange={(next) => navigate({ src: MAP_SCOPE_SRC[next] })}

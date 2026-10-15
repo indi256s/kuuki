@@ -112,6 +112,7 @@ function useController({
     initialPrefs: prefs,
     incoming: initialPrefs,
     schedule: undefined as ((prefs: OverviewPrefs) => void) | undefined,
+    flush: undefined as (() => Promise<void>) | undefined,
   }))
   const currentLifetime = useCallback(() => {
     const lifetime = runtime.lifetime
@@ -279,6 +280,22 @@ function useController({
       }, 800)
     }
     runtime.schedule = schedule
+    // Leaving for another page unmounts the saver; send a pending change now so the next visit reads it.
+    runtime.flush = async () => {
+      const deadline = Date.now() + 2000
+      clearTimeout(runtime.timer)
+      while (
+        currentLifetime() === lifetime &&
+        (runtime.pending || runtime.saving) &&
+        Date.now() < deadline
+      ) {
+        if (runtime.saving) await new Promise((resolve) => setTimeout(resolve, 50))
+        else {
+          runtime.eligible = true
+          await send()
+        }
+      }
+    }
     const stop = () => {
       lifetime.active = false
       clearTimeout(runtime.timer)
@@ -372,6 +389,7 @@ function useController({
     navigation,
     retired,
     isCurrent: () => currentLifetime() !== null,
+    flushPrefs: () => runtime.flush?.() ?? Promise.resolve(),
     revalidate: () =>
       live && currentLifetime() ? store.revalidate() : Promise.resolve('unchanged' as const),
   }

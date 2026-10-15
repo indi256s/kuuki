@@ -27,6 +27,8 @@ export type SegmentedControlProps<T extends string> = {
   label: string
   /** 32px outlined control with content-sized cells; the hit area extends to 44px on coarse pointers. */
   dense?: boolean
+  /** The standard track at 44px overall (38px segments), to share a toolbar row with 44px buttons. */
+  toolbar?: boolean
 }
 
 // Radio-group semantics: one tab stop (the selected option), arrows move and select, Home/End jump.
@@ -39,6 +41,7 @@ export function SegmentedControl<T extends string>({
   options,
   label,
   dense,
+  toolbar,
 }: SegmentedControlProps<T>) {
   const root = useRef<HTMLDivElement>(null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
@@ -127,6 +130,7 @@ export function SegmentedControl<T extends string>({
       aria-label={label}
       data-ready={ready ? 'true' : undefined}
       data-dense={dense ? 'true' : undefined}
+      data-toolbar={toolbar && !dense ? 'true' : undefined}
       style={{ '--n': options.length } as CSSProperties}
       data-instant={keyboard ? '' : undefined}
       onPointerDown={() => setKeyboard(false)}

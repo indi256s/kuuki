@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import fixture from '../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
@@ -55,17 +55,15 @@ afterEach(cleanup)
 it('hides the scope segment without ground data, even when a scope is stored', () => {
   mount(noGround, { scope: 'ground' })
   expect(screen.queryByRole('radiogroup', { name: 'Travel scope' })).toBeNull()
-  expect(screen.getByText('All flights, all time')).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Period: All time' })).toHaveTextContent('All time')
 })
 
 it('shows the segment with ground data and writes or removes filter.scope', async () => {
   const user = userEvent.setup()
   mount(withGround, {})
   expect(screen.getByRole('radiogroup', { name: 'Travel scope' })).toBeTruthy()
-  expect(screen.getByText('All travel, all time')).toBeTruthy()
   await user.click(screen.getByRole('radio', { name: 'Ground' }))
   expect(screen.getByLabelText('Active filters')).toHaveTextContent('{"scope":"ground"}')
-  expect(screen.getByText('All ground trips, all time')).toBeTruthy()
   await user.click(screen.getByRole('radio', { name: 'All' }))
   expect(screen.getByLabelText('Active filters')).toHaveTextContent('{}')
 })
@@ -76,4 +74,28 @@ it('explains under Ground that a flight facet leaves ground trips out', () => {
   cleanup()
   mount(withGround, { scope: 'ground', countries: ['DE'] })
   expect(screen.queryByText('Flight filters leave out ground trips')).toBeNull()
+})
+
+it('names the period on its button and keeps it out of the chip row', () => {
+  mount(withGround, { period: { years: [2022, 2023, 2024] } })
+  expect(screen.getByRole('button', { name: 'Period: 2022–2024' })).toHaveTextContent('2022–2024')
+  expect(document.querySelector('[data-filter-chip="period"]')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Clear all' })).toBeNull()
+})
+
+it('removes one chip at a time and offers Clear all once several conditions apply', async () => {
+  const user = userEvent.setup()
+  mount(withGround, { scope: 'flights', period: { years: [2024] }, airlines: ['BA'] })
+  await user.click(screen.getByRole('button', { name: 'Clear all' }))
+  // Clear all resets facets and period; the page-level scope stays.
+  expect(screen.getByLabelText('Active filters')).toHaveTextContent('{"scope":"flights"}')
+  expect(screen.getByRole('button', { name: /^Filter$/ })).toHaveFocus()
+  cleanup()
+  mount(withGround, { airlines: ['BA'], countries: ['GB'] })
+  const bar = () => within(screen.getByRole('group', { name: 'Overview filters' }))
+  const removals = bar().getAllByRole('button', { name: /^Remove / })
+  expect(removals).toHaveLength(2)
+  await user.click(removals[0])
+  expect(bar().getAllByRole('button', { name: /^Remove / })).toHaveLength(1)
+  expect(bar().getByRole('button', { name: /^Remove / })).toHaveFocus()
 })

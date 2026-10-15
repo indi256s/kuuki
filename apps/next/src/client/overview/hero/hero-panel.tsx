@@ -1,6 +1,17 @@
 'use client'
 
-import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  Fragment,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ChevronRight } from '@keyline-icons/react'
 import { useReducedMotion } from 'motion/react'
 import {
   formatCount,
@@ -22,6 +33,8 @@ import { carousel } from '../iso/carousel'
 import { pickLine, recordLine } from '../narrator/pick'
 import type { HeroRecord } from '../narrator/triggers'
 import { useOverview, useOverviewUI } from '../store/overview-context'
+import { facetName } from '../filters/chip-label'
+import { journalLinkFor } from '../page/journal-link'
 import { isZeroScope } from '../store/scope-state'
 import {
   GROUND_RECORDS,
@@ -97,6 +110,20 @@ const FIGURE_CLASS: Record<HeroRecord, string> = {
   countries: 'iso-suitcase',
   airports: 'iso-carousel',
 }
+/** The figures card is compact (2×2, no glyphs or takeover) while the band is one column. */
+const COMPACT = '(max-width: 1023px)'
+const subscribeCompact = (notify: () => void) => {
+  const query = window.matchMedia(COMPACT)
+  query.addEventListener('change', notify)
+  return () => query.removeEventListener('change', notify)
+}
+const useCompact = () =>
+  useSyncExternalStore(
+    subscribeCompact,
+    () => window.matchMedia(COMPACT).matches,
+    () => null,
+  )
+
 /** Strokes stay 1px at any scale, so a figure is drawn at the stage's size up to this scale instead of stretched by CSS. */
 const MAX_K = 1.6
 
@@ -107,12 +134,13 @@ export function HeroPanel() {
   const { scope, all, payload, filter, locale, ownerKey } = useOverview()
   const { replayStarted } = useOverviewUI()
   const mobile = useMobile()
+  const compact = useCompact()
   const reduced = useReducedMotion() ?? false
   const card = useRef<HTMLElement>(null)
   const zero = scope ? isZeroScope(scope, filter) : false
   const { state, handlers } = useTakeover(
     card,
-    !!scope && !zero && !replayStarted && mobile === false,
+    !!scope && !zero && !replayStarted && mobile === false && compact === false,
     reduced,
   )
   const stickers = useMemo(
@@ -225,9 +253,14 @@ export function HeroPanel() {
                   </span>
                 ) : null}
               </dt>
-              <dd className="ov3-hero-value" aria-label={names[record]}>
+              <dd
+                className="ov3-hero-value"
+                aria-label={names[record]}
+                style={{ '--chars': value(record).length } as React.CSSProperties}
+              >
                 {displayedValue(record)}
               </dd>
+              {record === 'flights' && !zero && f.flights > 0 ? <JournalLink /> : null}
               <span className="ov3-hero-glyph" aria-hidden="true">
                 <IsoFigure figure={glyphs[record]} />
               </span>
@@ -266,6 +299,49 @@ export function HeroPanel() {
         />
       ) : null}
     </section>
+  )
+}
+
+/** The flight count's way into the Journal, with the same conditions where the Journal can apply them; the rest are named. */
+function JournalLink() {
+  const { filter, payload, locale, flushPrefs, isCurrent } = useOverview()
+  const router = useRouter()
+  const note = useId()
+  const { href, dropped } = useMemo(() => journalLinkFor(filter, payload!), [filter, payload])
+  const names = dropped
+    .map((facet) => facetName(facet, locale).toLocaleLowerCase(locale))
+    .join(', ')
+  return (
+    <dd className="ov3-hero-journal">
+      <Link
+        href={href}
+        aria-describedby={dropped.length ? note : undefined}
+        onClick={(event) => {
+          if (
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          )
+            return
+          // The filters save after a pause; send them first so coming back finds them.
+          event.preventDefault()
+          void flushPrefs().finally(() => {
+            if (isCurrent()) router.push(href)
+          })
+        }}
+      >
+        {locale === 'ru' ? 'Открыть в журнале' : 'Open in Journal'}
+        <ChevronRight size={16} aria-hidden="true" />
+      </Link>
+      {dropped.length ? (
+        <small id={note}>
+          {locale === 'ru' ? `Журнал покажет без: ${names}` : `The Journal skips: ${names}`}
+        </small>
+      ) : null}
+    </dd>
   )
 }
 

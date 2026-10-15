@@ -237,7 +237,10 @@ function PageContent() {
             </p>
           ) : null}
           <div className="ov3-overview-workspace">
-            <div className="ov3-common-controls">{!fullscreen ? <FilterBar /> : null}</div>
+            {/* A journal with nothing in it has nothing to filter; first run offers adding instead. */}
+            {!firstRun ? (
+              <div className="ov3-common-controls">{!fullscreen ? <FilterBar /> : null}</div>
+            ) : null}
             {firstRun ? <FirstRun /> : null}
             {/* On very wide screens CSS docks the country list as a third card (page.css); both it and the disclosure render, so the server's first paint is already final. */}
             <div className="ov3-globe-band">

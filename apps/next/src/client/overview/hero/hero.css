@@ -29,7 +29,7 @@
 .ov3-hero-estimates-mobile {
   display: none;
 }
-@media (min-width: 701px) {
+@media (min-width: 1024px) {
   .ov3-hero-row[data-record='flights'] {
     order: 0;
   }
@@ -65,6 +65,42 @@
 }
 .ov3-hero-row[data-record='flights'] {
   align-items: end;
+}
+/* The flight count links to the same flights in the Journal, under its label. */
+.ov3-hero-row:has(> .ov3-hero-journal) {
+  grid-template: 'value glyph' auto 'label glyph' auto 'journal journal' auto / minmax(0, 1fr) 44px;
+}
+.ov3-hero-journal {
+  grid-area: journal;
+  margin: 0;
+  display: grid;
+  justify-items: start;
+}
+.ov3-hero-journal a {
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-text);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.ov3-hero-journal a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ov3-hero-journal a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+.ov3-hero-journal small {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 16px;
 }
 .ov3-hero-row[data-record='flights'] > .ov3-hero-value {
   font-size: 80px;
@@ -263,7 +299,9 @@
   align-items: center;
 }
 
-@media (max-width: 700px) {
+/* Compact figures while the band is one column (phones and tablets): a 2×2 core grid, airports and estimates at its foot.
+   Each value keeps one line and shrinks to its cell (about 0.6em a character), so 155 ч 2 мин never breaks between its parts. */
+@media (max-width: 1023px) {
   .ov3-hero-panel {
     min-height: 0;
     padding: 16px;
@@ -276,6 +314,11 @@
   }
   .ov3-hero-row {
     grid-template: 'value' auto 'label' auto / minmax(0, 1fr);
+    align-content: start;
+    container-type: inline-size;
+  }
+  .ov3-hero-row:has(> .ov3-hero-journal) {
+    grid-template: 'value' auto 'label' auto 'journal' auto / minmax(0, 1fr);
   }
   .ov3-hero-glyph,
   .ov3-hero-estimates-desktop {
@@ -283,14 +326,8 @@
   }
   .ov3-hero-value,
   .ov3-hero-row[data-record='flights'] > .ov3-hero-value {
-    font-size: clamp(24px, 8vw, 32px);
+    font-size: clamp(16px, calc(100cqi / (var(--chars, 4) * 0.6)), 32px);
     line-height: 1.125;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-  .ov3-hero-row[data-record='air'] > .ov3-hero-value {
-    font-size: 24px;
-    line-height: 30px;
   }
   .ov3-hero-row[data-record='airports'] {
     align-items: baseline;
@@ -316,6 +353,8 @@
     font-size: 13px;
     line-height: 20px;
   }
+}
+@media (max-width: 700px) {
   .ov3-next-strip {
     display: flex;
     flex-direction: column;

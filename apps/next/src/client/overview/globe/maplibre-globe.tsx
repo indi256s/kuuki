@@ -59,6 +59,8 @@ export type MaplibreGlobeProps = {
   routeDistances: ReadonlyMap<string, number | null>
   replay: ReturnType<typeof useReplay>
   timeline: TimelineItem[]
+  /** Replay has not been started: every route is drawn at full strength, as a still map. */
+  still: boolean
   onReady: () => void
   onError: () => void
 }
@@ -492,7 +494,9 @@ function GlobeLayers({
       ),
     ]
     const lit: ExpressionSpecification | boolean =
-      props.reduced || !props.timeline.length ? true : ['in', ['get', 'key'], ['literal', revealed]]
+      props.reduced || props.still || !props.timeline.length
+        ? true
+        : ['in', ['get', 'key'], ['literal', revealed]]
     // Routes not yet flown in the replay stay visible but secondary (about 2:1); filtered-out context stays a .15 ghost.
     map.setPaintProperty(layers[2], 'line-opacity', [
       'case',
@@ -510,37 +514,42 @@ function GlobeLayers({
       1,
       0,
     ])
-  }, [map, land, props.timeline, props.replay.arcs, props.reduced])
+  }, [map, land, props.timeline, props.replay.arcs, props.reduced, props.still])
+  const framing = useRef({ groundPoints })
+  useEffect(() => {
+    framing.current = { groundPoints }
+  }, [groundPoints])
+  // The camera frames the travel when the map first shows and on entering or leaving Fullscreen. A filter or scope
+  // change keeps the member's view. A resize refits the framing until the member moves the globe, then only keeps
+  // the zoom inside the new limits.
   useEffect(() => {
     if (!map || !ready || !props.active) return
-    const center = props.globe.centroid
-      ? ([props.globe.centroid.lon, props.globe.centroid.lat] as [number, number])
+    const { globe, travelScope, reduced } = latest.current
+    const center = globe.centroid
+      ? ([globe.centroid.lon, globe.centroid.lat] as [number, number])
       : ([0, 0] as [number, number])
-    const bounds = props.travelScope === 'ground' ? groundBounds(groundPoints) : null
-    if (bounds) fitGround(map, bounds, props.reduced)
-    else moveCamera(map, center, props.reduced)
+    const bounds = travelScope === 'ground' ? groundBounds(framing.current.groundPoints) : null
+    if (bounds) fitGround(map, bounds, reduced)
+    else moveCamera(map, center, reduced)
+    let moved = false
+    const touch = (event: { originalEvent?: unknown }) => {
+      if (event.originalEvent) moved = true
+    }
     const resize = () => {
       if (!latest.current.isCurrent()) return
-      if (bounds) fitGround(map, bounds, true)
-      else {
-        setZoomLimits(map)
-        map.jumpTo({ zoom: fitZoom(map, map.getCenter().lat) })
-      }
+      setZoomLimits(map)
+      if (!moved && bounds) fitGround(map, bounds, true)
+      else if (!moved) map.jumpTo({ zoom: fitZoom(map, map.getCenter().lat) })
+      else
+        map.jumpTo({ zoom: Math.max(map.getMinZoom(), Math.min(map.getZoom(), map.getMaxZoom())) })
     }
+    map.on('movestart', touch)
     map.on('resize', resize)
     return () => {
+      map.off('movestart', touch)
       map.off('resize', resize)
     }
-  }, [
-    map,
-    ready,
-    props.active,
-    props.globe.centroid,
-    props.filter,
-    props.reduced,
-    props.travelScope,
-    groundPoints,
-  ])
+  }, [map, ready, props.active])
   useEffect(() => {
     if (!map || !ready || !props.active) return
     attachGlobeGestures(map, props.fullscreen, window.matchMedia('(pointer: coarse)').matches)

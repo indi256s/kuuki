@@ -6,6 +6,7 @@ import { Narrator } from '../narrator/narrator'
 import { useOverview } from '../store/overview-context'
 import { isAviationFacetNote } from '../store/scope-state'
 import { S, t } from '../copy'
+import { useAppliedFacets } from '../filters/use-applied-facets'
 
 export function FirstRun() {
   const { locale } = useOverview()
@@ -27,8 +28,24 @@ export function FirstRun() {
 export function ZeroResult() {
   const { actions, locale, scope, filter } = useOverview()
   const ground = scope?.figures.scope === 'ground'
+  const facets = useAppliedFacets()
+  // Name what is filtering, so an empty result reads as these conditions, not as an empty journal.
+  const conditions = [
+    ...(scope?.figures.scope === 'flights'
+      ? [t(S.scopeFlights, locale)]
+      : ground
+        ? [t(S.scopeGround, locale)]
+        : []),
+    ...facets.map(({ label }) => label),
+  ]
   return (
     <div className="ov3-zero">
+      {conditions.length ? (
+        <p className="ov3-zero-context">
+          {locale === 'ru' ? 'Ничего не нашлось: ' : 'Nothing matches: '}
+          {conditions.join(' · ')}
+        </p>
+      ) : null}
       {ground ? (
         <p className="narrator">
           {t(

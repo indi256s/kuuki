@@ -17,6 +17,7 @@ const props = {
   paused: false,
   setPaused: vi.fn(),
   seek: vi.fn(),
+  started: true,
   reduced: false,
   locale: 'en' as const,
 }
@@ -51,4 +52,16 @@ it('updates the month label across clock ticks, locale changes and replacement t
   )
   view.rerender(<ReplayTransport {...props} timeline={next} />)
   expect(screen.getByRole('button', { name: 'JUN 2026' })).toBeVisible()
+})
+
+it('opens as one labelled Play button and hands focus to Pause once replay starts', () => {
+  const setPaused = vi.fn()
+  const view = render(
+    <ReplayTransport {...props} started={false} paused setPaused={setPaused} seek={vi.fn()} />,
+  )
+  expect(screen.queryByRole('slider')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Replay routes month by month' }))
+  expect(setPaused).toHaveBeenCalledWith(false)
+  view.rerender(<ReplayTransport {...props} paused={false} setPaused={setPaused} seek={vi.fn()} />)
+  expect(screen.getByRole('button', { name: 'Pause replay' })).toHaveFocus()
 })

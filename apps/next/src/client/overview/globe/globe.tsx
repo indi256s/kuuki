@@ -74,22 +74,14 @@ export function OverviewGlobe({ topLeft, onFullscreenChange }: Props) {
   )
 }
 function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
-  const {
-    payload,
-    scope,
-    all,
-    filter,
-    locale,
-    replayPaused,
-    setReplayPaused,
-    bus,
-    actions,
-    isCurrent,
-  } = useOverview()
+  const { payload, scope, all, filter, locale, bus, actions, isCurrent } = useOverview()
   useEffect(() => () => onFullscreenChange?.(false), [onFullscreenChange])
   const host = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [reduced, setReduced] = useState(true)
+  // Every visit opens on a still map; replay runs only after the member presses Play, and keeps its state across filters.
+  const [playing, setPlaying] = useState(false)
+  const [started, setStarted] = useState(false)
   const disclosure = useMemo(() => <CountryTreemap />, [])
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -101,7 +93,7 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
   const items = scope!.replay
   const durationMs = replayDurationMs(scope!.figures.flights)
   const timeline = useMemo(() => buildTimeline(items, durationMs), [items, durationMs])
-  const replay = useReplay(timeline, durationMs, replayPaused, reduced, fullscreen, host, isCurrent)
+  const replay = useReplay(timeline, durationMs, !playing, reduced, fullscreen, host, isCurrent)
   const routeDistances = useMemo(() => {
     const distances = new Map<string, { km: number; weight: number; missing: boolean }>()
     for (const row of payload!.rows) {
@@ -144,9 +136,11 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
               durationMs={durationMs}
               timeMs={replay.timeMs}
               getFrame={replay.getFrame}
-              paused={replayPaused}
+              paused={!playing}
+              started={started}
               setPaused={(paused) => {
-                setReplayPaused(paused)
+                setPlaying(!paused)
+                if (!paused) setStarted(true)
                 bus.setReplayStarted(!paused)
               }}
               seek={replay.seek}
@@ -173,6 +167,7 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
             routeDistances={routeDistances}
             replay={replay}
             timeline={timeline}
+            still={!started}
           />
         )}
       </GlobeCard>

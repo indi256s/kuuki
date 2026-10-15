@@ -743,7 +743,17 @@
   background: var(--surface-inset);
   box-shadow: none;
 }
+/* Toolbar: the standard track trimmed to a 44px Button's height (3px padding around 38px segments). Coarse pointers keep a 44px hit area. */
+.ui-segmented[data-toolbar='true'] .ui-segment {
+  min-height: 38px;
+  padding-block: 0;
+}
 @media (pointer: coarse) {
+  .ui-segmented[data-toolbar='true'] .ui-segment::after {
+    content: '';
+    position: absolute;
+    inset: -3px 0;
+  }
   .ui-segmented[data-dense='true'] .ui-segment::after {
     content: '';
     position: absolute;
