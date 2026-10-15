@@ -3,8 +3,11 @@
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
-/** Query keys whose change is a real mode/step change that deserves a new heading focus, by pathname. */
-const MODE_KEYS: Record<string, string> = { '/passport': 'view' }
+/**
+ * Query keys whose change is a real mode/step change that deserves a new heading focus, by pathname. Passport: the
+ * Cards/Map view and the visitor preview (`as`). Search, filters, sort and the country sheet are not modes.
+ */
+const MODE_KEYS: Record<string, readonly string[]> = { '/passport': ['view', 'as'] }
 
 /**
  * Moves focus to the page heading after navigation. Fires for a pathname change or a change of the
@@ -13,7 +16,7 @@ const MODE_KEYS: Record<string, string> = { '/passport': 'view' }
 export function RouteFocus() {
   const pathname = usePathname()
   const search = useSearchParams()
-  const mode = MODE_KEYS[pathname] ? (search.get(MODE_KEYS[pathname]) ?? '') : ''
+  const mode = (MODE_KEYS[pathname] ?? []).map((name) => search.get(name) ?? '').join('\u0001')
   const key = `${pathname}\u0000${mode}`
   const previous = useRef(key)
   useEffect(() => {

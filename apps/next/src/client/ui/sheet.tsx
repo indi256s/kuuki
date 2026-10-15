@@ -3,10 +3,13 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from '@keyline-icons/react'
 import {
+  useCallback,
+  useLayoutEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from 'react'
 import { BottomSheet, rubberBand, type BottomSheetProps } from './bottom-sheet'
@@ -64,14 +67,24 @@ export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetPro
       {trigger ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="ui-overlay" />
-        <SideSheetContent {...contentProps} trigger={trigger} onOpenChange={onOpenChange} />
+        <SideSheetContent
+          {...contentProps}
+          open={open}
+          trigger={trigger}
+          onOpenChange={onOpenChange}
+        />
       </RadixDialog.Portal>
     </RadixDialog.Root>
   )
 }
 
-/** The desktop `right` sheet. Every other side renders BottomSheet. */
+/**
+ * The desktop `right` sheet. Every other side renders BottomSheet. `ref` is the Portal's Presence ref: it must reach the
+ * Content node, or Presence cannot see the exit animation and unmounts the sheet at once.
+ */
 function SideSheetContent({
+  ref,
+  open,
   onOpenChange,
   title,
   titleAction,
@@ -84,8 +97,20 @@ function SideSheetContent({
   initialFocusRef,
   onCloseAutoFocus,
   onEscapeKeyDown,
-}: Omit<SheetProps, 'open' | 'side'>) {
-  const contentRef = useRef<HTMLDivElement>(null)
+}: Omit<SheetProps, 'side'> & { ref?: Ref<HTMLDivElement> }) {
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const setContent = useCallback(
+    (node: HTMLDivElement | null) => {
+      contentRef.current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref) ref.current = node
+    },
+    [ref],
+  )
+  // Reopened during a drag-dismiss exit: Presence keeps this node, so drop the dragged offset before the enter plays.
+  useLayoutEffect(() => {
+    if (open && contentRef.current) contentRef.current.style.transform = ''
+  }, [open])
   // Capture each Portal mount before a child autoFocus can replace the opener, as Dialog does.
   const [opener] = useState(() => {
     if (typeof document === 'undefined') return null
@@ -138,7 +163,7 @@ function SideSheetContent({
 
   return (
     <RadixDialog.Content
-      ref={contentRef}
+      ref={setContent}
       className={`ui-sheet ${className}`}
       data-side="right"
       {...(description ? {} : { 'aria-describedby': undefined })}

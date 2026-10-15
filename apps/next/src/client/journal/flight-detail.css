@@ -49,11 +49,16 @@
 .jd-edit {
   margin-inline-start: auto;
 }
+/* A text action in the header, quieter than a bordered button; accent text says it acts. Disabled keeps the shared look. */
+.ui-button.jd-edit:not([aria-disabled='true']) {
+  color: var(--accent-text);
+}
 
 /* The journey: departure, the time between, arrival. Columns: local time (absent when neither time is known), the rail, the place.
-   The rail's line runs from the departure dot to the arrival dot: it spans the first two rows and reaches one dot-centre into the third. */
+   The rail's line runs from the departure dot to the arrival dot: it spans the first two rows and reaches one dot-centre into the third.
+   Clock and city share one 28px line, so the dot centres on both. */
 .jd-journey {
-  --jd-dot-centre: 12px;
+  --jd-dot-centre: 14px;
   display: grid;
   grid-template-columns: [time] auto [rail] 12px [place] minmax(0, 1fr);
   grid-template-rows: auto minmax(var(--space-8), auto) auto;
@@ -80,9 +85,10 @@
 }
 .jd-clock {
   font-family: var(--font-mono);
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 500;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .jd-offset,
@@ -102,13 +108,12 @@
   width: 9px;
   height: 9px;
   margin-top: calc(var(--jd-dot-centre) - 4.5px);
-  border: 1.5px solid var(--text-muted);
+  border: 1.5px solid var(--accent);
   border-radius: 50%;
-  background: var(--surface);
 }
+/* Departure is an outline, arrival is filled: the same start/end reading as the ground card schematic. */
 .jd-dot[data-end='arrival'] {
-  border-color: var(--text);
-  background: var(--text);
+  background: var(--accent);
 }
 .jd-line {
   grid-column: rail;
@@ -126,9 +131,10 @@
   min-width: 0;
 }
 .jd-city {
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 500;
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 .jd-airport {
@@ -147,21 +153,35 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A secondary personal fact after the facts: quiet text, the pin carries the accent. */
 .jd-history {
-  margin: calc(var(--space-2) * -1) 0 0;
-  font-size: 15px;
-  line-height: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.jd-history svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent-text);
 }
 
-/* Supporting facts: label over value, two per row. */
+/* Supporting facts: label over value. Flight (airline over code) gets the wider column beside Distance; Aircraft spans the row. */
 .jd-facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4) var(--space-5);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: var(--space-5) var(--space-3);
   margin: 0;
+}
+.jd-fact[data-wide] {
+  grid-column: 1 / -1;
 }
 .jd-fact {
   display: grid;
+  align-content: start;
   gap: 2px;
   min-width: 0;
 }
@@ -171,17 +191,31 @@
   color: var(--text-muted);
 }
 .jd-fact dd {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: var(--space-2);
   margin: 0;
   min-width: 0;
-  line-height: 22px;
+  font-size: 15px;
+  line-height: 24px;
   overflow-wrap: anywhere;
 }
-.jd-fact dd .ui-maker-swatch {
-  align-self: center;
+.jd-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+/* The flight number keeps full size (it is the flight's identity); the ICAO type under a known aircraft name is quiet. */
+.jd-stack .jd-quiet {
+  font-size: 13px;
+  line-height: 20px;
+}
+/* The maker swatch sits beside the aircraft name, centred on its first 24px line, not on the two-line stack. */
+.jd-aircraft {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.jd-aircraft .ui-maker-swatch {
+  flex: none;
+  margin-top: 7px;
 }
 
 .jd-section {

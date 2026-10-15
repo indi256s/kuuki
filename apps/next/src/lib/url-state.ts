@@ -71,51 +71,79 @@ export function normalizeOverviewQuery(raw: RawQuery, now = new Date()): Normali
   return finish(entries, ['year', 'period'], year ? [['year', year]] : [], { year: year ?? null })
 }
 
-export const PASSPORT_VIEWS = ['stamps', 'map'] as const
-export const PASSPORT_SORTS = ['recent', 'visits', 'name'] as const
-export const PASSPORT_LAYERS = ['countries', 'routes', 'frequency'] as const
+export const PASSPORT_VIEWS = ['cards', 'map'] as const
+export const PASSPORT_SORTS = ['recent', 'name', 'records'] as const
+export const PASSPORT_SOURCES = ['flights', 'trains', 'road', 'manual'] as const
+export const PASSPORT_REGIONS = [
+  'africa',
+  'americas',
+  'antarctica',
+  'asia',
+  'europe',
+  'oceania',
+] as const
+export type PassportSource = (typeof PASSPORT_SOURCES)[number]
+export type PassportRegion = (typeof PASSPORT_REGIONS)[number]
+/** The collection filters: search is always visible, region and sources live behind the Filter button. */
+export type PassportFilters = {
+  q: string
+  region: PassportRegion | null
+  sources: PassportSource[]
+}
 export type PassportState = {
   view: (typeof PASSPORT_VIEWS)[number]
   sort: (typeof PASSPORT_SORTS)[number]
-  layer: (typeof PASSPORT_LAYERS)[number]
   country: string | null
-  /** Period applied to the route map; carried from the Overview year. */
-  year: string | null
-}
+  /** Owner preview of the visitor view; the page honours it only for the owner. */
+  as: 'visitor' | null
+} & PassportFilters
 const pick = <T extends string>(
   allowed: readonly T[],
   value: string | undefined,
   fallback: T,
 ): T => ((allowed as readonly string[]).includes(value ?? '') ? (value as T) : fallback)
 
+const SEARCH_MAX = 64
+
 /**
  * `isCountry` is the catalog check (`isCatalogCountry` in client/passport/model): a country deep link opens a sheet with
  * write actions, so a well-formed code outside the catalog is dropped rather than shown. It is passed in to keep the
- * catalog out of every page that shares this module.
+ * catalog out of every page that shares this module. Legacy `view=stamps`, `layer`, `year` and `period` are dropped
+ * (the page redirects to the canonical URL); `sort=visits` became `records`.
  */
 export function normalizePassportQuery(
   raw: RawQuery,
   isCountry: (code: string) => boolean,
-  now = new Date(),
 ): Normalized<PassportState> {
   const entries = toEntries(raw)
   const rawCountry = first(entries, 'country')?.toUpperCase()
   const country =
     rawCountry && /^[A-Z]{2}$/.test(rawCountry) && isCountry(rawCountry) ? rawCountry : null
+  const rawSort = first(entries, 'sort')
+  const sources = new Set((first(entries, 'src') ?? '').split(','))
   const state: PassportState = {
-    view: pick(PASSPORT_VIEWS, first(entries, 'view'), 'stamps'),
-    sort: pick(PASSPORT_SORTS, first(entries, 'sort'), 'recent'),
-    layer: pick(PASSPORT_LAYERS, first(entries, 'layer'), 'countries'),
+    view: pick(PASSPORT_VIEWS, first(entries, 'view'), 'cards'),
+    sort: pick(PASSPORT_SORTS, rawSort === 'visits' ? 'records' : rawSort, 'recent'),
+    q: (first(entries, 'q') ?? '').replace(/\s+/g, ' ').trim().slice(0, SEARCH_MAX).trim(),
+    region: pick<PassportRegion | ''>(PASSPORT_REGIONS, first(entries, 'region'), '') || null,
+    sources: PASSPORT_SOURCES.filter((source) => sources.has(source)),
     country,
-    year: readYear(entries, now) ?? null,
+    as: first(entries, 'as') === 'visitor' ? 'visitor' : null,
   }
   const known: Entries = []
-  if (state.view !== 'stamps') known.push(['view', state.view])
+  if (state.view !== 'cards') known.push(['view', state.view])
   if (state.sort !== 'recent') known.push(['sort', state.sort])
+  if (state.q) known.push(['q', state.q])
+  if (state.region) known.push(['region', state.region])
+  if (state.sources.length) known.push(['src', state.sources.join(',')])
   if (state.country) known.push(['country', state.country])
-  if (state.layer !== 'countries') known.push(['layer', state.layer])
-  if (state.year) known.push(['year', state.year])
-  return finish(entries, ['view', 'sort', 'country', 'layer', 'year', 'period'], known, state)
+  if (state.as) known.push(['as', state.as])
+  return finish(
+    entries,
+    ['view', 'sort', 'q', 'region', 'src', 'country', 'as', 'layer', 'year', 'period'],
+    known,
+    state,
+  )
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

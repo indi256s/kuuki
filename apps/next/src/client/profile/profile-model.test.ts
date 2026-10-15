@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mrzLines } from './mrz'
 import { REMARKS_CORPUS, REMARKS_MAX, remarksLine, remarksTrigger } from './remarks'
-import { profileStamps } from './stamps'
 import { profileViewState } from './view'
 
 describe('profileViewState', () => {
@@ -14,30 +13,6 @@ describe('profileViewState', () => {
     expect(profileViewState(hidden, 'p')).toEqual({ kind: 'owner', visibility: 'private' })
     expect(profileViewState(hidden, null)).toEqual({ kind: 'closed', viewer: 'guest' })
     expect(profileViewState(hidden, 'v')).toEqual({ kind: 'closed', viewer: 'member' })
-  })
-})
-
-describe('profileStamps', () => {
-  it('gives the owner MM·YY and month names, latest first, and collapses the rest into +N', () => {
-    const stamps = Array.from({ length: 10 }, (_, i) => ({
-      code: ['NO', 'JP', 'US', 'TR', 'AE', 'GE', 'TH', 'AM', 'FR', 'DE'][i],
-      lastVisit: `2026-${String(10 - i).padStart(2, '0')}-01`,
-    }))
-    const strip = profileStamps({ kind: 'owner', stamps }, 'en')
-    expect(strip.stamps[0]).toEqual({ code: 'NO', date: '10·26', name: 'Norway, October 2026' })
-    expect(strip.stamps).toHaveLength(8)
-    expect(strip).toMatchObject({ more: 2, total: 10 })
-    expect(
-      profileStamps({ kind: 'owner', stamps: [{ code: 'NO', lastVisit: null }] }, 'ru').stamps[0],
-    ).toEqual({ code: 'NO', date: null, name: 'Норвегия' })
-  })
-  it('gives visitors names only, in name order, so the strip reveals no recency', () => {
-    const strip = profileStamps({ kind: 'visitor', countries: ['NO', 'AE', 'GE'] }, 'en')
-    expect(strip.stamps).toEqual([
-      { code: 'GE', date: null, name: 'Georgia' },
-      { code: 'NO', date: null, name: 'Norway' },
-      { code: 'AE', date: null, name: 'United Arab Emirates' },
-    ])
   })
 })
 

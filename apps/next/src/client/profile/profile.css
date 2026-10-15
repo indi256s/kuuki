@@ -1,27 +1,5 @@
-/* Profile: the passport holder page (spec .scratch/profile-redesign, boards 21.x). Desktop is an open spread with a
-   sticky holder page; tablet and mobile put the holder card on top. Arc avatar and badge composition (MIT;
-   ../ui/ARC-LICENSE.txt); Facehash and journal-derived values stay authoritative. */
-.profile-spread {
-  max-width: 1120px;
-  margin-inline: auto;
-  display: grid;
-  grid-template-columns: 400px minmax(0, 1fr);
-  column-gap: 72px;
-  align-items: start;
-  padding-block-end: var(--space-8);
-}
-
-/* Holder column: the laminated data page with the owner's controls below it, off the page. The column is sticky on
-   desktop and carries the entrance; the page itself carries the tilt. */
-.profile-holder {
-  position: sticky;
-  inset-block-start: calc(var(--header-h) + var(--space-6));
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  perspective: 1200px;
-  animation: profile-rise var(--dur-base) var(--ease-out) both;
-}
+/* Passport blocks: avatar, headline numbers, badge cabinet, ranks, join card and closed covers (spec .scratch/profile-redesign,
+   boards 21.x). Arc avatar and badge composition (MIT; ../ui/ARC-LICENSE.txt); Facehash and journal-derived values stay authoritative. */
 
 .profile-avatar {
   display: block;
@@ -30,14 +8,6 @@
   outline: 1px solid var(--outline-media);
   outline-offset: -1px;
   flex-shrink: 0;
-}
-.profile-owner-actions {
-  display: flex;
-  gap: var(--space-2);
-}
-.profile-owner-actions .profile-share {
-  flex: 1;
-  min-inline-size: 0;
 }
 .profile-share .ui-button {
   inline-size: 100%;
@@ -76,35 +46,12 @@
 .profile-visibility:active {
   transform: scale(0.96);
 }
-.profile-owner-private {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.profile-owner-note {
-  margin: 0;
-  font-size: 13px;
-  line-height: 19px;
-  color: var(--text-muted);
-}
-.profile-owner-note a,
 .profile-inline-link {
   color: var(--accent-text);
   font-weight: 600;
   text-decoration: none;
 }
-.profile-owner-note a {
-  display: inline-block;
-}
 
-/* Right page. */
-.profile-page {
-  display: flex;
-  flex-direction: column;
-  gap: 64px;
-  padding-block-start: var(--space-2);
-  min-inline-size: 0;
-}
 .profile-block {
   display: flex;
   flex-direction: column;
@@ -202,50 +149,6 @@
   font-variant-numeric: tabular-nums;
 }
 .profile-totals dt {
-  font-size: 14px;
-  line-height: 18px;
-  color: var(--text-muted);
-}
-
-/* Stamps: pressed ink rings, no opacity on the ink; dates are owner-only. */
-.profile-stamps {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.profile-stamp {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  inline-size: 64px;
-  block-size: 64px;
-  border: 1.5px solid var(--accent);
-  border-radius: var(--radius-full);
-  color: var(--accent-text);
-  font-family: var(--font-mono);
-  rotate: var(--stamp-rot, 0deg);
-}
-.profile-stamp-code {
-  font-size: 15px;
-  line-height: 18px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-.profile-stamp-date {
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 0.08em;
-}
-.profile-stamps-more {
-  flex-shrink: 0;
-  padding-inline: var(--space-1);
   font-size: 14px;
   line-height: 18px;
   color: var(--text-muted);
@@ -582,7 +485,7 @@
   text-decoration: none;
 }
 
-/* Quiet entrance: the holder rises first, then the right page's blocks, 60ms apart. No scroll reveals, no count-ups. */
+/* Quiet entrance: the page's blocks rise in turn, 60ms apart. No scroll reveals, no count-ups. */
 @keyframes profile-rise {
   from {
     opacity: 0;
@@ -600,36 +503,14 @@
     color: var(--text);
   }
   .profile-inline-link:hover,
-  .profile-owner-note a:hover,
   .profile-closed-link:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 }
 
-/* Tablet: holder card on top, blocks in two columns. */
+/* Tablet. */
 @media (max-width: 1023px) {
-  .profile-spread {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--space-12);
-    max-width: 760px;
-  }
-  .profile-holder {
-    position: relative;
-    inset-block-start: auto;
-  }
-  .profile-page {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-12) var(--space-8);
-  }
-  .profile-page > * {
-    grid-column: 1 / -1;
-  }
-  .profile-page > .profile-cabinet,
-  .profile-page > .profile-ranks {
-    grid-column: auto;
-  }
   .profile-badges {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -638,16 +519,8 @@
   }
 }
 
-/* Mobile: plain scroll. The holder is an in-flow card; rails scroll edge to edge. */
+/* Mobile. */
 @media (max-width: 700px) {
-  .profile-spread {
-    row-gap: var(--space-8);
-  }
-  /* Same data page at full width: stitches and perforation stay, the tilt never starts (data-page.tsx). */
-  .profile-page {
-    display: flex;
-    gap: 36px;
-  }
   .profile-distance-value > span:first-child {
     font-size: 56px;
     line-height: 62px;
@@ -665,17 +538,6 @@
   .profile-totals dd {
     font-size: 28px;
     line-height: 34px;
-  }
-  .profile-stamps {
-    margin-inline: calc(var(--page-gutter) * -1);
-    padding: var(--space-2) var(--page-gutter);
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: var(--page-gutter);
-    scrollbar-width: none;
-  }
-  .profile-stamp {
-    scroll-snap-align: start;
   }
   .profile-badges {
     gap: var(--space-5) 0;
@@ -728,7 +590,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .profile-holder,
   .profile-block,
   .profile-closed {
     animation-name: achievement-fade;

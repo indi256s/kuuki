@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { sectionsOf, visibleJourneys } from './list-model'
-import { rail, road, uuid } from './test-fixtures'
+import { routeStops, sectionsOf, visibleJourneys } from './list-model'
+import { baku, kars, rail, road, tbilisi, uuid } from './test-fixtures'
 
 const TODAY = '2026-06-10'
 
@@ -55,5 +55,25 @@ describe('ground list ordering and grouping', () => {
     const sections = sectionsOf(visibleJourneys(journeys, null, tomorrow), tomorrow)
     expect(ids(sections[0].journeys).slice(0, 2)).toEqual([uuid(3), uuid(4)])
     expect(journeys.find((journey) => journey.id === uuid(4))?.status).toBe('planned')
+  })
+})
+
+describe('route schematic stops', () => {
+  const shape = (journey: Parameters<typeof routeStops>[0]) =>
+    routeStops(journey).map((stop) => `${stop.afterGap ? '| ' : ''}${stop.role}:${stop.place.name}`)
+
+  it('keeps the repeated city of a round trip as its destination', () => {
+    expect(shape(road({ id: 1 }, [tbilisi, kars, tbilisi]))).toEqual([
+      'start:Tbilisi',
+      'via:Kars',
+      'end:Tbilisi',
+    ])
+  })
+
+  it('never joins disjoint rail legs', () => {
+    const journey = rail({ id: 2 })
+    if (journey.mode !== 'rail') throw new Error('rail fixture')
+    journey.legs.push({ ...journey.legs[0], from: baku, to: tbilisi })
+    expect(shape(journey)).toEqual(['start:Tbilisi', 'via:Kars', '| via:Baku', 'end:Tbilisi'])
   })
 })

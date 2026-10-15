@@ -351,10 +351,22 @@ a.ui-menu-item {
 .loading-screen p {
   margin: 0;
 }
-.loading-screen .mark {
-  width: 48px;
-  height: 48px;
-  font-size: 24px;
+.loading-screen .windsock {
+  width: 216px;
+}
+/* A fast route never shows its loading screen: it fades in only after 250ms (REVEAL_MS in windsock.tsx). */
+.loading-screen {
+  animation: loading-screen-in var(--dur-base) var(--ease-out) 250ms both;
+}
+@keyframes loading-screen-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen {
+    animation-duration: 1ms;
+  }
 }
 
 /* With work in the queue, its row follows Manual after a gap, so the four capture rows never move. */

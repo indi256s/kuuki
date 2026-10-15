@@ -114,7 +114,7 @@ export function AvatarMenu({
     }
   }
 
-  const profileHref = `/fly/${encodeURIComponent(username)}`
+  const profileHref = '/passport'
   const name = displayName?.trim() || username
   const icon = { size: 18, strokeWidth: 1.75, 'aria-hidden': true } as const
   return (

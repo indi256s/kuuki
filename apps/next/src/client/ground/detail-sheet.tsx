@@ -463,6 +463,7 @@ export function GroundDetail({
           if (!open && state.busy === null) onClose()
         }}
         title={<Title locale={locale} journey={journey} />}
+        initialDetent={1}
         side={mobile ? 'bottom' : 'right'}
         className={mobile ? 'gt-detail-sheet flight-full-sheet' : 'gt-detail-sheet'}
         closeLabel={t.close}

@@ -115,7 +115,6 @@
 .gt-card {
   position: relative;
   display: grid;
-  gap: var(--space-1);
   min-width: 0;
   padding: var(--space-4) var(--space-5);
   background: var(--surface);
@@ -169,35 +168,40 @@
   line-height: 20px;
   color: var(--text-muted);
 }
+/* Distance is secondary to the route: body size, quieter unit; other facts read "label value" in metadata size. */
 .gt-card-facts {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-3) var(--space-5);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  min-width: 0;
   margin: 0;
   font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
 }
 .gt-card-facts > div {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.gt-card-facts dt {
-  order: 1;
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--text-muted);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-1);
 }
 .gt-card-facts dd {
   margin: 0;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
+  color: var(--text);
+}
+.gt-card-facts .gt-card-distance dd {
+  font-size: 15px;
+  line-height: 24px;
+}
+.gt-unit {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 .gt-card-facts small {
-  display: block;
-  font-size: 12px;
-  line-height: 18px;
+  margin-inline-start: var(--space-2);
+  font-size: 13px;
   color: var(--text-muted);
 }
 .gt-card-topline {
@@ -205,36 +209,114 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
+  gap: var(--space-1) var(--space-3);
 }
-.gt-card-topline .gt-status {
-  font-size: 13px;
-  line-height: 20px;
-}
-.gt-card-content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-4);
-  align-items: start;
-}
-.gt-card-itinerary {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.gt-card .gt-card-title {
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 500;
-}
-.gt-card-date,
-.gt-card-via {
-  margin: 0;
+.gt-card-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 0 auto;
   font-size: 13px;
   line-height: 20px;
   color: var(--text-muted);
-  overflow-wrap: anywhere;
+  text-align: end;
+}
+.gt-card-when .gt-status {
+  font-size: 13px;
+  line-height: 20px;
+}
+/* The route leads: departure left, destination right, each wrapping in its own half instead of truncating. */
+.gt-card .gt-card-title {
+  margin-top: var(--space-3);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.gt-card .gt-card-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--space-3);
+}
+.gt-card-from:only-child {
+  grid-column: 1 / -1;
+}
+.gt-card-to {
+  text-align: end;
+}
+/* Stop-order schematic: neutral line, accent endpoints, an arrowhead into the destination. Gaps stay gaps. */
+.gt-route-line {
+  --route-line: color-mix(in oklch, var(--text-muted) 45%, transparent);
+  display: flex;
+  align-items: center;
+  height: 8px;
+  margin-top: var(--space-2);
+}
+.gt-route-stop {
+  flex: none;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-full);
+}
+.gt-route-stop[data-role='end'] {
+  background: var(--accent);
+}
+.gt-route-stop[data-role='via'] {
+  width: 4px;
+  height: 4px;
+  border: 0;
+  background: var(--text-muted);
+}
+.gt-route-track {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 6px;
+  height: 1px;
+  background: var(--route-line);
+}
+.gt-route-track[data-gap] {
+  flex: 0 0 var(--space-6);
+  background: none;
+}
+.gt-route-track[data-arrow] {
+  min-width: 16px;
+}
+.gt-route-track[data-arrow]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-top: 1.5px solid var(--text-muted);
+  border-right: 1.5px solid var(--text-muted);
+  transform: translateY(-50%) rotate(45deg);
+}
+.gt-card-via {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  text-align: center;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+.gt-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.gt-card-cue {
+  flex: none;
+  color: var(--text-muted);
 }
 .gt-totals-line {
   display: grid;
@@ -254,20 +336,11 @@
   font-size: 17px;
   line-height: 24px;
 }
-@media (width <= 700px) {
-  .gt-card-content {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-3);
-  }
-  .gt-card-facts {
-    justify-content: flex-start;
-  }
-}
 .gt-card-hint {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  margin: 0;
+  margin: var(--space-2) 0 0;
   font-size: 13px;
   line-height: 20px;
   color: var(--warning-text);
@@ -502,8 +575,6 @@
 
 .gt-card-facts dd[data-unknown='true'] {
   color: var(--text-muted);
-  font-size: 15px;
-  line-height: 24px;
 }
 @media (prefers-reduced-motion: reduce) {
   .gt-card {

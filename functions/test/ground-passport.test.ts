@@ -410,6 +410,27 @@ describe('Passport journey contributions', () => {
   })
 })
 
+describe('Passport journey modes', () => {
+  it('tells rail from road per country for live completed journeys only', async () => {
+    const { db, dispose } = await withJourneys([
+      { id: 'train', mode: 'rail', countries: ['GE', 'TR'] },
+      { id: 'car', mode: 'road', countries: ['AM', 'GE'] },
+      { id: 'plan', mode: 'road', status: 'planned', countries: ['TR'] },
+      { id: 'foreign', user: OTHER, mode: 'road', countries: ['ES'] },
+    ])
+    try {
+      expect((await readPassport(db, USER.id)).journeyModes).toEqual([
+        { country_code: 'AM', mode: 'road' },
+        { country_code: 'GE', mode: 'rail' },
+        { country_code: 'GE', mode: 'road' },
+        { country_code: 'TR', mode: 'rail' },
+      ])
+    } finally {
+      await dispose()
+    }
+  })
+})
+
 describe('ground journeys export', () => {
   it('exports every live journey and manual place of the owner only', async () => {
     const { db, dispose } = await withJourneys(

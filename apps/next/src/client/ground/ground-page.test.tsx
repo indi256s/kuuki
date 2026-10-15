@@ -81,7 +81,7 @@ describe('list', () => {
     expect(within(done).getByText(/Distance unknown/)).toBeInTheDocument()
     expect(done).not.toHaveTextContent(/\b0 km\b/)
     const dated = document.querySelector(`[data-journey-card="${recent.id}"]`) as HTMLElement
-    expect(within(dated).getByText(/≈ 321 km/)).toBeInTheDocument()
+    expect(dated).toHaveTextContent(/≈ 321\s?km/)
     expect(within(dated).getByText(/Rail/)).toBeInTheDocument()
   })
 

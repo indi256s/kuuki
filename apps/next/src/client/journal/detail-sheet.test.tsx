@@ -16,7 +16,8 @@ vi.mock('next/link', async () => ({
   default: (await import('../../test/next-link')).linkStandIn(() => {}),
 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
-vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
+const viewport = vi.hoisted(() => ({ mobile: false }))
+vi.mock('../ui/use-mobile', () => ({ useMobile: () => viewport.mobile }))
 vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()),
   api: { get: vi.fn(), patch: vi.fn() },
@@ -210,6 +211,18 @@ describe('Journal detail sheet', () => {
     expect(within(dialog).queryByText(/recorded arrival/)).toBeNull()
   })
 
+  it('opens the phone sheet at its full height, not the half-height detent', async () => {
+    viewport.mobile = true
+    try {
+      mount([flight(1)])
+      const dialog = await screen.findByRole('dialog')
+      expect(dialog).toHaveAttribute('data-side', 'bottom')
+      expect(dialog).toHaveAttribute('data-expanded')
+    } finally {
+      viewport.mobile = false
+    }
+  })
+
   it('saves related changes together, returns to reading and offers Undo inside the overlay that restores the server snapshot', async () => {
     const user = userEvent.setup()
     mount([flight(1)])
@@ -398,10 +411,15 @@ describe('Journal detail sheet', () => {
     const pane = await screen.findByRole('complementary', { name: 'Flight details' })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(within(pane).getByRole('heading', { level: 2 })).toHaveFocus()
-    // Identity before any decision: the title names the date and flight number, not only a route that may repeat.
+    // Identity before any decision: the title names the date, not only a route that may repeat; the flight number leads the facts.
     expect(within(pane).getByRole('heading', { level: 2 })).toHaveAccessibleName(
-      /^TBS\s*to\s*IST\s*,\s*May 4, 2024 · TK381$/,
+      /^TBS\s*to\s*IST\s*,\s*May 4, 2024$/,
     )
+    expect(within(pane).getByText('TK381')).toBeInTheDocument()
+    // Edit shares the header with Close instead of a bar inside the content.
+    const header = within(pane).getByRole('heading', { level: 2 }).parentElement!
+    expect(within(header).getByRole('button', { name: 'Edit flight' })).toBeInTheDocument()
+    expect(within(header).getByRole('button', { name: 'Close flight details' })).toBeInTheDocument()
     // The connection's next leg swaps the pane and keeps focus inside it.
     expect(within(pane).getByText('2 h 40 min transfer in IST')).toBeInTheDocument()
     await user.click(within(pane).getByRole('button', { name: /^Open IST → JFK/ }))

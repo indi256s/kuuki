@@ -164,6 +164,44 @@ export function nextStep(
   return { rung: rung + 1, remaining }
 }
 
+/**
+ * The rung closest to being earned across all ladders: the smallest share of its threshold still missing. A ladder with
+ * no rung yet counts from zero; a finished ladder, or one whose stat is already past the next threshold, is skipped.
+ */
+export function nearestRung(
+  badges: readonly EarnedBadge[],
+  stats: LadderStats | null,
+): { ladder: LadderId; rung: number; rungs: number; remaining: number } | null {
+  if (!stats) return null
+  const earned = new Map(
+    toTiles(badges).flatMap((tile) => (tile.kind === 'ladder' ? [[tile.ladder, tile.rung]] : [])),
+  )
+  let best: {
+    ladder: LadderId
+    rung: number
+    rungs: number
+    remaining: number
+    share: number
+  } | null = null
+  for (const ladder of LADDERS) {
+    const rung = earned.get(ladder.id) ?? 0
+    const step = nextStep(ladder.id, rung, stats)
+    if (!step) continue
+    const share = (ladder.thresholds[rung] - ladder.metric(stats)) / ladder.thresholds[rung]
+    if (!best || share < best.share)
+      best = {
+        ladder: ladder.id,
+        rung: step.rung,
+        rungs: ladder.thresholds.length,
+        remaining: step.remaining,
+        share,
+      }
+  }
+  return (
+    best && { ladder: best.ladder, rung: best.rung, rungs: best.rungs, remaining: best.remaining }
+  )
+}
+
 /** Ladder rows and the founding badge; everything else never toasts or unboxes. */
 export function visibleBadges(badges: readonly EarnedBadge[]): EarnedBadge[] {
   return badges.filter((item) => item.badge.code === FOUNDING_CODE || ladderOf(item.badge.code))

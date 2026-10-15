@@ -65,7 +65,7 @@ function arrivalMinute(row: FlightRow): number | null {
 }
 
 export async function readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload> {
-  const passport = passportRead(db, userId)
+  const passport = passportRead(db, userId, { applyHidden: false })
   const statements = [
     db
       .prepare(`SELECT id, date, origin, destination, lifecycle_state, airline_iata, aircraft_icao,

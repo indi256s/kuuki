@@ -1,0 +1,88 @@
+/* Flat atlas of the Passport. Tokens only; the map canvas colors are resolved from the same tokens in map.tsx. */
+.passport-atlas {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.passport-atlas-map {
+  position: relative;
+  min-width: 0;
+}
+.passport-atlas-stage {
+  position: relative;
+  min-width: 0;
+}
+.passport-atlas-canvas {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: 240px;
+  max-height: 70vh;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--map-water);
+}
+.passport-atlas-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Position and size come inline from the collision gate in map.tsx; nothing here may offset or resize a label. */
+.passport-atlas-labels span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text);
+  text-shadow:
+    0 0 2px var(--surface),
+    0 0 2px var(--surface);
+}
+.passport-atlas-controls {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.passport-atlas-controls button {
+  min-height: 44px;
+  min-width: 44px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+}
+.passport-atlas-note {
+  margin: var(--space-2) 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.passport-atlas-count {
+  margin: 0 0 var(--space-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+/* Compact: wrapped chips in a short scroll box; each button keeps a 44px target. */
+.passport-atlas-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  max-height: 9rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.passport-atlas-list button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: var(--space-1) var(--space-2);
+}

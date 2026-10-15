@@ -64,14 +64,32 @@ export type GroundVisit = {
   entry_method: string | null
 }
 
+/** The owner's hidden country codes, sorted. Presentation only: nothing derived reads them. */
+export async function readHiddenCountries(db: D1Database, userId: string) {
+  const result = await db
+    .prepare(
+      'SELECT country_code FROM passport_hidden_countries WHERE user_id = ? ORDER BY country_code',
+    )
+    .bind(userId)
+    .all<{ country_code: string }>()
+  assertRows(result, 'Passport hidden countries unavailable')
+  return result.results.map((row) => row.country_code)
+}
+
 /**
  * The passport collection. `pressedCountryCount` counts pressed countries including claims and ground visits;
- * `pendingCountryCount` counts awaiting-only countries, which stay unpressed; `flightCountryCount` is the
+ * `pendingCountryCount` counts awaiting-only countries, which stay unpressed; hidden countries (presentation only)
+ * leave `countries`, `pendingCountryCount`, `regions` and `visibleCountryCount` but stay in `pressedCountryCount`; `flightCountryCount` is the
  * `user_stats.countries_count` meaning (flights and legacy evidence, no claims or ground visits), which is
- * what the leaderboard `countries` category ranks. One owner-scoped batch supplies every collection and the
+ * what the leaderboard `countries` category ranks. Overview passes `applyHidden: false`: hiding is a Passport presentation choice. One owner-scoped batch supplies every collection and the
  * revision metadata, shared by `GET /api/passport/countries` and the Next server read.
  */
-export function passportRead(db: D1Database, userId: string) {
+export function passportRead(
+  db: D1Database,
+  userId: string,
+  options: { applyHidden?: boolean } = {},
+) {
+  const applyHidden = options.applyHidden ?? true
   const statements = [
     db
       .prepare(
@@ -95,16 +113,55 @@ export function passportRead(db: D1Database, userId: string) {
         'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
       )
       .bind(userId),
+    // Passport presentation only (Overview skips both): hidden codes, and which ground modes confirmed each country,
+    // so the Trains / Road trips filters can tell rail from road (the evidence row keeps one journey count).
+    ...(applyHidden
+      ? [
+          db
+            .prepare(
+              'SELECT country_code FROM passport_hidden_countries WHERE user_id = ? ORDER BY country_code',
+            )
+            .bind(userId),
+          db
+            .prepare(
+              `SELECT DISTINCT c.country_code, j.mode
+               FROM ground_journey_countries c
+               JOIN ground_journeys j ON j.id = c.journey_id AND j.user_id = c.user_id
+               WHERE c.user_id = ? AND j.status = 'completed' AND j.deleted_at IS NULL
+               ORDER BY c.country_code, j.mode`,
+            )
+            .bind(userId),
+        ]
+      : []),
   ]
   return {
     statements,
     derive(results: D1Result[]) {
       assertRows(results, 'Passport read failed', statements.length)
       const rows = results[3].results as Array<Omit<CountryEvidenceRow, 'policy_version'>>
-      const countries: PassportCountry[] = rows.map((row) => ({
-        ...row,
-        region: catalogRegionOf(row.country_code),
-      }))
+      const pressedCodes = new Set(
+        rows.filter((row) => row.status === 'pressed').map((row) => row.country_code),
+      )
+      // A stored preference counts only while its country is pressed: when the last support goes, or the country
+      // falls back to pending, it is neither a hidden stamp nor kept out of the pending block.
+      const hidden = applyHidden
+        ? (results[5].results as Array<{ country_code: string }>)
+            .map((row) => row.country_code)
+            .filter((code) => pressedCodes.has(code))
+        : []
+      const hiddenSet = new Set(hidden)
+      const journeyModes = applyHidden
+        ? (results[6].results as Array<{ country_code: string; mode: 'rail' | 'road' }>).filter(
+            (row) => !hiddenSet.has(row.country_code),
+          )
+        : []
+      const allPressed = rows.filter((row) => row.status === 'pressed')
+      const countries: PassportCountry[] = rows
+        .filter((row) => !hiddenSet.has(row.country_code))
+        .map((row) => ({
+          ...row,
+          region: catalogRegionOf(row.country_code),
+        }))
       const pressed = countries
         .filter((row) => row.status === 'pressed')
         .map((row) => row.country_code)
@@ -119,7 +176,10 @@ export function passportRead(db: D1Database, userId: string) {
           claims: results[1].results as Claim[],
           groundVisits: results[2].results as GroundVisit[],
           countries,
-          pressedCountryCount: pressed.length,
+          hidden,
+          journeyModes,
+          pressedCountryCount: allPressed.length,
+          visibleCountryCount: pressed.length,
           pendingCountryCount: pending.length,
           flightCountryCount: flightCountriesOf(rows as CountryEvidenceRow[]).length,
           regionPolicyVersion: REGION_POLICY.version,

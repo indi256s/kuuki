@@ -2,6 +2,8 @@
 .flight-calendar {
   position: relative;
   display: grid;
+  /* Stretched by a taller row neighbour, the field keeps its label and input at content height. */
+  align-content: start;
   gap: var(--space-2);
   min-width: 0;
 }

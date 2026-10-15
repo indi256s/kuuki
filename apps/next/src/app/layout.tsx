@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
-import Script from 'next/script'
 import type { ReactNode } from 'react'
 import { ActivityBridge } from '../client/activity'
 import { AppearanceProvider } from '../client/appearance'
@@ -24,7 +23,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <Script src="/bootstrap.js" strategy="beforeInteractive" />
+        {/* oxlint-disable-next-line next/no-sync-scripts -- it must block: App Router loads next/script's
+            beforeInteractive files after the first paint, so the page flashed light before the saved theme applied. */}
+        <script src="/bootstrap.js" />
       </head>
       <body>
         <a className="skip-link" href="#main">

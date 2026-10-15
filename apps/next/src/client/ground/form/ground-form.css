@@ -156,6 +156,7 @@
 }
 .gt-place {
   display: grid;
+  align-content: start;
   gap: var(--space-3);
   min-width: 0;
 }

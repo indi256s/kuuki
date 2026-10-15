@@ -451,6 +451,13 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/passport/hidden/:cc",
+    "methods": [
+      "PUT",
+      "DELETE"
+    ]
+  },
+  {
     "route": "/api/profiles/:id",
     "methods": [
       "GET"

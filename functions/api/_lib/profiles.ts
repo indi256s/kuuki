@@ -14,6 +14,7 @@ export interface ProfileRow {
   locale: string | null
   show_on_leaderboards: number | null
   theme_color: string | null
+  passport_publication?: 'flights' | 'all' | null
   created_at: string | null
   updated_at: string | null
   onboarded_at?: string | null
@@ -33,6 +34,7 @@ export function toOwnProfile(row: ProfileRow) {
     locale: row.locale,
     show_on_leaderboards: !!row.show_on_leaderboards,
     theme_color: row.theme_color,
+    passport_publication: row.passport_publication ?? 'flights',
     created_at: row.created_at,
     updated_at: row.updated_at,
     onboarded_at: row.onboarded_at ?? null,

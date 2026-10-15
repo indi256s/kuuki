@@ -25,7 +25,11 @@ const PLOT = { sheet: 152, full: 182 },
   AXIS = 24,
   /** Headroom above the tallest bar for its label. */
   HEAD = 22,
-  RADIUS = 2
+  RADIUS = 2,
+  /** Band label metrics: 12px mono advance, 8px inset on each side, and the baseline a bar label must stay below. */
+  BAND_CHAR = 7.5,
+  BAND_PAD = 16,
+  BAND_FLOOR = 36
 
 // A column is drawn at its full height and scaled from the baseline, so a changed value morphs by transform only.
 // The corner is elliptical (ry = r / scale) to look circular once scaled.
@@ -75,6 +79,28 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
   }
   // The tallest and the picked bar carry their ✓ in their label; every other applied bar gets a bare ✓ over it.
   const labelled = new Set([picked, tallest && peak !== picked ? peak : undefined])
+  // A band label sits in the headroom at the band's start, else its end, else nowhere: never over a bar's label.
+  const bandLabel = (band: StageBand) => {
+    if (!band.label) return null
+    const reach = band.label.length * BAND_CHAR + BAND_PAD,
+      start = cell(band.from),
+      end = cell(band.to),
+      clear = (from: number, to: number) =>
+        points.every((point, index) => {
+          if (!labelled.has(point) && !applied(point)) return true
+          if (plot - heightOf(point) - 4 > BAND_FLOOR) return true
+          const chars = labelled.has(point)
+              ? stageText(props, point).length + (applied(point) ? 2 : 0)
+              : 1,
+            centre = left(index) + bar / 2,
+            half = chars * 4 + 2
+          return centre + half < from || centre - half > to
+        })
+    if (end - start < reach) return null
+    if (clear(start, start + reach)) return { x: start + BAND_PAD / 2, anchor: 'start' as const }
+    if (clear(end - reach, end)) return { x: end - BAND_PAD / 2, anchor: 'end' as const }
+    return null
+  }
   return (
     <KuukiChart
       points={points}
@@ -94,7 +120,8 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
         <g className="stage" data-span={span}>
           <g aria-hidden="true" pointerEvents="none">
             {bands?.map((band) => {
-              const x = cell(band.from)
+              const x = cell(band.from),
+                placed = bandLabel(band)
               return (
                 <g key={`${band.from}-${band.to}`}>
                   <rect
@@ -104,8 +131,13 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
                     height={plot}
                     rx={6}
                   />
-                  {band.label ? (
-                    <text className="stage-band-label" x={x + 8} y={18}>
+                  {placed ? (
+                    <text
+                      className="stage-band-label"
+                      x={placed.x}
+                      y={18}
+                      textAnchor={placed.anchor}
+                    >
                       {band.label}
                     </text>
                   ) : null}

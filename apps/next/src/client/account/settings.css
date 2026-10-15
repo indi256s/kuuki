@@ -55,6 +55,15 @@
   border-radius: var(--radius-md);
   min-width: 0;
 }
+.settings-publication {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-inset);
+  border-radius: var(--radius-md);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .settings-avatar {
   width: 72px;
   height: 72px;
