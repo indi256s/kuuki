@@ -102,6 +102,17 @@
   flex: 1;
   min-width: 0;
 }
+.ov3-section-title-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+.ov3-flights-only {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
 .ov3-section-title h2 {
   margin: 0;
   font-size: 18px;

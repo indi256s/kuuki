@@ -53,6 +53,8 @@ export function pickLine(
   seed: string,
   locale: Locale,
 ): string | null {
+  // Every line is about flights; По земле has no narrator.
+  if (scope.figures.scope === 'ground') return null
   for (const trigger of TRIGGERS.filter((trigger) => trigger.slot === slot).sort(byPriority)) {
     const params = trigger.when(scope, all)
     if (params !== null) return lineOf(trigger, params, scope, seed, locale)
@@ -70,6 +72,7 @@ export function recordLine(
   locale: Locale,
   turn: number,
 ): string | null {
+  if (scope.figures.scope === 'ground') return null
   for (const slot of ['hero', 'heroSmall'] as const)
     for (const trigger of TRIGGERS.filter(
       (trigger) => trigger.slot === slot && trigger.record === record,

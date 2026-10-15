@@ -5,6 +5,7 @@ import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { OverviewProvider, useOverview } from '../store/overview-context'
+import { isZeroScope } from '../store/scope-state'
 import { OverviewFlightSheet } from '../store/open-flight'
 import { HeroPanel } from '../hero/hero-panel'
 import { NextStrip } from '../hero/next-strip'
@@ -47,10 +48,13 @@ function PageContent() {
     scope?.figures.flights === 0 &&
     isEmptyFilter(filter) &&
     payload?.derivedReady === true &&
+    payload.ground.length === 0 &&
     payload.passport.countries === 0 &&
     payload.passport.countryCodes.length === 0 &&
     payload.passport.regions === 0
-  const zero = scope?.figures.flights === 0 && !isEmptyFilter(filter)
+  const zero = scope ? isZeroScope(scope, filter) : false
+  // Every chapter is about flights, so По земле shows none of them.
+  const groundOnly = scope?.figures.scope === 'ground'
   // A section below its gate with no filter leaves the grid and the tiles; it stays in the saved order and hidden lists.
   // The gate reads the unfiltered scope: a filter that drops a chapter below it leaves the chapter in place, and the chapter says so itself.
   const locked = all
@@ -60,7 +64,7 @@ function PageContent() {
     : []
   const shown = ({ order, hidden }: typeof layout) =>
     order.filter((id) => !hidden.includes(id) && !locked.includes(id))
-  const visible = shown(layout)
+  const visible = groundOnly ? [] : shown(layout)
   const [openId, setOpenId] = useState<SectionId | null>(null)
   const opener = useRef<HTMLButtonElement | null>(null)
   if (openId && (mobile !== true || !scope || firstRun || zero || !visible.includes(openId)))
@@ -239,7 +243,7 @@ function PageContent() {
           </div>
           {zero ? (
             <ZeroResult />
-          ) : !firstRun && mobile !== null ? (
+          ) : !firstRun && !groundOnly && mobile !== null ? (
             mobile ? (
               <div className="ov3-sections" data-surface="tiles">
                 {packTiles(visible).map(({ id, span }) => {
@@ -293,7 +297,7 @@ function PageContent() {
           <div className="ov3-layout-status" role="status" aria-live="polite" aria-atomic="true">
             {announcement}
           </div>
-          {!firstRun && !zero ? (
+          {!firstRun && !zero && !groundOnly ? (
             <HiddenFooter
               hidden={layout.order.filter((id) => layout.hidden.includes(id))}
               onShow={show}

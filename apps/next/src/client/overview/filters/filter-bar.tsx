@@ -4,15 +4,22 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { Plus } from '../../ui/animated-icons'
 import { formatNumber } from '../../../lib/format'
 import { useOverview } from '../store/overview-context'
+import { isAviationFacetNote } from '../store/scope-state'
 import { Chip } from '../../ui/chip'
 import { Button } from '../../ui/button'
+import { SegmentedControl } from '../../ui/segmented-control'
+import { S, t } from '../copy'
 import type { FilterFacet } from './chip-label'
 import { FilterPanel } from './filter-panel'
 import { useAppliedFacets } from './use-applied-facets'
 import './filters.css'
 
 export function FilterBar() {
-  const { filter, locale, isCurrent } = useOverview()
+  const { filter, locale, isCurrent, payload, scope, actions } = useOverview()
+  // The segment exists only with ground data; a stored scope without it is already ignored by the compute.
+  const hasGround = (payload?.ground.length ?? 0) > 0
+  const travelScope = hasGround ? (scope?.figures.scope ?? 'all') : 'all'
+  const aviationNote = !!scope && isAviationFacetNote(scope, filter)
   const facets = useAppliedFacets()
   const bar = useRef<HTMLDivElement>(null),
     overflow = useRef<HTMLButtonElement>(null)
@@ -84,7 +91,7 @@ export function FilterBar() {
       window.removeEventListener('resize', measure)
       document.fonts?.removeEventListener('loadingdone', measure)
     }
-  }, [filter, locale])
+  }, [filter, locale, hasGround])
   const visible = Math.min(shown, facets.length),
     remaining = facets.length - visible
   return (
@@ -94,6 +101,21 @@ export function FilterBar() {
         ref={bar}
         aria-label={locale === 'ru' ? 'Фильтры обзора' : 'Overview filters'}
       >
+        {hasGround ? (
+          <SegmentedControl
+            dense
+            label={t(S.scopeLabel, locale)}
+            value={travelScope}
+            onChange={(next) => {
+              if (isCurrent()) actions.setScope(next === 'all' ? null : next)
+            }}
+            options={[
+              { value: 'all', label: t(S.scopeAll, locale) },
+              { value: 'flights', label: t(S.scopeFlights, locale) },
+              { value: 'ground', label: t(S.scopeGround, locale) },
+            ]}
+          />
+        ) : null}
         <Button
           className="ov-filter-period"
           onClick={(event) => open(event.currentTarget, 'period')}
@@ -110,9 +132,18 @@ export function FilterBar() {
           <Plus size={16} aria-hidden="true" />
           {locale === 'ru' ? 'Фильтр' : 'Filter'}
         </Button>
+        {aviationNote ? (
+          <span className="ov-filter-note">{t(S.aviationFacetNote, locale)}</span>
+        ) : null}
         {!facets.length ? (
           <span className="ov-filter-all">
-            {locale === 'ru' ? 'Все перелёты за всё время' : 'All flights, all time'}
+            {hasGround && travelScope === 'all'
+              ? t(S.summaryAllTravel, locale)
+              : hasGround && travelScope === 'ground'
+                ? t(S.summaryGround, locale)
+                : locale === 'ru'
+                  ? 'Все перелёты за всё время'
+                  : 'All flights, all time'}
           </span>
         ) : null}
         {facets.map(({ facet, label, swatch, removeLabel, remove }, position) => (

@@ -33,8 +33,15 @@ export function setPeriod(
 ): OverviewFilter {
   return period ? { ...filter, period } : removeFacet(filter, 'period')
 }
-export function clearAll(): OverviewFilter {
-  return {}
+export function setScope(
+  filter: OverviewFilter,
+  scope: OverviewFilter['scope'] | null,
+): OverviewFilter {
+  return scope ? { ...filter, scope } : removeFacet(filter, 'scope')
+}
+/** Reset clears facets and the period; the page-level scope stays. */
+export function clearAll(filter: OverviewFilter): OverviewFilter {
+  return filter.scope ? { scope: filter.scope } : {}
 }
 export function removeLast(filter: OverviewFilter): OverviewFilter {
   const key = (Object.keys(filter) as (keyof OverviewFilter)[]).findLast(

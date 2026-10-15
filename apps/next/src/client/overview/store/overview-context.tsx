@@ -349,6 +349,8 @@ function useController({
           return
         updateFilter((filter) => filters.setPeriod(filter, period))
       },
+      setScope: (scope: OverviewFilter['scope'] | null) =>
+        updateFilter((filter) => filters.setScope(filter, scope)),
       clear: () => updateFilter(filters.clearAll),
       removeLast: () => updateFilter(filters.removeLast),
     },

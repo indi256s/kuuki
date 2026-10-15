@@ -861,16 +861,16 @@ export const TRIGGERS: Trigger[] = [
     slot: 'hero',
     record: 'km',
     priority: 70,
-    when: (scope) => (scope.figures.distanceKm >= 100_000 ? {} : null),
+    when: (scope) => (scope.figures.travelKm >= 100_000 ? {} : null),
   },
-  // Great-circle total of at least one equator, in equators to one decimal.
+  // Travel total (flights plus ground) of at least one equator, in equators to one decimal.
   {
     id: 'hero:km-equators',
     slot: 'hero',
     record: 'km',
     priority: 60,
     when: (scope) => {
-      const km = scope.figures.distanceKm
+      const km = scope.figures.travelKm
       return km >= EQUATOR_KM && km < 100_000
         ? { laps: Math.floor((km / EQUATOR_KM) * 10) / 10 }
         : null
@@ -920,10 +920,8 @@ export const TRIGGERS: Trigger[] = [
     record: 'km',
     priority: 0,
     when: (scope) => {
-      const km = scope.figures.distanceKm
-      return scope.figures.flights > 0 && km < EQUATOR_KM
-        ? { pct: Math.floor((km / EQUATOR_KM) * 100) }
-        : null
+      const km = scope.figures.travelKm
+      return km > 0 && km < EQUATOR_KM ? { pct: Math.floor((km / EQUATOR_KM) * 100) } : null
     },
   },
   {
@@ -945,7 +943,9 @@ export const TRIGGERS: Trigger[] = [
     priority: 0,
     when: (scope) => {
       const countries = scope.figures.countries.value
-      return scope.figures.flights > 0 && countries < 10 ? { countries } : null
+      return (scope.figures.flights > 0 || scope.figures.groundJourneys > 0) && countries < 10
+        ? { countries }
+        : null
     },
   },
   {

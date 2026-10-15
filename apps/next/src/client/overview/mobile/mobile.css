@@ -17,6 +17,11 @@
   justify-content: space-between;
   gap: 8px;
 }
+.ov3-tile-name {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
 .ov3-tile-title {
   min-width: 0;
   font-size: 22px;
@@ -58,7 +63,8 @@
 }
 /* A wrapped title or label would change the header or footer height. */
 .ov3-sheet-name,
-.ov3-sheet-position {
+.ov3-sheet-position,
+.ov3-sheet-note {
   flex: none;
   white-space: nowrap;
 }
@@ -69,6 +75,9 @@
 }
 /* Narrow phones (the heading is 56px narrower than it was beside the options button, so 214 is the old 270): the pager already shows the position, so "3 of 7" stays for screen readers only and the title keeps one line. */
 @container (max-width: 214px) {
+  .ov3-sheet-note {
+    display: none;
+  }
   .ov3-sheet-position {
     position: absolute;
     width: 1px;

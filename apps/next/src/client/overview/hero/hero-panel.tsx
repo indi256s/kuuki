@@ -2,7 +2,6 @@
 
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
-import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import {
   formatCount,
   formatDuration,
@@ -23,7 +22,9 @@ import { carousel } from '../iso/carousel'
 import { pickLine, recordLine } from '../narrator/pick'
 import type { HeroRecord } from '../narrator/triggers'
 import { useOverview, useOverviewUI } from '../store/overview-context'
+import { isZeroScope } from '../store/scope-state'
 import {
+  GROUND_RECORDS,
   HERO_RECORDS,
   odometerDigits,
   pickStickers,
@@ -41,8 +42,12 @@ import './hero.css'
 
 const copy = {
   km: { en: 'km · great-circle', ru: 'км · по дуге большого круга' },
+  // Ground distance is straight-line between cities, so a total that includes it is not great-circle only.
+  kmStraight: { en: 'km · as the crow flies', ru: 'км · по прямой' },
   air: { en: 'in the air', ru: 'в воздухе' },
   byAir: { en: 'by air', ru: 'по воздуху' },
+  byGround: { en: 'by ground', ru: 'по земле' },
+  allTravel: { en: 'in total', ru: 'всего' },
   lastPublished: { en: 'last published total', ru: 'последний опубликованный итог' },
 }
 const estimatedForms: CountForms = {
@@ -104,7 +109,7 @@ export function HeroPanel() {
   const mobile = useMobile()
   const reduced = useReducedMotion() ?? false
   const card = useRef<HTMLElement>(null)
-  const zero = scope ? scope.figures.flights === 0 && !isEmptyFilter(filter) : false
+  const zero = scope ? isZeroScope(scope, filter) : false
   const { state, handlers } = useTakeover(
     card,
     !!scope && !zero && !replayStarted && mobile === false,
@@ -122,7 +127,7 @@ export function HeroPanel() {
       case 'flights':
         return formatNumber(locale, f.flights)
       case 'km':
-        return formatNumber(locale, Math.round(f.distanceKm))
+        return (f.travelKmApproximate ? '≈' : '') + formatNumber(locale, Math.round(f.travelKm))
       case 'air':
         return (f.durationApproximate ? '≈' : '') + formatDuration(locale, f.durationMinutes)
       case 'countries':
@@ -150,12 +155,13 @@ export function HeroPanel() {
       </Fragment>
     ))
   }
+  const kmCopy = f.scope !== 'flights' && payload.ground.length > 0 ? copy.kmStraight : copy.km
   const label = (record: HeroRecord): string => {
     switch (record) {
       case 'flights':
         return noun(locale, f.flights, forms.flights)
       case 'km':
-        return t(copy.km, locale)
+        return t(kmCopy, locale)
       case 'air':
         return (
           t(copy.air, locale) +
@@ -168,9 +174,13 @@ export function HeroPanel() {
           noun(locale, f.countries.value, countryForms) +
           (f.countries.source === 'by_air'
             ? ` · ${t(copy.byAir, locale)}`
-            : !payload.derivedReady
-              ? ` · ${t(copy.lastPublished, locale)}`
-              : '')
+            : f.countries.source === 'ground'
+              ? ` · ${t(copy.byGround, locale)}`
+              : f.countries.source === 'all' && payload.ground.length > 0
+                ? ` · ${t(copy.allTravel, locale)}`
+                : !payload.derivedReady
+                  ? ` · ${t(copy.lastPublished, locale)}`
+                  : '')
         )
       case 'airports':
         return noun(locale, f.airports, forms.airports)
@@ -179,11 +189,12 @@ export function HeroPanel() {
   // Accessible names stay the record's plain name, so "Flights" still reads the flight count.
   const names: Record<HeroRecord, string> = {
     flights: t(S.flights, locale),
-    km: t(copy.km, locale),
+    km: t(kmCopy, locale),
     air: t(copy.air, locale),
     countries: t(S.countries, locale),
     airports: t(S.airports, locale),
   }
+  const records = f.scope === 'ground' ? GROUND_RECORDS : HERO_RECORDS
   const footer = zero ? null : pickLine('hero', scope, all, ownerKey, locale)
   return (
     <section
@@ -194,31 +205,33 @@ export function HeroPanel() {
       {...handlers}
     >
       <dl className="ov3-hero-list">
-        {(['flights', 'countries', 'km', 'air', 'airports'] as const).map((record) => (
-          <div className="ov3-hero-row" data-record={record} key={record}>
-            <dt className="ov3-hero-label">
-              {record === 'air' ? t(copy.air, locale) : label(record)}
-              {record === 'air' && f.estimatedFlights > 0 ? (
-                <span className="ov3-hero-estimates-desktop">
-                  {' '}
-                  · {formatCount(locale, f.estimatedFlights, estimatedForms)}
-                </span>
-              ) : null}
-              {record === 'airports' && f.estimatedFlights > 0 && !zero ? (
-                <span className="ov3-hero-estimates-mobile">
-                  {' '}
-                  · {formatCount(locale, f.estimatedFlights, mobileEstimatedForms)}
-                </span>
-              ) : null}
-            </dt>
-            <dd className="ov3-hero-value" aria-label={names[record]}>
-              {displayedValue(record)}
-            </dd>
-            <span className="ov3-hero-glyph" aria-hidden="true">
-              <IsoFigure figure={glyphs[record]} />
-            </span>
-          </div>
-        ))}
+        {(['flights', 'countries', 'km', 'air', 'airports'] as const)
+          .filter((record) => records.includes(record))
+          .map((record) => (
+            <div className="ov3-hero-row" data-record={record} key={record}>
+              <dt className="ov3-hero-label">
+                {record === 'air' ? t(copy.air, locale) : label(record)}
+                {record === 'air' && f.estimatedFlights > 0 ? (
+                  <span className="ov3-hero-estimates-desktop">
+                    {' '}
+                    · {formatCount(locale, f.estimatedFlights, estimatedForms)}
+                  </span>
+                ) : null}
+                {record === 'airports' && f.estimatedFlights > 0 && !zero ? (
+                  <span className="ov3-hero-estimates-mobile">
+                    {' '}
+                    · {formatCount(locale, f.estimatedFlights, mobileEstimatedForms)}
+                  </span>
+                ) : null}
+              </dt>
+              <dd className="ov3-hero-value" aria-label={names[record]}>
+                {displayedValue(record)}
+              </dd>
+              <span className="ov3-hero-glyph" aria-hidden="true">
+                <IsoFigure figure={glyphs[record]} />
+              </span>
+            </div>
+          ))}
       </dl>
       {footer ? <p className="ov3-hero-footer">{footer}</p> : null}
       {state ? (
@@ -227,7 +240,7 @@ export function HeroPanel() {
           state={state}
           card={card}
           reduced={reduced}
-          rail={HERO_RECORDS.map((record) => ({
+          rail={records.map((record) => ({
             record,
             value: railValue(locale, record, f),
           }))}
@@ -239,7 +252,7 @@ export function HeroPanel() {
               case 'flights':
                 return spike(k, { stubs: stubBucket(f.flights) })
               case 'km':
-                return odometer(k, { digits: odometerDigits(f.distanceKm) })
+                return odometer(k, { digits: odometerDigits(f.travelKm) })
               case 'air':
                 return cabinWindow(k)
               case 'countries':
@@ -248,7 +261,7 @@ export function HeroPanel() {
                 return carousel(k, { code: tagCode(scope) ?? '' })
             }
           }}
-          buildKey={`${state.record}|${f.flights}|${Math.round(f.distanceKm)}|${stickers.stickers.join()}|${stickers.lit}|${tagCode(scope)}`}
+          buildKey={`${state.record}|${f.flights}|${Math.round(f.travelKm)}|${stickers.stickers.join()}|${stickers.lit}|${tagCode(scope)}`}
         />
       ) : null}
     </section>

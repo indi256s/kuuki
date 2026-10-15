@@ -84,7 +84,7 @@ export function shareCardTree(
       children: [
         ...[
           figures.flights,
-          figures.distanceKm,
+          figures.travelKm,
           figures.durationMinutes,
           figures.countries.value,
         ].map((value) => ({ type: 'div', props: { children: String(value) } })),

@@ -12,6 +12,7 @@ import { Narrator } from '../narrator/narrator'
 import { useOverview } from '../store/overview-context'
 import { formatNumber } from '../../../lib/format'
 import { t } from '../copy'
+import { FlightsOnly } from '../layout/flights-only'
 import type { FilterFacet } from '../filters/chip-label'
 import { useAppliedFacets } from '../filters/use-applied-facets'
 import { FilterPanel } from '../filters/filter-panel'
@@ -82,6 +83,7 @@ export function SectionSheet({
             <span className="ov3-sheet-position">
               {t({ en: `${position} of ${count}`, ru: `${position} из ${count}` }, locale)}
             </span>
+            <FlightsOnly className="ov3-flights-only ov3-sheet-note" />
           </span>
         </span>
       }
