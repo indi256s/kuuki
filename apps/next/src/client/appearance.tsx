@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import { trackPrivateOperation } from './activity'
 import {
@@ -254,10 +255,19 @@ function paintTheme(effective: keyof typeof THEME_COLOR) {
   document.documentElement.style.colorScheme = effective
 }
 
+/** Reads the painted top edge once, so the browser bar, html background and top strip share one value. */
 function setBrowserBar(effective: keyof typeof THEME_COLOR) {
+  const top = getComputedStyle(document.documentElement)
+    .getPropertyValue('--edge-top-background')
+    .trim()
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', THEME_COLOR[effective])
+    ?.setAttribute('content', top || THEME_COLOR[effective])
+}
+
+/** Repaints the browser bar when the page under it changes its top edge (a route, a breakpoint, a finished transition). */
+function syncBrowserBar() {
+  setBrowserBar(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
 }
 
 function applyTheme(theme: Theme) {
@@ -277,7 +287,20 @@ export function AppearanceProvider() {
       if (currentTheme() === 'system') switchTheme('system')
     }
     media.addEventListener('change', changed)
-    return () => media.removeEventListener('change', changed)
+    // Edge colors can follow the layout breakpoint, and a route transition keeps the outgoing page until it ends.
+    const narrow = window.matchMedia('(max-width: 700px)')
+    narrow.addEventListener('change', syncBrowserBar)
+    window.addEventListener('pageshow', syncBrowserBar)
+    const transitions = new MutationObserver(syncBrowserBar)
+    transitions.observe(document.documentElement, { attributeFilter: ['data-route-transition'] })
+    return () => {
+      media.removeEventListener('change', changed)
+      narrow.removeEventListener('change', syncBrowserBar)
+      window.removeEventListener('pageshow', syncBrowserBar)
+      transitions.disconnect()
+    }
   }, [])
+  const pathname = usePathname()
+  useEffect(syncBrowserBar, [pathname])
   return null
 }

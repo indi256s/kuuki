@@ -498,9 +498,14 @@
 
 /* ---------- Mobile: brand band above a bottom sheet (boards 3.2 and 3.3) ---------- */
 @media (max-width: 700px) {
+  /* The band meets the status bar and the sheet meets the bottom controls. */
+  :root:has(.auth-page) {
+    --edge-top-background: var(--auth-band-surface);
+    --edge-bottom-background: var(--surface);
+  }
   .auth-page {
     display: block;
-    padding: 0;
+    padding: env(safe-area-inset-top) 0 0;
     background: var(--auth-band-surface);
   }
   .auth-card,

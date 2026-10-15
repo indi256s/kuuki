@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: 'Kuuki — flight journal',
   description: 'Keep your journeys close.',
 }
-export const viewport: Viewport = { themeColor: THEME_COLOR.light }
+export const viewport: Viewport = { themeColor: THEME_COLOR.light, viewportFit: 'cover' }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getRequestLocale()
@@ -35,6 +35,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           </span>
         </a>
         <RouteTransitions>{children}</RouteTransitions>
+        {/* Outside the route stage: a transformed ancestor would pin these to it instead of the viewport. */}
+        <div className="edge-top" aria-hidden="true" />
+        <div className="edge-bottom" aria-hidden="true" />
         <Suspense fallback={null}>
           <RouteFocus />
         </Suspense>

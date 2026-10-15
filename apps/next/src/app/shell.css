@@ -550,3 +550,33 @@ a.ui-menu-item {
     );
   }
 }
+
+/* Status bar and bottom-control strips: they repaint the page's edge colors over scrolled content, under the header,
+   rail and every floating layer. Rendered outside the route stage, whose transforms would pin them to the page. */
+.edge-top,
+.edge-bottom {
+  position: fixed;
+  z-index: var(--z-edge);
+  inset-inline: 0;
+  pointer-events: none;
+}
+.edge-top {
+  inset-block-start: 0;
+  height: max(12px, env(safe-area-inset-top));
+}
+.edge-bottom {
+  inset-block-end: 0;
+  height: max(12px, env(safe-area-inset-bottom));
+}
+.edge-top::after,
+.edge-bottom::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.edge-top::after {
+  background: var(--edge-top-background);
+}
+.edge-bottom::after {
+  background: var(--edge-bottom-background);
+}

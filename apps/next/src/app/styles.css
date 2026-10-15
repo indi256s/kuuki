@@ -50,6 +50,7 @@
   --tabbar-h: 56px;
   --z-tabbar: 30;
   --z-header: 20;
+  --z-edge: 15;
   --background: #ffffff;
   --surface: #fafafa;
   --surface-inset: #f2f2f2;
@@ -642,14 +643,22 @@
 * {
   box-sizing: border-box;
 }
+/* One palette for the page edges: Safari tints its status bar from the html background (and theme-color) and its
+   bottom controls from the body background, and the strips repaint the same colors over scrolled content. */
+:root {
+  --edge-top-background: var(--background);
+  --edge-bottom-background: var(--background);
+}
 html {
+  background: var(--edge-top-background);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 body {
   margin: 0;
-  background: var(--background);
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  background: var(--edge-bottom-background);
   color: var(--text);
   font: 400 15px/1.6 var(--font-sans);
   font-variant-numeric: tabular-nums;
@@ -726,6 +735,7 @@ h2 {
   inset-block-start: 16px;
 }
 .site-header {
+  padding-block-start: env(safe-area-inset-top);
   background: var(--background);
 }
 @media (min-width: 701px) {
