@@ -226,12 +226,8 @@ function onPanel(i: number, outline: readonly Pt[]): P3[] {
   return pts.map(([x, y]) => [x, y, lerp(Z, i, x)])
 }
 
-/**
- * Records: a folded map with the longest flight pinned to it, `from` → `to`. With both airports' coordinates the sheet is a real equirectangular window: land is the true coast, the pins stand on the airports and the route is the great circle between them. Without, the pins take fixed places on a blank sheet.
- * `equator` draws the line the flight crosses.
- * Parts: `fold` (one per panel and layer; carries --fold-y/--fold-s/--fold-k, the screen transform that flattens that panel by UNFOLD), `dash` (a lit copy of one route dash; --t is its place along the route, 0 at `from`) and `pin` (carries --lift-y).
- */
-export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
+/** The sheet in plan units: route, coast, graticule and equator. */
+function planSheet(from: MapPin, to: MapPin) {
   const located =
     from.lat !== null && from.lon !== null && to.lat !== null && to.lon !== null
       ? greatCircle([from.lon, from.lat], [to.lon, to.lat], 60)
@@ -282,6 +278,24 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
   const equatorLines: Plan[][] = sheet
     ? onSheet(Array.from({ length: 201 }, (_, i) => sheet.plan([sheet.cLon - 200 + i * 2, 0])))
     : [X.map((x): Plan => [x, 46])]
+  return { course, A, B, land, graticule, scaleBar, equatorLines }
+}
+// The plan depends on the pins alone, and fitting draws one map at several scales: the coast is clipped once per route.
+// Callers only read it.
+let lastSheet: { key: string; sheet: ReturnType<typeof planSheet> } | undefined
+function sheetFor(from: MapPin, to: MapPin) {
+  const key = `${from.lat},${from.lon},${to.lat},${to.lon}`
+  if (lastSheet?.key !== key) lastSheet = { key, sheet: planSheet(from, to) }
+  return lastSheet.sheet
+}
+
+/**
+ * Records: a folded map with the longest flight pinned to it, `from` → `to`. With both airports' coordinates the sheet is a real equirectangular window: land is the true coast, the pins stand on the airports and the route is the great circle between them. Without, the pins take fixed places on a blank sheet.
+ * `equator` draws the line the flight crosses.
+ * Parts: `fold` (one per panel and layer; carries --fold-y/--fold-s/--fold-k, the screen transform that flattens that panel by UNFOLD), `dash` (a lit copy of one route dash; --t is its place along the route, 0 at `from`) and `pin` (carries --lift-y).
+ */
+export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
+  const { course, A, B, land, graticule, scaleBar, equatorLines } = sheetFor(from, to)
   const s = new Scene(k)
   // Lowering fold heights shears each panel along z linearly in x; projected, that is one 2D affine map per panel, solved from three of its corners.
   const fold = (i: number) => {
