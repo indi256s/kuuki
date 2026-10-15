@@ -293,3 +293,11 @@
     font-size: 17px;
   }
 }
+
+/* Under Всё with ground data the chapters stay flight-only; one muted line above them says so. */
+.ov3-flights-only {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}

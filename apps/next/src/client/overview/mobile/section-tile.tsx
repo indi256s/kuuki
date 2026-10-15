@@ -12,7 +12,6 @@ import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { SECTIONS } from '../sections/registry'
 import { useOverview } from '../store/overview-context'
 import { t } from '../copy'
-import { FlightsOnly } from '../layout/flights-only'
 import './mobile.css'
 
 type Props = {
@@ -39,7 +38,6 @@ export function SectionTile({
   // The title is a span: a button's content is phrasing, and a heading inside it is not exposed as one. The page's h1 and the sheet's heading carry the structure.
   // The name stays the short title; the preview the tile shows ("14,535 km · Longest · DOH → AKL") is its description.
   const preview = useId()
-  const note = useId()
   return (
     <button
       ref={ref}
@@ -50,7 +48,7 @@ export function SectionTile({
       data-tile-span={span}
       data-dragging={active || undefined}
       aria-label={title}
-      aria-describedby={`${preview} ${note}`}
+      aria-describedby={preview}
       onPointerDown={(event) => {
         if (event.pointerType === 'touch' || window.matchMedia('(pointer: coarse)').matches)
           onPointerDown?.(event)
@@ -59,10 +57,7 @@ export function SectionTile({
       onClick={(event) => onOpen(id, event.currentTarget)}
     >
       <span className="ov3-tile-heading">
-        <span className="ov3-tile-name">
-          <span className="ov3-tile-title">{title}</span>
-          <FlightsOnly id={note} className="ov3-flights-only ov3-tile-note" />
-        </span>
+        <span className="ov3-tile-title">{title}</span>
         <ChevronRight size={18} aria-hidden="true" />
       </span>
       <span id={preview} className="ov3-tile-preview">

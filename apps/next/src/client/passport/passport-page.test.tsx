@@ -405,6 +405,17 @@ describe('totals and found', () => {
     expect(screen.queryByText(/^Found /)).not.toBeInTheDocument()
   })
 
+  it('counts a map segment choice as the segment, not as active filters', async () => {
+    const user = userEvent.setup()
+    nativeReplace(null, '', '/passport?view=map')
+    render(<PassportPage {...ownerProps()} />)
+    await user.click(screen.getByRole('radio', { name: 'Ground' }))
+    expect(window.location.search).toBe('?view=map&src=trains%2Croad')
+    expect(within(toolbar()).getByRole('button', { name: 'Filters' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
+    expect(screen.getByText(/^Found /)).toBeVisible()
+  })
+
   it('filters the pending countries the atlas draws with the same model', async () => {
     const atlasPending = () =>
       within(screen.getByRole('list', { name: 'Atlas pending stand-in' })).queryAllByRole(

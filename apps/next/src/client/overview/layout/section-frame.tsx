@@ -8,7 +8,6 @@ import { Menu, MenuItem } from '../../ui/menu'
 import { useOverview } from '../store/overview-context'
 import { t } from '../copy'
 import { ChapterContext, FULL_CARD } from './chapter-context'
-import { FlightsOnly } from './flights-only'
 import './layout.css'
 
 type Props = {
@@ -50,10 +49,7 @@ export function SectionFrame({
       <header className="ov3-section-header" onPointerDown={drag?.onPointerDown}>
         <GripVertical className="ov3-grip" size={18} strokeWidth={2} aria-hidden="true" />
         <div className="ov3-section-title">
-          <div className="ov3-section-title-line">
-            <h2 id={heading}>{title}</h2>
-            <FlightsOnly />
-          </div>
+          <h2 id={heading}>{title}</h2>
           {hint ? <p>{hint}</p> : null}
         </div>
         {controls ? <div data-reorder-control>{controls}</div> : null}

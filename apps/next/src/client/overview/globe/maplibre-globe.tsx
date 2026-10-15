@@ -289,10 +289,11 @@ function GlobeLayers({
       microstates: { type: 'FeatureCollection' as const, features: microstates },
     }
   }, [routeFeatures, props.globe, props.airports, land])
-  const groundPoints = useMemo(
-    () => props.globe.ground.flatMap((journey) => journey.runs.flat()),
-    [props.globe.ground],
-  )
+  // A filter that leaves no ground in scope still frames where the ground journeys are, not the default view.
+  const groundPoints = useMemo(() => {
+    const scoped = props.globe.ground.flatMap((journey) => journey.runs.flat())
+    return scoped.length ? scoped : props.all.ground.flatMap((journey) => journey.runs.flat())
+  }, [props.globe.ground, props.all.ground])
   const latestData = useRef(data)
   useEffect(() => {
     latestData.current = data

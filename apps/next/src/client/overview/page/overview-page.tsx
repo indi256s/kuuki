@@ -6,6 +6,7 @@ import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 import { OverviewProvider, useOverview } from '../store/overview-context'
 import { isZeroScope } from '../store/scope-state'
+import { FlightsOnly } from '../layout/flights-only'
 import { OverviewFlightSheet } from '../store/open-flight'
 import { HeroPanel } from '../hero/hero-panel'
 import { NextStrip } from '../hero/next-strip'
@@ -70,6 +71,23 @@ function PageContent() {
   if (openId && (mobile !== true || !scope || firstRun || zero || !visible.includes(openId)))
     setOpenId(null)
   const [announcement, setAnnouncement] = useState('')
+  // A scope switch adds or removes whole chapters; say which travel the page now shows. The first render stays quiet.
+  const travelScope = scope?.figures.scope ?? null
+  const [announcedScope, setAnnouncedScope] = useState(travelScope)
+  if (travelScope !== announcedScope) {
+    setAnnouncedScope(travelScope)
+    if (announcedScope && travelScope)
+      setAnnouncement(
+        t(
+          travelScope === 'ground'
+            ? S.scopeShownGround
+            : travelScope === 'flights'
+              ? S.scopeShownFlights
+              : S.scopeShownAll,
+          locale,
+        ),
+      )
+  }
   const page = useRef<HTMLDivElement>(null)
   const pendingFocus = useRef<{
     target: SectionId | undefined
@@ -244,33 +262,36 @@ function PageContent() {
           {zero ? (
             <ZeroResult />
           ) : !firstRun && !groundOnly && mobile !== null ? (
-            mobile ? (
-              <div className="ov3-sections" data-surface="tiles">
-                {packTiles(visible).map(({ id, span }) => {
-                  const { Tile } = SECTIONS[id]
-                  return (
-                    <SectionTile
-                      key={id}
-                      id={id}
-                      span={span}
-                      drag={reorder.bindings(id)}
-                      onOpen={(section, trigger) => {
-                        if (isCurrent()) {
-                          opener.current = trigger
-                          setOpenId(section)
-                        }
-                      }}
-                    >
-                      <Tile span={span} />
-                    </SectionTile>
-                  )
-                })}
-              </div>
-            ) : (
-              <div ref={lanes} className="ov3-bento" data-surface="sections">
-                {visible.map(frame)}
-              </div>
-            )
+            <>
+              <FlightsOnly />
+              {mobile ? (
+                <div className="ov3-sections" data-surface="tiles">
+                  {packTiles(visible).map(({ id, span }) => {
+                    const { Tile } = SECTIONS[id]
+                    return (
+                      <SectionTile
+                        key={id}
+                        id={id}
+                        span={span}
+                        drag={reorder.bindings(id)}
+                        onOpen={(section, trigger) => {
+                          if (isCurrent()) {
+                            opener.current = trigger
+                            setOpenId(section)
+                          }
+                        }}
+                      >
+                        <Tile span={span} />
+                      </SectionTile>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div ref={lanes} className="ov3-bento" data-surface="sections">
+                  {visible.map(frame)}
+                </div>
+              )}
+            </>
           ) : null}
           {mobile === true ? (
             <SectionSheet

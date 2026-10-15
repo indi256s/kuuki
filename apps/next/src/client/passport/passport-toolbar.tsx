@@ -178,7 +178,6 @@ function MapScopeControl({
     )
   return (
     <SegmentedControl
-      dense
       label={ru ? 'Что показывает карта' : 'What the map shows'}
       value={scope}
       onChange={(next) => navigate({ src: MAP_SCOPE_SRC[next] })}

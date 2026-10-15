@@ -200,6 +200,7 @@ export function HeroPanel() {
     <section
       ref={card}
       className="ov3-hero-panel"
+      data-scope={f.scope}
       aria-label={t(S.figures, locale)}
       data-takeover={state ? state.phase : undefined}
       {...handlers}

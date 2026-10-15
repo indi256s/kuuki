@@ -32,7 +32,7 @@ import {
   type PassportEntry,
 } from './model'
 import { PassportIdentity, type IdentityOwner, type IdentityProfile } from './passport-identity'
-import { PassportToolbar } from './passport-toolbar'
+import { PassportToolbar, mapScopeOf } from './passport-toolbar'
 import type { usePassportQuery } from './use-passport-query'
 import '../profile/profile.css'
 import './passport.css'
@@ -113,7 +113,11 @@ export function PassportLayout(props: PassportLayoutProps) {
     () => ({ q: draft, region: state.region, sources: state.sources }),
     [draft, state.region, state.sources],
   )
-  const filterCount = activeFilterCount(filters, { visitor: !isOwner })
+  // On the owner's map a canonical source choice belongs to the map segment, not to Filters: it adds no badge or Reset.
+  const mapScoped = isOwner && state.view === 'map' && mapScopeOf(state.sources) !== null
+  const filterCount = activeFilterCount(mapScoped ? { ...filters, sources: [] } : filters, {
+    visitor: !isOwner,
+  })
   const filtersActive = norm(draft) !== '' || filterCount > 0
 
   const sorted = useMemo(
@@ -302,7 +306,7 @@ export function PassportLayout(props: PassportLayoutProps) {
         onReset={reset}
         navigate={navigate}
       />
-      {filtersActive && entries.length > 0 ? (
+      {(filtersActive || (mapScoped && state.sources.length > 0)) && entries.length > 0 ? (
         <p role="status" className="passport-found">
           {foundText(locale, filtered.length, entries.length)}
         </p>
