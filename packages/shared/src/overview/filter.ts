@@ -7,8 +7,10 @@ import {
   type DepartureBand,
   type Haul,
   type OverviewFilter,
+  type OverviewGroundJourney,
   type OverviewPayload,
   type OverviewRow,
+  type TravelScope,
 } from './model'
 
 type Refs = OverviewPayload['refs']
@@ -146,6 +148,66 @@ export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): b
   return true
 }
 
+const NON_AVIATION_KEYS = new Set(['period', 'scope', 'countries', 'regions'])
+
+/** True when any facet beyond countries/regions is set: ground journeys carry no aviation evidence to match. */
+export function hasAviationFacet(filter: OverviewFilter): boolean {
+  return Object.entries(filter).some(
+    ([key, values]) => !NON_AVIATION_KEYS.has(key) && !!(values as unknown[] | undefined)?.length,
+  )
+}
+
+/** Ground journeys match by `startDate ?? endDate`, with the same period rules as flight dates. */
+export function groundMatches(
+  journey: OverviewGroundJourney,
+  filter: OverviewFilter,
+  refs: Refs,
+): boolean {
+  if (hasAviationFacet(filter)) return false
+  const period = filter.period
+  const day = journey.startDate ?? journey.endDate
+  if (period) {
+    if ('years' in period) {
+      if (period.years.length) {
+        if (day === null || monthIndex(day.slice(0, 7)) === null) return false
+        if (!period.years.includes(Number(day.slice(0, 4)))) return false
+      }
+    } else {
+      const days = periodDays(period)
+      if (!days || day === null || dayToEpoch(day) === null || day < days.from || day > days.to)
+        return false
+    }
+  }
+  const { countries, regions } = filter
+  if (countries?.length && !journey.countries.some((country) => countries.includes(country)))
+    return false
+  if (
+    regions?.length &&
+    !journey.countries.some((country) => regions.includes(refs.regions[country]))
+  )
+    return false
+  return true
+}
+
+/** The scope that actually applies: a stored scope is ignored while the payload has no ground journeys. */
+export function effectiveScope(
+  payload: Pick<OverviewPayload, 'ground'>,
+  filter: OverviewFilter,
+): 'all' | TravelScope {
+  return filter.scope && payload.ground.length > 0 ? filter.scope : 'all'
+}
+
+/** Ground journeys the scope and filter admit, planned included; none under the flights scope. */
+export function scopedGround(
+  payload: Pick<OverviewPayload, 'ground' | 'refs'>,
+  filter: OverviewFilter,
+  scope: 'all' | TravelScope,
+): OverviewGroundJourney[] {
+  return scope === 'flights'
+    ? []
+    : payload.ground.filter((journey) => groundMatches(journey, filter, payload.refs))
+}
+
 export function previousPeriod(filter: OverviewFilter): OverviewFilter | null {
   const period = filter.period
   if (!period) return null
@@ -185,9 +247,11 @@ export function previousPeriod(filter: OverviewFilter): OverviewFilter | null {
 }
 
 export function isEmptyFilter(filter: OverviewFilter): boolean {
-  const { period, ...facets } = filter
+  const { period } = filter
   return (
     (!period || ('years' in period && period.years.length === 0)) &&
-    Object.values(facets).every((values) => !values?.length)
+    Object.entries(filter).every(
+      ([key, values]) => key === 'period' || key === 'scope' || !(values as unknown[])?.length,
+    )
   )
 }

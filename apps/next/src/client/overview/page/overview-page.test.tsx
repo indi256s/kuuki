@@ -43,7 +43,7 @@ it('saved exact-day preferences show unavailable monthly detail and recover afte
   const daily: OverviewPayload = {
     ...legacy,
     aggregateResolution: 'day',
-    etag: 'W/"ov4-day-range-owner-1-0"',
+    etag: 'W/"ov5-day-range-owner-1-0"',
     rows: aggregateRows(rows, 'day'),
   }
   const prefs = {

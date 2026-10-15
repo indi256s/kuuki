@@ -81,7 +81,7 @@ export function scopeTitle(filter: OverviewFilter, labels: ScopeLabels, locale: 
   const selections: string[] = []
   for (const key of Object.keys(filter) as Array<keyof OverviewFilter>) {
     const selected = filter[key]
-    if (!selected) continue
+    if (!selected || key === 'scope') continue
     if (key === 'period') {
       const period = filter.period!
       if ('years' in period) {

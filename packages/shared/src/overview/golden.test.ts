@@ -171,7 +171,7 @@ function generate(name: (typeof names)[number], aggregate = true): OverviewPaylo
   )
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     etag: 'W/"ov3-fixture-1-1"',
     generatedAt: '2026-10-07T00:00:00.000Z',
     mode,
@@ -183,6 +183,7 @@ function generate(name: (typeof names)[number], aggregate = true): OverviewPaylo
       regions: new Set([...evidence].map((country) => refs.regions[country])).size,
     },
     rows: mode === 'aggregate' && aggregate ? aggregateRows(rows) : rows,
+    ground: [],
     refs: {
       airports: Object.fromEntries(
         [...usedAirports].sort().map((code) => [code, refs.airports[code]]),
@@ -699,7 +700,7 @@ it('board fixture reproduces board totals', () => {
     readFileSync(new URL('./__fixtures__/board.json', import.meta.url), 'utf8'),
   ) as OverviewPayload
   const result = computeOverview(fixture, {})
-  expect(fixture.schemaVersion).toBe(3)
+  expect(fixture.schemaVersion).toBe(4)
   expect(result.figures).toMatchObject({ flights: 69, awaiting: 3, distanceKm: 141204 })
   expectCountedOutputs(fixture, result)
   if (result.rhythm.status !== 'ready') throw new Error('Expected ready board rhythm')

@@ -38,6 +38,7 @@ function makeProps(): MaplibreGlobeProps {
     countries: [],
     ghostCountries: [],
     ghostRoutes: [],
+    ground: [],
     centroid: null,
   }
   return {

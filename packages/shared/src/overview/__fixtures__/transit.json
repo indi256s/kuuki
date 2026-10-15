@@ -1,5 +1,6 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
+  "ground": [],
   "etag": "W/\"ov3-fixture-1-1\"",
   "generatedAt": "2026-10-07T00:00:00.000Z",
   "mode": "flights",
