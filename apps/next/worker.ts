@@ -120,9 +120,12 @@ export default {
     )
     const contentType = headers.get('Content-Type')
     const font = url.pathname.startsWith('/fonts/') && /\.(?:woff2|ttf)$/.test(url.pathname)
+    // Build output: every chunk, stylesheet and media file is content-hashed and every manifest sits under its build
+    // ID, so a returning visit runs them from cache instead of revalidating each one before first paint.
+    const built = url.pathname.startsWith('/_next/static/')
     if (
       (request.method === 'GET' || request.method === 'HEAD') &&
-      (cachedMapAssets.has(url.pathname) || font) &&
+      (cachedMapAssets.has(url.pathname) || font || built) &&
       (response.status === 200 || response.status === 304) &&
       !headers.has('Set-Cookie') &&
       (response.status === 304 || (contentType && !contentType.includes('text/html')))
@@ -131,7 +134,7 @@ export default {
         'Cache-Control',
         font ? 'public, max-age=3600, must-revalidate' : 'public, max-age=31536000, immutable',
       )
-    } else if (!url.pathname.startsWith('/_next/static/') || response.status >= 400) {
+    } else if (!built || response.status >= 400) {
       headers.set('Cache-Control', 'no-store')
     }
     return new Response(response.body, {
