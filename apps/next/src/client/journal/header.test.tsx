@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -35,18 +35,22 @@ function setup(overrides: Partial<JournalHeaderProps> = {}) {
 const values = (container: HTMLElement) =>
   [...container.querySelectorAll('.ui-slot-text-value')].map((node) => node.textContent)
 
-it('shows the title, labeled summary metrics and the phone Add flight menu', () => {
+it('shows the Journal heading with its section, the section switch and labeled summary metrics', () => {
   const { container } = setup()
-  expect(screen.getByRole('heading', { level: 1, name: 'Journal' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { level: 1, name: 'Journal · Flights' })).toHaveTextContent(
+    /^Journal/,
+  )
+  const sections = within(screen.getByRole('navigation', { name: 'Journal sections' }))
+  expect(sections.getByRole('link', { name: 'Flights' })).toHaveAttribute('aria-current', 'page')
+  expect(sections.getByRole('link', { name: 'Ground' })).toHaveAttribute('href', '/ground-travel')
+  expect(sections.getByRole('link', { name: 'Ground' })).not.toHaveAttribute('aria-current')
+  expect(window.sessionStorage.getItem('kuuki:journal-section')).toBe('flights')
   expect(values(container)).toEqual(['74', '141,204 km', '9 d 4 h'])
   const line = container.querySelector('.journal-summary')!
   expect(line).toHaveTextContent('flights')
   expect(line).toHaveTextContent('Distance')
   expect(line).toHaveTextContent('In the air')
-  expect(screen.getByRole('button', { name: 'Add flight' })).toHaveAttribute(
-    'aria-haspopup',
-    'menu',
-  )
+  expect(screen.queryByRole('button', { name: /Add/ })).not.toBeInTheDocument()
 })
 
 it.each([
@@ -106,7 +110,7 @@ it.each([
 
 it('leaves out the import link at zero', () => {
   setup({ importReviewCount: 0 })
-  expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /import/ })).not.toBeInTheDocument()
 })
 
 afterEach(() => vi.useRealTimers())

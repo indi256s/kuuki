@@ -18,9 +18,15 @@ export const TAB_ROUTES = [
   '/settings',
 ]
 
+/** The Journal's two sections: switching between them is an instant swap inside one destination, not a tab switch. */
+const JOURNAL_SECTIONS = ['/journal', '/ground-travel']
+
 /** One top-level member page to another, either way, Back and Forward included. */
 export const isTabSwitch = (from: string, to: string) =>
-  from !== to && TAB_ROUTES.includes(from) && TAB_ROUTES.includes(to)
+  from !== to &&
+  TAB_ROUTES.includes(from) &&
+  TAB_ROUTES.includes(to) &&
+  !(JOURNAL_SECTIONS.includes(from) && JOURNAL_SECTIONS.includes(to))
 
 /** Import done → Passport, forward only. */
 export const isStampHero = (from: string, to: string) => from === '/import' && to === '/passport'

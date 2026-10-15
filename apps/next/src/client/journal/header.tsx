@@ -9,7 +9,7 @@ import {
   type CountForms,
   type Locale,
 } from '../../lib/format'
-import { AddMenu } from '../add-menu'
+import { JournalHeading, JournalSections } from '../journal-sections'
 import { Button } from '../ui/button'
 import { SlotText } from '../ui/slot-text'
 import type { JournalSummary } from './filter'
@@ -39,8 +39,8 @@ const imports: CountForms = {
 }
 
 const copy = {
-  en: { title: 'Journal', distance: 'Distance', inTheAir: 'In the air' },
-  ru: { title: 'Журнал', distance: 'Расстояние', inTheAir: 'В воздухе' },
+  en: { distance: 'Distance', inTheAir: 'In the air' },
+  ru: { distance: 'Расстояние', inTheAir: 'В воздухе' },
 } as const
 
 export type JournalHeaderProps = {
@@ -69,11 +69,7 @@ export function JournalHeader({
   return (
     <header className="journal-header">
       <div className="journal-header-row">
-        <h1 tabIndex={-1}>{t.title}</h1>
-        {/* Phones have no + key in the tab rail; the header's own Add flight menu is on desktop. */}
-        <div className="journal-add-mobile">
-          <AddMenu locale={locale} />
-        </div>
+        <JournalHeading locale={locale} section="flights" />
         <div className="journal-header-actions">
           {importReviewCount > 0 && (
             <Link href={importHref} className="journal-import-link">
@@ -87,6 +83,7 @@ export function JournalHeader({
           )}
         </div>
       </div>
+      <JournalSections locale={locale} section="flights" />
       <dl className="journal-summary">
         <div>
           <dt>{formatCount(locale, summary.flights, flights)}</dt>

@@ -7,7 +7,9 @@ describe('isApprovedPair', () => {
   it.each([
     ['/passport', '/import', true],
     ['/import', '/passport', true],
-    ['/journal', '/ground-travel', true],
+    ['/journal', '/ground-travel', false],
+    ['/ground-travel', '/journal', false],
+    ['/overview', '/ground-travel', true],
     ['/ground-travel', '/passport', true],
     ['/ground-travel', '/ground-travel/new', false],
     ['/journal', '/add', false],

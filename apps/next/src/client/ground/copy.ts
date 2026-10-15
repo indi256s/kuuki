@@ -45,10 +45,10 @@ export const nights: CountForms = {
 
 export const copy = {
   en: {
-    title: 'Ground travel',
     loading: 'Loading ground travel…',
     loadingForm: 'Opening the form…',
     transport: 'Transport',
+    removeTransport: 'Remove Transport filter',
     filtersLabel: 'Ground travel filters',
     all: 'All',
     rail: 'Rail',
@@ -161,10 +161,10 @@ export const copy = {
     sessionChanged: 'Your session changed. Reopen the page.',
   },
   ru: {
-    title: 'Наземные путешествия',
     loading: 'Загружаем наземные путешествия…',
     loadingForm: 'Открываем форму…',
     transport: 'Транспорт',
+    removeTransport: 'Убрать фильтр «Транспорт»',
     filtersLabel: 'Фильтры наземных путешествий',
     all: 'Все',
     rail: 'Поезда',

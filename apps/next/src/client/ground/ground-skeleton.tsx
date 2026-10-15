@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import type { Locale } from '../../lib/format'
+import { JournalHeading, JournalSections } from '../journal-sections'
 import { copy } from './copy'
 import './ground.css'
 
@@ -44,13 +45,11 @@ export function GroundListSkeleton({
 }
 
 export function GroundSkeleton({ locale, cards = 3 }: { locale: Locale; cards?: number }) {
-  const t = copy[locale]
   return (
     <div className="gt-page">
       <header className="gt-header">
-        <div className="gt-header-row">
-          <h1 tabIndex={-1}>{t.title}</h1>
-        </div>
+        <JournalHeading locale={locale} section="ground" />
+        <JournalSections locale={locale} section="ground" />
       </header>
       <GroundListSkeleton locale={locale} cards={cards} toolbar />
     </div>

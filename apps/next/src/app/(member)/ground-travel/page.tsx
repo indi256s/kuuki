@@ -16,7 +16,7 @@ function rawQuery(params: SearchParams) {
   return query.toString()
 }
 
-export const generateMetadata = () => pageMetadata('Ground travel', 'Наземные путешествия')
+export const generateMetadata = () => pageMetadata('Journal · Ground', 'Журнал · По земле')
 
 // The list is read in the browser: its groups depend on the visitor's own "today", which the server cannot know.
 export default async function GroundTravel({

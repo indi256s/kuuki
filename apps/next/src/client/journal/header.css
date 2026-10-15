@@ -99,12 +99,3 @@
     display: none;
   }
 }
-/* The desktop header carries Add flight; on phones the Journal header does (the tab rail has no action key). */
-.journal-add-mobile {
-  display: none;
-}
-@media (max-width: 700px) {
-  .journal-add-mobile {
-    display: block;
-  }
-}

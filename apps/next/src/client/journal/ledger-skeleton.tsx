@@ -3,6 +3,7 @@
 import { useLocale } from '../preferences'
 
 import type { Locale } from '../../lib/format'
+import { JournalHeading, JournalSections } from '../journal-sections'
 import { FilterToolbar } from '../ui/filter-toolbar'
 import './header.css'
 import './journal-page.css'
@@ -12,8 +13,8 @@ import './ledger-skeleton.css'
 // The h1 is real so RouteFocus has a heading to land on; loading has no motion.
 
 const copy = {
-  en: { title: 'Journal', loading: 'Loading journal…' },
-  ru: { title: 'Журнал', loading: 'Загружаем журнал…' },
+  en: { loading: 'Loading journal…' },
+  ru: { loading: 'Загружаем журнал…' },
 } as const
 
 const bar = (className: string) => <span className={`ledger-skeleton-bar ${className}`} />
@@ -31,8 +32,9 @@ export function LedgerSkeleton({
     <div className="ledger-skeleton journal-page">
       <header className="journal-header">
         <div className="journal-header-row">
-          <h1 tabIndex={-1}>{t.title}</h1>
+          <JournalHeading locale={locale} section="flights" />
         </div>
+        <JournalSections locale={locale} section="flights" />
         <div className="ledger-skeleton-summary journal-summary" aria-hidden="true">
           {Array.from({ length: 3 }, (_, index) => (
             <div key={index}>

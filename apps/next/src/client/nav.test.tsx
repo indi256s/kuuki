@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NAV_ITEMS, TabBar } from './nav'
 
@@ -68,7 +69,7 @@ describe('TabBar', () => {
       const current = screen
         .getAllByRole('link')
         .filter((link) => link.getAttribute('aria-current') === 'page')
-      expect(current.map((link) => link.getAttribute('href'))).toEqual(['/journal'])
+      expect(current.map((link) => link.textContent)).toEqual(['JournalЖурнал'])
       unmount()
     }
   })
@@ -103,6 +104,33 @@ describe('TabBar', () => {
     act(() => viewport.listeners.forEach((listener) => listener()))
     expect(document.documentElement.dataset.keyboard).toBe('true')
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+  })
+})
+
+describe('Journal tab', () => {
+  beforeEach(() => window.sessionStorage.clear())
+  const journalHref = () => screen.getByRole('link', { name: /Journal/ }).getAttribute('href')
+
+  it('links to the section in view', () => {
+    route.pathname = '/ground-travel'
+    render(<TabBar />)
+    expect(journalHref()).toBe('/ground-travel')
+  })
+
+  it('renders /journal on the server, even with Ground stored', () => {
+    window.sessionStorage.setItem('kuuki:journal-section', 'ground')
+    route.pathname = '/overview'
+    expect(renderToString(<TabBar />)).toContain('href="/journal"')
+  })
+
+  it('links elsewhere to the section last viewed in this browser tab', () => {
+    route.pathname = '/overview'
+    const { rerender } = render(<TabBar />)
+    expect(journalHref()).toBe('/journal')
+    window.sessionStorage.setItem('kuuki:journal-section', 'ground')
+    route.pathname = '/passport'
+    rerender(<TabBar />)
+    expect(journalHref()).toBe('/ground-travel')
   })
 })
 

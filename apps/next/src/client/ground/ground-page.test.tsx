@@ -98,11 +98,33 @@ describe('list', () => {
     const entries = window.history.length
     mount()
     await screen.findByRole('heading', { level: 2, name: 'Plans' })
-    await u.click(screen.getByRole('radio', { name: 'Road' }))
+    await u.click(screen.getByRole('button', { name: 'Transport' }))
+    await u.click(await screen.findByRole('menuitemradio', { name: 'Road' }))
     expect(cards()).toEqual([pastPlan.id, older.id])
     expect(window.location.search).toBe('?mode=road')
     expect(window.history.length).toBe(entries)
     expect(api.listJourneys).toHaveBeenCalledTimes(1)
+  })
+
+  it('reads the transport chip from ?mode= and removing it shows all', async () => {
+    const u = user()
+    mount('mode=rail')
+    await screen.findByRole('heading', { level: 2, name: 'Plans' })
+    expect(screen.getByRole('button', { name: 'Transport Rail' })).toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Remove Transport filter' }))
+    expect(window.location.search).toBe('')
+    expect(cards()).toHaveLength(all.length)
+  })
+
+  it('is the Journal Ground section: one heading and the section switch', async () => {
+    mount()
+    expect(screen.getByRole('heading', { level: 1, name: 'Journal · Ground' })).toBeInTheDocument()
+    const sections = within(screen.getByRole('navigation', { name: 'Journal sections' }))
+    expect(sections.getByRole('link', { name: 'Ground' })).toHaveAttribute('aria-current', 'page')
+    expect(sections.getByRole('link', { name: 'Flights' })).toHaveAttribute('href', '/journal')
+    expect(window.sessionStorage.getItem('kuuki:journal-section')).toBe('ground')
+    await screen.findByRole('heading', { level: 2, name: 'Plans' })
+    expect(screen.queryByRole('button', { name: /Add/ })).not.toBeInTheDocument()
   })
 
   it('opens the cancelled list as a separate read and hides the totals', async () => {
@@ -125,12 +147,20 @@ describe('list', () => {
 })
 
 describe('states', () => {
-  it('confirmed empty offers the Add chooser, with no totals', async () => {
+  it('confirmed empty keeps the section switch and offers train and road, with no totals', async () => {
     vi.mocked(api.listJourneys).mockResolvedValue(listOf([]))
     mount()
     await screen.findByText('No ground journeys yet')
     expect(screen.queryByRole('heading', { name: 'Totals of completed journeys' })).toBeNull()
-    expect(screen.getAllByRole('button', { name: /Add journey/ }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('navigation', { name: 'Journal sections' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Train journey' })).toHaveAttribute(
+      'href',
+      '/ground-travel/new?mode=rail&return=%2Fground-travel',
+    )
+    expect(screen.getByRole('link', { name: 'Road trip' })).toHaveAttribute(
+      'href',
+      '/ground-travel/new?mode=road&return=%2Fground-travel',
+    )
   })
 
   it('filtered empty names the filter and Show all clears it', async () => {

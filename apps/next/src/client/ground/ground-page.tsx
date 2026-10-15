@@ -1,14 +1,17 @@
 'use client'
 // The ground-travel page's composition root: view state (URL), list read, and plain props for the presentational
-// pieces (cards, totals, states, detail sheet). The transport filter is local; "Cancelled" is a different list.
+// pieces (cards, totals, states, detail sheet). The transport filter is local; "Cancelled" is a different list. The page is
+// the Journal's Ground section: the same heading and section switch as `/journal`; adding lives in the shared Add list.
 
 import { Fragment, useEffect, useId, useMemo, useState } from 'react'
 import { formatCount, type Locale } from '../../lib/format'
 import { useOnline } from '../awaiting'
 import { announceShellNotice } from '../shell-notices'
+import { JournalHeading, JournalSections } from '../journal-sections'
 import { Button } from '../ui/button'
+import { ChipGroup, FacetChip } from '../ui/chip-group'
 import { FilterToolbar } from '../ui/filter-toolbar'
-import { SegmentedControl, type SegmentOption } from '../ui/segmented-control'
+import { Menu, MenuRadioGroup, MenuRadioItem } from '../ui/menu'
 import { AddChooser } from './add-chooser'
 import { copy, journeys as journeyForms } from './copy'
 import { GroundDetail } from './detail-sheet'
@@ -28,8 +31,6 @@ import { useGroundList } from './use-ground-data'
 import { useGroundView } from './use-ground-view'
 import type { GroundMode } from '@kuuki/shared/groundTravel'
 import './ground.css'
-
-type Choice = 'all' | GroundMode
 
 /** True once `active` has lasted `delayMs`, so a fast reload never flashes a status. */
 function useLate(active: boolean, delayMs: number) {
@@ -69,11 +70,7 @@ export function GroundTravelPage({
   )
   const sections = useMemo(() => (today ? sectionsOf(visible, today) : []), [visible, today])
 
-  const options: SegmentOption<Choice>[] = [
-    { value: 'all', label: t.all },
-    { value: 'rail', label: t.rail },
-    { value: 'road', label: t.road },
-  ]
+  const modeLabel = view.mode === 'rail' ? t.rail : view.mode === 'road' ? t.road : null
   const heading = (id: 'plans' | 'history' | 'cancelled') =>
     id === 'plans' ? t.plans : id === 'history' ? t.history : t.cancelledSection
   const filterName = view.cancelled
@@ -83,8 +80,6 @@ export function GroundTravelPage({
       : view.mode === 'road'
         ? t.road
         : t.all
-  const add = <AddChooser locale={locale} view={view} />
-  // The empty state carries the page's one Add; the header's appears with the first journey.
   const empty = !view.cancelled && list?.journeys.length === 0
   // Totals sit after the plans and before the history; with no history on screen they close the list.
   const totals =
@@ -96,20 +91,35 @@ export function GroundTravelPage({
   return (
     <div className="gt-page" data-testid="ground-travel-data">
       <header className="gt-header">
-        <div className="gt-header-row">
-          <h1 tabIndex={-1}>{t.title}</h1>
-          {!empty && add}
-        </div>
+        <JournalHeading locale={locale} section="ground" />
+        <JournalSections locale={locale} section="ground" />
       </header>
       {!online && <OfflineNote locale={locale} id={offlineNoteId} />}
       <FilterToolbar label={t.filtersLabel} className="gt-toolbar">
-        <SegmentedControl<Choice>
-          dense
-          label={t.transport}
-          value={view.mode ?? 'all'}
-          options={options}
-          onChange={(choice) => setMode(choice === 'all' ? null : choice)}
-        />
+        {/* One facet chip, as in the Journal toolbar: no value is "All"; Rail or Road is picked in its menu. */}
+        <ChipGroup label={t.transport}>
+          <span className="gt-chip" data-empty={modeLabel ? undefined : true}>
+            <FacetChip
+              facet={t.transport}
+              values={modeLabel ? [modeLabel] : []}
+              onRemove={() => setMode(null)}
+              removeLabel={t.removeTransport}
+              locale={locale}
+            >
+              {(body) => (
+                <Menu trigger={body}>
+                  <MenuRadioGroup
+                    value={view.mode ?? ''}
+                    onValueChange={(mode) => setMode(mode as GroundMode)}
+                  >
+                    <MenuRadioItem value="rail">{t.rail}</MenuRadioItem>
+                    <MenuRadioItem value="road">{t.road}</MenuRadioItem>
+                  </MenuRadioGroup>
+                </Menu>
+              )}
+            </FacetChip>
+          </span>
+        </ChipGroup>
         <Button
           dense
           variant="secondary"
@@ -134,7 +144,7 @@ export function GroundTravelPage({
           {list.derivedState === 'pending' && <PublicationPending locale={locale} />}
           {visible.length === 0 ? (
             empty ? (
-              <EmptyGround locale={locale} action={add} />
+              <EmptyGround locale={locale} action={<AddChooser locale={locale} view={view} />} />
             ) : (
               <>
                 {totals}

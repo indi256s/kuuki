@@ -36,7 +36,8 @@ it('refresh failure is an alert with a retry', () => {
 
 it('skeleton keeps a real heading and announces loading', () => {
   render(<LedgerSkeleton locale="ru" rows={3} />)
-  expect(screen.getByRole('heading', { level: 1, name: 'Журнал' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { level: 1, name: 'Журнал · Перелёты' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Перелёты' })).toHaveAttribute('aria-current', 'page')
   expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
   expect(screen.getByRole('status')).toHaveTextContent('Загружаем журнал…')
 })

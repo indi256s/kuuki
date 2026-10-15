@@ -15,6 +15,7 @@ import {
 } from 'react'
 import { BookOpen, GridSquares, Plus, Stamp } from '@keyline-icons/react'
 import { AddActions } from './add-actions'
+import { useJournalHref } from './journal-sections'
 import { Menu } from './ui/menu'
 
 type Locale = 'en' | 'ru'
@@ -84,6 +85,7 @@ export function MobilePageTitle() {
 export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }) {
   const locale = useLocale(initialLocale)
   const pathname = usePathname()
+  const journalHref = useJournalHref(pathname)
   const nav = useRef<HTMLElement>(null)
   // The sticky header wraps on narrow desktops and long labels; sticky content below reads its real height.
   useEffect(() => {
@@ -113,7 +115,7 @@ export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }
         {NAV_ITEMS.map((item) => (
           <li key={item.href}>
             <Link
-              href={item.href}
+              href={item.href === '/journal' ? journalHref : item.href}
               prefetch
               aria-current={isCurrent(pathname, item.href) ? 'page' : undefined}
             >
@@ -210,6 +212,7 @@ const TABS: readonly {
 export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
   const locale = useLocale(initialLocale)
   const pathname = usePathname()
+  const journalHref = useJournalHref(pathname)
   const ru = locale === 'ru'
   const titleId = useId()
   const [addOpen, setAddOpen] = useState(false)
@@ -231,7 +234,7 @@ export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
         {TABS.map(({ Icon, ...tab }) => (
           <Tab
             key={tab.href}
-            href={tab.href}
+            href={tab.href === '/journal' ? journalHref : tab.href}
             active={isCurrent(pathname, tab.href)}
             icon={<Icon size={22} strokeWidth={2} aria-hidden="true" />}
             en={tab.en}
