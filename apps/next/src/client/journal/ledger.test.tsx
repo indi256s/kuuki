@@ -121,10 +121,17 @@ it('keeps airline identity and the flight number when a local logo fails to load
   })
   const open = screen.getByRole('button', { name: /Turkish Airlines, TK381/ })
   const row = within(open.closest('[role=row]')!)
+  const logos = row.getAllByAltText('') as HTMLImageElement[]
+  for (const logo of logos) {
+    const source = new URL(logo.src)
+    expect(source.origin).toBe(window.location.origin)
+    expect(source.pathname).toMatch(/^\/airlines\/TK\./)
+  }
+  const darkLogo = logos.find((logo) => new URL(logo.src).pathname.endsWith('.dark.png'))!
+  fireEvent.error(darkLogo)
   const logo = row.getByAltText('') as HTMLImageElement
-  const source = new URL(logo.src)
-  expect(source.origin).toBe(window.location.origin)
-  expect(source.pathname).toMatch(/^\/airlines\/TK\./)
+  expect(new URL(logo.src).pathname).toBe('/airlines/TK.png')
+  expect(open).toHaveAccessibleName(/Turkish Airlines, TK381/)
   fireEvent.error(logo)
   expect(row.queryByAltText('')).toBeNull()
   expect(row.getByText('TK')).toBeInTheDocument()
