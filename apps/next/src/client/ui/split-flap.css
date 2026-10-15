@@ -1,0 +1,58 @@
+/* Split-flap row: one tile per character. The caller sets the --split-flap-* properties; the fallbacks are the stock tile. */
+.split-flap {
+  position: relative;
+  display: flex;
+}
+.split-flap-row {
+  display: flex;
+  gap: var(--split-flap-gap, var(--space-1));
+}
+.split-flap-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--split-flap-width, 36px);
+  height: var(--split-flap-height, 48px);
+  overflow: hidden;
+  border-radius: var(--split-flap-radius, var(--radius-xs));
+  background: var(--split-flap-fill);
+  color: var(--split-flap-ink);
+  /* On the digit's direct parent: perspective does not reach grandchildren. */
+  perspective: 240px;
+}
+/* The seam is a gap to the paper behind; the digit sits above it, so it never cuts a stroke. */
+.split-flap-cell::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% - 0.5px);
+  height: 1px;
+  background: var(--split-flap-seam);
+  /* Fades with the surface behind on hover, so the seam never shows as a line of the old colour. */
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.split-flap-digit {
+  position: relative;
+  z-index: 1;
+  font: 500 var(--split-flap-font-size, 32px) / var(--split-flap-height, 48px) var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  /* The digit fills the tile, so its centre line is the flap seam: the flip hinges there. */
+  transform-origin: 50% 50%;
+}
+.split-flap-digit[data-flip] {
+  animation: split-flap-flip var(--dur-fast) var(--ease-out) backwards;
+}
+@keyframes split-flap-flip {
+  from {
+    transform: rotateX(-90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .split-flap-cell::after {
+    transition: none;
+  }
+  .split-flap-digit[data-flip] {
+    animation: none;
+  }
+}

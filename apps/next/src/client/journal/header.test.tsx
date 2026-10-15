@@ -139,7 +139,7 @@ it('counts down to the next flights and opens one', async () => {
   )
   expect(screen.getByRole('heading', { level: 2, name: 'Next up' })).toBeInTheDocument()
   // The lead's split-flap count is settled on first render; the departure time is shown only when recorded.
-  const digits = [...container.querySelectorAll('.journal-next-flap-digit')]
+  const digits = [...container.querySelectorAll('.split-flap-digit')]
   expect(digits.map((node) => node.textContent)).toEqual(['1', '2'])
   expect(digits.some((node) => node.hasAttribute('data-flip'))).toBe(false)
   expect(screen.getByText('days')).toBeInTheDocument()
@@ -179,7 +179,7 @@ it('flips the count only when the day changes while open', () => {
   const { container } = render(
     <NextUp flights={[upcoming]} refs={refs} locale="en" onOpen={vi.fn()} />,
   )
-  const digits = () => [...container.querySelectorAll('.journal-next-flap-digit')]
+  const digits = () => [...container.querySelectorAll('.split-flap-digit')]
   expect(digits().map((node) => node.textContent)).toEqual(['1', '2'])
   act(() => vi.advanceTimersByTime(2 * 60_000))
   expect(digits().map((node) => node.textContent)).toEqual(['1', '1'])
@@ -209,11 +209,11 @@ it('flips the count in when it arrives after hydration', async () => {
   container.innerHTML = renderToString(ui)
   document.body.appendChild(container)
   // The server knows no today, so its markup has dates but no count.
-  expect(container.querySelector('.journal-next-flap')).toBeNull()
+  expect(container.querySelector('.split-flap-cell')).toBeNull()
   await act(async () => {
     render(ui, { container, hydrate: true })
   })
-  const digits = [...container.querySelectorAll('.journal-next-flap-digit')]
+  const digits = [...container.querySelectorAll('.split-flap-digit')]
   expect(digits.map((node) => node.textContent)).toEqual(['1', '2'])
   expect(digits.every((node) => node.hasAttribute('data-flip'))).toBe(true)
 })
@@ -225,7 +225,7 @@ it('says today instead of flaps', () => {
     <NextUp flights={[upcoming]} refs={refs} locale="ru" onOpen={vi.fn()} />,
   )
   expect(screen.getByText('Сегодня')).toBeInTheDocument()
-  expect(container.querySelector('.journal-next-flap')).toBeNull()
+  expect(container.querySelector('.split-flap-cell')).toBeNull()
 })
 
 it('renders nothing when no flight is upcoming', () => {

@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { formatCount, formatDateOnly, type Locale } from '../../lib/format'
 import { flightCode, type JournalFlight, type JournalRefs } from './model'
+import { SplitFlap } from '../ui/split-flap'
 import './next-up.css'
 
 // Board 22.1/22.6 "Next up": the nearest flight leads with its cities, codes, date, optional departure time and flight number,
@@ -81,28 +82,6 @@ function shortDate(locale: Locale, day: string, withYear: boolean): string {
     shortDates.set(key, format)
   }
   return format.format(new Date(`${day}T00:00:00Z`)).replaceAll(' ', ' ')
-}
-
-/** One split-flap digit. It flips in when `entering`, then only when its digit changes after mount (a day change seen while open). */
-function Flap({ digit, index, entering }: { digit: string; index: number; entering: boolean }) {
-  const [shown, setShown] = useState(digit)
-  const [flips, setFlips] = useState(entering ? 1 : 0)
-  if (shown !== digit) {
-    setShown(digit)
-    setFlips(flips + 1)
-  }
-  return (
-    <span className="journal-next-flap">
-      <span
-        key={flips}
-        className="journal-next-flap-digit"
-        data-flip={flips > 0 || undefined}
-        style={{ animationDelay: `${index * 40}ms` }}
-      >
-        {digit}
-      </span>
-    </span>
-  )
 }
 
 export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
@@ -218,16 +197,11 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
                 </span>
               ) : (
                 <span className="journal-next-count">
-                  <span className="journal-next-flaps">
-                    {[...String(first.days)].map((digit, index, all) => (
-                      <Flap
-                        key={all.length - index}
-                        digit={digit}
-                        index={index}
-                        entering={hydrating}
-                      />
-                    ))}
-                  </span>
+                  <SplitFlap
+                    value={String(first.days)}
+                    entering={hydrating}
+                    className="journal-next-flaps"
+                  />
                   <span className="journal-next-unit">
                     {formatCount(locale, first.days, dayWord)}
                   </span>

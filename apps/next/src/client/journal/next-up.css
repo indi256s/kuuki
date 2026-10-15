@@ -54,7 +54,7 @@
   place-items: center;
   min-inline-size: 96px;
   padding: var(--space-4) var(--space-5);
-  /* For the Today/Tomorrow word's flip; the flaps carry their own. */
+  /* For the Today/Tomorrow word's flip; the flaps carry their own (ui/split-flap.css). */
   perspective: 240px;
   border-radius: var(--radius-xs) var(--radius-md) var(--radius-md) var(--radius-xs);
   cursor: pointer;
@@ -125,42 +125,11 @@
   gap: var(--space-1);
 }
 .journal-next-flaps {
-  display: flex;
-  gap: var(--space-1);
-}
-.journal-next-flap {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 48px;
-  overflow: hidden;
-  border-radius: var(--radius-xs);
-  background: var(--pass-flap);
-  color: var(--pass-flap-foreground);
-  /* On the digit's direct parent: perspective does not reach grandchildren. */
-  perspective: 240px;
-}
-/* The seam is a gap to the paper behind; the digit sits above it, so it never cuts a stroke. */
-.journal-next-flap::after {
-  content: '';
-  position: absolute;
-  inset-inline: 0;
-  top: calc(50% - 0.5px);
-  height: 1px;
-  background: var(--journal-next-paper);
+  --split-flap-fill: var(--pass-flap);
+  --split-flap-ink: var(--pass-flap-foreground);
   /* Fades with the paper on hover, so the seam never shows as a line of the old colour. */
-  transition: background-color var(--dur-fast) var(--ease-out);
+  --split-flap-seam: var(--journal-next-paper);
 }
-.journal-next-flap-digit {
-  position: relative;
-  z-index: 1;
-  font: 500 32px/48px var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  /* The digit fills the tile, so its centre line is the flap seam: the flip hinges there. */
-  transform-origin: 50% 50%;
-}
-.journal-next-flap-digit[data-flip],
 .journal-next-word[data-flip] {
   animation: journal-next-flip var(--dur-fast) var(--ease-out) backwards;
 }
@@ -264,13 +233,10 @@
     min-inline-size: 76px;
     padding: var(--space-3);
   }
-  .journal-next-flap {
-    width: 30px;
-    height: 40px;
-  }
-  .journal-next-flap-digit {
-    font-size: 26px;
-    line-height: 40px;
+  .journal-next-flaps {
+    --split-flap-width: 30px;
+    --split-flap-height: 40px;
+    --split-flap-font-size: 26px;
   }
   .journal-next-unit {
     font-size: 12px;
@@ -287,11 +253,9 @@
 @media (prefers-reduced-motion: reduce) {
   .journal-next-main,
   .journal-next-stub,
-  .journal-next-item,
-  .journal-next-flap::after {
+  .journal-next-item {
     transition: none;
   }
-  .journal-next-flap-digit[data-flip],
   .journal-next-word[data-flip] {
     animation: none;
   }

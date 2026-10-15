@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'
 import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
+import { GateTile } from '../ui/gate-tile'
 import { categoryName } from '../leaderboard/categories'
 import { formatCount, formatNumber, type CountForms, type Locale } from '../../lib/format'
 
@@ -213,22 +214,16 @@ export function Ranks({
             const category = categoryName(rank.category, locale)
             return (
               <li key={rank.category}>
-                <Link
+                <GateTile
                   href={`/leaderboard?category=${encodeURIComponent(rank.category)}`}
-                  className="profile-gate"
-                  aria-label={
+                  label={category}
+                  value={`#${rank.rank}`}
+                  ariaLabel={
                     ru
                       ? `Место ${rank.rank} в категории «${category}»`
                       : `Rank ${rank.rank} in ${category}`
                   }
-                >
-                  <span className="profile-gate-label" aria-hidden="true">
-                    {category}
-                  </span>
-                  <span className="profile-gate-rank" aria-hidden="true">
-                    #{rank.rank}
-                  </span>
-                </Link>
+                />
               </li>
             )
           })}

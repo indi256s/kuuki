@@ -189,7 +189,6 @@
   transform: scale(0.96);
 }
 .profile-badge:focus-visible,
-.profile-gate:focus-visible,
 .profile-visibility:focus-visible,
 .profile-badges-more:focus-visible {
   outline: 2px solid var(--focus);
@@ -356,32 +355,6 @@
 }
 .profile-gates li {
   min-inline-size: 0;
-}
-.profile-gate {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  block-size: 104px;
-  padding: var(--space-4) 18px 14px;
-  border-radius: var(--radius-md);
-  background: var(--gate-surface);
-  box-shadow: var(--gate-edge);
-  text-decoration: none;
-}
-.profile-gate-label {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gate-label);
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
-.profile-gate-rank {
-  font: 600 36px/40px var(--font-mono);
-  letter-spacing: 0.02em;
-  color: var(--gate-rank);
 }
 
 .profile-join {
@@ -551,32 +524,6 @@
   }
   .profile-gates {
     gap: var(--space-2);
-  }
-  .profile-gate {
-    flex-direction: row;
-    align-items: center;
-    block-size: 52px;
-    padding-block: 0;
-    background: var(--surface-inset);
-    box-shadow: none;
-  }
-  .profile-gate-label {
-    color: var(--text-muted);
-  }
-  .profile-gate-rank {
-    font-size: 24px;
-    line-height: 30px;
-    color: var(--accent-text);
-  }
-  :root[data-theme='dark'] .profile-gate {
-    block-size: 64px;
-    background: var(--surface-floating);
-    box-shadow: var(--gate-edge);
-  }
-  :root[data-theme='dark'] .profile-gate-rank {
-    font-size: 30px;
-    line-height: 36px;
-    color: var(--accent);
   }
   .profile-ranks .profile-block-head {
     flex-direction: column;

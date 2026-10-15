@@ -1,0 +1,60 @@
+/* Gate sign: a category label over its rank. Light hangs ink signs; dark raises slabs. */
+.gate-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  block-size: 104px;
+  padding: var(--space-4) 18px 14px;
+  border-radius: var(--radius-md);
+  background: var(--gate-surface);
+  box-shadow: var(--gate-edge);
+  text-decoration: none;
+}
+.gate-tile:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.gate-tile-label {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gate-label);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.gate-tile-value {
+  font: 600 36px/40px var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--gate-rank);
+}
+
+@media (max-width: 700px) {
+  .gate-tile {
+    flex-direction: row;
+    align-items: center;
+    block-size: 52px;
+    padding-block: 0;
+    background: var(--surface-inset);
+    box-shadow: none;
+  }
+  .gate-tile-label {
+    color: var(--text-muted);
+  }
+  .gate-tile-value {
+    font-size: 24px;
+    line-height: 30px;
+    color: var(--accent-text);
+  }
+  :root[data-theme='dark'] .gate-tile {
+    block-size: 64px;
+    background: var(--surface-floating);
+    box-shadow: var(--gate-edge);
+  }
+  :root[data-theme='dark'] .gate-tile-value {
+    font-size: 30px;
+    line-height: 36px;
+    color: var(--accent);
+  }
+}
