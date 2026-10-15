@@ -451,22 +451,29 @@
   background: var(--scrim);
   touch-action: none;
   overscroll-behavior: contain;
-  animation: ui-fade-in var(--dur-fast) var(--ease-out);
+  opacity: 1;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 .ui-menu-shield[data-scrim][data-state='closed'] {
-  animation: ui-fade-out var(--dur-press) var(--ease-out) forwards;
+  opacity: 0;
+  transition-duration: var(--dur-press);
+}
+@starting-style {
+  .ui-menu-shield[data-scrim][data-state='open'] {
+    opacity: 0;
+  }
 }
 @media (min-width: 701px) {
   .ui-menu-shield[data-scrim='mobile'][data-state] {
     background: none;
     touch-action: auto;
     overscroll-behavior: auto;
-    animation: none;
+    transition: none;
   }
 }
 .ui-menu-shield[data-instant],
 .ui-menu[data-instant] {
-  animation: none !important;
+  transition: none !important;
 }
 .ui-menu {
   z-index: 72;
@@ -481,29 +488,20 @@
   color: var(--text);
   box-shadow: var(--shadow-floating), var(--ring-floating);
   transform-origin: var(--radix-dropdown-menu-content-transform-origin);
-}
-.ui-menu[data-state='open'] {
-  animation: ui-pop-in var(--dur-fast) var(--ease-out);
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .ui-menu[data-state='closed'] {
-  animation: ui-pop-out var(--dur-press) var(--ease-out) forwards;
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  transition-duration: var(--dur-press);
 }
-@keyframes ui-pop-in {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes ui-pop-out {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
+@starting-style {
+  .ui-menu[data-state='open'] {
     opacity: 0;
     transform: scale(0.97);
   }
@@ -1041,26 +1039,12 @@
   align-items: flex-start;
   padding: 14px 14px 14px 16px;
 }
-/* Arc toast: rises 16px from 96%, sinks 8px on close; a horizontal swipe throws it off its own side. */
+/* Entry, drag and settling share Motion values so a grab preserves the rendered pose. */
 .ui-toast {
   touch-action: pan-y;
-  transition: translate var(--dur-sheet) var(--ease-out);
 }
 .ui-toast[data-dragging] {
-  transition: none;
   cursor: grabbing;
-}
-.ui-toast[data-thrown] {
-  opacity: 0;
-  transition:
-    translate var(--dur-sheet) var(--ease-out),
-    opacity var(--dur-base) var(--ease-out);
-}
-.ui-toast[data-state='open'] {
-  animation: ui-toast-in var(--dur-sheet) var(--ease-out);
-}
-.ui-toast[data-state='closed']:not([data-thrown]) {
-  animation: ui-toast-out var(--dur-base) var(--ease-out) forwards;
 }
 .ui-toast-check {
   stroke-dasharray: 1;
@@ -1125,18 +1109,6 @@
 }
 .ui-toast-action {
   font-weight: 600;
-}
-@keyframes ui-toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.96);
-  }
-}
-@keyframes ui-toast-out {
-  to {
-    opacity: 0;
-    transform: translateY(8px) scale(0.97);
-  }
 }
 @media (min-width: 700px) {
   .ui-toast-region {
@@ -1211,17 +1183,17 @@
   .ui-swatch:active {
     transform: none;
   }
-  .ui-dialog[data-state='open'],
-  .ui-menu[data-state='open'] {
+  .ui-dialog[data-state='open'] {
     animation: ui-fade-in var(--dur-fast) linear;
   }
-  .ui-dialog[data-state='closed'],
-  .ui-menu[data-state='closed'] {
+  .ui-dialog[data-state='closed'] {
     animation: ui-fade-out var(--dur-fast) linear forwards;
   }
   .ui-sheet {
     transition: none;
   }
+  .ui-menu,
+  .ui-menu-shield[data-scrim],
   .ui-menu-tray-thumb {
     transition: none;
   }
@@ -1230,12 +1202,6 @@
     animation: ui-fade-in var(--dur-fast) linear;
   }
   .ui-sheet[data-side][data-state='closed'] {
-    animation: ui-fade-out var(--dur-fast) linear forwards;
-  }
-  .ui-toast[data-state='open'] {
-    animation: ui-fade-in var(--dur-fast) linear;
-  }
-  .ui-toast[data-state='closed']:not([data-thrown]) {
     animation: ui-fade-out var(--dur-fast) linear forwards;
   }
   .ui-toast-check {
@@ -1356,12 +1322,26 @@
   color: var(--text);
   box-shadow: var(--shadow-floating), var(--ring-floating);
   transform-origin: var(--radix-popover-content-transform-origin);
-}
-.ui-popover[data-state='open'] {
-  animation: ui-pop-in var(--dur-fast) var(--ease-out);
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .ui-popover[data-state='closed'] {
-  animation: ui-pop-out var(--dur-press) var(--ease-out) forwards;
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  transition-duration: var(--dur-press);
+}
+.ui-popover[data-instant] {
+  transition: none;
+}
+@starting-style {
+  .ui-popover[data-state='open'] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
 }
 .ui-skeleton {
   width: 100%;
@@ -1370,11 +1350,8 @@
   background: var(--skeleton);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-popover[data-state='open'] {
-    animation: ui-fade-in var(--dur-fast) linear;
-  }
-  .ui-popover[data-state='closed'] {
-    animation: ui-fade-out var(--dur-fast) linear forwards;
+  .ui-popover {
+    transition: none;
   }
 }
 

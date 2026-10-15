@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { LedgerItem } from './filter'
@@ -277,6 +277,8 @@ it('mobile card swipes and the accessible menu invoke the same actions, and the 
     fireEvent.pointerMove(card, { ...touch, clientX: 300 + direction * 20 })
     fireEvent.pointerMove(card, { ...touch, clientX: 300 + direction * 240 })
     fireEvent.pointerUp(card, { ...touch, clientX: 300 + direction * 240 })
+    // These are separate action shortcuts; let the row return before the opposite swipe.
+    await waitFor(() => expect(card.closest('.ui-swipe-row')).not.toHaveAttribute('data-reveal'))
   }
   expect(confirm).toHaveBeenCalledTimes(2)
   expect(remove).toHaveBeenCalledTimes(2)

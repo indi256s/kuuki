@@ -13,12 +13,13 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
+import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react'
 import { rubberBand } from './bottom-sheet'
 import './swipe-actions.css'
 
 // Adapted from Arc "swipe-actions" (uiarc.dev, MIT, see ARC-LICENSE.txt): the pointer swipe on a row that reveals leading and trailing actions,
 // the 10px axis lock, the full-swipe commit of the outermost action, the release projection and the one-open-row group.
-// Dropped: the `motion` springs (CSS transform transitions that snap under reduced motion), the row collapse on commit, the built-in
+// Dropped: the row collapse on commit, the built-in
 // "More actions" menu and haptics. Revealed actions are real 44px buttons that are hidden (visibility) until a swipe reveals them.
 //
 // A swipe is a shortcut, never the only path. Callers MUST also give every action here a menu path (a row menu, a context menu or the detail
@@ -65,8 +66,14 @@ const SLOP = 10
 const PROJECTION = 0.1
 /** Release speed in px/s that counts as a flick. */
 const FLICK = 900
-/** Time the revealed actions stay visible while the row settles home. */
-const HIDE_AFTER_MS = 260
+// Physical spring options retain release velocity; duration-based springs discard it.
+const SETTLE = {
+  type: 'spring' as const,
+  stiffness: 1000,
+  damping: 64,
+  restDelta: 0.5,
+  restSpeed: 10,
+}
 
 const GroupContext = createContext<Group | null>(null)
 function createGroup(): Group {
@@ -118,13 +125,12 @@ export function SwipeActionsRow({
   const id = useId()
   const group = useContext(GroupContext)
   const rowRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-  const x = useRef(0)
+  const x = useMotionValue(0)
+  const reduced = useReducedMotion()
   const width = useRef(0)
   const drag = useRef<Drag | null>(null)
   const armed = useRef(false)
   const swallowClick = useRef(false)
-  const hideTimer = useRef(0)
   const [open, setOpen] = useState(false)
 
   const actionsOf = (side: Side) => (side === 'leading' ? leading : trailing)
@@ -133,17 +139,27 @@ export function SwipeActionsRow({
   const canCommit = (side: Side) => fullSwipe && actionsOf(side).length > 0
   const threshold = (side: Side) => Math.max(openWidth(side) + 40, width.current * 0.5)
 
-  /** Moves the content by transform only. `animated` turns the CSS transition on for a settle and off while following the pointer. */
-  const place = (value: number, animated: boolean) => {
-    const content = contentRef.current,
-      row = rowRef.current
-    if (!content || !row) return
-    x.current = value
-    content.dataset.settling = String(animated)
-    content.style.transform = value ? `translate3d(${value}px,0,0)` : ''
-    const side = sideOf(value)
-    if (side) row.dataset.reveal = side
-  }
+  /** One value owns both pointer tracking and settling, so grabbing a spring keeps its current position. */
+  const place = useCallback(
+    (value: number, animated: boolean, velocity?: number) => {
+      const side = sideOf(value)
+      if (side && rowRef.current) rowRef.current.dataset.reveal = side
+      const arrived = () => {
+        if (value === 0 && rowRef.current) delete rowRef.current.dataset.reveal
+      }
+      if (!animated || reduced) {
+        x.jump(value)
+        arrived()
+      } else {
+        animate(x, value, {
+          ...SETTLE,
+          ...(velocity === undefined ? {} : { velocity }),
+          onComplete: arrived,
+        })
+      }
+    },
+    [reduced, x],
+  )
 
   const setArmed = (next: boolean, side: Side | null) => {
     armed.current = next
@@ -153,37 +169,35 @@ export function SwipeActionsRow({
     else delete row.dataset.armed
   }
 
-  const home = useCallback(() => {
-    setArmed(false, null)
-    place(0, true)
-    setOpen(false)
-    window.clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => {
-      if (x.current === 0 && rowRef.current) delete rowRef.current.dataset.reveal
-    }, HIDE_AFTER_MS)
-  }, [])
+  const home = useCallback(
+    (velocity?: number) => {
+      setArmed(false, null)
+      place(0, true, velocity)
+      setOpen(false)
+    },
+    [place],
+  )
 
   /** Moves the row to rest at `target` (0 or a signed open width). */
   const settle = useCallback(
-    (target: number) => {
+    (target: number, velocity?: number) => {
       if (target === 0) {
-        home()
+        home(velocity)
         group?.release(id)
         return
       }
       setArmed(false, null)
-      place(target, true)
-      window.clearTimeout(hideTimer.current)
+      place(target, true, velocity)
       setOpen(true)
       group?.claim(id, home)
     },
-    [group, id, home],
+    [group, id, home, place],
   )
 
-  const commit = (side: Side, index: number) => {
+  const commit = (side: Side, index: number, velocity?: number) => {
     const action = actionsOf(side)[index]
     if (!action) return
-    settle(0)
+    settle(0, velocity)
     action.onSelect()
   }
 
@@ -210,10 +224,10 @@ export function SwipeActionsRow({
   }
 
   const release = (velocity: number) => {
-    const value = x.current,
+    const value = x.get(),
       side = sideOf(value)
     if (!side || actionsOf(side).length === 0) {
-      settle(0)
+      settle(0, velocity)
       return
     }
     const direction = side === 'leading' ? 1 : -1
@@ -225,23 +239,22 @@ export function SwipeActionsRow({
       canCommit(side) && distance > reveal && outward > FLICK && projected > threshold(side)
     // A flick back toward home cancels an armed full swipe.
     if (canCommit(side) && ((armed.current && outward > -FLICK) || flung)) {
-      commit(side, outermost(side))
+      commit(side, outermost(side), velocity)
       return
     }
-    settle(projected > reveal / 2 ? direction * reveal : 0)
+    settle(projected > reveal / 2 ? direction * reveal : 0, velocity)
   }
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     swallowClick.current = false
     if (!leading.length && !trailing.length) return
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return
-    window.clearTimeout(hideTimer.current)
     width.current = rowRef.current?.offsetWidth || 0
     drag.current = {
       pointer: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      origin: x.current,
+      origin: x.get(),
       locked: null,
       samples: [[event.timeStamp, event.clientX]],
     }
@@ -260,6 +273,8 @@ export function SwipeActionsRow({
       }
       // Measure from here, so crossing the slop never jumps the row.
       current.locked = 'x'
+      x.stop()
+      current.origin = x.get()
       current.startX = event.clientX
       event.currentTarget.setPointerCapture?.(event.pointerId)
       if (rowRef.current) rowRef.current.dataset.dragging = ''
@@ -285,7 +300,7 @@ export function SwipeActionsRow({
       return
     }
     // A tap on an open row closes it instead of acting on what is underneath.
-    if (current.locked === null && Math.abs(x.current) > 0.5) {
+    if (current.locked === null && Math.abs(x.get()) > 0.5) {
       swallowClick.current = true
       settle(0)
     }
@@ -317,10 +332,10 @@ export function SwipeActionsRow({
 
   useEffect(
     () => () => {
-      window.clearTimeout(hideTimer.current)
+      x.stop()
       group?.release(id)
     },
-    [group, id],
+    [group, id, x],
   )
 
   return (
@@ -357,9 +372,9 @@ export function SwipeActionsRow({
           </div>
         )
       })}
-      <div
-        ref={contentRef}
+      <motion.div
         className="ui-swipe-content"
+        style={{ x }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
@@ -367,7 +382,7 @@ export function SwipeActionsRow({
         onClickCapture={onClickCapture}
       >
         {children}
-      </div>
+      </motion.div>
     </div>
   )
 }

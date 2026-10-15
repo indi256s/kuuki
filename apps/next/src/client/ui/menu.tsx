@@ -15,6 +15,7 @@ import {
   type RefObject,
 } from 'react'
 import { createPortal, flushSync } from 'react-dom'
+import { useTransitionPresence } from './use-transition-presence'
 import './ui.css'
 
 export type MenuProps = {
@@ -63,12 +64,7 @@ export function Menu({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   // A menu opened or closed from the keyboard skips its motion: people do that many times a day.
   const [keyboard, setKeyboard] = useState(false)
-  const [shieldUp, setShieldUp] = useState(false)
-  const shield = useRef<HTMLDivElement>(null)
   const isOpen = open ?? uncontrolledOpen
-  // A scrim fades out after the menu closes; a transparent shield leaves at once.
-  if (isOpen && !shieldUp) setShieldUp(true)
-  if (!isOpen && shieldUp && !scrim) setShieldUp(false)
   const setOpen = (next: boolean) => {
     if (open === undefined) setUncontrolledOpen(next)
     onOpenChange?.(next)
@@ -83,16 +79,19 @@ export function Menu({
     return () => window.removeEventListener('keydown', key, true)
   }, [isOpen])
   const still = keyboard || instant ? '' : undefined
+  const content = useRef<HTMLDivElement>(null)
+  const shield = useRef<HTMLDivElement>(null)
+  const contentPresent = useTransitionPresence(content, isOpen, still !== undefined)
+  const shieldPresent = useTransitionPresence(shield, isOpen, !scrim || still !== undefined)
   return (
     <DropdownMenu.Root modal={false} open={isOpen} onOpenChange={setOpen}>
-      {shieldUp ? (
+      {shieldPresent ? (
         <MenuShield
           node={shield}
           open={isOpen}
           scrim={scrim}
           instant={still}
           onDismiss={() => setOpen(false)}
-          onExited={() => setShieldUp(false)}
         />
       ) : null}
       <DropdownMenu.Trigger
@@ -102,8 +101,10 @@ export function Menu({
       >
         {trigger}
       </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
+      <DropdownMenu.Portal forceMount={contentPresent || undefined}>
         <DropdownMenu.Content
+          ref={content}
+          inert={!isOpen || undefined}
           className={className ? `ui-menu ${className}` : 'ui-menu'}
           data-instant={still}
           // Radix names the menu after its trigger; an explicit undefined would erase that.
@@ -139,33 +140,17 @@ function MenuShield({
   scrim,
   instant,
   onDismiss,
-  onExited,
 }: {
   node: RefObject<HTMLDivElement | null>
   open: boolean
   scrim?: 'always' | 'mobile'
   instant?: string
   onDismiss: () => void
-  onExited: () => void
 }) {
   const dismiss = useRef(onDismiss)
-  const exited = useRef(onExited)
   useEffect(() => {
     dismiss.current = onDismiss
-    exited.current = onExited
   })
-  // A closing scrim leaves when its fade ends, or at once when no fade runs (desktop `mobile` scrim, instant close).
-  useEffect(() => {
-    const shield = node.current
-    if (open || !shield) return
-    if (getComputedStyle(shield).animationName === 'none') {
-      exited.current()
-      return
-    }
-    const done = () => exited.current()
-    shield.addEventListener('animationend', done)
-    return () => shield.removeEventListener('animationend', done)
-  }, [node, open])
   useEffect(() => {
     const shield = node.current
     if (!shield) return

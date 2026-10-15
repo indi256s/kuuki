@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react'
 import { useLocale } from '../preferences'
 import type { Locale } from '../../lib/format'
 import './ui.css'
@@ -65,6 +66,7 @@ const DEFAULT_KIND_LABELS: KindLabels = {
 }
 /** Arc toast: a swipe past this distance (px) or speed (px/ms) throws the toast off in that direction. */
 const SWIPE = { distance: 80, velocity: 0.48 }
+const SETTLE = { type: 'spring', stiffness: 650, damping: 46, mass: 0.8 } as const
 
 /** Arc's success check, drawn in once the toast has risen. */
 function DrawnCheck() {
@@ -190,10 +192,69 @@ function ToastView({
   const startedAt = useRef(0)
   const timer = useRef<number | null>(null)
   const holds = useRef({ pointer: false, focus: false, hidden: false })
-  const drag = useRef<{ id: number; x: number; t: number; dx: number; v: number } | null>(null)
-  const [offset, setOffset] = useState(0)
+  const drag = useRef<{
+    id: number
+    x: number
+    origin: number
+    t: number
+    dx: number
+    v: number
+  } | null>(null)
+  const reduced = useReducedMotion()
+  const x = useMotionValue(0)
+  const y = useMotionValue(reduced ? 0 : 16)
+  const scale = useMotionValue(reduced ? 1 : 0.96)
+  const opacity = useMotionValue(0)
   const [dragging, setDragging] = useState(false)
-  const [thrown, setThrown] = useState(false)
+  const [thrown, setThrown] = useState<number | null>(null)
+  const releaseVelocity = useRef(0)
+
+  const settle = useCallback(
+    (velocity = 0) => {
+      if (reduced) {
+        x.set(0)
+        y.set(0)
+        scale.set(1)
+        opacity.set(1)
+        return
+      }
+      animate(x, 0, { ...SETTLE, velocity })
+      animate(y, 0, SETTLE)
+      animate(scale, 1, SETTLE)
+      animate(opacity, 1, { duration: 0.15 })
+    },
+    [reduced, x, y, scale, opacity],
+  )
+
+  useEffect(() => {
+    if (item.leaving) {
+      if (thrown !== null)
+        animate(x, thrown, {
+          ...SETTLE,
+          velocity: releaseVelocity.current,
+        })
+      if (!reduced && thrown === null) {
+        animate(y, 8, { duration: EXIT_MS / 1000 })
+        animate(scale, 0.97, { duration: EXIT_MS / 1000 })
+      }
+      animate(opacity, 0, { duration: reduced ? 0.15 : EXIT_MS / 1000 })
+    } else if (reduced) {
+      x.set(0)
+      y.set(0)
+      scale.set(1)
+      animate(opacity, 1, { duration: 0.15 })
+    } else {
+      animate(y, 0, { duration: 0.3, ease: [0.16, 1, 0.3, 1] })
+      animate(scale, 1, { duration: 0.3, ease: [0.16, 1, 0.3, 1] })
+      animate(opacity, 1, { duration: 0.3 })
+    }
+    return () => {
+      x.stop()
+      y.stop()
+      scale.stop()
+      opacity.stop()
+    }
+  }, [item.leaving, reduced, thrown, x, y, scale, opacity])
 
   const stop = useCallback(() => {
     if (timer.current !== null) {
@@ -215,7 +276,7 @@ function ToastView({
   }, [total, item.id, item.leaving, onDismiss])
   const sync = useCallback(() => {
     const h = holds.current
-    if (h.pointer || h.focus || h.hidden) stop()
+    if (h.pointer || h.focus || h.hidden || drag.current) stop()
     else start()
   }, [start, stop])
 
@@ -234,49 +295,73 @@ function ToastView({
   }, [sync, stop])
 
   return (
-    <div
+    <motion.div
       className="ui-toast"
       data-kind={item.kind}
       data-state={item.leaving ? 'closed' : 'open'}
       data-dragging={dragging || undefined}
-      data-thrown={thrown || undefined}
-      style={offset ? { translate: `${offset}px 0` } : undefined}
+      data-thrown={thrown !== null || undefined}
+      style={{ x, y, scale, opacity }}
       onPointerDown={(event) => {
         if (item.leaving || (event.target as Element).closest('button')) return
-        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+        if (reduced || drag.current || event.isPrimary === false) return
         if (event.pointerType === 'mouse' && event.button !== 0) return
-        drag.current = { id: event.pointerId, x: event.clientX, t: event.timeStamp, dx: 0, v: 0 }
+        // One set of motion values owns entry, drag and settling. A grab freezes the actual pose.
+        x.stop()
+        y.stop()
+        scale.stop()
+        opacity.stop()
+        drag.current = {
+          id: event.pointerId,
+          x: event.clientX,
+          origin: x.get(),
+          t: event.timeStamp,
+          dx: 0,
+          v: 0,
+        }
+        sync()
         event.currentTarget.setPointerCapture?.(event.pointerId)
         setDragging(true)
       }}
       onPointerMove={(event) => {
         const d = drag.current
         if (!d || d.id !== event.pointerId) return
+        if (reduced) return
         const dx = event.clientX - d.x
         const dt = event.timeStamp - d.t
         if (dt > 0) d.v = (dx - d.dx) / dt
         d.dx = dx
         d.t = event.timeStamp
-        setOffset(dx)
+        x.set(d.origin + dx)
       }}
       onPointerUp={(event) => {
         const d = drag.current
         if (!d || d.id !== event.pointerId) return
         drag.current = null
         setDragging(false)
-        if (Math.abs(d.dx) < SWIPE.distance && Math.abs(d.v) < SWIPE.velocity) {
-          setOffset(0) // springs home through the CSS transition
+        sync()
+        if (reduced || (Math.abs(d.dx) < SWIPE.distance && Math.abs(d.v) < SWIPE.velocity)) {
+          settle(d.v * 1000)
           return
         }
         const direction = Math.sign(d.dx || d.v)
-        setThrown(true)
-        setOffset(direction * (event.currentTarget.offsetWidth + 48))
+        releaseVelocity.current = d.v * 1000
+        setThrown(direction * (event.currentTarget.offsetWidth + 48))
         onDismiss(item.id)
       }}
-      onPointerCancel={() => {
+      onPointerCancel={(event) => {
+        if (drag.current?.id !== event.pointerId) return
         drag.current = null
         setDragging(false)
-        setOffset(0)
+        settle()
+        sync()
+      }}
+      onLostPointerCapture={(event) => {
+        if (drag.current?.id !== event.pointerId) return
+        drag.current = null
+        setDragging(false)
+        settle()
+        sync()
       }}
       onPointerEnter={() => {
         holds.current.pointer = true
@@ -340,6 +425,6 @@ function ToastView({
       >
         <X size={18} strokeWidth={2} aria-hidden="true" />
       </button>
-    </div>
+    </motion.div>
   )
 }

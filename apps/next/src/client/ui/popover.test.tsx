@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
-import { readFileSync } from 'node:fs'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRef, useCallback, useState, type ComponentProps } from 'react'
 import { expect, it, vi } from 'vitest'
@@ -185,76 +184,64 @@ it('honors caller autofocus cancellation on open and close', async () => {
   expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus()
 })
 
-// Vitest ignores imported CSS and jsdom does not run animations. Supply only
-// live animation names from the actual stylesheet; Radix still owns Presence.
-function bridgePopoverAnimations(reducedMotion: boolean) {
-  const css = readFileSync('src/client/ui/ui.css', 'utf8')
-  const reducedStart = css.indexOf('@media(prefers-reduced-motion:reduce){.ui-popover')
-  const rules = css.slice(0, reducedStart) + (reducedMotion ? css.slice(reducedStart) : '')
-  const names = new Map(
-    [...rules.matchAll(/\.ui-popover\[data-state=(open|closed)\]\{animation:([^ ;]+)/g)].map(
-      (match) => [match[1], match[2]],
-    ),
-  )
-  const getStyle = window.getComputedStyle.bind(window)
-  return vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) => {
-    const style = getStyle(element, pseudo)
-    if (!element.classList.contains('ui-popover')) return style
-    return new Proxy(style, {
-      get(target, key) {
-        if (key === 'animationName')
-          return names.get(element.getAttribute('data-state') ?? '') ?? 'none'
-        return Reflect.get(target, key)
-      },
-    })
-  })
-}
-
-it.each([
-  [false, 'Escape'],
-  [false, 'blank'],
-  [true, 'Escape'],
-  [true, 'blank'],
-] as const)(
-  'rapid reopening restores the new Chip opener (reduced motion %s, %s dismissal)',
-  async (reducedMotion, dismissal) => {
-    const animationStyles = bridgePopoverAnimations(reducedMotion)
-    try {
-      const user = userEvent.setup()
-      const onCloseAutoFocus = vi.fn()
-      render(<ChipExample onCloseAutoFocus={onCloseAutoFocus} />)
-      const trigger = screen.getByRole('button', { name: 'Edit filter' })
-      const chip = screen.getByRole('button', { name: 'Period' })
-      await user.click(trigger)
-      const firstDialog = screen.getByRole('dialog')
-      fireEvent.animationStart(firstDialog)
-      await user.keyboard('{Escape}')
-      // Do not finish an exit animation or wait for close autofocus before reopening.
-      const removedOnDismissal = !firstDialog.isConnected
-      await user.click(chip)
-      const reopenedDialog = screen.getByRole('dialog')
-      fireEvent.animationStart(reopenedDialog)
-      await user.click(screen.getByRole('button', { name: 'Year' }))
-      expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()
-      if (dismissal === 'Escape') await user.keyboard('{Escape}')
-      else await user.click(screen.getByText('Blank outside'))
-      // Let a regressed animated exit complete so the final focus assertion also
-      // observes the real delayed FocusScope callback, rather than just removal.
-      if (reopenedDialog.isConnected) {
-        fireEvent(
-          reopenedDialog,
-          Object.assign(new Event('animationend', { bubbles: true }), {
-            animationName: getComputedStyle(reopenedDialog).animationName,
-          }),
-        )
-      }
-      await waitFor(() => expect(onCloseAutoFocus).toHaveBeenCalled())
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-      await waitFor(() => expect(chip).toHaveFocus())
-      expect(removedOnDismissal).toBe(true)
-      expect(onCloseAutoFocus).toHaveBeenCalledTimes(2)
-    } finally {
-      animationStyles.mockRestore()
-    }
+it.each(['Escape', 'blank'] as const)(
+  'rapid keyboard reopening restores the new Chip opener (%s dismissal)',
+  async (dismissal) => {
+    const user = userEvent.setup()
+    const onCloseAutoFocus = vi.fn()
+    render(<ChipExample onCloseAutoFocus={onCloseAutoFocus} />)
+    const trigger = screen.getByRole('button', { name: 'Edit filter' })
+    const chip = screen.getByRole('button', { name: 'Period' })
+    await user.click(trigger)
+    const firstDialog = screen.getByRole('dialog')
+    await user.keyboard('{Escape}')
+    // Do not finish an exit animation or wait for close autofocus before reopening.
+    const removedOnDismissal = !firstDialog.isConnected
+    await user.click(chip)
+    await user.click(screen.getByRole('button', { name: 'Year' }))
+    expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()
+    if (dismissal === 'Escape') await user.keyboard('{Escape}')
+    else await user.click(screen.getByText('Blank outside'))
+    await waitFor(() => expect(onCloseAutoFocus).toHaveBeenCalled())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await waitFor(() => expect(chip).toHaveFocus())
+    expect(removedOnDismissal).toBe(true)
+    expect(onCloseAutoFocus).toHaveBeenCalledTimes(2)
   },
 )
+
+it('retains a pointer exit, cancels its removal on reopen, and releases focus after the next exit', async () => {
+  const user = userEvent.setup()
+  const onCloseAutoFocus = vi.fn()
+  render(<ChipExample onCloseAutoFocus={onCloseAutoFocus} />)
+  await user.click(screen.getByRole('button', { name: 'Edit filter' }))
+  const dialog = screen.getByRole('dialog')
+  let finishFirst!: () => void
+  let finishSecond!: () => void
+  const first = new Promise<void>((resolve) => {
+    finishFirst = resolve
+  })
+  const second = new Promise<void>((resolve) => {
+    finishSecond = resolve
+  })
+  const getAnimations = vi
+    .fn()
+    .mockReturnValueOnce([{ finished: first }])
+    .mockReturnValueOnce([{ finished: second }])
+  Object.defineProperty(dialog, 'getAnimations', { value: getAnimations })
+  await user.click(screen.getByText('Blank outside'))
+  expect(dialog).toBeInTheDocument()
+  expect(dialog).toHaveAttribute('data-state', 'closed')
+  expect(onCloseAutoFocus).not.toHaveBeenCalled()
+  const chip = screen.getByRole('button', { name: 'Period' })
+  await user.click(chip)
+  expect(screen.getByRole('dialog')).toBe(dialog)
+  await act(async () => finishFirst())
+  expect(dialog).toHaveAttribute('data-state', 'open')
+  await user.click(screen.getByText('Blank outside'))
+  expect(dialog).toBeInTheDocument()
+  await act(async () => finishSecond())
+  await waitFor(() => expect(dialog).not.toBeInTheDocument())
+  await waitFor(() => expect(chip).toHaveFocus())
+  expect(onCloseAutoFocus).toHaveBeenCalledTimes(1)
+})

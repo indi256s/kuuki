@@ -24,7 +24,7 @@ import {
 import './ledger.css'
 
 // Presentation adapted from Arc "sortable-data-table" (uiarc.dev, MIT, see ui/ARC-LICENSE.txt): the sortable header buttons, the aria-sort cue and the selectable rows.
-// Dropped: `motion`, the table's own sorting, selection state and count footer, the enclosing box and every hairline. Sorting, selection and the open row all come from props.
+// Dropped: the table's own sorting, selection state and count footer, the enclosing box and every hairline. Sorting, selection and the open row all come from props.
 // The markup is a real <table> with explicit ARIA roles; the CSS turns rows into grids (and cards on phones), which would otherwise strip the table semantics.
 
 const copy = {

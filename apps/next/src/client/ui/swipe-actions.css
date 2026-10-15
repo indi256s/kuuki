@@ -10,9 +10,6 @@
   background: var(--surface);
   touch-action: pan-y;
 }
-.ui-swipe-content[data-settling='true'] {
-  transition: transform var(--dur-base) var(--ease-out);
-}
 .ui-swipe-row[data-dragging] .ui-swipe-content {
   cursor: grabbing;
   user-select: none;
@@ -96,7 +93,6 @@
   white-space: nowrap;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-swipe-content[data-settling='true'],
   .ui-swipe-action {
     transition: none;
   }

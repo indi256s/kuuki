@@ -17,9 +17,11 @@ import { groundHref, type GroundView } from './url'
 export function dateRange(locale: Locale, start: string | null, end: string | null): string {
   const t = copy[locale]
   if (!start && !end) return t.dateUnknown
-  if (!start) return `${t.dateUnknown}, ${formatDateOnly(locale, end!, 'medium')}`
-  const from = formatDateOnly(locale, start, 'medium')
-  return end && end !== start ? `${from} – ${formatDateOnly(locale, end, 'medium')}` : from
+  // Keep each localized date whole; a range can still wrap around its separator.
+  const date = (value: string) => formatDateOnly(locale, value, 'medium').replaceAll(' ', '\u00a0')
+  if (!start) return `${t.dateUnknown}, ${date(end!)}`
+  const from = date(start)
+  return end && end !== start ? `${from} – ${date(end)}` : from
 }
 
 export function statusWord(locale: Locale, status: GroundJourneyDto['status']): string {
