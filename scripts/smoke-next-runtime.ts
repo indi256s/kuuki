@@ -332,7 +332,8 @@ async function seedLeaderboard(db: D1Database, full: boolean) {
     statements.push(
       db
         .prepare("INSERT INTO users(id,email,password_hash) VALUES(?,?,'RESET_REQUIRED')")
-        .bind(id, `${username}@example.test`),
+        // ranked@example.test is the RESET_REQUIRED account the auth journeys sign in as.
+        .bind(id, id === 'ranked-fixture' ? 'ranked@example.test' : `${username}@example.test`),
       db
         .prepare(
           'INSERT INTO profiles(id,username,display_name,is_public,show_on_leaderboards,passport_publication,onboarded_at,created_at) VALUES(?,?,?,?,1,?,?,?)',
