@@ -214,6 +214,7 @@ function Sheet({
     null,
   )
   const arrive = useRef<(() => void) | undefined>(undefined)
+  const dismissVelocity = useRef<number | undefined>(undefined)
   const suppressClick = useRef(false)
   const mounted = useRef(false)
   const removePointerListeners = useRef<(() => void) | undefined>(undefined)
@@ -317,6 +318,7 @@ function Sheet({
       }
     }
     if (isPresent) {
+      dismissVelocity.current = undefined
       if (reduced) {
         y.jump(offset(detentRef.current))
         animate(presence, 1, fade)
@@ -330,13 +332,14 @@ function Sheet({
     bodyGesture.current = null
     sheet.removeAttribute('data-dragging')
     removePointerListeners.current?.()
+    const velocity = dismissVelocity.current
+    dismissVelocity.current = undefined
     if (reduced) {
       animate(presence, 0, { ...fade, onComplete: safeToRemove })
       return
     }
-    // A flick has already started the exit with its own velocity; only the unmount waits for it.
-    if (aim.current === 'closed' && y.isAnimating()) arrive.current = safeToRemove
-    else go('closed', undefined, safeToRemove)
+    // Only accepted closure starts the exit; a swipe contributes its release velocity.
+    go('closed', velocity, safeToRemove)
   }, [go, height, isPresent, offset, presence, reduced, safeToRemove, y])
 
   // A viewport change (rotation, the mobile toolbar) moves every detent. Keep the sheet on its detent, retargeting any flight.
@@ -359,6 +362,7 @@ function Sheet({
   const beginDrag = useCallback(
     (clientY: number, time: number) => {
       // Catch the sheet where it is, even mid-flight; an overstretched sheet converts back to finger distance so nothing jumps.
+      dismissVelocity.current = undefined
       y.stop()
       const current = y.get()
       drag.current = {
@@ -419,15 +423,18 @@ function Sheet({
             : state.from === 0
               ? 'closed'
               : state.from - 1
-      // The exit starts in this frame with the finger's velocity; closing the dialog only waits for it to land.
       if (target === 'closed') {
-        if (!reduced) go('closed', velocity)
+        // A controlled owner may veto or defer dismissal. Recover the detent while it decides.
+        dismissVelocity.current = velocity
+        go(detentRef.current, 0, () => {
+          dismissVelocity.current = undefined
+        })
         onDismiss()
         return
       }
       rest(target, velocity)
     },
-    [go, offset, onDismiss, reduced, rest, stops, top, y],
+    [go, offset, onDismiss, rest, stops, top, y],
   )
 
   // Touch drags on the content move the sheet until it is fully open; once open, the content scrolls and a pull down from its top moves the sheet again.

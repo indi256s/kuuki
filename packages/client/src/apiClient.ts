@@ -40,6 +40,8 @@ interface RequestOptions {
   timeoutMs?: number
   headers?: Record<string, string>
   csrfToken?: string | null
+  cache?: RequestCache
+  rawResponse?: boolean
 }
 
 export type IdentityOperationToken = symbol
@@ -227,6 +229,7 @@ async function doFetch(
   signal?: AbortSignal,
   customHeaders?: Record<string, string>,
   csrfToken?: string | null,
+  cache?: RequestCache,
 ): Promise<Response> {
   const headers: Record<string, string> = { ...customHeaders }
   let payload: BodyInit | undefined
@@ -235,7 +238,7 @@ async function doFetch(
     payload = JSON.stringify(body)
   }
   if (!SAFE_METHODS.has(method)) Object.assign(headers, csrfHeaders(csrfToken))
-  return fetch(url, { method, headers, body: payload, credentials: 'include', signal })
+  return fetch(url, { method, headers, body: payload, credentials: 'include', signal, cache })
 }
 
 async function performRequest<T>(
@@ -246,15 +249,18 @@ async function performRequest<T>(
 ): Promise<T> {
   const requestGeneration = authGeneration
   const url = buildUrl(path, opts.params)
-  let res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken)
+  let res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken, opts.cache)
   assertCurrentIdentity(requestGeneration)
+
+  // Raw callers own HTTP status handling and body consumption (including 304).
+  if (opts.rawResponse) return res as T
 
   // Transparent 401 recovery — never for auth endpoints (their 401s are meaningful).
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     const refreshed = await attemptRefresh()
     assertCurrentIdentity(requestGeneration)
     if (refreshed === 'refreshed') {
-      res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken)
+      res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken, opts.cache)
       assertCurrentIdentity(requestGeneration)
       if (res.status === 401 && requestGeneration === authGeneration) onUnauthorized?.()
     } else if (refreshed === 'unauthorized') {
@@ -298,15 +304,13 @@ function request<T>(
     () => controller.abort(new DOMException('Request timed out', 'TimeoutError')),
     opts.timeoutMs ?? REQUEST_TIMEOUT_MS,
   )
-  const abort = () => controller.abort(opts.signal?.reason)
-  if (opts.signal?.aborted) abort()
-  else opts.signal?.addEventListener('abort', abort, { once: true })
+  const signal = opts.signal ? AbortSignal.any([controller.signal, opts.signal]) : controller.signal
   const run = () => {
     // A peer may release its lock before this tab receives the identity broadcast.
     assertCurrentIdentity(requestGeneration)
     if (readCookie(CSRF_COOKIE) !== csrfToken)
       throw new DOMException('Session changed', 'AbortError')
-    return performRequest<T>(method, path, body, { ...opts, csrfToken, signal: controller.signal })
+    return performRequest<T>(method, path, body, { ...opts, csrfToken, signal })
   }
   const pending = (async () => {
     try {
@@ -316,14 +320,9 @@ function request<T>(
         !navigator.locks
       )
         return await run()
-      return await navigator.locks.request(
-        LOCK_NAME,
-        { mode: 'shared', signal: controller.signal },
-        run,
-      )
+      return await navigator.locks.request(LOCK_NAME, { mode: 'shared', signal }, run)
     } finally {
       clearTimeout(timeout)
-      opts.signal?.removeEventListener('abort', abort)
     }
   })()
   inFlightRequests.add(pending)
@@ -334,9 +333,14 @@ function request<T>(
   return pending
 }
 
-export type CallOptions = Pick<RequestOptions, 'signal' | 'identityToken' | 'timeoutMs' | 'headers'>
+export type CallOptions = Pick<
+  RequestOptions,
+  'signal' | 'identityToken' | 'timeoutMs' | 'headers' | 'cache'
+>
 
 export const api = {
+  getResponse: (path: string, options?: CallOptions) =>
+    request<Response>('GET', path, undefined, { ...options, rawResponse: true }),
   get: <T>(path: string, params?: QueryParams, options?: CallOptions) =>
     request<T>('GET', path, undefined, { ...options, params }),
   post: <T>(path: string, body?: unknown, options?: CallOptions) =>

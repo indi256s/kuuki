@@ -5,7 +5,12 @@ import { flushSync } from 'react-dom'
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { announceShellNotice } from '../../shell-notices'
-import { api, advanceAuthGeneration, getAuthGeneration } from '@kuuki/client/apiClient'
+import {
+  api,
+  advanceAuthGeneration,
+  beginIdentityOperation,
+  getAuthGeneration,
+} from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../../activity'
 import { LIFECYCLE_CHANGED_EVENT } from '../../lifecycle-sync'
 import userEvent from '@testing-library/user-event'
@@ -379,6 +384,48 @@ it('data revalidation publishes a new scope, preserves 304/errors and detaches o
     document.dispatchEvent(new Event('visibilitychange'))
   })
   expect(fetcher).toHaveBeenCalledTimes(3)
+})
+it('drains a held Overview renewal before sign-in can replace the cookie identity', async () => {
+  const renewal = deferred<Response>()
+  const order: string[] = []
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+    if (input === '/api/me/overview/data') {
+      const response = await renewal.promise
+      // Browsers apply renewal cookies before exposing response headers to JavaScript.
+      order.push('renew A')
+      document.cookie = 'kuuki_csrf=account-a; path=/'
+      return response
+    }
+    order.push('sign in B')
+    document.cookie = 'kuuki_csrf=account-b; path=/'
+    return Response.json({ user: { id: 'B' } })
+  })
+  vi.stubGlobal('fetch', fetcher)
+  document.cookie = 'kuuki_csrf=account-a; path=/'
+  mount(undefined, true)
+  const pending = current.revalidate()
+  const operation = beginIdentityOperation()
+  const signin = operation.ready.then(() =>
+    api.post('/api/auth/signin', {}, { identityToken: operation.token }),
+  )
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(order).toEqual([])
+    await act(async () => {
+      renewal.resolve(new Response(null, { status: 304, headers: { ETag: payload.etag } }))
+      expect(await pending).toBe('unchanged')
+      await signin
+    })
+    expect(order).toEqual(['renew A', 'sign in B'])
+    expect(document.cookie).toContain('kuuki_csrf=account-b')
+    expect(current.payload).toBe(payload)
+  } finally {
+    renewal.resolve(new Response(null, { status: 304 }))
+    await pending
+    await signin
+    operation.release()
+    document.cookie = 'kuuki_csrf=; Max-Age=0; path=/'
+  }
 })
 it.each(['reset', 'generation', 'owner', 'timeout'])(
   'raw private data cannot publish after %s while its body is pending',
@@ -1034,7 +1081,7 @@ it.each([
   },
 )
 
-it('rejects a body admitted before failed real signout advances generation at the store publication boundary, then recovers', async () => {
+it('rejects generation change during JSON admission at the store publication boundary, then recovers', async () => {
   const create = dataStores.createOverviewDataStore
   let store!: dataStores.OverviewDataStore
   vi.spyOn(dataStores, 'createOverviewDataStore').mockImplementation((...args) => {
@@ -1043,7 +1090,11 @@ it('rejects a body admitted before failed real signout advances generation at th
   })
   const body = deferred<OverviewPayload>(),
     response = Response.json(payload)
-  response.json = () => body.promise
+  const reading = deferred<void>()
+  response.json = () => {
+    reading.resolve()
+    return body.promise
+  }
   const fetcher = vi
     .fn<typeof fetch>()
     .mockImplementation(async (input) =>
@@ -1059,22 +1110,19 @@ it('rejects a body admitted before failed real signout advances generation at th
   let admittedGeneration: number | undefined
   await act(async () => {
     const pending = current.revalidate()
-    for (let i = 0; i < 3; i++) await Promise.resolve()
-    const signout = withIdentityMutation(
-      (token) => api.post('/api/auth/signout', {}, { identityToken: token }),
-      '/signin',
-    ).catch((error) => error)
-    for (let i = 0; i < 4; i++) await Promise.resolve()
+    await reading.promise
     body.resolve({
       ...payload,
       rows: [],
       get etag() {
-        admittedGeneration ??= getAuthGeneration()
+        if (admittedGeneration === undefined) {
+          admittedGeneration = getAuthGeneration()
+          advanceAuthGeneration()
+        }
         return 'W/"ov3-owner-2-0"'
       },
     })
     const outcome = await pending
-    expect(await signout).toMatchObject({ message: 'signout failed' })
     expect(admittedGeneration).toBe(generation)
     expect(getAuthGeneration()).toBe(generation + 1)
     expect(outcome).toBe('failed')
@@ -1109,7 +1157,11 @@ it.each(['reset', 'owner', 'timeout'])(
     vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal)
     const body = deferred<OverviewPayload>(),
       response = Response.json(payload)
-    response.json = () => body.promise
+    const reading = deferred<void>()
+    response.json = () => {
+      reading.resolve()
+      return body.promise
+    }
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(response))
     const view = mount(undefined, true),
       originalStore = store
@@ -1119,7 +1171,7 @@ it.each(['reset', 'owner', 'timeout'])(
     let admitted = false
     await act(async () => {
       const pending = current.revalidate()
-      for (let i = 0; i < 3; i++) await Promise.resolve()
+      await reading.promise
       body.resolve({
         ...payload,
         rows: [],

@@ -5,7 +5,6 @@ import catalog from '@kuuki/data/countries.json'
 import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
 import { catalogRegionOf } from '../../../../../functions/api/_lib/regions'
 import type { CountryDetail, PassportData } from '../../server/passport'
-import type { StampKind } from '../signature/stamp'
 import {
   formatDateOnly,
   formatMonthYear,
@@ -112,18 +111,9 @@ export function formatVisitPoint(
 export type PassportEntry = {
   code: string
   status: 'pressed' | 'pending'
-  /** Air when flights support it; otherwise land/sea from ground visits; otherwise a claim. */
-  kind: StampKind
-  /** Logged + awaiting + manual ground visits + ground journeys; drives the rings. */
+  /** Logged + awaiting + manual ground visits + ground journeys; used for Records sorting. */
   visits: number
-  first: VisitPoint | null
   last: VisitPoint | null
-  firstYear: number | null
-  claimed: boolean
-  /** Manual land/sea visits only; ground journeys are counted apart in `journeys`. */
-  ground: number
-  /** Completed rail/road journeys that confirmed this country. */
-  journeys: number
   region: RegionId | null
   /** Evidence kinds behind the country, in the fixed filter order; a mixed country carries several. */
   sources: PassportSource[]
@@ -153,30 +143,19 @@ export function passportEntries(
   for (const { country_code, mode } of data.journeyModes ?? []) {
     modes.set(country_code, (modes.get(country_code) ?? new Set()).add(mode))
   }
-  const ground = new Map<string, { years: number[]; sea: number; other: number }>()
+  const years = new Map<string, number[]>()
   for (const visit of data.groundVisits) {
-    const item = ground.get(visit.country_code) ?? { years: [], sea: 0, other: 0 }
-    if (visit.visit_year) item.years.push(visit.visit_year)
-    if (visit.entry_method === 'sea') item.sea++
-    else item.other++
-    ground.set(visit.country_code, item)
+    if (!visit.visit_year) continue
+    const countryYears = years.get(visit.country_code) ?? []
+    countryYears.push(visit.visit_year)
+    years.set(visit.country_code, countryYears)
   }
   return data.countries.map((row) => {
-    const visits = ground.get(row.country_code)
     const flights = row.logged_visit_count + row.awaiting_visit_count
-    const kind: StampKind =
-      flights > 0
-        ? 'air'
-        : row.ground_journey_count > 0
-          ? 'land'
-          : row.ground_visit_count > 0
-            ? visits && visits.sea > 0 && visits.other === 0
-              ? 'sea'
-              : 'land'
-            : row.claimed === 1
-              ? 'claim'
-              : 'air'
-    const { first, last } = chronology([row.first_visit, row.last_visit], visits?.years ?? [])
+    const { last } = chronology(
+      [row.first_visit, row.last_visit],
+      years.get(row.country_code) ?? [],
+    )
     const journeyModes = modes.get(row.country_code)
     const sources: PassportSource[] = []
     if (flights > 0) sources.push('flights')
@@ -186,14 +165,8 @@ export function passportEntries(
     return {
       code: row.country_code,
       status: row.status,
-      kind,
       visits: flights + row.ground_visit_count + row.ground_journey_count,
-      first,
       last,
-      firstYear: first?.year ?? null,
-      claimed: row.claimed === 1,
-      ground: row.ground_visit_count,
-      journeys: row.ground_journey_count,
       region: row.region,
       sources,
     }
@@ -205,14 +178,8 @@ export function visitorEntries(codes: string[]): PassportEntry[] {
   return codes.map((code) => ({
     code,
     status: 'pressed',
-    kind: 'claim',
     visits: 0,
-    first: null,
     last: null,
-    firstYear: null,
-    claimed: false,
-    ground: 0,
-    journeys: 0,
     region: catalogRegionOf(code),
     sources: [],
   }))

@@ -154,7 +154,11 @@ function useController({
           release()
         }
         try {
-          const response = await fetch(input, { ...options, signal })
+          const response = await api.getResponse(String(input), {
+            headers: Object.fromEntries(new Headers(options?.headers)),
+            cache: options?.cache,
+            signal,
+          })
           if (!current()) throw new DOMException('Session changed', 'AbortError')
           if (response.status !== 200) {
             finish()

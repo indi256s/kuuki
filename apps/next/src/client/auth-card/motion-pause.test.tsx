@@ -90,6 +90,7 @@ it.each([false, true])(
     advance()
     expect(frames.size).toBe(0)
     await user.click(savedPause)
+    await waitFor(() => expect(frames.size).toBe(1))
     advance()
     expect(savedPause).toHaveAttribute('aria-pressed', 'false')
     expect(frames.size).toBe(1)

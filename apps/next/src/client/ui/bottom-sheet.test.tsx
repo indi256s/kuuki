@@ -266,3 +266,46 @@ it('keeps a titleAction beside the heading, outside its accessible name', () => 
   const heading = screen.getByRole('heading', { name: 'Rankings' })
   expect(heading).not.toContainElement(screen.getByRole('button', { name: 'Rankings options' }))
 })
+
+it.each([false, true])(
+  'keeps a vetoed swipe at its detent until controlled dismissal is accepted (reduced motion: %s)',
+  async (reduced) => {
+    settings.reduced = reduced
+    const requested = vi.fn()
+    const content = (open: boolean, onOpenChange: (open: boolean) => void = requested) => (
+      <Sheet open={open} initialDetent={1} onOpenChange={onOpenChange} title="Trip">
+        <input aria-label="Notes" />
+      </Sheet>
+    )
+    const { rerender } = render(content(true))
+    const sheet = screen.getByRole('dialog')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Notes' }), {
+      target: { value: 'Unsaved notes' },
+    })
+    await waitFor(() => expect(sheet.style.transform).toBe('none'), { timeout: 2000 })
+    const grabber = screen.getByRole('button', { name: 'Collapse sheet' })
+    pointer(grabber, 'pointerDown', 100, 1000)
+    pointer(grabber, 'pointerMove', 800, 1050)
+    await waitFor(() => expect(sheet.style.transform).not.toBe('none'))
+    pointer(grabber, 'pointerUp', 800, 1060)
+    expect(requested).toHaveBeenCalledWith(false)
+    await waitFor(() => expect(sheet.style.transform).toBe('none'), { timeout: 2000 })
+    // A guard can rerender its confirmation and then keep editing without changing open.
+    rerender(content(true))
+    expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveValue('Unsaved notes')
+    expect(sheet).toBeInTheDocument()
+    // A deferred confirmation can close and then be reversed before its exit finishes.
+    rerender(content(false))
+    rerender(content(true))
+    await waitFor(() => expect(sheet.style.transform).toBe('none'), { timeout: 2000 })
+    expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveValue('Unsaved notes')
+    // Once the owner accepts a fresh swipe immediately, the modal must leave.
+    rerender(content(true, (open) => rerender(content(open))))
+    pointer(grabber, 'pointerDown', 100, 2000)
+    pointer(grabber, 'pointerMove', 800, 2050)
+    pointer(grabber, 'pointerUp', 800, 2060)
+    await waitFor(() => expect(document.querySelector('.ui-bottom-sheet')).toBeNull(), {
+      timeout: 2000,
+    })
+  },
+)

@@ -172,7 +172,7 @@ describe('CountrySheet', () => {
     expect(within(list).queryByText(/by sea|Year not set/)).toBeNull()
   })
 
-  it('presses a journey-only country as land and counts journeys apart from manual visits', () => {
+  it('counts ground journeys for a pressed country without manual visits', () => {
     const [entry] = passportEntries({
       countries: [
         {
@@ -190,7 +190,7 @@ describe('CountrySheet', () => {
       ],
       groundVisits: [],
     })
-    expect(entry).toMatchObject({ kind: 'land', ground: 0, journeys: 2, visits: 2 })
+    expect(entry).toMatchObject({ status: 'pressed', visits: 2, sources: [] })
   })
 
   it('says ground journeys keep the stamp when a claim and manual visits are removed', () => {
