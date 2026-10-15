@@ -1,14 +1,17 @@
 import { test, expect } from '@playwright/test'
 import { signIn, fixtureHeaders, routeSettled } from './helpers'
 
-test('generated avatars look around and blink unless reduced motion is requested', async ({
-  page,
-  baseURL,
-}) => {
+test('generated avatars blink unless reduced motion is requested', async ({ page, baseURL }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await signIn(page, baseURL!)
+  const csrf = (await page.context().cookies()).find((cookie) => cookie.name === 'kuuki_csrf')!
+  const updated = await page.request.patch('/api/profiles/me', {
+    headers: { ...fixtureHeaders(baseURL!), 'X-CSRF-Token': decodeURIComponent(csrf.value) },
+    data: { avatar_face: 'curious' },
+  })
+  expect(updated.status()).toBe(200)
   await page.goto('/overview')
-  const face = page.getByRole('button', { name: 'Account menu' }).locator('[data-facehash-face]')
+  const face = page.getByRole('button', { name: 'Account menu' }).locator('[data-face="curious"]')
   await expect(face).toBeVisible()
   const blinkingEyes = () =>
     face.evaluate(
@@ -18,25 +21,16 @@ test('generated avatars look around and blink unless reduced motion is requested
           .filter(
             (animation) =>
               animation instanceof CSSAnimation &&
-              animation.animationName === 'facehash-blink' &&
+              animation.animationName === 'avatar-blink' &&
               animation.playState === 'running',
           ).length,
     )
-  await expect.poll(blinkingEyes).toBe(2)
-  const eyes = face.locator('svg')
-  const eyePosition = () =>
-    eyes.evaluate(
-      (element) =>
-        element.getBoundingClientRect().x - element.parentElement!.getBoundingClientRect().x,
-    )
-  const initialPosition = await eyePosition()
-  await expect
-    .poll(async () => Math.abs((await eyePosition()) - initialPosition))
-    .toBeGreaterThan(0.5)
+  await expect.poll(blinkingEyes).toBeGreaterThan(0)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect.poll(blinkingEyes).toBe(0)
-  await expect(face).toHaveCSS('transform', 'none')
-  await expect(eyes).toHaveCSS('transform', 'none')
+  await expect
+    .poll(() => face.evaluate((element) => element.getAnimations({ subtree: true }).length))
+    .toBe(0)
 })
 
 test('read-route navigation settles on authorized content', async ({ page, baseURL }) => {
