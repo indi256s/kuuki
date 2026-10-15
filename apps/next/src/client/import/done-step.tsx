@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { formatDateOnly, formatInstantDate, formatNumber, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Stamp } from '../signature/stamp'
+import { catalogCountry } from '../passport/model'
 import { S, count } from './copy'
 import type { AircraftApi } from './aircraft-panel'
 import { AircraftPanel } from './aircraft-panel'
@@ -19,7 +20,10 @@ export interface FailedRow {
 }
 export interface NewStamp {
   code: string
+  /** Localized country name. */
   name: string
+  /** Earliest year among the flights saved in this import that reach the country. */
+  firstYear?: number
   eventId: string
 }
 
@@ -95,7 +99,7 @@ export function DoneStep({
   const summary = [km, countries].filter(Boolean).join(` ${S.summaryAnd[locale]} `)
   // Long localized names (United Arab Emirates) use the short form the locale data offers (UAE / ОАЭ).
   const shortNames = new Intl.DisplayNames([locale], { type: 'region', style: 'short' })
-  const stampName = ({ code, name }: NewStamp) => {
+  const shortName = ({ code, name }: NewStamp) => {
     const short = name.length > 14 ? shortNames.of(code) : undefined
     return short && short.length < name.length ? short : name
   }
@@ -147,21 +151,33 @@ export function DoneStep({
 
       {shown.length > 0 ? (
         <div className="import-stamps">
-          <h3>{S.newCountries[locale]}</h3>
-          <div className="import-stamp-rail">
-            {shown.map((stamp) => (
-              <Stamp
-                key={stamp.code}
-                countryCode={stamp.code}
-                nativeName={stampName(stamp)}
-                kind="air"
-                theme={theme}
-                locale={locale}
-                pressEventId={stamp.eventId}
-                heroExitKey={hero ? stamp.code : undefined}
-              />
-            ))}
-          </div>
+          <h3>
+            {S.newCountries[locale]}
+            {stamps.length > shown.length ? (
+              <span className="import-stamps-count"> · {formatNumber(locale, stamps.length)}</span>
+            ) : null}
+          </h3>
+          <ul className="import-stamp-grid">
+            {shown.map((stamp) => {
+              const country = catalogCountry(stamp.code)
+              return (
+                <li key={stamp.code}>
+                  <Stamp
+                    countryCode={stamp.code}
+                    nativeName={country?.nativeName ?? shortName(stamp)}
+                    name={shortName(stamp)}
+                    firstYear={stamp.firstYear}
+                    color={country?.dominantColor ?? null}
+                    kind="air"
+                    theme={theme}
+                    locale={locale}
+                    pressEventId={stamp.eventId}
+                    heroExitKey={hero ? stamp.code : undefined}
+                  />
+                </li>
+              )
+            })}
+          </ul>
         </div>
       ) : null}
 

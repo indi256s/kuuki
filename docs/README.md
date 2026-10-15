@@ -39,6 +39,9 @@ navigation; [Overview](../DESIGN.md#overview-redesign) for dashboard changes;
 | Check current release procedure                         | [Deploy Kuuki](./skills/deploy-kuuki/SKILL.md)                                                            |
 | Check the merged redesign and deferred release evidence | [Redesign handoff](./plans/2026-10-04-redesign-2.0-implementation-handoff.md)                             |
 
+For local commits, worktree landing or staging recovery, read the
+[shared-checkout Git contract](agents/shared-checkout.md).
+
 ## Task and research lookup
 
 | Document                                                                        | Purpose                                                                   |

@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
-# shortcut: checks working-tree files; use an index snapshot if partial staging must be enforced.
+# Direct commits check working-tree files. scripts/agent-git.mjs runs this hook
+# in the exact candidate checkout when staging is partial or shared.
 if [ -n "$(git diff --cached --name-only --diff-filter=ACMR)" ]; then
   git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 pnpm exec oxfmt --check --no-error-on-unmatched-pattern --
 fi

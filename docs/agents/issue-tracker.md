@@ -34,6 +34,11 @@ Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 
 Plans live in `docs/plans/`; specs live in `.scratch/<feature>/`.
 
+For shared-checkout work, follow [Git finalization](shared-checkout.md). A handoff
+records the candidate SHA or patch/snapshot identity, owned paths, requested check
+waivers and any pending landing/recovery. A preserved working file alone does not
+prove that its staged meaning survived a branch update.
+
 - Resuming a plan: read its adjacent `*-handoff.md` first and locate the owning checkout with `git worktree list` before creating progress files.
 - At a session handoff, update `docs/plans/<plan>-handoff.md` with the owning branch/checkout, scope, accepted progress, latest checks and next action or blocker; include it in the handoff commit. Detailed `.superpowers/sdd/<plan>/progress.md` ledgers stay local. Reconcile the note with current Git and review evidence before acting.
 

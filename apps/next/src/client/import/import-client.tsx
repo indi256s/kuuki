@@ -52,6 +52,7 @@ import {
 } from './review-model'
 import { ReviewStep } from './review-step'
 import { newlyPressed, routeCountries, routeKm } from './flight-input'
+import { countryNamer } from '../passport/model'
 import { SourceStep } from './source-step'
 import { showSave, UnconfirmedSaves } from './unconfirmed-saves'
 import { useImportBatch, type BatchApi } from './use-import-batch'
@@ -773,10 +774,25 @@ export function ImportClient({
     if (result) onResult?.(result)
   }, [result, onResult])
 
-  const names = useMemo(() => new Intl.DisplayNames([locale], { type: 'region' }), [locale])
+  const countryName = useMemo(() => countryNamer(locale), [locale])
+  // The year each country was first reached among the flights saved here.
+  const firstYears = useMemo(() => {
+    const years = new Map<string, number>()
+    for (const fields of [
+      ...savedDrafts.map((draft) => draft.fields),
+      ...manualSaved.map((row) => row.values),
+    ]) {
+      const year = Number(fields.date.slice(0, 4))
+      if (!year) continue
+      for (const code of routeCountries(fields.origin, fields.destination))
+        years.set(code, Math.min(year, years.get(code) ?? year))
+    }
+    return years
+  }, [savedDrafts, manualSaved])
   const stamps: NewStamp[] = (newCodes ?? []).map((code) => ({
     code,
-    name: names.of(code) ?? code,
+    name: countryName(code),
+    firstYear: firstYears.get(code),
     eventId: `import:${batch.batch?.id ?? 'manual'}:${code}`,
   }))
   const totalKm = [

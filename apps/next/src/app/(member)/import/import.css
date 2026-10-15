@@ -807,7 +807,10 @@
   color: var(--danger-text);
 }
 
-/* Done */
+/* Done: a reading column, so the stamps and actions do not stretch across the review's width. */
+.import-done {
+  max-width: 640px;
+}
 .import-hero {
   display: flex;
   flex-wrap: wrap;
@@ -844,21 +847,24 @@
   display: grid;
   gap: var(--space-3);
 }
-/* A scroll-snap rail that bleeds to the page edge, so the last stamp peeks. */
-.import-stamp-rail {
-  display: flex;
-  gap: var(--space-3);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  margin-inline: calc(-1 * var(--page-gutter));
-  padding-inline: var(--page-gutter);
-  scroll-padding-inline: var(--page-gutter);
-  padding-block: 2px;
+/* Up to MAX_STAMPS stamps in a wrapping grid, Passport-sized; no scroll rail. */
+.import-stamps-count {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
-.import-stamp-rail > .stamp {
-  flex: none;
-  width: 150px;
-  scroll-snap-align: start;
+.import-stamp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-5) 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 560px) {
+  .import-stamp-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--space-4);
+  }
 }
 .import-final-actions {
   display: grid;
@@ -878,7 +884,6 @@
 }
 .import-aircraft {
   padding-top: var(--space-4);
-  border-top: 1px solid var(--hairline);
 }
 .import-search-suggestions {
   display: block;

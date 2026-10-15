@@ -2,6 +2,11 @@
 
 Personal flight journal on Cloudflare.
 
+The root checkout's local `main` is normally shared by several agent threads.
+Continue in the assigned checkout; dirty files and staging are expected. Before
+committing, landing a worktree or repairing staging, read
+[shared-checkout Git](docs/agents/shared-checkout.md).
+
 Use `gh-axi` for GitHub. Browser work follows the global `agent-browser` policy. When screenshots are needed, downscale before reading: `sips -Z 1200 <file>.png`.
 
 Resolve named skills from the catalog's advertised path. Before reporting one unavailable, search for its exact `SKILL.md` in the configured skill roots; resolve supporting files relative to that skill.
