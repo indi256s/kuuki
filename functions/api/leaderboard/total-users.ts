@@ -11,7 +11,7 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
          JOIN profiles p ON p.id = lc.user_id
          JOIN user_stats us ON us.user_id = lc.user_id
          ${derivedStateJoin('lc')}
-         WHERE lc.category = 'flights' AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
+         WHERE lc.category = 'flights' AND lc.period = 'all' AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
            AND ${PUBLISHED_DERIVED_STATE}`).first<{ total: number }>()
     return json({ total: row?.total ?? 0 })
   })

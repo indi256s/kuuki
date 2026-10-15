@@ -3,110 +3,207 @@
 // NOT per-write — it is a full rebuild of `leaderboard_cache`.
 //
 // Parity notes (do NOT "fix"):
-//   * Exactly 5 categories. The `cities` category ranks `airports_count`, not a city count —
-//     this is an intentional live quirk; preserve it.
-//   * Eligibility = total_flights >= 5 AND show_on_leaderboards = TRUE (1).
-//   * rank = ROW_NUMBER() OVER (ORDER BY <value> DESC, profiles.created_at ASC).
-//   * percentile = ROUND((1 - rank/total) * 100, 1). The live SQL casts to NUMERIC (float
-//     division). We add an explicit `total > 0` guard the live SQL lacks — see DEVIATION below.
+//   * The `cities` category ranks `airports_count`, not a city count — an intentional live quirk.
+//   * Sky eligibility keeps total_flights >= 5 AND show_on_leaderboards = 1.
+//   * percentile = ROUND((1 - rank/total) * 100, 1), float division, with a `total > 0` guard.
+//
+// Deliberate deviations (leaderboard redesign, 2026-10-15; spec .scratch/leaderboard-redesign/spec.md):
+//   * Eligibility also requires `is_public = 1`, as every public read does, so hidden members leave no rank gaps.
+//   * Competition ranking (1, 1, 3): equal values share a rank instead of ROW_NUMBER() by signup date.
+//     Percentile follows the shared rank.
+//   * Three ground categories (ADR 0005, ADR 0007 refinement): members who publish all countries
+//     (`passport_publication = 'all'`) with at least 3 completed rail and road journeys together.
+//   * Two periods: `all` and the current UTC calendar year (`YYYY`). Thresholds are judged on all-time
+//     totals in both periods, so nobody drops out of the year board for flying little this year.
+//   * A zero value is not ranked, except in all-time sky categories (parity: everyone eligible ranks there).
 
 import { nowIso } from '../_lib/time'
-import { derivedStateJoin, PUBLISHED_DERIVED_STATE } from '../_lib/leaderboard'
+import {
+  currentPeriod,
+  derivedStateJoin,
+  GROUND_CATEGORIES,
+  GROUND_MIN_JOURNEYS,
+  PUBLISHED_DERIVED_STATE,
+  SKY_CATEGORIES,
+  SKY_MIN_FLIGHTS,
+  type LeaderboardCategory,
+} from '../_lib/leaderboard'
 
-// Category → user_stats value column. Order is the live INSERT order. Note `cities` maps to
-// `airports_count` (the documented quirk) — there is NO `airports` category.
-const CATEGORIES = [
-  { category: 'flights', column: 'total_flights' },
-  { category: 'distance', column: 'total_distance_km' },
-  { category: 'countries', column: 'countries_count' },
-  { category: 'cities', column: 'airports_count' },
-  { category: 'airlines', column: 'airlines_count' },
-] as const
+// D1 caps a single statement at 100 bound variables; the chunk follows the per-row bind count.
+const BINDS_PER_ROW = 8
+const ROWS_PER_INSERT = Math.floor(100 / BINDS_PER_ROW)
 
-// D1 caps a single statement at 100 bound variables. Each INSERT row binds 7 vars, so the chunk
-// must stay at floor(100 / 7) = 14 rows (98 vars) to avoid "too many SQL variables" at runtime.
-const ROWS_PER_INSERT = 14
+type Values = Partial<Record<LeaderboardCategory, number>>
 
-interface EligibleRow {
+interface Member {
   user_id: string
-  created_at: string
+  created_at: string | null
   username: string | null
   display_name: string | null
   avatar_url: string | null
-  total_flights: number
-  total_distance_km: number
-  countries_count: number
-  airports_count: number
-  airlines_count: number
+}
+
+const PUBLISHED_PUBLIC = `p.is_public = 1 AND p.show_on_leaderboards = 1 AND ${PUBLISHED_DERIVED_STATE}`
+
+/**
+ * Completed journeys per member, optionally only those starting in `year` (an integer string, safe to inline).
+ * Deleted journeys have no status, so `completed` excludes them.
+ */
+const groundTotals = (year: string | null) => {
+  const started = (alias: string) =>
+    year ? `AND substr(${alias}.start_date, 1, 4) = '${year}'` : ''
+  return `
+  SELECT gj.user_id,
+         SUM(gj.mode = 'rail') AS rail,
+         SUM(gj.mode = 'road') AS road,
+         (SELECT COUNT(DISTINCT gjc.country_code) FROM ground_journey_countries gjc
+            JOIN ground_journeys c ON c.id = gjc.journey_id AND c.user_id = gjc.user_id
+           WHERE gjc.user_id = gj.user_id AND c.status = 'completed' ${started('c')}) AS ground_countries
+  FROM ground_journeys gj
+  WHERE gj.status = 'completed' ${started('gj')}
+  GROUP BY gj.user_id`
 }
 
 /**
- * Full rebuild of `leaderboard_cache`: DELETE all rows, then INSERT one row per eligible user
- * per category (5 categories). Faithful port of the live `refresh_leaderboards()`.
+ * Full rebuild of `leaderboard_cache`: DELETE all rows, then INSERT one row per ranked member per category
+ * per period, in one batch.
  */
-export async function refreshLeaderboards(db: D1Database): Promise<void> {
-  // Eligible set = user_stats JOIN profiles WHERE total_flights >= 5 AND show_on_leaderboards = 1.
-  // ORDER BY created_at ASC matches the live tie-break and lets us assign ROW_NUMBER() in TS.
-  const eligible = await db
-    .prepare(
+export async function refreshLeaderboards(db: D1Database, now = new Date()): Promise<void> {
+  const year = currentPeriod(now)
+  const reads = await db.batch([
+    // Sky members with their all-time values (user_stats).
+    db.prepare(
       `SELECT us.user_id, p.created_at, p.username, p.display_name, p.avatar_url,
-              us.total_flights, us.total_distance_km, us.countries_count,
-              us.airports_count, us.airlines_count
+              us.total_flights AS flights, us.total_distance_km AS distance, us.countries_count AS countries,
+              us.airports_count AS cities, us.airlines_count AS airlines
        FROM user_stats us
        JOIN profiles p ON p.id = us.user_id
        ${derivedStateJoin('us')}
-       WHERE us.total_flights >= 5 AND p.show_on_leaderboards = 1
-         AND ${PUBLISHED_DERIVED_STATE}
-       ORDER BY p.created_at ASC`,
-    )
-    .all<EligibleRow>()
+       WHERE us.total_flights >= ${SKY_MIN_FLIGHTS} AND ${PUBLISHED_PUBLIC}`,
+    ),
+    // Sky values for the year, from that year's flights. Countries here are airport countries only: the
+    // year has no legacy evidence or connection/transit rules, so it can differ from the all-time number.
+    db
+      .prepare(
+        `WITH year_flights AS (
+         SELECT * FROM flights
+         WHERE lifecycle_state IN ('awaiting', 'logged') AND substr(date, 1, 4) = ?
+       ),
+       endpoints AS (
+         SELECT user_id, origin AS iata FROM year_flights
+         UNION SELECT user_id, destination FROM year_flights
+       )
+       SELECT f.user_id, COUNT(*) AS flights, ROUND(COALESCE(SUM(f.distance_km), 0)) AS distance,
+              COUNT(DISTINCT f.airline_iata) AS airlines,
+              (SELECT COUNT(*) FROM endpoints e WHERE e.user_id = f.user_id) AS cities,
+              (SELECT COUNT(DISTINCT a.country_code) FROM endpoints e
+                 JOIN airports_reference a ON a.iata = e.iata WHERE e.user_id = f.user_id) AS countries
+       FROM year_flights f
+       GROUP BY f.user_id`,
+      )
+      .bind(year),
+    // Ground members: consent includes publishing all countries (ADR 0007 refinement).
+    db.prepare(
+      `SELECT p.id AS user_id, p.created_at, p.username, p.display_name, p.avatar_url,
+              g.rail, g.road, g.ground_countries
+       FROM (${groundTotals(null)}) g
+       JOIN profiles p ON p.id = g.user_id
+       ${derivedStateJoin('g')}
+       WHERE g.rail + g.road >= ${GROUND_MIN_JOURNEYS} AND p.passport_publication = 'all'
+         AND ${PUBLISHED_PUBLIC}`,
+    ),
+    db.prepare(groundTotals(year)),
+  ])
+  const [sky, skyYear, ground, groundYear] = reads.map(
+    (read) => read.results as unknown as Array<Member & Values>,
+  )
 
-  const rows = eligible.results
-  const totalUsers = rows.length
+  const members = new Map<string, Member>()
+  for (const row of [...sky, ...ground]) members.set(row.user_id, row)
+  const yearOf = (rows: Array<Member & Values>) => new Map(rows.map((row) => [row.user_id, row]))
+  const skyYearById = yearOf(skyYear)
+  const groundYearById = yearOf(groundYear)
 
-  // Always clear the cache, even when there are no eligible users (matches DELETE-then-INSERT).
-  const statements = [db.prepare('DELETE FROM leaderboard_cache WHERE 1 = 1')]
-
-  if (totalUsers > 0) {
-    const updatedAt = nowIso()
-
-    for (const { category, column } of CATEGORIES) {
-      // Stable sort by <value> DESC, then created_at ASC. `rows` is already created_at ASC, and
-      // Array.prototype.sort is stable, so equal values keep that ascending-created_at order —
-      // reproducing ROW_NUMBER() OVER (ORDER BY value DESC, created_at ASC).
-      const ranked = [...rows].sort((a, b) => Number(b[column]) - Number(a[column]))
-
-      const inserts = ranked.map((row, i) => {
-        const rank = i + 1
-        // percentile = ROUND((1 - rank/total) * 100, 1), float division, single rounding site.
-        // total > 0 is guaranteed here (totalUsers > 0); guard documented at DEVIATION below.
-        const percentile = Math.round((1 - rank / totalUsers) * 100 * 10) / 10
-        const metadata = JSON.stringify({
-          username: row.username,
-          display_name: row.display_name,
-          avatar_url: row.avatar_url,
-        })
-        return { userId: row.user_id, value: Number(row[column]), rank, percentile, metadata }
+  const boards: Array<{
+    category: LeaderboardCategory
+    period: string
+    values: Array<{ userId: string; value: number }>
+    keepZero: boolean
+  }> = []
+  const board = (
+    categories: readonly LeaderboardCategory[],
+    period: string,
+    rows: Array<Member & Values>,
+    lookup: (row: Member & Values) => Values | undefined,
+    keepZero: boolean,
+  ) => {
+    for (const category of categories) {
+      boards.push({
+        category,
+        period,
+        keepZero,
+        values: rows.map((row) => ({
+          userId: row.user_id,
+          value: Number(lookup(row)?.[category] ?? 0),
+        })),
       })
-
-      for (let i = 0; i < inserts.length; i += ROWS_PER_INSERT) {
-        const chunk = inserts.slice(i, i + ROWS_PER_INSERT)
-        const placeholders = chunk.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ')
-        const binds: (string | number)[] = []
-        for (const r of chunk) {
-          binds.push(r.userId, category, r.value, r.rank, r.percentile, r.metadata, updatedAt)
-        }
-        statements.push(
-          db
-            .prepare(
-              `INSERT INTO leaderboard_cache (user_id, category, value, rank, percentile, metadata, updated_at)
-               VALUES ${placeholders}`,
-            )
-            .bind(...binds),
-        )
-      }
     }
   }
+  board(SKY_CATEGORIES, 'all', sky, (row) => row, true)
+  board(SKY_CATEGORIES, year, sky, (row) => skyYearById.get(row.user_id), false)
+  board(GROUND_CATEGORIES, 'all', ground, (row) => row, false)
+  board(GROUND_CATEGORIES, year, ground, (row) => groundYearById.get(row.user_id), false)
 
+  const updatedAt = nowIso()
+  const metadata = new Map(
+    [...members.values()].map((m) => [
+      m.user_id,
+      JSON.stringify({
+        username: m.username,
+        display_name: m.display_name,
+        avatar_url: m.avatar_url,
+      }),
+    ]),
+  )
+  const signup = (id: string) => members.get(id)?.created_at ?? ''
+
+  const inserts: Array<(string | number)[]> = []
+  for (const { category, period, values, keepZero } of boards) {
+    // Ties keep signup order for a stable listing; they share the rank.
+    const ranked = values
+      .filter((entry) => keepZero || entry.value > 0)
+      .sort((a, b) => b.value - a.value || signup(a.userId).localeCompare(signup(b.userId)))
+    const total = ranked.length
+    let rank = 0
+    ranked.forEach((entry, i) => {
+      if (i === 0 || entry.value !== ranked[i - 1].value) rank = i + 1
+      const percentile = Math.round((1 - rank / total) * 100 * 10) / 10
+      inserts.push([
+        entry.userId,
+        category,
+        period,
+        entry.value,
+        rank,
+        percentile,
+        metadata.get(entry.userId) ?? '{}',
+        updatedAt,
+      ])
+    })
+  }
+
+  // Always clear the cache, even when nobody is eligible (DELETE-then-INSERT in one batch).
+  const statements = [db.prepare('DELETE FROM leaderboard_cache WHERE 1 = 1')]
+  const row = `(${Array(BINDS_PER_ROW).fill('?').join(', ')})`
+  for (let i = 0; i < inserts.length; i += ROWS_PER_INSERT) {
+    const chunk = inserts.slice(i, i + ROWS_PER_INSERT)
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO leaderboard_cache (user_id, category, period, value, rank, percentile, metadata, updated_at)
+           VALUES ${chunk.map(() => row).join(', ')}`,
+        )
+        .bind(...chunk.flat()),
+    )
+  }
   await db.batch(statements)
 }

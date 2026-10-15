@@ -2,6 +2,8 @@ import { expect, it } from 'vitest'
 import { createApiDatabase } from './harness'
 import { readPublicProfile } from '../api/_services/publicProfiles'
 import { readPublicLeaderboard } from '../api/_services/publicLeaderboard'
+import { onRequestGet as getMyRankings } from '../api/me/rankings'
+import { apiContext, testOrigin } from './harness'
 
 it('checks live visibility, participation and publication before exposing cached public data', async () => {
   const { db, dispose } = await createApiDatabase()
@@ -30,18 +32,37 @@ it('checks live visibility, participation and publication before exposing cached
         .bind('public-owner'),
       db
         .prepare(
-          "INSERT INTO leaderboard_cache(user_id,category,value,rank,metadata,updated_at) VALUES (?,'flights',5,1,?,?)",
+          "INSERT INTO leaderboard_cache(user_id,category,period,value,rank,metadata,updated_at) VALUES (?,'flights','all',5,1,?,?)",
         )
         .bind(
           'public-owner',
           JSON.stringify({ username: 'traveller' }),
           '2026-10-04T12:00:00.000Z',
         ),
+      // Year and ground rows exist beside the all-time sky row; profile readers must not pick them up.
+      db
+        .prepare(
+          "INSERT INTO leaderboard_cache(user_id,category,period,value,rank,metadata,updated_at) VALUES (?,'flights','2026',2,1,'{}',?),(?,'rail','all',3,1,'{}',?)",
+        )
+        .bind(
+          'public-owner',
+          '2026-10-04T12:00:00.000Z',
+          'public-owner',
+          '2026-10-04T12:00:00.000Z',
+        ),
     ])
-    expect(await readPublicProfile(db, 'TRAVELLER')).toMatchObject({
-      stats: { total_flights: 5 },
-      rankings: [{ rank: 1 }],
-    })
+    const shown = await readPublicProfile(db, 'TRAVELLER')
+    expect(shown).toMatchObject({ stats: { total_flights: 5 } })
+    expect(shown?.rankings).toEqual([expect.objectContaining({ category: 'flights', value: 5 })])
+    const own = async () => {
+      const context = apiContext(db, new Request(`${testOrigin}/api/me/rankings`))
+      const response = await getMyRankings({
+        ...context,
+        data: { user: { id: 'public-owner' } },
+      } as unknown as Parameters<typeof getMyRankings>[0])
+      return (await response.json()) as Array<{ category: string; value: number }>
+    }
+    expect(await own()).toEqual([expect.objectContaining({ category: 'flights', value: 5 })])
     expect(await readPublicLeaderboard(db, 'flights')).toMatchObject({
       total: 1,
       updatedAt: '2026-10-04T12:00:00.000Z',
@@ -69,6 +90,12 @@ it('checks live visibility, participation and publication before exposing cached
       .run()
     expect(await readPublicLeaderboard(db, 'flights')).toMatchObject({ entries: [], total: 0 })
     await db.prepare('UPDATE profiles SET is_public=0 WHERE id=?').bind('public-owner').run()
+    await db
+      .prepare('UPDATE profiles SET show_on_leaderboards=1 WHERE id=?')
+      .bind('public-owner')
+      .run()
+    // A private owner has no place: the rebuild drops private members, and the owner read agrees at once.
+    expect(await own()).toEqual([])
     const hidden = await readPublicProfile(db, 'traveller')
     expect(hidden).toMatchObject({
       profile: {

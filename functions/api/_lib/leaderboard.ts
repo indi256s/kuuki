@@ -1,19 +1,38 @@
 // leaderboard_cache row + DTO. metadata is JSON-as-TEXT ({username, display_name, avatar_url});
 // flatten it onto the entry (the frontend reads these flat). user_id is kept so the client can
-// highlight the current user; the cache only contains opted-in users (show_on_leaderboards = 1,
-// total_flights >= 5), so exposing it here is not a privacy leak. Used by both the leaderboard list
+// highlight the current user; the cache only contains public, opted-in users (see refreshLeaderboards
+// for the sky and ground gates), so exposing it here is not a privacy leak. Used by both the leaderboard list
 // and the per-user rankings (me/rankings + public profile rankings).
 
 export interface LeaderboardCacheRow {
   id: number
   user_id: string
   category: string
+  period: string
   value: number
   rank: number
   percentile: number | null
   metadata: string | null
   updated_at: string
 }
+
+export const SKY_CATEGORIES = ['flights', 'distance', 'countries', 'cities', 'airlines'] as const
+export const GROUND_CATEGORIES = ['rail', 'road', 'ground_countries'] as const
+export const LEADERBOARD_CATEGORIES = [...SKY_CATEGORIES, ...GROUND_CATEGORIES] as const
+export type LeaderboardCategory = (typeof LEADERBOARD_CATEGORIES)[number]
+export type GroundCategory = (typeof GROUND_CATEGORIES)[number]
+export const isGroundCategory = (category: string): category is GroundCategory =>
+  (GROUND_CATEGORIES as readonly string[]).includes(category)
+
+/** Sky participation needs this many flights; ground needs this many completed rail and road journeys together. */
+export const SKY_MIN_FLIGHTS = 5
+export const GROUND_MIN_JOURNEYS = 3
+
+/** The calendar-year period a rebuild at `now` computes besides `all` (UTC). */
+export const currentPeriod = (now: Date) => String(now.getUTCFullYear())
+
+/** `category IN (…sky…)` for readers that predate ground categories (profile gates keep sky only). */
+export const SKY_CATEGORY_SQL = `(${SKY_CATEGORIES.map((c) => `'${c}'`).join(', ')})`
 
 // Eligibility gate shared by every leaderboard read/rebuild: a user whose derived state is stale
 // (revision != published_revision) is hidden until repair publishes it. Users with no
