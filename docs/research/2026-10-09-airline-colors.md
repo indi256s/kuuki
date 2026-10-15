@@ -18,7 +18,13 @@ Wikimedia download throttling prevented complete source coverage. Cached artifac
 
 ## Journal logo assets
 
-118 matched logos are packaged as local PNGs (609,375 bytes total, at most 144×72), with catalog `logoUrl` paths and a separate [asset source ledger](2026-10-09-airline-logo-sources.csv). The first 113 came from cached artwork; five more came from the official sources below. Logo and color evidence are independent: Pegasus and Cebu Pacific have matched logos while their retained yellow colors still need tail evidence. Air China uses an alternate cached named wordmark. China Eastern restores the original PDF logo soft mask; Endeavor and United use their official navy header backings for white lettering. All remaining 203 catalog logos, including Air Canada, are absent and use a color or neutral fallback in Journal. Historical/successor branding remains identified in the source notes.
+287 matched logos are packaged as local PNGs (1,791,764 bytes total, at most 144×72), with catalog `logoUrl` paths and a separate [asset source ledger](2026-10-09-airline-logo-sources.csv). The first 113 came from cached artwork; five more came from the official sources below; a later pass added 169 from Wikipedia infobox logos (including Air Canada), matched by airline name and country. Logo and color evidence are independent: Pegasus and Cebu Pacific have matched logos while their retained yellow colors still need tail evidence. Air China uses an alternate cached named wordmark. China Eastern restores the original PDF logo soft mask; Endeavor and United use their official navy header backings for white lettering. The remaining 34 catalog logos are absent and use a color or neutral fallback in Journal. Historical/successor branding remains identified in the source notes.
+
+## Dark-theme derivatives (15 October 2026)
+
+The optional catalog `logoDarkUrl` points to a generated `.dark.png` alongside its original. These are local adaptations, not official reverse logos or new source evidence. `scripts/generate-airline-dark-logos.py` (Python 3 with Pillow, run from the repository root) lightens dark neutral/navy ink toward the dark `--text` value while preserving alpha and other pixels. It skips backed/outlined artwork and reviewed failures where gradients or compression produce uneven recoloring. Bright cyan, red, orange, yellow and green are retained; dark blue/purple brand ink is intentionally lightened. The source ledger continues to describe the unmodified originals.
+
+Selection metrics and before/after sheets are checkout-local under `.scratch/airline-logos/dark-selection.json` and `dark-sheet-*.png`. A root `data-theme='dark'` selects the derivative; a failed derivative falls back to the original. Missing or excluded derivatives keep the original behavior. Review regenerated sheets whenever the source assets or thresholds change.
 
 ## Six-carrier follow-up
 

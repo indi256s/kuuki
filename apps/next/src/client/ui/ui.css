@@ -1421,3 +1421,16 @@
   height: var(--space-3);
   border-radius: 50%;
 }
+.ui-airline-mark .ui-airline-logo-dark {
+  display: none;
+}
+:root[data-theme='dark'] .ui-airline-mark[data-dark-logo] {
+  background: transparent;
+  border-color: transparent;
+}
+:root[data-theme='dark'] .ui-airline-mark[data-dark-logo] .ui-airline-logo-default {
+  display: none;
+}
+:root[data-theme='dark'] .ui-airline-mark[data-dark-logo] .ui-airline-logo-dark {
+  display: block;
+}

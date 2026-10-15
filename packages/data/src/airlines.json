@@ -7,7 +7,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "STAR UP",
-    "logoUrl": null
+    "logoUrl": "/airlines/2I.png",
+    "logoDarkUrl": "/airlines/2I.dark.png"
   },
   {
     "iata": "2T",
@@ -17,7 +18,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "TURBOJET",
-    "logoUrl": null
+    "logoUrl": "/airlines/2T.png"
   },
   {
     "iata": "3K",
@@ -27,7 +28,8 @@
     "primaryColor": "#FE5815",
     "alliance": null,
     "callsign": "JETSTAR ASIA",
-    "logoUrl": "/airlines/3K.png"
+    "logoUrl": "/airlines/3K.png",
+    "logoDarkUrl": "/airlines/3K.dark.png"
   },
   {
     "iata": "3U",
@@ -37,7 +39,7 @@
     "primaryColor": "#E31837",
     "alliance": null,
     "callsign": "SI CHUAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/3U.png"
   },
   {
     "iata": "4M",
@@ -47,7 +49,8 @@
     "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "LANG",
-    "logoUrl": "/airlines/4M.png"
+    "logoUrl": "/airlines/4M.png",
+    "logoDarkUrl": "/airlines/4M.dark.png"
   },
   {
     "iata": "4N",
@@ -57,7 +60,7 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "AIR NORTH",
-    "logoUrl": null
+    "logoUrl": "/airlines/4N.png"
   },
   {
     "iata": "4Z",
@@ -67,7 +70,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "LINK",
-    "logoUrl": null
+    "logoUrl": "/airlines/4Z.png",
+    "logoDarkUrl": "/airlines/4Z.dark.png"
   },
   {
     "iata": "5F",
@@ -77,7 +81,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SKY LION",
-    "logoUrl": null
+    "logoUrl": "/airlines/5F.png"
   },
   {
     "iata": "5J",
@@ -107,7 +111,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "EMPRESS",
-    "logoUrl": null
+    "logoUrl": "/airlines/5T.png"
   },
   {
     "iata": "5U",
@@ -127,7 +131,8 @@
     "primaryColor": "#001B94",
     "alliance": null,
     "callsign": "IFLY",
-    "logoUrl": "/airlines/6E.png"
+    "logoUrl": "/airlines/6E.png",
+    "logoDarkUrl": "/airlines/6E.dark.png"
   },
   {
     "iata": "6H",
@@ -137,7 +142,8 @@
     "primaryColor": "#18549C",
     "alliance": null,
     "callsign": "ISRAIR",
-    "logoUrl": "/airlines/6H.png"
+    "logoUrl": "/airlines/6H.png",
+    "logoDarkUrl": "/airlines/6H.dark.png"
   },
   {
     "iata": "6R",
@@ -147,7 +153,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "ALROSA",
-    "logoUrl": null
+    "logoUrl": "/airlines/6R.png",
+    "logoDarkUrl": "/airlines/6R.dark.png"
   },
   {
     "iata": "6W",
@@ -157,7 +164,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SARAVIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/6W.png",
+    "logoDarkUrl": "/airlines/6W.dark.png"
   },
   {
     "iata": "7C",
@@ -167,7 +175,7 @@
     "primaryColor": "#FF6600",
     "alliance": null,
     "callsign": "JEJU AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/7C.png"
   },
   {
     "iata": "7G",
@@ -187,7 +195,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SILK WEST",
-    "logoUrl": null
+    "logoUrl": "/airlines/7L.png",
+    "logoDarkUrl": "/airlines/7L.dark.png"
   },
   {
     "iata": "7R",
@@ -217,7 +226,7 @@
     "primaryColor": "#FF6600",
     "alliance": null,
     "callsign": "LUCKY AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/8L.png"
   },
   {
     "iata": "8M",
@@ -227,7 +236,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "MYANMAR WING",
-    "logoUrl": null
+    "logoUrl": "/airlines/8M.png"
   },
   {
     "iata": "9E",
@@ -247,7 +256,8 @@
     "primaryColor": "#FFD700",
     "alliance": null,
     "callsign": "JET AIRWAYS",
-    "logoUrl": null
+    "logoUrl": "/airlines/9W.png",
+    "logoDarkUrl": "/airlines/9W.dark.png"
   },
   {
     "iata": "9Y",
@@ -267,7 +277,8 @@
     "primaryColor": "#083C6E",
     "alliance": "star_alliance",
     "callsign": "AEGEAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/A3.png",
+    "logoDarkUrl": "/airlines/A3.dark.png"
   },
   {
     "iata": "A4",
@@ -287,7 +298,8 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "AIRLINAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/A5.png",
+    "logoDarkUrl": "/airlines/A5.dark.png"
   },
   {
     "iata": "A9",
@@ -297,7 +309,7 @@
     "primaryColor": "#DA291C",
     "alliance": null,
     "callsign": "TAMAZI",
-    "logoUrl": null
+    "logoUrl": "/airlines/A9.png"
   },
   {
     "iata": "AA",
@@ -307,7 +319,8 @@
     "primaryColor": "#0D72AE",
     "alliance": "oneworld",
     "callsign": "AMERICAN",
-    "logoUrl": "/airlines/AA.png"
+    "logoUrl": "/airlines/AA.png",
+    "logoDarkUrl": "/airlines/AA.dark.png"
   },
   {
     "iata": "AC",
@@ -317,7 +330,8 @@
     "primaryColor": "#F01428",
     "alliance": "star_alliance",
     "callsign": "AIR CANADA",
-    "logoUrl": null
+    "logoUrl": "/airlines/AC.png",
+    "logoDarkUrl": "/airlines/AC.dark.png"
   },
   {
     "iata": "AD",
@@ -327,7 +341,8 @@
     "primaryColor": "#041E42",
     "alliance": null,
     "callsign": "AZUL",
-    "logoUrl": "/airlines/AD.png"
+    "logoUrl": "/airlines/AD.png",
+    "logoDarkUrl": "/airlines/AD.dark.png"
   },
   {
     "iata": "AE",
@@ -337,7 +352,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "MANDARIN",
-    "logoUrl": null
+    "logoUrl": "/airlines/AE.png",
+    "logoDarkUrl": "/airlines/AE.dark.png"
   },
   {
     "iata": "AF",
@@ -347,7 +363,8 @@
     "primaryColor": "#051039",
     "alliance": "skyteam",
     "callsign": "AIRFRANS",
-    "logoUrl": "/airlines/AF.png"
+    "logoUrl": "/airlines/AF.png",
+    "logoDarkUrl": "/airlines/AF.dark.png"
   },
   {
     "iata": "AH",
@@ -357,7 +374,7 @@
     "primaryColor": "#006633",
     "alliance": null,
     "callsign": "AIR ALGERIE",
-    "logoUrl": null
+    "logoUrl": "/airlines/AH.png"
   },
   {
     "iata": "AI",
@@ -377,7 +394,7 @@
     "primaryColor": "#FF0000",
     "alliance": null,
     "callsign": "ASIAN EXPRESS",
-    "logoUrl": null
+    "logoUrl": "/airlines/AK.png"
   },
   {
     "iata": "AM",
@@ -387,7 +404,8 @@
     "primaryColor": "#00205B",
     "alliance": "skyteam",
     "callsign": "AEROMEXICO",
-    "logoUrl": null
+    "logoUrl": "/airlines/AM.png",
+    "logoDarkUrl": "/airlines/AM.dark.png"
   },
   {
     "iata": "AP",
@@ -407,7 +425,7 @@
     "primaryColor": "#0072CE",
     "alliance": "skyteam",
     "callsign": "ARGENTINA",
-    "logoUrl": null
+    "logoUrl": "/airlines/AR.png"
   },
   {
     "iata": "AS",
@@ -417,7 +435,7 @@
     "primaryColor": "#00205B",
     "alliance": "oneworld",
     "callsign": "ALASKA",
-    "logoUrl": null
+    "logoUrl": "/airlines/AS.png"
   },
   {
     "iata": "AT",
@@ -437,7 +455,7 @@
     "primaryColor": "#E4002B",
     "alliance": "star_alliance",
     "callsign": "AVIANCA",
-    "logoUrl": null
+    "logoUrl": "/airlines/AV.png"
   },
   {
     "iata": "AW",
@@ -457,7 +475,8 @@
     "primaryColor": "#0B1560",
     "alliance": "oneworld",
     "callsign": "FINNAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/AY.png",
+    "logoDarkUrl": "/airlines/AY.dark.png"
   },
   {
     "iata": "AZA",
@@ -477,7 +496,7 @@
     "primaryColor": "#00A651",
     "alliance": null,
     "callsign": "BELARUS AVIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/B2.png"
   },
   {
     "iata": "B6",
@@ -487,7 +506,8 @@
     "primaryColor": "#003876",
     "alliance": null,
     "callsign": "JETBLUE",
-    "logoUrl": "/airlines/B6.png"
+    "logoUrl": "/airlines/B6.png",
+    "logoDarkUrl": "/airlines/B6.dark.png"
   },
   {
     "iata": "BA",
@@ -517,7 +537,8 @@
     "primaryColor": "#FFD700",
     "alliance": null,
     "callsign": "SKYMARK",
-    "logoUrl": null
+    "logoUrl": "/airlines/BC.png",
+    "logoDarkUrl": "/airlines/BC.dark.png"
   },
   {
     "iata": "BF",
@@ -557,7 +578,8 @@
     "primaryColor": "#0054A5",
     "alliance": null,
     "callsign": "NOUVELAIR",
-    "logoUrl": "/airlines/BJ.png"
+    "logoUrl": "/airlines/BJ.png",
+    "logoDarkUrl": "/airlines/BJ.dark.png"
   },
   {
     "iata": "BL",
@@ -567,7 +589,8 @@
     "primaryColor": "#FE5815",
     "alliance": null,
     "callsign": "PACIFIC AIRLINES",
-    "logoUrl": "/airlines/BL.png"
+    "logoUrl": "/airlines/BL.png",
+    "logoDarkUrl": "/airlines/BL.dark.png"
   },
   {
     "iata": "BP",
@@ -577,7 +600,8 @@
     "primaryColor": "#10ADE4",
     "alliance": null,
     "callsign": "BOTSWANA",
-    "logoUrl": null
+    "logoUrl": "/airlines/BP.png",
+    "logoDarkUrl": "/airlines/BP.dark.png"
   },
   {
     "iata": "BR",
@@ -587,7 +611,7 @@
     "primaryColor": "#00A64F",
     "alliance": "star_alliance",
     "callsign": "EVA",
-    "logoUrl": null
+    "logoUrl": "/airlines/BR.png"
   },
   {
     "iata": "BS",
@@ -597,7 +621,7 @@
     "primaryColor": "#1F4696",
     "alliance": null,
     "callsign": "BANGLA STAR",
-    "logoUrl": null
+    "logoUrl": "/airlines/BS.png"
   },
   {
     "iata": "BT",
@@ -607,7 +631,8 @@
     "primaryColor": "#152649",
     "alliance": null,
     "callsign": "AIRBALTIC",
-    "logoUrl": "/airlines/BT.png"
+    "logoUrl": "/airlines/BT.png",
+    "logoDarkUrl": "/airlines/BT.dark.png"
   },
   {
     "iata": "BX",
@@ -617,7 +642,8 @@
     "primaryColor": "#1E409A",
     "alliance": null,
     "callsign": "AIR BUSAN",
-    "logoUrl": "/airlines/BX.png"
+    "logoUrl": "/airlines/BX.png",
+    "logoDarkUrl": "/airlines/BX.dark.png"
   },
   {
     "iata": "BY",
@@ -637,7 +663,7 @@
     "primaryColor": "#082838",
     "alliance": null,
     "callsign": "TRADEAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/C3.png"
   },
   {
     "iata": "CA",
@@ -647,7 +673,8 @@
     "primaryColor": "#E60012",
     "alliance": "star_alliance",
     "callsign": "AIR CHINA",
-    "logoUrl": "/airlines/CA.png"
+    "logoUrl": "/airlines/CA.png",
+    "logoDarkUrl": "/airlines/CA.dark.png"
   },
   {
     "iata": "CI",
@@ -657,7 +684,8 @@
     "primaryColor": "#CA5767",
     "alliance": "skyteam",
     "callsign": "DYNASTY",
-    "logoUrl": null
+    "logoUrl": "/airlines/CI.png",
+    "logoDarkUrl": "/airlines/CI.dark.png"
   },
   {
     "iata": "CM",
@@ -667,7 +695,8 @@
     "primaryColor": "#0060A9",
     "alliance": "star_alliance",
     "callsign": "COPA",
-    "logoUrl": null
+    "logoUrl": "/airlines/CM.png",
+    "logoDarkUrl": "/airlines/CM.dark.png"
   },
   {
     "iata": "CX",
@@ -677,7 +706,7 @@
     "primaryColor": "#006B6E",
     "alliance": "oneworld",
     "callsign": "CATHAY",
-    "logoUrl": null
+    "logoUrl": "/airlines/CX.png"
   },
   {
     "iata": "CZ",
@@ -687,7 +716,8 @@
     "primaryColor": "#0093D0",
     "alliance": "skyteam",
     "callsign": "CHINA SOUTHERN",
-    "logoUrl": null
+    "logoUrl": "/airlines/CZ.png",
+    "logoDarkUrl": "/airlines/CZ.dark.png"
   },
   {
     "iata": "D2",
@@ -717,7 +747,7 @@
     "primaryColor": "#FF0000",
     "alliance": null,
     "callsign": "XANADU",
-    "logoUrl": null
+    "logoUrl": "/airlines/D7.png"
   },
   {
     "iata": "D9",
@@ -727,7 +757,7 @@
     "primaryColor": "#254997",
     "alliance": null,
     "callsign": "DONAVIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/D9.png"
   },
   {
     "iata": "DD",
@@ -737,7 +767,8 @@
     "primaryColor": "#FFCC08",
     "alliance": null,
     "callsign": "NOK AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/DD.png",
+    "logoDarkUrl": "/airlines/DD.dark.png"
   },
   {
     "iata": "DK",
@@ -747,7 +778,7 @@
     "primaryColor": "#FE8C00",
     "alliance": null,
     "callsign": "VIKING",
-    "logoUrl": null
+    "logoUrl": "/airlines/DK.png"
   },
   {
     "iata": "DL",
@@ -757,7 +788,8 @@
     "primaryColor": "#003D79",
     "alliance": "skyteam",
     "callsign": "DELTA",
-    "logoUrl": "/airlines/DL.png"
+    "logoUrl": "/airlines/DL.png",
+    "logoDarkUrl": "/airlines/DL.dark.png"
   },
   {
     "iata": "DM",
@@ -777,7 +809,7 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "ARABIA JORDAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/DO.png"
   },
   {
     "iata": "DP",
@@ -787,7 +819,7 @@
     "primaryColor": "#FF0000",
     "alliance": null,
     "callsign": "POBEDA",
-    "logoUrl": null
+    "logoUrl": "/airlines/DP.png"
   },
   {
     "iata": "DR",
@@ -797,7 +829,7 @@
     "primaryColor": "#E82828",
     "alliance": null,
     "callsign": "RUILI",
-    "logoUrl": null
+    "logoUrl": "/airlines/DR.png"
   },
   {
     "iata": "DY",
@@ -807,7 +839,7 @@
     "primaryColor": "#E6222E",
     "alliance": null,
     "callsign": "NOR SHUTTLE",
-    "logoUrl": null
+    "logoUrl": "/airlines/DY.png"
   },
   {
     "iata": "DZ",
@@ -817,7 +849,8 @@
     "primaryColor": "#08B8F8",
     "alliance": null,
     "callsign": "DONGHAI",
-    "logoUrl": null
+    "logoUrl": "/airlines/DZ.png",
+    "logoDarkUrl": "/airlines/DZ.dark.png"
   },
   {
     "iata": "E5",
@@ -827,7 +860,8 @@
     "primaryColor": "#1E3264",
     "alliance": null,
     "callsign": "DOLOMOTI",
-    "logoUrl": null
+    "logoUrl": "/airlines/E5.png",
+    "logoDarkUrl": "/airlines/E5.dark.png"
   },
   {
     "iata": "E7",
@@ -847,7 +881,7 @@
     "primaryColor": "#0868A8",
     "alliance": null,
     "callsign": "ELLINAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/E8.png"
   },
   {
     "iata": "E9",
@@ -907,7 +941,8 @@
     "primaryColor": "#1E3264",
     "alliance": "star_alliance",
     "callsign": "DOLOMOTI",
-    "logoUrl": null
+    "logoUrl": "/airlines/EN.png",
+    "logoDarkUrl": "/airlines/EN.dark.png"
   },
   {
     "iata": "ER",
@@ -917,7 +952,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SERENE AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/ER.png"
   },
   {
     "iata": "ET",
@@ -937,7 +972,7 @@
     "primaryColor": "#D82828",
     "alliance": null,
     "callsign": "UNITED EAGLE",
-    "logoUrl": null
+    "logoUrl": "/airlines/EU.png"
   },
   {
     "iata": "EW",
@@ -947,7 +982,7 @@
     "primaryColor": "#A4005E",
     "alliance": null,
     "callsign": "EUROWINGS",
-    "logoUrl": null
+    "logoUrl": "/airlines/EW.png"
   },
   {
     "iata": "EY",
@@ -967,7 +1002,7 @@
     "primaryColor": "#00A651",
     "alliance": null,
     "callsign": "FLYING DEAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/F3.png"
   },
   {
     "iata": "F8",
@@ -977,7 +1012,8 @@
     "primaryColor": "#00A651",
     "alliance": null,
     "callsign": "FLAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/F8.png",
+    "logoDarkUrl": "/airlines/F8.dark.png"
   },
   {
     "iata": "F9",
@@ -987,7 +1023,7 @@
     "primaryColor": "#00AA00",
     "alliance": null,
     "callsign": "FRONTIER FLIGHT",
-    "logoUrl": null
+    "logoUrl": "/airlines/F9.png"
   },
   {
     "iata": "FA",
@@ -1007,7 +1043,7 @@
     "primaryColor": "#AC1F24",
     "alliance": null,
     "callsign": "FLYING BULGARIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/FB.png"
   },
   {
     "iata": "FD",
@@ -1027,7 +1063,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "FREEBIRD",
-    "logoUrl": null
+    "logoUrl": "/airlines/FH.png"
   },
   {
     "iata": "FI",
@@ -1037,7 +1073,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "ICEAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/FI.png",
+    "logoDarkUrl": "/airlines/FI.dark.png"
   },
   {
     "iata": "FJ",
@@ -1047,7 +1084,7 @@
     "primaryColor": "#003E7E",
     "alliance": "oneworld",
     "callsign": "PACIFIC",
-    "logoUrl": null
+    "logoUrl": "/airlines/FJ.png"
   },
   {
     "iata": "FM",
@@ -1057,7 +1094,7 @@
     "primaryColor": "#DE0038",
     "alliance": "skyteam",
     "callsign": "SHANGHAI AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/FM.png"
   },
   {
     "iata": "FN",
@@ -1077,7 +1114,8 @@
     "primaryColor": "#F8B808",
     "alliance": null,
     "callsign": "THOMAS",
-    "logoUrl": null
+    "logoUrl": "/airlines/FQ.png",
+    "logoDarkUrl": "/airlines/FQ.dark.png"
   },
   {
     "iata": "FR",
@@ -1087,7 +1125,8 @@
     "primaryColor": "#073590",
     "alliance": null,
     "callsign": "RYANAIR",
-    "logoUrl": "/airlines/FR.png"
+    "logoUrl": "/airlines/FR.png",
+    "logoDarkUrl": "/airlines/FR.dark.png"
   },
   {
     "iata": "FT",
@@ -1097,7 +1136,7 @@
     "primaryColor": "#E4002B",
     "alliance": null,
     "callsign": "SALAM AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/FT.png"
   },
   {
     "iata": "FV",
@@ -1127,7 +1166,8 @@
     "primaryColor": "#01579B",
     "alliance": null,
     "callsign": "ALLEGIANT",
-    "logoUrl": "/airlines/G4.png"
+    "logoUrl": "/airlines/G4.png",
+    "logoDarkUrl": "/airlines/G4.dark.png"
   },
   {
     "iata": "G7",
@@ -1137,7 +1177,8 @@
     "primaryColor": "#003E7E",
     "alliance": null,
     "callsign": "ALLEGIANT",
-    "logoUrl": null
+    "logoUrl": "/airlines/G7.png",
+    "logoDarkUrl": "/airlines/G7.dark.png"
   },
   {
     "iata": "G8",
@@ -1157,7 +1198,8 @@
     "primaryColor": "#358E9D",
     "alliance": "skyteam",
     "callsign": "INDONESIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/GA.png",
+    "logoDarkUrl": "/airlines/GA.dark.png"
   },
   {
     "iata": "GE",
@@ -1167,7 +1209,7 @@
     "primaryColor": "#FF6600",
     "alliance": null,
     "callsign": "TRANSASIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/GE.png"
   },
   {
     "iata": "GF",
@@ -1177,7 +1219,8 @@
     "primaryColor": "#A38E5D",
     "alliance": null,
     "callsign": "GULF BAHRAIN",
-    "logoUrl": null
+    "logoUrl": "/airlines/GF.png",
+    "logoDarkUrl": "/airlines/GF.dark.png"
   },
   {
     "iata": "GH",
@@ -1197,7 +1240,8 @@
     "primaryColor": "#2B4077",
     "alliance": null,
     "callsign": "SKYEXPRESS",
-    "logoUrl": null
+    "logoUrl": "/airlines/GQ.png",
+    "logoDarkUrl": "/airlines/GQ.dark.png"
   },
   {
     "iata": "GT",
@@ -1207,7 +1251,8 @@
     "primaryColor": "#ED1639",
     "alliance": null,
     "callsign": "GEEBEE",
-    "logoUrl": null
+    "logoUrl": "/airlines/GT.png",
+    "logoDarkUrl": "/airlines/GT.dark.png"
   },
   {
     "iata": "GX",
@@ -1217,7 +1262,7 @@
     "primaryColor": "#DA3731",
     "alliance": null,
     "callsign": "GALAXY",
-    "logoUrl": null
+    "logoUrl": "/airlines/GX.png"
   },
   {
     "iata": "H1",
@@ -1247,7 +1292,7 @@
     "primaryColor": "#413691",
     "alliance": null,
     "callsign": "HAWAIIAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/HA.png"
   },
   {
     "iata": "HC",
@@ -1257,7 +1302,7 @@
     "primaryColor": "#D41219",
     "alliance": null,
     "callsign": "AIR SENEGAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/HC.png"
   },
   {
     "iata": "HD",
@@ -1267,7 +1312,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "AIR DO",
-    "logoUrl": null
+    "logoUrl": "/airlines/HD.png",
+    "logoDarkUrl": "/airlines/HD.dark.png"
   },
   {
     "iata": "HF",
@@ -1277,7 +1323,8 @@
     "primaryColor": "#E77A31",
     "alliance": null,
     "callsign": "AIRCOTEDIVOIRE",
-    "logoUrl": null
+    "logoUrl": "/airlines/HF.png",
+    "logoDarkUrl": "/airlines/HF.dark.png"
   },
   {
     "iata": "HG",
@@ -1287,7 +1334,7 @@
     "primaryColor": "#C20437",
     "alliance": null,
     "callsign": "NIKI LINE",
-    "logoUrl": null
+    "logoUrl": "/airlines/HG.png"
   },
   {
     "iata": "HM",
@@ -1297,7 +1344,7 @@
     "primaryColor": "#D93722",
     "alliance": null,
     "callsign": "SEYCHELLES",
-    "logoUrl": null
+    "logoUrl": "/airlines/HM.png"
   },
   {
     "iata": "HO",
@@ -1307,7 +1354,7 @@
     "primaryColor": "#AE8262",
     "alliance": null,
     "callsign": "JUNEYAO AIRLINES",
-    "logoUrl": null
+    "logoUrl": "/airlines/HO.png"
   },
   {
     "iata": "HU",
@@ -1317,7 +1364,7 @@
     "primaryColor": "#E60012",
     "alliance": null,
     "callsign": "HAINAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/HU.png"
   },
   {
     "iata": "HV",
@@ -1337,7 +1384,7 @@
     "primaryColor": "#E4002B",
     "alliance": null,
     "callsign": "HELLOSWISS",
-    "logoUrl": null
+    "logoUrl": "/airlines/HW.png"
   },
   {
     "iata": "HX",
@@ -1347,7 +1394,8 @@
     "primaryColor": "#E60012",
     "alliance": null,
     "callsign": "BAUHINIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/HX.png",
+    "logoDarkUrl": "/airlines/HX.dark.png"
   },
   {
     "iata": "HY",
@@ -1357,7 +1405,7 @@
     "primaryColor": "#06408C",
     "alliance": null,
     "callsign": "UZBEK",
-    "logoUrl": null
+    "logoUrl": "/airlines/HY.png"
   },
   {
     "iata": "I5",
@@ -1427,7 +1475,8 @@
     "primaryColor": "#FFD700",
     "alliance": null,
     "callsign": "MERAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/IG.png",
+    "logoDarkUrl": "/airlines/IG.dark.png"
   },
   {
     "iata": "IK",
@@ -1477,7 +1526,7 @@
     "primaryColor": "#D40E8C",
     "alliance": null,
     "callsign": "ARKIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/IZ.png"
   },
   {
     "iata": "J2",
@@ -1487,7 +1536,8 @@
     "primaryColor": "#003366",
     "alliance": null,
     "callsign": "AZAL",
-    "logoUrl": "/airlines/J2.png"
+    "logoUrl": "/airlines/J2.png",
+    "logoDarkUrl": "/airlines/J2.dark.png"
   },
   {
     "iata": "J9",
@@ -1497,7 +1547,7 @@
     "primaryColor": "#0D89CB",
     "alliance": null,
     "callsign": "JAZEERA",
-    "logoUrl": null
+    "logoUrl": "/airlines/J9.png"
   },
   {
     "iata": "JA",
@@ -1507,7 +1557,8 @@
     "primaryColor": "#FF6600",
     "alliance": null,
     "callsign": "ROCKSMART",
-    "logoUrl": null
+    "logoUrl": "/airlines/JA.png",
+    "logoDarkUrl": "/airlines/JA.dark.png"
   },
   {
     "iata": "JJ",
@@ -1517,7 +1568,8 @@
     "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "TAM",
-    "logoUrl": "/airlines/JJ.png"
+    "logoUrl": "/airlines/JJ.png",
+    "logoDarkUrl": "/airlines/JJ.dark.png"
   },
   {
     "iata": "JL",
@@ -1527,7 +1579,8 @@
     "primaryColor": "#E60012",
     "alliance": "oneworld",
     "callsign": "JAPANAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/JL.png",
+    "logoDarkUrl": "/airlines/JL.dark.png"
   },
   {
     "iata": "JO",
@@ -1547,7 +1600,8 @@
     "primaryColor": "#FE5815",
     "alliance": null,
     "callsign": "JETSTAR",
-    "logoUrl": "/airlines/JQ.png"
+    "logoUrl": "/airlines/JQ.png",
+    "logoDarkUrl": "/airlines/JQ.dark.png"
   },
   {
     "iata": "JT",
@@ -1557,7 +1611,7 @@
     "primaryColor": "#FB0102",
     "alliance": null,
     "callsign": "LION INTER",
-    "logoUrl": null
+    "logoUrl": "/airlines/JT.png"
   },
   {
     "iata": "JU",
@@ -1567,7 +1621,8 @@
     "primaryColor": "#0F2D53",
     "alliance": null,
     "callsign": "AIR SERBIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/JU.png",
+    "logoDarkUrl": "/airlines/JU.dark.png"
   },
   {
     "iata": "JZ",
@@ -1577,7 +1632,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SKY EXPRESS",
-    "logoUrl": null
+    "logoUrl": "/airlines/JZ.png"
   },
   {
     "iata": "K6",
@@ -1587,7 +1642,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "ANGKOR AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/K6.png"
   },
   {
     "iata": "KC",
@@ -1607,7 +1662,8 @@
     "primaryColor": "#051766",
     "alliance": "skyteam",
     "callsign": "KOREANAIR",
-    "logoUrl": "/airlines/KE.png"
+    "logoUrl": "/airlines/KE.png",
+    "logoDarkUrl": "/airlines/KE.dark.png"
   },
   {
     "iata": "KL",
@@ -1627,7 +1683,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "ASKY",
-    "logoUrl": null
+    "logoUrl": "/airlines/KP.png"
   },
   {
     "iata": "KQ",
@@ -1647,7 +1703,8 @@
     "primaryColor": "#20285C",
     "alliance": null,
     "callsign": "KUWAITI",
-    "logoUrl": "/airlines/KU.png"
+    "logoUrl": "/airlines/KU.png",
+    "logoDarkUrl": "/airlines/KU.dark.png"
   },
   {
     "iata": "LA",
@@ -1657,7 +1714,8 @@
     "primaryColor": "#2A0088",
     "alliance": "oneworld",
     "callsign": "LAN",
-    "logoUrl": "/airlines/LA.png"
+    "logoUrl": "/airlines/LA.png",
+    "logoDarkUrl": "/airlines/LA.dark.png"
   },
   {
     "iata": "LH",
@@ -1667,7 +1725,8 @@
     "primaryColor": "#0A1D3D",
     "alliance": "star_alliance",
     "callsign": "LUFTHANSA",
-    "logoUrl": "/airlines/LH.png"
+    "logoUrl": "/airlines/LH.png",
+    "logoDarkUrl": "/airlines/LH.dark.png"
   },
   {
     "iata": "LJ",
@@ -1677,7 +1736,7 @@
     "primaryColor": "#00529B",
     "alliance": null,
     "callsign": "JIN AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/LJ.png"
   },
   {
     "iata": "LO",
@@ -1687,7 +1746,8 @@
     "primaryColor": "#252668",
     "alliance": "star_alliance",
     "callsign": "POLLOT",
-    "logoUrl": "/airlines/LO.png"
+    "logoUrl": "/airlines/LO.png",
+    "logoDarkUrl": "/airlines/LO.dark.png"
   },
   {
     "iata": "LP",
@@ -1697,7 +1757,8 @@
     "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "LANPERU",
-    "logoUrl": "/airlines/LP.png"
+    "logoUrl": "/airlines/LP.png",
+    "logoDarkUrl": "/airlines/LP.dark.png"
   },
   {
     "iata": "LS",
@@ -1727,7 +1788,8 @@
     "primaryColor": "#001246",
     "alliance": null,
     "callsign": "ELAL",
-    "logoUrl": "/airlines/LY.png"
+    "logoUrl": "/airlines/LY.png",
+    "logoDarkUrl": "/airlines/LY.dark.png"
   },
   {
     "iata": "MD",
@@ -1737,7 +1799,7 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "AIR MADAGASCAR",
-    "logoUrl": null
+    "logoUrl": "/airlines/MD.png"
   },
   {
     "iata": "ME",
@@ -1747,7 +1809,7 @@
     "primaryColor": "#C8102E",
     "alliance": "skyteam",
     "callsign": "CEDAR JET",
-    "logoUrl": null
+    "logoUrl": "/airlines/ME.png"
   },
   {
     "iata": "MF",
@@ -1757,7 +1819,8 @@
     "primaryColor": "#004384",
     "alliance": "skyteam",
     "callsign": "XIAMEN AIR",
-    "logoUrl": "/airlines/MF.png"
+    "logoUrl": "/airlines/MF.png",
+    "logoDarkUrl": "/airlines/MF.dark.png"
   },
   {
     "iata": "MH",
@@ -1767,7 +1830,8 @@
     "primaryColor": "#C90632",
     "alliance": "oneworld",
     "callsign": "MALAYSIAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/MH.png",
+    "logoDarkUrl": "/airlines/MH.dark.png"
   },
   {
     "iata": "MI",
@@ -1777,7 +1841,7 @@
     "primaryColor": "#F8A81D",
     "alliance": null,
     "callsign": "SILKAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/MI.png"
   },
   {
     "iata": "MM",
@@ -1787,7 +1851,7 @@
     "primaryColor": "#FF69B4",
     "alliance": null,
     "callsign": "AIR PEACH",
-    "logoUrl": null
+    "logoUrl": "/airlines/MM.png"
   },
   {
     "iata": "MN",
@@ -1797,7 +1861,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "COMMERCIAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/MN.png",
+    "logoDarkUrl": "/airlines/MN.dark.png"
   },
   {
     "iata": "MQ",
@@ -1807,7 +1872,8 @@
     "primaryColor": "#0078D2",
     "alliance": null,
     "callsign": "ENVOY",
-    "logoUrl": null
+    "logoUrl": "/airlines/MQ.png",
+    "logoDarkUrl": "/airlines/MQ.dark.png"
   },
   {
     "iata": "MS",
@@ -1817,7 +1883,8 @@
     "primaryColor": "#003A70",
     "alliance": "star_alliance",
     "callsign": "EGYPTAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/MS.png",
+    "logoDarkUrl": "/airlines/MS.dark.png"
   },
   {
     "iata": "MT",
@@ -1827,7 +1894,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "KESTREL",
-    "logoUrl": null
+    "logoUrl": "/airlines/MT.png",
+    "logoDarkUrl": "/airlines/MT.dark.png"
   },
   {
     "iata": "MU",
@@ -1837,7 +1905,8 @@
     "primaryColor": "#192577",
     "alliance": "skyteam",
     "callsign": "CHINA EASTERN",
-    "logoUrl": "/airlines/MU.png"
+    "logoUrl": "/airlines/MU.png",
+    "logoDarkUrl": "/airlines/MU.dark.png"
   },
   {
     "iata": "N3",
@@ -1847,7 +1916,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "OMNI",
-    "logoUrl": null
+    "logoUrl": "/airlines/N3.png",
+    "logoDarkUrl": "/airlines/N3.dark.png"
   },
   {
     "iata": "N4",
@@ -1857,7 +1927,7 @@
     "primaryColor": "#1E3A8A",
     "alliance": null,
     "callsign": "NORDLAND",
-    "logoUrl": null
+    "logoUrl": "/airlines/N4.png"
   },
   {
     "iata": "N7",
@@ -1867,7 +1937,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "NORTH FLYING",
-    "logoUrl": null
+    "logoUrl": "/airlines/N7.png",
+    "logoDarkUrl": "/airlines/N7.dark.png"
   },
   {
     "iata": "N8",
@@ -1887,7 +1958,8 @@
     "primaryColor": "#00146E",
     "alliance": "star_alliance",
     "callsign": "ALL NIPPON",
-    "logoUrl": "/airlines/NH.png"
+    "logoUrl": "/airlines/NH.png",
+    "logoDarkUrl": "/airlines/NH.dark.png"
   },
   {
     "iata": "NK",
@@ -1897,7 +1969,8 @@
     "primaryColor": "#FFE600",
     "alliance": null,
     "callsign": "SPIRIT WINGS",
-    "logoUrl": null
+    "logoUrl": "/airlines/NK.png",
+    "logoDarkUrl": "/airlines/NK.dark.png"
   },
   {
     "iata": "NP",
@@ -1917,7 +1990,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "HEBEI AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/NS.png",
+    "logoDarkUrl": "/airlines/NS.dark.png"
   },
   {
     "iata": "NT",
@@ -1937,7 +2011,8 @@
     "primaryColor": "#00529B",
     "alliance": null,
     "callsign": "JAI OCEAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/NU.png",
+    "logoDarkUrl": "/airlines/NU.dark.png"
   },
   {
     "iata": "NY",
@@ -1947,7 +2022,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "FAXI",
-    "logoUrl": null
+    "logoUrl": "/airlines/NY.png",
+    "logoDarkUrl": "/airlines/NY.dark.png"
   },
   {
     "iata": "NZ",
@@ -1957,7 +2033,8 @@
     "primaryColor": "#221F1F",
     "alliance": "star_alliance",
     "callsign": "NEW ZEALAND",
-    "logoUrl": null
+    "logoUrl": "/airlines/NZ.png",
+    "logoDarkUrl": "/airlines/NZ.dark.png"
   },
   {
     "iata": "OA",
@@ -1967,7 +2044,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "OLYMPIC",
-    "logoUrl": null
+    "logoUrl": "/airlines/OA.png",
+    "logoDarkUrl": "/airlines/OA.dark.png"
   },
   {
     "iata": "OK",
@@ -1977,7 +2055,8 @@
     "primaryColor": "#003A70",
     "alliance": "star_alliance",
     "callsign": "CSA-LINES",
-    "logoUrl": null
+    "logoUrl": "/airlines/OK.png",
+    "logoDarkUrl": "/airlines/OK.dark.png"
   },
   {
     "iata": "OL",
@@ -1987,7 +2066,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SPRINT",
-    "logoUrl": null
+    "logoUrl": "/airlines/OL.png"
   },
   {
     "iata": "OM",
@@ -1997,7 +2076,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "MONGOL AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/OM.png",
+    "logoDarkUrl": "/airlines/OM.dark.png"
   },
   {
     "iata": "OO",
@@ -2007,7 +2087,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SKYWEST",
-    "logoUrl": null
+    "logoUrl": "/airlines/OO.png",
+    "logoDarkUrl": "/airlines/OO.dark.png"
   },
   {
     "iata": "OS",
@@ -2027,7 +2108,8 @@
     "primaryColor": "#19386E",
     "alliance": "star_alliance",
     "callsign": "CROATIA",
-    "logoUrl": "/airlines/OU.png"
+    "logoUrl": "/airlines/OU.png",
+    "logoDarkUrl": "/airlines/OU.dark.png"
   },
   {
     "iata": "OV",
@@ -2037,7 +2119,7 @@
     "primaryColor": "#E4002B",
     "alliance": null,
     "callsign": "SALAM",
-    "logoUrl": null
+    "logoUrl": "/airlines/OV.png"
   },
   {
     "iata": "P4",
@@ -2047,7 +2129,7 @@
     "primaryColor": "#00A651",
     "alliance": null,
     "callsign": "PEACEFUL",
-    "logoUrl": null
+    "logoUrl": "/airlines/P4.png"
   },
   {
     "iata": "P5",
@@ -2057,7 +2139,8 @@
     "primaryColor": "#003F87",
     "alliance": null,
     "callsign": "PANAM",
-    "logoUrl": null
+    "logoUrl": "/airlines/P5.png",
+    "logoDarkUrl": "/airlines/P5.dark.png"
   },
   {
     "iata": "PA",
@@ -2067,7 +2150,8 @@
     "primaryColor": "#0047AB",
     "alliance": null,
     "callsign": "PAKBLUE",
-    "logoUrl": null
+    "logoUrl": "/airlines/PA.png",
+    "logoDarkUrl": "/airlines/PA.dark.png"
   },
   {
     "iata": "PC",
@@ -2087,7 +2171,8 @@
     "primaryColor": "#00549F",
     "alliance": null,
     "callsign": "PORTER AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/PD.png",
+    "logoDarkUrl": "/airlines/PD.dark.png"
   },
   {
     "iata": "PG",
@@ -2107,7 +2192,7 @@
     "primaryColor": "#00843D",
     "alliance": null,
     "callsign": "PAKISTAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/PK.png"
   },
   {
     "iata": "PN",
@@ -2117,7 +2202,7 @@
     "primaryColor": "#003A70",
     "alliance": null,
     "callsign": "WEST CHINA",
-    "logoUrl": null
+    "logoUrl": "/airlines/PN.png"
   },
   {
     "iata": "PR",
@@ -2137,7 +2222,8 @@
     "primaryColor": "#0057B8",
     "alliance": null,
     "callsign": "UKRAINE INTERNATIONAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/PS.png",
+    "logoDarkUrl": "/airlines/PS.dark.png"
   },
   {
     "iata": "PW",
@@ -2147,7 +2233,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "PRECISION",
-    "logoUrl": null
+    "logoUrl": "/airlines/PW.png"
   },
   {
     "iata": "PZ",
@@ -2157,7 +2243,7 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "LAO",
-    "logoUrl": null
+    "logoUrl": "/airlines/PZ.png"
   },
   {
     "iata": "Q6",
@@ -2167,7 +2253,8 @@
     "primaryColor": "#780D4A",
     "alliance": null,
     "callsign": "VOLEL",
-    "logoUrl": null
+    "logoUrl": "/airlines/Q6.png",
+    "logoDarkUrl": "/airlines/Q6.dark.png"
   },
   {
     "iata": "QA",
@@ -2197,7 +2284,8 @@
     "primaryColor": "#CC0000",
     "alliance": "oneworld",
     "callsign": "QANTAS",
-    "logoUrl": "/airlines/QF.png"
+    "logoUrl": "/airlines/QF.png",
+    "logoDarkUrl": "/airlines/QF.dark.png"
   },
   {
     "iata": "QG",
@@ -2217,7 +2305,8 @@
     "primaryColor": "#10193F",
     "alliance": null,
     "callsign": "JET AIRWAYS",
-    "logoUrl": "/airlines/QJ.png"
+    "logoUrl": "/airlines/QJ.png",
+    "logoDarkUrl": "/airlines/QJ.dark.png"
   },
   {
     "iata": "QP",
@@ -2247,7 +2336,8 @@
     "primaryColor": "#004289",
     "alliance": null,
     "callsign": "SKYTRAVEL",
-    "logoUrl": "/airlines/QS.png"
+    "logoUrl": "/airlines/QS.png",
+    "logoDarkUrl": "/airlines/QS.dark.png"
   },
   {
     "iata": "QX",
@@ -2287,7 +2377,8 @@
     "primaryColor": "#03124D",
     "alliance": null,
     "callsign": "ROYAL NEPAL",
-    "logoUrl": "/airlines/RA.png"
+    "logoUrl": "/airlines/RA.png",
+    "logoDarkUrl": "/airlines/RA.dark.png"
   },
   {
     "iata": "RB",
@@ -2317,7 +2408,8 @@
     "primaryColor": "#D11D26",
     "alliance": null,
     "callsign": "ROYAL FLIGHT",
-    "logoUrl": "/airlines/RL.png"
+    "logoUrl": "/airlines/RL.png",
+    "logoDarkUrl": "/airlines/RL.dark.png"
   },
   {
     "iata": "RO",
@@ -2357,7 +2449,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "SANSA",
-    "logoUrl": null
+    "logoUrl": "/airlines/RZ.png",
+    "logoDarkUrl": "/airlines/RZ.dark.png"
   },
   {
     "iata": "S4",
@@ -2367,7 +2460,8 @@
     "primaryColor": "#003568",
     "alliance": null,
     "callsign": "AIR AZORES",
-    "logoUrl": "/airlines/S4.png"
+    "logoUrl": "/airlines/S4.png",
+    "logoDarkUrl": "/airlines/S4.dark.png"
   },
   {
     "iata": "S7",
@@ -2377,7 +2471,8 @@
     "primaryColor": "#8CC43C",
     "alliance": "oneworld",
     "callsign": "SIBERIAN AIRLINES",
-    "logoUrl": null
+    "logoUrl": "/airlines/S7.png",
+    "logoDarkUrl": "/airlines/S7.dark.png"
   },
   {
     "iata": "SA",
@@ -2387,7 +2482,8 @@
     "primaryColor": "#163683",
     "alliance": "star_alliance",
     "callsign": "SPRINGBOK",
-    "logoUrl": "/airlines/SA.png"
+    "logoUrl": "/airlines/SA.png",
+    "logoDarkUrl": "/airlines/SA.dark.png"
   },
   {
     "iata": "SC",
@@ -2397,7 +2493,8 @@
     "primaryColor": "#1E406C",
     "alliance": null,
     "callsign": "SHANDONG",
-    "logoUrl": "/airlines/SC.png"
+    "logoUrl": "/airlines/SC.png",
+    "logoDarkUrl": "/airlines/SC.dark.png"
   },
   {
     "iata": "SG",
@@ -2437,7 +2534,8 @@
     "primaryColor": "#3D1063",
     "alliance": null,
     "callsign": "CARBON",
-    "logoUrl": "/airlines/SM.png"
+    "logoUrl": "/airlines/SM.png",
+    "logoDarkUrl": "/airlines/SM.dark.png"
   },
   {
     "iata": "SN",
@@ -2447,7 +2545,8 @@
     "primaryColor": "#051446",
     "alliance": "star_alliance",
     "callsign": "BEE-LINE",
-    "logoUrl": "/airlines/SN.png"
+    "logoUrl": "/airlines/SN.png",
+    "logoDarkUrl": "/airlines/SN.dark.png"
   },
   {
     "iata": "SP",
@@ -2457,7 +2556,8 @@
     "primaryColor": "#003568",
     "alliance": null,
     "callsign": "SATA",
-    "logoUrl": "/airlines/SP.png"
+    "logoUrl": "/airlines/SP.png",
+    "logoDarkUrl": "/airlines/SP.dark.png"
   },
   {
     "iata": "SQ",
@@ -2467,7 +2567,8 @@
     "primaryColor": "#00266B",
     "alliance": "star_alliance",
     "callsign": "SINGAPORE",
-    "logoUrl": "/airlines/SQ.png"
+    "logoUrl": "/airlines/SQ.png",
+    "logoDarkUrl": "/airlines/SQ.dark.png"
   },
   {
     "iata": "SS",
@@ -2477,7 +2578,8 @@
     "primaryColor": "#020862",
     "alliance": null,
     "callsign": "CORSAIR",
-    "logoUrl": "/airlines/SS.png"
+    "logoUrl": "/airlines/SS.png",
+    "logoDarkUrl": "/airlines/SS.dark.png"
   },
   {
     "iata": "SU",
@@ -2507,7 +2609,8 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "NAMIBIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/SW.png",
+    "logoDarkUrl": "/airlines/SW.dark.png"
   },
   {
     "iata": "SX",
@@ -2567,7 +2670,8 @@
     "primaryColor": "#370E62",
     "alliance": "star_alliance",
     "callsign": "THAI",
-    "logoUrl": "/airlines/TG.png"
+    "logoUrl": "/airlines/TG.png",
+    "logoDarkUrl": "/airlines/TG.dark.png"
   },
   {
     "iata": "TK",
@@ -2577,7 +2681,8 @@
     "primaryColor": "#C70A0C",
     "alliance": "star_alliance",
     "callsign": "TURKAIR",
-    "logoUrl": "/airlines/TK.png"
+    "logoUrl": "/airlines/TK.png",
+    "logoDarkUrl": "/airlines/TK.dark.png"
   },
   {
     "iata": "TL",
@@ -2587,7 +2692,8 @@
     "primaryColor": "#04396F",
     "alliance": null,
     "callsign": "TOPEND",
-    "logoUrl": "/airlines/TL.png"
+    "logoUrl": "/airlines/TL.png",
+    "logoDarkUrl": "/airlines/TL.dark.png"
   },
   {
     "iata": "TO",
@@ -2607,7 +2713,8 @@
     "primaryColor": "#009639",
     "alliance": "star_alliance",
     "callsign": "AIR PORTUGAL",
-    "logoUrl": null
+    "logoUrl": "/airlines/TP.png",
+    "logoDarkUrl": "/airlines/TP.dark.png"
   },
   {
     "iata": "TR",
@@ -2617,7 +2724,7 @@
     "primaryColor": "#FFFF00",
     "alliance": null,
     "callsign": "SCOOTER",
-    "logoUrl": null
+    "logoUrl": "/airlines/TR.png"
   },
   {
     "iata": "TS",
@@ -2627,7 +2734,8 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "AIR TRANSAT",
-    "logoUrl": null
+    "logoUrl": "/airlines/TS.png",
+    "logoDarkUrl": "/airlines/TS.dark.png"
   },
   {
     "iata": "TT",
@@ -2637,7 +2745,8 @@
     "primaryColor": "#FF6600",
     "alliance": null,
     "callsign": "GO CAT",
-    "logoUrl": null
+    "logoUrl": "/airlines/TT.png",
+    "logoDarkUrl": "/airlines/TT.dark.png"
   },
   {
     "iata": "TW",
@@ -2667,7 +2776,7 @@
     "primaryColor": "#FF0000",
     "alliance": null,
     "callsign": "GLORIOUS",
-    "logoUrl": null
+    "logoUrl": "/airlines/U5.png"
   },
   {
     "iata": "U6",
@@ -2707,7 +2816,7 @@
     "primaryColor": "#FDB515",
     "alliance": null,
     "callsign": "UNIONAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/UB.png"
   },
   {
     "iata": "UG",
@@ -2717,7 +2826,7 @@
     "primaryColor": "#C8102E",
     "alliance": null,
     "callsign": "TUNAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/UG.png"
   },
   {
     "iata": "UJ",
@@ -2727,7 +2836,8 @@
     "primaryColor": "#0E3C6F",
     "alliance": null,
     "callsign": "ALMASRIA",
-    "logoUrl": "/airlines/UJ.png"
+    "logoUrl": "/airlines/UJ.png",
+    "logoDarkUrl": "/airlines/UJ.dark.png"
   },
   {
     "iata": "UK",
@@ -2747,7 +2857,8 @@
     "primaryColor": "#DC001C",
     "alliance": "oneworld",
     "callsign": "SRILANKAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/UL.png",
+    "logoDarkUrl": "/airlines/UL.dark.png"
   },
   {
     "iata": "UO",
@@ -2757,7 +2868,7 @@
     "primaryColor": "#702B91",
     "alliance": null,
     "callsign": "HONGKONG SHUTTLE",
-    "logoUrl": null
+    "logoUrl": "/airlines/UO.png"
   },
   {
     "iata": "UP",
@@ -2777,7 +2888,8 @@
     "primaryColor": "#003594",
     "alliance": null,
     "callsign": "UTAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/UT.png",
+    "logoDarkUrl": "/airlines/UT.dark.png"
   },
   {
     "iata": "UU",
@@ -2787,7 +2899,8 @@
     "primaryColor": "#20294E",
     "alliance": null,
     "callsign": "REUNION",
-    "logoUrl": null
+    "logoUrl": "/airlines/UU.png",
+    "logoDarkUrl": "/airlines/UU.dark.png"
   },
   {
     "iata": "UX",
@@ -2807,7 +2920,8 @@
     "primaryColor": "#00A583",
     "alliance": null,
     "callsign": "CARPAT",
-    "logoUrl": null
+    "logoUrl": "/airlines/V3.png",
+    "logoDarkUrl": "/airlines/V3.dark.png"
   },
   {
     "iata": "V5",
@@ -2817,7 +2931,8 @@
     "primaryColor": "#19335E",
     "alliance": null,
     "callsign": "VIEQUES",
-    "logoUrl": "/airlines/V5.png"
+    "logoUrl": "/airlines/V5.png",
+    "logoDarkUrl": "/airlines/V5.dark.png"
   },
   {
     "iata": "V7",
@@ -2827,7 +2942,7 @@
     "primaryColor": "#ED164A",
     "alliance": null,
     "callsign": "VOLOTEA",
-    "logoUrl": null
+    "logoUrl": "/airlines/V7.png"
   },
   {
     "iata": "VA",
@@ -2837,7 +2952,7 @@
     "primaryColor": "#E10A0A",
     "alliance": null,
     "callsign": "VIRGIN",
-    "logoUrl": null
+    "logoUrl": "/airlines/VA.png"
   },
   {
     "iata": "VB",
@@ -2847,7 +2962,7 @@
     "primaryColor": "#00A651",
     "alliance": null,
     "callsign": "VIVA",
-    "logoUrl": null
+    "logoUrl": "/airlines/VB.png"
   },
   {
     "iata": "VF",
@@ -2857,7 +2972,8 @@
     "primaryColor": "#008FDA",
     "alliance": null,
     "callsign": "AJET",
-    "logoUrl": null
+    "logoUrl": "/airlines/VF.png",
+    "logoDarkUrl": "/airlines/VF.dark.png"
   },
   {
     "iata": "VH",
@@ -2877,7 +2993,7 @@
     "primaryColor": "#E50019",
     "alliance": null,
     "callsign": "VIETJET",
-    "logoUrl": null
+    "logoUrl": "/airlines/VJ.png"
   },
   {
     "iata": "VN",
@@ -2887,7 +3003,7 @@
     "primaryColor": "#005E80",
     "alliance": "skyteam",
     "callsign": "VIET NAM AIRLINES",
-    "logoUrl": null
+    "logoUrl": "/airlines/VN.png"
   },
   {
     "iata": "VQ",
@@ -2897,7 +3013,8 @@
     "primaryColor": "#15467A",
     "alliance": null,
     "callsign": "NOVO AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/VQ.png",
+    "logoDarkUrl": "/airlines/VQ.dark.png"
   },
   {
     "iata": "VS",
@@ -2907,7 +3024,7 @@
     "primaryColor": "#DC143C",
     "alliance": "skyteam",
     "callsign": "VIRGIN",
-    "logoUrl": null
+    "logoUrl": "/airlines/VS.png"
   },
   {
     "iata": "VU",
@@ -2917,7 +3034,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "VIETRAVEL",
-    "logoUrl": null
+    "logoUrl": "/airlines/VU.png"
   },
   {
     "iata": "VY",
@@ -2927,7 +3044,8 @@
     "primaryColor": "#FFCE00",
     "alliance": null,
     "callsign": "VUELING",
-    "logoUrl": null
+    "logoUrl": "/airlines/VY.png",
+    "logoDarkUrl": "/airlines/VY.dark.png"
   },
   {
     "iata": "VZ",
@@ -2937,7 +3055,7 @@
     "primaryColor": "#E50019",
     "alliance": null,
     "callsign": "THAI VIET",
-    "logoUrl": null
+    "logoUrl": "/airlines/VZ.png"
   },
   {
     "iata": "W2",
@@ -2947,7 +3065,8 @@
     "primaryColor": "#C29C45",
     "alliance": null,
     "callsign": "FLEXFLIGHT",
-    "logoUrl": "/airlines/W2.png"
+    "logoUrl": "/airlines/W2.png",
+    "logoDarkUrl": "/airlines/W2.dark.png"
   },
   {
     "iata": "W3",
@@ -2957,7 +3076,7 @@
     "primaryColor": "#0D3F84",
     "alliance": null,
     "callsign": "AEROLINE",
-    "logoUrl": null
+    "logoUrl": "/airlines/W3.png"
   },
   {
     "iata": "W4",
@@ -2967,7 +3086,7 @@
     "primaryColor": "#C6007E",
     "alliance": null,
     "callsign": "WIZZ ARABIA",
-    "logoUrl": null
+    "logoUrl": "/airlines/W4.png"
   },
   {
     "iata": "W6",
@@ -2987,7 +3106,7 @@
     "primaryColor": null,
     "alliance": null,
     "callsign": "AIR BAGAN",
-    "logoUrl": null
+    "logoUrl": "/airlines/W9.png"
   },
   {
     "iata": "WB",
@@ -2997,7 +3116,7 @@
     "primaryColor": "#1C4E9D",
     "alliance": null,
     "callsign": "RWANDAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/WB.png"
   },
   {
     "iata": "WE",
@@ -3017,7 +3136,8 @@
     "primaryColor": "#CF0A2C",
     "alliance": null,
     "callsign": "EDELWEISS",
-    "logoUrl": null
+    "logoUrl": "/airlines/WK.png",
+    "logoDarkUrl": "/airlines/WK.dark.png"
   },
   {
     "iata": "WN",
@@ -3027,7 +3147,7 @@
     "primaryColor": "#304CB2",
     "alliance": null,
     "callsign": "SOUTHWEST",
-    "logoUrl": null
+    "logoUrl": "/airlines/WN.png"
   },
   {
     "iata": "WS",
@@ -3037,7 +3157,8 @@
     "primaryColor": "#00AC9D",
     "alliance": null,
     "callsign": "WESTJET",
-    "logoUrl": null
+    "logoUrl": "/airlines/WS.png",
+    "logoDarkUrl": "/airlines/WS.dark.png"
   },
   {
     "iata": "WW",
@@ -3047,7 +3168,7 @@
     "primaryColor": "#991782",
     "alliance": null,
     "callsign": "WOW AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/WW.png"
   },
   {
     "iata": "WY",
@@ -3057,7 +3178,7 @@
     "primaryColor": "#B5985A",
     "alliance": null,
     "callsign": "OMAN AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/WY.png"
   },
   {
     "iata": "WZ",
@@ -3067,7 +3188,8 @@
     "primaryColor": "#CC252B",
     "alliance": null,
     "callsign": "AIR RED",
-    "logoUrl": null
+    "logoUrl": "/airlines/WZ.png",
+    "logoDarkUrl": "/airlines/WZ.dark.png"
   },
   {
     "iata": "X3",
@@ -3087,7 +3209,8 @@
     "primaryColor": "#2A0088",
     "alliance": null,
     "callsign": "LANECUADOR",
-    "logoUrl": "/airlines/XL.png"
+    "logoUrl": "/airlines/XL.png",
+    "logoDarkUrl": "/airlines/XL.dark.png"
   },
   {
     "iata": "XQ",
@@ -3097,7 +3220,8 @@
     "primaryColor": "#1A428A",
     "alliance": null,
     "callsign": "SUNEXPRESS",
-    "logoUrl": null
+    "logoUrl": "/airlines/XQ.png",
+    "logoDarkUrl": "/airlines/XQ.dark.png"
   },
   {
     "iata": "XY",
@@ -3107,7 +3231,7 @@
     "primaryColor": "#00BBB4",
     "alliance": null,
     "callsign": "NAS EXPRESS",
-    "logoUrl": null
+    "logoUrl": "/airlines/XY.png"
   },
   {
     "iata": "Y4",
@@ -3117,7 +3241,8 @@
     "primaryColor": "#91268F",
     "alliance": null,
     "callsign": "VOLARIS",
-    "logoUrl": null
+    "logoUrl": "/airlines/Y4.png",
+    "logoDarkUrl": "/airlines/Y4.dark.png"
   },
   {
     "iata": "YM",
@@ -3127,7 +3252,7 @@
     "primaryColor": "#2056AE",
     "alliance": null,
     "callsign": "MONTAIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/YM.png"
   },
   {
     "iata": "YV",
@@ -3147,7 +3272,7 @@
     "primaryColor": "#0090D0",
     "alliance": null,
     "callsign": "AIR NOSTRUM",
-    "logoUrl": null
+    "logoUrl": "/airlines/YW.png"
   },
   {
     "iata": "YX",
@@ -3157,7 +3282,7 @@
     "primaryColor": "#00263A",
     "alliance": null,
     "callsign": "BRICKYARD",
-    "logoUrl": null
+    "logoUrl": "/airlines/YX.png"
   },
   {
     "iata": "ZB",
@@ -3167,7 +3292,7 @@
     "primaryColor": "#731472",
     "alliance": null,
     "callsign": "MONARCH",
-    "logoUrl": null
+    "logoUrl": "/airlines/ZB.png"
   },
   {
     "iata": "ZE",
@@ -3177,7 +3302,7 @@
     "primaryColor": "#D12149",
     "alliance": null,
     "callsign": "EASTSTAR",
-    "logoUrl": null
+    "logoUrl": "/airlines/ZE.png"
   },
   {
     "iata": "ZF",
@@ -3197,7 +3322,8 @@
     "primaryColor": "#CC0327",
     "alliance": "star_alliance",
     "callsign": "SHENZHEN AIR",
-    "logoUrl": null
+    "logoUrl": "/airlines/ZH.png",
+    "logoDarkUrl": "/airlines/ZH.dark.png"
   },
   {
     "iata": "ZI",
@@ -3207,6 +3333,7 @@
     "primaryColor": "#002C5A",
     "alliance": null,
     "callsign": "AIGLE AZUR",
-    "logoUrl": null
+    "logoUrl": "/airlines/ZI.png",
+    "logoDarkUrl": "/airlines/ZI.dark.png"
   }
 ]

@@ -173,6 +173,7 @@ export interface Airline {
   name: string
   country: string
   logoUrl: string | null
+  logoDarkUrl?: string | null
   primaryColor: string | null
   alliance: 'star_alliance' | 'oneworld' | 'skyteam' | null
   callsign: string | null
