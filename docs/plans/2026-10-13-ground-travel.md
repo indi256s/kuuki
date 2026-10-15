@@ -39,6 +39,11 @@ deploy, remote D1 writes, remote GeoNames load (separate runbook gates). WebMCP 
 | GT-14 states/a11y                                                   | U1–U3                              | navigation suite, UI review, browser check    |
 | Export/account deletion                                             | D1                                 | API tests                                     |
 
+Superseded in part (15 October 2026): GT-01's four mobile tabs, the page's Add chooser and the All / Rail / Road
+segmented filter are replaced by the mobile dock spec ([`.scratch/mobile-dock/spec.md`](../../.scratch/mobile-dock/spec.md),
+[plan](2026-10-15-mobile-dock.md)): Ground travel is the Journal's Ground section, adding goes through the shared Add list
+(rail + key on phones), and transport is a facet chip.
+
 ## Nodes and waves
 
 **Wave 1 (backend, parallel, disjoint paths)** — each a Sonnet implementer:

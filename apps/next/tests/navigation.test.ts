@@ -43,29 +43,104 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
   await signIn(page, baseURL!)
   await page.goto('/overview')
   await expect(page.locator('.ov-globe')).toBeVisible()
+  const navLink = (href: string) =>
+    page.locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="${href}"]:visible`)
   for (const [route, heading] of [
-    ['journal', 'Journal'],
-    ['ground-travel', 'Ground travel'],
+    ['journal', 'Journal · Flights'],
+    // Ground travel is the Journal's second section, reached through its section switch.
+    ['ground-travel', 'Journal · Ground'],
     // The Passport's H1 is the holder's name, so only its presence is asserted.
     ['passport', null],
     ['overview', 'Overview'],
   ] as const) {
-    await page
-      .locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="/${route}"]:visible`)
-      .click()
+    if (route === 'ground-travel')
+      await page
+        .getByRole('navigation', { name: 'Journal sections' })
+        .getByRole('link', { name: 'Ground' })
+        .click()
+    else await navLink(`/${route}`).click()
     await page.waitForURL((url) => url.pathname === `/${route}`)
     await routeSettled(page)
-    if (heading) await expect(page.locator('h1')).toHaveText(heading)
+    if (heading) await expect(page.locator('main h1')).toHaveText(heading)
     else await expect(page.locator('main h1')).toBeVisible()
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
     ).toBeVisible()
-    await expect(
-      page.locator(
-        `nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="/${route}"]:visible`,
-      ),
-    ).toHaveAttribute('aria-current', 'page')
+    // The Journal link leads to the section in view and is current on both.
+    await expect(navLink(`/${route}`)).toHaveAttribute('aria-current', 'page')
   }
+})
+
+test('phone: the + card adds from any screen and Journal sections swap instantly', async ({
+  page,
+  baseURL,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await signIn(page, baseURL!)
+  await page.goto('/overview')
+  await expect(page.locator('.ov-globe')).toBeVisible()
+  const tabs = page.getByRole('navigation', { name: 'Tabs' })
+  await expect(tabs.getByRole('link')).toHaveText(['Overview', 'Journal', 'Passport'], {
+    useInnerText: true,
+  })
+  const add = tabs.getByRole('button', { name: 'Add', exact: true })
+  await add.click()
+  const card = page.getByRole('menu', { name: 'Add' })
+  await expect(card.getByRole('menuitem')).toHaveText(
+    ['Flights from files', 'Flight by hand', 'Train journey', 'Road trip'],
+    { useInnerText: true },
+  )
+  await page.keyboard.press('Escape')
+  await expect(card).toBeHidden()
+  await expect(add).toBeFocused()
+
+  // On a filtered ground list the ground rows carry the view, so Cancel comes back to it.
+  await page.goto('/ground-travel?mode=rail')
+  await expect(page.getByTestId('ground-travel-data')).toBeVisible()
+  await expect(tabs.getByRole('link', { name: 'Journal' })).toHaveAttribute('aria-current', 'page')
+  await add.click()
+  await card.getByRole('menuitem', { name: 'Train journey' }).click()
+  await page.waitForURL((url) => url.pathname === '/ground-travel/new')
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await page.waitForURL((url) => url.pathname === '/ground-travel' && url.search === '?mode=rail')
+  await routeSettled(page)
+
+  // Ground → Flights keeps the stage's boundary node (no fade), focuses the heading and moves aria-current.
+  await page.evaluate(() => {
+    const boundary = document.querySelector('.route-stage > *')!
+    ;(window as Window & { boundary?: Element; faded?: boolean }).boundary = boundary
+    new MutationObserver(() => {
+      if (document.documentElement.dataset.routeTransition)
+        (window as Window & { faded?: boolean }).faded = true
+    }).observe(document.documentElement, { attributes: true })
+  })
+  const sections = page.getByRole('navigation', { name: 'Journal sections' })
+  await sections.getByRole('link', { name: 'Flights' }).click()
+  await page.waitForURL((url) => url.pathname === '/journal')
+  await expect(page.getByTestId('journal-data')).toBeVisible()
+  await expect(page.locator('main h1')).toBeFocused()
+  await expect(sections.getByRole('link', { name: 'Flights' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  expect(
+    await page.evaluate(() => {
+      const state = window as Window & { boundary?: Element; faded?: boolean }
+      return {
+        same: document.querySelector('.route-stage > *') === state.boundary,
+        faded: !!state.faded,
+      }
+    }),
+  ).toEqual({ same: true, faded: false })
+
+  // The Journal tab remembers the section last viewed in this browser tab.
+  await sections.getByRole('link', { name: 'Ground' }).click()
+  await page.waitForURL((url) => url.pathname === '/ground-travel')
+  await tabs.getByRole('link', { name: 'Overview' }).click()
+  await page.waitForURL((url) => url.pathname === '/overview')
+  await tabs.getByRole('link', { name: 'Journal' }).click()
+  await page.waitForURL((url) => url.pathname === '/ground-travel')
 })
 
 test('the old profile entry /me lands on the Passport', async ({ page, baseURL }) => {
