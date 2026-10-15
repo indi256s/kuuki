@@ -2,6 +2,7 @@ import { expect, it } from 'vitest'
 import { createApiDatabase } from './harness'
 import { refreshLeaderboards } from '../api/_services/leaderboard'
 import { readLeaderboardBoard, readPublicLeaderboard } from '../api/_services/publicLeaderboard'
+import { onRequestGet as totalUsers } from '../api/leaderboard/total-users'
 
 const NOW = new Date('2026-06-15T12:00:00.000Z')
 
@@ -159,6 +160,30 @@ it('ranks ground categories only for members who publish all countries with thre
     ])
     // Ground members without flights never reach the sky boards.
     expect(await board(db, 'flights')).toEqual([])
+    // Eligibility is live: cancelling a journey after the rebuild drops the member below three before the next pass.
+    await db
+      .prepare(
+        "UPDATE ground_journeys SET status = 'cancelled', confirmed_at = NULL WHERE user_id = 'roadie' AND start_date = '2026-03-10'",
+      )
+      .run()
+    expect((await readPublicLeaderboard(db, 'road')).entries.map((e) => e.user_id)).toEqual(['all'])
+  } finally {
+    await dispose()
+  }
+})
+
+it('counts only public members in the ranked total', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await db.batch([
+      ...member(db, { id: 'shown', flights: 9 }),
+      ...member(db, { id: 'later-private', flights: 7 }),
+    ])
+    await refreshLeaderboards(db, NOW)
+    // Turning private after the rebuild removes the member from the count straight away.
+    await db.prepare("UPDATE profiles SET is_public = 0 WHERE id = 'later-private'").run()
+    const response = await totalUsers({ env: { DB: db } } as never)
+    expect(await response.json()).toEqual({ total: 1 })
   } finally {
     await dispose()
   }

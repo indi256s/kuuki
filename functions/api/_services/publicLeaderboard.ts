@@ -19,13 +19,16 @@ export const isLeaderboardPeriod = (period: string) => period === 'all' || /^\d{
 
 /**
  * Live consent re-check on cached rows (`lc`), so a member who leaves between rebuilds disappears at once.
- * Sky rows keep the five-flight gate; ground rows need all countries published (ADR 0007 refinement).
+ * Sky rows keep the five-flight gate; ground rows need all countries published (ADR 0007 refinement) and three
+ * completed journeys, so deleting one hides the member before the next rebuild.
  */
 const READ_GATE = `FROM leaderboard_cache lc JOIN profiles p ON p.id = lc.user_id
     LEFT JOIN user_stats us ON us.user_id = lc.user_id ${derivedStateJoin('lc')}
     WHERE p.show_on_leaderboards = 1 AND p.is_public = 1 AND ${PUBLISHED_DERIVED_STATE}
     AND ((lc.category IN ${SKY_CATEGORY_SQL} AND COALESCE(us.total_flights, 0) >= ${SKY_MIN_FLIGHTS})
-      OR (lc.category NOT IN ${SKY_CATEGORY_SQL} AND p.passport_publication = 'all'))`
+      OR (lc.category NOT IN ${SKY_CATEGORY_SQL} AND p.passport_publication = 'all'
+        AND (SELECT COUNT(*) FROM ground_journeys gj
+             WHERE gj.user_id = lc.user_id AND gj.status = 'completed') >= ${GROUND_MIN_JOURNEYS}))`
 
 export async function readPublicLeaderboard(
   db: D1Database,

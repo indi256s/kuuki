@@ -300,6 +300,10 @@
 .leaderboard-podium[data-rise] > [data-pos='0'] {
   animation-delay: 120ms;
 }
+/* The session script drops data-rise on later hard loads; the winner's digits stay settled with the signs. */
+.leaderboard-podium:not([data-rise]) .split-flap-digit[data-flip] {
+  animation: none;
+}
 
 /* Loading: the strip's and the podium's geometry, so nothing shifts when the board arrives. */
 .leaderboard-loading .leaderboard-sign {

@@ -213,3 +213,29 @@ it('reads only the board for a guest and lets an unavailable read reach the retr
     'unavailable',
   )
 })
+
+it('offers Show all when every loaded row stands on the podium', () => {
+  const tied = Array.from({ length: 10 }, (_, index) => entry(1, 50, `tied${index}`))
+  render(board(payload({ guest: true, boards: { flights: { all: { top: tied, total: 25 } } } })))
+  expect(screen.getByRole('button', { name: 'Show all' })).toBeInTheDocument()
+})
+
+it('keeps the gap on the viewer row when the member to beat is outside the list', () => {
+  const tiedWithMe = [
+    entry(15, 80, 'p'),
+    entry(15, 80, 'q'),
+    me,
+    entry(15, 80, 'r'),
+    entry(15, 80, 's'),
+  ]
+  const data = fixture()
+  data.viewer!.places.flights!.all = {
+    state: 'ranked',
+    entry: { ...me, value: 80 },
+    neighbours: tiedWithMe,
+    next: { entry: entry(12, 81, 'ahead'), gap: 1 },
+  }
+  const { container } = render(board(data))
+  const own = container.querySelector('[data-own]')
+  expect(own).toHaveTextContent('1 flight to @ahead')
+})

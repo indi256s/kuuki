@@ -133,10 +133,14 @@ export function BoardList({
     }
   }
   const next = place?.state === 'ranked' ? place.next : null
+  // The gap sits on the row to beat; when that row is on the podium or outside the list (a tie that spans the
+  // neighbourhood), it moves to the viewer's own row so it is never lost.
+  const listed = new Set([...rows, ...extras].map((entry) => entry.user_id))
+  const gapOwner = next && (listed.has(next.entry.user_id) ? next.entry.user_id : userId)
   const gapFor = (entry: LeaderboardEntry): Gap | undefined =>
-    next && next.entry.user_id === entry.user_id
+    next && entry.user_id === gapOwner
       ? {
-          name: entry.username ?? entry.display_name ?? '',
+          name: next.entry.username ?? next.entry.display_name ?? '',
           gap: `${formatNumber(locale, next.gap)} ${categoryUnit(category, next.gap, locale)}`,
         }
       : undefined
@@ -169,13 +173,15 @@ export function BoardList({
     }
   }
 
-  if (!rows.length && !extras.length) return null
+  const canLoad = slice.total > loaded.length
+  // A board whose loaded rows all sit on the podium (ten tied at #1) still offers the rest.
+  if (!rows.length && !extras.length && !canLoad) return null
   return (
     <section className="leaderboard-board" aria-labelledby="leaderboard-board-title">
       <h2 id="leaderboard-board-title" className="leaderboard-board-title">
         {ru ? (isGroundCategory(category) ? 'Отправления' : 'Вылеты') : 'Departures'}
       </h2>
-      <ol className="leaderboard-rows" ref={list}>
+      <ol className="leaderboard-rows" ref={list} hidden={!rows.length && !extras.length}>
         {rows.map((entry) => (
           <Row
             key={entry.user_id}
@@ -210,7 +216,7 @@ export function BoardList({
             : 'Couldn’t load more places. Try again.'}
         </p>
       )}
-      {slice.total > loaded.length && (
+      {canLoad && (
         <Button variant="ghost" onClick={showAll} loading={loading}>
           {expanded ? (ru ? 'Показать ещё' : 'Show more') : ru ? 'Показать всех' : 'Show all'}
         </Button>
