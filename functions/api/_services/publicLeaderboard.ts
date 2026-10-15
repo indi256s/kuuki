@@ -100,8 +100,11 @@ export async function readLeaderboardBoard(
 ) {
   const year = currentPeriod(now)
   const periods = ['all', year] as const
+  // standing re-ranks the members the live gate keeps (ties intact), so a board whose cached leaders have since
+  // left still shows its top; rows keep their published rank.
   const board = `SELECT lc.*, COUNT(*) OVER (PARTITION BY lc.category, lc.period) AS total,
-      ROW_NUMBER() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.rank, lc.id) AS pos
+      ROW_NUMBER() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.rank, lc.id) AS pos,
+      RANK() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.rank) AS standing
     ${READ_GATE} AND lc.period IN ('all', ?)`
   type Ranked = LeaderboardCacheRow & { total: number; pos: number }
 
@@ -109,10 +112,10 @@ export async function readLeaderboardBoard(
     db
       .prepare(
         `WITH board AS (${board}) SELECT * FROM board
-         WHERE rank <= ${TOP_RANK} OR total <= ${SHOW_EVERYONE_UP_TO} ORDER BY category, period, pos`,
+         WHERE standing <= ${TOP_RANK} OR total <= ${SHOW_EVERYONE_UP_TO} ORDER BY category, period, pos`,
       )
       .bind(year),
-    db.prepare(`SELECT COUNT(*) AS total, MAX(lc.updated_at) AS updated_at ${READ_GATE}`),
+    db.prepare(`SELECT MAX(lc.updated_at) AS updated_at ${READ_GATE}`),
   ]
   if (viewerId) {
     statements.push(

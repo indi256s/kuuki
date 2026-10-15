@@ -16,9 +16,14 @@ import { formatNumber, type Locale } from '../../lib/format'
 import { ProfileAvatar } from '../profile/avatar'
 import { Button } from '../ui/button'
 import { categoryUnit } from './categories'
-import { entryName } from './model'
+import { entryName, handleOf } from './model'
 
 const PAGE = 50
+/** The API's page cap; a re-read of the shown prefix never asks for more. */
+const MAX_PAGE = 200
+
+/** A live read of the board: rows plus the total and publication they came from. */
+type Expansion = { entries: LeaderboardEntry[]; total: number; updatedAt: string | null }
 
 type Gap = { name: string; gap: string }
 
@@ -97,7 +102,7 @@ export function BoardList({
   const list = useRef<HTMLOListElement>(null)
   const alive = useRef(true)
   const focusFrom = useRef<string | null>(null)
-  const [more, setMore] = useState<LeaderboardEntry[] | null>(null)
+  const [more, setMore] = useState<(Expansion & { done: boolean }) | null>(null)
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
   useEffect(() => {
@@ -119,7 +124,8 @@ export function BoardList({
   }, [more])
 
   const expanded = more !== null
-  const loaded = [...slice.top, ...(more ?? [])]
+  // Expanded, the list is the live read alone: appending it to the server-rendered head would mix two boards.
+  const loaded = more ? more.entries : slice.top
   const rows = loaded.filter((entry) => entry.rank > 3)
   let extras: LeaderboardEntry[] = []
   let showGap = false
@@ -140,7 +146,7 @@ export function BoardList({
   const gapFor = (entry: LeaderboardEntry): Gap | undefined =>
     next && entry.user_id === gapOwner
       ? {
-          name: next.entry.username ?? next.entry.display_name ?? '',
+          name: handleOf(next.entry),
           gap: `${formatNumber(locale, next.gap)} ${categoryUnit(category, next.gap, locale)}`,
         }
       : undefined
@@ -151,21 +157,34 @@ export function BoardList({
         : `Places ${extras[0].rank} to ${extras.at(-1)?.rank}`
       : undefined
 
+  const read = async (offset: number, limit: number) => {
+    const response = await fetch(
+      `/api/leaderboard?category=${category}&period=${period}&offset=${offset}&limit=${limit}`,
+    )
+    if (!response.ok) throw new Error('unavailable')
+    return (await response.json()) as Expansion
+  }
+
+  // The first expansion reads from the top. Later pages append only while the board is unchanged (same total and
+  // publication); otherwise the shown prefix is read again, so an opt-out or a rebuild never skips or mixes places.
   const showAll = async () => {
     setLoading(true)
     setFailed(false)
-    const offset = loaded.length
     try {
-      const response = await fetch(
-        `/api/leaderboard?category=${category}&period=${period}&offset=${offset}&limit=${PAGE}`,
-      )
-      if (!response.ok) throw new Error('unavailable')
-      const body = (await response.json()) as { entries: LeaderboardEntry[] }
+      let next: Expansion
+      if (!more) next = await read(0, PAGE)
+      else {
+        const page = await read(more.entries.length, PAGE)
+        next =
+          page.total === more.total && page.updatedAt === more.updatedAt
+            ? { ...page, entries: [...more.entries, ...page.entries] }
+            : await read(0, Math.min(more.entries.length + PAGE, MAX_PAGE))
+      }
       if (!alive.current) return
       const known = new Set(loaded.map((entry) => entry.user_id))
-      const fresh = body.entries.filter((entry) => !known.has(entry.user_id))
-      focusFrom.current = fresh[0]?.user_id ?? null
-      setMore([...(more ?? []), ...fresh])
+      focusFrom.current = next.entries.find((entry) => !known.has(entry.user_id))?.user_id ?? null
+      // A read that brings nothing new ends the expansion, whatever the total says.
+      setMore({ ...next, done: next.entries.length <= (more?.entries.length ?? 0) })
     } catch {
       if (alive.current) setFailed(true)
     } finally {
@@ -173,7 +192,7 @@ export function BoardList({
     }
   }
 
-  const canLoad = slice.total > loaded.length
+  const canLoad = !more?.done && (more?.total ?? slice.total) > loaded.length
   // A board whose loaded rows all sit on the podium (ten tied at #1) still offers the rest.
   if (!rows.length && !extras.length && !canLoad) return null
   return (

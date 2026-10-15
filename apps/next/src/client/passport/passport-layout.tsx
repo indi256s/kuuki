@@ -25,6 +25,7 @@ import {
   activeFilterCount,
   filterEntries,
   foundText,
+  mapScopeOf,
   searchSuggestion,
   sortEntries,
   totalsText,
@@ -32,7 +33,7 @@ import {
   type PassportEntry,
 } from './model'
 import { PassportIdentity, type IdentityOwner, type IdentityProfile } from './passport-identity'
-import { PassportToolbar, mapScopeOf } from './passport-toolbar'
+import { PassportToolbar } from './passport-toolbar'
 import type { usePassportQuery } from './use-passport-query'
 import '../profile/profile.css'
 import './passport.css'

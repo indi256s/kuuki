@@ -51,22 +51,22 @@ export function monthOfYear(date: string): number | null {
 const has = <T>(values: readonly T[] | undefined, value: T | null | undefined) =>
   !values?.length || (value != null && values.includes(value))
 
+/** Whether a `YYYY-MM-DD` day (legacy rows may carry `YYYY-MM`) falls in the period; no period admits every day. */
+function inPeriod(day: string | null, period: OverviewFilter['period']): boolean {
+  if (!period) return true
+  if ('years' in period)
+    return (
+      !period.years.length ||
+      (day !== null &&
+        monthIndex(day.slice(0, 7)) !== null &&
+        period.years.includes(Number(day.slice(0, 4))))
+    )
+  const days = periodDays(period)
+  return !!days && day !== null && dayToEpoch(day) !== null && day >= days.from && day <= days.to
+}
+
 export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): boolean {
-  const period = filter.period
-  if (period) {
-    if ('years' in period) {
-      if (
-        period.years.length &&
-        (monthIndex(row.date.slice(0, 7)) === null ||
-          !period.years.includes(Number(row.date.slice(0, 4))))
-      )
-        return false
-    } else {
-      const days = periodDays(period)
-      if (!days || dayToEpoch(row.date) === null || row.date < days.from || row.date > days.to)
-        return false
-    }
-  }
+  if (!inPeriod(row.date, filter.period)) return false
   const countries = filter.countries,
     regions = filter.regions
   if (countries?.length || regions?.length) {
@@ -164,20 +164,7 @@ export function groundMatches(
   refs: Refs,
 ): boolean {
   if (hasAviationFacet(filter)) return false
-  const period = filter.period
-  const day = journey.startDate ?? journey.endDate
-  if (period) {
-    if ('years' in period) {
-      if (period.years.length) {
-        if (day === null || monthIndex(day.slice(0, 7)) === null) return false
-        if (!period.years.includes(Number(day.slice(0, 4)))) return false
-      }
-    } else {
-      const days = periodDays(period)
-      if (!days || day === null || dayToEpoch(day) === null || day < days.from || day > days.to)
-        return false
-    }
-  }
+  if (!inPeriod(journey.startDate ?? journey.endDate, filter.period)) return false
   const { countries, regions } = filter
   if (countries?.length && !journey.countries.some((country) => countries.includes(country)))
     return false

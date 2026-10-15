@@ -321,6 +321,28 @@ it('reads the whole page at once: top rows for a guest, the neighbourhood and ga
   }
 })
 
+it('keeps the top of a board whose cached leaders have since left it', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    // 31 members ranked 1–31; the first ten turn private after the rebuild, leaving 21 with cached ranks 11–31.
+    await db.batch(
+      Array.from({ length: 31 }, (_, i) =>
+        member(db, { id: `m${String(i).padStart(2, '0')}`, flights: 60 - i }),
+      ).flat(),
+    )
+    await refreshLeaderboards(db, NOW)
+    await db.prepare("UPDATE profiles SET is_public = 0 WHERE id < 'm10'").run()
+
+    const guest = await readLeaderboardBoard(db, null, NOW)
+    expect(guest.boards.flights.all.total).toBe(21)
+    expect(guest.boards.flights.all.top.map((e) => e.rank)).toEqual([
+      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    ])
+  } finally {
+    await dispose()
+  }
+})
+
 it('tells a viewer with enough journeys that only publication blocks the ground boards', async () => {
   const { db, dispose } = await createApiDatabase()
   try {

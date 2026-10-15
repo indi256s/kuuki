@@ -355,5 +355,15 @@ export const S = {
   noYearHint: p('Choose another period above.', 'Выберите другой период выше.'),
 } as const
 
+/** The globe legend and the country list title name the same scope; without ground journeys there is none to name. */
+export const legendFor = (hasGround: boolean, scope: 'all' | 'flights' | 'ground') =>
+  !hasGround
+    ? S.legend
+    : scope === 'ground'
+      ? S.legendGround
+      : scope === 'flights'
+        ? S.legendFlights
+        : S.legendAll
+
 export const fill = (text: string, values: Record<string, string | number>) =>
   text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`))

@@ -4,7 +4,7 @@ import { useId } from 'react'
 import { Check } from '@keyline-icons/react'
 import { formatCount, formatNumber } from '../../../lib/format'
 import { BUCKET_TOKENS, visitBucket } from '../../../lib/map-buckets'
-import { forms, S, t } from '../copy'
+import { forms, legendFor, S, t } from '../copy'
 import { useOverview } from '../store/overview-context'
 
 const copy = {
@@ -30,7 +30,6 @@ export function CountryList() {
   const names = new Intl.DisplayNames([locale], { type: 'region' })
   const countries = scope.globe.countries
   const travelScope = scope.figures.scope
-  // Same title as the globe's legend, so the list and the map read the same scope.
   const grounded = !!payload && payload.ground.length > 0
   const note = !grounded
     ? copy.note
@@ -39,14 +38,7 @@ export function CountryList() {
       : travelScope === 'flights'
         ? copy.note
         : copy.noteAll
-  const legend =
-    !payload || payload.ground.length === 0
-      ? S.legend
-      : travelScope === 'ground'
-        ? S.legendGround
-        : travelScope === 'flights'
-          ? S.legendFlights
-          : S.legendAll
+  const legend = legendFor(grounded, travelScope)
   return (
     <section className="ov3-hero globe-country-card" aria-labelledby={heading}>
       <div>

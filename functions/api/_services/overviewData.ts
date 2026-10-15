@@ -16,7 +16,7 @@ import { assertRows } from '../_lib/d1'
 import type { FlightRow } from '../_lib/flights'
 import { COUNTRY_REGION } from '../_lib/countryRegions.generated'
 import { passportRead } from './passport'
-import { readOwnerJourneys } from './groundJourneyRead'
+import { ownerJourneysRead } from './groundJourneyRead'
 
 export const overviewEtag = (
   userId: string,
@@ -108,6 +108,8 @@ function arrivalMinute(row: FlightRow): number | null {
 
 export async function readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload> {
   const passport = passportRead(db, userId, { applyHidden: false })
+  // One batch, one snapshot: the ground journeys must come from the revision the ETag names.
+  const groundRead = ownerJourneysRead(db, userId)
   const statements = [
     db
       .prepare(`SELECT id, date, origin, destination, lifecycle_state, airline_iata, aircraft_icao,
@@ -129,13 +131,13 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
       .bind(userId),
     db.prepare('SELECT home_airport FROM profiles WHERE id = ?').bind(userId),
     ...passport.statements,
+    ...groundRead.statements,
   ]
-  const [results, journeys] = await Promise.all([
-    db.batch(statements),
-    readOwnerJourneys(db, userId),
-  ])
+  const results = await db.batch(statements)
   assertRows(results, 'Overview data read failed', statements.length)
-  const { state, data } = passport.derive(results.slice(5))
+  const groundAt = 5 + passport.statements.length
+  const { state, data } = passport.derive(results.slice(5, groundAt))
+  const journeys = groundRead.derive(results.slice(groundAt))
   const bits = new Map<number, number>()
   for (const suppression of results[1].results as {
     flight_id: number

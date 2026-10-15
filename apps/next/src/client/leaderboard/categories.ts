@@ -1,5 +1,9 @@
 import { pluralCategory, type Locale } from '../../lib/format'
-import type { LeaderboardCategory } from '../../../../../functions/api/_services/publicLeaderboard'
+import {
+  GROUND_CATEGORIES,
+  SKY_CATEGORIES,
+  type LeaderboardCategory,
+} from '../../../../../functions/api/_lib/leaderboard'
 export const categories: Record<LeaderboardCategory, [string, string]> = {
   flights: ['Flights', 'Перелёты'],
   distance: ['Distance', 'Расстояние'],
@@ -12,16 +16,10 @@ export const categories: Record<LeaderboardCategory, [string, string]> = {
   ground_countries: ['Countries by land', 'Страны по земле'],
 }
 export type CategoryGroup = 'sky' | 'ground'
-export const categoryGroup: Record<LeaderboardCategory, CategoryGroup> = {
-  flights: 'sky',
-  distance: 'sky',
-  countries: 'sky',
-  cities: 'sky',
-  airlines: 'sky',
-  rail: 'ground',
-  road: 'ground',
-  ground_countries: 'ground',
-}
+export const categoryGroups: [CategoryGroup, readonly LeaderboardCategory[]][] = [
+  ['sky', SKY_CATEGORIES],
+  ['ground', GROUND_CATEGORIES],
+]
 export const groupName: Record<CategoryGroup, [string, string]> = {
   sky: ['In the sky', 'В небе'],
   ground: ['On the ground', 'На земле'],

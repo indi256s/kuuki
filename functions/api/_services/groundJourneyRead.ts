@@ -108,10 +108,19 @@ export async function readOwnerJourneys(
   userId: string,
   journeyId?: string,
 ): Promise<GroundJourneyDto[]> {
+  const read = ownerJourneysRead(db, userId, journeyId)
+  return read.derive(await db.batch(read.statements))
+}
+
+/**
+ * The owner journey read as statements plus assembly, so a caller can put them in its own batch and keep one
+ * snapshot (Overview pairs them with the revision its ETag names).
+ */
+export function ownerJourneysRead(db: D1Database, userId: string, journeyId?: string) {
   const scope = journeyId ? ' AND id = ?' : ''
   const childScope = journeyId ? ' AND journey_id = ?' : ''
   const args = journeyId ? [userId, journeyId] : [userId]
-  const [journeys, legs, points, countries] = await db.batch([
+  const statements = [
     db
       .prepare(
         `SELECT id, mode, status, version, start_date, end_date, title, note, created_at, updated_at, confirmed_at
@@ -121,8 +130,11 @@ export async function readOwnerJourneys(
     db.prepare(childReadSql.legs(childScope)).bind(...args),
     db.prepare(childReadSql.points(childScope)).bind(...args),
     db.prepare(childReadSql.countries(childScope)).bind(...args),
-  ])
+  ]
+  return { statements, derive: (results: D1Result[]) => assembleJourneys(results) }
+}
 
+function assembleJourneys([journeys, legs, points, countries]: D1Result[]): GroundJourneyDto[] {
   const group = <T extends { journey_id: string }>(rows: T[]) => {
     const byJourney = new Map<string, T[]>()
     for (const row of rows)

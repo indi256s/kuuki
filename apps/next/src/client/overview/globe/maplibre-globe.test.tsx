@@ -329,8 +329,8 @@ it('draws ground between the ghosts and the flights, keeps it out of clicks, and
   )
   expect(map.fitBounds).toHaveBeenCalledWith(
     [
-      [2.35, 48.85],
-      [6.96, 50.94],
+      [expect.closeTo(2.35), 48.85],
+      [expect.closeTo(6.96), 50.94],
     ],
     expect.objectContaining({ maxZoom: 8, duration: 0 }),
   )

@@ -251,8 +251,8 @@ it('payload carries every lifecycle state in one owner-scoped batch', async () =
     const batch = vi.fn(db.batch.bind(db))
     const readDb = { prepare: db.prepare.bind(db), batch } as unknown as D1Database
     const payload = await readOverviewData(readDb, USER.id)
-    // The flight read and the ground journey loader each issue one batch.
-    expect(batch).toHaveBeenCalledTimes(2)
+    // Flights, Passport and ground journeys share one batch, so the ETag's revision names all of them.
+    expect(batch).toHaveBeenCalledTimes(1)
     expect(payload).toMatchObject({
       schemaVersion: 4,
       ground: [],
@@ -352,7 +352,7 @@ it('a known home override wins even when it is not a flown endpoint', async () =
       { prepare: db.prepare.bind(db), batch } as unknown as D1Database,
       USER.id,
     )
-    expect(batch).toHaveBeenCalledTimes(2)
+    expect(batch).toHaveBeenCalledTimes(1)
     expect(
       await db.prepare("SELECT iata FROM airports_reference WHERE iata = 'JFK'").first(),
     ).toEqual({ iata: 'JFK' })
