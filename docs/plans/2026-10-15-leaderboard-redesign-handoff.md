@@ -5,7 +5,7 @@ Plan: [2026-10-15-leaderboard-redesign.md](2026-10-15-leaderboard-redesign.md). 
 ## Owner and checkout
 
 - Branch `feat/leaderboard-redesign`, worktree `/Users/indi256/.t3/worktrees/kuuki/feat-leaderboard-redesign`, based on local `main` at `79d37815`.
-- Authority: local edits and local commits on this branch only. Push, PR, merge into `main`, remote D1 migration `0014`, deploy and production checks are not authorized.
+- Authority: local edits and local commits on this branch only. Push, PR, merge into `main`, deploy and production checks are not authorized. Remote migration `0014` was authorized separately on 2026-10-15 and is applied (see Production migration).
 
 ## Accepted waves
 
@@ -49,9 +49,21 @@ After the fixes: `pnpm test:api` 936/936 exit 0 (an earlier run in parallel with
 
 Reviewer notes, not code changes: the rebuild writes about 1,335 statements per pass at 1,000 members (fine now, worth watching); migration `0014` needs a coordinated release.
 
+## Production migration
+
+Applied 2026-10-15 under the runbook, with the 0013 procedure. Evidence: `.scratch/leaderboard-redesign/evidence/production-migration-0014.json` (local). Private backup: `~/.local/state/kuuki/backups/2026-10-15-0014`.
+
+- **Fix before apply (`d78d52ac`):** production runs no maintenance Worker or cron, so a migration that dropped the cache would have left the leaderboard empty. 0014 now carries the existing rows over as `period = 'all'`.
+- **Writers:** `kuuki-next`, `kuuki-activation`, `kuuki-import`; no crons; seven legacy Pages deployments still refuse writes (Access or maintenance); no imports processing.
+- **Hold:** both Workers copied to `MAINTENANCE_MODE=true` versions (`6ef45032`, `8f6cdc63`); API and protected pages returned 503.
+- **Backup and restore:** Time Travel bookmark and SQL export under hold; 44 tables / 567,290 rows restored exactly with the typed supplement (the raw export loses REAL precision in 55 `airports_reference` rows, as at 0013); integrity and foreign keys ok.
+- **Schema admission:** production matched the 0001–0013 fixture in seven dimensions; the rehearsal and production after 0014 match the 0001–0014 fixture.
+- **Apply:** `wrangler d1 migrations apply kuuki-db --remote` exit 0. All 42 application tables identical on prior columns; ledger and its sequence gained only 0014; 25 cache rows, all `'all'`; no foreign-key violations.
+- **Hold released** by redeploying the pre-hold versions `222eb564` / `2b9bb2a5` (no new code). Smoke: home 200, session 200 `null`, activation 200, leaderboard API 200.
+
 ## Next action
 
-Owner: release. Remote migration `0014` follows `docs/runbooks/audit-remediation-release.md` (target, writer hold, backup and restore proof, schema admission), then deploy the app and the maintenance worker together. None of this is authorized on this branch.
+Owner: deploy. Migration `0014` is in production, so the branch can ship through `deploy-kuuki` once it is on `main` (the ledger gate now passes). Until a maintenance pass or a manual `refreshLeaderboards` runs, the new page shows the carried all-time sky rows only: year boards and ground boards stay empty. Deploying the maintenance Worker is a separate decision.
 
 ## Inputs needed to resume
 
