@@ -130,7 +130,7 @@ const pressed = new Set(
   rows.filter((row) => row.state === 'logged').flatMap((row) => rowCountries(row, refs)),
 )
 const payload: OverviewPayload = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   etag: 'W/"ov3-board-1-1"',
   generatedAt,
   mode: 'flights',
@@ -142,6 +142,7 @@ const payload: OverviewPayload = {
     regions: new Set([...pressed].map((code) => refs.regions[code])).size,
   },
   rows,
+  ground: [],
   refs,
 }
 writeFileSync(

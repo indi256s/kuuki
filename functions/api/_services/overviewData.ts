@@ -3,19 +3,26 @@ import { familyOf } from '../../../packages/data/src/aircraft-lookup'
 import { aggregateRows } from '../../../packages/shared/src/overview/aggregate'
 import {
   AGGREGATE_THRESHOLD,
+  type OverviewGroundJourney,
   type OverviewPayload,
   type OverviewRow,
 } from '../../../packages/shared/src/overview/model'
+import {
+  railRouteRuns,
+  type GroundJourneyDto,
+  type GroundPlaceSnapshot,
+} from '../../../packages/shared/src/groundTravel'
 import { assertRows } from '../_lib/d1'
 import type { FlightRow } from '../_lib/flights'
 import { COUNTRY_REGION } from '../_lib/countryRegions.generated'
 import { passportRead } from './passport'
+import { readOwnerJourneys } from './groundJourneyRead'
 
 export const overviewEtag = (
   userId: string,
   state: { revision: number; evidence_revision: number },
 ): string =>
-  `W/"ov4-day-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
+  `W/"ov5-day-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
 
 type AirportRow = {
   iata: string
@@ -31,6 +38,41 @@ type AircraftRow = {
   type: string | null
   model: string | null
   name: string | null
+}
+
+/** Places in order as located runs: a place without coordinates ends the current run. */
+function locatedRuns(places: readonly GroundPlaceSnapshot[][]): OverviewGroundJourney['runs'] {
+  const runs: OverviewGroundJourney['runs'] = []
+  for (const run of places) {
+    let current: Array<[number, number]> = []
+    for (const place of run) {
+      if (place.lat === null || place.lon === null) {
+        if (current.length) runs.push(current)
+        current = []
+      } else current.push([place.lon, place.lat])
+    }
+    if (current.length) runs.push(current)
+  }
+  return runs
+}
+
+function groundJourney(
+  journey: GroundJourneyDto & { status: 'planned' | 'completed' },
+): OverviewGroundJourney {
+  return {
+    id: journey.id,
+    mode: journey.mode,
+    status: journey.status,
+    startDate: journey.startDate,
+    endDate: journey.endDate,
+    runs: locatedRuns(
+      journey.mode === 'rail'
+        ? railRouteRuns(journey.legs.map((leg) => ({ from: leg.from, to: leg.to })))
+        : [journey.points.map((point) => point.place)],
+    ),
+    countries: journey.countries,
+    distanceKm: journey.metrics.distanceKm,
+  }
 }
 
 function localMinute(time: string | null): number | null {
@@ -88,7 +130,10 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
     db.prepare('SELECT home_airport FROM profiles WHERE id = ?').bind(userId),
     ...passport.statements,
   ]
-  const results = await db.batch(statements)
+  const [results, journeys] = await Promise.all([
+    db.batch(statements),
+    readOwnerJourneys(db, userId),
+  ])
   assertRows(results, 'Overview data read failed', statements.length)
   const { state, data } = passport.derive(results.slice(5))
   const bits = new Map<number, number>()
@@ -122,6 +167,17 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
     departureUtc: row.departure_utc,
     suppressed: (bits.get(row.id) ?? 0) as OverviewRow['suppressed'],
   }))
+  const ground = journeys
+    .filter(
+      (journey): journey is GroundJourneyDto & { status: 'planned' | 'completed' } =>
+        journey.status !== 'cancelled',
+    )
+    .map(groundJourney)
+    .sort((a, b) => {
+      const dayA = a.startDate ?? a.endDate ?? '',
+        dayB = b.startDate ?? b.endDate ?? ''
+      return dayA < dayB ? -1 : dayA > dayB ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+    })
   const airports = new Map((results[2].results as AirportRow[]).map((row) => [row.iata, row]))
   const aircraft = new Map((results[3].results as AircraftRow[]).map((row) => [row.icao, row]))
   const homeOverride =
@@ -152,9 +208,14 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
       name: ref?.name ?? null,
     }
   }
+  for (const journey of ground)
+    for (const code of journey.countries) {
+      const region = COUNTRY_REGION[code]
+      if (region) refs.regions[code] = region
+    }
   const mode = rows.length > AGGREGATE_THRESHOLD ? 'aggregate' : 'flights'
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     etag: overviewEtag(userId, state ?? { revision: 0, evidence_revision: 0 }),
     generatedAt: new Date().toISOString(),
     mode,
@@ -173,6 +234,7 @@ export async function readOverviewData(db: D1Database, userId: string): Promise<
     },
     homeOverride,
     rows: mode === 'aggregate' ? aggregateRows(rows, 'day') : rows,
+    ground,
     refs,
   }
 }

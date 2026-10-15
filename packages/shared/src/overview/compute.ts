@@ -1,5 +1,5 @@
 import { coverage, figures, home, totals, type OverviewScope } from './figures'
-import { matches, previousPeriod } from './filter'
+import { effectiveScope, matches, previousPeriod } from './filter'
 import type { OverviewFilter, OverviewPayload } from './model'
 import { records } from './records'
 import { routes } from './routes'
@@ -14,6 +14,7 @@ import { globe } from './globe'
 import { nextFlights, replayItems } from './next'
 
 export function computeOverview(payload: OverviewPayload, filter: OverviewFilter): OverviewScope {
+  const travelScope = effectiveScope(payload, filter)
   const counted = payload.rows.filter((row) => row.state === 'logged' || row.state === 'awaiting')
   const rows = counted.filter((row) => matches(row, filter, payload.refs))
   const previous = previousPeriod(filter)
@@ -23,7 +24,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
   const homeAirport = home(counted, payload)
   const scope: OverviewScope = {
     filter,
-    figures: figures(rows, payload, filter, deltas, counted),
+    figures: figures(rows, payload, filter, deltas, counted, travelScope),
     coverage: coverage(rows),
     home: homeAirport,
     routes: routes(rows, counted, homeAirport?.iata ?? null),
@@ -35,7 +36,7 @@ export function computeOverview(payload: OverviewPayload, filter: OverviewFilter
     clock: clock(rows, payload.mode),
     rhythm: rhythm(rows, payload.mode),
     rankings: rankings(rows),
-    globe: globe(payload.rows, rows, payload.refs),
+    globe: globe(payload.rows, rows, payload, filter, travelScope),
     next: nextFlights(payload, counted),
     replay: replayItems(rows, payload.mode),
   }

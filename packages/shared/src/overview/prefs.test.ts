@@ -191,3 +191,12 @@ it('drops a saved Other maker, which no flight can match now that every manufact
   })
   expect(parsePrefs(stored(['other'])).filter).toEqual({ countries: ['JP'] })
 })
+
+it('keeps a valid travel scope and drops an invalid one', () => {
+  const parse = (scope: unknown) =>
+    parsePrefs(JSON.stringify({ version: 1, filter: { scope, airlines: ['TK'] } })).filter
+  expect(parse('ground')).toEqual({ scope: 'ground', airlines: ['TK'] })
+  expect(parse('flights')).toEqual({ scope: 'flights', airlines: ['TK'] })
+  expect(parse('rail')).toEqual({ airlines: ['TK'] })
+  expect(parse(3)).toEqual({ airlines: ['TK'] })
+})

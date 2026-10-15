@@ -12,6 +12,11 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
 }
+/* Under По земле only distance and countries remain: the card hugs them instead of stretching to the globe's height. */
+.ov3-hero-panel[data-scope='ground'] {
+  min-height: 0;
+  align-self: start;
+}
 :root[data-theme='dark'] .ov3-hero-panel {
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }

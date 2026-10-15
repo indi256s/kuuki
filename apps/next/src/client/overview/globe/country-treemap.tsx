@@ -23,7 +23,7 @@ type Tile = {
 }
 
 export function CountryTreemap() {
-  const { payload, filter, locale, actions } = useOverview()
+  const { payload, filter, locale, actions, scope } = useOverview()
   const [open, setOpen] = useState(false)
   const [region, setRegion] = useState<string | null>(null)
   const evidence = useMemo(
@@ -66,6 +66,8 @@ export function CountryTreemap() {
     datum,
     label: `${datum.name}: ${formatNumber(locale, datum.value)}`,
   }))
+  // Its evidence is flights only (the title says so), so По земле would leave it empty.
+  if (scope?.figures.scope === 'ground') return null
   return (
     <div className="globe-country-evidence">
       <Disclosure summary={title} open={open} onOpenChange={setOpen}>

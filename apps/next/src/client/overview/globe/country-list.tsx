@@ -12,19 +12,45 @@ const copy = {
     en: 'One visit per flight in each country.',
     ru: 'Одно посещение на перелёт в каждой стране.',
   },
+  noteGround: {
+    en: 'One visit per trip in each country.',
+    ru: 'Одно посещение на поездку в каждой стране.',
+  },
+  noteAll: {
+    en: 'One visit per flight or trip in each country.',
+    ru: 'Одно посещение на перелёт или поездку в каждой стране.',
+  },
 }
 
 /** The globe's key on wide Overview bands: the map's countries by visits, each with its legend bucket swatch. A row toggles that country's filter. */
 export function CountryList() {
-  const { scope, filter, locale, actions } = useOverview()
+  const { scope, payload, filter, locale, actions } = useOverview()
   const heading = useId()
   if (!scope) return null
   const names = new Intl.DisplayNames([locale], { type: 'region' })
   const countries = scope.globe.countries
+  const travelScope = scope.figures.scope
+  // Same title as the globe's legend, so the list and the map read the same scope.
+  const grounded = !!payload && payload.ground.length > 0
+  const note = !grounded
+    ? copy.note
+    : travelScope === 'ground'
+      ? copy.noteGround
+      : travelScope === 'flights'
+        ? copy.note
+        : copy.noteAll
+  const legend =
+    !payload || payload.ground.length === 0
+      ? S.legend
+      : travelScope === 'ground'
+        ? S.legendGround
+        : travelScope === 'flights'
+          ? S.legendFlights
+          : S.legendAll
   return (
     <section className="ov3-hero globe-country-card" aria-labelledby={heading}>
       <div>
-        <h2 id={heading}>{t(S.legend, locale)}</h2>
+        <h2 id={heading}>{t(legend, locale)}</h2>
       </div>
       {/* The list scrolls inside what the band leaves; it is out of flow so the globe and figures set the band's height. */}
       <div className="globe-country-slot">
@@ -75,7 +101,7 @@ export function CountryList() {
           <div className="globe-country-fade" data-edge="bottom" aria-hidden="true" />
         </div>
       </div>
-      {countries.length ? <p className="globe-country-note">{t(copy.note, locale)}</p> : null}
+      {countries.length ? <p className="globe-country-note">{t(note, locale)}</p> : null}
     </section>
   )
 }

@@ -43,7 +43,7 @@ it('saved exact-day preferences show unavailable monthly detail and recover afte
   const daily: OverviewPayload = {
     ...legacy,
     aggregateResolution: 'day',
-    etag: 'W/"ov4-day-range-owner-1-0"',
+    etag: 'W/"ov5-day-range-owner-1-0"',
     rows: aggregateRows(rows, 'day'),
   }
   const prefs = {
@@ -86,9 +86,18 @@ it('shows the first-run state after revalidation removes the last flight', async
     rows: [payload.rows[0]],
     etag: 'W/"ov3-last-owner-1-0"',
     derivedReady: true,
-    passport: { ...payload.passport, countries: 0, countryCodes: [], regions: 0 },
+    passport: {
+      ...payload.passport,
+      countries: 0,
+      countryCodes: [],
+      regions: 0,
+    },
   }
-  const empty: OverviewPayload = { ...one, rows: [], etag: 'W/"ov3-last-owner-2-0"' }
+  const empty: OverviewPayload = {
+    ...one,
+    rows: [],
+    etag: 'W/"ov3-last-owner-2-0"',
+  }
   vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(Response.json(empty)))
   render(
     <OverviewPage
@@ -165,6 +174,52 @@ it('keeps a chapter in the grid when only the filter drops it below its gate', a
     (node) => node.getAttribute('data-section'),
   )
   expect(order).toEqual(DEFAULT_PREFS.layout.order)
+})
+
+it('renders no aviation chapter under the ground scope', async () => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    })),
+  )
+  const ground: OverviewPayload = {
+    ...payload,
+    ground: [
+      {
+        id: 'g1',
+        mode: 'rail',
+        status: 'completed',
+        startDate: '2024-05-01',
+        endDate: null,
+        runs: [
+          [
+            [13.4, 52.5],
+            [11.6, 48.1],
+          ],
+        ],
+        countries: ['DE'],
+        distanceKm: 500,
+      },
+    ],
+  }
+  const { container } = render(
+    <OverviewPage
+      payload={ground}
+      prefs={{ ...DEFAULT_PREFS, filter: { scope: 'ground' } }}
+      ownerKey="ground-owner"
+      name=""
+      locale="en"
+      live={true}
+      saver={saver}
+    />,
+  )
+  await screen.findByRole('heading', { level: 1 })
+  expect(container.querySelector('[data-section]')).toBeNull()
+  expect(container.querySelector('[data-surface]')).toBeNull()
 })
 
 it('reads mobile controls and facts before the map while upcoming bookings remain global in a filtered scope', () => {

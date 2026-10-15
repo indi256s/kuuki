@@ -173,8 +173,8 @@ function useController({
               const etag = body && typeof body === 'object' && 'etag' in body ? body.etag : null
               const prefix =
                 typeof etag === 'string' &&
-                etag.startsWith(`W/"ov4-day-${encodeURIComponent(ownerKey)}-`)
-                  ? `W/"ov4-day-${encodeURIComponent(ownerKey)}-`
+                etag.startsWith(`W/"ov5-day-${encodeURIComponent(ownerKey)}-`)
+                  ? `W/"ov5-day-${encodeURIComponent(ownerKey)}-`
                   : `W/"ov3-${encodeURIComponent(ownerKey)}-`
               const revisions =
                 typeof etag === 'string' && etag.startsWith(prefix)
@@ -349,6 +349,8 @@ function useController({
           return
         updateFilter((filter) => filters.setPeriod(filter, period))
       },
+      setScope: (scope: OverviewFilter['scope'] | null) =>
+        updateFilter((filter) => filters.setScope(filter, scope)),
       clear: () => updateFilter(filters.clearAll),
       removeLast: () => updateFilter(filters.removeLast),
     },

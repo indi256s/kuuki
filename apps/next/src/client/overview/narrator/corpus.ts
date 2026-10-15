@@ -921,8 +921,8 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: 'Экваторов в пересчёте: {laps}. Мнение экватора не запрашивалось.',
     },
     {
-      en: 'Equators by great circle: {laps}. The real path was longer and less tidy.',
-      ru: 'По дуге большого круга экваторов: {laps}. Реальный путь длиннее и запутаннее.',
+      en: 'Equators as the crow flies: {laps}. The real path was longer and less tidy.',
+      ru: 'Экваторов по прямой: {laps}. Реальный путь длиннее и запутаннее.',
     },
     {
       en: 'Equators on the counter: {laps}. The drums kept up without complaint.',

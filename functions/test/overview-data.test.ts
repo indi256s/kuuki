@@ -7,6 +7,7 @@ import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/der
 import { onRequestGet as getOverviewData } from '../api/me/overview/data'
 import { updateProfileRequest } from '../api/profiles/me'
 import { apiContext, csrfRequest } from './harness'
+import { readPublicOverview } from '../api/_services/publicOverview'
 import { bulkFlights, overviewAccount, USER } from './overview-fixture'
 
 it('serves no-store payload with etag', async () => {
@@ -19,7 +20,7 @@ it('serves no-store payload with etag', async () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('Cache-Control')).toBe('no-store')
     const payload = (await response.json()) as { etag: string; schemaVersion: number }
-    expect(payload.schemaVersion).toBe(3)
+    expect(payload.schemaVersion).toBe(4)
     expect(response.headers.get('ETag')).toBe(payload.etag)
   } finally {
     await dispose()
@@ -48,7 +49,7 @@ it('304 on matching etag reads only the stamp; a new revision serves fresh data'
     expect(prepare.mock.calls[0][0]).toContain('user_derived_state')
     expect(batch).not.toHaveBeenCalled()
     const legacy = new Request('https://kuuki.test/api/me/overview/data', {
-      headers: { 'If-None-Match': etag.replace('ov4-day-', 'ov3-') },
+      headers: { 'If-None-Match': etag.replace('ov5-day-', 'ov4-day-') },
     })
     expect(
       (await getOverviewData({ ...apiContext(db, legacy), data: { user: USER } } as never)).status,
@@ -250,9 +251,11 @@ it('payload carries every lifecycle state in one owner-scoped batch', async () =
     const batch = vi.fn(db.batch.bind(db))
     const readDb = { prepare: db.prepare.bind(db), batch } as unknown as D1Database
     const payload = await readOverviewData(readDb, USER.id)
-    expect(batch).toHaveBeenCalledTimes(1)
+    // The flight read and the ground journey loader each issue one batch.
+    expect(batch).toHaveBeenCalledTimes(2)
     expect(payload).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
+      ground: [],
       mode: 'flights',
       derivedReady: true,
       homeOverride: null,
@@ -349,7 +352,7 @@ it('a known home override wins even when it is not a flown endpoint', async () =
       { prepare: db.prepare.bind(db), batch } as unknown as D1Database,
       USER.id,
     )
-    expect(batch).toHaveBeenCalledTimes(1)
+    expect(batch).toHaveBeenCalledTimes(2)
     expect(
       await db.prepare("SELECT iata FROM airports_reference WHERE iata = 'JFK'").first(),
     ).toEqual({ iata: 'JFK' })
@@ -464,7 +467,7 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
   }
 })
 
-it('etag uses ov3-day prefix, changes with either revision and exposes pending publication', async () => {
+it('etag uses ov5-day prefix, changes with either revision and exposes pending publication', async () => {
   const { db, dispose } = await overviewAccount([])
   try {
     const before = await readOverviewData(db, USER.id)
@@ -476,7 +479,7 @@ it('etag uses ov3-day prefix, changes with either revision and exposes pending p
     expect(after.etag).not.toBe(before.etag)
     expect(after.derivedReady).toBe(false)
     expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 1 })).toBe(
-      `W/"ov4-day-${encodeURIComponent(USER.id)}-2-1"`,
+      `W/"ov5-day-${encodeURIComponent(USER.id)}-2-1"`,
     )
     expect(overviewEtag(USER.id, { revision: 2, evidence_revision: 2 })).not.toBe(after.etag)
   } finally {
@@ -846,6 +849,151 @@ it('pressed passport identities include claim, ground and legacy evidence but ex
       ['JFK', false],
       ['IST', true],
     ])
+  } finally {
+    await dispose()
+  }
+})
+
+const snapshot = (id: string, name: string, countryCode: string, at: [number, number] | null) =>
+  JSON.stringify({
+    source: 'geonames',
+    id,
+    name,
+    nameRu: null,
+    nameEn: null,
+    countryCode,
+    region: null,
+    lat: at?.[1] ?? null,
+    lon: at?.[0] ?? null,
+    timezone: null,
+    catalogVersion: 'test',
+  })
+const PARIS = snapshot('1', 'Paris', 'FR', [2.35, 48.85])
+const FRANKFURT = snapshot('2', 'Frankfurt', 'DE', [8.68, 50.11])
+const BERLIN = snapshot('3', 'Berlin', 'DE', [13.4, 52.52])
+const NOWHERE = snapshot('4', 'Nowhere', 'DE', null)
+
+function groundJourney(
+  db: D1Database,
+  id: string,
+  mode: 'rail' | 'road',
+  status: 'planned' | 'completed' | 'cancelled',
+  start: string | null,
+  places: string[],
+  countries: string[] = [],
+) {
+  return [
+    db
+      .prepare(
+        `INSERT INTO ground_journeys (id,user_id,mode,status,version,start_date,end_date,created_at,updated_at,confirmed_at)
+         VALUES (?,?,?,?,1,?,NULL,'2026-01-01T00:00:00.000Z','2026-01-02T00:00:00.000Z',?)`,
+      )
+      .bind(id, USER.id, mode, status, start, status === 'completed' ? '2026-01-02' : null),
+    ...(mode === 'rail'
+      ? places
+          .slice(1)
+          .map((to, index) =>
+            db
+              .prepare(
+                'INSERT INTO ground_rail_legs (id,journey_id,user_id,ordinal,from_place,to_place) VALUES (?,?,?,?,?,?)',
+              )
+              .bind(`${id}-l${index}`, id, USER.id, index, places[index], to),
+          )
+      : places.map((place, index) =>
+          db
+            .prepare(
+              'INSERT INTO ground_road_points (id,journey_id,user_id,ordinal,place) VALUES (?,?,?,?,?)',
+            )
+            .bind(`${id}-p${index}`, id, USER.id, index, place),
+        )),
+    ...countries.map((code) =>
+      db
+        .prepare(
+          'INSERT INTO ground_journey_countries (journey_id,user_id,country_code) VALUES (?,?,?)',
+        )
+        .bind(id, USER.id, code),
+    ),
+  ]
+}
+
+const groundAccount = () =>
+  overviewAccount(
+    [{ id: 1, date: '2025-01-01', origin: 'TBS', destination: 'IST', state: 'logged' }],
+    (d) => [
+      ...groundJourney(
+        d,
+        'g-rail',
+        'rail',
+        'completed',
+        '2025-06-02',
+        [PARIS, FRANKFURT, BERLIN],
+        ['DE', 'FR'],
+      ),
+      ...groundJourney(
+        d,
+        'g-road',
+        'road',
+        'completed',
+        '2024-09-01',
+        [PARIS, NOWHERE, FRANKFURT, BERLIN],
+        ['DE'],
+      ),
+      ...groundJourney(d, 'g-plan', 'rail', 'planned', null, [BERLIN, FRANKFURT]),
+      ...groundJourney(d, 'g-cancel', 'rail', 'cancelled', '2025-01-01', [PARIS, BERLIN]),
+    ],
+  )
+
+it('payload lists live non-cancelled ground journeys with located runs and their regions', async () => {
+  const { db, dispose } = await groundAccount()
+  try {
+    const payload = await readOverviewData(db, USER.id)
+    expect(payload.schemaVersion).toBe(4)
+    expect(payload.ground.map((journey) => journey.id)).toEqual(['g-plan', 'g-road', 'g-rail'])
+    const byId = Object.fromEntries(payload.ground.map((journey) => [journey.id, journey]))
+    expect(byId['g-rail']).toMatchObject({
+      mode: 'rail',
+      status: 'completed',
+      startDate: '2025-06-02',
+      countries: ['DE', 'FR'],
+      runs: [
+        [
+          [2.35, 48.85],
+          [8.68, 50.11],
+          [13.4, 52.52],
+        ],
+      ],
+    })
+    expect(byId['g-rail'].distanceKm).toBeGreaterThan(800)
+    // The unlocated place ends the first run and starts a new one after it.
+    expect(byId['g-road'].runs).toEqual([
+      [[2.35, 48.85]],
+      [
+        [8.68, 50.11],
+        [13.4, 52.52],
+      ],
+    ])
+    expect(byId['g-road'].distanceKm).toBeNull()
+    expect(byId['g-plan']).toMatchObject({ status: 'planned', countries: [], startDate: null })
+    expect(payload.refs.regions).toMatchObject({ DE: 'europe', FR: 'europe' })
+  } finally {
+    await dispose()
+  }
+})
+
+it('the public overview carries no ground journeys', async () => {
+  const { db, dispose } = await groundAccount()
+  try {
+    await db
+      .prepare(
+        "UPDATE profiles SET username = 'groundfan', is_public = 1, onboarded_at = '2026-01-01T00:00:00.000Z' WHERE id = ?",
+      )
+      .bind(USER.id)
+      .run()
+    const result = await readPublicOverview(db, 'groundfan')
+    expect(result).not.toBeNull()
+    const text = JSON.stringify(result)
+    expect(text).not.toMatch(/ground|runs|rail|road/)
+    expect(Object.keys(result!).sort()).toEqual(['airports', 'routes'])
   } finally {
     await dispose()
   }

@@ -31,6 +31,7 @@ export const DEFAULT_PREFS: OverviewPrefs = {
 
 const strings = z.array(z.string())
 const filterSchema = z.strictObject({
+  scope: z.enum(['flights', 'ground']).optional(),
   period: z
     .union([
       z.strictObject({ years: z.array(z.number().int().min(0).max(9999)) }),

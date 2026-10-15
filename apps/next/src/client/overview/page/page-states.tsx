@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '../../ui/button'
 import { Narrator } from '../narrator/narrator'
 import { useOverview } from '../store/overview-context'
+import { isAviationFacetNote } from '../store/scope-state'
 import { S, t } from '../copy'
 
 export function FirstRun() {
@@ -24,10 +25,20 @@ export function FirstRun() {
   )
 }
 export function ZeroResult() {
-  const { actions, locale } = useOverview()
+  const { actions, locale, scope, filter } = useOverview()
+  const ground = scope?.figures.scope === 'ground'
   return (
     <div className="ov3-zero">
-      <Narrator slot="zero" />
+      {ground ? (
+        <p className="narrator">
+          {t(
+            scope && isAviationFacetNote(scope, filter) ? S.aviationFacetNote : S.groundZero,
+            locale,
+          )}
+        </p>
+      ) : (
+        <Narrator slot="zero" />
+      )}
       <div className="ov3-actions">
         <Button onClick={actions.removeLast}>
           {t({ en: 'Remove last filter', ru: 'Убрать последний фильтр' }, locale)}

@@ -19,6 +19,26 @@ import { REGION_LABELS, SOURCE_LABELS, type PassportSort } from './model'
 import type { PassportPatch } from './use-passport-query'
 import './passport.css'
 
+export type MapScope = 'all' | 'flights' | 'ground'
+/** The canonical `src` behind each map segment; `null` clears it. */
+export const MAP_SCOPE_SRC: Record<MapScope, string | null> = {
+  all: null,
+  flights: 'flights',
+  ground: 'trains,road',
+}
+/** The segment a source selection stands for, or null when it is another combination (manual only, say). */
+export function mapScopeOf(sources: readonly PassportSource[]): MapScope | null {
+  const src = sources.length ? sources.join(',') : null
+  return (
+    (Object.keys(MAP_SCOPE_SRC) as MapScope[]).find((scope) => MAP_SCOPE_SRC[scope] === src) ?? null
+  )
+}
+const MAP_SCOPE_LABELS: Record<MapScope, Record<Locale, string>> = {
+  all: { en: 'All', ru: 'Всё' },
+  flights: { en: 'Flights', ru: 'Перелёты' },
+  ground: { en: 'Ground', ru: 'По земле' },
+}
+
 const SORT_LABELS: Record<PassportSort, Record<Locale, string>> = {
   recent: { en: 'Recent', ru: 'Недавние' },
   name: { en: 'Name', ru: 'По имени' },
@@ -91,6 +111,9 @@ export function PassportToolbar({
           { value: 'map', label: ru ? 'Карта' : 'Map' },
         ]}
       />
+      {owner && state.view === 'map' ? (
+        <MapScopeControl locale={locale} state={state} navigate={navigate} />
+      ) : null}
       <FiltersPopover
         locale={locale}
         owner={owner}
@@ -128,6 +151,41 @@ export function PassportToolbar({
         </Button>
       ) : null}
     </div>
+  )
+}
+
+/**
+ * The owner's map picks which travel fills the countries. It writes the same `src` the Sources filter does; any other
+ * combination is named instead, and the toolbar's Reset clears it.
+ */
+function MapScopeControl({
+  locale,
+  state,
+  navigate,
+}: {
+  locale: Locale
+  state: PassportState
+  navigate: (patch: PassportPatch) => void
+}) {
+  const ru = locale === 'ru'
+  const scope = mapScopeOf(state.sources)
+  if (!scope)
+    return (
+      <p className="passport-map-sources">
+        {(ru ? 'Источники: ' : 'Sources: ') +
+          state.sources.map((source) => SOURCE_LABELS[source][locale]).join(', ')}
+      </p>
+    )
+  return (
+    <SegmentedControl
+      label={ru ? 'Что показывает карта' : 'What the map shows'}
+      value={scope}
+      onChange={(next) => navigate({ src: MAP_SCOPE_SRC[next] })}
+      options={(Object.keys(MAP_SCOPE_LABELS) as MapScope[]).map((value) => ({
+        value,
+        label: MAP_SCOPE_LABELS[value][locale],
+      }))}
+    />
   )
 }
 

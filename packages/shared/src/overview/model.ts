@@ -6,7 +6,10 @@ export const AGGREGATE_THRESHOLD = 5000
 
 export type Haul = 'short' | 'medium' | 'long'
 export type DepartureBand = 'night' | 'morning' | 'afternoon' | 'evening'
+/** Page-level choice of which travel the geography describes; absent means everything. */
+export type TravelScope = 'flights' | 'ground'
 export interface OverviewFilter {
+  scope?: TravelScope
   period?: { years: number[] } | { from: string; to: string }
   countries?: string[]
   regions?: string[]
@@ -26,7 +29,7 @@ export interface OverviewFilter {
   domestic?: Array<'domestic' | 'international'>
   departureBands?: DepartureBand[]
 }
-export type FacetKey = Exclude<keyof OverviewFilter, 'period'>
+export type FacetKey = Exclude<keyof OverviewFilter, 'period' | 'scope'>
 export const HAUL_KM = { medium: 1500, long: 4000 } as const
 export const BAND_START_HOUR = { night: 22, morning: 6, afternoon: 12, evening: 18 } as const
 
@@ -103,8 +106,21 @@ export interface OverviewRow {
   crossingTime?: { forwardMinutes: number; backMinutes: number; offsets: number[] }
 }
 
+export interface OverviewGroundJourney {
+  id: string
+  mode: 'rail' | 'road'
+  status: 'completed' | 'planned'
+  startDate: string | null
+  endDate: string | null
+  /** Located places in order, split wherever a place has no coordinates. */
+  runs: Array<Array<[lon: number, lat: number]>>
+  /** Owner-confirmed country codes; empty for planned journeys. */
+  countries: string[]
+  distanceKm: number | null
+}
+
 export interface OverviewPayload {
-  schemaVersion: 3
+  schemaVersion: 4
   etag: string
   generatedAt: string
   mode: 'flights' | 'aggregate'
@@ -114,6 +130,7 @@ export interface OverviewPayload {
   passport: { countries: number; regions: number; countryCodes: string[] }
   homeOverride: string | null
   rows: OverviewRow[]
+  ground: OverviewGroundJourney[]
   refs: {
     airports: Record<
       string,

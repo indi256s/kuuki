@@ -1,6 +1,6 @@
 import { calendarDay, type NextFlight, type ReplayItem } from './next'
-import { isEmptyFilter, rowCountries } from './filter'
-import type { OverviewFilter, OverviewPayload, OverviewRow } from './model'
+import { isEmptyFilter, previousPeriod, rowCountries, scopedGround } from './filter'
+import type { OverviewFilter, OverviewPayload, OverviewRow, TravelScope } from './model'
 import type { Records } from './records'
 import type { Routes } from './routes'
 import type { Crossings } from './crossings'
@@ -21,8 +21,15 @@ export interface Figures {
   distanceKm: number
   durationMinutes: number
   durationApproximate: boolean
-  countries: { value: number; source: 'passport' | 'by_air' }
+  /** The effective scope the geographic figures describe. */
+  scope: 'all' | TravelScope
+  countries: { value: number; source: 'passport' | 'by_air' | 'ground' | 'all' }
   regions: number
+  /** Flight great-circle km plus completed ground straight-line km, per scope. */
+  travelKm: number
+  travelKmApproximate: boolean
+  travelKmDelta: number | null
+  groundJourneys: number
   firstDate: string | null
   airports: number
   estimatedFlights: number
@@ -107,12 +114,24 @@ export function figures(
   filter: OverviewFilter,
   deltas: Figures['deltas'],
   counted: OverviewRow[],
+  scope: 'all' | TravelScope,
 ): Figures {
-  const countries = new Set(rows.flatMap((row) => rowCountries(row, payload.refs)))
+  const flightCountries = new Set(rows.flatMap((row) => rowCountries(row, payload.refs)))
+  const unfiltered = isEmptyFilter(filter)
+  const completed = scopedGround(payload, filter, scope).filter(
+    (journey) => journey.status === 'completed',
+  )
+  const groundCountries = new Set(completed.flatMap((journey) => journey.countries))
+  const passportCase = scope === 'all' && unfiltered
+  const countries =
+    scope === 'flights'
+      ? flightCountries
+      : scope === 'ground'
+        ? groundCountries
+        : new Set([...flightCountries, ...groundCountries])
   const regions = new Set(
     [...countries].map((country) => payload.refs.regions[country]).filter(Boolean),
   )
-  const unfiltered = isEmptyFilter(filter)
   const scopeTotals = totals(rows)
   const airports = new Set(rows.flatMap((row) => [row.origin, row.destination])).size
   const dates = rows
@@ -136,6 +155,20 @@ export function figures(
     for (let year = first; year <= last; year++)
       byYear.push({ key: String(year).padStart(4, '0'), year, flights: yearCounts.get(year) ?? 0 })
   }
+  const groundKm = (journeys: typeof completed) =>
+    journeys.reduce((sum, journey) => sum + metric(journey.distanceKm), 0)
+  const travelKm = (scope === 'ground' ? 0 : scopeTotals.distanceKm) + groundKm(completed)
+  const previous = deltas ? previousPeriod(filter) : null
+  const travelKmDelta =
+    deltas && previous
+      ? travelKm -
+        ((scope === 'ground' ? 0 : deltas.distanceKm) +
+          groundKm(
+            scopedGround(payload, previous, scope).filter(
+              (journey) => journey.status === 'completed',
+            ),
+          ))
+      : null
   let share: Figures['share'] = null
   if (!filter.period && !unfiltered) {
     const all = totals(counted)
@@ -171,11 +204,26 @@ export function figures(
         Number.isFinite(row.durationMinutes) &&
         row.durationMinutes >= 0,
     ),
-    countries: {
-      value: unfiltered ? payload.passport.countries : countries.size,
-      source: unfiltered ? 'passport' : 'by_air',
-    },
-    regions: unfiltered ? payload.passport.regions : regions.size,
+    scope,
+    countries: passportCase
+      ? { value: payload.passport.countries, source: 'passport' }
+      : {
+          value: countries.size,
+          // Without any ground journeys the union is the flights-only figure it always was.
+          source:
+            scope === 'ground'
+              ? 'ground'
+              : scope === 'flights' || payload.ground.length === 0
+                ? 'by_air'
+                : 'all',
+        },
+    regions: passportCase ? payload.passport.regions : regions.size,
+    travelKm,
+    travelKmApproximate: completed.some(
+      (journey) => journey.distanceKm === null || !Number.isFinite(journey.distanceKm),
+    ),
+    travelKmDelta,
+    groundJourneys: completed.length,
     deltas,
   }
 }

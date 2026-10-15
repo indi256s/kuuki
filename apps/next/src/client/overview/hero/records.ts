@@ -6,6 +6,8 @@ import { formatNumber, type Locale } from '../../../lib/format'
 import type { HeroRecord } from '../narrator/triggers'
 
 export const HERO_RECORDS: readonly HeroRecord[] = ['flights', 'km', 'air', 'countries', 'airports']
+/** Flights, hours and airports are flight facts: По земле drops them, and the rest stay in card order. */
+export const GROUND_RECORDS: readonly HeroRecord[] = ['km', 'countries']
 
 /** The spike's stack: 3, 5, 8 or 12 stubs under the lit one, for under 25, 75 and 200 flights, and 200 or more. */
 export function stubBucket(flights: number): 3 | 5 | 8 | 12 {
@@ -88,7 +90,7 @@ export function railValue(
     case 'flights':
       return compactNumber(locale, figures.flights)
     case 'km':
-      return compactNumber(locale, figures.distanceKm)
+      return compactNumber(locale, figures.travelKm)
     case 'air': {
       const hours = Math.floor(figures.durationMinutes / 60)
       // "216h", but "1.2k h": a unit glued to a suffix would read as one word.

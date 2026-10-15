@@ -6,13 +6,18 @@ import { formatNumber } from '../../../lib/format'
 import { useOverview } from '../store/overview-context'
 import { Chip } from '../../ui/chip'
 import { Button } from '../../ui/button'
+import { SegmentedControl } from '../../ui/segmented-control'
+import { S, t } from '../copy'
 import type { FilterFacet } from './chip-label'
 import { FilterPanel } from './filter-panel'
 import { useAppliedFacets } from './use-applied-facets'
 import './filters.css'
 
 export function FilterBar() {
-  const { filter, locale, isCurrent } = useOverview()
+  const { filter, locale, isCurrent, payload, scope, actions } = useOverview()
+  // The segment exists only with ground data; a stored scope without it is already ignored by the compute.
+  const hasGround = (payload?.ground.length ?? 0) > 0
+  const travelScope = hasGround ? (scope?.figures.scope ?? 'all') : 'all'
   const facets = useAppliedFacets()
   const bar = useRef<HTMLDivElement>(null),
     overflow = useRef<HTMLButtonElement>(null)
@@ -43,6 +48,11 @@ export function FilterBar() {
         item.hidden = false
       })
       if (more) more.hidden = true
+      // Rows by vertical centre: the dense scope segment is shorter than the buttons beside it, so tops differ within a row.
+      const middle = (item: Element) => {
+        const rect = item.getBoundingClientRect()
+        return Math.round(rect.top + rect.height / 2)
+      }
       const tops = [
         ...new Set(
           [...node.children]
@@ -50,11 +60,11 @@ export function FilterBar() {
               (item) =>
                 item instanceof HTMLElement && !item.hidden && item.getClientRects().length > 0,
             )
-            .map((item) => item.getBoundingClientRect().top),
+            .map(middle),
         ),
       ].sort((a, b) => a - b)
       const second = tops[1] ?? tops[0]
-      let count = items.findIndex((item) => item.getBoundingClientRect().top > second)
+      let count = items.findIndex((item) => middle(item) > second)
       if (count < 0) count = items.length
       if (more && count < items.length) {
         do {
@@ -62,7 +72,7 @@ export function FilterBar() {
             item.hidden = position >= count
           })
           more.hidden = false
-          if (more.getBoundingClientRect().top <= second || count === 0) break
+          if (middle(more) <= second || count === 0) break
           count--
         } while (count >= 0)
       }
@@ -84,7 +94,7 @@ export function FilterBar() {
       window.removeEventListener('resize', measure)
       document.fonts?.removeEventListener('loadingdone', measure)
     }
-  }, [filter, locale])
+  }, [filter, locale, hasGround])
   const visible = Math.min(shown, facets.length),
     remaining = facets.length - visible
   return (
@@ -94,6 +104,21 @@ export function FilterBar() {
         ref={bar}
         aria-label={locale === 'ru' ? 'Фильтры обзора' : 'Overview filters'}
       >
+        {hasGround ? (
+          <SegmentedControl
+            dense
+            label={t(S.scopeLabel, locale)}
+            value={travelScope}
+            onChange={(next) => {
+              if (isCurrent()) actions.setScope(next === 'all' ? null : next)
+            }}
+            options={[
+              { value: 'all', label: t(S.scopeAll, locale) },
+              { value: 'flights', label: t(S.scopeFlights, locale) },
+              { value: 'ground', label: t(S.scopeGround, locale) },
+            ]}
+          />
+        ) : null}
         <Button
           className="ov-filter-period"
           onClick={(event) => open(event.currentTarget, 'period')}
@@ -112,7 +137,13 @@ export function FilterBar() {
         </Button>
         {!facets.length ? (
           <span className="ov-filter-all">
-            {locale === 'ru' ? 'Все перелёты за всё время' : 'All flights, all time'}
+            {hasGround && travelScope === 'all'
+              ? t(S.summaryAllTravel, locale)
+              : hasGround && travelScope === 'ground'
+                ? t(S.summaryGround, locale)
+                : locale === 'ru'
+                  ? 'Все перелёты за всё время'
+                  : 'All flights, all time'}
           </span>
         ) : null}
         {facets.map(({ facet, label, swatch, removeLabel, remove }, position) => (
