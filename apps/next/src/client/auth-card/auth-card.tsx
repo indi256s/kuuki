@@ -2,15 +2,22 @@
 
 import { useLocale } from '../preferences'
 
-import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+  type Ref,
+} from 'react'
+import dynamic from 'next/dynamic'
 import { api, ApiError, beginIdentityOperation } from '@kuuki/client/apiClient'
 import { withIdentityMutation } from '../activity'
 import { markOnboarded } from '../welcome/api'
 import { dissolve } from '../welcome/dissolve'
 import { morph } from '../welcome/morph'
-import { PassportPreview } from '../welcome/passport/passport-preview'
 import type { PassportPreview as Preview, WelcomeInit } from '../welcome/types'
-import { WelcomeFlow } from '../welcome/welcome-flow'
 import '../welcome/welcome.css'
 import type { Locale } from '../../lib/format'
 import { BrandPanel } from './brand-panel'
@@ -78,6 +85,37 @@ export function AuthCardFrame({
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Onboarding is most of the card's code, and a guest on /signin needs none of it until they create a journal.
+// /welcome/* renders it on the server through next/dynamic. An in-place signup loads it first: the morph commits in
+// flushSync, which would show a fallback for a module still in flight.
+type Onboarding = {
+  WelcomeFlow: typeof import('../welcome/welcome-flow').WelcomeFlow
+  PassportPreview: typeof import('../welcome/passport/passport-preview').PassportPreview
+}
+let onboarding: Onboarding | undefined
+let onboardingLoad: Promise<Onboarding> | undefined
+const loadOnboarding = () =>
+  (onboardingLoad ??= Promise.all([
+    import('../welcome/welcome-flow'),
+    import('../welcome/passport/passport-preview'),
+  ]).then(
+    ([flow, passport]) =>
+      (onboarding = { WelcomeFlow: flow.WelcomeFlow, PassportPreview: passport.PassportPreview }),
+    (error: unknown) => {
+      onboardingLoad = undefined
+      throw error
+    },
+  ))
+const LazyWelcomeFlow = dynamic(() => loadOnboarding().then((loaded) => loaded.WelcomeFlow))
+
+/** Picks its component once per mount: loaded already after a morph, streamed on a /welcome/* document load. */
+function Onboarding(props: ComponentProps<Onboarding['WelcomeFlow']>) {
+  const [Flow] = useState(() =>
+    typeof window !== 'undefined' && onboarding ? onboarding.WelcomeFlow : LazyWelcomeFlow,
+  )
+  return <Flow {...props} />
+}
 
 /**
  * The card's states (spec "Client state machine").
@@ -235,6 +273,12 @@ export function AuthCard({
     }
   }, [state])
 
+  // The create step is one click from onboarding: fetch its code while the password is typed.
+  const creating = state.step === 'create'
+  useEffect(() => {
+    if (creating) loadOnboarding().catch(() => undefined)
+  }, [creating])
+
   const signInOrAsk = async (address: string) => {
     if (!EMAIL.test(address)) return go({ step: 'form', error: 'email' }, 'email')
     if (!password) return go({ step: 'form', error: 'password' }, 'password')
@@ -302,6 +346,8 @@ export function AuthCard({
       return go({ step: 'create', email: address, error: 'short' }, 'password')
     go({ step: 'creating', email: address })
     try {
+      // Before the account exists: offline, the create step says so instead of stranding a new account.
+      await loadOnboarding()
       const reply = (await withIdentityMutation(
         async (token) =>
           sessionReply(
@@ -391,9 +437,14 @@ export function AuthCard({
         locale={locale}
         cardRef={card}
         welcomeStep={passport?.step ?? state.init.step}
-        brandField={passport ? <PassportPreview preview={passport} locale={locale} /> : undefined}
+        brandField={
+          // The flow reports a passport only once it runs, and it runs only after loadOnboarding.
+          passport && onboarding ? (
+            <onboarding.PassportPreview preview={passport} locale={locale} />
+          ) : undefined
+        }
       >
-        <WelcomeFlow init={state.init} locale={locale} onPassport={onPassport} onFinish={finish} />
+        <Onboarding init={state.init} locale={locale} onPassport={onPassport} onFinish={finish} />
       </AuthCardFrame>
     )
   return (
