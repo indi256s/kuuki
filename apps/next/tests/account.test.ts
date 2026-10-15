@@ -53,8 +53,7 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   // Role locators exclude the inert outgoing copy retained during the route transition.
   await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Account test name')
   await page.getByRole('textbox', { name: 'Bio' }).fill('A private test bio')
-  await page.getByRole('switch', { name: 'Public profile' }).click()
-  await page.getByRole('switch', { name: 'Show on leaderboards when eligible' }).click()
+  await page.getByRole('switch', { name: 'Public profile and leaderboard' }).click()
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.locator('main').getByRole('status')).toContainText('Saved.')
   const profile = await page.request.get('/api/auth/me')

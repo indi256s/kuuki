@@ -112,18 +112,44 @@ describe('Settings work and data outcomes', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
     expect(screen.getByLabelText('Bio')).toHaveValue('About')
   })
-  it('disables participation with its reason and submits public-off and participation-off together', async () => {
-    mount()
-    await userEvent.click(screen.getByRole('switch', { name: 'Public profile' }))
-    expect(
-      screen.getByRole('switch', { name: 'Show on leaderboards when eligible' }),
-    ).toHaveAttribute('aria-checked', 'false')
-    expect(screen.getByText('Make your profile public first.')).toBeVisible()
+  it('saves profile visibility and ranking participation together, even before flight eligibility', async () => {
+    mount('en', { ...counts, completed: 0 })
+    const toggle = screen.getByRole('switch', { name: 'Public profile and leaderboard' })
+    await userEvent.click(toggle)
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-    await waitFor(() => expect(m.patch).toHaveBeenCalled())
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved.'))
     expect(m.patch.mock.calls[0][1]).toMatchObject({
       is_public: false,
       show_on_leaderboards: false,
+    })
+    await userEvent.click(toggle)
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(2))
+    expect(m.patch.mock.calls[1][1]).toMatchObject({
+      is_public: true,
+      show_on_leaderboards: true,
+    })
+  })
+  it('preserves an existing ranking opt-out when saving unrelated profile edits', async () => {
+    render(
+      <SettingsForm
+        ownerId="a"
+        profile={{ ...profile, show_on_leaderboards: false }}
+        locale="en"
+        counts={counts}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Bio'), { target: { value: 'Updated bio' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(m.patch).toHaveBeenCalled())
+    expect(m.patch.mock.calls[0][1]).toMatchObject({ show_on_leaderboards: false })
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved.'))
+    await userEvent.click(screen.getByRole('button', { name: 'Join leaderboard' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(2))
+    expect(m.patch.mock.calls[1][1]).toMatchObject({
+      is_public: true,
+      show_on_leaderboards: true,
     })
   })
   it('shows real per-kind counts; failures and empty reads do not consume the allowance, successful downloads do', async () => {

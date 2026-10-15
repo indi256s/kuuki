@@ -3,14 +3,7 @@ import { getRequestEnv, getRequestIdentity } from './identity'
 import { toUserStats, type UserStatsRow } from '../../../../functions/api/_lib/stats'
 import { readOwnBadges } from '../../../../functions/api/_services/ownBadges'
 import { getProfileRow, toOwnProfile } from '../../../../functions/api/_lib/profiles'
-import {
-  derivedStateJoin,
-  PUBLISHED_DERIVED_STATE,
-  SKY_MIN_FLIGHTS,
-  SKY_CATEGORY_SQL,
-  toLeaderboardEntry,
-  type LeaderboardCacheRow,
-} from '../../../../functions/api/_lib/leaderboard'
+import { readProfileLeaderboardRankings } from '../../../../functions/api/_services/publicLeaderboard'
 
 export async function getOwnProfile() {
   const identity = await getRequestIdentity()
@@ -43,17 +36,5 @@ export async function getProfileShareUrl(username: string) {
 
 /** The owner's leaderboard entries (empty when ineligible), the `GET /api/me/rankings` read. */
 export async function readOwnRankings(db: D1Database, userId: string) {
-  const { results } = await db
-    .prepare(
-      `SELECT lc.* FROM leaderboard_cache lc
-       JOIN profiles p ON p.id = lc.user_id
-       JOIN user_stats us ON us.user_id = lc.user_id
-       ${derivedStateJoin('lc')}
-       WHERE lc.user_id = ? AND lc.period = 'all' AND lc.category IN ${SKY_CATEGORY_SQL}
-         AND p.is_public = 1 AND p.show_on_leaderboards = 1 AND us.total_flights >= ${SKY_MIN_FLIGHTS}
-         AND ${PUBLISHED_DERIVED_STATE}`,
-    )
-    .bind(userId)
-    .all<LeaderboardCacheRow>()
-  return results.map(toLeaderboardEntry)
+  return readProfileLeaderboardRankings(db, userId)
 }

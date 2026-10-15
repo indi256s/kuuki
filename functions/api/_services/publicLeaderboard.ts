@@ -30,6 +30,34 @@ const READ_GATE = `FROM leaderboard_cache lc JOIN profiles p ON p.id = lc.user_i
         AND (SELECT COUNT(*) FROM ground_journeys gj
              WHERE gj.user_id = lc.user_id AND gj.status = 'completed') >= ${GROUND_MIN_JOURNEYS}))`
 
+// Rank the live eligible set before pagination or selecting one member. Cache values stay published,
+// while places and percentiles reflect the participants visitors can currently see.
+const VISIBLE_BOARD = `SELECT lc.*, COUNT(*) OVER (PARTITION BY lc.category, lc.period) AS total,
+    ROW_NUMBER() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.value DESC, lc.id) AS pos,
+    RANK() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.value DESC) AS standing
+  ${READ_GATE}`
+
+type Ranked = LeaderboardCacheRow & { total: number; pos: number; standing: number }
+
+function toVisibleLeaderboardEntry(row: Ranked) {
+  return toLeaderboardEntry({
+    ...row,
+    rank: row.standing,
+    percentile: Math.round((1 - row.standing / row.total) * 1000) / 10,
+  })
+}
+
+/** All-time sky places shared by public profiles and authenticated owner reads. */
+export async function readProfileLeaderboardRankings(db: D1Database, userId: string) {
+  const rows = await db
+    .prepare(`WITH board AS (${VISIBLE_BOARD} AND lc.period = 'all' AND lc.category IN ${SKY_CATEGORY_SQL})
+      SELECT * FROM board WHERE user_id = ? ORDER BY category`)
+    .bind(userId)
+    .all<Ranked>()
+  assertRows(rows, 'Profile rankings unavailable')
+  return rows.results.map(toVisibleLeaderboardEntry)
+}
+
 export async function readPublicLeaderboard(
   db: D1Database,
   category: LeaderboardCategory,
@@ -39,16 +67,17 @@ export async function readPublicLeaderboard(
 ) {
   const gate = `${READ_GATE} AND lc.category = ? AND lc.period = ?`
   const rows = await db
-    .prepare(`SELECT lc.* ${gate} ORDER BY lc.rank ASC, lc.id ASC LIMIT ? OFFSET ?`)
+    .prepare(`WITH board AS (${VISIBLE_BOARD} AND lc.category = ? AND lc.period = ?)
+      SELECT * FROM board ORDER BY pos LIMIT ? OFFSET ?`)
     .bind(category, period, Math.min(Math.max(limit, 1), 200), Math.max(offset, 0))
-    .all<LeaderboardCacheRow>()
+    .all<Ranked>()
   assertRows(rows, 'Leaderboard unavailable')
   const count = await db
     .prepare(`SELECT COUNT(*) AS total, MAX(lc.updated_at) AS updated_at ${gate}`)
     .bind(category, period)
     .first<{ total: number; updated_at: string | null }>()
   return {
-    entries: rows.results.map(toLeaderboardEntry),
+    entries: rows.results.map(toVisibleLeaderboardEntry),
     total: count?.total ?? 0,
     updatedAt: count?.updated_at ?? null,
   }
@@ -100,13 +129,7 @@ export async function readLeaderboardBoard(
 ) {
   const year = currentPeriod(now)
   const periods = ['all', year] as const
-  // standing re-ranks the members the live gate keeps (ties intact), so a board whose cached leaders have since
-  // left still shows its top; rows keep their published rank.
-  const board = `SELECT lc.*, COUNT(*) OVER (PARTITION BY lc.category, lc.period) AS total,
-      ROW_NUMBER() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.rank, lc.id) AS pos,
-      RANK() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.rank) AS standing
-    ${READ_GATE} AND lc.period IN ('all', ?)`
-  type Ranked = LeaderboardCacheRow & { total: number; pos: number }
+  const board = `${VISIBLE_BOARD} AND lc.period IN ('all', ?)`
 
   const statements = [
     db
@@ -138,12 +161,12 @@ export async function readLeaderboardBoard(
       db
         .prepare(
           `WITH board AS (${board}),
-           me AS (SELECT category, period, pos, rank FROM board WHERE user_id = ?)
+           me AS (SELECT category, period, pos, standing FROM board WHERE user_id = ?)
            SELECT b.* FROM board b
            JOIN me ON me.category = b.category AND me.period = b.period
            WHERE b.pos BETWEEN me.pos - 2 AND me.pos + 2
               OR b.pos = (SELECT MAX(x.pos) FROM board x
-                          WHERE x.category = me.category AND x.period = me.period AND x.rank < me.rank)
+                          WHERE x.category = me.category AND x.period = me.period AND x.standing < me.standing)
            ORDER BY b.category, b.period, b.pos`,
         )
         .bind(year, viewerId),
@@ -156,7 +179,7 @@ export async function readLeaderboardBoard(
   const slices = new Map<string, LeaderboardBoardSlice>()
   for (const row of reads[0].results as Ranked[]) {
     const slice = slices.get(key(row.category, row.period)) ?? { top: [], total: row.total }
-    slice.top.push(toLeaderboardEntry(row))
+    slice.top.push(toVisibleLeaderboardEntry(row))
     slices.set(key(row.category, row.period), slice)
   }
   const summary = reads[1].results[0] as { updated_at: string | null } | undefined
@@ -215,12 +238,16 @@ export async function readLeaderboardBoard(
       const rows = near.get(key(category, period))
       const mine = rows?.find((row) => row.user_id === viewerId)
       if (!rows || !mine) return { state: 'unranked' }
-      const better = rows.filter((row) => row.rank < mine.rank).at(-1)
+      const better = rows.filter((row) => row.standing < mine.standing).at(-1)
       return {
         state: 'ranked',
-        entry: toLeaderboardEntry(mine),
-        neighbours: rows.filter((row) => Math.abs(row.pos - mine.pos) <= 2).map(toLeaderboardEntry),
-        next: better ? { entry: toLeaderboardEntry(better), gap: better.value - mine.value } : null,
+        entry: toVisibleLeaderboardEntry(mine),
+        neighbours: rows
+          .filter((row) => Math.abs(row.pos - mine.pos) <= 2)
+          .map(toVisibleLeaderboardEntry),
+        next: better
+          ? { entry: toVisibleLeaderboardEntry(better), gap: better.value - mine.value }
+          : null,
       }
     }
     viewer = {
@@ -268,9 +295,10 @@ export async function readOwnLeaderboardRank(
 ) {
   const row = await db
     .prepare(
-      `SELECT lc.* ${READ_GATE} AND lc.user_id = ? AND lc.category = ? AND lc.period = 'all'`,
+      `WITH board AS (${VISIBLE_BOARD} AND lc.category = ? AND lc.period = 'all')
+       SELECT * FROM board WHERE user_id = ?`,
     )
-    .bind(ownerId, category)
-    .first<LeaderboardCacheRow>()
-  return row ? { entry: toLeaderboardEntry(row), period: row.updated_at } : null
+    .bind(category, ownerId)
+    .first<Ranked>()
+  return row ? { entry: toVisibleLeaderboardEntry(row), period: row.updated_at } : null
 }

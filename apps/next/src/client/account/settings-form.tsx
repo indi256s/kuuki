@@ -57,15 +57,6 @@ const faceNames: Record<AvatarFace, Record<Locale, string>> = {
   content: { en: 'Content', ru: 'Довольный' },
 }
 const isPhoto = (url: string) => url.startsWith('https://') || url.startsWith('data:image/')
-const flightsLeft = {
-  en: { one: '{count} more flight needed.', other: '{count} more flights needed.' },
-  ru: {
-    one: 'Нужен ещё {count} перелёт.',
-    few: 'Нужно ещё {count} перелёта.',
-    many: 'Нужно ещё {count} перелётов.',
-    other: 'Нужно ещё {count} перелёта.',
-  },
-}
 const addsForms = {
   en: { one: 'Adds {count}:', other: 'Adds {count}:' },
   ru: {
@@ -231,9 +222,7 @@ export function SettingsForm({
         signal: controller.signal,
       })
       if (!controller.signal.aborted && generation === getAuthGeneration()) {
-        const next = saved
-          ? values(saved)
-          : { ...draft, show_on_leaderboards: payload.show_on_leaderboards }
+        const next = saved ? values(saved) : draft
         setDraft(next)
         setBaseline(next)
         setEditingAddress(false)
@@ -372,16 +361,6 @@ export function SettingsForm({
   const previewAdded = previews
     ? byName(previews.all.filter((code) => !previews.flights.includes(code)))
     : []
-  const leaderboardReason = !draft.is_public
-    ? text('Make your profile public first.', 'Сначала сделайте профиль публичным.')
-    : counts === null
-      ? text(
-          'Flight count unavailable. Refresh to check eligibility.',
-          'Количество перелётов недоступно. Обновите страницу для проверки.',
-        )
-      : counts.completed < 5
-        ? formatCount(locale, 5 - counts.completed, flightsLeft)
-        : undefined
   // Arc form/textarea composition (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md); the existing guard and save authority own changes.
   return (
     <div className="settings-page settings-editor">
@@ -542,32 +521,41 @@ export function SettingsForm({
         <section aria-labelledby="settings-privacy-heading">
           <h2 id="settings-privacy-heading">{text('Privacy', 'Приватность')}</h2>
           <SwitchRow
-            label={text('Public profile', 'Публичный профиль')}
+            label={text('Public profile and leaderboard', 'Открытый профиль и рейтинг')}
             checked={draft.is_public}
             disabled={busy}
             onCheckedChange={(value) =>
               setDraft((previous) => ({
                 ...previous,
                 is_public: value,
-                show_on_leaderboards: value && previous.show_on_leaderboards,
+                show_on_leaderboards: value,
               }))
             }
+            description={
+              draft.is_public && !draft.show_on_leaderboards
+                ? text(
+                    'Your profile is public. Your previous leaderboard opt-out is still active.',
+                    'Профиль открыт. Ранее вы отключили участие в рейтинге — этот выбор сохранён.',
+                  )
+                : text(
+                    'Anyone can view your profile. You join the flight rankings after five completed flights.',
+                    'Ваш профиль виден всем. После пяти завершённых перелётов вы участвуете в рейтинге перелётов.',
+                  )
+            }
             consequence={text(
-              'Turning it off removes you from leaderboards.',
-              'Если закрыть профиль, вы пропадёте из рейтинга.',
+              'Turning it off hides your profile and removes you from all leaderboards.',
+              'Если выключить, профиль станет закрытым и вы пропадёте из всех рейтингов.',
             )}
           />
-          <SwitchRow
-            label={text('Show on leaderboards when eligible', 'Участвовать в рейтинге')}
-            checked={draft.show_on_leaderboards}
-            disabled={busy}
-            disabledReason={leaderboardReason}
-            onCheckedChange={(value) => edit('show_on_leaderboards', value)}
-            consequence={text(
-              'A public profile and five completed flights are required.',
-              'Нужны публичный профиль и пять завершённых перелётов.',
-            )}
-          />
+          {draft.is_public && !draft.show_on_leaderboards ? (
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => edit('show_on_leaderboards', true)}
+            >
+              {text('Join leaderboard', 'Участвовать в рейтинге')}
+            </Button>
+          ) : null}
           <SwitchRow
             label={text('Publish all confirmed countries', 'Публиковать все подтверждённые страны')}
             checked={publishAll || proposing}

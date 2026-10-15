@@ -53,7 +53,9 @@ describe('AvatarMenu', () => {
     expect(profile).toHaveAttribute('href', '/passport')
     await waitFor(() => expect(profile).toHaveFocus())
     await user.keyboard('{ArrowDown}')
-    expect(screen.getByRole('menuitemcheckbox', { name: 'Public profile' })).toHaveFocus()
+    expect(
+      screen.getByRole('menuitemcheckbox', { name: 'Public profile and leaderboard' }),
+    ).toHaveFocus()
     await user.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
     expect(trigger).toHaveFocus()
@@ -63,11 +65,17 @@ describe('AvatarMenu', () => {
     const user = userEvent.setup()
     render(<AvatarMenu username="ana" isPublic={false} />)
     await user.click(screen.getByRole('button', { name: 'Account menu' }))
-    const toggle = await screen.findByRole('menuitemcheckbox', { name: 'Public profile' })
+    const toggle = await screen.findByRole('menuitemcheckbox', {
+      name: 'Public profile and leaderboard',
+    })
     expect(toggle).toHaveAttribute('aria-checked', 'false')
     await user.click(toggle)
     await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'))
-    expect(patch).toHaveBeenCalledWith('/api/profiles/me', { is_public: true }, expect.anything())
+    expect(patch).toHaveBeenCalledWith(
+      '/api/profiles/me',
+      { is_public: true, show_on_leaderboards: true },
+      expect.anything(),
+    )
     expect(refresh).toHaveBeenCalled()
   })
 
@@ -76,7 +84,9 @@ describe('AvatarMenu', () => {
     const user = userEvent.setup()
     render(<AvatarMenu username="ana" isPublic />)
     await user.click(screen.getByRole('button', { name: 'Account menu' }))
-    const toggle = await screen.findByRole('menuitemcheckbox', { name: 'Public profile' })
+    const toggle = await screen.findByRole('menuitemcheckbox', {
+      name: 'Public profile and leaderboard',
+    })
     await user.click(toggle)
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not change visibility.')
     expect(within(screen.getByRole('menu')).queryByRole('alert')).toBeNull()
@@ -111,7 +121,7 @@ describe('AvatarMenu', () => {
     ].map((node) => node.getAttribute('aria-label') ?? node.textContent)
     expect(stops).toEqual([
       'ana@ana',
-      'Public profile',
+      'Public profile and leaderboard',
       'Leaderboard',
       'Settings',
       'System',

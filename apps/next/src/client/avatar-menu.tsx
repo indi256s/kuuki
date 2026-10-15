@@ -81,10 +81,9 @@ export function AvatarMenu({
       release = trackPrivateOperation(controller),
       generation = getAuthGeneration()
     try {
-      // Going private also leaves the leaderboard, as Settings does; going public changes nothing else.
       await api.patch(
         '/api/profiles/me',
-        next ? { is_public: true } : { is_public: false, show_on_leaderboards: false },
+        { is_public: next, show_on_leaderboards: next },
         { signal: controller.signal },
       )
       if (!controller.signal.aborted && generation === getAuthGeneration()) router.refresh()
@@ -161,7 +160,7 @@ export function AvatarMenu({
           <MenuCheckboxItem
             checked={publicProfile}
             disabled={busy}
-            aria-label={text('Public profile', 'Публичный профиль')}
+            aria-label={text('Public profile and leaderboard', 'Открытый профиль и рейтинг')}
             onCheckedChange={(next) => void toggleVisibility(next === true)}
             onSelect={(event) => event.preventDefault()}
           >

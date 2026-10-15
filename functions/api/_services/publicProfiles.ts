@@ -5,14 +5,8 @@ import {
   type UserBadgeRow,
   type BadgeDefinitionRow,
 } from '../_lib/badges'
-import {
-  toLeaderboardEntry,
-  derivedStateJoin,
-  PUBLISHED_DERIVED_STATE,
-  SKY_MIN_FLIGHTS,
-  SKY_CATEGORY_SQL,
-  type LeaderboardCacheRow,
-} from '../_lib/leaderboard'
+import { toLeaderboardEntry } from '../_lib/leaderboard'
+import { readProfileLeaderboardRankings } from './publicLeaderboard'
 import { assertRows } from '../_lib/d1'
 
 export type PassportPublication = 'flights' | 'all'
@@ -116,16 +110,7 @@ async function projectPublic(db: D1Database, profile: ProfileRow, scope: Passpor
   const pending = !!revision && revision.revision !== revision.published_revision
   let rankings: ReturnType<typeof toLeaderboardEntry>[] = []
   if (profile.show_on_leaderboards && (stats?.total_flights ?? 0) >= 5 && !pending) {
-    const rows = await db
-      .prepare(`SELECT lc.* FROM leaderboard_cache lc JOIN profiles p ON p.id = lc.user_id
-      JOIN user_stats us ON us.user_id = lc.user_id ${derivedStateJoin('lc')}
-      WHERE lc.user_id = ? AND lc.period = 'all' AND lc.category IN ${SKY_CATEGORY_SQL}
-      AND p.is_public = 1 AND p.show_on_leaderboards = 1
-      AND us.total_flights >= ${SKY_MIN_FLIGHTS} AND ${PUBLISHED_DERIVED_STATE}`)
-      .bind(profile.id)
-      .all<LeaderboardCacheRow>()
-    assertRows(rows, 'Public profile rankings unavailable')
-    rankings = rows.results.map(toLeaderboardEntry)
+    rankings = await readProfileLeaderboardRankings(db, profile.id)
   }
   return {
     stats: stats ? toUserStats(stats) : null,

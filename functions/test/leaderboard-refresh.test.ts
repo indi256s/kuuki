@@ -335,8 +335,18 @@ it('keeps the top of a board whose cached leaders have since left it', async () 
 
     const guest = await readLeaderboardBoard(db, null, NOW)
     expect(guest.boards.flights.all.total).toBe(21)
-    expect(guest.boards.flights.all.top.map((e) => e.rank)).toEqual([
-      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    expect(guest.boards.flights.all.top.map((e) => e.rank)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    expect(guest.boards.flights.all.top.map((e) => e.username)).toEqual([
+      'm10',
+      'm11',
+      'm12',
+      'm13',
+      'm14',
+      'm15',
+      'm16',
+      'm17',
+      'm18',
+      'm19',
     ])
   } finally {
     await dispose()
