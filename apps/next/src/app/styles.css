@@ -889,6 +889,10 @@ h2 {
     --page-gutter: 16px;
     --header-h: 56px;
   }
+  /* The header scrolls away on phones; at rest its first row must clear the fixed .edge-top strip painted over it. */
+  .site-header {
+    padding-block-start: max(12px, env(safe-area-inset-top));
+  }
   .site-header-inner {
     gap: 10px;
   }

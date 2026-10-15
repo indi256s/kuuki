@@ -15,6 +15,7 @@ import './shell.css'
 export const metadata: Metadata = {
   title: 'Kuuki — flight journal',
   description: 'Keep your journeys close.',
+  appleWebApp: { capable: true, title: 'Kuuki', statusBarStyle: 'default' },
 }
 export const viewport: Viewport = { themeColor: THEME_COLOR.light, viewportFit: 'cover' }
 
