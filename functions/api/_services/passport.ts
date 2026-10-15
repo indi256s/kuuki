@@ -16,6 +16,7 @@ import {
   evidenceFlightsStatement,
   flightCountriesOf,
   type CountryEvidenceRow,
+  type CountryContribution,
   type EvidenceFlight,
 } from './countryEvidence'
 import { isDerivedReady } from './derivedState'
@@ -232,6 +233,71 @@ type DetailEntry =
   | { kind: 'claim'; claimedAt: string | null }
   | { kind: 'ground'; id: string; visitYear: number | null; entryMethod: string | null }
 
+/** Count stays along the recorded itinerary, rather than airport movements or archived counters. */
+function countryStays(
+  flights: EvidenceFlight[],
+  contributions: CountryContribution[],
+  countryCode: string,
+): number {
+  const included = new Set(contributions.map((row) => `${row.flight_id}:${row.endpoint}`))
+  const instant = (value: string | null) =>
+    value && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : null
+  const ordered = flights
+    .filter(
+      (flight) => flight.lifecycle_state !== 'upcoming' && /^\d{4}-\d{2}-\d{2}$/.test(flight.date),
+    )
+    .sort((a, b) => {
+      const left = instant(a.departure_utc) ?? `${a.date}T00:00:00.000Z`
+      const right = instant(b.departure_utc) ?? `${b.date}T00:00:00.000Z`
+      return left.localeCompare(right) || a.id - b.id
+    })
+  const compatibleTime = (a: string | null, b: string | null) =>
+    !instant(a) || !instant(b) || instant(a) === instant(b)
+  const legs: Array<{ flight: EvidenceFlight; origin: boolean; destination: boolean }> = []
+  for (const flight of ordered) {
+    // Merge consecutive copies, including a copy enriched with times. An intervening leg
+    // preserves a real second entry on the same day, even when its times are unknown.
+    const prior = legs.at(-1)
+    const duplicate =
+      prior &&
+      prior.flight.date === flight.date &&
+      prior.flight.origin === flight.origin &&
+      prior.flight.destination === flight.destination &&
+      compatibleTime(prior.flight.departure_utc, flight.departure_utc) &&
+      compatibleTime(prior.flight.arrival_utc, flight.arrival_utc)
+    const leg = duplicate ? prior : { flight, origin: false, destination: false }
+    for (const endpoint of ['origin', 'destination'] as const)
+      leg[endpoint] ||= included.has(`${flight.id}:${endpoint}`)
+    if (duplicate) {
+      leg.flight = {
+        ...leg.flight,
+        departure_utc: instant(leg.flight.departure_utc) ?? flight.departure_utc,
+        arrival_utc: instant(leg.flight.arrival_utc) ?? flight.arrival_utc,
+      }
+    } else legs.push(leg)
+  }
+  let location: string | null = null
+  let counted = false
+  let visits = 0
+  for (const leg of legs) {
+    const { flight } = leg
+    for (const endpoint of ['origin', 'destination'] as const) {
+      const country = endpoint === 'origin' ? flight.origin_country : flight.destination_country
+      // An unresolved airport is no evidence that the traveler left the last known country.
+      if (country === null) continue
+      if (country !== location) {
+        location = country
+        counted = false
+      }
+      if (country === countryCode && !counted && leg[endpoint]) {
+        visits += 1
+        counted = true
+      }
+    }
+  }
+  return visits
+}
+
 /** One country: status from the published row, and every contributing entry from the shared policy. */
 export async function readCountryDetail(db: D1Database, userId: string, countryCode: string) {
   const statements = [
@@ -410,9 +476,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
     region: catalogRegionOf(countryCode),
     firstVisit: published?.first_visit ?? '',
     lastVisit: published?.last_visit ?? '',
-    totalVisits: published
-      ? published.logged_visit_count + published.awaiting_visit_count + published.ground_visit_count
-      : 0,
+    totalVisits: countryStays(flights, policy.contributions, countryCode) + groundVisits.length,
     airports: [...airports.entries()]
       .map(([iata, value]) => ({
         iata,
