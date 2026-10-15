@@ -5,22 +5,21 @@ description: Launch, check and stop a local Kuuki dev server for browser or HTTP
 
 # Local dev server
 
-Run commands from the workspace root. Each server is a long-lived process: start it in the background, wait for its ready line, check, then stop it. The command list and setup live in `README.md` § Development; this skill adds the agent procedure around them.
+Run commands from the workspace root. Each server is a long-lived process owned by the background Bash task that started it: the task is the handle, so stop the server by stopping that task. The command list and setup live in `README.md` § Development; this skill adds the agent procedure around them.
 
 ## Pick the server
 
-| Check                                                               | Server                          | Ready line / URL                                      |
-| ------------------------------------------------------------------- | ------------------------------- | ----------------------------------------------------- |
-| Anything touching auth, API, D1, cookies or the Worker; the default | `pnpm next:preview`             | `Next synthetic fixture ready: http://127.0.0.1:8800` |
-| Pure layout or styling on pages that render without the API         | `pnpm --filter @kuuki/next dev` | Next's `Local:` URL                                   |
+| Check                                                               | Server                          | Ready line / URL                      |
+| ------------------------------------------------------------------- | ------------------------------- | ------------------------------------- |
+| Anything touching auth, API, D1, cookies or the Worker; the default | `pnpm next:preview`             | `Next synthetic fixture ready: <url>` |
+| Pure layout or styling on pages that render without the API         | `pnpm --filter @kuuki/next dev` | Next's `Local:` URL                   |
 
 ## Steps
 
-1. **Port free.** `lsof -nP -iTCP:<port> -sTCP:LISTEN` returns nothing. A listener on 8800 is usually a forgotten preview or a running Playwright suite: stop your own stale preview; if the owner is unknown, report it rather than killing it, or move with `KUUKI_NEXT_PORT`.
-2. **Build current.** For the compiled preview, `pnpm next:build` has run after the last source change and before any runtime fixture is running, since builds and fixtures share `.wrangler/next-build`. A fresh worktree always needs it.
-3. **Ready.** Launch in the background and wait until the ready line appears in its output. Exit before the ready line is a failure: report the output and fix the cause before relaunching.
-4. **Check.** Use `curl` for HTTP checks. When the requested check needs browser interaction, follow the repository browser policy: load the installed `agent-browser` skill and its core workflow. Sign in with the fixture accounts the console prints. Data is synthetic: `a@example.test` has 27 flights from 2024 to 2026 across eight countries, and there is one ranked leaderboard member. `KUUKI_NEXT_FIXTURE=minimal` restores the single JFK–BOS flight that the Playwright suites assume.
-5. **Stopped.** Send SIGINT to the preview launcher (`smoke-next-runtime.ts`), which discards the fixture, and confirm step 1's `lsof` is empty again before running builds, `pnpm next:smoke*` or `pnpm test:next:navigation`. Playwright starts its own preview on the same port with `reuseExistingServer: false`, so a leftover server fails the suite.
+1. **Build current.** For the compiled preview, `pnpm next:build` has run after the last source change and before any runtime fixture is running, since builds and fixtures share `.wrangler/next-build`. A fresh worktree always needs it.
+2. **Ready.** Launch as a background Bash task and read the URL from its ready line. Leave `KUUKI_NEXT_PORT` unset: the preview takes 8800 when free and another free port otherwise, so other checkouts' servers never block you. Exit before the ready line is a failure: report the output and fix the cause before relaunching.
+3. **Check.** Use `curl` for HTTP checks. When the requested check needs browser interaction, follow the repository browser policy: load the installed `agent-browser` skill and its core workflow. Sign in with the fixture accounts the console prints. Data is synthetic: `a@example.test` has 27 flights from 2024 to 2026 across eight countries, and there is one ranked leaderboard member. `KUUKI_NEXT_FIXTURE=minimal` restores the single JFK–BOS flight that the Playwright suites assume.
+4. **Stopped.** Stop your background task before running builds in this checkout, since builds and fixtures share `.wrangler/next-build`. The preview discards its fixture and exits on any stop signal or when its launcher dies. Playwright suites and `pnpm next:smoke*` pick their own free port, so they run beside any server.
 
 ## Gotchas
 

@@ -11,6 +11,7 @@ import {
   Response as WorkerResponse,
 } from 'miniflare'
 import { applyMigrations } from './_migrations'
+import { freePort } from './free-port'
 import { seedGroundJourneys } from './fixtures/ground'
 import { seedLeaderboard } from './fixtures/leaderboard'
 import { hashPassword, sha256Hex } from '../functions/api/_lib/crypto'
@@ -18,7 +19,8 @@ import { SESSION_TTL_SECONDS } from '../functions/api/_lib/cookies'
 import { refreshLeaderboards } from '../functions/api/_services/leaderboard'
 
 const root = resolve('.')
-const port = Number(process.env.KUUKI_NEXT_PORT ?? 8800)
+// An explicit KUUKI_NEXT_PORT is strict; otherwise 8800 when free, else any free port.
+const port = Number(process.env.KUUKI_NEXT_PORT ?? freePort(8800))
 if (!Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error('Invalid KUUKI_NEXT_PORT')
 const boundaryOnly = process.argv.includes('--check-boundary')
@@ -496,9 +498,13 @@ async function main() {
       console.log(
         'Accounts a@example.test / b@example.test; password rehearsal-password-2026. Ctrl-C stops and discards the fixture.',
       )
+      // Also stop when the launcher dies, so a killed agent shell leaves no orphaned port.
+      const parent = process.ppid
       await new Promise<void>((resolve) => {
         process.once('SIGINT', resolve)
         process.once('SIGTERM', resolve)
+        process.once('SIGHUP', resolve)
+        setInterval(() => process.ppid !== parent && resolve(), 1000).unref()
       })
       return
     }

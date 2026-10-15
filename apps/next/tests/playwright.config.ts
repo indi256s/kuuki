@@ -1,8 +1,11 @@
 import { defineConfig } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
+import { freePort } from '../../../scripts/free-port'
 
 const root = fileURLToPath(new URL('../../../', import.meta.url))
-const port = process.env.KUUKI_NEXT_PORT ?? '8800'
+// Set once in the runner so workers, which re-read this config, inherit the same port.
+process.env.KUUKI_NEXT_PORT ??= String(freePort())
+const port = process.env.KUUKI_NEXT_PORT
 export default defineConfig({
   testDir: '.',
   testMatch: '**/*.test.ts',

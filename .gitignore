@@ -67,7 +67,9 @@ scripts/*.dat
 
 # Local agent state (selected project skills are intentionally tracked)
 .agents/
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 .planning/
 CLAUDE.md
 
