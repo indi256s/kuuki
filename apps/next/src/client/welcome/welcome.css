@@ -208,6 +208,11 @@
   .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-brand {
     padding-top: 4px;
   }
+  /* The reveal's strip and bench arrive after hydration: hold their height from the first paint so the heading stays
+     put. Strip 60px, the bench's 4px top padding, and the bench at the width cap of passport.css. */
+  .auth-card[data-welcome='ready'] .auth-brand-field {
+    min-height: calc(64px + min(100vw, 34svh * 600 / 376) * 376 / 600);
+  }
   .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-brand-wordmark,
   .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-corner {
     display: none;
@@ -224,5 +229,11 @@
   }
   .auth-card[data-welcome] .auth-column {
     width: 100%;
+  }
+  /* Review and the reveal fill the sheet, so their action bar rests at the bottom (the thumb's reach) instead of
+     floating under short content. */
+  .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-column,
+  .auth-card:is([data-welcome='review'], [data-welcome='ready']) .welcome-step {
+    flex: 1 0 auto;
   }
 }

@@ -444,8 +444,13 @@
   .review-line[data-kind='left'] .review-flight {
     display: none;
   }
+  .review-step {
+    flex: 1 0 auto;
+  }
   .review-bar {
-    padding-block: 14px 34px;
+    align-items: center;
+    margin-block-start: auto;
+    padding-block: 14px max(34px, env(safe-area-inset-bottom));
   }
   .review-bar .ui-button {
     padding-inline: 20px;

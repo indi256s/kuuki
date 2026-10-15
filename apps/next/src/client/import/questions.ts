@@ -7,6 +7,7 @@ import type { Draft } from './import-types'
 import {
   isDuplicate,
   localToday,
+  LOW_CONFIDENCE,
   lowFields,
   needsFlown,
   toValues,
@@ -252,12 +253,12 @@ function readyAfter(
   stated: FieldName[],
   today: string,
 ): boolean {
-  // Field answers invalidate source verification; importing remains an explicit choice.
-  if (draft.fields.verification !== undefined) return false
+  // Source verification is informational; it never holds a row back from selection.
   const after = withUnsent(draft, change)
   if (openCauses(after, today).length > 0) return false
   if (!after.fields.date || (!after.yearExplicit && !after.yearConfirmed)) return false
   if (Object.keys(validateValues(toValues(after.fields))).length > 0) return false
+  if (after.confidence !== null && after.confidence < LOW_CONFIDENCE) return false
   return !lowFields(draft).some((name) => REQUIRED.includes(name) && !stated.includes(name))
 }
 

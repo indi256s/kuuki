@@ -12,6 +12,11 @@ export const COPY = {
     'Ask ChatGPT, Claude or Gemini to find your flights.',
     'Попросите ChatGPT, Claude или Gemini найти ваши перелёты.',
   ),
+  subTouch: p(
+    'Add a screenshot of your bookings, or ask ChatGPT, Claude or Gemini.',
+    'Добавьте скриншот бронирований или попросите ChatGPT, Claude или Gemini.',
+  ),
+  addShot: p('Add a screenshot or photo', 'Добавить скриншот или фото'),
   promptLabel: p('Prompt for your assistant', 'Запрос для вашего ассистента'),
   copyPrompt: p('Copy prompt', 'Скопировать запрос'),
   copyFailed: p(
@@ -27,8 +32,7 @@ export const COPY = {
     'We couldn’t wrap up just now. Nothing is lost: try again.',
     'Сейчас не получилось завершить. Ничего не потеряно: повторите.',
   ),
-  orPaste: p('Paste or add a boarding pass', 'Вставить или добавить посадочный'),
-  addPass: p('Add a boarding pass', 'Добавить посадочный'),
+  orPaste: p('Paste a reply', 'Вставить ответ'),
 
   pasteTitle: p('Now paste the reply', 'Теперь вставьте ответ'),
   pasteSub: p(

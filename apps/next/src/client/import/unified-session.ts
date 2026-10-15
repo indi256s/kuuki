@@ -21,6 +21,7 @@ import {
   validateValues,
   isDuplicate,
   lowFields,
+  LOW_CONFIDENCE,
 } from './review-model'
 
 export interface SessionEntry {
@@ -446,13 +447,15 @@ export class UnifiedSession {
             draft.status === 'review' &&
             !draft.selected &&
             !this.isExcluded(draft.id) &&
-            draft.fields.verification === 'verified' &&
             !draft.fields.review_required &&
             !isDuplicate(draft) &&
             readiness({ ...draft, fields: { ...draft.fields, flown_confirmed: true } }).length ===
               0 &&
             Object.keys(validateValues(toValues(draft.fields))).length === 0 &&
-            !lowFields(draft).some((field) => ['date', 'origin', 'destination'].includes(field))
+            (draft.confidence === null || draft.confidence >= LOW_CONFIDENCE) &&
+            !lowFields(draft).some((field) =>
+              ['date', 'origin', 'destination', 'airline_iata'].includes(field),
+            )
           ) {
             run.setDraft(await patchDraft(draft.id, { version: draft.version, selected: true }))
           }

@@ -86,12 +86,45 @@ describe('FlightsStep touch paste box', () => {
     }))
     try {
       setup()
-      fireEvent.click(screen.getByRole('button', { name: 'Paste or add a boarding pass' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Paste a reply' }))
       expect(screen.queryByRole('button', { name: 'Read these flights' })).toBeNull()
       fireEvent.change(screen.getByLabelText('Paste the reply here'), { target: { value: V2 } })
       fireEvent.click(screen.getByRole('button', { name: 'Read these flights' }))
       await waitFor(() => expect(m.submit).toHaveBeenCalledTimes(1))
       expect(m.submit.mock.calls[0][0]).toEqual({ type: 'text', content: V2 })
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
+describe('FlightsStep touch screenshot entry', () => {
+  it('offers a picker without capture, sends the chosen file, and keeps the prompt tray', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(pointer: coarse)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    try {
+      setup()
+      expect(screen.getByRole('button', { name: 'Add a screenshot or photo' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Add a screenshot or photo' })).toHaveAttribute(
+        'data-variant',
+        'primary',
+      )
+      // One primary on touch: the prompt tray stays, its button steps down.
+      expect(screen.getByRole('button', { name: 'Copy prompt' })).toHaveAttribute(
+        'data-variant',
+        'secondary',
+      )
+      expect(screen.getByLabelText('Prompt for your assistant')).toBeInTheDocument()
+      const input = document.querySelector<HTMLInputElement>('input[type="file"]')!
+      expect(input.getAttribute('accept')).toBe('image/png,image/jpeg,application/pdf')
+      expect(input.hasAttribute('capture')).toBe(false)
+      const file = new File(['x'], 'bookings.png', { type: 'image/png' })
+      fireEvent.change(input, { target: { files: [file] } })
+      await waitFor(() => expect(m.submit).toHaveBeenCalledTimes(1))
+      expect(m.submit.mock.calls[0][0]).toMatchObject({ type: 'image' })
     } finally {
       vi.unstubAllGlobals()
     }
@@ -110,7 +143,7 @@ describe('FlightsStep close-tab note', () => {
     m.submit.mockResolvedValue(snapshot([draft({ id: 'a' })]))
     const { onReview } = setup()
     pasteOn(document, V2)
-    await waitFor(() => expect(onReview).toHaveBeenCalledWith('b1'))
+    await waitFor(() => expect(onReview).toHaveBeenCalledWith('b1', true))
     expect(screen.queryByText(/You can close this tab/)).not.toBeInTheDocument()
     expect(m.connect).not.toHaveBeenCalled()
   })
@@ -124,6 +157,7 @@ describe('FlightsStep arriving on a ready batch (17.13)', () => {
     expect(onReview).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Review 2 flights' }))
     expect(onReview).toHaveBeenCalledWith('b1')
+    expect(onReview.mock.calls[0]).toEqual(['b1'])
     expect(screen.getByRole('button', { name: 'I’ll do this later' })).toBeInTheDocument()
   })
 })

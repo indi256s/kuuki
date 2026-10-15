@@ -8,6 +8,8 @@ import { monthDayOf, openCauses, type Endpoint } from '../../import/questions'
 import {
   isChosen,
   isDuplicate,
+  LOW_CONFIDENCE,
+  lowFields,
   readiness,
   toValues,
   validateValues,
@@ -17,8 +19,11 @@ import type { FactFlight } from '../types'
 
 export const DASH = '—'
 
-/** How an unsure row is asked about: a one-tap fix, or (`other`) the import review's own row editor. */
-export type Kind = 'airport' | 'date' | 'status' | 'other'
+/**
+ * How an unsure row is asked about: a one-tap fix, or (`other`) the import review's own row editor. `confirm` is a
+ * complete row the reader wasn't sure of (low confidence or flagged): the member vouches for it or leaves it out.
+ */
+export type Kind = 'airport' | 'date' | 'status' | 'confirm' | 'other'
 
 export function kindOf(draft: Draft): Kind {
   const causes = openCauses(draft)
@@ -26,6 +31,7 @@ export function kindOf(draft: Draft): Kind {
   if (causes.includes('year') || readiness(draft).some((reason) => reason !== 'issue'))
     return 'date'
   if (causes.includes('status')) return 'status'
+  if (!draft.selected && !isDuplicate(draft) && readiness(draft).length === 0) return 'confirm'
   return 'other'
 }
 
@@ -116,16 +122,19 @@ export function factOf(draft: Draft): FactFlight {
   return { date, origin, destination, upcoming: date > todayIso() }
 }
 
+const REQUIRED_HELD = ['origin', 'destination', 'airline_iata']
+
 /** The member typed a date: that settles the year too. The row is also chosen when nothing else holds it back. */
 export function answerDate(draft: Draft, date: string): DraftChange {
   const change: DraftChange = { fields: { date }, yearConfirmed: true }
   const after = withUnsent(draft, change)
   const ready =
-    draft.fields.verification === undefined &&
     openCauses(after).length === 0 &&
     readiness(after).length === 0 &&
     !isDuplicate(after) &&
-    Object.keys(validateValues(toValues(after.fields))).length === 0
+    Object.keys(validateValues(toValues(after.fields))).length === 0 &&
+    !lowFields(after).some((field) => field !== 'date' && REQUIRED_HELD.includes(field)) &&
+    (after.confidence === null || after.confidence >= LOW_CONFIDENCE)
   return ready && !draft.selected ? { ...change, selected: true } : change
 }
 

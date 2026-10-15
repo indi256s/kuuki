@@ -1,4 +1,4 @@
-/* The reveal (boards 15.6, 15.10, 19.x). Tokens only. Desktop shows the passport's stamp; mobile prints its own. */
+/* The reveal (boards 15.6, 15.10, 19.x). Tokens only. The passport's bench presses the entry stamp. */
 .ready-step {
   display: flex;
   flex-direction: column;
@@ -46,8 +46,7 @@
   flex: none;
 }
 .ready-arrow-glyph,
-.ready-caption,
-.ready-stamp {
+.ready-caption {
   display: none;
 }
 .ready-caption {
@@ -59,29 +58,8 @@
 }
 @media (max-width: 700px) {
   .ready-step {
+    flex: 1 0 auto;
     gap: 28px;
-  }
-  .ready-stamp {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    inline-size: fit-content;
-    padding: 10px 16px;
-    border: 2px solid var(--accent-text);
-    border-radius: 6px;
-    color: var(--accent-text);
-    rotate: -6deg;
-    animation: ready-stamp-in var(--dur-moment) var(--ease-out);
-  }
-  .ready-stamp-kicker,
-  .ready-stamp-date {
-    font: 400 10px/14px var(--font-mono);
-    letter-spacing: 0.14em;
-  }
-  .ready-stamp-word {
-    font: 700 18px/22px var(--font-sans);
-    letter-spacing: 0.06em;
   }
   .ready-text {
     gap: 12px;
@@ -99,8 +77,9 @@
   .ready-actions {
     position: sticky;
     inset-block-end: 0;
+    margin-block-start: auto;
     margin-inline: calc(-1 * var(--welcome-bleed));
-    padding: 14px var(--welcome-bleed) 34px;
+    padding: 14px var(--welcome-bleed) max(34px, env(safe-area-inset-bottom));
     background: var(--surface);
   }
   .ui-button.auth-primary .ready-arrow-icon {
@@ -114,22 +93,5 @@
     color: var(--text-muted);
     font-size: 12px;
     line-height: 16px;
-  }
-}
-@keyframes ready-stamp-in {
-  from {
-    opacity: 0;
-    scale: 1.06;
-    filter: blur(2px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ready-stamp {
-    animation: ready-stamp-fade var(--dur-base) linear;
-  }
-  @keyframes ready-stamp-fade {
-    from {
-      opacity: 0;
-    }
   }
 }

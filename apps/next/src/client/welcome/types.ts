@@ -46,6 +46,8 @@ export type PassportPreview = {
   found: Found
   /** The review card is tall; the desktop passport stretches with it. */
   open: boolean
+  /** The flights step is reading a batch; on a phone that is when the bench shows. */
+  reading: boolean
 }
 
 /** Every step gets these; the heading takes focus when the step is entered. */

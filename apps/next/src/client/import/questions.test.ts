@@ -147,6 +147,12 @@ describe('flown question', () => {
     expect(answerYear(ordinal('a', 100), 2025, TODAY)?.selected).toBeUndefined()
     expect(answerYear(ordinal('a', 300), 2027, TODAY)?.selected).toBe(true)
   })
+
+  it('does not let an answer select a row the model is unsure about overall', () => {
+    expect(
+      answerYear(ordinal('a', 300, { confidence: 0.3 }), 2027, TODAY)?.selected,
+    ).toBeUndefined()
+  })
 })
 
 describe('flown readiness', () => {

@@ -61,6 +61,17 @@
 .gallery-dock-cell .import-dock-host {
   width: 100%;
 }
+/* The welcome passport at phone width; on a phone viewport the frame is simply the page. */
+.gallery-wp-frame {
+  box-sizing: border-box;
+  inline-size: 390px;
+  max-inline-size: 100%;
+  min-block-size: 360px;
+  border-radius: 8px;
+  background: var(--surface);
+  outline: 1px solid var(--text-muted);
+  outline-offset: -1px;
+}
 @media (max-width: 700px) {
   :root {
     --toast-bottom-offset: var(--tabbar-h);

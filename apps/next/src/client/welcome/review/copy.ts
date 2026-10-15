@@ -30,6 +30,8 @@ export const COPY = {
   whichCity: p('Which {city}?', 'Какой аэропорт?'),
   dayMissing: p('Day missing', 'Нет даты'),
   maybeCancelled: p('Maybe cancelled', 'Возможно, отменён'),
+  checkTicket: p('Check your ticket', 'Сверьте с билетом'),
+  looksRightAction: p('Looks right', 'Всё верно'),
   chipsLabel: p('Airport for {city}', 'Аэропорт: {city}'),
   dateLabel: p('Date for {route}', 'Дата: {route}'),
   dateInvalid: p(
@@ -46,6 +48,7 @@ export const COPY = {
   allGood: p('Everything looks right', 'Всё выглядит верно'),
   saving: p('Saving…', 'Сохраняем…'),
   nothingToSave: p('Nothing to save', 'Нечего сохранять'),
+  answerOrStartEmpty: p('Answer above, or start empty.', 'Ответьте выше или начните с нуля.'),
   startEmpty: p('Start empty', 'Начать с нуля'),
   startEmptyFailed: p(
     'We couldn’t wrap up just now. Nothing is lost: try again.',

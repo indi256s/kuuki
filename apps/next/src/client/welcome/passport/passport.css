@@ -73,7 +73,32 @@
   .wp-desk {
     display: none;
   }
+  /* Reading and the reveal: the desktop bench under the strip, at the card's width. Its drawing keeps its own margin
+     inside the viewBox, so no bleed here; the height cap (34svh) narrows it before it can push the heading down. */
+  .welcome-passport[data-bench] .wp-desk {
+    display: flex;
+    padding-block: 4px 0;
+  }
+  .welcome-passport[data-bench] .wp-figure {
+    gap: 0;
+  }
+  .welcome-passport[data-bench] .wp-bench {
+    width: min(100%, calc(34svh * 600 / 376));
+    aspect-ratio: 600 / 376;
+    margin-inline: 0;
+  }
+  .welcome-passport[data-bench] .wp-desk[data-tall] {
+    padding-top: 4px;
+  }
+  .welcome-passport[data-bench] .wp-desk[data-tall] .wp-figure {
+    position: static;
+  }
+  /* The strip's counts and the step's own copy say it; the caption would repeat them. */
+  .welcome-passport[data-bench] .wp-caption {
+    display: none;
+  }
   .wp-strip {
+    order: -1;
     display: flex;
     align-items: center;
     gap: 14px;

@@ -203,7 +203,7 @@ it.each(['provider', 'checker'] as const)(
         .bind(batchId)
         .first<{ fields_json: string; selected: number }>()
       expect(JSON.parse(row!.fields_json).verification).toBe('failed')
-      expect(row!.selected).toBe(0)
+      expect(row!.selected).toBe(1)
     }
   },
 )

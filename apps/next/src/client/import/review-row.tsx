@@ -45,6 +45,8 @@ export interface ReviewRowProps {
   /** The import is being saved: corrections and selection are paused so nothing typed now is lost when the review closes. */
   frozen?: boolean
   compact?: boolean
+  /** Onboarding: no confidence chip or verification note. */
+  quiet?: boolean
   singleton?: boolean
   implicitSelection?: boolean
   onChange: (change: DraftChange) => void
@@ -68,6 +70,7 @@ export function ReviewRow({
   today,
   frozen = false,
   compact = false,
+  quiet = false,
   singleton = false,
   implicitSelection = false,
   onChange,
@@ -81,7 +84,8 @@ export function ReviewRow({
   const day = today ?? localToday()
   const blocked = readiness(draft, day)
   const chosen = isChosenOn(draft, day)
-  const notVerified = draft.fields.verification && draft.fields.verification !== 'verified'
+  const notVerified =
+    !quiet && draft.fields.verification && draft.fields.verification !== 'verified'
   const confidence = rowConfidence(draft)
   const low = lowFields(draft)
   const [values, setValues] = useState(() => toValues(draft.fields))
@@ -222,7 +226,7 @@ export function ReviewRow({
 
   const flags = (
     <div className="import-flags">
-      {confidence === 'check' ? (
+      {quiet ? null : confidence === 'check' ? (
         <span className="import-chip" data-tone="warning">
           <TriangleAlert size={14} strokeWidth={2} aria-hidden="true" />
           {S.check[locale]} · {percent(draft.confidence!)}%
@@ -335,13 +339,15 @@ export function ReviewRow({
           statusLabel={
             // The ticket has no date to show here, and never a made-up one, so the unresolved year goes in its status.
             (!draft.fields.date && (yearToConfirm || monthDayOf(draft))
-              ? `${S.yearToConfirm[locale]} · `
+              ? `${S.yearToConfirm[locale]}${quiet ? '' : ' · '}`
               : '') +
-            (confidence === 'check'
-              ? S.check[locale]
-              : draft.confidence !== null
-                ? `${S.confidence[locale]} ${percent(draft.confidence)}%`
-                : unscored)
+            (quiet
+              ? ''
+              : confidence === 'check'
+                ? S.check[locale]
+                : draft.confidence !== null
+                  ? `${S.confidence[locale]} ${percent(draft.confidence)}%`
+                  : unscored)
           }
           origin={{
             iata: draft.fields.origin || '—',

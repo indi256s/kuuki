@@ -29,7 +29,7 @@ it('streams structured text through the real job without a provider call and kee
   ).toEqual([true, false])
 })
 
-it('streams unticked drafts, verifies after completion and preserves concurrent member edits and choices', async () => {
+it('streams selected drafts, verifies after completion and preserves concurrent member edits and choices', async () => {
   const { send, start, batch, rows, checkerCalls, releaseChecker } = await runtime(false, 'held')
   const id = await start()
   send(
@@ -43,9 +43,9 @@ it('streams unticked drafts, verifies after completion and preserves concurrent 
   expect(
     early.map((row) => [JSON.parse(row.fields_json).verification, row.selected, row.version]),
   ).toEqual([
-    ['not_verified', 0, 1],
-    ['not_verified', 0, 1],
-    ['not_verified', 0, 1],
+    ['not_verified', 1, 1],
+    ['not_verified', 1, 1],
+    ['not_verified', 1, 1],
   ])
   expect(checkerCalls()).toBe(0)
   send(']}')
@@ -67,7 +67,7 @@ it('streams unticked drafts, verifies after completion and preserves concurrent 
   expect(
     checked.map((row) => [JSON.parse(row.fields_json).verification, row.selected, row.version]),
   ).toEqual([
-    ['not_verified', 0, 2],
+    ['not_verified', 1, 2],
     ['not_verified', 0, 2],
     ['verified', 1, 2],
   ])
@@ -79,7 +79,7 @@ it('streams unticked drafts, verifies after completion and preserves concurrent 
   expect(snapshot.drafts[2].fields.verification).toBe('verified')
 })
 
-it('keeps extracted drafts reviewable and unticked when the checker fails', async () => {
+it('keeps extracted drafts reviewable and selected when the checker fails', async () => {
   const { send, start, batch, rows } = await runtime(false, 'failed')
   const id = await start()
   send('{"flights":[' + JSON.stringify(providerFlight()) + ']}')
@@ -88,7 +88,7 @@ it('keeps extracted drafts reviewable and unticked when the checker fails', asyn
   expect((await batch(id))?.error_code).toBeNull()
   const [row] = (await rows(id)).results
   expect(JSON.parse(row.fields_json).verification).toBe('failed')
-  expect(row.selected).toBe(0)
+  expect(row.selected).toBe(1)
 })
 
 it('cancellation fences a checker result already in flight', async () => {
@@ -107,7 +107,7 @@ it('cancellation fences a checker result already in flight', async () => {
   expect(await batch(id)).toEqual(cancelled)
   const [row] = (await rows(id)).results
   expect(JSON.parse(row.fields_json).verification).toBe('not_verified')
-  expect(row.selected).toBe(0)
+  expect(row.selected).toBe(1)
   expect(row.version).toBe(1)
 })
 

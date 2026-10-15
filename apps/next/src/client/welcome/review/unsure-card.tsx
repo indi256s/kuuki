@@ -48,7 +48,9 @@ export function UnsureCard({
       ? t(COPY.whichCity).replace('{city}', open[0] ? openCity(draft, open[0]) : '')
       : kind === 'date'
         ? t(COPY.dayMissing)
-        : t(COPY.maybeCancelled)
+        : kind === 'confirm'
+          ? t(COPY.checkTicket)
+          : t(COPY.maybeCancelled)
 
   function commitDate() {
     const typed = value.trim()
@@ -168,16 +170,16 @@ export function UnsureCard({
           {t(COPY.dateInvalid)}
         </p>
       ) : null}
-      {kind === 'status' ? (
+      {kind === 'status' || kind === 'confirm' ? (
         <div className="review-fix" data-equal="true">
           <button
             type="button"
             className="review-button"
             disabled={disabled}
-            aria-label={`${t(COPY.flewIt)}: ${route}`}
+            aria-label={`${t(kind === 'confirm' ? COPY.looksRightAction : COPY.flewIt)}: ${route}`}
             onClick={() => onChange(answerFlown())}
           >
-            {t(COPY.flewIt)}
+            {t(kind === 'confirm' ? COPY.looksRightAction : COPY.flewIt)}
           </button>
           {leaveOut}
         </div>

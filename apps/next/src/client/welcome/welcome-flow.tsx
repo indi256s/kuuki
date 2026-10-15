@@ -80,12 +80,21 @@ export function WelcomeFlow({
   const [summary, setSummary] = useState<SavedSummary | null>(() =>
     init.saved ? { flights: init.saved, leftOut: 0 } : null,
   )
+  const [reading, setReading] = useState(false)
+  // Review was entered straight from a finished read in this session. Not in the URL: a reload or Back is not fresh.
+  const [fresh, setFresh] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const entered = useRef(false)
 
   useEffect(() => {
-    onPassport({ step: place.step, name, found, open: place.step !== 'name' })
-  }, [name, found, place.step, onPassport])
+    onPassport({
+      step: place.step,
+      name,
+      found,
+      open: place.step !== 'name',
+      reading: place.step === 'flights' && reading,
+    })
+  }, [name, found, place.step, reading, onPassport])
 
   // Focus the step's heading whenever a step is entered, but not on the first render of a reload.
   useEffect(() => {
@@ -101,6 +110,7 @@ export function WelcomeFlow({
         return window.location.replace(welcomeUrl({ step: 'name', batch: null, manual: false }))
       const way = directionOf(place, next)
       const apply = () => {
+        setFresh(false)
         setDirection(way)
         setPlace(next)
       }
@@ -124,6 +134,11 @@ export function WelcomeFlow({
     }
     if (moves(place, next)) morph(way, apply)
     else apply()
+  }
+
+  const toReview = (batch: string, auto?: boolean) => {
+    setFresh(auto === true)
+    go({ step: 'review', batch, manual: false })
   }
 
   const toReady = (saved: SavedSummary) =>
@@ -163,15 +178,17 @@ export function WelcomeFlow({
           onManual={(manual) =>
             go({ step: 'flights', batch: null, manual }, manual ? 'push' : 'replace')
           }
-          onReview={(batch) => go({ step: 'review', batch, manual: false })}
+          onReview={toReview}
           onManualSaved={toReady}
           onFound={setFound}
+          onReading={setReading}
           onSkip={onFinish}
         />
       ) : place.step === 'review' && place.batch ? (
         <ReviewStep
           {...common}
           batch={place.batch}
+          fresh={fresh}
           onSaved={toReady}
           onStartEmpty={onFinish}
           onFound={setFound}
@@ -187,9 +204,10 @@ export function WelcomeFlow({
           manual={false}
           onBatch={(batch) => go({ step: 'flights', batch, manual: false }, 'replace')}
           onManual={(manual) => go({ step: 'flights', batch: null, manual }, 'push')}
-          onReview={(batch) => go({ step: 'review', batch, manual: false })}
+          onReview={toReview}
           onManualSaved={toReady}
           onFound={setFound}
+          onReading={setReading}
           onSkip={onFinish}
         />
       )}

@@ -1,14 +1,12 @@
 'use client'
 
 import { ArrowRight } from '@keyline-icons/react'
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { useMemo, useState } from 'react'
 import { pickWelcomeLine, statsLine } from '../../overview/narrator/welcome'
 import { Button } from '../../ui/button'
 import type { SavedSummary, StepProps } from '../types'
-import { COPY, STAMP, stampDate } from './copy'
+import { COPY } from './copy'
 import './ready.css'
-
-const subscribeNever = () => () => {}
 
 export function ReadyStep({
   locale,
@@ -31,12 +29,6 @@ export function ReadyStep({
     () => statsLine({ flights: summary.flights, leftOut: summary.leftOut, locale }),
     [summary.flights, summary.leftOut, locale],
   )
-  // Today's local date: empty on the server so a reload near midnight cannot mismatch hydration.
-  const date = useSyncExternalStore(
-    subscribeNever,
-    () => stampDate(new Date()),
-    () => '',
-  )
 
   const open = async () => {
     setPhase('opening')
@@ -49,11 +41,6 @@ export function ReadyStep({
 
   return (
     <div className="ready-step">
-      <div className="ready-stamp" aria-hidden="true">
-        <span className="ready-stamp-kicker">{STAMP.kicker}</span>
-        <span className="ready-stamp-word">{STAMP.word}</span>
-        <span className="ready-stamp-date">{date}</span>
-      </div>
       <div className="ready-text">
         <p className="ready-eyebrow">{t(COPY.eyebrow)}</p>
         <h1 ref={headingRef} tabIndex={-1} className="ready-line">

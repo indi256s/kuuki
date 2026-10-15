@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useSyncExternalStore } from 'react'
 import { formatCount, formatNumber, type Locale } from '../../../lib/format'
 import { normalizeName } from '@kuuki/shared/address'
 import type { PassportPreview as Preview } from '../types'
@@ -62,6 +62,14 @@ const CAPTION_REVIEW = {
   },
 }
 
+const DESK = '(min-width: 701px)'
+const subscribeDesk = (callback: () => void) => {
+  const query = matchMedia(DESK)
+  query.addEventListener('change', callback)
+  return () => query.removeEventListener('change', callback)
+}
+const readDesk = () => matchMedia(DESK).matches
+
 /** The strip's cover thumbnail: a ring and a plane. */
 function Emblem({ size }: { size: number }) {
   return (
@@ -81,8 +89,8 @@ function Emblem({ size }: { size: number }) {
 /**
  * The brand side of the name and following steps. On desktop it is the passport bench (bench-live.ts): the closed cover
  * prints the name as it is typed, the cover swings open on the flights step, the bridge presses one stamp per country
- * found and the ready step takes a WELCOME entry stamp. On a phone it is the strip. The drawing is decorative; the
- * captions and the card carry the facts.
+ * found and the ready step takes a WELCOME entry stamp. On a phone it is the strip, with the bench under it while a
+ * batch is read and on the reveal. The drawing is decorative; the captions and the card carry the facts.
  */
 export function PassportPreview({ preview, locale = 'en' }: { preview: Preview; locale?: Locale }) {
   const t = COPY[locale]
@@ -105,9 +113,14 @@ export function PassportPreview({ preview, locale = 'en' }: { preview: Preview; 
           ? t.captionReady
           : t.captionFlights
   const stripStats = step === 'name' ? null : step === 'flights'
+  // The server and the first render are the phone's; the bench loads for the desktop at once, and on a phone once a
+  // batch is read or the reveal comes.
+  const desk = useSyncExternalStore(subscribeDesk, readDesk, () => false)
+  const benchOnPhone = step === 'ready' || (step === 'flights' && preview.reading)
   const stage = useRef<HTMLDivElement>(null)
   const drawn = usePassportBench(
     stage,
+    desk || benchOnPhone,
     {
       open: preview.open,
       ready: step === 'ready',
@@ -120,7 +133,12 @@ export function PassportPreview({ preview, locale = 'en' }: { preview: Preview; 
     initial,
   )
   return (
-    <div className="welcome-passport" data-open={preview.open || undefined} data-step={step}>
+    <div
+      className="welcome-passport"
+      data-open={preview.open || undefined}
+      data-step={step}
+      data-bench={benchOnPhone || undefined}
+    >
       <div className="wp-desk" data-tall={tall || undefined}>
         <div className="wp-figure">
           <div className="wp-bench" data-ready={drawn || undefined}>

@@ -42,6 +42,7 @@ import { SwipeActions, SwipeActionsRow } from '../../../client/ui/swipe-actions'
 import { SwitchRow } from '../../../client/ui/switch-row'
 import { ToastProvider, useToast } from '../../../client/ui/toast'
 import { ImportDockGallery } from './import-dock-gallery'
+import { WelcomePassportGallery } from './welcome-passport-gallery'
 import { Stamp } from '../../../client/signature/stamp'
 import { Ticket } from '../../../client/signature/ticket'
 import type { Locale } from '../../../lib/format'
@@ -762,6 +763,7 @@ function Sections({
         </div>
       </section>
       <ImportDockGallery locale={locale} />
+      <WelcomePassportGallery locale={locale} />
       <section>
         <h2>Ticket</h2>
         <div className="gallery-tickets">

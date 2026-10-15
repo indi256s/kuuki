@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import type { BenchController, BenchInput } from './bench-live'
 
-/** The bench only shows beside the card; on a phone the strip stands in for it and the drawing never loads. */
-const DESK = '(min-width: 701px)'
-
 /**
- * Mounts the passport bench in `stage` once its module has loaded (after hydration, so it never holds up the step) and
- * hands it every later `input`. The bench redraws itself frame by frame; React only passes the facts down.
+ * Mounts the passport bench in `stage` once it is `active` and its module has loaded (after hydration, so it never
+ * holds up the step), and hands it every later `input`. Beside the card it is always active; on a phone the caller
+ * activates it while a batch is read and on the reveal, and it stays mounted after that. The bench redraws itself
+ * frame by frame; React only passes the facts down.
  * `initial` is what the first render showed: a reload or resume starts from it with nothing replayed, and anything
  * that arrived since is pressed. Returns whether the drawing is in place.
  */
 export function usePassportBench(
   stage: RefObject<HTMLDivElement | null>,
+  active: boolean,
   input: BenchInput,
   initial: Pick<BenchInput, 'open' | 'ready' | 'countries'>,
 ): boolean {
@@ -25,30 +25,28 @@ export function usePassportBench(
   })
 
   useEffect(() => {
-    const desk = matchMedia(DESK)
+    if (!active || controller.current) return
     let alive = true
-    let loading = false
-    const load = () => {
-      if (loading || !desk.matches) return
-      loading = true
-      void import('./bench-live').then(({ mountBench }) => {
-        if (!alive || !stage.current) return
-        controller.current = mountBench(stage.current, { ...latest.current, ...initial })
-        controller.current.update(latest.current)
-        setReady(true)
-      })
-    }
-    load()
-    desk.addEventListener('change', load)
+    void import('./bench-live').then(({ mountBench }) => {
+      if (!alive || !stage.current) return
+      controller.current = mountBench(stage.current, { ...latest.current, ...initial })
+      controller.current.update(latest.current)
+      setReady(true)
+    })
     return () => {
       alive = false
-      desk.removeEventListener('change', load)
-      controller.current?.destroy()
-      controller.current = null
     }
     // `initial` is the first render's, and the stage is mounted once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [active])
+
+  useEffect(
+    () => () => {
+      controller.current?.destroy()
+      controller.current = null
+    },
+    [],
+  )
 
   return ready
 }

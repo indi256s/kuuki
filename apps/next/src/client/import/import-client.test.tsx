@@ -87,7 +87,7 @@ beforeEach(() => {
 
 describe('ImportClient journeys', () => {
   it.each(['failed', 'verified'] as const)(
-    'keeps a %s model row unchecked after answering a field question',
+    'selects a %s model row after answering a field question',
     async (verification) => {
       const row = draft({
         id: 'question',
@@ -105,6 +105,7 @@ describe('ImportClient journeys', () => {
       patchDraft.mockResolvedValue({
         ...row,
         fields: { ...row.fields, airline_iata: undefined, verification: 'not_verified' },
+        selected: true,
         version: 2,
       })
       render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api} />)
@@ -112,9 +113,10 @@ describe('ImportClient journeys', () => {
       await waitFor(() => expect(patchDraft).toHaveBeenCalled())
       expect(patchDraft.mock.calls[0][1]).toEqual({
         fields: { airline_iata: null },
+        selected: true,
         version: 1,
       })
-      expect(screen.getByRole('checkbox', { name: /include in import/i })).not.toBeChecked()
+      expect(screen.getByRole('checkbox', { name: /include in import/i })).toBeChecked()
     },
   )
 

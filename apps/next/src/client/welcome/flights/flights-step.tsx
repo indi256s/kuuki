@@ -36,7 +36,7 @@ import './flights.css'
 const LIST_ROWS = 4
 /** How long a bound read runs before the step offers to carry on elsewhere; the member shell's dock picks it up. */
 const KEEP_EXPLORING_MS = 20_000
-const ACCEPT = 'application/pdf,image/png,image/jpeg'
+const ACCEPT = 'image/png,image/jpeg,application/pdf'
 
 type Notice =
   | { kind: 'denied' }
@@ -166,6 +166,7 @@ export function FlightsStep({
   onReview,
   onManualSaved,
   onFound,
+  onReading,
   onSkip,
 }: StepProps & {
   /** The name saved on the previous step; the heading uses its first word. */
@@ -179,12 +180,14 @@ export function FlightsStep({
   /** A submission was accepted: keep its batch ID in the URL (replace). */
   onBatch: (batch: string | null) => void
   onManual: (open: boolean) => void
-  /** Drafts are ready: go to the review step. */
-  onReview: (batch: string) => void
+  /** Drafts are ready: go to the review step. `auto` is true only when this mount watched the batch get read. */
+  onReview: (batch: string, auto?: boolean) => void
   /** The one-flight form saved: straight to the reveal. */
   onManualSaved: (summary: SavedSummary) => void
   /** What has been found so far (countries of the drafts that would be saved), for the passport. */
   onFound: (found: Found) => void
+  /** A batch is being read (or stopped being read), for the phone passport. */
+  onReading?: (reading: boolean) => void
   /** "I'll do this later": record onboarding as done and dissolve. Rejects when recording fails. */
   onSkip: () => Promise<void>
 }) {
@@ -230,6 +233,10 @@ export function FlightsStep({
   const state = useImportBatch({ api, initialBatchId: batch, onBatchId: onBatch })
   const { phase, drafts, start } = state
   const reading = phase === 'starting' || phase === 'processing'
+  useEffect(() => {
+    onReading?.(reading)
+    return () => onReading?.(false)
+  }, [reading, onReading])
   const stop = stopOf(state)
   const prompt = S.prompt[locale]
 
@@ -430,7 +437,7 @@ export function FlightsStep({
     if (phase !== 'ready' || state.partial || drafts.length === 0 || !state.batch) return
     if (!observed || reviewed.current) return
     reviewed.current = true
-    onReview(state.batch.id)
+    onReview(state.batch.id, true)
   }, [phase, state.partial, state.batch, drafts.length, observed, onReview])
 
   // A batch that is gone must not stay in the URL.
@@ -576,30 +583,39 @@ export function FlightsStep({
         <div className="flights-tray-fade" aria-hidden="true" />
       </div>
       <div className="flights-tray-foot">
-        <Button variant="primary" className="auth-primary" onClick={() => void copy()}>
+        {/* On touch the screenshot entry is the one primary; the prompt is the other way in. */}
+        <Button
+          variant={coarse ? 'secondary' : 'primary'}
+          className={coarse ? 'auth-secondary' : 'auth-primary'}
+          onClick={() => void copy()}
+        >
           <Copy size={16} strokeWidth={1.75} aria-hidden="true" />
           {t(COPY.copyPrompt)}
         </Button>
       </div>
     </div>
   )
+  // No `capture`: the phone's sheet offers both the camera and the library.
+  const fileInput = (
+    <input
+      ref={fileRef}
+      className="flights-file"
+      type="file"
+      accept={ACCEPT}
+      tabIndex={-1}
+      aria-hidden="true"
+      onChange={(event) => {
+        const file = event.target.files?.[0]
+        event.target.value = ''
+        if (file) void submitFile(file)
+      }}
+    />
+  )
   const addFile = (
     <>
-      <input
-        ref={fileRef}
-        className="flights-file"
-        type="file"
-        accept={ACCEPT}
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          event.target.value = ''
-          if (file) void submitFile(file)
-        }}
-      />
+      {fileInput}
       <Button className="flights-outline" onClick={() => fileRef.current?.click()}>
-        {t(COPY.addPass)}
+        {t(COPY.addShot)}
       </Button>
     </>
   )
@@ -723,7 +739,7 @@ export function FlightsStep({
                 ? t(COPY.titleNamed).replace('{name}', first)
                 : t(COPY.title)}
           </h1>
-          {arrived ? null : <p>{t(COPY.sub)}</p>}
+          {arrived ? null : <p>{t(coarse ? COPY.subTouch : COPY.sub)}</p>}
         </div>
         {arrived && state.batch ? (
           <Button
@@ -738,6 +754,18 @@ export function FlightsStep({
           <NoticeBox detail={shown.detail} snippet={shown.snippet}>
             {shown.text}
           </NoticeBox>
+        ) : null}
+        {coarse ? (
+          <>
+            {fileInput}
+            <Button
+              variant="primary"
+              className="auth-primary"
+              onClick={() => fileRef.current?.click()}
+            >
+              {t(COPY.addShot)}
+            </Button>
+          </>
         ) : null}
         {tray}
         {copyFailedNote}

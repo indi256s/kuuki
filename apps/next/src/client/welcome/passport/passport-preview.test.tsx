@@ -9,6 +9,7 @@ const base: Preview = {
   name: '',
   found: { flights: 0, countries: [] },
   open: false,
+  reading: false,
 }
 
 // A desktop viewport with motion allowed, so the bench loads; jsdom never intersects, so nothing animates.
@@ -23,6 +24,13 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.useRealTimers()
 })
+
+const phone = () =>
+  vi.stubGlobal('matchMedia', () => ({
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+  }))
 
 const drawing = async (container: HTMLElement) => {
   await waitFor(() => expect(container.querySelector('.wp-bench svg')).not.toBeNull())
@@ -60,6 +68,7 @@ describe('PassportPreview', () => {
       step: 'review',
       name: 'Alex Mor',
       open: true,
+      reading: false,
       found: {
         flights: 41,
         countries: ['JP', 'PT', 'GE', 'TR', 'DE', 'GB'],
@@ -76,7 +85,7 @@ describe('PassportPreview', () => {
 
   it('stamps what a resume already holds without replaying it, and presses only later arrivals', async () => {
     const found = { flights: 12, countries: ['JP', 'PT'] }
-    const preview: Preview = { step: 'flights', name: 'Alex', open: true, found }
+    const preview: Preview = { step: 'flights', name: 'Alex', open: true, reading: false, found }
     const { container, rerender } = render(<PassportPreview preview={preview} />)
     const svg = await drawing(container)
     expect(stamp(svg, 0)).toHaveAttribute('opacity', '1')
@@ -148,6 +157,7 @@ describe('PassportPreview', () => {
           step: 'ready',
           name: 'Alex',
           open: true,
+          reading: false,
           found: { flights: 3, countries: ['JP'] },
         }}
       />,
@@ -162,5 +172,31 @@ describe('PassportPreview', () => {
     expect(
       screen.getByText('Штамп поставлен. Карточка растворится в вашем журнале.'),
     ).toBeInTheDocument()
+  })
+
+  it('on a phone, brings the bench in for a batch being read and for the reveal, not for the other steps', async () => {
+    phone()
+    const { container, rerender } = render(<PassportPreview preview={base} />)
+    const passport = container.querySelector('.welcome-passport')!
+    const idle: Preview[] = [
+      base,
+      { ...base, step: 'flights', open: true },
+      { ...base, step: 'review', open: true },
+    ]
+    for (const preview of idle) {
+      rerender(<PassportPreview preview={preview} />)
+      expect(passport).not.toHaveAttribute('data-bench')
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(container.querySelector('.wp-bench svg')).toBeNull()
+    rerender(<PassportPreview preview={{ ...base, step: 'flights', open: true, reading: true }} />)
+    expect(passport).toHaveAttribute('data-bench')
+    await drawing(container)
+    // Once mounted it stays, but the strip stands alone again when the batch is no longer being read.
+    rerender(<PassportPreview preview={{ ...base, step: 'review', open: true }} />)
+    expect(passport).not.toHaveAttribute('data-bench')
+    expect(container.querySelector('.wp-bench svg')).not.toBeNull()
+    rerender(<PassportPreview preview={{ ...base, step: 'ready', open: true }} />)
+    expect(passport).toHaveAttribute('data-bench')
   })
 })

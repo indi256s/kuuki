@@ -162,18 +162,28 @@ describe('POST /api/import/jobs', () => {
     })
   })
 
-  it('fails closed without a checker binding, ignores model verification and permits a member selection', async () => {
+  it('fails closed without a checker binding, ignores model verification and keeps the draft selected', async () => {
     answer([providerFlight({ verification: 'verified' })])
     const { body } = await postJob(db, {}, USER, {}, { AI: undefined })
     expect(body.batch.status).toBe('review')
     const draft = body.drafts[0]
-    expect(draft).toMatchObject({ selected: false, fields: { verification: 'failed' } })
-    const selected = await patchDraft(db, draft.id, { version: draft.version, selected: true })
-    expect(selected.body.draft).toMatchObject({
-      selected: true,
+    expect(draft).toMatchObject({ selected: true, fields: { verification: 'failed' } })
+    const deselected = await patchDraft(db, draft.id, { version: draft.version, selected: false })
+    expect(deselected.body.draft).toMatchObject({
+      selected: false,
       fields: { verification: 'failed' },
     })
   })
+
+  it.each(['not_verified', 'failed', 'unsupported', 'disagreed', 'verified'] as const)(
+    'selects a complete draft whose verification is %s',
+    async (verification) => {
+      const { rowOf } = await import('../api/_services/importJob')
+      const { normalizeFlights } = await import('../api/import/_extract')
+      const [flight] = normalizeFlights({ flights: [providerFlight()] }).flights
+      expect(rowOf({ ...flight, verification }).selected).toBe(true)
+    },
+  )
 
   it('invalidates verification after a field edit, retaining it for a selection-only patch', async () => {
     const created = await seed([providerFlight()])

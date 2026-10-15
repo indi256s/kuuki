@@ -252,6 +252,22 @@ it('retains ordinal evidence when online reading fails, and keeps the file failu
   })
 })
 
+it('does not auto-select a complete model row with low overall confidence', async () => {
+  const { api } = server()
+  const submit = api.submit
+  api.submit = vi.fn(async (source: ImportSource, operationId: string, signal?: AbortSignal) => {
+    const result = await submit(source, operationId, signal)
+    if ('drafts' in result)
+      result.drafts = result.drafts.map((row) => ({ ...row, selected: false, confidence: 0.2 }))
+    return result
+  })
+  const session = new UnifiedSession(api)
+  session.add([file('unsure.png')])
+  await done(session)
+  expect(patch).not.toHaveBeenCalled()
+  expect(session.drafts().map((row) => row.selected)).toEqual([false])
+})
+
 it('resumes all owning batches and uses one explicit save with pinned receipt versions after a lost response', async () => {
   const { api, batches } = server()
   batches.set(

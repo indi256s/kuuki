@@ -44,11 +44,17 @@ export function ReviewStep({
   locale,
   headingRef,
   batch,
+  fresh = false,
   onSaved,
   onStartEmpty,
   onFound,
 }: StepProps & {
   batch: string
+  /**
+   * The batch has just finished reading in this session (not a URL resume or Back): with nothing unsure it saves on
+   * its own.
+   */
+  fresh?: boolean
   onSaved: (summary: SavedSummary) => void
   /** "Start empty" when nothing is left to save: behaves like "I'll do this later". */
   onStartEmpty: () => Promise<void>
@@ -149,6 +155,19 @@ export function ReviewStep({
     // `included` is keyed by `signature`: the passport follows the set, not each re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, state.drafts.length, onFound])
+
+  // A fresh batch with nothing unsure and something right is saved without a stop here. Only the first settled
+  // state decides, once: a member who later resolves the last card presses Save themselves.
+  const decided = useRef(false)
+  const settled = state.phase === 'ready' && state.drafts.length > 0
+  useEffect(() => {
+    if (decided.current || !settled) return
+    decided.current = true
+    if (fresh && !state.partial && online && groups.unsure.length === 0 && groups.right.length > 0)
+      void save()
+    // Runs once, when the batch first settles; `save` reads the state of that render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settled])
 
   // Resolving an unsure card removes it, and with it the control that had focus: hand focus to the next card.
   const unsureIds = groups.unsure.map((draft) => draft.id)
@@ -389,13 +408,17 @@ export function ReviewStep({
     </li>
   )
 
-  const mode: 'failed' | 'offline' | 'empty' | 'ready' =
+  // Nothing chosen yet but flights still unanswered: the answer is in the cards, so Start empty steps down to
+  // secondary.
+  const mode: 'failed' | 'offline' | 'empty' | 'waiting' | 'ready' =
     failed || stuck
       ? 'failed'
       : !online && chosen > 0
         ? 'offline'
         : chosen === 0
-          ? 'empty'
+          ? unsure > 0
+            ? 'waiting'
+            : 'empty'
           : 'ready'
   const saveLabel = formatCount(locale, chosen, mobile ? saveShortForms : saveForms)
   const barTitle =
@@ -417,11 +440,13 @@ export function ReviewStep({
         ? t(COPY.offlineSub)
         : mode === 'empty'
           ? null
-          : unsure > 0
-            ? t(COPY.savingLeavesOut)
-            : left > 0
-              ? t(COPY.savingSkips)
-              : null
+          : mode === 'waiting'
+            ? t(COPY.answerOrStartEmpty)
+            : unsure > 0
+              ? t(COPY.savingLeavesOut)
+              : left > 0
+                ? t(COPY.savingSkips)
+                : null
 
   return (
     <div className="review-step">
@@ -446,6 +471,7 @@ export function ReviewStep({
                 state={saveStates[draft.id]}
                 mobile={mobile}
                 frozen={frozen}
+                quiet
                 onDirty={onDirty}
                 onChange={(change) => queue(draft.id, change)}
                 onRetry={() => void saver.retry(draft.id)}
@@ -510,7 +536,7 @@ export function ReviewStep({
           <p className="review-bar-title">{barTitle}</p>
           {barSub ? <p className="review-bar-sub">{barSub}</p> : null}
         </div>
-        {mode === 'empty' ? (
+        {mode === 'empty' || mode === 'waiting' ? (
           <div className="review-bar-action">
             {emptying === 'failed' ? (
               <p className="review-error" role="alert">
@@ -518,7 +544,7 @@ export function ReviewStep({
               </p>
             ) : null}
             <Button
-              variant="primary"
+              variant={mode === 'waiting' ? 'secondary' : 'primary'}
               loading={emptying === 'busy'}
               loadingLabel={t(COPY.saving)}
               onClick={startEmpty}

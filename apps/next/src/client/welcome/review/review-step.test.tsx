@@ -121,17 +121,18 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('ReviewStep', () => {
-  it('keeps an unverified row unsure after the member supplies its missing date', async () => {
+  it('selects an unverified row once the member supplies its missing date', async () => {
     const row = draft({
       id: 'date',
       selected: false,
       yearExplicit: false,
-      fields: fields({ date: '', verification: 'failed' }),
+      fields: fields({ date: '', verification: 'not_verified' }),
     })
     m.patch.mockResolvedValue({
       ...row,
       fields: fields({ verification: 'not_verified' }),
       yearConfirmed: true,
+      selected: true,
       version: 2,
     })
     setup(batchOf(1, [row]))
@@ -143,8 +144,61 @@ describe('ReviewStep', () => {
       version: 1,
       fields: { date: '2025-08-30' },
       yearConfirmed: true,
+      selected: true,
     })
-    expect(screen.getByRole('button', { name: 'Save 1 flight' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Save 2 flights' })).toBeTruthy()
+  })
+
+  it('asks to confirm an unverified flight in one tap, with Start empty only as the secondary way out', async () => {
+    const row = draft({
+      id: 'unverified',
+      selected: false,
+      fields: fields({ verification: 'not_verified' }),
+    })
+    m.patch.mockResolvedValue({ ...row, selected: true, version: 2 })
+    setup([row])
+    const confirm = await screen.findByRole('button', { name: 'Looks right: TBS → MUC' })
+    expect(screen.queryByRole('checkbox')).toBeNull()
+    expect(screen.getByText('1 still unsure')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start empty' })).toHaveAttribute(
+      'data-variant',
+      'secondary',
+    )
+    fireEvent.click(confirm)
+    await waitFor(() =>
+      expect(m.patch).toHaveBeenCalledWith('unverified', { version: 1, selected: true }),
+    )
+  })
+
+  it('saves a fresh batch of right rows once on its own and moves on', async () => {
+    const handlers = setup(batchOf(2), { fresh: true })
+    await waitFor(() => expect(handlers.onSaved).toHaveBeenCalledTimes(1))
+    expect(m.confirm).toHaveBeenCalledTimes(1)
+    expect(handlers.onSaved.mock.calls[0][0].flights).toHaveLength(2)
+  })
+
+  it('does not auto-save a batch that is not fresh', async () => {
+    const handlers = setup(batchOf(2))
+    expect(await screen.findByRole('button', { name: 'Save 2 flights' })).toBeTruthy()
+    expect(m.confirm).not.toHaveBeenCalled()
+    expect(handlers.onSaved).not.toHaveBeenCalled()
+  })
+
+  it('shows review for a fresh batch with an unsure row, and does not save when it is resolved', async () => {
+    const handlers = setup(batchOf(2, [london()]), { fresh: true })
+    fireEvent.click(await screen.findByRole('button', { name: 'LHR' }))
+    expect(await screen.findByRole('button', { name: 'Save 3 flights' })).toBeTruthy()
+    expect(m.confirm).not.toHaveBeenCalled()
+    expect(handlers.onSaved).not.toHaveBeenCalled()
+  })
+
+  it('stays on review with the error when a fresh auto-save fails', async () => {
+    m.confirm.mockRejectedValueOnce(new Error('network down'))
+    const handlers = setup(batchOf(2), { fresh: true })
+    expect(await screen.findByText('Couldn’t save')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy()
+    expect(handlers.onSaved).not.toHaveBeenCalled()
+    expect(m.confirm).toHaveBeenCalledTimes(1)
   })
 
   it('retries an unavailable read and resumes a processing batch', async () => {
@@ -327,7 +381,7 @@ describe('ReviewStep', () => {
   it('starts empty when nothing is included, and stays put if that fails', async () => {
     const handlers = setup([london()])
     const start = await screen.findByRole('button', { name: 'Start empty' })
-    expect(screen.getByText('Nothing to save')).toBeTruthy()
+    expect(screen.getByText('1 still unsure')).toBeTruthy()
     handlers.onStartEmpty.mockRejectedValueOnce(new Error('offline'))
     fireEvent.click(start)
     expect(await screen.findByRole('alert')).toBeTruthy()
