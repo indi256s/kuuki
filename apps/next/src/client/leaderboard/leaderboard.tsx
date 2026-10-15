@@ -1,126 +1,291 @@
 'use client'
 
-import { useLocale } from '../preferences'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
 import {
-  Plane,
-  Route,
-  Globe,
-  Radar as TowerControl,
-  Buildings as Building2,
-  Award as Medal,
-} from '@keyline-icons/react'
-import type {
-  readPublicLeaderboard,
-  readOwnLeaderboardEligibility,
-  readOwnLeaderboardRank,
-  LeaderboardCategory,
-} from '../../../../../functions/api/_services/publicLeaderboard'
-import { notificationStorage } from '../profile/storage'
-import { ProfileAvatar } from '../profile/avatar'
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
+import {
+  LEADERBOARD_CATEGORIES,
+  SKY_CATEGORIES,
+  type LeaderboardCategory,
+} from '../../../../../functions/api/_lib/leaderboard'
+import type { LeaderboardBoardPayload } from '../../../../../functions/api/_services/publicLeaderboard'
 import { IdentitySnapshot } from '../activity'
-import { categoryName, categoryUnit } from './categories'
-import { formatCount, formatNumber, type Locale } from '../../lib/format'
+import { notificationStorage } from '../profile/storage'
+import { useLocale } from '../preferences'
+import { SegmentedControl } from '../ui/segmented-control'
+import { Skeleton } from '../ui/skeleton'
+import type { Locale } from '../../lib/format'
+import { BoardList } from './board-list'
+import { CategoryStrip } from './category-strip'
+import { groupName } from './categories'
+import { narratorChoice, shownEntry, viewerPlace, type RankChanges } from './model'
+import { narrate } from './narrator'
+import { Podium } from './podium'
 import './leaderboard.css'
 
-type Entry = Awaited<ReturnType<typeof readPublicLeaderboard>>['entries'][number]
-type Own = {
-  ownerId: string
-  status: Awaited<ReturnType<typeof readOwnLeaderboardEligibility>>
-  rank: Awaited<ReturnType<typeof readOwnLeaderboardRank>>
+const subscribeNoop = () => () => {}
+
+/** Mirrors the selection in the address bar without navigating, as the Journal does. */
+function mirror(category: LeaderboardCategory, period: string) {
+  const params = new URLSearchParams(window.location.search)
+  params.set('category', category)
+  params.set('period', period)
+  window.history.replaceState(null, '', `?${params}`)
 }
-const icons = {
-  flights: Plane,
-  distance: Route,
-  countries: Globe,
-  cities: TowerControl,
-  airlines: Building2,
-}
-export function CategoryTabs({
-  category,
-  locale,
-}: {
-  category: LeaderboardCategory
-  locale: Locale
-}) {
-  const [announced, setAnnounced] = useState('')
-  useEffect(() => {
-    let active = true
-    queueMicrotask(() => {
-      if (active)
-        setAnnounced(
-          `${locale === 'ru' ? 'Категория рейтинга' : 'Leaderboard category'}: ${categoryName(category, locale)}`,
-        )
-    })
-    return () => {
-      active = false
+
+/**
+ * Rank up: `recordRank` runs once per publication for every all-time place. A tile that climbed first paints its old
+ * rank, then flips to the new one when it scrolls into view; several tiles flip 60ms apart.
+ */
+function useRankUp(payload: LeaderboardBoardPayload, navRef: React.RefObject<HTMLElement | null>) {
+  const [changes, setChanges] = useState<RankChanges>({})
+  const [flipped, setFlipped] = useState<Partial<Record<LeaderboardCategory, true>>>({})
+  const results = useRef<{ key: string; changes: RankChanges } | null>(null)
+  const viewer = payload.viewer
+  const updatedAt = payload.updatedAt
+  // Before paint, so the old rank is what the first frame shows.
+  useLayoutEffect(() => {
+    if (!viewer) return
+    const key = `${viewer.userId}:${updatedAt ?? ''}`
+    // Strict mode runs this twice; the second recordRank would report nothing new.
+    if (results.current?.key !== key) {
+      const storage = notificationStorage()
+      const next: RankChanges = {}
+      for (const category of LEADERBOARD_CATEGORIES) {
+        const entry = shownEntry(viewer.places[category]?.all ?? null)
+        if (entry)
+          next[category] = recordRank(viewer.userId, category, entry.rank, updatedAt ?? '', storage)
+      }
+      results.current = { key, changes: next }
     }
-  }, [category, locale])
+    setChanges(results.current.changes)
+    const reset = () => {
+      setChanges({})
+      setFlipped({})
+    }
+    window.addEventListener('kuuki:identity-reset', reset)
+    return () => window.removeEventListener('kuuki:identity-reset', reset)
+  }, [viewer, updatedAt])
+
+  useEffect(() => {
+    const climbing = LEADERBOARD_CATEGORIES.filter((category) => changes[category]?.celebrate)
+    if (!climbing.length) return
+    const timers: number[] = []
+    const observers: IntersectionObserver[] = []
+    let slot = 0
+    const flip = (category: LeaderboardCategory) => {
+      timers.push(
+        window.setTimeout(() => setFlipped((now) => ({ ...now, [category]: true })), slot++ * 60),
+      )
+    }
+    for (const category of climbing) {
+      const tile = navRef.current?.querySelector<HTMLElement>(`[data-category="${category}"]`)
+      if (!tile || typeof IntersectionObserver === 'undefined') {
+        flip(category)
+        continue
+      }
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return
+          observer.disconnect()
+          flip(category)
+        },
+        { threshold: 0.6 },
+      )
+      observer.observe(tile)
+      observers.push(observer)
+    }
+    return () => {
+      for (const observer of observers) observer.disconnect()
+      for (const timer of timers) window.clearTimeout(timer)
+    }
+  }, [changes, navRef])
+
+  const shownRanks: Partial<Record<LeaderboardCategory, number>> = {}
+  for (const category of LEADERBOARD_CATEGORIES) {
+    const change = changes[category]
+    const entry = shownEntry(viewer?.places[category]?.all ?? null)
+    if (change?.celebrate && !flipped[category] && entry)
+      shownRanks[category] = entry.rank + change.delta
+  }
+  return { changes, shownRanks }
+}
+
+function relativeUpdated(updatedAt: string, now: number, locale: Locale) {
+  const minutes = Math.max(0, Math.round((now - Date.parse(updatedAt)) / 60_000))
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
+  const text =
+    minutes < 60
+      ? format.format(-minutes, 'minute')
+      : minutes < 60 * 24
+        ? format.format(-Math.round(minutes / 60), 'hour')
+        : format.format(-Math.round(minutes / (60 * 24)), 'day')
+  return locale === 'ru' ? `Обновлено ${text}` : `Updated ${text}`
+}
+
+function Updated({ updatedAt, locale }: { updatedAt: string | null; locale: Locale }) {
+  // Once per render: it does not tick.
+  const [now] = useState(() => Date.now())
+  if (!updatedAt || !Number.isFinite(Date.parse(updatedAt))) return null
+  const absolute = new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(updatedAt))
   return (
-    <>
-      <p className="sr-only" role="status">
-        {announced}
-      </p>
-      <nav
-        aria-label={locale === 'ru' ? 'Категории рейтинга' : 'Leaderboard categories'}
-        className="leaderboard-tabs"
-      >
-        {Object.entries(icons).map(([key, Icon]) => (
-          <Link
-            key={key}
-            href={`/leaderboard?category=${key}`}
-            aria-current={key === category ? 'page' : undefined}
-          >
-            <Icon size={18} aria-hidden="true" />
-            {categoryName(key, locale)}
-          </Link>
-        ))}
-      </nav>
-    </>
+    <p className="leaderboard-updated">
+      <time dateTime={updatedAt} title={absolute} suppressHydrationWarning>
+        {relativeUpdated(updatedAt, now, locale)}
+      </time>
+    </p>
   )
 }
-function RankRow({
-  entry,
-  category,
-  locale,
-  own = false,
+
+function Heading({ locale, children }: { locale: Locale; children?: ReactNode }) {
+  return (
+    <div className="leaderboard-head">
+      <h1>{locale === 'ru' ? 'Рейтинг' : 'Leaderboard'}</h1>
+      {children}
+    </div>
+  )
+}
+
+export function LeaderboardBoard({
+  payload,
+  locale: initialLocale,
+  initialCategory,
+  initialPeriod,
 }: {
-  entry: Entry
-  category: LeaderboardCategory
+  payload: LeaderboardBoardPayload
   locale: Locale
-  own?: boolean
+  initialCategory: LeaderboardCategory
+  initialPeriod: string
 }) {
-  const unit = categoryUnit(category, entry.value, locale)
-  const name =
-    entry.display_name ||
-    (entry.username ? `@${entry.username}` : locale === 'ru' ? 'Участник' : 'Member')
+  const locale = useLocale(initialLocale)
+  const ru = locale === 'ru'
+  const [category, setCategory] = useState(initialCategory)
+  const [period, setPeriod] = useState(initialPeriod)
+  // Only the hydration render (a hard load) lets the podium rise; client navigation and later switches paint settled.
+  const hydrating = useSyncExternalStore(
+    subscribeNoop,
+    () => false,
+    () => true,
+  )
+  const [rise, setRise] = useState(hydrating)
+  const navRef = useRef<HTMLElement>(null)
+  const { changes, shownRanks } = useRankUp(payload, navRef)
+  const select = (nextCategory: LeaderboardCategory, nextPeriod: string) => {
+    setCategory(nextCategory)
+    setPeriod(nextPeriod)
+    setRise(false)
+    mirror(nextCategory, nextPeriod)
+  }
+  const slice = payload.boards[category]?.[period] ?? { top: [], total: 0 }
+  const place = viewerPlace(payload, category, period)
+  const choice = narratorChoice(payload, category, period, locale, changes[category])
+  const narration = narrate(choice.state, choice.params, locale)
+  const body = (
+    <>
+      <CategoryStrip
+        payload={payload}
+        locale={locale}
+        category={category}
+        period={period}
+        shownRanks={shownRanks}
+        navRef={navRef}
+        onSelect={(next) => select(next, period)}
+      />
+      <p className="leaderboard-narrator">
+        {narration.text}
+        {narration.link && (
+          <>
+            {' '}
+            <Link href={narration.link.href}>{narration.link.label}</Link>
+          </>
+        )}
+      </p>
+      <Podium
+        top={slice.top}
+        category={category}
+        period={period}
+        guest={!payload.viewer}
+        locale={locale}
+        rise={rise}
+      />
+      <BoardList
+        key={`${category}:${period}`}
+        slice={slice}
+        place={place}
+        category={category}
+        locale={locale}
+        userId={payload.viewer?.userId ?? null}
+        period={period}
+      />
+      <Updated updatedAt={payload.updatedAt} locale={locale} />
+    </>
+  )
   return (
     <>
-      <span
-        className="leaderboard-place"
-        data-medal={entry.rank <= 3 ? ['gold', 'silver', 'bronze'][entry.rank - 1] : undefined}
-      >
-        {entry.rank <= 3 && <Medal size={18} aria-hidden="true" />}
-        <span>#{entry.rank}</span>
-      </span>
-      <ProfileAvatar id={entry.user_id} url={entry.avatar_url} name={name} size={36} />
-      <span className="leaderboard-name">
-        {entry.username ? (
-          <Link href={`/fly/${encodeURIComponent(entry.username)}`}>{name}</Link>
-        ) : (
-          name
-        )}
-        {entry.username && entry.display_name && <small>@{entry.username}</small>}
-        {own && <small>{locale === 'ru' ? 'Вы' : 'You'}</small>}
-      </span>
-      <span className="leaderboard-value">
-        <strong>{formatNumber(locale, entry.value)}</strong>
-        <small>{unit}</small>
-      </span>
+      <Heading locale={locale}>
+        <SegmentedControl
+          dense
+          value={period}
+          onChange={(next) => select(category, next)}
+          label={ru ? 'Период' : 'Period'}
+          options={[
+            { value: payload.year, label: payload.year },
+            { value: 'all', label: ru ? 'Всё время' : 'All time' },
+          ]}
+        />
+      </Heading>
+      {payload.viewer ? (
+        <IdentitySnapshot ownerId={payload.viewer.userId}>{body}</IdentitySnapshot>
+      ) : (
+        body
+      )}
     </>
   )
 }
+
+/** Suspense fallback with the strip's and the podium's geometry, so nothing shifts when the board arrives. */
+export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }) {
+  const locale = useLocale(initialLocale)
+  const ru = locale === 'ru'
+  const sky = SKY_CATEGORIES.length
+  return (
+    <div className="leaderboard-loading" aria-busy="true">
+      <Heading locale={locale} />
+      <div className="leaderboard-tiles" aria-hidden="true">
+        {(['sky', 'ground'] as const).map((group) => (
+          <div key={group} className="leaderboard-group">
+            <p className="leaderboard-group-label">{groupName[group][ru ? 1 : 0]}</p>
+            <div className="leaderboard-group-tiles">
+              {Array.from({ length: group === 'sky' ? sky : 3 }, (_, index) => (
+                <Skeleton key={index} height={72} label="" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="leaderboard-narrator" role="status">
+        {ru ? 'Загружаем рейтинг…' : 'Loading rankings…'}
+      </p>
+      <ol className="leaderboard-podium" aria-hidden="true">
+        {[0, 1, 2].map((position) => (
+          <li key={position} className="leaderboard-sign" data-pos={position}>
+            <Skeleton height="100%" label="" />
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 const rankMemory = new Map<
   string,
   { rank: number; period: string; seen: string[]; delta: number }
@@ -179,202 +344,4 @@ export function recordRank(
     /* no repeated celebration in this tab */
   }
   return { delta, celebrate }
-}
-function YourPlace({
-  own,
-  category,
-  locale,
-}: {
-  own: Own
-  category: LeaderboardCategory
-  locale: Locale
-}) {
-  const [change, setChange] = useState<{
-    ownerId: string
-    category: string
-    period: string
-    delta: number
-    celebrate: boolean
-  } | null>(null)
-  const ru = locale === 'ru'
-  useEffect(() => {
-    let active = true
-    const rank = own.rank
-    queueMicrotask(() => {
-      if (active && rank)
-        setChange({
-          ownerId: own.ownerId,
-          category,
-          period: rank.period,
-          ...recordRank(own.ownerId, category, rank.entry.rank, rank.period, notificationStorage()),
-        })
-    })
-    const reset = () => {
-      active = false
-      setChange(null)
-    }
-    window.addEventListener('kuuki:identity-reset', reset)
-    return () => {
-      active = false
-      window.removeEventListener('kuuki:identity-reset', reset)
-    }
-  }, [own.ownerId, own.rank, category])
-  const current =
-    change?.ownerId === own.ownerId &&
-    change.category === category &&
-    change.period === own.rank?.period
-      ? change
-      : null
-  let message
-  if (own.status.pending)
-    message = ru
-      ? 'Ваши изменения ещё обрабатываются. Место обновится после публикации.'
-      : 'Your changes are still being prepared. Your place will update after publication.'
-  else if (!own.status.isPublic || !own.status.optedIn)
-    message = (
-      <>
-        {ru
-          ? 'Откройте профиль и включите участие в рейтинге.'
-          : 'Make your profile public and enable leaderboard participation.'}{' '}
-        <Link href="/settings">{ru ? 'Настройки' : 'Settings'}</Link>
-      </>
-    )
-  else if (own.status.totalFlights === null)
-    message = ru
-      ? 'Статистика готовится. Место появится после публикации.'
-      : 'Statistics are being prepared. Your place will appear after publication.'
-  else if (own.status.totalFlights < 5)
-    message = (
-      <>
-        {formatCount(locale, 5 - own.status.totalFlights, {
-          en: { one: '{count} more flight to join.', other: '{count} more flights to join.' },
-          ru: {
-            one: 'До участия остался {count} перелёт.',
-            few: 'До участия осталось {count} перелёта.',
-            many: 'До участия осталось {count} перелётов.',
-            other: 'До участия осталось {count} перелёта.',
-          },
-        })}
-        <progress
-          max={5}
-          value={own.status.totalFlights}
-          aria-label={ru ? 'Перелёты для участия' : 'Flights toward eligibility'}
-        />
-      </>
-    )
-  else if (own.rank)
-    message = (
-      <>
-        {ru ? 'Ваше место' : 'Your place'}: #{own.rank.entry.rank}
-        {current?.delta ? (
-          <>
-            {' '}
-            ·{' '}
-            {current.delta > 0
-              ? ru
-                ? 'Поднялись на'
-                : 'Up by'
-              : ru
-                ? 'Опустились на'
-                : 'Down by'}{' '}
-            {Math.abs(current.delta)} ·{' '}
-            {ru ? 'С предыдущей публикации' : 'Since the previous publication'}
-          </>
-        ) : null}
-      </>
-    )
-  else
-    message = ru
-      ? 'Вы участвуете. Место появится после публикации рейтинга.'
-      : 'You are eligible. Your place will appear when the rankings are published.'
-  return (
-    <IdentitySnapshot ownerId={own.ownerId}>
-      <p
-        className="leaderboard-eligibility"
-        role="status"
-        data-celebrate={current?.celebrate || undefined}
-      >
-        {message}
-      </p>
-    </IdentitySnapshot>
-  )
-}
-export function LeaderboardRows({
-  entries,
-  category,
-  locale,
-  own,
-}: {
-  entries: Entry[]
-  category: LeaderboardCategory
-  locale: Locale
-  own: Own | null
-}) {
-  const original = useRef<HTMLLIElement>(null)
-  const [observation, setObservation] = useState<{ key: string; outside: boolean } | null>(null)
-  const observationKey = `${category}:${own?.ownerId ?? ''}`
-  const ownEntry = own?.rank?.entry ?? entries.find((entry) => entry.user_id === own?.ownerId)
-  useEffect(() => {
-    if (!ownEntry || !original.current || typeof IntersectionObserver === 'undefined') return
-    const observer = new IntersectionObserver(([entry]) =>
-      setObservation({ key: observationKey, outside: !entry.isIntersecting }),
-    )
-    observer.observe(original.current)
-    return () => observer.disconnect()
-  }, [entries, ownEntry, observationKey])
-  const listed = entries.some((entry) => entry.user_id === own?.ownerId)
-  const pinned =
-    !!ownEntry && ((observation?.key === observationKey && observation.outside) || !listed)
-  return (
-    <>
-      {own && <YourPlace own={own} category={category} locale={locale} />}
-      <ol className="leaderboard-rows">
-        {entries.map((entry) => (
-          <li
-            key={entry.user_id}
-            ref={entry.user_id === own?.ownerId ? original : undefined}
-            className={entry.user_id === own?.ownerId ? 'leaderboard-own' : ''}
-            aria-hidden={entry.user_id === own?.ownerId && pinned ? true : undefined}
-            inert={entry.user_id === own?.ownerId && pinned ? true : undefined}
-          >
-            <RankRow
-              entry={entry}
-              category={category}
-              locale={locale}
-              own={entry.user_id === own?.ownerId}
-            />
-          </li>
-        ))}
-      </ol>
-      {pinned && own && ownEntry && (
-        <IdentitySnapshot ownerId={own.ownerId}>
-          <aside
-            className="leaderboard-pin"
-            aria-label={locale === 'ru' ? 'Ваше место в рейтинге' : 'Your leaderboard place'}
-          >
-            <RankRow entry={ownEntry} category={category} locale={locale} own />
-          </aside>
-        </IdentitySnapshot>
-      )}
-    </>
-  )
-}
-
-export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }) {
-  const locale = useLocale(initialLocale)
-  return (
-    <div className="leaderboard-loading" aria-busy="true">
-      <p role="status">{locale === 'ru' ? 'Загружаем рейтинг…' : 'Loading rankings…'}</p>
-      <ol className="leaderboard-rows" aria-hidden="true">
-        {Array.from({ length: 5 }, (_, index) => (
-          <li key={index}>
-            <span className="rank-placeholder" />
-            <span className="avatar-placeholder" />
-            <span className="name-placeholder" />
-            <span className="value-placeholder" />
-          </li>
-        ))}
-      </ol>
-    </div>
-  )
 }

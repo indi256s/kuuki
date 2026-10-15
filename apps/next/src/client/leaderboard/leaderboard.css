@@ -1,83 +1,253 @@
-/* Arc Tabs/list/progress anatomy mapped to Kuuki tokens (MIT; ../ui/ARC-LICENSE.txt). Category links remain routes. */
+/* The leaderboard: a departures board. Category strip (compact gate tiles), narrator, podium of gate signs, rows from #4. Tokens only; space does the grouping, no lines between rows. */
 .editorial-leaderboard {
   max-width: 720px;
   margin-inline: auto;
 }
-.leaderboard-tabs {
+.leaderboard-head {
   display: flex;
-  gap: var(--space-2);
-  overflow-x: auto;
-  padding-block: var(--space-3);
-  margin-bottom: var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: 44px;
+  margin-block-end: var(--space-4);
 }
-.leaderboard-tabs a {
+.leaderboard-head h1 {
+  margin: 0;
+}
+
+/* Category strip: sky above ground on desktop, one snapping strip on phones. */
+.leaderboard-tiles {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.leaderboard-group {
+  min-inline-size: 0;
+}
+.leaderboard-group-label {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.leaderboard-group-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* The line under the strip: one sentence about the viewer, two lines tall so the page below does not jump. */
+.leaderboard-narrator {
+  min-block-size: 48px;
+  margin: var(--space-4) 0 var(--space-6);
+  overflow-wrap: anywhere;
+}
+
+/* Podium: the DOM reads 1, 2, 3; the grid stands #1 in the middle, tallest. */
+.leaderboard-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: 'second first third';
+  align-items: end;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.leaderboard-podium > [data-pos='0'] {
+  --sign-h: 248px;
+  grid-area: first;
+}
+.leaderboard-podium > [data-pos='1'] {
+  --sign-h: 220px;
+  grid-area: second;
+}
+.leaderboard-podium > [data-pos='2'] {
+  --sign-h: 192px;
+  grid-area: third;
+}
+.leaderboard-sign {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  min-block-size: var(--sign-h);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--gate-surface);
+  box-shadow: var(--gate-edge);
+  color: var(--gate-label);
+  text-align: center;
+}
+.leaderboard-sign-step {
+  font: 600 16px/20px var(--font-mono);
+}
+.leaderboard-sign-step[data-medal='gold'] {
+  color: var(--gate-gold);
+}
+.leaderboard-sign-step[data-medal='silver'] {
+  color: var(--gate-silver);
+}
+.leaderboard-sign-step[data-medal='bronze'] {
+  color: var(--gate-bronze);
+}
+/* Sharers of a place stand side by side, so a tie never makes its step taller than #1. */
+.leaderboard-sign-people {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-3);
+  max-inline-size: 100%;
+}
+.leaderboard-sign-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.leaderboard-sign-name {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  white-space: nowrap;
-  min-height: 44px;
-  padding-inline: var(--space-3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-}
-.leaderboard-tabs a[aria-current='page'] {
+  min-block-size: 44px;
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-  background: var(--surface);
-  border-color: var(--hairline);
+  line-height: 20px;
+  color: var(--gate-label);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.leaderboard-sign-name:focus-visible,
+.leaderboard-free a:focus-visible,
+.leaderboard-name a:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.leaderboard-sign-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--gate-rank);
+  --split-flap-fill: transparent;
+  --split-flap-ink: currentColor;
+  --split-flap-seam: transparent;
+  --split-flap-width: 17px;
+  --split-flap-height: 32px;
+  --split-flap-font-size: 28px;
+  --split-flap-gap: 0;
+}
+.leaderboard-sign-value small {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--gate-label);
+}
+.leaderboard-free {
+  min-block-size: var(--sign-h);
+  border: 2px dashed var(--hairline);
+  border-radius: var(--radius-md);
+}
+.leaderboard-free a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 100%;
+  min-block-size: var(--sign-h);
+  border-radius: inherit;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
 }
 @media (hover: hover) and (pointer: fine) {
-  .leaderboard-tabs a:hover {
+  .leaderboard-free a:hover {
     background: var(--surface-inset);
   }
 }
-.leaderboard-caption {
+
+/* Rows from #4. */
+.leaderboard-board {
+  margin-block-start: var(--space-8);
+}
+.leaderboard-board-title {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text-muted);
 }
 .leaderboard-rows {
   display: grid;
   gap: var(--space-1);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
-.leaderboard-rows li,
-.leaderboard-pin {
+.leaderboard-row {
+  position: relative;
   display: grid;
-  grid-template-columns: 64px 36px minmax(0, 1fr) auto;
+  grid-template-columns: 56px 36px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-2);
+  min-block-size: 64px;
+  padding: var(--space-2);
   border-radius: var(--radius-sm);
 }
+.leaderboard-row[data-own] {
+  background: var(--surface-inset);
+  border-inline-start: 3px solid var(--accent);
+  padding-inline-start: calc(var(--space-2) - 3px);
+}
+@media (hover: hover) and (pointer: fine) {
+  .leaderboard-row:hover {
+    background: var(--surface-inset);
+  }
+}
 .leaderboard-place {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
   font-family: var(--font-mono);
-}
-.leaderboard-place[data-medal='gold'] {
-  color: var(--rank-gold);
-}
-.leaderboard-place[data-medal='silver'] {
-  color: var(--rank-silver);
-}
-.leaderboard-place[data-medal='bronze'] {
-  color: var(--rank-bronze);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 .leaderboard-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.leaderboard-name a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: inherit;
+  text-decoration: none;
+}
+/* One link per row, stretched over the whole row. */
+.leaderboard-name a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.leaderboard-name a:focus-visible {
+  outline: none;
 }
 .leaderboard-name small,
 .leaderboard-value small {
   display: block;
   color: var(--text-muted);
 }
-.leaderboard-name a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
+.leaderboard-name .leaderboard-you {
+  inline-size: fit-content;
+  padding-inline: 6px;
+  border-radius: var(--radius-xs);
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+  font-weight: 600;
 }
 .leaderboard-value {
   text-align: end;
@@ -86,97 +256,136 @@
 .leaderboard-value strong {
   font-family: var(--font-mono);
 }
-.leaderboard-own,
-.leaderboard-pin {
-  border-inline-start: 2px solid var(--accent);
+.leaderboard-gap {
+  padding-block: var(--space-1);
+  text-align: center;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
 }
-.leaderboard-own {
-  background: var(--surface-inset);
+.leaderboard-error {
+  margin-block: var(--space-3) 0;
+  color: var(--text-muted);
 }
-/* Your place sticks to the bottom of the list column while your row is off screen; it never leaves the list's flow. */
-.leaderboard-pin {
-  position: sticky;
-  bottom: calc(var(--tabbar-offset, 0px) + var(--space-4));
-  z-index: 1;
-  margin-top: var(--space-1);
-  background: var(--surface-floating);
-  box-shadow: var(--shadow-floating), var(--ring-floating);
+.leaderboard-board .ui-button {
+  margin-block-start: var(--space-3);
 }
-.leaderboard-eligibility {
-  padding-block: var(--space-4);
+.leaderboard-updated {
+  margin: var(--space-8) 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
 }
-.leaderboard-eligibility[data-celebrate='true'] {
-  animation: rank-change var(--dur-moment) var(--ease-out);
+
+/* Podium rise, first hard load per session: #3, then #2, then #1. */
+@keyframes leaderboard-rise {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
 }
-@keyframes rank-change {
+@keyframes leaderboard-fade {
   from {
     opacity: 0;
   }
-  to {
-    opacity: 1;
-  }
 }
+.leaderboard-podium[data-rise] > li {
+  animation: leaderboard-rise var(--dur-base) var(--ease-out) backwards;
+}
+.leaderboard-podium[data-rise] > [data-pos='2'] {
+  animation-delay: 0ms;
+}
+.leaderboard-podium[data-rise] > [data-pos='1'] {
+  animation-delay: 60ms;
+}
+.leaderboard-podium[data-rise] > [data-pos='0'] {
+  animation-delay: 120ms;
+}
+
+/* Loading: the strip's and the podium's geometry, so nothing shifts when the board arrives. */
+.leaderboard-loading .leaderboard-sign {
+  block-size: var(--sign-h);
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .leaderboard-eligibility[data-celebrate='true'] {
-    animation-duration: var(--dur-fast);
-    animation-timing-function: linear;
+  .leaderboard-podium[data-rise] > li {
+    animation: none;
+  }
+  /* Rank up keeps its meaning without movement: the new number fades in. */
+  .leaderboard-tiles .split-flap-digit[data-flip] {
+    animation: leaderboard-fade 150ms linear backwards;
   }
 }
+
 @media (max-width: 700px) {
-  .leaderboard-rows li,
-  .leaderboard-pin {
-    grid-template-columns: 52px 32px minmax(0, 1fr) auto;
+  .leaderboard-tiles {
+    --tile-w: clamp(124px, 36vw, 168px);
+    flex-direction: row;
+    gap: var(--space-6);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* Room for the focus ring inside the scroller. */
+    padding-block: var(--space-1);
+    margin-block: calc(var(--space-1) * -1);
+  }
+  .leaderboard-tiles::-webkit-scrollbar {
+    display: none;
+  }
+  .leaderboard-tiles[data-fade-end]:not([data-fade-start]) {
+    mask-image: linear-gradient(to right, currentcolor calc(100% - 24px), transparent);
+  }
+  .leaderboard-tiles[data-fade-start]:not([data-fade-end]) {
+    mask-image: linear-gradient(to right, transparent, currentcolor 24px);
+  }
+  .leaderboard-tiles[data-fade-start][data-fade-end] {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      currentcolor 24px,
+      currentcolor calc(100% - 24px),
+      transparent
+    );
+  }
+  .leaderboard-group {
+    flex: none;
+  }
+  /* The groups are told apart by space on phones; the label stays for screen readers. */
+  .leaderboard-group-label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .leaderboard-group-tiles {
+    display: flex;
+  }
+  .leaderboard-group-tiles > .gate-tile,
+  .leaderboard-group-tiles > .ui-skeleton {
+    flex: none;
+    inline-size: var(--tile-w);
+    scroll-snap-align: start;
+  }
+  .leaderboard-podium {
+    gap: var(--space-2);
+  }
+  .leaderboard-sign-value {
+    --split-flap-width: 12px;
+    --split-flap-height: 28px;
+    --split-flap-font-size: 20px;
+  }
+  .leaderboard-row {
+    grid-template-columns: 44px 32px minmax(0, 1fr) auto;
     gap: var(--space-2);
   }
   .leaderboard-value small {
-    max-width: 100px;
+    max-inline-size: 100px;
     font-size: 12px;
   }
-}
-
-.leaderboard-loading {
-  min-height: 320px;
-}
-.leaderboard-loading li {
-  min-height: 78px;
-}
-.leaderboard-loading li span {
-  display: block;
-  background: var(--surface-inset);
-  border-radius: var(--radius-xs);
-  height: 20px;
-}
-.leaderboard-loading li .avatar-placeholder {
-  height: 36px;
-  border-radius: var(--radius-full);
-}
-.leaderboard-loading li .value-placeholder {
-  width: 64px;
-}
-.leaderboard-loading li .name-placeholder {
-  width: 70%;
-}
-.leaderboard-eligibility progress {
-  display: block;
-  width: 160px;
-  height: 6px;
-  appearance: none;
-  border: 0;
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  background: var(--surface-inset);
-  accent-color: var(--accent);
-  margin-block-start: var(--space-2);
-}
-
-.leaderboard-eligibility progress::-webkit-progress-bar {
-  background: var(--surface-inset);
-}
-.leaderboard-eligibility progress::-webkit-progress-value {
-  background: var(--accent);
-  border-radius: inherit;
-}
-.leaderboard-eligibility progress::-moz-progress-bar {
-  background: var(--accent);
-  border-radius: inherit;
 }

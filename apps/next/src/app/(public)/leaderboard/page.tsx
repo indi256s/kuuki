@@ -1,50 +1,43 @@
 import { Suspense } from 'react'
-import { getLeaderboard, getOwnLeaderboardEligibility } from '../../../server/public'
-import { getOptionalPublicViewer } from '../../../server/identity'
+import { getLeaderboardBoard } from '../../../server/public'
 import { getRequestLocale } from '../../../server/locale'
 import { pageMetadata } from '../../../server/metadata'
-import {
-  leaderboardCategories,
-  type LeaderboardCategory,
-} from '../../../../../../functions/api/_services/publicLeaderboard'
-import { LeaderboardLoading } from '../../../client/leaderboard/leaderboard'
-import { LeaderboardHeading, RankingContent } from '../../../client/leaderboard/leaderboard-content'
+import { LEADERBOARD_CATEGORIES } from '../../../../../../functions/api/_lib/leaderboard'
+import type { LeaderboardCategory } from '../../../../../../functions/api/_services/publicLeaderboard'
+import { LeaderboardBoard, LeaderboardLoading } from '../../../client/leaderboard/leaderboard'
 import '../../../client/leaderboard/leaderboard.css'
 
+type Query = { category?: string; period?: string }
+
 export const generateMetadata = () => pageMetadata('Leaderboard', 'Рейтинг')
-export async function Ranking({ category }: { category: LeaderboardCategory }) {
-  const [{ entries, total, updatedAt }, identity, locale] = await Promise.all([
-    getLeaderboard(category),
-    getOptionalPublicViewer(),
+
+/** The one read behind the page. Category and period are client state, so nothing here is keyed on them. */
+export async function LeaderboardData({ searchParams }: { searchParams: Promise<Query> }) {
+  const [payload, locale, query] = await Promise.all([
+    getLeaderboardBoard(),
     getRequestLocale(),
+    searchParams,
   ])
-  const own = identity ? await getOwnLeaderboardEligibility(category) : null
+  const category = LEADERBOARD_CATEGORIES.includes(query.category as LeaderboardCategory)
+    ? (query.category as LeaderboardCategory)
+    : 'flights'
+  const period = query.period === payload.year ? payload.year : 'all'
   return (
-    <RankingContent
-      entries={entries}
-      own={own}
-      category={category}
+    <LeaderboardBoard
+      payload={payload}
       locale={locale}
-      total={total}
-      updatedAt={updatedAt}
-      memberViewer={Boolean(identity)}
+      initialCategory={category}
+      initialPeriod={period}
     />
   )
 }
-export default async function Leaderboard({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string }>
-}) {
-  const [query, locale] = await Promise.all([searchParams, getRequestLocale()])
-  const category = leaderboardCategories.includes(query.category as LeaderboardCategory)
-    ? (query.category as LeaderboardCategory)
-    : 'flights'
+
+export default async function Leaderboard({ searchParams }: { searchParams: Promise<Query> }) {
+  const locale = await getRequestLocale()
   return (
     <div className="editorial-leaderboard">
-      <LeaderboardHeading category={category} locale={locale} />
-      <Suspense key={category} fallback={<LeaderboardLoading locale={locale} />}>
-        <Ranking category={category} />
+      <Suspense fallback={<LeaderboardLoading locale={locale} />}>
+        <LeaderboardData searchParams={searchParams} />
       </Suspense>
     </div>
   )

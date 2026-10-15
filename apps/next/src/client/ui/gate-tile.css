@@ -58,3 +58,58 @@
     color: var(--accent);
   }
 }
+
+/* Compact: the leaderboard category strip. Same in both themes and at every width; only the tokens differ. */
+.gate-tile[data-size='compact'],
+:root[data-theme='dark'] .gate-tile[data-size='compact'] {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  block-size: 72px;
+  padding: 6px var(--space-3);
+  background: var(--surface);
+  box-shadow: none;
+  color: var(--text);
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.gate-tile[data-size='compact'] .gate-tile-label {
+  color: var(--text-muted);
+}
+.gate-tile[data-size='compact'] .gate-tile-value,
+:root[data-theme='dark'] .gate-tile[data-size='compact'] .gate-tile-value {
+  display: flex;
+  align-items: center;
+  /* Four digits plus the prefix, so a period switch (#9 to #124) never shifts the strip. */
+  min-inline-size: 5ch;
+  font: 500 24px/28px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  color: var(--text);
+  --split-flap-fill: transparent;
+  --split-flap-ink: currentColor;
+  --split-flap-seam: transparent;
+  --split-flap-width: 15px;
+  --split-flap-height: 28px;
+  --split-flap-font-size: 24px;
+  --split-flap-gap: 0;
+}
+.gate-tile[data-size='compact'][aria-current='page'] {
+  background: var(--accent-tint);
+}
+.gate-tile[data-size='compact'][aria-current='page'] .gate-tile-label,
+.gate-tile[data-size='compact'][aria-current='page'] .gate-tile-value,
+:root[data-theme='dark'] .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-value {
+  color: var(--accent-on-tint);
+  font-weight: 600;
+}
+.gate-tile[data-size='compact'][aria-current='page'] .split-flap-digit {
+  font-weight: 600;
+}
+.gate-tile[data-size='compact']:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) and (pointer: fine) {
+  .gate-tile[data-size='compact']:not([aria-current='page']):hover {
+    background: var(--surface-inset);
+  }
+}

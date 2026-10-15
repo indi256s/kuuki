@@ -91,6 +91,10 @@
   --gate-label: #c4beb7;
   --gate-rank: var(--accent-on-ink);
   --gate-edge: 0 0 0 0 transparent;
+  /* Leaderboard podium medals on the ink sign: the dark-theme medal values, as --accent-on-ink is the accent for ink. */
+  --gate-gold: #d5b36a;
+  --gate-silver: #b2b8bf;
+  --gate-bronze: #eca57d;
   --holder-shadow:
     0 0 0 1px rgb(48 45 42/6%), 0 1px 2px rgb(48 45 42/4%), 0 12px 32px -12px rgb(48 45 42/12%),
     inset -10px 0 12px -12px rgb(48 45 42/10%);
@@ -324,6 +328,9 @@
   --gate-label: var(--text-muted);
   --gate-rank: var(--accent);
   --gate-edge: inset 0 1px 0 rgb(255 255 255/5%), 0 0 0 1px rgb(0 0 0/25%);
+  --gate-gold: var(--rank-gold);
+  --gate-silver: var(--rank-silver);
+  --gate-bronze: var(--rank-bronze);
   --holder-shadow:
     inset 0 1px 0 rgb(255 255 255/5%), 0 0 0 1px rgb(0 0 0/25%),
     inset -10px 0 12px -12px rgb(0 0 0/30%);
