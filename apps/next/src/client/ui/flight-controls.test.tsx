@@ -112,7 +112,9 @@ describe.each(['en', 'ru'] as const)('flight controls (%s)', (locale) => {
     await userEvent.click(
       screen.getByRole('button', { name: locale === 'ru' ? 'Календарь' : 'Calendar' }),
     )
-    expect(screen.getByText(locale === 'ru' ? 'март 2026 г.' : 'March 2026')).toBeInTheDocument()
+    expect(
+      screen.getByRole('grid', { name: locale === 'ru' ? 'март 2026 г.' : 'March 2026' }),
+    ).toBeInTheDocument()
     expect(screen.getByText(locale === 'ru' ? 'пн' : 'Sun')).toBeInTheDocument()
     const selected = screen.getByRole('button', {
       name: locale === 'ru' ? '29 марта 2026 г.' : 'March 29, 2026',

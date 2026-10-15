@@ -9,6 +9,7 @@ export type DateRangeValue = { from: string; to: string }
 export type DateRangePreset = { label: string; from: string; to: string }
 
 // Arc's paired-calendar/Apply composition uses Kuuki's typed calendar and date-label authority.
+// Both hosts (Journal period popover, Overview filter panel) scroll themselves, so the grids flow inline instead of floating past the host's edge.
 // `presets` (for example whole years) fill the two dates through `onChange` like typing would; committing stays with Apply.
 export function DateRangePicker({
   from,
@@ -58,6 +59,7 @@ export function DateRangePicker({
           locale={locale}
           disabled={disabled}
           error={error}
+          inline
         />
         <Calendar
           label={locale === 'ru' ? 'По дату' : 'To date'}
@@ -65,6 +67,7 @@ export function DateRangePicker({
           onChange={(to) => onChange({ from, to })}
           locale={locale}
           disabled={disabled}
+          inline
         />
       </div>
       {onApply || onClear ? (

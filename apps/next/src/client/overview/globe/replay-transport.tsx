@@ -49,6 +49,14 @@ export function ReplayTransport({
       ? formatter.format(new Date(`${item.month}-01T00:00:00Z`)).toLocaleUpperCase(locale)
       : '—'
   }, [candidates, value, formatter, locale])
+  // Every month name reserves its width in the button, so the label never resizes and the bottom row never rewraps.
+  const monthAlternatives = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, month) =>
+        formatter.format(new Date(Date.UTC(2000, month, 1))).toLocaleUpperCase(locale),
+      ),
+    [formatter, locale],
+  )
   const drag = useRef<{ origin: number; value: number } | null>(null)
   const change = (index: number, phase: 'preview' | 'commit') => {
     const next = candidates[index]?.startMs
@@ -131,6 +139,7 @@ export function ReplayTransport({
     >
       <Button
         className="replay-play"
+        dense
         aria-label={
           paused
             ? locale === 'ru'
@@ -147,6 +156,10 @@ export function ReplayTransport({
       <Button
         ref={label}
         className="replay-month"
+        dense
+        morphText
+        instantText
+        textAlternatives={monthAlternatives}
         aria-expanded={expanded}
         onClick={() => setExpanded(!expanded)}
       >

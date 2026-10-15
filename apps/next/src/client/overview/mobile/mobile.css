@@ -41,6 +41,13 @@
   flex: 1;
   min-width: 0;
 }
+/* The 44px heading centres the title, so the options and close buttons centre on it too instead of riding 6px high. */
+.ov3-section-sheet .ui-panel-header {
+  align-items: center;
+}
+.ov3-section-sheet .ui-panel-header .ui-icon-button {
+  margin-block-start: 0;
+}
 .ov3-sheet-heading {
   container-type: inline-size;
   position: relative;
@@ -90,7 +97,7 @@
   flex: none;
   display: flex;
   gap: 4px;
-  margin: 0 var(--space-6) 20px;
+  margin: 0 var(--sheet-inline, var(--space-6)) 20px;
 }
 .ov3-sheet-pager span {
   flex: 1;
@@ -213,7 +220,7 @@
   scroll-snap-stop: always;
   /* The figure stage translates sideways while the slide moves; it must not make the slide scroll sideways. */
   overflow-x: clip;
-  padding: 0 var(--space-6) var(--space-2);
+  padding: 0 var(--sheet-inline, var(--space-6)) var(--space-2);
 }
 @media (prefers-reduced-motion: reduce) {
   .ov3-sheet-pager-indicator {
@@ -254,7 +261,7 @@
   /* Sideways scrolling clips vertically too, so the row is 12px taller than its 44px footprint on both sides (negative margins give the space back; the 8px gap below is already in them) and the chips keep their shadow. */
   height: 68px;
   margin-block: -12px -4px;
-  padding: 18px var(--space-6);
+  padding: 18px var(--sheet-inline, var(--space-6));
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;

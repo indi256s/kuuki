@@ -208,12 +208,16 @@
   gap: var(--space-2);
   color: var(--text);
 }
-.replay-month {
+.replay-transport .replay-month.ui-button {
+  padding-inline: 10px;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
 }
-.replay-play.ui-button,
+.replay-transport .replay-play.ui-button {
+  min-inline-size: 32px;
+  padding-inline: 0;
+}
 .globe-route-close.ui-button {
   min-inline-size: 44px;
   padding-inline: 0;
@@ -268,15 +272,12 @@
 @media (pointer: coarse), (max-width: 700px) {
   .replay-transport {
     position: relative;
-  }
-  .replay-transport .ui-button {
-    min-block-size: 44px;
-    min-inline-size: 44px;
+    gap: var(--space-3);
   }
   .replay-transport .replay-scrubber {
     position: absolute;
     inset-inline-start: 0;
-    inset-block-end: 48px;
+    inset-block-end: 44px;
     background: var(--surface);
     border-radius: var(--radius-sm);
   }

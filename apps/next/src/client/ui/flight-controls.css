@@ -122,7 +122,7 @@
   gap: var(--space-2);
 }
 .flight-date-input button,
-.flight-calendar button {
+.flight-date-input > button {
   min-height: 44px;
   border: 1px solid var(--control-border);
   border-radius: var(--radius-sm);
@@ -130,44 +130,131 @@
   color: var(--text);
   cursor: pointer;
 }
+/* Free Arc calendar: quiet header, round transparent days, the selected day an accent disc and today a dot under its number. */
 .flight-calendar-popover {
+  width: min(100%, 344px);
   min-width: 280px;
   max-width: 100%;
   max-height: none;
+  padding: var(--space-3);
+}
+.flight-calendar[data-inline='true'] .flight-calendar-popover {
+  position: static;
+  inset: auto;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
 }
 .flight-calendar-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+  padding-inline-start: var(--space-2);
+}
+/* Old and new titles share one cell while they cross. */
+.flight-calendar-title > [aria-hidden] {
+  display: grid;
+}
+.flight-calendar-title > [aria-hidden] > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.flight-calendar-heading > button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+.flight-calendar-heading > button:active {
+  transform: scale(0.96);
 }
 .flight-calendar-grid {
   display: grid;
   gap: var(--space-1);
   text-align: center;
-  margin-block-start: var(--space-2);
 }
 .flight-calendar-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--space-1);
 }
-.flight-calendar-grid button {
-  width: 100%;
-  border: 0;
+.flight-calendar-grid small[role='columnheader'] {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 24px;
+}
+/* Months sit on one strip inside a clipped window; every pane has six weeks, so the height never changes. */
+.flight-calendar-viewport {
+  display: grid;
+  overflow: hidden;
+  contain: paint;
+}
+.flight-calendar-pane {
+  grid-area: 1 / 1;
+  display: grid;
+  gap: var(--space-1);
   min-width: 0;
+}
+.flight-calendar-pane:not([data-present]) {
+  pointer-events: none;
+}
+.flight-calendar-grid button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
   padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.flight-calendar-grid button > span {
+  position: relative;
 }
 .flight-calendar-grid button[data-outside='true'] {
   color: var(--text-muted);
 }
 .flight-calendar-grid button[aria-current='date'] {
-  box-shadow: inset 0 0 0 2px var(--selection-contour);
   font-weight: 600;
+}
+.flight-calendar-grid button[aria-current='date'] > span::after {
+  content: '';
+  position: absolute;
+  inset-block-start: calc(100% + 3px);
+  inset-inline-start: 50%;
+  width: 4px;
+  height: 4px;
+  margin-inline-start: -2px;
+  border-radius: 50%;
+  background: currentColor;
 }
 .flight-calendar-grid [aria-selected='true'] button {
   background: var(--accent);
   color: var(--accent-foreground);
+  font-weight: 600;
 }
 .ui-dialog.flight-add-dialog {
   width: min(560px, calc(100vw - 32px));
@@ -256,15 +343,10 @@
   .flight-full-sheet .ui-panel-footer .ui-button-wrap .ui-button {
     width: 100%;
   }
-  .flight-calendar-week {
-    gap: 0;
-  }
+  /* Field width, not wider: the field can sit 16px from the screen edge, so any bleed pushes the month buttons off screen. */
   .flight-calendar-popover {
-    inset-inline: calc(-1 * var(--space-6));
-    width: auto;
     min-width: 0;
-    max-width: none;
-    padding-inline: var(--space-1);
+    padding-inline: var(--space-2);
   }
 }
 /* Free Arc calendar/search presentation, retaining local typed input and mobile Sheet behavior. */
@@ -289,6 +371,11 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+/* The month strip clips its overflow, so a day's ring sits inside the cell; neutral, so it reads on the accent disc too. */
+.flight-calendar .flight-calendar-grid button:focus-visible {
+  outline-color: var(--text);
+  outline-offset: -2px;
+}
 .flight-search-popover,
 .flight-calendar-popover {
   border: 1px solid var(--hairline);
@@ -299,13 +386,6 @@
   flex: none;
   width: 44px;
   padding: 0;
-}
-.flight-calendar-heading > button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  flex: none;
-  border: 0;
 }
 .flight-calendar-grid button {
   font-variant-numeric: tabular-nums;
@@ -335,12 +415,14 @@
 @media (hover: hover) and (pointer: fine) {
   .flight-combobox li:hover:not([aria-disabled='true']),
   .flight-search-sheet li:hover:not([aria-disabled='true']),
-  .flight-calendar-grid [aria-selected='false'] button:hover:not([aria-current='date']) {
+  .flight-calendar-heading > button:hover,
+  .flight-calendar-grid [aria-selected='false'] button:hover {
     background: var(--hover-surface);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .flight-calendar-grid button {
+  .flight-calendar-grid button,
+  .flight-calendar-heading > button {
     transition: none;
   }
 }
@@ -389,7 +471,7 @@
 }
 
 @media (forced-colors: active) {
-  .flight-calendar-grid button[aria-current='date'] {
+  .flight-calendar-grid [aria-selected='true'] button {
     border: 2px solid Highlight;
   }
 }

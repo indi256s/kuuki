@@ -7,6 +7,8 @@
   pointer-events: none !important;
 }
 .sheet:global(.ui-sheet.ui-bottom-sheet[data-side='bottom']) {
+  /* Inline inset of the panel parts; content that manages its own padding reads it to stay aligned with the header. */
+  --sheet-inline: var(--space-6);
   bottom: calc(var(--sheet-kb, 0px) - var(--sheet-extension));
   width: min(100%, 36rem);
   height: calc(var(--sheet-max) * var(--sheet-viewport, 100dvh) + var(--sheet-extension));
@@ -75,6 +77,9 @@
   white-space: nowrap;
 }
 @media (max-width: 40rem) {
+  .sheet:global(.ui-sheet.ui-bottom-sheet[data-side='bottom']) {
+    --sheet-inline: var(--space-4);
+  }
   .sheet :global(.ui-panel-header),
   .sheet :global(.ui-panel-body),
   .sheet :global(.ui-panel-footer) {

@@ -417,16 +417,6 @@
 .date-tiles .flight-calendar {
   margin-block-start: var(--space-4);
 }
-.flight-calendar[data-inline='true'] .flight-calendar-popover {
-  position: static;
-  inset: auto;
-  width: auto;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  box-shadow: none;
-  background: transparent;
-}
 
 /* Optional details: fields, then times as one leg. */
 .flight-details {
