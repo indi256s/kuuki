@@ -823,9 +823,10 @@ function pointBounds(points: Array<[number, number]>): Bounds | null {
 }
 function fitGround(map: LibreMap, bounds: Bounds, reduced: boolean) {
   setZoomLimits(map)
-  const width = map.getContainer().clientWidth
+  // Clear the card's overlays: the filter bar sits on the top edge of wide cards, the legend on the bottom edge.
+  const wide = map.getContainer().clientWidth >= 480
   map.fitBounds(bounds, {
-    padding: width < 480 ? 24 : 32,
+    padding: { top: wide ? 80 : 48, bottom: 56, left: 32, right: 32 },
     maxZoom: map.getMaxZoom(),
     duration: reduced ? 0 : 600,
     easing: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2),

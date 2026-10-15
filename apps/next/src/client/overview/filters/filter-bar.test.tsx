@@ -6,6 +6,7 @@ import fixture from '../../../../../../packages/shared/src/overview/__fixtures__
 import type { OverviewGroundJourney, OverviewPayload } from '@kuuki/shared/overview/model'
 import { DEFAULT_PREFS, type OverviewPrefs } from '@kuuki/shared/overview/prefs'
 import { OverviewProvider, useOverview } from '../store/overview-context'
+import { ZeroResult } from '../page/page-states'
 import { FilterBar } from './filter-bar'
 
 vi.mock('next/navigation', () => ({
@@ -46,6 +47,7 @@ const mount = (payload: OverviewPayload, filter: OverviewPrefs['filter']) =>
     >
       <FilterBar />
       <Filter />
+      <ZeroResult />
     </OverviewProvider>,
   )
 afterEach(cleanup)

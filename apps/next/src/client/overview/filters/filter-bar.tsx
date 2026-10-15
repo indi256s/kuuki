@@ -4,7 +4,6 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { Plus } from '../../ui/animated-icons'
 import { formatNumber } from '../../../lib/format'
 import { useOverview } from '../store/overview-context'
-import { isAviationFacetNote } from '../store/scope-state'
 import { Chip } from '../../ui/chip'
 import { Button } from '../../ui/button'
 import { SegmentedControl } from '../../ui/segmented-control'
@@ -19,7 +18,6 @@ export function FilterBar() {
   // The segment exists only with ground data; a stored scope without it is already ignored by the compute.
   const hasGround = (payload?.ground.length ?? 0) > 0
   const travelScope = hasGround ? (scope?.figures.scope ?? 'all') : 'all'
-  const aviationNote = !!scope && isAviationFacetNote(scope, filter)
   const facets = useAppliedFacets()
   const bar = useRef<HTMLDivElement>(null),
     overflow = useRef<HTMLButtonElement>(null)
@@ -50,6 +48,11 @@ export function FilterBar() {
         item.hidden = false
       })
       if (more) more.hidden = true
+      // Rows by vertical centre: the dense scope segment is shorter than the buttons beside it, so tops differ within a row.
+      const middle = (item: Element) => {
+        const rect = item.getBoundingClientRect()
+        return Math.round(rect.top + rect.height / 2)
+      }
       const tops = [
         ...new Set(
           [...node.children]
@@ -57,11 +60,11 @@ export function FilterBar() {
               (item) =>
                 item instanceof HTMLElement && !item.hidden && item.getClientRects().length > 0,
             )
-            .map((item) => item.getBoundingClientRect().top),
+            .map(middle),
         ),
       ].sort((a, b) => a - b)
       const second = tops[1] ?? tops[0]
-      let count = items.findIndex((item) => item.getBoundingClientRect().top > second)
+      let count = items.findIndex((item) => middle(item) > second)
       if (count < 0) count = items.length
       if (more && count < items.length) {
         do {
@@ -69,7 +72,7 @@ export function FilterBar() {
             item.hidden = position >= count
           })
           more.hidden = false
-          if (more.getBoundingClientRect().top <= second || count === 0) break
+          if (middle(more) <= second || count === 0) break
           count--
         } while (count >= 0)
       }
@@ -132,9 +135,6 @@ export function FilterBar() {
           <Plus size={16} aria-hidden="true" />
           {locale === 'ru' ? 'Фильтр' : 'Filter'}
         </Button>
-        {aviationNote ? (
-          <span className="ov-filter-note">{t(S.aviationFacetNote, locale)}</span>
-        ) : null}
         {!facets.length ? (
           <span className="ov-filter-all">
             {hasGround && travelScope === 'all'

@@ -30,8 +30,7 @@
   inline-size: calc(3ch + 24px);
   font-family: var(--font-mono);
 }
-.ov-filter-all,
-.ov-filter-note {
+.ov-filter-all {
   color: var(--text-muted);
   font-size: 13px;
   line-height: 20px;
