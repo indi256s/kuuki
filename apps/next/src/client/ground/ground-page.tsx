@@ -58,7 +58,7 @@ export function GroundTravelPage({
   const t = copy[locale]
   const { view, setMode, setCancelled, showAll, openJourney, closeJourney } =
     useGroundView(initialQuery)
-  const data = useGroundList(view.cancelled)
+  const data = useGroundList(ownerId, view.cancelled)
   const online = useOnline()
   const offlineNoteId = useId()
   const updating = useLate(data.refreshing, 150)

@@ -1,7 +1,7 @@
 // Same-origin calls for ground journeys and places. Shared by the list, the forms and the OCR panel; each
 // write carries its own operation key so a retry replays instead of writing twice.
 
-import { api } from '@kuuki/client/apiClient'
+import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import type {
   GroundCommand,
   GroundJourneyDto,
@@ -16,6 +16,41 @@ import type {
 import type { RailOcrResult } from '@kuuki/shared/railTicketOcr'
 
 type Signal = { signal?: AbortSignal }
+
+type ListKey = 'active' | 'cancelled'
+type ListMemo = {
+  ownerId: string
+  generation: number
+  today: string
+  lists: Partial<Record<ListKey, GroundJourneyList>>
+}
+
+// The last list answers of this browser tab, so returning to the page shows them at once while a fresh read runs.
+// Written only from browser effects, never on the server. Any write drops it: a stale copy could hide the change.
+let listMemo: ListMemo | null = null
+
+export function rememberedLists(ownerId: string): Pick<ListMemo, 'today' | 'lists'> | null {
+  return listMemo?.ownerId === ownerId && listMemo.generation === getAuthGeneration()
+    ? listMemo
+    : null
+}
+
+export function rememberList(
+  ownerId: string,
+  today: string,
+  key: ListKey,
+  list: GroundJourneyList,
+) {
+  const generation = getAuthGeneration()
+  const same =
+    listMemo?.ownerId === ownerId && listMemo.generation === generation && listMemo.today === today
+  listMemo = {
+    ownerId,
+    generation,
+    today,
+    lists: { ...(same ? listMemo?.lists : {}), [key]: list },
+  }
+}
 
 export function listJourneys(
   query: { mode?: GroundMode; cancelled?: boolean; today: string },
@@ -41,12 +76,21 @@ export function sendCommand(
   command: GroundCommand,
   options: Signal = {},
 ): Promise<GroundMutationResult> {
-  if (command.action === 'create')
-    return api.post<GroundMutationResult>('/api/ground-journeys', command, options)
-  const path = `/api/ground-journeys/${encodeURIComponent(command.journeyId)}`
-  return command.action === 'delete'
-    ? api.delete<GroundMutationResult>(path, command, options)
-    : api.patch<GroundMutationResult>(path, command, options)
+  listMemo = null
+  const path =
+    command.action === 'create'
+      ? '/api/ground-journeys'
+      : `/api/ground-journeys/${encodeURIComponent(command.journeyId)}`
+  const sent =
+    command.action === 'create'
+      ? api.post<GroundMutationResult>(path, command, options)
+      : command.action === 'delete'
+        ? api.delete<GroundMutationResult>(path, command, options)
+        : api.patch<GroundMutationResult>(path, command, options)
+  // A list read during the write may already be remembered; drop it once the write settles too.
+  return sent.finally(() => {
+    listMemo = null
+  })
 }
 
 /** Resolves an unconfirmed write: saved, deleted, or unknown (never written or expired). */

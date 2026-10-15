@@ -19,7 +19,10 @@ vi.mock('next/link', async () => ({
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../shell-notices', () => ({ announceShellNotice: vi.fn() }))
-vi.mock('./api', () => ({
+vi.mock('./api', async (importOriginal) => ({
+  // The tab memo is real: returning to the page must start from it.
+  rememberedLists: (await importOriginal<typeof import('./api')>()).rememberedLists,
+  rememberList: (await importOriginal<typeof import('./api')>()).rememberList,
   listJourneys: vi.fn(),
   readJourney: vi.fn(),
   sendCommand: vi.fn(),
@@ -56,6 +59,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   window.history.replaceState(null, '', '/ground-travel')
   vi.mocked(api.listJourneys).mockResolvedValue(listOf(all))
+  // Each test starts as a first visit: the memo belongs to another owner.
+  api.rememberList('someone-else', '2000-01-01', 'active', listOf([]))
 })
 
 describe('list', () => {
@@ -125,6 +130,16 @@ describe('list', () => {
     expect(window.sessionStorage.getItem('kuuki:journal-section')).toBe('ground')
     await screen.findByRole('heading', { level: 2, name: 'Plans' })
     expect(screen.queryByRole('button', { name: /Add/ })).not.toBeInTheDocument()
+  })
+
+  it('returns to the page with the last list instead of the skeleton, refreshing it', async () => {
+    const first = mount()
+    await screen.findByRole('heading', { level: 2, name: 'Plans' })
+    first.unmount()
+    vi.mocked(api.listJourneys).mockReturnValue(new Promise(() => {}))
+    mount()
+    expect(cards()).toHaveLength(all.length)
+    expect(api.listJourneys).toHaveBeenCalledTimes(2)
   })
 
   it('opens the cancelled list as a separate read and hides the totals', async () => {

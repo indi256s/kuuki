@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import { todayIso, type GroundJourneyDto, type GroundJourneyList } from '@kuuki/shared/groundTravel'
 import { trackPrivateOperation } from '../activity'
-import { listJourneys, readJourney } from './api'
+import { listJourneys, readJourney, rememberList, rememberedLists } from './api'
 
 type Key = 'active' | 'cancelled'
 type Lists = Partial<Record<Key, GroundJourneyList>>
@@ -50,12 +50,14 @@ function useRead() {
   )
 }
 
-export function useGroundList(cancelled: boolean): GroundList {
+export function useGroundList(ownerId: string, cancelled: boolean): GroundList {
   const key: Key = cancelled ? 'cancelled' : 'active'
   const read = useRead()
-  const [today, setToday] = useState<string | null>(null)
+  // A return visit starts from the tab's last answers (refreshing), not the skeleton. A full load has none, so hydration matches.
+  const [remembered] = useState(() => rememberedLists(ownerId))
+  const [today, setToday] = useState<string | null>(remembered?.today ?? null)
   const [version, setVersion] = useState(0)
-  const [lists, setLists] = useState<Lists>({})
+  const [lists, setLists] = useState<Lists>(remembered?.lists ?? {})
   // The request token (zone date + reload count) each view last got an answer for; a token behind the current one means a read is in flight.
   const [answered, setAnswered] = useState<Partial<Record<Key, string>>>({})
   const [failedKeys, setFailedKeys] = useState<ReadonlySet<Key>>(() => new Set())
@@ -83,6 +85,7 @@ export function useGroundList(cancelled: boolean): GroundList {
     return read(
       (signal) => listJourneys({ cancelled, today }, { signal }),
       (value) => {
+        rememberList(ownerId, today, key, value)
         setLists((old) => ({ ...old, [key]: value }))
         setFailedKeys((old) => without(old, key))
         setAnswered((old) => ({ ...old, [key]: token }))
@@ -92,7 +95,7 @@ export function useGroundList(cancelled: boolean): GroundList {
         setAnswered((old) => ({ ...old, [key]: token }))
       },
     )
-  }, [read, cancelled, key, today, version])
+  }, [read, ownerId, cancelled, key, today, version])
 
   const list = lists[key] ?? null
   const failed = failedKeys.has(key)
