@@ -1,6 +1,6 @@
 -- Leaderboard periods and ground categories. SQLite cannot alter a CHECK, so the cache table is rebuilt.
--- The cache is fully rewritten by every maintenance pass (refreshLeaderboards), so no rows are copied: the
--- first pass after this migration repopulates it. Readers that predate periods filter `period = 'all'`.
+-- Existing rows are all-time rows and carry over unchanged as `period = 'all'`: production runs no maintenance pass
+-- yet, so nothing would refill an emptied cache. Readers that predate periods filter `period = 'all'`.
 -- `period` defaults to 'all' so a pre-period rebuild still writes valid all-time rows until the new code deploys.
 CREATE TABLE leaderboard_cache_next (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,6 +15,8 @@ CREATE TABLE leaderboard_cache_next (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   UNIQUE (user_id, category, period)
 );
+INSERT INTO leaderboard_cache_next (id, user_id, category, period, value, rank, percentile, metadata, updated_at)
+  SELECT id, user_id, category, 'all', value, rank, percentile, metadata, updated_at FROM leaderboard_cache;
 DROP TABLE leaderboard_cache;
 ALTER TABLE leaderboard_cache_next RENAME TO leaderboard_cache;
 CREATE INDEX idx_leaderboard_category_period_rank ON leaderboard_cache(category, period, rank);
