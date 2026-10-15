@@ -120,7 +120,6 @@ describe('ground in the overview geography', () => {
     expect(globeCodes(all)).toEqual(new Set(['GB', 'US', 'FR', 'DE']))
     expect(all.figures.travelKm).toBe(6400)
     expect(all.figures.travelKmApproximate).toBe(false)
-    expect(all.figures.travelKmDelta).toBe(6400 - 10800)
     expect(all.figures.groundJourneys).toBe(1)
     expect(all.figures.regions).toBe(2)
 
@@ -128,7 +127,6 @@ describe('ground in the overview geography', () => {
     expect(flights.figures.countries).toEqual({ value: 2, source: 'by_air' })
     expect(globeCodes(flights)).toEqual(new Set(['GB', 'US']))
     expect(flights.figures.travelKm).toBe(5500)
-    expect(flights.figures.travelKmDelta).toBe(5500 - 10800)
     expect(flights.figures.groundJourneys).toBe(0)
     expect(flights.globe.ground).toEqual([])
 
@@ -136,7 +134,6 @@ describe('ground in the overview geography', () => {
     expect(ground.figures.countries).toEqual({ value: 2, source: 'ground' })
     expect(globeCodes(ground)).toEqual(new Set(['FR', 'DE']))
     expect(ground.figures.travelKm).toBe(900)
-    expect(ground.figures.travelKmDelta).toBe(900)
     expect(ground.globe.routes).toEqual([])
     expect(ground.globe.airports).toEqual([])
     expect(ground.globe.ghostRoutes).toEqual([])

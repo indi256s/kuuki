@@ -2,7 +2,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { normalizePassportQuery, type PassportState } from '../../lib/url-state'
-import { MAP_SCOPE_SRC, PassportToolbar, mapScopeOf } from './passport-toolbar'
+import { MAP_SCOPE_SRC, mapScopeOf } from './model'
+import { PassportToolbar } from './passport-toolbar'
 
 const stateOf = (src: string | null, view = 'map'): PassportState =>
   normalizePassportQuery({ view, ...(src ? { src } : {}) }, () => true).state

@@ -1,5 +1,5 @@
 import { calendarDay, type NextFlight, type ReplayItem } from './next'
-import { isEmptyFilter, previousPeriod, rowCountries, scopedGround } from './filter'
+import { isEmptyFilter, rowCountries, scopedGround } from './filter'
 import type { OverviewFilter, OverviewPayload, OverviewRow, TravelScope } from './model'
 import type { Records } from './records'
 import type { Routes } from './routes'
@@ -28,7 +28,6 @@ export interface Figures {
   /** Flight great-circle km plus completed ground straight-line km, per scope. */
   travelKm: number
   travelKmApproximate: boolean
-  travelKmDelta: number | null
   groundJourneys: number
   firstDate: string | null
   airports: number
@@ -155,20 +154,9 @@ export function figures(
     for (let year = first; year <= last; year++)
       byYear.push({ key: String(year).padStart(4, '0'), year, flights: yearCounts.get(year) ?? 0 })
   }
-  const groundKm = (journeys: typeof completed) =>
-    journeys.reduce((sum, journey) => sum + metric(journey.distanceKm), 0)
-  const travelKm = (scope === 'ground' ? 0 : scopeTotals.distanceKm) + groundKm(completed)
-  const previous = deltas ? previousPeriod(filter) : null
-  const travelKmDelta =
-    deltas && previous
-      ? travelKm -
-        ((scope === 'ground' ? 0 : deltas.distanceKm) +
-          groundKm(
-            scopedGround(payload, previous, scope).filter(
-              (journey) => journey.status === 'completed',
-            ),
-          ))
-      : null
+  const travelKm =
+    (scope === 'ground' ? 0 : scopeTotals.distanceKm) +
+    completed.reduce((sum, journey) => sum + metric(journey.distanceKm), 0)
   let share: Figures['share'] = null
   if (!filter.period && !unfiltered) {
     const all = totals(counted)
@@ -222,7 +210,6 @@ export function figures(
     travelKmApproximate: completed.some(
       (journey) => journey.distanceKm === null || !Number.isFinite(journey.distanceKm),
     ),
-    travelKmDelta,
     groundJourneys: completed.length,
     deltas,
   }

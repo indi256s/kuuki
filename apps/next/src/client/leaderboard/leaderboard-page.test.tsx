@@ -186,16 +186,47 @@ it('moves focus to the first new row after Show all', async () => {
   }))
   const fetchMock = vi.fn().mockResolvedValue({
     ok: true,
-    json: () => Promise.resolve({ entries: more, total: 25, updatedAt: null }),
+    json: () =>
+      Promise.resolve({ entries: [...ranks(1, 10), ...more], total: 60, updatedAt: null }),
   })
   vi.stubGlobal('fetch', fetchMock)
   render(board(fixture()))
   await user.click(screen.getByRole('button', { name: 'Show all' }))
   await waitFor(() => expect(screen.getByRole('link', { name: '@more11' })).toHaveFocus())
   expect(fetchMock).toHaveBeenCalledWith(
-    '/api/leaderboard?category=flights&period=all&offset=10&limit=50',
+    '/api/leaderboard?category=flights&period=all&offset=0&limit=50',
   )
   expect(screen.queryByText('Places 13 to 17')).toBeNull()
+})
+
+it('reads the shown places again when the board changes between pages', async () => {
+  const user = userEvent.setup()
+  const reply = (entries: LeaderboardEntry[], total: number) => ({
+    ok: true,
+    json: () => Promise.resolve({ entries, total, updatedAt: null }),
+  })
+  // Page two arrives after #20 left: its total moved, so the client re-reads from the top instead of appending.
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValueOnce(reply(ranks(1, 50), 60))
+    .mockResolvedValueOnce(reply(ranks(52, 60), 59))
+    .mockResolvedValueOnce(
+      reply(
+        ranks(1, 59).filter((item) => item.rank !== 20),
+        59,
+      ),
+    )
+  vi.stubGlobal('fetch', fetchMock)
+  render(board(fixture()))
+  await user.click(screen.getByRole('button', { name: 'Show all' }))
+  await user.click(await screen.findByRole('button', { name: 'Show more' }))
+  await waitFor(() =>
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/leaderboard?category=flights&period=all&offset=0&limit=100',
+    ),
+  )
+  expect(await screen.findByRole('link', { name: '@user51' })).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: '@user20' })).toBeNull()
 })
 
 it('reads only the board for a guest and lets an unavailable read reach the retry boundary', async () => {

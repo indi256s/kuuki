@@ -11,7 +11,6 @@ import {
 } from 'react'
 import {
   LEADERBOARD_CATEGORIES,
-  SKY_CATEGORIES,
   type LeaderboardCategory,
 } from '../../../../../functions/api/_lib/leaderboard'
 import type { LeaderboardBoardPayload } from '../../../../../functions/api/_services/publicLeaderboard'
@@ -23,7 +22,7 @@ import { Skeleton } from '../ui/skeleton'
 import type { Locale } from '../../lib/format'
 import { BoardList } from './board-list'
 import { CategoryStrip } from './category-strip'
-import { groupName } from './categories'
+import { categoryGroups, groupName } from './categories'
 import { narratorChoice, shownEntry, viewerPlace, type RankChanges } from './model'
 import { narrate } from './narrator'
 import { Podium } from './podium'
@@ -256,17 +255,16 @@ export function LeaderboardBoard({
 export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }) {
   const locale = useLocale(initialLocale)
   const ru = locale === 'ru'
-  const sky = SKY_CATEGORIES.length
   return (
     <div className="leaderboard-loading" aria-busy="true">
       <Heading locale={locale} />
       <div className="leaderboard-tiles" aria-hidden="true">
-        {(['sky', 'ground'] as const).map((group) => (
+        {categoryGroups.map(([group, keys]) => (
           <div key={group} className="leaderboard-group">
             <p className="leaderboard-group-label">{groupName[group][ru ? 1 : 0]}</p>
             <div className="leaderboard-group-tiles">
-              {Array.from({ length: group === 'sky' ? sky : 3 }, (_, index) => (
-                <Skeleton key={index} height={72} label="" />
+              {keys.map((key) => (
+                <Skeleton key={key} height={72} label="" />
               ))}
             </div>
           </div>

@@ -15,9 +15,9 @@ import './filters.css'
 
 export function FilterBar() {
   const { filter, locale, isCurrent, payload, scope, actions } = useOverview()
-  // The segment exists only with ground data; a stored scope without it is already ignored by the compute.
+  // The segment exists only with ground data; the compute already ignores a stored scope without it.
   const hasGround = (payload?.ground.length ?? 0) > 0
-  const travelScope = hasGround ? (scope?.figures.scope ?? 'all') : 'all'
+  const travelScope = scope?.figures.scope ?? 'all'
   const facets = useAppliedFacets()
   const bar = useRef<HTMLDivElement>(null),
     overflow = useRef<HTMLButtonElement>(null)

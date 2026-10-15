@@ -2,22 +2,13 @@
 
 import { Lock } from '@keyline-icons/react'
 import { useEffect, useId, useRef, useState, type MouseEvent, type RefObject } from 'react'
-import {
-  GROUND_CATEGORIES,
-  SKY_CATEGORIES,
-  type LeaderboardCategory,
-} from '../../../../../functions/api/_lib/leaderboard'
+import type { LeaderboardCategory } from '../../../../../functions/api/_lib/leaderboard'
 import type { LeaderboardBoardPayload } from '../../../../../functions/api/_services/publicLeaderboard'
 import type { Locale } from '../../lib/format'
 import { GateTile } from '../ui/gate-tile'
 import { SplitFlap } from '../ui/split-flap'
-import { categoryName, groupName, type CategoryGroup } from './categories'
+import { categoryGroups as groups, categoryName, groupName } from './categories'
 import { tileModel, type Period } from './model'
-
-const groups: [CategoryGroup, readonly LeaderboardCategory[]][] = [
-  ['sky', SKY_CATEGORIES],
-  ['ground', GROUND_CATEGORIES],
-]
 
 export const categoryHref = (category: string, period: string) =>
   `/leaderboard?category=${category}&period=${period}`

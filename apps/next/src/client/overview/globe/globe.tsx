@@ -5,7 +5,7 @@ import { matches, routeKey } from '@kuuki/shared/overview/filter'
 import { useOverview } from '../store/overview-context'
 import { GlobeCard, type GlobeCardProps } from './globe-card'
 import { CountryTreemap } from './country-treemap'
-import { S, t } from '../copy'
+import { legendFor, S, t } from '../copy'
 import { buildTimeline, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
 import { ReplayTransport } from './replay-transport'
@@ -124,16 +124,7 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
     )
   }, [payload, filter])
   const travelScope = scope!.figures.scope
-  const legendLabel = t(
-    payload!.ground.length === 0
-      ? S.legend
-      : travelScope === 'ground'
-        ? S.legendGround
-        : travelScope === 'flights'
-          ? S.legendFlights
-          : S.legendAll,
-    locale,
-  )
+  const legendLabel = t(legendFor(payload!.ground.length > 0, travelScope), locale)
   return (
     <div ref={host}>
       <GlobeCard

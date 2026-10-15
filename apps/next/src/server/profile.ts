@@ -6,6 +6,7 @@ import { getProfileRow, toOwnProfile } from '../../../../functions/api/_lib/prof
 import {
   derivedStateJoin,
   PUBLISHED_DERIVED_STATE,
+  SKY_MIN_FLIGHTS,
   SKY_CATEGORY_SQL,
   toLeaderboardEntry,
   type LeaderboardCacheRow,
@@ -49,7 +50,7 @@ export async function readOwnRankings(db: D1Database, userId: string) {
        JOIN user_stats us ON us.user_id = lc.user_id
        ${derivedStateJoin('lc')}
        WHERE lc.user_id = ? AND lc.period = 'all' AND lc.category IN ${SKY_CATEGORY_SQL}
-         AND p.is_public = 1 AND p.show_on_leaderboards = 1 AND us.total_flights >= 5
+         AND p.is_public = 1 AND p.show_on_leaderboards = 1 AND us.total_flights >= ${SKY_MIN_FLIGHTS}
          AND ${PUBLISHED_DERIVED_STATE}`,
     )
     .bind(userId)

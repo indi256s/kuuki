@@ -25,6 +25,9 @@ export const entryName = (entry: LeaderboardEntry, locale: Locale) =>
   entry.display_name ||
   (entry.username ? `@${entry.username}` : locale === 'ru' ? 'Участник' : 'Member')
 
+/** The name the narrator and gap lines use: the handle, else the display name. */
+export const handleOf = (entry: LeaderboardEntry) => entry.username ?? entry.display_name ?? ''
+
 /** The last place we know for the viewer: ranked now, or the last published one while changes are pending. */
 export const shownEntry = (place: ViewerPlace | null) =>
   place?.state === 'ranked' || place?.state === 'pending' ? place.entry : null
@@ -122,7 +125,7 @@ export function narratorChoice(
     return {
       state: 'guest',
       params: {
-        name: leader.username ?? leader.display_name ?? '',
+        name: handleOf(leader),
         value: withUnit(leader.value),
       },
     }
@@ -144,24 +147,16 @@ export function narratorChoice(
       if (period === 'all' && change && change.delta < 0)
         return { state: 'slipped', params: { places: formatNumber(locale, -change.delta) } }
       const other = sharer(place)
-      if (!place.next && !other) return { state: 'leader', params: {} }
       if (other)
         return {
           state: 'tied',
-          params: {
-            place: `#${place.entry.rank}`,
-            name: other.username ?? other.display_name ?? '',
-          },
+          params: { place: `#${place.entry.rank}`, name: handleOf(other) },
         }
-      if (place.next)
-        return {
-          state: place.next.gap <= CLOSE_GAP ? 'close' : 'far',
-          params: {
-            name: place.next.entry.username ?? place.next.entry.display_name ?? '',
-            gap: withUnit(place.next.gap),
-          },
-        }
-      return { state: 'leader', params: {} }
+      if (!place.next) return { state: 'leader', params: {} }
+      return {
+        state: place.next.gap <= CLOSE_GAP ? 'close' : 'far',
+        params: { name: handleOf(place.next.entry), gap: withUnit(place.next.gap) },
+      }
     }
     default:
       return { state: empty ? 'empty' : 'unranked', params: {} }

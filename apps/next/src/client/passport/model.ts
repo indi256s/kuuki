@@ -48,6 +48,21 @@ export const SOURCE_LABELS: Record<PassportSource, Record<Locale, string>> = {
  * A known point in a country's chronology. Flights and archived evidence carry a date; a land or sea visit carries
  * only its year (ADR 0001 §4 leaves the projection's dates NULL for ground-only countries), so `date` is null then.
  */
+export type MapScope = 'all' | 'flights' | 'ground'
+/** The canonical `src` behind each map segment; `null` clears it. */
+export const MAP_SCOPE_SRC: Record<MapScope, string | null> = {
+  all: null,
+  flights: 'flights',
+  ground: 'trains,road',
+}
+/** The segment a source selection stands for, or null when it is another combination (manual only, say). */
+export function mapScopeOf(sources: readonly PassportSource[]): MapScope | null {
+  const src = sources.length ? sources.join(',') : null
+  return (
+    (Object.keys(MAP_SCOPE_SRC) as MapScope[]).find((scope) => MAP_SCOPE_SRC[scope] === src) ?? null
+  )
+}
+
 export type VisitPoint = { year: number; date: string | null }
 
 /**

@@ -15,24 +15,17 @@ import {
   type PassportSource,
   type PassportState,
 } from '../../lib/url-state'
-import { REGION_LABELS, SOURCE_LABELS, type PassportSort } from './model'
+import {
+  MAP_SCOPE_SRC,
+  REGION_LABELS,
+  SOURCE_LABELS,
+  mapScopeOf,
+  type MapScope,
+  type PassportSort,
+} from './model'
 import type { PassportPatch } from './use-passport-query'
 import './passport.css'
 
-export type MapScope = 'all' | 'flights' | 'ground'
-/** The canonical `src` behind each map segment; `null` clears it. */
-export const MAP_SCOPE_SRC: Record<MapScope, string | null> = {
-  all: null,
-  flights: 'flights',
-  ground: 'trains,road',
-}
-/** The segment a source selection stands for, or null when it is another combination (manual only, say). */
-export function mapScopeOf(sources: readonly PassportSource[]): MapScope | null {
-  const src = sources.length ? sources.join(',') : null
-  return (
-    (Object.keys(MAP_SCOPE_SRC) as MapScope[]).find((scope) => MAP_SCOPE_SRC[scope] === src) ?? null
-  )
-}
 const MAP_SCOPE_LABELS: Record<MapScope, Record<Locale, string>> = {
   all: { en: 'All', ru: 'Всё' },
   flights: { en: 'Flights', ru: 'Перелёты' },
