@@ -43,7 +43,7 @@ export function useJournalHref(pathname: string): string {
 export function JournalHeading({ locale, section }: { locale: Locale; section: JournalSection }) {
   const t = copy[locale]
   return (
-    <h1 tabIndex={-1}>
+    <h1 tabIndex={-1} className="mobile-sr-only">
       {t.title} <span className="sr-only">· {t[section]}</span>
     </h1>
   )

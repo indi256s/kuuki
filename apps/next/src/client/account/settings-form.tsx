@@ -364,7 +364,7 @@ export function SettingsForm({
   // Arc form/textarea composition (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md); the existing guard and save authority own changes.
   return (
     <div className="settings-page settings-editor">
-      <header className="settings-heading">
+      <header className="settings-heading mobile-sr-only">
         <p className="eyebrow">{text('Your account', 'Ваш аккаунт')}</p>
         <h1>{text('Settings', 'Настройки')}</h1>
       </header>

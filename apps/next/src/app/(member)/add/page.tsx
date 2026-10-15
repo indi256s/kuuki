@@ -11,7 +11,7 @@ export default async function AddFlight() {
   const identity = { id: own.ownerId }
   return (
     <IdentitySnapshot ownerId={identity.id}>
-      <div className="page-heading">
+      <div className="page-heading mobile-sr-only">
         <p className="eyebrow">
           <LocaleText locale={locale} en="Journal" ru="Журнал" />
         </p>

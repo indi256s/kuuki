@@ -148,7 +148,7 @@ function Updated({ updatedAt, locale }: { updatedAt: string | null; locale: Loca
 function Heading({ locale, children }: { locale: Locale; children?: ReactNode }) {
   return (
     <div className="leaderboard-head">
-      <h1>{locale === 'ru' ? 'Рейтинг' : 'Leaderboard'}</h1>
+      <h1 className="mobile-sr-only">{locale === 'ru' ? 'Рейтинг' : 'Leaderboard'}</h1>
       {children}
     </div>
   )
