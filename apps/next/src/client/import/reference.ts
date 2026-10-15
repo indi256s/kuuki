@@ -1,4 +1,4 @@
-import airlines from '@kuuki/data/airlines'
+import airlines from '@kuuki/data/airlines' with { type: 'json' }
 import { findAirport } from '@kuuki/data/airport-lookup'
 
 let byIata: Map<string, string> | undefined

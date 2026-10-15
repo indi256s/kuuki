@@ -1,4 +1,4 @@
-import airlines from '@kuuki/data/airlines'
+import airlines from '@kuuki/data/airlines' with { type: 'json' }
 
 const byIata = new Map(airlines.map((row) => [row.iata.toUpperCase(), row]))
 

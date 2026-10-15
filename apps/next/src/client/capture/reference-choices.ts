@@ -1,6 +1,8 @@
-import airports from '@kuuki/data/airports'
-import airlines from '@kuuki/data/airlines'
-import aircraft from '@kuuki/data/aircraft'
+// The same import form as @kuuki/data's own lookups: a JSON file imported both with and without the attribute is
+// bundled twice (ESM and CommonJS copies).
+import airports from '@kuuki/data/airports' with { type: 'json' }
+import airlines from '@kuuki/data/airlines' with { type: 'json' }
+import aircraft from '@kuuki/data/aircraft' with { type: 'json' }
 import { airportAliases } from '@kuuki/shared'
 import type { Choice } from '../ui/combobox'
 import type { Locale } from '../../lib/format'
