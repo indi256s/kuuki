@@ -11,6 +11,7 @@ import './globe.css'
 
 export type GlobeCardProps = {
   locale: Locale
+  legendLabel: string
   /** The same globe component receives fullscreen to configure its future scroll zoom. */
   children: (mode: { fullscreen: boolean; active: boolean }) => ReactNode
   onFullscreenChange?: (open: boolean) => void
@@ -23,6 +24,7 @@ export type GlobeCardProps = {
 
 export function GlobeCard({
   locale,
+  legendLabel,
   children,
   topLeft,
   topRight,
@@ -41,8 +43,8 @@ export function GlobeCard({
   const title = locale === 'ru' ? 'Глобус' : 'Globe'
   const legend = bottomRight ?? (
     <div className="globe-legend">
-      <span>{t(S.legend, locale)}</span>
-      <ul aria-label={t(S.legend, locale)}>
+      <span>{legendLabel}</span>
+      <ul aria-label={legendLabel}>
         {BUCKET_LABELS[locale].map((label, index) => (
           <li key={label}>
             <span aria-hidden="true" style={{ background: `var(${BUCKET_TOKENS[index + 1]})` }} />

@@ -123,10 +123,22 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
       ]),
     )
   }, [payload, filter])
+  const travelScope = scope!.figures.scope
+  const legendLabel = t(
+    payload!.ground.length === 0
+      ? S.legend
+      : travelScope === 'ground'
+        ? S.legendGround
+        : travelScope === 'flights'
+          ? S.legendFlights
+          : S.legendAll,
+    locale,
+  )
   return (
     <div ref={host}>
       <GlobeCard
         locale={locale}
+        legendLabel={legendLabel}
         disclosure={disclosure}
         topLeft={topLeft}
         onFullscreenChange={(open) => {
@@ -134,21 +146,23 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
           onFullscreenChange?.(open)
         }}
         bottomLeft={
-          <ReplayTransport
-            key={`${payload!.etag}:${JSON.stringify(filter)}`}
-            timeline={timeline}
-            durationMs={durationMs}
-            timeMs={replay.timeMs}
-            getFrame={replay.getFrame}
-            paused={replayPaused}
-            setPaused={(paused) => {
-              setReplayPaused(paused)
-              bus.setReplayStarted(!paused)
-            }}
-            seek={replay.seek}
-            reduced={reduced}
-            locale={locale}
-          />
+          travelScope === 'ground' ? undefined : (
+            <ReplayTransport
+              key={`${payload!.etag}:${JSON.stringify(filter)}`}
+              timeline={timeline}
+              durationMs={durationMs}
+              timeMs={replay.timeMs}
+              getFrame={replay.getFrame}
+              paused={replayPaused}
+              setPaused={(paused) => {
+                setReplayPaused(paused)
+                bus.setReplayStarted(!paused)
+              }}
+              seek={replay.seek}
+              reduced={reduced}
+              locale={locale}
+            />
+          )
         }
       >
         {({ fullscreen, active }) => (
@@ -157,6 +171,7 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
             all={all!.globe}
             airports={payload!.refs.airports}
             filter={filter}
+            travelScope={travelScope}
             locale={locale}
             fullscreen={fullscreen}
             active={active}

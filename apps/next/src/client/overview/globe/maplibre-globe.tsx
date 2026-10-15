@@ -38,6 +38,8 @@ export type MaplibreGlobeProps = {
   all: GlobeData
   airports: OverviewPayload['refs']['airports']
   filter: OverviewFilter
+  /** The effective scope: 'all' while no ground data exists, whatever the stored filter says. */
+  travelScope: 'all' | 'flights' | 'ground'
   locale: Locale
   fullscreen: boolean
   active: boolean
@@ -64,7 +66,30 @@ const MICROSTATES: Record<string, [number, number]> = {
   AD: [1.560756, 42.541327],
   SG: [103.813465, 1.358924],
 }
-const sources = ['globe-countries', 'globe-routes', 'globe-airports', 'globe-microstates']
+const GROUND_SOURCE = 'globe-ground'
+const CITY_SOURCE = 'globe-ground-cities'
+const sources = [
+  'globe-countries',
+  'globe-routes',
+  'globe-airports',
+  'globe-microstates',
+  GROUND_SOURCE,
+  CITY_SOURCE,
+]
+const GROUND_CASING = 'globe-ground-casing'
+const GROUND_LINE = 'globe-ground-line'
+const RAIL_TIES = 'globe-ground-rail-ties'
+const ROAD_DOTS = 'globe-ground-road-dots'
+const CITY_SQUARES = 'globe-ground-city-squares'
+const TIE_IMAGE = 'globe-rail-tie'
+const DOT_IMAGE = 'globe-road-dot'
+const CITY_IMAGE = 'globe-city-square'
+const IMAGES = ['globe-hatch', TIE_IMAGE, DOT_IMAGE, CITY_IMAGE]
+// Below this zoom ground is the plain line; ties and dots only read once a leg is long enough on screen.
+const GROUND_DETAIL_MINZOOM = 4
+const GROUND_LINE_WIDTH = 1.5
+// Planned journeys stay in the same encoding at a lower weight, in every scope.
+const plannedOpacity: ExpressionSpecification = ['case', ['get', 'planned'], 0.35, 1]
 const layers = [
   'globe-land',
   'globe-ghost-countries',
@@ -74,6 +99,11 @@ const layers = [
   'globe-microstate-dots',
   'globe-route-casing',
   'globe-airport-labels',
+  GROUND_CASING,
+  GROUND_LINE,
+  RAIL_TIES,
+  ROAD_DOTS,
+  CITY_SQUARES,
 ]
 // Routes used the land ramp, so a route over a country in its own bucket measured 1:1. They now draw in ink over a land-toned halo: one of the two holds 3:1 on every bucket, theme and accent.
 // The core stays fine (1.25–2.5px by visit bucket); the halo is solid for its first half-pixel and blurs out over 2px, so it separates the line without outlining it.
@@ -128,7 +158,9 @@ function GlobeLayers({
       const ref = coordinates(props.airports[iata])
       return ref ? [ref.lon, ref.lat] : null
     }
-    const routes = props.all.routes.flatMap((route) => {
+    // Under ground the flight context must not leak in as faint lines.
+    const flightContext = props.travelScope !== 'ground'
+    const routes = (flightContext ? props.all.routes : []).flatMap((route) => {
       const geometry = routeGeometry({ from: point(route.a), to: point(route.b) })
       return geometry
         ? [
@@ -149,7 +181,7 @@ function GlobeLayers({
           ]
         : []
     })
-    const ghosts = props.all.ghosts.flatMap((ghost) => {
+    const ghosts = (flightContext ? props.all.ghosts : []).flatMap((ghost) => {
       const geometry = routeGeometry({ from: point(ghost.origin), to: point(ghost.destination) })
       return geometry
         ? [
@@ -173,7 +205,7 @@ function GlobeLayers({
         : []
     })
     return [...routes, ...ghosts]
-  }, [props.all.routes, props.all.ghosts, props.airports])
+  }, [props.all.routes, props.all.ghosts, props.airports, props.travelScope])
   const data = useMemo(() => {
     const point = (iata: string): [number, number] | null => {
       const ref = coordinates(props.airports[iata])
@@ -225,12 +257,42 @@ function GlobeLayers({
           : []
       },
     )
+    const cities = new Map<string, { position: [number, number]; planned: boolean }>()
+    const runs = props.globe.ground.flatMap((journey) =>
+      journey.runs.flatMap((run) => {
+        for (const position of run) {
+          const key = position.join(',')
+          const seen = cities.get(key)
+          cities.set(key, { position, planned: (seen?.planned ?? true) && journey.planned })
+        }
+        return run.length < 2
+          ? []
+          : [
+              {
+                type: 'Feature' as const,
+                properties: { mode: journey.mode, planned: journey.planned },
+                geometry: { type: 'LineString' as const, coordinates: run },
+              },
+            ]
+      }),
+    )
+    const cityPoints = [...cities.values()].map(({ position, planned }) => ({
+      type: 'Feature' as const,
+      properties: { planned },
+      geometry: { type: 'Point' as const, coordinates: position },
+    }))
     return {
+      ground: { type: 'FeatureCollection' as const, features: runs },
+      cities: { type: 'FeatureCollection' as const, features: cityPoints },
       routes: { type: 'FeatureCollection' as const, features: routes },
       airports: { type: 'FeatureCollection' as const, features: airports },
       microstates: { type: 'FeatureCollection' as const, features: microstates },
     }
   }, [routeFeatures, props.globe, props.airports, land])
+  const groundPoints = useMemo(
+    () => props.globe.ground.flatMap((journey) => journey.runs.flat()),
+    [props.globe.ground],
+  )
   const latestData = useRef(data)
   useEffect(() => {
     latestData.current = data
@@ -277,6 +339,45 @@ function GlobeLayers({
         source: sources[0],
         paint: { 'fill-opacity': ['case', ['boolean', ['feature-state', 'ghost'], false], 1, 0] },
       })
+      // Ground sits under the flight layers; it is not interactive (no cursor, hover or click).
+      map.addLayer({
+        id: GROUND_CASING,
+        type: 'line',
+        source: GROUND_SOURCE,
+        layout: round,
+        paint: {
+          'line-width': casingWidth(GROUND_LINE_WIDTH),
+          'line-blur': 2,
+          'line-opacity': plannedOpacity,
+        },
+      })
+      map.addLayer({
+        id: GROUND_LINE,
+        type: 'line',
+        source: GROUND_SOURCE,
+        layout: round,
+        paint: { 'line-width': GROUND_LINE_WIDTH, 'line-opacity': plannedOpacity },
+      })
+      // icon-image is set once the image exists (paint effect), so no missing-image warning fires at creation.
+      for (const [id, mode] of [
+        [RAIL_TIES, 'rail'],
+        [ROAD_DOTS, 'road'],
+      ] as const)
+        map.addLayer({
+          id,
+          type: 'symbol',
+          source: GROUND_SOURCE,
+          minzoom: GROUND_DETAIL_MINZOOM,
+          filter: ['==', ['get', 'mode'], mode],
+          layout: {
+            'symbol-placement': 'line',
+            'symbol-spacing': 12,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'icon-rotation-alignment': 'map',
+          },
+          paint: { 'icon-opacity': plannedOpacity },
+        })
       map.addLayer({
         id: layers[6],
         type: 'line',
@@ -314,6 +415,13 @@ function GlobeLayers({
         paint: { 'circle-radius': 3, 'circle-opacity': ['get', 'opacity'] },
       })
       map.addLayer({
+        id: CITY_SQUARES,
+        type: 'symbol',
+        source: CITY_SOURCE,
+        layout: { 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+        paint: { 'icon-opacity': plannedOpacity },
+      })
+      map.addLayer({
         id: layers[7],
         type: 'symbol',
         source: sources[2],
@@ -333,6 +441,8 @@ function GlobeLayers({
       ;(map.getSource(sources[1]) as GeoJSONSource).setData(latestData.current.routes)
       ;(map.getSource(sources[2]) as GeoJSONSource).setData(latestData.current.airports)
       ;(map.getSource(sources[3]) as GeoJSONSource).setData(latestData.current.microstates)
+      ;(map.getSource(GROUND_SOURCE) as GeoJSONSource).setData(latestData.current.ground)
+      ;(map.getSource(CITY_SOURCE) as GeoJSONSource).setData(latestData.current.cities)
     } catch {
       latest.current.onError()
     }
@@ -377,7 +487,8 @@ function GlobeLayers({
       map.off('click', click)
       for (const layer of [...layers].reverse()) if (map.getLayer(layer)) map.removeLayer(layer)
       for (const source of sources) if (map.getSource(source)) map.removeSource(source)
-      if (map.getStyle() && map.hasImage('globe-hatch')) map.removeImage('globe-hatch')
+      if (map.getStyle())
+        for (const image of IMAGES) if (map.hasImage(image)) map.removeImage(image)
     }
   }, [map, ready, land, host])
   useEffect(() => {
@@ -422,6 +533,59 @@ function GlobeLayers({
       else map.addImage('globe-hatch', image)
       map.setPaintProperty(layers[1], 'fill-pattern', 'globe-hatch')
     }
+    // Ground icons are drawn at 2x (pixelRatio 2): tie 1x6, dot 3 and city square 7 CSS px.
+    const ink = token('--globe-route'),
+      casing = token('--globe-route-casing')
+    const icons: Array<[string, string, number, number, (c: CanvasRenderingContext2D) => void]> = [
+      [
+        TIE_IMAGE,
+        RAIL_TIES,
+        2,
+        12,
+        (c) => {
+          c.fillStyle = ink
+          c.fillRect(0, 0, 2, 12)
+        },
+      ],
+      [
+        DOT_IMAGE,
+        ROAD_DOTS,
+        6,
+        6,
+        (c) => {
+          c.fillStyle = ink
+          c.beginPath()
+          c.arc(3, 3, 3, 0, Math.PI * 2)
+          c.fill()
+        },
+      ],
+      [
+        CITY_IMAGE,
+        CITY_SQUARES,
+        14,
+        14,
+        (c) => {
+          c.fillStyle = casing
+          c.fillRect(0, 0, 14, 14)
+          c.fillStyle = ink
+          c.fillRect(3, 3, 8, 8)
+        },
+      ],
+    ]
+    for (const [id, layer, width, height, draw] of icons) {
+      const surface = document.createElement('canvas')
+      surface.width = width
+      surface.height = height
+      const pen = surface.getContext('2d')
+      if (!pen) continue
+      draw(pen)
+      const image = pen.getImageData(0, 0, width, height)
+      if (map.hasImage(id)) map.updateImage(id, image)
+      else map.addImage(id, image, { pixelRatio: 2 })
+      map.setLayoutProperty(layer, 'icon-image', id)
+    }
+    map.setPaintProperty(GROUND_LINE, 'line-color', ink)
+    map.setPaintProperty(GROUND_CASING, 'line-color', casing)
     const maker =
       props.filter.makers?.length === 1 ? token(`--cat-maker-${props.filter.makers[0]}`) : null
     map.setPaintProperty(layers[2], 'line-color', [
@@ -450,6 +614,8 @@ function GlobeLayers({
     ;(map.getSource(sources[1]) as GeoJSONSource).setData(data.routes)
     ;(map.getSource(sources[2]) as GeoJSONSource).setData(data.airports)
     ;(map.getSource(sources[3]) as GeoJSONSource).setData(data.microstates)
+    ;(map.getSource(GROUND_SOURCE) as GeoJSONSource).setData(data.ground)
+    ;(map.getSource(CITY_SOURCE) as GeoJSONSource).setData(data.cities)
   }, [map, land, data])
   useEffect(() => {
     if (!map || !land || !map.getLayer(layers[2])) return
@@ -485,17 +651,31 @@ function GlobeLayers({
     const center = props.globe.centroid
       ? ([props.globe.centroid.lon, props.globe.centroid.lat] as [number, number])
       : ([0, 0] as [number, number])
-    moveCamera(map, center, props.reduced)
+    const bounds = props.travelScope === 'ground' ? pointBounds(groundPoints) : null
+    if (bounds) fitGround(map, bounds, props.reduced)
+    else moveCamera(map, center, props.reduced)
     const resize = () => {
       if (!latest.current.isCurrent()) return
-      setZoomLimits(map)
-      map.jumpTo({ zoom: fitZoom(map, map.getCenter().lat) })
+      if (bounds) fitGround(map, bounds, true)
+      else {
+        setZoomLimits(map)
+        map.jumpTo({ zoom: fitZoom(map, map.getCenter().lat) })
+      }
     }
     map.on('resize', resize)
     return () => {
       map.off('resize', resize)
     }
-  }, [map, ready, props.active, props.globe.centroid, props.filter, props.reduced])
+  }, [
+    map,
+    ready,
+    props.active,
+    props.globe.centroid,
+    props.filter,
+    props.reduced,
+    props.travelScope,
+    groundPoints,
+  ])
   useEffect(() => {
     if (!map || !ready || !props.active) return
     attachGlobeGestures(map, props.fullscreen, window.matchMedia('(pointer: coarse)').matches)
@@ -628,6 +808,28 @@ function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {
       duration: 600,
       easing: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2),
     })
+}
+type Bounds = [[number, number], [number, number]]
+// A single point (or a stack of identical ones) has no extent to fit: the centroid camera frames it instead.
+function pointBounds(points: Array<[number, number]>): Bounds | null {
+  if (!points.length) return null
+  const lons = points.map(([lon]) => lon),
+    lats = points.map(([, lat]) => lat)
+  const bounds: Bounds = [
+    [Math.min(...lons), Math.min(...lats)],
+    [Math.max(...lons), Math.max(...lats)],
+  ]
+  return bounds[1][0] - bounds[0][0] < 0.01 && bounds[1][1] - bounds[0][1] < 0.01 ? null : bounds
+}
+function fitGround(map: LibreMap, bounds: Bounds, reduced: boolean) {
+  setZoomLimits(map)
+  const width = map.getContainer().clientWidth
+  map.fitBounds(bounds, {
+    padding: width < 480 ? 24 : 32,
+    maxZoom: map.getMaxZoom(),
+    duration: reduced ? 0 : 600,
+    easing: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2),
+  })
 }
 export function MaplibreGlobe(props: MaplibreGlobeProps) {
   const host = useRef<HTMLDivElement>(null)
