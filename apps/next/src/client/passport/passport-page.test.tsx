@@ -1,5 +1,12 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render as renderBare, screen, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render as renderBare,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect, useReducer, type ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -636,7 +643,7 @@ describe('hide from passport', () => {
     await act(async () => put.resolve({ ok: true, hidden: ['NO'] }))
     await settle()
     expect(window.location.search).toBe('?country=JP')
-    expect(await screen.findByText('Norway hidden from your passport.')).toBeVisible()
+    await waitFor(() => expect(screen.getByText('Norway hidden from your passport.')).toBeVisible())
   })
 
   it('hides through PUT, closes the sheet and offers an Undo that restores through DELETE', async () => {
@@ -649,7 +656,7 @@ describe('hide from passport', () => {
     reads.get('NO')!.resolve(pressedDetail('NO'))
     await user.click(await within(sheet).findByRole('button', { name: 'Hide from passport' }))
     expect(mocks.put).toHaveBeenCalledWith('/api/passport/hidden/NO', undefined, expect.anything())
-    expect(await screen.findByText('Norway hidden from your passport.')).toBeVisible()
+    await waitFor(() => expect(screen.getByText('Norway hidden from your passport.')).toBeVisible())
     expect(window.location.search).toBe('')
     expect(mocks.delete).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Undo' }))
