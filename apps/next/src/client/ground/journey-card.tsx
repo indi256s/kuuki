@@ -1,18 +1,32 @@
 'use client'
 // One journey in the list. The title is a real link (`?journey=<id>` with the current filters), so it is shareable and
 // middle-clickable; a click is handled in place so the page keeps its history rules. The route leads, departure left
-// and destination right, with a stop-order schematic beneath. Mode is an icon AND a word, and active status is a word,
-// never colour alone. Missing optional facts stay in the details.
+// and destination right, with a stop-order schematic beneath; a small map of the route sits beside it on a wide card
+// and below it on a narrow one. Mode is an icon AND a word, and active status is a word, never colour alone. Missing
+// optional facts stay in the details.
 
 import { Fragment } from 'react'
 import Link from 'next/link'
 import { Car, ChevronRight, Train, TriangleAlert } from '@keyline-icons/react'
 import { placeKey, placeLabel, type GroundJourneyDto } from '@kuuki/shared/groundTravel'
-import { formatCount, formatDateOnly, formatNumber, type Locale } from '../../lib/format'
+import { formatCount, formatDateOnly, type Locale } from '../../lib/format'
 import { approxDistance, coverageNote, knownDuration } from './format'
-import { copy, legs, stops } from './copy'
+import { copy, days, legs, startsIn, stops } from './copy'
 import { endpoints, groupOf, routeStops, type RouteStop } from './list-model'
+import { journeyPlaces, RouteMiniMap } from './route-sketch'
+import { countryNamer } from '../passport/model'
 import { groundHref, type GroundView } from './url'
+
+/** Days since 1970-01-01 for an ISO date; null for anything else. */
+function dayNumber(value: string): number | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+  const date = new Date(0)
+  date.setUTCFullYear(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  return Math.round(date.getTime() / 86_400_000)
+}
+
+const rangeFormats: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
 
 export function dateRange(locale: Locale, start: string | null, end: string | null): string {
   const t = copy[locale]
@@ -20,8 +34,41 @@ export function dateRange(locale: Locale, start: string | null, end: string | nu
   // Keep each localized date whole; a range can still wrap around its separator.
   const date = (value: string) => formatDateOnly(locale, value, 'medium').replaceAll(' ', '\u00a0')
   if (!start) return `${t.dateUnknown}, ${date(end!)}`
-  const from = date(start)
-  return end && end !== start ? `${from} – ${date(end)}` : from
+  const from = dayNumber(start)
+  const to = end === null ? null : dayNumber(end)
+  if (from === null || to === null || to <= from)
+    return end && end !== start ? `${date(start)} – ${date(end)}` : date(start)
+  // One range shares the month and year it repeats: "Nov 13 – 29, 2026", «13–29 нояб. 2026 г.».
+  const format = (rangeFormats[locale] ??= new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }))
+  return format
+    .formatRange(new Date(from * 86_400_000), new Date(to * 86_400_000))
+    .replaceAll(' ', '\u00a0')
+}
+
+/** Calendar days a dated journey spans, both ends included; null unless both dates are known and in order. */
+export function journeyDays(start: string | null, end: string | null): number | null {
+  const from = start === null ? null : dayNumber(start)
+  const to = end === null ? null : dayNumber(end)
+  return from === null || to === null || to < from ? null : to - from + 1
+}
+
+/** "today", "tomorrow" or "in 29 days" for a plan that has not started; empty otherwise. */
+export function countdown(locale: Locale, journey: GroundJourneyDto, today: string): string {
+  if (journey.status !== 'planned' || !journey.startDate) return ''
+  const from = dayNumber(today)
+  const to = dayNumber(journey.startDate)
+  if (from === null || to === null || to < from) return ''
+  const t = copy[locale]
+  return to === from
+    ? t.startsToday
+    : to === from + 1
+      ? t.startsTomorrow
+      : formatCount(locale, to - from, startsIn)
 }
 
 export function statusWord(locale: Locale, status: GroundJourneyDto['status']): string {
@@ -49,7 +96,8 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
   const distanceNote =
     metrics.distanceKm === null ? coverageNote(locale, metrics.distanceCoverage) : ''
   const trainNote = coverageNote(locale, metrics.trainMinutesCoverage)
-  // "≈ 9 212 km" reads without a label; the unit is quieter than the number.
+  const length = journeyDays(journey.startDate, journey.endDate)
+  // "≈ 9 212 km" and "17 days" read without a label; the unit is quieter than the number.
   const [amount, unit] =
     metrics.distanceKm === null
       ? [t.distanceUnknown, '']
@@ -73,10 +121,10 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
           </dd>
         </div>
       )}
-      {journey.mode === 'road' && metrics.uniqueCities !== null && (
+      {length !== null && length > 1 && (
         <div>
-          <dt>{t.uniqueCities}</dt>
-          <dd>{formatNumber(locale, metrics.uniqueCities)}</dd>
+          <dt className="sr-only">{t.length}</dt>
+          <dd>{formatCount(locale, length, days)}</dd>
         </div>
       )}
     </dl>
@@ -147,6 +195,11 @@ export function JourneyCard({
     : []
   const viaText = via.slice(0, 3).join(', ') + (via.length > 3 ? ` +${via.length - 3}` : '')
   const loop = !!from && !!to && placeKey(from) === placeKey(to)
+  // Departure and destination flank the schematic, each with its country beneath; a round trip spans the row instead.
+  const split = !!from && !!to && !loop
+  const country = countryNamer(locale)
+  const soon = countdown(locale, journey, today)
+  const map = <RouteMiniMap places={journeyPlaces(journey)} />
   return (
     <li
       className="gt-card"
@@ -154,74 +207,90 @@ export function JourneyCard({
       data-mode={journey.mode}
       data-status={journey.status}
     >
-      <div className="gt-card-topline">
-        <p className="gt-card-meta">
-          <span className="gt-mode">
-            <Icon size={16} strokeWidth={2} aria-hidden="true" />
-            {journey.mode === 'rail' ? t.modeRail : t.modeRoad}
-          </span>
-          <span>
-            {journey.mode === 'rail'
-              ? formatCount(locale, steps, legs)
-              : formatCount(locale, steps, stops)}
-          </span>
-        </p>
-        <p className="gt-card-when">
-          {journey.status !== 'completed' && (
-            <span className="gt-status" data-status={journey.status}>
-              {statusWord(locale, journey.status)}
+      <div className="gt-card-body">
+        <div className="gt-card-main">
+          <div className="gt-card-topline">
+            <p className="gt-card-meta">
+              <span className="gt-mode">
+                <Icon size={16} strokeWidth={2} aria-hidden="true" />
+                {journey.mode === 'rail' ? t.modeRail : t.modeRoad}
+              </span>
+              <span>
+                {journey.mode === 'rail'
+                  ? formatCount(locale, steps, legs)
+                  : formatCount(locale, steps, stops)}
+              </span>
+            </p>
+            <p className="gt-card-when">
+              {journey.status !== 'completed' && (
+                <span className="gt-status" data-status={journey.status}>
+                  {statusWord(locale, journey.status)}
+                </span>
+              )}
+              <span>
+                {journey.startDate || journey.endDate
+                  ? dateRange(locale, journey.startDate, journey.endDate)
+                  : t.undated}
+              </span>
+              {soon && <span className="gt-card-soon">{soon}</span>}
+            </p>
+          </div>
+          <h3 className="gt-card-title">
+            <Link
+              href={groundHref({ ...view, journey: journey.id })}
+              scroll={false}
+              className="gt-card-link"
+              onClick={(event) => {
+                if (
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey ||
+                  event.button !== 0
+                )
+                  return
+                event.preventDefault()
+                onOpen(journey.id)
+              }}
+            >
+              {split ? (
+                <>
+                  <span className="gt-card-from">
+                    {placeLabel(from, locale)}
+                    <span className="gt-card-country">{country(from.countryCode)}</span>
+                  </span>
+                  <span className="gt-card-path">
+                    <RouteLine route={route} />
+                    {via.length > 0 && <span className="gt-card-via">{t.via(viaText)}</span>}
+                  </span>
+                  <span className="sr-only">{t.routeJoin}</span>
+                  <span className="gt-card-to">
+                    {placeLabel(to, locale)}
+                    <span className="gt-card-country">{country(to.countryCode)}</span>
+                  </span>
+                </>
+              ) : (
+                <span className="gt-card-from">{routeText(locale, journey)}</span>
+              )}
+            </Link>
+          </h3>
+          {!split && <RouteLine route={route} />}
+          {!split && via.length > 0 && <p className="gt-card-via">{t.via(viaText)}</p>}
+        </div>
+        {map}
+        <div className="gt-card-bottom">
+          <Facts locale={locale} journey={journey} />
+          <ChevronRight className="gt-card-cue" size={20} strokeWidth={2} aria-hidden="true" />
+        </div>
+        {passed && (
+          <p className="gt-card-hint">
+            <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>
+              <strong>{t.datePassed}.</strong> {t.datePassedHint}
             </span>
-          )}
-          <span>
-            {journey.startDate || journey.endDate
-              ? dateRange(locale, journey.startDate, journey.endDate)
-              : t.undated}
-          </span>
-        </p>
+          </p>
+        )}
       </div>
-      <h3 className="gt-card-title">
-        <Link
-          href={groundHref({ ...view, journey: journey.id })}
-          scroll={false}
-          className="gt-card-link"
-          onClick={(event) => {
-            if (
-              event.metaKey ||
-              event.ctrlKey ||
-              event.shiftKey ||
-              event.altKey ||
-              event.button !== 0
-            )
-              return
-            event.preventDefault()
-            onOpen(journey.id)
-          }}
-        >
-          {from && to && !loop ? (
-            <>
-              <span className="gt-card-from">{placeLabel(from, locale)}</span>
-              <span className="sr-only">{t.routeJoin}</span>
-              <span className="gt-card-to">{placeLabel(to, locale)}</span>
-            </>
-          ) : (
-            <span className="gt-card-from">{routeText(locale, journey)}</span>
-          )}
-        </Link>
-      </h3>
-      <RouteLine route={route} />
-      {via.length > 0 && <p className="gt-card-via">{t.via(viaText)}</p>}
-      <div className="gt-card-bottom">
-        <Facts locale={locale} journey={journey} />
-        <ChevronRight className="gt-card-cue" size={20} strokeWidth={2} aria-hidden="true" />
-      </div>
-      {passed && (
-        <p className="gt-card-hint">
-          <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
-          <span>
-            <strong>{t.datePassed}.</strong> {t.datePassedHint}
-          </span>
-        </p>
-      )}
     </li>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
-// Per-mode totals of COMPLETED journeys. Distances are straight-line approximations ("≈"); a total built from only
-// some journeys says so (coverage note). Missing optional measures are omitted, never shown as zero.
+// Per-mode totals of COMPLETED journeys, one quiet line per mode under the History heading. Distances are straight-line
+// approximations ("≈"); a total built from only some journeys says so (coverage note). Missing optional measures are
+// omitted, never shown as zero.
 
 import { useId } from 'react'
 import { Car, Train } from '@keyline-icons/react'
@@ -51,29 +52,29 @@ export function GroundTotals({
   locale,
   totals,
   mode,
+  level,
 }: {
   locale: Locale
   totals: { rail: ModeTotals; road: ModeTotals }
   mode: Mode | null
+  /** 3 inside the History section, 2 when the totals stand on their own. */
+  level: 2 | 3
 }) {
   const t = copy[locale]
   const headingId = useId()
   const showRail = mode !== 'road' && totals.rail.journeys > 0
   const showRoad = mode !== 'rail' && totals.road.journeys > 0
   if (!showRail && !showRoad) return null
+  const Heading = level === 3 ? 'h3' : 'h2'
   return (
     <div className="gt-totals">
-      <h2 id={headingId} className="sr-only">
+      <Heading id={headingId} className="sr-only">
         {t.totalsLabel}
-      </h2>
+      </Heading>
       <ul className="gt-totals-lines" aria-labelledby={headingId}>
         {showRail && <Line locale={locale} mode="rail" totals={totals.rail} />}
         {showRoad && <Line locale={locale} mode="road" totals={totals.road} />}
       </ul>
-      {((showRail && totals.rail.distanceCoverage.known > 0) ||
-        (showRoad && totals.road.distanceCoverage.known > 0)) && (
-        <p className="gt-note">{t.straightLine}</p>
-      )}
     </div>
   )
 }

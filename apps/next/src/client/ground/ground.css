@@ -91,8 +91,8 @@
 }
 .gt-facts > div {
   display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-1);
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 .gt-facts dt {
@@ -104,7 +104,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 24px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
@@ -124,6 +124,11 @@
 }
 .gt-list {
   display: grid;
+  /* Two cards a row once each keeps its wide layout: 480px of content plus the card's padding and border. */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, calc(480px + 2 * var(--space-5) + 2px)), 1fr)
+  );
   gap: var(--space-3);
   margin: 0;
   padding: 0;
@@ -133,6 +138,7 @@
   position: relative;
   display: grid;
   min-width: 0;
+  container: gt-card / inline-size;
   padding: var(--space-4) var(--space-5);
   background: var(--surface);
   border: 1px solid var(--hairline);
@@ -256,14 +262,43 @@
 }
 .gt-card .gt-card-link {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  column-gap: var(--space-3);
+  grid-template-columns: minmax(0, max-content) minmax(48px, 1fr) minmax(0, max-content);
+  column-gap: var(--space-4);
+  align-items: start;
+}
+.gt-card-from,
+.gt-card-to {
+  display: grid;
+  min-width: 0;
 }
 .gt-card-from:only-child {
   grid-column: 1 / -1;
 }
 .gt-card-to {
   text-align: end;
+}
+.gt-card-country {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+/* The schematic sits between the two cities, level with their names, with the via cities under it. */
+.gt-card-path {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  padding-top: 10px;
+}
+.gt-card-path .gt-route-line {
+  margin-top: 0;
+}
+.gt-card-path .gt-card-via {
+  display: block;
+  margin-top: var(--space-1);
+  font-weight: 400;
+  letter-spacing: 0;
 }
 /* Stop-order schematic: neutral line, accent endpoints, an arrowhead into the destination. Gaps stay gaps. */
 .gt-route-line {
@@ -336,10 +371,13 @@
   color: var(--text-muted);
 }
 .gt-totals-line {
-  display: grid;
-  gap: var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
 }
 .gt-totals-line .gt-mode {
+  align-self: center;
   margin: 0;
   font-size: 13px;
   line-height: 20px;
@@ -348,9 +386,9 @@
 .gt-totals-values {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-1) var(--space-4);
   margin: 0;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 24px;
 }
 .gt-card-hint {
@@ -420,32 +458,6 @@
   line-height: 20px;
   font-weight: 600;
 }
-.gt-steps {
-  display: grid;
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.gt-step {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.gt-step-route {
-  margin: 0;
-  font-size: 15px;
-  line-height: 24px;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
-.gt-step-meta {
-  margin: 0;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--text-muted);
-  overflow-wrap: anywhere;
-}
 .gt-note-text {
   margin: 0;
   font-size: 15px;
@@ -494,7 +506,7 @@
   gap: var(--space-3);
 }
 .gt-skeleton-card {
-  min-height: 140px;
+  min-height: 176px;
 }
 .gt-skeleton-bar {
   display: block;
@@ -502,7 +514,7 @@
   background: var(--skeleton);
 }
 .gt-skeleton-totals {
-  min-height: 56px;
+  min-height: 24px;
 }
 .gt-skeleton-bar.is-toolbar {
   height: 32px;
@@ -580,21 +592,230 @@
   stroke: var(--map-route);
   stroke-width: 2;
 }
-.gt-map-dot[data-end='true'] {
+.gt-map-dot[data-role='via'] {
+  stroke-width: 1.5;
+}
+.gt-map-dot[data-role='end'] {
   fill: var(--map-route);
 }
-.gt-map-label path {
+.gt-map-arrow {
   fill: none;
-  stroke: var(--text-muted);
-  stroke-width: 0.75;
+  stroke: var(--map-route);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.gt-map-label rect {
-  fill: var(--surface-floating);
+/* Pins and the route list share one mark: start ring, numbered stops as a soft tint disc, filled end. */
+.gt-map-pin circle {
+  fill: var(--surface);
+  stroke: var(--map-route);
+  stroke-width: 1.5;
 }
-.gt-map-label text {
+.gt-map-pin[data-role='via'] circle {
+  fill: var(--accent-tint);
+  stroke: color-mix(in oklch, var(--map-route) 40%, transparent);
+}
+.gt-map-pin[data-role='end'] circle {
+  fill: var(--map-route);
+}
+.gt-map-pin text {
+  fill: var(--accent-text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.gt-map-pin[data-role='via'] text {
+  fill: var(--accent-on-tint);
+}
+.gt-map-pin[data-role='end'] text {
+  fill: var(--accent-foreground);
+}
+/* Names sit on the map with a halo in the water colour instead of a box. */
+.gt-map-label {
   fill: var(--text);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
+  dominant-baseline: central;
+  stroke: var(--map-water);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+/* The card's map: beside the text on a wide card, under the route on a narrow one. Its strokes stay 2px at any size. */
+/* A card stretched to its row neighbour keeps the totals row at the bottom. */
+.gt-card-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  min-width: 0;
+}
+.gt-card-main {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  container: gt-card-main / inline-size;
+}
+.gt-card-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2;
+  margin-top: var(--space-3);
+  background: var(--map-water);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.gt-card-map .gt-map-route,
+.gt-card-map .gt-map-dot {
+  vector-effect: non-scaling-stroke;
+}
+/* A short text column: the cities share the first row and the schematic drops under them. */
+@container gt-card-main (max-width: 479.98px) {
+  .gt-card .gt-card-link {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--space-3);
+  }
+  .gt-card-path {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    padding-top: var(--space-2);
+  }
+}
+/* Narrow card: the map sits under the route and replaces the schematic line. */
+@container gt-card (max-width: 479.98px) {
+  .gt-card-body:has(> .gt-card-map) .gt-route-line {
+    display: none;
+  }
+}
+@container gt-card (min-width: 480px) {
+  .gt-card-body:has(> .gt-card-map) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(200px, 28%, 320px);
+    grid-template-rows: 1fr auto auto;
+    column-gap: var(--space-6);
+  }
+  .gt-card-body:has(> .gt-card-map) > :not(.gt-card-map) {
+    grid-column: 1;
+  }
+  .gt-card-body > .gt-card-map {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+    margin-top: 0;
+  }
+}
+.gt-card-soon {
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+/* The route list: one row per city, the connection that reaches it on the line above. */
+.gt-route {
+  --route-line: color-mix(in oklch, var(--text-muted) 45%, transparent);
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gt-stop {
+  display: grid;
+  min-width: 0;
+}
+.gt-stop[data-gap] {
+  margin-top: var(--space-5);
+}
+.gt-leg {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-height: 36px;
+  margin: 0;
+  padding: var(--space-2) 0 var(--space-2) 36px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.gt-leg::before {
+  content: '';
+  position: absolute;
+  inset-block: 2px;
+  left: 11px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--route-line);
+}
+.gt-leg-vehicle {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text);
+}
+.gt-stop-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
+  align-items: start;
+}
+.gt-stop-mark {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--accent-text);
+  font: 600 11px/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.gt-stop-mark[data-role='via'] {
+  justify-self: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border-color: color-mix(in oklch, var(--accent) 40%, transparent);
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+}
+.gt-stop-mark[data-role='end'] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+/* A place without coordinates has no pin, so no number either. */
+.gt-stop-mark[data-role='none'] {
+  border-style: dashed;
+  border-color: var(--text-muted);
+}
+.gt-stop-name {
+  margin: 0;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.gt-stop-meta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.gt-stop-when {
+  display: grid;
+  justify-items: end;
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: var(--text-muted);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
 }
 
 .gt-card-facts dd[data-unknown='true'] {

@@ -190,8 +190,10 @@ def write_outputs(features, output_path):
             if not re.fullmatch(r'#[0-9a-fA-F]{6}', value):
                 raise ValueError(f'{theme} {name} is not a hex color: {value}')
             return value
-        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" fill="{color("--map-land")}" stroke="{color("--map-border")}" stroke-width=".35">' + ''.join(paths) + '</svg>'
-        Path(output_path).with_name(f'world-outline-{tag}-{theme}.svg').write_text(svg)
+        # The fine variant is for zoomed-in drawings, where the regular border would scale up into a thick band.
+        for suffix, width in [('', '.35'), ('-fine', '.12')]:
+            svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" fill="{color("--map-land")}" stroke="{color("--map-border")}" stroke-width="{width}">' + ''.join(paths) + '</svg>'
+            Path(output_path).with_name(f'world-outline-{tag}{suffix}-{theme}.svg').write_text(svg)
     Path(output_path).with_name(f'country-centers-{tag}.json').write_text(json.dumps(centers, separators=(',', ':')))
 
 

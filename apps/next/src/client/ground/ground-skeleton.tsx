@@ -24,18 +24,20 @@ export function GroundListSkeleton({
       <span className="sr-only">{t.loading}</span>
       <div className="gt-skeleton" aria-hidden="true">
         {toolbar && bar('is-toolbar')}
-        {Array.from({ length: cards }, (_, index) => (
-          <Fragment key={index}>
-            {index === Math.max(1, cards - 1) && (
-              <div className="gt-totals gt-skeleton-totals">
-                {bar('is-meta')}
-                {bar('is-meta')}
-              </div>
+        {/* The plans, then the totals line under the history, each in the list's card grid. */}
+        {[1, Math.max(0, cards - 1)].map((count, group) => (
+          <Fragment key={group}>
+            {group === 1 && count > 0 && (
+              <div className="gt-totals gt-skeleton-totals">{bar('is-meta')}</div>
             )}
-            <div className="gt-card gt-skeleton-card">
-              {bar('is-title')}
-              {bar('is-meta')}
-              {bar('is-facts')}
+            <div className="gt-list">
+              {Array.from({ length: count }, (_, index) => (
+                <div className="gt-card gt-skeleton-card" key={index}>
+                  {bar('is-title')}
+                  {bar('is-meta')}
+                  {bar('is-facts')}
+                </div>
+              ))}
             </div>
           </Fragment>
         ))}

@@ -15,6 +15,8 @@ const cachedMapAssets = new Set([
   '/maps/world-outline-110m-2.0.2.svg',
   '/maps/world-outline-110m-2.0.2-r2-light.svg',
   '/maps/world-outline-110m-2.0.2-r2-dark.svg',
+  '/maps/world-outline-110m-2.0.2-r2-fine-light.svg',
+  '/maps/world-outline-110m-2.0.2-r2-fine-dark.svg',
   '/maps/maplibre-6.13.0/maplibre-gl.css',
   '/maps/maplibre-6.13.0/maplibre-gl-worker.mjs',
 ])

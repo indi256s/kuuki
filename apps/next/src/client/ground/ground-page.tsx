@@ -81,10 +81,11 @@ export function GroundTravelPage({
         ? t.road
         : t.all
   const empty = !view.cancelled && list?.journeys.length === 0
-  // Totals sit after the plans and before the history; with no history on screen they close the list.
-  const totals =
+  // Totals summarise completed journeys, so they open the history under its heading; with no history on screen they
+  // close the list at the section level.
+  const totals = (level: 2 | 3) =>
     list && !view.cancelled && list.journeys.length > 0 ? (
-      <GroundTotals locale={locale} totals={list.totals} mode={view.mode} />
+      <GroundTotals locale={locale} totals={list.totals} mode={view.mode} level={level} />
     ) : null
   const seed = list?.journeys.find((journey) => journey.id === view.journey) ?? null
 
@@ -147,7 +148,7 @@ export function GroundTravelPage({
               <EmptyGround locale={locale} action={<AddChooser locale={locale} view={view} />} />
             ) : (
               <>
-                {totals}
+                {totals(2)}
                 <NoneUnderFilter locale={locale} view={view} onShowAll={showAll} />
               </>
             )
@@ -155,9 +156,9 @@ export function GroundTravelPage({
             <>
               {sections.map((section) => (
                 <Fragment key={section.id}>
-                  {section.id === 'history' && totals}
                   <section className="gt-list-section" aria-labelledby={`gt-${section.id}`}>
                     <h2 id={`gt-${section.id}`}>{heading(section.id)}</h2>
+                    {section.id === 'history' && totals(3)}
                     <ul className="gt-list">
                       {section.journeys.map((journey) => (
                         <JourneyCard
@@ -173,7 +174,7 @@ export function GroundTravelPage({
                   </section>
                 </Fragment>
               ))}
-              {!sections.some((section) => section.id === 'history') && totals}
+              {!sections.some((section) => section.id === 'history') && totals(2)}
             </>
           )}
         </div>

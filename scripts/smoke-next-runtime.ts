@@ -564,6 +564,8 @@ async function main() {
           '/maps/world-outline-110m-2.0.2.svg',
           '/maps/world-outline-110m-2.0.2-r2-light.svg',
           '/maps/world-outline-110m-2.0.2-r2-dark.svg',
+          '/maps/world-outline-110m-2.0.2-r2-fine-light.svg',
+          '/maps/world-outline-110m-2.0.2-r2-fine-dark.svg',
           '/maps/country-centers-110m-2.0.2-r2.json',
           '/maps/countries-110m-2.0.2-r2.geojson',
           '/maps/maplibre-6.13.0/maplibre-gl.css',

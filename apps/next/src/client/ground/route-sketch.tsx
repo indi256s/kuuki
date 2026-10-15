@@ -1,16 +1,43 @@
 'use client'
-// Geographic city connections, not a rail/road track. Reuses the pinned atlas from the other Kuuki maps.
+// Geographic city connections, not a rail/road track. Reuses the pinned atlas from the other Kuuki maps. The detail
+// sheet draws the full map with numbered stop marks and labels; a list card draws a small unlabelled one. Both use one
+// projection and one stop-mark rule, so the sheet's route list, its map and the card agree on start, stops and end.
 
-import { placeKey, placeLabel, type GroundPlaceSnapshot } from '@kuuki/shared/groundTravel'
+import {
+  placeKey,
+  placeLabel,
+  railRouteRuns,
+  type GroundJourneyDto,
+  type GroundPlaceSnapshot,
+} from '@kuuki/shared/groundTravel'
 import type { Locale } from '../../lib/format'
 import { copy } from './copy'
 import { wrappedBounds } from '../maps/geometry'
 
-export const SKETCH_WIDTH = 320
-export const SKETCH_HEIGHT = 200
-const PAD = 36
+/** The box a sketch is fitted into. `fill` is the share of the padded box the route may span; `minSpanDeg` keeps a
+ * short trip in its region instead of magnifying one city. */
+export type SketchFrame = {
+  width: number
+  height: number
+  pad: number
+  fill: number
+  minSpanDeg: number
+}
+
+export const SKETCH_WIDTH = 400
+export const SKETCH_HEIGHT = 232
+const SHEET_FRAME: SketchFrame = {
+  width: SKETCH_WIDTH,
+  height: SKETCH_HEIGHT,
+  pad: 28,
+  fill: 0.62,
+  minSpanDeg: 3.5,
+}
+const CARD_FRAME: SketchFrame = { width: 260, height: 130, pad: 14, fill: 0.75, minSpanDeg: 4 }
 
 export type Sketch = {
+  width: number
+  height: number
   /** Distinct plotted places, in first-visit order. */
   dots: { key: string; x: number; y: number; place: GroundPlaceSnapshot }[]
   atlas?: { x: number; y: number; scaleX: number; scaleY: number; worldWidth: number }
@@ -23,8 +50,12 @@ export type Sketch = {
   missing: GroundPlaceSnapshot[]
 }
 
-/** Equirectangular projection scaled by cos(mean latitude), fitted into the box with equal padding. */
-export function sketchOf(places: readonly (GroundPlaceSnapshot | null)[]): Sketch {
+/** Equirectangular projection scaled by cos(mean latitude), centred in the frame. */
+export function sketchOf(
+  places: readonly (GroundPlaceSnapshot | null)[],
+  frame: SketchFrame = SHEET_FRAME,
+): Sketch {
+  const { width, height, pad, fill, minSpanDeg } = frame
   const located = places.filter(
     (place): place is GroundPlaceSnapshot =>
       place !== null && place.lat !== null && place.lon !== null,
@@ -33,7 +64,8 @@ export function sketchOf(places: readonly (GroundPlaceSnapshot | null)[]): Sketc
   for (const place of places)
     if (place && (place.lat === null || place.lon === null))
       missingByKey.set(placeKey(place), place)
-  if (located.length === 0) return { dots: [], segments: [], missing: [...missingByKey.values()] }
+  const missing = [...missingByKey.values()]
+  if (located.length === 0) return { width, height, dots: [], segments: [], missing }
   const bounds = wrappedBounds([
     { type: 'LineString', coordinates: located.map((p) => [p.lon!, p.lat!]) },
   ])!
@@ -45,18 +77,18 @@ export function sketchOf(places: readonly (GroundPlaceSnapshot | null)[]): Sketc
   const xs = flat.map((p) => p.x),
     ys = flat.map((p) => p.y)
   const minX = Math.min(...xs),
-    minY = Math.min(...ys)
-  const spanX = Math.max(...xs) - minX,
-    spanY = Math.max(...ys) - minY
-  // Keep local trips in their surrounding region instead of magnifying a single city indefinitely.
+    maxX = Math.max(...xs),
+    minY = Math.min(...ys),
+    maxY = Math.max(...ys)
   const k = Math.min(
-    12,
-    (SKETCH_WIDTH - 2 * PAD) / Math.max(spanX, 0.01),
-    (SKETCH_HEIGHT - 2 * PAD) / Math.max(spanY, 0.01),
+    ((width - 2 * pad) * fill) / Math.max(maxX - minX, minSpanDeg * scale, 0.01),
+    ((height - 2 * pad) * fill) / Math.max(maxY - minY, minSpanDeg, 0.01),
   )
+  const midX = (minX + maxX) / 2,
+    midY = (minY + maxY) / 2
   const project = (x: number, y: number) => ({
-    x: round(SKETCH_WIDTH / 2 + (x - minX - spanX / 2) * k),
-    y: round(SKETCH_HEIGHT / 2 + (y - minY - spanY / 2) * k),
+    x: round(width / 2 + (x - midX) * k),
+    y: round(height / 2 + (y - midY) * k),
   })
   const corner = project(-180 * scale, -90)
   const atlas = { ...corner, scaleX: (k * scale) / 2, scaleY: k / 2, worldWidth: 360 * scale * k }
@@ -81,66 +113,139 @@ export function sketchOf(places: readonly (GroundPlaceSnapshot | null)[]): Sketc
     run.push(at)
   }
   if (run.length > 0) segments.push(run)
-  return { dots, segments, missing: [...missingByKey.values()], atlas }
+  return { width, height, dots, segments, missing, atlas }
 }
 
 const round = (value: number) => Math.round(value * 10) / 10
 
-type CityLabel = {
-  key: string
-  name: string
-  fullName: string
-  x: number
-  y: number
-  width: number
-  dot: Sketch['dots'][number]
+export type StopMark = { number: number; role: 'start' | 'via' | 'end' }
+
+/** Number (first-visit order) and role of every plotted place, keyed by `placeKey`. The last visited place is the end. */
+export function stopMarks(sketch: Sketch): Map<string, StopMark> {
+  const end = sketch.segments.at(-1)?.at(-1)
+  return new Map(
+    sketch.dots.map((dot, at) => [
+      dot.key,
+      { number: at + 1, role: at === end ? 'end' : at === 0 ? 'start' : 'via' },
+    ]),
+  )
 }
 
-function cityLabels(dots: Sketch['dots'], locale: Locale): CityLabel[] {
-  const labels: CityLabel[] = []
-  for (const dot of dots) {
+/**
+ * The pinned world outlines, drawn only for the copies that reach the frame (a date-line route needs two). Borders
+ * scale with the drawing, so a zoomed-in map takes the fine-stroke variant instead of a thick band.
+ */
+function Atlas({ sketch }: { sketch: Sketch }) {
+  const atlas = sketch.atlas!
+  const variant = atlas.scaleY > 3 ? 'r2-fine' : 'r2'
+  return [-1, 0, 1]
+    .filter((wrap) => {
+      const left = atlas.x + wrap * atlas.worldWidth
+      return left < sketch.width && left + atlas.worldWidth > 0
+    })
+    .map((wrap) => (
+      <g
+        key={wrap}
+        transform={`translate(${atlas.x + wrap * atlas.worldWidth} ${atlas.y}) scale(${atlas.scaleX} ${atlas.scaleY})`}
+      >
+        <image
+          className="gt-map-light"
+          href={`/maps/world-outline-110m-2.0.2-${variant}-light.svg`}
+          width="720"
+          height="360"
+        />
+        <image
+          className="gt-map-dark"
+          href={`/maps/world-outline-110m-2.0.2-${variant}-dark.svg`}
+          width="720"
+          height="360"
+        />
+      </g>
+    ))
+}
+
+function routeLines(sketch: Sketch) {
+  return sketch.segments
+    .filter((run) => run.length > 1)
+    .map((run) => run.map((at) => sketch.dots[at]))
+}
+
+/** One chevron at the middle of each connection long enough to carry it, pointing the way of travel. */
+function arrows(sketch: Sketch, minLength: number) {
+  const marks: { key: string; x: number; y: number; angle: number }[] = []
+  for (const line of routeLines(sketch))
+    for (let i = 1; i < line.length; i++) {
+      const a = line[i - 1],
+        b = line[i]
+      if (Math.hypot(b.x - a.x, b.y - a.y) < minLength) continue
+      marks.push({
+        key: `${marks.length}`,
+        x: round((a.x + b.x) / 2),
+        y: round((a.y + b.y) / 2),
+        angle: round((Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI),
+      })
+    }
+  return marks
+}
+
+const PIN = 9
+const LABEL_HEIGHT = 16
+
+type CityLabel = { key: string; name: string; fullName: string; x: number; y: number }
+
+/** Places each name beside its pin where it fits inside the frame and clear of other names and pins. */
+function cityLabels(sketch: Sketch, order: Sketch['dots'], locale: Locale): CityLabel[] {
+  const placed: (CityLabel & { width: number })[] = []
+  const gap = PIN + 4
+  for (const dot of order) {
     const fullName = placeLabel(dot.place, locale)
-    const name = fullName.length > 20 ? fullName.slice(0, 19) + '…' : fullName
-    const width = Math.min(132, name.length * 6.5 + 10)
+    const name = fullName.length > 22 ? fullName.slice(0, 21) + '…' : fullName
+    const width = Math.min(150, name.length * 6.6 + 2)
     const candidates = [
-      [dot.x + 9, dot.y - 23],
-      [dot.x - width - 9, dot.y - 23],
-      [dot.x + 9, dot.y + 9],
-      [dot.x - width - 9, dot.y + 9],
-      [dot.x - width / 2, dot.y - 33],
-      [dot.x - width / 2, dot.y + 19],
-      [dot.x - width / 2, dot.y - 55],
-      [dot.x - width / 2, dot.y + 41],
+      [dot.x + gap, dot.y - LABEL_HEIGHT / 2],
+      [dot.x - gap - width, dot.y - LABEL_HEIGHT / 2],
+      [dot.x - width / 2, dot.y - gap - LABEL_HEIGHT],
+      [dot.x - width / 2, dot.y + gap],
+      [dot.x + PIN, dot.y - PIN - LABEL_HEIGHT],
+      [dot.x + PIN, dot.y + PIN],
+      [dot.x - PIN - width, dot.y - PIN - LABEL_HEIGHT],
+      [dot.x - PIN - width, dot.y + PIN],
     ]
     for (const [x, y] of candidates) {
-      if (x < 4 || y < 4 || x + width > SKETCH_WIDTH - 4 || y + 18 > SKETCH_HEIGHT - 4) continue
+      if (x < 6 || y < 6 || x + width > sketch.width - 6 || y + LABEL_HEIGHT > sketch.height - 6)
+        continue
       if (
-        labels.some(
-          (l) => x < l.x + l.width + 3 && x + width + 3 > l.x && y < l.y + 21 && y + 21 > l.y,
+        placed.some(
+          (l) =>
+            x < l.x + l.width + 4 &&
+            x + width + 4 > l.x &&
+            y < l.y + LABEL_HEIGHT + 2 &&
+            y + LABEL_HEIGHT + 2 > l.y,
         )
       )
         continue
-      if (dots.some((p) => p.x > x - 5 && p.x < x + width + 5 && p.y > y - 5 && p.y < y + 23))
+      const clear = PIN + 1
+      if (
+        sketch.dots.some(
+          (p) =>
+            p.x > x - clear &&
+            p.x < x + width + clear &&
+            p.y > y - clear &&
+            p.y < y + LABEL_HEIGHT + clear,
+        )
+      )
         continue
-      labels.push({ key: dot.key, name, fullName, x, y, width, dot })
+      placed.push({ key: dot.key, name, fullName, x: round(x), y: round(y), width })
       break
     }
   }
-  return labels
+  return placed
 }
 
-export function RouteSketch({
-  places,
-  locale,
-}: {
-  places: readonly (GroundPlaceSnapshot | null)[]
-  locale: Locale
-}) {
+/** The detail sheet's map. Pins carry the same numbers as the route list beneath it. */
+export function RouteSketch({ sketch, locale }: { sketch: Sketch; locale: Locale }) {
   const t = copy[locale]
-  const sketch = sketchOf(places)
-  const lines = sketch.segments
-    .filter((run) => run.length > 1)
-    .map((run) => run.map((at) => `${sketch.dots[at].x},${sketch.dots[at].y}`).join(' '))
+  const marks = stopMarks(sketch)
   const end = sketch.segments.at(-1)?.at(-1)
   // Endpoints get first claim on the limited label space in dense routes.
   const labelOrder = [
@@ -148,66 +253,73 @@ export function RouteSketch({
     end === undefined ? undefined : sketch.dots[end],
     ...sketch.dots,
   ].filter((dot, index, all): dot is Sketch['dots'][number] => !!dot && all.indexOf(dot) === index)
-  const labels = cityLabels(labelOrder, locale)
+  const labels = cityLabels(sketch, labelOrder, locale)
   const labelled = new Set(labels.map((label) => label.key))
   const extraCities = sketch.dots.filter((dot) => !labelled.has(dot.key))
+  // A pin that would cover an earlier one shrinks to a dot; its number stays in the route list.
+  const compact = new Set(
+    sketch.dots
+      .filter((dot, at) =>
+        sketch.dots.slice(0, at).some((p) => Math.hypot(p.x - dot.x, p.y - dot.y) < PIN * 2),
+      )
+      .map((dot) => dot.key),
+  )
   return (
     <figure className="gt-sketch">
       {sketch.atlas && (
         <svg
-          viewBox={`0 0 ${SKETCH_WIDTH} ${SKETCH_HEIGHT}`}
+          viewBox={`0 0 ${sketch.width} ${sketch.height}`}
           role="img"
           aria-label={`${t.sketchLabel}: ${sketch.dots.map((d) => placeLabel(d.place, locale)).join(', ')}`}
           className="gt-sketch-svg"
         >
-          {[-1, 0, 1].map((wrap) => (
-            <g
-              key={wrap}
-              transform={`translate(${sketch.atlas!.x + wrap * sketch.atlas!.worldWidth} ${sketch.atlas!.y}) scale(${sketch.atlas!.scaleX} ${sketch.atlas!.scaleY})`}
-            >
-              <image
-                className="gt-map-light"
-                href="/maps/world-outline-110m-2.0.2-r2-light.svg"
-                width="720"
-                height="360"
-              />
-              <image
-                className="gt-map-dark"
-                href="/maps/world-outline-110m-2.0.2-r2-dark.svg"
-                width="720"
-                height="360"
-              />
-            </g>
+          <Atlas sketch={sketch} />
+          {routeLines(sketch).map((line, index) => (
+            <polyline
+              key={index}
+              points={line.map((dot) => `${dot.x},${dot.y}`).join(' ')}
+              className="gt-map-route"
+            />
           ))}
-          {lines.map((points, index) => (
-            <polyline key={index} points={points} className="gt-map-route" />
+          {arrows(sketch, 44).map((arrow) => (
+            <path
+              key={arrow.key}
+              d="M-3.5,-3.5L0.5,0L-3.5,3.5"
+              className="gt-map-arrow"
+              transform={`translate(${arrow.x} ${arrow.y}) rotate(${arrow.angle})`}
+            />
           ))}
-          {sketch.dots.map((dot, at) => (
-            <g key={dot.key}>
-              {at === 0 && at === end && (
-                <circle cx={dot.x} cy={dot.y} r="7" className="gt-map-dot" />
-              )}
-              <circle cx={dot.x} cy={dot.y} r="4" className="gt-map-dot" data-end={at === end}>
-                <title>{placeLabel(dot.place, locale)}</title>
-              </circle>
-            </g>
-          ))}
+          {sketch.dots.map((dot) => {
+            const mark = marks.get(dot.key)!
+            const small = compact.has(dot.key)
+            return (
+              <g key={dot.key} className="gt-map-pin" data-role={mark.role}>
+                <circle cx={dot.x} cy={dot.y} r={small ? 4 : mark.role === 'via' ? PIN - 2 : PIN}>
+                  <title>{placeLabel(dot.place, locale)}</title>
+                </circle>
+                {!small && (
+                  <text x={dot.x} y={dot.y} aria-hidden="true">
+                    {mark.number}
+                  </text>
+                )}
+              </g>
+            )
+          })}
           {labels.map((label) => (
-            <g key={label.key} className="gt-map-label">
-              <path
-                d={`M${label.dot.x},${label.dot.y}L${Math.max(label.x, Math.min(label.dot.x, label.x + label.width))},${label.y + 9}`}
-              />
-              <rect x={label.x} y={label.y} width={label.width} height="18" rx="4" />
-              <text x={label.x + 5} y={label.y + 13}>
-                {label.name}
-              </text>
+            <text
+              key={label.key}
+              className="gt-map-label"
+              x={label.x}
+              y={label.y + LABEL_HEIGHT / 2}
+            >
+              {label.name}
               <title>{label.fullName}</title>
-            </g>
+            </text>
           ))}
         </svg>
       )}
       <figcaption>
-        {sketch.atlas && t.sketchLabel}
+        {sketch.atlas && <span>{t.sketchLabel}</span>}
         {extraCities.length > 0 && (
           <span>
             {t.mapOtherCities(extraCities.map((d) => placeLabel(d.place, locale)).join(', '))}
@@ -221,4 +333,48 @@ export function RouteSketch({
       </figcaption>
     </figure>
   )
+}
+
+/**
+ * A list card's map: the same projection in a small frame, no labels or numbers. Decorative, since the card's link
+ * already names the route; nothing renders when no stop has coordinates.
+ */
+export function RouteMiniMap({ places }: { places: readonly (GroundPlaceSnapshot | null)[] }) {
+  const sketch = sketchOf(places, CARD_FRAME)
+  if (!sketch.atlas) return null
+  const marks = stopMarks(sketch)
+  return (
+    <svg
+      viewBox={`0 0 ${sketch.width} ${sketch.height}`}
+      aria-hidden="true"
+      focusable="false"
+      className="gt-card-map"
+    >
+      <Atlas sketch={sketch} />
+      {routeLines(sketch).map((line, index) => (
+        <polyline
+          key={index}
+          points={line.map((dot) => `${dot.x},${dot.y}`).join(' ')}
+          className="gt-map-route"
+        />
+      ))}
+      {sketch.dots.map((dot) => (
+        <circle
+          key={dot.key}
+          cx={dot.x}
+          cy={dot.y}
+          r={marks.get(dot.key)!.role === 'via' ? 2.5 : 3.5}
+          className="gt-map-dot"
+          data-role={marks.get(dot.key)!.role}
+        />
+      ))}
+    </svg>
+  )
+}
+
+/** The places a journey visits in order; disjoint rail runs are separated by null so the map leaves a gap. */
+export function journeyPlaces(journey: GroundJourneyDto): (GroundPlaceSnapshot | null)[] {
+  return journey.mode === 'rail'
+    ? railRouteRuns(journey.legs).flatMap((run, index) => (index === 0 ? run : [null, ...run]))
+    : journey.points.map((point) => point.place)
 }

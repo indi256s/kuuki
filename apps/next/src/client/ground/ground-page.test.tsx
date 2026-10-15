@@ -149,7 +149,8 @@ describe('list', () => {
       query.cancelled ? listOf([cancelled]) : listOf(all),
     )
     mount()
-    await screen.findByRole('heading', { level: 2, name: 'Totals of completed journeys' })
+    // The totals open the History section, so their heading sits one level under it.
+    await screen.findByRole('heading', { level: 3, name: 'Totals of completed journeys' })
     await u.click(screen.getByRole('button', { name: 'Cancelled' }))
     await screen.findByRole('heading', { level: 2, name: 'Cancelled' })
     expect(cards()).toEqual([cancelled.id])
@@ -286,7 +287,9 @@ describe('detail sheet', () => {
     vi.mocked(api.readJourney).mockResolvedValue(journey)
     mount(`journey=${journey.id}`)
     const dialog = await screen.findByRole('dialog')
-    await waitFor(() => expect(dialog.querySelectorAll('.gt-step')).toHaveLength(2))
+    // Tbilisi → Kars, then Baku → Tbilisi: four stops, and the second run starts after a gap, not a line.
+    await waitFor(() => expect(dialog.querySelectorAll('.gt-stop')).toHaveLength(4))
+    expect(dialog.querySelectorAll('.gt-stop[data-gap]')).toHaveLength(1)
     expect(dialog.querySelectorAll('.gt-sketch-svg polyline')).toHaveLength(2)
     const map = within(dialog).getByRole('img', { name: /Approximate route/ })
     for (const name of ['Tbilisi', 'Kars', 'Baku']) {
