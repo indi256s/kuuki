@@ -6,25 +6,37 @@ import { NavigationLink as Link } from './navigation-link'
 import { usePathname } from 'next/navigation'
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type ComponentType,
   type ReactNode,
   type SVGProps,
 } from 'react'
-import { BookOpen, GridSquares, Route, Stamp } from '@keyline-icons/react'
+import { BookOpen, GridSquares, Plus, Stamp } from '@keyline-icons/react'
+import { AddActions } from './add-actions'
+import { Menu } from './ui/menu'
 
 type Locale = 'en' | 'ru'
 export const NAV_ITEMS = [
   { href: '/overview', label: 'Overview', ru: 'Обзор' },
   { href: '/journal', label: 'Journal', ru: 'Журнал' },
-  { href: '/ground-travel', label: 'Ground travel', ru: 'Наземные путешествия' },
   { href: '/passport', label: 'Passport', ru: 'Паспорт' },
 ] as const
 
 /** Active for the route itself and anything nested under it (`/journal/<id>/edit`); the query string never matters (`/overview?year=`). */
 export function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+/** The Journal destination covers both of its sections: flights (`/journal`) and ground travel (`/ground-travel`). */
+function isJournalSection(pathname: string): boolean {
+  return isActive(pathname, '/journal') || isActive(pathname, '/ground-travel')
+}
+
+/** Current-page test for a top-level destination; Journal also owns the ground-travel section. */
+function isCurrent(pathname: string, href: string): boolean {
+  return href === '/journal' ? isJournalSection(pathname) : isActive(pathname, href)
 }
 
 /** True when the on-screen keyboard is clearly open: the visual viewport is well below the layout height and not merely pinch-zoomed. */
@@ -55,6 +67,7 @@ export function MobilePageTitle() {
   const pathname = usePathname()
   const item = [
     ...NAV_ITEMS,
+    { href: '/ground-travel', label: 'Journal', ru: 'Журнал' },
     { href: '/leaderboard', label: 'Leaderboard', ru: 'Рейтинг' },
     { href: '/settings', label: 'Settings', ru: 'Настройки' },
     { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
@@ -102,7 +115,7 @@ export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }
             <Link
               href={item.href}
               prefetch
-              aria-current={isActive(pathname, item.href) ? 'page' : undefined}
+              aria-current={isCurrent(pathname, item.href) ? 'page' : undefined}
             >
               <NavLabel en={item.label} ru={item.ru} />
             </Link>
@@ -151,15 +164,14 @@ function Tab({
   icon,
   en,
   ru,
-  name,
+  onPointerDown,
 }: {
   href: string
   active: boolean
   icon: ReactNode
   en: string
   ru: string
-  /** Full accessible name when the visible label is short; it always contains the visible label (Label in Name). */
-  name?: string
+  onPointerDown: () => void
 }) {
   return (
     <li>
@@ -167,8 +179,8 @@ function Tab({
         href={href}
         prefetch
         className="tab"
-        aria-label={name}
         aria-current={active ? 'page' : undefined}
+        onPointerDown={onPointerDown}
       >
         {icon}
         <span className="tab-label">
@@ -183,31 +195,36 @@ const TABS: readonly {
   href: string
   en: string
   ru: string
-  /** Full accessible names, for a tab whose visible label is shortened to fit four across at 320px. */
-  name?: { en: string; ru: string }
   Icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>
 }[] = [
   { href: '/overview', en: 'Overview', ru: 'Обзор', Icon: GridSquares },
   { href: '/journal', en: 'Journal', ru: 'Журнал', Icon: BookOpen },
-  {
-    href: '/ground-travel',
-    en: 'Ground',
-    ru: 'Наземные',
-    name: { en: 'Ground travel', ru: 'Наземные путешествия' },
-    Icon: Route,
-  },
   { href: '/passport', en: 'Passport', ru: 'Паспорт', Icon: Stamp },
 ]
 
 /**
- * Floating rail: four labeled destinations. Adding lives inside the pages (Journal's Add flight, the ground-travel
- * Add chooser), so the rail has no action key. The rail slides off-screen while the keyboard is open (`useKeyboardFlag`).
+ * Floating rail: three labeled destinations and the + key, an action that never carries aria-current. The key opens the
+ * Add card, the shared Menu anchored above it at the rail's width over a scrim. The rail stays above the scrim and live:
+ * a tab tap closes the card at once and navigates. The card also closes on any route change and when the keyboard opens.
  */
 export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
   const locale = useLocale(initialLocale)
   const pathname = usePathname()
   const ru = locale === 'ru'
-  useKeyboardFlag()
+  const titleId = useId()
+  const [addOpen, setAddOpen] = useState(false)
+  // A close caused by navigating skips the card's exit, so it never overlaps the page change.
+  const [leaving, setLeaving] = useState(false)
+  const keyboard = useKeyboardFlag()
+  const [cardPath, setCardPath] = useState(pathname)
+  if (cardPath !== pathname) {
+    setCardPath(pathname)
+    setAddOpen(false)
+  }
+  if (keyboard && addOpen) setAddOpen(false)
+  const leave = () => {
+    if (addOpen) setLeaving(true)
+  }
   return (
     <nav aria-label={ru ? 'Вкладки' : 'Tabs'} className="tab-bar">
       <ul>
@@ -215,13 +232,45 @@ export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
           <Tab
             key={tab.href}
             href={tab.href}
-            active={isActive(pathname, tab.href)}
+            active={isCurrent(pathname, tab.href)}
             icon={<Icon size={22} strokeWidth={2} aria-hidden="true" />}
             en={tab.en}
             ru={tab.ru}
-            name={tab.name?.[locale]}
+            onPointerDown={leave}
           />
         ))}
+        <li className="tab-add-slot">
+          <Menu
+            open={addOpen}
+            onOpenChange={(next) => {
+              if (next) setLeaving(false)
+              setAddOpen(next)
+            }}
+            side="top"
+            align="end"
+            sideOffset={8}
+            // The card spans the rail, whose inner edge is the rail padding (6px) past the key.
+            alignOffset={-6}
+            className="add-card"
+            scrim="always"
+            instant={leaving}
+            labelledBy={titleId}
+            trigger={
+              <button
+                type="button"
+                className="tab-add"
+                aria-label={addOpen ? (ru ? 'Закрыть' : 'Close') : ru ? 'Добавить' : 'Add'}
+              >
+                <Plus className="tab-add-icon" size={24} strokeWidth={2.25} aria-hidden="true" />
+              </button>
+            }
+          >
+            <p id={titleId} className="add-card-title">
+              {ru ? 'Добавить' : 'Add'}
+            </p>
+            <AddActions locale={locale} />
+          </Menu>
+        </li>
       </ul>
     </nav>
   )

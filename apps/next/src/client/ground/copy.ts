@@ -172,7 +172,7 @@ export const copy = {
     cancelledFilter: 'Отменённые',
     add: 'Добавить поездку',
     addTrain: 'Поездка на поезде',
-    addRoad: 'Поездка на авто',
+    addRoad: 'Автопоездка',
     plans: 'Планы',
     history: 'История',
     cancelledSection: 'Отменённые',

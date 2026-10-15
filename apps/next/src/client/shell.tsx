@@ -53,7 +53,7 @@ function ImportRuns({
 }
 
 /**
- * Member shell: sticky 64px desktop header (wordmark, nav, Add flight menu, avatar menu), or a 56px mobile header
+ * Member shell: sticky 64px desktop header (wordmark, nav, Add menu, avatar menu), or a 56px mobile header
  * (page title, avatar menu) that scrolls away above the fixed floating rail. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
  * and, where the import job worker is bound, one import dock.
  */

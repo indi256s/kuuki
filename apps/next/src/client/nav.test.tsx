@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NAV_ITEMS, TabBar } from './nav'
 
@@ -33,52 +34,80 @@ beforeEach(() => {
 })
 afterEach(() => viewport.listeners.clear())
 
+const key = (name: string) => screen.getByRole('button', { name })
+
 describe('TabBar', () => {
-  it('has exactly four destinations and no action key', () => {
+  it('has three destinations and an Add key that is never the current page', async () => {
+    const user = userEvent.setup()
     render(<TabBar />)
     const links = screen.getAllByRole('link')
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       '/overview',
       '/journal',
-      '/ground-travel',
       '/passport',
     ])
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Journal/ })).toHaveAttribute('aria-current', 'page')
+    const add = key('Add')
+    expect(add).toHaveAttribute('aria-expanded', 'false')
+    expect(add).not.toHaveAttribute('aria-current')
+    await user.click(add)
+    const menu = await screen.findByRole('menu', { name: 'Add' })
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((item) => item.getAttribute('href')),
+    ).toEqual(['/import', '/add', '/ground-travel/new?mode=rail', '/ground-travel/new?mode=road'])
+    expect(key('Close')).toHaveAttribute('aria-expanded', 'true')
+    expect(key('Close')).not.toHaveAttribute('aria-current')
   })
 
-  it('keeps a short visible label and the full accessible name for ground travel', () => {
+  it('marks Journal current in its ground-travel section, nested routes included', () => {
+    for (const pathname of ['/ground-travel', '/ground-travel/new']) {
+      route.pathname = pathname
+      const { unmount } = render(<TabBar />)
+      const current = screen
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('aria-current') === 'page')
+      expect(current.map((link) => link.getAttribute('href'))).toEqual(['/journal'])
+      unmount()
+    }
+  })
+
+  it('closes the card on Escape and returns focus to the key', async () => {
+    const user = userEvent.setup()
+    render(<TabBar />)
+    await user.click(key('Add'))
+    await screen.findByRole('menu')
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+    expect(key('Add')).toHaveFocus()
+  })
+
+  it('closes the card on a route change', async () => {
+    const user = userEvent.setup()
     const { rerender } = render(<TabBar />)
-    expect(screen.getByRole('link', { name: 'Ground travel' })).toHaveTextContent('Ground')
-    rerender(<TabBar locale="ru" />)
-    const link = screen.getByRole('link', { name: 'Наземные путешествия' })
-    expect(link).toHaveTextContent('Наземные')
+    await user.click(key('Add'))
+    await screen.findByRole('menu')
+    route.pathname = '/passport'
+    rerender(<TabBar />)
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
+    expect(key('Add')).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('marks ground travel current on its nested form routes', () => {
-    route.pathname = '/ground-travel/new'
+  it('closes the card when the on-screen keyboard opens', async () => {
+    const user = userEvent.setup()
     render(<TabBar />)
-    expect(screen.getByRole('link', { name: 'Ground travel' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-  })
-
-  it('hides the rail while the on-screen keyboard is open', () => {
-    render(<TabBar />)
+    await user.click(key('Add'))
+    await screen.findByRole('menu')
     viewport.height = 400
     act(() => viewport.listeners.forEach((listener) => listener()))
     expect(document.documentElement.dataset.keyboard).toBe('true')
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
   })
 })
 
 describe('NAV_ITEMS', () => {
   it('lists the desktop destinations in order', () => {
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual([
-      '/overview',
-      '/journal',
-      '/ground-travel',
-      '/passport',
-    ])
+    expect(NAV_ITEMS.map((item) => item.href)).toEqual(['/overview', '/journal', '/passport'])
   })
 })
