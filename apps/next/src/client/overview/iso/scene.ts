@@ -100,6 +100,18 @@ export const labelSize = (size: number, px: number) =>
 export const r1 = (n: number) => Math.round(n * 10) / 10
 export const r3 = (n: number) => Math.round(n * 1000) / 1000
 
+// Non-zero while fitK probes a build for its size: a probe's markup is thrown away, so Scene leaves its SVG strings empty.
+// Bounds come from the projected points alone, so a probe measures exactly what the real build draws.
+let measuring = 0
+function measure<T>(build: () => T): T {
+  measuring++
+  try {
+    return build()
+  } finally {
+    measuring--
+  }
+}
+
 export class Scene {
   readonly k: number
   private stack: IsoNode[][] = [[]]
@@ -144,6 +156,7 @@ export class Scene {
     return list.map(([x, y, z]) => this.P(x, y, z))
   }
   str(pts: readonly Pt[]) {
+    if (measuring) return ''
     return pts.map(([a, b]) => `${r1(a)},${r1(b)}`).join(' ')
   }
 
@@ -180,11 +193,8 @@ export class Scene {
     this.push({ kind: 'polygon', points: this.str(pts), fill, stroke, width })
   }
   line(pts3: readonly P3[], stroke: Paint = 'line', width = 1, dash?: string) {
-    const d =
-      'M' +
-      this.pp(pts3)
-        .map(([a, b]) => `${r1(a)} ${r1(b)}`)
-        .join('L')
+    const pts = this.pp(pts3)
+    const d = measuring ? '' : 'M' + pts.map(([a, b]) => `${r1(a)} ${r1(b)}`).join('L')
     this.push({ kind: 'path', d, fill: 'none', stroke, width, dash })
   }
   /** Several screen-space polygons filled as one shape: each is wound the same way, so overlaps fill once under the nonzero rule (a translucent fill does not darken where they meet). */
@@ -192,6 +202,7 @@ export class Scene {
     const d = polys
       .map((pts) => {
         this.pts.push(...pts)
+        if (measuring) return ''
         const twice = pts.reduce((sum, [a, b], i) => {
           const [c, e] = pts[(i + 1) % pts.length]
           return sum + a * e - c * b
@@ -205,13 +216,10 @@ export class Scene {
   /** Many separate segments as one path. */
   segs(list: readonly (readonly P3[])[], stroke: Paint, width = 1) {
     const d = list
-      .map(
-        (seg) =>
-          'M' +
-          this.pp(seg)
-            .map(([a, b]) => `${r1(a)} ${r1(b)}`)
-            .join('L'),
-      )
+      .map((seg) => {
+        const pts = this.pp(seg)
+        return measuring ? '' : 'M' + pts.map(([a, b]) => `${r1(a)} ${r1(b)}`).join('L')
+      })
       .join('')
     this.push({ kind: 'path', d, fill: 'none', stroke, width })
   }
@@ -257,6 +265,7 @@ export class Scene {
   /** Affine matrix for drawing 2D text on a plane; local v grows "down" along V. It carries k, so text sizes are plane units. */
   matrix(O: P3, U: P3, V: P3) {
     const o = this.P(O[0], O[1], O[2])
+    if (measuring) return ''
     const d = (v: P3) => [(v[0] - v[1]) * C * this.k, ((v[0] + v[1]) * S - v[2]) * this.k]
     const u = d(U),
       w = d(V)
@@ -529,7 +538,7 @@ type Sized = { width: number; height: number }
 
 /** The largest scale (to 0.005) at which `build(k)` is at most `width` px wide, so a tile can draw a figure at the width its box has (sized by ink and glow, not cast shadows) instead of CSS shrinking it. Width is near-linear in k below the scales where detail switches on: two probes place the guess and a few steps settle it. */
 export function fitK(width: number, build: (k: number) => { width: number }): number {
-  const wide = (k: number) => build(k).width
+  const wide = (k: number) => measure(() => build(k)).width
   const w1 = wide(0.8),
     w2 = wide(0.4)
   const slope = (w1 - w2) / 0.4
@@ -541,9 +550,19 @@ export function fitK(width: number, build: (k: number) => { width: number }): nu
 
 /** Like fitK, but the figure must also be at most `height` px tall: upright figures (a board, a calendar) run out of height before width. */
 export function fitBox(width: number, height: number, build: (k: number) => Sized): number {
+  // Both passes probe the same scales (0.8 and 0.4 at least): each scale is built once.
+  const sizes = new Map<number, Sized>()
+  const sized = (k: number) => {
+    let size = sizes.get(k)
+    if (!size) {
+      const built = build(k)
+      sizes.set(k, (size = { width: built.width, height: built.height }))
+    }
+    return size
+  }
   return Math.min(
-    fitK(width, build),
-    fitK(width, (k) => ({ width: (build(k).height * width) / height })),
+    fitK(width, sized),
+    fitK(width, (k) => ({ width: (sized(k).height * width) / height })),
   )
 }
 
