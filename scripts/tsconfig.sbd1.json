@@ -22,6 +22,7 @@
     "./generate-country-regions.ts",
     "./overview-parity.ts",
     "./restore-export-local.ts",
+    "./snapshot-real-account.ts",
     "./verify-import-provider.ts",
     "./evaluate-import.ts",
     "../functions/env.d.ts",

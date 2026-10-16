@@ -14,6 +14,7 @@ import { applyMigrations } from './_migrations'
 import { freePort } from './free-port'
 import { seedGroundJourneys } from './fixtures/ground'
 import { seedLeaderboard } from './fixtures/leaderboard'
+import { REAL_ACCOUNT_EMAIL, readRealSnapshot, seedRealAccount } from './fixtures/real-account'
 import { hashPassword, sha256Hex } from '../functions/api/_lib/crypto'
 import { SESSION_TTL_SECONDS } from '../functions/api/_lib/cookies'
 import { refreshLeaderboards } from '../functions/api/_services/leaderboard'
@@ -493,10 +494,22 @@ async function main() {
         )
         .run()
       await seedLeaderboard(db, process.env.KUUKI_NEXT_FIXTURE !== 'minimal')
+      const snapshot = process.env.KUUKI_NEXT_FIXTURE !== 'minimal' ? readRealSnapshot() : undefined
+      if (snapshot) {
+        const signup = await request('/api/auth/sign-up/email', {
+          method: 'POST',
+          headers: { Origin: origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: REAL_ACCOUNT_EMAIL, password: 'rehearsal-password-2026' }),
+        })
+        if (!signup.ok)
+          throw new Error(`Real-account signup failed: ${signup.status} ${await signup.text()}`)
+        const result = (await signup.json()) as { user: { id: string } }
+        await seedRealAccount(db, result.user.id, snapshot)
+      }
       await refreshLeaderboards(db)
       console.log(`Next synthetic fixture ready: ${origin}`)
       console.log(
-        'Accounts a@example.test / b@example.test; password rehearsal-password-2026. Ctrl-C stops and discards the fixture.',
+        `Accounts a@example.test / b@example.test${snapshot ? ` / ${REAL_ACCOUNT_EMAIL} (real data, snapshot ${snapshot.takenAt.slice(0, 10)})` : ''}; password rehearsal-password-2026. Ctrl-C stops and discards the fixture.`,
       )
       // Also stop when the launcher dies, so a killed agent shell leaves no orphaned port.
       const parent = process.ppid

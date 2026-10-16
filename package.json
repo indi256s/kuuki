@@ -22,6 +22,7 @@
     "next:build": "node scripts/build-next.mjs",
     "next:preview": "tsx scripts/smoke-next-runtime.ts",
     "next:smoke": "tsx scripts/smoke-next-runtime.ts --check",
+    "fixture:snapshot": "tsx scripts/snapshot-real-account.ts",
     "next:smoke:boundary": "tsx scripts/smoke-next-runtime.ts --check-boundary",
     "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts",
     "typecheck:import": "tsc --noEmit -p workers/import/tsconfig.json",
