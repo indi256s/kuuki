@@ -69,7 +69,6 @@ test('a failed Google callback offers a retry and an unlinked account offers ema
 function createStep(page: Page) {
   return {
     heading: page.getByRole('heading', { level: 1, name: 'Start your journal', exact: true }),
-    subtitle: page.getByText('Your flights stay private until you share them.', { exact: true }),
     status: page.getByRole('status'),
     change: page.getByRole('button', { name: 'Change', exact: true }),
     password: page.getByLabel('Create a password', { exact: true }),
@@ -178,7 +177,6 @@ test('an unknown email turns the card into the create step in place, and Create 
   const s = await reachCreateStep(page, email)
   await expect(page).toHaveURL(/\/$/)
   await expect(s.heading).toBeVisible()
-  await expect(s.subtitle).toBeVisible()
   await expect(s.status).toHaveText(`No Kuuki journal uses ${email} yet.`)
   await expect(s.change).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')

@@ -18,11 +18,7 @@ const words = {
     pause: 'Pause animation',
     close: 'Close',
     about: 'About Kuuki',
-    body: [
-      'Kuuki is a private flight journal.',
-      'Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.',
-      'Need another link? Return to sign in and choose “Can’t sign in?”.',
-    ],
+    body: ['Kuuki is a private flight journal.', 'Your flights stay private until you share them.'],
   },
   ru: {
     language: 'Язык',
@@ -32,8 +28,7 @@ const words = {
     about: 'О Kuuki',
     body: [
       'Kuuki — личный журнал перелётов.',
-      'Войдите с почтой и паролем или укажите новую почту, чтобы начать журнал. Перелёты видны только вам, пока вы ими не поделитесь.',
-      'Нужна новая ссылка? Вернитесь ко входу и выберите «Не получается войти?».',
+      'Перелёты видны только вам, пока вы ими не поделитесь.',
     ],
   },
 }

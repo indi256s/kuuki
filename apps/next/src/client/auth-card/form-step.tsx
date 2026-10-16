@@ -11,7 +11,6 @@ import './auth-card.css'
 export const formWords = {
   en: {
     heading: 'Welcome to Kuuki',
-    subtitle: 'Sign in, or use a new email to start your journal.',
     email: 'Email',
     password: 'Password',
     cantSignIn: 'Can’t sign in?',
@@ -20,7 +19,6 @@ export const formWords = {
     google: 'Continue with Google',
     googleOpening: 'Opening Google…',
     createHeading: 'Start your journal',
-    createSubtitle: 'Your flights stay private until you share them.',
     noJournal: ['No Kuuki journal uses', 'yet.'],
     change: 'Change',
     createPassword: 'Create a password',
@@ -31,7 +29,6 @@ export const formWords = {
   },
   ru: {
     heading: 'Добро пожаловать в Kuuki',
-    subtitle: 'Войдите или укажите новую почту, чтобы начать журнал.',
     email: 'Почта',
     password: 'Пароль',
     cantSignIn: 'Не получается войти?',
@@ -40,7 +37,6 @@ export const formWords = {
     google: 'Продолжить с Google',
     googleOpening: 'Открываем Google…',
     createHeading: 'Начните свой журнал',
-    createSubtitle: 'Ваши перелёты видны только вам, пока вы ими не поделитесь.',
     noJournal: ['Журнала Kuuki для', 'пока нет.'],
     change: 'Изменить',
     createPassword: 'Придумайте пароль',
@@ -184,11 +180,7 @@ export function FormStep({
   }
   return (
     <>
-      <CardHeading
-        ref={headingRef}
-        title={creating ? t.createHeading : t.heading}
-        subtitle={creating ? t.createSubtitle : t.subtitle}
-      />
+      <CardHeading ref={headingRef} title={creating ? t.createHeading : t.heading} />
       {onGoogle ? (
         <Button
           className="auth-secondary auth-google"

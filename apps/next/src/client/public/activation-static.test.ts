@@ -218,9 +218,7 @@ it('opens localised help, focuses its heading and returns focus to its trigger w
   const dialog = screen.getByRole('dialog', { name: 'About Kuuki' })
   expect(screen.getByRole('heading', { name: 'About Kuuki' })).toHaveFocus()
   expect(dialog).toHaveTextContent('Kuuki is a private flight journal.')
-  expect(dialog).toHaveTextContent(
-    'Need another link? Return to sign in and choose “Can’t sign in?”.',
-  )
+  expect(dialog).toHaveTextContent('Your flights stay private until you share them.')
   fireEvent.click(screen.getByRole('button', { name: 'Close' }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(help).toHaveFocus()
@@ -230,7 +228,7 @@ it('opens localised help, focuses its heading and returns focus to its trigger w
     'Kuuki — личный журнал перелётов.',
   )
   expect(screen.getByRole('dialog', { name: 'О Kuuki' })).toHaveTextContent(
-    'Нужна новая ссылка? Вернитесь ко входу и выберите «Не получается войти?».',
+    'Перелёты видны только вам, пока вы ими не поделитесь.',
   )
   expect(screen.getByRole('heading', { name: 'О Kuuki' })).toHaveFocus()
   fireEvent.click(screen.getByRole('button', { name: 'Закрыть' }))

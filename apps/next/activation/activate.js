@@ -30,9 +30,7 @@ const words = {
     close: 'Close',
     about: 'About Kuuki',
     helpIntro: 'Kuuki is a private flight journal.',
-    helpBody:
-      'Sign in with your email and password, or use a new email to start your journal. Your flights stay private until you share them.',
-    helpRecovery: 'Need another link? Return to sign in and choose “Can’t sign in?”.',
+    helpBody: 'Your flights stay private until you share them.',
   },
   ru: {
     title: 'С возвращением в Kuuki',
@@ -59,9 +57,7 @@ const words = {
     close: 'Закрыть',
     about: 'О Kuuki',
     helpIntro: 'Kuuki — личный журнал перелётов.',
-    helpBody:
-      'Войдите с почтой и паролем или укажите новую почту, чтобы начать журнал. Перелёты видны только вам, пока вы ими не поделитесь.',
-    helpRecovery: 'Нужна новая ссылка? Вернитесь ко входу и выберите «Не получается войти?».',
+    helpBody: 'Перелёты видны только вам, пока вы ими не поделитесь.',
   },
 }
 const accents = ['shu', 'ai', 'matcha', 'asagi', 'sakura']
