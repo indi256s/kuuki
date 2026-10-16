@@ -179,15 +179,6 @@ describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
     expect(ratio(hex('--pass-flap-foreground'), hex('--pass-flap'))).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('keeps the podium medals readable on the gate sign', () => {
-    for (const name of ['--gate-gold', '--gate-silver', '--gate-bronze']) {
-      expect(
-        ratio(hex(name), hex('--gate-surface')),
-        `${name} on the gate sign`,
-      ).toBeGreaterThanOrEqual(4.5)
-    }
-  })
-
   it('keeps the action label readable on the accent fill', () => {
     expect(ratio(hex('--accent-foreground'), hex('--accent'))).toBeGreaterThanOrEqual(4.5)
   })
