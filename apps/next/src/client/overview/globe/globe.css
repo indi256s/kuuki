@@ -291,9 +291,6 @@
   }
 }
 
-.globe-country-evidence {
-  margin-block-start: var(--space-3);
-}
 .globe-country-evidence nav {
   display: flex;
   align-items: center;

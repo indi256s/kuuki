@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import { matches, routeKey } from '@kuuki/shared/overview/filter'
 import { useOverview } from '../store/overview-context'
 import { GlobeCard, type GlobeCardProps } from './globe-card'
-import { CountryTreemap } from './country-treemap'
 import { legendFor, S, t } from '../copy'
 import { buildTimeline, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
@@ -82,7 +81,6 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
   // Every visit opens on a still map; replay runs only after the member presses Play, and keeps its state across filters.
   const [playing, setPlaying] = useState(false)
   const [started, setStarted] = useState(false)
-  const disclosure = useMemo(() => <CountryTreemap />, [])
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)')
     const change = () => setReduced(query.matches)
@@ -122,7 +120,6 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
       <GlobeCard
         locale={locale}
         legendLabel={legendLabel}
-        disclosure={disclosure}
         topLeft={topLeft}
         onFullscreenChange={(open) => {
           setFullscreen(open)

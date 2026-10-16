@@ -15,7 +15,6 @@ export type GlobeCardProps = {
   /** The same globe component receives fullscreen to configure its future scroll zoom. */
   children: (mode: { fullscreen: boolean; active: boolean }) => ReactNode
   onFullscreenChange?: (open: boolean) => void
-  disclosure?: ReactNode
   topLeft?: ReactNode | ((fullscreen: boolean) => ReactNode)
   topRight?: ReactNode
   bottomLeft?: ReactNode
@@ -30,7 +29,6 @@ export function GlobeCard({
   topRight,
   bottomLeft,
   bottomRight,
-  disclosure,
   onFullscreenChange,
 }: GlobeCardProps) {
   const [open, setOpen] = useState(false)
@@ -103,7 +101,6 @@ export function GlobeCard({
           <span className="globe-fullscreen-label">{fullscreenLabel}</span>
         </Button>,
       )}
-      {disclosure}
       <Dialog
         open={open}
         onOpenChange={changeOpen}

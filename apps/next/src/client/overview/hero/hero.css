@@ -12,6 +12,12 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
 }
+/* Beside a taller map the card reaches the globe card's bottom edge. */
+@media (min-width: 1024px) {
+  [data-region='figures'] > .ov3-hero-panel:not([data-scope='ground']) {
+    flex: 1 0 auto;
+  }
+}
 /* Under По земле only distance and countries remain: the card hugs them instead of stretching to the globe's height. */
 .ov3-hero-panel[data-scope='ground'] {
   min-height: 0;

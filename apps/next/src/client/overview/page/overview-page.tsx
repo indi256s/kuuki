@@ -24,6 +24,7 @@ import { moveSection } from '../layout/reorder'
 import { useReorder } from '../layout/use-reorder'
 import { useLanes } from '../layout/use-lanes'
 import { CountryList } from '../globe/country-list'
+import { CountryTreemap } from '../globe/country-treemap'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
@@ -41,8 +42,19 @@ export function OverviewPage({ name: _name, ...provider }: Props) {
   )
 }
 function PageContent() {
-  const { scope, all, payload, filter, layout, locale, setLayout, isCurrent, actions, revalidate } =
-    useOverview()
+  const {
+    scope,
+    all,
+    payload,
+    filter,
+    layout,
+    locale,
+    ownerKey,
+    setLayout,
+    isCurrent,
+    actions,
+    revalidate,
+  } = useOverview()
   const mobile = useMobile()
   const [fullscreen, setFullscreen] = useState(false)
   const firstRun =
@@ -264,6 +276,8 @@ function PageContent() {
               </section>
               {!firstRun ? <CountryList /> : null}
             </div>
+            {/* Under the band, not inside it, so the globe card and the figures end on one line. */}
+            <CountryTreemap key={ownerKey} />
           </div>
           {zero ? (
             <ZeroResult />
