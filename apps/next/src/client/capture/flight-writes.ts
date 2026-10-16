@@ -57,24 +57,24 @@ export const flightCreatePayload = (flight: object): object =>
   validateFlightInput(omit(flight, 'is_upcoming'), 'create')
 
 export async function createFlight(
-  flight: Omit<FlightInsert, 'id' | 'created_at'>,
+  userId: string,
+  flight: FlightInsert,
   operationId: string,
   retryKey?: string,
 ): Promise<Flight & DerivedAck> {
-  const { user_id } = flight
   const operation = getFlightCreateOperation(
-    user_id,
+    userId,
     operationId,
-    validateFlightInput(omit(flight, 'user_id', 'is_upcoming'), 'create'),
+    flightCreatePayload(flight),
     retryKey,
   )
   const dto = await sendWithZone((zone) =>
-    api.post<Omit<Flight, 'user_id'> & DerivedAck>('/api/flights', withZone(operation.body, zone), {
+    api.post<Flight & DerivedAck>('/api/flights', withZone(operation.body, zone), {
       headers: { 'Idempotency-Key': operation.key },
     }),
   )
-  completeFlightCreateOperation(user_id, operationId, operation.key)
-  return { ...dto, user_id } as Flight & DerivedAck
+  completeFlightCreateOperation(userId, operationId, operation.key)
+  return dto
 }
 
 interface BulkCreateResult {
@@ -90,7 +90,7 @@ export async function createFlights(
   entries: Array<{
     operationId: string
     retryKey?: string
-    flight: Omit<FlightInsert, 'id' | 'created_at' | 'user_id'>
+    flight: FlightInsert
   }>,
   onChunk?: (ack: DerivedAck, saved: number) => void,
 ): Promise<Array<Error | null>> {
@@ -147,10 +147,7 @@ export async function updateFlight(
 ): Promise<Flight & DerivedAck> {
   const body = omit(updates, 'user_id', 'id', 'created_at', 'is_upcoming')
   const dto = await sendWithZone((zone) =>
-    api.patch<Omit<Flight, 'user_id'> & DerivedAck>(
-      `/api/flights/${flightId}`,
-      withZone(body, zone),
-    ),
+    api.patch<Flight & DerivedAck>(`/api/flights/${flightId}`, withZone(body, zone)),
   )
-  return { ...dto, user_id: updates.user_id ?? '' } as Flight & DerivedAck
+  return dto
 }

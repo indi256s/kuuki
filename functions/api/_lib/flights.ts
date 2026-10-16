@@ -3,7 +3,7 @@
 // it drops `user_id` (always the requester) and `aircraft_lookup_attempts` (a D1-only internal
 // enrichment counter never present in the Supabase types the frontend was generated from).
 
-import type { DurationSource } from '../../../packages/shared/src/types'
+import type { DurationSource, OwnFlight } from '../../../packages/shared/src/types'
 import type { LifecycleState } from '../_services/countryEvidence'
 import type { ConfirmationSource } from '../_services/lifecycle'
 
@@ -54,7 +54,7 @@ export interface FlightRow {
  * Full own-flight DTO: the 19 original columns (no user_id / aircraft_lookup_attempts; is_upcoming →
  * boolean compatibility projection), lifecycle fields of ADR 0001 §1 and metrics of ADR 0002.
  */
-export function toOwnFlight(row: FlightRow) {
+export function toOwnFlight(row: FlightRow): OwnFlight {
   return {
     id: row.id,
     date: row.date,

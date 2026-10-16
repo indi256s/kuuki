@@ -32,4 +32,3 @@
 .lane-sm{--lane-fine: none; --lane-coarse: inline}
 .lane-veh{container-type: inline-size}
 @container (max-width: 110px){.lane-vehicle{--lane-fine: none; --lane-coarse: inline}}
-

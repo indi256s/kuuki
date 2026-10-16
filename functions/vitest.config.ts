@@ -6,6 +6,7 @@ export default defineConfig({
     include: [
       'functions/**/*.test.ts',
       'scripts/migration-target.test.ts',
+      'scripts/import-openflights.test.ts',
       'packages/shared/src/**/*.test.ts',
       'packages/data/src/**/*.test.ts',
     ],

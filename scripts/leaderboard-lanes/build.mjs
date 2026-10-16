@@ -5,7 +5,7 @@
 //   node scripts/leaderboard-lanes/build.mjs           writes .scratch/leaderboard-lanes/gate/* and gate.html
 //   node scripts/leaderboard-lanes/build.mjs --audit   also runs the kit audit on every vehicle
 //
-// Kit: ANATOMY_KIT (default ~/.claude/skills/anatomy-asset/kit).
+// Kit: ANATOMY_KIT (default .scratch/concorde/anatomy/kit); setup and pin: scripts/leaderboard-lanes/README.md.
 //
 // Camera: a shallow three-quarter side view, azimuth AZ, elevation EL, shared by all three. Vehicles travel toward +x,
 // which runs to screen right; the viewer stands on the +y side, a little ahead, so the near flank, the nose and a

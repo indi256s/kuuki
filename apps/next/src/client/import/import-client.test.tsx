@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import type { Flight } from '@kuuki/client/flights'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -892,13 +893,36 @@ it('exposes the existing bulk acknowledgement canonical manual flight to a hoste
   const user = userEvent.setup(),
     onResult = vi.fn()
   const server = serverWith([])
-  const canonical = {
+  const canonical: Flight = {
     id: 66,
     date: '2026-03-01',
     origin: 'JFK',
     destination: 'BOS',
     is_upcoming: false,
     lifecycle_state: 'logged',
+    airline_iata: 'B6',
+    aircraft_icao: 'A320',
+    flight_number: null,
+    departure_time: null,
+    arrival_time: null,
+    departure_utc: null,
+    arrival_utc: null,
+    origin_tz: 'America/New_York',
+    dest_tz: 'America/New_York',
+    distance_km: 300,
+    duration_minutes: 60,
+    duration_source: 'estimate',
+    zones_overflown: 0,
+    source: 'manual',
+    enrichment_status: 'skipped',
+    created_at: '2026-03-02T00:00:00Z',
+    confirmation_source: 'save',
+    confirmed_at: '2026-03-02T00:00:00Z',
+    lifecycle_timezone: 'America/New_York',
+    awaiting_after: null,
+    auto_confirm_after: null,
+    arrival_transit: null,
+    arrival_transit_leg_id: null,
   }
   createFlights.mockImplementation(
     async (_owner: string, _entries: unknown[], notify: (ack: object, count: number) => void) => {
@@ -930,7 +954,7 @@ it('exposes the existing bulk acknowledgement canonical manual flight to a hoste
   await user.click(await importButton(/import 1/i))
   await waitFor(() =>
     expect(onResult).toHaveBeenCalledWith(
-      expect.objectContaining({ savedCount: 1, flights: [{ ...canonical, user_id: 'u1' }] }),
+      expect.objectContaining({ savedCount: 1, flights: [canonical] }),
     ),
   )
 })

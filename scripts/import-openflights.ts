@@ -1495,39 +1495,77 @@ function parseAirlines(filePath: string): Airline[] {
   })
 }
 
-// Read existing data to preserve any manual additions
-// Only keep airports that are in the priority list
-function loadExistingAirports(filePath: string): Map<string, Airport> {
+// Validate both catalogs before merging or writing: a failed read must never erase manual data.
+function loadExistingCatalog<T>(
+  filePath: string,
+  validRow: (row: Record<string, unknown>) => boolean,
+): T[] {
+  let content: string
   try {
-    const content = fs.readFileSync(filePath, 'utf-8')
-    const data: Airport[] = JSON.parse(content)
-    // Only keep airports that are in the priority list
-    return new Map(data.filter((a) => PRIORITY_AIRPORTS.has(a.iata)).map((a) => [a.iata, a]))
-  } catch {
-    return new Map()
+    content = fs.readFileSync(filePath, 'utf-8')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
   }
+  const data: unknown = JSON.parse(content)
+  if (!Array.isArray(data)) throw new Error(`Expected an array in ${filePath}`)
+  for (const [index, row] of data.entries()) {
+    if (!row || typeof row !== 'object' || Array.isArray(row) || !validRow(row)) {
+      throw new Error(`Invalid catalog row ${index + 1} in ${filePath}`)
+    }
+  }
+  return data as T[]
+}
+
+function nullableString(value: unknown): boolean {
+  return value === null || typeof value === 'string'
+}
+
+// Existing rows retain all manual fields; priority filtering and merge precedence stay unchanged.
+function loadExistingAirports(filePath: string): Map<string, Airport> {
+  const data = loadExistingCatalog<Airport>(
+    filePath,
+    (row) =>
+      typeof row.iata === 'string' &&
+      row.iata.length > 0 &&
+      ['name', 'city', 'country', 'countryCode', 'timezone'].every(
+        (key) => typeof row[key] === 'string',
+      ) &&
+      nullableString(row.icao) &&
+      typeof row.latitude === 'number' &&
+      Number.isFinite(row.latitude) &&
+      typeof row.longitude === 'number' &&
+      Number.isFinite(row.longitude),
+  )
+  return new Map(data.filter((a) => PRIORITY_AIRPORTS.has(a.iata)).map((a) => [a.iata, a]))
 }
 
 function loadExistingAirlines(filePath: string): Map<string, Airline> {
-  try {
-    const content = fs.readFileSync(filePath, 'utf-8')
-    const data: any[] = JSON.parse(content)
-    // Add new fields if missing, and filter to priority airlines only
-    return new Map(
-      data
-        .filter((a) => PRIORITY_AIRLINES.has(a.iata))
-        .map((a) => [
-          a.iata,
-          {
-            ...a,
-            alliance: a.alliance || ALLIANCE_DATA[a.iata] || null,
-            callsign: a.callsign || null,
-          },
-        ]),
-    )
-  } catch {
-    return new Map()
-  }
+  const data = loadExistingCatalog<Airline>(
+    filePath,
+    (row) =>
+      typeof row.iata === 'string' &&
+      row.iata.length > 0 &&
+      typeof row.name === 'string' &&
+      typeof row.country === 'string' &&
+      ['icao', 'logoUrl', 'primaryColor'].every((key) => nullableString(row[key])) &&
+      (row.callsign === undefined || nullableString(row.callsign)) &&
+      (row.alliance === undefined ||
+        row.alliance === null ||
+        ['star_alliance', 'oneworld', 'skyteam'].includes(row.alliance as string)),
+  )
+  return new Map(
+    data
+      .filter((a) => PRIORITY_AIRLINES.has(a.iata))
+      .map((a) => [
+        a.iata,
+        {
+          ...a,
+          alliance: a.alliance || ALLIANCE_DATA[a.iata] || null,
+          callsign: a.callsign || null,
+        },
+      ]),
+  )
 }
 
 function main() {

@@ -68,7 +68,7 @@ export function PassportManage({
       generation = getAuthGeneration()
     flightRequest.current = { controller, release }
     if (!quiet) setFlightStatus('loading')
-    void getAllFlights(ownerId, { signal: controller.signal })
+    void getAllFlights({ signal: controller.signal })
       .then((rows) => {
         if (current(controller, generation)) {
           setSeen((old) => {

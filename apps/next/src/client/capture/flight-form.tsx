@@ -24,12 +24,6 @@ import {
   writeCapturePreference,
 } from './capture-preferences'
 import { findAirport } from '@kuuki/data/airport-lookup'
-import { findAircraft } from '@kuuki/data/aircraft-lookup'
-import {
-  calculateFlightDistance,
-  calculateFlightDuration,
-  estimateFlightDuration,
-} from '@kuuki/client/geo'
 import {
   checkDuplicateFlight,
   deleteFlight,
@@ -263,7 +257,7 @@ export function FlightForm({
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
     const generation = getAuthGeneration()
-    void getRecentFlights(ownerId, 20, { signal: controller.signal })
+    void getRecentFlights(20, { signal: controller.signal })
       .then((rows) => {
         if (!current(generation, controller)) return
         const today = localDay(0)
@@ -346,7 +340,7 @@ export function FlightForm({
     const generation = getAuthGeneration()
     const timer = setTimeout(
       () =>
-        void checkDuplicateFlight(ownerId, date, origin, destination, editId, {
+        void checkDuplicateFlight(date, origin, destination, editId, {
           signal: controller.signal,
         })
           .then((row) => {
@@ -379,7 +373,6 @@ export function FlightForm({
       }
       if (!original && !bypassDuplicate) {
         const existing = await checkDuplicateFlight(
-          ownerId,
           values.date,
           values.origin,
           values.destination,
@@ -394,42 +387,27 @@ export function FlightForm({
         }
       }
       const from = findAirport(values.origin),
-        to = findAirport(values.destination),
-        plane = values.aircraft ? findAircraft(values.aircraft) : undefined
-      const distance =
-        from && to
-          ? calculateFlightDistance(from.latitude, from.longitude, to.latitude, to.longitude)
-          : null
-      const duration =
-        values.departure && values.arrival
-          ? calculateFlightDuration(
-              values.departure,
-              values.arrival,
-              values.date,
-              from?.timezone,
-              to?.timezone,
-            )
-          : distance == null
-            ? null
-            : estimateFlightDuration(distance, plane?.type)
-      const body = original ?? {
-        date: values.date,
-        origin: values.origin,
-        destination: values.destination,
-        airline_iata: values.airline || null,
-        aircraft_icao: values.aircraft || null,
-        flight_number: values.number || null,
-        departure_time: values.departure || null,
-        arrival_time: values.arrival || null,
-        distance_km: distance,
-        duration_minutes: duration,
-        origin_tz: from?.timezone || null,
-        dest_tz: to?.timezone || null,
-      }
+        to = findAirport(values.destination)
+      const body = validateFlightInput(
+        original ?? {
+          date: values.date,
+          origin: values.origin,
+          destination: values.destination,
+          airline_iata: values.airline || null,
+          aircraft_icao: values.aircraft || null,
+          flight_number: values.number || null,
+          departure_time: values.departure || null,
+          arrival_time: values.arrival || null,
+          origin_tz: from?.timezone || null,
+          dest_tz: to?.timezone || null,
+        },
+        'create',
+      )
       const ack = flight
         ? await updateFlight(flight.id, body)
         : await createFlight(
-            { ...body, source: 'manual', user_id: ownerId } as Parameters<typeof createFlight>[0],
+            ownerId,
+            { ...body, source: 'manual' },
             operationId,
             original ? (receipt ? receipt.key : '') : undefined,
           )
@@ -643,12 +621,7 @@ export function FlightForm({
     </div>
   )
   if (flight && !editing) {
-    const state =
-      (
-        flight as Flight & {
-          lifecycle_state?: 'upcoming' | 'awaiting' | 'logged'
-        }
-      ).lifecycle_state ?? (flight.is_upcoming ? 'upcoming' : 'logged')
+    const state = flight.lifecycle_state
     const time = (value: string | null) => (value ? value.slice(0, 5) : null)
     return wrap(
       <section className="flight-detail">

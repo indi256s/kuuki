@@ -409,7 +409,7 @@ it('tells a viewer with enough journeys that only publication blocks the ground 
   }
 })
 
-it('gives each sky row the most-flown drawn aircraft type of its period, else the generic one', async () => {
+it('gives each sky row the normalized most-flown aircraft type of its period, including types without artwork', async () => {
   const { db, dispose } = await createApiDatabase()
   const flight = (userId: string, date: string, icao: string | null) =>
     db
@@ -427,7 +427,7 @@ it('gives each sky row the most-flown drawn aircraft type of its period, else th
       flight('typed', '2025-05-01', 'B738'),
       flight('typed', '2026-02-01', 'A320'),
       // A type the lanes do not draw.
-      flight('odd', '2026-04-01', 'B739'),
+      flight('odd', '2026-04-01', ' b739 '),
       flight('untyped', '2026-04-01', null),
       ...journey(db, 'typed', 'rail', 'completed', '2026-05-01'),
       ...journey(db, 'typed', 'rail', 'completed', '2026-05-02'),
@@ -439,8 +439,8 @@ it('gives each sky row the most-flown drawn aircraft type of its period, else th
       Object.fromEntries(
         read.boards.flights[period].top.map((entry) => [entry.user_id, entry.aircraft]),
       )
-    expect(aircraft('all')).toEqual({ typed: 'B738', odd: 'GENERIC', untyped: 'GENERIC' })
-    expect(aircraft('2026')).toMatchObject({ typed: 'A320', odd: 'GENERIC' })
+    expect(aircraft('all')).toEqual({ typed: 'B738', odd: 'B739', untyped: null })
+    expect(aircraft('2026')).toMatchObject({ typed: 'A320', odd: 'B739' })
     // Ground rows never carry a type, even for a member who has one in the sky.
     expect(read.boards.rail.all.top).toEqual([
       expect.objectContaining({ user_id: 'typed', aircraft: null }),
@@ -486,6 +486,47 @@ it('runs each ground Countries lane on the mode its member covered more kilometr
     expect(vehicles('ground_countries', '2026')).toMatchObject({ trains: 'road', cars: 'road' })
     // Only ground Countries carries the choice; Trains and Cars draw their own vehicle.
     expect(Object.values(vehicles('rail', 'all'))).toEqual([null, null, null])
+  } finally {
+    await dispose()
+  }
+})
+
+it('excludes an incomplete rail journey from the Countries vehicle distance', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await db.batch([
+      ...member(db, { id: 'incomplete', publication: 'all' }),
+      // The known Berlin–Munich leg must not make the incomplete rail journey beat a 27 km drive.
+      ...journey(
+        db,
+        'incomplete',
+        'rail',
+        'completed',
+        '2026-03-01',
+        ['DE'],
+        [[52.52, 13.405], [48.137, 11.575], null],
+      ),
+      ...journey(
+        db,
+        'incomplete',
+        'road',
+        'completed',
+        '2026-03-02',
+        ['DE'],
+        [
+          [52.52, 13.405],
+          [52.39, 13.065],
+        ],
+      ),
+      ...journey(db, 'incomplete', 'rail', 'completed', '2026-03-03', ['DE']),
+    ])
+    await refreshLeaderboards(db, NOW)
+    const read = await readLeaderboardBoard(db, null, NOW)
+    for (const period of ['all', '2026']) {
+      expect(read.boards.ground_countries[period].top).toEqual([
+        expect.objectContaining({ user_id: 'incomplete', vehicle: 'road' }),
+      ])
+    }
   } finally {
     await dispose()
   }

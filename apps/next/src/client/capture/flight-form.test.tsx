@@ -6,6 +6,7 @@ import { ApiError } from '@kuuki/client/apiClient'
 import { FlightForm } from './flight-form'
 import { FlightDetailSheet } from './flight-panels'
 import { clearCapturePreferences } from './capture-preferences'
+import type { Flight } from '@kuuki/client/flights'
 import type { Locale } from '../../lib/format'
 
 const mocks = vi.hoisted(() => ({
@@ -36,7 +37,7 @@ vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../write-feedback', () => ({
   useWriteFeedback: () => ({ acknowledge: mocks.acknowledge, status: 'ready' }),
 }))
-const flight = {
+const flight: Flight = {
   id: 7,
   date: '2026-10-05',
   origin: 'TBS',
@@ -47,6 +48,25 @@ const flight = {
   departure_time: '12:00',
   arrival_time: '14:00',
   lifecycle_state: 'awaiting',
+  departure_utc: '2026-10-05T08:00:00Z',
+  arrival_utc: '2026-10-05T11:00:00Z',
+  origin_tz: 'Asia/Tbilisi',
+  dest_tz: 'Europe/Istanbul',
+  distance_km: 1320,
+  duration_minutes: 180,
+  duration_source: 'times',
+  zones_overflown: 1,
+  source: 'manual',
+  is_upcoming: false,
+  enrichment_status: 'skipped',
+  created_at: '2026-10-05T07:00:00Z',
+  confirmation_source: null,
+  confirmed_at: null,
+  lifecycle_timezone: 'Asia/Tbilisi',
+  awaiting_after: '2026-10-06T00:00:00Z',
+  auto_confirm_after: '2026-10-13T00:00:00Z',
+  arrival_transit: null,
+  arrival_transit_leg_id: null,
 }
 const words = {
   en: {
@@ -156,13 +176,12 @@ describe('manual flight', () => {
       metaKey: locale === 'ru',
     })
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
-    expect(mocks.create.mock.calls[0][0]).toMatchObject({
+    expect(mocks.create.mock.calls[0][1]).toMatchObject({
       date: '2026-10-05',
       origin: 'TBS',
       destination: 'IST',
       airline_iata: null,
       aircraft_icao: null,
-      user_id: 'a',
     })
     expect(mocks.acknowledge).toHaveBeenCalledWith({
       id: 8,
@@ -191,7 +210,7 @@ describe('manual flight', () => {
     })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
-    expect(mocks.create.mock.calls[0][0]).toMatchObject({
+    expect(mocks.create.mock.calls[0][1]).toMatchObject({
       origin: 'IST',
       destination: 'TBS',
       airline_iata: 'TK',
@@ -242,14 +261,7 @@ describe('manual flight', () => {
     })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.update).toHaveBeenCalledTimes(1))
-    expect(mocks.duplicate).toHaveBeenCalledWith(
-      'a',
-      '2026-10-05',
-      'TBS',
-      'IST',
-      7,
-      expect.any(Object),
-    )
+    expect(mocks.duplicate).toHaveBeenCalledWith('2026-10-05', 'TBS', 'IST', 7, expect.any(Object))
     expect(mocks.update.mock.calls[0]).toEqual([
       7,
       expect.objectContaining({
@@ -519,7 +531,7 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', (locale) => {
     })
     await userEvent.click(screen.getByRole('button', { name: words[locale].save }))
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
-    expect(mocks.create.mock.calls[0][0]).toMatchObject({ date: '2024-02-29' })
+    expect(mocks.create.mock.calls[0][1]).toMatchObject({ date: '2024-02-29' })
   })
   it('shows localized copy for a structured server failure and for a failed load', async () => {
     mocks.create.mockRejectedValueOnce(

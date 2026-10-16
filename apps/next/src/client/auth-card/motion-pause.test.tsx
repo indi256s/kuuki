@@ -24,6 +24,7 @@ it.each([false, true])(
     let id = 0
     let now = 0
     let intersect!: (entries: { isIntersecting: boolean }[]) => void
+    const observe = vi.fn()
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
       frames.set(++id, callback)
       return id
@@ -35,7 +36,7 @@ it.each([false, true])(
         constructor(callback: typeof intersect) {
           intersect = callback
         }
-        observe() {}
+        observe = observe
         disconnect() {}
       },
     )
@@ -62,7 +63,7 @@ it.each([false, true])(
     )
     const user = userEvent.setup()
     const first = render(card())
-    await waitFor(() => expect(intersect).toBeTypeOf('function'))
+    await waitFor(() => expect(observe).toHaveBeenCalledTimes(1))
     act(() => intersect([{ isIntersecting: true }]))
     advance()
     expect(model.set.mock.lastCall?.[0].model).toBeGreaterThan(0)
@@ -85,7 +86,7 @@ it.each([false, true])(
     render(card('ru'))
     const savedPause = screen.getByRole('button', { name: 'Приостановить анимацию' })
     expect(savedPause).toHaveAttribute('aria-pressed', 'true')
-    await waitFor(() => expect(document.querySelector('.auth-concorde[data-ready]')).not.toBeNull())
+    await waitFor(() => expect(observe).toHaveBeenCalledTimes(2))
     act(() => intersect([{ isIntersecting: true }]))
     advance()
     expect(frames.size).toBe(0)

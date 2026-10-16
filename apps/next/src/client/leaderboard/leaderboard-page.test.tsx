@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { LeaderboardData } from '../../app/(public)/leaderboard/page'
@@ -180,6 +180,7 @@ it('flies each member’s own aircraft in the sky and their longer mode across g
   const user = userEvent.setup()
   const data = fixture()
   data.boards.flights.all.top[0] = { ...data.boards.flights.all.top[0], aircraft: 'B738' }
+  data.boards.flights.all.top[1] = { ...data.boards.flights.all.top[1], aircraft: 'B739' }
   data.boards.road.all = { top: ranks(1, 2), total: 2 }
   const [rail, unknown] = ranks(1, 2)
   data.boards.ground_countries.all = { top: [{ ...rail, vehicle: 'rail' }, unknown], total: 2 }
@@ -316,3 +317,47 @@ it('drops a Show all read that lands after the board was switched', async () => 
   expect(screen.queryByRole('link', { name: '@user50' })).toBeNull()
   expect(screen.getByRole('button', { name: 'Show all' })).toBeEnabled()
 })
+
+it.each(['success', 'failure'])(
+  'keeps newer rows and pending pagination after switching away and back when an obsolete read returns %s',
+  async (outcome) => {
+    const user = userEvent.setup()
+    const lands: Array<(value: unknown) => void> = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => new Promise((resolve) => lands.push(resolve))),
+    )
+    const data = fixture()
+    data.boards.distance.all = { top: ranks(1, 10, 9000), total: 25 }
+    render(board(data))
+    await user.click(screen.getByRole('button', { name: 'Show all' }))
+    await user.click(screen.getByRole('link', { name: /^Distance/ }))
+    await user.click(screen.getByRole('link', { name: /^Flights/ }))
+    await user.click(screen.getByRole('button', { name: 'Show all' }))
+    lands[1]({
+      ok: true,
+      json: () => Promise.resolve({ entries: ranks(1, 50), total: 60, updatedAt: 'new' }),
+    })
+    await waitFor(() => expect(screen.getByRole('link', { name: '@user50' })).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Show more' }))
+    await act(async () =>
+      lands[0]({
+        ok: outcome === 'success',
+        json: () => Promise.resolve({ entries: ranks(1, 25), total: 25, updatedAt: 'old' }),
+      }),
+    )
+    await waitFor(() => expect(screen.getByRole('link', { name: '@user50' })).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Show more' })).toHaveAttribute('aria-busy', 'true')
+    // The active read still blocks another click after the obsolete read finalizes.
+    await user.click(screen.getByRole('button', { name: 'Show more' }))
+    expect(lands).toHaveLength(3)
+    expect(screen.queryByText('Couldn’t load more places. Try again.')).toBeNull()
+    await act(async () =>
+      lands[2]({
+        ok: true,
+        json: () => Promise.resolve({ entries: ranks(51, 60), total: 60, updatedAt: 'new' }),
+      }),
+    )
+    expect(screen.getByRole('link', { name: '@user60' })).toBeInTheDocument()
+  },
+)

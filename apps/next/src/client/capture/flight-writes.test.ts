@@ -50,7 +50,7 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
       lifecycle_state: 'logged',
       derived_state: 'ready',
     })
-    const saved = await createFlight({ ...input, user_id: 'u1' } as never, 'op-1')
+    const saved = await createFlight('u1', input, 'op-1')
     const [path, body, options] = post.mock.calls[0]
     expect(path).toBe('/api/flights')
     expect(body).toEqual({
@@ -61,19 +61,17 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
       timezone: zone(),
     })
     expect(options.headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
-    expect(saved).toMatchObject({ id: 7, user_id: 'u1', lifecycle_state: 'logged' })
+    expect(saved).toMatchObject({ id: 7, lifecycle_state: 'logged' })
     expect(localStorage.length).toBe(0) // receipt completed
   })
 
   it('stores the payload without the zone so a retry from another zone is the same operation', async () => {
     post.mockRejectedValueOnce(new Error('network'))
-    await expect(createFlight({ ...input, user_id: 'u1' } as never, 'op-2')).rejects.toThrow(
-      'network',
-    )
+    await expect(createFlight('u1', input, 'op-2')).rejects.toThrow('network')
     const stored = JSON.parse(localStorage.getItem(localStorage.key(0)!)!) as { payload: string }
     expect(JSON.parse(stored.payload)).not.toHaveProperty('timezone')
     post.mockResolvedValueOnce({ id: 8, date: input.date, origin: 'TBS', destination: 'IST' })
-    await createFlight({ ...input, user_id: 'u1' } as never, 'op-2')
+    await createFlight('u1', input, 'op-2')
     expect(post.mock.calls[1][2].headers['Idempotency-Key']).toBe(
       post.mock.calls[0][2].headers['Idempotency-Key'],
     )
@@ -140,7 +138,7 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
     it('retries a create once without the zone, with the same key and a zone-free stored payload', async () => {
       post.mockRejectedValueOnce(rejected())
       post.mockResolvedValueOnce({ id: 9, date: input.date, origin: 'TBS', destination: 'IST' })
-      const saved = await createFlight({ ...input, user_id: 'u1' } as never, 'op-tz')
+      const saved = await createFlight('u1', input, 'op-tz')
       expect(saved).toMatchObject({ id: 9 })
       expect(post).toHaveBeenCalledTimes(2)
       expect(post.mock.calls[0][1]).toHaveProperty('timezone', zone())
@@ -154,9 +152,7 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
     it('does not retry again when the retry fails, and keeps a zone-free stored operation', async () => {
       post.mockRejectedValueOnce(rejected())
       post.mockRejectedValueOnce(new Error('network'))
-      await expect(createFlight({ ...input, user_id: 'u1' } as never, 'op-tz2')).rejects.toThrow(
-        'network',
-      )
+      await expect(createFlight('u1', input, 'op-tz2')).rejects.toThrow('network')
       expect(post).toHaveBeenCalledTimes(2)
       const stored = JSON.parse(localStorage.getItem(localStorage.key(0)!)!) as { payload: string }
       expect(JSON.parse(stored.payload)).not.toHaveProperty('timezone')
@@ -180,9 +176,9 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
 
     it('does not retry other 400s', async () => {
       post.mockRejectedValue(new ApiError(400, 'bad', 'UNKNOWN_AIRPORT'))
-      await expect(
-        createFlight({ ...input, user_id: 'u1' } as never, 'op-tz3'),
-      ).rejects.toMatchObject({ code: 'UNKNOWN_AIRPORT' })
+      await expect(createFlight('u1', input, 'op-tz3')).rejects.toMatchObject({
+        code: 'UNKNOWN_AIRPORT',
+      })
       expect(post).toHaveBeenCalledTimes(1)
     })
   })
@@ -206,9 +202,7 @@ describe('explicit original retries never become new writes', () => {
       if (change === 'removed') localStorage.removeItem(storageKey)
       else
         localStorage.setItem(storageKey, JSON.stringify({ ...receipt, key: crypto.randomUUID() }))
-      await expect(
-        createFlight({ ...pinned.body, user_id: 'u1' } as never, id, pinned.key),
-      ).rejects.toThrow(/settled or replaced/)
+      await expect(createFlight('u1', input, id, pinned.key)).rejects.toThrow(/settled or replaced/)
       expect(
         await createFlights('u1', [
           { operationId: id, flight: pinned.body as never, retryKey: pinned.key },

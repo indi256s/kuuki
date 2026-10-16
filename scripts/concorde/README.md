@@ -16,7 +16,9 @@ The public source is [anatomy at commit
 0fad5b674b09b496d425c10f117c061dfd0c8bdc](https://github.com/wheresryan22/anatomy/tree/0fad5b674b09b496d425c10f117c061dfd0c8bdc),
 licensed under MIT, copyright 2026 Ryan. `anatomy.lock.json` records SHA-256
 hashes for all consumed kit files, transitive imports and the licence. The
-generator checks them before executing kit code or overwriting outputs.
+shared `verify-kit.mjs` verifier checks them before executing kit code or
+overwriting outputs. The leaderboard lane generators use the same verifier and
+pin; see [their setup and commands](../leaderboard-lanes/README.md).
 `ANATOMY_KIT=/path/to/anatomy/kit` accepts another installation of the same
 pinned files. Updating anatomy requires reviewing the new source and generated
 output, then updating the commit and hashes together.

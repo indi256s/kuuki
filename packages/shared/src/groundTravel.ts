@@ -338,11 +338,14 @@ export function segmentKm(a: GroundPlaceSnapshot, b: GroundPlaceSnapshot): numbe
   return from && to ? greatCircleKm(from, to) : null
 }
 
-function sumSegments(pairs: Array<[GroundPlaceSnapshot, GroundPlaceSnapshot]>) {
+/** Complete journey distance, rounded once; an unknown endpoint leaves the whole distance unknown. */
+export function journeyDistance(
+  pairs: ReadonlyArray<readonly [GroundPlaceSnapshot | null, GroundPlaceSnapshot | null]>,
+) {
   let km = 0
   let known = 0
   for (const [a, b] of pairs) {
-    const d = segmentKm(a, b)
+    const d = a && b ? segmentKm(a, b) : null
     if (d !== null) {
       km += d
       known += 1
@@ -425,7 +428,7 @@ export function railLegDuration(leg: RailLegInput): {
 
 export function journeyMetrics(journey: GroundJourneyInput): JourneyMetrics {
   if (journey.mode === 'rail') {
-    const distance = sumSegments(journey.legs.map((leg) => [leg.from, leg.to]))
+    const distance = journeyDistance(journey.legs.map((leg) => [leg.from, leg.to]))
     let minutes = 0
     let known = 0
     for (const leg of journey.legs) {
@@ -446,7 +449,7 @@ export function journeyMetrics(journey: GroundJourneyInput): JourneyMetrics {
   for (let i = 1; i < journey.points.length; i += 1)
     pairs.push([journey.points[i - 1].place, journey.points[i].place])
   return {
-    ...sumSegments(pairs),
+    ...journeyDistance(pairs),
     trainMinutes: null,
     trainMinutesCoverage: null,
     uniqueCities: new Set(journey.points.map((point) => placeKey(point.place))).size,

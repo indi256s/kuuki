@@ -14,29 +14,12 @@
 // comes from Concorde's published dimensions: 61.66 m long, 25.6 m span, 2.87 m fuselage, 358.25 m² ogee wing, two
 // twin Olympus 593 nacelles.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { createHash } from 'node:crypto'
-import { join, resolve } from 'node:path'
+import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const pin = JSON.parse(
-  readFileSync(new URL('./concorde/anatomy.lock.json', import.meta.url), 'utf8'),
-)
-const KIT = resolve(process.env.ANATOMY_KIT ?? '.scratch/concorde/anatomy/kit')
-// Validate every consumed file before imports or writes, including transitive dependencies and the licence.
-for (const [file, expected] of Object.entries(pin.sha256)) {
-  let actual
-  try {
-    actual = createHash('sha256')
-      .update(readFileSync(join(KIT, file)))
-      .digest('hex')
-  } catch {
-    throw new Error(`Missing anatomy kit file ${file}. See scripts/concorde/README.md for setup.`)
-  }
-  if (actual !== expected)
-    throw new Error(
-      `Anatomy kit ${file} differs from pinned commit ${pin.commit}. See scripts/concorde/README.md.`,
-    )
-}
+import { verifiedAnatomyKit } from './concorde/verify-kit.mjs'
+
+const KIT = verifiedAnatomyKit()
 const k = await import(pathToFileURL(join(KIT, 'iso-kit.mjs')))
 const G = await import(pathToFileURL(join(KIT, 'lathe.mjs')))
 const A = await import(pathToFileURL(join(KIT, 'audit.mjs')))

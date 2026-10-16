@@ -48,7 +48,7 @@ export async function parseFlightBodies(
   db: D1Database,
   raws: unknown[],
 ): Promise<Array<FlightInput | HttpError>> {
-  const parsed = raws.map((raw) => {
+  const parsed: Array<FlightInput | HttpError> = raws.map((raw) => {
     try {
       return validateFlightInput(raw, 'create')
     } catch (error) {

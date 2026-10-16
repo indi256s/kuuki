@@ -1,41 +1,14 @@
 // Pure helpers for flights saved without the batch (manual rows) and for the done summary.
-import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { findAirport } from '@kuuki/data/airport-lookup'
-import {
-  calculateFlightDistance,
-  calculateFlightDuration,
-  estimateFlightDuration,
-} from '@kuuki/client/geo'
+import { calculateFlightDistance } from '@kuuki/client/geo'
 import type { FlightInsert } from '@kuuki/client/flights'
 import { normaliseValues, type FieldValues } from './review-model'
 
-/** Same derived fields the capture form fills, so a manual row here and a flight added on /add look alike. */
-export function toFlightInput(
-  values: FieldValues,
-): Omit<FlightInsert, 'id' | 'created_at' | 'user_id'> {
+/** Admitted fields for a manual save; the server resolves flight metrics. */
+export function toFlightInput(values: FieldValues): FlightInsert {
   const v = normaliseValues(values)
   const origin = findAirport(v.origin),
     destination = findAirport(v.destination)
-  const aircraft = v.aircraft_icao ? findAircraft(v.aircraft_icao) : null
-  const distance =
-    origin && destination
-      ? calculateFlightDistance(
-          origin.latitude,
-          origin.longitude,
-          destination.latitude,
-          destination.longitude,
-        )
-      : null
-  const actual =
-    origin && destination && v.departure_time && v.arrival_time
-      ? calculateFlightDuration(
-          v.departure_time,
-          v.arrival_time,
-          v.date,
-          origin.timezone,
-          destination.timezone,
-        )
-      : null
   return {
     date: v.date,
     origin: v.origin,
@@ -45,9 +18,6 @@ export function toFlightInput(
     aircraft_icao: v.aircraft_icao || null,
     departure_time: v.departure_time || null,
     arrival_time: v.arrival_time || null,
-    distance_km: distance,
-    duration_minutes:
-      actual || (distance ? estimateFlightDuration(distance, aircraft?.type) : null),
     origin_tz: origin?.timezone || null,
     dest_tz: destination?.timezone || null,
     source: 'manual',

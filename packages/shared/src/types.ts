@@ -82,6 +82,39 @@ export interface Flight {
   createdAt: string
 }
 
+/** Own-flight API projection. Ownership and D1-only bookkeeping stay on the server. */
+export type OwnFlight = {
+  id: number
+  date: string
+  origin: string
+  destination: string
+  airline_iata: string | null
+  aircraft_icao: string | null
+  flight_number: string | null
+  departure_time: string | null
+  arrival_time: string | null
+  departure_utc: string | null
+  arrival_utc: string | null
+  origin_tz: string | null
+  dest_tz: string | null
+  distance_km: number | null
+  duration_minutes: number | null
+  readonly duration_source: DurationSource | null
+  readonly zones_overflown: number | null
+  source: string
+  is_upcoming: boolean
+  enrichment_status: string
+  created_at: string
+  lifecycle_state: 'upcoming' | 'awaiting' | 'logged'
+  confirmation_source: 'save' | 'user' | 'automatic' | 'legacy' | null
+  confirmed_at: string | null
+  lifecycle_timezone: string | null
+  awaiting_after: string | null
+  auto_confirm_after: string | null
+  arrival_transit: boolean | null
+  arrival_transit_leg_id: number | null
+}
+
 // Visited place (computed from flights)
 export interface Visit {
   userId: string

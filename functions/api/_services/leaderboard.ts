@@ -19,14 +19,17 @@
 //   * Lane vehicles ride in metadata: sky rows carry the most-flown aircraft type, ground Countries rows the mode the
 //     member covered more distance by (2026-10-16).
 
-import { parsePlaceSnapshot, segmentKm } from '../../../packages/shared/src/groundTravel'
+import {
+  journeyDistance,
+  parsePlaceSnapshot,
+  type GroundPlaceSnapshot,
+} from '../../../packages/shared/src/groundTravel'
 import { nowIso } from '../_lib/time'
 import {
   currentPeriod,
   derivedStateJoin,
   GROUND_CATEGORIES,
   isGroundCategory,
-  laneAircraft,
   GROUND_MIN_JOURNEYS,
   PUBLISHED_DERIVED_STATE,
   SKY_CATEGORIES,
@@ -85,7 +88,7 @@ const topAircraft = (year: boolean) => `
           GROUP BY user_id, UPPER(TRIM(aircraft_icao))))
   WHERE pick = 1`
 
-/** A stored place snapshot, or null when it does not parse; the distance then skips that segment. */
+/** Invalid stored snapshots leave the journey distance unknown. */
 const place = (json: string) => {
   try {
     return parsePlaceSnapshot(JSON.parse(json))
@@ -94,38 +97,59 @@ const place = (json: string) => {
   }
 }
 
-/**
- * Rail and road kilometres per member over completed journeys, all time and by start year. Straight-line segments
- * between consecutive places, as the ground totals draw them; a segment without coordinates counts nothing.
- */
+/** Completed journey kilometres, using the same complete-distance and rounding rule as ground totals. */
 function groundKm(
-  legs: Array<{ user_id: string; start_date: string | null; from_place: string; to_place: string }>,
+  legs: Array<{
+    user_id: string
+    journey_id: string
+    start_date: string | null
+    from_place: string
+    to_place: string
+  }>,
   points: Array<{ user_id: string; journey_id: string; start_date: string | null; place: string }>,
   year: string,
 ) {
   const all = new Map<string, { rail: number; road: number }>()
   const inYear = new Map<string, { rail: number; road: number }>()
-  const add = (userId: string, start: string | null, mode: 'rail' | 'road', km: number | null) => {
-    if (!km) return
-    const books = start?.startsWith(year) ? [all, inYear] : [all]
-    for (const book of books) {
-      const kms = book.get(userId) ?? { rail: 0, road: 0 }
-      kms[mode] += km
-      book.set(userId, kms)
-    }
+  type Journey = {
+    userId: string
+    start: string | null
+    mode: 'rail' | 'road'
+    pairs: Array<[GroundPlaceSnapshot | null, GroundPlaceSnapshot | null]>
   }
+  const journeys = new Map<string, Journey>()
   for (const leg of legs) {
-    const from = place(leg.from_place)
-    const to = place(leg.to_place)
-    add(leg.user_id, leg.start_date, 'rail', from && to ? segmentKm(from, to) : null)
+    const journey = journeys.get(leg.journey_id) ?? {
+      userId: leg.user_id,
+      start: leg.start_date,
+      mode: 'rail',
+      pairs: [],
+    }
+    journey.pairs.push([place(leg.from_place), place(leg.to_place)])
+    journeys.set(leg.journey_id, journey)
   }
   // Points arrive ordered by journey, then ordinal.
   for (let i = 1; i < points.length; i += 1) {
     const [a, b] = [points[i - 1], points[i]]
     if (a.journey_id !== b.journey_id) continue
-    const from = place(a.place)
-    const to = place(b.place)
-    add(b.user_id, b.start_date, 'road', from && to ? segmentKm(from, to) : null)
+    const journey = journeys.get(b.journey_id) ?? {
+      userId: b.user_id,
+      start: b.start_date,
+      mode: 'road',
+      pairs: [],
+    }
+    journey.pairs.push([place(a.place), place(b.place)])
+    journeys.set(b.journey_id, journey)
+  }
+  for (const journey of journeys.values()) {
+    const km = journeyDistance(journey.pairs).distanceKm
+    if (km === null) continue
+    const books = journey.start?.slice(0, 4) === year ? [all, inYear] : [all]
+    for (const book of books) {
+      const kms = book.get(journey.userId) ?? { rail: 0, road: 0 }
+      kms[journey.mode] += km
+      book.set(journey.userId, kms)
+    }
   }
   // More rail kilometres run the locomotive; anything else, including no known distance, drives the car.
   const vehicle = (book: typeof all) => (userId: string) => {
@@ -187,7 +211,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
     db.prepare(topAircraft(false)),
     db.prepare(topAircraft(true)).bind(year),
     db.prepare(
-      `SELECT l.user_id, j.start_date, l.from_place, l.to_place
+      `SELECT l.user_id, l.journey_id, j.start_date, l.from_place, l.to_place
        FROM ground_rail_legs l
        JOIN ground_journeys j ON j.id = l.journey_id AND j.user_id = l.user_id
        WHERE j.status = 'completed'`,
@@ -210,7 +234,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
         new Map(
           (read.results as Array<{ user_id: string; icao: string }>).map((row) => [
             row.user_id,
-            laneAircraft(row.icao),
+            row.icao,
           ]),
         ),
     )
@@ -258,7 +282,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
   board(GROUND_CATEGORIES, year, ground, (row) => groundYearById.get(row.user_id), false)
 
   const updatedAt = nowIso()
-  // Sky rows add the lane aircraft for their period; a member without typed flights there flies the generic one.
+  // Sky rows preserve the actual aircraft type for their period; artwork fallback belongs to the client.
   // Ground Countries rows add the mode with more kilometres in their period.
   const metadata = (userId: string, category: LeaderboardCategory, period: string) => {
     const m = members.get(userId)
@@ -272,7 +296,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
         ? { vehicle: (period === 'all' ? groundVehicle.all : groundVehicle.year)(userId) }
         : isGroundCategory(category)
           ? {}
-          : { aircraft: (period === 'all' ? aircraftAll : aircraftYear).get(userId) ?? 'GENERIC' }),
+          : { aircraft: (period === 'all' ? aircraftAll : aircraftYear).get(userId) ?? null }),
     })
   }
   const signup = (id: string) => members.get(id)?.created_at ?? ''

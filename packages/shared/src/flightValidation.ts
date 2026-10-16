@@ -15,6 +15,9 @@ export interface FlightInput {
   enrichment_status?: 'pending' | 'enriched' | 'failed' | 'skipped'
 }
 
+export type FlightCreateInput = FlightInput &
+  Required<Pick<FlightInput, 'date' | 'origin' | 'destination'>>
+
 /** Most flights one POST /api/flights/bulk request may carry. */
 export const FLIGHT_BULK_CREATE_MAX = 50
 
@@ -49,6 +52,9 @@ export function isCalendarDate(value: string): boolean {
 }
 
 /** Pure syntax and range validation. Reference-table existence is checked by the API adapter. */
+export function validateFlightInput(value: unknown, mode: 'create'): FlightCreateInput
+export function validateFlightInput(value: unknown, mode: 'patch'): FlightInput
+export function validateFlightInput(value: unknown, mode: 'create' | 'patch'): FlightInput
 export function validateFlightInput(value: unknown, mode: 'create' | 'patch'): FlightInput {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error('Flight must be an object')

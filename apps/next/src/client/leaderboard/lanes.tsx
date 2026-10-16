@@ -283,10 +283,11 @@ export function RaceLanes({
   const list = useRef<HTMLOListElement>(null)
   const alive = useRef(true)
   const focusFrom = useRef<string | null>(null)
-  // The board a pending read must still be showing when it lands; a switch makes it obsolete.
-  const current = useRef(board)
+  // Every committed selection invalidates its pending reads, including a switch away and back.
+  const generation = useRef(0)
   useLayoutEffect(() => {
-    current.current = board
+    generation.current += 1
+    focusFrom.current = null
   }, [board])
   const [more, setMore] = useState<(Expansion & { done: boolean }) | null>(null)
   const [loading, setLoading] = useState(false)
@@ -367,7 +368,7 @@ export function RaceLanes({
   // The first expansion reads from the top. Later pages append only while the board is unchanged (same total and
   // publication); otherwise the shown prefix is read again, so an opt-out or a rebuild never skips or mixes places.
   const showAll = async () => {
-    const from = board
+    const from = generation.current
     setLoading(true)
     setFailed(false)
     try {
@@ -380,16 +381,16 @@ export function RaceLanes({
             ? { ...page, entries: [...more.entries, ...page.entries] }
             : await read(0, Math.min(more.entries.length + PAGE, MAX_PAGE))
       }
-      if (!alive.current || current.current !== from) return
+      if (!alive.current || generation.current !== from) return
       const known = new Set(rows.map((entry) => entry.user_id))
       focusFrom.current =
         fetched.entries.find((entry) => !known.has(entry.user_id))?.user_id ?? null
       // A read that brings nothing new ends the expansion, whatever the total says.
       setMore({ ...fetched, done: fetched.entries.length <= (more?.entries.length ?? 0) })
     } catch {
-      if (alive.current && current.current === from) setFailed(true)
+      if (alive.current && generation.current === from) setFailed(true)
     } finally {
-      if (alive.current && current.current === from) setLoading(false)
+      if (alive.current && generation.current === from) setLoading(false)
     }
   }
 

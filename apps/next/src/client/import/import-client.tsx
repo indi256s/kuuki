@@ -478,7 +478,7 @@ export function ImportClient({
         item.flight &&
         Number.isSafeInteger(item.flight.id) &&
         typeof item.flight.is_upcoming === 'boolean'
-          ? [{ ...item.flight, user_id: ownerId } as Flight]
+          ? [item.flight]
           : [],
       ),
     )

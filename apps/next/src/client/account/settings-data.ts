@@ -87,7 +87,7 @@ export async function downloadSettingsData(
   const helpers = await import('@kuuki/client/export')
   if (!current()) return 0
   if (kind === 'flights') {
-    const rows = await getAllFlights(ownerId, { signal })
+    const rows = await getAllFlights({ signal })
     if (!current() || rows.length === 0) return 0
     helpers.exportFlights(rows)
     return rows.length

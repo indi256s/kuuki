@@ -2,11 +2,12 @@
 // kit, the one camera, the part workshop, the loft, the build-time shear and path minifier, the visual-mass measure,
 // and the colour, livery and level-of-detail CSS. Build-time only.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const KIT = resolve(process.env.ANATOMY_KIT ?? join(homedir(), '.claude/skills/anatomy-asset/kit'))
+import { verifiedAnatomyKit } from '../concorde/verify-kit.mjs'
+
+const KIT = verifiedAnatomyKit()
 const k = await import(pathToFileURL(join(KIT, 'iso-kit.mjs')))
 const G = await import(pathToFileURL(join(KIT, 'lathe.mjs')))
 const A = await import(pathToFileURL(join(KIT, 'audit.mjs')))
