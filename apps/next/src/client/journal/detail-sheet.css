@@ -1,6 +1,12 @@
 /* Journal detail sheet layout. Tokens only. No divider lines (DESIGN 10-07): space groups the header, body and footer. Weights 400/500. */
+/* Sticks level with the ledger's column header, so a row picked mid-list opens its pane in view. Capped to the viewport:
+   the header and footer stay put and the body scrolls, so a tall inline edit keeps Save reachable. */
 .journal-detail {
+  --jd-top: var(--header-block, var(--header-h));
   align-self: start;
+  position: sticky;
+  top: var(--jd-top);
+  max-height: calc(100dvh - var(--jd-top) - var(--space-6));
   flex: none;
   width: 460px;
   display: flex;
@@ -8,7 +14,7 @@
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  /* No overflow clip: combobox and calendar popovers in inline edits must spill past the pane's bottom edge. */
+  /* No overflow clip on the pane itself: calendar popovers portal out; a combobox list near the bottom scrolls the body instead. */
   animation: jd-pane-in var(--dur-base) var(--ease-out);
 }
 .jd-header {
@@ -33,6 +39,8 @@
 .jd-body {
   flex: 1 1 auto;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-2) var(--space-6) var(--space-6);
 }
 .jd-body,

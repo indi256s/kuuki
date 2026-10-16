@@ -1,8 +1,11 @@
 /* Arc user-menu and tabs presentation (MIT; client/ui/ARC-LICENSE.txt).
    Current route links, Radix menus and Facehash keep their behavior.
    Member shell: header, Add menu, avatar menu, mobile tab bar. Tokens only; breakpoint matches styles.css (700px). */
+/* The member header always takes Overview's wide shell, so its edges match Overview and stay put across routes. */
 @media (min-width: 701px) {
   .member-header .site-header-inner {
+    --content-width: 2560px;
+    --page-gutter: clamp(24px, calc(24px + (100vw - 1280px) / 40), 48px);
     flex-wrap: wrap;
     column-gap: 40px;
     row-gap: var(--space-2);
