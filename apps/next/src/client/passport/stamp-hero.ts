@@ -8,16 +8,26 @@ let latest = 0
 const sheetStamp = (code: string) =>
   document.querySelector<HTMLElement>(`[data-sheet-stamp="${code}"] .country-stamp`)
 
-/** Resolves with the sheet's large stamp once it is in the document, or null after the wait. */
+/**
+ * Resolves with the sheet's large stamp once it is in the document, or null after the wait. Watches mutations, not
+ * frames: Chrome runs no requestAnimationFrame while a view transition's update callback is pending, so a rAF poll
+ * would stall until the browser's ~4s transition timeout.
+ */
 function waitForSheetStamp(code: string): Promise<HTMLElement | null> {
   return new Promise((resolve) => {
-    const deadline = performance.now() + SHEET_STAMP_WAIT_MS
-    const poll = () => {
-      const found = sheetStamp(code)
-      if (found || performance.now() > deadline) return resolve(found)
-      requestAnimationFrame(poll)
+    const settle = (found: HTMLElement | null) => {
+      observer.disconnect()
+      clearTimeout(timer)
+      resolve(found)
     }
-    poll()
+    const observer = new MutationObserver(() => {
+      const found = sheetStamp(code)
+      if (found) settle(found)
+    })
+    const timer = setTimeout(() => settle(sheetStamp(code)), SHEET_STAMP_WAIT_MS)
+    const found = sheetStamp(code)
+    if (found) settle(found)
+    else observer.observe(document.body, { childList: true, subtree: true })
   })
 }
 
