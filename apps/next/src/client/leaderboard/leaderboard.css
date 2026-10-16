@@ -181,24 +181,15 @@
 }
 
 /* The track: the road along the ground line, the vehicle standing on it. Drawn above the name and value, so each
-   lane's label sits right under its own road; the DOM keeps the name first. Clipped sideways only, so a tall tail
-   and the halo under the wheels stay visible. */
+   lane's label sits right under its own road; the DOM keeps the name first. Zero is the track's start edge, where the
+   label starts too: a small value leaves the vehicle's tail behind that edge, entering under a short fade. Clipped
+   sideways only, so a tall tail and the halo under the wheels stay visible. */
 .lane-track {
   position: relative;
   order: -1;
   block-size: var(--veh-h);
   overflow-x: clip;
-}
-/* The start line: zero on the shared scale. A vehicle's tail may stand behind it; its nose never does. */
-.lane-track::after {
-  content: '';
-  position: absolute;
-  inset-inline-start: var(--nose-off);
-  inset-block-start: calc(var(--road-y) - 6px);
-  inline-size: 2px;
-  block-size: 12px;
-  border-radius: 1px;
-  background: var(--mark-rest);
+  mask-image: linear-gradient(to right, transparent, currentcolor var(--space-4));
 }
 .lane-track::before {
   content: '';
@@ -216,7 +207,7 @@
 .lane-veh {
   position: absolute;
   inset-block-start: 0;
-  inset-inline-start: calc(var(--lane-at) * (100% - var(--nose-off) - var(--lane-finish)));
+  inset-inline-start: calc(var(--lane-at) * (100% - var(--lane-finish)) - var(--nose-off));
   inline-size: var(--veh-w);
   block-size: var(--veh-h);
 }
@@ -224,12 +215,12 @@
   position: relative;
   --lane-halo-blur: 2px;
 }
-/* The distance run: from the start line to the nose, so its length is the value on the shared scale. */
+/* The distance run: from the start edge to the nose, so its length is the value on the shared scale. */
 .lane-run {
   position: absolute;
-  inset-inline-start: var(--nose-off);
+  inset-inline-start: 0;
   inset-block-start: var(--road-y);
-  inline-size: calc(var(--lane-at) * (100% - var(--nose-off) - var(--lane-finish)));
+  inline-size: calc(var(--lane-at) * (100% - var(--lane-finish)));
   block-size: 2px;
   translate: 0 -50%;
   transform-origin: left center;
