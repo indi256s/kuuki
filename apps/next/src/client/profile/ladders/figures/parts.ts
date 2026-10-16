@@ -679,3 +679,61 @@ export function beam(
     for (const su of [-1, 1]) for (const sv of [-1, 1]) corners.push(c(t, su, sv))
   s.poly2(hull(s.pp(corners)), 'none', o.line ?? 'line', width)
 }
+
+// ---------------------------------------------------------------- stamps
+
+/**
+ * Draws `draw` once and returns a stamp that repeats it moved by (x, y) on the floor, for many identical parts (posts, bollards).
+ * The projection is linear, so a moved copy is the same drawing shifted on screen: the stamp records the Scene calls `draw` makes on a
+ * scratch Scene at the same scale and replays them through `s` with every point moved, so bounds, shadows and fit probes work as if
+ * each copy were drawn from scratch, at a fraction of the cost. `draw` may use poly, poly2, area, line and segs (everything the turned
+ * parts above use), not glow, group or text.
+ */
+export function stamp(s: Scene, draw: (r: Scene) => void): (x: number, y: number) => void {
+  type Op = (dx: number, dy: number, v: Pt) => void
+  const ops: Op[] = []
+  const m3 = (pts: readonly P3[], dx: number, dy: number) =>
+    pts.map(([a, b, c]): P3 => [a + dx, b + dy, c])
+  const m2 = (pts: readonly Pt[], v: Pt) => pts.map(([a, b]): Pt => [a + v[0], b + v[1]])
+  class Recorder extends (s.constructor as typeof Scene) {
+    poly(...[pts, ...rest]: Parameters<Scene['poly']>) {
+      ops.push((dx, dy) => s.poly(m3(pts, dx, dy), ...rest))
+    }
+    poly2(...[pts, ...rest]: Parameters<Scene['poly2']>) {
+      ops.push((_x, _y, v) => s.poly2(m2(pts, v), ...rest))
+    }
+    area(...[polys, fill]: Parameters<Scene['area']>) {
+      ops.push((_x, _y, v) =>
+        s.area(
+          polys.map((p) => m2(p, v)),
+          fill,
+        ),
+      )
+    }
+    line(...[pts, ...rest]: Parameters<Scene['line']>) {
+      ops.push((dx, dy) => s.line(m3(pts, dx, dy), ...rest))
+    }
+    segs(...[list, ...rest]: Parameters<Scene['segs']>) {
+      ops.push((dx, dy) =>
+        s.segs(
+          list.map((seg) => m3(seg, dx, dy)),
+          ...rest,
+        ),
+      )
+    }
+    glow(): never {
+      throw new Error('stamp: glow is not recorded')
+    }
+    group(): never {
+      throw new Error('stamp: group is not recorded')
+    }
+    text(): never {
+      throw new Error('stamp: text is not recorded')
+    }
+  }
+  draw(new Recorder(s.k))
+  return (x, y) => {
+    const v = s.project([x, y, 0])
+    for (const op of ops) op(x, y, v)
+  }
+}
