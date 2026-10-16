@@ -3,8 +3,6 @@
   margin: 0;
   font-size: 13px;
   line-height: 18px;
-  padding-inline-start: var(--space-3);
-  border-inline-start: 3px solid var(--warning-fill);
   color: var(--warning-text);
 }
 

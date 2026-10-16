@@ -82,7 +82,6 @@
 }
 .lane[data-own] {
   background: var(--surface-inset);
-  box-shadow: inset 3px 0 0 var(--accent);
 }
 @media (hover: hover) and (pointer: fine) {
   .lane:not([data-own]):has(a):hover {

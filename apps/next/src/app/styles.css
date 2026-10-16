@@ -842,8 +842,6 @@ h2 {
   margin-block-end: 0;
 }
 .status-note {
-  border-inline-start: 3px solid var(--accent);
-  padding-inline-start: 12px;
   color: var(--text-muted);
 }
 .loading,

@@ -44,11 +44,11 @@
   flex: none;
   margin-top: 2px;
 }
-.capture-manage .capture-outcomes [data-state='uncertain'] {
-  border-inline-start: 3px solid var(--warning-fill);
+.capture-manage .capture-outcomes [data-state='uncertain'] svg {
+  color: var(--warning-text);
 }
-.capture-manage .capture-outcomes [data-state='failed'] {
-  border-inline-start: 3px solid var(--danger-fill);
+.capture-manage .capture-outcomes [data-state='failed'] svg {
+  color: var(--danger-text);
 }
 @media (max-width: 700px) {
   .capture-manage .capture-card {

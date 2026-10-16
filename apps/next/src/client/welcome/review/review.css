@@ -465,15 +465,12 @@
   }
 }
 
-/* Rows with other problems reuse the import page's ReviewRow. Inside the card they drop its 3px side stripes (a
-   pattern this card does not use): an unsure row is outlined in the warning ink all round, like the unsure cards'
-   tint, and its inner hints sit on the inset without a stripe. */
+/* Rows with other problems reuse the import page's ReviewRow. Inside the card an unsure row is outlined in the
+   warning ink all round, like the unsure cards' tint, and its inner hints sit on the inset. */
 .review-step .import-row[data-low='true'] {
-  border-left: 1px solid var(--warning-fill);
   border-color: var(--warning-fill);
 }
 .review-step .import-form-field.is-unsure,
 .review-step .import-snippet {
-  border-left: 0;
   padding-left: var(--space-3);
 }

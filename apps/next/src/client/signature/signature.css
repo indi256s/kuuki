@@ -19,9 +19,6 @@
 .ticket[data-state='awaiting'] {
   border-color: var(--accent);
 }
-.ticket[data-state='awaiting'] .ticket-main {
-  border-inline-start: 4px solid var(--accent);
-}
 .ticket-status {
   display: inline-flex;
   align-items: center;
