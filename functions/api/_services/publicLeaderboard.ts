@@ -65,19 +65,20 @@ export async function readPublicLeaderboard(
   offset = 0,
   period = 'all',
 ) {
-  const gate = `${READ_GATE} AND lc.category = ? AND lc.period = ?`
-  const rows = await db
-    .prepare(`WITH board AS (${VISIBLE_BOARD} AND lc.category = ? AND lc.period = ?)
-      SELECT * FROM board ORDER BY pos LIMIT ? OFFSET ?`)
-    .bind(category, period, Math.min(Math.max(limit, 1), 200), Math.max(offset, 0))
-    .all<Ranked>()
-  assertRows(rows, 'Leaderboard unavailable')
-  const count = await db
-    .prepare(`SELECT COUNT(*) AS total, MAX(lc.updated_at) AS updated_at ${gate}`)
-    .bind(category, period)
-    .first<{ total: number; updated_at: string | null }>()
+  const reads = await db.batch([
+    db
+      .prepare(`WITH board AS (${VISIBLE_BOARD} AND lc.category = ? AND lc.period = ?)
+        SELECT * FROM board ORDER BY pos LIMIT ? OFFSET ?`)
+      .bind(category, period, Math.min(Math.max(limit, 1), 200), Math.max(offset, 0)),
+    db
+      .prepare(`SELECT COUNT(*) AS total, MAX(lc.updated_at) AS updated_at
+        ${READ_GATE} AND lc.category = ? AND lc.period = ?`)
+      .bind(category, period),
+  ])
+  assertRows(reads, 'Leaderboard unavailable', 2)
+  const count = reads[1].results[0] as { total: number; updated_at: string | null } | undefined
   return {
-    entries: rows.results.map(toVisibleLeaderboardEntry),
+    entries: (reads[0].results as Ranked[]).map(toVisibleLeaderboardEntry),
     total: count?.total ?? 0,
     updatedAt: count?.updated_at ?? null,
   }

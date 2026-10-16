@@ -21,7 +21,6 @@ import {
   type Locale,
 } from '../../../lib/format'
 import { forms, S, t } from '../copy'
-import { useMobile } from '../../ui/use-mobile'
 import { IsoFigure } from '../iso/iso-figure'
 import { heroGlyph, type HeroGlyph } from '../iso/hero-glyphs'
 import { fitBox, type IsoFigureData } from '../iso/scene'
@@ -133,14 +132,13 @@ const MAX_K = 1.6
 export function HeroPanel() {
   const { scope, all, payload, filter, locale, ownerKey } = useOverview()
   const { replayStarted } = useOverviewUI()
-  const mobile = useMobile()
   const compact = useCompact()
   const reduced = useReducedMotion() ?? false
   const card = useRef<HTMLElement>(null)
   const zero = scope ? isZeroScope(scope, filter) : false
   const { state, handlers } = useTakeover(
     card,
-    !!scope && !zero && !replayStarted && mobile === false && compact === false,
+    !!scope && !zero && !replayStarted && compact === false,
     reduced,
   )
   const stickers = useMemo(

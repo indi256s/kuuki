@@ -156,7 +156,7 @@ export type Body = {
   ): void
 }
 
-const D2R = Math.PI / 180
+export const D2R = Math.PI / 180
 
 /**
  * A body turned (or lofted, with elliptic sections) along the frame's axis from s0 to s1.
@@ -736,4 +736,41 @@ export function stamp(s: Scene, draw: (r: Scene) => void): (x: number, y: number
     const v = s.project([x, y, 0])
     for (const op of ops) op(x, y, v)
   }
+}
+
+/** A stable 0–1 jitter for an index. */
+export const hash = (n: number) => ((((n + 1) * 2654435761) >>> 0) % 1000) / 1000
+
+/** Keeps the part of a polygon where f(p) ≥ 0, for a linear f (one Sutherland–Hodgman pass). */
+export function cutBy(poly: readonly Pt[], f: (p: Pt) => number): Pt[] {
+  const out: Pt[] = []
+  poly.forEach((p, i) => {
+    const q = poly[(i + 1) % poly.length]
+    const a = f(p),
+      b = f(q)
+    if (a >= 0) out.push(p)
+    if (a >= 0 !== b >= 0) {
+      const t = a / (a - b)
+      out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
+    }
+  })
+  return out
+}
+
+/** Clips a polygon to a convex one in screen space. */
+export function clipTo(subject: readonly Pt[], clip: readonly Pt[]): Pt[] {
+  let area = 0
+  for (let i = 0; i < clip.length; i++) {
+    const p = clip[i],
+      q = clip[(i + 1) % clip.length]
+    area += p[0] * q[1] - q[0] * p[1]
+  }
+  const sg = Math.sign(area)
+  let out: Pt[] = [...subject]
+  for (let i = 0; i < clip.length && out.length; i++) {
+    const a = clip[i],
+      b = clip[(i + 1) % clip.length]
+    out = cutBy(out, (p) => sg * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])))
+  }
+  return out
 }

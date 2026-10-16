@@ -19,6 +19,9 @@ import {
   tube,
   sub,
   type Body,
+  hash,
+  clipTo,
+  cutBy,
 } from './parts'
 import type { LadderFigureDef } from './types'
 
@@ -99,7 +102,6 @@ const KINDS: Kind[] = [
 ]
 
 /** Fixed pseudo-random in [0, 1). */
-const hash = (n: number) => ((((n + 1) * 2654435761) >>> 0) % 1000) / 1000
 
 const SHEET_MARKS: Mark[] = CELLS.map(([c, r], i) => ({
   u: 17 + c * 29 + (((i * 13) % 7) - 3) * 1.1,
@@ -134,40 +136,6 @@ function densify(loop: readonly Pt[], step: number): Pt[] {
     const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step))
     for (let k = 0; k < n; k++) out.push([x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n])
   })
-  return out
-}
-
-/** Keeps the part of a polygon where f(p) ≥ 0, for a linear f (one Sutherland–Hodgman pass). */
-function cutBy(poly: readonly Pt[], f: (p: Pt) => number): Pt[] {
-  const out: Pt[] = []
-  poly.forEach((p, i) => {
-    const q = poly[(i + 1) % poly.length]
-    const a = f(p),
-      b = f(q)
-    if (a >= 0) out.push(p)
-    if (a >= 0 !== b >= 0) {
-      const t = a / (a - b)
-      out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
-    }
-  })
-  return out
-}
-
-/** Clips a polygon to a convex one (Sutherland–Hodgman) in screen space. */
-function clipTo(subject: readonly Pt[], clip: readonly Pt[]): Pt[] {
-  let area = 0
-  for (let i = 0; i < clip.length; i++) {
-    const p = clip[i],
-      q = clip[(i + 1) % clip.length]
-    area += p[0] * q[1] - q[0] * p[1]
-  }
-  const sg = Math.sign(area)
-  let out: Pt[] = [...subject]
-  for (let i = 0; i < clip.length && out.length; i++) {
-    const a = clip[i],
-      b = clip[(i + 1) % clip.length]
-    out = cutBy(out, (p) => sg * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])))
-  }
   return out
 }
 

@@ -1,6 +1,6 @@
 import { hull, Scene, type P3, type Paint } from '../../../overview/iso/scene'
 import { shadowRect } from '../../../overview/iso/solids'
-import { add, circleOn, cross, mix, mul, screw, sub, toneOf, unit, type Ramp } from './parts'
+import { add, circleOn, cross, mix, mul, screw, sub, toneOf, unit, type Ramp, hash } from './parts'
 import type { LadderFigureDef } from './types'
 
 /** Per rung (snack, standard, long, extra long, absurd): peaks out of the foil, foil showing past the carton, carton length (world units). */
@@ -17,7 +17,6 @@ const X: P3 = [1, 0, 0],
 const CHOC: Ramp = { dark: 'side', mid: 'side', light: 'front' }
 
 /** Fixed pseudo-random in [0, 1), so the torn foil never changes between draws. */
-const hash = (n: number) => ((((n + 1) * 2654435761) >>> 0) % 1000) / 1000
 
 /**
  * Distance: a duty-free triangular chocolate bar lying along x on a shop shelf.

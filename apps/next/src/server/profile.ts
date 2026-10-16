@@ -3,7 +3,6 @@ import { getRequestEnv, getRequestIdentity } from './identity'
 import { toUserStats, type UserStatsRow } from '../../../../functions/api/_lib/stats'
 import { readOwnBadges } from '../../../../functions/api/_services/ownBadges'
 import { getProfileRow, toOwnProfile } from '../../../../functions/api/_lib/profiles'
-import { readProfileLeaderboardRankings } from '../../../../functions/api/_services/publicLeaderboard'
 
 export async function getOwnProfile() {
   const identity = await getRequestIdentity()
@@ -32,9 +31,4 @@ export async function getOwnBadges(userId: string) {
 export async function getProfileShareUrl(username: string) {
   const { PAGES_ORIGIN } = await getRequestEnv()
   return new URL(`/fly/${encodeURIComponent(username)}`, PAGES_ORIGIN).href
-}
-
-/** The owner's leaderboard entries (empty when ineligible), the `GET /api/me/rankings` read. */
-export async function readOwnRankings(db: D1Database, userId: string) {
-  return readProfileLeaderboardRankings(db, userId)
 }

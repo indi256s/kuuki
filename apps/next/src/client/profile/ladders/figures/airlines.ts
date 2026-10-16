@@ -1,6 +1,6 @@
 import { hull, Scene, roundRect, type P3, type Paint, type Pt } from '../../../overview/iso/scene'
 import { shadowDisc } from '../../../overview/iso/solids'
-import { add, beam, LIGHT, mul, screw, spline, stamp, sub, unit } from './parts'
+import { add, beam, LIGHT, mul, screw, spline, stamp, sub, unit, D2R } from './parts'
 import type { LadderFigureDef } from './types'
 
 /**
@@ -250,7 +250,6 @@ export const airlines: LadderFigureDef = {
 
 // Every part of a post is an upright convex turned part, so each is drawn as one hull for its silhouette, nested bands round the light's
 // azimuth on its walls, and nested crown layers on its domes. It costs a fraction of a general lathe, which matters with twenty-odd posts.
-const D2R = Math.PI / 180
 /** On an upright wall the light falls as LA·cos(θ − LPHI): the side tone at θ = 0 (+x), the front tone at 90° (+y). */
 const LA = Math.hypot(LIGHT[0], LIGHT[1]),
   LPHI = Math.atan2(LIGHT[1], LIGHT[0]) / D2R

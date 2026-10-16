@@ -7,7 +7,7 @@ import {
   readPublicProfilePreview,
   type PassportPublication,
 } from '../../../../functions/api/_services/publicProfiles'
-import { readOwnRankings } from './profile'
+import { readProfileLeaderboardRankings } from '../../../../functions/api/_services/publicLeaderboard'
 import { getPublicProfile } from './public'
 import {
   readPassport,
@@ -38,7 +38,7 @@ export async function getOwnPassport() {
       .bind(identity.id)
       .first<UserStatsRow>(),
     readOwnBadges(DB, identity.id),
-    readOwnRankings(DB, identity.id),
+    readProfileLeaderboardRankings(DB, identity.id),
   ])
   if (!profileRow) return null
   const own = toOwnProfile(profileRow)

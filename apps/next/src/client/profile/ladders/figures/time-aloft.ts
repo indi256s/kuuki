@@ -8,7 +8,18 @@ import {
   type Pt,
 } from '../../../overview/iso/scene'
 import { X, Y, cylX, rrOn, shadowRect } from '../../../overview/iso/solids'
-import { circleOn, frameAlong, lathe, spline, tube, unit, VIEW, type Body } from './parts'
+import {
+  circleOn,
+  frameAlong,
+  lathe,
+  spline,
+  tube,
+  unit,
+  VIEW,
+  type Body,
+  hash,
+  clipTo,
+} from './parts'
 import type { LadderFigureDef } from './types'
 
 const Z: P3 = [0, 0, 1]
@@ -42,37 +53,6 @@ type Ink = { line: Paint; crease: Paint }
 const PLAIN: Ink = { line: 'line', crease: 'crease' }
 const LIT: Ink = { line: 'accent', crease: 'accent-side' }
 
-/** Clips a polygon to a convex one (Sutherland–Hodgman) in screen space. */
-function clipTo(subject: readonly Pt[], clip: readonly Pt[]): Pt[] {
-  let area = 0
-  for (let i = 0; i < clip.length; i++) {
-    const p = clip[i],
-      q = clip[(i + 1) % clip.length]
-    area += p[0] * q[1] - q[0] * p[1]
-  }
-  const sg = Math.sign(area)
-  let out: Pt[] = [...subject]
-  for (let i = 0; i < clip.length && out.length; i++) {
-    const a = clip[i],
-      b = clip[(i + 1) % clip.length]
-    const side = (p: Pt) => sg * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]))
-    const input = out
-    out = []
-    for (let j = 0; j < input.length; j++) {
-      const p = input[j],
-        q = input[(j + 1) % input.length]
-      const sp = side(p),
-        sq = side(q)
-      if (sp >= 0) out.push(p)
-      if (sp >= 0 !== sq >= 0) {
-        const t = sp / (sp - sq)
-        out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
-      }
-    }
-  }
-  return out
-}
-
 /** Points every `step` along a polyline in plan, ends included. */
 function stepAlong(run: readonly Pt[], step: number): Pt[] {
   const out: Pt[] = [run[0]]
@@ -92,7 +72,6 @@ function stepAlong(run: readonly Pt[], step: number): Pt[] {
 }
 
 /** Fixed pseudo-random in [0, 1). */
-const hash = (n: number) => ((((n + 1) * 2654435761) >>> 0) % 1000) / 1000
 
 /**
  * Time aloft: the in-flight meal tray on a seatback tray table. The table, the moulded tray with its rolled lip and compartment wells, the folded napkin or cutlery roll and the cup in the table's ring stay; the main well levels up.

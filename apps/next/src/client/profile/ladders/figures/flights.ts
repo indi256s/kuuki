@@ -15,6 +15,8 @@ import {
   type Body,
   type FoilStation,
   type Section,
+  D2R,
+  mix,
 } from './parts'
 import { slabRot } from '../../../overview/iso/solids'
 import type { LadderFigureDef } from './types'
@@ -28,7 +30,6 @@ const X: P3 = [1, 0, 0],
   Y: P3 = [0, 1, 0],
   Z: P3 = [0, 0, 1]
 const GROUND = 3
-const D2R = Math.PI / 180
 const AXIS = frameAlong([0, 0, 0], X)
 
 // ---------------------------------------------------------------- ground
@@ -317,9 +318,9 @@ function paper(s: Scene, hero: boolean) {
   const tip = (sg: number) => P(tail, sg * 15.5, zk + dz)
   /** A point on a wing at fraction a from nose to tail along the spine and b out towards the tip. */
   const onWing = (sg: number, a: number, b: number): P3 => {
-    const sp = mix3(N, T, a),
-      tp = mix3(N, tip(sg), a)
-    return mix3(sp, tp, b)
+    const sp = mix(N, T, a),
+      tp = mix(N, tip(sg), a)
+    return mix(sp, tp, b)
   }
   const keelZ = (u: number) => zk - 5.6 + (u - tail) * 0.13
   s.poly(
@@ -395,11 +396,6 @@ function paper(s: Scene, hero: boolean) {
       )
   })
 }
-const mix3 = (a: P3, b: P3, t: number): P3 => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-]
 
 // ---------------------------------------------------------------- rung 2: light single
 

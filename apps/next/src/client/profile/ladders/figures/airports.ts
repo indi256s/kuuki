@@ -18,6 +18,8 @@ import {
   sub,
   toneOf,
   unit,
+  D2R,
+  clipTo,
 } from './parts'
 import type { LadderFigureDef } from './types'
 
@@ -28,7 +30,6 @@ import type { LadderFigureDef } from './types'
 // note on the bezel, the glass too crowded to read).
 
 const Z: P3 = [0, 0, 1]
-const D2R = Math.PI / 180
 
 /** Housing: x 0..W, y 0..D on feet Z0 tall; the deck slopes down towards +y from ZB; BEV is the chamfer on its visible top edges. */
 const W = 96,
@@ -111,40 +112,6 @@ const COUNT = [1, 4, 6, 10, 26]
 /** The sweep's bearing on the glass, and how far its afterglow trails. */
 const SWEEP = -38 * D2R,
   FAN = 62 * D2R
-
-/** Keeps the part of a polygon where f(p) ≥ 0, for a linear f (one Sutherland–Hodgman pass). */
-function cutBy(poly: readonly Pt[], f: (p: Pt) => number): Pt[] {
-  const out: Pt[] = []
-  poly.forEach((p, i) => {
-    const q = poly[(i + 1) % poly.length]
-    const a = f(p),
-      b = f(q)
-    if (a >= 0) out.push(p)
-    if (a >= 0 !== b >= 0) {
-      const t = a / (a - b)
-      out.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t])
-    }
-  })
-  return out
-}
-
-/** Clips a polygon to a convex one in screen space. */
-function clipTo(subject: readonly Pt[], clip: readonly Pt[]): Pt[] {
-  let area = 0
-  for (let i = 0; i < clip.length; i++) {
-    const p = clip[i],
-      q = clip[(i + 1) % clip.length]
-    area += p[0] * q[1] - q[0] * p[1]
-  }
-  const sg = Math.sign(area)
-  let out: Pt[] = [...subject]
-  for (let i = 0; i < clip.length && out.length; i++) {
-    const a = clip[i],
-      b = clip[(i + 1) % clip.length]
-    out = cutBy(out, (p) => sg * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])))
-  }
-  return out
-}
 
 /** A flat plane in the world: O + u·U + v·V + w·N (N = U × V points out of the face). */
 type Plane = { O: P3; U: P3; V: P3; N: P3 }

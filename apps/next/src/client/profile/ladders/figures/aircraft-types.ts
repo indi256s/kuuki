@@ -17,6 +17,7 @@ import {
   type FoilStation,
   type LatheOpts,
   type Section,
+  D2R,
 } from './parts'
 import type { LadderFigureDef } from './types'
 
@@ -27,7 +28,6 @@ import type { LadderFigureDef } from './types'
 // Build frame ("local"): the nose points +x, the near flank faces +y, z is up; W() turns it so +x runs level to the right
 // on screen and +y points at the viewer. The thumb squashes local x so a long body still reads at 56px.
 
-const D2R = Math.PI / 180
 const GROUND = 3
 /** Camera azimuth off the beam: the barrel runs almost level across the frame (Flights' runs at 30°), and the nose turns just enough towards the viewer to show the intakes. */
 const PHI = 32 * D2R
