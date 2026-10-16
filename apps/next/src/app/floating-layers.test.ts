@@ -16,6 +16,8 @@ const ALLOWED: Record<string, string> = {
   'client/account/settings.css': 'settings save bar (DESIGN.md, Settings)',
   'client/overview/layout/layout.css': 'drag ghost that follows the pointer',
   'client/overview/charts/chart-theme.css': 'chart tooltip anchored to a data point',
+  'client/kuukies.css':
+    'first-visit cookie notice, above the action bar (40) and below dialogs (50)',
 }
 
 function cssFiles(dir: string): string[] {

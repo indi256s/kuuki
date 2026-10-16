@@ -1,0 +1,123 @@
+/* Kuukie notice (client/kuukies.tsx). The layer spans the bottom edge and lets clicks through; only the surface takes input.
+   Phones: full width above the tab rail, where toasts sit. From 701px: bottom-left, clear of the bottom-right toast stack. */
+.kuukies-layer {
+  position: fixed;
+  z-index: 45;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: calc(var(--space-4) + var(--toast-bottom-offset, 0px) + env(safe-area-inset-bottom));
+  height: 0;
+  pointer-events: none;
+}
+@media (min-width: 701px) {
+  .kuukies-layer {
+    left: var(--space-6);
+    right: auto;
+    width: min(400px, 100vw - 2 * var(--space-6));
+    bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+  }
+}
+
+/* One surface whose height springs between the bar and the panel; faces sit on its bottom edge so it grows upward. */
+.kuukies-surface {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--surface-floating);
+  color: var(--text);
+  box-shadow: var(--shadow-floating), var(--ring-floating);
+  pointer-events: auto;
+  transform-origin: bottom left;
+}
+.kuukies-face {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.kuukies-face[inert] {
+  pointer-events: none;
+}
+
+.kuukies-bar {
+  display: grid;
+  gap: var(--space-3);
+  padding: 14px 14px 12px 16px;
+}
+.kuukies-message,
+.kuukies-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: pretty;
+}
+.kuukies-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.kuukies-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: 16px;
+}
+.kuukies-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block: -10px -4px;
+}
+.kuukies-head .ui-icon-button {
+  margin: 0 -10px 0 0;
+}
+.kuukies-title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.kuukies-title:focus {
+  outline: none;
+}
+.kuukies-title:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+/* Space groups the rows; no dividers. */
+.kuukies-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kuukies-list h3 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.kuukies-list p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-wrap: pretty;
+}
+.kuukies-done {
+  justify-self: end;
+  margin-top: var(--space-1);
+}
+
+@media print {
+  .kuukies-layer {
+    display: none;
+  }
+}

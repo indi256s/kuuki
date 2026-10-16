@@ -15,6 +15,16 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL: `http://127.0.0.1:${port}`,
+    // Journeys start past the first-visit kuukie notice; client/kuukies.test.tsx owns it.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: `http://127.0.0.1:${port}`,
+          localStorage: [{ name: 'kuuki-kuukies', value: '1' }],
+        },
+      ],
+    },
     viewport: { width: 390, height: 844 },
     trace: 'retain-on-failure',
   },

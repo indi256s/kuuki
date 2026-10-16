@@ -17,6 +17,7 @@ import { ADDRESS_PATTERN, NAME_MAX, normalizeAddress, normalizeName } from '@kuu
 import { trackPrivateOperation, withIdentityMutation } from '../activity'
 import { useAppearance } from '../preferences'
 import { setLocale, setTheme, useAccentSave } from '../appearance'
+import { openKuukies } from '../kuukies'
 import { Button } from '../ui/button'
 import { Field } from '../ui/field'
 import { SwitchRow } from '../ui/switch-row'
@@ -639,6 +640,20 @@ export function SettingsForm({
               )}
             </div>
           ) : null}
+          <div className="settings-export-row">
+            <div>
+              <h3>Kuukies</h3>
+              <p>
+                {text(
+                  'Four necessary cookies on this device. Nothing that tracks you.',
+                  'Четыре необходимых cookie на этом устройстве. Слежки нет.',
+                )}
+              </p>
+            </div>
+            <Button aria-haspopup="dialog" onClick={openKuukies}>
+              {text("What's inside", 'Что внутри')}
+            </Button>
+          </div>
         </section>
       </form>
       <section aria-labelledby="settings-appearance-heading">
