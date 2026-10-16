@@ -1,5 +1,6 @@
 'use client'
 
+import type { SVGProps } from 'react'
 import type { ChartPoint } from './kuuki-chart'
 import { KuukiChart } from './kuuki-chart'
 import { num, stageExtent, stageMax, stageText, type StageProps } from './stage-scale'
@@ -41,9 +42,44 @@ function column(x: number, base: number, width: number, full: number, height: nu
 }
 
 export function StageColumns<T>(props: StageColumnsProps<T>) {
-  const { points, value, selectedKey, appliedKeys, span, ticks, bands, tallest, mono } = props
-  const bar = props.barWidth ?? (span === 'full' ? 17 : 9),
-    pitch = props.pitch ?? (span === 'full' ? 25 : 13),
+  const { points, span } = props
+  const baseBar = props.barWidth ?? (span === 'full' ? 17 : 9),
+    basePitch = props.pitch ?? (span === 'full' ? 25 : 13),
+    natural = points.length ? (points.length - 1) * basePitch + baseBar : 0
+  return (
+    <KuukiChart
+      points={points}
+      height={PLOT[span] + AXIS}
+      ariaLabel={props.ariaLabel}
+      ariaDescription={props.ariaDescription}
+      inView={props.inView}
+      onPick={props.onPick}
+      actions={props.actions}
+      tip={props.tip}
+      selected={(point) => point.key === props.selectedKey}
+      applied={props.appliedKeys ? (point) => props.appliedKeys!.includes(point.key) : undefined}
+      tapPicks
+      // A host wider than the bars' natural width is filled: bar and gap grow together. A narrower one scrolls.
+      fit={(available) => Math.max(natural, available)}
+    >
+      {(mark, size) => {
+        const k = natural > 0 ? size.width / natural : 1
+        return <Stage {...props} mark={mark} bar={baseBar * k} pitch={basePitch * k} />
+      }}
+    </KuukiChart>
+  )
+}
+
+function Stage<T>(
+  props: StageColumnsProps<T> & {
+    mark: (point: ChartPoint<T>) => SVGProps<SVGGElement>
+    /** Bar width and pitch after stretching to the host. */
+    bar: number
+    pitch: number
+  },
+) {
+  const { points, value, selectedKey, appliedKeys, span, ticks, bands, tallest, mono, mark } = props
+  const { bar, pitch } = props,
     plot = PLOT[span],
     room = plot - HEAD,
     width = points.length ? (points.length - 1) * pitch + bar : 0,
@@ -102,92 +138,70 @@ export function StageColumns<T>(props: StageColumnsProps<T>) {
     return null
   }
   return (
-    <KuukiChart
-      points={points}
-      height={plot + AXIS}
-      ariaLabel={props.ariaLabel}
-      ariaDescription={props.ariaDescription}
-      inView={props.inView}
-      onPick={props.onPick}
-      actions={props.actions}
-      tip={props.tip}
-      selected={(point) => point.key === selectedKey}
-      applied={appliedKeys ? applied : undefined}
-      tapPicks
-      fit={() => width}
-    >
-      {(mark) => (
-        <g className="stage" data-span={span}>
-          <g aria-hidden="true" pointerEvents="none">
-            {bands?.map((band) => {
-              const x = cell(band.from),
-                placed = bandLabel(band)
-              return (
-                <g key={`${band.from}-${band.to}`}>
-                  <rect
-                    className="stage-band"
-                    x={x}
-                    width={Math.max(0, cell(band.to) - x)}
-                    height={plot}
-                    rx={6}
-                  />
-                  {placed ? (
-                    <text
-                      className="stage-band-label"
-                      x={placed.x}
-                      y={18}
-                      textAnchor={placed.anchor}
-                    >
-                      {band.label}
-                    </text>
-                  ) : null}
-                </g>
-              )
-            })}
-          </g>
-          {points.map((point, index) => {
-            const amount = value(point),
-              height = heightOf(point),
-              d = column(left(index), plot, bar, room, height)
-            return (
-              <g key={point.key} {...mark(point)} data-zero={!(amount > 0) || undefined}>
-                <rect
-                  x={cell(index)}
-                  y={0}
-                  width={cell(index + 1) - cell(index)}
-                  height={plot + AXIS}
-                  fill="transparent"
-                />
-                <g className="stage-bar" style={{ transform: `scaleY(${num(height / room)})` }}>
-                  <path d={d} />
-                  {amount > 0 ? <path className="stage-peak" d={d} /> : null}
-                </g>
-              </g>
-            )
-          })}
-          <g aria-hidden="true" pointerEvents="none">
-            {tallest && peak && peak !== picked ? label(peak, 'stage-tallest', 4) : null}
-            {picked ? label(picked, 'stage-reading', 5) : null}
-            {points.map((point) =>
-              applied(point) && !labelled.has(point) ? label(point, 'stage-applied', 4, '✓') : null,
-            )}
-            {ticks.map((tick) =>
-              points[tick.index] ? (
-                <text
-                  key={tick.index}
-                  className="stage-tick"
-                  data-picked={points[tick.index].key === selectedKey || undefined}
-                  x={left(tick.index) + bar / 2}
-                  y={plot + 16}
-                  textAnchor="middle"
-                >
-                  {tick.text}
+    <g className="stage" data-span={span}>
+      <g aria-hidden="true" pointerEvents="none">
+        {bands?.map((band) => {
+          const x = cell(band.from),
+            placed = bandLabel(band)
+          return (
+            <g key={`${band.from}-${band.to}`}>
+              <rect
+                className="stage-band"
+                x={x}
+                width={Math.max(0, cell(band.to) - x)}
+                height={plot}
+                rx={6}
+              />
+              {placed ? (
+                <text className="stage-band-label" x={placed.x} y={18} textAnchor={placed.anchor}>
+                  {band.label}
                 </text>
-              ) : null,
-            )}
+              ) : null}
+            </g>
+          )
+        })}
+      </g>
+      {points.map((point, index) => {
+        const amount = value(point),
+          height = heightOf(point),
+          d = column(left(index), plot, bar, room, height)
+        return (
+          <g key={point.key} {...mark(point)} data-zero={!(amount > 0) || undefined}>
+            <rect
+              x={cell(index)}
+              y={0}
+              width={cell(index + 1) - cell(index)}
+              height={plot + AXIS}
+              fill="transparent"
+            />
+            <g className="stage-bar" style={{ transform: `scaleY(${num(height / room)})` }}>
+              <path d={d} />
+              {amount > 0 ? <path className="stage-peak" d={d} /> : null}
+            </g>
           </g>
-        </g>
-      )}
-    </KuukiChart>
+        )
+      })}
+      <g aria-hidden="true" pointerEvents="none">
+        {tallest && peak && peak !== picked ? label(peak, 'stage-tallest', 4) : null}
+        {picked ? label(picked, 'stage-reading', 5) : null}
+        {points.map((point) =>
+          applied(point) && !labelled.has(point) ? label(point, 'stage-applied', 4, '✓') : null,
+        )}
+        {ticks.map((tick) =>
+          points[tick.index] ? (
+            <text
+              key={tick.index}
+              className="stage-tick"
+              data-picked={points[tick.index].key === selectedKey || undefined}
+              x={left(tick.index) + bar / 2}
+              y={plot + 16}
+              textAnchor="middle"
+            >
+              {tick.text}
+            </text>
+          ) : null,
+        )}
+      </g>
+    </g>
   )
 }
