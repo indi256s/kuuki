@@ -59,7 +59,7 @@
    are <use> clones of generated symbols (lanes/), sized from one unit: the drawn length of a 100-unit vehicle. */
 .leaderboard-lanes {
   --lane-unit: 112px;
-  --lane-finish: 32px;
+  --lane-finish: 34px;
   --veh-w: calc(var(--lane-unit) * var(--lane-box));
   --veh-h: calc(var(--veh-w) * var(--lane-aspect));
   --nose-off: calc(var(--veh-w) * var(--lane-nose));
@@ -67,7 +67,7 @@
 }
 .lanes {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -76,6 +76,7 @@
   position: relative;
   display: grid;
   gap: var(--space-1);
+  transition: background-color var(--dur-fast) var(--ease-out);
   padding: var(--space-2);
   border-radius: var(--radius-sm);
 }
@@ -85,6 +86,12 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .lane:not([data-own]):has(a):hover {
+    background: var(--surface-inset);
+  }
+  .lane:not([data-own]):has(a):hover .lane-track::before {
+    background: var(--background);
+  }
+  .lane:not([data-own]):has(a):hover .lane-medal {
     background: var(--surface-inset);
   }
 }
@@ -173,12 +180,25 @@
   color: var(--text-muted);
 }
 
-/* The track: the road along the ground line, the vehicle standing on it. Clipped sideways only, so a tall tail and
-   the halo under the wheels stay visible. */
+/* The track: the road along the ground line, the vehicle standing on it. Drawn above the name and value, so each
+   lane's label sits right under its own road; the DOM keeps the name first. Clipped sideways only, so a tall tail
+   and the halo under the wheels stay visible. */
 .lane-track {
   position: relative;
+  order: -1;
   block-size: var(--veh-h);
   overflow-x: clip;
+}
+/* The start line: zero on the shared scale. A vehicle's tail may stand behind it; its nose never does. */
+.lane-track::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: var(--nose-off);
+  inset-block-start: calc(var(--road-y) - 6px);
+  inline-size: 2px;
+  block-size: 12px;
+  border-radius: 1px;
+  background: var(--mark-rest);
 }
 .lane-track::before {
   content: '';
@@ -204,14 +224,15 @@
   position: relative;
   --lane-halo-blur: 2px;
 }
-/* The distance run: from the lane's start to the nose. It belongs to the vehicle, so they move as one. */
+/* The distance run: from the start line to the nose, so its length is the value on the shared scale. */
 .lane-run {
   position: absolute;
-  inset-inline-end: calc(100% * (1 - var(--lane-nose)));
+  inset-inline-start: var(--nose-off);
   inset-block-start: var(--road-y);
-  inline-size: 100vw;
+  inline-size: calc(var(--lane-at) * (100% - var(--nose-off) - var(--lane-finish)));
   block-size: 2px;
   translate: 0 -50%;
+  transform-origin: left center;
   background: var(--mark-rest);
 }
 .lane[data-own] .lane-run {
@@ -225,12 +246,12 @@
   translate: 0 -50%;
   display: grid;
   place-items: center;
-  inline-size: 20px;
-  block-size: 20px;
-  border: 2px solid currentcolor;
+  inline-size: 22px;
+  block-size: 22px;
+  border: 1.5px solid currentcolor;
   border-radius: 50%;
   background: var(--background);
-  font: 600 11px/1 var(--font-mono);
+  font: 600 12px/1 var(--font-mono);
 }
 .lane[data-own] .lane-medal {
   background: var(--surface-inset);
@@ -315,8 +336,8 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     /* Room for the focus ring inside the scroller. */
-    padding-block: var(--space-1);
-    margin-block: calc(var(--space-1) * -1);
+    padding: var(--space-1);
+    margin: calc(var(--space-1) * -1);
   }
   .leaderboard-tiles::-webkit-scrollbar {
     display: none;
@@ -337,17 +358,16 @@
     );
   }
   .leaderboard-group {
-    display: block;
     flex: none;
   }
-  /* The groups are told apart by space on phones; the label stays for screen readers. */
+  /* Inline group labels: both groups have a Countries tile. */
+  .leaderboard-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
   .leaderboard-group-label {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+    margin: 0;
     white-space: nowrap;
   }
   .leaderboard-group-tiles {
@@ -367,7 +387,10 @@
 @media (max-width: 700px) {
   .leaderboard-lanes {
     --lane-unit: 64px;
-    --lane-finish: 26px;
+    --lane-finish: 30px;
+  }
+  .lane-place {
+    font-size: 13px;
   }
   .lane {
     padding-inline: var(--space-1);

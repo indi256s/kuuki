@@ -393,7 +393,7 @@ it('gives each sky row the most-flown drawn aircraft type of its period, else th
       .bind(userId, date, 'JFK', 'LHR', icao)
   try {
     await db.batch([
-      ...member(db, { id: 'typed', flights: 6 }),
+      ...member(db, { id: 'typed', flights: 6, publication: 'all' }),
       ...member(db, { id: 'odd', flights: 5 }),
       ...member(db, { id: 'untyped', flights: 5 }),
       // All time: two B738 beat one A320. This year: only the A320.
@@ -403,6 +403,9 @@ it('gives each sky row the most-flown drawn aircraft type of its period, else th
       // A type the lanes do not draw.
       flight('odd', '2026-04-01', 'B739'),
       flight('untyped', '2026-04-01', null),
+      ...journey(db, 'typed', 'rail', 'completed', '2026-05-01'),
+      ...journey(db, 'typed', 'rail', 'completed', '2026-05-02'),
+      ...journey(db, 'typed', 'road', 'completed', '2026-05-03'),
     ])
     await refreshLeaderboards(db, NOW)
     const read = await readLeaderboardBoard(db, null, NOW)
@@ -412,10 +415,10 @@ it('gives each sky row the most-flown drawn aircraft type of its period, else th
       )
     expect(aircraft('all')).toEqual({ typed: 'B738', odd: 'GENERIC', untyped: 'GENERIC' })
     expect(aircraft('2026')).toMatchObject({ typed: 'A320', odd: 'GENERIC' })
-    // Ground rows never carry a type.
-    expect(Object.values(read.boards.rail.all.top).every((entry) => entry.aircraft === null)).toBe(
-      true,
-    )
+    // Ground rows never carry a type, even for a member who has one in the sky.
+    expect(read.boards.rail.all.top).toEqual([
+      expect.objectContaining({ user_id: 'typed', aircraft: null }),
+    ])
   } finally {
     await dispose()
   }

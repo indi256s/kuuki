@@ -123,6 +123,12 @@
 .gate-tile[data-size='compact'][aria-current='page'] {
   background: var(--accent-tint);
 }
+@media (forced-colors: active) {
+  .gate-tile[data-size='compact'][aria-current='page'] {
+    /* The tint is lost in forced colours; outline stays reserved for keyboard focus. */
+    border: 2px solid Highlight;
+  }
+}
 .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-label,
 .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-value,
 .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-progress,

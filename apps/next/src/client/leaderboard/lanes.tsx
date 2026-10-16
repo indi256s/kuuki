@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import {
   isGroundCategory,
   type LeaderboardCategory,
@@ -84,6 +84,7 @@ function Lane({
   gap?: Gap
 }) {
   const ru = locale === 'ru'
+  const id = useId()
   const name = entryName(entry, locale)
   const vehicle = laneVehicle(category, entry.aircraft)
   const medal = !ghost && entry.rank <= 3 ? MEDALS[entry.rank - 1] : undefined
@@ -91,7 +92,7 @@ function Lane({
   const type = vehicle === 'GENERIC' || vehicle === 'rail' || vehicle === 'road' ? null : vehicle
   return (
     <li
-      value={ghost ? undefined : entry.rank}
+      value={entry.rank}
       className="lane"
       data-own={own || undefined}
       data-ghost={ghost || undefined}
@@ -99,7 +100,7 @@ function Lane({
       style={{ '--lane-at': at, '--lane-livery': avatarInk(entry.user_id) } as CSSProperties}
     >
       <div className="lane-head">
-        <span className="lane-place" data-medal={medal}>
+        <span className="lane-place" id={`${id}-place`} data-medal={medal}>
           {leadIn && (
             <>
               <span className="sr-only">{leadIn}</span>{' '}
@@ -111,12 +112,17 @@ function Lane({
           id={entry.user_id}
           url={entry.avatar_url}
           face={entry.avatar_face}
-          name={name}
+          name=""
           size={28}
         />
         <span className="lane-name">
           {entry.username ? (
-            <Link href={`/fly/${encodeURIComponent(entry.username)}`}>{name}</Link>
+            <Link
+              href={`/fly/${encodeURIComponent(entry.username)}`}
+              aria-describedby={`${id}-place ${id}-value`}
+            >
+              {name}
+            </Link>
           ) : (
             <span>{name}</span>
           )}
@@ -127,14 +133,14 @@ function Lane({
           )}
           {type && <small className="lane-type">{type}</small>}
         </span>
-        <span className="lane-value">
+        <span className="lane-value" id={`${id}-value`}>
           <strong>{formatNumber(locale, entry.value)}</strong>{' '}
           <small>{categoryUnit(category, entry.value, locale)}</small>
         </span>
       </div>
       <div className="lane-track" aria-hidden="true">
+        <span className="lane-run" />
         <span className="lane-veh" data-vehicle={vehicle}>
-          <span className="lane-run" />
           <Vehicle vehicle={vehicle} />
           {medal && (
             <span className="lane-medal" data-medal={medal}>
@@ -157,50 +163,90 @@ function Lane({
  * a lane that arrives fades in. Offsets are layout positions (offsetTop/offsetLeft), so scrolling between switches
  * never skews them. Reduced motion paints the new board at once.
  */
-function useLaneFlip(list: React.RefObject<HTMLOListElement | null>, board: string, rows: string) {
-  const last = useRef<{ board: string; at: Map<string, { top: number; left: number }> } | null>(
-    null,
-  )
+function useLaneFlip(
+  list: React.RefObject<HTMLOListElement | null>,
+  board: string,
+  rows: string,
+  instant: boolean,
+) {
+  const last = useRef<{
+    board: string
+    at: Map<string, { top: number; left: number; run: number }>
+  } | null>(null)
+  const running = useRef<Animation[]>([])
   useLayoutEffect(() => {
     const element = list.current
     if (!element) return
     const lanes = [...element.querySelectorAll<HTMLElement>('.lane[data-row]')]
+    // An interrupted switch starts from where each lane is drawn now, not from the end of the move it cut short.
+    const drawn = new Map(
+      lanes.map((lane) => {
+        const vehicle = lane.querySelector<HTMLElement>('.lane-veh')
+        const shift = (target: HTMLElement | null) =>
+          target && running.current.length && typeof DOMMatrixReadOnly === 'function'
+            ? new DOMMatrixReadOnly(getComputedStyle(target).transform)
+            : null
+        return [lane.dataset.row!, { y: shift(lane)?.m42 ?? 0, x: shift(vehicle)?.m41 ?? 0 }]
+      }),
+    )
     const at = new Map(
       lanes.map((lane) => [
         lane.dataset.row!,
         {
           top: lane.offsetTop,
           left: lane.querySelector<HTMLElement>('.lane-veh')?.offsetLeft ?? 0,
+          run: lane.querySelector<HTMLElement>('.lane-run')?.offsetWidth ?? 0,
         },
       ]),
     )
     const previous = last.current
     last.current = { board, at }
     if (!previous || previous.board === board) return
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    for (const animation of running.current) animation.cancel()
+    running.current = []
+    if (instant || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     for (const lane of lanes) {
       if (typeof lane.animate !== 'function') return
       const before = previous.at.get(lane.dataset.row!)
       const now = at.get(lane.dataset.row!)!
       if (!before) {
-        lane.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ENTER_MS, easing: EASE_OUT })
+        running.current.push(
+          lane.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ENTER_MS, easing: EASE_OUT }),
+        )
         continue
       }
-      const dy = before.top - now.top
-      const dx = before.left - now.left
+      const shift = drawn.get(lane.dataset.row!)!
+      const dy = before.top + shift.y - now.top
+      const dx = before.left + shift.x - now.left
       if (dy)
-        lane.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], {
-          duration: MOVE_MS,
-          easing: EASE_IN_OUT,
-        })
+        running.current.push(
+          lane.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], {
+            duration: MOVE_MS,
+            easing: EASE_IN_OUT,
+          }),
+        )
       const vehicle = lane.querySelector<HTMLElement>('.lane-veh')
       if (dx && vehicle)
-        vehicle.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], {
-          duration: MOVE_MS,
-          easing: EASE_IN_OUT,
-        })
+        running.current.push(
+          vehicle.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], {
+            duration: MOVE_MS,
+            easing: EASE_IN_OUT,
+          }),
+        )
+      // The run ends at the nose, so it stretches by the same distance the vehicle travels.
+      const run = lane.querySelector<HTMLElement>('.lane-run')
+      if (dx && run && now.run > 0)
+        running.current.push(
+          run.animate(
+            [
+              { transform: `scaleX(${Math.max(0, now.run + dx) / now.run})` },
+              { transform: 'none' },
+            ],
+            { duration: MOVE_MS, easing: EASE_IN_OUT },
+          ),
+        )
     }
-  }, [list, board, rows])
+  }, [list, board, rows, instant])
 }
 
 /**
@@ -215,6 +261,7 @@ export function RaceLanes({
   locale,
   userId,
   guest,
+  instant,
 }: {
   slice: LeaderboardBoardSlice
   place: ViewerPlace | null
@@ -223,20 +270,30 @@ export function RaceLanes({
   locale: Locale
   userId: string | null
   guest: boolean
+  /** The switch came from the keyboard: re-order without motion. */
+  instant: boolean
 }) {
   const ru = locale === 'ru'
   const board = `${category}:${period}`
   const list = useRef<HTMLOListElement>(null)
   const alive = useRef(true)
   const focusFrom = useRef<string | null>(null)
-  // An expansion belongs to the board it was read for; switching boards drops it without remounting the lanes.
-  const [expansion, setExpansion] = useState<(Expansion & { done: boolean; board: string }) | null>(
-    null,
-  )
+  // The board a pending read must still be showing when it lands; a switch makes it obsolete.
+  const current = useRef(board)
+  useLayoutEffect(() => {
+    current.current = board
+  }, [board])
+  const [more, setMore] = useState<(Expansion & { done: boolean }) | null>(null)
   const [loading, setLoading] = useState(false)
-  const [failure, setFailure] = useState<string | null>(null)
-  const more = expansion?.board === board ? expansion : null
-  const failed = failure === board
+  const [failed, setFailed] = useState(false)
+  // A switch drops the expansion, its pending read and its error without remounting the lanes, so FLIP can run.
+  const [shownBoard, setShownBoard] = useState(board)
+  if (shownBoard !== board) {
+    setShownBoard(board)
+    setMore(null)
+    setLoading(false)
+    setFailed(false)
+  }
   useEffect(() => {
     alive.current = true
     return () => {
@@ -292,7 +349,7 @@ export function RaceLanes({
         ? `Места с ${extras[0].rank} по ${extras.at(-1)?.rank}`
         : `Places ${extras[0].rank} to ${extras.at(-1)?.rank}`
       : undefined
-  useLaneFlip(list, board, [...rows, ...extras].map((entry) => entry.user_id).join())
+  useLaneFlip(list, board, [...rows, ...extras].map((entry) => entry.user_id).join(), instant)
 
   const read = async (offset: number, limit: number) => {
     const response = await fetch(
@@ -305,8 +362,9 @@ export function RaceLanes({
   // The first expansion reads from the top. Later pages append only while the board is unchanged (same total and
   // publication); otherwise the shown prefix is read again, so an opt-out or a rebuild never skips or mixes places.
   const showAll = async () => {
+    const from = board
     setLoading(true)
-    setFailure(null)
+    setFailed(false)
     try {
       let fetched: Expansion
       if (!more) fetched = await read(0, PAGE)
@@ -317,20 +375,16 @@ export function RaceLanes({
             ? { ...page, entries: [...more.entries, ...page.entries] }
             : await read(0, Math.min(more.entries.length + PAGE, MAX_PAGE))
       }
-      if (!alive.current) return
+      if (!alive.current || current.current !== from) return
       const known = new Set(rows.map((entry) => entry.user_id))
       focusFrom.current =
         fetched.entries.find((entry) => !known.has(entry.user_id))?.user_id ?? null
       // A read that brings nothing new ends the expansion, whatever the total says.
-      setExpansion({
-        ...fetched,
-        board,
-        done: fetched.entries.length <= (more?.entries.length ?? 0),
-      })
+      setMore({ ...fetched, done: fetched.entries.length <= (more?.entries.length ?? 0) })
     } catch {
-      if (alive.current) setFailure(board)
+      if (alive.current && current.current === from) setFailed(true)
     } finally {
-      if (alive.current) setLoading(false)
+      if (alive.current && current.current === from) setLoading(false)
     }
   }
 

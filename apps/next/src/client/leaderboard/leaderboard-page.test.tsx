@@ -131,7 +131,7 @@ it('names tiles by the viewer state: ranked, progress, blocked, guest', () => {
   expect(
     screen.getByRole('link', { name: 'Trains, locked until all countries are published' }),
   ).toBeVisible()
-  expect(screen.getByRole('link', { name: 'Road trips, no place yet' })).toBeVisible()
+  expect(screen.getByRole('link', { name: 'Cars, no place yet' })).toBeVisible()
   cleanup()
   render(
     board(
@@ -187,7 +187,7 @@ it('flies each member’s own aircraft in the sky and one vehicle per mode on th
     )
   expect(vehicles().slice(0, 2)).toEqual(['lane-B738', 'lane-GENERIC'])
   expect(screen.getByText('B738')).toBeVisible()
-  await user.click(screen.getByRole('link', { name: /^Road trips/ }))
+  await user.click(screen.getByRole('link', { name: /^Cars/ }))
   expect(vehicles()).toEqual(['lane-road', 'lane-road'])
 })
 
@@ -283,4 +283,31 @@ it('keeps the gap on the viewer row when the member to beat is outside the list'
   const { container } = render(board(data))
   const own = container.querySelector('[data-own]')
   expect(own).toHaveTextContent('1 flight to @ahead')
+})
+
+it('drops a Show all read that lands after the board was switched', async () => {
+  const user = userEvent.setup()
+  let land: (value: unknown) => void = () => {}
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockReturnValue(
+      new Promise((resolve) => {
+        land = resolve
+      }),
+    ),
+  )
+  const data = fixture()
+  data.boards.distance.all = { top: ranks(1, 10, 9000), total: 25 }
+  render(board(data))
+  await user.click(screen.getByRole('button', { name: 'Show all' }))
+  await user.click(screen.getByRole('link', { name: /^Distance/ }))
+  // The new board offers its own Show all at once, not a spinner left over from Flights.
+  expect(screen.getByRole('button', { name: 'Show all' })).toBeEnabled()
+  land({
+    ok: true,
+    json: () => Promise.resolve({ entries: ranks(1, 50), total: 60, updatedAt: null }),
+  })
+  await user.click(screen.getByRole('link', { name: /^Flights/ }))
+  expect(screen.queryByRole('link', { name: '@user50' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Show all' })).toBeEnabled()
 })

@@ -161,9 +161,27 @@ export function LeaderboardBoard({
   const [period, setPeriod] = useState(initialPeriod)
   const navRef = useRef<HTMLElement>(null)
   const { changes, shownRanks } = useRankUp(payload, navRef)
+  // A switch made from the keyboard re-orders the lanes without motion, like keyboard-changed segmented controls.
+  const keyboard = useRef(false)
+  const [instant, setInstant] = useState(false)
+  useEffect(() => {
+    const onKey = () => {
+      keyboard.current = true
+    }
+    const onPointer = () => {
+      keyboard.current = false
+    }
+    window.addEventListener('keydown', onKey, true)
+    window.addEventListener('pointerdown', onPointer, true)
+    return () => {
+      window.removeEventListener('keydown', onKey, true)
+      window.removeEventListener('pointerdown', onPointer, true)
+    }
+  }, [])
   const select = (nextCategory: LeaderboardCategory, nextPeriod: string) => {
     setCategory(nextCategory)
     setPeriod(nextPeriod)
+    setInstant(keyboard.current)
     mirror(nextCategory, nextPeriod)
   }
   const slice = payload.boards[category]?.[period] ?? { top: [], total: 0 }
@@ -198,6 +216,7 @@ export function LeaderboardBoard({
         locale={locale}
         userId={payload.viewer?.userId ?? null}
         guest={!payload.viewer}
+        instant={instant}
       />
       <Updated updatedAt={payload.updatedAt} locale={locale} />
     </>
