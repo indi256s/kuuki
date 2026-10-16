@@ -298,6 +298,74 @@
   display: inline-flex;
   align-items: center;
 }
+/* At the head of the figures column the strip is its own small card, so the figures card below keeps its height for the takeover.
+   The flight fills the card's left side edge to edge, so its hover and focus read as the card's; "+1 more booked" keeps the right side,
+   on the date's line. Text starts at the figures card's 32px inset. Phones keep their own card on the flight button (below). */
+@media (min-width: 701px) {
+  [data-region='figures'] > .ov3-next-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0;
+    overflow: clip;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+  }
+  :root[data-theme='dark'] [data-region='figures'] > .ov3-next-strip {
+    box-shadow: inset 0 1px 0 var(--surface-highlight);
+  }
+  [data-region='figures'] .ov3-next-flight,
+  [data-region='figures'] .ov3-next-flight.ui-button {
+    padding: 12px 16px 12px 32px;
+    border-radius: 0;
+    justify-items: start;
+  }
+  [data-region='figures'] .ov3-next-flight.ui-button > span,
+  [data-region='figures'] .ov3-next-flight:not(.ui-button) {
+    justify-content: flex-start;
+    gap: 2px 10px;
+  }
+  [data-region='figures'] .ov3-next-details {
+    flex-basis: 100%;
+    order: 1;
+  }
+  [data-region='figures'] .ov3-next-more {
+    margin: 0;
+    padding: 12px 32px 12px 0;
+    align-items: flex-end;
+    white-space: nowrap;
+  }
+  [data-region='figures'] .ov3-next-review {
+    padding-inline: 32px;
+  }
+  /* The flight is the card: hover and focus mark the whole card, not a box that stops where "+1 more booked" begins.
+     The card clips its corners, so the link's own ring sits inside the edge. */
+  [data-region='figures'] > .ov3-next-strip {
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+  [data-region='figures'] > .ov3-next-strip:has(.ov3-next-flight:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  [data-region='figures'] .ov3-next-flight:focus-visible {
+    outline: none;
+  }
+  [data-region='figures'] .ov3-next-more:focus-visible {
+    outline-offset: -2px;
+  }
+}
+@media (min-width: 701px) and (hover: hover) and (pointer: fine) {
+  [data-region='figures'] > .ov3-next-strip:has(.ov3-next-flight:hover) {
+    background: var(--hover-surface);
+  }
+  [data-region='figures'] .ov3-next-flight.ui-button:hover:not([aria-disabled='true']) {
+    background: transparent;
+  }
+  [data-region='figures'] .ov3-next-more:hover {
+    color: var(--text);
+  }
+}
 
 /* Compact figures while the band is one column (phones and tablets): a 2×2 core grid, airports and estimates at its foot.
    Each value keeps one line and shrinks to its cell (about 0.6em a character), so 155 ч 2 мин never breaks between its parts. */

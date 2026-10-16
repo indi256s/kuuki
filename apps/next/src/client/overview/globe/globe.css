@@ -324,9 +324,19 @@
   vertical-align: -2px;
 }
 
-/* Wide Overview: the card height follows --ov-globe-h (set on .ov3-globe-band) and the map canvas fills the card width; the globe still fits the shorter side. Fullscreen is untouched. */
-@media (min-width: 1280px) {
+/* Wide Overview: the card height follows --ov-globe-h (set on .ov3-globe-band) and the map canvas fills the card width; the globe still fits the shorter side. Fullscreen is untouched.
+   When the figures column (next flight over the figures) runs taller, the card grows to the row instead of leaving a gap under the map. */
+@media (min-width: 1024px) {
+  .ov3-globe-band > .ov3-globe-region,
+  .ov3-globe-band .globe-host {
+    display: flex;
+    flex-direction: column;
+  }
+  .ov3-globe-band .globe-host {
+    flex: 1 0 auto;
+  }
   .ov3-globe-band .globe-card:not(.globe-card-fullscreen) {
+    flex: 1 0 auto;
     block-size: var(--ov-globe-h, 520px);
   }
   .ov3-globe-band .globe-card:not(.globe-card-fullscreen) .globe-surface {

@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PlayPauseIcon } from '../../ui/icon-morph'
 import { Button } from '../../ui/button'
 import type { Locale } from '../../../lib/format'
-import { monthAt, monthCandidates, yearTicks, type TimelineItem } from './replay'
+import { fitYearTicks, monthAt, monthCandidates, yearTicks, type TimelineItem } from './replay'
 
-/** One mono year label (about 29px at 12px) plus breathing room. */
-const YEAR_SLOT = 44
+/** One mono year label at 12px, and the space kept between neighbours. */
+const YEAR_LABEL = 30,
+  YEAR_GAP = 12
 
 export function ReplayTransport({
   timeline,
@@ -91,7 +92,7 @@ export function ReplayTransport({
     0,
     candidates.findIndex((item) => item.startMs === value),
   )
-  // Year labels need about YEAR_SLOT px each; on a narrow scrubber the first and last stay and the years between thin out evenly.
+  // Year labels thin out by where they land on the scrubber; see fitYearTicks.
   const years = useRef<HTMLDivElement>(null)
   const [yearsWidth, setYearsWidth] = useState(0)
   useEffect(() => {
@@ -102,26 +103,25 @@ export function ReplayTransport({
     })
     observer.observe(node)
     return () => observer.disconnect()
-  }, [reduced, timeline.length])
-  const ticks = useMemo(() => {
-    const all = yearTicks(timeline, durationMs).map((item) => ({
-      ...item,
-      at:
-        Math.max(
-          0,
-          candidates.findIndex((candidate) => candidate.month === item.month),
-        ) / Math.max(1, candidates.length - 1),
-    }))
-    if (!yearsWidth || all.length < 3) return all
-    const step = Math.ceil(all.length / Math.max(2, Math.floor(yearsWidth / YEAR_SLOT)))
-    const kept = all.filter((_, at) => at % step === 0)
-    const last = all.at(-1)!
-    if (kept.at(-1) !== last) {
-      if ((last.at - kept.at(-1)!.at) * yearsWidth < YEAR_SLOT) kept.pop()
-      kept.push(last)
-    }
-    return kept
-  }, [timeline, durationMs, candidates, yearsWidth])
+    // The scale only mounts after the first Play, so `started` must re-run this.
+  }, [reduced, started, timeline.length])
+  const ticks = useMemo(
+    () =>
+      fitYearTicks(
+        yearTicks(timeline, durationMs).map((item) => ({
+          ...item,
+          at:
+            Math.max(
+              0,
+              candidates.findIndex((candidate) => candidate.month === item.month),
+            ) / Math.max(1, candidates.length - 1),
+        })),
+        yearsWidth,
+        YEAR_LABEL,
+        YEAR_GAP,
+      ),
+    [timeline, durationMs, candidates, yearsWidth],
+  )
   useEffect(() => {
     if (!expanded) return
     const outside = (event: PointerEvent) => {

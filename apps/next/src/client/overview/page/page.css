@@ -1,7 +1,8 @@
 .ov3-page {
   /* The shell already applies --content-width and --page-gutter; adding them again here doubled the gutter. */
   width: 100%;
-  padding-block: 40px 96px;
+  /* .page-shell already pads the top; a second 40px here left an empty band under the header. */
+  padding-block: 0 96px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -37,6 +38,10 @@
 .ov3-globe-band > [data-region='figures'] {
   grid-column: 2;
   grid-row: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 .ov3-globe-band {
   display: grid;
@@ -209,6 +214,10 @@
     }
     & > [data-region='figures'] {
       display: grid;
+      grid-template-rows: minmax(0, 1fr);
+    }
+    & > [data-region='figures']:has(> .ov3-next-strip) {
+      grid-template-rows: auto minmax(0, 1fr);
     }
   }
 }

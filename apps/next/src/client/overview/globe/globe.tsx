@@ -118,7 +118,7 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
   const travelScope = scope!.figures.scope
   const legendLabel = t(legendFor(payload!.ground.length > 0, travelScope), locale)
   return (
-    <div ref={host}>
+    <div ref={host} className="globe-host">
       <GlobeCard
         locale={locale}
         legendLabel={legendLabel}

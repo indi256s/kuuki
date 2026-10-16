@@ -66,6 +66,34 @@ export function yearTicks(timeline: TimelineItem[], durationMs: number) {
     .map((item) => ({ ...item, year: item.month.slice(0, 4) }))
 }
 
+/** Keeps the year labels that fit a scrubber `width` px wide, by where they actually land: the first label hangs right of its tick, the
+ * last hangs left, the rest centre. The first always stays and the last does unless the span is too short for both; a label between
+ * them stays only if it clears its neighbours by `gap`. Unmeasured (width 0) keeps just the ends, never a pile-up. */
+export function fitYearTicks<T extends { at: number }>(
+  ticks: T[],
+  width: number,
+  label: number,
+  gap: number,
+): T[] {
+  if (ticks.length < 2) return ticks
+  const first = ticks[0]!,
+    last = ticks.at(-1)!
+  if (width <= 0) return [first, last]
+  // The last label's left edge bounds everything before it.
+  const limit = last.at * width - label - gap
+  const kept = [first]
+  let right = first.at * width + label
+  for (const tick of ticks.slice(1, -1)) {
+    const x = tick.at * width
+    if (x - label / 2 >= right + gap && x + label / 2 <= limit) {
+      kept.push(tick)
+      right = x + label / 2
+    }
+  }
+  // Only a span too short for two labels drops the last one.
+  return right <= limit ? [...kept, last] : kept
+}
+
 /** Launch admission happens once per event; rejected extras never appear later. */
 export function createReplaySchedule(timeline: TimelineItem[], durationMs: number) {
   let cursor = -1,

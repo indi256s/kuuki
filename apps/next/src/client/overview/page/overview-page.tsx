@@ -230,7 +230,8 @@ function PageContent() {
         </>
       ) : (
         <>
-          <NextStrip />
+          {/* First run has no figures column, so a booked flight keeps its own line above the page. */}
+          {firstRun ? <NextStrip /> : null}
           {!payload.derivedReady ? (
             <p role="status" className="status-note">
               {t(S.countriesUpdating, locale)}
@@ -246,6 +247,8 @@ function PageContent() {
             <div className="ov3-globe-band">
               {!firstRun ? (
                 <div data-region="figures">
+                  {/* The next flight heads the figures: what is coming over what has been. */}
+                  <NextStrip />
                   <HeroPanel />
                 </div>
               ) : null}

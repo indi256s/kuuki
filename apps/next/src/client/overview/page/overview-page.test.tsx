@@ -250,8 +250,8 @@ it('reads mobile controls and facts before the map while upcoming bookings remai
   const facts = screen.getByRole('region', { name: 'Totals for the period' })
   const map = screen.getByRole('region', { name: 'Places by air' })
   for (const [before, after] of [
-    [next, controls],
-    [controls, facts],
+    [controls, next],
+    [next, facts],
     [facts, map],
   ]) {
     expect(before.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
