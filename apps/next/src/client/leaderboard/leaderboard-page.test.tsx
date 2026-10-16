@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { LeaderboardData } from '../../app/(public)/leaderboard/page'
@@ -21,7 +21,10 @@ vi.mock('../../server/metadata', () => ({ pageMetadata: vi.fn() }))
 vi.mock('../activity', () => ({
   IdentitySnapshot: ({ children }: { children: React.ReactNode }) => children,
 }))
-vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span /> }))
+vi.mock('../profile/avatar', () => ({
+  ProfileAvatar: () => <span />,
+  avatarInk: () => 'var(--stamp-ink-teal)',
+}))
 
 const entry = (rank: number, value: number, name = `user${rank}`): LeaderboardEntry => ({
   id: rank,
@@ -34,6 +37,7 @@ const entry = (rank: number, value: number, name = `user${rank}`): LeaderboardEn
   display_name: null,
   avatar_url: null,
   avatar_face: null,
+  aircraft: null,
 })
 const ranks = (from: number, to: number, base = 100) =>
   Array.from({ length: to - from + 1 }, (_, index) => entry(from + index, base - from - index))
@@ -138,44 +142,53 @@ it('names tiles by the viewer state: ranked, progress, blocked, guest', () => {
   expect(screen.getByRole('link', { name: 'Distance, no leader yet' })).toBeVisible()
 })
 
-it('lists the podium in rank order and links a missing place to the right action', () => {
-  render(board(fixture()))
-  const podium = screen.getByRole('list', { name: 'Top three' })
-  const signs = within(podium).getAllByRole('listitem')
-  expect(signs.map((sign) => sign.getAttribute('value'))).toEqual(['1', '2', '3'])
-  cleanup()
+it('links an empty board to the action that fills it', () => {
   render(
-    <LeaderboardBoard
-      payload={fixture()}
-      locale="en"
-      initialCategory="distance"
-      initialPeriod="2026"
-    />,
+    <LeaderboardBoard payload={fixture()} locale="en" initialCategory="rail" initialPeriod="all" />,
   )
-  expect(screen.getByRole('link', { name: /^Free/ })).toHaveAttribute('href', '/add')
+  expect(screen.getByRole('link', { name: /^Free/ })).toHaveAttribute('href', '/ground-travel/new')
   cleanup()
   render(
     <LeaderboardBoard
       payload={payload({ guest: true })}
       locale="en"
-      initialCategory="rail"
+      initialCategory="flights"
       initialPeriod="all"
     />,
   )
-  const free = screen.getAllByRole('link', { name: /^Free/ })
-  expect(free).toHaveLength(3)
-  expect(free[0]).toHaveAttribute('href', '/signin')
+  expect(screen.getByRole('link', { name: /^Free/ })).toHaveAttribute('href', '/signin')
 })
 
-it('numbers board rows with real ranks across the gap', () => {
+it('numbers lanes with real ranks across the gap and puts medals on the top three', () => {
   const { container } = render(board(fixture()))
-  const rows = [...container.querySelectorAll<HTMLLIElement>('.leaderboard-rows > li')]
-  const visible = rows.filter((row) => row.getAttribute('aria-hidden') !== 'true')
-  expect(visible.map((row) => row.value)).toEqual([4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17])
-  const gap = rows.find((row) => row.getAttribute('aria-hidden') === 'true')
+  const lanes = [...container.querySelectorAll<HTMLLIElement>('.lanes > li')]
+  const visible = lanes.filter((lane) => lane.getAttribute('aria-hidden') !== 'true')
+  expect(visible.map((lane) => lane.value)).toEqual([
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17,
+  ])
+  const gap = lanes.find((lane) => lane.getAttribute('aria-hidden') === 'true')
   expect(gap).toHaveTextContent('· · ·')
   expect(screen.getByText('Places 13 to 17')).toBeInTheDocument()
   expect(screen.getByText('1 flight to @user14')).toBeVisible()
+  expect(
+    [...container.querySelectorAll('.lane-medal')].map((medal) => medal.getAttribute('data-medal')),
+  ).toEqual(['gold', 'silver', 'bronze'])
+})
+
+it('flies each member’s own aircraft in the sky and one vehicle per mode on the ground', async () => {
+  const user = userEvent.setup()
+  const data = fixture()
+  data.boards.flights.all.top[0] = { ...data.boards.flights.all.top[0], aircraft: 'B738' }
+  data.boards.road.all = { top: ranks(1, 2), total: 2 }
+  const { container } = render(board(data))
+  const vehicles = () =>
+    [...container.querySelectorAll('.lane use')].map(
+      (use) => use.getAttribute('href')?.split('#')[1],
+    )
+  expect(vehicles().slice(0, 2)).toEqual(['lane-B738', 'lane-GENERIC'])
+  expect(screen.getByText('B738')).toBeVisible()
+  await user.click(screen.getByRole('link', { name: /^Road trips/ }))
+  expect(vehicles()).toEqual(['lane-road', 'lane-road'])
 })
 
 it('moves focus to the first new row after Show all', async () => {
@@ -246,7 +259,7 @@ it('reads only the board for a guest and lets an unavailable read reach the retr
   )
 })
 
-it('offers Show all when every loaded row stands on the podium', () => {
+it('offers Show all when every loaded lane is tied for first', () => {
   const tied = Array.from({ length: 10 }, (_, index) => entry(1, 50, `tied${index}`))
   render(board(payload({ guest: true, boards: { flights: { all: { top: tied, total: 25 } } } })))
   expect(screen.getByRole('button', { name: 'Show all' })).toBeInTheDocument()

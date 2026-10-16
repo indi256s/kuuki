@@ -22,6 +22,8 @@ import {
   currentPeriod,
   derivedStateJoin,
   GROUND_CATEGORIES,
+  isGroundCategory,
+  laneAircraft,
   GROUND_MIN_JOURNEYS,
   PUBLISHED_DERIVED_STATE,
   SKY_CATEGORIES,
@@ -64,6 +66,21 @@ const groundTotals = (year: string | null) => {
   WHERE gj.status = 'completed' ${started('gj')}
   GROUP BY gj.user_id`
 }
+
+/**
+ * Each member's most-flown aircraft type among their awaiting and logged flights, optionally in one year (bound).
+ * Ties go to the type flown most recently, then the code, so a rebuild is stable.
+ */
+const topAircraft = (year: boolean) => `
+  SELECT user_id, icao FROM (
+    SELECT user_id, icao,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY n DESC, last DESC, icao) AS pick
+    FROM (SELECT user_id, UPPER(TRIM(aircraft_icao)) AS icao, COUNT(*) AS n, MAX(date) AS last
+          FROM flights
+          WHERE lifecycle_state IN ('awaiting', 'logged') AND TRIM(COALESCE(aircraft_icao, '')) <> ''
+            ${year ? 'AND substr(date, 1, 4) = ?' : ''}
+          GROUP BY user_id, UPPER(TRIM(aircraft_icao))))
+  WHERE pick = 1`
 
 /**
  * Full rebuild of `leaderboard_cache`: DELETE all rows, then INSERT one row per ranked member per category
@@ -114,10 +131,23 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
          AND ${PUBLISHED_PUBLIC}`,
     ),
     db.prepare(groundTotals(year)),
+    db.prepare(topAircraft(false)),
+    db.prepare(topAircraft(true)).bind(year),
   ])
-  const [sky, skyYear, ground, groundYear] = reads.map(
-    (read) => read.results as unknown as Array<Member & Values>,
-  )
+  const [sky, skyYear, ground, groundYear] = reads
+    .slice(0, 4)
+    .map((read) => read.results as unknown as Array<Member & Values>)
+  const [aircraftAll, aircraftYear] = reads
+    .slice(4)
+    .map(
+      (read) =>
+        new Map(
+          (read.results as Array<{ user_id: string; icao: string }>).map((row) => [
+            row.user_id,
+            laneAircraft(row.icao),
+          ]),
+        ),
+    )
 
   const members = new Map<string, Member>()
   for (const row of [...sky, ...ground]) members.set(row.user_id, row)
@@ -156,17 +186,20 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
   board(GROUND_CATEGORIES, year, ground, (row) => groundYearById.get(row.user_id), false)
 
   const updatedAt = nowIso()
-  const metadata = new Map(
-    [...members.values()].map((m) => [
-      m.user_id,
-      JSON.stringify({
-        username: m.username,
-        display_name: m.display_name,
-        avatar_url: m.avatar_url,
-        avatar_face: m.avatar_face,
-      }),
-    ]),
-  )
+  // Sky rows add the lane aircraft for their period; a member without typed flights there flies the generic one.
+  const metadata = (userId: string, category: LeaderboardCategory, period: string) => {
+    const m = members.get(userId)
+    if (!m) return '{}'
+    return JSON.stringify({
+      username: m.username,
+      display_name: m.display_name,
+      avatar_url: m.avatar_url,
+      avatar_face: m.avatar_face,
+      ...(isGroundCategory(category)
+        ? {}
+        : { aircraft: (period === 'all' ? aircraftAll : aircraftYear).get(userId) ?? 'GENERIC' }),
+    })
+  }
   const signup = (id: string) => members.get(id)?.created_at ?? ''
 
   const inserts: Array<(string | number)[]> = []
@@ -187,7 +220,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
         entry.value,
         rank,
         percentile,
-        metadata.get(entry.userId) ?? '{}',
+        metadata(entry.userId, category, period),
         updatedAt,
       ])
     })

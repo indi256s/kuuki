@@ -1,14 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import {
   LEADERBOARD_CATEGORIES,
   type LeaderboardCategory,
@@ -20,15 +13,12 @@ import { useLocale } from '../preferences'
 import { SegmentedControl } from '../ui/segmented-control'
 import { Skeleton } from '../ui/skeleton'
 import type { Locale } from '../../lib/format'
-import { BoardList } from './board-list'
 import { CategoryStrip } from './category-strip'
 import { categoryGroups, groupName } from './categories'
 import { narratorChoice, shownEntry, viewerPlace, type RankChanges } from './model'
+import { RaceLanes } from './lanes'
 import { narrate } from './narrator'
-import { Podium } from './podium'
 import './leaderboard.css'
-
-const subscribeNoop = () => () => {}
 
 /** Mirrors the selection in the address bar without navigating, as the Journal does. */
 function mirror(category: LeaderboardCategory, period: string) {
@@ -169,19 +159,11 @@ export function LeaderboardBoard({
   const ru = locale === 'ru'
   const [category, setCategory] = useState(initialCategory)
   const [period, setPeriod] = useState(initialPeriod)
-  // Only the hydration render (a hard load) lets the podium rise; client navigation and later switches paint settled.
-  const hydrating = useSyncExternalStore(
-    subscribeNoop,
-    () => false,
-    () => true,
-  )
-  const [rise, setRise] = useState(hydrating)
   const navRef = useRef<HTMLElement>(null)
   const { changes, shownRanks } = useRankUp(payload, navRef)
   const select = (nextCategory: LeaderboardCategory, nextPeriod: string) => {
     setCategory(nextCategory)
     setPeriod(nextPeriod)
-    setRise(false)
     mirror(nextCategory, nextPeriod)
   }
   const slice = payload.boards[category]?.[period] ?? { top: [], total: 0 }
@@ -208,22 +190,14 @@ export function LeaderboardBoard({
           </>
         )}
       </p>
-      <Podium
-        top={slice.top}
-        category={category}
-        period={period}
-        guest={!payload.viewer}
-        locale={locale}
-        rise={rise}
-      />
-      <BoardList
-        key={`${category}:${period}`}
+      <RaceLanes
         slice={slice}
         place={place}
         category={category}
+        period={period}
         locale={locale}
         userId={payload.viewer?.userId ?? null}
-        period={period}
+        guest={!payload.viewer}
       />
       <Updated updatedAt={payload.updatedAt} locale={locale} />
     </>
@@ -251,31 +225,33 @@ export function LeaderboardBoard({
   )
 }
 
-/** Suspense fallback with the strip's and the podium's geometry, so nothing shifts when the board arrives. */
+/** Suspense fallback with the strip's and the first lanes' geometry, so nothing shifts when the board arrives. */
 export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }) {
   const locale = useLocale(initialLocale)
   const ru = locale === 'ru'
   return (
     <div className="leaderboard-loading" aria-busy="true">
       <Heading locale={locale} />
-      <div className="leaderboard-tiles" aria-hidden="true">
-        {categoryGroups.map(([group, keys]) => (
-          <div key={group} className="leaderboard-group">
-            <p className="leaderboard-group-label">{groupName[group][ru ? 1 : 0]}</p>
-            <div className="leaderboard-group-tiles">
-              {keys.map((key) => (
-                <Skeleton key={key} height={72} label="" />
-              ))}
+      <div className="leaderboard-strip">
+        <div className="leaderboard-tiles" aria-hidden="true">
+          {categoryGroups.map(([group, keys]) => (
+            <div key={group} className="leaderboard-group">
+              <p className="leaderboard-group-label">{groupName[group][ru ? 1 : 0]}</p>
+              <div className="leaderboard-group-tiles">
+                {keys.map((key) => (
+                  <Skeleton key={key} height={44} label="" />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       <p className="leaderboard-narrator" role="status">
         {ru ? 'Загружаем рейтинг…' : 'Loading rankings…'}
       </p>
-      <ol className="leaderboard-podium" aria-hidden="true">
+      <ol className="lanes" aria-hidden="true">
         {[0, 1, 2].map((position) => (
-          <li key={position} className="leaderboard-sign" data-pos={position}>
+          <li key={position} className="lane lane-skeleton">
             <Skeleton height="100%" label="" />
           </li>
         ))}

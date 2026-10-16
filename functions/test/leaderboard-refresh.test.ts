@@ -382,3 +382,41 @@ it('tells a viewer with enough journeys that only publication blocks the ground 
     await dispose()
   }
 })
+
+it('gives each sky row the most-flown drawn aircraft type of its period, else the generic one', async () => {
+  const { db, dispose } = await createApiDatabase()
+  const flight = (userId: string, date: string, icao: string | null) =>
+    db
+      .prepare(
+        "INSERT INTO flights (user_id,date,origin,destination,aircraft_icao,is_upcoming,lifecycle_state,confirmation_source) VALUES (?,?,?,?,?,0,'logged','legacy')",
+      )
+      .bind(userId, date, 'JFK', 'LHR', icao)
+  try {
+    await db.batch([
+      ...member(db, { id: 'typed', flights: 6 }),
+      ...member(db, { id: 'odd', flights: 5 }),
+      ...member(db, { id: 'untyped', flights: 5 }),
+      // All time: two B738 beat one A320. This year: only the A320.
+      flight('typed', '2024-05-01', 'b738'),
+      flight('typed', '2025-05-01', 'B738'),
+      flight('typed', '2026-02-01', 'A320'),
+      // A type the lanes do not draw.
+      flight('odd', '2026-04-01', 'B739'),
+      flight('untyped', '2026-04-01', null),
+    ])
+    await refreshLeaderboards(db, NOW)
+    const read = await readLeaderboardBoard(db, null, NOW)
+    const aircraft = (period: string) =>
+      Object.fromEntries(
+        read.boards.flights[period].top.map((entry) => [entry.user_id, entry.aircraft]),
+      )
+    expect(aircraft('all')).toEqual({ typed: 'B738', odd: 'GENERIC', untyped: 'GENERIC' })
+    expect(aircraft('2026')).toMatchObject({ typed: 'A320', odd: 'GENERIC' })
+    // Ground rows never carry a type.
+    expect(Object.values(read.boards.rail.all.top).every((entry) => entry.aircraft === null)).toBe(
+      true,
+    )
+  } finally {
+    await dispose()
+  }
+})

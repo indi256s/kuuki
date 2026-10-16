@@ -59,45 +59,73 @@
   }
 }
 
-/* Compact: the leaderboard category strip. Same in both themes and at every width; only the tokens differ. */
+/* Compact: the leaderboard category strip. One 44px row, a short sentence-case label that never wraps and the value at
+   the end. Same in both themes and at every width; only the tokens differ. */
 .gate-tile[data-size='compact'],
 :root[data-theme='dark'] .gate-tile[data-size='compact'] {
-  flex-direction: column;
-  align-items: stretch;
+  position: relative;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
-  block-size: 72px;
-  padding: 6px var(--space-3);
+  gap: var(--space-2);
+  block-size: 44px;
+  padding: 0 10px;
+  overflow: hidden;
   background: var(--surface);
   box-shadow: none;
   color: var(--text);
   transition: transform var(--dur-press) var(--ease-out);
 }
 .gate-tile[data-size='compact'] .gate-tile-label {
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  hyphens: manual;
   color: var(--text-muted);
 }
 .gate-tile[data-size='compact'] .gate-tile-value,
 :root[data-theme='dark'] .gate-tile[data-size='compact'] .gate-tile-value {
   display: flex;
   align-items: center;
-  /* Four digits plus the prefix, so a period switch (#9 to #124) never shifts the strip. */
-  min-inline-size: 5ch;
-  font: 500 24px/28px var(--font-mono);
+  justify-content: flex-end;
+  /* Three digits plus the prefix, so a period switch (#9 to #124) never shifts the strip. */
+  min-inline-size: 4ch;
+  font: 600 17px/20px var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+  white-space: nowrap;
   color: var(--text);
   --split-flap-fill: transparent;
   --split-flap-ink: currentColor;
   --split-flap-seam: transparent;
-  --split-flap-width: 15px;
-  --split-flap-height: 28px;
-  --split-flap-font-size: 24px;
+  --split-flap-width: 10.5px;
+  --split-flap-height: 20px;
+  --split-flap-font-size: 17px;
   --split-flap-gap: 0;
+}
+/* Progress to joining: small "1 of 3" over a thin bar along the tile's foot. */
+.gate-tile-progress {
+  font: 500 12px/16px var(--font-sans);
+  color: var(--text-muted);
+}
+.gate-tile-progress::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-end: 0;
+  inline-size: calc(100% * var(--progress));
+  block-size: 2px;
+  background: var(--accent-text);
 }
 .gate-tile[data-size='compact'][aria-current='page'] {
   background: var(--accent-tint);
 }
 .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-label,
 .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-value,
+.gate-tile[data-size='compact'][aria-current='page'] .gate-tile-progress,
 :root[data-theme='dark'] .gate-tile[data-size='compact'][aria-current='page'] .gate-tile-value {
   color: var(--accent-on-tint);
   font-weight: 600;

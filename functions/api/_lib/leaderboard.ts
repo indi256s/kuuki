@@ -1,4 +1,4 @@
-// leaderboard_cache row + DTO. metadata is JSON-as-TEXT ({username, display_name, avatar_url, avatar_face});
+// leaderboard_cache row + DTO. metadata is JSON-as-TEXT ({username, display_name, avatar_url, avatar_face, aircraft});
 // flatten it onto the entry (the frontend reads these flat). user_id is kept so the client can
 // highlight the current user; the cache only contains public, opted-in users (see refreshLeaderboards
 // for the sky and ground gates), so exposing it here is not a privacy leak. Used by both the leaderboard list
@@ -28,6 +28,41 @@ export const isGroundCategory = (category: string): category is GroundCategory =
 export const SKY_MIN_FLIGHTS = 5
 export const GROUND_MIN_JOURNEYS = 3
 
+/**
+ * Aircraft types drawn for the race lanes (scripts/leaderboard-lanes/fleet.mjs). A sky row carries the member's
+ * most-flown type for its period; any other or missing type is drawn as `GENERIC`. Owner decision 2026-10-16: the
+ * aircraft type is not private and may appear on public boards.
+ */
+export const LANE_AIRCRAFT = [
+  'A319',
+  'A320',
+  'A20N',
+  'A321',
+  'A21N',
+  'A332',
+  'A333',
+  'A359',
+  'A35K',
+  'A388',
+  'B733',
+  'B738',
+  'B38M',
+  'B763',
+  'B788',
+  'B77W',
+  'E170',
+  'E195',
+  'SU95',
+  'DH8B',
+] as const
+export type LaneAircraft = (typeof LANE_AIRCRAFT)[number] | 'GENERIC'
+export const laneAircraft = (icao: string | null | undefined): LaneAircraft => {
+  const key = icao?.trim().toUpperCase()
+  return (LANE_AIRCRAFT as readonly string[]).includes(key ?? '')
+    ? (key as LaneAircraft)
+    : 'GENERIC'
+}
+
 /** The calendar-year period a rebuild at `now` computes besides `all` (UTC). */
 export const currentPeriod = (now: Date) => String(now.getUTCFullYear())
 
@@ -48,6 +83,7 @@ export function toLeaderboardEntry(row: LeaderboardCacheRow) {
     display_name?: string
     avatar_url?: string
     avatar_face?: string
+    aircraft?: string
   } = {}
   if (row.metadata) {
     try {
@@ -67,5 +103,7 @@ export function toLeaderboardEntry(row: LeaderboardCacheRow) {
     display_name: meta.display_name ?? null,
     avatar_url: meta.avatar_url ?? null,
     avatar_face: meta.avatar_face ?? null,
+    /** Sky rows only; null on ground rows and on rows written before the lanes. */
+    aircraft: meta.aircraft ? laneAircraft(meta.aircraft) : null,
   }
 }

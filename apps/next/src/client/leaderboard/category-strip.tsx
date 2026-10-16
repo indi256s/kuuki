@@ -1,13 +1,21 @@
 'use client'
 
 import { Lock } from '@keyline-icons/react'
-import { useEffect, useId, useRef, useState, type MouseEvent, type RefObject } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type RefObject,
+} from 'react'
 import type { LeaderboardCategory } from '../../../../../functions/api/_lib/leaderboard'
 import type { LeaderboardBoardPayload } from '../../../../../functions/api/_services/publicLeaderboard'
 import type { Locale } from '../../lib/format'
 import { GateTile } from '../ui/gate-tile'
 import { SplitFlap } from '../ui/split-flap'
-import { categoryGroups as groups, categoryName, groupName } from './categories'
+import { categoryGroups as groups, categoryName, groupName, tileLabel } from './categories'
 import { tileModel, type Period } from './model'
 
 export const categoryHref = (category: string, period: string) =>
@@ -89,6 +97,7 @@ export function CategoryStrip({
       </p>
       <nav
         ref={navRef}
+        className="leaderboard-strip"
         aria-label={locale === 'ru' ? 'Категории рейтинга' : 'Leaderboard categories'}
       >
         <div className="leaderboard-tiles" ref={scroller}>
@@ -104,12 +113,12 @@ export function CategoryStrip({
               </p>
               <div className="leaderboard-group-tiles">
                 {keys.map((key) => {
-                  const label = categoryName(key, locale)
+                  // The tile prints the short label; its accessible name keeps the full one ("Countries on flights").
                   const model = tileModel(
                     payload,
                     key,
                     period,
-                    label,
+                    categoryName(key, locale),
                     locale,
                     period === 'all' ? shownRanks[key] : undefined,
                   )
@@ -120,7 +129,7 @@ export function CategoryStrip({
                       href={categoryHref(key, period)}
                       data-category={key}
                       aria-current={key === category ? 'page' : undefined}
-                      label={label}
+                      label={tileLabel(key, locale)}
                       ariaLabel={model.name}
                       onClick={(event) => onClick(event, key)}
                       value={
@@ -131,7 +140,18 @@ export function CategoryStrip({
                             entering={false}
                           />
                         ) : model.kind === 'lock' ? (
-                          <Lock size={24} aria-hidden="true" />
+                          <Lock size={16} aria-hidden="true" />
+                        ) : model.kind === 'progress' ? (
+                          <span
+                            className="gate-tile-progress"
+                            style={
+                              {
+                                '--progress': Math.min(1, model.have / model.need),
+                              } as CSSProperties
+                            }
+                          >
+                            {model.text}
+                          </span>
                         ) : (
                           model.text
                         )
@@ -151,7 +171,10 @@ export function CategoryStrip({
 /** The error page's strip: the same tiles, links only, no values and no data read. */
 export function StaticStrip({ locale }: { locale: Locale }) {
   return (
-    <nav aria-label={locale === 'ru' ? 'Категории рейтинга' : 'Leaderboard categories'}>
+    <nav
+      className="leaderboard-strip"
+      aria-label={locale === 'ru' ? 'Категории рейтинга' : 'Leaderboard categories'}
+    >
       <div className="leaderboard-tiles">
         {groups.map(([group, keys]) => (
           <div
@@ -169,7 +192,7 @@ export function StaticStrip({ locale }: { locale: Locale }) {
                   key={key}
                   size="compact"
                   href={categoryHref(key, 'all')}
-                  label={categoryName(key, locale)}
+                  label={tileLabel(key, locale)}
                   ariaLabel={categoryName(key, locale)}
                   value={null}
                 />

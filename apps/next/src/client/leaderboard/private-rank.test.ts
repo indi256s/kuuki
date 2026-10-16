@@ -49,6 +49,7 @@ it.each([
         display_name: null,
         avatar_url: null,
         avatar_face: null,
+        aircraft: null,
       },
       period: 'publication',
     })

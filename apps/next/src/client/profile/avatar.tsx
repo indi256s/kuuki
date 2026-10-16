@@ -12,6 +12,10 @@ export function avatarFace(id: string, face?: string | null): AvatarFace {
   return isAvatarFace(face) ? face : AVATAR_FACES[stringHash(id) % AVATAR_FACES.length]!
 }
 
+/** A member's stamp ink, derived from the id like the generated face; the leaderboard lanes paint liveries in it. */
+export const avatarInk = (id: string) =>
+  `var(--stamp-ink-${INKS[Math.floor(stringHash(id) / AVATAR_FACES.length) % INKS.length]})`
+
 /** The generated face alone: ink eyes on a tint of the same ink. Color always follows the id. */
 export function AvatarFaceMark({ id, face }: { id: string; face?: string | null }) {
   const character = avatarFace(id, face)
@@ -23,7 +27,7 @@ export function AvatarFaceMark({ id, face }: { id: string; face?: string | null 
       data-face={character}
       style={
         {
-          '--avatar-ink': `var(--stamp-ink-${INKS[Math.floor(hash / AVATAR_FACES.length) % INKS.length]})`,
+          '--avatar-ink': avatarInk(id),
           // A negative delay spreads the blinks so a list of faces never blinks in unison.
           '--avatar-blink-delay': `-${hash % 9}s`,
         } as CSSProperties

@@ -15,6 +15,19 @@ export const categories: Record<LeaderboardCategory, [string, string]> = {
   road: ['Road trips', 'Автопутешествия'],
   ground_countries: ['Countries by land', 'Страны по земле'],
 }
+/** Tile labels: short, because the group ("In the sky" / "On the ground") already says which countries. */
+export const tileLabels: Record<LeaderboardCategory, [string, string]> = {
+  flights: ['Flights', 'Перелёты'],
+  distance: ['Distance', 'Расстояние'],
+  countries: ['Countries', 'Страны'],
+  cities: ['Airports', 'Аэропорты'],
+  airlines: ['Airlines', 'Авиакомпании'],
+  rail: ['Trains', 'Поезда'],
+  road: ['Cars', 'Машины'],
+  ground_countries: ['Countries', 'Страны'],
+}
+export const tileLabel = (category: LeaderboardCategory, locale: Locale) =>
+  tileLabels[category][locale === 'ru' ? 1 : 0]
 export type CategoryGroup = 'sky' | 'ground'
 export const categoryGroups: [CategoryGroup, readonly LeaderboardCategory[]][] = [
   ['sky', SKY_CATEGORIES],

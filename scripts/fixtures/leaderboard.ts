@@ -31,6 +31,19 @@ const LEADERBOARD_NAMES = [
   'Farah',
   'Pavel',
 ]
+// Each member's flights carry one type, so the race lanes show a mixed fleet; every seventh flies untyped (generic).
+const LEADERBOARD_TYPES = [
+  'A388',
+  'B788',
+  'A21N',
+  'E170',
+  'DH8B',
+  'B738',
+  null,
+  'A359',
+  'B77W',
+  'SU95',
+]
 // [member index or 'road-only', rail, road, countries]: ground members publish all countries.
 const LEADERBOARD_GROUND: Array<[number | 'road-only', number, number, string[]]> = [
   [1, 4, 1, ['DE', 'AT', 'CH', 'IT']],
@@ -119,7 +132,7 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
       statements.push(
         db
           .prepare(
-            "INSERT INTO flights(user_id,date,origin,destination,distance_km,airline_iata,is_upcoming,enrichment_status) VALUES(?,?,?,?,?,?,0,'skipped')",
+            "INSERT INTO flights(user_id,date,origin,destination,distance_km,airline_iata,aircraft_icao,is_upcoming,enrichment_status) VALUES(?,?,?,?,?,?,?,0,'skipped')",
           )
           .bind(
             id,
@@ -128,6 +141,7 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
             i % 2 ? 'TBS' : 'IST',
             1290 + index,
             index % 2 ? 'TK' : 'J2',
+            LEADERBOARD_TYPES[index % LEADERBOARD_TYPES.length],
           ),
       )
     if (ground) {

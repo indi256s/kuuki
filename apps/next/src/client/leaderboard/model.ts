@@ -43,6 +43,7 @@ export const sharer = (place: ViewerPlace | null) =>
 export type TileModel =
   | { kind: 'rank'; rank: number; shared: boolean; name: string }
   | { kind: 'text'; text: string; name: string }
+  | { kind: 'progress'; have: number; need: number; text: string; name: string }
   | { kind: 'lock'; name: string }
 
 /** What a category tile shows and how it is named, for the viewer (or the leader, for a guest). */
@@ -74,8 +75,10 @@ export function tileModel(
   const place = viewerPlace(payload, category, period)
   if (place?.state === 'progress') {
     return {
-      kind: 'text',
-      text: `${place.have}/${place.need}`,
+      kind: 'progress',
+      have: place.have,
+      need: place.need,
+      text: ru ? `${place.have} из ${place.need}` : `${place.have} of ${place.need}`,
       name: ru
         ? `${label}, ${place.have} из ${place.need} для участия`
         : `${label}, ${place.have} of ${place.need} to join`,
