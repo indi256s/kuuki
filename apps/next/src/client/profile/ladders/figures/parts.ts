@@ -112,8 +112,12 @@ export function spline(rows: readonly (readonly number[])[]): (s: number) => num
 
 // ---------------------------------------------------------------- lathe
 
-/** One cross-section of a turned or lofted body: half-width `r` along u, half-height `rz` along v (defaults to r), centre lifted `lift` along v. */
-export type Section = { r: number; rz?: number; lift?: number }
+/**
+ * One cross-section of a turned or lofted body: half-width `r` along u, half-height `rz` along v (defaults to r), centre lifted `lift` along v.
+ * Optional: `rzDown`, the half-height below the centre when it differs from `rz` (a canopy that sits on a deck), and `n`, a superellipse
+ * exponent (2 is the ellipse; higher squares the section off: upright flanks with rounded shoulders).
+ */
+export type Section = { r: number; rz?: number; lift?: number; rzDown?: number; n?: number }
 
 export type LatheOpts = {
   /** Segments along the axis (more for long curved bodies). */
@@ -178,8 +182,12 @@ export function lathe(
     width = o.width ?? 1
   const geo = (t: number) => {
     const q = sec(t)
-    return { r: q.r, rz: q.rz ?? q.r, lift: q.lift ?? 0 }
+    const rz = q.rz ?? q.r
+    return { r: q.r, rz, lift: q.lift ?? 0, rzDown: q.rzDown ?? rz, n: q.n ?? 2 }
   }
+  /** Sections that are not plain ellipses take the numeric path for points and normals. */
+  const plain = (g: ReturnType<typeof geo>) => g.n === 2 && g.rzDown === g.rz
+  const se = (c: number, n: number) => (n === 2 ? c : Math.sign(c) * Math.pow(Math.abs(c), 2 / n))
   const h = Math.max(1e-4, (s1 - s0) * 1e-4)
   const deriv = (t: number) => {
     const a = geo(Math.max(s0, t - h)),
@@ -190,16 +198,33 @@ export function lathe(
   const at = (t: number, deg: number, lift = 0): P3 => {
     const g = geo(t),
       th = deg * D2R
+    const sn = Math.sin(th)
     return comb(
       F.o,
       [t, F.a],
-      [(g.r + lift) * Math.cos(th), F.u],
-      [g.lift + (g.rz + lift) * Math.sin(th), F.v],
+      [(g.r + lift) * se(Math.cos(th), g.n), F.u],
+      [g.lift + ((sn >= 0 ? g.rz : g.rzDown) + lift) * se(sn, g.n), F.v],
     )
   }
+  /** Outward normal by finite differences, for sections that are not plain ellipses. */
+  const numericNormal = (t: number, th: number): P3 => {
+    const e = 1e-3,
+      dt = Math.max(1e-4, (s1 - s0) * 1e-4)
+    const p = (tt: number, a: number) => at(Math.min(s1, Math.max(s0, tt)), a / D2R)
+    const da = sub(p(t, th + e), p(t, th - e))
+    const ds = sub(p(t + dt, th), p(t - dt, th))
+    let n = cross(ds, da)
+    if (len(n) < 1e-12) return unit(mul(F.a, t > (s0 + s1) / 2 ? 1 : -1))
+    // Outward: away from the section's centre.
+    const g = geo(t)
+    const c = comb(F.o, [t, F.a], [g.lift, F.v])
+    if (dot(n, sub(p(t, th), c)) < 0) n = mul(n, -1)
+    return unit(n)
+  }
   const normalRad = (t: number, th: number): P3 => {
-    const g = geo(t),
-      d = deriv(t),
+    const g = geo(t)
+    if (!plain(g)) return numericNormal(t, th)
+    const d = deriv(t),
       c = Math.cos(th),
       sn = Math.sin(th)
     const na = -(d.r * g.rz * c * c + g.r * sn * (d.lift + d.rz * sn))
@@ -237,6 +262,14 @@ export function lathe(
       d = deriv(t)
     const g = new Float64Array(FM),
       b = new Float64Array(FM)
+    if (!plain(q)) {
+      for (let j = 0; j < FM; j++) {
+        const n = numericNormal(t, (j / FM) * 2 * Math.PI)
+        g[j] = dot(n, VIEW)
+        b[j] = dot(n, LIGHT)
+      }
+      return { g, b }
+    }
     for (let j = 0; j < FM; j++) {
       const c = COS[j],
         sn = SIN[j]
