@@ -16,7 +16,10 @@
 //   * Two periods: `all` and the current UTC calendar year (`YYYY`). Thresholds are judged on all-time
 //     totals in both periods, so nobody drops out of the year board for flying little this year.
 //   * A zero value is not ranked, except in all-time sky categories (parity: everyone eligible ranks there).
+//   * Lane vehicles ride in metadata: sky rows carry the most-flown aircraft type, ground Countries rows the mode the
+//     member covered more distance by (2026-10-16).
 
+import { parsePlaceSnapshot, segmentKm } from '../../../packages/shared/src/groundTravel'
 import { nowIso } from '../_lib/time'
 import {
   currentPeriod,
@@ -82,6 +85,56 @@ const topAircraft = (year: boolean) => `
           GROUP BY user_id, UPPER(TRIM(aircraft_icao))))
   WHERE pick = 1`
 
+/** A stored place snapshot, or null when it does not parse; the distance then skips that segment. */
+const place = (json: string) => {
+  try {
+    return parsePlaceSnapshot(JSON.parse(json))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Rail and road kilometres per member over completed journeys, all time and by start year. Straight-line segments
+ * between consecutive places, as the ground totals draw them; a segment without coordinates counts nothing.
+ */
+function groundKm(
+  legs: Array<{ user_id: string; start_date: string | null; from_place: string; to_place: string }>,
+  points: Array<{ user_id: string; journey_id: string; start_date: string | null; place: string }>,
+  year: string,
+) {
+  const all = new Map<string, { rail: number; road: number }>()
+  const inYear = new Map<string, { rail: number; road: number }>()
+  const add = (userId: string, start: string | null, mode: 'rail' | 'road', km: number | null) => {
+    if (!km) return
+    const books = start?.startsWith(year) ? [all, inYear] : [all]
+    for (const book of books) {
+      const kms = book.get(userId) ?? { rail: 0, road: 0 }
+      kms[mode] += km
+      book.set(userId, kms)
+    }
+  }
+  for (const leg of legs) {
+    const from = place(leg.from_place)
+    const to = place(leg.to_place)
+    add(leg.user_id, leg.start_date, 'rail', from && to ? segmentKm(from, to) : null)
+  }
+  // Points arrive ordered by journey, then ordinal.
+  for (let i = 1; i < points.length; i += 1) {
+    const [a, b] = [points[i - 1], points[i]]
+    if (a.journey_id !== b.journey_id) continue
+    const from = place(a.place)
+    const to = place(b.place)
+    add(b.user_id, b.start_date, 'road', from && to ? segmentKm(from, to) : null)
+  }
+  // More rail kilometres run the locomotive; anything else, including no known distance, drives the car.
+  const vehicle = (book: typeof all) => (userId: string) => {
+    const kms = book.get(userId)
+    return kms && kms.rail > kms.road ? 'rail' : 'road'
+  }
+  return { all: vehicle(all), year: vehicle(inYear) }
+}
+
 /**
  * Full rebuild of `leaderboard_cache`: DELETE all rows, then INSERT one row per ranked member per category
  * per period, in one batch.
@@ -133,12 +186,25 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
     db.prepare(groundTotals(year)),
     db.prepare(topAircraft(false)),
     db.prepare(topAircraft(true)).bind(year),
+    db.prepare(
+      `SELECT l.user_id, j.start_date, l.from_place, l.to_place
+       FROM ground_rail_legs l
+       JOIN ground_journeys j ON j.id = l.journey_id AND j.user_id = l.user_id
+       WHERE j.status = 'completed'`,
+    ),
+    db.prepare(
+      `SELECT p.user_id, p.journey_id, j.start_date, p.place
+       FROM ground_road_points p
+       JOIN ground_journeys j ON j.id = p.journey_id AND j.user_id = p.user_id
+       WHERE j.status = 'completed'
+       ORDER BY p.journey_id, p.ordinal`,
+    ),
   ])
   const [sky, skyYear, ground, groundYear] = reads
     .slice(0, 4)
     .map((read) => read.results as unknown as Array<Member & Values>)
   const [aircraftAll, aircraftYear] = reads
-    .slice(4)
+    .slice(4, 6)
     .map(
       (read) =>
         new Map(
@@ -148,6 +214,12 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
           ]),
         ),
     )
+
+  const groundVehicle = groundKm(
+    reads[6].results as unknown as Parameters<typeof groundKm>[0],
+    reads[7].results as unknown as Parameters<typeof groundKm>[1],
+    year,
+  )
 
   const members = new Map<string, Member>()
   for (const row of [...sky, ...ground]) members.set(row.user_id, row)
@@ -187,6 +259,7 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
 
   const updatedAt = nowIso()
   // Sky rows add the lane aircraft for their period; a member without typed flights there flies the generic one.
+  // Ground Countries rows add the mode with more kilometres in their period.
   const metadata = (userId: string, category: LeaderboardCategory, period: string) => {
     const m = members.get(userId)
     if (!m) return '{}'
@@ -195,9 +268,11 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
       display_name: m.display_name,
       avatar_url: m.avatar_url,
       avatar_face: m.avatar_face,
-      ...(isGroundCategory(category)
-        ? {}
-        : { aircraft: (period === 'all' ? aircraftAll : aircraftYear).get(userId) ?? 'GENERIC' }),
+      ...(category === 'ground_countries'
+        ? { vehicle: (period === 'all' ? groundVehicle.all : groundVehicle.year)(userId) }
+        : isGroundCategory(category)
+          ? {}
+          : { aircraft: (period === 'all' ? aircraftAll : aircraftYear).get(userId) ?? 'GENERIC' }),
     })
   }
   const signup = (id: string) => members.get(id)?.created_at ?? ''

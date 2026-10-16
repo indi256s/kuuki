@@ -50,6 +50,7 @@ it.each([
         avatar_url: null,
         avatar_face: null,
         aircraft: null,
+        vehicle: null,
       },
       period: 'publication',
     })

@@ -38,6 +38,7 @@ const entry = (rank: number, value: number, name = `user${rank}`): LeaderboardEn
   avatar_url: null,
   avatar_face: null,
   aircraft: null,
+  vehicle: null,
 })
 const ranks = (from: number, to: number, base = 100) =>
   Array.from({ length: to - from + 1 }, (_, index) => entry(from + index, base - from - index))
@@ -175,11 +176,13 @@ it('numbers lanes with real ranks across the gap and puts medals on the top thre
   ).toEqual(['gold', 'silver', 'bronze'])
 })
 
-it('flies each member’s own aircraft in the sky and one vehicle per mode on the ground', async () => {
+it('flies each member’s own aircraft in the sky and their longer mode across ground countries', async () => {
   const user = userEvent.setup()
   const data = fixture()
   data.boards.flights.all.top[0] = { ...data.boards.flights.all.top[0], aircraft: 'B738' }
   data.boards.road.all = { top: ranks(1, 2), total: 2 }
+  const [rail, unknown] = ranks(1, 2)
+  data.boards.ground_countries.all = { top: [{ ...rail, vehicle: 'rail' }, unknown], total: 2 }
   const { container } = render(board(data))
   const vehicles = () =>
     [...container.querySelectorAll('.lane use')].map(
@@ -189,6 +192,8 @@ it('flies each member’s own aircraft in the sky and one vehicle per mode on th
   expect(screen.getByText('B738')).toBeVisible()
   await user.click(screen.getByRole('link', { name: /^Cars/ }))
   expect(vehicles()).toEqual(['lane-road', 'lane-road'])
+  await user.click(screen.getByRole('link', { name: /^Countries by land/ }))
+  expect(vehicles()).toEqual(['lane-rail', 'lane-road'])
 })
 
 it('moves focus to the first new row after Show all', async () => {

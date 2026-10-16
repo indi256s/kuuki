@@ -1,4 +1,4 @@
-// leaderboard_cache row + DTO. metadata is JSON-as-TEXT ({username, display_name, avatar_url, avatar_face, aircraft});
+// leaderboard_cache row + DTO. metadata is JSON-as-TEXT ({username, display_name, avatar_url, avatar_face, aircraft, vehicle});
 // flatten it onto the entry (the frontend reads these flat). user_id is kept so the client can
 // highlight the current user; the cache only contains public, opted-in users (see refreshLeaderboards
 // for the sky and ground gates), so exposing it here is not a privacy leak. Used by both the leaderboard list
@@ -84,6 +84,7 @@ export function toLeaderboardEntry(row: LeaderboardCacheRow) {
     avatar_url?: string
     avatar_face?: string
     aircraft?: string
+    vehicle?: string
   } = {}
   if (row.metadata) {
     try {
@@ -105,5 +106,8 @@ export function toLeaderboardEntry(row: LeaderboardCacheRow) {
     avatar_face: meta.avatar_face ?? null,
     /** Sky rows only; null on ground rows and on rows written before the lanes. */
     aircraft: meta.aircraft ? laneAircraft(meta.aircraft) : null,
+    /** Ground Countries rows only: the mode the member covered more kilometres by in the period. */
+    vehicle:
+      meta.vehicle === 'rail' || meta.vehicle === 'road' ? (meta.vehicle as 'rail' | 'road') : null,
   }
 }

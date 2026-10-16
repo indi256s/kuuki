@@ -90,6 +90,12 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
           ),
       )
   }
+  // Every journey covers Tbilisi to Kutaisi, so the mode with more journeys has more kilometres: the ground Countries
+  // lane runs a train for Kenji, the car for Ines (a tie) and Roadie.
+  const city = (id: string, name: string, lat: number, lon: number) =>
+    JSON.stringify({ source: 'geonames', id, name, countryCode: 'GE', lat, lon })
+  const TBILISI = city('611717', 'Tbilisi', 41.6941, 44.8337)
+  const KUTAISI = city('613607', 'Kutaisi', 42.2679, 42.6946)
   const journeys = (userId: string, mode: 'rail' | 'road', count: number, countries: string[]) => {
     for (let i = 0; i < count; i++) {
       const id = `${userId}-${mode}-${i}`
@@ -101,6 +107,17 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
              VALUES(?,?,?,'completed',1,?,?,?,?,?)`,
           )
           .bind(id, userId, mode, day, day, at, at, at),
+        mode === 'rail'
+          ? db
+              .prepare(
+                'INSERT INTO ground_rail_legs(id,journey_id,user_id,ordinal,from_place,to_place) VALUES(?,?,?,0,?,?)',
+              )
+              .bind(`${id}-leg`, id, userId, TBILISI, KUTAISI)
+          : db
+              .prepare(
+                'INSERT INTO ground_road_points(id,journey_id,user_id,ordinal,place) VALUES(?,?,?,?,?),(?,?,?,?,?)',
+              )
+              .bind(`${id}-p0`, id, userId, 0, TBILISI, `${id}-p1`, id, userId, 1, KUTAISI),
         ...(i === 0 ? countries : []).map((cc) =>
           db
             .prepare(

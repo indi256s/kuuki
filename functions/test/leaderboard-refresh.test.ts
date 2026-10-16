@@ -49,8 +49,19 @@ function journey(
   status: 'planned' | 'completed' | 'cancelled',
   startDate: string,
   countries: string[] = [],
+  // Places in order, [lat, lon] or null for one without coordinates: rail legs join neighbours, road points list them.
+  stops: Array<[number, number] | null> = [],
 ) {
   const id = `j${++journeyId}`
+  const place = (i: number) =>
+    JSON.stringify({
+      source: 'geonames',
+      id: String(i + 1),
+      name: `Place ${i + 1}`,
+      countryCode: 'DE',
+      lat: stops[i]?.[0] ?? null,
+      lon: stops[i]?.[1] ?? null,
+    })
   const at = '2026-01-01T00:00:00.000Z'
   return [
     db
@@ -76,6 +87,21 @@ function journey(
         )
         .bind(id, userId, cc),
     ),
+    ...stops
+      .map((_, i) =>
+        mode === 'road'
+          ? db
+              .prepare(
+                'INSERT INTO ground_road_points (id,journey_id,user_id,ordinal,place) VALUES (?,?,?,?,?)',
+              )
+              .bind(`${id}-p${i}`, id, userId, i, place(i))
+          : db
+              .prepare(
+                'INSERT INTO ground_rail_legs (id,journey_id,user_id,ordinal,from_place,to_place) VALUES (?,?,?,?,?,?)',
+              )
+              .bind(`${id}-l${i}`, id, userId, i - 1, place(i - 1), place(i)),
+      )
+      .slice(mode === 'road' ? 0 : 1),
   ]
 }
 
@@ -419,6 +445,47 @@ it('gives each sky row the most-flown drawn aircraft type of its period, else th
     expect(read.boards.rail.all.top).toEqual([
       expect.objectContaining({ user_id: 'typed', aircraft: null }),
     ])
+  } finally {
+    await dispose()
+  }
+})
+
+it('runs each ground Countries lane on the mode its member covered more kilometres by, not more journeys', async () => {
+  const { db, dispose } = await createApiDatabase()
+  const BERLIN: [number, number] = [52.52, 13.405]
+  const POTSDAM: [number, number] = [52.39, 13.065]
+  const MUNICH: [number, number] = [48.137, 11.575]
+  try {
+    await db.batch([
+      ...member(db, { id: 'trains', publication: 'all' }),
+      ...member(db, { id: 'cars', publication: 'all' }),
+      ...member(db, { id: 'blank', publication: 'all' }),
+      // Two short drives lose to one long train all time; this year only the drives count.
+      ...journey(db, 'trains', 'road', 'completed', '2026-03-01', ['DE'], [BERLIN, POTSDAM]),
+      ...journey(db, 'trains', 'road', 'completed', '2026-03-02', ['DE'], [POTSDAM, BERLIN]),
+      ...journey(db, 'trains', 'rail', 'completed', '2025-03-03', ['DE'], [BERLIN, MUNICH]),
+      ...journey(db, 'cars', 'rail', 'completed', '2026-04-01', ['DE'], [BERLIN, POTSDAM]),
+      ...journey(db, 'cars', 'rail', 'completed', '2026-04-02', ['DE'], [POTSDAM, BERLIN]),
+      ...journey(db, 'cars', 'road', 'completed', '2026-04-03', ['DE'], [BERLIN, MUNICH]),
+      // No coordinates anywhere: the car, whatever the journeys.
+      ...journey(db, 'blank', 'rail', 'completed', '2026-05-01', ['DE'], [null, BERLIN]),
+      ...journey(db, 'blank', 'rail', 'completed', '2026-05-02', ['DE']),
+      ...journey(db, 'blank', 'rail', 'completed', '2026-05-03', ['DE']),
+    ])
+    await refreshLeaderboards(db, NOW)
+    const read = await readLeaderboardBoard(db, null, NOW)
+    const vehicles = (category: 'ground_countries' | 'rail', period: string) =>
+      Object.fromEntries(
+        read.boards[category][period].top.map((entry) => [entry.user_id, entry.vehicle]),
+      )
+    expect(vehicles('ground_countries', 'all')).toEqual({
+      trains: 'rail',
+      cars: 'road',
+      blank: 'road',
+    })
+    expect(vehicles('ground_countries', '2026')).toMatchObject({ trains: 'road', cars: 'road' })
+    // Only ground Countries carries the choice; Trains and Cars draw their own vehicle.
+    expect(Object.values(vehicles('rail', 'all'))).toEqual([null, null, null])
   } finally {
     await dispose()
   }

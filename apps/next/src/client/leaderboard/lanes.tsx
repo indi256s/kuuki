@@ -40,12 +40,17 @@ const artUrl = (key: LaneVehicleKey) => {
   return typeof asset === 'string' ? asset : asset.src
 }
 
-/** Sky lanes fly the member's most-flown type (or the generic airliner); ground lanes run one locomotive or one car. */
+/**
+ * Sky lanes fly the member's most-flown type (or the generic airliner). Trains run the locomotive and Cars the car;
+ * ground Countries runs whichever the member covered more kilometres by, the car when unknown.
+ */
 export function laneVehicle(
   category: LeaderboardCategory,
   aircraft: string | null,
+  vehicle: 'rail' | 'road' | null = null,
 ): LaneVehicleKey {
   if (category === 'rail') return 'rail'
+  if (category === 'ground_countries') return vehicle ?? 'road'
   if (isGroundCategory(category)) return 'road'
   return (LANE_TYPES as readonly string[]).includes(aircraft ?? '')
     ? (aircraft as LaneVehicleKey)
@@ -86,7 +91,7 @@ function Lane({
   const ru = locale === 'ru'
   const id = useId()
   const name = entryName(entry, locale)
-  const vehicle = laneVehicle(category, entry.aircraft)
+  const vehicle = laneVehicle(category, entry.aircraft, entry.vehicle)
   const medal = !ghost && entry.rank <= 3 ? MEDALS[entry.rank - 1] : undefined
   const at = max > 0 ? Math.min(1, Math.max(0, entry.value / max)) : 0
   const type = vehicle === 'GENERIC' || vehicle === 'rail' || vehicle === 'road' ? null : vehicle
