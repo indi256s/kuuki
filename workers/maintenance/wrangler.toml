@@ -3,10 +3,10 @@ main = "./index.ts"
 compatibility_date = "2025-09-23"
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["0 * * * *"]
 
 [vars]
-MAINTENANCE_MODE = "true"
+MAINTENANCE_MODE = "false"
 
 [[d1_databases]]
 binding = "DB"
