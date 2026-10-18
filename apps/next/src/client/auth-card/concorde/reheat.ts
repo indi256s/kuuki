@@ -20,7 +20,7 @@ export type ReheatLayer = {
   step(dt: number, turning: boolean): boolean
   /** Draws the flame for the controller's current pose. */
   paint(): void
-  /** Puts the flame out at once (off screen, hidden tab). */
+  /** Puts the flame out at once (off screen, hidden tab, reduced motion). */
   reset(): void
   destroy(): void
 }
@@ -153,14 +153,18 @@ export function mountReheat(
   const canvas = stage.querySelector<HTMLCanvasElement>('.cn-reheat')
   if (typeof WebGLRenderingContext === 'undefined' || !canvas || data.plume.join() !== '0,0,1,1')
     return null
-  const layer = glLayer({
-    canvas,
-    fragment: fragment(data),
-    view: data.view,
-    camera: data.camera,
-    uniforms: ['uExit', 'uAxis', 'uLit', 'uFlash', 'uLight', 'uCover', 'uCoverInfo'],
-  })
-  if (!layer || layer.gl.getParameter(layer.gl.MAX_FRAGMENT_UNIFORM_VECTORS) < 128) return null
+  const make = () => {
+    const made = glLayer({
+      canvas,
+      fragment: fragment(data),
+      view: data.view,
+      camera: data.camera,
+      uniforms: ['uExit', 'uAxis', 'uLit', 'uFlash', 'uLight', 'uCover', 'uCoverInfo'],
+    })
+    return made && made.gl.getParameter(made.gl.MAX_FRAGMENT_UNIFORM_VECTORS) >= 128 ? made : null
+  }
+  let layer = make()
+  if (!layer) return null
   stage.setAttribute('data-gl', '')
   const exits = new Float32Array(12)
   const edges = new Float32Array(POLYS * EDGES * 3)
@@ -209,7 +213,7 @@ export function mountReheat(
     else stage.style.removeProperty('--cn-reheat')
   }
   const out = () => {
-    if (drawn) layer.clear()
+    if (drawn) layer?.clear()
     drawn = false
     warm(0)
   }
@@ -220,8 +224,23 @@ export function mountReheat(
     previous = null
     out()
   }
+  // A lost context (a GPU reset) puts the flame out, nozzle warmth included; once the browser restores it, the layer is
+  // rebuilt on the same canvas.
+  const lost = (event: Event) => {
+    event.preventDefault()
+    reset()
+    layer = null
+    stage.removeAttribute('data-gl')
+  }
+  const restored = () => {
+    layer = make()
+    if (layer) stage.setAttribute('data-gl', '')
+  }
+  canvas.addEventListener('webglcontextlost', lost)
+  canvas.addEventListener('webglcontextrestored', restored)
   return {
     step(dt, turning) {
+      if (!layer) return false
       age += dt
       const now = facing()
       if (turning && previous !== null && previous < ON && now >= ON) {
@@ -235,7 +254,7 @@ export function mountReheat(
       return lit.x > 1e-3 || flash > 1e-3
     },
     paint() {
-      if (lit.x < 1e-3 && flash < 1e-3) return out()
+      if (!layer || (lit.x < 1e-3 && flash < 1e-3)) return out()
       data.exits.forEach((point, i) => exits.set(controller.anchor('model', point).world, i * 3))
       pack()
       const light = stage.closest('[data-theme]')?.getAttribute('data-theme') === 'dark' ? 0 : 1
@@ -257,6 +276,8 @@ export function mountReheat(
     },
     reset,
     destroy() {
+      canvas.removeEventListener('webglcontextlost', lost)
+      canvas.removeEventListener('webglcontextrestored', restored)
       reset()
       stage.removeAttribute('data-gl')
     },

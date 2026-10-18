@@ -30,7 +30,8 @@ const FAST = 9
  * after the gates clear. Under reduced motion the model stands still at its rest pose.
  *
  * Once a lap, while the model turns at speed, reheat lights for a few seconds (reheat.ts): a WebGL flame over the live
- * layer. It spools down with the turn and goes out at once off screen; without WebGL the nozzles keep their glow.
+ * layer. It spools down with the turn and goes out at once off screen, under reduced motion or when the GPU drops its
+ * context; without WebGL the nozzles keep their glow.
  */
 export function ConcordeField() {
   const stage = useRef<HTMLDivElement>(null)
@@ -101,7 +102,10 @@ export function ConcordeField() {
       const target = wanted() ? SPEED : 0
       speed += (target - speed) * (1 - Math.exp(-dt / (EASE / 3)))
       angle = (angle + speed * dt) % 360
-      const burning = flame ? flame.step(dt, target > 0 && speed > SPEED / 2) : false
+      // Reduced motion puts the flame out at once; otherwise it spools down with the turn.
+      if (still.matches) flame?.reset()
+      const burning =
+        flame && !still.matches ? flame.step(dt, target > 0 && speed > SPEED / 2) : false
       // Off screen or hidden, stop at once; otherwise run until the ease-out and the reheat have settled.
       const settled = target === 0 && speed < 0.05 && !burning
       if (half && !settled) {
