@@ -6,6 +6,7 @@ import './concorde.css'
 
 type Figure = (typeof import('./concorde.generated'))['CONCORDE']
 type Runtime = (typeof import('./turn.generated.js'))['TURN']
+type Mount = (typeof import('./reheat'))['mountReheat']
 
 /** Degrees per second at full speed: one turn every 30 s. */
 const SPEED = 12
@@ -27,18 +28,23 @@ const FAST = 9
  * which is the frame the generator drew. The turn eases to a stop while the field is off screen, the page is hidden or
  * focus is inside the form (auth-card.tsx sets `data-form-focus` on the card), or the user pauses it. It eases back in
  * after the gates clear. Under reduced motion the model stands still at its rest pose.
+ *
+ * Once a lap, while the model turns at speed, reheat lights for a few seconds (reheat.ts): a WebGL flame over the live
+ * layer. It spools down with the turn and goes out at once off screen; without WebGL the nozzles keep their glow.
  */
 export function ConcordeField() {
   const stage = useRef<HTMLDivElement>(null)
-  const [figure, setFigure] = useState<{ art: Figure; turn: Runtime } | null>(null)
+  const [figure, setFigure] = useState<{ art: Figure; turn: Runtime; reheat: Mount } | null>(null)
 
   useEffect(() => {
     let alive = true
-    void Promise.all([import('./concorde.generated'), import('./turn.generated.js')]).then(
-      ([{ CONCORDE }, { TURN }]) => {
-        if (alive) setFigure({ art: CONCORDE, turn: TURN })
-      },
-    )
+    void Promise.all([
+      import('./concorde.generated'),
+      import('./turn.generated.js'),
+      import('./reheat'),
+    ]).then(([{ CONCORDE }, { TURN }, { mountReheat }]) => {
+      if (alive) setFigure({ art: CONCORDE, turn: TURN, reheat: mountReheat })
+    })
     return () => {
       alive = false
     }
@@ -50,6 +56,7 @@ export function ConcordeField() {
     const card = element.closest<HTMLElement>('.auth-card')
     const still = matchMedia('(prefers-reduced-motion: reduce)')
     const controller = figure.turn.mount(element, figure.art.data)
+    const flame = figure.reheat(element, controller, figure.art.reheat)
     let angle = 0
     let speed = 0
     let last = 0
@@ -68,6 +75,7 @@ export function ConcordeField() {
       const start = performance.now()
       controller.set({ model: at })
       controller.events()
+      flame?.paint()
       scriptMs = performance.now() - start
     }
     const after = new MessageChannel()
@@ -93,8 +101,9 @@ export function ConcordeField() {
       const target = wanted() ? SPEED : 0
       speed += (target - speed) * (1 - Math.exp(-dt / (EASE / 3)))
       angle = (angle + speed * dt) % 360
-      // Off screen or hidden, stop at once; otherwise run until the ease-out has settled.
-      const settled = target === 0 && speed < 0.05
+      const burning = flame ? flame.step(dt, target > 0 && speed > SPEED / 2) : false
+      // Off screen or hidden, stop at once; otherwise run until the ease-out and the reheat have settled.
+      const settled = target === 0 && speed < 0.05 && !burning
       if (half && !settled) {
         // Alternate frames: write the next frame's pose (one frame ahead) after this one, then show it.
         drawNext = !drawNext
@@ -113,7 +122,10 @@ export function ConcordeField() {
         after.port2.postMessage('measure')
       }
       frame = settled || !onScreen || document.hidden ? 0 : requestAnimationFrame(tick)
-      if (!frame) speed = 0
+      if (!frame) {
+        speed = 0
+        flame?.reset()
+      }
     }
     const sync = () => {
       if (frame || !wanted()) return
@@ -141,6 +153,7 @@ export function ConcordeField() {
       focus.disconnect()
       document.removeEventListener('visibilitychange', sync)
       still.removeEventListener('change', sync)
+      flame?.destroy()
       controller.destroy()
     }
   }, [figure])

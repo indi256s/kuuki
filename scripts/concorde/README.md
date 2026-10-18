@@ -22,10 +22,13 @@ overwriting outputs.
 pinned files. Updating anatomy requires reviewing the new source and generated
 output, then updating the commit and hashes together.
 
-The generator writes the four `*.generated.*` files under
-`apps/next/src/client/auth-card/concorde`. Preview pages go to
+The generator writes the six `*.generated.*` files under
+`apps/next/src/client/auth-card/concorde`, including the kit's MIT WebGL layer
+(`gl.generated.js`) for the reheat flame in `reheat.ts`. Preview pages go to
 `.scratch/concorde/concorde.html` and `concorde-light.html`; the driver is tracked
-in `preview.js`. Neither preview requires a pre-existing scratch driver. The
+in `preview.js`, and the preview inlines `reheat.ts` with its types stripped. A
+preloaded `window.__start = 216.5` (or `#216.5`) starts the turn just before
+reheat lights, for captures of the burst. Neither preview requires a pre-existing scratch driver. The
 preview discards turn diagnostics after each frame, like the production adapter.
 
 For geometry audits, use `pnpm generate:concorde --audit`; add `--quick` for a
