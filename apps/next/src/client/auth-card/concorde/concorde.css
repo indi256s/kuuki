@@ -34,8 +34,8 @@
 .auth-concorde[data-ready] {
   opacity: 1;
 }
-/* Cabin windows and engine openings share the live accent; while reheat burns (reheat.ts writes --cn-reheat, 0…1 on
-   the stage), the openings warm toward the flame's yellow-orange. */
+/* Cabin windows and engine openings share the live accent; while reheat burns in dark (reheat.ts writes --cn-reheat,
+   0…1 on the stage), the openings run white-hot like the streams' cores. */
 .auth-concorde [data-name='air.barrel'] [data-tone='lit'] circle {
   fill: var(--accent);
   opacity: 1;
@@ -46,12 +46,19 @@
 }
 .auth-concorde .cn-engine-light,
 .auth-concorde .cn-engine-glow {
-  fill: color-mix(in oklab, var(--accent), #ffb24a calc(var(--cn-reheat, 0) * 100%));
+  fill: var(--accent);
   stroke: none;
 }
-/* The reheat proxies only order the flame among the parts; the canvas draws it. In dark it adds light. */
+:root[data-theme='dark'] .auth-concorde :is(.cn-engine-light, .cn-engine-glow) {
+  fill: color-mix(in oklab, var(--accent), #fff calc(var(--cn-reheat, 0) * 50%));
+}
+/* The reheat proxies only order the streams among the parts; the canvas draws them in its colour, the accent. In dark
+   they add light. */
 .auth-concorde [data-name^='air.plume'] {
   display: none;
+}
+.auth-concorde .cn-reheat {
+  color: var(--accent);
 }
 :root[data-theme='dark'] .auth-concorde .cn-reheat {
   mix-blend-mode: screen;

@@ -799,7 +799,7 @@ if (argv.includes('--preview')) {
     readout: 'hdg 000°',
     keys: [{ mark: 'lit', label: 'Cabin windows and engines' }],
     caption: `61.66 m long, 25.6 m span; ogee wing ${area.toFixed(0)} m² as drawn (358.25 m² published).`,
-    body: `<style>${out.css}\n.cn-intake{fill:var(--anatomy-halo);opacity:.6}.iso-live [data-tone=lit] circle{fill:#ea846f}.cn-cockpit{fill:var(--anatomy-mid);stroke-width:.45}.cn-engine-light,.cn-engine-glow{fill:color-mix(in oklab,#ea846f,#ffb24a calc(var(--cn-reheat,0)*100%));stroke:none}.cn-engine-light{opacity:.85}.cn-engine-glow{filter:blur(2px);opacity:.65}[data-name^="air.plume"]{display:none}.iso:not([data-theme=light]) .cn-reheat{mix-blend-mode:screen}</style>${stage}`,
+    body: `<style>${out.css}\n.cn-intake{fill:var(--anatomy-halo);opacity:.6}.iso-live [data-tone=lit] circle{fill:#ea846f}.cn-cockpit{fill:var(--anatomy-mid);stroke-width:.45}.cn-engine-light,.cn-engine-glow{fill:#ea846f;stroke:none}.iso:not([data-theme=light]) :is(.cn-engine-light,.cn-engine-glow){fill:color-mix(in oklab,#ea846f,#fff calc(var(--cn-reheat,0)*50%))}.cn-engine-light{opacity:.85}.cn-engine-glow{filter:blur(2px);opacity:.65}[data-name^="air.plume"]{display:none}.cn-reheat{color:${theme === 'light' ? '#ec684d' : '#ea846f'}}.iso:not([data-theme=light]) .cn-reheat{mix-blend-mode:screen}</style>${stage}`,
   })
   const page = k.pageHtml({
     title: 'Concorde',
