@@ -29,9 +29,9 @@ const FAST = 9
  * focus is inside the form (auth-card.tsx sets `data-form-focus` on the card), or the user pauses it. It eases back in
  * after the gates clear. Under reduced motion the model stands still at its rest pose.
  *
- * Once a lap, while the model turns at speed, reheat lights for a few seconds (reheat.ts): a WebGL flame over the live
- * layer. It spools down with the turn and goes out at once off screen, under reduced motion or when the GPU drops its
- * context; without WebGL the nozzles keep their glow.
+ * As the model first reaches speed, then once a lap, reheat lights for a few seconds (reheat.ts): a WebGL flame over
+ * the live layer. It spools down with the turn and goes out at once off screen, under reduced motion or when the GPU
+ * drops its context; without WebGL the nozzles keep their glow.
  */
 export function ConcordeField() {
   const stage = useRef<HTMLDivElement>(null)

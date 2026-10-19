@@ -143,10 +143,10 @@ void main(){
 }`
 
 /**
- * The sign-in Concorde's afterburner: once a lap, as the tail swings toward the viewer, reheat lights with a short pop,
- * burns for HOLD seconds and spools down. A WebGL canvas over the live model draws it as beaded jet streams in the
- * canvas's CSS colour (the accent); parts the painter's order puts in front of a nacelle's clear proxy mask them. Null
- * without WebGL, where the nozzles keep their SVG glow.
+ * The sign-in Concorde's afterburner: once as the model first reaches speed, then once a lap as the tail swings toward
+ * the viewer, reheat lights with a short pop, burns for HOLD seconds and spools down. A WebGL canvas over the live
+ * model draws it as beaded jet streams in the canvas's CSS colour (the accent); parts the painter's order puts in front
+ * of a nacelle's clear proxy mask them. Null without WebGL, where the nozzles keep their SVG glow.
  */
 export function mountReheat(
   stage: HTMLElement,
@@ -176,6 +176,8 @@ export function mountReheat(
   let flash = 0
   let age = Infinity
   let burning = false
+  // Reheat also lights the first time the model reaches speed, so a visit doesn't wait most of a lap for the tail.
+  let opened = false
   let previous: number | null = null
   let drawn = false
   let warmth = ''
@@ -258,7 +260,9 @@ export function mountReheat(
       if (!layer) return false
       age += dt
       const now = facing()
-      if (turning && previous !== null && previous < ON && now >= ON) {
+      const crossed = previous !== null && previous < ON && now >= ON
+      if (turning && !burning && (!opened || crossed)) {
+        opened = true
         age = 0
         burning = true
       }
