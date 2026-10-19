@@ -46,12 +46,7 @@ export function MetricsPreview({ state, locale }: { state: FormState; locale: Lo
         <dt>{ru ? 'Расстояние' : 'Distance'}</dt>
         <dd>
           {distanceKm !== null && complete ? (
-            <>
-              {approxDistance(locale, distanceKm)}
-              <span className="gt-muted">
-                {ru ? ' по прямой между городами' : ' in a straight line between cities'}
-              </span>
-            </>
+            approxDistance(locale, distanceKm)
           ) : (
             <>
               {ru ? 'Неизвестно' : 'Unknown'}

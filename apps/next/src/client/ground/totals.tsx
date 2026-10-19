@@ -1,6 +1,6 @@
 'use client'
 // Per-mode totals of COMPLETED journeys, one quiet line per mode under the History heading. Distances are straight-line
-// approximations ("≈"); a total built from only some journeys says so (coverage note). Missing optional measures are
+// approximations; a total built from only some journeys says so (coverage note). Missing optional measures are
 // omitted, never shown as zero.
 
 import { useId } from 'react'

@@ -426,9 +426,7 @@ export function Section({ span }: { span: Span }) {
           <span>
             {copy(locale, 'In the air', 'В воздухе')}
             <strong>
-              {lead.durationMinutes === null
-                ? '—'
-                : `${lead.durationApproximate ? '≈ ' : ''}${formatDuration(locale, lead.durationMinutes)}`}
+              {lead.durationMinutes === null ? '—' : formatDuration(locale, lead.durationMinutes)}
             </strong>
           </span>
           {lead.speedKmh !== null && (

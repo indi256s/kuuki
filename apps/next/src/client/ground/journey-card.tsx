@@ -97,7 +97,7 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
     metrics.distanceKm === null ? coverageNote(locale, metrics.distanceCoverage) : ''
   const trainNote = coverageNote(locale, metrics.trainMinutesCoverage)
   const length = journeyDays(journey.startDate, journey.endDate)
-  // "≈ 9 212 km" and "17 days" read without a label; the unit is quieter than the number.
+  // "9 212 km" and "17 days" read without a label; the unit is quieter than the number.
   const [amount, unit] =
     metrics.distanceKm === null
       ? [t.distanceUnknown, '']
@@ -131,7 +131,7 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
   )
 }
 
-/** "≈ 9 212 km" → ["≈ 9 212", " km"], splitting at the last no-break space. */
+/** "9 212 km" → ["9 212", " km"], splitting at the last no-break space. */
 function splitUnit(value: string): [string, string] {
   const at = value.lastIndexOf('\u00a0')
   return at < 0 ? [value, ''] : [value.slice(0, at), value.slice(at)]

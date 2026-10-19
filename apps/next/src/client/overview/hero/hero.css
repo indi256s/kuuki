@@ -1,102 +1,130 @@
-/* The figures card: five records as rows (value over label, glyph at the end) and the winning hero line. A takeover covers the same box, so
-   its height is always the list's. */
+/* The journal total leads; static artwork leaves every fact and action available. */
 .ov3-hero-panel {
-  position: relative;
   min-width: 0;
-  min-height: 520px;
-  padding: 32px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  container: hero / inline-size;
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
 }
-/* Beside a taller map the card reaches the globe card's bottom edge. */
-@media (min-width: 1024px) {
-  [data-region='figures'] > .ov3-hero-panel:not([data-scope='ground']) {
-    flex: 1 0 auto;
-  }
-}
-/* Under По земле only distance and countries remain: the card hugs them instead of stretching to the globe's height. The figures region is
-   a flex column, so the card keeps its full width; only the very wide grid layout (page.css) needs an explicit block-axis hug. */
-.ov3-hero-panel[data-scope='ground'] {
-  min-height: 0;
-}
 @media (min-width: 2176px) {
-  [data-region='figures'] > .ov3-hero-panel[data-scope='ground'] {
+  [data-region='figures'] > .ov3-hero-panel {
     align-self: start;
   }
 }
-:root[data-theme='dark'] .ov3-hero-panel {
-  box-shadow: inset 0 1px 0 var(--surface-highlight);
+.ov3-hero-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
 }
-.ov3-hero-list {
+.ov3-hero-lead {
+  min-width: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
-.ov3-hero-estimates-mobile {
-  display: none;
+.ov3-hero-lead dt {
+  order: 1;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
 }
-@media (min-width: 1024px) {
-  .ov3-hero-row[data-record='flights'] {
-    order: 0;
-  }
-  .ov3-hero-row[data-record='km'] {
-    order: 1;
-  }
-  .ov3-hero-row[data-record='air'] {
-    order: 2;
-  }
-  .ov3-hero-row[data-record='countries'] {
-    order: 3;
-  }
-  .ov3-hero-row[data-record='airports'] {
-    order: 4;
-  }
+.ov3-hero-lead dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 5rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.ov3-hero-panel[data-scope='ground'] .ov3-hero-lead dd {
+  font-size: 2.5rem;
+  line-height: 1.125;
+}
+.ov3-hero-drawing {
+  display: grid;
+  place-items: center;
+  max-inline-size: 112px;
+  pointer-events: none;
+}
+.ov3-hero-drawing .iso {
+  max-inline-size: 100%;
+  block-size: auto;
+  --iso-lit: 1;
+  --iso-glow: 0;
+}
+.ov3-hero-facts {
+  margin: 0;
+  display: grid;
+  gap: 20px;
 }
 .ov3-hero-row {
   display: grid;
-  grid-template: 'value glyph' auto 'label glyph' auto / minmax(0, 1fr) 44px;
-  column-gap: 16px;
-  row-gap: 4px;
-  align-items: center;
+  grid-template-columns: 5.25rem minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
 }
-.ov3-hero-value {
-  grid-area: value;
+.ov3-hero-row dt {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-wrap: normal;
+}
+.ov3-hero-row dd {
+  min-width: 0;
   margin: 0;
   color: var(--text);
-  font-size: 32px;
-  line-height: 36px;
-  letter-spacing: -0.03em;
+  text-align: end;
+  font-size: 2rem;
+  line-height: 1.125;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
-.ov3-hero-row[data-record='flights'] {
-  align-items: end;
+.ov3-hero-unit {
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0;
 }
-/* The flight count links to the same flights in the Journal, under its label. */
-.ov3-hero-row:has(> .ov3-hero-journal) {
-  grid-template: 'value glyph' auto 'label glyph' auto 'journal journal' auto / minmax(0, 1fr) 44px;
+.ov3-hero-duration-part {
+  display: inline-block;
+  max-inline-size: 100%;
+}
+.ov3-hero-note {
+  display: block;
+  margin-block-start: 4px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-wrap: pretty;
 }
 .ov3-hero-journal {
-  grid-area: journal;
-  margin: 0;
   display: grid;
-  justify-items: start;
+  gap: 0;
 }
 .ov3-hero-journal a {
   min-block-size: 44px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 12px;
   color: var(--accent-text);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.5;
   font-weight: 600;
   text-decoration: none;
+}
+.ov3-hero-journal a > svg {
+  flex: none;
 }
 .ov3-hero-journal a:focus-visible {
   outline: 2px solid var(--focus);
@@ -108,139 +136,54 @@
     text-underline-offset: 3px;
   }
 }
-.ov3-hero-journal small {
+.ov3-hero-journal p {
+  margin: 0;
   color: var(--text-muted);
-  font-size: 12px;
-  line-height: 16px;
-}
-.ov3-hero-row[data-record='flights'] > .ov3-hero-value {
-  font-size: 80px;
-  line-height: 80px;
-}
-.ov3-hero-label {
-  grid-area: label;
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
-}
-.ov3-hero-glyph {
-  grid-area: glyph;
-  align-self: stretch;
-  height: 40px;
-  display: grid;
-  place-items: center;
-}
-.ov3-hero-row[data-record='flights'] > .ov3-hero-glyph {
-  align-self: end;
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 .ov3-hero-footer {
   margin: 0;
   max-width: 60ch;
   color: var(--text-muted);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
 }
-
-/* Takeover: an index rail of compact values beside the record's stage (drawing, value, label, line). */
-.ov3-takeover {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  padding: 32px 32px 32px 20px;
-  display: flex;
-  gap: 24px;
-  background: var(--surface);
-  border-radius: inherit;
-  transition: opacity var(--dur-fast) var(--ease-out);
-}
-.ov3-takeover[data-phase='closing'] {
-  opacity: 0;
-}
-.ov3-takeover-rail {
-  flex: 0 0 64px;
-  display: flex;
-  flex-direction: column;
-}
-/* 48px rows (the board's 20px entry plus its 28px gap), so a tap anywhere along the rail lands on an entry. */
-.ov3-takeover-entry {
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.ov3-takeover-tick {
-  flex: 0 0 2px;
-  height: 20px;
-  border-radius: 1px;
-}
-.ov3-takeover-entry[data-active] > .ov3-takeover-tick {
-  background: var(--accent);
-}
-.ov3-takeover-compact {
-  color: var(--text-muted);
-  font-size: 15px;
-  line-height: 20px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  transform-origin: 0 0;
-}
-.ov3-takeover-entry[data-active] > .ov3-takeover-compact {
-  color: var(--text);
-  font-weight: 600;
-}
-.ov3-takeover-stage {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  container-type: inline-size;
-}
-.ov3-takeover-drawing {
-  flex: 1;
-  min-height: 80px;
-  display: grid;
-  place-items: center;
-}
-/* The drawing is the record lit; its pose plays once (`data-posed`), and only where motion is welcome. */
-.ov3-takeover-drawing .iso {
-  --iso-lit: 1;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .ov3-takeover[data-posed] .ov3-takeover-drawing .iso {
-    --iso-move: 1;
-    --iso-dur: var(--dur-base);
+@media (max-width: 1023px) {
+  .ov3-hero-panel {
+    padding: 16px;
+    gap: 20px;
   }
-  .ov3-takeover[data-entered] .ov3-takeover-stage {
-    animation: ov3-takeover-stage var(--dur-base) var(--ease-out) both;
+  .ov3-hero-footer {
+    font-size: 0.8125rem;
+    line-height: 1.5;
   }
 }
-@keyframes ov3-takeover-stage {
-  from {
-    opacity: 0;
+@container hero (max-width: 18.75rem) {
+  .ov3-hero-row {
+    gap: 8px;
+  }
+  .ov3-hero-row dd {
+    font-size: 1.75rem;
+  }
+  .ov3-hero-drawing {
+    max-inline-size: 72px;
   }
 }
-/* As large as one line allows: about 0.6em per character of the value, between 40px and 80px. */
-.ov3-takeover-value {
-  color: var(--text);
-  font-size: clamp(40px, calc(100cqi / (var(--chars, 6) * 0.62)), 80px);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.ov3-takeover-label {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
-}
-.ov3-takeover-line {
-  margin: 0;
-  max-width: 60ch;
-  color: var(--text-muted);
-  font-size: 15px;
-  line-height: 24px;
+@container hero (max-width: 15rem) {
+  .ov3-hero-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ov3-hero-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .ov3-hero-row dd {
+    text-align: start;
+  }
+  .ov3-hero-drawing {
+    justify-self: end;
+  }
 }
 
 /* Next flight strip (next-strip.tsx). */
@@ -309,7 +252,7 @@
   display: inline-flex;
   align-items: center;
 }
-/* At the head of the figures column the strip is its own small card, so the figures card below keeps its height for the takeover.
+/* At the head of the figures column the strip is its own small card, with the figures card below it.
    The flight fills the card's left side edge to edge, so its hover and focus read as the card's; "+1 more booked" keeps the right side,
    on the date's line. Text starts at the figures card's 32px inset. Phones keep their own card on the flight button (below). */
 @media (min-width: 701px) {
@@ -378,61 +321,6 @@
   }
 }
 
-/* Compact figures while the band is one column (phones and tablets): a 2×2 core grid, airports and estimates at its foot.
-   Each value keeps one line and shrinks to its cell (about 0.6em a character), so 155 ч 2 мин never breaks between its parts. */
-@media (max-width: 1023px) {
-  .ov3-hero-panel {
-    min-height: 0;
-    padding: 16px;
-    gap: 12px;
-  }
-  .ov3-hero-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 12px;
-  }
-  .ov3-hero-row {
-    grid-template: 'value' auto 'label' auto / minmax(0, 1fr);
-    align-content: start;
-    container-type: inline-size;
-  }
-  .ov3-hero-row:has(> .ov3-hero-journal) {
-    grid-template: 'value' auto 'label' auto 'journal' auto / minmax(0, 1fr);
-  }
-  .ov3-hero-glyph,
-  .ov3-hero-estimates-desktop {
-    display: none;
-  }
-  .ov3-hero-value,
-  .ov3-hero-row[data-record='flights'] > .ov3-hero-value {
-    font-size: clamp(16px, calc(100cqi / (var(--chars, 4) * 0.6)), 32px);
-    line-height: 1.125;
-  }
-  .ov3-hero-row[data-record='airports'] {
-    align-items: baseline;
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .ov3-hero-row[data-record='airports'] > .ov3-hero-label {
-    flex: 1;
-    min-inline-size: 0;
-  }
-  .ov3-hero-row[data-record='airports'] > .ov3-hero-value {
-    order: -1;
-    font-size: 13px;
-    line-height: 20px;
-    color: var(--text-muted);
-  }
-  .ov3-hero-estimates-mobile {
-    display: inline;
-  }
-  .ov3-hero-footer {
-    font-size: 13px;
-    line-height: 20px;
-  }
-}
 @media (max-width: 700px) {
   .ov3-next-strip {
     display: flex;

@@ -84,7 +84,7 @@ it('hides the review pill at zero', () => {
   expect(screen.queryByRole('button', { name: /^Confirm/ })).not.toBeInTheDocument()
 })
 
-it('marks estimated time and incomplete distance instead of presenting exact totals', () => {
+it('preserves the incomplete-distance marker alongside estimated time', () => {
   const { container } = setup({
     summary: {
       ...summary({ distanceMissing: 1 }),
@@ -93,8 +93,7 @@ it('marks estimated time and incomplete distance instead of presenting exact tot
   })
   const totals = container.querySelector('.journal-summary')!
   expect(totals).toHaveTextContent('≥')
-  expect(totals).toHaveTextContent('≈')
-  expect(values(container)).toEqual(['74', '≥ 141,204 km', '≈ 9 d 4 h'])
+  expect(values(container)).toEqual(['74', '≥ 141,204 km', '9 d 4 h'])
 })
 
 it.each([

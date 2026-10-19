@@ -23,7 +23,6 @@ export function ManufacturersDetails() {
   if (!scope || scope.makers.status !== 'ready') return null
   const data = scope.makers.value
   const { rows } = makerRows(data)
-  const approximate = data.totals.minutesApproximate ? '≈ ' : ''
   return (
     <div className="ov3-manufacturers">
       <div className="ov3-maker-legend">
@@ -44,7 +43,7 @@ export function ManufacturersDetails() {
                   <Check className="ov3-maker-check" size={14} strokeWidth={2} aria-hidden="true" />
                 ) : null}{' '}
                 <strong>{flights(locale, row.flights)}</strong> ·{' '}
-                {number(locale, Math.round(row.km))} {copy(locale, 'km', 'км')} · {approximate}
+                {number(locale, Math.round(row.km))} {copy(locale, 'km', 'км')} ·{' '}
                 {formatDuration(locale, row.minutes)}
               </button>
             </div>

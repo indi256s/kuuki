@@ -220,8 +220,8 @@ function LegFields({
       ? undefined
       : schedule?.minutes != null
         ? ru
-          ? `По расписанию ≈ ${knownDuration(locale, schedule.minutes)}. Введите своё значение, чтобы заменить.`
-          : `From the schedule ≈ ${knownDuration(locale, schedule.minutes)}. Enter your own to replace it.`
+          ? `По расписанию ${knownDuration(locale, schedule.minutes)}`
+          : `From the schedule ${knownDuration(locale, schedule.minutes)}`
         : ru
           ? 'Если оставить пустым, время возьмётся из расписания, когда его хватает.'
           : 'Left empty, the time comes from the schedule when it has enough to go on.'

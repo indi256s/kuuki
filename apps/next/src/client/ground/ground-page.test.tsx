@@ -78,7 +78,7 @@ describe('list', () => {
     ])
   })
 
-  it('writes unknown values as words, never zero, and distances with ≈', async () => {
+  it('writes unknown values as words, never zero, and known distances in kilometres', async () => {
     mount()
     await screen.findByRole('heading', { level: 2, name: 'History' })
     const done = document.querySelector(`[data-journey-card="${undatedDone.id}"]`) as HTMLElement
@@ -86,7 +86,7 @@ describe('list', () => {
     expect(within(done).getByText(/Distance unknown/)).toBeInTheDocument()
     expect(done).not.toHaveTextContent(/\b0 km\b/)
     const dated = document.querySelector(`[data-journey-card="${recent.id}"]`) as HTMLElement
-    expect(dated).toHaveTextContent(/≈ 321\s?km/)
+    expect(dated).toHaveTextContent(/321\s?km/)
     expect(within(dated).getByText(/Rail/)).toBeInTheDocument()
   })
 
@@ -267,9 +267,7 @@ describe('detail sheet', () => {
 
   it('opens from ?journey= with the named map and the form links', async () => {
     const dialog = await openPlan()
-    expect(
-      within(dialog).getByRole('img', { name: /Approximate route: Tbilisi, Kars/ }),
-    ).toBeInTheDocument()
+    expect(within(dialog).getByRole('img', { name: /Route: Tbilisi, Kars/ })).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: 'Edit' })).toHaveAttribute(
       'href',
       expect.stringContaining(`/ground-travel/${upcoming.id}/edit?return=`),
@@ -291,7 +289,7 @@ describe('detail sheet', () => {
     await waitFor(() => expect(dialog.querySelectorAll('.gt-stop')).toHaveLength(4))
     expect(dialog.querySelectorAll('.gt-stop[data-gap]')).toHaveLength(1)
     expect(dialog.querySelectorAll('.gt-sketch-svg polyline')).toHaveLength(2)
-    const map = within(dialog).getByRole('img', { name: /Approximate route/ })
+    const map = within(dialog).getByRole('img', { name: /Route/ })
     for (const name of ['Tbilisi', 'Kars', 'Baku']) {
       expect(within(map).getByText(name, { selector: 'text' })).toBeInTheDocument()
     }

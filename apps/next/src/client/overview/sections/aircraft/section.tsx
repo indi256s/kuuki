@@ -192,16 +192,6 @@ export function Section({ span }: { span: Span }) {
     const mine = totals(behind)
     return { flights: mine.flights, km: mine.distanceKm, minutes: mine.durationMinutes }
   })()
-  // "≈" only when an estimated duration is part of this reading's time.
-  const approximate = behind.some(
-    (row) =>
-      row.durationSource === 'estimate' &&
-      row.durationMinutes !== null &&
-      Number.isFinite(row.durationMinutes) &&
-      row.durationMinutes >= 0,
-  )
-    ? '≈ '
-    : ''
   const columns = sum
     ? [
         { value: number(locale, sum.flights), label: copy(locale, 'Flights', 'Перелёты') },
@@ -211,7 +201,7 @@ export function Section({ span }: { span: Span }) {
           label: copy(locale, 'Distance', 'Расстояние'),
         },
         {
-          value: sum.minutes > 0 ? `${approximate}${formatDuration(locale, sum.minutes)}` : '—',
+          value: sum.minutes > 0 ? formatDuration(locale, sum.minutes) : '—',
           label: copy(locale, 'Time in the air', 'Время в воздухе'),
         },
       ]

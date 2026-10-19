@@ -29,6 +29,27 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+it('keeps grouped Russian hours and their unit in the flight-time total', () => {
+  const longFlight: OverviewPayload = {
+    ...payload,
+    rows: [{ ...payload.rows[0], weight: 1, durationMinutes: 60_000, durationSource: 'times' }],
+  }
+  render(
+    <OverviewPage
+      payload={longFlight}
+      prefs={DEFAULT_PREFS}
+      ownerKey="long-duration-owner"
+      name=""
+      locale="ru"
+      live={false}
+      saver={saver}
+    />,
+  )
+  const totals = screen.getByRole('region', { name: 'Итоги за период' })
+  const duration = within(totals).getByText('Время перелётов').nextElementSibling
+  expect(duration).toHaveTextContent(/1\s000\sч/)
+})
+
 it('saved exact-day preferences show unavailable monthly detail and recover after a real day-payload refresh', async () => {
   const rows = [
     { ...payload.rows[0], id: 1, date: '2024-03-01', state: 'logged' as const },

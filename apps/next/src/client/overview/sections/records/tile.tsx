@@ -29,7 +29,7 @@ export function Tile({ span }: { span: TileSpan }) {
   const detail =
     lead.durationMinutes === null
       ? route
-      : `${route} · ${lead.durationApproximate ? '≈ ' : ''}${formatDuration(locale, lead.durationMinutes)}`
+      : `${route} · ${formatDuration(locale, lead.durationMinutes)}`
   return (
     <div className="ov3-cookie">
       <div className="ov3-cookie-figure">

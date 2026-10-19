@@ -90,13 +90,13 @@ it('Fleet shows five types and changes the airplane to the picked type', () => {
   expect(view.container.querySelector('.iso-hangars')).toBeNull()
 })
 
-it('marks time in the air ≈ only when the reading itself has estimated durations', () => {
+it('shows time in the air for the picked maker and type, including estimated durations', () => {
   render(<Section span="full" />)
   const time = () => document.querySelector('.ov3-card-columns')?.textContent ?? ''
   fireEvent.click(row('Embraer'))
-  expect(time()).not.toContain('≈')
+  expect(time()).toContain('5 h 55 min')
   fireEvent.click(stage().getByRole('radio', { name: 'Fleet' }))
-  expect(time()).toContain('≈')
+  expect(time()).toContain('68 h 59 min')
 })
 
 it('hides "Only …" once the picked value is applied', () => {

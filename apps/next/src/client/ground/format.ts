@@ -1,14 +1,14 @@
 // Ground-travel wording for values that may be unknown. Unknown is a word, never zero, and every distance is
-// a straight-line approximation, so it always carries "≈".
+// a straight-line approximation.
 
 import type { Coverage } from '@kuuki/shared/groundTravel'
 import { formatDistanceKm, formatDuration, formatNumber, type Locale } from '../../lib/format'
 
 export const unknownText = (locale: Locale) => (locale === 'ru' ? 'неизвестно' : 'unknown')
 
-/** "≈ 1 234 км" or "unknown"; km is rounded to whole kilometres. */
+/** "1 234 км" or "unknown"; km is rounded to whole kilometres. */
 export function approxDistance(locale: Locale, km: number | null): string {
-  return km === null ? unknownText(locale) : `≈ ${formatDistanceKm(locale, Math.round(km))}`
+  return km === null ? unknownText(locale) : formatDistanceKm(locale, Math.round(km))
 }
 
 export function knownDuration(locale: Locale, minutes: number | null): string {

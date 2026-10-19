@@ -65,7 +65,7 @@ export function JournalHeader({
   const t = copy[locale]
   const distanceUnknown = summary.flights > 0 && summary.distanceMissing === summary.flights
   const durationUnknown = summary.flights > 0 && summary.durationMissing === summary.flights
-  const durationCue = summary.durationEstimated ? '≈ ' : summary.durationMissing > 0 ? '≥ ' : ''
+  const durationCue = summary.durationMissing > 0 ? '≥ ' : ''
   return (
     <header className="journal-header">
       <div className="journal-header-row">

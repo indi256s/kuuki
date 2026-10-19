@@ -110,8 +110,7 @@ it('renders flight rows with their status, the connector band and no per-row uni
   expect(screen.getByRole('cell', { name: /IST · 2\s+h 45\s+min transfer/ })).toBeInTheDocument()
   expect(screen.getByText('Airbus A350-900')).toBeInTheDocument()
   expect(screen.getByRole('columnheader', { name: 'Distance, km' })).toBeInTheDocument()
-  // The estimate carries the approximation sign.
-  expect(screen.getByText(/≈ 3 h 20 min/)).toBeInTheDocument()
+  expect(screen.getByText(/3 h 20 min/)).toBeInTheDocument()
 })
 
 it('keeps airline identity and the flight number when a local logo fails to load', () => {

@@ -204,7 +204,7 @@ describe('Journal detail sheet', () => {
     ])
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('Waiting for your confirmation')).toBeInTheDocument()
-    expect(within(dialog).getByText('About 2 h 40 min in the air')).toBeInTheDocument()
+    expect(within(dialog).getByText('2 h 40 min in the air')).toBeInTheDocument()
     expect(within(dialog).queryByText(/^UTC/)).toBeNull()
     expect(within(dialog).queryByText('Aircraft')).toBeNull()
     expect(within(dialog).queryByText(/^Add /)).toBeNull()

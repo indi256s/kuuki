@@ -54,9 +54,7 @@ const copy = {
     arrives: 'Arrives',
     from: 'From',
     to: 'To',
-    flightTime: (duration: string, estimated: boolean) => (estimated ? `≈ ${duration}` : duration),
-    flightTimeLabel: (duration: string, estimated: boolean) =>
-      `${estimated ? 'About ' : ''}${duration} in the air`,
+    flightTimeLabel: (duration: string) => `${duration} in the air`,
     nextDay: 'next day',
     arrival: (ordinal: number, city: string) =>
       `${ordinal}${ordinalSuffix[ordinalRules.select(ordinal)] ?? 'th'} recorded arrival in ${city}`,
@@ -71,8 +69,7 @@ const copy = {
     connection: 'Connection',
     previousLeg: 'Previous leg',
     nextLeg: 'Next leg',
-    transfer: (duration: string, airport: string, estimated: boolean) =>
-      `${estimated ? '≈ ' : ''}${duration} transfer in ${airport}`,
+    transfer: (duration: string, airport: string) => `${duration} transfer in ${airport}`,
     transferUnknown: (airport: string) => `Connection in ${airport}`,
     open: (route: string, date: string) => `Open ${route}, ${date}`,
     form: 'Edit flight',
@@ -105,9 +102,7 @@ const copy = {
     arrives: 'Прилёт',
     from: 'Откуда',
     to: 'Куда',
-    flightTime: (duration: string, estimated: boolean) => (estimated ? `≈ ${duration}` : duration),
-    flightTimeLabel: (duration: string, estimated: boolean) =>
-      `В воздухе ${estimated ? 'около ' : ''}${duration}`,
+    flightTimeLabel: (duration: string) => `В воздухе ${duration}`,
     nextDay: 'на следующий день',
     arrival: (ordinal: number, city: string) => `${city}: ${ordinal}-й прилёт в журнале`,
     facts: 'Сведения о рейсе',
@@ -121,8 +116,7 @@ const copy = {
     connection: 'Пересадка',
     previousLeg: 'Предыдущий рейс',
     nextLeg: 'Следующий рейс',
-    transfer: (duration: string, airport: string, estimated: boolean) =>
-      `Пересадка в ${airport}: ${estimated ? '≈ ' : ''}${duration}`,
+    transfer: (duration: string, airport: string) => `Пересадка в ${airport}: ${duration}`,
     transferUnknown: (airport: string) => `Пересадка в ${airport}`,
     open: (route: string, date: string) => `Открыть ${route}, ${date}`,
     form: 'Изменить перелёт',
@@ -314,7 +308,6 @@ function JourneyReading({ flight, payload, locale, t, onOpenFlight }: ReadingPro
         ? t.nextDay
         : formatDateOnly(locale, arrival.day, 'medium')
       : null
-  const estimated = flight.duration_source === 'estimate'
   const duration = positive(flight.duration_minutes)
     ? formatDuration(locale, flight.duration_minutes!)
     : null
@@ -388,11 +381,7 @@ function JourneyReading({ flight, payload, locale, t, onOpenFlight }: ReadingPro
         <span className="jd-meta">
           {leg.minutes === null
             ? t.transferUnknown(leg.airport)
-            : t.transfer(
-                formatDuration(locale, leg.minutes),
-                leg.airport,
-                leg.label === 'estimated',
-              )}
+            : t.transfer(formatDuration(locale, leg.minutes), leg.airport)}
         </span>
       </div>
     )
@@ -406,8 +395,8 @@ function JourneyReading({ flight, payload, locale, t, onOpenFlight }: ReadingPro
         <p className="jd-span">
           {duration && (
             <>
-              <span aria-hidden="true">{t.flightTime(duration, estimated)}</span>
-              <span className="sr-only">{t.flightTimeLabel(duration, estimated)}</span>
+              <span aria-hidden="true">{duration}</span>
+              <span className="sr-only">{t.flightTimeLabel(duration)}</span>
             </>
           )}
         </p>

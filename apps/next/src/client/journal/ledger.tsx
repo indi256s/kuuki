@@ -44,10 +44,8 @@ const copy = {
     notRecorded: 'Not recorded',
     km: 'km',
     routeName: (origin: string, destination: string) => `${origin} to ${destination}`,
-    connection: (airport: string, duration: string | null, estimated: boolean) =>
-      duration === null
-        ? `${airport} · connection`
-        : `${airport} · ${estimated ? '≈ ' : ''}${duration} transfer`,
+    connection: (airport: string, duration: string | null) =>
+      duration === null ? `${airport} · connection` : `${airport} · ${duration} transfer`,
   },
   ru: {
     caption: 'Перелёты',
@@ -65,10 +63,8 @@ const copy = {
     notRecorded: 'Нет данных',
     km: 'км',
     routeName: (origin: string, destination: string) => `из ${origin} в ${destination}`,
-    connection: (airport: string, duration: string | null, estimated: boolean) =>
-      duration === null
-        ? `${airport} · пересадка`
-        : `${airport} · пересадка ${estimated ? '≈ ' : ''}${duration}`,
+    connection: (airport: string, duration: string | null) =>
+      duration === null ? `${airport} · пересадка` : `${airport} · пересадка ${duration}`,
   },
 } as const
 
@@ -176,7 +172,7 @@ const FlightRow = memo(function FlightRow({
     destination?.city ?? destination?.name ?? flight.destination,
   ]
   const duration = positive(flight.duration_minutes)
-    ? `${flight.duration_source === 'estimate' ? '≈ ' : ''}${formatDuration(locale, flight.duration_minutes!)}`
+    ? formatDuration(locale, flight.duration_minutes!)
     : null
   const distance = positive(flight.distance_km) ? formatNumber(locale, flight.distance_km!) : null
   const name = [
@@ -347,7 +343,7 @@ function ConnectorRow({
   return (
     <tr role="row" className="jr-row" data-kind="connector">
       <td role="cell" colSpan={columns} className="jr-connector">
-        {copy[locale].connection(item.airport, duration, item.estimated)}
+        {copy[locale].connection(item.airport, duration)}
       </td>
     </tr>
   )
@@ -470,7 +466,6 @@ export function JournalLedger({
                       item.minutes === null
                         ? null
                         : formatDuration(locale, Math.max(0, item.minutes)),
-                      item.estimated,
                     )}
                   </div>
                 </div>
