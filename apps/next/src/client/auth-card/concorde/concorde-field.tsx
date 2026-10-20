@@ -19,6 +19,11 @@ const EASE = 0.7
  */
 const SLOW = 14
 const FAST = 9
+/**
+ * A click with the tail out of sight spins the turntable up to SPIN degrees per second (80ms follow) until the tail comes
+ * round, so reheat pops in view; then the spin coasts back to the turn's own pace (250ms follow).
+ */
+const SPIN = 240
 
 /**
  * The brand panel's decoration: the くうき watermark with a 1:200 Concorde display model turning slowly on its stand
@@ -31,7 +36,8 @@ const FAST = 9
  *
  * As the model first reaches speed, then once a lap, reheat lights for a few seconds (reheat.ts): a WebGL flame over
  * the live layer. It spools down with the turn and goes out at once off screen, under reduced motion or when the GPU
- * drops its context; without WebGL the nozzles keep their glow.
+ * drops its context; without WebGL the nozzles keep their glow. A click on the model lights it too, turning or parked:
+ * at once with the tail in view, otherwise after a quick spin brings the tail round. Pause stays as it was.
  */
 export function ConcordeField() {
   const stage = useRef<HTMLDivElement>(null)
@@ -60,6 +66,8 @@ export function ConcordeField() {
     const flame = figure.reheat(element, controller, figure.art.reheat)
     let angle = 0
     let speed = 0
+    let spin = 0
+    let launching = false
     let last = 0
     let frame = 0
     let onScreen = false
@@ -101,18 +109,27 @@ export function ConcordeField() {
       last = now
       const target = wanted() ? SPEED : 0
       speed += (target - speed) * (1 - Math.exp(-dt / (EASE / 3)))
-      angle = (angle + speed * dt) % 360
+      spin += ((launching ? SPIN : 0) - spin) * (1 - Math.exp(-dt / (launching ? 0.08 : 0.25)))
+      angle = (angle + (speed + spin) * dt) % 360
       // Reduced motion puts the flame out at once; otherwise it spools down with the turn.
-      if (still.matches) flame?.reset()
+      if (still.matches) {
+        flame?.reset()
+        launching = false
+        spin = 0
+      }
+      if (launching && flame?.showing()) {
+        launching = false
+        flame.launch()
+      }
       const burning =
         flame && !still.matches ? flame.step(dt, target > 0 && speed > SPEED / 2) : false
-      // Off screen or hidden, stop at once; otherwise run until the ease-out and the reheat have settled.
-      const settled = target === 0 && speed < 0.05 && !burning
+      // Off screen or hidden, stop at once; otherwise run until the ease-out, the spin and the reheat have settled.
+      const settled = target === 0 && speed < 0.05 && !launching && spin < 0.05 && !burning
       if (half && !settled) {
         // Alternate frames: write the next frame's pose (one frame ahead) after this one, then show it.
         drawNext = !drawNext
         if (drawNext) {
-          next = (angle + speed * dt) % 360
+          next = (angle + (speed + spin) * dt) % 360
           after.port2.postMessage('write')
         } else {
           renderedAt = performance.now()
@@ -127,7 +144,8 @@ export function ConcordeField() {
       }
       frame = settled || !onScreen || document.hidden ? 0 : requestAnimationFrame(tick)
       if (!frame) {
-        speed = 0
+        speed = spin = 0
+        launching = false
         flame?.reset()
       }
     }
@@ -136,6 +154,16 @@ export function ConcordeField() {
       last = 0
       frame = requestAnimationFrame(tick)
     }
+    // Pointer only: the field is decorative and aria-hidden, so the toy adds no tab stop before the form.
+    const launch = () => {
+      if (!flame || still.matches) return
+      if (flame.showing()) flame.launch()
+      else launching = true
+      if (frame) return
+      last = 0
+      frame = requestAnimationFrame(tick)
+    }
+    element.addEventListener('click', launch)
     const observer = new IntersectionObserver((entries) => {
       onScreen = entries[entries.length - 1]!.isIntersecting
       sync()
@@ -152,6 +180,7 @@ export function ConcordeField() {
     still.addEventListener('change', sync)
     return () => {
       cancelAnimationFrame(frame)
+      element.removeEventListener('click', launch)
       after.port1.close()
       observer.disconnect()
       focus.disconnect()

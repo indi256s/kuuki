@@ -16,8 +16,12 @@ export type Reheat = {
 }
 
 export type ReheatLayer = {
-  /** Advances the burn by `dt` seconds; `turning` says the model is under way. True while the flame shows. */
+  /** Advances the burn by `dt` seconds; `turning` says the model is under way. True while reheat burns or still shows. */
   step(dt: number, turning: boolean): boolean
+  /** Lights reheat now, pop included, and burns HOLD seconds whether or not the model turns (a click on the model). */
+  launch(): void
+  /** True when the tail is round far enough for the streams to show: the aft axis at least side-on to the viewer. */
+  showing(): boolean
   /** Draws the flame for the controller's current pose. */
   paint(): void
   /** Puts the flame out at once (off screen, hidden tab, reduced motion). */
@@ -144,9 +148,10 @@ void main(){
 
 /**
  * The sign-in Concorde's afterburner: once as the model first reaches speed, then once a lap as the tail swings toward
- * the viewer, reheat lights with a short pop, burns for HOLD seconds and spools down. A WebGL canvas over the live
- * model draws it as beaded jet streams in the canvas's CSS colour (the accent); parts the painter's order puts in front
- * of a nacelle's clear proxy mask them. Null without WebGL, where the nozzles keep their SVG glow.
+ * the viewer (or whenever the model is clicked: `launch`), reheat lights with a short pop, burns for HOLD seconds and
+ * spools down. A WebGL canvas over the live model draws it as beaded jet streams in the canvas's CSS colour (the
+ * accent); parts the painter's order puts in front of a nacelle's clear proxy mask them. Null without WebGL, where the
+ * nozzles keep their SVG glow.
  */
 export function mountReheat(
   stage: HTMLElement,
@@ -178,6 +183,8 @@ export function mountReheat(
   let burning = false
   // Reheat also lights the first time the model reaches speed, so a visit doesn't wait most of a lap for the tail.
   let opened = false
+  // A launched burn keeps its HOLD when the turn stops; the turn's own burns spool down with it.
+  let launched = false
   let previous: number | null = null
   let drawn = false
   let warmth = ''
@@ -237,7 +244,7 @@ export function mountReheat(
   const reset = () => {
     lit.x = lit.v = flash = 0
     age = Infinity
-    burning = false
+    burning = launched = false
     previous = null
     out()
   }
@@ -267,11 +274,17 @@ export function mountReheat(
         burning = true
       }
       previous = now
-      if (burning && (age > HOLD || !turning)) burning = false
+      if (burning && (age > HOLD || (!turning && !launched))) burning = launched = false
       settle(lit, burning ? 1 : 0, dt, burning ? 0.12 : 0.35)
       flash = burst(age, 0.06, 0.16)
-      return lit.x > 1e-3 || flash > 1e-3
+      return burning || lit.x > 1e-3 || flash > 1e-3
     },
+    launch() {
+      if (!layer) return
+      opened = launched = burning = true
+      age = 0
+    },
+    showing: () => facing() >= ON,
     paint() {
       if (!layer || (lit.x < 1e-3 && flash < 1e-3)) return out()
       data.exits.forEach((point, i) => exits.set(controller.anchor('model', point).world, i * 3))

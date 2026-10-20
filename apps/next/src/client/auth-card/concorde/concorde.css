@@ -63,6 +63,17 @@
 :root[data-theme='dark'] .auth-concorde .cn-reheat {
   mix-blend-mode: screen;
 }
+/* A click on the model lights reheat (concorde-field.tsx), so the stage takes the pointer the brand field otherwise
+   passes through, while the streams can draw (data-gl, set by reheat.ts) and motion is allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  .auth-concorde .iso-stage[data-gl] {
+    pointer-events: auto;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+}
 .auth-concorde .cn-engine-light {
   opacity: 0.85;
 }
