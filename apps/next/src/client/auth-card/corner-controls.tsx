@@ -2,37 +2,27 @@
 
 import { useLocale } from '../preferences'
 
-import { useState, type ReactNode } from 'react'
-import { CircleQuestion as CircleHelp, Globe, Pause, Play } from '@keyline-icons/react'
+import type { ReactNode } from 'react'
+import { Pause, Play } from '@keyline-icons/react'
 import { setLocale } from '../appearance'
 import { useAppearance } from '../preferences'
-import { Dialog } from '../ui/dialog'
 import type { Locale } from '../../lib/format'
 import { HorizonToggle } from './horizon-toggle'
 import './auth-card.css'
 
 const words = {
-  en: {
-    language: 'Language',
-    help: 'Help',
-    pause: 'Pause animation',
-    close: 'Close',
-    about: 'About Kuuki',
-    body: ['Kuuki is a private flight journal.', 'Your flights stay private until you share them.'],
-  },
-  ru: {
-    language: 'Язык',
-    help: 'Помощь',
-    pause: 'Приостановить анимацию',
-    close: 'Закрыть',
-    about: 'О Kuuki',
-    body: [
-      'Kuuki — личный журнал перелётов.',
-      'Перелёты видны только вам, пока вы ими не поделитесь.',
-    ],
-  },
+  en: { pause: 'Pause animation' },
+  ru: { pause: 'Приостановить анимацию' },
 }
 
+/** Each language names itself, so the switch reads the same to someone who cannot read the current page. */
+const endonyms: Record<Locale, string> = { en: 'English', ru: 'Русский' }
+
+/**
+ * Two languages need no picker: the button names the other one in its own language and switches to it in one tap.
+ * The page itself shows the current language. Both names share one grid cell, so the button keeps the wider name's
+ * width and its neighbours stay put when the label swaps.
+ */
 function LanguageControl({
   locale,
   onLocaleChange = setLocale,
@@ -40,47 +30,26 @@ function LanguageControl({
   locale: Locale
   onLocaleChange?: (locale: Locale) => void
 }) {
-  const current = useAppearance(locale).locale
+  const other: Locale = useAppearance(locale).locale === 'ru' ? 'en' : 'ru'
   return (
-    <span className="auth-corner-control" data-kind="language">
-      <Globe size={16} strokeWidth={1.75} aria-hidden="true" />
-      <span aria-hidden="true">{current.toUpperCase()}</span>
-      <select
-        aria-label={words[locale].language}
-        value={current}
-        onChange={(event) => onLocaleChange(event.target.value as Locale)}
-      >
-        <option value="en">EN</option>
-        <option value="ru">RU</option>
-      </select>
-    </span>
-  )
-}
-
-function HelpControl({ locale }: { locale: Locale }) {
-  const [open, setOpen] = useState(false)
-  const t = words[locale]
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-      title={t.about}
-      closeLabel={t.close}
-      trigger={
-        <button type="button" className="auth-corner-control" aria-label={t.help}>
-          <CircleHelp size={16} strokeWidth={1.75} aria-hidden="true" />
-        </button>
-      }
+    <button
+      type="button"
+      className="auth-corner-control"
+      data-kind="language"
+      lang={other}
+      onClick={() => onLocaleChange(other)}
     >
-      {t.body.map((line) => (
-        <p key={line}>{line}</p>
+      {(Object.keys(endonyms) as Locale[]).map((name) => (
+        <span key={name} lang={name} aria-hidden={name !== other || undefined}>
+          {endonyms[name]}
+        </span>
       ))}
-    </Dialog>
+    </button>
   )
 }
 
 /**
- * Language, theme and help in the card corner (top right of the form panel on desktop, the band header on mobile).
+ * Animation pause, language and theme in the card corner (top right of the form panel on desktop, the band header on mobile).
  * Each control is at least 44×44. `theme` swaps the theme control; the default is the `HorizonToggle`.
  */
 export function CornerControls({
@@ -117,7 +86,6 @@ export function CornerControls({
       ) : null}
       <LanguageControl locale={locale} onLocaleChange={onLocaleChange} />
       {theme ?? <HorizonToggle locale={locale} />}
-      <HelpControl locale={locale} />
     </div>
   )
 }

@@ -23,14 +23,8 @@ const words = {
     expiredDescription: 'Links work once, for 30 minutes.',
     resend: 'Send a new link',
     signin: 'Back to sign in',
-    language: 'Language',
     darkTheme: 'Dark theme',
     pause: 'Pause animation',
-    help: 'Help',
-    close: 'Close',
-    about: 'About Kuuki',
-    helpIntro: 'Kuuki is a private flight journal.',
-    helpBody: 'Your flights stay private until you share them.',
   },
   ru: {
     title: 'С возвращением в Kuuki',
@@ -50,14 +44,8 @@ const words = {
     expiredDescription: 'Ссылка работает один раз в течение 30 минут.',
     resend: 'Отправить новую ссылку',
     signin: 'Назад ко входу',
-    language: 'Язык',
     darkTheme: 'Тёмная тема',
     pause: 'Приостановить анимацию',
-    help: 'Помощь',
-    close: 'Закрыть',
-    about: 'О Kuuki',
-    helpIntro: 'Kuuki — личный журнал перелётов.',
-    helpBody: 'Перелёты видны только вам, пока вы ими не поделитесь.',
   },
 }
 const accents = ['shu', 'ai', 'matcha', 'asagi', 'sakura']
@@ -123,8 +111,14 @@ function setup() {
   const render = () => {
     root.lang = locale
     document.title = t(state === 'set' ? 'title' : 'expiredTitle')
-    $('locale').value = locale
-    $('locale-label').textContent = locale.toUpperCase()
+    const other = locale === 'ru' ? 'en' : 'ru'
+    $('locale').lang = other
+    $('locale')
+      .querySelectorAll('span')
+      .forEach((name) => {
+        if (name.lang === other) name.removeAttribute('aria-hidden')
+        else name.setAttribute('aria-hidden', 'true')
+      })
     document.querySelectorAll('[data-i18n]').forEach((element) => {
       element.textContent = t(element.dataset.i18n)
     })
@@ -154,14 +148,6 @@ function setup() {
     render()
     $('expired-heading').focus()
   }
-
-  const help = $('help-dialog')
-  $('help').addEventListener('click', () => {
-    help.showModal()
-    $('help-title').focus()
-  })
-  $('help-close').addEventListener('click', () => help.close())
-  help.addEventListener('close', () => $('help').focus())
 
   // Reuse the card's lap calculation; SVG placement stays unchanged under reduced motion.
   document.querySelectorAll('.planes').forEach((svg) => {
@@ -221,8 +207,8 @@ function setup() {
   observer.observe(field)
   document.addEventListener('visibilitychange', syncPlanes)
 
-  $('locale').addEventListener('change', (event) => {
-    locale = event.target.value === 'ru' ? 'ru' : 'en'
+  $('locale').addEventListener('click', () => {
+    locale = locale === 'ru' ? 'en' : 'ru'
     writeCookie('kuuki_locale', locale)
     render()
   })

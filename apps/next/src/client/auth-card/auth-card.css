@@ -110,25 +110,25 @@
   background: transparent;
   color: var(--text-muted);
   font: 500 13px/20px var(--font-sans);
-  transition: background-color var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.auth-corner-control:active {
+  transform: scale(0.96);
 }
 .auth-corner-control[data-kind='language'] {
+  display: inline-grid;
+  justify-items: center;
   padding-inline: 12px;
 }
-/* The native select covers the whole control, so the hit area and the picker are the platform's own. 16px avoids iOS zoom. */
-.auth-corner-control select {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  font-size: 16px;
-  appearance: none;
+/* The other name keeps its box but leaves the accessible name, so the width never changes. */
+.auth-corner-control[data-kind='language'] > span {
+  grid-area: 1 / 1;
 }
-.auth-corner-control:has(select:focus-visible) {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+.auth-corner-control[data-kind='language'] > span[aria-hidden='true'] {
+  visibility: hidden;
 }
 /* Move the Keyline sun below the clipped sky; the horizon stays in place. */
 .auth-horizon-icon {
@@ -488,6 +488,9 @@
   .auth-horizon-sun {
     transition: none;
   }
+  .auth-corner-control:active {
+    transform: none;
+  }
   .auth-status {
     transition: none;
   }
@@ -503,16 +506,18 @@
     --edge-top-background: var(--auth-band-surface);
     --edge-bottom-background: var(--surface);
   }
+  /* The top row clears the fixed .edge-top strip, which would otherwise paint over the corner controls' focus rings. */
   .auth-page {
+    --auth-page-top: max(12px, env(safe-area-inset-top));
     display: block;
-    padding: env(safe-area-inset-top) 0 0;
+    padding: var(--auth-page-top) 0 0;
     background: var(--auth-band-surface);
   }
   .auth-card,
   :root[data-theme='dark'] .auth-card {
     flex-direction: column;
     width: 100%;
-    min-height: 100dvh;
+    min-height: calc(100dvh - var(--auth-page-top, 0px));
     border: 0;
     border-radius: 0;
     box-shadow: none;

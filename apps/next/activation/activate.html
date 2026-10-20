@@ -30,15 +30,13 @@
         display: none !important;
       }
       button,
-      input,
-      select {
+      input {
         font: inherit;
         color: inherit;
       }
       a,
       button,
-      input,
-      select {
+      input {
         outline: none;
       }
       a:focus-visible,
@@ -201,7 +199,7 @@
         gap: 28px;
       }
 
-      /* Corner controls: language, the Horizon theme toggle and help, each at least 44x44. */
+      /* Corner controls: animation pause, language and the Horizon theme toggle, each at least 44x44. */
       .corner {
         position: absolute;
         top: 36px;
@@ -227,24 +225,25 @@
         line-height: 20px;
         font-weight: 500;
         cursor: pointer;
-        transition: background-color var(--dur-fast) var(--ease-out);
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          transform var(--dur-press) var(--ease-out),
+          background-color var(--dur-fast) var(--ease-out);
       }
+      .corner-control:active {
+        transform: scale(0.96);
+      }
+      /* Both names share one cell: the other keeps its box but leaves the accessible name, so the width never changes. */
       .corner-language {
+        display: inline-grid;
+        justify-items: center;
         padding-inline: 12px;
       }
-      .corner-language select {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-        font-size: 16px;
-        appearance: none;
+      .corner-language > span {
+        grid-area: 1 / 1;
       }
-      .corner-language:has(select:focus-visible) {
-        outline: 2px solid var(--focus);
-        outline-offset: 2px;
+      .corner-language > span[aria-hidden='true'] {
+        visibility: hidden;
       }
       .icon {
         flex-shrink: 0;
@@ -270,38 +269,8 @@
         transform: translateY(16px);
       }
 
-      .help-dialog {
-        width: min(520px, calc(100vw - 32px));
-        max-height: min(calc(100dvh - 48px), 680px);
-        padding: 24px;
-        border: 0;
-        border-radius: var(--radius-lg);
-        background: var(--surface-floating);
-        color: var(--text);
-        box-shadow: var(--shadow-modal), var(--ring-floating);
-      }
       html {
         scrollbar-gutter: stable;
-      }
-      html:has(.help-dialog:modal) {
-        overflow: hidden;
-      }
-      .help-dialog::backdrop {
-        background: var(--scrim);
-      }
-      .help-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-      }
-      .help-header h2 {
-        margin: 0;
-        font-size: 22px;
-        line-height: 28px;
-      }
-      .help-dialog p {
-        margin: 16px 0 0;
       }
 
       /* Heading, field and actions (boards 2.3 and 2.4). */
@@ -467,7 +436,8 @@
         .horizon-sun {
           transition: none;
         }
-        .primary:active:not([aria-disabled='true']) {
+        .primary:active:not([aria-disabled='true']),
+        .corner-control:active {
           transform: none;
         }
         .plane,
@@ -837,25 +807,10 @@
               />
             </svg>
           </button>
-          <span class="corner-control corner-language">
-            <svg
-              class="icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM2 12H22M12 2C14.6667 5 16 8.5 16 12C16 15.5 14.6667 19 12 22C9.33333 19 8 15.5 8 12C8 8.5 9.33333 5 12 2Z"
-              />
-            </svg>
-            <span id="locale-label" aria-hidden="true">EN</span>
-            <select id="locale" aria-label="Language" data-i18n-label="language">
-              <option value="en">EN</option>
-              <option value="ru">RU</option>
-            </select>
-          </span>
+          <button id="locale" class="corner-control corner-language" type="button" lang="ru">
+            <span lang="en" aria-hidden="true">English</span>
+            <span lang="ru">Русский</span>
+          </button>
           <!-- Keyline Icons v1.8.0 geometry is inlined because activation is a standalone HTML asset. -->
           <button
             id="theme-toggle"
@@ -899,34 +854,6 @@
                   </g>
                 </g>
               </g>
-            </svg>
-          </button>
-          <button
-            id="help"
-            class="corner-control"
-            type="button"
-            aria-label="Help"
-            data-i18n-label="help"
-          >
-            <svg
-              class="icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2Z"
-              />
-              <path
-                d="M9.6 9.4C9.6 8.0745 10.6745 7 12 7C13.3255 7 14.4 8.0745 14.4 9.4C14.4 10.3689 13.8174 11.2427 12.9231 11.6154C12.3641 11.8483 12 12.3944 12 13"
-              />
-              <path
-                d="M13 17C13 17.5523 12.5523 18 12 18C11.4477 18 11 17.5523 11 17C11 16.4477 11.4477 16 12 16C12.5523 16 13 16.4477 13 17Z"
-                fill="currentColor"
-                stroke="none"
-              />
             </svg>
           </button>
         </div>
@@ -1079,30 +1006,5 @@
         </main>
       </div>
     </div>
-    <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
-      <div class="help-header">
-        <h2 id="help-title" tabindex="-1" data-i18n="about">About Kuuki</h2>
-        <button
-          id="help-close"
-          class="corner-control"
-          type="button"
-          aria-label="Close"
-          data-i18n-label="close"
-        >
-          <svg
-            class="icon"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="M7 7L17 17M17 7L7 17" />
-          </svg>
-        </button>
-      </div>
-      <p data-i18n="helpIntro">Kuuki is a private flight journal.</p>
-      <p data-i18n="helpBody">Your flights stay private until you share them.</p>
-    </dialog>
   </body>
 </html>

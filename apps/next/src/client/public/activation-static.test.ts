@@ -29,17 +29,6 @@ function boot(token = true, dark = false) {
       observe() {}
     },
   )
-  // jsdom has no native modal implementation; only adapt its open/close lifecycle. Focus comes from the page script.
-  const dialog = document.querySelector('dialog')
-  if (dialog) {
-    dialog.showModal = () => {
-      dialog.open = true
-    }
-    dialog.close = () => {
-      dialog.open = false
-      dialog.dispatchEvent(new Event('close'))
-    }
-  }
   window.eval(script)
   document.dispatchEvent(new Event('DOMContentLoaded'))
 }
@@ -176,8 +165,13 @@ it('opens without a token on the expired state, and switching language keeps the
     screen.getByRole('heading', { level: 1, name: 'This link has expired' }),
   ).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Save password' })).toBeNull()
-  fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'ru' } })
+  const language = screen.getByRole('button', { name: 'Русский' })
+  language.focus()
+  fireEvent.click(language)
   expect(document.documentElement.lang).toBe('ru')
+  expect(screen.getByRole('button', { name: 'English' })).toBe(language)
+  expect(language).toHaveFocus()
+  expect(language).toHaveAttribute('lang', 'en')
   expect(
     screen.getByRole('heading', { level: 1, name: 'Срок действия ссылки истёк' }),
   ).toBeInTheDocument()
@@ -211,32 +205,6 @@ it.each([
   expect(document.documentElement.dataset.accent).toBe(accent)
 })
 
-it('opens localised help, focuses its heading and returns focus to its trigger without changing recovery state', () => {
-  boot()
-  const help = screen.getByRole('button', { name: 'Help' })
-  fireEvent.click(help)
-  const dialog = screen.getByRole('dialog', { name: 'About Kuuki' })
-  expect(screen.getByRole('heading', { name: 'About Kuuki' })).toHaveFocus()
-  expect(dialog).toHaveTextContent('Kuuki is a private flight journal.')
-  expect(dialog).toHaveTextContent('Your flights stay private until you share them.')
-  fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-  expect(screen.queryByRole('dialog')).toBeNull()
-  expect(help).toHaveFocus()
-  fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'ru' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Помощь' }))
-  expect(screen.getByRole('dialog', { name: 'О Kuuki' })).toHaveTextContent(
-    'Kuuki — личный журнал перелётов.',
-  )
-  expect(screen.getByRole('dialog', { name: 'О Kuuki' })).toHaveTextContent(
-    'Перелёты видны только вам, пока вы ими не поделитесь.',
-  )
-  expect(screen.getByRole('heading', { name: 'О Kuuki' })).toHaveFocus()
-  fireEvent.click(screen.getByRole('button', { name: 'Закрыть' }))
-  expect(screen.getByRole('button', { name: 'Помощь' })).toHaveFocus()
-  expect(screen.getByRole('heading', { name: 'С возвращением в Kuuki' })).toBeInTheDocument()
-  expect(request).not.toHaveBeenCalled()
-})
-
 it('runs the plane field only while visible and keeps the explicit pause through focus and visibility changes', () => {
   boot()
   const plane = document.querySelector('.planes-desktop .plane')!
@@ -265,7 +233,7 @@ it('runs the plane field only while visible and keeps the explicit pause through
   visibility.mockReturnValue(false)
   document.dispatchEvent(new Event('visibilitychange'))
   expect(getComputedStyle(plane).animationPlayState).toBe('paused')
-  fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'ru' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Русский' }))
   expect(screen.getByRole('button', { name: 'Приостановить анимацию' })).toHaveAttribute(
     'aria-pressed',
     'true',

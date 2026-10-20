@@ -250,6 +250,11 @@
   overscroll-behavior: contain;
   padding: var(--space-2) var(--space-6);
 }
+/* With no footer the body is the panel's last edge: match the header's top padding. Single-class specificity keeps panels that
+   set their own body padding (the fullscreen globe) in charge. */
+:where(.ui-dialog) > .ui-panel-body:where(:last-child) {
+  padding-bottom: var(--space-5);
+}
 .ui-panel-footer {
   flex: none;
   display: flex;
