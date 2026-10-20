@@ -1,0 +1,49 @@
+diff --git a/dist/src/index.js b/dist/src/index.js
+index ae57410a970d7d47f9f1810567529df69e9d8df1..61c2173a3c7034bbffb5a690300e2847a3e1a10b 100644
+--- a/dist/src/index.js
++++ b/dist/src/index.js
+@@ -92247,7 +92247,8 @@ port.addEventListener("message", async (event) => {
+       port.postMessage({ id, error: new Error(String(error)) });
+     }
+   } finally {
+-    Atomics.store(notifyHandle, /* index */ 0, /* value */ 1);
++    // Publish THIS request's generation (never 0), not a bare flag: see fetch()
++    Atomics.store(notifyHandle, /* index */ 0, /* generation */ (id + 1) | 0);
+     Atomics.notify(notifyHandle, /* index */ 0);
+   }
+ });
+@@ -92278,13 +92279,6 @@ var SynchronousFetcher = class {
+   }
+   fetch(url44, init2) {
+     this.#ensureWorker();
+-    Atomics.store(
+-      this.#notifyHandle,
+-      /* index */
+-      0,
+-      /* value */
+-      0
+-    );
+     const id = this.#nextId++;
+     this.#channel.port1.postMessage({
+       id,
+@@ -92293,13 +92287,13 @@ var SynchronousFetcher = class {
+       headers: init2.headers,
+       body: init2.body
+     });
+-    Atomics.wait(
+-      this.#notifyHandle,
+-      /* index */
+-      0,
+-      /* value */
+-      0
+-    );
++    // Backport of cloudflare/workers-sdk#15552: wait for THIS request's generation (`id + 1`, never 0). A shared 0/1
++    // flag let a late notify from the previous reply wake this wait before its reply was queued, after which every
++    // call received the previous call's reply.
++    const generation = id + 1 | 0;
++    for (let seen = Atomics.load(this.#notifyHandle, 0); seen !== generation; seen = Atomics.load(this.#notifyHandle, 0)) {
++      Atomics.wait(this.#notifyHandle, 0, seen);
++    }
+     const message = (0, import_node_worker_threads.receiveMessageOnPort)(
+       this.#channel.port1
+     )?.message;
