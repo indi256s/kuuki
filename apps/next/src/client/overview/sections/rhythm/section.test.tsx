@@ -91,6 +91,7 @@ it('daily activity uses actual weighted leap-day evidence, applies an exact day,
   expect(screen.getByText('Monthly data only.')).toBeInTheDocument()
 })
 
+// It renders two full-year grids in two languages: about 1s locally and 2.6s on Workers Builds, which once took 5.8s.
 it('names the daily scale and the monthly base in both languages, and tells a known zero from a day with no data', () => {
   vi.stubGlobal('IntersectionObserver', undefined)
   const payload = structuredClone(fixture) as OverviewPayload
@@ -114,7 +115,7 @@ it('names the daily scale and the monthly base in both languages, and tells a kn
   view.rerender(<Section span="full" />)
   expect(screen.getByText('Завершённых перелётов в день')).toBeInTheDocument()
   expect(screen.getByText(/^Доля от самого активного месяца: \d+ перелёт/)).toBeInTheDocument()
-})
+}, 15_000)
 
 it('never reads a missing monthly measurement as zero: unmeasured and future months say no data, empty months stay 0', () => {
   vi.stubGlobal('IntersectionObserver', undefined)
