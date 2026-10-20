@@ -183,14 +183,41 @@ export function useAccentSave(profileAccent?: string | null, onFail?: () => void
   return { save, failed }
 }
 
+/** Same key as activation/activate.js, which marks its own picks. */
+const SIGNED_OUT_PICK = 'kuuki-accent-pick'
+
+/** Marks an accent picked on a signed-out page in this tab, so the next signed-in shell saves it to the profile. */
+export function rememberSignedOutPick(accent: Accent) {
+  try {
+    sessionStorage.setItem(SIGNED_OUT_PICK, accent)
+  } catch {
+    /* storage unavailable: the profile accent wins as before */
+  }
+}
+
+/** Reads and clears the signed-out pick; it counts once, for the first signed-in shell that reconciles. */
+function takeSignedOutPick(): Accent | null {
+  try {
+    const pick = sessionStorage.getItem(SIGNED_OUT_PICK)
+    sessionStorage.removeItem(SIGNED_OUT_PICK)
+    return isAccent(pick) ? pick : null
+  } catch {
+    return null
+  }
+}
+
 /**
  * The cookie bootstraps the device; once a signed-in shell mounts, a recognized profile accent (canonical or retired
  * name) wins and a retired name is rewritten canonical. A missing or unrecognized one receives the device accent.
+ * An accent picked before signing in (`picked`) wins over the profile while the device still shows it, so the pick
+ * does not flip back on arrival; an accent the device merely kept from an earlier visit does not.
  */
 export function reconcileAccent(
   profile: string | null | undefined,
   device: Accent,
+  picked: Accent | null = null,
 ): { device: Accent; save: Accent | null } {
+  if (picked && picked === device) return { device, save: profile === device ? null : device }
   const recognized = recognizeAccent(profile)
   if (!recognized) return { device, save: device }
   return { device: recognized, save: isAccent(profile) ? null : recognized }
@@ -204,7 +231,7 @@ export function AccentSync({ profileAccent }: { profileAccent: string | null }) 
       if (done.current || inOwnerScope()) return
       done.current = true
       const current = deviceAccent()
-      const plan = reconcileAccent(savedAccent ?? profileAccent, current)
+      const plan = reconcileAccent(savedAccent ?? profileAccent, current, takeSignedOutPick())
       if (plan.device !== current) setAccent(plan.device)
       if (!plan.save) return
       const controller = new AbortController(),

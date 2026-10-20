@@ -123,12 +123,31 @@
   justify-items: center;
   padding-inline: 12px;
 }
-/* The other name keeps its box but leaves the accessible name, so the width never changes. */
+/* The current language's code keeps its box, so the width never changes. */
 .auth-corner-control[data-kind='language'] > span {
   grid-area: 1 / 1;
 }
-.auth-corner-control[data-kind='language'] > span[aria-hidden='true'] {
+.auth-corner-control[data-kind='language'] > span:not([data-shown]) {
   visibility: hidden;
+}
+/* A drop of the accent: the one corner icon in colour, because it shows the choice it changes. */
+.auth-corner-control[data-kind='accent'] svg {
+  color: var(--accent);
+}
+/* Keyline puts fill="none" on the path itself, so the fill has to be set there. */
+.auth-corner-control[data-kind='accent'] svg path {
+  fill: currentColor;
+}
+/* Only the five-swatch tray: the menu hugs it instead of taking the 200px menu width. */
+.auth-accent-menu {
+  min-width: 0;
+}
+.auth-accent-menu .ui-menu-tray-row {
+  min-height: 0;
+  padding: 0;
+}
+.auth-accent-menu .ui-menu-tray {
+  grid-template-columns: repeat(var(--n), 40px);
 }
 /* Move the Keyline sun below the clipped sky; the horizon stays in place. */
 .auth-horizon-icon {

@@ -40,6 +40,7 @@ async function submit(value = 'personal-password') {
 }
 afterEach(() => {
   localStorage.clear()
+  sessionStorage.clear()
   request.mockReset()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -165,13 +166,14 @@ it('opens without a token on the expired state, and switching language keeps the
     screen.getByRole('heading', { level: 1, name: 'This link has expired' }),
   ).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Save password' })).toBeNull()
-  const language = screen.getByRole('button', { name: 'Русский' })
+  const language = screen.getByRole('button', { name: 'Русский (RU)' })
   language.focus()
   fireEvent.click(language)
   expect(document.documentElement.lang).toBe('ru')
-  expect(screen.getByRole('button', { name: 'English' })).toBe(language)
+  expect(screen.getByRole('button', { name: 'English (EN)' })).toBe(language)
   expect(language).toHaveFocus()
   expect(language).toHaveAttribute('lang', 'en')
+  expect(language.querySelector('[data-shown]')).toHaveTextContent('EN')
   expect(
     screen.getByRole('heading', { level: 1, name: 'Срок действия ссылки истёк' }),
   ).toBeInTheDocument()
@@ -233,7 +235,7 @@ it('runs the plane field only while visible and keeps the explicit pause through
   visibility.mockReturnValue(false)
   document.dispatchEvent(new Event('visibilitychange'))
   expect(getComputedStyle(plane).animationPlayState).toBe('paused')
-  fireEvent.click(screen.getByRole('button', { name: 'Русский' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Русский (RU)' }))
   expect(screen.getByRole('button', { name: 'Приостановить анимацию' })).toHaveAttribute(
     'aria-pressed',
     'true',
@@ -250,4 +252,16 @@ it('runs the plane field only while visible and keeps the explicit pause through
   expect(
     getComputedStyle(document.querySelector('.planes-desktop .plane')!).animationPlayState,
   ).toBe('paused')
+})
+
+it('applies a picked accent at once and marks it for the profile after sign-in', () => {
+  boot(false)
+  // jsdom has no popover API, so the closed tray's cells are reached directly.
+  const matcha = () => screen.getByRole('radio', { name: 'Matcha', hidden: true })
+  fireEvent.click(matcha())
+  expect(document.documentElement.dataset.accent).toBe('matcha')
+  expect(document.cookie).toContain('kuuki_accent=matcha')
+  expect(sessionStorage.getItem('kuuki-accent-pick')).toBe('matcha')
+  expect(matcha()).toHaveAttribute('aria-checked', 'true')
+  expect(screen.getByRole('button', { name: 'Accent: Matcha' })).toBeInTheDocument()
 })

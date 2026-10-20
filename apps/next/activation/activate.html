@@ -199,7 +199,7 @@
         gap: 28px;
       }
 
-      /* Corner controls: animation pause, language and the Horizon theme toggle, each at least 44x44. */
+      /* Corner controls: animation pause, language, accent and the Horizon theme toggle, each at least 44x44. */
       .corner {
         position: absolute;
         top: 36px;
@@ -233,7 +233,7 @@
       .corner-control:active {
         transform: scale(0.96);
       }
-      /* Both names share one cell: the other keeps its box but leaves the accessible name, so the width never changes. */
+      /* Both codes share one cell: the current language's code keeps its box, so the width never changes. */
       .corner-language {
         display: inline-grid;
         justify-items: center;
@@ -242,8 +242,98 @@
       .corner-language > span {
         grid-area: 1 / 1;
       }
-      .corner-language > span[aria-hidden='true'] {
+      .corner-language > span:not([data-shown]) {
         visibility: hidden;
+      }
+      /* A drop of the accent; the swatch tray opens under it, as on the sign-in card. */
+      .corner-accent .icon {
+        fill: var(--accent);
+        stroke: var(--accent);
+      }
+      .accent-menu {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+        padding: 4px;
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        background: var(--surface-floating);
+        color: var(--text);
+        box-shadow: var(--shadow-floating), var(--ring-floating);
+        transform-origin: top right;
+        opacity: 0;
+        transform: scale(0.97);
+        transition:
+          opacity var(--dur-fast) var(--ease-out),
+          transform var(--dur-fast) var(--ease-out),
+          overlay var(--dur-fast) allow-discrete,
+          display var(--dur-fast) allow-discrete;
+      }
+      .accent-menu:popover-open {
+        opacity: 1;
+        transform: none;
+      }
+      @starting-style {
+        .accent-menu:popover-open {
+          opacity: 0;
+          transform: scale(0.97);
+        }
+      }
+      .accent-tray {
+        position: relative;
+        isolation: isolate;
+        display: grid;
+        grid-template-columns: repeat(5, 40px);
+        padding: 2px;
+        border-radius: var(--radius-sm);
+        background: var(--surface-inset);
+      }
+      .accent-thumb {
+        position: absolute;
+        z-index: -1;
+        top: 2px;
+        bottom: 2px;
+        left: 2px;
+        width: 40px;
+        border-radius: 8px;
+        background: var(--surface-thumb);
+        box-shadow: var(--shadow-thumb);
+        transform: translateX(calc(var(--i, 0) * 100%));
+        transition: transform var(--dur-base) var(--ease-in-out);
+        pointer-events: none;
+      }
+      .accent-cell {
+        display: grid;
+        place-items: center;
+        height: 40px;
+        padding: 0;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        cursor: pointer;
+      }
+      .accent-tray .accent-cell:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--focus);
+      }
+      .accent-dot {
+        display: grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+      }
+      .accent-dot .icon {
+        visibility: hidden;
+        stroke-width: 3;
+      }
+      .accent-cell[aria-checked='true'] .icon {
+        visibility: visible;
+      }
+      @media (pointer: coarse) {
+        .accent-cell {
+          height: 44px;
+        }
       }
       .icon {
         flex-shrink: 0;
@@ -433,8 +523,13 @@
         .reveal,
         .primary,
         .horizon,
-        .horizon-sun {
+        .horizon-sun,
+        .accent-thumb {
           transition: none;
+        }
+        .accent-menu,
+        .accent-menu:popover-open {
+          transform: none;
         }
         .primary:active:not([aria-disabled='true']),
         .corner-control:active {
@@ -807,10 +902,158 @@
               />
             </svg>
           </button>
-          <button id="locale" class="corner-control corner-language" type="button" lang="ru">
-            <span lang="en" aria-hidden="true">English</span>
-            <span lang="ru">Русский</span>
+          <button
+            id="locale"
+            class="corner-control corner-language"
+            type="button"
+            lang="ru"
+            aria-label="Русский (RU)"
+            title="Русский"
+          >
+            <span data-code="en" aria-hidden="true">EN</span>
+            <span data-code="ru" aria-hidden="true" data-shown>RU</span>
           </button>
+          <button
+            id="accent"
+            class="corner-control corner-accent"
+            type="button"
+            popovertarget="accent-menu"
+            aria-label="Accent"
+            title="Accent"
+          >
+            <svg
+              class="icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M17.6 9.8C18.5088 11.0117 19 12.4854 19 14C19 17.866 15.866 21 12 21C8.134 21 5 17.866 5 14C5 12.4854 5.4912 11.0117 6.4 9.8L11.2 3.4C11.3889 3.1482 11.6852 3 12 3C12.3148 3 12.6111 3.1482 12.8 3.4L17.6 9.8Z"
+              />
+            </svg>
+          </button>
+          <div id="accent-menu" class="accent-menu" popover>
+            <div class="accent-tray" role="radiogroup" aria-label="Accent">
+              <span class="accent-thumb" aria-hidden="true"></span>
+              <button
+                class="accent-cell"
+                type="button"
+                role="radio"
+                aria-checked="false"
+                data-accent-option="shu"
+              >
+                <span
+                  class="accent-dot"
+                  style="background: var(--swatch-shu); color: var(--swatch-shu-ink)"
+                >
+                  <svg
+                    class="icon"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M5 12L9.66667 17L19 7" />
+                  </svg>
+                </span>
+              </button>
+              <button
+                class="accent-cell"
+                type="button"
+                role="radio"
+                aria-checked="false"
+                data-accent-option="ai"
+              >
+                <span
+                  class="accent-dot"
+                  style="background: var(--swatch-ai); color: var(--swatch-ai-ink)"
+                >
+                  <svg
+                    class="icon"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M5 12L9.66667 17L19 7" />
+                  </svg>
+                </span>
+              </button>
+              <button
+                class="accent-cell"
+                type="button"
+                role="radio"
+                aria-checked="false"
+                data-accent-option="matcha"
+              >
+                <span
+                  class="accent-dot"
+                  style="background: var(--swatch-matcha); color: var(--swatch-matcha-ink)"
+                >
+                  <svg
+                    class="icon"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M5 12L9.66667 17L19 7" />
+                  </svg>
+                </span>
+              </button>
+              <button
+                class="accent-cell"
+                type="button"
+                role="radio"
+                aria-checked="false"
+                data-accent-option="asagi"
+              >
+                <span
+                  class="accent-dot"
+                  style="background: var(--swatch-asagi); color: var(--swatch-asagi-ink)"
+                >
+                  <svg
+                    class="icon"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M5 12L9.66667 17L19 7" />
+                  </svg>
+                </span>
+              </button>
+              <button
+                class="accent-cell"
+                type="button"
+                role="radio"
+                aria-checked="false"
+                data-accent-option="sakura"
+              >
+                <span
+                  class="accent-dot"
+                  style="background: var(--swatch-sakura); color: var(--swatch-sakura-ink)"
+                >
+                  <svg
+                    class="icon"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M5 12L9.66667 17L19 7" />
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
           <!-- Keyline Icons v1.8.0 geometry is inlined because activation is a standalone HTML asset. -->
           <button
             id="theme-toggle"

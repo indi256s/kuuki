@@ -52,6 +52,18 @@ describe('AccentSync', () => {
     expect(m.patch).not.toHaveBeenCalled()
   })
 
+  it('saves an accent picked before sign-in over the profile, once', () => {
+    sessionStorage.setItem('kuuki-accent-pick', 'sakura')
+    render(<AccentSync profileAccent="ai" />)
+    expect(root.dataset.accent).toBe('sakura')
+    expect(m.patch).toHaveBeenCalledWith(
+      '/api/profiles/me',
+      { theme_color: 'sakura' },
+      expect.anything(),
+    )
+    expect(sessionStorage.getItem('kuuki-accent-pick')).toBeNull()
+  })
+
   it('sends the device accent to a profile that has none', () => {
     render(<AccentSync profileAccent={null} />)
     expect(root.dataset.accent).toBe('sakura')

@@ -25,6 +25,7 @@ const words = {
     signin: 'Back to sign in',
     darkTheme: 'Dark theme',
     pause: 'Pause animation',
+    accent: 'Accent',
   },
   ru: {
     title: 'С возвращением в Kuuki',
@@ -46,9 +47,20 @@ const words = {
     signin: 'Назад ко входу',
     darkTheme: 'Тёмная тема',
     pause: 'Приостановить анимацию',
+    accent: 'Акцент',
   },
 }
 const accents = ['shu', 'ai', 'matcha', 'asagi', 'sakura']
+// Same names as NAMES in client/ui/swatch-picker.tsx.
+const accentNames = {
+  shu: { en: 'Shu', ru: 'Шу' },
+  ai: { en: 'Ai', ru: 'Ай' },
+  matcha: { en: 'Matcha', ru: 'Матча' },
+  asagi: { en: 'Asagi', ru: 'Асаги' },
+  sakura: { en: 'Sakura', ru: 'Сакура' },
+}
+// The endonym names the language to someone who cannot read the page; the code is what the button shows.
+const languages = { en: { code: 'EN', name: 'English' }, ru: { code: 'RU', name: 'Русский' } }
 // Retired names land on their successors, as resolveAccent in lib/theme-colors.ts does; anything else is Shu.
 const retiredAccents = {
   terracotta: 'shu',
@@ -113,11 +125,26 @@ function setup() {
     document.title = t(state === 'set' ? 'title' : 'expiredTitle')
     const other = locale === 'ru' ? 'en' : 'ru'
     $('locale').lang = other
+    $('locale').setAttribute('aria-label', `${languages[other].name} (${languages[other].code})`)
+    $('locale').title = languages[other].name
     $('locale')
       .querySelectorAll('span')
-      .forEach((name) => {
-        if (name.lang === other) name.removeAttribute('aria-hidden')
-        else name.setAttribute('aria-hidden', 'true')
+      .forEach((code) => {
+        code.toggleAttribute('data-shown', code.dataset.code === other)
+      })
+    const current = root.dataset.accent
+    $('accent').setAttribute('aria-label', `${t('accent')}: ${accentNames[current][locale]}`)
+    $('accent').title = t('accent')
+    $('accent-menu').querySelector('[role="radiogroup"]').setAttribute('aria-label', t('accent'))
+    $('accent-menu')
+      .querySelectorAll('[data-accent-option]')
+      .forEach((cell, index) => {
+        const name = cell.dataset.accentOption
+        const on = name === current
+        cell.setAttribute('aria-label', accentNames[name][locale])
+        cell.setAttribute('aria-checked', String(on))
+        cell.tabIndex = on ? 0 : -1
+        if (on) $('accent-menu').style.setProperty('--i', String(index))
       })
     document.querySelectorAll('[data-i18n]').forEach((element) => {
       element.textContent = t(element.dataset.i18n)
@@ -211,6 +238,41 @@ function setup() {
     locale = locale === 'ru' ? 'en' : 'ru'
     writeCookie('kuuki_locale', locale)
     render()
+  })
+  // The swatch tray under the drop: arrows and clicks apply the accent at once, as in the sign-in card's menu.
+  const accentMenu = $('accent-menu')
+  const cells = [...accentMenu.querySelectorAll('[data-accent-option]')]
+  const pickAccent = (name) => {
+    root.dataset.accent = name
+    writeCookie('kuuki_accent', name)
+    try {
+      // Same key as rememberSignedOutPick in client/appearance.tsx: the next signed-in shell saves this pick.
+      sessionStorage.setItem('kuuki-accent-pick', name)
+    } catch {
+      // The device keeps the accent; the profile's wins after sign-in.
+    }
+    render()
+  }
+  accentMenu.addEventListener('beforetoggle', (event) => {
+    if (event.newState !== 'open') return
+    // Under the drop, right edges aligned, as the card's menu opens (align end, 6px off).
+    const box = $('accent').getBoundingClientRect()
+    accentMenu.style.top = `${box.bottom + 6}px`
+    accentMenu.style.right = `${Math.max(8, document.documentElement.clientWidth - box.right)}px`
+  })
+  accentMenu.addEventListener('toggle', (event) => {
+    if (event.newState === 'open') cells.find((cell) => cell.tabIndex === 0)?.focus()
+  })
+  cells.forEach((cell, index) => {
+    cell.addEventListener('click', () => pickAccent(cell.dataset.accentOption))
+    cell.addEventListener('keydown', (event) => {
+      const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+      if (!delta) return
+      event.preventDefault()
+      const next = cells[(index + delta + cells.length) % cells.length]
+      pickAccent(next.dataset.accentOption)
+      next.focus()
+    })
   })
   $('theme-toggle').addEventListener('click', () => {
     theme = root.dataset.theme === 'dark' ? 'light' : 'dark'
