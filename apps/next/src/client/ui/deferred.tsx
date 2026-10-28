@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 
 const subscribe = () => () => {}
 const supported = () => typeof IntersectionObserver !== 'undefined'
@@ -40,7 +40,7 @@ export function Deferred({
       }}
       style={Host === 'span' ? { display: 'block' } : undefined}
     >
-      {shown || !canObserve ? children : fallback}
+      {shown || !canObserve ? <Suspense fallback={fallback}>{children}</Suspense> : fallback}
     </Host>
   )
 }
