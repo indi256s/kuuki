@@ -657,6 +657,22 @@ Rows remain real DOM with `content-visibility: auto`. Their remembered intrinsic
 - **Footer.** "Updated N min ago" computed once, `<time>` with the absolute time in `title`.
 - **States.** Loading keeps the strip and first lanes' geometry with "Loading rankings…"; the error page keeps the heading and a static strip above the retry; a pending publication keeps the last published places.
 
+## User statistics
+
+The private `/admin/users` screen is available only to the account configured by
+server-side `ADMIN_USER_ID`; its account menu adds “User statistics”
+(«Статистика пользователей»). It uses the member shell, semantic surface and data
+tokens, a 7/30/90-day link selector, registration columns with an accessible daily
+table, and all-time journal adoption and content counts. EN/RU changes apply in
+place. Active users have separate fixed Today / 7 days / 30 days totals
+(DAU/WAU/MAU) with the collection start date; before the first recorded visit,
+these values show an em dash. Only visible signed-in visits are counted; early
+windows remain partial rather than inventing pre-collection history.
+Loading begins only after owner admission; unavailable reads show an error
+with Retry. Zero registrations have their own empty state. Metric definitions and
+retained-data limitations live in a disclosure and [the dashboard contract](docs/user-analytics.md).
+This describes source implementation, not deployment or visual acceptance.
+
 ## Copy and trust
 
 Capture, auth, privacy, settings, errors, validation and destructive flows are calm and direct, with no humor. Wit is allowed only as a secondary line in non-critical empty states, achievements and insights, never replacing the instruction. The built Overview narrator is the approved exception: it appears in ready section feet, threshold placeholders and dedicated empty/filter/globe slots, and never replaces an instruction. Russian copy uses «вы»; no «ты» forms. Every string is written in RU and EN together with real plural forms (inline `{en, ru}` pairs or `locale-en` / `locale-ru` spans, plurals through the shared formatter), and must be checked at 320px and 200% text size; this is a design requirement, not a claim of visual verification for Overview Release 3.

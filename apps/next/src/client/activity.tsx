@@ -14,6 +14,7 @@ import {
   type SyncReply,
 } from './lifecycle-sync'
 import { awaitPublication } from './publication'
+import { reportVisibleActivity } from './user-activity'
 
 type IdentityReply = { user: { id: string } | null }
 let knownIdentity: string | null | undefined
@@ -225,8 +226,8 @@ export function ActivityBridge() {
     let active = true
     let checking = false
     let queued = false
-    const syncing = new AbortController()
-    const release = trackPrivateOperation(syncing)
+    let syncing = new AbortController()
+    let release = trackPrivateOperation(syncing)
     const refresh = async () => {
       if (!active || document.visibilityState === 'hidden') return
       if (checking) {
@@ -236,6 +237,7 @@ export function ActivityBridge() {
       checking = true
       try {
         const owner = await checkIdentity()
+        if (owner && active) void reportVisibleActivity(owner, syncing.signal)
         // Only a confirmed owner syncs; a guest or a switched identity never writes.
         if (owner && active)
           void syncOwnerFlights(owner, () => router.refresh(), syncing.signal).catch(() => {
@@ -255,11 +257,20 @@ export function ActivityBridge() {
     const onFocus = () => {
       void refresh()
     }
+    const onIdentityReset = () => {
+      // Signup keeps this root mounted after dropping the previous identity's work.
+      syncing.abort()
+      release()
+      syncing = new AbortController()
+      release = trackPrivateOperation(syncing)
+      onFocus()
+    }
     const channel = 'BroadcastChannel' in window ? new BroadcastChannel('kuuki-identity') : null
     channel?.addEventListener('message', onFocus)
     // A document load can follow an OAuth callback that changed the shared cookie outside this tab's client.
     channel?.postMessage({ tabId })
     window.addEventListener('focus', onFocus)
+    window.addEventListener('kuuki:identity-reset', onIdentityReset)
     document.addEventListener('visibilitychange', onFocus)
     const interval = window.setInterval(
       () => {
@@ -274,6 +285,7 @@ export function ActivityBridge() {
       window.clearInterval(interval)
       channel?.close()
       window.removeEventListener('focus', onFocus)
+      window.removeEventListener('kuuki:identity-reset', onIdentityReset)
       document.removeEventListener('visibilitychange', onFocus)
     }
   }, [router])

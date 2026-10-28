@@ -41,6 +41,37 @@ describe('ActivityBridge owner sync', () => {
     expect(refresh).not.toHaveBeenCalled()
   })
 
+  it('records a newly signed-in account when onboarding starts without reloading the root bridge', async () => {
+    api.get.mockResolvedValue({ user: null })
+    api.post.mockResolvedValue({ synced: 0, more: false })
+    await mount()
+    await waitFor(() => expect(api.get).toHaveBeenCalledWith('/api/auth/me'))
+    const { beginIdentityOperation } = await import('@kuuki/client/apiClient')
+    vi.mocked(beginIdentityOperation).mockReturnValue({
+      ready: Promise.resolve(),
+      token: Symbol(),
+      release: vi.fn(),
+    } as never)
+    const { withIdentityMutation } = await import('./activity')
+    try {
+      await act(async () => {
+        await withIdentityMutation(
+          async () => {
+            api.get.mockResolvedValue({ user: { id: 'new-member' } })
+            return { id: 'new-member' }
+          },
+          '/welcome/name',
+          { inPlaceOwner: (result) => result.id },
+        )
+      })
+      await waitFor(() =>
+        expect(api.post.mock.calls.some((call) => call[0] === '/api/me/activity')).toBe(true),
+      )
+    } finally {
+      window.history.replaceState(null, '', '/')
+    }
+  })
+
   it('syncs once after identity is confirmed, refreshes when something changed, and not again within the interval', async () => {
     api.get.mockResolvedValue({ user: { id: 'u1' } })
     api.post.mockResolvedValue({

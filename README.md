@@ -51,6 +51,7 @@ Use the same hostname in the browser, `PAGES_ORIGIN`, and Google's redirect URI.
 | `PAGES_ORIGIN`                              | Exact canonical origin for auth and CSRF, including the Next Worker                                                                          |
 | `GEMINI_API_KEY`                            | Server-side ticket parsing and aircraft enrichment; required separately on the production and preview API Workers, not the activation Worker |
 | `MAINTENANCE_MODE`                          | Request hold before private database access                                                                                                  |
+| `ADMIN_USER_ID`                             | Owner account ID for private user statistics; absent disables access                                                                         |
 | `ACTIVATION_ORIGIN`                         | Separate HTTPS origin for legacy account activation                                                                                          |
 | `ACTIVATION_MAIL`                           | Native Email Sending binding on each Next Worker, restricted to the verified sender                                                          |
 | `ACTIVATION_MAIL_ACCOUNT_ID`                | Account ID for the REST fallback when the native binding is absent                                                                           |

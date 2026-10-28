@@ -25,6 +25,7 @@ export function AvatarMenu({
   isPublic,
   profileAccent,
   flights,
+  userAnalytics = false,
   locale = 'en',
 }: {
   id?: string
@@ -36,6 +37,7 @@ export function AvatarMenu({
   profileAccent?: string | null
   /** The flight total, printed as the passport's document number on the stub. */
   flights?: number | null
+  userAnalytics?: boolean
   locale?: 'en' | 'ru'
 }) {
   const router = useRouter()
@@ -184,6 +186,13 @@ export function AvatarMenu({
           <MenuItem asChild>
             <Link href="/settings">{text('Settings', 'Настройки')}</Link>
           </MenuItem>
+          {userAnalytics ? (
+            <MenuItem asChild>
+              <Link href="/admin/users" prefetch={false}>
+                {text('User statistics', 'Статистика пользователей')}
+              </Link>
+            </MenuItem>
+          ) : null}
         </MenuGroup>
         <div className="account-appearance">
           <MenuTray

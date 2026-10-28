@@ -15,6 +15,7 @@ import { ImportRunsProvider } from './import/import-runs'
 import { getGateProfile } from '../server/gates'
 import { getRequestEnv } from '../server/identity'
 import { getOwnProfileStats } from '../server/profile'
+import { isUserAnalyticsAdmin } from '../../../../functions/api/_lib/userAnalyticsAccess'
 import type { Locale } from '../server/locale'
 
 function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
@@ -89,6 +90,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
                       isPublic={own.profile.is_public}
                       profileAccent={own.profile.theme_color}
                       flights={stats?.total_flights ?? 0}
+                      userAnalytics={isUserAnalyticsAdmin(env, own.ownerId)}
                       locale={locale}
                     />
                   ) : null}

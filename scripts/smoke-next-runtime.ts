@@ -32,6 +32,8 @@ const bundleDir = join(root, nextOnly ? '.wrangler/next-only' : '.wrangler/next-
 const assetsDir = join(root, 'apps/next/.open-next/assets')
 let mailCalls = 0
 let unexpectedOutboundCalls = 0
+const analyticsOwnerId = 'analytics-owner-fixture'
+let analyticsCookie = ''
 
 execFileSync(
   'pnpm',
@@ -81,6 +83,7 @@ const mf = new Miniflare({
     GOOGLE_CLIENT_SECRET: 'synthetic-google-secret',
     PAGES_ORIGIN: origin,
     MAINTENANCE_MODE: 'false',
+    ADMIN_USER_ID: analyticsOwnerId,
     ...(check
       ? {
           ACTIVATION_ORIGIN: 'https://activate.fixture.test',
@@ -396,7 +399,7 @@ async function main() {
         .run()
     }
     // A credential row written before Better Auth cutover must still authenticate.
-    const legacyId = crypto.randomUUID()
+    const legacyId = analyticsOwnerId
     const legacyHash = await hashPassword('rehearsal-password-2026', 'synthetic-browser-pepper')
     const now = new Date().toISOString()
     await db.batch([
@@ -424,6 +427,10 @@ async function main() {
         throw new Error(
           `Composed legacy credential sign-in failed: ${legacySignIn.status} ${await legacySignIn.text()}`,
         )
+      analyticsCookie = legacySignIn.headers
+        .getSetCookie()
+        .map((value) => value.split(';', 1)[0])
+        .join('; ')
       await db
         .prepare(
           "INSERT INTO users(id,email,password_hash) VALUES('reset-fixture','reset@example.test','RESET_REQUIRED')",
@@ -642,6 +649,31 @@ async function main() {
         `Public Next shell failed: ${publicShell.status} ${(await publicShell.text()).slice(0, 300)}`,
       )
     await assertResponse('/signin', 200)
+    const analyticsGuest = await assertResponse('/admin/users', 307, { redirect: 'manual' })
+    if (!analyticsGuest.headers.get('Location')?.endsWith('/signin'))
+      throw new Error('Guest analytics request did not redirect to sign-in')
+    await assertResponse('/admin/users', 404, { headers: { Cookie: cookie } })
+    await assertResponse('/api/me/activity', 401, { method: 'POST' })
+    const activityCsrf = /(?:^|; )kuuki_csrf=([^;]+)/.exec(analyticsCookie)?.[1]
+    if (!activityCsrf) throw new Error('Owner activity fixture omitted CSRF cookie')
+    await assertResponse('/api/me/activity', 200, {
+      method: 'POST',
+      headers: { Cookie: analyticsCookie, Origin: origin, 'X-CSRF-Token': activityCsrf },
+    })
+    for (const days of [7, 30, 90]) {
+      const analytics = await assertResponse(`/admin/users?days=${days}`, 200, {
+        headers: { Cookie: analyticsCookie },
+      })
+      const html = await analytics.text()
+      if (
+        analytics.headers.get('Cache-Control') !== 'no-store' ||
+        !html.includes('ua-metrics') ||
+        !html.includes('ua-activity-metrics')
+      )
+        throw new Error('Owner analytics did not render private statistics')
+      if (html.includes('a@example.test') || html.includes('legacy@example.test'))
+        throw new Error('Analytics leaked account email addresses')
+    }
     const oldUpdate = new Date(Date.now() - 2 * 86_400_000).toISOString()
     const oldExpiry = new Date(
       Date.now() + SESSION_TTL_SECONDS * 1000 - 2 * 86_400_000,

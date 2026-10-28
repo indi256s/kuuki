@@ -28,6 +28,7 @@ binding = "AI"
 [vars]
 PAGES_ORIGIN = "https://kuuki.marchstudio.uk"
 MAINTENANCE_MODE = "false"
+ADMIN_USER_ID = "50790477-134d-4425-8ca9-7130f2e22a24"
 ACTIVATION_ORIGIN = "https://kuuki-activation.indi256s.workers.dev"
 ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
 ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"
@@ -62,6 +63,7 @@ required = ["AUTH_SECRET", "BETTER_AUTH_SECRET"]
 [env.activation.vars]
 PAGES_ORIGIN = "https://kuuki.marchstudio.uk"
 MAINTENANCE_MODE = "false"
+ADMIN_USER_ID = "50790477-134d-4425-8ca9-7130f2e22a24"
 ACTIVATION_ORIGIN = "https://kuuki-activation.indi256s.workers.dev"
 ACTIVATION_MAIL_ACCOUNT_ID = "5cadcff0282e54f3ff1d7062d4dbb97a"
 ACTIVATION_MAIL_FROM = "accounts@marchstudio.uk"

@@ -71,6 +71,7 @@ export function MobilePageTitle() {
     { href: '/ground-travel', label: 'Journal', ru: 'Журнал' },
     { href: '/leaderboard', label: 'Leaderboard', ru: 'Рейтинг' },
     { href: '/settings', label: 'Settings', ru: 'Настройки' },
+    { href: '/admin/users', label: 'Users', ru: 'Пользователи' },
     { href: '/add', label: 'Add a flight', ru: 'Новый перелёт' },
     { href: '/import', label: 'Import', ru: 'Импорт' },
     { href: '/fly', label: 'Profile', ru: 'Профиль' },

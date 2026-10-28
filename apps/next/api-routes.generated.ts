@@ -357,6 +357,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/me/activity",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "route": "/api/me/awaiting",
     "methods": [
       "GET"

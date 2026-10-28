@@ -17,6 +17,7 @@ interface Env {
   AUTH_SECRET: string // pepper/HMAC key for password hashing (set via `wrangler pages secret put`)
   PAGES_ORIGIN: string // canonical Pages origin for CORS (import/enrich); per-env override
   MAINTENANCE_MODE?: string // 'true' blocks API access before any session/database work
+  ADMIN_USER_ID?: string // exact account ID allowed to read the private user statistics dashboard
   ACTIVATION_MAIL?: SendEmail // native Cloudflare Email Sending binding
   ACTIVATION_MAIL_ACCOUNT_ID?: string // Cloudflare account ID for Email Sending
   ACTIVATION_MAIL_AUTH_TOKEN?: string // Cloudflare API token with Email Sending permission

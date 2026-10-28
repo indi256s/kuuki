@@ -83,6 +83,7 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
     'visits',
     'country_claims',
     'ground_visits',
+    'user_activity_days',
     // Ground travel, children before parents: receipts, countries, legs/points, then every journey row
     // (tombstones included), then the owner's private places.
     'ground_operation_receipts',

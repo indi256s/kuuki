@@ -12,3 +12,5 @@ ANTHROPIC_API_KEY=
 ANTHROPIC_WORKSPACE_ID=
 ANTHROPIC_ENRICH_MODEL=claude-haiku-5-5
 MAINTENANCE_MODE=false
+# Optional exact users.id; leaving this empty disables /admin/users.
+ADMIN_USER_ID=
