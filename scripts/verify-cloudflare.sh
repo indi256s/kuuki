@@ -14,7 +14,7 @@ pnpm typecheck:api
 pnpm typecheck:scripts
 pnpm typecheck:maintenance
 pnpm typecheck:import
-pnpm --filter @kuuki/next run test --maxWorkers=4
+pnpm --filter @kuuki/next run test --maxWorkers=2
 node --test scripts/verify-cloudflare.test.mjs scripts/check-preview-config.test.mjs scripts/dependency-patches.test.mjs scripts/oxlint-design.test.mjs scripts/agent-git.test.mjs
 pnpm exec tsx scripts/map-geometry.test.ts
 pnpm exec tsx scripts/generate-continent-pieces.test.ts
