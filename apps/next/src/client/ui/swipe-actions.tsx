@@ -13,8 +13,8 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react'
-import { rubberBand } from './bottom-sheet'
+import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from 'motion/react'
+import { rubberBand } from './sheet-physics'
 import './swipe-actions.css'
 
 // Adapted from Arc "swipe-actions" (uiarc.dev, MIT, see ARC-LICENSE.txt): the pointer swipe on a row that reveals leading and trailing actions,
@@ -126,6 +126,11 @@ export function SwipeActionsRow({
   const group = useContext(GroupContext)
   const rowRef = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
+  const contentRef = useRef<HTMLDivElement>(null)
+  useMotionValueEvent(x, 'change', (value) => {
+    if (contentRef.current)
+      contentRef.current.style.transform = value === 0 ? 'none' : `translateX(${value}px)`
+  })
   const reduced = useReducedMotion()
   const width = useRef(0)
   const drag = useRef<Drag | null>(null)
@@ -372,9 +377,10 @@ export function SwipeActionsRow({
           </div>
         )
       })}
-      <motion.div
+      <div
+        ref={contentRef}
         className="ui-swipe-content"
-        style={{ x }}
+        style={{ transform: x.get() === 0 ? 'none' : `translateX(${x.get()}px)` }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
@@ -382,7 +388,7 @@ export function SwipeActionsRow({
         onClickCapture={onClickCapture}
       >
         {children}
-      </motion.div>
+      </div>
     </div>
   )
 }

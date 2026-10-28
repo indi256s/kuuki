@@ -1,8 +1,5 @@
-// Display names for ids the summary carries. The summary stays free of localized text; the page resolves names
-// from the bundled reference data on the server and passes them in, and tests pass plain fakes.
-import { findAircraft } from '@kuuki/data/aircraft-lookup'
-import { findAirport } from '@kuuki/data/airport-lookup'
-import { airlineName } from '../import/reference'
+import airlines from '@kuuki/data/airlines' with { type: 'json' }
+import type { OverviewPayload } from '@kuuki/shared/overview/model'
 import type { Locale } from '../../lib/format'
 
 export interface OverviewLabels {
@@ -12,13 +9,19 @@ export interface OverviewLabels {
   country(code: string): string
 }
 
-export function referenceLabels(locale: Locale): OverviewLabels {
+const airlineNames = new Map(airlines.filter((row) => row.iata).map((row) => [row.iata, row.name]))
+
+// Airport and aircraft labels travel with the summary. The offline capture catalogs belong to the editor.
+export function referenceLabels(
+  locale: Locale,
+  refs: OverviewPayload['refs'] | undefined,
+): OverviewLabels {
   const regions = new Intl.DisplayNames([locale], { type: 'region' })
   return {
-    airline: (code) => airlineName(code) ?? code,
-    aircraft: (icao) => findAircraft(icao)?.name ?? icao,
+    airline: (code) => airlineNames.get(code.toUpperCase()) ?? code,
+    aircraft: (icao) => refs?.aircraft[icao]?.name ?? icao,
     airport: (iata) => {
-      const city = findAirport(iata)?.city
+      const city = refs?.airports[iata]?.city
       return city ? `${iata} · ${city}` : iata
     },
     country: (code) => {

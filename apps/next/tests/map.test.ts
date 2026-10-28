@@ -1,6 +1,45 @@
 import { test, expect } from '@playwright/test'
 import { signIn } from './helpers'
 
+test('a constrained connection leaves the globe optional and can load it on mobile and desktop', async ({
+  page,
+  baseURL,
+}) => {
+  test.setTimeout(60_000)
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'connection', {
+      configurable: true,
+      value: Object.assign(new EventTarget(), {
+        saveData: true,
+        effectiveType: '4g',
+        downlink: 1.6,
+      }),
+    })
+  })
+  await signIn(page, baseURL!)
+  let workers = 0
+  page.on('request', (request) => {
+    if (request.url().includes('/maps/maplibre-') && request.url().endsWith('worker.mjs')) workers++
+  })
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 844 })
+    const before = workers
+    await page.goto('/overview')
+    const load = page.getByRole('button', { name: 'Load map', exact: true })
+    await expect(load).toBeVisible()
+    await page.waitForLoadState('networkidle')
+    expect(workers).toBe(before)
+    await expect(
+      page.getByRole('navigation', { name: width === 390 ? 'Tabs' : 'Primary' }),
+    ).toBeVisible()
+    await load.click()
+    await expect(page.locator('.globe-surface')).toHaveAttribute('data-webgl-ready', 'true', {
+      timeout: 20_000,
+    })
+    expect(workers).toBeGreaterThan(before)
+  }
+})
+
 test('the overview globe fills the card and keeps its canvas visible in fullscreen', async ({
   page,
   baseURL,

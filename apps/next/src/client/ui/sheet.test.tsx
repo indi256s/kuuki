@@ -3,7 +3,7 @@ import { createEvent, fireEvent, render, screen, waitFor } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { rubberBand } from './bottom-sheet'
+import { rubberBand } from './sheet-physics'
 import { Sheet, shouldDismiss } from './sheet'
 import { Menu, MenuItem } from './menu'
 

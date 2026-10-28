@@ -1,4 +1,4 @@
-import { useId, type CSSProperties, type ReactNode } from 'react'
+import { memo, useId, type CSSProperties, type ReactNode } from 'react'
 import clsx from 'clsx'
 import type { IsoFigureData, IsoNode, Paint } from './scene'
 import './iso.css'
@@ -42,7 +42,7 @@ function blurs(nodes: readonly IsoNode[], out = new Set<number>()) {
 }
 
 /** Renders a Scene's node tree. Decorative: the figure's facts are always text beside it. Named parts carry `data-part` for CSS motion. */
-export function IsoFigure({
+export const IsoFigure = memo(function IsoFigure({
   figure,
   className,
   style,
@@ -198,4 +198,4 @@ export function IsoFigure({
       {body}
     </svg>
   )
-}
+})

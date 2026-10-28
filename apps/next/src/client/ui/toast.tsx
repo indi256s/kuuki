@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react'
+import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from 'motion/react'
 import { useLocale } from '../preferences'
 import type { Locale } from '../../lib/format'
 import './ui.css'
@@ -205,6 +205,24 @@ function ToastView({
   const y = useMotionValue(reduced ? 0 : 16)
   const scale = useMotionValue(reduced ? 1 : 0.96)
   const opacity = useMotionValue(0)
+  const toastRef = useRef<HTMLDivElement>(null)
+  const transform = () =>
+    [
+      x.get() !== 0 ? `translateX(${x.get()}px)` : '',
+      y.get() !== 0 ? `translateY(${y.get()}px)` : '',
+      scale.get() !== 1 ? `scale(${scale.get()})` : '',
+    ]
+      .filter(Boolean)
+      .join(' ') || 'none'
+  const renderTransform = () => {
+    if (toastRef.current) toastRef.current.style.transform = transform()
+  }
+  useMotionValueEvent(x, 'change', renderTransform)
+  useMotionValueEvent(y, 'change', renderTransform)
+  useMotionValueEvent(scale, 'change', renderTransform)
+  useMotionValueEvent(opacity, 'change', (value) => {
+    if (toastRef.current) toastRef.current.style.opacity = String(value)
+  })
   const [dragging, setDragging] = useState(false)
   const [thrown, setThrown] = useState<number | null>(null)
   const releaseVelocity = useRef(0)
@@ -295,13 +313,14 @@ function ToastView({
   }, [sync, stop])
 
   return (
-    <motion.div
+    <div
+      ref={toastRef}
       className="ui-toast"
       data-kind={item.kind}
       data-state={item.leaving ? 'closed' : 'open'}
       data-dragging={dragging || undefined}
       data-thrown={thrown !== null || undefined}
-      style={{ x, y, scale, opacity }}
+      style={{ transform: transform(), opacity: opacity.get() }}
       onPointerDown={(event) => {
         if (item.leaving || (event.target as Element).closest('button')) return
         if (reduced || drag.current || event.isPrimary === false) return
@@ -425,6 +444,6 @@ function ToastView({
       >
         <X size={18} strokeWidth={2} aria-hidden="true" />
       </button>
-    </motion.div>
+    </div>
   )
 }

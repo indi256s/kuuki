@@ -14,6 +14,8 @@ import { OverviewGlobe } from '../globe/globe'
 import { S, t } from '../copy'
 import { Button } from '../../ui/button'
 import { Skeleton } from '../../ui/skeleton'
+import { Deferred } from '../../ui/deferred'
+import { SectionLoading } from '../sections/section-loading'
 import { FilterBar } from '../filters/filter-bar'
 import { useMobile } from '../../ui/use-mobile'
 import { formatNumber } from '../../../lib/format'
@@ -212,7 +214,9 @@ function PageContent() {
         drag={reorder.bindings(id)}
         narrator={scope ? <Narrator slot={id} /> : null}
       >
-        <Section span="full" />
+        <Deferred fallback={<SectionLoading />}>
+          <Section span="full" />
+        </Deferred>
       </SectionFrame>
     )
   }
@@ -301,7 +305,12 @@ function PageContent() {
                           }
                         }}
                       >
-                        <Tile span={span} />
+                        <Deferred
+                          as="span"
+                          fallback={<Skeleton height={128} label={t(SECTIONS[id].title, locale)} />}
+                        >
+                          <Tile span={span} />
+                        </Deferred>
                       </SectionTile>
                     )
                   })}

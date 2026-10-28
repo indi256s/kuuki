@@ -12,7 +12,8 @@ import {
   type Ref,
   type RefObject,
 } from 'react'
-import { BottomSheet, rubberBand, type BottomSheetProps } from './bottom-sheet'
+import { BottomSheet, type BottomSheetProps } from './bottom-sheet'
+import { rubberBand } from './sheet-physics'
 import { useKeyboardMotion } from './use-keyboard-motion'
 import './ui.css'
 

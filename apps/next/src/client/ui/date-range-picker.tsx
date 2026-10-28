@@ -1,9 +1,20 @@
 'use client'
 
 import type { Locale } from '../../lib/format'
-import { Calendar } from './calendar'
+import dynamic from 'next/dynamic'
 import { Button } from './button'
 import './flight-controls.css'
+
+const Calendar = dynamic(() => import('./calendar').then((module) => module.Calendar), {
+  loading: () => (
+    <p role="status">
+      <span className="locale-en">Loading calendar…</span>
+      <span className="locale-ru" lang="ru">
+        Загружаем календарь…
+      </span>
+    </p>
+  ),
+})
 
 export type DateRangeValue = { from: string; to: string }
 export type DateRangePreset = { label: string; from: string; to: string }

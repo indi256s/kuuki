@@ -63,7 +63,7 @@ export function Section({ span }: { span: Span }) {
   const top = scope?.rankings[category].slice(0, 5) ?? []
   const keys = top.map((row) => row.key)
   const r = useReading(keys, keys[0] ?? null)
-  const labels = referenceLabels(locale)
+  const labels = referenceLabels(locale, payload?.refs)
   const name = (kind: Category, key: string) =>
     kind === 'airlines'
       ? labels.airline(key)

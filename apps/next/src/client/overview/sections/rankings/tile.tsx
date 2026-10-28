@@ -9,14 +9,14 @@ import { copy, flights, number } from './display'
 import '../cookie.css'
 import '../../iso/gate-sign.css'
 export function Tile({ span }: { span: TileSpan }) {
-  const { scope, locale } = useOverview()
+  const { scope, payload, locale } = useOverview()
   const top = scope?.rankings.airlines[0]
   // The sign at rest, showing the top airline's code; with no airline on file it stays dim.
   const code = top?.key ?? ''
   const note = top ? `#1 ×${number(locale, top.count)}` : ''
   const figure = useFigure(span, `${code}|${note}`, (k) => gateSign(k, { code, note }))
   if (!scope) return null
-  const name = top ? referenceLabels(locale).airline(top.key) : null
+  const name = top ? referenceLabels(locale, payload?.refs).airline(top.key) : null
   return (
     <div className="ov3-cookie">
       <div className="ov3-cookie-figure" data-blank={top ? undefined : ''}>

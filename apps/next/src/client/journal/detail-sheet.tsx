@@ -25,6 +25,7 @@
  * While Edit is open, Escape first leaves Edit, and Escape or a close request with unsaved changes asks before discarding them.
  */
 import { X } from '@keyline-icons/react'
+import dynamic from 'next/dynamic'
 import {
   useCallback,
   useEffect,
@@ -45,12 +46,26 @@ import { useToast } from '../ui/toast'
 import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
 import { Crossfade } from './crossfade'
-import { FlightDetail, type CloseGuard, type FlightEditor } from './flight-detail'
+import type { CloseGuard, FlightEditor } from './flight-detail'
 import type { Changes, EditableField, EditOutcome, EditRecord, FlightDto } from './flight-edits'
 import type { JournalFlight, JournalPayload } from './model'
 import { OfflineNote } from './states'
 import { useJournalStore } from './store'
 import './detail-sheet.css'
+
+const FlightDetail = dynamic(
+  () => import('./flight-detail').then((module) => module.FlightDetail),
+  {
+    loading: () => (
+      <p role="status">
+        <span className="locale-en">Opening flight…</span>
+        <span className="locale-ru" lang="ru">
+          Открываем перелёт…
+        </span>
+      </p>
+    ),
+  },
+)
 
 export const DOCK_QUERY = '(min-width: 1280px)'
 

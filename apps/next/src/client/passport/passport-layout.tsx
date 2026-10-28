@@ -1,9 +1,11 @@
 'use client'
 
 import { useMemo, useState, type ComponentProps, type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { OwnerAccent } from '../owner-accent'
-import { AchievementCabinet } from '../profile/ladders/cabinet'
+import { Deferred } from '../ui/deferred'
+import { Skeleton } from '../ui/skeleton'
 import { RUNG_NAME, toGo } from '../profile/ladders/copy'
 import { holderInitials, nearestRung, toTiles } from '../profile/ladders/model'
 import type { EarnedBadge } from '../profile/achievements'
@@ -37,6 +39,10 @@ import { PassportToolbar } from './passport-toolbar'
 import type { usePassportQuery } from './use-passport-query'
 import '../profile/profile.css'
 import './passport.css'
+
+const AchievementCabinet = dynamic(() =>
+  import('../profile/ladders/cabinet').then((module) => module.AchievementCabinet),
+)
 
 export type PassportStats = ComponentProps<typeof HeadlineNumbers>['stats'] &
   NonNullable<ComponentProps<typeof AchievementCabinet>['stats']> &
@@ -344,15 +350,19 @@ export function PassportLayout(props: PassportLayoutProps) {
               }
             />
             {tiles.length > 0 ? (
-              <AchievementCabinet
-                badges={props.badges}
-                stats={props.stats}
-                locale={locale}
-                ownerId={owner?.ownerId ?? null}
-                initials={holderInitials(
-                  props.profile.display_name || props.profile.username || '',
-                )}
-              />
+              <Deferred
+                fallback={<Skeleton height={160} label={ru ? 'Достижения' : 'Achievements'} />}
+              >
+                <AchievementCabinet
+                  badges={props.badges}
+                  stats={props.stats}
+                  locale={locale}
+                  ownerId={owner?.ownerId ?? null}
+                  initials={holderInitials(
+                    props.profile.display_name || props.profile.username || '',
+                  )}
+                />
+              </Deferred>
             ) : (
               <p className="profile-quiet">
                 {ru ? 'Достижений пока нет.' : 'No achievements yet.'}

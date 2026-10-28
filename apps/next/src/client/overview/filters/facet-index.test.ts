@@ -6,7 +6,7 @@ import { buildFacetIndex } from './facet-index'
 
 it('lists only flown months in calendar order with localized labels', () => {
   const payload = fixture as unknown as OverviewPayload
-  const months = buildFacetIndex(payload, referenceLabels('en'), 'en').filter(
+  const months = buildFacetIndex(payload, referenceLabels('en', payload.refs), 'en').filter(
     (option) => option.facet === 'months',
   )
   expect(months.map((option) => option.value)).toEqual(

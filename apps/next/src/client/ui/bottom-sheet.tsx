@@ -14,8 +14,8 @@ import type {
 import {
   AnimatePresence,
   animate,
-  motion,
   useMotionValue,
+  useMotionValueEvent,
   usePresence,
   useReducedMotion,
   useTransform,
@@ -23,6 +23,7 @@ import {
 import { X } from '@keyline-icons/react'
 // Adapted from Arc Bottom sheet (MIT, see ARC-LICENSE.txt).
 import styles from './bottom-sheet.module.css'
+import { rubberBand } from './sheet-physics'
 import { useKeyboardMotion } from './use-keyboard-motion'
 import './ui.css'
 
@@ -81,10 +82,6 @@ const LOW_DIM = 0.78
 const settle = { type: 'spring' as const, visualDuration: 0.3, bounce: 0.12 }
 const fade = { duration: 0.15, ease: 'linear' as const }
 
-/** iOS-style resistance past the bounds: follows the finger at first, then approaches `limit` asymptotically. */
-export function rubberBand(overshoot: number, limit = 80): number {
-  return (1 - 1 / ((overshoot * 0.55) / limit + 1)) * limit
-}
 /** Inverse of `rubberBand(stretch, STRETCH)`. */
 const unrubber = (stretch: number) =>
   ((1 / (1 - Math.min(stretch, STRETCH - 1) / STRETCH) - 1) * STRETCH) / 0.55
@@ -182,6 +179,7 @@ function Sheet({
       : null,
   )
   const sheetRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   /** Offset of the sheet below its tallest detent, in px. Starts far below the fold so the first frame never flashes. */
   const y = useMotionValue(4000)
@@ -256,6 +254,20 @@ function Sheet({
       return clamp(dim, 0, 1) * shown
     },
   )
+
+  useMotionValueEvent(y, 'change', (value) => {
+    if (sheetRef.current)
+      sheetRef.current.style.transform = value === 0 ? 'none' : `translateY(${value}px)`
+  })
+  useMotionValueEvent(presence, 'change', (value) => {
+    if (sheetRef.current) sheetRef.current.style.opacity = String(value)
+  })
+  useMotionValueEvent(backdrop, 'change', (value) => {
+    if (overlayRef.current) overlayRef.current.style.opacity = String(value)
+  })
+  useMotionValueEvent(footerTransform, 'change', (value) => {
+    if (footerRef.current) footerRef.current.style.transform = value
+  })
 
   // Every move retargets the one motion value from wherever it is. A new target drops the previous arrival callback.
   const go = useCallback(
@@ -659,8 +671,8 @@ function Sheet({
 
   const expanded = detent >= top
   const style = {
-    y,
-    opacity: presence,
+    transform: y.get() === 0 ? 'none' : `translateY(${y.get()}px)`,
+    opacity: presence.get(),
     '--sheet-max': stops[top],
     '--sheet-peek': stops[top]! - stops[detent]!,
     '--sheet-extension': `${EXTENSION}px`,
@@ -669,7 +681,11 @@ function Sheet({
   return (
     <>
       <DialogPrimitive.Overlay asChild forceMount>
-        <motion.div className={`ui-overlay ${styles.overlay}`} style={{ opacity: backdrop }} />
+        <div
+          ref={overlayRef}
+          className={`ui-overlay ${styles.overlay}`}
+          style={{ opacity: backdrop.get() }}
+        />
       </DialogPrimitive.Overlay>
       <DialogPrimitive.Content
         asChild
@@ -693,7 +709,7 @@ function Sheet({
           if (!present || event.detail.originalEvent.timeStamp < at) event.preventDefault()
         }}
       >
-        <motion.div
+        <div
           ref={sheetRef}
           className={[styles.sheet, 'ui-sheet ui-bottom-sheet', className]
             .filter(Boolean)
@@ -754,18 +770,18 @@ function Sheet({
             {children}
           </div>
           {footer ? (
-            <motion.div
+            <div
               ref={footerRef}
               className={`ui-panel-footer ${styles.footer}`}
-              style={{ transform: footerTransform }}
+              style={{ transform: footerTransform.get() }}
             >
               {footer}
-            </motion.div>
+            </div>
           ) : null}
           <span className={styles.srOnly} role="status" aria-live="polite">
             {announcement}
           </span>
-        </motion.div>
+        </div>
       </DialogPrimitive.Content>
     </>
   )

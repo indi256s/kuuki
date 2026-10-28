@@ -69,7 +69,7 @@ export function FilterPanel({
       : (period && periodDays(period)) || { from: '', to: '' }
   const dailyAvailable = payload?.mode !== 'aggregate' || payload.aggregateResolution === 'day'
   const index = useMemo(
-    () => (payload ? buildFacetIndex(payload, referenceLabels(locale), locale) : []),
+    () => (payload ? buildFacetIndex(payload, referenceLabels(locale, payload.refs), locale) : []),
     [payload, locale],
   )
   const searching = query.trim().length > 0

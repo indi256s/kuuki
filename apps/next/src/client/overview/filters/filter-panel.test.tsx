@@ -54,7 +54,6 @@ it.each([{ isComposing: true }, { keyCode: 229 }])(
 )
 
 it('keeps incomplete and reversed range drafts local, then applies and saves valid exact days once', async () => {
-  vi.useFakeTimers()
   const saver = vi.fn(async (prefs: OverviewPrefs) => prefs)
   const prefs: OverviewPrefs = {
     ...structuredClone(DEFAULT_PREFS),
@@ -77,8 +76,9 @@ it('keeps incomplete and reversed range drafts local, then applies and saves val
       </OverviewProvider>,
     )
     fireEvent.click(screen.getByRole('button', { name: 'Custom range' }))
-    const from = screen.getByLabelText('From date'),
+    const from = await screen.findByLabelText('From date'),
       to = screen.getByLabelText('To date')
+    vi.useFakeTimers()
     fireEvent.change(from, { target: { value: '2024-03-01' } })
     fireEvent.click(screen.getByRole('button', { name: 'Apply range' }))
     expect(screen.getByRole('alert')).toHaveTextContent('Enter both dates in chronological order.')
