@@ -3,7 +3,7 @@
   "airports": [
     {
       "iata": "TBS",
-      "revision": "565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3",
+      "revision": "e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e",
       "projection": {
         "crs": "EPSG:32638",
         "origin": [
@@ -24,13 +24,13 @@
       "bytes": {
         "model.json": {
           "raw": 116456,
-          "gzip": 24617,
-          "brotli": 18058
+          "gzip": 24619,
+          "brotli": 18073
         },
         "plan.json": {
-          "raw": 112331,
-          "gzip": 23635,
-          "brotli": 17361
+          "raw": 106016,
+          "gzip": 22559,
+          "brotli": 16684
         },
         "provenance.json": {
           "raw": 695,
@@ -90,7 +90,7 @@
     },
     {
       "iata": "BER",
-      "revision": "a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1",
+      "revision": "22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d",
       "projection": {
         "crs": "EPSG:32633",
         "origin": [
@@ -112,12 +112,12 @@
         "model.json": {
           "raw": 407646,
           "gzip": 80851,
-          "brotli": 53497
+          "brotli": 53504
         },
         "plan.json": {
-          "raw": 307657,
-          "gzip": 72910,
-          "brotli": 49827
+          "raw": 236395,
+          "gzip": 55455,
+          "brotli": 38243
         },
         "provenance.json": {
           "raw": 857,

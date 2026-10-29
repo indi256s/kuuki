@@ -125,16 +125,20 @@ for (const code of ['TBS', 'BER']) {
     revision,
     boundsM: model.boundsM,
     boundary: model.boundary,
-    features: model.features.map((f) =>
-      f.type === 'building'
-        ? {
-            ...f,
-            height: { metres: 0, source: 'geometry' },
-            minHeight: { metres: 0, source: 'geometry' },
-            volumeSlices: undefined,
-          }
-        : f,
-    ),
+    features: model.features
+      .filter(
+        (f) => f.type !== 'point' && !(f.type === 'line' && f.areaCovered && f.kind !== 'runway'),
+      )
+      .map((f) =>
+        f.type === 'building'
+          ? {
+              ...f,
+              height: { metres: 0, source: 'geometry' },
+              minHeight: { metres: 0, source: 'geometry' },
+              volumeSlices: undefined,
+            }
+          : f,
+      ),
   }
   const files: Record<string, string> = {
     'model.json': canonical(model) + '\n',

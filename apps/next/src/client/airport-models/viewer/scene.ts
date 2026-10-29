@@ -15,7 +15,13 @@ import {
   Vector2,
   type Material,
 } from 'three'
-import type { AirportFeature, AirportModelV1, PolygonM } from '../../../lib/airport-models/model'
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
+import type {
+  AirportFeature,
+  AirportModelV1,
+  FeatureKind,
+  PolygonM,
+} from '../../../lib/airport-models/model'
 import type { AirportLayers } from './types'
 import { buildingVolumes } from '../../../lib/airport-models/geometry'
 
@@ -28,7 +34,8 @@ export type ScenePalette = {
   line: string
   selected: string
 }
-export type FeatureObject = { feature: AirportFeature; group: Group; meshes: Mesh[] }
+type FeatureMesh = Mesh<BufferGeometry, Material>
+export type FeatureObject = { feature: AirportFeature; group: Group; meshes: FeatureMesh[] }
 
 function shape(polygon: PolygonM) {
   const result = new Shape(polygon.outer.map(([east, north]) => new Vector2(east, north)))
@@ -85,6 +92,7 @@ function lineGeometry(feature: Extract<AirportFeature, { type: 'line' }>, elevat
 export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) {
   const root = new Group(),
     objects = new Map<string, FeatureObject>()
+  const batches: { kind: FeatureKind; mesh: FeatureMesh }[] = []
   const geometries = new Set<BufferGeometry>(),
     materials = new Set<Material>()
   const material = (color: string) => {
@@ -108,6 +116,8 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
   selection.visible = false
   root.add(selection)
   const addMesh = (group: Group, geometry: BufferGeometry, surface: Material) => {
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
     geometries.add(geometry)
     const mesh = new Mesh(geometry, surface)
     group.add(mesh)
@@ -116,9 +126,8 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
   for (const polygon of model.boundary) addMesh(root, polygonGeometry(polygon), base)
   for (const feature of model.features) {
     const group = new Group(),
-      meshes: Mesh[] = []
+      meshes: FeatureMesh[] = []
     group.name = feature.id
-    root.add(group)
     const surface =
       feature.kind === 'runway'
         ? runway
@@ -151,6 +160,33 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
     for (const mesh of meshes) mesh.userData.featureId = feature.id
     objects.set(feature.id, { feature, group, meshes })
   }
+  // Keep exact, absolute-coordinate feature meshes for picking/outlines on the CPU.
+  // Only merged layer/material batches enter the display scene and acquire GPU buffers.
+  const buckets = new Map<FeatureKind, Map<Material, BufferGeometry[]>>()
+  for (const { feature, meshes } of objects.values()) {
+    let surfaces = buckets.get(feature.kind)
+    if (!surfaces) buckets.set(feature.kind, (surfaces = new Map()))
+    for (const mesh of meshes) {
+      let parts = surfaces.get(mesh.material)
+      if (!parts) surfaces.set(mesh.material, (parts = []))
+      parts.push(mesh.geometry)
+    }
+  }
+  for (const [kind, surfaces] of buckets)
+    for (const [surface, parts] of surfaces) {
+      const normalized = parts.map((part) => {
+        const geometry = part.index ? part.toNonIndexed() : part.clone()
+        geometry.deleteAttribute('uv') // No textures; lines and polygons share position/normal.
+        return geometry
+      })
+      const geometry = mergeGeometries(normalized)
+      for (const part of normalized) part.dispose()
+      if (!geometry) throw new Error('Incompatible airport geometry')
+      batches.push({ kind, mesh: addMesh(root, geometry, surface) })
+    }
+  let pickMeshes = [...objects.values()].flatMap(({ meshes }) => meshes)
+  const kinds = [...buckets.keys()]
+  let previousLayers: AirportLayers | null = null
   const clearSelection = () => {
     for (const child of [...selection.children]) {
       if (child instanceof LineSegments) child.geometry.dispose()
@@ -161,8 +197,18 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
   return {
     root,
     objects,
+    get pickMeshes() {
+      return pickMeshes
+    },
     update(layers: AirportLayers, selectedId: string | null) {
-      for (const { feature, group } of objects.values()) group.visible = layers[feature.kind]
+      if (kinds.some((kind) => previousLayers?.[kind] !== layers[kind])) {
+        previousLayers = { ...layers }
+        for (const { kind, mesh } of batches) mesh.visible = layers[kind]
+        for (const { feature, group } of objects.values()) group.visible = layers[feature.kind]
+        pickMeshes = [...objects.values()]
+          .filter(({ group }) => group.visible)
+          .flatMap(({ meshes }) => meshes)
+      }
       const selected = selectedId ? objects.get(selectedId) : undefined
       selection.visible = !!selected && selected.group.visible
       if (selectedId === previousSelection) return

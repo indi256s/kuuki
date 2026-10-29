@@ -20,14 +20,13 @@ import {
 const PAGE_SIZE = 50
 const counter = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
 const cursorSchema = z.strictObject({
-  v: z.literal(1),
+  v: z.literal(2),
   owner: z.string().min(1).max(256),
   airport: z.string().regex(/^[A-Z]{3}$/),
   scope: z.string().regex(/^[a-f0-9]{64}$/),
   revision: counter,
   published: counter,
   evidence: counter,
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
 })
 type Cursor = z.infer<typeof cursorSchema>
@@ -86,26 +85,46 @@ export async function readAirportHistory(
     (cursor.owner !== ownerId || cursor.airport !== iata || cursor.scope !== scopeFingerprint)
   )
     throw new HttpError(400, 'Cursor does not belong to this airport history', 'INVALID_CURSOR')
+  const unfiltered = Object.keys(filter).length === 0
+  const candidates = `user_id = ? AND (origin = ? OR destination = ?) AND lifecycle_state IN ('logged','awaiting')`
+  const ownerAirport = [ownerId, iata, iata] as const
+  const flightQuery =
+    unfiltered && cursor
+      ? db
+          .prepare(`SELECT ${OVERVIEW_FLIGHT_COLUMNS} FROM flights WHERE ${candidates}
+        AND (date, id) < (SELECT date, id FROM flights WHERE user_id = ? AND id = ?)
+        ORDER BY date DESC, id DESC LIMIT ?`)
+          .bind(...ownerAirport, ownerId, cursor.id, PAGE_SIZE + 1)
+      : db
+          .prepare(`SELECT ${OVERVIEW_FLIGHT_COLUMNS} FROM flights WHERE ${candidates}
+        ORDER BY date DESC, id DESC${unfiltered ? ' LIMIT ?' : ''}`)
+          .bind(...ownerAirport, ...(unfiltered ? [PAGE_SIZE + 1] : []))
+  const scopeQueries = unfiltered
+    ? [
+        db
+          .prepare(`SELECT COUNT(*) AS total, COALESCE(MAX(id = ?), 0) AS anchor_present
+        FROM flights WHERE ${candidates}`)
+          .bind(cursor?.id ?? null, ...ownerAirport),
+      ]
+    : [
+        db
+          .prepare(
+            'SELECT flight_id, endpoint FROM country_evidence_suppressions WHERE user_id = ?',
+          )
+          .bind(ownerId),
+        db
+          .prepare(`SELECT iata, latitude, longitude, country_code, city, name FROM airports_reference
+        WHERE iata IN (SELECT origin FROM flights WHERE user_id = ? AND (origin = ? OR destination = ?)
+          UNION SELECT destination FROM flights WHERE user_id = ? AND (origin = ? OR destination = ?))
+        ORDER BY iata`)
+          .bind(...ownerAirport, ...ownerAirport),
+        db
+          .prepare(`SELECT icao, manufacturer, type, model, name FROM aircraft_reference
+        WHERE icao IN (SELECT aircraft_icao FROM flights WHERE user_id = ? AND (origin = ? OR destination = ?))
+        ORDER BY icao`)
+          .bind(...ownerAirport),
+      ]
   const statements = [
-    db
-      .prepare(`SELECT ${OVERVIEW_FLIGHT_COLUMNS} FROM flights
-      WHERE user_id = ? AND (origin = ? OR destination = ?) AND lifecycle_state IN ('logged','awaiting')
-      ORDER BY date DESC, id DESC`)
-      .bind(ownerId, iata, iata),
-    db
-      .prepare('SELECT flight_id, endpoint FROM country_evidence_suppressions WHERE user_id = ?')
-      .bind(ownerId),
-    db
-      .prepare(`SELECT iata, latitude, longitude, country_code, city, name FROM airports_reference
-      WHERE iata IN (SELECT origin FROM flights WHERE user_id = ? AND (origin = ? OR destination = ?)
-        UNION SELECT destination FROM flights WHERE user_id = ? AND (origin = ? OR destination = ?))
-      ORDER BY iata`)
-      .bind(ownerId, iata, iata, ownerId, iata, iata),
-    db
-      .prepare(`SELECT icao, manufacturer, type, model, name FROM aircraft_reference
-      WHERE icao IN (SELECT aircraft_icao FROM flights WHERE user_id = ? AND (origin = ? OR destination = ?))
-      ORDER BY icao`)
-      .bind(ownerId, iata, iata),
     db
       .prepare(
         'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
@@ -115,10 +134,13 @@ export async function readAirportHistory(
       .prepare(`SELECT EXISTS(SELECT 1 FROM ground_journeys WHERE user_id = ?
       AND status IN ('planned','completed') AND deleted_at IS NULL) AS present`)
       .bind(ownerId),
+    flightQuery,
+    ...scopeQueries,
   ]
   const results = await db.batch(statements)
   assertRows(results, 'Airport history unavailable', statements.length)
-  const state = results[4].results[0] as DerivedStateRow | undefined
+  const [stateResult, presenceResult, flightResult, ...scopeResults] = results
+  const state = stateResult.results[0] as DerivedStateRow | undefined
   const revision = state?.revision ?? 0
   const publishedRevision = state?.published_revision ?? 0
   const evidenceRevision = state?.evidence_revision ?? 0
@@ -132,27 +154,38 @@ export async function readAirportHistory(
   const derivedState =
     !state || isDerivedReady(state) ? 'ready' : state.last_error ? 'error' : 'pending'
   const base = { ownerId, revision, publishedRevision, scopeFingerprint, derivedState } as const
-  const hasGround = (results[5].results[0] as { present: number }).present !== 0
+  const hasGround = (presenceResult.results[0] as { present: number }).present !== 0
   if (effectiveScopeFromPresence(hasGround, filter) === 'ground')
     return { ...base, status: 'ready', total: 0, items: [], nextCursor: null }
   if (derivedState !== 'ready' && (filter.countries?.length || filter.regions?.length))
     return { ...base, status: 'scope-updating', total: null, items: [], nextCursor: null }
   const rows = projectOverviewFlights(
-    results[0].results as FlightRow[],
-    results[1].results as { flight_id: number; endpoint: 'origin' | 'destination' }[],
+    flightResult.results as FlightRow[],
+    unfiltered
+      ? []
+      : (scopeResults[0].results as { flight_id: number; endpoint: 'origin' | 'destination' }[]),
   )
-  const refs = overviewFlightRefs(
-    rows,
-    results[2].results as AirportRow[],
-    results[3].results as AircraftRow[],
-  )
-  const matching = rows.filter((row) => matches(row, filter, refs))
-  const page = matching
-    .filter(
-      (row) =>
-        !cursor || row.date < cursor.date || (row.date === cursor.date && row.id < cursor.id),
+  let page = rows
+  let total: number
+  if (unfiltered) {
+    const count = scopeResults[0].results[0] as { total: number; anchor_present: number }
+    if (cursor && !count.anchor_present)
+      throw new HttpError(400, 'Cursor anchor is not in this airport history', 'INVALID_CURSOR')
+    total = count.total
+  } else {
+    const refs = overviewFlightRefs(
+      rows,
+      scopeResults[1].results as AirportRow[],
+      scopeResults[2].results as AircraftRow[],
     )
-    .slice(0, PAGE_SIZE + 1)
+    const matching = rows.filter((row) => matches(row, filter, refs))
+    // Resolve the anchor in this snapshot's database order, including legacy date labels.
+    const anchor = cursor ? matching.findIndex((row) => row.id === cursor.id) : -1
+    if (cursor && anchor < 0)
+      throw new HttpError(400, 'Cursor anchor is not in this airport history', 'INVALID_CURSOR')
+    page = matching.slice(anchor + 1, anchor + 1 + PAGE_SIZE + 1)
+    total = matching.length
+  }
   const items = page.slice(0, PAGE_SIZE).map((row) => ({
     id: row.id,
     date: row.date,
@@ -166,16 +199,15 @@ export async function readAirportHistory(
   const nextCursor =
     page.length > PAGE_SIZE && last
       ? encodeCursor({
-          v: 1,
+          v: 2,
           owner: ownerId,
           airport: iata,
           scope: scopeFingerprint,
           revision,
           published: publishedRevision,
           evidence: evidenceRevision,
-          date: last.date,
           id: last.id,
         })
       : null
-  return { ...base, status: 'ready', total: matching.length, items, nextCursor }
+  return { ...base, status: 'ready', total, items, nextCursor }
 }

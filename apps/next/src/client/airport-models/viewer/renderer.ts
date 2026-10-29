@@ -47,6 +47,8 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
   let hoverTimer: ReturnType<typeof setTimeout> | undefined
   let hoverId: string | null = null,
     hoverShown = false
+  let hoverFrame: number | null = null,
+    hoverPosition: { x: number; y: number } | null = null
   const renderer = new WebGLRenderer({
     canvas,
     antialias: true,
@@ -67,6 +69,7 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
     Math.hypot(model.boundsM[2] - model.boundsM[0], model.boundsM[3] - model.boundsM[1]) * 4,
   )
   const raycaster = new Raycaster()
+  const pointer = new Vector2()
   const dimensions = () => ({
     width: Math.max(1, canvas.clientWidth),
     height: Math.max(1, canvas.clientHeight),
@@ -89,7 +92,6 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
         lastDpr = dpr
       }
       applyCamera(camera, state.pose, width, height, distance)
-      airport.root.updateMatrixWorld(true)
       renderer.render(scene, camera)
       if (!ready) {
         ready = true
@@ -104,6 +106,9 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
       frame = requestAnimationFrame(render)
   }
   const clearHover = () => {
+    if (hoverFrame !== null) cancelAnimationFrame(hoverFrame)
+    hoverFrame = null
+    hoverPosition = null
     clearTimeout(hoverTimer)
     hoverId = null
     hoverShown = false
@@ -113,16 +118,12 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
     const rect = canvas.getBoundingClientRect()
     if (!rect.width || !rect.height) return null
     applyCamera(camera, state.pose, rect.width, rect.height, distance)
-    airport.root.updateMatrixWorld(true)
     raycaster.setFromCamera(
-      new Vector2(((x - rect.left) / rect.width) * 2 - 1, 1 - ((y - rect.top) / rect.height) * 2),
+      pointer.set(((x - rect.left) / rect.width) * 2 - 1, 1 - ((y - rect.top) / rect.height) * 2),
       camera,
     )
-    const meshes = [...airport.objects.values()]
-      .filter((item) => item.group.visible)
-      .flatMap((item) => item.meshes)
     // Exact visible geometry only: no screen-space widening that can select a neighbouring stand.
-    const hits = raycaster.intersectObjects(meshes, false)
+    const hits = raycaster.intersectObjects(airport.pickMeshes, false)
     const first = hits[0]
     if (!first) return null
     const id = String(first.object.userData.featureId)
@@ -159,27 +160,34 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
     },
     hover: (position) => {
       if (disposed) return
-      if (!position) {
+      if (!position || document.hidden || !inView) {
         clearHover()
         return
       }
-      const id = hit(position.x, position.y)
-      if (!id) {
-        clearHover()
-        return
-      }
-      if (id === hoverId) return
-      const immediate = hoverShown
-      clearTimeout(hoverTimer)
-      hoverId = id
-      const show = () => {
-        if (disposed) return
-        hoverShown = true
-        const rect = canvas.getBoundingClientRect()
-        callbacks.onHover?.({ id, x: position.x - rect.left, y: position.y - rect.top })
-      }
-      if (immediate) show()
-      else hoverTimer = setTimeout(show, 250)
+      hoverPosition = position
+      if (hoverFrame !== null) return
+      hoverFrame = requestAnimationFrame(() => {
+        hoverFrame = null
+        const position = hoverPosition
+        if (disposed || !position) return
+        const id = hit(position.x, position.y)
+        if (!id) {
+          clearHover()
+          return
+        }
+        if (id === hoverId) return
+        const immediate = hoverShown
+        clearTimeout(hoverTimer)
+        hoverId = id
+        const show = () => {
+          if (disposed) return
+          hoverShown = true
+          const rect = canvas.getBoundingClientRect()
+          callbacks.onHover?.({ id, x: position.x - rect.left, y: position.y - rect.top })
+        }
+        if (immediate) show()
+        else hoverTimer = setTimeout(show, 250)
+      })
     },
   })
   const resize = new ResizeObserver(requestRender)
@@ -245,9 +253,15 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
   return {
     update(next) {
       if (disposed) return
+      const changed =
+        state.pose !== next.pose ||
+        state.layers !== next.layers ||
+        state.selectedFeatureId !== next.selectedFeatureId
       state = next
-      airport.update(state.layers, state.selectedFeatureId)
-      requestRender()
+      if (changed) {
+        airport.update(state.layers, state.selectedFeatureId)
+        requestRender()
+      }
     },
     zoom,
     reset: () => change({ ...initialPose, targetM: [...initialPose.targetM] }),

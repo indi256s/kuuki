@@ -222,6 +222,8 @@ test('real airport canvases pick, retire and recover without an idle render loop
     const times: number[] = []
     const canvases: HTMLCanvasElement[] = []
     const frameWorkMs: number[] = []
+    const frameDraws: number[] = [],
+      frameTriangles: number[] = []
     const probe = {
       frames: 0,
       times,
@@ -229,6 +231,8 @@ test('real airport canvases pick, retire and recover without an idle render loop
       records,
       projectionScale: 0,
       frameWorkMs,
+      frameDraws,
+      frameTriangles,
       renderer: '',
     }
     const requestFrame = window.requestAnimationFrame.bind(window)
@@ -245,6 +249,22 @@ test('real airport canvases pick, retire and recover without an idle render loop
     const uniformNames = new WeakMap<WebGLUniformLocation, string>()
     Reflect.set(window, 'airportProbe', probe)
     for (const prototype of [WebGLRenderingContext.prototype, WebGL2RenderingContext.prototype]) {
+      const drawArrays = prototype.drawArrays,
+        drawElements = prototype.drawElements
+      const countDraw = (mode: number, count: number) => {
+        const frame = probe.frameDraws.length - 1
+        if (frame < 0) return
+        probe.frameDraws[frame]!++
+        if (mode === 4) probe.frameTriangles[frame]! += count / 3 // WebGL TRIANGLES
+      }
+      prototype.drawArrays = function (mode, first, count) {
+        countDraw(mode, count)
+        return drawArrays.call(this, mode, first, count)
+      }
+      prototype.drawElements = function (mode, count, type, offset) {
+        countDraw(mode, count)
+        return drawElements.call(this, mode, count, type, offset)
+      }
       const getUniform = prototype.getUniformLocation
       const uniform = prototype.uniformMatrix4fv
       prototype.getUniformLocation = function (
@@ -275,6 +295,8 @@ test('real airport canvases pick, retire and recover without an idle render loop
           )
         }
         probe.frames++
+        probe.frameDraws.push(0)
+        probe.frameTriangles.push(0)
         probe.times.push(performance.now())
         if (this.canvas instanceof HTMLCanvasElement && !probe.canvases.includes(this.canvas))
           probe.canvases.push(this.canvas)
@@ -381,6 +403,8 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await page.evaluate(() => {
       Reflect.get(window, 'airportProbe').times = []
       Reflect.get(window, 'airportProbe').frameWorkMs = []
+      Reflect.get(window, 'airportProbe').frameDraws = []
+      Reflect.get(window, 'airportProbe').frameTriangles = []
     })
     await page.mouse.move(rect!.x + rect!.width / 2, rect!.y + rect!.height / 2)
     await page.mouse.down()
@@ -404,6 +428,8 @@ test('real airport canvases pick, retire and recover without an idle render loop
         frames: times.length,
         p95FrameMs: gaps[Math.floor(gaps.length * 0.95)] ?? null,
         p95CpuRenderWorkMs: work[Math.floor(work.length * 0.95)] ?? null,
+        drawCallsPerFrame: Math.max(...probe.frameDraws),
+        trianglesPerFrame: Math.max(...probe.frameTriangles),
         renderer: probe.renderer,
         idleFrames: probe.frames - before,
         dpr: devicePixelRatio,
@@ -412,6 +438,7 @@ test('real airport canvases pick, retire and recover without an idle render loop
     })
     expect(measured.frames).toBeGreaterThan(2)
     expect(measured.idleFrames).toBe(0)
+    expect(measured.drawCallsPerFrame).toBeLessThanOrEqual(32)
     profile.push({
       iata,
       viewport: page.viewportSize(),

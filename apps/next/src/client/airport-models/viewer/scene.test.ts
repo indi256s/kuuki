@@ -82,7 +82,12 @@ describe('real Three metric geometry', () => {
         { polygons: [polygon], minHeightM: 3, heightM: 12 },
       ],
     }
-    const suppressed: AirportFeature = { ...parent, id: 'osm:way/2', renderFootprint: false }
+    const suppressed: AirportFeature = {
+      ...parent,
+      id: 'osm:way/2',
+      kind: 'tower',
+      renderFootprint: false,
+    }
     const model = {
       features: [parent, suppressed, lowerFloor],
       boundary: [],
@@ -99,6 +104,19 @@ describe('real Three metric geometry', () => {
     const selection = airport.root.children[0]!
     expect(selection.visible).toBe(true)
     expect(selection.children.some((child) => child instanceof LineSegments)).toBe(true)
+    const displayHits = () => {
+      const meshes: Mesh[] = []
+      airport.root.traverseVisible((child) => {
+        if (child instanceof Mesh) meshes.push(child)
+      })
+      return ray.intersectObjects(meshes)
+    }
+    expect(displayHits()[0]?.point.y).toBeCloseTo(3)
+    airport.update({ ...defaultAirportLayers, tower: false }, suppressed.id)
+    expect(selection.visible).toBe(false)
+    airport.update({ ...defaultAirportLayers, terminal: false }, null)
+    expect(displayHits()).toHaveLength(0)
+    expect(ray.intersectObjects(airport.pickMeshes)).toHaveLength(0)
     airport.dispose()
   })
 

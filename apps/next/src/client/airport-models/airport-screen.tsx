@@ -21,6 +21,7 @@ import { AirportComparison } from './comparison'
 import { useLocale } from '../preferences'
 import { isConstrainedConnection } from '../network'
 import { useMobile } from '../ui/use-mobile'
+import { formatDateOnly, formatInstantDate, formatNumber, pluralCategory } from '../../lib/format'
 import { Button } from '../ui/button'
 import { PopoverRoot, PopoverTrigger, PopoverContent } from '../ui/popover'
 import { useAirportHistory } from './use-airport-history'
@@ -349,13 +350,7 @@ export function AirportScreen({
   }
   const objectFeatures = model?.features ?? []
   const timestamp = model?.provenance.osmTimestamp ?? model?.provenance.fetchedAt
-  const dateFormat = new Intl.DateTimeFormat(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  })
-  const plural = new Intl.PluralRules(locale).select(history.data?.total ?? 0)
+  const plural = pluralCategory(locale, history.data?.total ?? 0)
   const flightNoun = ru
     ? plural === 'one'
       ? 'перелёт'
@@ -637,7 +632,7 @@ export function AirportScreen({
                       {history.data && (
                         <>
                           <p className="airport-history-total">
-                            {new Intl.NumberFormat(locale).format(history.data.total ?? 0)}{' '}
+                            {formatNumber(locale, history.data.total ?? 0)}{' '}
                             <span>{flightNoun}</span>
                           </p>
                           {history.data.derivedState !== 'ready' && (
@@ -663,9 +658,7 @@ export function AirportScreen({
                                   {item.origin} — {item.destination}
                                 </span>
                                 <time dateTime={item.date}>
-                                  {Number.isNaN(Date.parse(item.date))
-                                    ? item.date
-                                    : dateFormat.format(new Date(item.date))}
+                                  {formatDateOnly(locale, item.date)}
                                 </time>
                                 <span>
                                   {[item.airline, item.flightNumber].filter(Boolean).join(' ')}
@@ -840,7 +833,7 @@ export function AirportScreen({
                       <span>
                         {item.iata} ·{' '}
                         {captured
-                          ? dateFormat.format(new Date(captured))
+                          ? formatInstantDate(locale, captured, 'medium', 'UTC')
                           : copy('Snapshot date unknown', 'Дата снимка неизвестна')}
                       </span>
                       <a href={source.sourceUrl} target="_blank" rel="noreferrer">
@@ -860,7 +853,7 @@ export function AirportScreen({
       <footer className="airport-credits">
         {timestamp && (
           <span>
-            {copy('Snapshot', 'Снимок')} · {dateFormat.format(new Date(timestamp))}
+            {copy('Snapshot', 'Снимок')} · {formatInstantDate(locale, timestamp, 'medium', 'UTC')}
           </span>
         )}
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">

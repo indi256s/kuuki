@@ -19,6 +19,13 @@ the camera. `active=false` disposes resources; preserve controlled state outside
 the viewer when showing comparison. Hidden tabs and offscreen canvases suspend
 frames. Identity reset retires pending module loading and the live renderer.
 
+Static geometry is merged per layer and material for display. Exact per-feature
+meshes remain on the CPU for picking and selection outlines; no feature is
+removed or simplified. Layer changes update both display and picking visibility.
+Unchanged visual state does not schedule another frame.
+Hover raycasts coalesce to one per animation frame; taps remain immediate. Static
+geometry bounds and the visible picking list are reused between pointer moves.
+
 One-pointer drag orbits, Shift+drag pans, and two pointers pinch/pan. Movement
 over 6 CSS pixels and every multiple-pointer gesture suppress selection.
 `onHover` supplies `{id,x,y}` in canvas-local CSS pixels after 250ms (neighbouring

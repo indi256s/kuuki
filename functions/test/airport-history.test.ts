@@ -155,7 +155,17 @@ it('keeps exact IDs and all inherited facets above the Overview aggregation thre
       },
     ])
     expect(payload.nextCursor).toBeNull()
-    expect((await history(db)).total).toBe(5013)
+    let transferred = 0
+    const bounded = {
+      prepare: db.prepare.bind(db),
+      batch: async (statements: D1PreparedStatement[]) => {
+        const results = await db.batch(statements)
+        transferred = results.reduce((sum, result) => sum + result.results.length, 0)
+        return results
+      },
+    } as unknown as D1Database
+    expect((await history(bounded)).total).toBe(5013)
+    expect(transferred).toBeLessThanOrEqual(64)
   } finally {
     await dispose()
   }
@@ -236,50 +246,60 @@ it.each(['absent', 'planned', 'completed', 'cancelled', 'deleted', 'foreign'] as
   },
 )
 
-it('paginates date/id descending with bound cursors and refuses stale revisions', async () => {
-  const { db, dispose } = await overviewAccount([], (d) => [
-    bulkFlights(d, 103),
-    d.prepare("UPDATE flights SET date = '2025-01-01'"),
-  ])
-  try {
-    const first = await history(db)
-    expect(first.total).toBe(103)
-    expect(first.items.map(({ id }) => id)).toEqual(Array.from({ length: 50 }, (_, i) => 103 - i))
-    const second = await history(db, { cursor: first.nextCursor! })
-    const third = await history(db, { cursor: second.nextCursor! })
-    expect([...second.items, ...third.items].map(({ id }) => id)).toEqual(
-      Array.from({ length: 53 }, (_, i) => 53 - i),
-    )
-    expect(third.nextCursor).toBeNull()
-    for (const options of [{ iata: 'JFK' }, { filter: { airlines: ['TK'] } }]) {
-      expect((await request(db, { ...options, cursor: first.nextCursor! })).status).toBe(400)
+it.each([
+  { name: 'unfiltered SQL page', filter: undefined },
+  { name: 'canonical predicate', filter: { airports: ['TBS'] } },
+])(
+  'paginates raw date/id across legacy labels with bound revision cursors: $name',
+  async ({ filter }) => {
+    const { db, dispose } = await overviewAccount([], (d) => [
+      bulkFlights(d, 103),
+      d.prepare("UPDATE flights SET date = CASE WHEN id > 60 THEN '2025-01-01' ELSE '2024-03' END"),
+    ])
+    try {
+      const first = await history(db, { filter })
+      expect(first.total).toBe(103)
+      expect(first.items.map(({ id }) => id)).toEqual(Array.from({ length: 50 }, (_, i) => 103 - i))
+      expect(first.items.at(-1)?.date).toBe('2024-03')
+      const second = await history(db, { filter, cursor: first.nextCursor! })
+      const third = await history(db, { filter, cursor: second.nextCursor! })
+      expect([...second.items, ...third.items].map(({ id }) => id)).toEqual(
+        Array.from({ length: 53 }, (_, i) => 53 - i),
+      )
+      expect(third.nextCursor).toBeNull()
+      for (const options of [{ iata: 'JFK' }, { filter: { airlines: ['TK'] } }]) {
+        expect((await request(db, { filter, ...options, cursor: first.nextCursor! })).status).toBe(
+          400,
+        )
+      }
+      await db
+        .prepare("INSERT INTO users (id,email,password_hash) VALUES ('other','other@test','hash')")
+        .run()
+      expect(
+        (
+          await request(db, {
+            filter,
+            owner: 'other',
+            user: { id: 'other', email: 'other@test' },
+            cursor: first.nextCursor!,
+          })
+        ).status,
+      ).toBe(400)
+      await db.prepare('UPDATE user_derived_state SET evidence_revision = 0').run()
+      const unpublished = await request(db, { filter, cursor: first.nextCursor! })
+      expect(unpublished.status).toBe(409)
+      expect(await unpublished.json()).toMatchObject({ code: 'STALE_CURSOR' })
+      await repairUserDerivedState(db, USER.id)
+      await dirtyUserStatement(db, USER.id).run()
+      const stale = await request(db, { filter, cursor: first.nextCursor! })
+      expect(stale.status).toBe(409)
+      expect(await stale.json()).toMatchObject({ code: 'STALE_CURSOR' })
+      expect((await history(db, { filter })).items).toHaveLength(50)
+    } finally {
+      await dispose()
     }
-    await db
-      .prepare("INSERT INTO users (id,email,password_hash) VALUES ('other','other@test','hash')")
-      .run()
-    expect(
-      (
-        await request(db, {
-          owner: 'other',
-          user: { id: 'other', email: 'other@test' },
-          cursor: first.nextCursor!,
-        })
-      ).status,
-    ).toBe(400)
-    await db.prepare('UPDATE user_derived_state SET evidence_revision = 0').run()
-    const unpublished = await request(db, { cursor: first.nextCursor! })
-    expect(unpublished.status).toBe(409)
-    expect(await unpublished.json()).toMatchObject({ code: 'STALE_CURSOR' })
-    await repairUserDerivedState(db, USER.id)
-    await dirtyUserStatement(db, USER.id).run()
-    const stale = await request(db, { cursor: first.nextCursor! })
-    expect(stale.status).toBe(409)
-    expect(await stale.json()).toMatchObject({ code: 'STALE_CURSOR' })
-    expect((await history(db)).items).toHaveLength(50)
-  } finally {
-    await dispose()
-  }
-})
+  },
+)
 
 it.each(['pending', 'error', 'stale-evidence'] as const)(
   'keeps ordinary history readable but withholds evidence-dependent results: %s',

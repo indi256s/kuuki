@@ -33,6 +33,7 @@ export function useAirportHistory(
   const active = useRef<AbortController | null>(null)
   const requestId = useRef(0)
   const stopped = useRef(false)
+  const dirty = useRef(false)
   const stateRef = useRef(state)
   useEffect(() => {
     stateRef.current = state
@@ -42,6 +43,7 @@ export function useAirportHistory(
   const load = useCallback(
     async function request(cursor: string | null = null): Promise<void> {
       if (invalid || stopped.current) return
+      if (!cursor) dirty.current = true
       active.current?.abort()
       const controller = new AbortController()
       active.current = controller
@@ -58,7 +60,7 @@ export function useAirportHistory(
         data: previous.key === key ? previous.data : null,
         loading: true,
         error: false,
-        updating: false,
+        updating: !cursor && previous.key === key && previous.data !== null,
       }))
       try {
         const data = await api.get<AirportHistory>(
@@ -80,6 +82,7 @@ export function useAirportHistory(
           void request()
           return
         }
+        dirty.current = data.status !== 'ready'
         setState((previous) => {
           const before = previous.key === key ? previous.data : null
           if (data.status === 'scope-updating')
@@ -119,6 +122,10 @@ export function useAirportHistory(
         }))
       } finally {
         release()
+        if (!stopped.current && generation === getAuthGeneration() && id === requestId.current)
+          setState((previous) =>
+            previous.key === key && previous.loading ? { ...previous, loading: false } : previous,
+          )
       }
     },
     [ownerId, iata, scope, invalid, key],
@@ -130,9 +137,15 @@ export function useAirportHistory(
       setState({ key, data: null, loading: false, error: false, updating: false })
     }
     const refresh = () => {
+      dirty.current = true
       if (open && document.visibilityState !== 'hidden') void load()
     }
-    if (open && !invalid && (stateRef.current.key !== key || !stateRef.current.data)) void load()
+    if (
+      open &&
+      !invalid &&
+      (dirty.current || stateRef.current.key !== key || !stateRef.current.data)
+    )
+      void load()
     window.addEventListener('kuuki:identity-reset', clear)
     window.addEventListener(LIFECYCLE_CHANGED_EVENT, refresh)
     window.addEventListener('focus', refresh)

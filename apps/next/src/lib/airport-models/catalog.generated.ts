@@ -5,26 +5,26 @@ export const airportCatalog: readonly AirportCatalogEntry[] = [
     "iata": "TBS",
     "icao": "UGTB",
     "name": "Tbilisi International Airport",
-    "revision": "565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3",
+    "revision": "e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e",
     "boundsM": [
       -1448.8,
       -1390.83,
       1393.73,
       1291.28
     ],
-    "model": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/model.json",
-    "plan": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/plan.json",
-    "provenance": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/provenance.json",
-    "source": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/source.json",
-    "licence": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/licence.txt",
+    "model": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/model.json",
+    "plan": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/plan.json",
+    "provenance": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/provenance.json",
+    "source": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/source.json",
+    "licence": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/licence.txt",
     "previews": {
       "desktop": {
-        "light": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-desktop-light.svg",
-        "dark": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-desktop-dark.svg"
+        "light": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-desktop-light.svg",
+        "dark": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-desktop-dark.svg"
       },
       "mobile": {
-        "light": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-mobile-light.svg",
-        "dark": "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-mobile-dark.svg"
+        "light": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-mobile-light.svg",
+        "dark": "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-mobile-dark.svg"
       }
     }
   },
@@ -32,47 +32,47 @@ export const airportCatalog: readonly AirportCatalogEntry[] = [
     "iata": "BER",
     "icao": "EDDB",
     "name": "Berlin Brandenburg Airport",
-    "revision": "a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1",
+    "revision": "22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d",
     "boundsM": [
       -4067.03,
       -2613.58,
       1726.01,
       2850.35
     ],
-    "model": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/model.json",
-    "plan": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/plan.json",
-    "provenance": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/provenance.json",
-    "source": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/source.json",
-    "licence": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/licence.txt",
+    "model": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/model.json",
+    "plan": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/plan.json",
+    "provenance": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/provenance.json",
+    "source": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/source.json",
+    "licence": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/licence.txt",
     "previews": {
       "desktop": {
-        "light": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-desktop-light.svg",
-        "dark": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-desktop-dark.svg"
+        "light": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-desktop-light.svg",
+        "dark": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-desktop-dark.svg"
       },
       "mobile": {
-        "light": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-mobile-light.svg",
-        "dark": "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-mobile-dark.svg"
+        "light": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-mobile-light.svg",
+        "dark": "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-mobile-dark.svg"
       }
     }
   }
 ]
 export const airportAssetPaths: readonly string[] = [
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/licence.txt",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/model.json",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/plan.json",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-desktop-dark.svg",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-desktop-light.svg",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-mobile-dark.svg",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/preview-mobile-light.svg",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/provenance.json",
-  "/airport-models/565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3/source.json",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/licence.txt",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/model.json",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/plan.json",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-desktop-dark.svg",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-desktop-light.svg",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-mobile-dark.svg",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/preview-mobile-light.svg",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/provenance.json",
-  "/airport-models/a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1/source.json"
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/licence.txt",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/model.json",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/plan.json",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-desktop-dark.svg",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-desktop-light.svg",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-mobile-dark.svg",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/preview-mobile-light.svg",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/provenance.json",
+  "/airport-models/22781513d732768ff7191fcc20363db4ede08a364c7fef2676c26f222c0aed9d/source.json",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/licence.txt",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/model.json",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/plan.json",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-desktop-dark.svg",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-desktop-light.svg",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-mobile-dark.svg",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/preview-mobile-light.svg",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/provenance.json",
+  "/airport-models/e29cc4e107a9c2163615f7c17dd2d12b674d6d043f551f710a78840d9afd5b6e/source.json"
 ]

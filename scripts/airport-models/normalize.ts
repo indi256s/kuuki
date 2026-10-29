@@ -291,9 +291,10 @@ export function normalize(elements: Element[], config: Config, extractSha256: st
     throw new Error('Unsupported UTM region')
   const crs = `EPSG:326${config.zone}`,
     definition = `+proj=utm +zone=${config.zone} +datum=WGS84 +units=m +no_defs`
-  const origin = proj4('EPSG:4326', definition, config.centre) as PointM
+  const converter = proj4('EPSG:4326', definition)
+  const origin = converter.forward(config.centre) as PointM
   const project = (p: PointM): PointM => {
-    const v = proj4('EPSG:4326', definition, p)
+    const v = converter.forward(p)
     return [
       Math.round((v[0]! - origin[0]) * 100) / 100,
       Math.round((v[1]! - origin[1]) * 100) / 100,
