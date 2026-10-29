@@ -2,7 +2,7 @@
 // row, which rows are confirmable and how confidence reads. The server stays authoritative; this only keeps the form
 // from sending what it will refuse and explains why a row cannot be saved yet.
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
-import { findAirport } from '@kuuki/data/airport-lookup'
+import { findAirportLabel } from '@kuuki/data/airport-labels'
 import type { RowOutcome } from './confirm-runner'
 import type { DraftChange } from './draft-saver'
 import type { Draft, DraftFields } from './import-types'
@@ -83,7 +83,7 @@ export function validateValues(input: FieldValues): Partial<Record<FieldName, Fi
   else if (!realDate(value.date)) errors.date = 'dateInvalid'
   for (const key of ['origin', 'destination'] as const) {
     if (!/^[A-Z]{3}$/.test(value[key])) errors[key] = 'iata'
-    else if (!findAirport(value[key])) errors[key] = 'unknownAirport'
+    else if (!findAirportLabel(value[key])) errors[key] = 'unknownAirport'
   }
   if (!errors.origin && !errors.destination && value.origin === value.destination)
     errors.destination = 'sameAirport'

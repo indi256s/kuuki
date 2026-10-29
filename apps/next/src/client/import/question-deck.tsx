@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
-import { findAirport } from '@kuuki/data/airport-lookup'
+import { findAirportLabel as findAirport } from '@kuuki/data/airport-labels'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Disclosure } from '../ui/disclosure'

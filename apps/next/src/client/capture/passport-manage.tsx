@@ -20,7 +20,7 @@ import {
   type AircraftOutcome,
   type AircraftRunCounts,
 } from '../import/aircraft-review'
-import { S } from '../import/copy'
+import { AIRCRAFT_RESULT as S } from '../import/aircraft-result-copy'
 import { acceptAircraftBatch } from '../import/import-api'
 import { AircraftAnnouncement } from '../import/aircraft-announcement'
 import { formatDateOnly } from '../../lib/format'

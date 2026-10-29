@@ -4,7 +4,7 @@ import { AIRCRAFT_BATCH_SIZE } from '@kuuki/shared/constants'
 // start selected. Select-all doubles as deselect-all. Every flight keeps its own outcome, and the requests run
 // one after another (no parallel fan-out).
 import { formatNumber, type Locale } from '../../lib/format'
-import { S } from './copy'
+import { AIRCRAFT_RESULT as S } from './aircraft-result-copy'
 import { classifyRequestFailure } from './import-errors'
 
 export const AIRCRAFT_BATCH = AIRCRAFT_BATCH_SIZE

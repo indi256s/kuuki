@@ -1,6 +1,5 @@
-// The same import form as @kuuki/data's own lookups: a JSON file imported both with and without the attribute is
-// bundled twice (ESM and CommonJS copies).
-import airports from '@kuuki/data/airports' with { type: 'json' }
+// JSON attributes match the airline/aircraft lookups to avoid separate ESM and CommonJS copies.
+import { airportLabels as airports } from '@kuuki/data/airport-labels'
 import airlines from '@kuuki/data/airlines' with { type: 'json' }
 import aircraft from '@kuuki/data/aircraft' with { type: 'json' }
 import { airportAliases } from '@kuuki/shared'

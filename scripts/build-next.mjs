@@ -45,6 +45,10 @@ writeFileSync(
 )
 if (process.argv.includes('--inventory-only')) process.exit(0)
 
+execFileSync(process.execPath, ['scripts/generate-airport-catalog.mjs', '--check'], {
+  cwd: root,
+  stdio: 'inherit',
+})
 execFileSync('pnpm', ['build:api'], { cwd: root, stdio: 'inherit' })
 execFileSync('pnpm', ['--filter', '@kuuki/next', 'exec', 'opennextjs-cloudflare', 'build'], {
   cwd: root,

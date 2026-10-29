@@ -1,5 +1,5 @@
 import airlines from '@kuuki/data/airlines' with { type: 'json' }
-import { findAirport } from '@kuuki/data/airport-lookup'
+import { findAirportLabel } from '@kuuki/data/airport-labels'
 
 let byIata: Map<string, string> | undefined
 export function airlineName(iata: string): string | undefined {
@@ -8,4 +8,4 @@ export function airlineName(iata: string): string | undefined {
   )
   return byIata.get(iata.toUpperCase())
 }
-export const cityOf = (iata: string): string => findAirport(iata)?.city ?? iata
+export const cityOf = (iata: string): string => findAirportLabel(iata)?.city ?? iata

@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { BadgeNotifications } from '../../client/profile/badge-notifications'
 import { RouteStage } from '../../client/route-transitions'
-import { MemberShell, BrandShell } from '../../client/shell'
+import { MemberShell } from '../../client/shell'
+import { BrandShell } from '../../client/brand-shell'
 import { getOptionalPublicViewer } from '../../server/identity'
 import { getRequestLocale } from '../../server/locale'
 

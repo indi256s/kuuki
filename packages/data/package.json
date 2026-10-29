@@ -11,6 +11,7 @@
     "./airports": "./src/airports.json",
     "./airlines": "./src/airlines.json",
     "./airport-lookup": "./src/airport-lookup.ts",
+    "./airport-labels": "./src/airport-labels.ts",
     "./aircraft-lookup": "./src/aircraft-lookup.ts",
     "./aircraft-makers": "./src/aircraft-makers.ts",
     "./alliance-membership": "./src/alliance-membership.ts",

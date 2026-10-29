@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BrandShell } from '../../client/shell'
+import { BrandShell } from '../../client/brand-shell'
 import { getRequestLocale } from '../../server/locale'
 
 export default async function EntryLayout({ children }: { children: ReactNode }) {

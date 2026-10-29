@@ -5,6 +5,13 @@ Capture, import extraction and timezone lookup read it; server validation and
 reference queries read D1's `airports_reference`. Update both projections when
 admitting airports.
 
+Browser lookups use [generated labels](../packages/data/src/airport-labels.generated.ts)
+and [flight details](../packages/data/src/airport-details.generated.ts)
+from the same catalog. Import review loads only IATA codes, names and cities;
+the full lookup joins coordinates, timezones and the remaining fields when needed.
+After editing the catalog, run `pnpm generate:airport-catalog`.
+`pnpm check:airport-catalog` verifies the projection; `pnpm next:build` runs that check.
+
 [import-openflights.ts](../scripts/import-openflights.ts) reads downloaded
 [OpenFlights snapshots](https://openflights.org/data.php). New rows need a three-letter
 IATA code, finite coordinates in range, a timezone, and a country admitted by
@@ -33,6 +40,7 @@ Regenerate locally from the workspace root:
 
 ```sh
 pnpm exec tsx scripts/import-openflights.ts
+pnpm generate:airport-catalog
 pnpm exec tsx db/scripts/generate-seed.ts --airports-only
 pnpm exec tsx db/scripts/generate-seed.ts --supplement-only
 ```

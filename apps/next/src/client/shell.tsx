@@ -1,12 +1,11 @@
-import { NavigationLink as Link } from './navigation-link'
 import type { ReactNode } from 'react'
 import { AccentSync } from './appearance'
 import { AwaitingProvider } from './awaiting'
 import { AddMenu } from './add-menu'
 import { AvatarMenu } from './avatar-menu'
 import { MobilePageTitle, PrimaryNav, TabBar } from './nav'
-import { GuestActions } from './guest-actions'
 import { PageShell } from './page-shell'
+import { Wordmark } from './wordmark'
 import { ShellNotices } from './shell-notices'
 import { AddOriginTracker } from './capture/add-origin'
 import { ImportDock } from './import/import-dock-lazy'
@@ -18,20 +17,6 @@ import { getOwnProfileStats } from '../server/profile'
 import { isUserAnalyticsAdmin } from '../../../../functions/api/_lib/userAnalyticsAccess'
 import type { Locale } from '../server/locale'
 
-function Wordmark({ label = 'Kuuki home' }: { label?: string }) {
-  return (
-    <Link href="/" className="wordmark" aria-label={label}>
-      <span className="mark" aria-hidden>
-        {['く', 'う', 'き'].map((glyph) => (
-          <span className="mark-glyph" key={glyph}>
-            {glyph}
-          </span>
-        ))}
-      </span>
-      <span>kuuki</span>
-    </Link>
-  )
-}
 /** Background reading needs the import job worker; without it imports are read inside the request on /import. */
 function ImportRuns({
   jobs,
@@ -103,28 +88,5 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
         </ImportRuns>
       </ShellNotices>
     </AwaitingProvider>
-  )
-}
-
-/** Wordmark and preferences only; no member navigation. `actions` adds guest links. */
-export function BrandShell({
-  locale,
-  actions,
-  children,
-}: {
-  locale: Locale
-  actions?: boolean
-  children: ReactNode
-}) {
-  return (
-    <>
-      <header className="site-header">
-        <div className="site-header-inner">
-          <Wordmark />
-          <GuestActions locale={locale} actions={actions} />
-        </div>
-      </header>
-      <PageShell>{children}</PageShell>
-    </>
   )
 }

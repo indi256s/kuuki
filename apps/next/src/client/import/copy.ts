@@ -1,6 +1,7 @@
 // Every import string, written in English and Russian together (Russian addresses the member as «вы»).
 // Counts use real plural forms. Server messages are never shown: causes come from import-errors.ts kinds and codes.
 import { formatCount, type CountForms, type Locale } from '../../lib/format'
+import { AIRCRAFT_RESULT } from './aircraft-result-copy'
 import type { FailureAction, FailureKind } from './import-errors'
 import type { RowFailureKind } from './import-errors'
 import type { FieldError, FieldName, Readiness } from './review-model'
@@ -508,14 +509,7 @@ ${PROMPT_EXAMPLE.ru}
     'No aircraft could be identified reliably.',
     'Не удалось надёжно определить ни одного самолёта.',
   ),
-  aircraftSavedTag: p('Saved', 'Сохранено'),
-  aircraftFailedTag: p('Not saved', 'Не сохранено'),
-  aircraftUncertainTag: p('May not be saved', 'Возможно, не сохранено'),
-  aircraftUncertainNote: p(
-    'We did not get an answer. Check the journal, or try again; trying again is safe.',
-    'Ответа не было. Проверьте журнал или повторите; повторить безопасно.',
-  ),
-  aircraftRetry: p('Try again for the rest', 'Повторить для остальных'),
+  ...AIRCRAFT_RESULT,
   aircraftUnidentified: p('No suggestion', 'Без предложения'),
   aircraftReasonNone: p(
     'The service could not name an aircraft for this flight.',

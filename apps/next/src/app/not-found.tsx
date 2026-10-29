@@ -1,6 +1,6 @@
 import { LocaleText } from '../client/locale-text'
 import Link from 'next/link'
-import { BrandShell } from '../client/shell'
+import { BrandShell } from '../client/brand-shell'
 import { pageMetadata } from '../server/metadata'
 import { getRequestLocale } from '../server/locale'
 
