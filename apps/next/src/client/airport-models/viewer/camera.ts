@@ -28,7 +28,7 @@ export function applyCamera(
   camera.updateMatrixWorld()
 }
 
-export function featurePoints(feature: AirportFeature): { point: PointM; height: number }[] {
+function featurePoints(feature: AirportFeature): { point: PointM; height: number }[] {
   if (feature.type === 'point') return [{ point: feature.point, height: 0 }]
   if (feature.type === 'line') return feature.points.map((point) => ({ point, height: 0 }))
   const heights =

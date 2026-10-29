@@ -2,10 +2,9 @@ import { expect, it } from 'vitest'
 import { airportCatalog } from './catalog.generated'
 import { immutableAirportAsset } from './asset-policy'
 
-it('admits only exact generated assets with safe delivery headers and methods', () => {
+it('rejects unsafe delivery of allowlisted airport assets', () => {
   const path = airportCatalog[0]!.model
-  const request = (suffix = path, method = 'GET') =>
-    new Request(`https://kuuki.test${suffix}`, { method })
+  const request = (method = 'GET') => new Request(`https://kuuki.test${path}`, { method })
   const response = (status = 200, mime: string | null = 'application/json', cookie = false) =>
     new Response(null, {
       status,
@@ -14,13 +13,8 @@ it('admits only exact generated assets with safe delivery headers and methods', 
         ...(cookie ? { 'Set-Cookie': 'session=private' } : {}),
       },
     })
-  expect(immutableAirportAsset(request(), response())).toBe(true)
-  expect(immutableAirportAsset(request(path, 'HEAD'), response())).toBe(true)
-  expect(immutableAirportAsset(request(), response(304, null))).toBe(true)
   for (const [req, res] of [
-    [request('/airport-models/model.json'), response()],
-    [request(path.replace('model.json', 'missing.json')), response()],
-    [request(path, 'POST'), response()],
+    [request('POST'), response()],
     [request(), response(404)],
     [request(), response(200, 'text/html')],
     [request(), response(304, 'text/html')],

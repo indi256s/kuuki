@@ -502,7 +502,8 @@ it.each(['cancel with failed abort', 'account deletion', 'discard'])(
     const { send, start, batch, rows } = await runtime(action === 'cancel with failed abort')
     const id = await start()
     send('{"flights":[' + JSON.stringify(providerFlight()))
-    await expect.poll(async () => (await rows(id)).results.length).toBe(1)
+    // Extraction is setup; subscriber closure below retains its separate 2 s deadline.
+    await expect.poll(async () => (await rows(id)).results.length, { timeout: 10_000 }).toBe(1)
     const response = await dispatch(
       `/api/import/batches/${id}/events?after=${(await batch(id))!.sequence}`,
     )

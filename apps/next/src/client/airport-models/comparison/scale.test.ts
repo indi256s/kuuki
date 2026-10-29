@@ -9,9 +9,8 @@ describe('comparison drawing scale', () => {
     ]
     const ppm = comparisonScale(panels)
     // BER-like wide extent is constrained to 400/6000, including the smaller panel.
-    expect(ppm).toBeCloseTo(1 / 15)
+    expect(1000 * ppm).toBeCloseTo(200 / 3)
     for (const panel of panels) {
-      expect(1000 * ppm).toBeCloseTo(200 / 3)
       expect((panel.boundsM[2] - panel.boundsM[0]) * ppm).toBeLessThanOrEqual(panel.width)
       expect((panel.boundsM[3] - panel.boundsM[1]) * ppm).toBeLessThanOrEqual(panel.height)
       const bar = scaleBar(ppm, panel.width)

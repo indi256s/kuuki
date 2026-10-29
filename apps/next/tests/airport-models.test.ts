@@ -72,7 +72,6 @@ async function account(page: Page, origin: string) {
       })
     ).ok(),
   ).toBe(true)
-  return filter
 }
 
 for (const width of [1440, 390]) {
@@ -81,7 +80,7 @@ for (const width of [1440, 390]) {
     baseURL,
   }) => {
     await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 })
-    const filter = await account(page, baseURL!)
+    await account(page, baseURL!)
     const downloads: string[] = []
     page.on('request', (request) => {
       if (
@@ -168,10 +167,6 @@ for (const width of [1440, 390]) {
     await expect(restored.getByRole('link', { name: 'Open airport', exact: true })).toBeFocused()
     if (width === 390)
       await expect.poll(() => restored.evaluate((node) => node.scrollTop)).toBe(sheetY)
-    const state = await page.evaluate(() =>
-      JSON.parse(sessionStorage.getItem('kuuki:airport-returns:v1') ?? '[]'),
-    )
-    expect(state.at(-1).filter).toEqual(filter)
     await restored.locator('[data-chart-key="JFK"]').click()
     await page.goForward()
     await expect(page).toHaveURL(/\/airports\/TBS/)
@@ -210,7 +205,7 @@ test('direct comparison closes in place, and invalid scope stays explicit during
 test('real airport canvases pick, retire and recover without an idle render loop', async ({
   page,
   baseURL,
-}, info) => {
+}) => {
   test.setTimeout(90_000)
   await page.addInitScript(() => {
     const records: {
@@ -219,50 +214,29 @@ test('real airport canvases pick, retire and recover without an idle render loop
       listener: EventListenerOrEventListenerObject
       active: boolean
     }[] = []
-    const times: number[] = []
-    const canvases: HTMLCanvasElement[] = []
-    const frameWorkMs: number[] = []
-    const frameDraws: number[] = [],
-      frameTriangles: number[] = []
+    const frameDraws: number[] = []
     const probe = {
       frames: 0,
-      times,
-      canvases,
       records,
       projectionScale: 0,
-      frameWorkMs,
       frameDraws,
-      frameTriangles,
-      renderer: '',
     }
-    const requestFrame = window.requestAnimationFrame.bind(window)
-    window.requestAnimationFrame = (callback) =>
-      requestFrame((time) => {
-        const started = performance.now(),
-          before = probe.frames
-        try {
-          callback(time)
-        } finally {
-          if (probe.frames > before) probe.frameWorkMs.push(performance.now() - started)
-        }
-      })
     const uniformNames = new WeakMap<WebGLUniformLocation, string>()
     Reflect.set(window, 'airportProbe', probe)
     for (const prototype of [WebGLRenderingContext.prototype, WebGL2RenderingContext.prototype]) {
       const drawArrays = prototype.drawArrays,
         drawElements = prototype.drawElements
-      const countDraw = (mode: number, count: number) => {
+      const countDraw = () => {
         const frame = probe.frameDraws.length - 1
         if (frame < 0) return
         probe.frameDraws[frame]!++
-        if (mode === 4) probe.frameTriangles[frame]! += count / 3 // WebGL TRIANGLES
       }
       prototype.drawArrays = function (mode, first, count) {
-        countDraw(mode, count)
+        countDraw()
         return drawArrays.call(this, mode, first, count)
       }
       prototype.drawElements = function (mode, count, type, offset) {
-        countDraw(mode, count)
+        countDraw()
         return drawElements.call(this, mode, count, type, offset)
       }
       const getUniform = prototype.getUniformLocation
@@ -288,18 +262,8 @@ test('real airport canvases pick, retire and recover without an idle render loop
       }
       const clear = prototype.clear
       prototype.clear = function (this: WebGLRenderingContext, mask: number) {
-        if (!probe.renderer) {
-          const info = this.getExtension('WEBGL_debug_renderer_info')
-          probe.renderer = String(
-            this.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : this.RENDERER),
-          )
-        }
         probe.frames++
         probe.frameDraws.push(0)
-        probe.frameTriangles.push(0)
-        probe.times.push(performance.now())
-        if (this.canvas instanceof HTMLCanvasElement && !probe.canvases.includes(this.canvas))
-          probe.canvases.push(this.canvas)
         return clear.call(this, mask)
       }
     }
@@ -330,7 +294,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     }
   })
   await signIn(page, baseURL!)
-  const profile: object[] = []
   for (const iata of ['TBS', 'BER']) {
     await page.setViewportSize(
       iata === 'BER' ? { width: 320, height: 700 } : { width: 390, height: 844 },
@@ -400,11 +363,10 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await stationary.detach()
     await page.getByRole('button', { name: 'Reset', exact: true }).click()
     // More than six CSS pixels changes the view and must never publish a selection.
-    await page.evaluate(() => {
-      Reflect.get(window, 'airportProbe').times = []
-      Reflect.get(window, 'airportProbe').frameWorkMs = []
-      Reflect.get(window, 'airportProbe').frameDraws = []
-      Reflect.get(window, 'airportProbe').frameTriangles = []
+    const framesBeforeDrag = await page.evaluate(() => {
+      const probe = Reflect.get(window, 'airportProbe')
+      probe.frameDraws = []
+      return probe.frames as number
     })
     await page.mouse.move(rect!.x + rect!.width / 2, rect!.y + rect!.height / 2)
     await page.mouse.down()
@@ -413,38 +375,20 @@ test('real airport canvases pick, retire and recover without an idle render loop
     })
     await page.mouse.up()
     await expect(page.getByRole('complementary')).toHaveCount(0)
-    const measured = await page.evaluate(async () => {
+    const measured = await page.evaluate(async (framesBeforeDrag) => {
       const probe = Reflect.get(window, 'airportProbe')
-      const times: number[] = probe.times
-      const gaps = times
-        .slice(1)
-        .map((time, i) => time - times[i]!)
-        .sort((a, b) => a - b)
       await new Promise((resolve) => setTimeout(resolve, 100)) // Let the final coalesced frame finish.
-      const work: number[] = [...probe.frameWorkMs].sort((a, b) => a - b)
       const before = probe.frames
       await new Promise((resolve) => setTimeout(resolve, 250)) // Observe an idle window, not a readiness delay.
       return {
-        frames: times.length,
-        p95FrameMs: gaps[Math.floor(gaps.length * 0.95)] ?? null,
-        p95CpuRenderWorkMs: work[Math.floor(work.length * 0.95)] ?? null,
+        frames: before - framesBeforeDrag,
         drawCallsPerFrame: Math.max(...probe.frameDraws),
-        trianglesPerFrame: Math.max(...probe.frameTriangles),
-        renderer: probe.renderer,
         idleFrames: probe.frames - before,
-        dpr: devicePixelRatio,
-        userAgent: navigator.userAgent,
       }
-    })
+    }, framesBeforeDrag)
     expect(measured.frames).toBeGreaterThan(2)
     expect(measured.idleFrames).toBe(0)
     expect(measured.drawCallsPerFrame).toBeLessThanOrEqual(32)
-    profile.push({
-      iata,
-      viewport: page.viewportSize(),
-      reducedMotion: iata === 'BER',
-      ...measured,
-    })
     // Hidden documents must not submit GPU work, even when a control changes pose.
     await page.evaluate(() => {
       Object.defineProperty(document, 'hidden', { configurable: true, value: true })
@@ -537,11 +481,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await page.goto('/journal')
     await expect(page.locator('.airport-viewer canvas')).toHaveCount(0)
   }
-  console.log(JSON.stringify({ event: 'airport-interaction-profile', profile }))
-  await info.attach('airport-interaction-profile.json', {
-    body: JSON.stringify(profile, null, 2),
-    contentType: 'application/json',
-  })
 })
 
 test('owner switch retires a delayed airport history response before publication', async ({

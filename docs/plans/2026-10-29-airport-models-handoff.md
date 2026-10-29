@@ -1,6 +1,6 @@
 # Модели аэропортов — implementation handoff
 
-Status: W1–W4 и последующая Thermos/Ponytail оптимизация локально проверены 29 октября 2026. Исходная реализация закоммичена `1674d0f437ed48aa1c7cf86442598356cb1724ae`; оптимизация фиксируется отдельным локальным коммитом. Независимые findings закрыты; BER performance goal остаётся открытым. Hosted release не выполнялся.
+Status: W1–W4 и Thermos/Ponytail оптимизация проверены и зафиксированы коммитами `1674d0f4` и `305bc7a9`, оба опубликованы в origin/main с отдельного разрешения пользователя. Production release запрошен, но остановлен на failed native CI; production не изменён. Подготовлено сокращение тестового кода и исправление setup timeout; дополнительный owned commit/push разрешён. Ожидание треда справочника завершено; миграция нового commit `673bab68` требует отдельного допуска. BER performance goal остаётся открытым.
 
 Plan: [2026-10-29-airport-models.md](2026-10-29-airport-models.md).
 Checkout: `/Users/indi256/Documents/kuuki/kuuki`, shared branch `main`.
@@ -9,7 +9,7 @@ Date: 2026-10-29, Asia/Tbilisi.
 
 ## Текущее исполнение
 
-Пользователь разрешил все implementation waves и затем явно поручил локальный commit и глубокую оптимизацию с Thermos/Ponytail. Прежние planning-only формулировки ниже — историческая запись. Push, PR, deployment и remote writes не разрешены.
+Пользователь разрешил implementation, commit, глубокую оптимизацию, затем production deployment и push только двух готовых коммитов Airport Models. Этот push выполнен. Новое поручение — сократить бесполезные тесты; дополнительный commit/push подготовленного изменения отдельно разрешён. По поручению пользователя дождались завершения треда исправления справочника: новый локальный commit `673bab68` содержит миграцию `0017`. Разрешение на её production application и публикацию этого дополнительного commit запрошено отдельно. PR и remote D1 writes не разрешены. Прежние planning-only формулировки ниже — историческая запись.
 
 Исходная реализация: commit `1674d0f437ed48aa1c7cf86442598356cb1724ae`. Evidence W1–W4 находится в `/tmp/plan-execution/airport-models-20261029/`; финальный optimization candidate, проверки, review snapshots и Git recovery records — `/tmp/airport-models-optimization-20261029/`. Проверки выполнены в общем checkout по прямому запрету создавать другой checkout. Коммиты используют private index, обычные hooks и проверку сохранности live files/staging. Чужие 20 tracked изменений и префиксы DESIGN/docs README сохраняются. Primary `gpt-6.1-sol/xhigh`; workers `gpt-6.1-sol/medium`; независимые reviewers `gpt-6.1-sol/high`.
 
@@ -23,6 +23,15 @@ Date: 2026-10-29, Asia/Tbilisi.
 - Portability повторно PASS: все 20 outputs воспроизводятся в non-Git source/data bundle без `.scratch` и workspace links. Точная дата retrieval/state OSM snapshots остаётся unknown/null, dimensions estimates явно помечены; reference renderer не импортируется и не исполняется. Raw research/prototype inputs сохранены.
 
 Подробные изменения, метод измерений, результаты review и остаточные ограничения: [optimization report](../research/2026-10-29-airport-models-optimization.md). Source identity и commit results фиксируются во внешнем ledger без циклического включения собственного patch hash в документ.
+
+## Production release — текущий gate
+
+- Исходный candidate: `305bc7a99d4e9aa087daac7642cf347d4cb6b242`; Cloudflare Build `ac1ec346-1e73-4f9e-a249-765e2267860f` завершился fail: 1853 client tests PASS, 1007/1008 API PASS. Единственное падение — `import-runtime.test.ts:505`, initial extraction poll с Vitest default 1000 ms, до открытия subscriber. Повтор неизменённого failed source не запускался.
+- Локальная чистая сборка из `git archive`, Worker types, composed smoke, deterministic check 20 outputs PASS; новый Git checkout не создавался. Все первоначальные 17 production migrations присутствуют. После завершения треда справочника локально добавилась `0017_airport_catalog_coverage.sql`; повторный read-only ledger подтверждает, что она ещё не применена (17/18). Remote writes не выполнялись. Import Worker существует, его source/config не менялись.
+- Rollback targets: kuuki-next `7b5c1e43-678c-4092-9205-8be6ac0bcabb`, kuuki-activation `c58c87f6-1adb-49f8-8af6-581287e840d2`. Production baseline HTTP PASS; ни один Worker не переопубликован.
+- По новому поручению удалены лишние profile-only browser probes, чтение внутреннего sessionStorage и повторные scale/cache assertions. Focus test больше не использует production helper для ожидаемых точек: fault injection показал прежний false PASS и новый FAIL на пустых bounds. Test-only export `featurePoints` закрыт. Initial extraction setup poll увеличен до 10 s; отдельный subscriber-close deadline 2 s сохранён. Задержка provider chunk 1500 ms воспроизводит исходный setup failure; после правки все три terminal-action сценария PASS. Причина замедления native CI не доказана.
+- Проверки подготовленного изменения: airport units 12 PASS, import-runtime 35 PASS, чистая production build PASS, три затронутых browser journeys PASS. Новых тестовых сценариев не добавлено. Основной удалённый объём — наблюдательные probes, поэтому ускорение всего CI не заявляется. Существующие geometry, lifecycle, owner isolation и cursor regressions сохранены.
+- Evidence/owned patch: `/tmp/kuuki-airport-release-20261029/`. Два assertion hunks общего import-теста вошли в commit `673bab68` своего владельца. Новый owned candidate строится поверх этого commit, сохраняя прочую незавершённую работу checkout. Source bundle проверяется отдельно; чужие изменения не публикуются этим релизом.
 
 ## Историческая authority и состояние планирования
 
@@ -72,4 +81,4 @@ Production code/config — tracked source в owning checkout, проверять
 
 ## Следующее действие исполнения
 
-Авторизованная локальная реализация и оптимизация завершены. Открытый performance goal ведётся в issue file выше; production release, push/PR и remote writes требуют отдельного поручения.
+Зафиксировать только подготовленные owned hunks поверх `673bab68`. Перед publication/application deployment получить отдельный допуск нового справочного commit и migration release для `0017` по runbook; до него не выполнять remote writes. Затем пройти новый exact-SHA Cloudflare Build, deploy-kuuki для обоих production Workers и HTTP/asset/auth verification. До успешных release gates production не менять. Открытый performance goal ведётся в issue file выше; PR и remote D1 writes не входят в разрешение.

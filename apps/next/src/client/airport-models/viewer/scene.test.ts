@@ -17,7 +17,7 @@ import type {
   CameraPose,
   PolygonM,
 } from '../../../lib/airport-models/model'
-import { applyCamera, featurePoints, focusPose } from './camera'
+import { applyCamera, focusPose } from './camera'
 import { buildAirportScene, polygonGeometry } from './scene'
 import { defaultAirportLayers } from './types'
 
@@ -159,15 +159,21 @@ describe('real Three metric geometry', () => {
       [390, 844, { top: 80, right: 12, bottom: 360, left: 12 }],
     ] as const) {
       const focused = focusPose(feature, { ...pose, azimuth: -0.6 }, width, height, insets)
-      for (const item of featurePoints(feature)) {
-        const point = projectPoint(item.point, item.height, focused)
-        const x = width / 2 + (point[0] * height) / focused.verticalSpanM
-        const y = height / 2 - (point[1] * height) / focused.verticalSpanM
-        expect(x).toBeGreaterThanOrEqual(insets.left)
-        expect(x).toBeLessThanOrEqual(width - insets.right)
-        expect(y).toBeGreaterThanOrEqual(insets.top)
-        expect(y).toBeLessThanOrEqual(height - insets.bottom)
-      }
+      for (const [east, north] of [
+        [-300, -100],
+        [500, -100],
+        [500, 200],
+        [-300, 200],
+      ])
+        for (const elevation of [10, 80]) {
+          const point = projectPoint([east!, north!], elevation, focused)
+          const x = width / 2 + (point[0] * height) / focused.verticalSpanM
+          const y = height / 2 - (point[1] * height) / focused.verticalSpanM
+          expect(x).toBeGreaterThanOrEqual(insets.left)
+          expect(x).toBeLessThanOrEqual(width - insets.right)
+          expect(y).toBeGreaterThanOrEqual(insets.top)
+          expect(y).toBeLessThanOrEqual(height - insets.bottom)
+        }
     }
   })
 
