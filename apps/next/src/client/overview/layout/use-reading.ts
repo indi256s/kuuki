@@ -4,18 +4,34 @@ import { useState } from 'react'
 import { useOverview } from '../store/overview-context'
 import { useChapter } from './chapter-context'
 
-type State<K> = { reading: K | null; picked: boolean; headline: K | null; filter: string }
+type State<K> = {
+  reading: K | null
+  picked: boolean
+  headline: K | null
+  filter: string
+  restored: string | null
+}
 
 /**
  * The reading a chapter's hero and figure share: the headline until the member picks another. It goes back to the headline,
  * without animating, when the chapter stops being the open one, when the headline changes, when the filter changes and when
  * the reading is no longer one of `keys`. A new pick replaces the reading; nothing queues.
  */
-export function useReading<K extends string>(keys: readonly K[], headline: K | null) {
+export function useReading<K extends string>(
+  keys: readonly K[],
+  headline: K | null,
+  initial?: { key: K | null; token: string },
+) {
   const { active } = useChapter()
   // Compared by value: the filter object can be rebuilt without changing (a prefs refresh).
   const filter = JSON.stringify(useOverview().filter)
-  const fresh = (): State<K> => ({ reading: headline, picked: false, headline, filter })
+  const fresh = (): State<K> => ({
+    reading: headline,
+    picked: false,
+    headline,
+    filter,
+    restored: null,
+  })
   const [state, setState] = useState<State<K>>(fresh)
   const atHeadline = state.reading === headline
   const stale =
@@ -24,8 +40,17 @@ export function useReading<K extends string>(keys: readonly K[], headline: K | n
     (!active && !(atHeadline && !state.picked)) ||
     (!atHeadline && state.reading !== null && !keys.includes(state.reading))
   let current = state
-  if (stale) {
-    current = fresh()
+  if (active && initial && keys.length > 0 && state.restored !== initial.token) {
+    current = {
+      reading: initial.key !== null && keys.includes(initial.key) ? initial.key : headline,
+      picked: false,
+      headline,
+      filter,
+      restored: initial.token,
+    }
+    setState(current)
+  } else if (stale) {
+    current = { ...fresh(), restored: state.restored }
     setState(current)
   }
   return {
@@ -41,6 +66,6 @@ export function useReading<K extends string>(keys: readonly K[], headline: K | n
         const key = keys[(at + 1) % keys.length]
         return key === undefined ? old : { ...old, reading: key, picked: true }
       }),
-    reset: () => setState(fresh()),
+    reset: () => setState({ ...fresh(), restored: current.restored }),
   }
 }

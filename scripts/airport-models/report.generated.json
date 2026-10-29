@@ -1,0 +1,191 @@
+{
+  "generatorVersion": "airport-models/1.0.0",
+  "airports": [
+    {
+      "iata": "TBS",
+      "revision": "565da61816f1e8a27d130e7a3f8752598157df89748a5c833cf669cefcc326a3",
+      "projection": {
+        "crs": "EPSG:32638",
+        "origin": [
+          496253.95595695,
+          4613027.714889527
+        ]
+      },
+      "boundsM": [
+        -1448.8,
+        -1390.83,
+        1393.73,
+        1291.28
+      ],
+      "physicalRunways": 1,
+      "features": 437,
+      "parts": 5,
+      "vertices": 2705,
+      "bytes": {
+        "model.json": {
+          "raw": 116456,
+          "gzip": 24617,
+          "brotli": 18058
+        },
+        "plan.json": {
+          "raw": 112331,
+          "gzip": 23635,
+          "brotli": 17361
+        },
+        "provenance.json": {
+          "raw": 695,
+          "gzip": 447,
+          "brotli": 377
+        },
+        "source.json": {
+          "raw": 511809,
+          "gzip": 52797,
+          "brotli": 32192
+        },
+        "licence.txt": {
+          "raw": 286,
+          "gzip": 221,
+          "brotli": 163
+        },
+        "preview-desktop-light.svg": {
+          "raw": 157413,
+          "gzip": 29383,
+          "brotli": 21014
+        },
+        "preview-desktop-dark.svg": {
+          "raw": 157413,
+          "gzip": 29388,
+          "brotli": 21012
+        },
+        "preview-mobile-light.svg": {
+          "raw": 157468,
+          "gzip": 27964,
+          "brotli": 19600
+        },
+        "preview-mobile-dark.svg": {
+          "raw": 157468,
+          "gzip": 27969,
+          "brotli": 19593
+        }
+      },
+      "diagnostics": [
+        {
+          "id": "osm:way/61486822",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1421495869",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1421495870",
+          "reason": "outside airport boundary"
+        }
+      ],
+      "budgets": {
+        "model": true,
+        "plan": true,
+        "previews": true
+      }
+    },
+    {
+      "iata": "BER",
+      "revision": "a9b6a374d36cbd48c58e57a74858dfb3345f71581bad7b8376faa46e54e9dde1",
+      "projection": {
+        "crs": "EPSG:32633",
+        "origin": [
+          398819.938913825,
+          5802674.977504548
+        ]
+      },
+      "boundsM": [
+        -4067.03,
+        -2613.58,
+        1726.01,
+        2850.35
+      ],
+      "physicalRunways": 2,
+      "features": 924,
+      "parts": 90,
+      "vertices": 8642,
+      "bytes": {
+        "model.json": {
+          "raw": 407646,
+          "gzip": 80851,
+          "brotli": 53497
+        },
+        "plan.json": {
+          "raw": 307657,
+          "gzip": 72910,
+          "brotli": 49827
+        },
+        "provenance.json": {
+          "raw": 857,
+          "gzip": 494,
+          "brotli": 420
+        },
+        "source.json": {
+          "raw": 1501855,
+          "gzip": 167433,
+          "brotli": 97453
+        },
+        "licence.txt": {
+          "raw": 286,
+          "gzip": 221,
+          "brotli": 163
+        },
+        "preview-desktop-light.svg": {
+          "raw": 885552,
+          "gzip": 139531,
+          "brotli": 87644
+        },
+        "preview-desktop-dark.svg": {
+          "raw": 885552,
+          "gzip": 139540,
+          "brotli": 87688
+        },
+        "preview-mobile-light.svg": {
+          "raw": 881805,
+          "gzip": 123800,
+          "brotli": 74889
+        },
+        "preview-mobile-dark.svg": {
+          "raw": 881805,
+          "gzip": 123809,
+          "brotli": 74876
+        }
+      },
+      "diagnostics": [
+        {
+          "id": "osm:way/1429967664",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1429967665",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1429967666",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1429967667",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1429967668",
+          "reason": "outside airport boundary"
+        },
+        {
+          "id": "osm:way/1429967669",
+          "reason": "outside airport boundary"
+        }
+      ],
+      "budgets": {
+        "model": true,
+        "plan": true,
+        "previews": true
+      }
+    }
+  ]
+}

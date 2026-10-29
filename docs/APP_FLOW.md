@@ -5,27 +5,28 @@
 The current app is [apps/next](../apps/next/src/app/), with server gates in
 [gates.ts](../apps/next/src/server/gates.ts). This is the current route and journey inventory.
 
-| Routes                                                                   | Current behavior                                                                                                                        |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`, `/signin`, `/signup`                                                | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding. |
-| `/forgot-password`, `/activation-request`                                | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`.                                                 |
-| `/reset-password`                                                        | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in.     |
-| `/password-updated`                                                      | Redirects to `/?notice=password-saved`.                                                                                                 |
-| `/activate`, `/activate.html`                                            | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in.      |
-| `/account-deleted`                                                       | Signed-out deletion confirmation.                                                                                                       |
-| `/welcome/name`, `/welcome/flights`, `/welcome/review`, `/welcome/ready` | Onboarding inside AuthCard: name, flight capture, review and saved-flight summary. Owned durable batches resume processing or review.   |
-| `/onboarding`, `/onboarding?step=*`                                      | Compatibility redirect to the member's welcome resume step, Overview once onboarded, or sign-in for guests.                             |
-| `/overview`                                                              | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery.                                                      |
-| `/admin/users`                                                           | Private user statistics for ADMIN_USER_ID; see [metrics](user-analytics.md).                                                            |
-| `/journal`                                                               | Paged flight log; search/filter/sort/page state belongs to this URL.                                                                    |
-| `/journal/[id]/edit`, `/add`, `/import`                                  | Own-flight editing, separate manual Capture and unified multi-file import/review; successful saves return to Journal.                   |
-| `/passport`                                                              | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map.                                         |
-| `/passport/manage`                                                       | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`.                                   |
-| `/fly/[username]`                                                        | Public profile for visitors or private owner profile; live visibility gates protect private records.                                    |
-| `/leaderboard`                                                           | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy.                                      |
-| `/settings`                                                              | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion.                                                |
-| `/me`                                                                    | Resolves to the own profile or Settings when no address is set; unfinished onboarding resumes Welcome and guests go to sign-in.         |
-| `/dashboard`, `/flights`, `/journey`, `/landing`                         | Compatibility redirects to Overview, Journal, Overview and `/`.                                                                         |
+| Routes                                                                   | Current behavior                                                                                                                                   |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`, `/signin`, `/signup`                                                | One AuthCard: Continue signs in or opens the create step in place. Authenticated members continue to Overview or unfinished onboarding.            |
+| `/forgot-password`, `/activation-request`                                | The same in-place get-back-in request and inbox states, using `/api/auth/link/request`.                                                            |
+| `/reset-password`                                                        | Single-new-password card with early token scrubbing; completion returns to `/?notice=password-saved` and requires explicit sign-in.                |
+| `/password-updated`                                                      | Redirects to `/?notice=password-saved`.                                                                                                            |
+| `/activate`, `/activate.html`                                            | Next-owned isolated one-use activation completion. Returns to the main-origin saved-password notice and requires explicit sign-in.                 |
+| `/account-deleted`                                                       | Signed-out deletion confirmation.                                                                                                                  |
+| `/welcome/name`, `/welcome/flights`, `/welcome/review`, `/welcome/ready` | Onboarding inside AuthCard: name, flight capture, review and saved-flight summary. Owned durable batches resume processing or review.              |
+| `/onboarding`, `/onboarding?step=*`                                      | Compatibility redirect to the member's welcome resume step, Overview once onboarded, or sign-in for guests.                                        |
+| `/overview`                                                              | Period totals, insights, upcoming/awaiting journeys and missing-aircraft recovery.                                                                 |
+| `/airports/[iata]`                                                       | Private prepared airport model (TBS/BER), exact scoped history, object inspection and equal-scale comparison; entry/return from Overview Rankings. |
+| `/admin/users`                                                           | Private user statistics for ADMIN_USER_ID; see [metrics](user-analytics.md).                                                                       |
+| `/journal`                                                               | Paged flight log; search/filter/sort/page state belongs to this URL.                                                                               |
+| `/journal/[id]/edit`, `/add`, `/import`                                  | Own-flight editing, separate manual Capture and unified multi-file import/review; successful saves return to Journal.                              |
+| `/passport`                                                              | Collection, region/detail sheets, claims/ground visits, awaiting arrivals and period-aware map.                                                    |
+| `/passport/manage`                                                       | Aircraft in journal: bulk aircraft assignment. `?countryCode=CC` redirects to `/passport?country=CC`.                                              |
+| `/fly/[username]`                                                        | Public profile for visitors or private owner profile; live visibility gates protect private records.                                               |
+| `/leaderboard`                                                           | Public eligible rankings; authenticated own rank/notifications follow the same eligibility policy.                                                 |
+| `/settings`                                                              | Dirty-state-protected profile, privacy, appearance, export and reauthenticated deletion.                                                           |
+| `/me`                                                                    | Resolves to the own profile or Settings when no address is set; unfinished onboarding resumes Welcome and guests go to sign-in.                    |
+| `/dashboard`, `/flights`, `/journey`, `/landing`                         | Compatibility redirects to Overview, Journal, Overview and `/`.                                                                                    |
 
 Member routes require an authenticated profile with completed onboarding. Public profile and
 leaderboard pages use the member shell for authenticated viewers and the brand
@@ -62,6 +63,8 @@ password reauthentication and succeeds only after the server cascade. Activation
 and recovery scrub tokens at the start of their early bootstrap; completion remains separate from
 sign-in. Functional evidence and deferred visual/release gates are tracked in the
 [redesign handoff](plans/2026-10-04-redesign-2.0-implementation-handoff.md).
+
+Airport viewing opens the selected supported airport from Overview Rankings while preserving its filter and reading. History loads on demand; All history affects only that airport panel. Comparison creates one same-path history entry, with north-up plans in one physical scale; Back first returns to the model. The next return restores the exact source Overview entry, including mobile chapter scroll after airport reload. Geographic assets are public; the route and owner history remain private. Preparation is offline; no map-service request is made while viewing.
 
 ## Historical reference
 

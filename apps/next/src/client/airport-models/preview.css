@@ -1,0 +1,26 @@
+.airport-preview {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+.airport-preview picture {
+  position: absolute;
+  inset: 0;
+}
+.airport-preview img {
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  block-size: 100%;
+  inline-size: auto;
+  max-inline-size: none;
+  max-width: none;
+  aspect-ratio: 1440 / 900;
+  transform: translate(-50%, -50%);
+}
+@media (max-width: 700px) {
+  .airport-preview img {
+    aspect-ratio: 390 / 844;
+  }
+}

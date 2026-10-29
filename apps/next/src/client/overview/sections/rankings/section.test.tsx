@@ -76,7 +76,7 @@ it('the sign relights only after a pick, never on first render or when the view 
   expect(relit()).toBeNull()
 })
 
-it('Airports uses the baggage belt and changes its tag with the selected airport', () => {
+it('supported airports show a prepared preview and separate entry while other airports keep the cycling figure', () => {
   admit()
   const { container } = render(<Section span="full" />)
   view('Airports')
@@ -84,7 +84,15 @@ it('Airports uses the baggage belt and changes its tag with the selected airport
   expect(belt()).not.toBeNull()
   expect(belt()).toHaveTextContent('IST')
   row('TBS')
-  expect(belt()).toHaveTextContent('TBS')
+  expect(belt()).toBeNull()
+  expect(container.querySelector('.ov3-airport-preview img')).toHaveAttribute(
+    'src',
+    expect.stringMatching(/\/airport-models\/[a-f0-9]{64}\/preview-desktop-light\.svg$/),
+  )
+  expect(screen.getByRole('link', { name: 'Open airport' })).toHaveAttribute(
+    'href',
+    expect.stringContaining('/airports/TBS?scope='),
+  )
   expect(container.querySelector('.ov3-card-caption')).toHaveTextContent('Tbilisi')
 })
 

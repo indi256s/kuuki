@@ -10,7 +10,7 @@ import { PageShell } from './page-shell'
 import { ShellNotices } from './shell-notices'
 import { AddOriginTracker } from './capture/add-origin'
 import { ImportDock } from './import/import-dock-lazy'
-import { FocusedImportShell } from './import/focused-import-shell'
+import { FocusedMemberShell } from './focused-member-shell'
 import { ImportRunsProvider } from './import/import-runs'
 import { getGateProfile } from '../server/gates'
 import { getRequestEnv } from '../server/identity'
@@ -70,7 +70,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
       <ShellNotices ownerId={own.profile.id} locale={locale}>
         <AddOriginTracker />
         <ImportRuns jobs={jobs} ownerId={own.profile.id} locale={locale}>
-          <FocusedImportShell>
+          <FocusedMemberShell>
             <header className="site-header member-header">
               <div className="site-header-inner">
                 <Wordmark />
@@ -99,7 +99,7 @@ export async function MemberShell({ locale, children }: { locale: Locale; childr
             </header>
             <PageShell>{children}</PageShell>
             <TabBar locale={locale} />
-          </FocusedImportShell>
+          </FocusedMemberShell>
         </ImportRuns>
       </ShellNotices>
     </AwaitingProvider>

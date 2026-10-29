@@ -64,3 +64,23 @@ it('goes back to the headline, unpicked, when the filter changes even if the rea
   rerender()
   expect(result.current).toMatchObject({ reading: 'b', picked: true })
 })
+
+it('restores an initial reading only in the active chapter and keeps normal filter resets', () => {
+  let active = false
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <ChapterContext.Provider value={{ span: 'sheet', active }}>{children}</ChapterContext.Provider>
+  )
+  const { result, rerender } = renderHook(
+    () => useReading(['a', 'b'], 'a', { key: 'b', token: 'return' }),
+    { wrapper },
+  )
+  expect(result.current.reading).toBe('a')
+  active = true
+  rerender()
+  expect(result.current).toMatchObject({ reading: 'b', picked: false })
+  store.filter = { months: [3] }
+  rerender()
+  expect(result.current.reading).toBe('a')
+  rerender()
+  expect(result.current.reading).toBe('a')
+})

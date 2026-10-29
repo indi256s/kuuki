@@ -1,0 +1,38 @@
+{
+  "iata": "TBS",
+  "icao": "UGTB",
+  "name": "Tbilisi International Airport",
+  "identity": "relation/967676",
+  "zone": 38,
+  "centre": [
+    44.955,
+    41.669
+  ],
+  "expectedRunways": 1,
+  "estimates": {
+    "building": 8,
+    "terminal": 16,
+    "hangar": 12,
+    "tower": 30,
+    "level": 3.5,
+    "taxiway": 18,
+    "runway": 45
+  },
+  "sourceSha256": "02af65920d233978564435baf1ea7af6b7cef874d22061853bb6f47f07b50d56",
+  "sourceUrl": "https://api.openstreetmap.org/api/0.6/map",
+  "fetchedAt": null,
+  "osmTimestamp": null,
+  "extractedAt": "2026-10-29T09:50:15.392Z",
+  "sourceBboxes": [
+    [
+      44.9374,
+      41.6563,
+      44.9719,
+      41.6808
+    ]
+  ],
+  "sourceUrls": [
+    "https://api.openstreetmap.org/api/0.6/map.json?bbox=44.9374,41.6563,44.9719,41.6808"
+  ],
+  "acquisition": "official OSM map API bbox"
+}

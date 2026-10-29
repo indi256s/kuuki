@@ -181,7 +181,15 @@ export function effectiveScope(
   payload: Pick<OverviewPayload, 'ground'>,
   filter: OverviewFilter,
 ): 'all' | TravelScope {
-  return filter.scope && payload.ground.length > 0 ? filter.scope : 'all'
+  return effectiveScopeFromPresence(payload.ground.length > 0, filter)
+}
+
+/** Global non-cancelled ground presence controls whether a stored travel scope applies. */
+export function effectiveScopeFromPresence(
+  hasGround: boolean,
+  filter: OverviewFilter,
+): 'all' | TravelScope {
+  return filter.scope && hasGround ? filter.scope : 'all'
 }
 
 /** Ground journeys the scope and filter admit, planned included; none under the flights scope. */

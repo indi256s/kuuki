@@ -1,0 +1,55 @@
+.airport-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1.5rem;
+  inline-size: 100%;
+}
+
+.airport-comparison-panel {
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.airport-comparison-panel figcaption {
+  margin-block-end: 0.5rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.airport-comparison-panel svg {
+  display: block;
+  inline-size: 100%;
+  block-size: clamp(16rem, 42dvh, 34rem);
+  background: var(--background);
+}
+
+.airport-plan-boundary {
+  fill: var(--surface-inset);
+}
+
+.airport-plan-surface {
+  fill: var(--mark-rest);
+}
+
+.airport-plan-line {
+  color: var(--text-muted);
+}
+
+.airport-plan-building {
+  fill: var(--brand-neutral);
+}
+
+.airport-plan-surface[data-kind='runway'] {
+  fill: var(--text-muted);
+}
+
+.airport-plan-scale {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.airport-plan-scale path {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1;
+}

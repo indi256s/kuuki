@@ -168,7 +168,12 @@ export function SectionSheet({
             {order.map((id, at) => {
               const { Section } = SECTIONS[id]
               return (
-                <div key={id} className="ov3-sheet-slide" inert={id !== openId}>
+                <div
+                  key={id}
+                  className="ov3-sheet-slide"
+                  data-airport-chapter={id}
+                  inert={id !== openId}
+                >
                   {Math.abs(at - index) <= 1 || id === openId ? (
                     <>
                       <ChapterContext.Provider value={id === openId ? SHEET_ACTIVE : SHEET_IDLE}>

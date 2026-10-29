@@ -33,6 +33,7 @@ export type ChapterCardProps = {
   state: 'ready' | 'loading' | 'empty'
   /** The aria-hidden iso figure, already sized by the chapter. */
   figure: ReactNode
+  figureAction?: ReactNode
   /** A transparent button over the figure stage (44px or more on both sides). */
   figureButton?: { label: string; onPress(): void }
   hero: {
@@ -67,6 +68,7 @@ export type ChapterCardProps = {
 export function ChapterCard({
   state,
   figure,
+  figureAction,
   figureButton,
   hero,
   rollValue,
@@ -138,6 +140,7 @@ export function ChapterCard({
               onClick={figureButton.onPress}
             />
           ) : null}
+          {figureAction ? <div className="ov3-card-figure-action">{figureAction}</div> : null}
         </div>
         {blank ? (
           span === 'sheet' && empty ? (

@@ -1,4 +1,7 @@
 import { useMemo } from 'react'
+import { airportCatalog } from '../../../../lib/airport-models/catalog.generated'
+import { AirportPreview } from '../../../airport-models/preview'
+import { useChapter } from '../../layout/chapter-context'
 import { IsoFigure } from '../../iso/iso-figure'
 import { gateSign } from '../../iso/gate-sign'
 import { carousel } from '../../iso/carousel'
@@ -55,7 +58,15 @@ const carouselK = (box: FigureBox) => {
 
 export function AirportFigure({ code }: { code: string }) {
   const k = carouselK(useFigureBox())
+  const { active } = useChapter()
+  const model = active ? airportCatalog.find((entry) => entry.iata === code) : undefined
   const figure = useMemo(() => carousel(k, { code }), [k, code])
+  if (model)
+    return (
+      <div className="ov3-airport-preview">
+        <AirportPreview entry={model} />
+      </div>
+    )
   return (
     <div data-blank={code ? undefined : ''}>
       <IsoFigure figure={figure} className="iso-carousel" />

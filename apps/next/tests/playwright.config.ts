@@ -35,6 +35,11 @@ export default defineConfig({
     wait: { stdout: /Next synthetic fixture ready:/ },
     timeout: 120_000,
     reuseExistingServer: false,
-    env: { KUUKI_NEXT_PORT: port, KUUKI_NEXT_FIXTURE: 'minimal', WRANGLER_SEND_METRICS: 'false' },
+    env: {
+      KUUKI_NEXT_PORT: port,
+      KUUKI_NEXT_FIXTURE: 'minimal',
+      KUUKI_NEXT_DOCK_FIXTURE: process.env.KUUKI_NEXT_DOCK_FIXTURE ?? '0',
+      WRANGLER_SEND_METRICS: 'false',
+    },
   },
 })

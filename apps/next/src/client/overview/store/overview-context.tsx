@@ -1,6 +1,11 @@
 'use client'
 
 import { useLocale } from '../../preferences'
+import {
+  getOverviewReturn,
+  subscribeOverviewReturn,
+  updateOverviewReturn,
+} from '../../airport-models/return-session'
 
 import {
   createContext,
@@ -100,6 +105,19 @@ function useController({
   const [retired, setRetired] = useState(false)
   const [serverPayload] = useState(initial)
   const [prefs, setPrefs] = useState(() => structuredClone(initialPrefs))
+  const airportReturn = useSyncExternalStore(
+    subscribeOverviewReturn,
+    () => getOverviewReturn(ownerKey),
+    () => null,
+  )
+  const [restoredToken, setRestoredToken] = useState<string | null>(null)
+  if (airportReturn && airportReturn.token !== restoredToken) {
+    setRestoredToken(airportReturn.token)
+    setPrefs((old) => ({ ...old, filter: structuredClone(airportReturn.filter) }))
+  }
+  useEffect(() => {
+    updateOverviewReturn(ownerKey, { filter: prefs.filter })
+  }, [ownerKey, prefs.filter])
   const [runtime] = useState(() => ({
     lifetime: null as Lifetime | null,
     pending: null as OverviewPrefs | null,
@@ -340,6 +358,7 @@ function useController({
     })
   return {
     payload,
+    airportReturn,
     scope: scopeFor(store, prefs.filter),
     all: scopeFor(store, {}),
     filter: prefs.filter,

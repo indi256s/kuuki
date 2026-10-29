@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState, type ComponentProps } from 'react'
+import { useCallback, useEffect, useRef, useState, type ComponentProps } from 'react'
+import { useAirportOverviewRestoration } from '../../airport-models/overview-restoration'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import type { SectionId } from '@kuuki/shared/overview/prefs'
@@ -82,7 +83,7 @@ function PageContent() {
   const visible = groundOnly ? [] : shown(layout)
   const [openId, setOpenId] = useState<SectionId | null>(null)
   const opener = useRef<HTMLButtonElement | null>(null)
-  if (openId && (mobile !== true || !scope || firstRun || zero || !visible.includes(openId)))
+  if (openId && (mobile === false || !scope || firstRun || zero || !visible.includes(openId)))
     setOpenId(null)
   const [announcement, setAnnouncement] = useState('')
   // A scope switch adds or removes whole chapters; say which travel the page now shows. The first render stays quiet.
@@ -103,6 +104,15 @@ function PageContent() {
       )
   }
   const page = useRef<HTMLDivElement>(null)
+  const restoreChapter = useCallback((id: SectionId) => setOpenId(id), [])
+  useAirportOverviewRestoration({
+    mobile,
+    ready: Boolean(scope) && !firstRun && !zero,
+    openId,
+    open: restoreChapter,
+    visible,
+    page,
+  })
   const pendingFocus = useRef<{
     target: SectionId | undefined
     menu: Element

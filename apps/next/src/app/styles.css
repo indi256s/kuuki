@@ -1240,3 +1240,24 @@ h2 {
 :root[data-theme='dark'] .country-preview-outline-dark {
   display: inline;
 }
+
+.member-route[data-airport-focused] .member-header,
+.member-route[data-airport-focused] .tab-bar {
+  display: none;
+}
+.page-shell[data-airport] {
+  max-inline-size: none;
+  margin: 0;
+  padding: 0;
+}
+body:has(.member-route[data-airport-focused]) {
+  --action-bar-bottom: max(12px, env(safe-area-inset-bottom));
+}
+:root:has(.member-route[data-airport-focused]) {
+  --tabbar-offset: 0px;
+  --toast-bottom-offset: 0px;
+  --action-bar-bottom: max(12px, env(safe-area-inset-bottom));
+}
+:root:has(.member-route[data-airport-focused]) .page-shell {
+  padding-block-end: 0;
+}

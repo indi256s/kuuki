@@ -1,0 +1,304 @@
+.airport-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100svh;
+  padding-block: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-bottom));
+  padding-inline: max(var(--page-gutter), env(safe-area-inset-left))
+    max(var(--page-gutter), env(safe-area-inset-right));
+  background: var(--background);
+}
+.airport-topbar,
+.airport-header-actions,
+.airport-controls,
+.airport-controls-start,
+.airport-zoom,
+.airport-panel-header,
+.airport-credits {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.airport-topbar,
+.airport-controls,
+.airport-panel-header {
+  justify-content: space-between;
+}
+.airport-screen .ui-button {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  flex-shrink: 0;
+}
+.airport-header {
+  z-index: 2;
+}
+.airport-heading {
+  padding-block: clamp(12px, 3vh, 28px) 12px;
+  padding-inline: 12px;
+}
+.airport-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.airport-heading h1 {
+  max-inline-size: 30ch;
+  margin-block: 6px 0;
+}
+.airport-workspace {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+}
+.airport-detail {
+  position: relative;
+}
+.airport-detail[hidden] {
+  display: none;
+}
+.airport-stage {
+  position: relative;
+  block-size: max(400px, calc(100svh - 280px));
+  overflow: clip;
+}
+.airport-controls {
+  position: relative;
+  z-index: 3;
+  padding-block: 8px;
+}
+.airport-context {
+  position: absolute;
+  inset-inline-end: 12px;
+  inset-block-start: 12px;
+  z-index: 4;
+  inline-size: 300px;
+  max-block-size: min(440px, calc(100% - 84px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px 16px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating);
+}
+.airport-panel-header {
+  align-items: flex-start;
+  gap: 12px;
+}
+.airport-panel-header h2 {
+  margin-block: 9px 12px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+.airport-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.airport-scope .ui-button {
+  font-size: 12px;
+  padding-inline: 8px;
+}
+.airport-scope .ui-button[aria-pressed='true'] {
+  background: var(--surface-inset);
+  box-shadow: inset 0 0 0 1px var(--selection-contour);
+}
+.airport-history-total {
+  margin-block: 16px;
+  font-size: 28px;
+  font-weight: 600;
+}
+.airport-history-total span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.airport-flight-list,
+.airport-object-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.airport-flight-list li {
+  display: grid;
+  gap: 2px;
+  padding-block: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.airport-flight-route {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text);
+}
+.airport-object-list .ui-button {
+  inline-size: 100%;
+  justify-content: start;
+  text-align: start;
+  white-space: normal;
+}
+.airport-feature-kind,
+.airport-properties dt {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.airport-properties {
+  margin-block: 12px;
+}
+.airport-properties div {
+  padding-block: 6px;
+}
+.airport-properties dd {
+  margin: 0;
+  font-size: 13px;
+}
+.airport-object-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.airport-layer-options {
+  border: 0;
+  margin: 0;
+  padding: 4px;
+}
+.airport-layer-options legend {
+  font-weight: 600;
+}
+.airport-layer-options label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 44px;
+}
+.airport-peer-options {
+  display: grid;
+  gap: 4px;
+}
+.airport-model-notice {
+  position: absolute;
+  inset-inline-start: 12px;
+  inset-block-start: 12px;
+  z-index: 3;
+  padding: 12px;
+  background: var(--surface-floating);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-floating);
+}
+.airport-model-notice p {
+  margin-block: 0 8px;
+}
+.airport-hover {
+  position: absolute;
+  z-index: 5;
+  max-inline-size: 220px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating);
+  font-size: 12px;
+  transform: translate(-50%, -100%);
+}
+.airport-compare-status {
+  position: absolute;
+  inset-inline-start: 12px;
+  inset-block-start: 12px;
+  z-index: 5;
+  padding: 16px;
+  background: var(--surface-floating);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-floating);
+}
+.airport-comparison-mode {
+  min-block-size: calc(100svh - 260px);
+}
+.airport-comparison-sources {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 16px;
+  font-size: 12px;
+}
+.airport-credits {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.airport-credits a {
+  color: inherit;
+}
+@media (max-width: 700px) {
+  .airport-screen {
+    padding-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
+  }
+  .airport-topbar {
+    align-items: flex-start;
+  }
+  .airport-header-actions {
+    gap: 0;
+  }
+  .airport-topbar .ui-button {
+    font-size: 12px;
+    padding-inline: 8px;
+  }
+  .airport-heading {
+    padding-block-start: 20px;
+    padding-inline: 8px;
+  }
+  .airport-heading h1 {
+    font-size: 26px;
+  }
+  .airport-stage {
+    block-size: max(390px, calc(100svh - 300px));
+  }
+  .airport-context {
+    inset-inline: 0;
+    inset-block-start: auto;
+    inset-block-end: 68px;
+    inline-size: auto;
+    max-block-size: min(276px, calc(100% - 100px));
+  }
+  .airport-controls {
+    gap: 0;
+  }
+  .airport-controls .ui-button {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+  .airport-controls-start,
+  .airport-zoom {
+    gap: 0;
+  }
+  .airport-credits {
+    justify-content: start;
+    padding-inline: 8px;
+  }
+  .airport-object-actions {
+    display: flex;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .airport-context {
+    animation: airport-context-reveal var(--dur-base) var(--ease-out);
+  }
+  @keyframes airport-context-reveal {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+.airport-context[data-instant] {
+  animation: none;
+}
+.airport-screen .ui-button[hidden] {
+  display: none;
+}
+.airport-comparison-sources > div {
+  display: grid;
+  gap: 4px;
+}

@@ -1,0 +1,45 @@
+{
+  "iata": "BER",
+  "icao": "EDDB",
+  "name": "Berlin Brandenburg Airport",
+  "identity": "way/859790021",
+  "zone": 33,
+  "centre": [
+    13.514,
+    52.365
+  ],
+  "expectedRunways": 2,
+  "estimates": {
+    "building": 8,
+    "terminal": 16,
+    "hangar": 12,
+    "tower": 30,
+    "level": 3.5,
+    "taxiway": 18,
+    "runway": 45
+  },
+  "sourceSha256": "2fa4485ed21f0f63c7bd043dc5a041d348b6407418b6b5e235e3dfed8202f1cc",
+  "sourceUrl": "https://api.openstreetmap.org/api/0.6/map",
+  "fetchedAt": null,
+  "osmTimestamp": null,
+  "extractedAt": "2026-10-29T09:50:15.393Z",
+  "sourceBboxes": [
+    [
+      13.4548,
+      52.3406,
+      13.4969,
+      52.3909
+    ],
+    [
+      13.4969,
+      52.3406,
+      13.539,
+      52.3909
+    ]
+  ],
+  "sourceUrls": [
+    "https://api.openstreetmap.org/api/0.6/map.json?bbox=13.4548,52.3406,13.4969,52.3909",
+    "https://api.openstreetmap.org/api/0.6/map.json?bbox=13.4969,52.3406,13.539,52.3909"
+  ],
+  "acquisition": "official OSM map API bboxes merged by type/id selecting highest version"
+}

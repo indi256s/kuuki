@@ -89,3 +89,5 @@ The [former documentation index](archive/2026-10-12-documentation-index.md)
 preserves the MVP phase table, Vite project tree and obsolete tool catalogs.
 Former screen flows and routes are in the [Vite flow archive](archive/2026-10-12-vite-app-flow.md)
 and [Vite sitemap archive](archive/2026-10-12-vite-sitemap.md).
+
+- **Airport models:** [private route](<../apps/next/src/app/(member)/airports/[iata]/page.tsx>), [screen/history lifecycle](../apps/next/src/client/airport-models/airport-screen.tsx), [exact owner history](../functions/api/_services/airportHistory.ts) and [offline preparation](../scripts/airport-models/README.md) own TBS/BER viewing, object inspection, equal-scale comparison and Overview return. [Plan/handoff](plans/2026-10-29-airport-models-handoff.md) records acceptance; source data and budgets are in the generated preparation report.

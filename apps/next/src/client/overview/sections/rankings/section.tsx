@@ -1,6 +1,10 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import { useChapter } from '../../layout/chapter-context'
+import { airportCatalog } from '../../../../lib/airport-models/catalog.generated'
+import { AirportOverviewEntry } from '../../../airport-models/overview-entry'
+import { updateOverviewReturn } from '../../../airport-models/return-session'
 import { curveBumpX, line } from 'd3-shape'
 import { Check } from '@keyline-icons/react'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
@@ -35,8 +39,15 @@ const LEGEND_TOP = 8,
 const signCode = (key: string) => key.replace('-', '–')
 
 export function Section({ span }: { span: Span }) {
-  const { scope, all, payload, filter, locale, actions, isCurrent, ownerKey } = useOverview()
+  const { scope, all, payload, filter, locale, actions, isCurrent, ownerKey, airportReturn } =
+    useOverview()
+  const { active } = useChapter()
   const [category, setCategory] = useState<Category>('airlines')
+  const [restored, setRestored] = useState<string | null>(null)
+  if (active && airportReturn && restored !== airportReturn.token) {
+    setRestored(airportReturn.token)
+    setCategory(airportReturn.category)
+  }
   const [hidden, setHidden] = useState<string[]>([])
   const [legendSeries, setLegendSeries] = useState<string | null>(null)
   const [linkedShare, setLinkedShare] = useState<string | null>(null)
@@ -62,7 +73,20 @@ export function Section({ span }: { span: Span }) {
   // The top five of the shown view, the leader first: the chart's rows, the reading's keys and the figure button's cycle.
   const top = scope?.rankings[category].slice(0, 5) ?? []
   const keys = top.map((row) => row.key)
-  const r = useReading(keys, keys[0] ?? null)
+  const r = useReading(
+    keys,
+    keys[0] ?? null,
+    active && airportReturn && category === airportReturn.category
+      ? { key: airportReturn.airport, token: airportReturn.token }
+      : undefined,
+  )
+  useEffect(() => {
+    if (active)
+      updateOverviewReturn(ownerKey, {
+        category,
+        airport: category === 'airports' ? r.reading : null,
+      })
+  }, [active, ownerKey, category, r.reading])
   const labels = referenceLabels(locale, payload?.refs)
   const name = (kind: Category, key: string) =>
     kind === 'airlines'
@@ -661,6 +685,13 @@ export function Section({ span }: { span: Span }) {
             note={reading ? `#${rank} ×${number(locale, reading.count)}` : ''}
           />
         )
+      }
+      figureAction={
+        category === 'airports' &&
+        reading &&
+        airportCatalog.some((entry) => entry.iata === reading.key) ? (
+          <AirportOverviewEntry iata={reading.key} />
+        ) : null
       }
       figureButton={
         keys.length > 1

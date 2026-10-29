@@ -20,7 +20,8 @@
     "./geo": "./src/geo.ts",
     "./groundTravel": "./src/groundTravel.ts",
     "./timezones": "./src/timezones.ts",
-    "./railTicketOcr": "./src/railTicketOcr.ts"
+    "./railTicketOcr": "./src/railTicketOcr.ts",
+    "./airportHistory": "./src/airportHistory.ts"
   },
   "scripts": {
     "build": "tsc"

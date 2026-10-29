@@ -1,3 +1,4 @@
+import { airportAssetPaths } from '../apps/next/src/lib/airport-models/catalog.generated'
 // Production-mode custom Worker on local workerd. Synthetic D1, no live secrets or outbound calls.
 import { execFileSync } from 'node:child_process'
 import { gzipSync } from 'node:zlib'
@@ -94,6 +95,15 @@ const mf = new Miniflare({
       : {}),
     GEMINI_API_KEY: 'synthetic-provider-key',
   },
+  // Browser layout checks need the production shell's binding-presence gate.
+  // Import HTTP endpoints remain explicit test doubles; no job execution is supplied.
+  serviceBindings:
+    process.env.KUUKI_NEXT_DOCK_FIXTURE === '1'
+      ? {
+          IMPORT_JOBS: async () =>
+            new WorkerResponse('Import execution unavailable in layout fixture', { status: 503 }),
+        }
+      : {},
   assets: {
     workerName: 'kuuki-next-fixture',
     directory: assetsDir,
@@ -196,7 +206,14 @@ async function maintenanceProbe() {
     outboundService: async () => new WorkerResponse('Outbound disabled', { status: 502 }),
   })
   try {
-    for (const path of ['/api/auth/me', '/overview', '/journal', '/ground-travel', '/passport']) {
+    for (const path of [
+      '/api/auth/me',
+      '/overview',
+      '/airports/TBS',
+      '/journal',
+      '/ground-travel',
+      '/passport',
+    ]) {
       const response = await hold.dispatchFetch(new URL(path, origin).toString(), {
         redirect: 'manual',
       })
@@ -549,6 +566,19 @@ async function main() {
     const cookies = signIn.headers.getSetCookie()
     if (cookies.length < 2) throw new Error('Sign-in lost multiple Set-Cookie headers')
     const cookie = cookies.map((value) => value.split(';', 1)[0]).join('; ')
+    const memberAirport = await assertResponse('/airports/TBS', 200, {
+      headers: { Cookie: cookie },
+    })
+    if (memberAirport.headers.get('Cache-Control') !== 'no-store')
+      throw new Error('Member airport lost no-store')
+    for (const path of ['/airports/TBS', '/airports/ZZZ']) {
+      const guest = await assertResponse(path, 307, { redirect: 'manual' })
+      if (!guest.headers.get('Location')?.endsWith('/signin'))
+        throw new Error('Guest airport request did not redirect to sign-in')
+    }
+    await assertResponse('/api/me/airports/TBS/history?owner=wrong', 409, {
+      headers: { Cookie: cookie },
+    })
     const overviewApi = await assertResponse('/api/me/overview/data', 200, {
       headers: { Cookie: cookie },
     })
@@ -581,6 +611,7 @@ async function main() {
       [
         'public, max-age=31536000, immutable',
         [
+          ...airportAssetPaths,
           '/maps/world-outline-110m-2.0.2.svg',
           '/maps/world-outline-110m-2.0.2-r2-light.svg',
           '/maps/world-outline-110m-2.0.2-r2-dark.svg',
@@ -601,6 +632,15 @@ async function main() {
         const asset = await assertResponse(path, 200)
         if (asset.headers.get('Cache-Control') !== cache)
           throw new Error(`Public asset cache mismatch: ${path}`)
+        if (path.startsWith('/airport-models/')) {
+          const mime = path.endsWith('.svg')
+            ? 'image/svg+xml'
+            : path.endsWith('.json')
+              ? 'application/json'
+              : 'text/plain'
+          if (asset.headers.get('Content-Type')?.split(';')[0] !== mime)
+            throw new Error(`Airport asset MIME mismatch: ${path}`)
+        }
         const head = await assertResponse(path, 200, { method: 'HEAD' })
         if (head.headers.get('Cache-Control') !== cache)
           throw new Error(`Public asset HEAD cache mismatch: ${path}`)
@@ -612,6 +652,9 @@ async function main() {
         }
       }
     for (const path of [
+      '/airport-models/model.json',
+      '/airport-models/missing/model.json',
+      '/airport-models/unknown.html',
       '/bootstrap.js',
       '/maps/missing-110m-2.0.2.svg',
       '/maps/maplibre-6.13.0/LICENSE.txt',

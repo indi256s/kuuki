@@ -15,6 +15,7 @@ import {
 } from './lifecycle-sync'
 import { awaitPublication } from './publication'
 import { reportVisibleActivity } from './user-activity'
+import { clearAirportReturns } from './airport-models/return-session'
 
 type IdentityReply = { user: { id: string } | null }
 let knownIdentity: string | null | undefined
@@ -64,6 +65,7 @@ function dropPrivateState(previousOwner: string | null | undefined) {
   }
   // Sync markers are only a request throttle; clearing every owner's lets the next owner sync on first sight.
   clearOwnerSyncMarkers(sharedStore())
+  clearAirportReturns()
   window.dispatchEvent(new Event('kuuki:identity-reset'))
 }
 

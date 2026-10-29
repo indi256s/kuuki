@@ -10,6 +10,8 @@
     "packages/data/src/country-neighbors.ts",
     "**/next-env.d.ts",
     "apps/next/public/maps/**",
+    "apps/next/public/airport-models/**",
+    "scripts/airport-models/sources/**",
     "design-system/index.html",
     "design-system/tokens.css",
     "design-system/tokens.json",

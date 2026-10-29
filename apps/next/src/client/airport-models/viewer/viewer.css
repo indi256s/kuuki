@@ -1,0 +1,34 @@
+.airport-viewer {
+  position: relative;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: clip;
+  background: var(--background);
+}
+
+.airport-viewer-canvas,
+.airport-viewer-fallback {
+  position: absolute;
+  inset: 0;
+}
+
+.airport-viewer-canvas canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.airport-viewer-canvas canvas:active {
+  cursor: grabbing;
+}
+
+.airport-viewer-fallback > :is(img, svg, picture) {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}

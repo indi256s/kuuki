@@ -2,7 +2,7 @@
   "name": "kuuki",
   "version": "0.0.1",
   "private": true,
-  "description": "Kuuki (\u7a7a\u6c17) - Travel geek platform for flight tracking and leaderboards",
+  "description": "Kuuki (空気) - Travel geek platform for flight tracking and leaderboards",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -24,7 +24,7 @@
     "next:smoke": "tsx scripts/smoke-next-runtime.ts --check",
     "fixture:snapshot": "tsx scripts/snapshot-real-account.ts",
     "next:smoke:boundary": "tsx scripts/smoke-next-runtime.ts --check-boundary",
-    "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts",
+    "test:next:navigation": "pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts && KUUKI_NEXT_DOCK_FIXTURE=1 pnpm --filter @kuuki/next exec playwright test --config tests/playwright.config.ts tests/airport-models.test.ts --grep 'background import dock'",
     "typecheck:import": "tsc --noEmit -p workers/import/tsconfig.json",
     "build:import": "wrangler deploy --dry-run --config workers/import/wrangler.local.toml --outdir .wrangler/import-build",
     "build:import:release": "wrangler deploy --dry-run --env '' --config workers/import/wrangler.toml --outdir .wrangler/import-release && wrangler deploy --dry-run --config workers/import/wrangler.toml --env preview --outdir .wrangler/import-release-preview",
@@ -37,7 +37,10 @@
     "generate:concorde": "node scripts/generate-concorde.mjs",
     "generate:passport-bench": "node scripts/generate-passport-bench.mjs",
     "generate:windsock": "node scripts/generate-windsock.mjs",
-    "verify:cloudflare": "bash scripts/verify-cloudflare.sh"
+    "verify:cloudflare": "bash scripts/verify-cloudflare.sh",
+    "airport-models:prepare": "tsx scripts/airport-models/prepare.ts",
+    "airport-models:check": "tsx scripts/airport-models/prepare.ts --check",
+    "test:airport-models": "tsx --test scripts/airport-models/*.test.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261009.1",
@@ -46,6 +49,8 @@
     "miniflare": "^4.20260730.0",
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
+    "polygon-clipping": "0.15.7",
+    "proj4": "2.22.0",
     "tsx": "^4.23.15",
     "turbo": "^2.11.7",
     "typescript": "^6.0.3",

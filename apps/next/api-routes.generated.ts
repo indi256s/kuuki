@@ -363,6 +363,12 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/me/airports/:iata/history",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "route": "/api/me/awaiting",
     "methods": [
       "GET"

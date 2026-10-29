@@ -5,6 +5,7 @@ import { activationAsset } from './activation-asset'
 import { jsonError } from '../../functions/api/_lib/http'
 import { apiRoutes } from './api-routes.generated'
 import { captureHandler } from './api-capture'
+import { immutableAirportAsset } from './src/lib/airport-models/asset-policy'
 
 type RuntimeEnv = Env & { ASSETS: Fetcher }
 
@@ -93,6 +94,7 @@ export default {
       env.MAINTENANCE_MODE === 'true' &&
       [
         '/overview',
+        '/airports',
         '/journal',
         '/ground-travel',
         '/passport',
@@ -122,16 +124,17 @@ export default {
       url.pathname === '/reset-password' ? 'no-referrer' : 'strict-origin-when-cross-origin',
     )
     const contentType = headers.get('Content-Type')
+    const airportContent = immutableAirportAsset(request, response)
     const font = url.pathname.startsWith('/fonts/') && /\.(?:woff2|ttf)$/.test(url.pathname)
     // Build output: every chunk, stylesheet and media file is content-hashed and every manifest sits under its build
     // ID, so a returning visit runs them from cache instead of revalidating each one before first paint.
     const built = url.pathname.startsWith('/_next/static/')
     if (
       (request.method === 'GET' || request.method === 'HEAD') &&
-      (cachedMapAssets.has(url.pathname) || font || built) &&
+      (cachedMapAssets.has(url.pathname) || font || built || airportContent) &&
       (response.status === 200 || response.status === 304) &&
       !headers.has('Set-Cookie') &&
-      (response.status === 304 || (contentType && !contentType.includes('text/html')))
+      (response.status === 304 || (contentType && !contentType.toLowerCase().includes('text/html')))
     ) {
       headers.set(
         'Cache-Control',
