@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ComponentType,
-} from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import { matches, routeKey } from '@kuuki/shared/overview/filter'
 import { useOverview } from '../store/overview-context'
 import { GlobeCard, type GlobeCardProps } from './globe-card'
@@ -16,20 +9,8 @@ import { buildTimeline, replayDurationMs } from './replay'
 import { useReplay } from './use-replay'
 import { ReplayTransport } from './replay-transport'
 import type { MaplibreGlobeProps } from './maplibre-globe'
-import { Button } from '../../ui/button'
-import { isConstrainedConnection, subscribeConnection } from '../../network'
-
-// Wait for the client snapshot before deciding: a hydration effect must not start a map download on the server default.
-const serverConnection = () => null
 
 function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
-  const constrained = useSyncExternalStore(
-    subscribeConnection,
-    isConstrainedConnection,
-    serverConnection,
-  )
-  const [requested, setRequested] = useState(false)
-  const allowed = requested || props.fullscreen || !props.still || constrained === false
   const [Renderer, setRenderer] = useState<ComponentType<MaplibreGlobeProps> | null>(null)
   const [ready, setReady] = useState(false),
     [failed, setFailed] = useState(false)
@@ -38,7 +19,6 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
     current.current = props.isCurrent
   }, [props.isCurrent])
   useEffect(() => {
-    if (!allowed) return
     let retired = false
     const stop = () => {
       retired = true
@@ -64,22 +44,15 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
       stop()
       window.removeEventListener('kuuki:identity-reset', stop)
     }
-  }, [allowed])
-  const waiting = constrained === true && !allowed && !Renderer && !failed
+  }, [])
   return (
     <div className="globe-surface" data-webgl-ready={ready && !failed}>
       <div className="globe-viewport">
-        {waiting ? (
-          <div className="globe-status">
-            <Button variant="secondary" onClick={() => setRequested(true)}>
-              {props.locale === 'ru' ? 'Загрузить карту' : 'Load map'}
-            </Button>
-          </div>
-        ) : !ready || failed ? (
+        {(!ready || failed) && (
           <p className="globe-status" role="status">
             {t(failed ? S.globeUnavailable : S.globeLoading, props.locale)}
           </p>
-        ) : null}
+        )}
         {Renderer && !failed && (
           <div className="globe-webgl-layer">
             <Renderer {...props} onReady={() => setReady(true)} onError={() => setFailed(true)} />

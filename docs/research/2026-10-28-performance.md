@@ -1,5 +1,7 @@
 # Kuuki load performance, 28 October 2026
 
+The Overview map activation and scroll-triggered card-loading policies measured here were superseded on 29 October: the map loads automatically on every connection, and eligible cards start loading with the page. The figures below retain the original deferred-loading baseline and do not measure the current Overview experience.
+
 Cold-load JavaScript fell **51.5%** across the measured routes and device profiles: **51.3% on mobile** and **51.7% on desktop**. Control hydration readiness improved **11.8–27.3%**, or **19.2%** across the six measured combinations. The 50% result describes JavaScript download weight. These are compiled local-fixture results; no production deployment was performed.
 
 ## Measured results

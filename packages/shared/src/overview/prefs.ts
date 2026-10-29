@@ -2,16 +2,9 @@ import { type MakerKey } from '../../../data/src/aircraft-makers'
 import { z } from 'zod'
 import { overviewFilterSchema as filterSchema } from './filter-schema'
 import type { OverviewFilter } from './model'
+import { DEFAULT_ORDER } from './sections'
 
-export const DEFAULT_ORDER = [
-  'rankings',
-  'routes',
-  'records',
-  'crossings',
-  'rhythm',
-  'clock',
-  'aircraft',
-] as const
+export { DEFAULT_ORDER } from './sections'
 const section = z.enum(DEFAULT_ORDER)
 export type SectionId = z.infer<typeof section>
 export interface OverviewPrefs {

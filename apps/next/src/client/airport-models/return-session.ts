@@ -1,35 +1,46 @@
-import { z } from 'zod'
+import {
+  strictObject,
+  literal,
+  uuid,
+  string,
+  minLength,
+  number,
+  refine,
+  enum as enumOf,
+  nullable,
+  regex,
+  nonnegative,
+  boolean,
+  type infer as Infer,
+} from 'zod/mini'
 import { overviewFilterSchema } from '@kuuki/shared/overview/filter-schema'
 import type { OverviewFilter } from '@kuuki/shared/overview/model'
-import { DEFAULT_ORDER } from '@kuuki/shared/overview/prefs'
+import { DEFAULT_ORDER } from '@kuuki/shared/overview/sections'
 
 const KEY = 'kuuki:airport-returns:v1'
 const TTL = 24 * 60 * 60 * 1000
-const markerSchema = z.strictObject({
-  v: z.literal(1),
-  token: z.string().uuid(),
-  owner: z.string().min(1),
+const markerSchema = strictObject({
+  v: literal(1),
+  token: uuid(),
+  owner: string().check(minLength(1)),
 })
-const snapshotSchema = z.strictObject({
-  v: z.literal(1),
-  token: z.string().uuid(),
-  owner: z.string().min(1),
-  createdAt: z.number().finite(),
-  sourceUrl: z.string().refine((value) => /^\/overview(?:\?year=\d{4})?$/.test(value)),
+const snapshotSchema = strictObject({
+  v: literal(1),
+  token: uuid(),
+  owner: string().check(minLength(1)),
+  createdAt: number(),
+  sourceUrl: string().check(refine((value) => /^\/overview(?:\?year=\d{4})?$/.test(value))),
   filter: overviewFilterSchema,
-  category: z.enum(['airlines', 'airports', 'routes']),
-  airport: z
-    .string()
-    .regex(/^[A-Z]{3}$/)
-    .nullable(),
-  mobileChapter: z.enum(DEFAULT_ORDER).nullable(),
-  pageY: z.number().finite().nonnegative(),
-  sheetY: z.number().finite().nonnegative(),
-  opener: z.string().regex(/^airport-[A-Z]{3}$/),
-  pendingDeparture: z.boolean(),
-  visited: z.boolean(),
+  category: enumOf(['airlines', 'airports', 'routes']),
+  airport: nullable(string().check(regex(/^[A-Z]{3}$/))),
+  mobileChapter: nullable(enumOf(DEFAULT_ORDER)),
+  pageY: number().check(nonnegative()),
+  sheetY: number().check(nonnegative()),
+  opener: string().check(regex(/^airport-[A-Z]{3}$/)),
+  pendingDeparture: boolean(),
+  visited: boolean(),
 })
-export type AirportReturnSnapshot = z.infer<typeof snapshotSchema>
+export type AirportReturnSnapshot = Infer<typeof snapshotSchema>
 type ReturnUI = Pick<
   AirportReturnSnapshot,
   'category' | 'airport' | 'mobileChapter' | 'pageY' | 'sheetY'

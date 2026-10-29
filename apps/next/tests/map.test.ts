@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { signIn } from './helpers'
 
-test('a constrained connection leaves the globe optional and can load it on mobile and desktop', async ({
+test('the globe loads automatically on a constrained connection on mobile and desktop', async ({
   page,
   baseURL,
 }) => {
@@ -25,14 +25,9 @@ test('a constrained connection leaves the globe optional and can load it on mobi
     await page.setViewportSize({ width, height: 844 })
     const before = workers
     await page.goto('/overview')
-    const load = page.getByRole('button', { name: 'Load map', exact: true })
-    await expect(load).toBeVisible()
-    await page.waitForLoadState('networkidle')
-    expect(workers).toBe(before)
     await expect(
       page.getByRole('navigation', { name: width === 390 ? 'Tabs' : 'Primary' }),
     ).toBeVisible()
-    await load.click()
     await expect(page.locator('.globe-surface')).toHaveAttribute('data-webgl-ready', 'true', {
       timeout: 20_000,
     })

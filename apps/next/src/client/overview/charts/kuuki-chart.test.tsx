@@ -473,7 +473,7 @@ it('keeps caption, headers and chart data accessible without a table toggle', ()
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
 })
 
-it('lazy charts mount near the viewport but animate only while visible, and clean observers', () => {
+it('charts render before entering the viewport, animate only while visible, and clean observers', () => {
   const observers: {
     callback: IntersectionObserverCallback
     options?: IntersectionObserverInit
@@ -494,22 +494,16 @@ it('lazy charts mount near the viewport but animate only while visible, and clea
       {(inView) => <span>{inView ? 'Animating' : 'Snapped'}</span>}
     </LazyChart>,
   )
-  expect(screen.getByRole('region', { name: 'Loading routes' })).toHaveAttribute(
-    'aria-busy',
-    'true',
-  )
-  const preload = observers.find((observer) => observer.options?.rootMargin !== undefined)!
+  expect(screen.queryByRole('region', { name: 'Loading routes' })).not.toBeInTheDocument()
+  expect(screen.getByText('Snapped')).toBeInTheDocument()
   const visibility = observers.find((observer) => observer.options?.rootMargin === undefined)!
-  const notify = (observer: typeof preload, isIntersecting: boolean) =>
+  const notify = (observer: (typeof observers)[number], isIntersecting: boolean) =>
     act(() =>
       observer.callback(
         [{ target: container.firstElementChild!, isIntersecting } as IntersectionObserverEntry],
         {} as IntersectionObserver,
       ),
     )
-  notify(preload, true)
-  expect(screen.queryByRole('region')).not.toBeInTheDocument()
-  expect(screen.getByText('Snapped')).toBeInTheDocument()
   notify(visibility, true)
   expect(screen.getByText('Animating')).toBeInTheDocument()
   notify(visibility, false)

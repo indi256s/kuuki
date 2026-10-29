@@ -29,6 +29,42 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+it.each(['desktop', 'mobile'])(
+  'loads the last %s card without scrolling it into view',
+  async (surface) => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: surface === 'mobile' && query === '(max-width: 700px)',
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+      })),
+    )
+    const { container } = render(
+      <OverviewPage
+        payload={payload}
+        prefs={DEFAULT_PREFS}
+        ownerKey="eager-cards-owner"
+        name=""
+        locale="en"
+        live={false}
+        saver={saver}
+      />,
+    )
+    const aircraft = container.querySelector<HTMLElement>('[data-section="aircraft"]')!
+    if (surface === 'mobile')
+      expect(
+        await within(aircraft).findByText('Most flown maker', {}, { timeout: 3000 }),
+      ).toBeVisible()
+    else
+      expect(
+        await within(aircraft).findByRole('button', { name: /^Airbus,/ }, { timeout: 3000 }),
+      ).toBeVisible()
+    expect(aircraft.querySelector('[aria-busy="true"]')).toBeNull()
+  },
+)
+
 it('keeps grouped Russian hours and their unit in the flight-time total', () => {
   const longFlight: OverviewPayload = {
     ...payload,
