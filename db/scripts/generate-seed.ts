@@ -147,7 +147,6 @@ function genAirportSupplement(): void {
   }>(join(REPO, 'db', 'reference-supplements.json'))
   const countries = loadJson<Record<string, { name: string }>>(join(DATA, 'countries.json'))
   const base = loadJson<AirportSrc[]>(join(DATA, 'airports.json'))
-  const baseCodes = new Set(base.map((a) => a.iata))
   const expected = ['ARK', 'BAX', 'KBV', 'MCX', 'MRV', 'NAL', 'VOG', 'ZIA']
   const actual = supplement.airports.map((a) => a.iata).sort()
   if (JSON.stringify(actual) !== JSON.stringify(expected))
@@ -175,8 +174,6 @@ function genAirportSupplement(): void {
     '-- Existing matching rows are no-ops; a divergent existing IATA raises a primary-key conflict.',
   ]
   for (const airport of supplement.airports) {
-    if (baseCodes.has(airport.iata))
-      throw new Error(`Supplement duplicates base airport ${airport.iata}`)
     const country = countries[airport.countryCode]?.name
     if (!country) throw new Error(`Unknown supplement country code ${airport.countryCode}`)
     const values = [
@@ -189,6 +186,18 @@ function genAirportSupplement(): void {
       sqlNullableNum(airport.latitude),
       sqlNullableNum(airport.longitude),
     ]
+    const baseAirport = base.find((row) => row.iata === airport.iata)
+    if (
+      baseAirport &&
+      (baseAirport.icao !== airport.icao ||
+        baseAirport.name !== airport.name ||
+        baseAirport.city !== airport.city ||
+        baseAirport.country !== country ||
+        baseAirport.countryCode !== airport.countryCode ||
+        baseAirport.latitude !== airport.latitude ||
+        baseAirport.longitude !== airport.longitude)
+    )
+      throw new Error(`Supplement conflicts with base airport ${airport.iata}`)
     const equality = columns.map((col, i) => `${col} IS ${values[i]}`).join(' AND ')
     lines.push(
       `INSERT INTO airports_reference (${columns.join(', ')}) SELECT ${values.join(', ')} WHERE NOT EXISTS (SELECT 1 FROM airports_reference WHERE ${equality});`,
@@ -438,7 +447,12 @@ function validate(dedupedAircraft: AircraftSrc[]): string[] {
 // ---------------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------------
-if (process.argv.includes('--aircraft-only')) {
+if (process.argv.includes('--airports-only')) {
+  genAirports()
+  console.log(
+    `Generated db/seed/airports_reference.sql (${results['airports_reference.sql']} rows)`,
+  )
+} else if (process.argv.includes('--aircraft-only')) {
   genAircraft()
   console.log(
     `Generated db/seed/aircraft_reference.sql (${results['aircraft_reference.sql']} rows)`,

@@ -215,14 +215,22 @@ it.each(['ru'] as const)('returns calendar Escape focus to the date input (%s)',
   expect(document.activeElement).toBe(screen.getByLabelText('Flight date'))
 })
 
-function Probe({ locale, initial = '' }: { locale: Locale; initial?: string }) {
+function Probe({
+  locale,
+  initial = '',
+  choices = airportChoices(locale),
+}: {
+  locale: Locale
+  initial?: string
+  choices?: ReturnType<typeof airportChoices>
+}) {
   const [value, setValue] = useState(initial)
   return (
     <>
       <Combobox
         label="Airport"
         locale={locale}
-        choices={airportChoices(locale)}
+        choices={choices}
         value={value}
         onChange={setValue}
       />
@@ -281,7 +289,16 @@ describe('combobox free text', () => {
   it.each([{ isComposing: true }, { keyCode: 229 }])(
     'leaves IME navigation and confirmation keys to composition (%j)',
     async (composition) => {
-      render(<Probe locale="en" initial="JFK" />)
+      render(
+        <Probe
+          locale="en"
+          initial="JFK"
+          choices={[
+            { code: 'DME', label: 'Domodedovo', detail: 'Moscow' },
+            { code: 'SVO', label: 'Sheremetyevo', detail: 'Moscow' },
+          ]}
+        />,
+      )
       const input = screen.getByRole('combobox', { name: 'Airport' })
       await userEvent.click(input)
       fireEvent.change(input, { target: { value: 'Moscow' } })

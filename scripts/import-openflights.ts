@@ -1,6 +1,6 @@
 /**
  * Import script for OpenFlights data
- * Downloads and processes airports.dat and airlines.dat
+ * Processes downloaded airports-raw.dat and airlines-raw.dat
  * Filters by target regions and outputs enriched JSON
  */
 
@@ -152,673 +152,6 @@ const TARGET_COUNTRIES = new Set([
   'SC',
   'SN',
   'CI',
-])
-
-// Curated list of major airports to include from each region
-// This ensures we have quality over quantity
-const PRIORITY_AIRPORTS = new Set([
-  // Russia - Major hubs and regional capitals
-  'SVO',
-  'DME',
-  'VKO',
-  'LED', // Moscow + St. Petersburg
-  'KZN',
-  'SVX',
-  'OVB',
-  'KJA',
-  'IKT',
-  'VVO',
-  'KHV', // Regional hubs
-  'UFA',
-  'ROV',
-  'AER',
-  'KRR',
-  'GOJ',
-  'KGD',
-  'MMK', // Major regional
-  'PEE',
-  'CEK',
-  'TOF',
-  'VOZ',
-  'OMS',
-  'TJM',
-  'NJC', // Industrial cities
-  'YKS',
-  'BTK',
-  'PKC',
-  'PES',
-  'MQF',
-  'ARH',
-  'ASF', // Others
-
-  // Ukraine
-  'KBP',
-  'IEV',
-  'ODS',
-  'LWO',
-  'HRK',
-  'DNK',
-  'SIP',
-
-  // Belarus
-  'MSQ',
-  'GNA',
-  'GME',
-
-  // Georgia
-  'TBS',
-  'KUT',
-  'BUS',
-
-  // Azerbaijan
-  'GYD',
-  'NAJ',
-
-  // Armenia
-  'EVN',
-  'LWN',
-
-  // Kazakhstan
-  'ALA',
-  'NQZ',
-  'CIT',
-  'SCO',
-  'KZO',
-  'PLX',
-  'PWQ',
-  'GUW',
-
-  // Uzbekistan
-  'TAS',
-  'SKD',
-  'BHK',
-  'NVI',
-
-  // Kyrgyzstan
-  'FRU',
-  'OSS',
-
-  // China - Major hubs
-  'PEK',
-  'PKX',
-  'PVG',
-  'SHA',
-  'CAN',
-  'SZX',
-  'CTU',
-  'TFU',
-  'XIY',
-  'KMG',
-  'WUH',
-  'CKG',
-  'HGH',
-  'NKG',
-  'TAO',
-  'DLC',
-  'SHE',
-  'TSN',
-  'XMN',
-  'CSX',
-  'CGO',
-  'URC',
-  'HRB',
-  'SYX',
-  'NNG',
-  'KWE',
-  'LHW',
-  'JJN',
-  'FOC',
-  'TNA',
-  'WNZ',
-  'LXA',
-
-  // Hong Kong & Macau
-  'HKG',
-  'MFM',
-
-  // Taiwan
-  'TPE',
-  'KHH',
-  'RMQ',
-  'TNN',
-
-  // Japan - Major airports
-  'NRT',
-  'HND',
-  'KIX',
-  'ITM',
-  'NGO',
-  'FUK',
-  'CTS',
-  'OKA',
-  'KOJ',
-  'HIJ',
-  'SDJ',
-  'NGS',
-  'KMJ',
-  'TAK',
-  'MYJ',
-  'OIT',
-
-  // South Korea
-  'ICN',
-  'GMP',
-  'PUS',
-  'CJU',
-  'TAE',
-  'KWJ',
-  'RSU',
-
-  // Southeast Asia
-  'SIN',
-  'KUL',
-  'PEN',
-  'LGK',
-  'BKI',
-  'KCH',
-  'BKK',
-  'DMK',
-  'CNX',
-  'HKT',
-  'USM',
-  'SGN',
-  'HAN',
-  'DAD',
-  'CXR',
-  'PQC',
-  'CGK',
-  'DPS',
-  'SUB',
-  'UPG',
-  'JOG',
-  'MES',
-  'PDG',
-  'MNL',
-  'CEB',
-  'DVO',
-  'ILO',
-  'CRK',
-  'RGN',
-  'MDL',
-  'PNH',
-  'REP',
-  'VTE',
-  'BWN',
-  'MLE',
-
-  // India - Major airports
-  'DEL',
-  'BOM',
-  'BLR',
-  'MAA',
-  'CCU',
-  'HYD',
-  'COK',
-  'GOI',
-  'AMD',
-  'PNQ',
-  'JAI',
-  'LKO',
-  'GAU',
-  'TRV',
-  'IXC',
-  'SXR',
-  'PAT',
-  'VNS',
-  'VGA',
-  'IXB',
-  'IXR',
-  'RPR',
-  'BHO',
-  'NAG',
-
-  // Middle East
-  'DXB',
-  'AUH',
-  'SHJ',
-  'DOH',
-  'RUH',
-  'JED',
-  'DMM',
-  'MED',
-  'KWI',
-  'BAH',
-  'MCT',
-  'TLV',
-  'AMM',
-  'BEY',
-  'BGW',
-
-  // Turkey
-  'IST',
-  'ISL', // Atatürk: retain historical flight endpoints
-  'SAW',
-  'ESB',
-  'AYT',
-  'ADB',
-  'DLM',
-  'BJV',
-  'GZT',
-  'TZX',
-  'ERZ',
-  'VAN',
-  'ASR',
-  'SZF',
-
-  // Germany
-  'FRA',
-  'MUC',
-  'BER',
-  'DUS',
-  'HAM',
-  'STR',
-  'CGN',
-  'HAJ',
-  'NUE',
-  'LEJ',
-  'DTM',
-  'FMO',
-  'HHN',
-  'PAD',
-
-  // France
-  'CDG',
-  'ORY',
-  'NCE',
-  'LYS',
-  'MRS',
-  'TLS',
-  'BOD',
-  'NTE',
-  'SXB',
-  'BIQ',
-  'LIL',
-  'MPL',
-  'BIA',
-  'AJA',
-  'FSC',
-
-  // Italy
-  'FCO',
-  'MXP',
-  'LIN',
-  'VCE',
-  'NAP',
-  'BGY',
-  'BLQ',
-  'FLR',
-  'PSA',
-  'CTA',
-  'PMO',
-  'BRI',
-  'CAG',
-  'TRN',
-  'VRN',
-  'GOA',
-
-  // Spain
-  'MAD',
-  'BCN',
-  'GRO',
-  'PMI',
-  'AGP',
-  'ALC',
-  'VLC',
-  'BIO',
-  'SVQ',
-  'TFS',
-  'LPA',
-  'ACE',
-  'FUE',
-  'IBZ',
-  'XRY',
-  'SCQ',
-  'GRX',
-
-  // UK
-  'LHR',
-  'LGW',
-  'STN',
-  'LTN',
-  'MAN',
-  'EDI',
-  'BHX',
-  'GLA',
-  'BRS',
-  'NCL',
-  'LPL',
-  'EMA',
-  'LBA',
-  'BFS',
-  'ABZ',
-  'CWL',
-
-  // Netherlands, Belgium, Switzerland, Austria
-  'AMS',
-  'EIN',
-  'RTM',
-  'BRU',
-  'CRL',
-  'ANR',
-  'ZRH',
-  'GVA',
-  'BSL',
-  'VIE',
-  'SZG',
-  'INN',
-  'GRZ',
-
-  // Nordic
-  'ARN',
-  'GOT',
-  'MMX',
-  'OSL',
-  'BGO',
-  'TRD',
-  'SVG',
-  'BOO',
-  'CPH',
-  'AAL',
-  'BLL',
-  'HEL',
-  'OUL',
-  'TMP',
-  'TKU',
-  'KEF',
-  'AEY',
-
-  // Ireland & Portugal
-  'DUB',
-  'ORK',
-  'SNN',
-  'KNO',
-  'LIS',
-  'OPO',
-  'FAO',
-  'FNC',
-  'PDL',
-
-  // Greece
-  'ATH',
-  'SKG',
-  'HER',
-  'RHO',
-  'CFU',
-  'ZTH',
-  'JMK',
-  'JTR',
-
-  // Poland, Czech, Hungary
-  'WAW',
-  'KRK',
-  'GDN',
-  'WRO',
-  'POZ',
-  'KTW',
-  'RZE',
-  'PRG',
-  'BRQ',
-  'OSR',
-  'BUD',
-  'DEB',
-
-  // Romania, Bulgaria
-  'OTP',
-  'CLJ',
-  'TSR',
-  'IAS',
-  'SBZ',
-  'SOF',
-  'VAR',
-  'BOJ',
-
-  // Baltics
-  'RIX',
-  'TLL',
-  'VNO',
-  'KUN',
-
-  // Balkans
-  'BEG',
-  'ZAG',
-  'SPU',
-  'DBV',
-  'PUY',
-  'LJU',
-  'MBX',
-  'TIV',
-  'PRN',
-  'SKP',
-  'TIA',
-  'SJJ',
-  'BNX',
-
-  // Cyprus, Malta, Luxembourg
-  'LCA',
-  'PFO',
-  'MLA',
-  'LUX',
-
-  // US - Top 50 airports
-  'JFK',
-  'LAX',
-  'ORD',
-  'DFW',
-  'DEN',
-  'ATL',
-  'SFO',
-  'SEA',
-  'MIA',
-  'BOS',
-  'EWR',
-  'LGA',
-  'IAD',
-  'DCA',
-  'PHX',
-  'IAH',
-  'LAS',
-  'MCO',
-  'CLT',
-  'MSP',
-  'DTW',
-  'PHL',
-  'SAN',
-  'TPA',
-  'PDX',
-  'SLC',
-  'FLL',
-  'BWI',
-  'AUS',
-  'STL',
-  'RDU',
-  'MCI',
-  'OAK',
-  'SJC',
-  'SMF',
-  'HNL',
-  'ANC',
-  'SNA',
-  'DAL',
-  'HOU',
-  'MDW',
-  'BNA',
-  'IND',
-  'CMH',
-  'CLE',
-  'PIT',
-  'SAT',
-  'MKE',
-
-  // Canada
-  'YYZ',
-  'YVR',
-  'YUL',
-  'YYC',
-  'YEG',
-  'YOW',
-  'YWG',
-  'YHZ',
-  'YQB',
-  'YXE',
-  'YQR',
-  'YLW',
-  'YYJ',
-  'YZF',
-  'YQT',
-
-  // Mexico
-  'MEX',
-  'CUN',
-  'GDL',
-  'MTY',
-  'TIJ',
-  'SJD',
-  'PVR',
-  'MID',
-
-  // Caribbean & Central America
-  'PTY',
-  'SJO',
-  'HAV',
-  'SDQ',
-  'PUJ',
-  'MBJ',
-  'BGI',
-  'POS',
-  'GUA',
-  'MGA',
-  'SAP',
-  'SAL',
-  'BZE',
-
-  // Brazil
-  'GRU',
-  'GIG',
-  'CGH',
-  'SDU',
-  'BSB',
-  'CNF',
-  'REC',
-  'SSA',
-  'POA',
-  'FOR',
-  'CWB',
-  'FLN',
-  'VCP',
-  'MAO',
-  'BEL',
-  'NAT',
-
-  // Argentina
-  'EZE',
-  'AEP',
-  'COR',
-  'MDZ',
-  'BRC',
-  'IGR',
-  'SLA',
-  'FTE',
-
-  // Chile
-  'SCL',
-  'IQQ',
-  'ANF',
-  'CCP',
-  'ZCO',
-  'PMC',
-  'PUQ',
-
-  // Colombia, Peru
-  'BOG',
-  'MDE',
-  'CLO',
-  'CTG',
-  'BAQ',
-  'SMR',
-  'LIM',
-  'CUZ',
-  'AQP',
-  'TRU',
-
-  // Ecuador
-  'UIO',
-  'GYE',
-
-  // Venezuela
-  'CCS',
-
-  // Uruguay
-  'MVD',
-
-  // Paraguay
-  'ASU',
-
-  // Bolivia
-  'VVI',
-  'LPB',
-
-  // Guyana, Suriname
-  'GEO',
-  'PBM',
-
-  // Australia
-  'SYD',
-  'MEL',
-  'BNE',
-  'PER',
-  'ADL',
-  'CBR',
-  'OOL',
-  'CNS',
-  'HBA',
-  'DRW',
-  'ASP',
-  'TSV',
-  'NTL',
-  'AVV',
-
-  // New Zealand
-  'AKL',
-  'WLG',
-  'CHC',
-  'ZQN',
-  'DUD',
-  'NPE',
-  'ROT',
-
-  // Africa
-  'JNB',
-  'CPT',
-  'DUR',
-  'PLZ',
-  'CAI',
-  'ALY',
-  'HRG',
-  'SSH',
-  'NBO',
-  'MBA',
-  'CMN',
-  'RAK',
-  'AGA',
-  'FEZ',
-  'LOS',
-  'ABV',
-  'PHC',
-  'ADD',
-  'DIR',
-  'TUN',
-  'MIR',
-  'SFA',
-  'ALG',
-  'DAR',
-  'ZNZ',
-  'ACC',
-  'EBB',
-  'KGL',
-  'MRU',
-  'SEZ',
-  'DSS',
-  'ABJ',
 ])
 
 // Curated list of major airlines to include
@@ -1375,7 +708,12 @@ function parseCSVLine(line: string): string[] {
   for (let i = 0; i < line.length; i++) {
     const char = line[i]
     if (char === '"') {
-      inQuotes = !inQuotes
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
     } else if (char === ',' && !inQuotes) {
       result.push(current.trim())
       current = ''
@@ -1409,8 +747,9 @@ function parseAirports(filePath: string): Airport[] {
     const timezone = fields[11]
 
     // Skip if no IATA code or invalid coordinates
-    if (!iata || iata === '\\N' || iata.length !== 3) continue
-    if (isNaN(lat) || isNaN(lng)) continue
+    if (!iata || !/^[A-Z]{3}$/.test(iata.toUpperCase())) continue
+    if (!Number.isFinite(lat) || Math.abs(lat) > 90) continue
+    if (!Number.isFinite(lng) || Math.abs(lng) > 180) continue
     if (!timezone || timezone === '\\N') continue
 
     // Get country code
@@ -1419,9 +758,6 @@ function parseAirports(filePath: string): Airport[] {
 
     // Filter by target countries
     if (!TARGET_COUNTRIES.has(countryCode)) continue
-
-    // Only include airports in the priority list
-    if (!PRIORITY_AIRPORTS.has(iata.toUpperCase())) continue
 
     airports.push({
       iata: iata.toUpperCase(),
@@ -1521,7 +857,7 @@ function nullableString(value: unknown): boolean {
   return value === null || typeof value === 'string'
 }
 
-// Existing rows retain all manual fields; priority filtering and merge precedence stay unchanged.
+// Existing airports retain all manual fields, including entries outside the raw import regions.
 function loadExistingAirports(filePath: string): Map<string, Airport> {
   const data = loadExistingCatalog<Airport>(
     filePath,
@@ -1537,7 +873,7 @@ function loadExistingAirports(filePath: string): Map<string, Airport> {
       typeof row.longitude === 'number' &&
       Number.isFinite(row.longitude),
   )
-  return new Map(data.filter((a) => PRIORITY_AIRPORTS.has(a.iata)).map((a) => [a.iata, a]))
+  return new Map(data.map((a) => [a.iata, a]))
 }
 
 function loadExistingAirlines(filePath: string): Map<string, Airline> {
@@ -1577,6 +913,24 @@ function main() {
   // Parse raw data
   const rawAirports = parseAirports(path.join(scriptsDir, 'airports-raw.dat'))
   const rawAirlines = parseAirlines(path.join(scriptsDir, 'airlines-raw.dat'))
+
+  // These reference rows already exist in D1. Reuse their pinned corrections when
+  // broadening the offline catalog so the additive migration agrees with D1.
+  const supplements = JSON.parse(
+    fs.readFileSync(path.join(scriptsDir, '../db/reference-supplements.json'), 'utf-8'),
+  ) as { airports: Array<Omit<Airport, 'country' | 'timezone'>> }
+  for (const supplement of supplements.airports) {
+    const airport = rawAirports.find((row) => row.iata === supplement.iata)
+    if (!airport) throw new Error(`Missing raw airport for supplement ${supplement.iata}`)
+    Object.assign(airport, {
+      icao: supplement.icao,
+      name: supplement.name,
+      city: supplement.city,
+      countryCode: supplement.countryCode,
+      latitude: supplement.latitude,
+      longitude: supplement.longitude,
+    })
+  }
 
   console.log(`Parsed ${rawAirports.length} airports from OpenFlights`)
   console.log(`Parsed ${rawAirlines.length} airlines from OpenFlights`)

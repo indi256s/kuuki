@@ -47,6 +47,9 @@ async function schemaOf(db: D1Database) {
 
 async function migrate(db: D1Database): Promise<Baseline> {
   await applyMigrations(db)
+  // API fixtures supply their own airport corpus. Keep reference-data migrations
+  // in the dedicated migration tests instead of restoring thousands of rows per test.
+  await db.prepare('DELETE FROM airports_reference').run()
   const schema = await schemaOf(db)
   const tables = [...schema.keys()]
     .filter((key) => key.startsWith('table:'))
@@ -115,7 +118,7 @@ async function isolatedDatabase() {
     d1Databases: { DB: 'kuuki-api-test' },
   })
   const db = await mf.getD1Database('DB')
-  await applyMigrations(db)
+  await migrate(db)
   return { db, dispose: () => mf.dispose() }
 }
 

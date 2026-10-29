@@ -474,7 +474,7 @@ it('persists the question metadata of a streamed provider row and of a local pip
     date_month_day: '05-21',
     origin: 'ROV',
     destination: '',
-    destination_options: ['DME', 'SVO', 'VKO'],
+    destination_options: expect.arrayContaining(['DME', 'SVO', 'VKO']),
     review_required: true,
   })
   expect(stored.origin_options).toBeUndefined()
@@ -491,7 +491,7 @@ it('persists the question metadata of a streamed provider row and of a local pip
   expect(JSON.parse((await rows(batchId)).results[0].fields_json)).toMatchObject({
     origin: 'ROV',
     destination: '',
-    destination_options: ['DME', 'SVO', 'VKO'],
+    destination_options: expect.arrayContaining(['DME', 'SVO', 'VKO']),
   })
   expect(JSON.parse((await rows(batchId)).results[0].fields_json).review_required).toBeUndefined()
 })

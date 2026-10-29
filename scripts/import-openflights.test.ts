@@ -34,6 +34,8 @@ function fixture() {
   const dir = mkdtempSync(join(tmpdir(), 'kuuki-openflights-'))
   dirs.push(dir)
   mkdirSync(join(dir, 'scripts'))
+  mkdirSync(join(dir, 'db'))
+  writeFileSync(join(dir, 'db/reference-supplements.json'), '{"airports":[]}')
   const data = join(dir, 'packages/data/src')
   mkdirSync(data, { recursive: true })
   const script = join(dir, 'scripts/import-openflights.ts')
@@ -56,6 +58,49 @@ function fixture() {
 }
 
 describe('OpenFlights catalog preservation', () => {
+  it('admits regional airports beyond major hubs and retains existing manual airports', () => {
+    const { data, run } = fixture()
+    // Real OpenFlights rows, kept inline because downloaded *.dat inputs are ignored.
+    const raw = [
+      '1132,"Luxor International Airport","Luxor","Egypt","LXR","HELX",25.671,32.7066,294,2,"U","Africa/Cairo","airport","OurAirports"',
+      '1458,"Kos Airport","Kos","Greece","KGS","LGKO",36.79330062866211,27.091699600219727,412,2,"E","Europe/Athens","airport","OurAirports"',
+      '1473,"Araxos Airport","Patras","Greece","GPA","LGRX",38.1511,21.4256,46,2,"E","Europe/Athens","airport","OurAirports"',
+      '1502,"Foggia ""Gino Lisa"" Airport","Foggia","Italy","FOG","LIBF",41.432899,15.535,265,1,"E","Europe/Rome","airport","OurAirports"',
+      '7856,"El Alamein International Airport","Dabaa City","Egypt","DBB","HEAL",30.92449951171875,28.46139907836914,143,2,"N","Africa/Cairo","airport","OurAirports"',
+    ]
+    writeFileSync(join(data, '../../../scripts/airports-raw.dat'), raw.join('\n'))
+    const manual = { ...airport, iata: 'ARK', name: 'Manual Arusha' }
+    writeFileSync(join(data, 'airports.json'), JSON.stringify([airport, manual]))
+
+    const result = run()
+    expect(result.status, result.stderr).toBe(0)
+    const airports = JSON.parse(readFileSync(join(data, 'airports.json'), 'utf8'))
+    expect(airports.map((row: { iata: string }) => row.iata)).toEqual([
+      'ARK',
+      'DBB',
+      'FOG',
+      'GPA',
+      'KGS',
+      'LXR',
+      'SVO',
+    ])
+    expect(airports.find((row: { iata: string }) => row.iata === 'ARK')).toEqual(manual)
+    expect(airports.find((row: { iata: string }) => row.iata === 'GPA')).toMatchObject({
+      icao: 'LGRX',
+      city: 'Patras',
+      countryCode: 'GR',
+      timezone: 'Europe/Athens',
+    })
+    expect(airports.find((row: { iata: string }) => row.iata === 'DBB')).toMatchObject({
+      icao: 'HEAL',
+      countryCode: 'EG',
+      timezone: 'Africa/Cairo',
+    })
+    expect(airports.find((row: { iata: string }) => row.iata === 'FOG').name).toBe(
+      'Foggia "Gino Lisa" Airport',
+    )
+  })
+
   const invalid = [
     ['invalid JSON', '{'],
     ['non-array', '{}'],

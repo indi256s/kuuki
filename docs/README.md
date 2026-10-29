@@ -68,6 +68,7 @@ Follow these connections before proposing behavior changes; UI rules explain the
 server contract but do not replace it. Backend services live under
 `functions/api/_services`.
 
+- **Airport reference coverage:** [coverage and regeneration](airport-reference.md) explains the offline catalog, D1 admission, source limits and preservation of manual corrections.
 - **Private user statistics:** [dashboard and metric definitions](user-analytics.md),
   [server admission](../apps/next/src/server/user-analytics.ts) and
   [aggregate reads](../functions/api/_services/userAnalytics.ts) own `/admin/users`.

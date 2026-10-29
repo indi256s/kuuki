@@ -9,7 +9,7 @@ import airlinesData from './airlines.json' with { type: 'json' }
 // Aircraft data from OpenFlights
 export const aircraft: Aircraft[] = aircraftData as Aircraft[]
 
-// Airport data (major world airports)
+// Airport references admitted from the checked-in source, with manual corrections.
 export const airports: Airport[] = airportsData as Airport[]
 
 // Airline data (major airlines)

@@ -81,18 +81,7 @@ it('restores a private export in chunks, preserves historical rows and applies o
     expect((await restored.prepare('PRAGMA foreign_key_check').all()).results).toEqual([])
     expect(JSON.parse(log.mock.calls[0][0])).toMatchObject({
       lastExportMigration: '0007_import_drafts.sql',
-      migrationsApplied: [
-        '0008_flight_metrics.sql',
-        '0009_schedule_time_provenance.sql',
-        '0010_onboarding_state.sql',
-        '0011_atr_72_600_reference.sql',
-        '0011_ground_travel.sql',
-        '0012_gro_isl_airport_reference.sql',
-        '0013_unified_passport.sql',
-        '0014_leaderboard_periods.sql',
-        '0015_avatar_face.sql',
-        '0016_user_activity.sql',
-      ],
+      migrationsApplied: migrationFiles().filter((file) => file.slice(0, 4) > '0007'),
     })
     expect(readFileSync(exportPath, 'utf8')).toBe(sql)
     await target.dispose()
