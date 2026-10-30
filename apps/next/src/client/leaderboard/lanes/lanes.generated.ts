@@ -61,7 +61,7 @@ export const laneArt: Record<LaneVehicleKey, Asset> = {
  */
 export const laneGeometry = {
   air: {"viewBox":[-168.08,-72.66,171.49,115.42],"nose":0.9802,"ground":0.6295,"deck":0.1337,"skew":-39.66,"unit":112},
-  ground: {"viewBox":[-138.5,-45.89,144.1,61.91],"nose":0.9611,"ground":0.7413,"deck":0.3793,"skew":-29.21,"unit":112,"rail":{"offset":0.0438,"deck":0.1053}},
+  ground: {"viewBox":[-137.35,-45.76,142.65,62.26],"nose":0.9628,"ground":0.735,"deck":0.3758,"skew":-29.21,"unit":112,"rail":{"offset":0.0435,"deck":0.1047}},
 } as const
 
 /** Each airliner: its name and measured length and span (m), its own frame and its upper beacon, in viewBox units. */

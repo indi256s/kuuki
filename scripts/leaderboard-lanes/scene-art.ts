@@ -1,5 +1,5 @@
 // Draws the lane vehicles and installs them: the airliners as 1:N models with the pinned anatomy kit (./airliner), the
-// locomotive and the car with the app's iso Scene (the ladder figures' kernel, parts and tone roles).
+// car with the same pinned kit and parametric surfaces; the locomotive with the app's iso Scene.
 //
 //   pnpm exec tsx scripts/leaderboard-lanes/scene-art.ts
 //
@@ -18,15 +18,14 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { IsoNode, Paint } from '../../apps/next/src/client/overview/iso/scene'
 import {
-  CAR_LENGTH,
   LOCO_LENGTH,
   RAIL,
-  car,
   locomotive,
 } from '../../apps/next/src/client/leaderboard/lanes/draw/ground'
 import { LaneScene, W } from '../../apps/next/src/client/leaderboard/lanes/draw/lane-scene'
 import { AIR_UNIT, airSkew, buildAir } from './airliner/build'
 import { AIRCRAFT_CSS } from './airliner/svg'
+import { buildCar } from './car/car'
 
 const OUT = 'apps/next/src/client/leaderboard/lanes'
 const PREVIEW = '.scratch/leaderboard-lanes/scene'
@@ -221,10 +220,7 @@ function place(d: Drawn) {
 
 // ---------------------------------------------------------------- the ground vehicles
 
-const ground: Drawn[] = [
-  draw('rail', 'An electric locomotive', UNIT / LOCO_LENGTH, locomotive),
-  draw('road', 'A coupé', UNIT / CAR_LENGTH, car),
-]
+const ground: Drawn[] = [draw('rail', 'An electric locomotive', UNIT / LOCO_LENGTH, locomotive)]
 /** The ground camera's across-the-lane direction (CSS skewX, deg) and the rails' offset from the centre line. */
 function groundCross() {
   const s = new LaneScene(UNIT / LOCO_LENGTH)
@@ -280,7 +276,7 @@ async function main() {
   const airFamily = family(air, AIR_UNIT, await airSkew())
   const cross = groundCross()
   const groundFamily = family(
-    ground.map((d) => ({ d, ...place(d), gear: d.gear })),
+    [...ground.map((d) => ({ d, ...place(d), gear: d.gear })), await buildCar(UNIT)],
     UNIT,
     cross.skew,
   )
