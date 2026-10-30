@@ -99,6 +99,12 @@ export function CategoryStrip({
         ref={navRef}
         className="leaderboard-strip"
         aria-label={locale === 'ru' ? 'Категории рейтинга' : 'Leaderboard categories'}
+        onPointerDownCapture={(event) => {
+          event.currentTarget.dataset.input = 'pointer'
+        }}
+        onKeyDownCapture={(event) => {
+          event.currentTarget.dataset.input = 'keyboard'
+        }}
       >
         <div className="leaderboard-tiles" ref={scroller}>
           {groups.map(([group, keys]) => (

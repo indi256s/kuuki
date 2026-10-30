@@ -207,6 +207,27 @@ it('Escape hides a hovered spotter card while focus is outside its lane', async 
   expect(container.querySelector('.lane[data-quiet]')).toContainElement(screen.getByText('B738'))
 })
 
+it('opens the aircraft peek by touch and dismisses it without navigating to the profile', async () => {
+  const user = userEvent.setup()
+  const data = fixture()
+  data.boards.flights.all.top[0] = { ...data.boards.flights.all.top[0], aircraft: 'B738' }
+  render(board(data))
+  const type = screen.getByRole('button', { name: 'B738' })
+  await user.pointer({ keys: '[TouchA]', target: type })
+  expect(type).toHaveAttribute('aria-pressed', 'true')
+  expect(window.location.pathname).toBe('/leaderboard')
+  expect(screen.getByRole('link', { name: '@user1' })).toHaveAttribute('href', '/fly/user1')
+  await user.keyboard('{Escape}')
+  expect(type).toHaveAttribute('aria-pressed', 'false')
+  await user.pointer({ keys: '[TouchA]', target: type })
+  expect(type).toHaveAttribute('aria-pressed', 'true')
+  await user.pointer({
+    keys: '[TouchA]',
+    target: screen.getByRole('heading', { name: 'Leaderboard' }),
+  })
+  expect(type).toHaveAttribute('aria-pressed', 'false')
+})
+
 it('moves focus to the first new row after Show all', async () => {
   const user = userEvent.setup()
   const more = ranks(11, 60).map((item) => ({

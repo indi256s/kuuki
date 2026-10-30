@@ -1,7 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react'
 import {
   isGroundCategory,
   type LeaderboardCategory,
@@ -15,6 +23,7 @@ import {
 import { formatNumber, type Locale } from '../../lib/format'
 import { avatarInk, ProfileAvatar } from '../profile/avatar'
 import { Button } from '../ui/button'
+import { ChevronIcon } from '../ui/icon-morph'
 import { categoryUnit } from './categories'
 import {
   laneArt,
@@ -70,6 +79,76 @@ export function markStep(max: number) {
   return [1, 2, 5, 10].map((k) => k * base).find((step) => max / step <= 7) ?? 10 * base
 }
 
+function LaneRuler({
+  max,
+  step,
+  total,
+  category,
+  locale,
+}: {
+  max: number
+  step: number
+  total: number
+  category: LeaderboardCategory
+  locale: Locale
+}) {
+  const track = useRef<HTMLDivElement>(null)
+  const marks = step
+    ? Array.from({ length: Math.floor(max / step) + 1 }, (_, index) => index * step)
+    : [0]
+  if (max > 0 && marks.at(-1) !== max) marks.push(max)
+  // Label count alone cannot prevent collisions: the exact endpoint can be much wider than a round mark.
+  useLayoutEffect(() => {
+    const element = track.current
+    if (!element) return
+    const ticks = [...element.querySelectorAll<HTMLElement>('.lane-ruler-mark')]
+    const fit = () => {
+      for (const tick of ticks) tick.hidden = false
+      const boxes = ticks.map((tick) => tick.getBoundingClientRect())
+      let edge = boxes[0]?.right ?? 0
+      const finish = boxes.at(-1)?.left ?? 0
+      ticks.forEach((tick, index) => {
+        if (index === 0 || index === ticks.length - 1) return
+        const box = boxes[index]
+        tick.hidden = box.left < edge + 12 || box.right > finish - 12
+        if (!tick.hidden) edge = box.right
+      })
+    }
+    fit()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit)
+    observer?.observe(element)
+    let active = true
+    void document.fonts?.ready.then(() => {
+      if (active) fit()
+    })
+    return () => {
+      active = false
+      observer?.disconnect()
+    }
+  }, [max, step, locale])
+  return (
+    <div className="lane-ruler" aria-hidden="true">
+      <span className="lane-ruler-label">
+        {locale === 'ru' ? 'Участники' : 'Participants'} · {formatNumber(locale, total)}
+      </span>
+      <div className="lane-ruler-track" ref={track}>
+        {marks.map((value, index) => (
+          <span
+            key={value}
+            className="lane-ruler-mark"
+            hidden={index > 0 && index < marks.length - 1}
+            data-edge={index === 0 ? 'start' : index === marks.length - 1 ? 'end' : undefined}
+            style={{ '--tick-at': max > 0 ? value / max : 0 } as CSSProperties}
+          >
+            {formatNumber(locale, value)}
+          </span>
+        ))}
+      </div>
+      <span className="lane-ruler-unit">{categoryUnit(category, max, locale)}</span>
+    </div>
+  )
+}
+
 function Vehicle({
   vehicle,
   frame,
@@ -103,12 +182,20 @@ function Beacon({ type }: { type: (typeof LANE_TYPES)[number] }) {
 }
 
 /** Hover or keyboard focus on a lane opens a close-up of its airliner with the type's name and measured size. */
-function Spotter({ type, locale }: { type: (typeof LANE_TYPES)[number]; locale: Locale }) {
+function Spotter({
+  type,
+  locale,
+  id,
+}: {
+  type: (typeof LANE_TYPES)[number]
+  locale: Locale
+  id: string
+}) {
   const spot = laneSpots[type]
   const metres = (value: number) =>
     `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value)} ${locale === 'ru' ? 'м' : 'm'}`
   return (
-    <span className="lane-spotter" aria-hidden="true">
+    <span className="lane-spotter" id={id} role="tooltip">
       <Vehicle vehicle={type} frame={spot.box} />
       <span className="lane-spotter-name">{spot.name}</span>
       <span className="lane-spotter-size">
@@ -129,6 +216,8 @@ function Lane({
   ghost,
   leadIn,
   gap,
+  isSpotterWarm,
+  warmSpotters,
 }: {
   entry: LeaderboardEntry
   category: LeaderboardCategory
@@ -140,6 +229,8 @@ function Lane({
   ghost?: boolean
   leadIn?: string
   gap?: Gap
+  isSpotterWarm: () => boolean
+  warmSpotters: () => void
 }) {
   const ru = locale === 'ru'
   const id = useId()
@@ -147,14 +238,43 @@ function Lane({
   // wherever it was, so while the pointer is on the type the key is heard on the document.
   const [quiet, setQuiet] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [peek, setPeek] = useState(false)
+  const [warm, setWarm] = useState(false)
+  const hoverStarted = useRef(0)
+  const typeAnchor = useRef<HTMLSpanElement>(null)
+  const fitSpotter = useCallback(() => {
+    const anchor = typeAnchor.current
+    const card = anchor?.querySelector<HTMLElement>('.lane-spotter')
+    if (!anchor || !card) return
+    const start = anchor.getBoundingClientRect().left
+    const left = Math.max(
+      16,
+      Math.min(start - 12, document.documentElement.clientWidth - card.offsetWidth - 16),
+    )
+    card.style.setProperty('--spotter-left', `${left - start}px`)
+  }, [])
   useEffect(() => {
-    if (!hovered) return
+    if (!hovered && !peek && !focused) return
     const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setQuiet(true)
+      if (event.key === 'Escape') {
+        setQuiet(true)
+        setPeek(false)
+      }
+    }
+    const outside = (event: PointerEvent) => {
+      if (peek && event.target instanceof Node && !typeAnchor.current?.contains(event.target))
+        setPeek(false)
     }
     document.addEventListener('keydown', close)
-    return () => document.removeEventListener('keydown', close)
-  }, [hovered])
+    document.addEventListener('pointerdown', outside)
+    window.addEventListener('resize', fitSpotter)
+    return () => {
+      document.removeEventListener('keydown', close)
+      document.removeEventListener('pointerdown', outside)
+      window.removeEventListener('resize', fitSpotter)
+    }
+  }, [hovered, peek, focused, fitSpotter])
   const name = entryName(entry, locale)
   const vehicle = laneVehicle(category, entry.aircraft, entry.vehicle)
   const medal = !ghost && entry.rank <= 3 ? MEDALS[entry.rank - 1] : undefined
@@ -168,13 +288,28 @@ function Lane({
       data-own={own || undefined}
       data-ghost={ghost || undefined}
       data-quiet={quiet || undefined}
+      data-peek={(peek && !quiet) || undefined}
+      data-warm={warm || undefined}
       data-row={entry.user_id}
       style={{ '--lane-at': at, '--lane-livery': avatarInk(entry.user_id) } as CSSProperties}
       onKeyDown={(event) => {
-        if (event.key === 'Escape' && type) setQuiet(true)
+        if (event.key === 'Escape' && type) {
+          setQuiet(true)
+          setPeek(false)
+        }
       }}
       onPointerLeave={() => setQuiet(false)}
-      onBlur={() => setQuiet(false)}
+      onFocus={() => {
+        setFocused(true)
+        fitSpotter()
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setFocused(false)
+          setQuiet(false)
+          setPeek(false)
+        }
+      }}
     >
       <div className="lane-head">
         <span className="lane-place" id={`${id}-place`} data-medal={medal}>
@@ -211,22 +346,45 @@ function Lane({
           {type && (
             <span
               className="lane-type-anchor"
-              onPointerEnter={() => setHovered(true)}
-              onPointerLeave={() => setHovered(false)}
+              ref={typeAnchor}
+              onPointerEnter={(event) => {
+                if (event.pointerType === 'touch') return
+                fitSpotter()
+                hoverStarted.current = Date.now()
+                setWarm(isSpotterWarm())
+                setHovered(true)
+              }}
+              onPointerLeave={(event) => {
+                if (event.pointerType === 'touch') return
+                if (!quiet && (warm || Date.now() - hoverStarted.current >= 250)) warmSpotters()
+                setHovered(false)
+              }}
             >
-              <small className="lane-type">{type}</small>
+              <button
+                className="lane-type"
+                type="button"
+                aria-describedby={`${id}-spotter`}
+                aria-pressed={peek && !quiet}
+                onClick={() => {
+                  fitSpotter()
+                  setQuiet(false)
+                  setPeek(!peek)
+                }}
+              >
+                {type}
+              </button>
               <span className="sr-only" id={`${id}-type`}>
                 {laneSpots[type].name}
               </span>
-              <Spotter type={type} locale={locale} />
+              <Spotter type={type} locale={locale} id={`${id}-spotter`} />
             </span>
           )}
         </span>
-        <span className="lane-value" id={`${id}-value`}>
-          <strong>{formatNumber(locale, entry.value)}</strong>{' '}
-          <small>{categoryUnit(category, entry.value, locale)}</small>
-        </span>
       </div>
+      <span className="lane-value" id={`${id}-value`}>
+        <strong>{formatNumber(locale, entry.value)}</strong>{' '}
+        <small>{categoryUnit(category, entry.value, locale)}</small>
+      </span>
       <div className="lane-track" aria-hidden="true">
         <span className="lane-run" />
         <span className="lane-veh" data-vehicle={vehicle}>
@@ -366,6 +524,12 @@ export function RaceLanes({
   const ru = locale === 'ru'
   const board = `${category}:${period}`
   const list = useRef<HTMLOListElement>(null)
+  const listId = useId()
+  const spotterWarmUntil = useRef(0)
+  const isSpotterWarm = () => Date.now() < spotterWarmUntil.current
+  const warmSpotters = () => {
+    spotterWarmUntil.current = Date.now() + 300
+  }
   const alive = useRef(true)
   const focusFrom = useRef<string | null>(null)
   // Every committed selection invalidates its pending reads, including a switch away and back.
@@ -490,7 +654,7 @@ export function RaceLanes({
       : { href: '/add', hint: ru ? 'добавить перелёт' : 'add a flight' }
   const family = isGroundCategory(category) ? 'ground' : 'air'
   const geometry = laneGeometry[family]
-  const step = markStep(max)
+  const step = max > 0 ? Math.max(1, markStep(max)) : 0
   return (
     <section
       className="leaderboard-lanes"
@@ -515,7 +679,16 @@ export function RaceLanes({
       <h2 id="leaderboard-lanes-title" className="sr-only">
         {ru ? 'Участники' : 'Participants'}
       </h2>
-      <ol className="lanes" ref={list}>
+      {rows.length > 0 && (
+        <LaneRuler
+          max={max}
+          step={step}
+          total={more?.total ?? slice.total}
+          category={category}
+          locale={locale}
+        />
+      )}
+      <ol className="lanes" ref={list} id={listId}>
         {rows.map((entry) => (
           <Lane
             key={entry.user_id}
@@ -525,6 +698,8 @@ export function RaceLanes({
             max={max}
             own={entry.user_id === userId}
             gap={gapFor(entry)}
+            isSpotterWarm={isSpotterWarm}
+            warmSpotters={warmSpotters}
           />
         ))}
         {showGap && (
@@ -542,6 +717,8 @@ export function RaceLanes({
             own={entry.user_id === userId}
             leadIn={index === 0 ? leadIn : undefined}
             gap={gapFor(entry)}
+            isSpotterWarm={isSpotterWarm}
+            warmSpotters={warmSpotters}
           />
         ))}
         {ghost && (
@@ -553,6 +730,8 @@ export function RaceLanes({
             max={max}
             own
             ghost
+            isSpotterWarm={isSpotterWarm}
+            warmSpotters={warmSpotters}
           />
         )}
         {!rows.length && (
@@ -572,8 +751,15 @@ export function RaceLanes({
         </p>
       )}
       {canLoad && (
-        <Button variant="ghost" onClick={showAll} loading={loading}>
+        <Button
+          className="leaderboard-show-all"
+          variant="ghost"
+          onClick={showAll}
+          loading={loading}
+          aria-controls={listId}
+        >
           {more ? (ru ? 'Показать ещё' : 'Show more') : ru ? 'Показать всех' : 'Show all'}
+          <ChevronIcon size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
       )}
     </section>

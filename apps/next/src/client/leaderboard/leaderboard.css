@@ -1,10 +1,10 @@
 /* The leaderboard: a race. Category strip (compact gate tiles), narrator, one lane per participant on a shared scale. Tokens only; space does the grouping, no lines between lanes. */
 .editorial-leaderboard {
-  max-width: 720px;
-  margin-inline: auto;
+  container: leaderboard / inline-size;
 }
 .leaderboard-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -15,25 +15,23 @@
   margin: 0;
 }
 
-/* Category strip: sky above ground when it fits, otherwise one snapping strip. Two rows share five columns sized by
-   their labels (subgrid), so the rows line up and no label ever wraps. The switch follows the strip's own width. */
+/* Both category groups share one band when the labels fit; narrower containers scroll just the strip. */
 .leaderboard-strip {
   container: strip / inline-size;
 }
 .leaderboard-tiles {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(5, auto);
-  gap: var(--space-3) 6px;
+  grid-template-columns: 5fr 3fr;
+  gap: var(--space-6);
 }
 .leaderboard-group {
   display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-1);
   min-inline-size: 0;
 }
 .leaderboard-group-label {
-  grid-column: 1 / -1;
   margin: 0 0 var(--space-1);
   font-size: 12px;
   line-height: 16px;
@@ -44,20 +42,52 @@
 }
 .leaderboard-group-tiles {
   display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--space-1);
 }
 
-/* The line under the strip: one sentence about the viewer, two lines tall so the page below does not jump. */
+.leaderboard-context {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 var(--space-6);
+}
+/* Reserve two lines for the observer, so changing category does not jump the field. */
 .leaderboard-narrator {
   min-block-size: 48px;
-  margin: var(--space-4) 0 var(--space-6);
+  margin: 0;
+  text-wrap: pretty;
   overflow-wrap: anywhere;
+}
+.leaderboard-context .leaderboard-updated {
+  flex: none;
+  margin: 0;
+  white-space: nowrap;
+}
+.editorial-leaderboard .leaderboard-strip .leaderboard-tiles .gate-tile[data-size='compact'] {
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.editorial-leaderboard .gate-tile[data-size='compact']:active {
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .editorial-leaderboard .leaderboard-strip[data-input='pointer'] .gate-tile:active {
+    transform: scale(0.96);
+  }
+}
+.editorial-leaderboard .leaderboard-strip[data-input='keyboard'] .gate-tile[data-size='compact'] {
+  transition: none;
 }
 
 /* Race lanes: one shared scale, a lane per participant; the vehicle's nose stands at the value. The vehicle drawings
    are <use> clones of generated symbols (lanes/), sized from one unit: the drawn length of a 100-unit vehicle. */
 .leaderboard-lanes {
+  overflow-x: clip;
+  overflow-clip-margin: var(--space-1);
   --lane-unit: 112px;
   --lane-finish: 34px;
   --veh-w: calc(var(--lane-unit) * var(--lane-box));
@@ -76,6 +106,7 @@
 .lane {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-1);
   transition: background-color var(--dur-fast) var(--ease-out);
   padding: var(--space-2);
@@ -101,7 +132,9 @@
 }
 .lane-head {
   display: grid;
-  grid-template-columns: 40px 28px minmax(0, 1fr) auto;
+  grid-column: 1;
+  grid-row: 2;
+  grid-template-columns: 40px 28px minmax(0, 1fr);
   align-items: center;
   gap: var(--space-2);
   min-block-size: 32px;
@@ -110,6 +143,10 @@
   font: 500 15px/20px var(--font-mono);
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
+}
+.lane-value {
+  grid-column: 2;
+  grid-row: 2;
 }
 .lane-place[data-medal] {
   font-weight: 600;
@@ -164,6 +201,31 @@
   font-family: var(--font-mono);
   font-size: 12px;
 }
+.lane-type {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 34px;
+  min-block-size: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in oklab, var(--text-muted) 45%, transparent);
+  text-underline-offset: 3px;
+}
+.lane-type::after {
+  content: '';
+  position: absolute;
+  inset: -12px -5px;
+}
+.lane-type:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
 /* The spotter card: hovering the type, or focusing the lane's link from the keyboard, opens a close-up of the
    airliner with its name and measured size. The type sits above the stretched link so it can take the pointer, and
    the card stays open while the pointer crosses onto it (WCAG 1.4.13); Escape hides it until focus or the pointer
@@ -176,7 +238,7 @@
 .lane-spotter {
   position: absolute;
   inset-block-end: calc(100% + var(--space-2));
-  inset-inline-start: calc(-1 * var(--space-3));
+  inset-inline-start: var(--spotter-left, calc(-1 * var(--space-3)));
   z-index: 2;
   display: grid;
   gap: 2px;
@@ -227,11 +289,25 @@
       visibility 0s 250ms;
   }
 }
-.lane:not([data-quiet]):has(.lane-name a:focus-visible) .lane-spotter {
+.lane[data-peek]:not([data-quiet]) .lane-type-anchor .lane-spotter {
+  opacity: 1;
+  visibility: visible;
+  scale: 1;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    scale var(--dur-fast) var(--ease-out),
+    visibility 0s;
+}
+.lane:not([data-quiet]):has(.lane-name a:focus-visible, .lane-type:focus-visible) .lane-spotter {
   opacity: 1;
   visibility: visible;
   scale: 1;
   transition: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lane[data-warm]:not([data-quiet]) .lane-type-anchor:hover .lane-spotter {
+    transition: none;
+  }
 }
 .lane-name .lane-you {
   padding-inline: 6px;
@@ -249,7 +325,10 @@
   font: 600 15px/20px var(--font-mono);
 }
 .lane-value small {
+  display: block;
+  max-inline-size: 16ch;
   font-size: 13px;
+  white-space: normal;
   color: var(--text-muted);
 }
 
@@ -259,7 +338,8 @@
    fade. Clipped sideways only, so a tall tail and the shadow under the wheels stay visible. */
 .lane-track {
   position: relative;
-  order: -1;
+  grid-column: 1 / -1;
+  grid-row: 1;
   block-size: var(--veh-h);
   overflow-x: clip;
   mask-image: linear-gradient(to right, transparent, currentcolor var(--space-4));
@@ -374,6 +454,8 @@
   filter: grayscale(1);
 }
 .lane-gap-line {
+  grid-column: 1 / -1;
+  grid-row: 3;
   padding-inline-start: calc(40px + var(--space-2));
   font-size: 13px;
   line-height: 20px;
@@ -407,6 +489,14 @@
 .leaderboard-lanes .ui-button {
   margin-block-start: var(--space-3);
 }
+.leaderboard-show-all > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.leaderboard-show-all {
+  min-inline-size: 148px;
+}
 
 .leaderboard-error {
   margin-block: var(--space-3) 0;
@@ -427,7 +517,8 @@
 
 /* Loading: the strip's and the first lanes' geometry, so nothing shifts when the board arrives. */
 .lane-skeleton {
-  block-size: 92px;
+  display: block;
+  block-size: calc(var(--veh-h) + 64px);
   padding: 0;
 }
 
@@ -444,8 +535,8 @@
   }
 }
 
-/* The strip's room, not the window's: Russian labels need about 700px for the two rows. */
-@container strip (max-width: 700px) {
+/* Eight compact labels share one band only while both languages fit. */
+@container strip (max-width: 1000px) {
   .leaderboard-tiles {
     display: flex;
     flex-direction: row;
@@ -479,11 +570,9 @@
   .leaderboard-group {
     flex: none;
   }
-  /* Inline group labels: both groups have a Countries tile. */
+  /* Keep each group heading over its tiles; both have a Countries category. */
   .leaderboard-group {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+    display: grid;
   }
   .leaderboard-group-label {
     margin: 0;
@@ -495,11 +584,142 @@
   }
   .leaderboard-group-tiles > .gate-tile {
     flex: none;
+    min-inline-size: 112px;
     scroll-snap-align: start;
   }
   .leaderboard-group-tiles > .ui-skeleton {
     flex: none;
-    inline-size: 128px;
+    inline-size: 112px;
+  }
+}
+
+.lane-ruler {
+  display: none;
+}
+
+@container leaderboard (min-width: 800px) {
+  .leaderboard-lanes {
+    --lane-unit: 96px;
+    --lane-label-width: 220px;
+    --lane-value-width: 104px;
+    --lane-column-gap: var(--space-6);
+  }
+  .lane,
+  .lane-ruler {
+    grid-template-columns: var(--lane-label-width) minmax(0, 1fr) var(--lane-value-width);
+    column-gap: var(--lane-column-gap);
+    align-items: center;
+  }
+  .lane {
+    min-block-size: 80px;
+    row-gap: 0;
+  }
+  .lane-head {
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: 32px 28px minmax(0, 1fr);
+  }
+  .lane-name {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 var(--space-1);
+  }
+  .lane-type-anchor {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .lane-value {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .lane-value strong {
+    font-size: 23px;
+    line-height: 28px;
+    font-variant-numeric: tabular-nums;
+  }
+  .lane-value small {
+    /* The common unit is on the ruler; each profile link still describes its exact value and unit. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .lane-track {
+    grid-column: 2;
+    grid-row: 1;
+    block-size: 64px;
+  }
+  .lane-track::before,
+  .lane-run {
+    inset-block-start: 50%;
+  }
+  .lane-veh {
+    inset-block-start: calc(50% - var(--road-y));
+  }
+  .lane-gap-line {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    padding-inline-start: 0;
+    padding-block-end: var(--space-2);
+  }
+  .lane-ruler {
+    display: grid;
+    min-block-size: 40px;
+    padding-inline: var(--space-2);
+    margin-block-end: var(--space-1);
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .lane-ruler-track {
+    position: relative;
+    block-size: 32px;
+  }
+  .lane-ruler-mark {
+    position: absolute;
+    inset-inline-start: calc(var(--tick-at) * (100% - var(--lane-finish)));
+    inset-block-start: 2px;
+    translate: -50% 0;
+    white-space: nowrap;
+    font: 400 11px/16px var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .lane-ruler-mark::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-start: 20px;
+    inline-size: 1px;
+    block-size: 6px;
+    background: var(--mark-rest);
+  }
+  .lane-ruler-mark[data-edge='start'] {
+    translate: 0;
+  }
+  .lane-ruler-mark[data-edge='start']::after {
+    inset-inline-start: 0;
+  }
+  .lane-ruler-mark[data-edge='end'] {
+    translate: -100% 0;
+  }
+  .lane-ruler-mark[data-edge='end']::after {
+    inset-inline-start: 100%;
+  }
+  .lane-ruler-unit {
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+  .lane-skeleton {
+    block-size: 80px;
+  }
+}
+
+@container leaderboard (max-width: 799px) {
+  .leaderboard-context {
+    flex-direction: column;
+    gap: var(--space-2);
   }
 }
 
@@ -515,12 +735,9 @@
     padding-inline: var(--space-1);
   }
   .lane-head {
-    grid-template-columns: 32px 28px minmax(0, 1fr) auto;
+    grid-template-columns: 32px 28px minmax(0, 1fr);
   }
   .lane-gap-line {
     padding-inline-start: calc(32px + var(--space-2));
-  }
-  .lane-skeleton {
-    block-size: 68px;
   }
 }

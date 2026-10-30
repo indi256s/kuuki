@@ -1,7 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import {
   LEADERBOARD_CATEGORIES,
   type LeaderboardCategory,
@@ -17,6 +24,7 @@ import { CategoryStrip } from './category-strip'
 import { categoryGroups, groupName } from './categories'
 import { narratorChoice, shownEntry, viewerPlace, type RankChanges } from './model'
 import { RaceLanes } from './lanes'
+import { laneGeometry } from './lanes/lanes.generated'
 import { narrate } from './narrator'
 import './leaderboard.css'
 
@@ -199,15 +207,18 @@ export function LeaderboardBoard({
         navRef={navRef}
         onSelect={(next) => select(next, period)}
       />
-      <p className="leaderboard-narrator">
-        {narration.text}
-        {narration.link && (
-          <>
-            {' '}
-            <Link href={narration.link.href}>{narration.link.label}</Link>
-          </>
-        )}
-      </p>
+      <div className="leaderboard-context">
+        <p className="leaderboard-narrator">
+          {narration.text}
+          {narration.link && (
+            <>
+              {' '}
+              <Link href={narration.link.href}>{narration.link.label}</Link>
+            </>
+          )}
+        </p>
+        <Updated updatedAt={payload.updatedAt} locale={locale} />
+      </div>
       <RaceLanes
         slice={slice}
         place={place}
@@ -218,7 +229,6 @@ export function LeaderboardBoard({
         guest={!payload.viewer}
         instant={instant}
       />
-      <Updated updatedAt={payload.updatedAt} locale={locale} />
     </>
   )
   return (
@@ -258,23 +268,39 @@ export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }
               <p className="leaderboard-group-label">{groupName[group][ru ? 1 : 0]}</p>
               <div className="leaderboard-group-tiles">
                 {keys.map((key) => (
-                  <Skeleton key={key} height={44} label="" />
+                  <Skeleton key={key} height={56} label="" />
                 ))}
               </div>
             </div>
           ))}
         </div>
       </div>
-      <p className="leaderboard-narrator" role="status">
-        {ru ? 'Загружаем рейтинг…' : 'Loading rankings…'}
-      </p>
-      <ol className="lanes" aria-hidden="true">
-        {[0, 1, 2].map((position) => (
-          <li key={position} className="lane lane-skeleton">
-            <Skeleton height="100%" label="" />
-          </li>
-        ))}
-      </ol>
+      <div className="leaderboard-context">
+        <p className="leaderboard-narrator" role="status">
+          {ru ? 'Загружаем рейтинг…' : 'Loading rankings…'}
+        </p>
+      </div>
+      <div
+        className="leaderboard-lanes"
+        aria-hidden="true"
+        style={
+          {
+            '--lane-box': laneGeometry.air.viewBox[2] / laneGeometry.air.unit,
+            '--lane-aspect': laneGeometry.air.viewBox[3] / laneGeometry.air.viewBox[2],
+          } as CSSProperties
+        }
+      >
+        <div className="lane-ruler lane-ruler-skeleton">
+          <Skeleton height={16} label="" />
+        </div>
+        <ol className="lanes">
+          {[0, 1, 2].map((position) => (
+            <li key={position} className="lane lane-skeleton">
+              <Skeleton height="100%" label="" />
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   )
 }

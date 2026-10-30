@@ -59,17 +59,16 @@
   }
 }
 
-/* Compact: the leaderboard category strip. One 44px row, a short sentence-case label that never wraps and the value at
-   the end. Same in both themes and at every width; only the tokens differ. */
+/* Compact: the leaderboard's short label and rank, stacked in one band across the page. */
 .gate-tile[data-size='compact'],
 :root[data-theme='dark'] .gate-tile[data-size='compact'] {
   position: relative;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-2);
-  block-size: 44px;
-  padding: 0 10px;
+  gap: var(--space-1);
+  block-size: 56px;
+  padding: var(--space-2) 10px;
   overflow: hidden;
   background: var(--surface);
   box-shadow: none;
@@ -90,7 +89,7 @@
 :root[data-theme='dark'] .gate-tile[data-size='compact'] .gate-tile-value {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   /* Three digits plus the prefix, so a period switch (#9 to #124) never shifts the strip. */
   min-inline-size: 4ch;
   font: 600 17px/20px var(--font-mono);
