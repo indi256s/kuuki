@@ -205,8 +205,8 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  min-inline-size: 34px;
-  min-block-size: 20px;
+  min-inline-size: 44px;
+  min-block-size: 44px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -215,11 +215,6 @@
   text-decoration: underline dotted;
   text-decoration-color: color-mix(in oklab, var(--text-muted) 45%, transparent);
   text-underline-offset: 3px;
-}
-.lane-type::after {
-  content: '';
-  position: absolute;
-  inset: -12px -5px;
 }
 .lane-type:focus-visible {
   outline: 2px solid var(--focus);
