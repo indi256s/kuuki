@@ -22,5 +22,36 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icons/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
       { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
+    // Capture and refresh instructions: docs/runbooks/pwa-screenshots.md.
+    screenshots: [
+      {
+        src: '/screenshots/overview-wide.png',
+        sizes: '1280x800',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'Flight statistics and travel map',
+      },
+      {
+        src: '/screenshots/passport-wide.png',
+        sizes: '1280x800',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'Visited countries and passport stamps',
+      },
+      {
+        src: '/screenshots/overview-narrow.png',
+        sizes: '390x844',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'Flight statistics',
+      },
+      {
+        src: '/screenshots/passport-narrow.png',
+        sizes: '390x844',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'Visited countries and passport stamps',
+      },
+    ],
   }
 }
