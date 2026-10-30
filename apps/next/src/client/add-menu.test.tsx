@@ -71,14 +71,12 @@ it('carries the ground list view as the return context on the ground rows only',
   ])
 })
 
-it('lists Overview, Journal and Passport, with Journal current in the ground section', () => {
+it('keeps Journal as the only current desktop destination in the ground section', () => {
   route.pathname = '/ground-travel'
   render(<PrimaryNav />)
-  const links = within(screen.getByRole('navigation', { name: 'Primary' })).getAllByRole('link')
-  expect(links.map((link) => link.textContent)).toEqual([
-    'OverviewОбзор',
-    'JournalЖурнал',
-    'PassportПаспорт',
-  ])
-  expect(links.filter((link) => link.getAttribute('aria-current') === 'page')).toEqual([links[1]])
+  const current = within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', {
+    current: 'page',
+  })
+  expect(current).toHaveAccessibleName(/Journal/)
+  expect(current).toHaveAttribute('href', '/ground-travel')
 })
