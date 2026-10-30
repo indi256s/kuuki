@@ -197,6 +197,16 @@ it('flies each member’s own aircraft in the sky and their longer mode across g
   expect(vehicles()).toEqual(['lane-rail', 'lane-road'])
 })
 
+it('Escape hides a hovered spotter card while focus is outside its lane', async () => {
+  const user = userEvent.setup()
+  const data = fixture()
+  data.boards.flights.all.top[0] = { ...data.boards.flights.all.top[0], aircraft: 'B738' }
+  const { container } = render(board(data))
+  await user.hover(screen.getByText('B738'))
+  await user.keyboard('{Escape}')
+  expect(container.querySelector('.lane[data-quiet]')).toContainElement(screen.getByText('B738'))
+})
+
 it('moves focus to the first new row after Show all', async () => {
   const user = userEvent.setup()
   const more = ranks(11, 60).map((item) => ({

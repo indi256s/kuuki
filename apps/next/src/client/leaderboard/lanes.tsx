@@ -143,8 +143,18 @@ function Lane({
 }) {
   const ru = locale === 'ru'
   const id = useId()
-  // Escape closes the spotter card until the pointer or focus leaves the lane (WCAG 1.4.13).
+  // Escape closes the spotter card until the pointer or focus leaves the lane (WCAG 1.4.13). Hover leaves focus
+  // wherever it was, so while the pointer is on the type the key is heard on the document.
   const [quiet, setQuiet] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  useEffect(() => {
+    if (!hovered) return
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setQuiet(true)
+    }
+    document.addEventListener('keydown', close)
+    return () => document.removeEventListener('keydown', close)
+  }, [hovered])
   const name = entryName(entry, locale)
   const vehicle = laneVehicle(category, entry.aircraft, entry.vehicle)
   const medal = !ghost && entry.rank <= 3 ? MEDALS[entry.rank - 1] : undefined
@@ -199,7 +209,11 @@ function Lane({
             </small>
           )}
           {type && (
-            <span className="lane-type-anchor">
+            <span
+              className="lane-type-anchor"
+              onPointerEnter={() => setHovered(true)}
+              onPointerLeave={() => setHovered(false)}
+            >
               <small className="lane-type">{type}</small>
               <span className="sr-only" id={`${id}-type`}>
                 {laneSpots[type].name}

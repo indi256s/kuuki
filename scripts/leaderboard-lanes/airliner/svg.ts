@@ -1,8 +1,8 @@
 // Writes a built airliner as lane SVG: every point levelled (the lane shear), moved to the nose/ground origin, simplified
 // and rounded; every paint an inline var() so the art follows the theme and the member's livery through the <use> clone
 // (selectors don't reach into it, custom properties inherit).
-import type { Ink, Item, Mat, Rings } from './airliner'
-import type { Pt } from './surface'
+import type { Ink, Item, Mat } from './model'
+import type { Pt, Rings } from './surface'
 
 /**
  * Douglas–Peucker tolerance, in final viewBox units (1 unit = 1 CSS px on a desktop lane). Coordinates are written to a

@@ -35,15 +35,14 @@ export type Surface = {
   flip?: boolean
 }
 
+/** Open rings (the closing point dropped), in build screen units. */
+export type Rings = Pt[][]
+
 export type Drawn = {
-  /** One path per tone band, 0 (darkest) to 4 (top); '' when the band is absent. */
-  tones: string[]
-  /** The visible surface: paper fill under the tones. */
-  fill: string
-  /** Its boundary rings: the silhouette, the visible end rims and any holes. */
-  outline: string
-  /** The fill as polygons, for occlusion clipping of later details. */
-  shape: MultiPolygon
+  /** One ring set per tone band, 0 (darkest) to 4 (top); empty when the band is absent. */
+  tones: Rings[]
+  /** The visible surface: the paper fill under the tones, and as outline its silhouette, end rims and any holes. */
+  rings: Rings
 }
 
 export const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
@@ -195,19 +194,10 @@ function solidHoles(m: MultiPolygon): MultiPolygon {
   return m.map(([outer, ...holes]) => [outer, ...holes.filter((h) => width(h) > 0.5)])
 }
 
-export const pathOfMulti = (m: MultiPolygon, f: (p: Pt) => string) =>
-  m
-    .map((poly) =>
-      poly
-        .map((ring) => {
-          const pts = ring.slice(0, ring.length - 1)
-          return pts.length > 2 ? 'M' + pts.map((p) => f(p as Pt)).join('L') + 'Z' : ''
-        })
-        .join(''),
-    )
-    .join('')
+export const ringsOf = (m: MultiPolygon): Rings =>
+  m.flatMap((poly) => poly.map((ring) => ring.slice(0, -1) as Pt[]))
 
-/** Draws the visible surface. Paths are in build screen units with full precision ('x y' pairs, M/L/Z only). */
+/** Draws the visible surface, at full precision. */
 export function drawSurface(s: Surface, cam: Camera): Drawn {
   const us = steps(s.u)
   const vs = steps(s.v)
@@ -290,13 +280,9 @@ export function drawSurface(s: Surface, cam: Camera): Drawn {
     }
   }
   const unions = pieces.map((list) => unionAll(list))
-  const shape = solidHoles(unionAll(unions.filter((m) => m.length)))
-  const f = (p: Pt) => `${p[0]} ${p[1]}`
   return {
-    tones: unions.map((m) => pathOfMulti(m, f)),
-    fill: pathOfMulti(shape, f),
-    outline: pathOfMulti(shape, f),
-    shape,
+    tones: unions.map(ringsOf),
+    rings: ringsOf(solidHoles(unionAll(unions.filter((m) => m.length)))),
   }
 }
 

@@ -6,10 +6,13 @@ towards the nose, then a shear that levels each vehicle's length along its lane.
 - Airliners: `scripts/leaderboard-lanes/airliner/`, one 1:N model per ICAO type
   from the measured geometry in `packages/data/src/aircraft-geometry/*.json`
   (fields per its `SCHEMA.md`), drawn with the pinned anatomy kit's camera,
-  light and five tone bands. `airliner.ts` models the aircraft (fuselage, wings,
-  tails, nacelles, gear, glazing, seams), `surface.ts` shades its parametric
-  surfaces, `svg.ts` writes them with the material ramps, `build.ts` scales
-  every type. The kit is the one the sign-in Concorde pins: install it as
+  light and five tone bands. `model.ts` defines the record and drawing items;
+  `airframe.ts` derives the geometry from the record,
+  `wing.ts`, `tail.ts`, `engine.ts`, `gear.ts` and `fuselage.ts` build the parts
+  with `draw.ts`'s helpers, `airliner.ts` assembles them far to near,
+  `surface.ts` shades the parametric surfaces, `svg.ts` writes them with the
+  material ramps, `build.ts` scales every type. The kit is the one the sign-in
+  Concorde pins: install it as
   [scripts/concorde/README.md](../concorde/README.md) describes;
   `verify-kit.mjs` checks it before any kit code runs.
 - Ground vehicles: `apps/next/src/client/leaderboard/lanes/draw/ground.ts`, the
