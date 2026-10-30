@@ -199,6 +199,13 @@
 .ov3-card-details .ui-disclosure-trigger {
   margin-inline-start: -4px;
 }
+/* The closed Details row while loading: the trigger's 44px with a heading-length bar. */
+.ov3-card-details-loading {
+  display: grid;
+  align-content: center;
+  block-size: 44px;
+  inline-size: min(200px, 60%);
+}
 .ov3-card-details-body {
   display: flex;
   flex-direction: column;

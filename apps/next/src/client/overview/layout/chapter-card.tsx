@@ -211,6 +211,13 @@ export function ChapterCard({
             <DetailsBody details={details} />
           </Disclosure>
         </div>
+      ) : loading ? (
+        // A ready chapter closes with its Details row, so loading keeps that row's height too.
+        <div className="ov3-card-details">
+          <div className="ov3-card-details-loading">
+            <Skeleton height={24} label={label} />
+          </div>
+        </div>
       ) : null}
     </div>
   )

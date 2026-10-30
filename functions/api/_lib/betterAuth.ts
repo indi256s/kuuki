@@ -118,7 +118,8 @@ export function createAuth(env: Env) {
     advanced: {
       useSecureCookies: origin.startsWith('https:'),
       cookies: { session_token: { name: BETTER_AUTH_COOKIE } },
-      database: { generateId: () => crypto.randomUUID() },
+      // Every authenticated request reads the session with its user. One joined query, not two round trips to D1.
+      database: { generateId: () => crypto.randomUUID(), joins: true },
       ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
     },
   })

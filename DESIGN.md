@@ -560,7 +560,7 @@ The "Only …" slot sits on the hero's value line at the right and is absolutely
 
 Chapter captions stay factual. Controls carry their own action labels; helper copy stays only for data coverage, estimates, restrictions or destructive consequences. Threshold placeholders show the available count and required minimum; the narrator owns the card’s only witty line.
 
-**States.** Loading is one static `Skeleton` per band at its final box (figure, hero, plot and axis); the header, pager, filter row, chart caption, toggle and footer stay live, so nothing jumps when data lands. A chapter's code loads into the same bands. Empty puts an `EmptyState` (a title, one line and one action, usually Clear filter) in place of the hero and the chart; the figure stays at rest with nothing lit.
+**States.** Loading is one static `Skeleton` per band at its final box (figure, hero, plot and axis, and the closed Details row); the header, pager, filter row, chart caption, toggle and footer stay live, so nothing jumps when data lands. Larger screens fetch the chapters' code with the page; desktop chapters wait up to 250ms for it and mount drawn, and only a slower load shows these bands. Empty puts an `EmptyState` (a title, one line and one action, usually Clear filter) in place of the hero and the chart; the figure stays at rest with nothing lit.
 
 **Gate rule.** Leaving the grid is decided on the unfiltered scope (`all`; the page's `locked` list reads it). A visible chapter whose filtered scope is below its gate keeps its place and shows the EmptyState with what the filter leaves. A filtered zero (0 flights) keeps the page-level line described under States below.
 

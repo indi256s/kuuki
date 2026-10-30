@@ -29,7 +29,7 @@ import { CountryTreemap } from '../globe/country-treemap'
 import { SectionFrame } from '../layout/section-frame'
 import { HiddenFooter } from '../layout/hidden-footer'
 import { Narrator } from '../narrator/narrator'
-import { SECTIONS } from '../sections/registry'
+import { ChapterPreloads, SECTIONS, useChaptersLoaded } from '../sections/registry'
 import { FirstRun, ZeroResult } from './page-states'
 import './page.css'
 
@@ -101,11 +101,24 @@ function PageContent() {
         ),
       )
   }
+  const chaptersShown = !firstRun && !zero && !groundOnly
+  // Desktop chapters wait up to 250 ms for their code, then mount drawn rather than as loading bands; after that they show the bands.
+  // Released once, so a chapter shown later does not hold back the ones already on screen.
+  const chapterCode = useChaptersLoaded(visible)
+  const [chaptersReleased, setChaptersReleased] = useState(false)
+  if (chapterCode && !chaptersReleased) setChaptersReleased(true)
+  const chaptersHeld = mobile === false && chaptersShown && !chaptersReleased
+  const chaptersOut = chaptersShown && mobile !== null && !chaptersHeld
+  useEffect(() => {
+    if (!chaptersHeld) return
+    const timer = setTimeout(() => setChaptersReleased(true), 250)
+    return () => clearTimeout(timer)
+  }, [chaptersHeld])
   const page = useRef<HTMLDivElement>(null)
   const restoreChapter = useCallback((id: SectionId) => setOpenId(id), [])
   useAirportOverviewRestoration({
     mobile,
-    ready: Boolean(scope) && !firstRun && !zero,
+    ready: Boolean(scope) && !firstRun && !zero && !chaptersHeld,
     openId,
     open: restoreChapter,
     visible,
@@ -289,9 +302,11 @@ function PageContent() {
             {/* Under the band, not inside it, so the globe card and the figures end on one line. */}
             <CountryTreemap key={ownerKey} />
           </div>
+          {/* A phone the server took for a larger screen starts the fetch here. */}
+          {mobile === false && chaptersShown ? <ChapterPreloads ids={visible} /> : null}
           {zero ? (
             <ZeroResult />
-          ) : !firstRun && !groundOnly && mobile !== null ? (
+          ) : chaptersOut ? (
             <>
               <FlightsOnly />
               {mobile ? (
@@ -348,7 +363,8 @@ function PageContent() {
           <div className="ov3-layout-status" role="status" aria-live="polite" aria-atomic="true">
             {announcement}
           </div>
-          {!firstRun && !zero && !groundOnly ? (
+          {/* Arrives with the chapters, so it never sits where they are about to mount. */}
+          {chaptersOut ? (
             <HiddenFooter
               hidden={layout.order.filter((id) => layout.hidden.includes(id))}
               onShow={show}

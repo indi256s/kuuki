@@ -52,7 +52,12 @@ it.each(['desktop', 'mobile'])(
         saver={saver}
       />,
     )
-    const aircraft = container.querySelector<HTMLElement>('[data-section="aircraft"]')!
+    // Desktop chapters mount once their code has arrived.
+    const aircraft = await waitFor(() => {
+      const card = container.querySelector<HTMLElement>('[data-section="aircraft"]')
+      expect(card).not.toBeNull()
+      return card!
+    })
     if (surface === 'mobile')
       expect(
         await within(aircraft).findByText('Most flown maker', {}, { timeout: 3000 }),
@@ -200,8 +205,8 @@ it('omits unavailable chapters without a goal band, keeping the saved layout', a
   )
   await screen.findByRole('heading', { level: 1 })
   expect(screen.queryByRole('region', { name: 'Next up' })).toBeNull()
+  await waitFor(() => expect(container.querySelector('[data-section="records"]')).not.toBeNull())
   expect(container.querySelector('[data-section="routes"]')).toBeNull()
-  expect(container.querySelector('[data-section="records"]')).not.toBeNull()
   expect(save).not.toHaveBeenCalled()
 })
 
@@ -227,10 +232,11 @@ it('keeps a chapter in the grid when only the filter drops it below its gate', a
     />,
   )
   await screen.findByRole('heading', { level: 1 })
-  const order = [...container.querySelectorAll('[data-surface="sections"] > [data-section]')].map(
-    (node) => node.getAttribute('data-section'),
-  )
-  expect(order).toEqual(DEFAULT_PREFS.layout.order)
+  const order = () =>
+    [...container.querySelectorAll('[data-surface="sections"] > [data-section]')].map((node) =>
+      node.getAttribute('data-section'),
+    )
+  await waitFor(() => expect(order()).toEqual(DEFAULT_PREFS.layout.order))
 })
 
 it('renders no aviation chapter under the ground scope', async () => {
