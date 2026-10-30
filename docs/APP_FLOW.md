@@ -32,7 +32,8 @@ Member routes require an authenticated profile with completed onboarding. Public
 leaderboard pages use the member shell for authenticated viewers and the brand
 shell for guests. Desktop navigation is Overview / Journal / Passport /
 Leaderboard, plus Add and account controls. Mobile tabs are Overview / Journal /
-Add / Passport / Me. Header titles follow the current route.
+Passport, followed by the Add action; Leaderboard stays in the mobile account menu.
+Header titles follow the current route.
 
 The [Worker](../apps/next/worker.ts), [API handlers](../functions/api/) and
 [deploy procedure](skills/deploy-kuuki/SKILL.md) describe runtime,

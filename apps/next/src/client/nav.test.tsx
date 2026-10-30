@@ -3,7 +3,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { NAV_ITEMS, TabBar } from './nav'
+import { PrimaryNav, TabBar } from './nav'
 
 const route = vi.hoisted(() => ({ pathname: '/journal' }))
 vi.mock('next/navigation', () => ({
@@ -134,8 +134,13 @@ describe('Journal tab', () => {
   })
 })
 
-describe('NAV_ITEMS', () => {
-  it('lists the desktop destinations in order', () => {
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual(['/overview', '/journal', '/passport'])
+describe('PrimaryNav', () => {
+  it('links to Leaderboard and marks it as the current desktop destination', () => {
+    route.pathname = '/leaderboard'
+    render(<PrimaryNav />)
+    const leaderboard = screen.getByRole('link', { name: /Leaderboard/ })
+    expect(leaderboard).toHaveAttribute('href', '/leaderboard')
+    expect(leaderboard).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: /Passport/ })).not.toHaveAttribute('aria-current')
   })
 })

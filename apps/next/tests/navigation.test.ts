@@ -145,7 +145,7 @@ test('the old profile entry /me lands on the Passport', async ({ page, baseURL }
   await expect(page.locator('#main').getByTestId('passport-data')).toBeVisible()
 })
 
-test('desktop tab navigation keeps the header and incoming page geometry stable', async ({
+test('desktop navigation keeps page geometry stable and Leaderboard in the right menu', async ({
   page,
   baseURL,
 }) => {
@@ -215,6 +215,36 @@ test('desktop tab navigation keeps the header and incoming page geometry stable'
   expect(spread(geometry.journal.map((frame) => frame.x))).toBeLessThanOrEqual(1)
   expect(spread(geometry.journal.map((frame) => frame.width))).toBeLessThanOrEqual(1)
   expect(geometry.journal.at(-1)?.width).toBe(1200)
+
+  await expect(
+    page.getByRole('navigation', { name: 'Primary', exact: true }).getByRole('link', {
+      name: 'Leaderboard',
+      exact: true,
+    }),
+  ).toBeVisible()
+  await page.getByRole('button', { name: 'Account menu' }).click()
+  const menuLeaderboard = page.getByRole('menuitem', { name: 'Leaderboard', exact: true })
+  await expect(menuLeaderboard).toBeHidden()
+  await page.setViewportSize({ width: 700, height: 900 })
+  await expect(menuLeaderboard).toBeVisible()
+  await page.setViewportSize({ width: 701, height: 900 })
+  await expect(menuLeaderboard).toBeHidden()
+  await page.getByRole('menuitemradio', { name: 'RU', exact: true }).click()
+  await page.keyboard.press('Escape')
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%'
+  })
+  const largeLinks = page
+    .getByRole('navigation', { name: 'Основная навигация', exact: true })
+    .getByRole('link')
+  await expect(largeLinks.first()).toHaveCSS('font-size', '30px')
+  for (const link of await largeLinks.all()) {
+    await expect(link).toBeVisible()
+    const bounds = (await link.boundingBox())!
+    expect(bounds.x).toBeGreaterThanOrEqual(0)
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(701)
+    expect(bounds.height).toBeGreaterThanOrEqual(44)
+  }
 })
 
 test('fresh documents, RSC and API reads isolate account data without response cookies', async ({

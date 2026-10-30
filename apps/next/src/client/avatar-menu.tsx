@@ -181,7 +181,9 @@ export function AvatarMenu({
       <div className="account-body">
         <MenuGroup>
           <MenuItem asChild>
-            <Link href="/leaderboard">{text('Leaderboard', 'Рейтинг')}</Link>
+            <Link href="/leaderboard" className="account-mobile-only">
+              {text('Leaderboard', 'Рейтинг')}
+            </Link>
           </MenuItem>
           <MenuItem asChild>
             <Link href="/settings">{text('Settings', 'Настройки')}</Link>
