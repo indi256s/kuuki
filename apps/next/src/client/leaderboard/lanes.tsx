@@ -16,7 +16,13 @@ import { formatNumber, type Locale } from '../../lib/format'
 import { avatarInk, ProfileAvatar } from '../profile/avatar'
 import { Button } from '../ui/button'
 import { categoryUnit } from './categories'
-import { laneArt, laneGeometry, LANE_TYPES, type LaneVehicleKey } from './lanes/lanes.generated'
+import {
+  laneArt,
+  laneGeometry,
+  laneSpots,
+  LANE_TYPES,
+  type LaneVehicleKey,
+} from './lanes/lanes.generated'
 import { entryName, handleOf } from './model'
 import './lanes/vehicles.generated.css'
 
@@ -57,13 +63,60 @@ export function laneVehicle(
     : 'GENERIC'
 }
 
-function Vehicle({ vehicle }: { vehicle: LaneVehicleKey }) {
+/** Distance markers on the taxiway: a round step (1, 2 or 5 × 10ⁿ) giving at most seven marks up to the leader. */
+export function markStep(max: number) {
+  if (!(max > 0)) return 0
+  const base = 10 ** Math.floor(Math.log10(max / 7))
+  return [1, 2, 5, 10].map((k) => k * base).find((step) => max / step <= 7) ?? 10 * base
+}
+
+function Vehicle({
+  vehicle,
+  frame,
+}: {
+  vehicle: LaneVehicleKey
+  /** A viewBox of its own (the spotter card's close-up); the family's shared one otherwise. */
+  frame?: readonly number[]
+}) {
   const { viewBox } = laneGeometry[vehicle === 'rail' || vehicle === 'road' ? 'ground' : 'air']
   const [x, y, w, h] = viewBox
   return (
-    <svg className="iso-svg lane-vehicle" viewBox={viewBox.join(' ')} aria-hidden="true">
+    <svg className="iso-svg lane-vehicle" viewBox={(frame ?? viewBox).join(' ')} aria-hidden="true">
       <use href={`${artUrl(vehicle)}#lane-${vehicle}`} x={x} y={y} width={w} height={h} />
     </svg>
+  )
+}
+
+/**
+ * The viewer's own airliner is the one live thing on the board: its upper anti-collision beacon flashes. An element
+ * over the drawing, not inside it, so each flash is a composited opacity change that never repaints the aircraft.
+ */
+function Beacon({ type }: { type: (typeof LANE_TYPES)[number] }) {
+  const [x0, y0, w, h] = laneGeometry.air.viewBox
+  const [x, y] = laneSpots[type].beacon
+  return (
+    <span
+      className="lane-beacon"
+      style={{ left: `${((x - x0) / w) * 100}%`, top: `${((y - y0) / h) * 100}%` }}
+    />
+  )
+}
+
+/** Hover or keyboard focus on a lane opens a close-up of its airliner with the type's name and measured size. */
+function Spotter({ type, locale }: { type: (typeof LANE_TYPES)[number]; locale: Locale }) {
+  const spot = laneSpots[type]
+  const metres = (value: number) =>
+    `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value)} ${locale === 'ru' ? 'м' : 'm'}`
+  return (
+    <span className="lane-spotter" aria-hidden="true">
+      <Vehicle vehicle={type} frame={spot.box} />
+      <span className="lane-spotter-name">{spot.name}</span>
+      <span className="lane-spotter-size">
+        {locale === 'ru'
+          ? `Длина ${metres(spot.length)} · Размах ${metres(spot.span)}`
+          : `Length ${metres(spot.length)} · Span ${metres(spot.span)}`}
+      </span>
+    </span>
   )
 }
 
@@ -90,19 +143,28 @@ function Lane({
 }) {
   const ru = locale === 'ru'
   const id = useId()
+  // Escape closes the spotter card until the pointer or focus leaves the lane (WCAG 1.4.13).
+  const [quiet, setQuiet] = useState(false)
   const name = entryName(entry, locale)
   const vehicle = laneVehicle(category, entry.aircraft, entry.vehicle)
   const medal = !ghost && entry.rank <= 3 ? MEDALS[entry.rank - 1] : undefined
   const at = max > 0 ? Math.min(1, Math.max(0, entry.value / max)) : 0
   const type = vehicle === 'GENERIC' || vehicle === 'rail' || vehicle === 'road' ? null : vehicle
+  const ground = vehicle === 'rail' || vehicle === 'road'
   return (
     <li
       value={entry.rank}
       className="lane"
       data-own={own || undefined}
       data-ghost={ghost || undefined}
+      data-quiet={quiet || undefined}
       data-row={entry.user_id}
       style={{ '--lane-at': at, '--lane-livery': avatarInk(entry.user_id) } as CSSProperties}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && type) setQuiet(true)
+      }}
+      onPointerLeave={() => setQuiet(false)}
+      onBlur={() => setQuiet(false)}
     >
       <div className="lane-head">
         <span className="lane-place" id={`${id}-place`} data-medal={medal}>
@@ -124,7 +186,7 @@ function Lane({
           {entry.username ? (
             <Link
               href={`/fly/${encodeURIComponent(entry.username)}`}
-              aria-describedby={`${id}-place ${id}-value`}
+              aria-describedby={`${id}-place ${id}-value${type ? ` ${id}-type` : ''}`}
             >
               {name}
             </Link>
@@ -136,7 +198,15 @@ function Lane({
               {ghost ? (ru ? 'Вы · публикуется' : 'You · publishing') : ru ? 'Вы' : 'You'}
             </small>
           )}
-          {type && <small className="lane-type">{type}</small>}
+          {type && (
+            <span className="lane-type-anchor">
+              <small className="lane-type">{type}</small>
+              <span className="sr-only" id={`${id}-type`}>
+                {laneSpots[type].name}
+              </span>
+              <Spotter type={type} locale={locale} />
+            </span>
+          )}
         </span>
         <span className="lane-value" id={`${id}-value`}>
           <strong>{formatNumber(locale, entry.value)}</strong>{' '}
@@ -147,6 +217,7 @@ function Lane({
         <span className="lane-run" />
         <span className="lane-veh" data-vehicle={vehicle}>
           <Vehicle vehicle={vehicle} />
+          {own && !ghost && !ground && <Beacon type={vehicle as (typeof LANE_TYPES)[number]} />}
           {medal && (
             <span className="lane-medal" data-medal={medal}>
               {entry.rank}
@@ -405,6 +476,7 @@ export function RaceLanes({
       : { href: '/add', hint: ru ? 'добавить перелёт' : 'add a flight' }
   const family = isGroundCategory(category) ? 'ground' : 'air'
   const geometry = laneGeometry[family]
+  const step = markStep(max)
   return (
     <section
       className="leaderboard-lanes"
@@ -416,6 +488,13 @@ export function RaceLanes({
           '--lane-aspect': geometry.viewBox[3] / geometry.viewBox[2],
           '--lane-nose': geometry.nose,
           '--lane-ground': geometry.ground,
+          '--lane-deck': geometry.deck,
+          '--lane-skew': `${geometry.skew}deg`,
+          '--lane-mark': step ? step / max : 1,
+          ...('rail' in geometry && {
+            '--lane-rail': geometry.rail.offset,
+            '--lane-rail-deck': geometry.rail.deck,
+          }),
         } as CSSProperties
       }
     >

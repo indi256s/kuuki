@@ -186,7 +186,7 @@ it('flies each member’s own aircraft in the sky and their longer mode across g
   data.boards.ground_countries.all = { top: [{ ...rail, vehicle: 'rail' }, unknown], total: 2 }
   const { container } = render(board(data))
   const vehicles = () =>
-    [...container.querySelectorAll('.lane use')].map(
+    [...container.querySelectorAll('.lane-veh use')].map(
       (use) => use.getAttribute('href')?.split('#')[1],
     )
   expect(vehicles().slice(0, 2)).toEqual(['lane-B738', 'lane-GENERIC'])

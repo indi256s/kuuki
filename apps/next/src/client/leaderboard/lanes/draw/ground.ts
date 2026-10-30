@@ -171,6 +171,8 @@ const rectX = (x0: number, x1: number, z0: number, z1: number, r = 0): Pt[] =>
 // roof gear are estimated for a generic type, not one railway's.
 // ======================================================================================================
 export const LOCO_LENGTH = 18.98
+/** Half the standard gauge, m: the rails' offset from the track's centre line. */
+export const RAIL = 0.7175
 
 export function locomotive(s: LaneScene) {
   const L = LOCO_LENGTH
@@ -181,7 +183,6 @@ export function locomotive(s: LaneScene) {
   const ROOF = 4.05
   const B0 = 0.62
   const xs = (a: number) => -L + a // metres from the rear buffer face
-  const RAIL = 0.7175
   const mid = L / 2
 
   // Cast shadow under the frame.

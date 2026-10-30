@@ -64,6 +64,7 @@
   --veh-h: calc(var(--veh-w) * var(--lane-aspect));
   --nose-off: calc(var(--veh-w) * var(--lane-nose));
   --road-y: calc(var(--veh-h) * var(--lane-ground));
+  --deck-h: calc(var(--veh-h) * var(--lane-deck) * 2);
 }
 .lanes {
   display: grid;
@@ -80,15 +81,19 @@
   padding: var(--space-2);
   border-radius: var(--radius-sm);
 }
+/* Paint on the strip is one step off its paper, whichever paper the lane gives it. */
+.lane {
+  --deck-paper: var(--surface-inset);
+  --deck-paint: color-mix(in oklab, var(--deck-paper), var(--text) 16%);
+}
 .lane[data-own] {
+  --deck-paper: var(--background);
   background: var(--surface-inset);
 }
 @media (hover: hover) and (pointer: fine) {
   .lane:not([data-own]):has(a):hover {
+    --deck-paper: var(--background);
     background: var(--surface-inset);
-  }
-  .lane:not([data-own]):has(a):hover .lane-track::before {
-    background: var(--background);
   }
   .lane:not([data-own]):has(a):hover .lane-medal {
     background: var(--surface-inset);
@@ -159,6 +164,75 @@
   font-family: var(--font-mono);
   font-size: 12px;
 }
+/* The spotter card: hovering the type, or focusing the lane's link from the keyboard, opens a close-up of the
+   airliner with its name and measured size. The type sits above the stretched link so it can take the pointer, and
+   the card stays open while the pointer crosses onto it (WCAG 1.4.13); Escape hides it until focus or the pointer
+   leaves the lane. */
+.lane-type-anchor {
+  position: relative;
+  z-index: 1;
+  cursor: default;
+}
+.lane-spotter {
+  position: absolute;
+  inset-block-end: calc(100% + var(--space-2));
+  inset-inline-start: calc(-1 * var(--space-3));
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  inline-size: min(288px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-floating);
+  box-shadow: var(--shadow-floating);
+  opacity: 0;
+  visibility: hidden;
+  scale: 0.97;
+  transform-origin: bottom left;
+  transition:
+    opacity 120ms var(--ease-out),
+    scale 120ms var(--ease-out),
+    visibility 0s 120ms;
+}
+/* Bridges the gap down to the type, so the pointer can reach the card. */
+.lane-spotter::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: var(--space-2);
+}
+.lane-spotter .lane-vehicle {
+  margin-block-end: var(--space-2);
+}
+.lane-spotter-name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text);
+}
+.lane-spotter-size {
+  font: 400 13px/20px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lane:not([data-quiet]) .lane-type-anchor:hover .lane-spotter {
+    opacity: 1;
+    visibility: visible;
+    scale: 1;
+    transition:
+      opacity 150ms var(--ease-out) 250ms,
+      scale 150ms var(--ease-out) 250ms,
+      visibility 0s 250ms;
+  }
+}
+.lane:not([data-quiet]):has(.lane-name a:focus-visible) .lane-spotter {
+  opacity: 1;
+  visibility: visible;
+  scale: 1;
+  transition: none;
+}
 .lane-name .lane-you {
   padding-inline: 6px;
   border-radius: var(--radius-xs);
@@ -179,10 +253,10 @@
   color: var(--text-muted);
 }
 
-/* The track: the road along the ground line, the vehicle standing on it. Drawn above the name and value, so each
-   lane's label sits right under its own road; the DOM keeps the name first. Zero is the track's start edge, where the
-   label starts too: a small value leaves the vehicle's tail behind that edge, entering under a short fade. Clipped
-   sideways only, so a tall tail and the halo under the wheels stay visible. */
+/* The track: a strip of ground along the lane's centreline, the vehicle standing on it. Drawn above the name and
+   value, so each lane's label sits right under its own strip; the DOM keeps the name first. Zero is the track's start
+   edge, where the label starts too: a small value leaves the vehicle's tail behind that edge, entering under a short
+   fade. Clipped sideways only, so a tall tail and the shadow under the wheels stay visible. */
 .lane-track {
   position: relative;
   order: -1;
@@ -190,18 +264,45 @@
   overflow-x: clip;
   mask-image: linear-gradient(to right, transparent, currentcolor var(--space-4));
 }
+/* The strip is drawn flat and slanted with the lane camera's across-lane axis, so its paint lies on the ground: the
+   scale's distance markers across it and a dashed centre line ahead of the nose. It enters from behind the start
+   edge, so the slant is hidden under the fade, and ends on a slanted edge inside the track. Background lengths are
+   in the strip's own box, which is exactly as wide as the track; --deck-slant is the scale's zero in that box. */
 .lane-track::before {
+  --deck-slant: calc(var(--deck-h) * -0.5 * tan(var(--lane-skew)));
+  --deck-nose: calc(var(--deck-slant) + var(--lane-at) * (100% - var(--lane-finish)));
   content: '';
   position: absolute;
-  inset-inline: 0;
+  inset-inline: calc(-1 * var(--deck-slant)) var(--deck-slant);
   inset-block-start: var(--road-y);
-  block-size: 6px;
+  block-size: var(--deck-h);
   translate: 0 -50%;
-  border-radius: 999px;
-  background: var(--surface-inset);
+  transform: skewX(var(--lane-skew));
+  background:
+    repeating-linear-gradient(to right, var(--deck-paint) 0 6px, transparent 6px 12px) right
+      center / calc(100% - var(--deck-nose) - 4px) 2px no-repeat,
+    linear-gradient(to right, var(--deck-paint) 0 2px, transparent 2px)
+      calc(var(--deck-slant) - 1px) 0 / calc(var(--lane-mark) * (100% - var(--lane-finish))) 100%
+      repeat-x,
+    var(--deck-paper);
 }
-.lane[data-own] .lane-track::before {
-  background: var(--background);
+/* A locomotive runs on a ballast bed with two rails at its gauge, one track from end to end, so no centre line. */
+.lane-track:has([data-vehicle='rail'])::before {
+  --deck-h: calc(var(--veh-h) * var(--lane-rail-deck) * 2);
+  --rail-y: calc(var(--veh-h) * var(--lane-rail));
+  background:
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - var(--rail-y) - 0.75px),
+      var(--deck-paint) 0 calc(50% - var(--rail-y) + 0.75px),
+      transparent 0 calc(50% + var(--rail-y) - 0.75px),
+      var(--deck-paint) 0 calc(50% + var(--rail-y) + 0.75px),
+      transparent 0
+    ),
+    linear-gradient(to right, var(--deck-paint) 0 2px, transparent 2px)
+      calc(var(--deck-slant) - 1px) 0 / calc(var(--lane-mark) * (100% - var(--lane-finish))) 100%
+      repeat-x,
+    var(--deck-paper);
 }
 .lane-veh {
   position: absolute;
@@ -213,6 +314,28 @@
 .lane-veh .lane-vehicle {
   position: relative;
   --lane-halo-blur: 2px;
+}
+/* The viewer's own airliner is the one live thing on the board: its anti-collision beacon flashes about once a
+   second, a short bright blink as on the real aircraft. Reduced motion leaves it lit. */
+.lane-beacon {
+  position: absolute;
+  inline-size: 4px;
+  block-size: 4px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--figure-live-fill);
+  box-shadow: 0 0 6px 1px var(--figure-live-fill);
+  animation: lane-beacon 1.2s steps(1, end) infinite;
+}
+@keyframes lane-beacon {
+  0%,
+  12% {
+    opacity: 1;
+  }
+  13%,
+  100% {
+    opacity: 0.15;
+  }
 }
 /* The distance run: from the start edge to the nose, so its length is the value on the shared scale. */
 .lane-run {
@@ -309,6 +432,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lane-beacon {
+    animation: none;
+  }
+  .lane-spotter {
+    scale: 1;
+  }
   /* Rank up keeps its meaning without movement: the new number fades in. */
   .leaderboard-tiles .split-flap-digit[data-flip] {
     animation: leaderboard-fade 150ms linear backwards;

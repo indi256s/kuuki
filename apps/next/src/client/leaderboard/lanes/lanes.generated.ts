@@ -54,8 +54,21 @@ export const laneArt: Record<LaneVehicleKey, Asset> = {
   road: art_road,
 }
 
-/** Per family: the shared viewBox, where the nose meets the ground (fractions of it), and the reference's drawn length. */
+/**
+ * Per family: the shared viewBox; as fractions of it, where the nose stands, where the centre line meets the ground and
+ * the taxiway strip's half-height; the strip's slant across the lane (skewX, deg); the reference's drawn length. The
+ * ground family adds the locomotive's bed: its half-height and the rails' offset from the centre line.
+ */
 export const laneGeometry = {
-  air: {"viewBox":[-185.74,-80.93,193.75,115.64],"nose":0.9587,"ground":0.6999,"unit":129.47},
-  ground: {"viewBox":[-134.71,-60.21,148.32,63.6],"nose":0.9083,"ground":0.9468,"unit":112},
+  air: {"viewBox":[-168.08,-72.66,171.49,115.42],"nose":0.9802,"ground":0.6295,"deck":0.1337,"skew":-39.66,"unit":112},
+  ground: {"viewBox":[-138.5,-45.89,144.1,61.91],"nose":0.9611,"ground":0.7413,"deck":0.3793,"skew":-29.21,"unit":112,"rail":{"offset":0.0438,"deck":0.1053}},
 } as const
+
+/** Each airliner: its name and measured length and span (m), its own frame and its upper beacon, in viewBox units. */
+export const laneSpots: Record<(typeof LANE_TYPES)[number], {
+  name: string
+  length: number
+  span: number
+  box: readonly [number, number, number, number]
+  beacon: readonly [number, number]
+}> = {"A319":{"name":"Airbus A319 (A319ceo)","length":33.84,"span":34.1,"box":[-103.4,-44.2,103.8,65],"beacon":[-38.2,-16.9]},"A320":{"name":"Airbus A320 (A320ceo)","length":37.57,"span":34.1,"box":[-108.8,-42.2,109.1,62],"beacon":[-40.8,-16.1]},"A20N":{"name":"Airbus A320neo","length":37.57,"span":35.8,"box":[-108.8,-48.7,109.1,66.6],"beacon":[-40.8,-16.5]},"A321":{"name":"Airbus A321 (A321ceo)","length":44.51,"span":34.1,"box":[-118.2,-39.1,118.5,57.4],"beacon":[-48.6,-14.9]},"A21N":{"name":"Airbus A321neo","length":44.51,"span":35.8,"box":[-118.2,-45.1,118.5,61.7],"beacon":[-48.6,-15.3]},"A332":{"name":"Airbus A330-200","length":58.82,"span":60.3,"box":[-141,-59.3,141.3,87.6],"beacon":[-51.6,-17.8]},"A333":{"name":"Airbus A330-300","length":63.67,"span":60.3,"box":[-147.4,-57.3,147.7,84.6],"beacon":[-56.6,-17.2]},"A359":{"name":"Airbus A350-900","length":66.8,"span":64.75,"box":[-152.1,-62.9,152.4,90.2],"beacon":[-57.5,-19.1]},"A35K":{"name":"Airbus A350-1000","length":73.79,"span":64.75,"box":[-159.4,-60.1,159.7,86.2],"beacon":[-62.6,-18.2]},"A388":{"name":"Airbus A380-800","length":72.73,"span":79.75,"box":[-165.1,-69.7,165.4,109.4],"beacon":[-52,-21.7]},"B733":{"name":"Boeing 737-300","length":33.4,"span":28.88,"box":[-107,-37.5,107.4,54.2],"beacon":[-41.6,-15.7]},"B738":{"name":"Boeing 737-800","length":39.47,"span":35.79,"box":[-116.9,-47.2,117.2,67],"beacon":[-46.6,-14.5]},"B38M":{"name":"Boeing 737 MAX 8","length":39.47,"span":35.92,"box":[-115.4,-46.8,115.7,67.5],"beacon":[-45,-15.9]},"B763":{"name":"Boeing 767-300ER","length":54.94,"span":47.57,"box":[-137,-47.3,137.4,71],"beacon":[-51.1,-18.1]},"B788":{"name":"Boeing 787-8 Dreamliner","length":56.72,"span":60.12,"box":[-140.9,-58,141.2,87.6],"beacon":[-52.2,-20.4]},"B77W":{"name":"Boeing 777-300ER","length":73.86,"span":64.8,"box":[-160.3,-55.3,160.7,83.8],"beacon":[-63.5,-17.9]},"E170":{"name":"Embraer 170 (E170-100)","length":29.9,"span":26,"box":[-95.5,-38.1,95.7,54],"beacon":[-38.3,-14.3]},"E195":{"name":"Embraer 195 (E1, ERJ-190-200)","length":38.67,"span":28.72,"box":[-111.6,-37.2,111.8,52.9],"beacon":[-44.2,-13.6]},"SU95":{"name":"Sukhoi Superjet 100 (SSJ100/95B, 95LR)","length":29.94,"span":27.8,"box":[-96.7,-37.2,97.1,53.9],"beacon":[-37.9,-15.7]},"DH8B":{"name":"De Havilland Canada Dash 8 Series 200 (DHC-8-200)","length":22.25,"span":25.89,"box":[-85.4,-43.6,85.7,59.3],"beacon":[-71.7,-27.8]},"GENERIC":{"name":"An airliner","length":37.57,"span":34.1,"box":[-108.8,-42.2,109.1,62],"beacon":[-40.8,-16.1]}}

@@ -2,3 +2,38 @@
 .lane-vehicle{display:block;width:100%;height:auto;overflow:visible}
 /* Dark faces sit one step off the surface, as on the ladder heroes, or a vehicle reads as a wireframe. */
 :root[data-theme='dark'] .lane-vehicle{--lane-top:color-mix(in oklab,var(--iso-top) 86%,var(--text));--lane-front:color-mix(in oklab,var(--iso-front) 90%,var(--text))}
+.lane-vehicle{
+  --ab4:var(--iso-top);--ab3:color-mix(in oklab,var(--iso-top) 55%,var(--iso-front));--ab2:var(--iso-front);
+  --ab1:color-mix(in oklab,var(--iso-front) 50%,var(--iso-side));--ab0:var(--iso-side);--abp:var(--iso-front);
+  --am4:color-mix(in oklab,var(--iso-front) 80%,var(--iso-line));--am3:color-mix(in oklab,var(--iso-front) 72%,var(--iso-line));
+  --am2:color-mix(in oklab,var(--iso-side) 72%,var(--iso-line));--am1:color-mix(in oklab,var(--iso-side) 60%,var(--iso-line));
+  --am0:color-mix(in oklab,var(--iso-side) 48%,var(--iso-line));--amp:var(--am2);
+  --ar4:color-mix(in oklab,var(--iso-line) 72%,var(--iso-front));--ar3:color-mix(in oklab,var(--iso-line) 80%,var(--iso-front));
+  --ar2:color-mix(in oklab,var(--iso-line) 88%,black);--ar1:color-mix(in oklab,var(--iso-line) 76%,black);
+  --ar0:color-mix(in oklab,var(--iso-line) 66%,black);--arp:var(--ar1);
+  --av4:color-mix(in oklab,var(--iso-line) 70%,black);--av3:color-mix(in oklab,var(--iso-line) 62%,black);
+  --av2:color-mix(in oklab,var(--iso-line) 54%,black);--av1:color-mix(in oklab,var(--iso-line) 46%,black);
+  --av0:color-mix(in oklab,var(--iso-line) 40%,black);--avp:var(--av1);
+  --agp:color-mix(in oklab,var(--iso-line) 70%,#2c4058);
+  --lv:var(--lane-livery,var(--figure-live-fill));
+  --al4:color-mix(in oklab,var(--lv) 70%,white);--al3:color-mix(in oklab,var(--lv) 86%,white);--al2:var(--lv);
+  --al1:color-mix(in oklab,var(--lv) 88%,black);--al0:color-mix(in oklab,var(--lv) 76%,black);--alp:var(--lv);
+  --ail:var(--iso-line);--ais:color-mix(in oklab,var(--iso-crease) 80%,var(--iso-line));--aif:var(--iso-crease);
+}
+:root[data-theme='dark'] .lane-vehicle{
+  --ab4:color-mix(in oklab,var(--iso-front) 78%,var(--text));--ab3:color-mix(in oklab,var(--iso-front) 84%,var(--text));
+  --ab2:color-mix(in oklab,var(--iso-front) 90%,var(--text));--ab1:color-mix(in oklab,var(--iso-front) 96%,var(--text));
+  --ab0:color-mix(in oklab,var(--iso-side) 94%,var(--text));--abp:var(--ab2);
+  --am4:color-mix(in oklab,var(--iso-front) 74%,var(--text));--am3:color-mix(in oklab,var(--iso-front) 80%,var(--text));
+  --am2:color-mix(in oklab,var(--iso-front) 88%,var(--text));--am1:var(--iso-front);--am0:var(--iso-side);--amp:var(--am2);
+  --ar4:color-mix(in oklab,var(--iso-side) 80%,var(--text));--ar3:color-mix(in oklab,var(--iso-side) 88%,var(--text));
+  --ar2:color-mix(in oklab,var(--iso-side) 70%,black);--ar1:color-mix(in oklab,var(--iso-side) 60%,black);
+  --ar0:color-mix(in oklab,var(--iso-side) 50%,black);--arp:var(--ar1);
+  --av4:color-mix(in oklab,var(--iso-side) 70%,black);--av3:color-mix(in oklab,var(--iso-side) 62%,black);
+  --av2:color-mix(in oklab,var(--iso-side) 54%,black);--av1:color-mix(in oklab,var(--iso-side) 46%,black);
+  --av0:color-mix(in oklab,var(--iso-side) 38%,black);--avp:var(--av1);
+  --agp:color-mix(in oklab,var(--iso-side) 55%,#0b1420);
+  --al4:color-mix(in oklab,var(--lv) 78%,white);--al3:color-mix(in oklab,var(--lv) 90%,white);--al2:var(--lv);
+  --al1:color-mix(in oklab,var(--lv) 84%,black);--al0:color-mix(in oklab,var(--lv) 70%,black);--alp:var(--lv);
+  --ais:color-mix(in oklab,var(--iso-crease) 60%,var(--iso-line));--aif:var(--iso-crease);
+}
