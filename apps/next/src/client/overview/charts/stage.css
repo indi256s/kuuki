@@ -32,6 +32,9 @@
   /* Columns grow from the baseline, rows from their start. */
   transform-origin: 50% 100%;
 }
+.stage-bar[data-down] {
+  transform-origin: 50% 0;
+}
 .stage-bar[data-axis='x'] {
   transform-origin: 0 50%;
 }
@@ -50,7 +53,8 @@
   stroke: var(--stage-fill);
   stroke-width: 1px;
 }
-[data-zero] > .stage-bar path {
+[data-zero] > .stage-bar path,
+.stage-bar[data-bar-zero] path {
   fill: var(--zero);
 }
 [data-picked] > .stage-bar .stage-peak {

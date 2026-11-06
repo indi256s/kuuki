@@ -13,7 +13,7 @@ vi.mock('../../store/overview-context', () => ({ useOverview: () => context.curr
 
 const add = vi.fn(),
   clear = vi.fn()
-const admit = (filter: OverviewFilter = {}) => {
+const admit = (filter: OverviewFilter = {}, arrMinutes: (number | null)[] = []) => {
   const payload = structuredClone(fixture) as OverviewPayload
   payload.rows = [365, 370, 375, 378, 380, 1385].map((depMinute, i) => ({
     ...payload.rows[0],
@@ -24,6 +24,7 @@ const admit = (filter: OverviewFilter = {}) => {
     destination: ['CDG', 'LHR', 'CDG', 'LHR', 'FRA', 'NRT'][i],
     date: '2025-01-03',
     depMinute,
+    arrMinute: arrMinutes[i] ?? null,
   }))
   context.current = {
     scope: computeOverview(payload, filter),
@@ -50,7 +51,9 @@ it('a pick on the chart moves the hero and the display and does not filter', () 
   expect(screen.queryByRole('button', { name: /^Only/ })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: /^23:00–23:59/ }))
   expect(hero(view)).toHaveTextContent('23:00')
-  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent('1 flight at 23:00')
+  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
+    '1 departure, 0 arrivals',
+  )
   expect(view.container.querySelector('.ov3-clock-figure')).toHaveAttribute('data-side', 'b')
   expect(add).not.toHaveBeenCalled()
 })
@@ -60,6 +63,18 @@ it('"Only …" applies the departure hour facet', () => {
   fireEvent.click(screen.getByRole('button', { name: /^23:00–23:59/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Only 23:00' }))
   expect(add).toHaveBeenCalledWith('depHours', 23)
+})
+
+it('an hour with arrivals only can be picked and "Only …" applies the arrival hour', () => {
+  admit({}, [null, null, null, null, null, 9 * 60 + 10])
+  const view = render(<Section span="full" />)
+  fireEvent.click(screen.getByRole('button', { name: /^09:00–09:59 · 0 departures, 1 arrival/ }))
+  expect(hero(view)).toHaveTextContent('09:00')
+  expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
+    '0 departures, 1 arrival',
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Only 09:00' }))
+  expect(add).toHaveBeenCalledWith('arrHours', 9)
 })
 
 it('the figure button steps earliest, latest, busiest hour and back', () => {
@@ -74,7 +89,7 @@ it('the figure button steps earliest, latest, busiest hour and back', () => {
   next()
   expect(hero(view)).toHaveTextContent('06:00')
   expect(view.container.querySelector('.ov3-card-caption')).toHaveTextContent(
-    'Busiest hour · 5 flights',
+    'Busiest hour · 5 departures, 0 arrivals',
   )
   next()
   expect(hero(view)).toHaveTextContent('06:05')

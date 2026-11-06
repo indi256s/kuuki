@@ -28,6 +28,8 @@ export interface PatternRow {
 type Category = 'airlines' | 'airports' | 'routes'
 export interface Rankings {
   airlines: RankRow[]
+  /** Weight of the flights without an airline: with `airlines` it sums to every flight in scope. */
+  unknownAirlines: number
   airports: RankRow[]
   routes: RankRow[]
   leaders: Record<Category, Leader>
@@ -120,6 +122,7 @@ export function rankings(rows: OverviewRow[]): Rankings {
     ]),
   }
   const total = rows.reduce((sum, row) => sum + row.weight, 0)
+  const unknownAirlines = rows.reduce((sum, row) => sum + (row.airline ? 0 : row.weight), 0)
   for (const row of rows) {
     const km = row.distanceKm === null ? null : row.distanceKm / row.weight
     const minute = row.depMinute
@@ -156,6 +159,7 @@ export function rankings(rows: OverviewRow[]): Rankings {
   }))
   return {
     airlines,
+    unknownAirlines,
     airports,
     routes,
     leaders: { airlines: leader(airlines), airports: leader(airports), routes: leader(routes) },

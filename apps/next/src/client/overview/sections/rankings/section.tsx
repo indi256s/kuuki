@@ -1,16 +1,14 @@
 'use client'
 
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useChapter } from '../../layout/chapter-context'
 import { airportCatalog } from '../../../../lib/airport-models/catalog.generated'
 import { AirportOverviewEntry } from '../../../airport-models/overview-entry'
 import { updateOverviewReturn } from '../../../airport-models/return-session'
 import { curveBumpX, line } from 'd3-shape'
-import { Check } from '@keyline-icons/react'
 import { isEmptyFilter } from '@kuuki/shared/overview/filter'
 import { Button } from '../../../ui/button'
 import { SegmentedControl } from '../../../ui/segmented-control'
-import { ArcDonut } from '../../charts/arc-donut'
 import { ArcSlope } from '../../charts/arc-slope'
 import { markerPath, slotCue, useComparisonSlots } from '../../charts/comparison-slots'
 import { airlineColor } from '../../../../lib/airline'
@@ -18,22 +16,22 @@ import type { BumpRow } from '@kuuki/shared/overview/rankings'
 import { airlineComparison } from './comparison'
 import { KuukiChart } from '../../charts/kuuki-chart'
 import { LazyChart } from '../../charts/lazy-chart'
+import { planDotRing } from '../../charts/arc-dot-ring'
+import { AirlineRing, airlineSegments } from './airline-ring'
 import { RankingBars } from './ranking-bars'
 import { ChapterCard } from '../../layout/chapter-card'
 import { useReading } from '../../layout/use-reading'
 import { referenceLabels } from '../../labels'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, flights, percent, filterLabel, moreAirlines, number, visits } from './display'
+import { copy, flights, percent, filterLabel, moreAirlinesLabel, number, visits } from './display'
 import { AirportFigure, GateSignFigure } from './figure'
 import { TravelPatterns } from './travel-patterns'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
-const LEGEND_TOP = 8,
-  DONUT_SIZE = 240,
-  // Whole-journal baseline: thin, round, sparse dots, apart from every slot's dash.
-  BASELINE_DASH = '1 6'
+// Whole-journal baseline: thin, round, sparse dots, apart from every slot's dash.
+const BASELINE_DASH = '1 6'
 
 /** The routes' undirected key, `DOH-NRT`, as the sign prints it: `DOH–NRT`. */
 const signCode = (key: string) => key.replace('-', '–')
@@ -50,9 +48,6 @@ export function Section({ span }: { span: Span }) {
   }
   const [hidden, setHidden] = useState<string[]>([])
   const [legendSeries, setLegendSeries] = useState<string | null>(null)
-  const [linkedShare, setLinkedShare] = useState<string | null>(null)
-  const [allShares, setAllShares] = useState(false)
-  const legendId = useId()
   const rows = scope?.rankings.rankByYear[category] ?? []
   const entities = [...new Set(rows.map((row) => row.entity))]
   const comparison = scope && payload ? airlineComparison(payload, scope.filter) : null
@@ -164,21 +159,12 @@ export function Section({ span }: { span: Span }) {
     const cue = slotCue(bumpSlots.get(entity) ?? 0)
     return category === 'airlines' ? { ...cue, color: airlineColor(entity) } : cue
   }
-  const shares = scope.rankings.airlines
-  const legendRows = allShares ? shares : shares.slice(0, LEGEND_TOP)
-  const shareTotal = shares.reduce((sum, row) => sum + row.count, 0)
-  const sharePoints = shares.map((datum) => ({
-    key: datum.key,
-    datum,
-    label: `${name('airlines', datum.key)} · ${flights(locale, datum.count)} · ${percent(datum.count / shareTotal)}`,
-  }))
   const comparisonPoints =
     comparison?.slice(0, 5).map((datum) => ({
       key: datum.key,
       datum,
       label: `${name('airlines', datum.key)} · ${number(locale, datum.start)} → ${number(locale, datum.end)}`,
     })) ?? []
-  const shareCaption = copy(locale, 'Airline shares', 'Доли авиакомпаний')
   const comparisonCaption = copy(
     locale,
     'Airlines · previous and selected period · top 5',
@@ -190,7 +176,9 @@ export function Section({ span }: { span: Span }) {
   const rank = reading ? top.findIndex((row) => row.count === reading.count) + 1 : 0
   const tied = top.length > 1 && top[1].count === top[0].count ? top[1] : null
   const readingName = reading ? name(category, reading.key) : ''
-  const share = reading && leader.total ? percent(reading.count / leader.total) : ''
+  // Airline shares are of every flight in scope, those without an airline included, as the makers' are.
+  const ranked = leader.total + (category === 'airlines' ? scope.rankings.unknownAirlines : 0)
+  const share = reading && ranked ? percent(reading.count / ranked) : ''
   const counted = (count: number) =>
     category === 'airports' ? visits(locale, count) : flights(locale, count)
   const unit = (count: number) => counted(count).replace(/^[\d\s.,  ]+/u, '')
@@ -206,9 +194,7 @@ export function Section({ span }: { span: Span }) {
   const ofWhat =
     category === 'airports'
       ? copy(locale, 'of airport visits', 'посещений аэропортов')
-      : category === 'airlines'
-        ? copy(locale, 'of flights with an airline', 'перелётов с указанной авиакомпанией')
-        : copy(locale, 'of your flights', 'ваших перелётов')
+      : copy(locale, 'of your flights', 'ваших перелётов')
   const fact = tied
     ? copy(
         locale,
@@ -224,16 +210,27 @@ export function Section({ span }: { span: Span }) {
       ? `${readingName} · ${fact}`
       : `${ordinal(rank)} ${nounOne} · ${readingName} · ${share} ${ofWhat}`
   const code = !reading ? '' : category === 'routes' ? signCode(reading.key) : reading.key
+  // The 112px "Only …" button cuts names, so airlines and airports use their code.
   const shortName = !reading
     ? ''
-    : category === 'airlines'
-      ? readingName
-      : category === 'airports'
-        ? reading.key
-        : readingName
+    : category === 'airlines' || category === 'airports'
+      ? reading.key
+      : readingName
 
+  const segments = airlineSegments(scope.rankings.airlines, scope.rankings.unknownAirlines)
+  const ringPlan = planDotRing(segments.counts, span)
+  const ringUnit =
+    ringPlan.k > 1
+      ? copy(
+          locale,
+          `1 dot = ${flights(locale, ringPlan.k)}`,
+          `1 точка = ${flights(locale, ringPlan.k)}`,
+        )
+      : ''
   const chartCaption = {
-    airlines: copy(locale, 'Top airlines', 'Топ авиакомпаний'),
+    airlines: [copy(locale, 'Airline shares', 'Доли авиакомпаний'), ringUnit]
+      .filter(Boolean)
+      .join(' · '),
     airports: copy(locale, 'Top airports', 'Топ аэропортов'),
     routes: copy(locale, 'Top routes', 'Топ маршрутов'),
   }[category]
@@ -440,152 +437,9 @@ export function Section({ span }: { span: Span }) {
       )}
     </div>
   )
-  const sharesBlock = (
+  const comparisonBlock = (
     <div className="ov3-rankings" data-span={span}>
-      <div
-        className="ov3-rankings-bottom ov3-rankings-shares"
-        data-single={comparison ? undefined : 'true'}
-      >
-        <div>
-          <h3 className="ov3-chart-caption">{shareCaption}</h3>
-          <div className="ov3-shares">
-            <div className="ov3-share-donut">
-              <LazyChart height={284} label={shareCaption}>
-                {(inView) => (
-                  <KuukiChart
-                    points={sharePoints}
-                    height={DONUT_SIZE}
-                    fit={() => DONUT_SIZE}
-                    inView={inView}
-                    ariaLabel={shareCaption}
-                    onPick={(point) => addFilter('airlines', point.datum.key)}
-                    applied={(point) => applied('airlines', point.datum.key)}
-                    actions={(point) => [
-                      {
-                        label: filterLabel(locale),
-                        run: () => addFilter('airlines', point.datum.key),
-                      },
-                    ]}
-                    tip={(selected) => <span>{selected[0].label}</span>}
-                    table={{
-                      caption: shareCaption,
-                      columns: [
-                        { key: 'airline', label: copy(locale, 'Airline', 'Авиакомпания') },
-                        {
-                          key: 'count',
-                          label: copy(locale, 'Flights', 'Перелёты'),
-                          numeric: true,
-                        },
-                        { key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true },
-                      ],
-                      rows: shares.map((row) => ({
-                        airline: name('airlines', row.key),
-                        count: row.count,
-                        share: percent(row.count / shareTotal),
-                      })),
-                    }}
-                  >
-                    {(mark, { width, height }) => (
-                      <ArcDonut
-                        width={width}
-                        height={height}
-                        rows={sharePoints.map((point) => ({
-                          point,
-                          value: point.datum.count,
-                          color: airlineColor(point.key),
-                        }))}
-                        mark={(point) => {
-                          // Sector and legend row light up together; neither filters until picked.
-                          const props = mark(point)
-                          return {
-                            ...props,
-                            onPointerEnter: (event) => {
-                              props.onPointerEnter?.(event)
-                              setLinkedShare(point.key)
-                            },
-                            onPointerLeave: (event) => {
-                              props.onPointerLeave?.(event)
-                              setLinkedShare(null)
-                            },
-                            onFocus: (event) => {
-                              props.onFocus?.(event)
-                              setLinkedShare(point.key)
-                            },
-                            onBlur: () => setLinkedShare(null),
-                          }
-                        }}
-                        highlightKey={linkedShare}
-                        totalLabel={copy(locale, 'Flights', 'Перелёты')}
-                        formatValue={(value) => number(locale, value)}
-                      />
-                    )}
-                  </KuukiChart>
-                )}
-              </LazyChart>
-            </div>
-            <div className="ov3-share-key">
-              <div className="ov3-share-legend" id={legendId}>
-                {legendRows.map((row) => {
-                  const active = applied('airlines', row.key)
-                  return (
-                    <button
-                      type="button"
-                      key={row.key}
-                      aria-pressed={active}
-                      data-linked={linkedShare === row.key || undefined}
-                      onPointerEnter={(event) => {
-                        if (event.pointerType !== 'touch') setLinkedShare(row.key)
-                      }}
-                      onPointerLeave={() => setLinkedShare(null)}
-                      onFocus={() => setLinkedShare(row.key)}
-                      onBlur={() => setLinkedShare(null)}
-                      onClick={() =>
-                        active && isCurrent()
-                          ? actions.remove('airlines', row.key)
-                          : addFilter('airlines', row.key)
-                      }
-                    >
-                      <i aria-hidden="true" style={{ background: airlineColor(row.key) }} />
-                      <span>
-                        {name('airlines', row.key)}
-                        {active ? (
-                          <Check
-                            className="ov3-share-check"
-                            size={14}
-                            strokeWidth={2}
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                      </span>
-                      <strong>
-                        {number(locale, row.count)} · {percent(row.count / shareTotal)}
-                      </strong>
-                    </button>
-                  )
-                })}
-              </div>
-              {shares.length > LEGEND_TOP && (
-                <button
-                  type="button"
-                  className="ov3-share-more"
-                  aria-expanded={allShares}
-                  aria-controls={legendId}
-                  onClick={() => setAllShares((open) => !open)}
-                >
-                  {allShares
-                    ? copy(locale, 'Show fewer', 'Показать меньше')
-                    : moreAirlines(locale, shares.length - LEGEND_TOP)}
-                </button>
-              )}
-            </div>
-          </div>
-          {scope.figures.flights > shareTotal && (
-            <p>
-              {copy(locale, 'Airline not recorded', 'Авиакомпания не указана')}:{' '}
-              {flights(locale, scope.figures.flights - shareTotal)}
-            </p>
-          )}
-        </div>
+      <div className="ov3-rankings-bottom" data-single="true">
         {comparison && (
           <div>
             <h3 className="ov3-chart-caption">{comparisonCaption}</h3>
@@ -748,37 +602,83 @@ export function Section({ span }: { span: Span }) {
                   : copy(locale, 'Flights', 'Перелёты'),
               numeric: true,
             },
+            ...(category === 'airlines'
+              ? [{ key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true }]
+              : []),
           ],
-          rows: top.map((row) => ({ name: name(category, row.key), flights: row.count })),
+          // The airline ring shows every flight in scope: the top five, the rest together and the flights without an airline.
+          rows:
+            category === 'airlines'
+              ? [
+                  ...top.map((row) => ({
+                    name: name('airlines', row.key),
+                    flights: row.count,
+                    share: percent(segments.total ? row.count / segments.total : 0),
+                  })),
+                  ...(segments.restCount > 0
+                    ? [
+                        {
+                          name: moreAirlinesLabel(locale, segments.restAirlines),
+                          flights: segments.restCount,
+                          share: percent(segments.restCount / segments.total),
+                        },
+                      ]
+                    : []),
+                  ...(segments.unknown > 0
+                    ? [
+                        {
+                          name: copy(locale, 'Unknown', 'Не указана'),
+                          flights: segments.unknown,
+                          share: percent(segments.unknown / segments.total),
+                        },
+                      ]
+                    : []),
+                ]
+              : top.map((row) => ({ name: name(category, row.key), flights: row.count })),
         },
         plot: (
           <div>
             {span === 'full' && leaderGap && <p className="ov3-ranking-gap">{leaderGap}</p>}
-            <LazyChart
-              height={stagePoints.length * (span === 'full' ? 72 : 24)}
-              label={chartCaption}
-            >
-              {(inView) => (
-                <RankingBars
-                  key={category}
-                  points={stagePoints}
-                  value={(point) => point.datum.count}
-                  format={(point) => number(locale, point.datum.count)}
-                  name={(point) => name(category, point.key)}
-                  mono={category !== 'airlines'}
-                  span={span}
-                  selectedKey={r.reading}
-                  appliedKeys={appliedKeys}
-                  inView={inView}
-                  ariaLabel={chartCaption}
-                  onPick={(point) => r.pick(point.key)}
-                  actions={(point) => [
-                    { label: filterLabel(locale), run: () => addFilter(category, point.key) },
-                  ]}
-                  tip={(selected) => <span>{selected[0].label}</span>}
-                />
-              )}
-            </LazyChart>
+            {category === 'airlines' ? (
+              <AirlineRing
+                span={span}
+                plan={ringPlan}
+                segments={segments}
+                seedOrder={all.rankings.airlines.map((row) => row.key)}
+                selectedKey={r.reading}
+                appliedKeys={appliedKeys}
+                name={(key) => name('airlines', key)}
+                ariaLabel={chartCaption}
+                onPick={r.pick}
+                onFilter={(key) => addFilter('airlines', key)}
+              />
+            ) : (
+              <LazyChart
+                height={stagePoints.length * (span === 'full' ? 72 : 24)}
+                label={chartCaption}
+              >
+                {(inView) => (
+                  <RankingBars
+                    key={category}
+                    points={stagePoints}
+                    value={(point) => point.datum.count}
+                    format={(point) => number(locale, point.datum.count)}
+                    name={(point) => name(category, point.key)}
+                    mono
+                    span={span}
+                    selectedKey={r.reading}
+                    appliedKeys={appliedKeys}
+                    inView={inView}
+                    ariaLabel={chartCaption}
+                    onPick={(point) => r.pick(point.key)}
+                    actions={(point) => [
+                      { label: filterLabel(locale), run: () => addFilter(category, point.key) },
+                    ]}
+                    tip={(selected) => <span>{selected[0].label}</span>}
+                  />
+                )}
+              </LazyChart>
+            )}
           </div>
         ),
       }}
@@ -793,7 +693,7 @@ export function Section({ span }: { span: Span }) {
         ),
         more: [
           { summary: copy(locale, 'Rank by year', 'Рейтинг по годам'), content: bump },
-          { summary: shareCaption, content: sharesBlock },
+          ...(comparison ? [{ summary: comparisonCaption, content: comparisonBlock }] : []),
         ],
       }}
     />

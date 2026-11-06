@@ -3,10 +3,10 @@
 import { useMemo, useState } from 'react'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
 import { Button } from '../../../ui/button'
-import { SegmentedControl } from '../../../ui/segmented-control'
-import { StageColumns } from '../../charts/stage-columns'
+import { StageColumns, type StageTick } from '../../charts/stage-columns'
 import { LazyChart } from '../../charts/lazy-chart'
 import type { ChartPoint } from '../../charts/kuuki-chart'
+import { formatCount } from '../../../../lib/format'
 import { fill } from '../../copy'
 import { IsoFigure } from '../../iso/iso-figure'
 import { clock } from '../../iso/clock'
@@ -15,17 +15,40 @@ import { useFigureK } from '../../layout/figure-box'
 import { useReading } from '../../layout/use-reading'
 import { useOverview } from '../../store/overview-context'
 import type { Span } from '../registry'
-import { copy, filterLabel, flights, number, percent } from '../rankings/display'
+import { copy, number, percent } from '../rankings/display'
 import { departures, hhmm } from './departure'
 import '../../iso/clock.css'
 
-type View = 'departures' | 'arrivals'
-type Row = { key: string; hour: number; flights: number }
+type Row = { key: string; hour: number; flights: number; arrivals: number }
 
 const BLANK = '    '
 const pad = (hour: number) => String(hour).padStart(2, '0')
 const hourKey = (hour: number) => `h${pad(hour)}`
-const TICKS = [0, 6, 12, 18, 23].map((index) => ({ index, text: pad(index) }))
+const TICKS = [0, 6, 12, 18, 23]
+/** The axis ticks, plus the picked hour when it is not crowded by a neighbour (the sheet's pitch fits a label every second hour). */
+const ticksFor = (hour: number | null): StageTick[] =>
+  (hour === null || TICKS.some((tick) => Math.abs(tick - hour) < 2) ? TICKS : [...TICKS, hour])
+    .sort((a, b) => a - b)
+    .map((index) => ({ index, text: pad(index) }))
+
+const departureForms = {
+  en: { one: '{count} departure', other: '{count} departures' },
+  ru: {
+    one: '{count} вылет',
+    few: '{count} вылета',
+    many: '{count} вылетов',
+    other: '{count} вылета',
+  },
+}
+const arrivalForms = {
+  en: { one: '{count} arrival', other: '{count} arrivals' },
+  ru: {
+    one: '{count} прилёт',
+    few: '{count} прилёта',
+    many: '{count} прилётов',
+    other: '{count} прилёта',
+  },
+}
 
 /**
  * The two readings the display holds. A pick writes the new time into the slot that is not shown, flips `side` and sets `pressed`, so CSS
@@ -67,17 +90,17 @@ function ClockFigure({
 
 export function Section({ span }: { span: Span }) {
   const { scope, all, filter, locale, actions, isCurrent } = useOverview()
-  const [view, setView] = useState<View>('departures')
-  const departing = view === 'departures'
-  const facet = departing ? 'depHours' : 'arrHours'
   const data = scope && scope.clock.status === 'ready' ? scope.clock.value : null
-  const found = scope && departing ? departures(scope) : null
+  const found = scope ? departures(scope) : null
   const earliest = found?.earliest ?? null,
     latest = found?.latest ?? null
-  const rows: readonly Row[] = data ? (departing ? data.byHour : data.arrByHour) : []
-  const peak = data ? (departing ? data.peakHour : data.arrPeakHour) : null
-  const timed = data ? (departing ? data.withDepartureTime : data.withArrivalTime) : 0
-  const filled = rows.filter((row) => row.flights > 0)
+  // One reading per hour: departures and arrivals of the same hour share a row.
+  const rows: readonly Row[] = data
+    ? data.byHour.map((row, index) => ({ ...row, arrivals: data.arrByHour[index]?.flights ?? 0 }))
+    : []
+  const peak = data ? data.peakHour : null
+  const timed = data ? data.withDepartureTime : 0
+  const filled = rows.filter((row) => row.flights > 0 || row.arrivals > 0)
   const busiest = peak ? hourKey(peak.hour) : null
   const keys = [
     ...(earliest ? ['earliest'] : []),
@@ -85,17 +108,12 @@ export function Section({ span }: { span: Span }) {
     ...filled.map((row) => hourKey(row.hour)),
   ]
   const r = useReading(keys, earliest ? 'earliest' : busiest)
-  // The figure button steps through earliest, latest and busiest; arrivals have no recorded minute, so they step through the first and last hour with arrivals.
+  // The figure button steps through earliest, latest and the busiest departure hour.
   const cycle = [
     ...new Set(
-      (earliest
-        ? ['earliest', latest ? 'latest' : null, busiest]
-        : [
-            filled.length ? hourKey(filled[0].hour) : null,
-            filled.length ? hourKey(filled[filled.length - 1].hour) : null,
-            busiest,
-          ]
-      ).filter((key): key is string => key !== null),
+      [earliest ? 'earliest' : null, latest ? 'latest' : null, busiest].filter(
+        (key): key is string => key !== null,
+      ),
     ),
   ]
   const reading = r.reading
@@ -109,29 +127,35 @@ export function Section({ span }: { span: Span }) {
   const state = !scope || !all ? 'loading' : data ? 'ready' : 'empty'
   const slots = useMorph(state === 'ready' && time ? time : BLANK, r.picked)
 
-  const only = (value: number) => {
+  const only = (facet: 'depHours' | 'arrHours', value: number) => {
     if (isCurrent()) actions.add(facet, value)
   }
   const title = copy(
     locale,
-    departing ? 'Local departure time' : 'Local arrival time',
-    departing ? 'Местное время вылета' : 'Местное время прилёта',
+    'Departures ↑ · arrivals ↓ · local time',
+    'Вылеты ↑ · прилёты ↓ · по местному времени',
   )
+  const deps = (count: number) => formatCount(locale, count, departureForms)
+  const arrs = (count: number) => formatCount(locale, count, arrivalForms)
+  const counts = (item: Row) => `${deps(item.flights)}, ${arrs(item.arrivals)}`
   const points: ChartPoint<Row>[] = rows.map((row) => ({
     key: row.key,
     datum: row,
-    label: `${row.key}:00–${row.key}:59 · ${flights(locale, row.flights)}`,
+    label: `${row.key}:00–${row.key}:59 · ${counts(row)}`,
   }))
   const row = hour !== null ? rows.find((item) => item.hour === hour) : undefined
-  const noun = departing
-    ? copy(locale, 'departures', 'вылетов')
-    : copy(locale, 'arrivals', 'прилётов')
+  // «Только» takes the departure hour, or the arrival hour when the hour has no departures.
+  const facetOf = (item: Row) => (item.flights > 0 ? 'depHours' : 'arrHours')
+  const isApplied = (item: Row) =>
+    (filter.depHours ?? []).includes(item.hour) || (filter.arrHours ?? []).includes(item.hour)
   const tail = (count: number) =>
-    copy(
-      locale,
-      `${percent(count / Math.max(1, timed))} of timed ${noun}`,
-      `${percent(count / Math.max(1, timed))} ${noun} со временем`,
-    )
+    count > 0
+      ? copy(
+          locale,
+          `${percent(count / Math.max(1, timed))} of timed departures`,
+          `${percent(count / Math.max(1, timed))} вылетов со временем`,
+        )
+      : ''
   const clockTime = hour !== null ? hhmm(hour * 60) : ''
   let caption = ''
   if (record && reading) {
@@ -152,19 +176,16 @@ export function Section({ span }: { span: Span }) {
   } else if (row) {
     caption = [
       peak && row.hour === peak.hour
-        ? `${copy(locale, 'Busiest hour', 'Самый частый час')} · ${flights(locale, row.flights)}`
-        : copy(
-            locale,
-            `${flights(locale, row.flights)} at ${clockTime}`,
-            `${flights(locale, row.flights)} в ${clockTime}`,
-          ),
+        ? `${copy(locale, 'Busiest hour', 'Самый частый час')} · ${counts(row)}`
+        : counts(row),
       tail(row.flights),
-    ].join(' · ')
+    ]
+      .filter(Boolean)
+      .join(' · ')
   }
 
   const gate = scope && SECTION_GATES.clock.gate(scope)
   const missing = gate?.status === 'below' ? gate : null
-  const have = departing ? (data?.withDepartureTime ?? 0) : (data?.withArrivalTime ?? 0)
   const columns = data
     ? [
         {
@@ -179,9 +200,7 @@ export function Section({ span }: { span: Span }) {
           ? [
               {
                 value: number(locale, row.flights),
-                label: departing
-                  ? copy(locale, `Departures at ${clockTime}`, `Вылетов в ${clockTime}`)
-                  : copy(locale, `Arrivals at ${clockTime}`, `Прилётов в ${clockTime}`),
+                label: copy(locale, `Departures at ${clockTime}`, `Вылетов в ${clockTime}`),
               },
             ]
           : []),
@@ -208,10 +227,10 @@ export function Section({ span }: { span: Span }) {
         value: time ?? '—',
         caption,
         only:
-          !r.isHeadline && hour !== null && !(filter[facet] ?? []).includes(hour)
+          !r.isHeadline && row && !isApplied(row)
             ? {
                 label: copy(locale, `Only ${clockTime}`, `Только ${clockTime}`),
-                onPress: () => only(hour),
+                onPress: () => only(facetOf(row), row.hour),
               }
             : null,
       }}
@@ -221,23 +240,12 @@ export function Section({ span }: { span: Span }) {
           caption: title,
           columns: [
             { key: 'key', label: copy(locale, 'Hour', 'Час') },
-            { key: 'flights', label: copy(locale, 'Flights', 'Перелёты'), numeric: true },
+            { key: 'flights', label: copy(locale, 'Departures', 'Вылеты'), numeric: true },
+            { key: 'arrivals', label: copy(locale, 'Arrivals', 'Прилёты'), numeric: true },
           ],
           rows: [...rows],
         },
         caption: title,
-        toggle: (
-          <SegmentedControl
-            dense
-            value={view}
-            onChange={setView}
-            label={copy(locale, 'Clock', 'Часы')}
-            options={[
-              { value: 'departures', label: copy(locale, 'Departures', 'Вылеты') },
-              { value: 'arrivals', label: copy(locale, 'Arrivals', 'Прилёты') },
-            ]}
-          />
-        ),
         plot: (
           <LazyChart height={span === 'full' ? 206 : 176} label={title}>
             {(inView) => (
@@ -245,23 +253,50 @@ export function Section({ span }: { span: Span }) {
                 span={span}
                 points={points}
                 value={(point) => point.datum.flights}
-                format={(point) => point.datum.key}
+                below={(point) => point.datum.arrivals}
+                format={(point) => String(point.datum.flights)}
+                formatBelow={(point) => String(point.datum.arrivals)}
                 selectedKey={hour === null ? null : pad(hour)}
-                appliedKeys={(filter[facet] ?? []).map(pad)}
-                ticks={TICKS}
+                appliedKeys={[
+                  ...new Set([...(filter.depHours ?? []), ...(filter.arrHours ?? [])]),
+                ].map(pad)}
+                ticks={ticksFor(hour)}
                 bands={[
                   { from: 22, to: 24 },
                   { from: 0, to: 6, label: copy(locale, 'night', 'ночь') },
                 ]}
                 tallest
-                mono
                 inView={inView}
                 ariaLabel={title}
                 onPick={(point) => {
-                  if (point.datum.flights > 0) r.pick(hourKey(point.datum.hour))
+                  if (point.datum.flights > 0 || point.datum.arrivals > 0)
+                    r.pick(hourKey(point.datum.hour))
                 }}
                 actions={(point) => [
-                  { label: filterLabel(locale), run: () => only(point.datum.hour) },
+                  ...(point.datum.flights > 0
+                    ? [
+                        {
+                          label: copy(
+                            locale,
+                            `Only departures at ${hhmm(point.datum.hour * 60)}`,
+                            `Только вылеты в ${hhmm(point.datum.hour * 60)}`,
+                          ),
+                          run: () => only('depHours', point.datum.hour),
+                        },
+                      ]
+                    : []),
+                  ...(point.datum.arrivals > 0
+                    ? [
+                        {
+                          label: copy(
+                            locale,
+                            `Only arrivals at ${hhmm(point.datum.hour * 60)}`,
+                            `Только прилёты в ${hhmm(point.datum.hour * 60)}`,
+                          ),
+                          run: () => only('arrHours', point.datum.hour),
+                        },
+                      ]
+                    : []),
                 ]}
                 tip={(items) => <span>{items[0].label}</span>}
               />
@@ -272,23 +307,32 @@ export function Section({ span }: { span: Span }) {
       details={{
         heading: copy(locale, 'Time of day', 'Время суток'),
         columns,
-        coverage:
-          data && have < data.total
-            ? fill(
-                departing
-                  ? copy(
+        coverage: data
+          ? [
+              data.withDepartureTime < data.total
+                ? fill(
+                    copy(
                       locale,
                       'Based on {n} of {m} flights with departure times',
                       'По {n} из {m} перелётов с временем вылета',
-                    )
-                  : copy(
+                    ),
+                    { n: number(locale, data.withDepartureTime), m: number(locale, data.total) },
+                  )
+                : null,
+              data.withArrivalTime !== data.withDepartureTime
+                ? fill(
+                    copy(
                       locale,
                       'Based on {n} of {m} flights with arrival times',
                       'По {n} из {m} перелётов с временем прилёта',
                     ),
-                { n: number(locale, have), m: number(locale, data.total) },
-              )
-            : null,
+                    { n: number(locale, data.withArrivalTime), m: number(locale, data.total) },
+                  )
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ') || null
+          : null,
       }}
       empty={{
         title: copy(locale, 'Too few departure times', 'Слишком мало времён вылета'),

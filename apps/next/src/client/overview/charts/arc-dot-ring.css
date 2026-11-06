@@ -1,0 +1,23 @@
+/* Dot ring: the picked wedge keeps a 2px --text contour; hover, pin and applied contours come from chart-theme.css.
+   Dots never take a stroke from those rules (data-no-contour) and are never dimmed. */
+.kc-svg [data-picked] > .dot-ring-contour {
+  stroke: var(--text);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+.kc-svg .dot-ring-contour {
+  stroke-linejoin: round;
+}
+.kc-svg .dot-ring-value {
+  font: 600 28px/32px var(--font-sans);
+  letter-spacing: -0.03em;
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.kc-svg .dot-ring-name {
+  font: 400 13px/18px var(--font-sans);
+  fill: var(--text-muted);
+}
+.kc-svg [data-span='sheet'] .dot-ring-value {
+  font-size: 24px;
+}

@@ -52,7 +52,7 @@ it('"Only …" adds the picked row to the facet of the shown view', () => {
   const actions = admit()
   render(<Section span="full" />)
   row('Qatar Airways')
-  fireEvent.click(screen.getByRole('button', { name: 'Only Qatar Airways' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Only QR' }))
   expect(actions.add).toHaveBeenLastCalledWith('airlines', 'QR')
   view('Airports')
   row('TBS')

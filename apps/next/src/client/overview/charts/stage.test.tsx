@@ -63,3 +63,30 @@ it('rows with a category fill never render the peak overlay, even when picked', 
   // The picked row is marked by the selection contour instead (stage.css).
   expect(container.querySelector('[data-picked] > .stage-bar[data-fill]')).not.toBeNull()
 })
+
+it('labels the tallest column of each mirrored half, even when the halves peak at different heights', () => {
+  const hours = [
+    { key: 'a', up: 10, down: 1 },
+    { key: 'b', up: 2, down: 6 },
+    { key: 'c', up: 3, down: 2 },
+  ].map((datum) => ({ key: datum.key, datum, label: datum.key }))
+  const { container } = render(
+    <StageColumns
+      points={hours}
+      value={(point) => point.datum.up}
+      below={(point) => point.datum.down}
+      format={(point) => String(point.datum.up)}
+      formatBelow={(point) => String(point.datum.down)}
+      ariaLabel="Hours"
+      inView
+      selectedKey="c"
+      span="full"
+      ticks={[]}
+      tallest
+    />,
+  )
+  const tallest = Array.from(container.querySelectorAll('.stage-tallest')).map(
+    (node) => node.textContent,
+  )
+  expect(tallest.sort()).toEqual(['10', '6'])
+})

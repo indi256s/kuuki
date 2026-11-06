@@ -1,4 +1,5 @@
 import type { SVGProps } from 'react'
+import { apportion } from './apportion'
 import { KuukiChart, type ChartPoint, type KuukiChartProps } from './kuuki-chart'
 import './arc-waffle.css'
 
@@ -26,14 +27,7 @@ type WaffleProps<T> = Pick<
 
 /** Whole cells approximate shares; the legend retains every category, even below one cell. */
 export function ArcWaffle<T>(props: WaffleProps<T>) {
-  const total = props.points.reduce((sum, point) => sum + props.value(point), 0)
-  const exact = props.points.map((point) => (total > 0 ? (props.value(point) / total) * CELLS : 0))
-  const counts = exact.map(Math.floor)
-  const order = exact
-    .map((value, index) => ({ index, rest: value - counts[index] }))
-    .sort((a, b) => b.rest - a.rest || a.index - b.index)
-  const remaining = total > 0 ? CELLS - counts.reduce((sum, count) => sum + count, 0) : 0
-  for (let i = 0; i < remaining; i++) counts[order[i].index]++
+  const counts = apportion(props.points.map(props.value), CELLS)
   const applied = (point: ChartPoint<T>) => props.appliedKeys.includes(point.key)
   return (
     <KuukiChart

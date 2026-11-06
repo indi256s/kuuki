@@ -35,14 +35,14 @@ export const types = (locale: Locale, value: number) =>
     en: { one: '{count} type', other: '{count} types' },
     ru: { one: '{count} тип', few: '{count} типа', many: '{count} типов', other: '{count} типа' },
   })
-export const moreAirlines = (locale: Locale, value: number) =>
+export const moreAirlinesLabel = (locale: Locale, value: number) =>
   formatCount(locale, value, {
-    en: { one: 'Show {count} more airline', other: 'Show {count} more airlines' },
+    en: { one: '{count} more airline', other: '{count} more airlines' },
     ru: {
-      one: 'Показать ещё {count} авиакомпанию',
-      few: 'Показать ещё {count} авиакомпании',
-      many: 'Показать ещё {count} авиакомпаний',
-      other: 'Показать ещё {count} авиакомпании',
+      one: 'Ещё {count} авиакомпания',
+      few: 'Ещё {count} авиакомпании',
+      many: 'Ещё {count} авиакомпаний',
+      other: 'Ещё {count} авиакомпании',
     },
   })
 
