@@ -63,6 +63,8 @@ export type GroundVisit = {
   country_code: string
   visit_year: number | null
   entry_method: string | null
+  /** The way of a land visit (rail or road); owner presentation only. */
+  mode: 'rail' | 'road' | null
 }
 
 /** The owner's hidden country codes, sorted. Presentation only: nothing derived reads them. */
@@ -101,7 +103,9 @@ export function passportRead(
       .prepare('SELECT country_code, claimed_at FROM country_claims WHERE user_id = ?')
       .bind(userId),
     db
-      .prepare('SELECT country_code, visit_year, entry_method FROM ground_visits WHERE user_id = ?')
+      .prepare(
+        'SELECT country_code, visit_year, entry_method, mode FROM ground_visits WHERE user_id = ?',
+      )
       .bind(userId),
     db
       .prepare(
@@ -231,7 +235,13 @@ type DetailEntry =
       flightCount: number
     }
   | { kind: 'claim'; claimedAt: string | null }
-  | { kind: 'ground'; id: string; visitYear: number | null; entryMethod: string | null }
+  | {
+      kind: 'ground'
+      id: string
+      visitYear: number | null
+      entryMethod: string | null
+      mode: string | null
+    }
 
 /** Count stays along the recorded itinerary, rather than airport movements or archived counters. */
 function countryStays(
@@ -317,7 +327,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
       .bind(userId, countryCode),
     db
       .prepare(
-        `SELECT id, user_id, country_code, visit_year, note, entry_method, created_at FROM ground_visits
+        `SELECT id, user_id, country_code, visit_year, note, entry_method, mode, created_at FROM ground_visits
        WHERE user_id = ? AND country_code = ? ORDER BY created_at DESC`,
       )
       .bind(userId, countryCode),
@@ -455,6 +465,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
       id: ground.id,
       visitYear: ground.visitYear,
       entryMethod: ground.entryMethod,
+      mode: ground.mode,
     })
 
   const flightIds = [...new Set(contributing.map((row) => row.flight_id))].sort((a, b) => a - b)

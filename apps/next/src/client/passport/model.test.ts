@@ -39,7 +39,7 @@ const entries = passportEntries({
     row('IT', { ground_journey_count: 1 }),
     row('BR', { status: 'pending', awaiting_visit_count: 1, region: 'americas' }),
   ],
-  groundVisits: [],
+  groundVisits: [{ country_code: 'CH', visit_year: null, entry_method: 'land', mode: null }],
   journeyModes: [
     { country_code: 'DE', mode: 'rail' },
     { country_code: 'IT', mode: 'road' },
@@ -54,6 +54,17 @@ const codes = (list: { code: string }[]) => list.map((entry) => entry.code).sort
 describe('filterEntries', () => {
   it('derives sources in fixed order, mixed countries carrying several', () => {
     expect(entries.find((e) => e.code === 'CH')?.sources).toEqual(['flights', 'trains', 'manual'])
+  })
+  it('counts a visit with a way under that way, and a visit without one as manual', () => {
+    const [rail, legacy] = passportEntries({
+      countries: [row('AT', { ground_visit_count: 1 }), row('CH', { ground_visit_count: 1 })],
+      groundVisits: [
+        { country_code: 'AT', visit_year: null, entry_method: 'land', mode: 'rail' },
+        { country_code: 'CH', visit_year: null, entry_method: 'land', mode: null },
+      ],
+    })
+    expect(rail.sources).toEqual(['trains'])
+    expect(legacy.sources).toEqual(['manual'])
   })
   it('ORs within sources and ANDs across groups', () => {
     expect(codes(filterEntries(entries, { ...none, sources: ['trains', 'road'] }, en))).toEqual([

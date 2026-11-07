@@ -1,6 +1,6 @@
 import { api } from './apiClient'
 import type { DerivedAck } from './derivedState'
-import type { GroundVisit, EntryMethod } from '@kuuki/shared'
+import type { GroundVisit, EntryMethod, GroundVisitMode } from '@kuuki/shared'
 
 export interface CountryClaim {
   id: string
@@ -22,6 +22,7 @@ interface ApiGroundVisit extends DerivedAck {
   countryCode: string
   visitYear: number | null
   entryMethod: string | null
+  mode: string | null
   note: string | null
   createdAt: string
 }
@@ -37,6 +38,7 @@ function toGroundVisit(v: ApiGroundVisit, userId: string): GroundVisit {
     countryCode: v.countryCode,
     visitYear: v.visitYear,
     entryMethod: v.entryMethod as EntryMethod,
+    mode: v.mode as GroundVisitMode,
     note: v.note,
     createdAt: v.createdAt,
   }
@@ -71,6 +73,7 @@ export async function addGroundVisit(
     visitYear?: number | null
     note?: string | null
     entryMethod?: EntryMethod
+    mode?: GroundVisitMode
   } = {},
 ): Promise<GroundVisit & DerivedAck> {
   const visit = await api.post<ApiGroundVisit>('/api/passport/ground-visits', {
@@ -78,8 +81,30 @@ export async function addGroundVisit(
     visitYear: data.visitYear ?? null,
     note: data.note ?? null,
     entryMethod: data.entryMethod ?? null,
+    mode: data.mode ?? null,
   })
 
+  return {
+    ...toGroundVisit(visit, userId),
+    derived_state: visit.derived_state,
+    revision: visit.revision,
+  }
+}
+
+/**
+ * Edit a ground visit's year, note or way. Omitted fields keep their stored value; a way is sent with its entry method.
+ */
+export async function updateGroundVisit(
+  userId: string,
+  visitId: string,
+  patch: {
+    visitYear?: number | null
+    note?: string | null
+    entryMethod?: EntryMethod
+    mode?: GroundVisitMode
+  },
+): Promise<GroundVisit & DerivedAck> {
+  const visit = await api.patch<ApiGroundVisit>(`/api/passport/ground-visits/${visitId}`, patch)
   return {
     ...toGroundVisit(visit, userId),
     derived_state: visit.derived_state,

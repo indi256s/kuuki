@@ -8,6 +8,7 @@ export interface GroundVisitRow {
   visit_year: number | null
   note: string | null
   entry_method: string | null
+  mode: string | null
   created_at: string
 }
 
@@ -18,6 +19,7 @@ export function toGroundVisit(row: GroundVisitRow) {
     countryCode: row.country_code,
     visitYear: row.visit_year,
     entryMethod: row.entry_method,
+    mode: row.mode,
     note: row.note,
     createdAt: row.created_at,
   }

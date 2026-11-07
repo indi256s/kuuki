@@ -21,7 +21,10 @@ import {
   createGroundVisitRequest,
   listGroundVisitsRequest,
 } from '../../functions/api/passport/ground-visits/index'
-import { deleteGroundVisitRequest } from '../../functions/api/passport/ground-visits/[id]'
+import {
+  deleteGroundVisitRequest,
+  updateGroundVisitRequest,
+} from '../../functions/api/passport/ground-visits/[id]'
 import { updateProfileRequest } from '../../functions/api/profiles/me'
 import { deleteAccountRequest } from '../../functions/api/auth/account'
 import { requestPasswordReset } from '../../functions/api/auth/password-reset/request'
@@ -70,9 +73,13 @@ export function captureHandler(
       method === 'GET'
         ? listGroundVisitsRequest(request, env, data)
         : createGroundVisitRequest(request, env, data)
-  else if (/^\/api\/passport\/ground-visits\/[^/]+$/.test(path))
-    handler = () => deleteGroundVisitRequest(request, env, data, path.split('/').at(-1)!)
-  else if (path === '/api/profiles/me' && method === 'PATCH')
+  else if (/^\/api\/passport\/ground-visits\/[^/]+$/.test(path)) {
+    const id = path.split('/').at(-1)!
+    handler = () =>
+      method === 'PATCH'
+        ? updateGroundVisitRequest(request, env, data, id)
+        : deleteGroundVisitRequest(request, env, data, id)
+  } else if (path === '/api/profiles/me' && method === 'PATCH')
     handler = () => updateProfileRequest(request, env, data)
   else if (path === '/api/auth/account') handler = () => deleteAccountRequest(request, env, data)
   // Pre-auth recovery: the shared middleware skips session handling for these paths.

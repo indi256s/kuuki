@@ -2,6 +2,7 @@ type GroundVisit = {
   countryCode: string
   visitYear: number | null
   entryMethod: string | null
+  mode: string | null
   note: string | null
   createdAt: string
 }
@@ -15,9 +16,9 @@ function cell(value: string | number | null): string {
 }
 
 function generateGroundVisitsCsv(visits: GroundVisit[]): string {
-  const header = 'country_code,visit_year,entry_method,note,created_at'
+  const header = 'country_code,visit_year,entry_method,mode,note,created_at'
   const rows = visits.map((visit) =>
-    [visit.countryCode, visit.visitYear, visit.entryMethod, visit.note, visit.createdAt]
+    [visit.countryCode, visit.visitYear, visit.entryMethod, visit.mode, visit.note, visit.createdAt]
       .map(cell)
       .join(','),
   )

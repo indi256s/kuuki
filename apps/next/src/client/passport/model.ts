@@ -154,12 +154,16 @@ export function passportEntries(
   data: Pick<PassportData, 'countries' | 'groundVisits'> &
     Partial<Pick<PassportData, 'journeyModes'>>,
 ): PassportEntry[] {
+  // A country's rail/road ways are its journeys' and its visits' together; a visit without a way stays Manual.
   const modes = new Map<string, Set<'rail' | 'road'>>()
-  for (const { country_code, mode } of data.journeyModes ?? []) {
-    modes.set(country_code, (modes.get(country_code) ?? new Set()).add(mode))
-  }
+  const addMode = (code: string, mode: 'rail' | 'road') =>
+    modes.set(code, (modes.get(code) ?? new Set()).add(mode))
+  for (const { country_code, mode } of data.journeyModes ?? []) addMode(country_code, mode)
+  const unspecified = new Set<string>()
   const years = new Map<string, number[]>()
   for (const visit of data.groundVisits) {
+    if (visit.mode) addMode(visit.country_code, visit.mode)
+    else unspecified.add(visit.country_code)
     if (!visit.visit_year) continue
     const countryYears = years.get(visit.country_code) ?? []
     countryYears.push(visit.visit_year)
@@ -176,7 +180,7 @@ export function passportEntries(
     if (flights > 0) sources.push('flights')
     if (journeyModes?.has('rail')) sources.push('trains')
     if (journeyModes?.has('road')) sources.push('road')
-    if (row.claimed === 1 || row.ground_visit_count > 0) sources.push('manual')
+    if (row.claimed === 1 || unspecified.has(row.country_code)) sources.push('manual')
     return {
       code: row.country_code,
       status: row.status,

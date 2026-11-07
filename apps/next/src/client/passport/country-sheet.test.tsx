@@ -72,7 +72,7 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail =>
         state: 'logged',
       },
       { kind: 'claim', claimedAt: '2024-01-01' },
-      { kind: 'ground', id: 'g1', visitYear: 2018, entryMethod: 'sea' },
+      { kind: 'ground', id: 'g1', visitYear: 2018, entryMethod: 'sea', mode: null },
       { kind: 'ground', id: 'g2', visitYear: null, entryMethod: null },
     ],
     suppressed: [],
@@ -332,6 +332,7 @@ describe('CountrySheet', () => {
             countryCode: 'GR',
             visitYear: 2021,
             entryMethod: 'sea',
+            mode: null,
             note: null,
             createdAt: '',
           },
@@ -340,13 +341,14 @@ describe('CountrySheet', () => {
             countryCode: 'GR',
             visitYear: 2019,
             entryMethod: 'land',
+            mode: null,
             note: null,
             createdAt: '',
           },
         ],
         entries: [
-          { kind: 'ground', id: 'g1', visitYear: 2021, entryMethod: 'sea' },
-          { kind: 'ground', id: 'g3', visitYear: 2019, entryMethod: 'land' },
+          { kind: 'ground', id: 'g1', visitYear: 2021, entryMethod: 'sea', mode: null },
+          { kind: 'ground', id: 'g3', visitYear: 2019, entryMethod: 'land', mode: null },
         ],
       }),
     )
@@ -758,7 +760,7 @@ describe('removalCopy', () => {
   it('is precise in Russian too', () => {
     const outcome = removalOutcome({
       entries: [
-        { kind: 'ground', id: 'a', visitYear: 2018, entryMethod: 'land' },
+        { kind: 'ground', id: 'a', visitYear: 2018, entryMethod: 'land', mode: null },
         {
           kind: 'flight',
           flightId: 1,

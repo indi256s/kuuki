@@ -459,6 +459,7 @@ export const apiRoutes = [
   {
     "route": "/api/passport/ground-visits/:id",
     "methods": [
+      "PATCH",
       "DELETE"
     ]
   },

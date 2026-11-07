@@ -15,7 +15,7 @@ const FLIGHT_DATE = '2019-07-04'
 const CLAIM_DATE = '2018-05-06T07:08:09.000Z'
 
 /**
- * GE+TR: logged flight. US+GB: awaiting flight only (pending). FR: claim. JP: ground visit. TR is then hidden.
+ * GE+TR: logged flight. US+GB: awaiting flight only (pending). FR: claim. JP: ground visit by rail. TR is then hidden.
  * Pressed: FR, GE, JP, TR. Pending: GB, US.
  */
 async function fixture(options: { isPublic: boolean; publication: 'flights' | 'all' }) {
@@ -29,7 +29,9 @@ async function fixture(options: { isPublic: boolean; publication: 'flights' | 'a
         .prepare('INSERT INTO country_claims (id,user_id,country_code,claimed_at) VALUES (?,?,?,?)')
         .bind('c1', USER.id, 'FR', CLAIM_DATE),
       db
-        .prepare('INSERT INTO ground_visits (id,user_id,country_code,visit_year) VALUES (?,?,?,?)')
+        .prepare(
+          "INSERT INTO ground_visits (id,user_id,country_code,visit_year,entry_method,mode) VALUES (?,?,?,?,'land','rail')",
+        )
         .bind('g1', USER.id, 'JP', 2017),
       db
         .prepare(
@@ -102,6 +104,7 @@ describe('public projection', () => {
           'visit_count',
           'claimed',
           'ground',
+          'rail',
         ])
           expect(text).not.toContain(secret)
       } finally {

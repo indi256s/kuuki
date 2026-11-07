@@ -1,19 +1,21 @@
-// POST /api/passport/ground-visits — record a ground visit.
+// GET /api/passport/ground-visits lists the owner's ground visits; POST records one.
 
-import { runHandler, json, readJson, HttpError } from '../../_lib/http'
+import { runHandler, json, readJson } from '../../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../../_lib/auth'
 import { newId } from '../../_lib/crypto'
 import { nowIso } from '../../_lib/time'
 import { toGroundVisit, type GroundVisitRow } from '../../_lib/passportDtos'
 import { parseCountryCode } from '../../_lib/params'
+import { parseGroundVisitFields } from '../../_lib/groundVisits'
 import { dirtyUserStatement, repairUserDerivedState } from '../../_services/derivedState'
 import { assertRows } from '../../_lib/d1'
 
-interface GroundVisitBody {
+type GroundVisitBody = {
   countryCode?: string
   visitYear?: number | null
   note?: string | null
   entryMethod?: string | null
+  mode?: string | null
 }
 
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
@@ -28,7 +30,7 @@ export function listGroundVisitsRequest(
   return runHandler(async () => {
     const user = requireUser(data)
     const rows = await env.DB.prepare(
-      'SELECT id, user_id, country_code, visit_year, entry_method, note, created_at FROM ground_visits WHERE user_id = ? ORDER BY created_at DESC, id',
+      'SELECT id, user_id, country_code, visit_year, entry_method, mode, note, created_at FROM ground_visits WHERE user_id = ? ORDER BY created_at DESC, id',
     )
       .bind(user.id)
       .all<GroundVisitRow>()
@@ -53,28 +55,14 @@ export function createGroundVisitRequest(
     const body = await readJson<GroundVisitBody>(request)
     const countryCode = parseCountryCode(body?.countryCode)
 
-    const note = body?.note ?? null
-    if (note != null && (typeof note !== 'string' || note.length > 200))
-      throw new HttpError(400, 'note is invalid', 'INVALID')
-
-    const entryMethod = body?.entryMethod ?? null
-    if (entryMethod != null && entryMethod !== 'land' && entryMethod !== 'sea') {
-      throw new HttpError(400, 'invalid entryMethod', 'INVALID')
-    }
-
-    const visitYear = body?.visitYear ?? null
-    if (
-      visitYear !== null &&
-      (!Number.isInteger(visitYear) || visitYear < 1800 || visitYear > 2200)
-    )
-      throw new HttpError(400, 'visitYear is invalid', 'INVALID')
+    const { visitYear, note, entryMethod, mode } = parseGroundVisitFields(body ?? {})
     const id = newId()
     const createdAt = nowIso()
 
     await env.DB.batch([
       env.DB.prepare(
-        'INSERT INTO ground_visits (id, user_id, country_code, visit_year, note, entry_method, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      ).bind(id, user.id, countryCode, visitYear, note, entryMethod, createdAt),
+        'INSERT INTO ground_visits (id, user_id, country_code, visit_year, note, entry_method, mode, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      ).bind(id, user.id, countryCode, visitYear, note, entryMethod, mode, createdAt),
       dirtyUserStatement(env.DB, user.id),
     ])
     const derived = await repairUserDerivedState(env.DB, user.id)
@@ -88,6 +76,7 @@ export function createGroundVisitRequest(
           visit_year: visitYear,
           note,
           entry_method: entryMethod,
+          mode,
           created_at: createdAt,
         }),
         ...derived,

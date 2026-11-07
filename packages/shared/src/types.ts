@@ -248,6 +248,9 @@ export type StampShape = 'circle' | 'rectangle'
 // Entry method for manual claims
 export type EntryMethod = 'land' | 'sea' | null
 
+// How a land visit crossed; only a land visit names one
+export type GroundVisitMode = 'rail' | 'road' | null
+
 // Country data from countries.json
 export interface CountryData {
   name: string
@@ -274,6 +277,7 @@ export interface GroundVisit {
   countryCode: string
   visitYear: number | null
   entryMethod: EntryMethod
+  mode: GroundVisitMode
   note: string | null
   createdAt: string | null
 }

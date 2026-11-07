@@ -5,6 +5,7 @@ import {
   onRequestPost as addGroundVisit,
   onRequestGet as listGroundVisits,
 } from '../api/passport/ground-visits/index'
+import { onRequestPatch as editGroundVisit } from '../api/passport/ground-visits/[id]'
 import { repairUserDerivedState } from '../api/_services/derivedState'
 
 const user = { id: 'passport-user', email: 'passport@example.test' }
@@ -12,6 +13,11 @@ const user = { id: 'passport-user', email: 'passport@example.test' }
 function context(db: D1Database, path: string, method: string, body?: unknown, cc?: string) {
   const request = csrfRequest(path, method, body)
   return { ...apiContext(db, request), data: { user }, params: cc ? { cc } : {} } as never
+}
+
+function editContext(db: D1Database, id: string, body: unknown) {
+  const request = csrfRequest(`/api/passport/ground-visits/${id}`, 'PATCH', body)
+  return { ...apiContext(db, request), data: { user }, params: { id } } as never
 }
 
 async function derivedState(db: D1Database) {
@@ -170,6 +176,83 @@ it('keeps derived state published when unclaiming, including a no-op and ground-
     const after = await derivedState(db)
     expect(after!.revision).toBeGreaterThan(before!.revision)
     expect(after!.published_revision).toBe(after!.revision)
+  } finally {
+    await dispose()
+  }
+})
+
+it('records a land visit with its way and refuses a way without a land entry', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const post = (body: unknown) =>
+      addGroundVisit(context(db, '/api/passport/ground-visits', 'POST', body))
+
+    const rail = await post({ countryCode: 'AT', entryMethod: 'land', mode: 'rail' })
+    expect(rail.status).toBe(201)
+    expect(await rail.json()).toMatchObject({
+      countryCode: 'AT',
+      entryMethod: 'land',
+      mode: 'rail',
+    })
+
+    for (const body of [
+      { countryCode: 'AT', mode: 'rail' },
+      { countryCode: 'AT', entryMethod: 'sea', mode: 'road' },
+      { countryCode: 'AT', entryMethod: 'land', mode: 'plane' },
+    ])
+      expect((await post(body)).status).toBe(400)
+
+    const rows = await db
+      .prepare('SELECT entry_method, mode, visit_year FROM ground_visits WHERE user_id = ?')
+      .bind(user.id)
+      .all()
+    expect(rows.results).toEqual([{ entry_method: 'land', mode: 'rail', visit_year: null }])
+  } finally {
+    await dispose()
+  }
+})
+
+it("edits only the owner's visit, keeping omitted fields and checking the merged way", async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db.batch([
+      db
+        .prepare(
+          "INSERT INTO users(id,email,password_hash) VALUES('other','o@example.test','hash')",
+        )
+        .bind(),
+      db
+        .prepare(
+          "INSERT INTO ground_visits(id,user_id,country_code,note,entry_method,mode) VALUES('own','passport-user','IT','Night train','land','rail')",
+        )
+        .bind(),
+      db
+        .prepare("INSERT INTO ground_visits(id,user_id,country_code) VALUES('theirs','other','IT')")
+        .bind(),
+    ])
+
+    const foreign = await editGroundVisit(editContext(db, 'theirs', { visitYear: 2020 }))
+    expect(foreign.status).toBe(404)
+    expect(
+      await db.prepare("SELECT visit_year FROM ground_visits WHERE id = 'theirs'").first(),
+    ).toEqual({ visit_year: null })
+
+    // Changing only the entry to sea would leave a rail way on a sea visit.
+    expect((await editGroundVisit(editContext(db, 'own', { entryMethod: 'sea' }))).status).toBe(400)
+
+    const edited = await editGroundVisit(editContext(db, 'own', { visitYear: 2019, mode: 'road' }))
+    expect(edited.status).toBe(200)
+    expect(await edited.json()).toMatchObject({
+      id: 'own',
+      visitYear: 2019,
+      entryMethod: 'land',
+      mode: 'road',
+      note: 'Night train',
+    })
+    const state = await derivedState(db)
+    expect(state?.published_revision).toBe(state?.revision)
   } finally {
     await dispose()
   }
