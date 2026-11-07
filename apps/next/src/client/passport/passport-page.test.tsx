@@ -50,11 +50,19 @@ vi.mock('./atlas', () => ({
   PassportAtlas: ({
     entries,
     pending,
+    quickVisit,
   }: {
     entries: { code: string }[]
     pending: { code: string }[]
+    quickVisit?: { peelable: (code: string) => boolean } | null
   }) => (
     <>
+      {/* Which probe countries would lift as a sticker; absent when stickers are off. */}
+      {quickVisit ? (
+        <p aria-label="Sticker stand-in">
+          {['NO', 'PT', 'DE', 'IT', 'XX'].filter((code) => quickVisit.peelable(code)).join(' ')}
+        </p>
+      ) : null}
       <ul aria-label="Atlas stand-in">
         {entries.map((entry) => (
           <li key={entry.code}>{entry.code}</li>
@@ -433,6 +441,35 @@ describe('totals and found', () => {
     expect(atlasPending().map((item) => item.textContent)).toEqual(['PT', 'GR'])
     act(() => window.history.replaceState(null, '', '/passport?view=map&region=asia'))
     expect(atlasPending()).toHaveLength(0)
+  })
+})
+
+describe('atlas stickers', () => {
+  const stickers = () => screen.queryByLabelText('Sticker stand-in')
+
+  it("lift only unrecorded catalog countries on the owner's unfiltered map", () => {
+    nativeReplace(null, '', '/passport?view=map')
+    render(<PassportPage {...ownerProps()} />)
+    // NO is pressed, PT pending, DE hidden, XX is not in the catalog.
+    expect(stickers()).toHaveTextContent(/^IT$/)
+  })
+
+  it.each([
+    ['a region filter', '/passport?view=map&region=europe'],
+    ['the ground map scope', '/passport?view=map&src=trains%2Croad'],
+    ['a search', '/passport?view=map&q=norw'],
+  ])('are off under %s', (_, url) => {
+    nativeReplace(null, '', url)
+    render(<PassportPage {...ownerProps()} />)
+    expect(screen.getByRole('list', { name: 'Atlas stand-in' })).toBeInTheDocument()
+    expect(stickers()).not.toBeInTheDocument()
+  })
+
+  it('are off in the visitor preview', () => {
+    nativeReplace(null, '', '/passport?as=visitor&view=map')
+    render(<PassportPage {...publicProps('preview')} />)
+    expect(screen.getByRole('list', { name: 'Atlas stand-in' })).toBeInTheDocument()
+    expect(stickers()).not.toBeInTheDocument()
   })
 })
 

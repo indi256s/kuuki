@@ -1,14 +1,24 @@
 'use client'
 
 import type * as GL from 'maplibre-gl'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { WORLD_BOUNDS } from '../../maps/geometry'
 import { Map as MapCanvas, useMap } from '../../maps/mapcn'
 import { resolveColor } from '../../maps/resolve-color'
 import type { Locale } from '../../../lib/format'
 import { isCatalogCountry } from '../model'
+import type { RecordVisit } from './quick-visit'
 import { SMALL_STATE_POINTS } from './small-states'
+import { Sticker, type StickerGeometry, type StickerHandle } from './sticker'
 import './atlas.css'
+
+/** The owner's quick add on the map; absent for visitors, the preview and any filtered or searched view. */
+export type QuickVisit = {
+  ownerId: string
+  /** Not pressed, pending or hidden, checked against the full collection. */
+  peelable: (code: string) => boolean
+  record: RecordVisit
+}
 
 const GEOMETRY = '/maps/countries-110m-2.0.2-r2.geojson'
 /** Pinned to the ids of the layers below so queries and tests name them in one place. */
@@ -94,22 +104,49 @@ const LABEL_HEIGHT = 16
 const labelWidth = (text: string) => Math.min(140, text.length * 6.4 + 8)
 
 function AtlasLayers({
-  entries,
+  locale,
+  entries: visitedEntries,
   pending,
   name,
   onSelect,
+  quick,
   fail,
 }: {
+  locale: Locale
   entries: string[]
   pending: string[]
   name: (code: string) => string
   onSelect: (code: string) => void
+  quick: QuickVisit | null
   fail: () => void
 }) {
   const { map, ready, themeRevision } = useMap()
   const [raw, setRaw] = useState<Countries | null>(null)
-  const select = useRef(onSelect)
-  select.current = onSelect
+  // A torn sticker inks its country at once; the branch goes when the refreshed collection has it, or on Undo/failure.
+  const [inked, setInked] = useState<string[]>([])
+  const [syncedEntries, setSyncedEntries] = useState(visitedEntries)
+  if (syncedEntries !== visitedEntries) {
+    setSyncedEntries(visitedEntries)
+    if (inked.some((code) => visitedEntries.includes(code)))
+      setInked(inked.filter((code) => !visitedEntries.includes(code)))
+  }
+  const entries = useMemo(
+    () => (inked.length ? [...visitedEntries, ...inked] : visitedEntries),
+    [visitedEntries, inked],
+  )
+  const sticker = useRef<StickerHandle | null>(null)
+  const tap = useRef<(id: string, polygon: boolean) => void>(() => {})
+  tap.current = (id, polygon) => {
+    const handle = sticker.current
+    handle?.finish()
+    if (quick && polygon && quick.peelable(id) && !inked.includes(id) && handle) {
+      handle.lift(id)
+      return
+    }
+    // A lifted sticker closes on any other tap; nothing else happens in the same tap.
+    if (handle?.dismiss()) return
+    onSelect(id)
+  }
   useEffect(() => {
     if (!ready) return
     const controller = new AbortController()
@@ -191,7 +228,7 @@ function AtlasLayers({
     })
     // A marker beats the polygon under it; where 44px targets overlap (European microstates at world zoom), the
     // marker nearest the pointer wins rather than whichever the renderer lists first.
-    const pick = (event: GL.MapMouseEvent) => {
+    const pick = (event: GL.MapMouseEvent): { id: unknown; polygon: boolean } => {
       let best: { id: unknown; distance: number } | null = null
       for (const feature of map.queryRenderedFeatures(event.point, {
         layers: [ATLAS_LAYERS.hit],
@@ -203,17 +240,20 @@ function AtlasLayers({
         const distance = Math.hypot(x - event.point.x, y - event.point.y)
         if (!best || distance < best.distance) best = { id, distance }
       }
-      return (
-        best?.id ??
-        map.queryRenderedFeatures(event.point, { layers: [ATLAS_LAYERS.fill] })[0]?.properties?.id
-      )
+      if (best) return { id: best.id, polygon: false }
+      return {
+        id: map.queryRenderedFeatures(event.point, { layers: [ATLAS_LAYERS.fill] })[0]?.properties
+          ?.id,
+        polygon: true,
+      }
     }
     const click = (event: GL.MapMouseEvent) => {
-      const id = pick(event)
-      if (typeof id === 'string' && isCatalogCountry(id)) select.current(id)
+      const { id, polygon } = pick(event)
+      if (typeof id === 'string' && isCatalogCountry(id)) tap.current(id, polygon)
+      else sticker.current?.dismiss()
     }
     const hover = (event: GL.MapMouseEvent) => {
-      const id = pick(event)
+      const { id } = pick(event)
       map.getCanvas().style.cursor = typeof id === 'string' && isCatalogCountry(id) ? 'pointer' : ''
     }
     map.on('click', click)
@@ -265,7 +305,50 @@ function AtlasLayers({
     }))
     return [...polygons, ...points]
   }, [raw, entries, pending])
-  return <Labels sites={sites} name={name} />
+
+  const geometries = useMemo(() => {
+    const byId = new Map<string, StickerGeometry>()
+    for (const feature of raw?.features ?? []) {
+      const { geometry } = feature
+      const polygons =
+        geometry.type === 'Polygon'
+          ? [geometry.coordinates]
+          : geometry.type === 'MultiPolygon'
+            ? geometry.coordinates
+            : []
+      const found = centre(geometry)
+      if (!found || !polygons.length) continue
+      byId.set(feature.properties.id, {
+        rings: polygons.map(([outer]) => outer).filter((ring) => ring?.length > 2),
+        centre: found.point,
+      })
+    }
+    return byId
+  }, [raw])
+  const geometryOf = useCallback((code: string) => geometries.get(code) ?? null, [geometries])
+  const ink = useCallback(
+    (code: string, on: boolean) =>
+      setInked((list) =>
+        on ? (list.includes(code) ? list : [...list, code]) : list.filter((item) => item !== code),
+      ),
+    [],
+  )
+  return (
+    <>
+      <Labels sites={sites} name={name} />
+      {quick && raw ? (
+        <Sticker
+          control={sticker}
+          locale={locale}
+          ownerId={quick.ownerId}
+          name={name}
+          geometryOf={geometryOf}
+          record={quick.record}
+          ink={ink}
+        />
+      ) : null}
+    </>
+  )
 }
 
 /** Name labels as an HTML overlay (the blank style has no glyphs), gated by zoom and collision. */
@@ -407,6 +490,7 @@ export default function AtlasMap({
   pending,
   name,
   onSelectCountry,
+  quickVisit = null,
   fail,
 }: {
   locale: Locale
@@ -414,6 +498,7 @@ export default function AtlasMap({
   pending: string[]
   name: (code: string) => string
   onSelectCountry: (code: string) => void
+  quickVisit?: QuickVisit | null
   fail: () => void
 }) {
   return (
@@ -423,10 +508,12 @@ export default function AtlasMap({
       <link rel="stylesheet" href="/maps/maplibre-6.13.0/maplibre-gl.css" />
       <MapCanvas onError={fail} locale={locale} className="passport-atlas-canvas">
         <AtlasLayers
+          locale={locale}
           entries={entries}
           pending={pending}
           name={name}
           onSelect={onSelectCountry}
+          quick={quickVisit}
           fail={fail}
         />
         <Controls locale={locale} />

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { unseenCountries } from './new-stamps'
+import { markSeen, unseenCountries } from './new-stamps'
 
 const storage = () => {
   const items = new Map<string, string>()
@@ -31,4 +31,12 @@ it('keeps owners apart and survives blocked storage with a tab-local baseline', 
   expect(unseenCountries('blocked-owner', ['NO'], blocked)).toEqual([])
   expect(unseenCountries('blocked-owner', ['NO', 'PT'], blocked)).toEqual(['PT'])
   expect(unseenCountries('other-owner', ['NO', 'PT'], storage())).toEqual([])
+})
+
+it('marks an atlas stamp seen without inventing a baseline', () => {
+  const store = storage()
+  markSeen('atlas-owner', 'AT', store)
+  expect(unseenCountries('atlas-owner', ['NO', 'AT'], store)).toEqual([])
+  markSeen('atlas-owner', 'IT', store)
+  expect(unseenCountries('atlas-owner', ['NO', 'AT', 'IT', 'IS'], store)).toEqual(['IS'])
 })

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, render } from '@testing-library/react'
-import type { ReactNode } from 'react'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { useImperativeHandle, type ReactNode, type RefObject } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AtlasMap, { ATLAS_LAYERS } from './map'
 
 type Layer = { id: string; paint?: Record<string, unknown>; filter?: unknown }
@@ -17,6 +17,18 @@ const state = vi.hoisted(() => ({
 vi.mock('../../maps/mapcn', () => ({
   Map: ({ children }: { children: ReactNode }) => children,
   useMap: () => ({ map, ready: true, themeRevision: 0 }),
+}))
+// The sticker's own behaviour is sticker.test.tsx; here it only records what the map routes to it.
+const sticker = vi.hoisted(() => ({ lift: vi.fn(), finish: vi.fn(), open: false }))
+vi.mock('./sticker', () => ({
+  Sticker: ({ control }: { control: RefObject<unknown> }) => {
+    useImperativeHandle(control, () => ({
+      lift: sticker.lift,
+      finish: sticker.finish,
+      dismiss: () => sticker.open,
+    }))
+    return null
+  },
 }))
 vi.mock('../../maps/resolve-color', () => ({ resolveColor: (value: string) => `c(${value})` }))
 const map = {
@@ -73,6 +85,9 @@ beforeEach(() => {
   state.listeners.clear()
   state.hit = undefined
   state.hits = []
+  sticker.lift.mockReset()
+  sticker.finish.mockReset()
+  sticker.open = false
   vi.stubGlobal('fetch', async () => ({ ok: true, json: async () => geometry }))
 })
 afterEach(() => vi.unstubAllGlobals())
@@ -149,4 +164,53 @@ it('picks the nearest of overlapping small-state markers', async () => {
   state.hits = ['MC', 'SM']
   state.listeners.get('click')?.({ point: { x: 124, y: 439 } })
   expect(onSelectCountry).toHaveBeenLastCalledWith('SM')
+})
+
+describe('owner stickers', () => {
+  const quick = (peelable: string[]) => ({
+    ownerId: 'owner',
+    peelable: (code: string) => peelable.includes(code),
+    record: vi.fn(),
+  })
+  const tap = (id: string) => {
+    state.hit = id
+    state.listeners.get('click')?.({ point: { x: 1, y: 1 } })
+  }
+
+  it('lifts a peelable polygon and sends every other tap to the sheet', async () => {
+    const onSelectCountry = vi.fn()
+    render(
+      <AtlasMap
+        {...props(['FR'], ['JP'])}
+        onSelectCountry={onSelectCountry}
+        quickVisit={quick(['DE', 'MC'])}
+      />,
+    )
+    await act(async () => {})
+    tap('DE')
+    expect(sticker.lift).toHaveBeenCalledWith('DE')
+    // Visited, pending and hidden countries are not peelable; a microstate marker never lifts, even when unrecorded.
+    for (const code of ['FR', 'JP', 'MC']) tap(code)
+    expect(onSelectCountry.mock.calls).toEqual([['FR'], ['JP'], ['MC']])
+    expect(sticker.lift).toHaveBeenCalledTimes(1)
+  })
+
+  it('closes a lifted sticker on another tap without opening the sheet', async () => {
+    const onSelectCountry = vi.fn()
+    render(
+      <AtlasMap {...props(['FR'], [])} onSelectCountry={onSelectCountry} quickVisit={quick([])} />,
+    )
+    await act(async () => {})
+    sticker.open = true
+    tap('FR')
+    expect(onSelectCountry).not.toHaveBeenCalled()
+    expect(sticker.finish).toHaveBeenCalled()
+  })
+
+  it('opens the sheet for every country without a quick visit (visitors, preview, filtered views)', async () => {
+    const { onSelectCountry } = await mount(['FR'], [])
+    tap('DE')
+    expect(onSelectCountry).toHaveBeenCalledWith('DE')
+    expect(sticker.lift).not.toHaveBeenCalled()
+  })
 })

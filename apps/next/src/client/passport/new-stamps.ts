@@ -32,3 +32,32 @@ export function unseenCountries(
   }
   return fresh
 }
+
+/**
+ * Adds one country to the owner's seen baseline, so a stamp pressed on the atlas never replays on the cards. Without a
+ * baseline nothing is recorded: the page's first read records the whole collection, this country included.
+ */
+export function markSeen(
+  ownerId: string,
+  code: string,
+  storage: Pick<Storage, 'getItem' | 'setItem'>,
+): void {
+  const key = `kuuki:passport-seen:${ownerId}`
+  const previous = memory.get(key)
+  let stored: string[] | undefined
+  try {
+    const raw = storage.getItem(key)
+    const value: unknown = raw ? JSON.parse(raw) : undefined
+    if (Array.isArray(value) && value.every((item) => typeof item === 'string')) stored = value
+  } catch {
+    /* blocked or malformed storage keeps the tab baseline */
+  }
+  if (!previous && !stored) return
+  const seen = [...new Set([...(previous ?? []), ...(stored ?? []), code])]
+  memory.set(key, seen)
+  try {
+    storage.setItem(key, JSON.stringify(seen))
+  } catch {
+    /* memory prevents a remount replay */
+  }
+}

@@ -3,7 +3,10 @@
 import { lazy, Suspense, useMemo, useState, useSyncExternalStore } from 'react'
 import { formatCount, type Locale } from '../../../lib/format'
 import type { PassportEntry } from '../model'
+import type { QuickVisit } from './map'
 import './atlas.css'
+
+export type { QuickVisit }
 
 export type PassportAtlasProps = {
   locale: Locale
@@ -15,6 +18,8 @@ export type PassportAtlasProps = {
   name: (code: string) => string
   /** Opens the shared country sheet (`?country=`), for visited and unvisited countries alike. */
   onSelectCountry: (code: string) => void
+  /** The owner's sticker on unrecorded countries; null for visitors, the preview and filtered or searched views. */
+  quickVisit?: QuickVisit | null
 }
 
 // The MapLibre island (~0.5 MB) is fetched only when the map view is shown; until it is ready, and whenever
@@ -61,6 +66,7 @@ export function PassportAtlas({
   pending,
   name,
   onSelectCountry,
+  quickVisit = null,
 }: PassportAtlasProps) {
   const [failed, setFailed] = useState(false)
   const client = useClient()
@@ -84,6 +90,7 @@ export function PassportAtlas({
               pending={pendingCodes}
               name={name}
               onSelectCountry={onSelectCountry}
+              quickVisit={quickVisit}
               fail={() => setFailed(true)}
             />
           </Suspense>

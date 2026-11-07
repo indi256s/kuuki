@@ -19,6 +19,7 @@ import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 import type { PassportData } from '../../server/passport'
 import { AddCountrySheet } from './add-country-sheet'
+import { useRecordVisit } from './atlas/quick-visit'
 import { CountrySheet, countryDetailQuery } from './country-sheet'
 import { HiddenSheet } from './hidden-sheet'
 import {
@@ -302,6 +303,7 @@ function OwnerInner({
     await refresh()
   }
 
+  const recordVisit = useRecordVisit(ownerId, refresh)
   const hiddenCodes = data.hidden
   const menu = (
     <Menu
@@ -366,6 +368,7 @@ function OwnerInner({
       opener.remember()
       setHiddenOpen(true)
     },
+    recordVisit,
   }
 
   return (

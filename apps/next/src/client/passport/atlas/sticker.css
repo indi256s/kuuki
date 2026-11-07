@@ -1,0 +1,148 @@
+/* Atlas sticker (sticker.tsx). Tokens only. Geometry comes inline from the overlay; nothing here may move a path. */
+.atlas-sticker-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.atlas-sticker-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.atlas-sticker {
+  pointer-events: visiblePainted;
+  scale: 1.04;
+  filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--text) 18%, transparent));
+  animation: atlas-sticker-lift var(--dur-base) var(--ease-out);
+  transition:
+    scale var(--dur-fast) var(--ease-out),
+    filter var(--dur-fast) var(--ease-out);
+}
+.atlas-sticker[data-phase='closing'] {
+  scale: 1;
+  filter: none;
+}
+.atlas-sticker-face {
+  fill: var(--map-land);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+/* The paper back of the peeled flap. */
+.atlas-sticker-back {
+  fill: var(--surface);
+  stroke: var(--map-border);
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+}
+.atlas-sticker-name {
+  fill: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+/* Undo and failure: the sticker fades back over the country before the fill returns underneath it. */
+.atlas-sticker-ghost {
+  animation: atlas-sticker-fade-in var(--dur-fast) var(--ease-out);
+}
+@keyframes atlas-sticker-lift {
+  from {
+    scale: 1;
+    filter: none;
+  }
+}
+@keyframes atlas-sticker-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes atlas-sticker-tabs-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+.atlas-sticker-tabs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  pointer-events: auto;
+  animation: atlas-sticker-tabs-in var(--dur-base) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.atlas-sticker-tabs[data-phase='closing'],
+.atlas-sticker-tabs[data-phase='tearing'] {
+  opacity: 0;
+  pointer-events: none;
+}
+/* Tear-off tabs: perforated paper stubs, part of the sticker rather than a panel. */
+.atlas-sticker-tab {
+  min-height: 44px;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px dashed var(--map-border);
+  border-top-style: dotted;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+.atlas-sticker-tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .atlas-sticker-tab:hover {
+    background: var(--surface-inset);
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+}
+
+.atlas-sticker-stamp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.atlas-sticker-stamp[data-leaving] {
+  opacity: 0;
+}
+
+/* Reduced motion: an outline highlight instead of the lift; the tear is the sticker's and the stamp's opacity. */
+@media (prefers-reduced-motion: reduce) {
+  .atlas-sticker,
+  .atlas-sticker[data-phase='closing'] {
+    scale: none;
+    filter: none;
+    animation: none;
+    transition: opacity var(--dur-fast) linear;
+  }
+  .atlas-sticker .atlas-sticker-face {
+    stroke: var(--accent-text);
+    stroke-width: 2;
+  }
+  .atlas-sticker[data-phase='tearing'] {
+    opacity: 0 !important;
+  }
+  .atlas-sticker-tabs {
+    animation: none;
+  }
+  .atlas-sticker-stamp {
+    animation: atlas-sticker-fade-in var(--dur-fast) linear;
+  }
+}

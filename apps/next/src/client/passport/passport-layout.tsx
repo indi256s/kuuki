@@ -14,7 +14,8 @@ import { Block, BlockHead, HeadlineNumbers, JoinCard, Ranks } from '../profile/s
 import { Button } from '../ui/button'
 import { formatNumber, type Locale } from '../../lib/format'
 import { resolveAccent } from '../../lib/theme-colors'
-import { PassportAtlas } from './atlas'
+import { PassportAtlas, type QuickVisit } from './atlas'
+import type { RecordVisit } from './atlas/quick-visit'
 import {
   EmptyPassport,
   FilteredEmpty,
@@ -27,6 +28,7 @@ import {
   activeFilterCount,
   filterEntries,
   foundText,
+  isCatalogCountry,
   mapScopeOf,
   searchSuggestion,
   sortEntries,
@@ -61,6 +63,8 @@ export type OwnerLayout = {
   onOpenArrival: (code: string) => void
   onAdd: () => void
   onOpenHidden: () => void
+  /** Records a ground visit from an atlas sticker. */
+  recordVisit: RecordVisit
 }
 
 export type PassportLayoutProps = {
@@ -253,6 +257,22 @@ export function PassportLayout(props: PassportLayoutProps) {
       />
     )
   }
+  // Stickers only on the owner's own, unfiltered map: under a filter a just-recorded country could vanish at once.
+  // Eligibility reads the full collection, so a country hidden or pending elsewhere never lifts.
+  const quickVisit = useMemo<QuickVisit | null>(() => {
+    if (!owner || mode !== 'owner' || norm(draft) || state.region || state.sources.length)
+      return null
+    const recorded = new Set([
+      ...entries.map((entry) => entry.code),
+      ...pending.map((entry) => entry.code),
+      ...hiddenCodes,
+    ])
+    return {
+      ownerId: owner.ownerId,
+      peelable: (code) => isCatalogCountry(code) && !recorded.has(code),
+      record: owner.recordVisit,
+    }
+  }, [owner, mode, draft, state.region, state.sources, entries, pending, hiddenCodes])
   // The atlas draws what the filters leave, pending included; a pending-only passport keeps its explanation above it.
   if (state.view === 'map' && filtered.length + filteredPending.length > 0) {
     const atlas = (
@@ -263,6 +283,7 @@ export function PassportLayout(props: PassportLayoutProps) {
         owner={isOwner}
         name={name}
         onSelectCountry={(code) => props.onOpen(code)}
+        quickVisit={quickVisit}
       />
     )
     collection =
