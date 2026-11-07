@@ -74,22 +74,26 @@ const geometry = {
   ],
   centre: [10, 10] as [number, number],
 }
-const ink = vi.fn()
 const refresh = vi.fn(async () => {})
 const handle: { current: StickerHandle | null } = { current: null }
 
-function Harness() {
-  const record = useRecordVisit('owner', refresh)
+// The page holds the writes; the sticker comes and goes with the map.
+function Harness({ sticker = true }: { sticker?: boolean }) {
+  const { record, recording } = useRecordVisit('owner', refresh)
   return (
-    <Sticker
-      control={handle}
-      locale="en"
-      ownerId="owner"
-      name={(code) => (code === 'DE' ? 'Germany' : code)}
-      geometryOf={(code) => (code === 'DE' ? geometry : null)}
-      record={record}
-      ink={ink}
-    />
+    <>
+      <output aria-label="Inked">{[...recording].join(' ')}</output>
+      {sticker ? (
+        <Sticker
+          control={handle}
+          locale="en"
+          ownerId="owner"
+          name={(code) => (code === 'DE' ? 'Germany' : code)}
+          geometryOf={(code) => (code === 'DE' ? geometry : null)}
+          record={record}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -99,16 +103,18 @@ function deferred<T>() {
   return { promise, resolve, reject }
 }
 const flush = () => act(async () => {})
+const page = (sticker = true) => (
+  <ToastProvider>
+    <Harness sticker={sticker} />
+  </ToastProvider>
+)
 const lift = async () => {
-  render(
-    <ToastProvider>
-      <Harness />
-    </ToastProvider>,
-  )
+  const view = render(page())
   act(() => handle.current!.lift('DE'))
   await flush()
-  return screen.getByRole('group', { name: 'Germany' })
+  return { group: screen.getByRole('group', { name: 'Germany' }), view }
 }
+const inked = () => screen.getByRole('status', { name: 'Inked' }).textContent
 const tab = (name: string) => screen.getByRole('button', { name })
 
 beforeEach(() => {
@@ -116,7 +122,6 @@ beforeEach(() => {
   tweens.running = []
   api.add.mockReset()
   api.remove.mockReset()
-  ink.mockReset()
   refresh.mockClear()
 })
 afterEach(() => vi.useRealTimers())
@@ -137,12 +142,14 @@ it('lifts with four tabs, focuses the first, and a Train tap writes a land visit
     entryMethod: 'land',
     mode: 'rail',
   })
-  expect(ink).toHaveBeenCalledWith('DE', true)
+  expect(inked()).toBe('DE')
   // The toast arrives with the stamp's impact, three quarters into the tear.
   expect(screen.queryByText('Germany is in your passport.')).not.toBeInTheDocument()
   await act(async () => vi.advanceTimersByTime(240))
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   expect(refresh).toHaveBeenCalled()
+  // The refreshed collection has it now; the optimistic ink goes.
+  expect(inked()).toBe('')
 })
 
 it('springs back without writing when a pull is released before the threshold', async () => {
@@ -156,11 +163,11 @@ it('springs back without writing when a pull is released before the threshold', 
   fireEvent.click(train)
   expect(tweens.running.map((tween) => tween.to)).toEqual([0])
   expect(api.add).not.toHaveBeenCalled()
-  expect(ink).not.toHaveBeenCalled()
+  expect(inked()).toBe('')
 })
 
 it('closes on Escape without writing and returns focus to the map', async () => {
-  const group = await lift()
+  const { group } = await lift()
   fireEvent.keyDown(group, { key: 'Escape' })
   await act(async () => vi.advanceTimersByTime(150))
   expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
@@ -179,7 +186,7 @@ it('Undo pressed before the write returns deletes exactly the created row once i
   fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
   expect(api.remove).not.toHaveBeenCalled()
   await act(async () => vi.advanceTimersByTime(150))
-  expect(ink).toHaveBeenLastCalledWith('DE', false)
+  expect(inked()).toBe('')
 
   await act(async () => write.resolve({ id: 'v7', derived_state: 'ready' }))
   await flush()
@@ -194,7 +201,7 @@ it('a failed write restores the country and offers to try again', async () => {
   expect(api.add).toHaveBeenCalledWith('owner', 'DE', { entryMethod: 'sea', mode: null })
   await act(async () => write.reject(new Error('offline')))
   await act(async () => vi.advanceTimersByTime(150))
-  expect(ink).toHaveBeenLastCalledWith('DE', false)
+  expect(inked()).toBe('')
   expect(
     screen.getByText('Could not add Germany. Check your connection and try again.'),
   ).toBeInTheDocument()
@@ -203,7 +210,34 @@ it('a failed write restores the country and offers to try again', async () => {
   api.add.mockResolvedValueOnce({ id: 'v2', derived_state: 'ready' })
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
   expect(api.add).toHaveBeenLastCalledWith('owner', 'DE', { entryMethod: 'sea', mode: null })
-  expect(ink).toHaveBeenLastCalledWith('DE', true)
+  expect(inked()).toBe('DE')
   await flush()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
+})
+
+it('a later tear of the same country retires the earlier Retry', async () => {
+  api.add.mockRejectedValueOnce(new Error('offline'))
+  await lift()
+  fireEvent.click(tab('By sea'))
+  await act(async () => vi.advanceTimersByTime(150))
+  const retry = screen.getByRole('button', { name: 'Try again' })
+
+  api.add.mockResolvedValueOnce({ id: 'v3', derived_state: 'ready' })
+  act(() => handle.current!.lift('DE'))
+  await flush()
+  fireEvent.click(tab('By train'))
+  await act(async () => vi.advanceTimersByTime(240))
+  fireEvent.click(retry)
+  expect(api.add).toHaveBeenCalledTimes(2)
+})
+
+it('a sticker unmounted mid-tear still offers Undo for the write it started', async () => {
+  api.add.mockResolvedValue({ id: 'v4', derived_state: 'ready' })
+  const { view } = await lift()
+  fireEvent.click(tab('By train'))
+  // A switch to Cards before the stamp's impact.
+  view.rerender(page(false))
+  await flush()
+  expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
 })

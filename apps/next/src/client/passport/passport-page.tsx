@@ -303,7 +303,7 @@ function OwnerInner({
     await refresh()
   }
 
-  const recordVisit = useRecordVisit(ownerId, refresh)
+  const quickWrites = useRecordVisit(ownerId, refresh)
   const hiddenCodes = data.hidden
   const menu = (
     <Menu
@@ -368,7 +368,7 @@ function OwnerInner({
       opener.remember()
       setHiddenOpen(true)
     },
-    recordVisit,
+    quickWrites,
   }
 
   return (

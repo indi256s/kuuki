@@ -15,9 +15,11 @@ import './atlas.css'
 /** The owner's quick add on the map; absent for visitors, the preview and any filtered or searched view. */
 export type QuickVisit = {
   ownerId: string
-  /** Not pressed, pending or hidden, checked against the full collection. */
+  /** Not pressed, pending, hidden or being recorded, checked against the full collection. */
   peelable: (code: string) => boolean
   record: RecordVisit
+  /** Torn countries whose write is still in flight: inked before the refreshed collection has them. */
+  recording: ReadonlySet<string>
 }
 
 const GEOMETRY = '/maps/countries-110m-2.0.2-r2.geojson'
@@ -122,24 +124,18 @@ function AtlasLayers({
 }) {
   const { map, ready, themeRevision } = useMap()
   const [raw, setRaw] = useState<Countries | null>(null)
-  // A torn sticker inks its country at once; the branch goes when the refreshed collection has it, or on Undo/failure.
-  const [inked, setInked] = useState<string[]>([])
-  const [syncedEntries, setSyncedEntries] = useState(visitedEntries)
-  if (syncedEntries !== visitedEntries) {
-    setSyncedEntries(visitedEntries)
-    if (inked.some((code) => visitedEntries.includes(code)))
-      setInked(inked.filter((code) => !visitedEntries.includes(code)))
-  }
-  const entries = useMemo(
-    () => (inked.length ? [...visitedEntries, ...inked] : visitedEntries),
-    [visitedEntries, inked],
-  )
+  // A torn sticker inks its country at once. Only while stickers are on: a filtered view draws what its filters leave.
+  const recording = quick?.recording
+  const entries = useMemo(() => {
+    const extra = recording ? [...recording].filter((code) => !visitedEntries.includes(code)) : []
+    return extra.length ? [...visitedEntries, ...extra] : visitedEntries
+  }, [visitedEntries, recording])
   const sticker = useRef<StickerHandle | null>(null)
   const tap = useRef<(id: string, polygon: boolean) => void>(() => {})
   tap.current = (id, polygon) => {
     const handle = sticker.current
     handle?.finish()
-    if (quick && polygon && quick.peelable(id) && !inked.includes(id) && handle) {
+    if (quick && polygon && quick.peelable(id) && handle) {
       handle.lift(id)
       return
     }
@@ -326,13 +322,6 @@ function AtlasLayers({
     return byId
   }, [raw])
   const geometryOf = useCallback((code: string) => geometries.get(code) ?? null, [geometries])
-  const ink = useCallback(
-    (code: string, on: boolean) =>
-      setInked((list) =>
-        on ? (list.includes(code) ? list : [...list, code]) : list.filter((item) => item !== code),
-      ),
-    [],
-  )
   return (
     <>
       <Labels sites={sites} name={name} />
@@ -344,7 +333,6 @@ function AtlasLayers({
           name={name}
           geometryOf={geometryOf}
           record={quick.record}
-          ink={ink}
         />
       ) : null}
     </>

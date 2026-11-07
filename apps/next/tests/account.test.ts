@@ -75,7 +75,7 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   await expect(page.getByText('Records: 5')).toBeVisible()
 })
 
-test('ground visit export preserves year, entry and note while neutralizing spreadsheet formulas', async ({
+test('ground visit export preserves year, entry, way and note while neutralizing spreadsheet formulas', async ({
   page,
   baseURL,
 }) => {
@@ -98,7 +98,7 @@ test('ground visit export preserves year, entry and note while neutralizing spre
   const note = '=HYPERLINK("https://example.test","trip")'
   const created = await page.request.post('/api/passport/ground-visits', {
     headers: { Origin: baseURL!, 'X-CSRF-Token': csrf },
-    data: { countryCode: 'US', visitYear: 2024, entryMethod: 'land', note },
+    data: { countryCode: 'US', visitYear: 2024, entryMethod: 'land', mode: 'rail', note },
   })
   expect(created.status()).toBe(201)
   await page.reload()
@@ -107,8 +107,8 @@ test('ground visit export preserves year, entry and note while neutralizing spre
   const file = await download
   expect(file.suggestedFilename()).toMatch(/ground-visits.*\.csv$/)
   const csv = await readFile(await file.path(), 'utf8')
-  expect(csv).toContain('country_code,visit_year,entry_method,note,created_at')
-  expect(csv).toContain('US,2024,land,')
+  expect(csv).toContain('country_code,visit_year,entry_method,mode,note,created_at')
+  expect(csv).toContain('US,2024,land,rail,')
   expect(csv).toContain("'=HYPERLINK")
   expect(csv).toContain('trip')
 })

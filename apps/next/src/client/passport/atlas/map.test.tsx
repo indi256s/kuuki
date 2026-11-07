@@ -171,6 +171,7 @@ describe('owner stickers', () => {
     ownerId: 'owner',
     peelable: (code: string) => peelable.includes(code),
     record: vi.fn(),
+    recording: new Set<string>(),
   })
   const tap = (id: string) => {
     state.hit = id

@@ -33,7 +33,7 @@ import {
   type Point,
   type Ring,
 } from './peel'
-import { RECORDED_TOAST_MS, type RecordVisit } from './quick-visit'
+import { RECORDED_TOAST_MS, REVERT_MS, type RecordVisit } from './quick-visit'
 import './sticker.css'
 
 export type StickerGeometry = {
@@ -102,7 +102,6 @@ export function Sticker({
   name,
   geometryOf,
   record,
-  ink,
 }: {
   control: RefObject<StickerHandle | null>
   locale: Locale
@@ -110,8 +109,6 @@ export function Sticker({
   name: (code: string) => string
   geometryOf: (code: string) => StickerGeometry | null
   record: RecordVisit
-  /** Switches the country's fill to `--accent` under the sticker, or back. */
-  ink: (code: string, on: boolean) => void
 }) {
   const { map } = useMap()
   const reduced = useReducedMotion() ?? false
@@ -129,7 +126,7 @@ export function Sticker({
     activeRef.current = active
   }, [active])
   // The tear's pending landing: the stamp and toast arrive at impact, or at once when the tear is cut short.
-  const landing = useRef<{ code: string; land: () => void } | null>(null)
+  const landing = useRef<{ code: string; land: () => void; announce: () => void } | null>(null)
   const pointerState = useRef<{ id: number; start: Point; way: VisitWay; grab: Point } | null>(null)
   const suppressClick = useRef(false)
 
@@ -146,6 +143,9 @@ export function Sticker({
       motion.current?.stop()
       pending.forEach((id) => window.clearTimeout(id))
       pending.clear()
+      // Gone mid-tear (a view switch or a filter): the write goes on, so its toast and Undo still arrive.
+      landing.current?.announce()
+      landing.current = null
     }
   }, [])
 
@@ -207,19 +207,18 @@ export function Sticker({
         landing.current = null
         setActive(null)
       }
-      // The sticker fades back over the inked country; then the fill returns underneath and the ghost goes.
+      // The sticker fades back over the inked country; the fill leaves underneath it (REVERT_MS), then the ghost goes.
       const key = ++sequence
       setGhosts((list) => [...list, { key, code }])
       setStamps((list) =>
         list.map((item) => (item.code === code ? { ...item, leaving: true } : item)),
       )
-      later(SETTLE_MS, () => {
-        ink(code, false)
+      later(REVERT_MS, () => {
         setGhosts((list) => list.filter((item) => item.key !== key))
         setStamps((list) => list.filter((item) => item.code !== code || !item.leaving))
       })
     },
-    [ink, later],
+    [later],
   )
 
   const close = useCallback(() => {
@@ -322,16 +321,13 @@ export function Sticker({
     const current = activeRef.current
     if (!current || current.phase !== 'lifted') return
     const code = current.code
-    ink(code, true)
     const { announce } = record(code, way, {
       revert: () => revert(code),
-      land: () => {
-        ink(code, true)
-        landStamp(code)
-      },
+      land: () => landStamp(code),
     })
     landing.current = {
       code,
+      announce,
       land: () => {
         landStamp(code)
         announce()

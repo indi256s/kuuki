@@ -41,13 +41,34 @@ export function updateGroundVisitRequest(
     for (const key of EDITABLE) if (Object.hasOwn(body, key)) merged[key] = body[key]
     const fields = parseGroundVisitFields(merged)
 
+    // Compare-and-set on the row as read: a concurrent edit must not be overwritten by fields this body left out.
     const [result] = await env.DB.batch([
       env.DB.prepare(
-        'UPDATE ground_visits SET visit_year = ?, note = ?, entry_method = ?, mode = ? WHERE id = ? AND user_id = ?',
-      ).bind(fields.visitYear, fields.note, fields.entryMethod, fields.mode, id, user.id),
+        `UPDATE ground_visits SET visit_year = ?, note = ?, entry_method = ?, mode = ?
+         WHERE id = ? AND user_id = ? AND visit_year IS ? AND note IS ? AND entry_method IS ? AND mode IS ?`,
+      ).bind(
+        fields.visitYear,
+        fields.note,
+        fields.entryMethod,
+        fields.mode,
+        id,
+        user.id,
+        current.visit_year,
+        current.note,
+        current.entry_method,
+        current.mode,
+      ),
       dirtyUserStatement(env.DB, user.id, true),
     ])
-    if (!result.meta.changes) throw new HttpError(404, 'Ground visit not found', 'NOT_FOUND')
+    if (!result.meta.changes) {
+      const exists = await env.DB.prepare(
+        'SELECT 1 FROM ground_visits WHERE id = ? AND user_id = ?',
+      )
+        .bind(id, user.id)
+        .first()
+      if (!exists) throw new HttpError(404, 'Ground visit not found', 'NOT_FOUND')
+      throw new HttpError(409, 'Ground visit changed; reload and try again', 'STATE_CONFLICT')
+    }
     const derived = await repairUserDerivedState(env.DB, user.id)
 
     return json({

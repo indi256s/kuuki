@@ -1,7 +1,7 @@
 'use client'
 // The write behind a torn sticker: one ground visit with the tab's way, optimistic, with Undo and Retry on the toast.
 
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
 import { addGroundVisit, deleteGroundVisit } from '@kuuki/client/passport'
 import { trackPrivateOperation } from '../../activity'
@@ -14,34 +14,65 @@ import { wayPayload, type VisitWay } from '../visit-ways'
 
 /** How long the recorded toast, and with it the landed stamp, stays. */
 export const RECORDED_TOAST_MS = 8000
+/** A reverted sticker fades back over the inked country for this long before the fill goes. */
+export const REVERT_MS = 150
 
 /** The atlas's side of a write: what to draw when the write is taken back, and when a retry lands it. */
 export type TearView = {
   /** Undo or failure: the sticker fades back over the country; the fill and the stamp leave. */
   revert: () => void
-  /** A retry succeeded without a tear: ink the country and land its stamp. */
+  /** A retry started without a tear: land the country's stamp. */
   land: () => void
 }
 
 /** Starts the write at once; `announce` shows the toast, called by the atlas at the stamp's impact. */
 export type RecordVisit = (code: string, way: VisitWay, view: TearView) => { announce: () => void }
 
+export type QuickWrites = {
+  record: RecordVisit
+  /** Countries with a quick write in flight or awaiting the refresh: inked on the map and never lifted again. */
+  recording: ReadonlySet<string>
+}
+
 const names = { en: countryNamer('en'), ru: countryNamer('ru') }
 
 /**
- * Owner-only. Starts the POST at the tear, marks the country seen so the cards never replay it, refreshes the passport
- * on the ack and offers Undo. Undo waits for a POST still in flight, then deletes exactly the row it created.
+ * Owner-only, held by the page so it outlives the atlas. Starts the POST at the tear, marks the country seen so the
+ * cards never replay it, refreshes the passport on the ack and offers Undo. Undo waits for a POST still in flight, then
+ * deletes exactly the row it created. A later tear of the same country retires an earlier write's Retry.
  */
-export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): RecordVisit {
+export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): QuickWrites {
   const toast = useToast()
   const feedback = useWriteFeedback(ownerId)
   const latest = useRef({ toast, feedback, refresh })
   useLayoutEffect(() => {
     latest.current = { toast, feedback, refresh }
   })
+  const [recording, setRecording] = useState<ReadonlySet<string>>(() => new Set())
+  const attempts = useRef(new Map<string, number>())
 
-  return useCallback<RecordVisit>(
+  const record = useCallback<RecordVisit>(
     function record(code, way, view) {
+      const attempt = (attempts.current.get(code) ?? 0) + 1
+      attempts.current.set(code, attempt)
+      const mark = (on: boolean) =>
+        setRecording((set) => {
+          if (set.has(code) === on) return set
+          const next = new Set(set)
+          if (on) next.add(code)
+          else next.delete(code)
+          return next
+        })
+      // Only the latest write of a country clears its mark.
+      const unmark = () => {
+        if (attempts.current.get(code) === attempt) mark(false)
+      }
+      const takeBack = () => {
+        view.revert()
+        window.setTimeout(unmark, REVERT_MS)
+      }
+      mark(true)
+
       const controller = new AbortController()
       const release = trackPrivateOperation(controller)
       const generation = getAuthGeneration()
@@ -56,7 +87,7 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): R
       const undo = () => {
         undone = true
         if (shown !== null) latest.current.toast.dismiss(shown)
-        view.revert()
+        takeBack()
         void write
           .then(
             (visit) => deleteGroundVisit(ownerId, visit.id),
@@ -96,17 +127,21 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): R
 
       write
         .then(
-          (ack) => {
-            if (undone || !current()) return
-            latest.current.feedback.acknowledge(ack)
-            // A failed refresh is the page's own "could not refresh" note; the visit is saved either way.
-            return latest.current.refresh().catch(() => undefined)
+          async (ack) => {
+            if (undone) return
+            if (current()) {
+              latest.current.feedback.acknowledge(ack)
+              // A failed refresh is the page's own "could not refresh" note; the visit is saved either way.
+              await latest.current.refresh().catch(() => undefined)
+            }
+            unmark()
           },
           () => {
             failed = true
-            if (undone || !current()) return
+            if (undone) return
+            if (!current()) return unmark()
             if (shown !== null) latest.current.toast.dismiss(shown)
-            view.revert()
+            takeBack()
             latest.current.toast.show({
               kind: 'error',
               message: {
@@ -115,6 +150,8 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): R
               },
               actionLabel: { en: 'Try again', ru: 'Повторить' },
               onAction: () => {
+                // Superseded by a later tear of the same country: that write already speaks for it.
+                if (attempts.current.get(code) !== attempt) return
                 view.land()
                 record(code, way, view).announce()
               },
@@ -126,4 +163,5 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): R
     },
     [ownerId],
   )
+  return useMemo(() => ({ record, recording }), [record, recording])
 }

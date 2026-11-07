@@ -15,7 +15,7 @@ import { Button } from '../ui/button'
 import { formatNumber, type Locale } from '../../lib/format'
 import { resolveAccent } from '../../lib/theme-colors'
 import { PassportAtlas, type QuickVisit } from './atlas'
-import type { RecordVisit } from './atlas/quick-visit'
+import type { QuickWrites } from './atlas/quick-visit'
 import {
   EmptyPassport,
   FilteredEmpty,
@@ -64,7 +64,7 @@ export type OwnerLayout = {
   onAdd: () => void
   onOpenHidden: () => void
   /** Records a ground visit from an atlas sticker. */
-  recordVisit: RecordVisit
+  quickWrites: QuickWrites
 }
 
 export type PassportLayoutProps = {
@@ -269,8 +269,10 @@ export function PassportLayout(props: PassportLayoutProps) {
     ])
     return {
       ownerId: owner.ownerId,
-      peelable: (code) => isCatalogCountry(code) && !recorded.has(code),
-      record: owner.recordVisit,
+      peelable: (code) =>
+        isCatalogCountry(code) && !recorded.has(code) && !owner.quickWrites.recording.has(code),
+      record: owner.quickWrites.record,
+      recording: owner.quickWrites.recording,
     }
   }, [owner, mode, draft, state.region, state.sources, entries, pending, hiddenCodes])
   // The atlas draws what the filters leave, pending included; a pending-only passport keeps its explanation above it.
