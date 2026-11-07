@@ -96,7 +96,7 @@ pressed; shown with a text and shape cue.
 
 ### Ground visit
 
-A recorded land or sea visit to a country (`ground_visits`). Immediately pressed.
+A recorded land or sea visit to a country (`ground_visits`). Immediately pressed. A land visit may name its way, rail or road (`mode`); Passport then counts it under Trains or Road trips instead of Manual. The way never leaves the owner's view.
 
 ### Stamp
 
