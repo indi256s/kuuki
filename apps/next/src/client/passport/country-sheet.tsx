@@ -9,6 +9,7 @@ import {
   claimCountry,
   deleteGroundVisit,
   unclaimCountry,
+  updateGroundVisit,
 } from '@kuuki/client/passport'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import { trackPrivateOperation } from '../activity'
@@ -40,6 +41,7 @@ import {
   type PassportEntry,
 } from './model'
 import { SHEET_STAMP_SIZE } from './stamp-sizes'
+import { rowWayLabel, VISIT_WAYS, WAY_LABELS, wayOf, wayPayload, type VisitWay } from './visit-ways'
 import './passport.css'
 
 type GroundEntry = Extract<CountryDetail['entries'][number], { kind: 'ground' }>
@@ -68,10 +70,6 @@ const LAND_SEA_FORMS = {
     many: '{count} визитов по суше и морю',
     other: '{count} визита по суше и морю',
   },
-}
-const ENTRY_METHOD: Record<string, Record<Locale, string>> = {
-  land: { en: 'by land', ru: 'по суше' },
-  sea: { en: 'by sea', ru: 'по морю' },
 }
 
 /** One country's published evidence, shared by the sheet and the pending slots that resolve their arrival card from it. */
@@ -133,7 +131,12 @@ export function CountrySheet({
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [year, setYear] = useState('')
-  const [method, setMethod] = useState<'land' | 'sea'>('land')
+  // A legacy land visit has no segment of its own: it stays `land` (and is left out of the PATCH) until a way is picked.
+  const [way, setWay] = useState<VisitWay | 'land'>('other')
+  // The visit the form is editing; null means the form adds a new one.
+  const [editing, setEditing] = useState<string | null>(null)
+  const [focusYear, setFocusYear] = useState(false)
+  const yearField = useRef<HTMLInputElement | null>(null)
   const [note, setNote] = useState('')
   const [deleting, setDeleting] = useState<GroundEntry | null>(null)
   const [removing, setRemoving] = useState(false)
@@ -153,7 +156,8 @@ export function CountrySheet({
     setHideError('')
     setYear('')
     setNote('')
-    setMethod('land')
+    setWay('other')
+    setEditing(null)
   }
 
   const data = detail.data?.countryCode === code ? detail.data : undefined
@@ -164,6 +168,33 @@ export function CountrySheet({
   useEffect(() => {
     if (behind) void refetch()
   }, [behind, publishedRevision, data?.publishedRevision, refetch])
+  // The menu returns focus to its trigger when it closes, which can land after this select: take focus back from it.
+  useEffect(() => {
+    if (!focusYear) return
+    const focus = () => {
+      const field = yearField.current
+      if (!field) return
+      field.focus({ preventScroll: true })
+      field.scrollIntoView?.({ block: 'nearest' })
+    }
+    const done = () => {
+      document.removeEventListener('focusin', onFocusIn)
+      setFocusYear(false)
+    }
+    const onFocusIn = (event: FocusEvent) => {
+      if (event.target !== menuTrigger.current) return
+      focus()
+      done()
+    }
+    document.addEventListener('focusin', onFocusIn)
+    const frame = requestAnimationFrame(focus)
+    const timeout = window.setTimeout(done, 800)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(timeout)
+      document.removeEventListener('focusin', onFocusIn)
+    }
+  }, [focusYear])
   // C3 keeps failure apart from pending (`last_error`): a failed derivation is an error with a retry, not "preparing".
   const derivedFailed = !!data && !behind && !detail.isError && data.derivedState === 'error'
   const preparing =
@@ -235,6 +266,25 @@ export function CountrySheet({
   }
 
   const ignore = () => {}
+
+  function leaveEdit() {
+    setEditing(null)
+    setYear('')
+    setNote('')
+    setWay('other')
+  }
+
+  /** Puts the form into edit mode for one visit and moves focus to its year once the menu has handed focus back. */
+  function startEdit(item: GroundEntry) {
+    const stored = data?.groundVisits.find((visit) => visit.id === item.id)
+    setEditing(item.id)
+    setYear(item.visitYear === null ? '' : String(item.visitYear))
+    setNote(stored?.note ?? '')
+    setWay(wayOf(item))
+    setNotice('')
+    setError('')
+    setFocusYear(true)
+  }
   const status = data && !behind ? data.status : (entry?.status ?? 'none')
   const inPassport = status !== 'none'
   const flights = data?.entries.filter((item) => item.kind === 'flight') ?? []
@@ -432,7 +482,7 @@ export function CountrySheet({
                       </li>
                     ) : null}
                     {ground.map((item) => {
-                      const label = `${item.visitYear ?? (ru ? 'Год не указан' : 'Year not set')} · ${item.entryMethod ? (ENTRY_METHOD[item.entryMethod]?.[locale] ?? item.entryMethod) : ru ? 'способ не указан' : 'entry not set'}`
+                      const label = `${item.visitYear ?? (ru ? 'Год не указан' : 'Year not set')} · ${rowWayLabel(item, locale)}`
                       const visitNote = data.groundVisits.find(
                         (visit) => visit.id === item.id,
                       )?.note
@@ -462,6 +512,9 @@ export function CountrySheet({
                               </button>
                             }
                           >
+                            <MenuItem onSelect={() => startEdit(item)}>
+                              {ru ? 'Изменить' : 'Edit'}
+                            </MenuItem>
                             <MenuItem danger onSelect={() => setDeleting(item)}>
                               {ru ? 'Удалить визит' : 'Delete visit'}
                             </MenuItem>
@@ -546,20 +599,43 @@ export function CountrySheet({
             ) : null}
 
             <section aria-labelledby="passport-add-visit">
-              <h3 id="passport-add-visit">{ru ? '＋ Добавить визит' : '＋ Add visit'}</h3>
+              <h3 id="passport-add-visit">
+                {editing
+                  ? ru
+                    ? 'Изменить визит'
+                    : 'Edit visit'
+                  : ru
+                    ? '＋ Добавить визит'
+                    : '＋ Add visit'}
+              </h3>
               <form
                 className="passport-form"
                 onSubmit={(event) => {
                   event.preventDefault()
                   if (yearInvalid || busy) return
-                  const added = !inPassport
                   const submitted = { code: code!, year, note }
+                  if (editing) {
+                    void write(
+                      () =>
+                        updateGroundVisit(ownerId, editing, {
+                          visitYear: yearValue,
+                          note: note.trim() || null,
+                          // A legacy land visit keeps its stored way until a segment is picked.
+                          ...(way === 'land' ? {} : wayPayload(way)),
+                        }),
+                      ru ? 'Визит обновлён.' : 'Visit updated.',
+                    ).then(() => {
+                      if (shownRef.current === submitted.code) leaveEdit()
+                    }, ignore)
+                    return
+                  }
+                  const added = !inPassport
                   void write(
                     () =>
                       addGroundVisit(ownerId, code!, {
                         visitYear: yearValue,
-                        entryMethod: method,
                         note: note.trim() || null,
+                        ...wayPayload(way === 'land' ? 'other' : way),
                       }),
                     ru ? 'Визит добавлен.' : 'Visit added.',
                     added,
@@ -573,17 +649,15 @@ export function CountrySheet({
               >
                 <SegmentedControl
                   label={ru ? 'Как вы въехали' : 'How you entered'}
-                  value={method}
-                  onChange={setMethod}
-                  options={[
-                    { value: 'land', label: ru ? 'По суше' : 'By land' },
-                    { value: 'sea', label: ru ? 'По морю' : 'By sea' },
-                  ]}
+                  value={way}
+                  onChange={setWay}
+                  options={VISIT_WAYS.map((value) => ({ value, label: WAY_LABELS[value][locale] }))}
                 />
                 <div className="passport-form-row">
                   <Field
                     label={ru ? 'Год' : 'Year'}
                     optionalLabel={ru ? 'необязательно' : 'optional'}
+                    ref={yearField}
                     inputMode="numeric"
                     value={year}
                     onChange={(event) => setYear(event.target.value)}
@@ -610,9 +684,20 @@ export function CountrySheet({
                     loading={busy}
                     loadingLabel={ru ? 'Сохраняем…' : 'Saving…'}
                   >
-                    {ru ? 'Добавить визит' : 'Add visit'}
+                    {editing
+                      ? ru
+                        ? 'Сохранить'
+                        : 'Save changes'
+                      : ru
+                        ? 'Добавить визит'
+                        : 'Add visit'}
                   </Button>
-                  {!data.isClaimed ? (
+                  {editing ? (
+                    <Button disabled={busy} onClick={leaveEdit}>
+                      {ru ? 'Отмена' : 'Cancel'}
+                    </Button>
+                  ) : null}
+                  {!editing && !data.isClaimed ? (
                     <Button
                       disabled={busy}
                       onClick={() =>
@@ -727,6 +812,7 @@ export function CountrySheet({
             () => deleteGroundVisit(ownerId, target.id),
             ru ? 'Визит удалён.' : 'Visit deleted.',
           )
+          if (editing === target.id) leaveEdit()
           setDeleting(null)
         }}
       />

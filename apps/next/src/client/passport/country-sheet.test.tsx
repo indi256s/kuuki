@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   unclaim: vi.fn(),
   deleteVisit: vi.fn(),
   addVisit: vi.fn(),
+  updateVisit: vi.fn(),
   claim: vi.fn(),
   acknowledge: vi.fn(),
 }))
@@ -22,6 +23,7 @@ vi.mock('@kuuki/client/passport', () => ({
   unclaimCountry: mocks.unclaim,
   deleteGroundVisit: mocks.deleteVisit,
   addGroundVisit: mocks.addVisit,
+  updateGroundVisit: mocks.updateVisit,
   claimCountry: mocks.claim,
 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
@@ -49,6 +51,7 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail =>
         countryCode: 'GR',
         visitYear: 2018,
         entryMethod: 'sea',
+        mode: null,
         note: 'Ferry from Bari',
         createdAt: '',
       },
@@ -57,6 +60,7 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail =>
         countryCode: 'GR',
         visitYear: null,
         entryMethod: null,
+        mode: null,
         note: null,
         createdAt: '',
       },
@@ -73,7 +77,7 @@ const detail = (patch: Partial<CountryDetail>): CountryDetail =>
       },
       { kind: 'claim', claimedAt: '2024-01-01' },
       { kind: 'ground', id: 'g1', visitYear: 2018, entryMethod: 'sea', mode: null },
-      { kind: 'ground', id: 'g2', visitYear: null, entryMethod: null },
+      { kind: 'ground', id: 'g2', visitYear: null, entryMethod: null, mode: null },
     ],
     suppressed: [],
     journeys: [],
@@ -291,6 +295,81 @@ describe('CountrySheet', () => {
     ).toBeInTheDocument()
     await user.click(within(confirm).getByRole('button', { name: 'Delete visit' }))
     await waitFor(() => expect(mocks.deleteVisit).toHaveBeenCalledWith('owner', 'g1'))
+  })
+
+  it.each([
+    ['By train', { entryMethod: 'land', mode: 'rail' }],
+    ['By car', { entryMethod: 'land', mode: 'road' }],
+    ['By sea', { entryMethod: 'sea', mode: null }],
+    ['Other', { entryMethod: null, mode: null }],
+  ])('records the %s way as its own payload', async (name, payload) => {
+    const user = userEvent.setup()
+    mocks.addVisit.mockResolvedValue({ ok: true, derived_state: 'ready', revision: 4 })
+    mount(detail({}))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(await within(dialog).findByRole('radio', { name }))
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() =>
+      expect(mocks.addVisit).toHaveBeenCalledWith('owner', 'GR', {
+        visitYear: null,
+        note: null,
+        ...payload,
+      }),
+    )
+  })
+
+  it('edits the chosen visit in place and leaves edit mode afterwards', async () => {
+    const user = userEvent.setup()
+    mocks.updateVisit.mockResolvedValue({ ok: true, derived_state: 'ready', revision: 4 })
+    mount(detail({}))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(
+      await within(dialog).findByRole('button', { name: 'Actions for visit 2018 · by sea' }),
+    )
+    await user.click(await screen.findByRole('menuitem', { name: 'Edit' }))
+    expect(within(dialog).getByRole('heading', { name: 'Edit visit' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue('2018')
+    expect(within(dialog).getByRole('textbox', { name: /^Note/ })).toHaveValue('Ferry from Bari')
+    expect(within(dialog).getByRole('radio', { name: 'By sea' })).toBeChecked()
+    expect(within(dialog).queryByRole('button', { name: 'Claim without a visit' })).toBeNull()
+    await user.clear(within(dialog).getByRole('textbox', { name: /^Year/ }))
+    await user.type(within(dialog).getByRole('textbox', { name: /^Year/ }), '2019')
+    await user.click(within(dialog).getByRole('radio', { name: 'By train' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+    await waitFor(() =>
+      expect(mocks.updateVisit).toHaveBeenCalledWith('owner', 'g1', {
+        visitYear: 2019,
+        note: 'Ferry from Bari',
+        entryMethod: 'land',
+        mode: 'rail',
+      }),
+    )
+    expect(mocks.addVisit).not.toHaveBeenCalled()
+    await waitFor(() =>
+      expect(within(dialog).getByRole('heading', { name: '＋ Add visit' })).toBeInTheDocument(),
+    )
+    expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue('')
+  })
+
+  it('labels a legacy land visit without a mode as by land', async () => {
+    mount(
+      detail({
+        groundVisits: [
+          {
+            id: 'g3',
+            countryCode: 'GR',
+            visitYear: 2019,
+            entryMethod: 'land',
+            mode: null,
+            note: null,
+            createdAt: '',
+          },
+        ],
+        entries: [{ kind: 'ground', id: 'g3', visitYear: 2019, entryMethod: 'land', mode: null }],
+      }),
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    expect(await within(dialog).findByText('2019 · by land')).toBeInTheDocument()
   })
 
   it('offers no direct removal for a flight-only stamp and points to the Journal', async () => {
@@ -700,7 +779,7 @@ describe('CountrySheet in Russian', () => {
     mount(detail({}), { locale: 'ru' })
     const dialog = await screen.findByRole('dialog', { name: 'Греция' })
     await user.click(
-      await within(dialog).findByRole('button', { name: 'Действия: визит 2018 · по морю' }),
+      await within(dialog).findByRole('button', { name: 'Действия: визит 2018 · морем' }),
     )
     await user.click(await screen.findByRole('menuitem', { name: 'Удалить визит' }))
     const deleteVisit = await screen.findByRole('dialog', { name: 'Удалить визит 2018 года?' })
