@@ -1,8 +1,18 @@
 'use client'
 // The atlas sticker: an unrecorded country lifts as a sticker with four tear-off tabs. A tab tap tears it by itself;
 // a pull folds it after the finger. The tear records the visit (quick-visit.ts), inks the country and lands its stamp.
+//
+// Following the camera: everything here is drawn in screen pixels at the last React render. The map is flat Mercator
+// with bearing and pitch locked, so a camera move is exactly one translate and scale of that drawing. Each `move` writes
+// it synchronously (never rAF, never React state: MapLibre's own render rAF is already queued ahead of any of ours, and
+// a re-queued one is cancelled before it runs during a drag); `moveend` re-renders once to re-project crisply.
 
-import { animate, useReducedMotion, type AnimationPlaybackControls } from 'motion/react'
+import {
+  animate,
+  useReducedMotion,
+  type AnimationPlaybackControls,
+  type ValueAnimationTransition,
+} from 'motion/react'
 import {
   useCallback,
   useEffect,
@@ -95,6 +105,9 @@ type Active = {
   pull: Pull | null
 }
 type Ghost = { key: number; code: string }
+/** The camera as the last render saw it: `at` is a fixed point near the view and `x`,`y` where it was drawn. */
+type Anchor = { zoom: number; at: GL.LngLat; x: number; y: number }
+type StampNode = { node: HTMLElement; at: [number, number]; size: number }
 type LandedStamp = { key: number; code: string; at: [number, number]; leaving: boolean }
 
 let sequence = 0
@@ -125,6 +138,7 @@ export function Sticker({
   name,
   geometryOf,
   record,
+  onActive,
 }: {
   control: RefObject<StickerHandle | null>
   locale: Locale
@@ -132,6 +146,8 @@ export function Sticker({
   name: (code: string) => string
   geometryOf: (code: string) => StickerGeometry | null
   record: RecordVisit
+  /** The country on the sticker (any phase), or null: the map hides its always-on label meanwhile. */
+  onActive?: (code: string | null) => void
 }) {
   const { map } = useMap()
   const reduced = useReducedMotion() ?? false
@@ -141,6 +157,10 @@ export function Sticker({
   const [stamps, setStamps] = useState<LandedStamp[]>([])
   const [, setFrame] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)
+  const faceFollow = useRef<SVGGElement>(null)
+  const shadowFollow = useRef<HTMLDivElement>(null)
+  const stampNodes = useRef(new Map<number, StampNode>())
+  const anchor = useRef<Anchor | null>(null)
   const firstTab = useRef<HTMLButtonElement>(null)
   const motion = useRef<AnimationPlaybackControls | null>(null)
   const timers = useRef(new Set<number>())
@@ -172,21 +192,58 @@ export function Sticker({
     }
   }, [])
 
-  // Follow the camera: re-project on every move, coalesced to one render per frame.
+  // What this render drew: the layout effect below keeps it as the base for the camera-follow transform.
+  const view = map
+    ? (() => {
+        const at = map.getCenter()
+        const { x, y } = map.project(at)
+        return { zoom: map.getZoom(), at, x, y }
+      })()
+    : null
+  useLayoutEffect(() => {
+    anchor.current = view
+    // This render re-projected everything: the camera-follow transforms start over.
+    for (const node of [faceFollow.current, shadowFollow.current])
+      if (node) node.style.transform = ''
+  })
+
   const drawing = !!active || ghosts.length > 0 || stamps.length > 0
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!map || !drawing) return
-    let frame = 0
-    const update = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => setFrame((value) => value + 1))
+    const root = rootRef.current
+    const follow = () => {
+      const from = anchor.current
+      if (!from) return
+      const scale = 2 ** (map.getZoom() - from.zoom)
+      const now = map.project(from.at)
+      const transform = `translate(${now.x - scale * from.x}px, ${now.y - scale * from.y}px) scale(${scale})`
+      if (faceFollow.current) faceFollow.current.style.transform = transform
+      if (shadowFollow.current) shadowFollow.current.style.transform = transform
+      for (const { node, at, size } of stampNodes.current.values()) {
+        const { x, y } = map.project(at)
+        node.style.transform = `translate(${x - size / 2}px, ${y - size / 2}px)`
+      }
+      // The tabs sit in screen space and wait for the camera to land.
+      root?.setAttribute('data-moving', '')
     }
-    map.on('move', update)
+    const settle = () => {
+      root?.removeAttribute('data-moving')
+      setFrame((value) => value + 1)
+    }
+    map.on('move', follow)
+    map.on('moveend', settle)
     return () => {
-      cancelAnimationFrame(frame)
-      map.off('move', update)
+      map.off('move', follow)
+      map.off('moveend', settle)
+      root?.removeAttribute('data-moving')
     }
   }, [map, drawing])
+
+  const activeCode = active?.code ?? null
+  useEffect(() => {
+    onActive?.(activeCode)
+    return () => onActive?.(null)
+  }, [activeCode, onActive])
 
   const landStamp = useCallback(
     (code: string) => {
@@ -305,6 +362,23 @@ export function Sticker({
     if (liftedCode) firstTab.current?.focus({ preventScroll: true })
   }, [liftedCode])
 
+  // The member panning, wheeling or pinching the map closes a lifted sticker like a popover; the lift's own flight and
+  // the zoom buttons carry no pointer event. A tear in flight is never interrupted (close only acts on a lifted sticker).
+  useEffect(() => {
+    if (!liftedCode || !map) return
+    const pan = (event: { originalEvent?: unknown }) => {
+      if (event.originalEvent) close()
+    }
+    map.on('dragstart', pan)
+    map.on('zoomstart', pan)
+    map.on('movestart', pan)
+    return () => {
+      map.off('dragstart', pan)
+      map.off('zoomstart', pan)
+      map.off('movestart', pan)
+    }
+  }, [liftedCode, map, close])
+
   // A tap anywhere outside the sticker and the map closes it; map taps are routed by the atlas.
   useEffect(() => {
     if (!liftedCode || !map) return
@@ -345,11 +419,13 @@ export function Sticker({
     code: string,
     phase: Active['phase'],
     keys: number[],
-    options: Record<string, unknown>,
+    options: ValueAnimationTransition<number>,
     done?: () => void,
   ) {
     motion.current?.stop()
-    motion.current = animate(keys, {
+    // A single value: the start, then its keyframes. An array as the first argument is a list of subjects to animate,
+    // which never calls onUpdate or onComplete, so the fold would stand still and the tear would never end.
+    motion.current = animate(keys[0], keys, {
       ...options,
       onUpdate: (value: number) =>
         setActive((current) =>
@@ -358,7 +434,7 @@ export function Sticker({
             : current,
         ),
       onComplete: done,
-    } as never)
+    })
   }
 
   function springBack(code: string, from: number, velocity: number) {
@@ -570,20 +646,22 @@ export function Sticker({
     const fading =
       active.phase === 'tearing' ? (reduced ? 0 : Math.max(0, (progress - 0.75) / 0.25)) : 0
     const id = `atlas-sticker-${active.code}`
-    // The lift's shadow is its own composited layer: blurred once, then only faded, never re-blurred per frame.
+    // The lift's shadow is its own composited layer: blurred once, then only faded; the camera moves its wrapper.
     shadow = reduced ? null : (
-      <svg
-        key={active.code}
-        className="atlas-sticker-shadow"
-        data-phase={active.phase}
-        aria-hidden="true"
-        style={{
-          transformOrigin: `${centre[0]}px ${centre[1]}px`,
-          opacity: active.phase === 'tearing' ? Math.max(0, 1 - 2 * progress) : undefined,
-        }}
-      >
-        <path d={d} />
-      </svg>
+      <div className="atlas-sticker-follow-html" ref={shadowFollow}>
+        <svg
+          key={active.code}
+          className="atlas-sticker-shadow"
+          data-phase={active.phase}
+          aria-hidden="true"
+          style={{
+            transformOrigin: `${centre[0]}px ${centre[1]}px`,
+            opacity: active.phase === 'tearing' ? Math.max(0, 1 - 2 * progress) : undefined,
+          }}
+        >
+          <path d={d} />
+        </svg>
+      </div>
     )
     face = (
       <g
@@ -638,17 +716,19 @@ export function Sticker({
     <div className="atlas-sticker-layer" ref={rootRef}>
       {shadow}
       <svg className="atlas-sticker-svg" aria-hidden="true">
-        {ghosts.map((ghost) => {
-          const ghostGeometry = geometryOf(ghost.code)
-          return ghostGeometry ? (
-            <path
-              key={ghost.key}
-              className="atlas-sticker-face atlas-sticker-ghost"
-              d={pathOf(screenRings(map, ghostGeometry))}
-            />
-          ) : null
-        })}
-        {face}
+        <g className="atlas-sticker-follow" ref={faceFollow}>
+          {ghosts.map((ghost) => {
+            const ghostGeometry = geometryOf(ghost.code)
+            return ghostGeometry ? (
+              <path
+                key={ghost.key}
+                className="atlas-sticker-face atlas-sticker-ghost"
+                d={pathOf(screenRings(map, ghostGeometry))}
+              />
+            ) : null
+          })}
+          {face}
+        </g>
       </svg>
       {active && box ? (
         <div
@@ -682,6 +762,10 @@ export function Sticker({
         return (
           <div
             key={stamp.key}
+            ref={(node) => {
+              if (node) stampNodes.current.set(stamp.key, { node, at: stamp.at, size: stampSize })
+              else stampNodes.current.delete(stamp.key)
+            }}
             className="atlas-sticker-stamp"
             data-leaving={stamp.leaving || undefined}
             aria-hidden="true"

@@ -1,13 +1,18 @@
 // @vitest-environment jsdom
-import { act, render } from '@testing-library/react'
-import { useImperativeHandle, type ReactNode, type RefObject } from 'react'
+import { act, cleanup, render } from '@testing-library/react'
+import { useEffect, useImperativeHandle, type ReactNode, type RefObject } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { WORLD_BOUNDS } from '../../maps/geometry'
 import AtlasMap, { ATLAS_LAYERS } from './map'
 
 type Layer = { id: string; paint?: Record<string, unknown>; filter?: unknown }
+type Source = {
+  data: GeoJSON.FeatureCollection
+  setData: (data: GeoJSON.FeatureCollection) => void
+}
 const state = vi.hoisted(() => ({
   layers: [] as Layer[],
-  sources: new Map<string, { data: GeoJSON.FeatureCollection }>(),
+  sources: new Map<string, Source>(),
   paint: [] as [string, string, unknown][],
   listeners: new Map<string, (event: unknown) => void>(),
   hit: undefined as string | undefined,
@@ -19,21 +24,42 @@ vi.mock('../../maps/mapcn', () => ({
   useMap: () => ({ map, ready: true, themeRevision: 0 }),
 }))
 // The sticker's own behaviour is sticker.test.tsx; here it only records what the map routes to it.
-const sticker = vi.hoisted(() => ({ lift: vi.fn(), finish: vi.fn(), open: false }))
+const sticker = vi.hoisted(() => ({
+  lift: vi.fn(),
+  finish: vi.fn(),
+  open: false,
+  /** The country the sticker reports as on screen. */
+  active: null as string | null,
+}))
 vi.mock('./sticker', () => ({
-  Sticker: ({ control }: { control: RefObject<unknown> }) => {
+  Sticker: ({
+    control,
+    onActive,
+  }: {
+    control: RefObject<unknown>
+    onActive: (code: string | null) => void
+  }) => {
     useImperativeHandle(control, () => ({
       lift: sticker.lift,
       finish: sticker.finish,
       dismiss: () => sticker.open,
     }))
+    useEffect(() => onActive(sticker.active), [onActive])
     return null
   },
 }))
 vi.mock('../../maps/resolve-color', () => ({ resolveColor: (value: string) => `c(${value})` }))
 const map = {
   addSource: (id: string, source: { data: GeoJSON.FeatureCollection }) =>
-    state.sources.set(id, source),
+    state.sources.set(id, {
+      ...source,
+      setData(data) {
+        this.data = data
+      },
+    } as Source),
+  setFontFaces: vi.fn(),
+  keyboard: { disableRotation: vi.fn() },
+  isMoving: () => false,
   addLayer: (layer: Layer) => state.layers.push(layer),
   getLayer: (id: string) => state.layers.find((layer) => layer.id === id),
   removeLayer: vi.fn(),
@@ -88,7 +114,12 @@ beforeEach(() => {
   sticker.lift.mockReset()
   sticker.finish.mockReset()
   sticker.open = false
+  sticker.active = null
+  map.fitBounds.mockClear()
+  map.setFilter.mockClear()
   vi.stubGlobal('fetch', async () => ({ ok: true, json: async () => geometry }))
+  // The tokens resolve to their own names, so a test can tell which one a paint uses.
+  vi.stubGlobal('getComputedStyle', () => ({ getPropertyValue: (name: string) => name }))
 })
 afterEach(() => vi.unstubAllGlobals())
 
@@ -99,13 +130,22 @@ const codesIn = (expression: unknown) =>
           Array.isArray(part) && typeof part[0] === 'string' && part !== expression[1],
       )
     : []
+/** The colour a `match` assigns to one code ('land' when no branch names it). */
+const colorOf = (expression: unknown, code: string) => {
+  const parts = expression as unknown[]
+  for (let i = 2; i < parts.length - 1; i += 2)
+    if ((parts[i] as string[]).includes(code)) return parts[i + 1]
+  return parts.at(-1)
+}
 const fill = () =>
   state.layers.find((layer) => layer.id === ATLAS_LAYERS.fill)!.paint!['fill-color']
+/** Visited countries as the atlas receives them: code → visit count. */
+const visited = (codes: string[], count = 1) => new Map(codes.map((code) => [code, count]))
 const mount = async (entries: string[], pending: string[], onSelectCountry = vi.fn()) => {
   const view = render(
     <AtlasMap
       locale="en"
-      entries={entries}
+      entries={visited(entries)}
       pending={pending}
       name={(c) => c}
       onSelectCountry={onSelectCountry}
@@ -117,7 +157,7 @@ const mount = async (entries: string[], pending: string[], onSelectCountry = vi.
 }
 const props = (entries: string[], pending: string[]) => ({
   locale: 'en' as const,
-  entries,
+  entries: visited(entries),
   pending,
   name: (c: string) => c,
   onSelectCountry: vi.fn(),
@@ -134,11 +174,53 @@ it('fills exactly the visited codes and follows entry changes; pending styling n
   await act(async () => {})
   const updated = state.paint.filter(([layer]) => layer === ATLAS_LAYERS.fill).at(-1)![2]
   expect(codesIn(updated)).toEqual([['DE'], ['JP']])
-  expect(map.setFilter).toHaveBeenLastCalledWith(ATLAS_LAYERS.pending, [
+  expect(map.setFilter).toHaveBeenCalledWith(ATLAS_LAYERS.pending, [
     'in',
     ['get', 'id'],
     ['literal', ['JP']],
   ])
+})
+
+it('fills visits 1, 2–3, 4–9 and 10+ with the four atlas visit tokens', async () => {
+  render(
+    <AtlasMap
+      {...props([], [])}
+      entries={
+        new Map([
+          ['FR', 1],
+          ['DE', 3],
+          ['JP', 9],
+          ['MC', 10],
+        ])
+      }
+    />,
+  )
+  await act(async () => {})
+  const expression = fill()
+  expect(['FR', 'DE', 'JP', 'MC'].map((code) => colorOf(expression, code))).toEqual([
+    'c(--atlas-visit-1)',
+    'c(--atlas-visit-2)',
+    'c(--atlas-visit-3)',
+    'c(--atlas-visit-4)',
+  ])
+  expect(colorOf(expression, 'US')).toBe('c(--map-land)')
+})
+
+it('opens on the member countries, or on the world without any', async () => {
+  await mount(['FR'], [])
+  // 800 × 500 canvas: a tenth of the short side is 50px of padding.
+  expect(map.fitBounds).toHaveBeenCalledTimes(1)
+  expect(map.fitBounds).toHaveBeenCalledWith(
+    [
+      [0, 0],
+      [1, 1],
+    ],
+    { padding: 50, maxZoom: 4.5, duration: 0 },
+  )
+  cleanup()
+  map.fitBounds.mockClear()
+  await mount([], [])
+  expect(map.fitBounds).toHaveBeenCalledWith(WORLD_BOUNDS, { padding: 16, duration: 0 })
 })
 
 it('puts small states without polygons in the label-point layer', async () => {
@@ -213,5 +295,24 @@ describe('owner stickers', () => {
     tap('DE')
     expect(onSelectCountry).toHaveBeenCalledWith('DE')
     expect(sticker.lift).not.toHaveBeenCalled()
+  })
+})
+
+describe('labels', () => {
+  const quick = () => ({
+    ownerId: 'owner',
+    peelable: () => true,
+    record: vi.fn(),
+    recording: new Set<string>(),
+  })
+  const filterOf = (layer: string) =>
+    JSON.stringify(map.setFilter.mock.calls.filter(([id]) => id === layer).at(-1)?.[1])
+
+  it('keeps the lifted country out of the always-on labels while its sticker prints the name', async () => {
+    sticker.active = 'DE'
+    render(<AtlasMap {...props(['FR'], [])} quickVisit={quick()} />)
+    await act(async () => {})
+    expect(filterOf(ATLAS_LAYERS.labels)).toContain('["!=",["get","id"],"DE"]')
+    expect(filterOf(ATLAS_LAYERS.labels)).toContain('["FR"]')
   })
 })

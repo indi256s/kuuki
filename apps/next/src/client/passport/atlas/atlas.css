@@ -1,4 +1,4 @@
-/* Flat atlas of the Passport. Tokens only; the map canvas colors are resolved from the same tokens in map.tsx. */
+/* Flat atlas of the Passport. Tokens only; the map canvas colors and labels are resolved from the same tokens in map.tsx. */
 .passport-atlas {
   display: grid;
   gap: var(--space-4);
@@ -20,28 +20,6 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--map-water);
-}
-.passport-atlas-labels {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-/* Position and size come inline from the collision gate in map.tsx; nothing here may offset or resize a label. */
-.passport-atlas-labels span {
-  position: absolute;
-  top: 0;
-  left: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  white-space: nowrap;
-  text-align: center;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text);
-  text-shadow:
-    0 0 2px var(--surface),
-    0 0 2px var(--surface);
 }
 .passport-atlas-controls {
   position: absolute;
@@ -65,10 +43,61 @@
   color: var(--text-muted);
   font-size: 0.9rem;
 }
-.passport-atlas-count {
+.passport-atlas-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
   margin: 0 0 var(--space-2);
+}
+.passport-atlas-count {
+  margin: 0;
   font-size: 0.9rem;
   font-weight: 600;
+}
+/* The fill legend: same buckets and tokens as the map paint (map.tsx). */
+.passport-atlas-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.passport-atlas-legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.passport-atlas-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.passport-atlas-swatch {
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+.passport-atlas-swatch[data-bucket='1'] {
+  background: var(--atlas-visit-1);
+}
+.passport-atlas-swatch[data-bucket='2'] {
+  background: var(--atlas-visit-2);
+}
+.passport-atlas-swatch[data-bucket='3'] {
+  background: var(--atlas-visit-3);
+}
+.passport-atlas-swatch[data-bucket='4'] {
+  background: var(--atlas-visit-4);
+}
+.passport-atlas-swatch[data-pending] {
+  background: var(--accent-tint);
+  border: 1.5px dashed var(--accent-text);
 }
 /* Compact: wrapped chips in a short scroll box; each button keeps a 44px target. */
 .passport-atlas-list {

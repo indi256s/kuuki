@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useMemo, useState, useSyncExternalStore } from 'react'
 import { formatCount, type Locale } from '../../../lib/format'
+import { BUCKET_LABELS } from '../../../lib/map-buckets'
 import type { PassportEntry } from '../model'
 import type { QuickVisit } from './map'
 import './atlas.css'
@@ -50,12 +51,14 @@ const COPY = {
     list: 'Countries on the map',
     unavailable: 'Map unavailable. The countries are listed below.',
     pending: 'pending',
+    visits: 'Visits',
   },
   ru: {
     map: 'Карта посещённых стран',
     list: 'Страны на карте',
     unavailable: 'Карта недоступна. Страны перечислены ниже.',
     pending: 'ждёт подтверждения',
+    visits: 'Визиты',
   },
 } as const
 
@@ -71,7 +74,10 @@ export function PassportAtlas({
   const [failed, setFailed] = useState(false)
   const client = useClient()
   const copy = COPY[locale]
-  const visitedCodes = useMemo(() => entries.map((entry) => entry.code), [entries])
+  const visits = useMemo(
+    () => new Map(entries.map((entry) => [entry.code, entry.visits])),
+    [entries],
+  )
   const pendingCodes = useMemo(() => pending.map((entry) => entry.code), [pending])
   return (
     <div className="passport-atlas">
@@ -86,7 +92,7 @@ export function PassportAtlas({
           <Suspense fallback={<div className="passport-atlas-canvas" aria-hidden="true" />}>
             <AtlasMap
               locale={locale}
-              entries={visitedCodes}
+              entries={visits}
               pending={pendingCodes}
               name={name}
               onSelectCountry={onSelectCountry}
@@ -97,9 +103,34 @@ export function PassportAtlas({
         )}
       </section>
       <div className="passport-atlas-countries">
-        <h3 className="passport-atlas-count">
-          {formatCount(locale, entries.length + pending.length, COUNT)}
-        </h3>
+        <div className="passport-atlas-heading">
+          <h3 className="passport-atlas-count">
+            {formatCount(locale, entries.length + pending.length, COUNT)}
+          </h3>
+          {entries.length ? (
+            <div className="passport-atlas-legend">
+              <span>{copy.visits}</span>
+              <ul>
+                {BUCKET_LABELS[locale].map((label, index) => (
+                  <li key={label}>
+                    <span
+                      className="passport-atlas-swatch"
+                      data-bucket={index + 1}
+                      aria-hidden="true"
+                    />
+                    {label}
+                  </li>
+                ))}
+                {pending.length ? (
+                  <li>
+                    <span className="passport-atlas-swatch" data-pending="" aria-hidden="true" />
+                    {copy.pending}
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+          ) : null}
+        </div>
         <ul aria-label={copy.list} className="passport-atlas-list">
           {entries.map((entry) => (
             <li key={entry.code}>

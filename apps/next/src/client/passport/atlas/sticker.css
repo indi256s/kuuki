@@ -12,6 +12,16 @@
   height: 100%;
   overflow: visible;
 }
+/* The camera moves these two wrappers with one transform per `move` (sticker.tsx); origin is the overlay's corner. */
+.atlas-sticker-follow {
+  transform-origin: 0 0;
+}
+.atlas-sticker-follow-html {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
 .atlas-sticker {
   pointer-events: visiblePainted;
   scale: 1.04;
@@ -30,7 +40,7 @@
   height: 100%;
   overflow: visible;
   pointer-events: none;
-  fill: color-mix(in srgb, var(--text) 18%, transparent);
+  fill: var(--atlas-sticker-shadow);
   filter: blur(4px);
   translate: 0 6px;
   scale: 1.04;
@@ -69,6 +79,8 @@
   stroke: var(--surface);
   stroke-width: 1.5;
   stroke-linejoin: round;
+  /* The camera scales the drawing; the stroke stays 1.5px. */
+  vector-effect: non-scaling-stroke;
 }
 /* The paper back of the peeled flap. */
 .atlas-sticker-back {
@@ -76,6 +88,7 @@
   stroke: var(--map-border);
   stroke-width: 0.75;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 .atlas-sticker-name {
   fill: var(--text);
@@ -111,6 +124,11 @@
   opacity: 0;
   pointer-events: none;
   transition-duration: var(--dur-fast);
+}
+/* Tabs hang in screen space, so they wait while the camera moves and return on moveend. */
+.atlas-sticker-layer[data-moving] .atlas-sticker-tabs {
+  opacity: 0;
+  pointer-events: none;
 }
 /* Tear-off tabs: perforated paper stubs, part of the sticker rather than a panel. */
 .atlas-sticker-tab {

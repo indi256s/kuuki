@@ -758,6 +758,16 @@
   --iso-ghost: #4b3f43;
   --figure-live-fill: #e8a9c0;
 }
+/* Passport atlas fill: the accent first, deepening toward the heat peak with visits (1, 2–3, 4–9, 10+). Derived from
+   the accent and heat tokens, so every theme and accent gets a ramp; the system heat ramp starts too close to land. */
+:root {
+  --atlas-visit-1: var(--accent);
+  --atlas-visit-2: color-mix(in srgb, var(--accent), var(--heat-4) 33%);
+  --atlas-visit-3: color-mix(in srgb, var(--accent), var(--heat-4) 66%);
+  --atlas-visit-4: var(--heat-4);
+  /* The sticker's lift shadow is dark in both themes; --text is light in dark mode and read as fog. */
+  --atlas-sticker-shadow: color-mix(in srgb, black 28%, transparent);
+}
 * {
   box-sizing: border-box;
 }

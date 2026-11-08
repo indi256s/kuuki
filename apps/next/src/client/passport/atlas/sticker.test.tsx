@@ -22,15 +22,23 @@ const tweens = vi.hoisted(() => ({
     onComplete?: () => void
   }[],
 }))
-vi.mock('motion/react', async (original) => ({
-  ...(await original<typeof import('motion/react')>()),
-  useReducedMotion: () => false,
-  animate: (keys: number[], options: { onUpdate?: () => void }) => {
-    const tween = { keys, to: keys[keys.length - 1], ...options }
-    tweens.running.push(tween)
-    return { stop: () => (tweens.running = tweens.running.filter((item) => item !== tween)) }
-  },
-}))
+vi.mock('motion/react', async (original) => {
+  const actual = await original<typeof import('motion/react')>()
+  return {
+    ...actual,
+    useReducedMotion: () => false,
+    // The sticker's single-value form: animate(start, keyframes, options). Other subjects (the toast's motion values)
+    // go to the real library; an array as the subject would animate nothing there, so it must never reach this.
+    animate: ((from: unknown, keys: unknown, options?: { onUpdate?: () => void }) => {
+      if (typeof from !== 'number')
+        return (actual.animate as (...args: unknown[]) => unknown)(from, keys, options)
+      const frames = keys as number[]
+      const tween = { keys: frames, to: frames[frames.length - 1], ...options }
+      tweens.running.push(tween)
+      return { stop: () => (tweens.running = tweens.running.filter((item) => item !== tween)) }
+    }) as typeof actual.animate,
+  }
+})
 
 // jsdom has no PointerEvent: without it, fireEvent drops pointerId, button and coordinates.
 if (!('PointerEvent' in window))
@@ -51,13 +59,25 @@ Object.defineProperty(container, 'clientHeight', { value: 500 })
 const canvas = document.createElement('canvas')
 canvas.tabIndex = 0
 container.appendChild(canvas)
+// A flat camera: `scale` is 2 ** (zoom − 0) and `pan` shifts everything in screen pixels.
+const camera = { scale: 1, pan: 0 }
+const listeners = new Map<string, Set<(event: unknown) => void>>()
+const emit = (name: string, event: unknown = {}) =>
+  listeners.get(name)?.forEach((listener) => listener(event))
 const map = {
-  project: ([lon, lat]: [number, number]) => ({ x: lon * 10 + 100, y: lat * 10 + 100 }),
+  project: (at: [number, number] | { lng: number; lat: number }) => {
+    const [lon, lat] = Array.isArray(at) ? at : [at.lng, at.lat]
+    return { x: lon * 10 * camera.scale + 100 + camera.pan, y: lat * 10 * camera.scale + 100 }
+  },
+  getCenter: () => ({ lng: 10, lat: 10 }),
+  getZoom: () => Math.log2(camera.scale),
   getContainer: () => container,
   getCanvas: () => canvas,
   fitBounds: vi.fn(),
-  on: vi.fn(),
-  off: vi.fn(),
+  on: (name: string, listener: (event: unknown) => void) => {
+    listeners.set(name, (listeners.get(name) ?? new Set()).add(listener))
+  },
+  off: (name: string, listener: (event: unknown) => void) => listeners.get(name)?.delete(listener),
 }
 vi.mock('../../maps/mapcn', () => ({ useMap: () => ({ map, ready: true }) }))
 
@@ -123,6 +143,9 @@ const inked = () => screen.getByRole('status', { name: 'Inked' }).textContent
 const tab = (name: string) => screen.getByRole('button', { name })
 
 beforeEach(() => {
+  camera.scale = 1
+  camera.pan = 0
+  listeners.clear()
   vi.useFakeTimers()
   tweens.running = []
   api.add.mockReset()
@@ -286,4 +309,35 @@ it('a tab grabbed during its spring-back keeps the fold on screen', async () => 
   act(() => tweens.running.at(-1)!.onUpdate?.(0.2))
   fireEvent.pointerDown(train, { pointerId: 2, button: 0, clientX: 200, clientY: 300 })
   expect(tweens.running.at(-1)!.keys).toEqual([0.2, 0.2])
+})
+
+it('follows the camera synchronously on move: one transform, no frame and no React commit', async () => {
+  await lift()
+  const follow = document.querySelector<SVGGElement>('.atlas-sticker-follow')!
+  const outline = document.querySelector('.atlas-sticker-face')!.getAttribute('d')
+  // Zoom in by 2 and pan 30px; Germany's corner (0, 0) was at (100, 100) and is now at (130, 100).
+  camera.scale = 2
+  camera.pan = 30
+  emit('move')
+  // Re-projecting at (1, 1) of the old drawing: x' = 2·x + (130 − 2·100 → −70), y' = 2·y − 100.
+  expect(follow.style.transform).toBe('translate(-70px, -100px) scale(2)')
+  expect(document.querySelector('.atlas-sticker-face')!.getAttribute('d')).toBe(outline)
+  expect(screen.getByRole('group', { name: 'Germany' }).parentElement).toHaveAttribute(
+    'data-moving',
+  )
+  // moveend re-projects once and starts the transform over.
+  act(() => emit('moveend'))
+  expect(follow.style.transform).toBe('')
+  expect(document.querySelector('.atlas-sticker-face')!.getAttribute('d')).not.toBe(outline)
+})
+
+it("closes a lifted sticker on a member pan but not on the lift's own camera move", async () => {
+  await lift()
+  act(() => emit('movestart', {}))
+  expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeNull()
+  act(() => emit('dragstart', { originalEvent: new MouseEvent('mousemove') }))
+  act(() => {
+    vi.advanceTimersByTime(300)
+  })
+  expect(screen.queryByRole('group', { name: 'Germany' })).toBeNull()
 })
