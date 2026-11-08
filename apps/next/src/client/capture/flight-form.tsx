@@ -626,7 +626,6 @@ export function FlightForm({
         }
         confirmLabel={ru ? 'Удалить перелёт' : 'Delete flight'}
         cancelLabel={ru ? 'Отмена' : 'Cancel'}
-        closeLabel={ru ? 'Закрыть' : 'Close'}
         errorMessage={deleteError}
         confirmDisabledReason={deleteReason}
         onConfirm={async () => {

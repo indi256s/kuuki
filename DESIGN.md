@@ -202,7 +202,7 @@ Shell and control tokens (all in `:root`):
 
 Runtime variables set by the shell and primitives, not for authoring: `--tabbar-offset`, `--toast-bottom-offset`, `--action-bar-bottom` (mobile, derived from the tab bar and safe area; zeroed while the keyboard is open), `--sheet-kb`, `--n` (segmented option count).
 
-**Z-index scale** (literals in the CSS, lowest to highest): header 20 (`--z-header`), tab bar 30 (`--z-tabbar`), floating action bar 40, overlay 50, dialog and sheet 51, combobox and calendar popovers 55, toast 70, menu shield 71, menu 72, skip link 100; while a scrimmed menu is open the shield is 71, the rail 73 and the menu 74. Overlays therefore sit above the tab bar, and menus above the dialog that hosts them. Legacy `.capture-confirm` (90) remains on an unmigrated surface and is superseded by DestructiveConfirm. The unused `.read-sheet` rules were removed.
+**Z-index scale** (literals in the CSS, lowest to highest): header 20 (`--z-header`), tab bar 30 (`--z-tabbar`), floating action bar 40, overlay 50, dialog and sheet 51 (a dialog's own scrim too, so whichever opened last stacks on top and a confirm dims the sheet that opened it), combobox and calendar popovers 55, toast 70, menu shield 71, menu 72, skip link 100; while a scrimmed menu is open the shield is 71, the rail 73 and the menu 74. Overlays therefore sit above the tab bar, and menus above the dialog that hosts them. Legacy `.capture-confirm` (90) remains on an unmigrated surface and is superseded by DestructiveConfirm. The unused `.read-sheet` rules were removed.
 
 Motion tokens: see Motion.
 

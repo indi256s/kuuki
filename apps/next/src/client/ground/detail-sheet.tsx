@@ -558,7 +558,6 @@ export function GroundDetail({
         consequence={confirm === 'reopen' ? t.backToPlansConsequence : t.deleteConsequence}
         confirmLabel={confirm === 'reopen' ? t.backToPlans : t.delete}
         cancelLabel={t.cancelButton}
-        closeLabel={t.closeMissing}
         pendingLabel={t.working}
         confirmDisabledReason={!online ? t.offlineReason : undefined}
         errorMessage={t.actionFailed}

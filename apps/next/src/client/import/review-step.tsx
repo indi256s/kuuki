@@ -368,7 +368,6 @@ export function ReviewStep(props: ReviewStepProps) {
         consequence={S.discardBody[locale]}
         confirmLabel={S.cancelImport[locale]}
         cancelLabel={S.discardKeep[locale]}
-        closeLabel={S.close[locale]}
         errorMessage={S.discardFailed[locale]}
         onConfirm={async () => {
           await onDiscardImport()

@@ -169,6 +169,8 @@ test('a country is added from search, claimed, visited by sea, and removed with 
   // The modal sheet hides the page from the accessibility tree, so the new stamp is found by its markup.
   await expect(data.locator('.passport-card[data-code="IS"]')).toBeAttached()
 
+  // Claimed, the country is in the passport: its record leads and Add visit opens the form.
+  await sheet.getByRole('button', { name: 'Add visit', exact: true }).click()
   await sheet.getByRole('radio', { name: 'By sea' }).click()
   await sheet.getByRole('textbox', { name: /^Year/ }).fill('2019')
   await sheet.getByRole('textbox', { name: /^Note/ }).fill('Ferry from Reykjavik')
@@ -176,8 +178,8 @@ test('a country is added from search, claimed, visited by sea, and removed with 
   await expect(sheet.getByText('2019 · by sea')).toBeVisible()
   await expect(sheet.getByText('Ferry from Reykjavik')).toBeVisible()
 
-  await sheet.getByRole('button', { name: 'Actions for visit 2019 · by sea' }).click()
-  await page.getByRole('menuitem', { name: 'Delete visit' }).click()
+  await sheet.getByRole('button', { name: 'Edit visit: 2019 · by sea' }).click()
+  await sheet.getByRole('button', { name: 'Delete visit' }).click()
   const deleteVisit = page.getByRole('dialog', { name: 'Delete the 2019 visit?' })
   await expect(deleteVisit).toContainText(
     "Only this visit is deleted. The rest of this country's record stays.",
@@ -187,8 +189,8 @@ test('a country is added from search, claimed, visited by sea, and removed with 
 
   const consequence =
     'This deletes your claim. Flights in your journal are not deleted. The stamp disappears from your passport.'
-  await expect(sheet.getByText(consequence)).toBeVisible()
-  await sheet.getByRole('button', { name: 'Remove country' }).click()
+  await sheet.getByRole('button', { name: 'Country actions' }).click()
+  await page.getByRole('menuitem', { name: 'Remove country…' }).click()
   const confirm = page.getByRole('dialog', { name: 'Remove Iceland from your passport?' })
   await expect(confirm).toContainText(consequence)
   await confirm.getByRole('button', { name: 'Remove country' }).click()

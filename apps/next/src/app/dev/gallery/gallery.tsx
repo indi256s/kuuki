@@ -517,7 +517,6 @@ function Sections({
           confirmLabel={t('Delete flight', 'Удалить рейс')}
           cancelLabel={t('Cancel', 'Отмена')}
           pendingLabel={t('Deleting…', 'Удаляем…')}
-          closeLabel={t('Close', 'Закрыть')}
           onConfirm={() =>
             new Promise<void>((resolve) => setTimeout(resolve, 1200)).then(() => {
               setConfirm(false)

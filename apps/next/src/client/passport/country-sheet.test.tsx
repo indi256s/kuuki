@@ -122,8 +122,21 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+type User = ReturnType<typeof userEvent.setup>
+
+/** A country already in the passport keeps its add form closed until Add visit opens it. */
+async function openForm(user: User, dialog: HTMLElement) {
+  await user.click(await within(dialog).findByRole('button', { name: 'Add visit' }))
+  return within(dialog).findByRole('textbox', { name: /^Year/ })
+}
+
+async function countryAction(user: User, dialog: HTMLElement, name: string) {
+  await user.click(await within(dialog).findByRole('button', { name: 'Country actions' }))
+  await user.click(await screen.findByRole('menuitem', { name }))
+}
+
 describe('CountrySheet', () => {
-  it('lists source flights as journal links, ground visits, airports and the add-visit form', async () => {
+  it('lists source flights as journal links, ground visits, airports and Add visit', async () => {
     mount(detail({}))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
     expect(await within(dialog).findByRole('link', { name: /arrived at ATH/ })).toHaveAttribute(
@@ -136,8 +149,9 @@ describe('CountrySheet', () => {
       'href',
       '/journal?airport=ATH',
     )
-    expect(within(dialog).getByRole('radiogroup', { name: 'How you entered' })).toBeInTheDocument()
+    // The record comes first: the add form waits behind its button.
     expect(within(dialog).getByRole('button', { name: 'Add visit' })).toBeInTheDocument()
+    expect(within(dialog).queryByRole('radiogroup', { name: 'How you entered' })).toBeNull()
   })
 
   it('lists ground journeys apart from flights and manual visits, each linking to the Ground travel page', async () => {
@@ -214,8 +228,7 @@ describe('CountrySheet', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
     const copy =
       'This deletes your claim and 2 land and sea visits. Flights in your journal are not deleted. Flights still reach this country, so its stamp stays.'
-    expect(await within(dialog).findByText(copy)).toBeInTheDocument()
-    await user.click(within(dialog).getByRole('button', { name: 'Remove country' }))
+    await countryAction(user, dialog, 'Remove country…')
     const confirm = await screen.findByRole('dialog', { name: 'Remove Greece from your passport?' })
     expect(within(confirm).getByText(copy)).toBeInTheDocument()
     await user.click(within(confirm).getByRole('button', { name: 'Remove country' }))
@@ -235,16 +248,18 @@ describe('CountrySheet', () => {
     const onHidden = vi.fn()
     mount(detail({}), { onHidden })
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.click(await within(dialog).findByRole('button', { name: 'Hide from passport' }))
+    await countryAction(user, dialog, 'Hide from passport')
     await waitFor(() => expect(onHidden).toHaveBeenCalledWith('GR'))
     expect(mocks.put).toHaveBeenCalledWith('/api/passport/hidden/GR', undefined, expect.anything())
   })
 
   it('does not offer Hide for a country that is only awaiting confirmation', async () => {
+    const user = userEvent.setup()
     mount(detail({ status: 'pending', entries: [], groundVisits: [], isClaimed: false }))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await within(dialog).findByRole('button', { name: 'Add visit' })
-    expect(within(dialog).queryByRole('button', { name: 'Hide from passport' })).toBeNull()
+    await user.click(await within(dialog).findByRole('button', { name: 'Country actions' }))
+    expect(await screen.findByRole('menuitem', { name: 'Remove country…' })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: 'Hide from passport' })).toBeNull()
   })
 
   it('reports a removed country when nothing else supports it', async () => {
@@ -264,29 +279,26 @@ describe('CountrySheet', () => {
       { onRemoved },
     )
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await countryAction(user, dialog, 'Remove country…')
+    const confirm = await screen.findByRole('dialog', { name: 'Remove Greece from your passport?' })
     expect(
-      await within(dialog).findByText(
+      within(confirm).getByText(
         'This deletes your claim. Flights in your journal are not deleted. The stamp disappears from your passport.',
       ),
     ).toBeInTheDocument()
-    await user.click(within(dialog).getByRole('button', { name: 'Remove country' }))
-    await user.click(
-      within(
-        await screen.findByRole('dialog', { name: 'Remove Greece from your passport?' }),
-      ).getByRole('button', { name: 'Remove country' }),
-    )
+    await user.click(within(confirm).getByRole('button', { name: 'Remove country' }))
     await waitFor(() => expect(onRemoved).toHaveBeenCalledWith('GR'))
   })
 
-  it('deletes one ground visit through its menu and a confirmation', async () => {
+  it('deletes one ground visit from its edit form and a confirmation', async () => {
     const user = userEvent.setup()
     mocks.deleteVisit.mockResolvedValue({ ok: true, derived_state: 'ready', revision: 4 })
     mount(detail({}))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
     await user.click(
-      await within(dialog).findByRole('button', { name: 'Actions for visit 2018 · by sea' }),
+      await within(dialog).findByRole('button', { name: 'Edit visit: 2018 · by sea' }),
     )
-    await user.click(await screen.findByRole('menuitem', { name: 'Delete visit' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Delete visit' }))
     const confirm = await screen.findByRole('dialog', { name: 'Delete the 2018 visit?' })
     expect(
       within(confirm).getByText(
@@ -307,7 +319,8 @@ describe('CountrySheet', () => {
     mocks.addVisit.mockResolvedValue({ ok: true, derived_state: 'ready', revision: 4 })
     mount(detail({}))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.click(await within(dialog).findByRole('radio', { name }))
+    await openForm(user, dialog)
+    await user.click(within(dialog).getByRole('radio', { name }))
     await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
     await waitFor(() =>
       expect(mocks.addVisit).toHaveBeenCalledWith('owner', 'GR', {
@@ -324,9 +337,8 @@ describe('CountrySheet', () => {
     mount(detail({}))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
     await user.click(
-      await within(dialog).findByRole('button', { name: 'Actions for visit 2018 · by sea' }),
+      await within(dialog).findByRole('button', { name: 'Edit visit: 2018 · by sea' }),
     )
-    await user.click(await screen.findByRole('menuitem', { name: 'Edit' }))
     expect(within(dialog).getByRole('heading', { name: 'Edit visit' })).toBeInTheDocument()
     expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue('2018')
     expect(within(dialog).getByRole('textbox', { name: /^Note/ })).toHaveValue('Ferry from Bari')
@@ -346,9 +358,9 @@ describe('CountrySheet', () => {
     )
     expect(mocks.addVisit).not.toHaveBeenCalled()
     await waitFor(() =>
-      expect(within(dialog).getByRole('heading', { name: '＋ Add visit' })).toBeInTheDocument(),
+      expect(within(dialog).queryByRole('heading', { name: 'Edit visit' })).toBeNull(),
     )
-    expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue('')
+    expect(await openForm(user, dialog)).toHaveValue('')
   })
 
   it('labels a legacy land visit without a mode as by land', async () => {
@@ -372,7 +384,8 @@ describe('CountrySheet', () => {
     expect(await within(dialog).findByText('2019 · by land')).toBeInTheDocument()
   })
 
-  it('offers no direct removal for a flight-only stamp and points to the Journal', async () => {
+  it('blocks removing a flight-only stamp and points to the Journal', async () => {
+    const user = userEvent.setup()
     mount(
       detail({
         isClaimed: false,
@@ -390,10 +403,19 @@ describe('CountrySheet', () => {
       }),
     )
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    expect(await within(dialog).findByText(/Flights press this stamp/)).toBeInTheDocument()
-    expect(within(dialog).queryByRole('button', { name: 'Remove country' })).toBeNull()
+    await user.click(await within(dialog).findByRole('button', { name: 'Country actions' }))
     expect(
-      within(dialog).getByRole('button', { name: 'Claim without a visit' }),
+      await screen.findByRole('menuitem', { name: 'Claim without a visit' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('menuitem', { name: 'Remove country…' }))
+    const confirm = await screen.findByRole('dialog', { name: 'Remove Greece from your passport?' })
+    expect(within(confirm).getByText('Flights press this stamp.')).toBeInTheDocument()
+    expect(within(confirm).getByRole('button', { name: 'Remove country' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(
+      within(confirm).getByText('To remove it, delete or change those flights in the Journal.'),
     ).toBeInTheDocument()
   })
 
@@ -561,7 +583,7 @@ describe('CountrySheet freshness and failures', () => {
     rerender(<Harness client={client} publishedRevision={4} pressed />)
     await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(3))
     expect(
-      await within(dialog).findByRole('button', { name: 'Remove country' }),
+      await within(dialog).findByRole('button', { name: 'Country actions' }),
     ).toBeInTheDocument()
     expect(within(dialog).queryByText('Not in your passport yet')).toBeNull()
   })
@@ -591,7 +613,7 @@ describe('CountrySheet freshness and failures', () => {
     )
     await user.click(within(alert).getByRole('button', { name: 'Try again' }))
     expect(
-      await within(dialog).findByRole('button', { name: 'Remove country' }),
+      await within(dialog).findByRole('button', { name: 'Country actions' }),
     ).toBeInTheDocument()
     expect(within(dialog).queryByRole('alert')).toBeNull()
   })
@@ -640,18 +662,16 @@ describe('CountrySheet freshness and failures', () => {
       { onChanged },
     )
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.click(await within(dialog).findByRole('button', { name: 'Claim without a visit' }))
+    await countryAction(user, dialog, 'Claim without a visit')
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
       'Could not save. Check your connection and try again.',
     )
-    await user.type(within(dialog).getByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(await openForm(user, dialog), '2020')
     await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
     await waitFor(() => expect(mocks.addVisit).toHaveBeenCalled())
     expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue('2020')
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Actions for visit 2018 · by sea' }),
-    )
-    await user.click(await screen.findByRole('menuitem', { name: 'Delete visit' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Edit visit: 2018 · by sea' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Delete visit' }))
     const confirm = await screen.findByRole('dialog', { name: 'Delete the 2018 visit?' })
     await user.click(within(confirm).getByRole('button', { name: 'Delete visit' }))
     expect(await within(confirm).findByRole('alert')).toHaveTextContent(
@@ -694,17 +714,16 @@ describe('CountrySheet add-visit form during a save', () => {
     return () => release()
   }
 
-  it('clears Year and Note after a normal save', async () => {
+  it('closes the form after a normal save and reopens it empty', async () => {
     const user = userEvent.setup()
     mocks.addVisit.mockResolvedValue(ack)
     mount(detail({}))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(await openForm(user, dialog), '2020')
     await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
     await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
-    await waitFor(() =>
-      expect(within(dialog).getByRole('textbox', { name: /^Year/ })).toHaveValue(''),
-    )
+    await waitFor(() => expect(within(dialog).queryByRole('textbox', { name: /^Year/ })).toBeNull())
+    expect(await openForm(user, dialog)).toHaveValue('')
     expect(within(dialog).getByRole('textbox', { name: /^Note/ })).toHaveValue('')
   })
 
@@ -713,7 +732,7 @@ describe('CountrySheet add-visit form during a save', () => {
     const release = held()
     mount(detail({}))
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(await openForm(user, dialog), '2020')
     await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
     await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
     await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
@@ -733,7 +752,7 @@ describe('CountrySheet add-visit form during a save', () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     const { rerender } = render(<Switchable client={client} code="GR" />)
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(await openForm(user, dialog), '2020')
     await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
     await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
     await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
@@ -743,9 +762,7 @@ describe('CountrySheet add-visit form during a save', () => {
     await waitFor(() => expect(mocks.acknowledge).toHaveBeenCalled())
     rerender(<Switchable client={client} code="GR" />)
     const reopened = await screen.findByRole('dialog', { name: 'Greece' })
-    await waitFor(() =>
-      expect(within(reopened).getByRole('textbox', { name: /^Year/ })).toHaveValue(''),
-    )
+    expect(await openForm(user, reopened)).toHaveValue('')
     expect(within(reopened).getByRole('textbox', { name: /^Note/ })).toHaveValue('')
   })
 
@@ -758,13 +775,13 @@ describe('CountrySheet add-visit form during a save', () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     const { rerender } = render(<Switchable client={client} code="GR" />)
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
-    await user.type(await within(dialog).findByRole('textbox', { name: /^Year/ }), '2020')
+    await user.type(await openForm(user, dialog), '2020')
     await user.type(within(dialog).getByRole('textbox', { name: /^Note/ }), 'Corfu')
     await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
     await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
     rerender(<Switchable client={client} code="FR" />)
     const next = await screen.findByRole('dialog', { name: 'France' })
-    await user.type(await within(next).findByRole('textbox', { name: /^Year/ }), '2021')
+    await user.type(await openForm(user, next), '2021')
     await user.type(within(next).getByRole('textbox', { name: /^Note/ }), 'Paris')
     release()
     await waitFor(() => expect(mocks.acknowledge).toHaveBeenCalled())
@@ -774,22 +791,20 @@ describe('CountrySheet add-visit form during a save', () => {
 })
 
 describe('CountrySheet in Russian', () => {
-  it('names the close button of both destructive confirmations in Russian', async () => {
+  it('reaches both destructive confirmations through Russian controls', async () => {
     const user = userEvent.setup()
     mount(detail({}), { locale: 'ru' })
     const dialog = await screen.findByRole('dialog', { name: 'Греция' })
     await user.click(
-      await within(dialog).findByRole('button', { name: 'Действия: визит 2018 · морем' }),
+      await within(dialog).findByRole('button', { name: 'Изменить визит: 2018 · морем' }),
     )
-    await user.click(await screen.findByRole('menuitem', { name: 'Удалить визит' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Удалить визит' }))
     const deleteVisit = await screen.findByRole('dialog', { name: 'Удалить визит 2018 года?' })
-    expect(within(deleteVisit).getByRole('button', { name: 'Закрыть' })).toBeInTheDocument()
-    expect(within(deleteVisit).queryByRole('button', { name: 'Close' })).toBeNull()
     await user.click(within(deleteVisit).getByRole('button', { name: 'Отмена' }))
-    await user.click(within(dialog).getByRole('button', { name: 'Удалить страну' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Действия со страной' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Удалить страну…' }))
     const remove = await screen.findByRole('dialog', { name: 'Удалить из паспорта: Греция?' })
-    expect(within(remove).getByRole('button', { name: 'Закрыть' })).toBeInTheDocument()
-    expect(within(remove).queryByRole('button', { name: 'Close' })).toBeNull()
+    expect(within(remove).getByRole('button', { name: 'Отмена' })).toBeInTheDocument()
   })
 })
 

@@ -65,6 +65,12 @@
   padding-bottom: calc(var(--space-2) + var(--sheet-peek) * var(--sheet-viewport, 100dvh));
   scroll-padding-bottom: calc(var(--sheet-peek) * var(--sheet-viewport, 100dvh));
 }
+/* Without a footer the body is the bottom edge: clear the home indicator and match the header's top padding. */
+.sheet:not(:has(> .footer)) .body {
+  padding-bottom: calc(
+    var(--space-5) + env(safe-area-inset-bottom) + var(--sheet-peek) * var(--sheet-viewport, 100dvh)
+  );
+}
 .sheet:not([data-expanded]) .body {
   overflow: hidden;
 }

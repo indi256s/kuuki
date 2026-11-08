@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Car, MoreHorizontal, PlaneLanding, PlaneTakeoff, Train } from '@keyline-icons/react'
+import { Car, MoreHorizontal, PlaneLanding, PlaneTakeoff, Plus, Train } from '@keyline-icons/react'
 import { useQuery } from '@tanstack/react-query'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import {
@@ -135,6 +135,8 @@ export function CountrySheet({
   const [way, setWay] = useState<VisitWay | 'land'>('other')
   // The visit the form is editing; null means the form adds a new one.
   const [editing, setEditing] = useState<string | null>(null)
+  // A country already in the passport keeps the add form behind its button until asked for.
+  const [adding, setAdding] = useState(false)
   const [focusYear, setFocusYear] = useState(false)
   const yearField = useRef<HTMLInputElement | null>(null)
   const [note, setNote] = useState('')
@@ -142,9 +144,17 @@ export function CountrySheet({
   const [removing, setRemoving] = useState(false)
   const [hiding, setHiding] = useState(false)
   const [hideError, setHideError] = useState('')
-  const menuTrigger = useRef<HTMLButtonElement | null>(null)
+  const countryMenu = useRef<HTMLButtonElement | null>(null)
+  const addButton = useRef<HTMLButtonElement | null>(null)
+  const deleteButton = useRef<HTMLButtonElement | null>(null)
+  const form = useRef<HTMLFormElement | null>(null)
   const [shownCode, setShownCode] = useState(code)
   const shownRef = useRef(code)
+  // What the fields hold now, for a save that resolves after the member kept typing.
+  const draft = useRef({ year, note })
+  useEffect(() => {
+    draft.current = { year, note }
+  }, [year, note])
   // A closed sheet keeps its last country, so a save that completes while it is closed still clears the saved draft.
   useEffect(() => {
     shownRef.current = code ?? shownRef.current
@@ -158,6 +168,7 @@ export function CountrySheet({
     setNote('')
     setWay('other')
     setEditing(null)
+    setAdding(false)
   }
 
   const data = detail.data?.countryCode === code ? detail.data : undefined
@@ -168,32 +179,16 @@ export function CountrySheet({
   useEffect(() => {
     if (behind) void refetch()
   }, [behind, publishedRevision, data?.publishedRevision, refetch])
-  // The menu returns focus to its trigger when it closes, which can land after this select: take focus back from it.
+  // Editing a visit moves focus to its year once the form has rendered with it.
   useEffect(() => {
     if (!focusYear) return
-    const focus = () => {
+    const frame = requestAnimationFrame(() => {
       const field = yearField.current
-      if (!field) return
-      field.focus({ preventScroll: true })
-      field.scrollIntoView?.({ block: 'nearest' })
-    }
-    const done = () => {
-      document.removeEventListener('focusin', onFocusIn)
+      field?.focus({ preventScroll: true })
+      field?.scrollIntoView?.({ block: 'nearest' })
       setFocusYear(false)
-    }
-    const onFocusIn = (event: FocusEvent) => {
-      if (event.target !== menuTrigger.current) return
-      focus()
-      done()
-    }
-    document.addEventListener('focusin', onFocusIn)
-    const frame = requestAnimationFrame(focus)
-    const timeout = window.setTimeout(done, 800)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.clearTimeout(timeout)
-      document.removeEventListener('focusin', onFocusIn)
-    }
+    })
+    return () => cancelAnimationFrame(frame)
   }, [focusYear])
   // C3 keeps failure apart from pending (`last_error`): a failed derivation is an error with a retry, not "preparing".
   const derivedFailed = !!data && !behind && !detail.isError && data.derivedState === 'error'
@@ -269,15 +264,17 @@ export function CountrySheet({
 
   function leaveEdit() {
     setEditing(null)
+    setAdding(false)
     setYear('')
     setNote('')
     setWay('other')
   }
 
-  /** Puts the form into edit mode for one visit and moves focus to its year once the menu has handed focus back. */
+  /** Puts the form into edit mode for one visit and moves focus to its year. */
   function startEdit(item: GroundEntry) {
     const stored = data?.groundVisits.find((visit) => visit.id === item.id)
     setEditing(item.id)
+    setAdding(false)
     setYear(item.visitYear === null ? '' : String(item.visitYear))
     setNote(stored?.note ?? '')
     setWay(wayOf(item))
@@ -298,6 +295,63 @@ export function CountrySheet({
     [data?.firstVisit, data?.lastVisit],
     data?.groundVisits.map((visit) => visit.visitYear) ?? [],
   )
+  // Adding is the whole job for a country outside the passport; otherwise the record comes first and the form waits.
+  const formOpen = !inPassport || adding || editing !== null
+  const editingEntry = editing ? ground.find((item) => item.id === editing) : undefined
+  const held = stampHeldCopy(locale, journeys.length > 0)
+  const formWasOpen = useRef(formOpen)
+  useEffect(() => {
+    const was = formWasOpen.current
+    formWasOpen.current = formOpen
+    if (was === formOpen) return
+    // Add visit unmounts as the form opens: land on the form's first choice. Closing it from inside hands focus back.
+    if (formOpen && adding)
+      form.current
+        ?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')
+        ?.focus({ preventScroll: true })
+    else if (!formOpen && (!document.activeElement || document.activeElement === document.body))
+      addButton.current?.focus({ preventScroll: true })
+  }, [formOpen, adding])
+
+  const claimWithoutVisit = () =>
+    void write(
+      () => claimCountry(ownerId, code!),
+      ru ? 'Страна отмечена.' : 'Country claimed.',
+      !inPassport,
+    ).catch(ignore)
+
+  const countryActions =
+    data && inPassport ? (
+      <Menu
+        align="end"
+        trigger={
+          <button
+            ref={countryMenu}
+            type="button"
+            className="ui-icon-button passport-sheet-menu"
+            aria-label={ru ? 'Действия со страной' : 'Country actions'}
+            disabled={busy || hiding}
+          >
+            <MoreHorizontal size={20} aria-hidden="true" />
+          </button>
+        }
+      >
+        {!data.isClaimed ? (
+          <MenuItem onSelect={claimWithoutVisit}>
+            {ru ? 'Отметить без визита' : 'Claim without a visit'}
+          </MenuItem>
+        ) : null}
+        {/* Hiding is undone from its toast, so it needs no confirmation and no explanation here. */}
+        {status === 'pressed' ? (
+          <MenuItem onSelect={() => void hide()}>
+            {ru ? 'Скрыть из паспорта' : 'Hide from passport'}
+          </MenuItem>
+        ) : null}
+        <MenuItem danger onSelect={() => setRemoving(true)}>
+          {ru ? 'Удалить страну…' : 'Remove country…'}
+        </MenuItem>
+      </Menu>
+    ) : null
 
   return (
     <Sheet
@@ -310,6 +364,7 @@ export function CountrySheet({
       title={title}
       closeLabel={ru ? 'Закрыть' : 'Close'}
       className="passport-sheet-panel"
+      titleAction={countryActions}
       onCloseAutoFocus={onCloseAutoFocus}
       description={
         status === 'pending'
@@ -380,6 +435,7 @@ export function CountrySheet({
               : 'Recent changes are still being prepared. This country may lag behind them.'}
           </p>
         ) : null}
+        {hideError ? <p role="alert">{hideError}</p> : null}
         {!data && !detail.isError ? (
           <p role="status" className="passport-note">
             {ru ? 'Загружаем…' : 'Loading…'}
@@ -486,39 +542,22 @@ export function CountrySheet({
                       const visitNote = data.groundVisits.find(
                         (visit) => visit.id === item.id,
                       )?.note
+                      // The row is the way in: editing opens the form, which also holds Delete.
                       return (
                         <li key={item.id}>
-                          <span>
+                          <button
+                            type="button"
+                            className="passport-visit-row"
+                            aria-label={ru ? `Изменить визит: ${label}` : `Edit visit: ${label}`}
+                            aria-pressed={editing === item.id}
+                            disabled={busy}
+                            onClick={() => startEdit(item)}
+                          >
                             {label}
                             {visitNote ? (
                               <span className="passport-note"> · {visitNote}</span>
                             ) : null}
-                          </span>
-                          <Menu
-                            align="end"
-                            trigger={
-                              <button
-                                type="button"
-                                className="ui-icon-button"
-                                aria-label={
-                                  ru ? `Действия: визит ${label}` : `Actions for visit ${label}`
-                                }
-                                disabled={busy}
-                                onClick={(event) => {
-                                  menuTrigger.current = event.currentTarget
-                                }}
-                              >
-                                <MoreHorizontal size={20} aria-hidden="true" />
-                              </button>
-                            }
-                          >
-                            <MenuItem onSelect={() => startEdit(item)}>
-                              {ru ? 'Изменить' : 'Edit'}
-                            </MenuItem>
-                            <MenuItem danger onSelect={() => setDeleting(item)}>
-                              {ru ? 'Удалить визит' : 'Delete visit'}
-                            </MenuItem>
-                          </Menu>
+                          </button>
                         </li>
                       )
                     })}
@@ -545,6 +584,159 @@ export function CountrySheet({
                 ) : null}
               </section>
             ) : null}
+
+            {formOpen ? (
+              <section aria-labelledby="passport-add-visit">
+                <h3 id="passport-add-visit">
+                  {editing
+                    ? ru
+                      ? 'Изменить визит'
+                      : 'Edit visit'
+                    : ru
+                      ? 'Новый визит'
+                      : 'New visit'}
+                </h3>
+                <form
+                  ref={form}
+                  className="passport-form"
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    if (yearInvalid || busy) return
+                    const submitted = { code: code!, year, note }
+                    if (editing) {
+                      void write(
+                        () =>
+                          updateGroundVisit(ownerId, editing, {
+                            visitYear: yearValue,
+                            note: note.trim() || null,
+                            // A legacy land visit keeps its stored way until a segment is picked.
+                            ...(way === 'land' ? {} : wayPayload(way)),
+                          }),
+                        ru ? 'Визит обновлён.' : 'Visit updated.',
+                      ).then(() => {
+                        if (shownRef.current === submitted.code) leaveEdit()
+                      }, ignore)
+                      return
+                    }
+                    const added = !inPassport
+                    void write(
+                      () =>
+                        addGroundVisit(ownerId, code!, {
+                          visitYear: yearValue,
+                          note: note.trim() || null,
+                          ...wayPayload(way === 'land' ? 'other' : way),
+                        }),
+                      ru ? 'Визит добавлен.' : 'Visit added.',
+                      added,
+                    ).then(() => {
+                      // Both fields stay editable during the save: clear only what is still the submitted text, on the submitted country.
+                      if (shownRef.current !== submitted.code) return
+                      const untouched =
+                        draft.current.year === submitted.year &&
+                        draft.current.note === submitted.note
+                      setYear((current) => (current === submitted.year ? '' : current))
+                      setNote((current) => (current === submitted.note ? '' : current))
+                      // The new visit is in the list now; a draft typed during the save keeps the form open.
+                      if (untouched) setAdding(false)
+                    }, ignore)
+                  }}
+                >
+                  <SegmentedControl
+                    label={ru ? 'Как вы въехали' : 'How you entered'}
+                    value={way}
+                    onChange={setWay}
+                    options={VISIT_WAYS.map((value) => ({
+                      value,
+                      label: WAY_LABELS[value][locale],
+                    }))}
+                  />
+                  <div className="passport-form-row">
+                    <Field
+                      label={ru ? 'Год' : 'Year'}
+                      className="passport-year-field"
+                      ref={yearField}
+                      inputMode="numeric"
+                      value={year}
+                      onChange={(event) => setYear(event.target.value)}
+                      error={
+                        yearInvalid
+                          ? ru
+                            ? 'Год от 1800 до 2200'
+                            : 'A year from 1800 to 2200'
+                          : undefined
+                      }
+                    />
+                    <Field
+                      label={ru ? 'Заметка' : 'Note'}
+                      maxLength={200}
+                      value={note}
+                      onChange={(event) => setNote(event.target.value)}
+                    />
+                  </div>
+                  <div className="read-actions">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      loading={busy}
+                      loadingLabel={ru ? 'Сохраняем…' : 'Saving…'}
+                    >
+                      {editing
+                        ? ru
+                          ? 'Сохранить'
+                          : 'Save changes'
+                        : ru
+                          ? 'Добавить визит'
+                          : 'Add visit'}
+                    </Button>
+                    {editing || inPassport ? (
+                      <Button disabled={busy} onClick={leaveEdit}>
+                        {ru ? 'Отмена' : 'Cancel'}
+                      </Button>
+                    ) : null}
+                    {!inPassport && !data.isClaimed ? (
+                      <Button disabled={busy} onClick={claimWithoutVisit}>
+                        {ru ? 'Отметить без визита' : 'Claim without a visit'}
+                      </Button>
+                    ) : null}
+                    {editingEntry ? (
+                      <Button
+                        ref={deleteButton}
+                        variant="danger"
+                        className="passport-form-delete"
+                        disabled={busy}
+                        onClick={() => setDeleting(editingEntry)}
+                      >
+                        {ru ? 'Удалить визит' : 'Delete visit'}
+                      </Button>
+                    ) : null}
+                  </div>
+                </form>
+              </section>
+            ) : (
+              <div>
+                <Button
+                  ref={addButton}
+                  icon={<Plus size={18} aria-hidden="true" />}
+                  onClick={() => {
+                    setAdding(true)
+                    setNotice('')
+                    setError('')
+                  }}
+                >
+                  {ru ? 'Добавить визит' : 'Add visit'}
+                </Button>
+              </div>
+            )}
+
+            <p role="status" className="passport-note">
+              {notice}
+              {notice && feedback.status === 'pending'
+                ? ru
+                  ? ' Итоги обновляются.'
+                  : ' Totals are updating.'
+                : ''}
+            </p>
+            {error ? <p role="alert">{error}</p> : null}
 
             {journeys.length ? (
               <section aria-labelledby="passport-journeys">
@@ -597,183 +789,6 @@ export function CountrySheet({
                 </ul>
               </section>
             ) : null}
-
-            <section aria-labelledby="passport-add-visit">
-              <h3 id="passport-add-visit">
-                {editing
-                  ? ru
-                    ? 'Изменить визит'
-                    : 'Edit visit'
-                  : ru
-                    ? '＋ Добавить визит'
-                    : '＋ Add visit'}
-              </h3>
-              <form
-                className="passport-form"
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  if (yearInvalid || busy) return
-                  const submitted = { code: code!, year, note }
-                  if (editing) {
-                    void write(
-                      () =>
-                        updateGroundVisit(ownerId, editing, {
-                          visitYear: yearValue,
-                          note: note.trim() || null,
-                          // A legacy land visit keeps its stored way until a segment is picked.
-                          ...(way === 'land' ? {} : wayPayload(way)),
-                        }),
-                      ru ? 'Визит обновлён.' : 'Visit updated.',
-                    ).then(() => {
-                      if (shownRef.current === submitted.code) leaveEdit()
-                    }, ignore)
-                    return
-                  }
-                  const added = !inPassport
-                  void write(
-                    () =>
-                      addGroundVisit(ownerId, code!, {
-                        visitYear: yearValue,
-                        note: note.trim() || null,
-                        ...wayPayload(way === 'land' ? 'other' : way),
-                      }),
-                    ru ? 'Визит добавлен.' : 'Visit added.',
-                    added,
-                  ).then(() => {
-                    // Both fields stay editable during the save: clear only what is still the submitted text, on the submitted country.
-                    if (shownRef.current !== submitted.code) return
-                    setYear((current) => (current === submitted.year ? '' : current))
-                    setNote((current) => (current === submitted.note ? '' : current))
-                  }, ignore)
-                }}
-              >
-                <SegmentedControl
-                  label={ru ? 'Как вы въехали' : 'How you entered'}
-                  value={way}
-                  onChange={setWay}
-                  options={VISIT_WAYS.map((value) => ({ value, label: WAY_LABELS[value][locale] }))}
-                />
-                <div className="passport-form-row">
-                  <Field
-                    label={ru ? 'Год' : 'Year'}
-                    optionalLabel={ru ? 'необязательно' : 'optional'}
-                    ref={yearField}
-                    inputMode="numeric"
-                    value={year}
-                    onChange={(event) => setYear(event.target.value)}
-                    error={
-                      yearInvalid
-                        ? ru
-                          ? 'Год от 1800 до 2200'
-                          : 'A year from 1800 to 2200'
-                        : undefined
-                    }
-                  />
-                  <Field
-                    label={ru ? 'Заметка' : 'Note'}
-                    optionalLabel={ru ? 'необязательно' : 'optional'}
-                    maxLength={200}
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                  />
-                </div>
-                <div className="read-actions">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    loading={busy}
-                    loadingLabel={ru ? 'Сохраняем…' : 'Saving…'}
-                  >
-                    {editing
-                      ? ru
-                        ? 'Сохранить'
-                        : 'Save changes'
-                      : ru
-                        ? 'Добавить визит'
-                        : 'Add visit'}
-                  </Button>
-                  {editing ? (
-                    <Button disabled={busy} onClick={leaveEdit}>
-                      {ru ? 'Отмена' : 'Cancel'}
-                    </Button>
-                  ) : null}
-                  {!editing && !data.isClaimed ? (
-                    <Button
-                      disabled={busy}
-                      onClick={() =>
-                        void write(
-                          () => claimCountry(ownerId, code!),
-                          ru ? 'Страна отмечена.' : 'Country claimed.',
-                          !inPassport,
-                        ).catch(ignore)
-                      }
-                    >
-                      {ru ? 'Отметить без визита' : 'Claim without a visit'}
-                    </Button>
-                  ) : null}
-                </div>
-              </form>
-            </section>
-
-            <p role="status" className="passport-note">
-              {notice}
-              {notice && feedback.status === 'pending'
-                ? ru
-                  ? ' Итоги обновляются.'
-                  : ' Totals are updating.'
-                : ''}
-            </p>
-            {error ? <p role="alert">{error}</p> : null}
-
-            {status === 'pressed' ? (
-              <section aria-labelledby="passport-hide">
-                <h3 id="passport-hide">{ru ? 'Скрыть из паспорта' : 'Hide from passport'}</h3>
-                <p className="passport-note">
-                  {ru
-                    ? 'Страна пропадёт из карточек, карты и публичного профиля. Записи и статистика останутся, а вернуть её можно в меню паспорта, в пункте «Скрытые».'
-                    : 'The country leaves your cards, map and public profile. Your records and statistics stay, and Hidden in the passport menu brings it back.'}
-                </p>
-                <div>
-                  <Button
-                    disabled={busy}
-                    loading={hiding}
-                    loadingLabel={ru ? 'Скрываем…' : 'Hiding…'}
-                    onClick={() => void hide()}
-                  >
-                    {ru ? 'Скрыть из паспорта' : 'Hide from passport'}
-                  </Button>
-                </div>
-                {hideError ? <p role="alert">{hideError}</p> : null}
-              </section>
-            ) : null}
-
-            {inPassport ? (
-              <section className="passport-danger" aria-labelledby="passport-remove">
-                <h3 id="passport-remove">
-                  {ru ? 'Удалить страну из паспорта' : 'Remove country from passport'}
-                </h3>
-                {outcome?.removable ? (
-                  <>
-                    <p className="passport-note">{removalCopy(locale, outcome)}</p>
-                    <div>
-                      <Button variant="danger" disabled={busy} onClick={() => setRemoving(true)}>
-                        {ru ? 'Удалить страну' : 'Remove country'}
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <p className="passport-note">
-                    {journeys.length
-                      ? ru
-                        ? 'Этот штамп поставлен перелётами и наземными поездками. Чтобы убрать его, удалите или измените их.'
-                        : 'Flights and ground journeys press this stamp. To remove it, delete or change them.'
-                      : ru
-                        ? 'Этот штамп поставлен перелётами. Чтобы убрать его, удалите или измените эти перелёты в журнале.'
-                        : 'Flights press this stamp. To remove it, delete or change those flights in the Journal.'}
-                  </p>
-                )}
-              </section>
-            ) : null}
           </>
         ) : null}
       </div>
@@ -795,15 +810,15 @@ export function CountrySheet({
         consequence={deleting && data ? groundCopy(locale, data, name(data.countryCode)) : ''}
         confirmLabel={ru ? 'Удалить визит' : 'Delete visit'}
         cancelLabel={ru ? 'Отмена' : 'Cancel'}
-        closeLabel={ru ? 'Закрыть' : 'Close'}
         pendingLabel={ru ? 'Удаляем…' : 'Deleting…'}
         errorMessage={
           ru ? 'Не удалось удалить визит. Повторите.' : 'Could not delete the visit. Try again.'
         }
         onCloseAutoFocus={(event) => {
-          if (menuTrigger.current?.isConnected) {
+          // Cancelled: back to Delete visit (the opener). Deleted: the form closed, so Add visit takes focus.
+          if (!deleteButton.current?.isConnected && addButton.current?.isConnected) {
             event.preventDefault()
-            menuTrigger.current.focus()
+            addButton.current.focus()
           }
         }}
         onConfirm={async () => {
@@ -821,14 +836,20 @@ export function CountrySheet({
         open={removing}
         onOpenChange={setRemoving}
         title={ru ? `Удалить из паспорта: ${title}?` : `Remove ${title} from your passport?`}
-        consequence={outcome ? removalCopy(locale, outcome) : ''}
+        consequence={!outcome ? '' : outcome.removable ? removalCopy(locale, outcome) : held.fact}
+        confirmDisabledReason={outcome && !outcome.removable ? held.fix : undefined}
         confirmLabel={ru ? 'Удалить страну' : 'Remove country'}
         cancelLabel={ru ? 'Отмена' : 'Cancel'}
-        closeLabel={ru ? 'Закрыть' : 'Close'}
         pendingLabel={ru ? 'Удаляем…' : 'Removing…'}
         errorMessage={
           ru ? 'Не удалось удалить страну. Повторите.' : 'Could not remove the country. Try again.'
         }
+        onCloseAutoFocus={(event) => {
+          if (countryMenu.current?.isConnected) {
+            event.preventDefault()
+            countryMenu.current.focus()
+          }
+        }}
         onConfirm={async () => {
           const target = code!
           await write(
@@ -889,6 +910,26 @@ export function removalCopy(locale: Locale, outcome: ReturnType<typeof removalOu
             : 'The stamp disappears from your passport.',
   )
   return parts.join(' ')
+}
+
+/** Why a stamp cannot be removed here (`fact`) and what removes it instead (`fix`, shown as the disabled reason). */
+function stampHeldCopy(locale: Locale, journeys: boolean): { fact: string; fix: string } {
+  const ru = locale === 'ru'
+  return journeys
+    ? {
+        fact: ru
+          ? 'Этот штамп поставлен перелётами и наземными поездками.'
+          : 'Flights and ground journeys press this stamp.',
+        fix: ru
+          ? 'Чтобы убрать его, удалите или измените их.'
+          : 'To remove it, delete or change them.',
+      }
+    : {
+        fact: ru ? 'Этот штамп поставлен перелётами.' : 'Flights press this stamp.',
+        fix: ru
+          ? 'Чтобы убрать его, удалите или измените эти перелёты в журнале.'
+          : 'To remove it, delete or change those flights in the Journal.',
+      }
 }
 
 function groundCopy(locale: Locale, data: CountryDetail, country: string): string {

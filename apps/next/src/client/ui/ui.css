@@ -290,6 +290,11 @@
 }
 
 /* ---------- Dialog ---------- */
+/* Same layer as sheets, so the surface opened last stacks on top: a confirm's scrim dims the sheet that opened it, and a picker
+   sheet opened from a dialog still covers that dialog. */
+.ui-dialog-overlay {
+  z-index: 51;
+}
 .ui-dialog {
   position: fixed;
   z-index: 51;
@@ -1184,6 +1189,15 @@
   margin: var(--space-3) 0 0;
   color: var(--danger-text);
   font-size: 13px;
+}
+/* On phones the two answers share the row equally, as an alert's do. */
+@media (max-width: 700px) {
+  .ui-confirm .ui-panel-footer :is(.ui-button, .ui-button-wrap) {
+    flex: 1 1 0;
+  }
+  .ui-confirm .ui-panel-footer .ui-button-wrap .ui-button {
+    width: 100%;
+  }
 }
 
 /* ---------- Reduced motion: gentler, not none. Opacity only; no translate or scale. ---------- */

@@ -18,7 +18,6 @@ export type DestructiveConfirmProps = {
   cancelLabel: string
   /** Static text shown while pending (no spinner). */
   pendingLabel?: string
-  closeLabel?: string
   /** Rejecting keeps the dialog open and shows `errorMessage`. */
   onConfirm: () => void | Promise<void>
   errorMessage?: string
@@ -31,7 +30,7 @@ export type DestructiveConfirmProps = {
   onCloseAutoFocus?: (event: Event) => void
 }
 
-/** Dialog composition: Cancel has initial focus, the danger button never doubles as an icon, and closing is blocked while pending. */
+/** Dialog composition: Cancel has initial focus and is the only way out besides Escape (no ×), the danger button never doubles as an icon, and closing is blocked while pending. */
 export function DestructiveConfirm({
   open,
   onOpenChange,
@@ -40,7 +39,6 @@ export function DestructiveConfirm({
   confirmLabel,
   cancelLabel,
   pendingLabel,
-  closeLabel,
   onConfirm,
   errorMessage,
   confirmDisabledReason,
@@ -88,9 +86,10 @@ export function DestructiveConfirm({
           onOpenChange(next)
         }
       }}
+      className="ui-confirm"
       title={title}
       trigger={trigger}
-      closeLabel={closeLabel}
+      closeButton={false}
       dismissible={!pending}
       initialFocusRef={cancelRef}
       onCloseAutoFocus={onCloseAutoFocus}

@@ -603,11 +603,54 @@
   flex: 1 1 180px;
   min-width: 0;
 }
-.passport-danger {
-  padding-top: var(--space-5);
+/* Four digits: the year stays narrow and the note takes the rest of the row. */
+.passport-form-row .passport-year-field {
+  flex: 0 1 7rem;
 }
-.passport-danger h3 {
-  color: var(--danger-text);
+/* The four ways stay one row, as a segmented control should: cells trim their padding, and at 320px a long label
+   («На машине») wraps inside its own cell instead of pushing a segment onto a second row. */
+.passport-form .ui-segmented {
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+}
+.passport-form .ui-segment {
+  padding-inline: var(--space-1);
+}
+/* Delete trails the edit form's answers, apart from Save and Cancel. */
+.passport-form-delete {
+  margin-inline-start: auto;
+}
+/* The title fills the header row, so the country menu sits beside Close instead of mid-row. */
+.passport-sheet-panel .ui-panel-header > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.passport-sheet-panel .ui-panel-header .passport-sheet-menu {
+  margin-inline-end: 0;
+}
+/* A land or sea visit opens in the form. The row bleeds its padding so its text stays on the list's edge, and the
+   visit being edited keeps the selection contour. */
+.passport-visit-row {
+  flex: 1;
+  min-height: 44px;
+  margin-inline: calc(-1 * var(--space-2));
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.passport-visit-row[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 1px var(--selection-contour);
+}
+@media (hover: hover) and (pointer: fine) {
+  .passport-visit-row:hover {
+    background: var(--hover-surface);
+  }
 }
 .passport-search {
   display: grid;

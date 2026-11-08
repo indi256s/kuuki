@@ -21,6 +21,8 @@ export type DialogProps = {
   closeLabel?: string
   /** false: no close button, Escape and outside clicks are ignored (used while an action is pending). */
   dismissible?: boolean
+  /** false: no × in the header, for dialogs whose footer already answers (Cancel). Escape and outside clicks still close. */
+  closeButton?: boolean
   /** Element to focus on open instead of the title (e.g. Cancel in a destructive confirm). */
   initialFocusRef?: RefObject<HTMLElement | null>
   /** Runs when focus is about to return to the trigger; `preventDefault()` lets the caller place focus instead. */
@@ -72,6 +74,7 @@ function MountedDialogContent({
   footer,
   closeLabel = 'Close',
   dismissible,
+  closeButton = true,
   initialFocusRef,
   onCloseAutoFocus,
   className = '',
@@ -138,7 +141,7 @@ function MountedDialogContent({
             </RadixDialog.Description>
           ) : null}
         </div>
-        {dismissible ? (
+        {dismissible && closeButton ? (
           <RadixDialog.Close className="ui-icon-button" aria-label={closeLabel}>
             <X size={20} strokeWidth={2} aria-hidden="true" />
           </RadixDialog.Close>
