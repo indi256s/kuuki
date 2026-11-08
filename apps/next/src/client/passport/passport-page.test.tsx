@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),
+  patch: vi.fn(),
   push: vi.fn(),
   listeners: new Set<() => void>(),
 }))
@@ -36,7 +37,7 @@ vi.mock('next/link', async () => ({
   default: (await import('../../test/next-link')).linkStandIn((href) => mocks.push(href)),
 }))
 vi.mock('@kuuki/client/apiClient', () => ({
-  api: { get: mocks.get, put: mocks.put, delete: mocks.delete },
+  api: { get: mocks.get, put: mocks.put, delete: mocks.delete, patch: mocks.patch },
   getAuthGeneration: () => 1,
 }))
 vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
@@ -897,5 +898,82 @@ describe('Cards and Map', () => {
     await user.keyboard('{Escape}')
     expect(window.location.search).toBe('')
     expect(card).toHaveFocus()
+  })
+})
+
+describe('round-up of visits without a year', () => {
+  const visit = (id: string, code: string, year: number | null = null) => ({
+    id,
+    country_code: code,
+    visit_year: year,
+    entry_method: 'land',
+    mode: 'rail',
+  })
+  const withVisits = (groundVisits: ReturnType<typeof visit>[]) =>
+    ownerProps({ data: { ...owned, groundVisits } as unknown as PassportData })
+  const entry = (name: string) => screen.queryByRole('button', { name })
+  const thisYear = new Date().getFullYear()
+
+  it('shows the entry with a plural count only when some ground visit has no year', () => {
+    const none = render(<PassportPage {...withVisits([visit('g1', 'NO', 2019)])} />)
+    expect(entry(/without a year/ as never)).not.toBeInTheDocument()
+    none.unmount()
+    const one = render(
+      <PassportPage {...withVisits([visit('g1', 'NO'), visit('g2', 'JP', 2019)])} />,
+    )
+    expect(entry('1 visit without a year')).toBeInTheDocument()
+    one.unmount()
+    render(<PassportPage {...withVisits([visit('g1', 'NO'), visit('g2', 'JP')])} />)
+    expect(entry('2 visits without a year')).toBeInTheDocument()
+  })
+
+  it('keeps a set row on screen, and refreshes the page once when the sheet closes', async () => {
+    const user = userEvent.setup()
+    mocks.patch.mockResolvedValue({})
+    const props = withVisits([visit('g1', 'NO'), visit('g2', 'JP')])
+    // The refetch keeps both rows undated: the server has not seen the year in this stand-in.
+    mocks.get.mockResolvedValue(props.data)
+    render(<PassportPage {...props} />)
+    await user.click(screen.getByRole('button', { name: '2 visits without a year' }))
+    const sheet = await screen.findByRole('dialog', { name: 'No year' })
+    expect(within(sheet).getByText('Japan')).toBeVisible()
+    expect(within(sheet).getAllByText('By train')).toHaveLength(2)
+
+    await user.click(within(sheet).getByRole('button', { name: 'Year of visit: Norway, no year' }))
+    await user.keyboard('{ArrowDown}{Enter}')
+    await settle()
+    expect(mocks.patch).toHaveBeenCalledExactlyOnceWith('/api/passport/ground-visits/g1', {
+      visitYear: thisYear,
+    })
+    // The row stays and shows its year; nothing is refetched while the sheet is open.
+    expect(
+      within(sheet).getByRole('button', { name: `Year of visit: Norway, ${thisYear}` }),
+    ).toHaveTextContent(String(thisYear))
+    expect(mocks.get).not.toHaveBeenCalled()
+
+    await user.click(within(sheet).getByRole('button', { name: 'Close' }))
+    await settle()
+    expect(mocks.get).toHaveBeenCalledOnce()
+    expect(mocks.get).toHaveBeenCalledWith('/api/passport/countries', undefined, expect.anything())
+    // Focus returns to the entry.
+    expect(screen.getByRole('button', { name: '2 visits without a year' })).toHaveFocus()
+  })
+
+  it('answers a concurrent change with a calm note on the row and refreshes after close', async () => {
+    const user = userEvent.setup()
+    mocks.patch.mockRejectedValue(Object.assign(new Error('changed'), { status: 409 }))
+    render(<PassportPage {...withVisits([visit('g1', 'NO')])} />)
+    await user.click(screen.getByRole('button', { name: '1 visit without a year' }))
+    const sheet = await screen.findByRole('dialog', { name: 'No year' })
+    await user.click(within(sheet).getByRole('button', { name: 'Year of visit: Norway, no year' }))
+    await user.keyboard('{ArrowDown}{Enter}')
+    await settle()
+    expect(within(sheet).getByRole('status')).toHaveTextContent('This visit changed elsewhere')
+    expect(
+      within(sheet).getByRole('button', { name: 'Year of visit: Norway, no year' }),
+    ).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'Close' }))
+    await settle()
+    expect(mocks.get).toHaveBeenCalledOnce()
   })
 })

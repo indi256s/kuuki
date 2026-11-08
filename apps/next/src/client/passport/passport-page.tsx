@@ -31,6 +31,7 @@ import {
   visitorEntries,
 } from './model'
 import { unseenCountries } from './new-stamps'
+import { UndatedSheet, undatedOf } from './undated-sheet'
 import { openWithStampHero } from './stamp-hero'
 import {
   PassportLayout,
@@ -145,6 +146,7 @@ function OwnerInner({
   const menuTrigger = useRef<HTMLButtonElement | null>(null)
   const [adding, setAdding] = useState(false)
   const [hiddenOpen, setHiddenOpen] = useState(false)
+  const [undatedOpen, setUndatedOpen] = useState(false)
   const [removedCountry, setRemovedCountry] = useState<string | null>(null)
   // A pending slot resolving its arrival card: shown while the evidence loads, dropped when the member leaves or acts.
   const [opening, setOpening] = useState<string | null>(null)
@@ -305,6 +307,10 @@ function OwnerInner({
 
   const quickWrites = useRecordVisit(ownerId, refresh)
   const hiddenCodes = data.hidden
+  const undated = useMemo(
+    () => undatedOf(data.groundVisits, hiddenCodes),
+    [data.groundVisits, hiddenCodes],
+  )
   const menu = (
     <Menu
       align="end"
@@ -367,6 +373,12 @@ function OwnerInner({
     onOpenHidden: () => {
       opener.remember()
       setHiddenOpen(true)
+    },
+    undatedCount: undated.length,
+    onOpenUndated: (element) => {
+      opener.remember(element)
+      cancelArrival()
+      setUndatedOpen(true)
     },
     quickWrites,
   }
@@ -462,6 +474,17 @@ function OwnerInner({
               codes={hiddenCodes}
               name={name}
               onRestored={refresh}
+            />
+            <UndatedSheet
+              open={undatedOpen}
+              onOpenChange={setUndatedOpen}
+              locale={locale}
+              mobile={mobile}
+              ownerId={ownerId}
+              visits={undated}
+              name={name}
+              onChanged={refresh}
+              onCloseAutoFocus={opener.restore}
             />
           </>
         )

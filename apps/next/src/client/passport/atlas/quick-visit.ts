@@ -3,7 +3,7 @@
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
-import { addGroundVisit, deleteGroundVisit } from '@kuuki/client/passport'
+import { addGroundVisit, deleteGroundVisit, updateGroundVisit } from '@kuuki/client/passport'
 import { trackPrivateOperation } from '../../activity'
 import { notificationStorage } from '../../profile/storage'
 import { useToast } from '../../ui/toast'
@@ -21,12 +21,22 @@ export const REVERT_MS = 150
 export type TearView = {
   /** Undo or failure: the sticker fades back over the country; the fill and the stamp leave. */
   revert: () => void
-  /** A retry started without a tear: land the country's stamp. */
-  land: () => void
+  /** A retry started without a tear: land the country's stamp, whose date band writes through `setYear`. */
+  land: (setYear?: SetYear) => void
 }
 
-/** Starts the write at once; `announce` shows the toast, called by the atlas at the stamp's impact. */
-export type RecordVisit = (code: string, way: VisitWay, view: TearView) => { announce: () => void }
+/** Sets or clears the year of the visit a write created. */
+export type SetYear = (year: number | null) => void
+
+/**
+ * Starts the write at once; `announce` shows the toast, called by the atlas at the stamp's impact. `setYear` waits for
+ * the write, then edits the row it created; it does nothing after Undo or a failed write.
+ */
+export type RecordVisit = (
+  code: string,
+  way: VisitWay,
+  view: TearView,
+) => { announce: () => void; setYear: SetYear }
 
 export type QuickWrites = {
   record: RecordVisit
@@ -38,8 +48,8 @@ const names = { en: countryNamer('en'), ru: countryNamer('ru') }
 
 /**
  * Owner-only, held by the page so it outlives the atlas. Starts the POST at the tear, marks the country seen so the
- * cards never replay it, refreshes the passport on the ack and offers Undo. Undo waits for a POST still in flight, then
- * deletes exactly the row it created. A later tear of the same country retires an earlier write's Retry.
+ * cards never replay it, refreshes the passport on the ack and offers Undo. Undo waits for a POST still in flight (and a
+ * year edit after it), then deletes exactly the row it created. A later tear of the same country retires an earlier write's Retry.
  */
 export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): QuickWrites {
   const toast = useToast()
@@ -83,6 +93,38 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
       let undone = false
       let shown: number | null = null
       const write = addGroundVisit(ownerId, code, wayPayload(way))
+      // Year edits run one after another on the created row; Undo waits for them so its delete is the last word.
+      let yearQueue: Promise<void> = Promise.resolve()
+      let yearEdit = 0
+
+      const setYear: SetYear = (year) => {
+        const edit = ++yearEdit
+        yearQueue = yearQueue.then(async () => {
+          const visit = await write.catch(() => null)
+          if (!visit || undone) return
+          try {
+            const ack = await updateGroundVisit(ownerId, visit.id, { visitYear: year })
+            if (undone || !current()) return
+            latest.current.feedback.acknowledge(ack)
+            await latest.current.refresh().catch(() => undefined)
+          } catch {
+            if (undone || !current()) return
+            // The visit itself stays recorded; only its year did not save.
+            latest.current.toast.show({
+              kind: 'error',
+              message: {
+                en: `Could not save the year for ${country.en}. The visit is recorded.`,
+                ru: `Не удалось сохранить год для страны «${country.ru}». Визит записан.`,
+              },
+              actionLabel: { en: 'Try again', ru: 'Повторить' },
+              onAction: () => {
+                // A newer year speaks for the visit.
+                if (edit === yearEdit) setYear(year)
+              },
+            })
+          }
+        })
+      }
 
       const undo = () => {
         undone = true
@@ -90,7 +132,7 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
         takeBack()
         void write
           .then(
-            (visit) => deleteGroundVisit(ownerId, visit.id),
+            (visit) => yearQueue.then(() => deleteGroundVisit(ownerId, visit.id)),
             () => null,
           )
           .then(
@@ -152,14 +194,15 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
               onAction: () => {
                 // Superseded by a later tear of the same country: that write already speaks for it.
                 if (attempts.current.get(code) !== attempt) return
-                view.land()
-                record(code, way, view).announce()
+                const retry = record(code, way, view)
+                view.land(retry.setYear)
+                retry.announce()
               },
             })
           },
         )
         .finally(release)
-      return { announce }
+      return { announce, setYear }
     },
     [ownerId],
   )

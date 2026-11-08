@@ -113,7 +113,9 @@ it('returns owner passport collections including ground visit details and curren
       publishedRevision: 8,
       visits: [{ country_code: 'GE', airport_iata: 'TBS' }],
       claims: [{ country_code: 'FR' }],
-      groundVisits: [{ country_code: 'TR', visit_year: 2023, entry_method: 'land' }],
+      groundVisits: [
+        { id: 'ground-owner', country_code: 'TR', visit_year: 2023, entry_method: 'land' },
+      ],
     })
     expect(typeof body.updatedAt).toBe('number')
     expect(JSON.stringify(body)).not.toContain('US')

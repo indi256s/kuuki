@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-const api = vi.hoisted(() => ({ add: vi.fn(), remove: vi.fn() }))
+const api = vi.hoisted(() => ({ add: vi.fn(), remove: vi.fn(), update: vi.fn() }))
 vi.mock('@kuuki/client/passport', () => ({
   addGroundVisit: api.add,
   deleteGroundVisit: api.remove,
+  updateGroundVisit: api.update,
 }))
 vi.mock('@kuuki/client/apiClient', () => ({ getAuthGeneration: () => 1 }))
 vi.mock('../../activity', () => ({ trackPrivateOperation: () => () => {} }))
@@ -150,6 +151,7 @@ beforeEach(() => {
   tweens.running = []
   api.add.mockReset()
   api.remove.mockReset()
+  api.update.mockReset()
   refresh.mockClear()
 })
 afterEach(() => vi.useRealTimers())
@@ -340,4 +342,92 @@ it("closes a lifted sticker on a member pan but not on the lift's own camera mov
     vi.advanceTimersByTime(300)
   })
   expect(screen.queryByRole('group', { name: 'Germany' })).toBeNull()
+})
+
+const thisYear = new Date().getFullYear()
+const stamp = () => document.querySelector('.atlas-sticker-stamp')
+
+it('lands a date band with the stamp, and the stamp stays while the drum is open', async () => {
+  api.add.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 1 })
+  api.update.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 2 })
+  await lift()
+  fireEvent.click(tab('By train'))
+  await act(async () => vi.advanceTimersByTime(240))
+  expect(stamp()).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Year of visit: not set' }))
+  const drum = screen.getByRole('spinbutton', { name: 'Year of visit' })
+
+  // Well past the toast's eight seconds: an open drum keeps the stamp.
+  await act(async () => vi.advanceTimersByTime(20_000))
+  expect(stamp()).not.toHaveAttribute('data-leaving')
+  expect(api.update).not.toHaveBeenCalled()
+
+  fireEvent.keyDown(drum, { key: 'ArrowDown' })
+  fireEvent.keyDown(drum, { key: 'Enter' })
+  expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: `Year of visit: ${thisYear}` })).toHaveFocus()
+  await flush()
+  expect(api.update).toHaveBeenCalledExactlyOnceWith('owner', 'v1', { visitYear: thisYear })
+
+  // Closed: the stamp leaves a beat later, not at once.
+  expect(stamp()).not.toHaveAttribute('data-leaving')
+  await act(async () => vi.advanceTimersByTime(150))
+  expect(stamp()).toHaveAttribute('data-leaving')
+  await act(async () => vi.advanceTimersByTime(150))
+  expect(stamp()).not.toBeInTheDocument()
+})
+
+const toastWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ToastProvider>{children}</ToastProvider>
+)
+const view = { revert: () => {}, land: () => {} }
+function recorder() {
+  const { result } = renderHook(() => useRecordVisit('owner', refresh), { wrapper: toastWrapper })
+  return result.current.record('DE', 'rail', view)
+}
+
+it('a year waits for the POST, then edits exactly the row it created', async () => {
+  const write = deferred<{ id: string; derived_state: string }>()
+  api.add.mockReturnValue(write.promise)
+  api.update.mockResolvedValue({ id: 'v9', derived_state: 'ready', revision: 2 })
+  const { setYear } = recorder()
+  setYear(2019)
+  await flush()
+  expect(api.update).not.toHaveBeenCalled()
+  await act(async () => write.resolve({ id: 'v9', derived_state: 'ready' }))
+  await flush()
+  expect(api.update).toHaveBeenCalledExactlyOnceWith('owner', 'v9', { visitYear: 2019 })
+  expect(refresh).toHaveBeenCalled()
+})
+
+it('a year set after Undo writes nothing, and Undo still deletes the row', async () => {
+  const write = deferred<{ id: string; derived_state: string }>()
+  api.add.mockReturnValue(write.promise)
+  api.remove.mockResolvedValue({ ok: true, derived_state: 'ready' })
+  const { announce, setYear } = recorder()
+  act(() => announce())
+  fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+  setYear(2020)
+  await act(async () => write.resolve({ id: 'v9', derived_state: 'ready' }))
+  await flush()
+  expect(api.update).not.toHaveBeenCalled()
+  expect(api.remove).toHaveBeenCalledExactlyOnceWith('owner', 'v9')
+})
+
+it('a failed year keeps the visit and offers Try again', async () => {
+  api.add.mockResolvedValue({ id: 'v9', derived_state: 'ready' })
+  api.update.mockRejectedValueOnce(new Error('offline'))
+  const { setYear } = recorder()
+  setYear(2019)
+  await flush()
+  expect(
+    screen.getByText('Could not save the year for Germany. The visit is recorded.'),
+  ).toBeInTheDocument()
+  expect(api.remove).not.toHaveBeenCalled()
+
+  api.update.mockResolvedValueOnce({ id: 'v9', derived_state: 'ready', revision: 2 })
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  await flush()
+  expect(api.update).toHaveBeenCalledTimes(2)
+  expect(api.update).toHaveBeenLastCalledWith('owner', 'v9', { visitYear: 2019 })
 })

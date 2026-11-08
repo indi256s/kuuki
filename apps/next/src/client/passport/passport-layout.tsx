@@ -38,6 +38,7 @@ import {
 } from './model'
 import { PassportIdentity, type IdentityOwner, type IdentityProfile } from './passport-identity'
 import { PassportToolbar } from './passport-toolbar'
+import { undatedLabel } from './undated-sheet'
 import type { usePassportQuery } from './use-passport-query'
 import '../profile/profile.css'
 import './passport.css'
@@ -63,6 +64,10 @@ export type OwnerLayout = {
   onOpenArrival: (code: string) => void
   onAdd: () => void
   onOpenHidden: () => void
+  /** Ground visits without a year, any way; the entry shows only while there are some. */
+  undatedCount: number
+  /** Opens the round-up from its entry button. */
+  onOpenUndated: (opener: HTMLElement) => void
   /** Records a ground visit from an atlas sticker. */
   quickWrites: QuickWrites
 }
@@ -341,10 +346,23 @@ export function PassportLayout(props: PassportLayoutProps) {
           {foundText(locale, filtered.length, entries.length)}
         </p>
       ) : null}
-      {owner && pending.length > 0 ? (
-        <button type="button" className="passport-awaiting-entry" onClick={showPending}>
-          {awaitingLabel(locale, pending.length)}
-        </button>
+      {owner && (pending.length > 0 || owner.undatedCount > 0) ? (
+        <div className="passport-entries">
+          {pending.length > 0 ? (
+            <button type="button" className="passport-awaiting-entry" onClick={showPending}>
+              {awaitingLabel(locale, pending.length)}
+            </button>
+          ) : null}
+          {owner.undatedCount > 0 ? (
+            <button
+              type="button"
+              className="passport-awaiting-entry"
+              onClick={(event) => owner.onOpenUndated(event.currentTarget)}
+            >
+              {undatedLabel(locale, owner.undatedCount)}
+            </button>
+          ) : null}
+        </div>
       ) : null}
       {collection}
       {owner && pending.length > 0 ? (

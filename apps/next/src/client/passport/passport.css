@@ -293,6 +293,61 @@
     color: var(--accent-text);
   }
 }
+/* The owner's quiet entries (awaiting, visits without a year) sit side by side and wrap. */
+.passport-entries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-self: start;
+}
+
+/* ---------- Round-up: visits without a year ---------- */
+.passport-undated {
+  padding-block: var(--space-6);
+}
+.passport-undated li {
+  flex-wrap: wrap;
+}
+.passport-undated-what {
+  display: grid;
+  min-width: 0;
+}
+.passport-undated-way {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+.passport-undated-year {
+  position: relative;
+  flex: none;
+  width: 80px;
+}
+.passport-undated-button {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.passport-undated-button[data-set] {
+  color: var(--text);
+}
+.passport-undated-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .passport-undated-button:hover {
+    color: var(--accent-text);
+  }
+}
+.passport-undated-note {
+  flex-basis: 100%;
+}
 
 /* ---------- Stamp cards ----------
    Columns follow the room the page has: two up from a 288px container, one when narrow or when the text is enlarged

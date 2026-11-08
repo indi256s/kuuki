@@ -195,3 +195,49 @@
     animation: atlas-sticker-fade-in var(--dur-fast) linear;
   }
 }
+
+/* The date band under a landed stamp (sticker.tsx): a blank rubber-band the owner may touch. Only it takes the pointer. */
+.atlas-sticker-date {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 44px;
+  pointer-events: none;
+}
+.atlas-sticker-band {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.atlas-sticker-band > span {
+  min-width: 56px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.atlas-sticker-band[data-set] > span {
+  color: var(--text);
+}
+.atlas-sticker-band:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
+  border-radius: var(--radius-sm);
+}
+.atlas-sticker-date .year-drum {
+  pointer-events: auto;
+}
+.atlas-sticker-stamp[data-leaving] .atlas-sticker-band {
+  pointer-events: none;
+}

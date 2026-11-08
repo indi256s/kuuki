@@ -43,6 +43,7 @@ export type Visit = {
 }
 export type Claim = { country_code: string; claimed_at: string }
 export type GroundVisit = {
+  id: string
   country_code: string
   visit_year: number | null
   entry_method: string | null
@@ -87,7 +88,7 @@ export function passportRead(
       .bind(userId),
     db
       .prepare(
-        'SELECT country_code, visit_year, entry_method, mode FROM ground_visits WHERE user_id = ?',
+        'SELECT id, country_code, visit_year, entry_method, mode FROM ground_visits WHERE user_id = ?',
       )
       .bind(userId),
     db
