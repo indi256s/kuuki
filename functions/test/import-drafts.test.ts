@@ -839,6 +839,25 @@ describe('PATCH /api/import/drafts/:id', () => {
     }
   })
 
+  it('reopens a completed partial read as partial, keeping its error', async () => {
+    clock()
+    const created = await seed([providerFlight()])
+    await db
+      .prepare(
+        "UPDATE import_batches SET status = 'partial', error_code = 'JOB_INTERRUPTED' WHERE id = ?",
+      )
+      .bind(created.batch.id)
+      .run()
+    const [draft] = created.drafts
+    await patchDraft(db, draft.id, { version: 1, dismissed: true })
+    expect((await batchRow(created.batch.id))!.status).toBe('completed')
+    await patchDraft(db, draft.id, { version: 2, dismissed: false })
+    expect(await batchRow(created.batch.id)).toMatchObject({
+      status: 'partial',
+      error_code: 'JOB_INTERRUPTED',
+    })
+  })
+
   it('dismisses and restores a row, but never edits a converted or expired one', async () => {
     clock()
     const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11' })])

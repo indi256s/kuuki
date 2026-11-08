@@ -12,7 +12,7 @@ import {
   type ArrivalPolicy,
   type EvidenceFlight,
 } from './countryEvidence'
-import { isDerivedReady, type DerivedStateRow } from './derivedState'
+import { derivedLabelOf, type DerivedStateRow } from './derivedState'
 import { firstOf, rowsOf } from './stats'
 
 /** The queue shows this many awaiting flights at once; the counts are exact. A confirmation takes at most the same. */
@@ -125,10 +125,6 @@ export function candidateTokenOf(flight: EvidenceFlight, view: AwaitingView): Pr
     ]),
   )
 }
-
-export type DerivedStateLabel = 'ready' | 'pending' | 'error'
-export const derivedLabelOf = (state: DerivedStateRow | null | undefined): DerivedStateLabel =>
-  !state || isDerivedReady(state) ? 'ready' : state.last_error ? 'error' : 'pending'
 
 export interface DraftSummary {
   batchId: string

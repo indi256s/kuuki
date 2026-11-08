@@ -17,6 +17,7 @@ import {
   journeyCountriesStatement,
 } from './countryEvidence'
 import {
+  derivedLabelOf,
   dirtyUserStatement,
   ensureDerivedStateRow,
   isDerivedReady,
@@ -27,7 +28,7 @@ import {
   type DerivedStateRow,
   type LegacyVisitSource,
 } from './derivedState'
-import { derivedLabelOf, type CandidateView } from './queue'
+import type { CandidateView } from './queue'
 import {
   MAX_ATTEMPTS,
   STATE_SELECT,

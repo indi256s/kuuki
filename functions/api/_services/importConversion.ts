@@ -25,6 +25,7 @@ import {
 import { repairUserDerivedState, type DerivedRepairResult } from './derivedState'
 import { takeRequestTimezone } from './lifecycle'
 import {
+  BATCH_STATUS_AFTER_DRAFTS,
   batchExpired,
   batchNotFound,
   draftToFlightInput,
@@ -190,10 +191,7 @@ function completionStatement(
 ): D1PreparedStatement {
   return db
     .prepare(
-      `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?,
-       status = CASE WHEN status IN ('review', 'partial') AND NOT EXISTS
-         (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review')
-         THEN 'completed' ELSE status END
+      `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?, status = ${BATCH_STATUS_AFTER_DRAFTS}
      WHERE id = ? AND user_id = ?
        AND EXISTS (SELECT 1 FROM import_conversion_receipts
                    WHERE user_id = ? AND batch_id = ? AND operation_key IN (SELECT value FROM json_each(?)))`,

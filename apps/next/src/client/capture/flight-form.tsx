@@ -161,6 +161,7 @@ export function FlightForm({
   )
   const [flight, setFlight] = useState<Flight | null>(null)
   const [loading, setLoading] = useState(!!editId)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const saving = useRef(false)
   const [busy, setBusy] = useState(false)
   const [errorCause, setErrorCause] = useState<{ cause: unknown; kind: 'load' | 'save' } | null>(
@@ -330,7 +331,7 @@ export function FlightForm({
       controller.abort()
       release()
     }
-  }, [editId, reset, ownerId, focusField])
+  }, [editId, reset, ownerId, focusField, loadAttempt])
   useEffect(() => {
     setDuplicate(null)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || origin?.length !== 3 || destination?.length !== 3)
@@ -550,6 +551,20 @@ export function FlightForm({
           {error || flightErrorMessage(new ApiError(404, 'Not found', 'NOT_FOUND'), locale, 'load')}
         </span>
       </p>,
+      errorCause?.kind === 'load' ? (
+        <div className="flight-footer-actions">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setErrorCause(null)
+              setLoading(true)
+              setLoadAttempt((attempt) => attempt + 1)
+            }}
+          >
+            {ru ? 'Повторить' : 'Try again'}
+          </Button>
+        </div>
+      ) : null,
     )
   if (saved)
     return wrap(

@@ -742,17 +742,10 @@ export async function patchDraft(
         userId,
         instant,
       ),
-    // Same batch as the draft update: a batch with no review row left is completed, and one that gets a review row
-    // back (an un-dismiss) is open again. processing, failed and cancelled batches keep their status.
+    // Same batch as the draft update (see BATCH_STATUS_AFTER_DRAFTS).
     db
       .prepare(
-        `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?,
-         status = CASE
-           WHEN status IN ('review', 'partial') AND NOT EXISTS
-             (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review') THEN 'completed'
-           WHEN status = 'completed' AND EXISTS
-             (SELECT 1 FROM import_drafts WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review') THEN 'review'
-           ELSE status END
+        `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?, status = ${BATCH_STATUS_AFTER_DRAFTS}
        WHERE id = ? AND user_id = ? AND expires_at > ? AND changes() = 1`,
       )
       .bind(instant, row.batch_id, userId, instant),
@@ -782,6 +775,20 @@ export async function discardBatch(
   ])
   return true
 }
+
+const OPEN_REVIEW_DRAFT = `EXISTS (SELECT 1 FROM import_drafts
+  WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review')`
+
+/**
+ * The batch status after its drafts change, as a SQL expression on `import_batches`. A batch with no review row left
+ * is completed; one that gets a review row back (an un-dismiss) opens again, as `partial` when its reading recorded an
+ * error (only partial reads keep an `error_code` here). processing, failed and cancelled batches keep their status.
+ */
+export const BATCH_STATUS_AFTER_DRAFTS = `CASE
+  WHEN status IN ('review', 'partial') AND NOT ${OPEN_REVIEW_DRAFT} THEN 'completed'
+  WHEN status = 'completed' AND ${OPEN_REVIEW_DRAFT}
+    THEN CASE WHEN error_code IS NULL THEN 'review' ELSE 'partial' END
+  ELSE status END`
 
 /** Cancel is a durable fence even when the live worker cannot be reached. */
 export async function cancelBatch(

@@ -19,31 +19,14 @@ import {
   type CountryContribution,
   type EvidenceFlight,
 } from './countryEvidence'
-import { isDerivedReady } from './derivedState'
+import { derivedLabelOf, type DerivedStateRow } from './derivedState'
 
-type StateRow = {
-  revision: number
-  published_revision: number
-  evidence_revision: number
-  last_error: string | null
-}
-
-export type PassportDerivedState = 'ready' | 'pending' | 'error'
-
-function derivedStateOf(state: StateRow | undefined) {
-  const revision = state?.revision ?? 0
-  const publishedRevision = state?.published_revision ?? 0
-  const ready = isDerivedReady({
-    revision,
-    published_revision: publishedRevision,
-    evidence_revision: state?.evidence_revision ?? publishedRevision,
-  })
-  const derivedState: PassportDerivedState = ready
-    ? 'ready'
-    : state?.last_error
-      ? 'error'
-      : 'pending'
-  return { derivedState, revision, publishedRevision }
+function derivedStateOf(state: DerivedStateRow | undefined) {
+  return {
+    derivedState: derivedLabelOf(state),
+    revision: state?.revision ?? 0,
+    publishedRevision: state?.published_revision ?? 0,
+  }
 }
 
 export interface PassportCountry extends Omit<CountryEvidenceRow, 'policy_version'> {
@@ -173,7 +156,7 @@ export function passportRead(
       const pending = countries
         .filter((row) => row.status === 'pending')
         .map((row) => row.country_code)
-      const state = results[4].results[0] as StateRow | undefined
+      const state = results[4].results[0] as DerivedStateRow | undefined
       return {
         state,
         data: {
@@ -502,6 +485,6 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
     flightIds,
     entries,
     suppressed,
-    ...derivedStateOf(results[5].results[0] as StateRow | undefined),
+    ...derivedStateOf(results[5].results[0] as DerivedStateRow | undefined),
   }
 }

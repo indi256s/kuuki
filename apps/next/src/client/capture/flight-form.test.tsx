@@ -558,6 +558,14 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', (locale) => {
     )
     expect(alert).not.toHaveTextContent(/TypeError|Failed to fetch/)
   })
+  it('reads the flight again after a failed load', async () => {
+    mocks.get.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    render(<FlightDetailSheet ownerId="a" locale={locale} flightId={7} initialEditing />)
+    await screen.findByRole('alert')
+    await userEvent.click(screen.getByRole('button', { name: say('Try again', 'Повторить') }))
+    await screen.findByRole('combobox', { name: words[locale].airline })
+    expect(mocks.get).toHaveBeenCalledTimes(2)
+  })
   it('keeps field errors out of the field label so they are not announced twice', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))

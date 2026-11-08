@@ -34,6 +34,12 @@ export const isDerivedReady = (
   state.revision === state.published_revision &&
   state.evidence_revision === state.published_revision
 
+export type DerivedStateLabel = 'ready' | 'pending' | 'error'
+
+/** The published label every read reports: a missing row is ready, an unpublished one with a recorded failure is an error. */
+export const derivedLabelOf = (state: DerivedStateRow | null | undefined): DerivedStateLabel =>
+  !state || isDerivedReady(state) ? 'ready' : state.last_error ? 'error' : 'pending'
+
 /** SQL form of "not ready", for maintenance selection and its remaining-work check. */
 export const STALE_DERIVED_PREDICATE =
   '(revision != published_revision OR evidence_revision != published_revision)'

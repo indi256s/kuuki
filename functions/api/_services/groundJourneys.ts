@@ -399,11 +399,12 @@ async function resultOf(
   }
 }
 
-const FROM_STATUS = {
-  complete: 'planned',
-  reopen: 'completed',
-  cancel: 'planned',
-  restore: 'cancelled',
+/** Every status move a command may make: the guard in `classify` and the write in the batch both read it. */
+const TRANSITIONS = {
+  complete: { from: 'planned', to: 'completed' },
+  reopen: { from: 'completed', to: 'planned' },
+  cancel: { from: 'planned', to: 'cancelled' },
+  restore: { from: 'cancelled', to: 'planned' },
 } as const
 
 /** Reads the target and decides whether a new command may run; every refusal re-checks the receipt first. */
@@ -431,7 +432,9 @@ async function classify(
       )
     }
     const required =
-      command.action in FROM_STATUS ? FROM_STATUS[command.action as keyof typeof FROM_STATUS] : null
+      command.action in TRANSITIONS
+        ? TRANSITIONS[command.action as keyof typeof TRANSITIONS].from
+        : null
     if (required && parent!.status !== required)
       await fail(
         stateConflict(`Cannot ${command.action} a ${parent!.status} journey`, 'illegal_transition'),
@@ -599,11 +602,7 @@ function mutationStatements(
       )
       break
     default: {
-      const [to, from] = {
-        reopen: ['planned', 'completed'],
-        cancel: ['cancelled', 'planned'],
-        restore: ['planned', 'cancelled'],
-      }[command.action]
+      const { from, to } = TRANSITIONS[command.action]
       statements.push(
         db
           .prepare(
