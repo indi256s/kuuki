@@ -15,13 +15,18 @@ vi.mock('../../write-feedback', () => ({
 vi.mock('../../ui/use-mobile', () => ({ useMobile: () => false }))
 // Tween stand-in: runs to its end on demand, so the tests decide when a fold finishes.
 const tweens = vi.hoisted(() => ({
-  running: [] as { to: number; onUpdate?: (v: number) => void; onComplete?: () => void }[],
+  running: [] as {
+    keys: number[]
+    to: number
+    onUpdate?: (v: number) => void
+    onComplete?: () => void
+  }[],
 }))
 vi.mock('motion/react', async (original) => ({
   ...(await original<typeof import('motion/react')>()),
   useReducedMotion: () => false,
-  animate: (_from: number, to: number, options: { onUpdate?: () => void }) => {
-    const tween = { to, ...options }
+  animate: (keys: number[], options: { onUpdate?: () => void }) => {
+    const tween = { keys, to: keys[keys.length - 1], ...options }
     tweens.running.push(tween)
     return { stop: () => (tweens.running = tweens.running.filter((item) => item !== tween)) }
   },
@@ -240,4 +245,45 @@ it('a sticker unmounted mid-tear still offers Undo for the write it started', as
   await flush()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
+})
+
+const pressTrain = async () => {
+  await lift()
+  const train = tab('By train')
+  train.getBoundingClientRect = () => ({ left: 180, top: 310, width: 40, height: 44 }) as DOMRect
+  fireEvent.pointerDown(train, { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
+  return train
+}
+
+it('a press lifts the corner at once and its tap tears from there, not from rest', async () => {
+  api.add.mockResolvedValue({ id: 'v5', derived_state: 'ready' })
+  const train = await pressTrain()
+  expect(tweens.running.map((tween) => tween.keys)).toEqual([[0, 0.06]])
+  act(() => tweens.running[0].onUpdate?.(0.06))
+  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 320 })
+  fireEvent.click(train)
+  expect(tweens.running.map((tween) => tween.keys)).toEqual([[0.06, 1]])
+  expect(api.add).toHaveBeenCalledOnce()
+})
+
+it('a flick tears by its momentum though released short of the threshold', async () => {
+  api.add.mockResolvedValue({ id: 'v6', derived_state: 'ready' })
+  const train = await pressTrain()
+  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 305 })
+  act(() => vi.advanceTimersByTime(16))
+  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 285 })
+  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 285 })
+  expect(api.add).toHaveBeenCalledExactlyOnceWith('owner', 'DE', {
+    entryMethod: 'land',
+    mode: 'rail',
+  })
+})
+
+it('a tab grabbed during its spring-back keeps the fold on screen', async () => {
+  const train = await pressTrain()
+  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 260 })
+  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 260 })
+  act(() => tweens.running.at(-1)!.onUpdate?.(0.2))
+  fireEvent.pointerDown(train, { pointerId: 2, button: 0, clientX: 200, clientY: 300 })
+  expect(tweens.running.at(-1)!.keys).toEqual([0.2, 0.2])
 })

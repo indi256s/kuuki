@@ -52,6 +52,11 @@ export type StickerHandle = {
 }
 
 const LIFT_SCALE = 1.04
+/** A tab press lifts the sticker's corner this far toward the tab: the answer on pointer-down. */
+const PRESS_HINT = 0.06
+const PRESS_MS = 100
+/** Seconds of momentum a released pull is projected forward (Apple's 0.998 deceleration): a flick tears. */
+const PROJECTION_S = 0.5
 const TEAR_MS = 320
 const SETTLE_MS = 150
 const SPRING_BACK_MS = 200
@@ -61,10 +66,28 @@ const SMALL_OUTLINE = 96
 const MAX_CAMERA_MS = 300
 const TAB_HEIGHT = 44
 // Ease-in for the tear only (spec): the paper resists, then lets go. Routine motion stays ease-out.
-const EASE_IN = [0.55, 0, 1, 0.45] as const
-const EASE_OUT = [0.23, 1, 0.32, 1] as const
+const EASE_IN: [number, number, number, number] = [0.55, 0, 1, 0.45]
+const EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1]
 
 type Pull = { grab: Point; dir: Point; progress: number; dragging: boolean }
+type Press = {
+  id: number
+  start: Point
+  way: VisitWay
+  grab: Point
+  /** Finger → fold tip, fixed when the drag starts so the fold continues from what is on screen. */
+  offset: Point | null
+  samples: { t: number; progress: number }[]
+}
+
+/** Progress per second over the last 100 ms of a pull; 0 without two samples. */
+function velocityOf(samples: Press['samples']) {
+  if (samples.length < 2) return 0
+  const first = samples[0],
+    last = samples[samples.length - 1]
+  const seconds = (last.t - first.t) / 1000
+  return seconds > 0 ? (last.progress - first.progress) / seconds : 0
+}
 type Active = {
   code: string
   phase: 'lifted' | 'closing' | 'tearing'
@@ -127,7 +150,7 @@ export function Sticker({
   }, [active])
   // The tear's pending landing: the stamp and toast arrive at impact, or at once when the tear is cut short.
   const landing = useRef<{ code: string; land: () => void; announce: () => void } | null>(null)
-  const pointerState = useRef<{ id: number; start: Point; way: VisitWay; grab: Point } | null>(null)
+  const pointerState = useRef<Press | null>(null)
   const suppressClick = useRef(false)
 
   const later = useCallback((ms: number, run: () => void) => {
@@ -317,9 +340,53 @@ export function Sticker({
         ]
       : point
 
-  function tear(way: VisitWay, grab: Point, dir: Point, from: number, duration: number) {
+  /** Runs the fold's progress, starting from what is on screen; updates only while the sticker keeps its phase. */
+  function drive(
+    code: string,
+    phase: Active['phase'],
+    keys: number[],
+    options: Record<string, unknown>,
+    done?: () => void,
+  ) {
+    motion.current?.stop()
+    motion.current = animate(keys, {
+      ...options,
+      onUpdate: (value: number) =>
+        setActive((current) =>
+          current?.code === code && current.phase === phase && current.pull
+            ? { ...current, pull: { ...current.pull, progress: Math.min(1, Math.max(0, value)) } }
+            : current,
+        ),
+      onComplete: done,
+    } as never)
+  }
+
+  function springBack(code: string, from: number, velocity: number) {
+    // Critically damped and handed the finger's velocity, so a release never hits a wall.
+    drive(
+      code,
+      'lifted',
+      [from, 0],
+      { type: 'spring', bounce: 0, duration: SPRING_BACK_MS / 1000, velocity },
+      () =>
+        setActive((value) =>
+          value?.code === code && value.phase === 'lifted' ? { ...value, pull: null } : value,
+        ),
+    )
+  }
+
+  function tear(
+    way: VisitWay,
+    grab: Point,
+    dir: Point,
+    from: number,
+    duration: number,
+    velocity = 0,
+  ) {
     const current = activeRef.current
     if (!current || current.phase !== 'lifted') return
+    motion.current?.stop()
+    motion.current = null
     const code = current.code
     const { announce } = record(code, way, {
       revert: () => revert(code),
@@ -349,61 +416,105 @@ export function Sticker({
       landing.current.land()
       landing.current = null
     })
-    motion.current = animate(from, 1, {
-      duration: duration / 1000,
-      ease: EASE_IN as unknown as [number, number, number, number],
-      onUpdate: (progress) =>
-        setActive((value) =>
-          value?.code === code && value.phase === 'tearing' && value.pull
-            ? { ...value, pull: { ...value.pull, progress } }
-            : value,
-        ),
-      onComplete: endTear,
-    })
+    if (velocity > 0) {
+      // A released pull keeps the finger's speed: no restart from rest.
+      drive(
+        code,
+        'tearing',
+        [from, 1],
+        { type: 'spring', bounce: 0, duration: duration / 1000, velocity },
+        endTear,
+      )
+      return
+    }
+    // From rest the paper resists, then lets go (spec). Without a press to lift the corner first (keyboard),
+    // a short ease-out unstick answers at once so the ease-in never reads as lag.
+    const unstick = from < PRESS_HINT / 2
+    drive(
+      code,
+      'tearing',
+      unstick ? [from, PRESS_HINT, 1] : [from, 1],
+      unstick
+        ? { duration: duration / 1000, times: [0, 0.2, 1], ease: [EASE_OUT, EASE_IN] }
+        : { duration: duration / 1000, ease: EASE_IN },
+      endTear,
+    )
   }
 
   const directionFrom = (grab: Point): Point =>
     centre ? [centre[0] - grab[0], centre[1] - grab[1]] : [0, -1]
+
+  const sameGrab = (pull: Pull | null | undefined, grab: Point) =>
+    !!pull && Math.hypot(pull.grab[0] - grab[0], pull.grab[1] - grab[1]) < 1
 
   function onTabClick(way: VisitWay, button: HTMLButtonElement) {
     if (suppressClick.current) {
       suppressClick.current = false
       return
     }
+    // A tap tears from wherever its press lifted the corner; a key press starts from rest.
     const grab = unscale(grabOf(button))
-    tear(way, grab, directionFrom(grab), 0, TEAR_MS)
+    const pull = activeRef.current?.pull
+    const from = sameGrab(pull, grab) ? pull!.progress : 0
+    tear(way, grab, sameGrab(pull, grab) ? pull!.dir : directionFrom(grab), from, TEAR_MS)
   }
 
   function onTabPointerDown(way: VisitWay, event: PointerEvent<HTMLButtonElement>) {
-    if (reduced || activeRef.current?.phase !== 'lifted' || event.button !== 0) return
-    motion.current?.stop()
+    const current = activeRef.current
+    // One finger at a time: a second touch never steals the fold.
+    if (reduced || current?.phase !== 'lifted' || event.button !== 0 || pointerState.current) return
     event.currentTarget.setPointerCapture?.(event.pointerId)
     const root = container.getBoundingClientRect()
+    const grab = unscale(grabOf(event.currentTarget))
+    // Grabbed mid spring-back: keep the fold that is on screen.
+    const pull: Pull = sameGrab(current.pull, grab)
+      ? { ...current.pull!, dragging: false }
+      : { grab, dir: directionFrom(grab), progress: 0, dragging: false }
     pointerState.current = {
       id: event.pointerId,
       start: [event.clientX - root.left, event.clientY - root.top],
       way,
-      grab: unscale(grabOf(event.currentTarget)),
+      grab,
+      offset: null,
+      samples: [],
     }
+    setActive({ ...current, pull })
+    // The press answers at once: the corner lifts toward the finger.
+    drive(current.code, 'lifted', [pull.progress, Math.max(pull.progress, PRESS_HINT)], {
+      duration: PRESS_MS / 1000,
+      ease: EASE_OUT,
+    })
   }
 
   function onTabPointerMove(event: PointerEvent<HTMLButtonElement>) {
     const press = pointerState.current
     if (!press || press.id !== event.pointerId || !rings) return
+    const current = activeRef.current
+    if (!current || current.phase !== 'lifted' || !current.pull) return
     const root = container.getBoundingClientRect()
     const point: Point = [event.clientX - root.left, event.clientY - root.top]
-    const moved = Math.hypot(point[0] - press.start[0], point[1] - press.start[1])
-    const current = activeRef.current
-    if (!current || current.phase !== 'lifted') return
-    if (!current.pull?.dragging && moved <= PULL_SLOP) return
-    const pointer = unscale(point)
-    const folded = fold(rings, press.grab, pointer)
+    const finger = unscale(point)
+    if (!press.offset) {
+      if (Math.hypot(point[0] - press.start[0], point[1] - press.start[1]) <= PULL_SLOP) return
+      // The drag picks the fold up where it is, so nothing jumps under the finger.
+      motion.current?.stop()
+      motion.current = null
+      const tip = pointerAt(rings, current.pull.grab, current.pull.dir, current.pull.progress)
+      press.offset = [tip[0] - finger[0], tip[1] - finger[1]]
+    }
+    const pointer: Point = [finger[0] + press.offset[0], finger[1] + press.offset[1]]
+    const progress = fold(rings, press.grab, pointer)?.progress ?? 0
+    const now = event.timeStamp
+    press.samples = [
+      ...press.samples.filter((sample) => now - sample.t <= 100),
+      { t: now, progress },
+    ]
     setActive({
       ...current,
       pull: {
         grab: press.grab,
         dir: [pointer[0] - press.grab[0], pointer[1] - press.grab[1]],
-        progress: folded?.progress ?? 0,
+        progress,
         dragging: true,
       },
     })
@@ -415,32 +526,30 @@ export function Sticker({
     pointerState.current = null
     const current = activeRef.current
     const pull = current?.pull
+    // A press without a drag is a tap: its click tears from the lifted corner.
     if (!current || current.phase !== 'lifted' || !pull?.dragging) return
     // A pull never also counts as a tap.
     suppressClick.current = true
     window.setTimeout(() => {
       suppressClick.current = false
     })
-    if (pull.progress >= TEAR_THRESHOLD) {
+    // Where the pull is going decides, not only where it stopped: a flick tears, a pull back returns.
+    const velocity = velocityOf(press.samples)
+    if (pull.progress + velocity * PROJECTION_S >= TEAR_THRESHOLD) {
       const remaining = Math.min(TEAR_MS, Math.max(120, (1 - pull.progress) * TEAR_MS))
-      tear(press.way, pull.grab, pull.dir, pull.progress, remaining)
+      tear(press.way, pull.grab, pull.dir, pull.progress, remaining, Math.max(0, velocity))
       return
     }
-    const code = current.code
-    motion.current = animate(pull.progress, 0, {
-      duration: SPRING_BACK_MS / 1000,
-      ease: EASE_OUT as unknown as [number, number, number, number],
-      onUpdate: (progress) =>
-        setActive((value) =>
-          value?.code === code && value.phase === 'lifted' && value.pull
-            ? { ...value, pull: { ...value.pull, progress } }
-            : value,
-        ),
-      onComplete: () =>
-        setActive((value) =>
-          value?.code === code && value.phase === 'lifted' ? { ...value, pull: null } : value,
-        ),
-    })
+    springBack(current.code, pull.progress, velocity)
+  }
+
+  function onTabPointerCancel(event: PointerEvent<HTMLButtonElement>) {
+    const press = pointerState.current
+    if (!press || press.id !== event.pointerId) return
+    pointerState.current = null
+    const current = activeRef.current
+    if (current?.phase === 'lifted' && current.pull)
+      springBack(current.code, current.pull.progress, 0)
   }
 
   function onKeyDown(event: KeyboardEvent) {
@@ -451,6 +560,7 @@ export function Sticker({
 
   // Drawing the sticker: the face beyond the fold stays stuck; the grab side is the flap, mirrored over the fold.
   let face: ReactNode = null
+  let shadow: ReactNode = null
   if (active && rings && centre) {
     const d = pathOf(rings)
     const pull = active.pull
@@ -460,8 +570,24 @@ export function Sticker({
     const fading =
       active.phase === 'tearing' ? (reduced ? 0 : Math.max(0, (progress - 0.75) / 0.25)) : 0
     const id = `atlas-sticker-${active.code}`
+    // The lift's shadow is its own composited layer: blurred once, then only faded, never re-blurred per frame.
+    shadow = reduced ? null : (
+      <svg
+        key={active.code}
+        className="atlas-sticker-shadow"
+        data-phase={active.phase}
+        aria-hidden="true"
+        style={{
+          transformOrigin: `${centre[0]}px ${centre[1]}px`,
+          opacity: active.phase === 'tearing' ? Math.max(0, 1 - 2 * progress) : undefined,
+        }}
+      >
+        <path d={d} />
+      </svg>
+    )
     face = (
       <g
+        key={active.code}
         className="atlas-sticker"
         data-phase={active.phase}
         data-reduced={reduced || undefined}
@@ -510,6 +636,7 @@ export function Sticker({
 
   return (
     <div className="atlas-sticker-layer" ref={rootRef}>
+      {shadow}
       <svg className="atlas-sticker-svg" aria-hidden="true">
         {ghosts.map((ghost) => {
           const ghostGeometry = geometryOf(ghost.code)
@@ -525,6 +652,7 @@ export function Sticker({
       </svg>
       {active && box ? (
         <div
+          key={active.code}
           role="group"
           aria-label={name(active.code)}
           className="atlas-sticker-tabs"
@@ -542,9 +670,7 @@ export function Sticker({
               onPointerDown={(event) => onTabPointerDown(way, event)}
               onPointerMove={onTabPointerMove}
               onPointerUp={onTabPointerUp}
-              onPointerCancel={() => {
-                pointerState.current = null
-              }}
+              onPointerCancel={onTabPointerCancel}
             >
               {WAY_LABELS[way][locale]}
             </button>
