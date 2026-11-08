@@ -28,6 +28,7 @@ import {
 import type * as GL from 'maplibre-gl'
 import { useMap } from '../../maps/mapcn'
 import { CountryStamp } from '../../stamps'
+import { criticalSpring } from '../../ui/critical-spring'
 import { useMobile } from '../../ui/use-mobile'
 import type { Locale } from '../../../lib/format'
 import { VISIT_WAYS, WAY_LABELS, type VisitWay } from '../visit-ways'
@@ -526,15 +527,10 @@ export function Sticker({
 
   function springBack(code: string, from: number, velocity: number) {
     // Critically damped and handed the finger's velocity, so a release never hits a wall.
-    drive(
-      code,
-      'lifted',
-      [from, 0],
-      { type: 'spring', bounce: 0, duration: SPRING_BACK_MS / 1000, velocity },
-      () =>
-        setActive((value) =>
-          value?.code === code && value.phase === 'lifted' ? { ...value, pull: null } : value,
-        ),
+    drive(code, 'lifted', [from, 0], criticalSpring(SPRING_BACK_MS / 1000, velocity), () =>
+      setActive((value) =>
+        value?.code === code && value.phase === 'lifted' ? { ...value, pull: null } : value,
+      ),
     )
   }
 
@@ -583,13 +579,7 @@ export function Sticker({
     })
     if (velocity > 0) {
       // A released pull keeps the finger's speed: no restart from rest.
-      drive(
-        code,
-        'tearing',
-        [from, 1],
-        { type: 'spring', bounce: 0, duration: duration / 1000, velocity },
-        endTear,
-      )
+      drive(code, 'tearing', [from, 1], criticalSpring(duration / 1000, velocity), endTear)
       return
     }
     // From rest the paper resists, then lets go (spec). Without a press to lift the corner first (keyboard),

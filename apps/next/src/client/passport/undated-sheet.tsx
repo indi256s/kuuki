@@ -74,6 +74,9 @@ export function UndatedSheet({
   const [instant, setInstant] = useState(false)
   const editingRef = useRef<string | null>(null)
   const dirty = useRef(false)
+  // Per row: writes run one after another, and only the latest edit may speak for the row when one fails.
+  const queues = useRef(new Map<string, Promise<void>>())
+  const edits = useRef(new Map<string, number>())
   const buttons = useRef(new Map<string, HTMLButtonElement>())
   if (open !== wasOpen) {
     setWasOpen(open)
@@ -97,40 +100,54 @@ export function UndatedSheet({
     setEditing(id)
   }
 
-  async function commit(visit: UndatedVisit, result: YearDrumResult) {
+  function commit(visit: UndatedVisit, result: YearDrumResult) {
     edit(null)
     const { id } = visit
     if (result.refocus) buttons.current.get(id)?.focus({ preventScroll: true })
     if (!result.changed) return
     const before = years[id] ?? null
+    const generation = (edits.current.get(id) ?? 0) + 1
+    edits.current.set(id, generation)
     setYears((current) => ({ ...current, [id]: result.year }))
     setNotes((current) => {
       const next = { ...current }
       delete next[id]
       return next
     })
-    const controller = new AbortController()
-    const release = trackPrivateOperation(controller)
-    const generation = getAuthGeneration()
-    try {
-      await updateGroundVisit(ownerId, id, { visitYear: result.year })
-      dirty.current = true
-    } catch (error) {
-      if (controller.signal.aborted || generation !== getAuthGeneration()) return
-      const conflict = (error as { status?: number }).status === 409
-      // A conflict means the row changed elsewhere: the list refreshes on close either way.
-      if (conflict) dirty.current = true
-      setYears((current) => ({ ...current, [id]: before }))
-      setNotes((current) => ({ ...current, [id]: conflict ? CONFLICT[locale] : FAILED[locale] }))
-    } finally {
-      release()
+    const run = async () => {
+      const controller = new AbortController()
+      const release = trackPrivateOperation(controller)
+      const auth = getAuthGeneration()
+      try {
+        await updateGroundVisit(ownerId, id, { visitYear: result.year })
+        dirty.current = true
+      } catch (error) {
+        if (controller.signal.aborted || auth !== getAuthGeneration()) return
+        const conflict = (error as { status?: number }).status === 409
+        // A conflict means the row changed elsewhere: the list refreshes on close either way.
+        if (conflict) dirty.current = true
+        // A newer edit of this row owns what it shows; an older failure must not overwrite it.
+        if (edits.current.get(id) !== generation) return
+        setYears((current) => ({ ...current, [id]: before }))
+        setNotes((current) => ({ ...current, [id]: conflict ? CONFLICT[locale] : FAILED[locale] }))
+      } finally {
+        release()
+      }
     }
+    const queued = (queues.current.get(id) ?? Promise.resolve()).then(run)
+    queues.current.set(id, queued)
   }
 
   function changeOpen(next: boolean) {
-    if (!next && dirty.current) {
-      dirty.current = false
-      void onChanged()
+    if (!next) {
+      // Closed with a year still saving: refresh once every write has settled, not before.
+      const pending = [...queues.current.values()]
+      queues.current.clear()
+      void Promise.allSettled(pending).then(() => {
+        if (!dirty.current) return
+        dirty.current = false
+        void onChanged()
+      })
     }
     onOpenChange(next)
   }
@@ -189,7 +206,7 @@ export function UndatedSheet({
                       locale={locale}
                       instant={instant}
                       trigger={() => buttons.current.get(visit.id) ?? null}
-                      onClose={(result) => void commit(visit, result)}
+                      onClose={(result) => commit(visit, result)}
                     />
                   ) : null}
                 </span>

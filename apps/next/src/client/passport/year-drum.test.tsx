@@ -5,8 +5,10 @@ import {
   YearDrum,
   dragPosition,
   project,
+  releaseSamples,
   rubberband,
   snapIndex,
+  velocityOf,
   yearValues,
   type YearValue,
 } from './year-drum'
@@ -102,4 +104,15 @@ it('a press on the control that opened it closes the drum, and that click does n
   expect(onClose).toHaveBeenCalledExactlyOnceWith({ year, changed: true, refocus: true })
   expect(reopen).not.toHaveBeenCalled()
   trigger.remove()
+})
+
+it('a drag held still before release has no speed left to coast on', () => {
+  // Two rows in 50 ms, then the finger rests for a second before letting go.
+  const samples = [
+    { t: 0, position: 0 },
+    { t: 50, position: 2 },
+  ]
+  expect(velocityOf(releaseSamples(samples, 1050, 2))).toBe(0)
+  // Released mid-flick, the speed is kept.
+  expect(velocityOf(releaseSamples(samples, 60, 2.4))).toBeGreaterThan(30)
 })

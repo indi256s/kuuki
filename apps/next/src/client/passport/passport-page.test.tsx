@@ -959,6 +959,23 @@ describe('round-up of visits without a year', () => {
     expect(screen.getByRole('button', { name: '2 visits without a year' })).toHaveFocus()
   })
 
+  it('closed while a year is still saving, refreshes once that write lands', async () => {
+    const user = userEvent.setup()
+    let land: (value: unknown) => void = () => {}
+    mocks.patch.mockReturnValue(new Promise((resolve) => (land = resolve)))
+    render(<PassportPage {...withVisits([visit('g1', 'NO')])} />)
+    await user.click(screen.getByRole('button', { name: '1 visit without a year' }))
+    const sheet = await screen.findByRole('dialog', { name: 'No year' })
+    await user.click(within(sheet).getByRole('button', { name: 'Year of visit: Norway, no year' }))
+    await user.keyboard('{ArrowDown}{Enter}')
+    await user.click(within(sheet).getByRole('button', { name: 'Close' }))
+    await settle()
+    expect(mocks.get).not.toHaveBeenCalled()
+    land({})
+    await settle()
+    expect(mocks.get).toHaveBeenCalledOnce()
+  })
+
   it('answers a concurrent change with a calm note on the row and refreshes after close', async () => {
     const user = userEvent.setup()
     mocks.patch.mockRejectedValue(Object.assign(new Error('changed'), { status: 409 }))

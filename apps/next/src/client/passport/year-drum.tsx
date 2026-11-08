@@ -17,6 +17,7 @@ import {
   type PointerEvent,
 } from 'react'
 import type { Locale } from '../../lib/format'
+import { criticalSpring } from '../ui/critical-spring'
 import './year-drum.css'
 
 export type YearValue = number | null
@@ -65,6 +66,15 @@ export function velocityOf(samples: { t: number; position: number }[]): number {
     last = samples[samples.length - 1]
   const seconds = (last.t - first.t) / 1000
   return seconds > 0 ? (last.position - first.position) / seconds : 0
+}
+
+/** The samples a release measures its speed from: those of the last 100 ms before it, then the release itself. */
+export function releaseSamples(
+  samples: { t: number; position: number }[],
+  t: number,
+  position: number,
+): { t: number; position: number }[] {
+  return [...samples.filter((sample) => t - sample.t <= RELEASE_WINDOW_MS), { t, position }]
 }
 
 /** The row a key moves to, or null for a key the drum ignores. ↑ moves up the list (a later year), ↓ down it. */
@@ -191,14 +201,17 @@ export function YearDrum({
         show(target)
         return
       }
-      spring.current = animate(from, target, {
-        type: 'spring',
-        bounce: 0,
-        duration: Math.min(0.5, 0.25 + Math.abs(target - from) * 0.02),
-        velocity,
+      // A physical spring: a time-defined one would drop the release velocity (critical-spring.ts).
+      const controls = animate(from, target, {
+        ...criticalSpring(Math.min(0.5, 0.25 + Math.abs(target - from) * 0.02), velocity),
         onUpdate: show,
-        onComplete: () => show(target),
+        onComplete: () => {
+          show(target)
+          // Settled: the next press is a tap, not a grab of a moving drum.
+          if (spring.current === controls) spring.current = null
+        },
       })
+      spring.current = controls
     },
     [reduced, show],
   )
@@ -304,7 +317,9 @@ export function YearDrum({
       if (row === 1) return finish(true)
       return settle(snapIndex(Math.round(position.current) + (row === 0 ? -1 : 1), last + 1))
     }
-    const velocity = velocityOf(current.samples)
+    // The release itself is the last sample, and only the last 100 ms count: a drag held still before letting go has
+    // no speed left, whatever it had earlier.
+    const velocity = velocityOf(releaseSamples(current.samples, event.timeStamp, position.current))
     settle(snapIndex(project(position.current, velocity), last + 1), velocity)
   }
 

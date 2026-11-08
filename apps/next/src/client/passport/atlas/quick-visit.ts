@@ -101,7 +101,8 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
         const edit = ++yearEdit
         yearQueue = yearQueue.then(async () => {
           const visit = await write.catch(() => null)
-          if (!visit || undone) return
+          // Signed out or switched account while queued: this edit belongs to a session that is gone.
+          if (!visit || undone || !current()) return
           try {
             const ack = await updateGroundVisit(ownerId, visit.id, { visitYear: year })
             if (undone || !current()) return
