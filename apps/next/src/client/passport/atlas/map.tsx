@@ -6,7 +6,7 @@ import { WORLD_BOUNDS } from '../../maps/geometry'
 import { Map as MapCanvas, useMap } from '../../maps/mapcn'
 import { resolveColor } from '../../maps/resolve-color'
 import type { Locale } from '../../../lib/format'
-import { visitBucket } from '../../../lib/map-buckets'
+import { ATLAS_VISIT_TOKENS, visitBucket } from '../../../lib/map-buckets'
 import { isCatalogCountry } from '../model'
 import { LABEL_FONT, LABEL_FONT_FACES } from './label-font'
 import { LABEL_POINTS } from './label-points'
@@ -40,6 +40,13 @@ export const ATLAS_LAYERS = {
   microLabels: 'atlas-labels-micro',
   hoverLabel: 'atlas-labels-hover',
 } as const
+/** Microstate markers: a visible dot and a 44px transparent hit disc, each split at REST_POINT_ZOOM into unvisited (rest) and marked. */
+const POINT_LAYERS = [
+  { id: ATLAS_LAYERS.dotRest, hit: false, rest: true },
+  { id: ATLAS_LAYERS.dot, hit: false, rest: false },
+  { id: ATLAS_LAYERS.hitRest, hit: true, rest: true },
+  { id: ATLAS_LAYERS.hit, hit: true, rest: false },
+] as const
 /** A 22px radius is a 44px disc: the minimum touch target for a point marker. */
 const HIT_RADIUS = 22
 /** Unvisited microstate markers (and their hit areas) wait for this zoom; marked ones always draw. */
@@ -53,13 +60,6 @@ type Bounds = [[number, number], [number, number]]
 // MapLibre needs resolved colors: read the computed token and let the browser resolve color-mix()/var().
 const token = (name: string) =>
   resolveColor(getComputedStyle(document.documentElement).getPropertyValue(name).trim())
-
-const VISIT_TOKENS = [
-  '--atlas-visit-1',
-  '--atlas-visit-2',
-  '--atlas-visit-3',
-  '--atlas-visit-4',
-] as const
 
 type Colors = {
   /** Visit buckets 1..4 (1, 2–3, 4–9, 10+). */
@@ -96,7 +96,6 @@ const inSet = (codes: string[]): GL.ExpressionSpecification => [
   ['literal', codes],
 ]
 
-const pendingFilter = inSet
 const idIs = (id: string): GL.ExpressionSpecification => ['==', ['get', 'id'], id]
 
 type LabelInput = { shown: string[]; lifted: string | null; hovered: string | null }
@@ -105,23 +104,12 @@ type LabelInput = { shown: string[]; lifted: string | null; hovered: string | nu
  * Always-on labels: the member's own countries, minus the lifted sticker (its face already prints the name).
  * The hover label names the country under a fine pointer when it has no always-on label.
  */
-export function labelFilters({ shown, lifted, hovered }: LabelInput) {
+function applyLabelFilters(map: GL.Map, { shown, lifted, hovered }: LabelInput) {
   const open: GL.ExpressionSpecification[] = lifted ? [['!=', ['get', 'id'], lifted]] : []
   const always: GL.ExpressionSpecification = ['all', inSet(shown), ...open]
-  return {
-    polygons: ['all', ['==', ['get', 'micro'], 0], always] as GL.ExpressionSpecification,
-    micro: ['all', ['==', ['get', 'micro'], 1], always] as GL.ExpressionSpecification,
-    hover: ['all', idIs(hovered ?? ''), ['!', inSet(shown)], ...open] as GL.ExpressionSpecification,
-    outline: idIs(hovered ?? ''),
-  }
-}
-
-function applyLabelFilters(map: GL.Map, input: LabelInput) {
-  const filters = labelFilters(input)
-  map.setFilter(ATLAS_LAYERS.labels, filters.polygons)
-  map.setFilter(ATLAS_LAYERS.microLabels, filters.micro)
-  map.setFilter(ATLAS_LAYERS.hoverLabel, filters.hover)
-  map.setFilter(ATLAS_LAYERS.hover, filters.outline)
+  map.setFilter(ATLAS_LAYERS.labels, ['all', ['==', ['get', 'micro'], 0], always])
+  map.setFilter(ATLAS_LAYERS.microLabels, ['all', ['==', ['get', 'micro'], 1], always])
+  map.setFilter(ATLAS_LAYERS.hoverLabel, ['all', idIs(hovered ?? ''), ['!', inSet(shown)], ...open])
 }
 
 const pointData: GeoJSON.FeatureCollection<GeoJSON.Point, { id: string }> = {
@@ -145,17 +133,21 @@ type Shape = {
   point: [number, number]
 }
 
+/** Each polygon's outer ring, skipping degenerate ones. */
+const outerRings = (geometry: GeoJSON.Geometry): GeoJSON.Position[][] =>
+  (geometry.type === 'Polygon'
+    ? [geometry.coordinates]
+    : geometry.type === 'MultiPolygon'
+      ? geometry.coordinates
+      : []
+  )
+    .map(([outer]) => outer)
+    .filter((ring) => ring?.length > 2)
+
 /** Longest-ring bounding box (by bbox area): the country's main landmass, cheap to compute once per geometry load. */
-function largestRing(geometry: GeoJSON.Geometry): Shape | null {
-  const polygons =
-    geometry.type === 'Polygon'
-      ? [geometry.coordinates]
-      : geometry.type === 'MultiPolygon'
-        ? geometry.coordinates
-        : []
+function largestRing(rings: GeoJSON.Position[][]): Shape | null {
   let best: Shape | null = null
-  for (const [ring] of polygons) {
-    if (!ring?.length) continue
+  for (const ring of rings) {
     const xs = ring.map((p) => p[0]),
       ys = ring.map((p) => p[1])
     const west = Math.min(...xs),
@@ -266,7 +258,7 @@ function AtlasLayers({
   // Visited wins over pending for the same code (match takes the first branch).
   const paints = useMemo(() => {
     const colors = {
-      visits: VISIT_TOKENS.map(token),
+      visits: ATLAS_VISIT_TOKENS.map(token),
       pending: token('--accent-tint'),
       land: token('--map-land'),
     }
@@ -279,11 +271,6 @@ function AtlasLayers({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entries, pending, themeRevision])
-  const latest = useRef(paints)
-  latest.current = paints
-  const pendingCodes = useRef(pending)
-  pendingCodes.current = pending
-  const hovered = useRef<string | null>(null)
   const labelInput = useRef<LabelInput>({ shown, lifted, hovered: null })
 
   // Each country's main landmass, once per geometry load.
@@ -291,7 +278,7 @@ function AtlasLayers({
     const byId = new Map<string, Shape>()
     for (const feature of raw?.features ?? []) {
       const id = feature.properties.id
-      const found = isCatalogCountry(id) ? largestRing(feature.geometry) : null
+      const found = isCatalogCountry(id) ? largestRing(outerRings(feature.geometry)) : null
       if (found) byId.set(id, found)
     }
     return byId
@@ -320,22 +307,9 @@ function AtlasLayers({
     [raw, shapes, name],
   )
 
+  // Layers start with their fixed properties; the effect below sets colours and filters in the same commit.
   useEffect(() => {
     if (!map || !ready || !raw) return
-    const now = latest.current
-    const marked = inSet([...entries.keys(), ...pendingCodes.current])
-    const unmarked: GL.ExpressionSpecification = ['!', marked]
-    const dot = {
-      'circle-radius': 5,
-      'circle-color': now.fill as never,
-      'circle-stroke-width': 1.5,
-      'circle-stroke-color': now.border,
-    }
-    const hit = {
-      'circle-radius': HIT_RADIUS,
-      'circle-color': now.fill as never,
-      'circle-opacity': 0,
-    }
     const text = {
       'text-field': ['get', 'label'],
       'text-font': [LABEL_FONT],
@@ -343,74 +317,47 @@ function AtlasLayers({
       'text-padding': 2,
       'symbol-sort-key': ['get', 'rank'],
     }
-    const textPaint = {
-      'text-color': now.text,
-      'text-halo-color': now.halo,
-      'text-halo-width': 1.5,
-    }
+    const textPaint = { 'text-halo-width': 1.5 }
     map.setFontFaces(LABEL_FONT_FACES)
-    map.addSource('atlas-countries', { type: 'geojson', data: raw })
+    // `id` doubles as the feature id, so hover is feature state: a paint change, not a source reload.
+    map.addSource('atlas-countries', { type: 'geojson', data: raw, promoteId: 'id' })
     map.addSource('atlas-points', { type: 'geojson', data: pointData })
     map.addSource('atlas-labels', { type: 'geojson', data: emptyLabels })
-    map.addLayer({
-      id: ATLAS_LAYERS.fill,
-      type: 'fill',
-      source: 'atlas-countries',
-      paint: { 'fill-color': now.fill as never },
-    })
+    map.addLayer({ id: ATLAS_LAYERS.fill, type: 'fill', source: 'atlas-countries' })
     map.addLayer({
       id: ATLAS_LAYERS.outline,
       type: 'line',
       source: 'atlas-countries',
-      paint: { 'line-color': now.border, 'line-width': 0.55 },
+      paint: { 'line-width': 0.55 },
     })
     // Pending is outlined and dashed, so it never relies on its lighter fill alone.
     map.addLayer({
       id: ATLAS_LAYERS.pending,
       type: 'line',
       source: 'atlas-countries',
-      filter: pendingFilter(pendingCodes.current),
-      layout: { visibility: pendingCodes.current.length ? 'visible' : 'none' },
-      paint: { 'line-color': now.pendingLine, 'line-width': 1.6, 'line-dasharray': [2, 2] },
+      layout: { visibility: 'none' },
+      paint: { 'line-width': 1.6, 'line-dasharray': [2, 2] },
     })
-    // The country under a fine pointer; the filter names it, so touch never sets one.
+    // The country under a fine pointer; only a hover sets the state, so touch never shows one.
     map.addLayer({
       id: ATLAS_LAYERS.hover,
       type: 'line',
       source: 'atlas-countries',
-      filter: idIs(''),
-      paint: { 'line-color': now.text, 'line-width': 1.25 },
+      paint: {
+        'line-width': 1.25,
+        'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0],
+      },
     })
-    map.addLayer({
-      id: ATLAS_LAYERS.dotRest,
-      type: 'circle',
-      source: 'atlas-points',
-      minzoom: REST_POINT_ZOOM,
-      filter: unmarked,
-      paint: dot,
-    })
-    map.addLayer({
-      id: ATLAS_LAYERS.dot,
-      type: 'circle',
-      source: 'atlas-points',
-      filter: marked,
-      paint: dot,
-    })
-    map.addLayer({
-      id: ATLAS_LAYERS.hitRest,
-      type: 'circle',
-      source: 'atlas-points',
-      minzoom: REST_POINT_ZOOM,
-      filter: unmarked,
-      paint: hit,
-    })
-    map.addLayer({
-      id: ATLAS_LAYERS.hit,
-      type: 'circle',
-      source: 'atlas-points',
-      filter: marked,
-      paint: hit,
-    })
+    for (const layer of POINT_LAYERS)
+      map.addLayer({
+        id: layer.id,
+        type: 'circle',
+        source: 'atlas-points',
+        ...(layer.rest ? { minzoom: REST_POINT_ZOOM } : {}),
+        paint: layer.hit
+          ? { 'circle-radius': HIT_RADIUS, 'circle-opacity': 0 }
+          : { 'circle-radius': 5, 'circle-stroke-width': 1.5 },
+      })
     // Names are native symbols: MapLibre places them in the same frame as the canvas, so a drag cannot desync them.
     map.addLayer({
       id: ATLAS_LAYERS.labels,
@@ -480,10 +427,12 @@ function AtlasLayers({
     // and the filters change only when the country under the pointer does.
     const point = window.matchMedia?.('(hover: hover) and (pointer: fine)')
     const hoverTo = (id: string | null) => {
-      if (id === hovered.current) return
-      hovered.current = id
+      const before = labelInput.current.hovered
+      if (id === before) return
       labelInput.current = { ...labelInput.current, hovered: id }
       map.getCanvas().style.cursor = id ? 'pointer' : ''
+      if (before) map.setFeatureState({ source: 'atlas-countries', id: before }, { hover: false })
+      if (id) map.setFeatureState({ source: 'atlas-countries', id }, { hover: true })
       applyLabelFilters(map, labelInput.current)
     }
     const hover = (event: GL.MapMouseEvent) => {
@@ -502,13 +451,12 @@ function AtlasLayers({
       map.off('mousemove', hover)
       map.off('mouseout', leave)
       map.off('dragstart', leave)
-      hovered.current = null
+      labelInput.current = { ...labelInput.current, hovered: null }
       for (const id of Object.values(ATLAS_LAYERS).reverse())
         if (map.getLayer(id)) map.removeLayer(id)
       for (const id of ['atlas-labels', 'atlas-points', 'atlas-countries'])
         if (map.getSource(id)) map.removeSource(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, ready, raw])
 
   useEffect(() => {
@@ -517,19 +465,15 @@ function AtlasLayers({
     map.setPaintProperty(ATLAS_LAYERS.fill, 'fill-color', paints.fill as never)
     map.setPaintProperty(ATLAS_LAYERS.outline, 'line-color', paints.border)
     map.setPaintProperty(ATLAS_LAYERS.pending, 'line-color', paints.pendingLine)
-    map.setFilter(ATLAS_LAYERS.pending, pendingFilter(pending))
+    map.setFilter(ATLAS_LAYERS.pending, inSet(pending))
     map.setLayoutProperty(ATLAS_LAYERS.pending, 'visibility', pending.length ? 'visible' : 'none')
     map.setPaintProperty(ATLAS_LAYERS.hover, 'line-color', paints.text)
-    for (const layer of [ATLAS_LAYERS.dotRest, ATLAS_LAYERS.dot]) {
-      map.setPaintProperty(layer, 'circle-color', paints.fill as never)
-      map.setPaintProperty(layer, 'circle-stroke-color', paints.border)
+    for (const layer of POINT_LAYERS) {
+      map.setFilter(layer.id, layer.rest ? ['!', marked] : marked)
+      if (layer.hit) continue
+      map.setPaintProperty(layer.id, 'circle-color', paints.fill as never)
+      map.setPaintProperty(layer.id, 'circle-stroke-color', paints.border)
     }
-    map.setPaintProperty(ATLAS_LAYERS.hit, 'circle-color', paints.fill as never)
-    map.setPaintProperty(ATLAS_LAYERS.hitRest, 'circle-color', paints.fill as never)
-    map.setFilter(ATLAS_LAYERS.dot, marked)
-    map.setFilter(ATLAS_LAYERS.hit, marked)
-    map.setFilter(ATLAS_LAYERS.dotRest, ['!', marked])
-    map.setFilter(ATLAS_LAYERS.hitRest, ['!', marked])
     for (const layer of [ATLAS_LAYERS.labels, ATLAS_LAYERS.microLabels, ATLAS_LAYERS.hoverLabel]) {
       map.setPaintProperty(layer, 'text-color', paints.text)
       map.setPaintProperty(layer, 'text-halo-color', paints.halo)
@@ -538,7 +482,7 @@ function AtlasLayers({
 
   useEffect(() => {
     if (!map || !ready || !map.getLayer(ATLAS_LAYERS.labels)) return
-    labelInput.current = { shown, lifted, hovered: hovered.current }
+    labelInput.current = { ...labelInput.current, shown, lifted }
     applyLabelFilters(map, labelInput.current)
   }, [map, ready, raw, shown, lifted])
 
@@ -550,19 +494,12 @@ function AtlasLayers({
   const geometries = useMemo(() => {
     const byId = new Map<string, StickerGeometry>()
     for (const feature of raw?.features ?? []) {
-      const { geometry } = feature
-      const polygons =
-        geometry.type === 'Polygon'
-          ? [geometry.coordinates]
-          : geometry.type === 'MultiPolygon'
-            ? geometry.coordinates
-            : []
       const found = shapes.get(feature.properties.id)
-      if (!found || !polygons.length) continue
-      byId.set(feature.properties.id, {
-        rings: polygons.map(([outer]) => outer).filter((ring) => ring?.length > 2),
-        centre: found.point,
-      })
+      if (found)
+        byId.set(feature.properties.id, {
+          rings: outerRings(feature.geometry),
+          centre: found.point,
+        })
     }
     return byId
   }, [raw, shapes])
@@ -616,7 +553,7 @@ function Controls({
   loaded: boolean
 }) {
   const { map, ready } = useMap()
-  const [view, setView] = useState<'mine' | 'world'>('mine')
+  const [atWorld, setAtWorld] = useState(false)
   const fitted = useRef<GL.Map | null>(null)
   useEffect(() => {
     if (!map || !ready) return
@@ -633,7 +570,7 @@ function Controls({
   }, [map, ready, loaded, mine])
   if (!ready) return null
   const text = STRINGS[locale]
-  const toWorld = view === 'mine' || !mine
+  const toWorld = !atWorld || !mine
   return (
     <div className="passport-atlas-controls">
       <button type="button" aria-label={text.in} onClick={() => map?.zoomIn({ duration: 0 })}>
@@ -646,9 +583,9 @@ function Controls({
         type="button"
         onClick={() => {
           if (!map) return
-          if (toWorld || !mine) fitWorld(map)
+          if (toWorld) fitWorld(map)
           else fitMine(map, mine)
-          setView(toWorld ? 'world' : 'mine')
+          setAtWorld(toWorld)
         }}
       >
         {toWorld ? text.world : text.mine}

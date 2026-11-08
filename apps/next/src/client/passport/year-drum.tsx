@@ -18,6 +18,7 @@ import {
 } from 'react'
 import type { Locale } from '../../lib/format'
 import { criticalSpring } from '../ui/critical-spring'
+import { recentSamples, rubberBand, velocityOf, type Sample } from '../ui/sheet-physics'
 import './year-drum.css'
 
 export type YearValue = number | null
@@ -27,7 +28,6 @@ export const OLDEST_YEAR = 1930
 const WINDOW_ROWS = 3
 /** Apple's scroll deceleration: a release coasts `v · 0.998 / (1 − 0.998)` ms-seconds ahead. */
 const DECELERATION = 0.998
-const RELEASE_WINDOW_MS = 100
 const TAP_SLOP_PX = 4
 const WHEEL_STEP_PX = 40
 const PAGE_ROWS = 10
@@ -37,15 +37,10 @@ export function yearValues(current = new Date().getFullYear()): YearValue[] {
   return [null, ...Array.from({ length: current - OLDEST_YEAR + 1 }, (_, i) => current - i)]
 }
 
-/** Resistance past an end: the overshoot `offset` approaches `dimension` asymptotically. Signed like the offset. */
-export function rubberband(offset: number, dimension: number): number {
-  return (offset * dimension * 0.55) / (dimension + 0.55 * Math.abs(offset))
-}
-
 /** Where a drag at `raw` rows shows: free inside the list, rubber-banded past either end. */
-export function dragPosition(raw: number, last: number, dimension = WINDOW_ROWS): number {
-  if (raw < 0) return rubberband(raw, dimension)
-  if (raw > last) return last + rubberband(raw - last, dimension)
+export function dragPosition(raw: number, last: number): number {
+  if (raw < 0) return -rubberBand(-raw, WINDOW_ROWS)
+  if (raw > last) return last + rubberBand(raw - last, WINDOW_ROWS)
   return raw
 }
 
@@ -57,24 +52,6 @@ export function project(position: number, velocity: number): number {
 /** The row nearest a position, clamped to the list. */
 export function snapIndex(position: number, count: number): number {
   return Math.min(count - 1, Math.max(0, Math.round(position)))
-}
-
-/** Rows per second over the samples kept from the last 100 ms; 0 without two of them. */
-export function velocityOf(samples: { t: number; position: number }[]): number {
-  if (samples.length < 2) return 0
-  const first = samples[0],
-    last = samples[samples.length - 1]
-  const seconds = (last.t - first.t) / 1000
-  return seconds > 0 ? (last.position - first.position) / seconds : 0
-}
-
-/** The samples a release measures its speed from: those of the last 100 ms before it, then the release itself. */
-export function releaseSamples(
-  samples: { t: number; position: number }[],
-  t: number,
-  position: number,
-): { t: number; position: number }[] {
-  return [...samples.filter((sample) => t - sample.t <= RELEASE_WINDOW_MS), { t, position }]
 }
 
 /** The row a key moves to, or null for a key the drum ignores. ↑ moves up the list (a later year), ↓ down it. */
@@ -98,7 +75,7 @@ export function keyIndex(key: string, index: number, last: number): number | nul
   }
 }
 
-const NAME: Record<Locale, string> = { en: 'Year of visit', ru: 'Год визита' }
+export const YEAR_NAME: Record<Locale, string> = { en: 'Year of visit', ru: 'Год визита' }
 const NO_YEAR: Record<Locale, string> = { en: 'no year', ru: 'без года' }
 export const yearLabel = (year: YearValue, locale: Locale) =>
   year === null ? NO_YEAR[locale] : String(year)
@@ -117,7 +94,8 @@ type Drag = {
   startPosition: number
   grabbed: boolean
   moved: boolean
-  samples: { t: number; position: number }[]
+  /** The drum's position in rows over the last 100 ms. */
+  samples: Sample[]
 }
 
 /** The index a stored year opens on: its row, or the nearest end when it lies outside 1930 to now. */
@@ -148,6 +126,7 @@ export function YearDrum({
   const reduced = useReducedMotion() ?? false
   const values = useMemo(() => yearValues(), [])
   const last = values.length - 1
+  const snap = useCallback((at: number) => snapIndex(at, values.length), [values])
   const [start] = useState(() => openIndex(values, value))
   const [index, setIndex] = useState(start)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -169,9 +148,9 @@ export function YearDrum({
     (next: number) => {
       position.current = next
       if (listRef.current) listRef.current.style.transform = `translateY(${(1 - next) * ROW_PX}px)`
-      setIndex(snapIndex(next, last + 1))
+      setIndex(snap(next))
     },
-    [last],
+    [snap],
   )
   useEffect(() => {
     windowRef.current?.focus({ preventScroll: true })
@@ -183,11 +162,10 @@ export function YearDrum({
       if (closed.current) return
       closed.current = true
       spring.current?.stop()
-      const year =
-        restore || !touched.current ? value : values[snapIndex(position.current, last + 1)]
+      const year = restore || !touched.current ? value : values[snap(position.current)]
       onCloseRef.current({ year, changed: year !== value, refocus })
     },
-    [last, value, values],
+    [snap, value, values],
   )
 
   /** Moves to a row: a critically damped spring handed `velocity`, or straight there (keyboard, reduced motion). */
@@ -257,7 +235,7 @@ export function YearDrum({
       if (Math.abs(sum) < WHEEL_STEP_PX) return
       const step = Math.sign(sum)
       sum = 0
-      settle(snapIndex(Math.round(position.current) + step, last + 1))
+      settle(snap(Math.round(position.current) + step))
     }
     const keep = (event: TouchEvent) => event.stopPropagation()
     node.addEventListener('wheel', wheel, { passive: false })
@@ -267,7 +245,7 @@ export function YearDrum({
       node.removeEventListener('wheel', wheel)
       node.removeEventListener('touchstart', keep)
     }
-  }, [settle, last])
+  }, [settle, snap])
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     // The sheet around the drum never sees this press.
@@ -284,7 +262,7 @@ export function YearDrum({
       startPosition: position.current,
       grabbed,
       moved: false,
-      samples: [{ t: event.timeStamp, position: position.current }],
+      samples: [{ t: event.timeStamp, value: position.current }],
     }
   }
 
@@ -297,10 +275,7 @@ export function YearDrum({
     touched.current = true
     // 1:1 with where the finger took hold: the list moves with it, past an end it resists.
     const next = dragPosition(current.startPosition - delta / ROW_PX, last)
-    current.samples = [
-      ...current.samples.filter((sample) => event.timeStamp - sample.t <= RELEASE_WINDOW_MS),
-      { t: event.timeStamp, position: next },
-    ]
+    current.samples = recentSamples(current.samples, event.timeStamp, next)
     show(next)
   }
 
@@ -309,40 +284,34 @@ export function YearDrum({
     if (!current || current.id !== event.pointerId) return
     drag.current = null
     if (!current.moved) {
-      if (current.grabbed) return settle(snapIndex(position.current, last + 1))
+      if (current.grabbed) return settle(snap(position.current))
       // A tap: a faded row steps to itself, the selected one closes the drum.
       const row = Math.floor(
         (event.clientY - event.currentTarget.getBoundingClientRect().top) / ROW_PX,
       )
       if (row === 1) return finish(true)
-      return settle(snapIndex(Math.round(position.current) + (row === 0 ? -1 : 1), last + 1))
+      return settle(snap(Math.round(position.current) + (row === 0 ? -1 : 1)))
     }
     // The release itself is the last sample, and only the last 100 ms count: a drag held still before letting go has
     // no speed left, whatever it had earlier.
-    const velocity = velocityOf(releaseSamples(current.samples, event.timeStamp, position.current))
-    settle(snapIndex(project(position.current, velocity), last + 1), velocity)
+    const velocity = velocityOf(recentSamples(current.samples, event.timeStamp, position.current))
+    settle(snap(project(position.current, velocity)), velocity)
   }
 
   function onPointerCancel(event: PointerEvent<HTMLDivElement>) {
     if (drag.current?.id !== event.pointerId) return
     drag.current = null
-    settle(snapIndex(position.current, last + 1))
+    settle(snap(position.current))
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === 'Escape') {
       event.preventDefault()
       event.stopPropagation()
-      finish(true)
+      finish(true, event.key === 'Escape')
       return
     }
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      event.stopPropagation()
-      finish(true, true)
-      return
-    }
-    const target = keyIndex(event.key, snapIndex(position.current, last + 1), last)
+    const target = keyIndex(event.key, snap(position.current), last)
     if (target === null) return
     event.preventDefault()
     settle(target, 0, false)
@@ -366,7 +335,7 @@ export function YearDrum({
         ref={windowRef}
         role="spinbutton"
         tabIndex={0}
-        aria-label={NAME[locale]}
+        aria-label={YEAR_NAME[locale]}
         aria-valuemin={OLDEST_YEAR}
         aria-valuemax={values[1] ?? undefined}
         aria-valuenow={year ?? undefined}

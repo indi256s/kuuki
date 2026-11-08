@@ -1,17 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import {
-  YearDrum,
-  dragPosition,
-  project,
-  releaseSamples,
-  rubberband,
-  snapIndex,
-  velocityOf,
-  yearValues,
-  type YearValue,
-} from './year-drum'
+import { YearDrum, dragPosition, project, snapIndex, yearValues, type YearValue } from './year-drum'
 
 it('lists no year first, then the current year down to 1930', () => {
   const values = yearValues(2026)
@@ -28,16 +18,13 @@ it('snaps a release to the row nearest the projected rest, clamped at both ends'
   expect(snapIndex(project(3.4, 0.2), 98)).toBe(3)
 })
 
-it('rubber-bands an overshoot: less than dragged, never past the window, signed like the pull', () => {
-  const pulled = rubberband(2, 3)
-  expect(pulled).toBeGreaterThan(0)
-  expect(pulled).toBeLessThan(2)
-  expect(rubberband(1000, 3)).toBeLessThan(3)
-  expect(rubberband(-2, 3)).toBe(-pulled)
-  // Inside the list a drag is 1:1; past either end it resists.
+it('drags 1:1 inside the list and rubber-bands past either end, alike at both, never past the window', () => {
   expect(dragPosition(5.5, 97)).toBe(5.5)
-  expect(dragPosition(-2, 97)).toBeGreaterThan(-2)
-  expect(dragPosition(99, 97)).toBeLessThan(99)
+  const pulled = dragPosition(-2, 97)
+  expect(pulled).toBeGreaterThan(-2)
+  expect(pulled).toBeLessThan(0)
+  expect(dragPosition(99, 97) - 97).toBeCloseTo(-pulled)
+  expect(dragPosition(-1000, 97)).toBeGreaterThan(-3)
 })
 
 function open(value: YearValue = null) {
@@ -104,15 +91,4 @@ it('a press on the control that opened it closes the drum, and that click does n
   expect(onClose).toHaveBeenCalledExactlyOnceWith({ year, changed: true, refocus: true })
   expect(reopen).not.toHaveBeenCalled()
   trigger.remove()
-})
-
-it('a drag held still before release has no speed left to coast on', () => {
-  // Two rows in 50 ms, then the finger rests for a second before letting go.
-  const samples = [
-    { t: 0, position: 0 },
-    { t: 50, position: 2 },
-  ]
-  expect(velocityOf(releaseSamples(samples, 1050, 2))).toBe(0)
-  // Released mid-flick, the speed is kept.
-  expect(velocityOf(releaseSamples(samples, 60, 2.4))).toBeGreaterThan(30)
 })

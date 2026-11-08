@@ -337,7 +337,7 @@ it("closes a lifted sticker on a member pan but not on the lift's own camera mov
   await lift()
   act(() => emit('movestart', {}))
   expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeNull()
-  act(() => emit('dragstart', { originalEvent: new MouseEvent('mousemove') }))
+  act(() => emit('movestart', { originalEvent: new MouseEvent('mousemove') }))
   act(() => {
     vi.advanceTimersByTime(300)
   })
@@ -354,7 +354,7 @@ it('lands a date band with the stamp, and the stamp stays while the drum is open
   fireEvent.click(tab('By train'))
   await act(async () => vi.advanceTimersByTime(240))
   expect(stamp()).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Year of visit: not set' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Year of visit: no year' }))
   const drum = screen.getByRole('spinbutton', { name: 'Year of visit' })
 
   // Well past the toast's eight seconds: an open drum keeps the stamp.

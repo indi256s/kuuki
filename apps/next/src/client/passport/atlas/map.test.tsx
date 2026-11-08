@@ -68,6 +68,7 @@ const map = {
   setPaintProperty: (layer: string, property: string, value: unknown) =>
     state.paint.push([layer, property, value]),
   setFilter: vi.fn(),
+  setFeatureState: vi.fn(),
   setLayoutProperty: vi.fn(),
   fitBounds: vi.fn(),
   setRenderWorldCopies: vi.fn(),
@@ -138,7 +139,9 @@ const colorOf = (expression: unknown, code: string) => {
   return parts.at(-1)
 }
 const fill = () =>
-  state.layers.find((layer) => layer.id === ATLAS_LAYERS.fill)!.paint!['fill-color']
+  state.paint
+    .filter(([layer, property]) => layer === ATLAS_LAYERS.fill && property === 'fill-color')
+    .at(-1)![2]
 /** Visited countries as the atlas receives them: code → visit count. */
 const visited = (codes: string[], count = 1) => new Map(codes.map((code) => [code, count]))
 const mount = async (entries: string[], pending: string[], onSelectCountry = vi.fn()) => {

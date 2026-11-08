@@ -32,19 +32,27 @@ const labels = JSON.parse(readFileSync(labelPath, 'utf8')).features
 const NE_CODE = { SJ: 'NSV', XK: 'KOS' }
 
 const drawn = new Set(polygons.features.map((feature) => feature.properties.id))
-const lookup = (code) => {
-  const iso3 = NE_CODE[code] ?? stamps[code]?.iso3
-  const matches = (key) =>
-    labels.filter(
-      (feature) => feature.properties[key] === iso3 && feature.geometry?.type === 'Point',
-    )
-  const pool = matches('sr_su_a3').length ? matches('sr_su_a3') : matches('sr_adm0_a3')
-  const best = pool.reduce(
+const iso3Of = (code) => NE_CODE[code] ?? stamps[code]?.iso3
+const pointsFor = (iso3, key) =>
+  labels.filter((feature) => feature.properties[key] === iso3 && feature.geometry?.type === 'Point')
+const round = (feature) =>
+  feature?.geometry.coordinates.map((value) => Math.round(value * 1e4) / 1e4) ?? null
+/** The lowest scalerank wins; `closer` breaks a tie, else file order. */
+const best = (features, closer = () => false) =>
+  features.reduce(
     (current, feature) =>
-      !current || feature.properties.scalerank < current.properties.scalerank ? feature : current,
+      !current ||
+      feature.properties.scalerank < current.properties.scalerank ||
+      (feature.properties.scalerank === current.properties.scalerank && closer(feature, current))
+        ? feature
+        : current,
     null,
   )
-  return best ? best.geometry.coordinates.map((value) => Math.round(value * 1e4) / 1e4) : null
+
+const lookup = (code) => {
+  const iso3 = iso3Of(code)
+  const subunits = pointsFor(iso3, 'sr_su_a3')
+  return round(best(subunits.length ? subunits : pointsFor(iso3, 'sr_adm0_a3')))
 }
 
 // A drawn country's label must sit on its main landmass: the file lists subunit points too (Corsica, Alaska, Svalbard),
@@ -68,7 +76,7 @@ const inside = ([x, y], ring) => {
   return result
 }
 const mainland = (code) => {
-  const iso3 = NE_CODE[code] ?? stamps[code]?.iso3
+  const iso3 = iso3Of(code)
   const feature = polygons.features.find((item) => item.properties.id === code)
   const main = outerRings(feature.geometry).reduce((best, ring) => {
     const [w, s, e, n] = boxOf(ring)
@@ -88,17 +96,7 @@ const mainland = (code) => {
       feature.geometry.coordinates[0] - centre[0],
       feature.geometry.coordinates[1] - centre[1],
     )
-  const best = candidates.reduce(
-    (current, feature) =>
-      !current ||
-      feature.properties.scalerank < current.properties.scalerank ||
-      (feature.properties.scalerank === current.properties.scalerank &&
-        distance(feature) < distance(current))
-        ? feature
-        : current,
-    null,
-  )
-  return best ? best.geometry.coordinates.map((value) => Math.round(value * 1e4) / 1e4) : null
+  return round(best(candidates, (feature, current) => distance(feature) < distance(current)))
 }
 const points = { markers: {}, polygons: {} }
 const unplaced = { markers: [], polygons: [] }

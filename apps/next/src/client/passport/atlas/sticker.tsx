@@ -32,7 +32,8 @@ import { criticalSpring } from '../../ui/critical-spring'
 import { useMobile } from '../../ui/use-mobile'
 import type { Locale } from '../../../lib/format'
 import { VISIT_WAYS, WAY_LABELS, type VisitWay } from '../visit-ways'
-import { YearDrum, type YearDrumResult, type YearValue } from '../year-drum'
+import { YEAR_NAME, YearDrum, yearLabel, type YearDrumResult, type YearValue } from '../year-drum'
+import { recentSamples, velocityOf, type Sample } from '../../ui/sheet-physics'
 import {
   bounds,
   fold,
@@ -89,16 +90,8 @@ type Press = {
   grab: Point
   /** Finger → fold tip, fixed when the drag starts so the fold continues from what is on screen. */
   offset: Point | null
-  samples: { t: number; progress: number }[]
-}
-
-/** Progress per second over the last 100 ms of a pull; 0 without two samples. */
-function velocityOf(samples: Press['samples']) {
-  if (samples.length < 2) return 0
-  const first = samples[0],
-    last = samples[samples.length - 1]
-  const seconds = (last.t - first.t) / 1000
-  return seconds > 0 ? (last.progress - first.progress) / seconds : 0
+  /** The pull's progress over the last 100 ms. */
+  samples: Sample[]
 }
 type Active = {
   code: string
@@ -117,16 +110,12 @@ type LandedStamp = {
   leaving: boolean
   /** The date band's year, as chosen on the drum. */
   year: YearValue
-  /** The drum is open over the band; the stamp stays meanwhile. */
-  editing: boolean
-  /** The drum was opened from the keyboard: no entrance. */
-  instant: boolean
+  /** How the drum over the band was opened (the keyboard skips its entrance), or null while closed; the stamp stays while it is open. */
+  drum: 'pointer' | 'keyboard' | null
 }
 /** When a landed stamp may leave: with the toast, or a beat after its drum closes, whichever is later. */
 type Hold = { code: string; due: number; timer: number | null; setYear: SetYear }
-const BAND_LABEL: Record<Locale, string> = { en: 'Year of visit', ru: 'Год визита' }
 const BAND_PLACEHOLDER: Record<Locale, string> = { en: 'year', ru: 'год' }
-const NOT_SET: Record<Locale, string> = { en: 'not set', ru: 'не указан' }
 
 let sequence = 0
 
@@ -217,16 +206,10 @@ export function Sticker({
     }
   }, [])
 
-  // What this render drew: the layout effect below keeps it as the base for the camera-follow transform.
-  const view = map
-    ? (() => {
-        const at = map.getCenter()
-        const { x, y } = map.project(at)
-        return { zoom: map.getZoom(), at, x, y }
-      })()
-    : null
+  // What this render drew is the base for the camera-follow transform.
   useLayoutEffect(() => {
-    anchor.current = view
+    const at = map?.getCenter()
+    anchor.current = map && at ? { zoom: map.getZoom(), at, ...map.project(at) } : null
     // This render re-projected everything: the camera-follow transforms start over.
     for (const node of [faceFollow.current, shadowFollow.current])
       if (node) node.style.transform = ''
@@ -274,12 +257,21 @@ export function Sticker({
     map?.getCanvas().focus({ preventScroll: true })
   }, [map])
 
+  const cancelLeave = useCallback(
+    (hold: Hold | undefined) => {
+      if (hold?.timer == null) return
+      unlater(hold.timer)
+      hold.timer = null
+    },
+    [unlater],
+  )
+
   /** Starts the stamp's leave clock: it fades once `due` has passed, then goes. Restarting replaces the clock. */
   const scheduleLeave = useCallback(
     (key: number) => {
       const hold = holds.current.get(key)
       if (!hold) return
-      if (hold.timer !== null) unlater(hold.timer)
+      cancelLeave(hold)
       hold.timer = later(Math.max(0, hold.due - Date.now()), () => {
         setStamps((list) =>
           list.map((item) => (item.key === key ? { ...item, leaving: true } : item)),
@@ -292,7 +284,7 @@ export function Sticker({
         })
       })
     },
-    [later, unlater, focusMap],
+    [later, cancelLeave, focusMap],
   )
 
   const landStamp = useCallback(
@@ -308,8 +300,7 @@ export function Sticker({
           at: geometry.centre,
           leaving: false,
           year: null,
-          editing: false,
-          instant: false,
+          drum: null,
         },
       ])
       // The stamp leaves with the toast.
@@ -320,25 +311,19 @@ export function Sticker({
   )
 
   const openDate = useCallback(
-    (key: number, instant: boolean) => {
-      const hold = holds.current.get(key)
+    (key: number, drum: 'pointer' | 'keyboard') => {
       // The stamp stays while the drum is open.
-      if (hold?.timer != null) unlater(hold.timer)
-      if (hold) hold.timer = null
-      setStamps((list) =>
-        list.map((item) => (item.key === key ? { ...item, editing: true, instant } : item)),
-      )
+      cancelLeave(holds.current.get(key))
+      setStamps((list) => list.map((item) => (item.key === key ? { ...item, drum } : item)))
     },
-    [unlater],
+    [cancelLeave],
   )
 
   const closeDate = useCallback(
     (key: number, result: YearDrumResult) => {
       const hold = holds.current.get(key)
       setStamps((list) =>
-        list.map((item) =>
-          item.key === key ? { ...item, editing: false, year: result.year } : item,
-        ),
+        list.map((item) => (item.key === key ? { ...item, drum: null, year: result.year } : item)),
       )
       if (result.changed) hold?.setYear(result.year)
       if (result.refocus) bandNodes.current.get(key)?.focus({ preventScroll: true })
@@ -378,7 +363,7 @@ export function Sticker({
       // The reverted country's stamps go with the fill: their own leave clocks are off.
       for (const [key, hold] of holds.current)
         if (hold.code === code) {
-          if (hold.timer !== null) unlater(hold.timer)
+          cancelLeave(hold)
           holds.current.delete(key)
         }
       later(REVERT_MS, () => {
@@ -386,7 +371,7 @@ export function Sticker({
         setStamps((list) => list.filter((item) => item.code !== code || !item.leaving))
       })
     },
-    [later, unlater],
+    [later, cancelLeave],
   )
 
   const close = useCallback(() => {
@@ -450,19 +435,16 @@ export function Sticker({
     if (liftedCode) firstTab.current?.focus({ preventScroll: true })
   }, [liftedCode])
 
-  // The member panning, wheeling or pinching the map closes a lifted sticker like a popover; the lift's own flight and
-  // the zoom buttons carry no pointer event. A tear in flight is never interrupted (close only acts on a lifted sticker).
+  // The member panning, wheeling or pinching the map closes a lifted sticker like a popover: every gesture opens with a
+  // `movestart` carrying its input event, while the lift's own flight and the zoom buttons carry none. A tear in flight
+  // is never interrupted (close only acts on a lifted sticker).
   useEffect(() => {
     if (!liftedCode || !map) return
     const pan = (event: { originalEvent?: unknown }) => {
       if (event.originalEvent) close()
     }
-    map.on('dragstart', pan)
-    map.on('zoomstart', pan)
     map.on('movestart', pan)
     return () => {
-      map.off('dragstart', pan)
-      map.off('zoomstart', pan)
       map.off('movestart', pan)
     }
   }, [liftedCode, map, close])
@@ -660,10 +642,7 @@ export function Sticker({
     const pointer: Point = [finger[0] + press.offset[0], finger[1] + press.offset[1]]
     const progress = fold(rings, press.grab, pointer)?.progress ?? 0
     const now = event.timeStamp
-    press.samples = [
-      ...press.samples.filter((sample) => now - sample.t <= 100),
-      { t: now, progress },
-    ]
+    press.samples = recentSamples(press.samples, now, progress)
     setActive({
       ...current,
       pull: {
@@ -688,8 +667,9 @@ export function Sticker({
     window.setTimeout(() => {
       suppressClick.current = false
     })
-    // Where the pull is going decides, not only where it stopped: a flick tears, a pull back returns.
-    const velocity = velocityOf(press.samples)
+    // Where the pull is going decides, not only where it stopped: a flick tears, a pull back returns. The release is
+    // the last sample, so a pull held still before letting go has no speed left.
+    const velocity = velocityOf(recentSamples(press.samples, event.timeStamp, pull.progress))
     if (pull.progress + velocity * PROJECTION_S >= TEAR_THRESHOLD) {
       const remaining = Math.min(TEAR_MS, Math.max(120, (1 - pull.progress) * TEAR_MS))
       tear(press.way, pull.grab, pull.dir, pull.progress, remaining, Math.max(0, velocity))
@@ -838,7 +818,7 @@ export function Sticker({
       ) : null}
       {stamps.map((stamp) => {
         const { x, y } = map.project(stamp.at)
-        const label = `${BAND_LABEL[locale]}: ${stamp.year ?? NOT_SET[locale]}`
+        const label = `${YEAR_NAME[locale]}: ${yearLabel(stamp.year, locale)}`
         return (
           <div
             key={stamp.key}
@@ -873,19 +853,19 @@ export function Sticker({
                 className="atlas-sticker-band"
                 data-set={stamp.year !== null || undefined}
                 aria-label={label}
-                aria-expanded={stamp.editing}
+                aria-expanded={!!stamp.drum}
                 tabIndex={stamp.leaving ? -1 : 0}
-                onClick={(event) =>
-                  stamp.editing ? undefined : openDate(stamp.key, event.detail === 0)
-                }
+                onClick={(event) => {
+                  if (!stamp.drum) openDate(stamp.key, event.detail === 0 ? 'keyboard' : 'pointer')
+                }}
               >
                 <span>{stamp.year ?? BAND_PLACEHOLDER[locale]}</span>
               </button>
-              {stamp.editing ? (
+              {stamp.drum ? (
                 <YearDrum
                   value={stamp.year}
                   locale={locale}
-                  instant={stamp.instant}
+                  instant={stamp.drum === 'keyboard'}
                   trigger={() => bandNodes.current.get(stamp.key) ?? null}
                   onClose={(result) => closeDate(stamp.key, result)}
                 />

@@ -2,7 +2,7 @@
 
 import { lazy, Suspense, useMemo, useState, useSyncExternalStore } from 'react'
 import { formatCount, type Locale } from '../../../lib/format'
-import { BUCKET_LABELS } from '../../../lib/map-buckets'
+import { ATLAS_VISIT_TOKENS, BUCKET_LABELS } from '../../../lib/map-buckets'
 import type { PassportEntry } from '../model'
 import type { QuickVisit } from './map'
 import './atlas.css'
@@ -115,7 +115,7 @@ export function PassportAtlas({
                   <li key={label}>
                     <span
                       className="passport-atlas-swatch"
-                      data-bucket={index + 1}
+                      style={{ background: `var(${ATLAS_VISIT_TOKENS[index]})` }}
                       aria-hidden="true"
                     />
                     {label}

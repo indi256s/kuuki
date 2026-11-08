@@ -10,6 +10,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { useEffect, useReducer, type ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '@kuuki/client/apiClient'
 import type { PassportData } from '../../server/passport'
 
 const mocks = vi.hoisted(() => ({
@@ -36,7 +37,8 @@ vi.mock('next/navigation', () => ({
 vi.mock('next/link', async () => ({
   default: (await import('../../test/next-link')).linkStandIn((href) => mocks.push(href)),
 }))
-vi.mock('@kuuki/client/apiClient', () => ({
+vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
+  ApiError: (await importOriginal<typeof import('@kuuki/client/apiClient')>()).ApiError,
   api: { get: mocks.get, put: mocks.put, delete: mocks.delete, patch: mocks.patch },
   getAuthGeneration: () => 1,
 }))
@@ -978,7 +980,7 @@ describe('round-up of visits without a year', () => {
 
   it('answers a concurrent change with a calm note on the row and refreshes after close', async () => {
     const user = userEvent.setup()
-    mocks.patch.mockRejectedValue(Object.assign(new Error('changed'), { status: 409 }))
+    mocks.patch.mockRejectedValue(new ApiError(409, 'changed'))
     render(<PassportPage {...withVisits([visit('g1', 'NO')])} />)
     await user.click(screen.getByRole('button', { name: '1 visit without a year' }))
     const sheet = await screen.findByRole('dialog', { name: 'No year' })

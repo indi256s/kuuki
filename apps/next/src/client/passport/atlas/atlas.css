@@ -83,18 +83,6 @@
   height: 12px;
   border-radius: 2px;
 }
-.passport-atlas-swatch[data-bucket='1'] {
-  background: var(--atlas-visit-1);
-}
-.passport-atlas-swatch[data-bucket='2'] {
-  background: var(--atlas-visit-2);
-}
-.passport-atlas-swatch[data-bucket='3'] {
-  background: var(--atlas-visit-3);
-}
-.passport-atlas-swatch[data-bucket='4'] {
-  background: var(--atlas-visit-4);
-}
 .passport-atlas-swatch[data-pending] {
   background: var(--accent-tint);
   border: 1.5px dashed var(--accent-text);

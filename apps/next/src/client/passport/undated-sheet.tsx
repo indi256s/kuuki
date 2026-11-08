@@ -3,21 +3,23 @@
 // whose year was just set stays under the finger and shows it; the page refreshes once, when the sheet closes.
 
 import { useMemo, useRef, useState } from 'react'
-import { getAuthGeneration } from '@kuuki/client/apiClient'
+import { ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import { updateGroundVisit } from '@kuuki/client/passport'
 import { trackPrivateOperation } from '../activity'
 import { Sheet } from '../ui/sheet'
 import { formatCount, type CountForms, type Locale } from '../../lib/format'
 import type { PassportData } from '../../server/passport'
 import { WAY_LABELS, wayOf } from './visit-ways'
-import { YearDrum, yearLabel, type YearDrumResult, type YearValue } from './year-drum'
+import { YEAR_NAME, YearDrum, yearLabel, type YearDrumResult, type YearValue } from './year-drum'
 import './passport.css'
 
 export type UndatedVisit = PassportData['groundVisits'][number]
 
 /** The owner's ground visits that carry no year, whatever their way; hidden countries are out of the passport, so out of here. */
-export const undatedOf = (visits: readonly UndatedVisit[], hidden: readonly string[] = []) =>
-  visits.filter((visit) => visit.visit_year === null && !hidden.includes(visit.country_code))
+export function undatedOf(visits: readonly UndatedVisit[], hidden: readonly string[] = []) {
+  const out = new Set(hidden)
+  return visits.filter((visit) => visit.visit_year === null && !out.has(visit.country_code))
+}
 
 const UNDATED_FORMS: CountForms = {
   en: { one: '{count} visit without a year', other: '{count} visits without a year' },
@@ -32,8 +34,8 @@ const UNDATED_FORMS: CountForms = {
 export const undatedLabel = (locale: Locale, count: number) =>
   formatCount(locale, count, UNDATED_FORMS)
 
+const TITLE: Record<Locale, string> = { en: 'No year', ru: 'Без года' }
 const LAND: Record<Locale, string> = { en: 'By land', ru: 'По суше' }
-const YEAR_OF_VISIT: Record<Locale, string> = { en: 'Year of visit', ru: 'Год визита' }
 const CONFLICT: Record<Locale, string> = {
   en: 'This visit changed elsewhere. The list refreshes when you close this.',
   ru: 'Этот визит изменился в другом месте. Список обновится, когда вы закроете окно.',
@@ -72,7 +74,6 @@ export function UndatedSheet({
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [editing, setEditing] = useState<string | null>(null)
   const [instant, setInstant] = useState(false)
-  const editingRef = useRef<string | null>(null)
   const dirty = useRef(false)
   // Per row: writes run one after another, and only the latest edit may speak for the row when one fails.
   const queues = useRef(new Map<string, Promise<void>>())
@@ -95,13 +96,8 @@ export function UndatedSheet({
     [snapshot, name, locale],
   )
 
-  const edit = (id: string | null) => {
-    editingRef.current = id
-    setEditing(id)
-  }
-
   function commit(visit: UndatedVisit, result: YearDrumResult) {
-    edit(null)
+    setEditing(null)
     const { id } = visit
     if (result.refocus) buttons.current.get(id)?.focus({ preventScroll: true })
     if (!result.changed) return
@@ -123,7 +119,7 @@ export function UndatedSheet({
         dirty.current = true
       } catch (error) {
         if (controller.signal.aborted || auth !== getAuthGeneration()) return
-        const conflict = (error as { status?: number }).status === 409
+        const conflict = error instanceof ApiError && error.status === 409
         // A conflict means the row changed elsewhere: the list refreshes on close either way.
         if (conflict) dirty.current = true
         // A newer edit of this row owns what it shows; an older failure must not overwrite it.
@@ -152,23 +148,22 @@ export function UndatedSheet({
     onOpenChange(next)
   }
 
-  const ru = locale === 'ru'
   return (
     <Sheet
       open={open}
       onOpenChange={changeOpen}
       side={mobile ? 'bottom' : 'right'}
       className="passport-sheet-panel"
-      title={ru ? 'Без года' : 'No year'}
-      closeLabel={ru ? 'Закрыть' : 'Close'}
+      title={TITLE[locale]}
+      closeLabel={locale === 'ru' ? 'Закрыть' : 'Close'}
       // Escape closes the drum first; the sheet needs a second press.
       onEscapeKeyDown={(event) => {
-        if (editingRef.current) event.preventDefault()
+        if (editing) event.preventDefault()
       }}
       onCloseAutoFocus={onCloseAutoFocus}
     >
       <div className="passport-sheet">
-        <ul className="passport-list passport-undated" aria-label={ru ? 'Без года' : 'No year'}>
+        <ul className="passport-list passport-undated" aria-label={TITLE[locale]}>
           {rows.map((visit) => {
             const way = wayOf({ entryMethod: visit.entry_method, mode: visit.mode })
             const year = visit.id in years ? years[visit.id] : null
@@ -190,12 +185,12 @@ export function UndatedSheet({
                     type="button"
                     className="passport-undated-button"
                     data-set={year !== null || undefined}
-                    aria-label={`${YEAR_OF_VISIT[locale]}: ${country}, ${yearLabel(year, locale)}`}
+                    aria-label={`${YEAR_NAME[locale]}: ${country}, ${yearLabel(year, locale)}`}
                     aria-expanded={editing === visit.id}
                     onClick={(event) => {
                       if (editing === visit.id) return
                       setInstant(event.detail === 0)
-                      edit(visit.id)
+                      setEditing(visit.id)
                     }}
                   >
                     {year ?? '—'}

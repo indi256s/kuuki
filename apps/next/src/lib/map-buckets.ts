@@ -16,6 +16,14 @@ export const BUCKET_TOKENS = [
   '--map-bucket-4',
 ] as const
 
+/** The Passport atlas ramp for buckets 1..4 (index 0 = bucket 1): accent first, deepening toward heat-4 (styles.css). */
+export const ATLAS_VISIT_TOKENS = [
+  '--atlas-visit-1',
+  '--atlas-visit-2',
+  '--atlas-visit-3',
+  '--atlas-visit-4',
+] as const
+
 // Legend text for buckets 1..4 per UI locale; numerals go through the shared number formatter.
 const labels = (locale: Locale) => {
   const n = (v: number) => formatNumber(locale, v)
