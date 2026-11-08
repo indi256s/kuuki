@@ -106,15 +106,26 @@ export function PassportToolbar({
         ]}
       />
       {owner && state.view === 'map' ? (
-        <MapScopeControl locale={locale} state={state} navigate={navigate} />
-      ) : null}
-      <FiltersPopover
-        locale={locale}
-        owner={owner}
-        state={state}
-        count={filterCount}
-        navigate={navigate}
-      />
+        // The owner's map controls share a row on phones, where Filters is its icon (passport.css).
+        <div className="passport-toolbar-row">
+          <MapScopeControl locale={locale} state={state} navigate={navigate} />
+          <FiltersPopover
+            locale={locale}
+            owner={owner}
+            state={state}
+            count={filterCount}
+            navigate={navigate}
+          />
+        </div>
+      ) : (
+        <FiltersPopover
+          locale={locale}
+          owner={owner}
+          state={state}
+          count={filterCount}
+          navigate={navigate}
+        />
+      )}
       {owner && state.view === 'cards' ? (
         <Menu
           align="end"
@@ -220,8 +231,10 @@ function FiltersPopover({
           }
           icon={<SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden="true" />}
         >
-          {ru ? 'Фильтры' : 'Filters'}
-          {count ? <span className="passport-filter-count">{count}</span> : null}
+          <span className="passport-filters-text">
+            <span className="passport-filters-label">{ru ? 'Фильтры' : 'Filters'}</span>
+            {count ? <span className="passport-filter-count">{count}</span> : null}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="passport-filters" aria-label={ru ? 'Фильтры' : 'Filters'}>

@@ -101,6 +101,7 @@ const geometry = {
   centre: [10, 10] as [number, number],
 }
 const refresh = vi.fn(async () => {})
+const covered = vi.fn<(codes: string[]) => void>()
 const handle: { current: StickerHandle | null } = { current: null }
 
 // The page holds the writes; the sticker comes and goes with the map.
@@ -117,6 +118,7 @@ function Harness({ sticker = true }: { sticker?: boolean }) {
           name={(code) => (code === 'DE' ? 'Germany' : code)}
           geometryOf={(code) => (code === 'DE' ? geometry : null)}
           record={record}
+          onCovered={covered}
         />
       ) : null}
     </>
@@ -153,6 +155,7 @@ beforeEach(() => {
   api.remove.mockReset()
   api.update.mockReset()
   refresh.mockClear()
+  covered.mockClear()
 })
 afterEach(() => vi.useRealTimers())
 
@@ -347,18 +350,23 @@ it("closes a lifted sticker on a member pan but not on the lift's own camera mov
 const thisYear = new Date().getFullYear()
 const stamp = () => document.querySelector('.atlas-sticker-stamp')
 
-it('lands a date band with the stamp, and the stamp stays while the drum is open', async () => {
+it('takes the year on the recorded toast: the open wheel holds the toast and the stamp, Enter writes the year', async () => {
   api.add.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 1 })
   api.update.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 2 })
   await lift()
   fireEvent.click(tab('By train'))
   await act(async () => vi.advanceTimersByTime(240))
   expect(stamp()).toBeInTheDocument()
+  expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Year of visit: no year' }))
   const drum = screen.getByRole('spinbutton', { name: 'Year of visit' })
+  // The outcome line names what the wheel is for, and the pill becomes its Done.
+  expect(screen.getByText('Germany · year of visit')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Done' })).toHaveAttribute('aria-expanded', 'true')
 
-  // Well past the toast's eight seconds: an open drum keeps the stamp.
+  // Well past the toast's eight seconds: an open wheel keeps the toast and the stamp.
   await act(async () => vi.advanceTimersByTime(20_000))
+  expect(screen.getByRole('spinbutton')).toBeInTheDocument()
   expect(stamp()).not.toHaveAttribute('data-leaving')
   expect(api.update).not.toHaveBeenCalled()
 
@@ -366,21 +374,39 @@ it('lands a date band with the stamp, and the stamp stays while the drum is open
   fireEvent.keyDown(drum, { key: 'Enter' })
   expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: `Year of visit: ${thisYear}` })).toHaveFocus()
+  expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   await flush()
   expect(api.update).toHaveBeenCalledExactlyOnceWith('owner', 'v1', { visitYear: thisYear })
 
-  // Closed: the stamp leaves a beat later, not at once.
-  expect(stamp()).not.toHaveAttribute('data-leaving')
-  await act(async () => vi.advanceTimersByTime(150))
+  // Focus leaves the toast: its clock runs again, and the stamp leaves with it.
+  act(() => (document.activeElement as HTMLElement).blur())
+  await act(async () => vi.advanceTimersByTime(8_000))
   expect(stamp()).toHaveAttribute('data-leaving')
   await act(async () => vi.advanceTimersByTime(150))
   expect(stamp()).not.toBeInTheDocument()
 })
 
+it('keeps the country covered from lift until its landed stamp starts to leave', async () => {
+  api.add.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 1 })
+  await lift()
+  expect(covered).toHaveBeenLastCalledWith(['DE'])
+  fireEvent.click(tab('By train'))
+  await act(async () => vi.advanceTimersByTime(240))
+  // The tear is over and the stamp prints the name: the map label stays off.
+  act(() => handle.current!.finish())
+  expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
+  expect(stamp()).toBeInTheDocument()
+  expect(covered).toHaveBeenLastCalledWith(['DE'])
+  // The stamp leaves with the toast; the label returns as it fades.
+  await act(async () => vi.advanceTimersByTime(8_000))
+  expect(stamp()).toHaveAttribute('data-leaving')
+  expect(covered).toHaveBeenLastCalledWith([])
+})
+
 const toastWrapper = ({ children }: { children: React.ReactNode }) => (
   <ToastProvider>{children}</ToastProvider>
 )
-const view = { revert: () => {}, land: () => {} }
+const view = { revert: () => {}, land: () => undefined }
 function recorder() {
   const { result } = renderHook(() => useRecordVisit('owner', refresh), { wrapper: toastWrapper })
   return result.current.record('DE', 'rail', view)

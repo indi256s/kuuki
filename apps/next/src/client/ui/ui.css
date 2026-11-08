@@ -1049,19 +1049,14 @@
 .ui-toast {
   pointer-events: auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   width: min(420px, 100%);
-  padding: 12px 12px 12px 16px;
+  padding: 14px 14px 14px 16px;
   border-radius: var(--radius-md);
   background: var(--surface-floating);
   color: var(--text);
   box-shadow: var(--shadow-floating), var(--ring-floating);
-}
-/* Neutral outline only: no coloured rail. Status reads from the round glyph. */
-.ui-toast:has(.ui-toast-copy) {
-  align-items: flex-start;
-  padding: 14px 14px 14px 16px;
 }
 /* Entry, drag and settling share Motion values so a grab preserves the rendered pose. */
 .ui-toast {
@@ -1080,10 +1075,16 @@
     stroke-dashoffset: 0;
   }
 }
+/* Arc's status glyph: a 30px disc tinted from its own colour; neutral for a notice. No coloured rail. */
 .ui-toast-icon {
   flex: none;
   display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
   color: var(--text-muted);
+  background: color-mix(in oklab, currentColor 14%, transparent);
 }
 .ui-toast-icon[data-kind='success'] {
   color: var(--success-text);
@@ -1091,23 +1092,36 @@
 .ui-toast-icon[data-kind='error'] {
   color: var(--danger-text);
 }
-.ui-toast-icon:is([data-kind='success'], [data-kind='error']) {
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  background: color-mix(in oklab, currentColor 14%, transparent);
-}
-.ui-toast-copy {
+.ui-toast-frame {
   flex: 1;
   min-width: 0;
+}
+.ui-toast-copy {
   display: grid;
   gap: 2px;
-  justify-items: start;
+  min-width: 0;
+  /* Centres the outcome's first line on the 30px glyph. */
+  padding-top: 5px;
 }
-.ui-toast-copy .ui-toast-message {
-  font-weight: 600;
+.ui-toast-message {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 20px;
+  overflow-wrap: anywhere;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    translate var(--dur-base) var(--ease-out),
+    filter var(--dur-base) var(--ease-out);
+}
+/* A new outcome rises in from just below, out of a slight blur (Arc's text swap); the first one rises with the toast. */
+@starting-style {
+  .ui-toast[data-state='open'] .ui-toast-message {
+    opacity: 0;
+    translate: 0 0.3em;
+    filter: blur(2px);
+  }
 }
 .ui-toast-description {
   margin: 0;
@@ -1116,23 +1130,27 @@
   line-height: 20px;
   overflow-wrap: anywhere;
 }
-.ui-toast-copy .ui-toast-action {
-  margin: var(--space-1) 0 0 calc(-1 * var(--space-2));
-  max-inline-size: 100%;
-  white-space: normal;
-  text-align: start;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.ui-toast-message {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  margin: 0;
-  font-size: 15px;
-}
+/* One short action sits on the outcome's line, beside the close; a longer one wraps rather than squeezing the outcome. */
 .ui-toast-action {
+  flex: none;
+  max-inline-size: 40%;
+  margin-block-start: -1px;
+  white-space: normal;
   font-weight: 600;
+}
+.ui-toast-close.ui-icon-button {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  margin: -1px -4px 0;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+}
+/* 44px to the finger, 32px to the eye. */
+.ui-toast-close::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
 }
 @media (min-width: 700px) {
   .ui-toast-region {
@@ -1245,6 +1263,15 @@
   .ui-toast-check {
     animation: none;
     stroke-dashoffset: 0;
+  }
+  .ui-toast-message {
+    transition: opacity var(--dur-fast) linear;
+  }
+  @starting-style {
+    .ui-toast[data-state='open'] .ui-toast-message {
+      translate: none;
+      filter: none;
+    }
   }
   .ui-segmented[data-ready='true'] .ui-segmented-thumb {
     transition: none;

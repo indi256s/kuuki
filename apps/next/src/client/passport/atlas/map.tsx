@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { WORLD_BOUNDS } from '../../maps/geometry'
 import { Map as MapCanvas, useMap } from '../../maps/mapcn'
 import { resolveColor } from '../../maps/resolve-color'
+import { contrast, type Rgb } from '../../../lib/color'
 import type { Locale } from '../../../lib/format'
 import { ATLAS_VISIT_TOKENS, visitBucket } from '../../../lib/map-buckets'
 import { isCatalogCountry } from '../model'
@@ -107,6 +108,13 @@ const stateColor = (
     : colors.land
 }
 
+/** A resolved `rgba(r,g,b,a)` (resolve-color.ts) as 0..1 sRGB. */
+const rgbOf = (color: string) =>
+  (color.match(/[\d.]+/g) ?? []).slice(0, 3).map((value) => Number(value) / 255) as Rgb
+/** Of the two inks, the one that reads best on `fill`: the visit ramp runs light to dark in one theme, dark to light in the other. */
+const inkOn = (fill: string, inks: [string, string]) =>
+  contrast(rgbOf(inks[0]), rgbOf(fill)) >= contrast(rgbOf(inks[1]), rgbOf(fill)) ? inks[0] : inks[1]
+
 const inSet = (codes: string[]): GL.ExpressionSpecification => [
   'in',
   ['get', 'id'],
@@ -115,14 +123,14 @@ const inSet = (codes: string[]): GL.ExpressionSpecification => [
 
 const idIs = (id: string): GL.ExpressionSpecification => ['==', ['get', 'id'], id]
 
-type LabelInput = { shown: string[]; lifted: string | null; hovered: string | null }
+type LabelInput = { shown: string[]; covered: string[]; hovered: string | null }
 
 /**
- * Always-on labels: the member's own countries, minus the lifted sticker (its face already prints the name).
+ * Always-on labels: the member's own countries, minus those under a sticker or a landed stamp (each prints the name).
  * The hover label names the country under a fine pointer when it has no always-on label.
  */
-function applyLabelFilters(map: GL.Map, { shown, lifted, hovered }: LabelInput) {
-  const open: GL.ExpressionSpecification[] = lifted ? [['!=', ['get', 'id'], lifted]] : []
+function applyLabelFilters(map: GL.Map, { shown, covered, hovered }: LabelInput) {
+  const open: GL.ExpressionSpecification[] = covered.length ? [['!', inSet(covered)]] : []
   const always: GL.ExpressionSpecification = ['all', inSet(shown), ...open]
   map.setFilter(ATLAS_LAYERS.labels, ['all', ['==', ['get', 'micro'], 0], always])
   map.setFilter(ATLAS_LAYERS.microLabels, ['all', ['==', ['get', 'micro'], 1], always])
@@ -237,7 +245,7 @@ function AtlasLayers({
 }) {
   const { map, ready, themeRevision } = useMap()
   const [raw, setRaw] = useState<Countries | null>(null)
-  const [lifted, setLifted] = useState<string | null>(null)
+  const [covered, setCovered] = useState<string[]>([])
   // A torn sticker inks its country at once, as one visit. Only while stickers are on: a filtered view draws what its filters leave.
   const recording = quick?.recording
   const entries = useMemo(() => {
@@ -306,24 +314,42 @@ function AtlasLayers({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Visited wins over pending for the same code (match takes the first branch).
-  const paints = useMemo(() => {
+  // Tokens resolve once per theme (each is a computed-style read and a canvas probe), not on every tear.
+  const theme = useMemo(() => {
     const colors = {
       visits: ATLAS_VISIT_TOKENS.map(token),
       pending: token('--accent-tint'),
       land: token('--map-land'),
     }
+    const text = token('--text')
+    const halo = token('--surface')
+    const inks: [string, string] = [text, halo]
     return {
-      fill: stateColor(entries, pending, colors),
+      colors,
+      // A country's own name is printed on its fill: the ink that reads on it.
+      inks: {
+        visits: colors.visits.map((visit) => inkOn(visit, inks)),
+        pending: inkOn(colors.pending, inks),
+        land: inkOn(colors.land, inks),
+      },
       muted: resolveColor(`color-mix(in oklab, ${colors.visits[0]} 30%, ${colors.land})`),
       border: token('--map-border'),
       pendingLine: token('--accent-text'),
-      text: token('--text'),
-      halo: token('--surface'),
+      text,
+      halo,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries, pending, themeRevision])
-  const labelInput = useRef<LabelInput>({ shown, lifted, hovered: null })
+  }, [themeRevision])
+  // Visited wins over pending for the same code (match takes the first branch).
+  const paints = useMemo(
+    () => ({
+      ...theme,
+      fill: stateColor(entries, pending, theme.colors),
+      ink: stateColor(entries, pending, theme.inks),
+    }),
+    [theme, entries, pending],
+  )
+  const labelInput = useRef<LabelInput>({ shown, covered, hovered: null })
 
   // Each country's main landmass, once per geometry load.
   const shapes = useMemo(() => {
@@ -564,12 +590,12 @@ function AtlasLayers({
       map.setFilter(layer.id, layer.rest ? ['!', marked] : marked)
       if (!layer.hit) map.setPaintProperty(layer.id, 'circle-stroke-color', paints.border)
     }
-    for (const layer of [
-      ATLAS_LAYERS.labels,
-      ATLAS_LAYERS.microLabels,
-      ATLAS_LAYERS.hoverLabel,
-      ATLAS_LAYERS.regionLabels,
-    ]) {
+    // Names inside their country take its fill; microstate names sit beside a marker and region names span many.
+    for (const layer of [ATLAS_LAYERS.labels, ATLAS_LAYERS.hoverLabel]) {
+      map.setPaintProperty(layer, 'text-color', paints.ink as never)
+      map.setPaintProperty(layer, 'text-halo-color', paints.fill as never)
+    }
+    for (const layer of [ATLAS_LAYERS.microLabels, ATLAS_LAYERS.regionLabels]) {
       map.setPaintProperty(layer, 'text-color', paints.text)
       map.setPaintProperty(layer, 'text-halo-color', paints.halo)
     }
@@ -591,10 +617,10 @@ function AtlasLayers({
     labelInput.current = {
       ...labelInput.current,
       shown: cover ? [] : (focus?.codes ?? shown),
-      lifted,
+      covered,
     }
     applyLabelFilters(map, labelInput.current)
-  }, [map, ready, raw, shown, lifted, cover, focus])
+  }, [map, ready, raw, shown, covered, cover, focus])
 
   useEffect(() => {
     if (!map || !ready) return
@@ -670,7 +696,7 @@ function AtlasLayers({
           name={name}
           geometryOf={geometryOf}
           record={quick.record}
-          onActive={setLifted}
+          onCovered={setCovered}
         />
       ) : null}
       {paging ? (

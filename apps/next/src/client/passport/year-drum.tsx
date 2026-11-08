@@ -1,6 +1,6 @@
 'use client'
 // The year drum: the rubber date band of a date stamper. "No year" first, then the current year down to 1930. It is the
-// open state only; the atlas stamp's band and the round-up rows own the closed one and the commit (spec: stamp-date).
+// open state only; the recorded toast's year pill and the round-up rows own the closed one and the commit (spec: stamp-date).
 //
 // The position is a float in rows. Pointer moves write it straight to the list's transform (never through React), a
 // release projects the finger's rest and settles on the nearest row with a critically damped spring handed the
@@ -13,6 +13,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from 'react'
@@ -23,9 +24,15 @@ import './year-drum.css'
 
 export type YearValue = number | null
 
-export const ROW_PX = 32
 export const OLDEST_YEAR = 1930
-const WINDOW_ROWS = 3
+/** Compact: three 32px rows laid over its opener (a sheet row). Wheel: five 36px rows in the flow (the recorded toast). */
+export type DrumSize = 'compact' | 'wheel'
+const SIZES: Record<DrumSize, { rows: number; row: number }> = {
+  compact: { rows: 3, row: 32 },
+  wheel: { rows: 5, row: 36 },
+}
+/** How far (rows) a drag past either end can stretch toward: resistance, whatever the window's size. */
+const STRETCH_ROWS = 3
 /** Apple's scroll deceleration: a release coasts `v · 0.998 / (1 − 0.998)` ms-seconds ahead. */
 const DECELERATION = 0.998
 const TAP_SLOP_PX = 4
@@ -39,8 +46,8 @@ export function yearValues(current = new Date().getFullYear()): YearValue[] {
 
 /** Where a drag at `raw` rows shows: free inside the list, rubber-banded past either end. */
 export function dragPosition(raw: number, last: number): number {
-  if (raw < 0) return -rubberBand(-raw, WINDOW_ROWS)
-  if (raw > last) return last + rubberBand(raw - last, WINDOW_ROWS)
+  if (raw < 0) return -rubberBand(-raw, STRETCH_ROWS)
+  if (raw > last) return last + rubberBand(raw - last, STRETCH_ROWS)
   return raw
 }
 
@@ -112,6 +119,7 @@ export function YearDrum({
   onClose,
   instant = false,
   trigger,
+  size = 'compact',
 }: {
   /** The year the drum opens on. */
   value: YearValue
@@ -122,7 +130,11 @@ export function YearDrum({
   instant?: boolean
   /** The control that opened the drum: pressing it again closes the drum, and its click never reopens it. */
   trigger?: () => HTMLElement | null
+  size?: DrumSize
 }) {
+  const { rows, row: rowPx } = SIZES[size]
+  /** The selected row's place in the window. */
+  const center = (rows - 1) / 2
   const reduced = useReducedMotion() ?? false
   const values = useMemo(() => yearValues(), [])
   const last = values.length - 1
@@ -147,10 +159,11 @@ export function YearDrum({
   const show = useCallback(
     (next: number) => {
       position.current = next
-      if (listRef.current) listRef.current.style.transform = `translateY(${(1 - next) * ROW_PX}px)`
+      if (listRef.current)
+        listRef.current.style.transform = `translateY(${(center - next) * rowPx}px)`
       setIndex(snap(next))
     },
-    [snap],
+    [snap, center, rowPx],
   )
   useEffect(() => {
     windowRef.current?.focus({ preventScroll: true })
@@ -229,7 +242,7 @@ export function YearDrum({
       idle = 0
     const wheel = (event: WheelEvent) => {
       event.preventDefault()
-      sum += event.deltaMode === 1 ? event.deltaY * ROW_PX : event.deltaY
+      sum += event.deltaMode === 1 ? event.deltaY * rowPx : event.deltaY
       window.clearTimeout(idle)
       idle = window.setTimeout(() => (sum = 0), 150)
       if (Math.abs(sum) < WHEEL_STEP_PX) return
@@ -245,7 +258,7 @@ export function YearDrum({
       node.removeEventListener('wheel', wheel)
       node.removeEventListener('touchstart', keep)
     }
-  }, [settle, snap])
+  }, [settle, snap, rowPx])
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     // The sheet around the drum never sees this press.
@@ -274,7 +287,7 @@ export function YearDrum({
     current.moved = true
     touched.current = true
     // 1:1 with where the finger took hold: the list moves with it, past an end it resists.
-    const next = dragPosition(current.startPosition - delta / ROW_PX, last)
+    const next = dragPosition(current.startPosition - delta / rowPx, last)
     current.samples = recentSamples(current.samples, event.timeStamp, next)
     show(next)
   }
@@ -287,10 +300,10 @@ export function YearDrum({
       if (current.grabbed) return settle(snap(position.current))
       // A tap: a faded row steps to itself, the selected one closes the drum.
       const row = Math.floor(
-        (event.clientY - event.currentTarget.getBoundingClientRect().top) / ROW_PX,
+        (event.clientY - event.currentTarget.getBoundingClientRect().top) / rowPx,
       )
-      if (row === 1) return finish(true)
-      return settle(snap(Math.round(position.current) + (row === 0 ? -1 : 1)))
+      if (row === center) return finish(true)
+      return settle(snap(Math.round(position.current) + row - center))
     }
     // The release itself is the last sample, and only the last 100 ms count: a drag held still before letting go has
     // no speed left, whatever it had earlier.
@@ -322,6 +335,8 @@ export function YearDrum({
     <div
       className="year-drum"
       ref={rootRef}
+      data-size={size}
+      style={{ '--row': `${rowPx}px`, '--rows': rows } as CSSProperties}
       data-instant={instant || undefined}
       data-reduced={reduced || undefined}
       onBlur={(event) => {
@@ -350,15 +365,16 @@ export function YearDrum({
           className="year-drum-list"
           ref={listRef}
           aria-hidden="true"
-          style={{ transform: `translateY(${(1 - start) * ROW_PX}px)` }}
+          style={{ transform: `translateY(${(center - start) * rowPx}px)` }}
         >
           {values.map((item, row) => (
             <span
               key={item ?? 'none'}
               className="year-drum-row"
               data-selected={row === index || undefined}
+              data-none={item === null || undefined}
             >
-              {item ?? '—'}
+              {yearLabel(item, locale)}
             </span>
           ))}
         </div>

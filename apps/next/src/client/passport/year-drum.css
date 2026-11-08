@@ -1,13 +1,8 @@
-/* Year drum (year-drum.tsx): three 32px rows, the middle one selected. Tokens only; space and a raised plate, no rules. */
+/* Year drum (year-drum.tsx): `--rows` rows of `--row`, the middle one selected. Tokens only; space and a plate, no rules. */
 .year-drum {
-  position: absolute;
-  inset-inline: 0;
-  top: calc(50% - 48px);
-  z-index: 2;
-  height: 96px;
+  position: relative;
+  height: calc(var(--row) * var(--rows));
   border-radius: var(--radius-sm);
-  background: var(--surface-inset);
-  box-shadow: var(--shadow-floating);
   transition:
     opacity var(--dur-fast) var(--ease-out),
     translate var(--dur-fast) var(--ease-out);
@@ -43,22 +38,23 @@
   cursor: grab;
   outline: none;
 }
+/* The window takes focus as the drum opens; the ring is for keyboard focus only, not for a tap that opened it. */
+.year-drum-window:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 .year-drum-window:active {
   cursor: grabbing;
 }
-/* The raised plate behind the selected row. */
+/* The plate behind the selected row. */
 .year-drum-window::before {
   content: '';
   position: absolute;
-  inset-inline: var(--space-1);
-  top: 32px;
-  height: 32px;
+  inset-inline: 0;
+  top: calc(var(--row) * (var(--rows) - 1) / 2);
+  height: var(--row);
   border-radius: var(--radius-sm);
-  background: var(--surface);
-}
-.year-drum:focus-within {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  background: var(--surface-inset);
 }
 .year-drum-list {
   position: relative;
@@ -66,15 +62,38 @@
 }
 .year-drum-row {
   display: block;
-  height: 32px;
-  line-height: 32px;
+  height: var(--row);
+  line-height: var(--row);
   text-align: center;
   font-family: var(--font-mono);
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
+/* "No year" is words, not a figure: the interface face. */
+.year-drum-row[data-none] {
+  font-family: inherit;
+}
 .year-drum-row[data-selected] {
   color: var(--text);
   font-weight: 600;
+}
+
+/* Compact: a raised plate laid over its opener (a round-up row), the selected row on a lighter plate inside it. */
+.year-drum[data-size='compact'] {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% - var(--row) * var(--rows) / 2);
+  z-index: 2;
+  background: var(--surface-inset);
+  box-shadow: var(--shadow-floating);
+}
+.year-drum[data-size='compact'] .year-drum-window::before {
+  inset-inline: var(--space-1);
+  background: var(--surface);
+}
+/* Wheel: in the flow of its container (the recorded toast), larger figures in the interface face. */
+.year-drum[data-size='wheel'] .year-drum-row {
+  font-family: inherit;
+  font-size: 17px;
 }

@@ -34,17 +34,17 @@ const sticker = vi.hoisted(() => ({
 vi.mock('./sticker', () => ({
   Sticker: ({
     control,
-    onActive,
+    onCovered,
   }: {
     control: RefObject<unknown>
-    onActive: (code: string | null) => void
+    onCovered: (codes: string[]) => void
   }) => {
     useImperativeHandle(control, () => ({
       lift: sticker.lift,
       finish: sticker.finish,
       dismiss: () => sticker.open,
     }))
-    useEffect(() => onActive(sticker.active), [onActive])
+    useEffect(() => onCovered(sticker.active ? [sticker.active] : []), [onCovered])
     return null
   },
 }))
@@ -311,11 +311,11 @@ describe('labels', () => {
   const filterOf = (layer: string) =>
     JSON.stringify(map.setFilter.mock.calls.filter(([id]) => id === layer).at(-1)?.[1])
 
-  it('keeps the lifted country out of the always-on labels while its sticker prints the name', async () => {
+  it('keeps a covered country out of the always-on labels while its sticker or stamp prints the name', async () => {
     sticker.active = 'DE'
     render(<AtlasMap {...props(['FR'], [])} quickVisit={quick()} />)
     await act(async () => {})
-    expect(filterOf(ATLAS_LAYERS.labels)).toContain('["!=",["get","id"],"DE"]')
+    expect(filterOf(ATLAS_LAYERS.labels)).toContain('["!",["in",["get","id"],["literal",["DE"]]]]')
     expect(filterOf(ATLAS_LAYERS.labels)).toContain('["FR"]')
   })
 })

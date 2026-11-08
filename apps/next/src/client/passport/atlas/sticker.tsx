@@ -32,7 +32,6 @@ import { criticalSpring } from '../../ui/critical-spring'
 import { useMobile } from '../../ui/use-mobile'
 import type { Locale } from '../../../lib/format'
 import { VISIT_WAYS, WAY_LABELS, type VisitWay } from '../visit-ways'
-import { YEAR_NAME, YearDrum, yearLabel, type YearDrumResult, type YearValue } from '../year-drum'
 import { recentSamples, velocityOf, type Sample } from '../../ui/sheet-physics'
 import {
   bounds,
@@ -46,7 +45,7 @@ import {
   type Point,
   type Ring,
 } from './peel'
-import { RECORDED_TOAST_MS, REVERT_MS, type RecordVisit, type SetYear } from './quick-visit'
+import { REVERT_MS, type RecordVisit } from './quick-visit'
 import './sticker.css'
 
 export type StickerGeometry = {
@@ -103,19 +102,7 @@ type Ghost = { key: number; code: string }
 /** The camera as the last render saw it: `at` is a fixed point near the view and `x`,`y` where it was drawn. */
 type Anchor = { zoom: number; at: GL.LngLat; x: number; y: number }
 type StampNode = { node: HTMLElement; at: [number, number]; size: number }
-type LandedStamp = {
-  key: number
-  code: string
-  at: [number, number]
-  leaving: boolean
-  /** The date band's year, as chosen on the drum. */
-  year: YearValue
-  /** How the drum over the band was opened (the keyboard skips its entrance), or null while closed; the stamp stays while it is open. */
-  drum: 'pointer' | 'keyboard' | null
-}
-/** When a landed stamp may leave: with the toast, or a beat after its drum closes, whichever is later. */
-type Hold = { code: string; due: number; timer: number | null; setYear: SetYear }
-const BAND_PLACEHOLDER: Record<Locale, string> = { en: 'year', ru: 'год' }
+type LandedStamp = { key: number; code: string; at: [number, number]; leaving: boolean }
 
 let sequence = 0
 
@@ -145,7 +132,7 @@ export function Sticker({
   name,
   geometryOf,
   record,
-  onActive,
+  onCovered,
 }: {
   control: RefObject<StickerHandle | null>
   locale: Locale
@@ -153,8 +140,8 @@ export function Sticker({
   name: (code: string) => string
   geometryOf: (code: string) => StickerGeometry | null
   record: RecordVisit
-  /** The country on the sticker (any phase), or null: the map hides its always-on label meanwhile. */
-  onActive?: (code: string | null) => void
+  /** The countries a sticker (any phase) or a landed stamp covers: the map hides their always-on labels meanwhile. */
+  onCovered?: (codes: string[]) => void
 }) {
   const { map } = useMap()
   const reduced = useReducedMotion() ?? false
@@ -167,8 +154,6 @@ export function Sticker({
   const faceFollow = useRef<SVGGElement>(null)
   const shadowFollow = useRef<HTMLDivElement>(null)
   const stampNodes = useRef(new Map<number, StampNode>())
-  const bandNodes = useRef(new Map<number, HTMLButtonElement>())
-  const holds = useRef(new Map<number, Hold>())
   const anchor = useRef<Anchor | null>(null)
   const firstTab = useRef<HTMLButtonElement>(null)
   const motion = useRef<AnimationPlaybackControls | null>(null)
@@ -189,10 +174,6 @@ export function Sticker({
     }, ms)
     timers.current.add(id)
     return id
-  }, [])
-  const unlater = useCallback((id: number) => {
-    window.clearTimeout(id)
-    timers.current.delete(id)
   }, [])
   useEffect(() => {
     const pending = timers.current
@@ -247,92 +228,37 @@ export function Sticker({
     }
   }, [map, drawing])
 
-  const activeCode = active?.code ?? null
+  // A landed stamp prints the country's name itself; its label returns as the stamp starts to leave.
+  const coveredKey = [
+    ...new Set([
+      ...(active ? [active.code] : []),
+      ...stamps.filter((stamp) => !stamp.leaving).map((stamp) => stamp.code),
+    ]),
+  ].join(',')
   useEffect(() => {
-    onActive?.(activeCode)
-    return () => onActive?.(null)
-  }, [activeCode, onActive])
+    onCovered?.(coveredKey ? coveredKey.split(',') : [])
+    return () => onCovered?.([])
+  }, [coveredKey, onCovered])
 
   const focusMap = useCallback(() => {
     map?.getCanvas().focus({ preventScroll: true })
   }, [map])
 
-  const cancelLeave = useCallback(
-    (hold: Hold | undefined) => {
-      if (hold?.timer == null) return
-      unlater(hold.timer)
-      hold.timer = null
-    },
-    [unlater],
-  )
-
-  /** Starts the stamp's leave clock: it fades once `due` has passed, then goes. Restarting replaces the clock. */
-  const scheduleLeave = useCallback(
-    (key: number) => {
-      const hold = holds.current.get(key)
-      if (!hold) return
-      cancelLeave(hold)
-      hold.timer = later(Math.max(0, hold.due - Date.now()), () => {
+  /** Lands a stamp at the country's centre; it stays until the returned leave runs (the recorded toast closing). */
+  const landStamp = useCallback(
+    (code: string) => {
+      const geometry = geometryOf(code)
+      if (!geometry) return undefined
+      const key = ++sequence
+      setStamps((list) => [...list, { key, code, at: geometry.centre, leaving: false }])
+      return () => {
         setStamps((list) =>
           list.map((item) => (item.key === key ? { ...item, leaving: true } : item)),
         )
-        hold.timer = later(SETTLE_MS, () => {
-          holds.current.delete(key)
-          // A band that still holds focus hands it back to the map rather than to the page.
-          if (bandNodes.current.get(key) === document.activeElement) focusMap()
-          setStamps((list) => list.filter((item) => item.key !== key))
-        })
-      })
-    },
-    [later, cancelLeave, focusMap],
-  )
-
-  const landStamp = useCallback(
-    (code: string, setYear: SetYear) => {
-      const geometry = geometryOf(code)
-      if (!geometry) return
-      const key = ++sequence
-      setStamps((list) => [
-        ...list,
-        {
-          key,
-          code,
-          at: geometry.centre,
-          leaving: false,
-          year: null,
-          drum: null,
-        },
-      ])
-      // The stamp leaves with the toast.
-      holds.current.set(key, { code, due: Date.now() + RECORDED_TOAST_MS, timer: null, setYear })
-      scheduleLeave(key)
-    },
-    [geometryOf, scheduleLeave],
-  )
-
-  const openDate = useCallback(
-    (key: number, drum: 'pointer' | 'keyboard') => {
-      // The stamp stays while the drum is open.
-      cancelLeave(holds.current.get(key))
-      setStamps((list) => list.map((item) => (item.key === key ? { ...item, drum } : item)))
-    },
-    [cancelLeave],
-  )
-
-  const closeDate = useCallback(
-    (key: number, result: YearDrumResult) => {
-      const hold = holds.current.get(key)
-      setStamps((list) =>
-        list.map((item) => (item.key === key ? { ...item, drum: null, year: result.year } : item)),
-      )
-      if (result.changed) hold?.setYear(result.year)
-      if (result.refocus) bandNodes.current.get(key)?.focus({ preventScroll: true })
-      if (hold) {
-        hold.due = Math.max(hold.due, Date.now() + SETTLE_MS)
-        scheduleLeave(key)
+        later(SETTLE_MS, () => setStamps((list) => list.filter((item) => item.key !== key)))
       }
     },
-    [scheduleLeave],
+    [geometryOf, later],
   )
 
   const endTear = useCallback(() => {
@@ -360,18 +286,13 @@ export function Sticker({
       setStamps((list) =>
         list.map((item) => (item.code === code ? { ...item, leaving: true } : item)),
       )
-      // The reverted country's stamps go with the fill: their own leave clocks are off.
-      for (const [key, hold] of holds.current)
-        if (hold.code === code) {
-          cancelLeave(hold)
-          holds.current.delete(key)
-        }
+      // The reverted country's stamps go with the fill.
       later(REVERT_MS, () => {
         setGhosts((list) => list.filter((item) => item.key !== key))
         setStamps((list) => list.filter((item) => item.code !== code || !item.leaving))
       })
     },
-    [later, cancelLeave],
+    [later],
   )
 
   const close = useCallback(() => {
@@ -529,19 +450,15 @@ export function Sticker({
     motion.current?.stop()
     motion.current = null
     const code = current.code
-    const written = record(code, way, {
+    const { announce } = record(code, way, {
       revert: () => revert(code),
-      // A retry brings its own writer; the first write's stamp uses the one the tear started.
-      land: (setYear) => landStamp(code, setYear ?? written.setYear),
+      land: () => landStamp(code),
     })
-    const { announce } = written
     landing.current = {
       code,
-      announce,
-      land: () => {
-        landStamp(code, written.setYear)
-        announce()
-      },
+      announce: () => announce(),
+      // The stamp stays while its toast does: the toast carries the year and Undo.
+      land: () => announce(landStamp(code)),
     }
     setActive({ code, way, phase: 'tearing', pull: { grab, dir, progress: from, dragging: false } })
     if (reduced) {
@@ -818,7 +735,6 @@ export function Sticker({
       ) : null}
       {stamps.map((stamp) => {
         const { x, y } = map.project(stamp.at)
-        const label = `${YEAR_NAME[locale]}: ${yearLabel(stamp.year, locale)}`
         return (
           <div
             key={stamp.key}
@@ -842,34 +758,6 @@ export function Sticker({
                 static={reduced}
                 impressionId={`passport-atlas:${ownerId}:${stamp.code}:${stamp.key}`}
               />
-            </div>
-            <div className="atlas-sticker-date">
-              <button
-                ref={(node) => {
-                  if (node) bandNodes.current.set(stamp.key, node)
-                  else bandNodes.current.delete(stamp.key)
-                }}
-                type="button"
-                className="atlas-sticker-band"
-                data-set={stamp.year !== null || undefined}
-                aria-label={label}
-                aria-expanded={!!stamp.drum}
-                tabIndex={stamp.leaving ? -1 : 0}
-                onClick={(event) => {
-                  if (!stamp.drum) openDate(stamp.key, event.detail === 0 ? 'keyboard' : 'pointer')
-                }}
-              >
-                <span>{stamp.year ?? BAND_PLACEHOLDER[locale]}</span>
-              </button>
-              {stamp.drum ? (
-                <YearDrum
-                  value={stamp.year}
-                  locale={locale}
-                  instant={stamp.drum === 'keyboard'}
-                  trigger={() => bandNodes.current.get(stamp.key) ?? null}
-                  onClose={(result) => closeDate(stamp.key, result)}
-                />
-              ) : null}
             </div>
           </div>
         )

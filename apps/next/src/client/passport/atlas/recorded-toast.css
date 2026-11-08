@@ -1,0 +1,74 @@
+/* The recorded toast's controls (recorded-toast.tsx): the year pill on the left, Undo on the right, the wheel below. */
+.recorded-toast {
+  display: grid;
+  gap: var(--space-2);
+  /* Closer to the outcome than the toast's edge: they belong to it. */
+  margin-block-start: var(--space-2);
+}
+.recorded-toast-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  /* Undo's text lines up with the close glyph's edge rather than its hit area. */
+  margin-inline-end: -8px;
+}
+.recorded-toast-year {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  height: 32px;
+  padding: 0 var(--space-3) 0 10px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    scale var(--dur-press) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.recorded-toast-year::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+.recorded-toast-year svg {
+  flex: none;
+  color: var(--text-muted);
+}
+.recorded-toast-year:is([data-set], [data-open]) {
+  justify-content: center;
+  padding-inline: var(--space-3);
+  font-weight: 600;
+}
+/* Open, the pill is the wheel's Done: the accent marks the one way out. */
+.recorded-toast-year[data-open] {
+  background: var(--accent-tint);
+  color: var(--accent-on-tint);
+}
+.recorded-toast-year:active {
+  scale: 0.96;
+}
+.recorded-toast-year:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .recorded-toast-year:not([data-open]):hover {
+    background: var(--hover-surface);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recorded-toast-year:active {
+    scale: none;
+  }
+}

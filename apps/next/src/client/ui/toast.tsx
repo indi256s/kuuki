@@ -6,6 +6,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -30,11 +31,25 @@ export type ToastInput = {
   duration?: number
   actionLabel?: ToastCopy
   onAction?: () => void
+  /** Controls of the caller's own under the outcome (the Passport stamp's year and Undo). The toast grows to fit them. */
+  content?: (controls: ToastControls) => ReactNode
+  /** Called once when the toast starts to leave, however it was closed. */
+  onClose?: () => void
 }
+/** What a toast's own `content` may do to it. */
+export type ToastControls = {
+  dismiss: () => void
+  /** A new outcome or description: the old line leaves and the new one rises in. */
+  update: (patch: ToastPatch) => void
+  /** Holds the dismissal timer while true (a wheel open in the toast). */
+  hold: (held: boolean) => void
+}
+export type ToastPatch = Partial<Pick<ToastInput, 'message' | 'description'>>
 type Item = ToastInput & { id: number; kind: ToastKind; leaving: boolean }
 type ToastApi = {
   show: (toast: ToastInput) => number
   dismiss: (id: number) => void
+  update: (id: number, patch: ToastPatch) => void
 }
 
 const ToastContext = createContext<ToastApi | null>(null)
@@ -86,10 +101,68 @@ function DrawnCheck() {
 }
 
 const ICONS = {
-  info: <Info size={18} strokeWidth={2} aria-hidden="true" />,
+  info: <Info size={16} strokeWidth={2} aria-hidden="true" />,
   success: <DrawnCheck />,
-  error: <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />,
+  error: <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />,
 } as const
+
+/**
+ * Arc's height frame: follows its content, and when the content changes (a line swapped, a wheel opened) springs from
+ * the old height to the new one, then returns to auto so a passive reflow follows at once. It clips only while moving.
+ */
+function HeightFrame({ morphKey, children }: { morphKey: string; children: ReactNode }) {
+  const frame = useRef<HTMLDivElement>(null)
+  const content = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+  /** The key changed and the next resize is its own: spring to it. Any other resize (a reflow, a font swap) follows at once. */
+  const morph = useRef(false)
+  const mounted = useRef(false)
+  useLayoutEffect(() => {
+    if (mounted.current) morph.current = true
+    mounted.current = true
+  }, [morphKey])
+  useEffect(() => {
+    const node = content.current
+    const outer = frame.current
+    if (!node || !outer || typeof ResizeObserver === 'undefined') return
+    let last: number | undefined
+    let controls: ReturnType<typeof animate> | undefined
+    const settle = () => Object.assign(outer.style, { overflow: '', height: '' })
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return
+      const next = entry.borderBoxSize?.[0]?.blockSize ?? node.offsetHeight
+      const from = controls ? outer.offsetHeight : last
+      last = next
+      controls?.stop()
+      controls = undefined
+      const owned = morph.current
+      morph.current = false
+      if (reduced || !owned || from === undefined || from === next) return settle()
+      // Pin the old height before this frame paints, then spring to the new one.
+      Object.assign(outer.style, { overflow: 'hidden', height: `${from}px` })
+      controls = animate(from, next, {
+        ...SETTLE,
+        onUpdate: (height) => (outer.style.height = `${height}px`),
+        onComplete: () => {
+          controls = undefined
+          settle()
+        },
+      })
+    })
+    observer.observe(node)
+    return () => {
+      observer.disconnect()
+      controls?.stop()
+    }
+  }, [reduced])
+  return (
+    <div ref={frame} className="ui-toast-frame">
+      <div ref={content} className="ui-toast-copy">
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export function ToastProvider({
   children,
@@ -104,6 +177,8 @@ export function ToastProvider({
   const [slot, setSlot] = useState<HTMLElement | null>(null)
   const nextId = useRef(1)
   const exits = useRef(new Set<number>())
+  /** Each open toast's `onClose`, taken when it starts to leave so it runs once. */
+  const closers = useRef(new Map<number, () => void>())
   useEffect(() => {
     const pending = exits.current
     return () => {
@@ -118,6 +193,9 @@ export function ToastProvider({
   )
   const dismiss = useCallback(
     (id: number) => {
+      const close = closers.current.get(id)
+      closers.current.delete(id)
+      close?.()
       setItems((list) => list.map((item) => (item.id === id ? { ...item, leaving: true } : item)))
       const timeout = window.setTimeout(() => {
         exits.current.delete(timeout)
@@ -129,10 +207,18 @@ export function ToastProvider({
   )
   const show = useCallback((toast: ToastInput) => {
     const id = nextId.current++
+    if (toast.onClose) closers.current.set(id, toast.onClose)
     setItems((list) => [...list, { ...toast, id, kind: toast.kind ?? 'info', leaving: false }])
     return id
   }, [])
-  const api = useMemo(() => ({ show, dismiss }), [show, dismiss])
+  const update = useCallback(
+    (id: number, patch: ToastPatch) =>
+      setItems((list) =>
+        list.map((item) => (item.id === id && !item.leaving ? { ...item, ...patch } : item)),
+      ),
+    [],
+  )
+  const api = useMemo(() => ({ show, dismiss, update }), [show, dismiss, update])
 
   const polite = items.filter((item) => item.kind !== 'error')
   const assertive = items.filter((item) => item.kind === 'error')
@@ -150,6 +236,7 @@ export function ToastProvider({
                 dismissLabel={dismissLabel}
                 kindLabels={kindLabels}
                 onDismiss={dismiss}
+                onUpdate={update}
               />
             ))}
           </div>
@@ -161,6 +248,7 @@ export function ToastProvider({
                 dismissLabel={dismissLabel}
                 kindLabels={kindLabels}
                 onDismiss={dismiss}
+                onUpdate={update}
               />
             ))}
           </div>
@@ -176,11 +264,13 @@ function ToastView({
   dismissLabel,
   kindLabels,
   onDismiss,
+  onUpdate,
 }: {
   item: Item
   dismissLabel: string
   kindLabels: KindLabels
   onDismiss: (id: number) => void
+  onUpdate: (id: number, patch: ToastPatch) => void
 }) {
   const locale = useLocale()
   const text = (copy: ToastCopy | undefined) => (typeof copy === 'string' ? copy : copy?.[locale])
@@ -191,7 +281,7 @@ function ToastView({
   const remaining = useRef(total)
   const startedAt = useRef(0)
   const timer = useRef<number | null>(null)
-  const holds = useRef({ pointer: false, focus: false, hidden: false })
+  const holds = useRef({ pointer: false, focus: false, hidden: false, content: false })
   const drag = useRef<{
     id: number
     x: number
@@ -294,7 +384,7 @@ function ToastView({
   }, [total, item.id, item.leaving, onDismiss])
   const sync = useCallback(() => {
     const h = holds.current
-    if (h.pointer || h.focus || h.hidden || drag.current) stop()
+    if (h.pointer || h.focus || h.hidden || h.content || drag.current) stop()
     else start()
   }, [start, stop])
 
@@ -311,6 +401,21 @@ function ToastView({
       stop()
     }
   }, [sync, stop])
+
+  // The content's hold is state, so the controls handed to it during render touch no refs.
+  const [contentHeld, setContentHeld] = useState(false)
+  useEffect(() => {
+    holds.current.content = contentHeld
+    sync()
+  }, [contentHeld, sync])
+  const controls = useMemo<ToastControls>(
+    () => ({
+      dismiss: () => onDismiss(item.id),
+      update: (patch) => onUpdate(item.id, patch),
+      hold: setContentHeld,
+    }),
+    [item.id, onDismiss, onUpdate],
+  )
 
   return (
     <div
@@ -403,46 +508,40 @@ function ToastView({
         {ICONS[item.kind]}
         <span className="sr-only">{kindLabels[item.kind]}: </span>
       </span>
-      {(() => {
-        const action = item.actionLabel ? (
-          <button
-            type="button"
-            className="ui-button ui-toast-action"
-            data-variant="ghost"
-            data-dense="true"
-            onClick={() => {
-              item.onAction?.()
-              onDismiss(item.id)
-            }}
-          >
-            <span>{actionLabel}</span>
-          </button>
-        ) : null
-        return description || action ? (
-          <div className="ui-toast-copy">
-            <p className="ui-toast-message">{message}</p>
-            {description?.split('\n').map((line) => (
-              <p className="ui-toast-description" key={line}>
-                {line}
-              </p>
-            ))}
-            {action}
-          </div>
-        ) : (
-          <>
-            <p className="ui-toast-message">{message}</p>
-            {action}
-          </>
-        )
-      })()}
+      {/* Arc: the copy column follows its content, so a swapped line or an opened control grows the toast smoothly. */}
+      <HeightFrame morphKey={`${message}\n${description ?? ''}`}>
+        {/* Keyed by its text: a new outcome rises in (CSS) where the old one was. */}
+        <p className="ui-toast-message" key={message}>
+          {message}
+        </p>
+        {description?.split('\n').map((line) => (
+          <p className="ui-toast-description" key={line}>
+            {line}
+          </p>
+        ))}
+        {item.content?.(controls)}
+      </HeightFrame>
+      {item.actionLabel ? (
+        <button
+          type="button"
+          className="ui-button ui-toast-action"
+          data-variant="ghost"
+          data-dense="true"
+          onClick={() => {
+            item.onAction?.()
+            onDismiss(item.id)
+          }}
+        >
+          <span>{actionLabel}</span>
+        </button>
+      ) : null}
       <button
         type="button"
-        className="ui-icon-button"
-        style={{ margin: 0 }}
+        className="ui-icon-button ui-toast-close"
         aria-label={dismissLabel}
         onClick={() => onDismiss(item.id)}
       >
-        <X size={18} strokeWidth={2} aria-hidden="true" />
+        <X size={16} strokeWidth={2} aria-hidden="true" />
       </button>
     </div>
   )

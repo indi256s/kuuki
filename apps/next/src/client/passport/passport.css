@@ -148,6 +148,10 @@
   min-width: 0;
   max-width: 100%;
 }
+/* Wider screens: the map's row is no box of its own; its controls wrap with the rest of the toolbar. */
+.passport-toolbar-row {
+  display: contents;
+}
 /* Phones: search, then each segmented control across the row, then Filters and sort as two equal halves, all 44px tall. */
 @media (max-width: 700px) {
   .passport-toolbar {
@@ -165,9 +169,27 @@
     min-inline-size: 0;
     padding-inline: 12px;
   }
-  /* A lone button (Filters with no sort or Reset beside it, as on the map) spans the row instead of half of it. */
+  /* A lone button (Filters with no sort or Reset beside it) spans the row instead of half of it. */
   .passport-toolbar:not(:has(> .ui-button ~ .ui-button)) > .ui-button {
     grid-column: 1 / -1;
+  }
+  /* The owner's map controls: what the map shows takes the row, Filters shrinks to its icon (and count) beside it. */
+  .passport-toolbar > .passport-toolbar-row {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: var(--space-3);
+  }
+  .passport-toolbar-row > :first-child {
+    flex: 1;
+    min-width: 0;
+  }
+  .passport-toolbar-row > .ui-button {
+    flex: none;
+    padding-inline: 13px;
+    column-gap: 0;
+  }
+  .passport-toolbar-row .passport-filters-label {
+    display: none;
   }
 }
 .passport-map-sources {

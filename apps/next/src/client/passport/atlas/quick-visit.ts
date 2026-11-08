@@ -1,7 +1,7 @@
 'use client'
-// The write behind a torn sticker: one ground visit with the tab's way, optimistic, with Undo and Retry on the toast.
+// The write behind a torn sticker: one ground visit with the tab's way, optimistic, with the year, Undo and Retry on the toast.
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createElement, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
 import { addGroundVisit, deleteGroundVisit, updateGroundVisit } from '@kuuki/client/passport'
 import { trackPrivateOperation } from '../../activity'
@@ -11,9 +11,10 @@ import { useWriteFeedback } from '../../write-feedback'
 import { countryNamer } from '../model'
 import { markSeen } from '../new-stamps'
 import { wayPayload, type VisitWay } from '../visit-ways'
+import { RecordedToast, recordedMessage } from './recorded-toast'
 
-/** How long the recorded toast, and with it the landed stamp, stays. */
-export const RECORDED_TOAST_MS = 8000
+/** How long the recorded toast, and with it the landed stamp, stays (held while its year wheel is open). */
+const RECORDED_TOAST_MS = 8000
 /** A reverted sticker fades back over the inked country for this long before the fill goes. */
 export const REVERT_MS = 150
 
@@ -21,22 +22,23 @@ export const REVERT_MS = 150
 export type TearView = {
   /** Undo or failure: the sticker fades back over the country; the fill and the stamp leave. */
   revert: () => void
-  /** A retry started without a tear: land the country's stamp, whose date band writes through `setYear`. */
-  land: (setYear?: SetYear) => void
+  /** A retry started without a tear: land the country's stamp; the returned call takes it away with the toast. */
+  land: () => (() => void) | undefined
 }
 
 /** Sets or clears the year of the visit a write created. */
 export type SetYear = (year: number | null) => void
 
 /**
- * Starts the write at once; `announce` shows the toast, called by the atlas at the stamp's impact. `setYear` waits for
- * the write, then edits the row it created; it does nothing after Undo or a failed write.
+ * Starts the write at once; `announce` shows the toast, called by the atlas at the stamp's impact, and `onClose` runs
+ * when that toast leaves. `setYear` (the toast's year wheel) waits for the write, then edits the row it created; it
+ * does nothing after Undo or a failed write.
  */
 export type RecordVisit = (
   code: string,
   way: VisitWay,
   view: TearView,
-) => { announce: () => void; setYear: SetYear }
+) => { announce: (onClose?: () => void) => void; setYear: SetYear }
 
 export type QuickWrites = {
   record: RecordVisit
@@ -158,13 +160,14 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
       }
 
       let failed = false
-      const announce = () => {
-        if (undone || failed || shown !== null) return
+      const announce = (onClose?: () => void) => {
+        if (undone || failed || shown !== null) return onClose?.()
         shown = latest.current.toast.show({
-          message: { en: `${country.en} is in your passport.`, ru: `${country.ru} в паспорте.` },
+          kind: 'success',
+          message: recordedMessage(country),
           duration: RECORDED_TOAST_MS,
-          actionLabel: { en: 'Undo', ru: 'Отменить' },
-          onAction: undo,
+          content: (controls) => createElement(RecordedToast, { controls, country, setYear, undo }),
+          onClose,
         })
       }
 
@@ -196,8 +199,7 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
                 // Superseded by a later tear of the same country: that write already speaks for it.
                 if (attempts.current.get(code) !== attempt) return
                 const retry = record(code, way, view)
-                view.land(retry.setYear)
-                retry.announce()
+                retry.announce(view.land())
               },
             })
           },
