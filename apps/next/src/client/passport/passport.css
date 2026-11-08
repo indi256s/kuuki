@@ -165,6 +165,10 @@
     min-inline-size: 0;
     padding-inline: 12px;
   }
+  /* A lone button (Filters with no sort or Reset beside it, as on the map) spans the row instead of half of it. */
+  .passport-toolbar:not(:has(> .ui-button ~ .ui-button)) > .ui-button {
+    grid-column: 1 / -1;
+  }
 }
 .passport-map-sources {
   margin: 0;

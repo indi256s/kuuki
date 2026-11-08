@@ -128,6 +128,8 @@ export type PassportEntry = {
   status: 'pressed' | 'pending'
   /** Logged + awaiting + manual ground visits + ground journeys; used for Records sorting. */
   visits: number
+  /** The year the country joined the passport: its first known visit (the phone atlas's year pages). */
+  first: VisitPoint | null
   last: VisitPoint | null
   region: RegionId | null
   /** Evidence kinds behind the country, in the fixed filter order; a mixed country carries several. */
@@ -171,7 +173,7 @@ export function passportEntries(
   }
   return data.countries.map((row) => {
     const flights = row.logged_visit_count + row.awaiting_visit_count
-    const { last } = chronology(
+    const { first, last } = chronology(
       [row.first_visit, row.last_visit],
       years.get(row.country_code) ?? [],
     )
@@ -185,6 +187,7 @@ export function passportEntries(
       code: row.country_code,
       status: row.status,
       visits: flights + row.ground_visit_count + row.ground_journey_count,
+      first,
       last,
       region: row.region,
       sources,
@@ -198,6 +201,7 @@ export function visitorEntries(codes: string[]): PassportEntry[] {
     code,
     status: 'pressed',
     visits: 0,
+    first: null,
     last: null,
     region: catalogRegionOf(code),
     sources: [],

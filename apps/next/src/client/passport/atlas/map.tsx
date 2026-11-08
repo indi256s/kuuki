@@ -12,7 +12,10 @@ import { LABEL_FONT, LABEL_FONT_FACES } from './label-font'
 import { LABEL_POINTS } from './label-points'
 import type { RecordVisit } from './quick-visit'
 import { SMALL_STATE_POINTS } from './small-states'
+import { isRegionPage, minSidePx, pageBox, type AtlasPage, type Box } from './pages'
+import { AtlasPager } from './pager'
 import { Sticker, type StickerGeometry, type StickerHandle } from './sticker'
+import { FRAME_ANCHORS, TRAVEL_REGION_NAMES } from './travel-regions'
 import './atlas.css'
 
 /** The owner's quick add on the map; absent for visitors, the preview and any filtered or searched view. */
@@ -39,7 +42,21 @@ export const ATLAS_LAYERS = {
   labels: 'atlas-labels',
   microLabels: 'atlas-labels-micro',
   hoverLabel: 'atlas-labels-hover',
+  regionLabels: 'atlas-labels-region',
 } as const
+
+/** The phone atlas's pages (pager.tsx); absent on desktop, which keeps the zoom and framing buttons. */
+export type AtlasPaging = {
+  pages: AtlasPage[]
+  page: number
+  onPage: (index: number) => void
+  /** Bumped when the current page is chosen again (its strip tab): the camera returns to the page's frame. */
+  reframe: number
+  /** The camera's live page position, fractional mid-swipe, so the strip's selection can follow the finger. */
+  onProgress: (position: number) => void
+}
+/** On a page, a polygon country smaller than this on screen gets a marker beside its name, as a microstate does. */
+const MIN_SIDE_PX = 24
 /** Microstate markers: a visible dot and a 44px transparent hit disc, each split at REST_POINT_ZOOM into unvisited (rest) and marked. */
 const POINT_LAYERS = [
   { id: ATLAS_LAYERS.dotRest, hit: false, rest: true },
@@ -112,14 +129,16 @@ function applyLabelFilters(map: GL.Map, { shown, lifted, hovered }: LabelInput) 
   map.setFilter(ATLAS_LAYERS.hoverLabel, ['all', idIs(hovered ?? ''), ['!', inSet(shown)], ...open])
 }
 
-const pointData: GeoJSON.FeatureCollection<GeoJSON.Point, { id: string }> = {
+type PointData = GeoJSON.FeatureCollection<GeoJSON.Point, { id: string }>
+const pointFeatures = (points: Iterable<[string, [number, number]]>): PointData => ({
   type: 'FeatureCollection',
-  features: Object.entries(SMALL_STATE_POINTS).map(([id, coordinates]) => ({
+  features: [...points].map(([id, coordinates]) => ({
     type: 'Feature',
     properties: { id },
     geometry: { type: 'Point', coordinates },
   })),
-}
+})
+const pointData = pointFeatures(Object.entries(SMALL_STATE_POINTS))
 
 type LabelProperties = { id: string; label: string; rank: number; micro: 0 | 1 }
 type LabelData = GeoJSON.FeatureCollection<GeoJSON.Point, LabelProperties>
@@ -205,6 +224,7 @@ function AtlasLayers({
   onSelect,
   quick,
   fail,
+  paging,
 }: {
   locale: Locale
   entries: ReadonlyMap<string, number>
@@ -213,6 +233,7 @@ function AtlasLayers({
   onSelect: (code: string) => void
   quick: QuickVisit | null
   fail: () => void
+  paging: AtlasPaging | null
 }) {
   const { map, ready, themeRevision } = useMap()
   const [raw, setRaw] = useState<Countries | null>(null)
@@ -226,11 +247,34 @@ function AtlasLayers({
     return next
   }, [visitedEntries, recording])
   const shown = useMemo(() => [...entries.keys(), ...pending], [entries, pending])
+  const cover = paging?.pages[paging.page]?.id === 'world'
+  const paged = !!paging
+  /**
+   * On a page other than the cover, the page's countries are the subject: the member's other countries recede to one
+   * muted fill and lose their names, so a year page shows that year and not the whole passport. A country being
+   * recorded right now stays in focus wherever it belongs.
+   */
+  const pageCodes = paging && !cover ? paging.pages[paging.page]?.codes : undefined
+  const focus = useMemo(() => {
+    if (!pageCodes) return null
+    const own = new Set(pageCodes)
+    for (const code of recording ?? []) own.add(code)
+    return { codes: [...own], off: shown.filter((code) => !own.has(code)) }
+  }, [pageCodes, recording, shown])
+  /** The settled page's zoom (pager.tsx): what decides which countries are too small to see. */
+  const [pageZoom, setPageZoom] = useState<number | null>(null)
   const sticker = useRef<StickerHandle | null>(null)
   const tap = useRef<(id: string, polygon: boolean) => void>(() => {})
   tap.current = (id, polygon) => {
     const handle = sticker.current
     handle?.finish()
+    // The world cover reads only: a tap on a marked country turns to its region's page.
+    if (cover && paging) {
+      handle?.dismiss()
+      const index = paging.pages.findIndex((page) => page.id !== 'world' && page.codes.includes(id))
+      if (index > 0) paging.onPage(index)
+      return
+    }
     if (quick && polygon && quick.peelable(id) && handle) {
       handle.lift(id)
       return
@@ -239,6 +283,13 @@ function AtlasLayers({
     if (handle?.dismiss()) return
     onSelect(id)
   }
+  useEffect(() => {
+    if (!map || !ready) return
+    // One world: repeated copies would draw a visited country twice beside the single list entry.
+    map.setRenderWorldCopies(false)
+    // Shift + arrows would otherwise rotate a flat reference map.
+    map.keyboard.disableRotation()
+  }, [map, ready])
   // The geometry fetch starts with the island, in parallel with the map's own load.
   useEffect(() => {
     const controller = new AbortController()
@@ -264,6 +315,7 @@ function AtlasLayers({
     }
     return {
       fill: stateColor(entries, pending, colors),
+      muted: resolveColor(`color-mix(in oklab, ${colors.visits[0]} 30%, ${colors.land})`),
       border: token('--map-border'),
       pendingLine: token('--accent-text'),
       text: token('--text'),
@@ -283,6 +335,37 @@ function AtlasLayers({
     }
     return byId
   }, [raw])
+  // On a page, a marked country too small to see or tap at its zoom draws as a marker, its name beside it.
+  const small = useMemo(() => {
+    const tiny = new Map<string, [number, number]>()
+    if (!paged || pageZoom === null) return tiny
+    for (const code of focus?.codes ?? shown) {
+      const shape = shapes.get(code)
+      if (shape && minSidePx(shape.box, pageZoom) < MIN_SIDE_PX)
+        tiny.set(code, LABEL_POINTS[code] ?? shape.point)
+    }
+    return tiny
+  }, [paged, pageZoom, shown, focus, shapes])
+  /**
+   * Where a name sits. On pages a huge country frames on its populated part, so its name moves there when the usual
+   * point lies outside it (Russia's is in Siberia, off the Europe page).
+   */
+  const labelPoint = useCallback(
+    (id: string, fallback: [number, number]): [number, number] => {
+      const point = LABEL_POINTS[id] ?? fallback
+      const anchor = paged ? FRAME_ANCHORS[id] : undefined
+      if (!anchor) return point
+      const inside =
+        point[0] >= anchor[0] &&
+        point[0] <= anchor[2] &&
+        point[1] >= anchor[1] &&
+        point[1] <= anchor[3]
+      return inside ? point : [(anchor[0] + anchor[2]) / 2, (anchor[1] + anchor[3]) / 2]
+    },
+    [paged],
+  )
+  /** Every marker's point, so a tap picks the nearest one. */
+  const markers = useRef<ReadonlyMap<string, [number, number]>>(new Map())
   const labelData = useMemo<LabelData>(
     () =>
       raw
@@ -290,12 +373,12 @@ function AtlasLayers({
             type: 'FeatureCollection',
             features: [
               ...[...shapes].map(([id, shape]) =>
-                labelFeature(LABEL_POINTS[id] ?? shape.point, {
+                labelFeature(small.get(id) ?? labelPoint(id, shape.point), {
                   id,
                   label: name(id),
                   // Lower places first: bigger countries win a collision.
                   rank: -shape.area,
-                  micro: 0,
+                  micro: small.has(id) ? 1 : 0,
                 }),
               ),
               ...Object.entries(SMALL_STATE_POINTS).map(([id, point]) =>
@@ -304,7 +387,7 @@ function AtlasLayers({
             ],
           }
         : emptyLabels,
-    [raw, shapes, name],
+    [raw, shapes, name, small, labelPoint],
   )
 
   // Layers start with their fixed properties; the effect below sets colours and filters in the same commit.
@@ -397,6 +480,15 @@ function AtlasLayers({
       } as never,
       paint: textPaint,
     })
+    // The world cover names regions, not countries (pager.tsx); empty on every other page and on desktop.
+    map.addSource('atlas-region-labels', { type: 'geojson', data: emptyLabels })
+    map.addLayer({
+      id: ATLAS_LAYERS.regionLabels,
+      type: 'symbol',
+      source: 'atlas-region-labels',
+      layout: { ...text, 'text-size': 13, 'text-max-width': 9 } as never,
+      paint: { 'text-halo-width': 1.75 },
+    })
     // A marker beats the polygon under it; where 44px targets overlap (European microstates at world zoom), the
     // marker nearest the pointer wins rather than whichever the renderer lists first.
     const pick = (event: GL.MapMouseEvent): { id: unknown; polygon: boolean } => {
@@ -405,7 +497,7 @@ function AtlasLayers({
         layers: [ATLAS_LAYERS.hit, ATLAS_LAYERS.hitRest],
       })) {
         const id = feature.properties?.id
-        const point = typeof id === 'string' ? SMALL_STATE_POINTS[id] : undefined
+        const point = typeof id === 'string' ? markers.current.get(id) : undefined
         if (!point) continue
         const { x, y } = map.project(point)
         const distance = Math.hypot(x - event.point.x, y - event.point.y)
@@ -454,15 +546,15 @@ function AtlasLayers({
       labelInput.current = { ...labelInput.current, hovered: null }
       for (const id of Object.values(ATLAS_LAYERS).reverse())
         if (map.getLayer(id)) map.removeLayer(id)
-      for (const id of ['atlas-labels', 'atlas-points', 'atlas-countries'])
+      for (const id of ['atlas-region-labels', 'atlas-labels', 'atlas-points', 'atlas-countries'])
         if (map.getSource(id)) map.removeSource(id)
     }
   }, [map, ready, raw])
 
+  // Colours that change only with the theme or the collection.
   useEffect(() => {
     if (!map || !ready || !map.getLayer(ATLAS_LAYERS.fill)) return
     const marked = inSet(shown)
-    map.setPaintProperty(ATLAS_LAYERS.fill, 'fill-color', paints.fill as never)
     map.setPaintProperty(ATLAS_LAYERS.outline, 'line-color', paints.border)
     map.setPaintProperty(ATLAS_LAYERS.pending, 'line-color', paints.pendingLine)
     map.setFilter(ATLAS_LAYERS.pending, inSet(pending))
@@ -470,21 +562,47 @@ function AtlasLayers({
     map.setPaintProperty(ATLAS_LAYERS.hover, 'line-color', paints.text)
     for (const layer of POINT_LAYERS) {
       map.setFilter(layer.id, layer.rest ? ['!', marked] : marked)
-      if (layer.hit) continue
-      map.setPaintProperty(layer.id, 'circle-color', paints.fill as never)
-      map.setPaintProperty(layer.id, 'circle-stroke-color', paints.border)
+      if (!layer.hit) map.setPaintProperty(layer.id, 'circle-stroke-color', paints.border)
     }
-    for (const layer of [ATLAS_LAYERS.labels, ATLAS_LAYERS.microLabels, ATLAS_LAYERS.hoverLabel]) {
+    for (const layer of [
+      ATLAS_LAYERS.labels,
+      ATLAS_LAYERS.microLabels,
+      ATLAS_LAYERS.hoverLabel,
+      ATLAS_LAYERS.regionLabels,
+    ]) {
       map.setPaintProperty(layer, 'text-color', paints.text)
       map.setPaintProperty(layer, 'text-halo-color', paints.halo)
     }
   }, [map, ready, raw, paints, pending, shown])
+  // The fills, which a page turn also changes: off-page countries recede.
+  useEffect(() => {
+    if (!map || !ready || !map.getLayer(ATLAS_LAYERS.fill)) return
+    const fill = focus?.off.length
+      ? ['case', inSet(focus.off), paints.muted, paints.fill]
+      : paints.fill
+    map.setPaintProperty(ATLAS_LAYERS.fill, 'fill-color', fill as never)
+    for (const layer of POINT_LAYERS)
+      if (!layer.hit) map.setPaintProperty(layer.id, 'circle-color', fill as never)
+  }, [map, ready, raw, paints, focus])
 
   useEffect(() => {
     if (!map || !ready || !map.getLayer(ATLAS_LAYERS.labels)) return
-    labelInput.current = { ...labelInput.current, shown, lifted }
+    // The cover is too far out for country names; its regions carry the labels. A page names its own countries.
+    labelInput.current = {
+      ...labelInput.current,
+      shown: cover ? [] : (focus?.codes ?? shown),
+      lifted,
+    }
     applyLabelFilters(map, labelInput.current)
-  }, [map, ready, raw, shown, lifted])
+  }, [map, ready, raw, shown, lifted, cover, focus])
+
+  useEffect(() => {
+    if (!map || !ready) return
+    markers.current = new Map([...Object.entries(SMALL_STATE_POINTS), ...small])
+    ;(map.getSource('atlas-points') as GL.GeoJSONSource | undefined)?.setData(
+      pointFeatures(markers.current),
+    )
+  }, [map, ready, raw, small])
 
   useEffect(() => {
     if (!map || !ready) return
@@ -505,6 +623,43 @@ function AtlasLayers({
   }, [raw, shapes])
   const geometryOf = useCallback((code: string) => geometries.get(code) ?? null, [geometries])
   const mine = useMemo(() => memberBounds(shown, shapes), [shown, shapes])
+  const frameOf = useCallback(
+    (code: string): Box | null => {
+      const point = SMALL_STATE_POINTS[code]
+      return (
+        FRAME_ANCHORS[code] ??
+        shapes.get(code)?.box ??
+        (point ? [point[0], point[1], point[0], point[1]] : null)
+      )
+    },
+    [shapes],
+  )
+  const pages = paging?.pages
+  const regionLabels = useMemo<LabelData>(() => {
+    if (!cover || !pages) return emptyLabels
+    // Year pages overlap on the world, so the cover names regions only when the pages are regions.
+    const features = pages.filter(isRegionPage).flatMap((page) => {
+      const box = pageBox(page, frameOf)
+      if (!box) return []
+      return [
+        labelFeature([(box[0] + box[2]) / 2, (box[1] + box[3]) / 2], {
+          id: page.id,
+          label: `${TRAVEL_REGION_NAMES[locale][page.id]} ${page.codes.length}`,
+          rank: -page.codes.length,
+          micro: 0,
+        }),
+      ]
+    })
+    return { type: 'FeatureCollection', features }
+  }, [cover, pages, frameOf, locale])
+  useEffect(() => {
+    if (!map || !ready) return
+    ;(map.getSource('atlas-region-labels') as GL.GeoJSONSource | undefined)?.setData(regionLabels)
+  }, [map, ready, raw, regionLabels])
+  const interrupt = useCallback(() => {
+    sticker.current?.finish()
+    sticker.current?.dismiss()
+  }, [])
   return (
     <>
       {quick && raw ? (
@@ -518,7 +673,23 @@ function AtlasLayers({
           onActive={setLifted}
         />
       ) : null}
-      <Controls locale={locale} mine={mine} loaded={!!raw} />
+      {paging ? (
+        raw ? (
+          <AtlasPager
+            locale={locale}
+            pages={paging.pages}
+            page={paging.page}
+            onPage={paging.onPage}
+            reframe={paging.reframe}
+            onProgress={paging.onProgress}
+            frameOf={frameOf}
+            interrupt={interrupt}
+            onPageZoom={setPageZoom}
+          />
+        ) : null
+      ) : (
+        <Controls locale={locale} mine={mine} loaded={!!raw} />
+      )}
     </>
   )
 }
@@ -556,13 +727,6 @@ function Controls({
   const [atWorld, setAtWorld] = useState(false)
   const fitted = useRef<GL.Map | null>(null)
   useEffect(() => {
-    if (!map || !ready) return
-    // One world: repeated copies would draw a visited country twice beside the single list entry.
-    map.setRenderWorldCopies(false)
-    // Shift + arrows would otherwise rotate a flat reference map.
-    map.keyboard.disableRotation()
-  }, [map, ready])
-  useEffect(() => {
     if (!map || !ready || !loaded || fitted.current === map) return
     fitted.current = map
     if (mine) fitMine(map, mine)
@@ -596,7 +760,8 @@ function Controls({
 
 /**
  * The MapLibre island, fetched only when the map view is shown. Scroll contract (shared with client/maps/options.ts):
- * cooperative gestures, so a plain wheel scrolls the page, Ctrl/⌘ + wheel zooms, and touch needs two fingers.
+ * cooperative gestures, so a plain wheel scrolls the page, Ctrl/⌘ + wheel zooms, and touch needs two fingers. Paged
+ * (phones), pager.tsx replaces that contract: one finger sideways turns pages, vertically scrolls, two fingers pinch.
  */
 export default function AtlasMap({
   locale,
@@ -606,6 +771,7 @@ export default function AtlasMap({
   onSelectCountry,
   quickVisit = null,
   fail,
+  paging = null,
 }: {
   locale: Locale
   /** Visited countries with their visit counts, which pick the fill bucket. */
@@ -615,6 +781,8 @@ export default function AtlasMap({
   onSelectCountry: (code: string) => void
   quickVisit?: QuickVisit | null
   fail: () => void
+  /** Phones: swipeable travel-region pages instead of the zoom and framing buttons. */
+  paging?: AtlasPaging | null
 }) {
   return (
     <div className="passport-atlas-stage">
@@ -630,6 +798,7 @@ export default function AtlasMap({
           onSelect={onSelectCountry}
           quick={quickVisit}
           fail={fail}
+          paging={paging}
         />
       </MapCanvas>
     </div>

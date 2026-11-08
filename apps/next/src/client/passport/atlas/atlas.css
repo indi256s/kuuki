@@ -103,3 +103,248 @@
   min-width: 44px;
   padding: var(--space-1) var(--space-2);
 }
+
+/* ---------- Phones: travel-region pages (pager.tsx) ---------- */
+.passport-atlas[data-paged] {
+  gap: 0;
+}
+/* The map is the page's hero: edge to edge, a portrait frame, never taller than most of the screen. */
+.passport-atlas[data-paged] .passport-atlas-map {
+  margin-inline: calc(-1 * var(--page-gutter));
+}
+.passport-atlas[data-paged] .passport-atlas-canvas {
+  aspect-ratio: 4 / 5;
+  min-height: 320px;
+  max-height: 62dvh;
+  border-radius: 0;
+}
+/* At a page's frame the page keeps vertical drags, the pager takes sideways ones and MapLibre keeps the pinch. */
+.passport-atlas-canvas[data-pager='frame'] :is(.maplibregl-canvas-container, .maplibregl-canvas) {
+  touch-action: pan-y !important;
+}
+.passport-atlas-canvas[data-pager='frame'] .maplibregl-canvas-container.maplibregl-interactive {
+  cursor: default;
+}
+.passport-atlas-back {
+  position: absolute;
+  inset-block-end: var(--space-3);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-floating);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 22%);
+  /* Rises in when a pinch leaves the frame and sinks back out the same way when it returns. */
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    translate var(--dur-fast) var(--ease-out),
+    scale var(--dur-press) var(--ease-out),
+    visibility var(--dur-fast);
+}
+.passport-atlas-back:not([data-shown]) {
+  opacity: 0;
+  translate: -50% 6px;
+  scale: 0.96;
+  visibility: hidden;
+  pointer-events: none;
+}
+.passport-atlas-back:active {
+  scale: 0.97;
+}
+
+/* The region strip: one row that scrolls sideways, faded only on an edge that can still scroll. */
+.passport-atlas-strip {
+  margin-inline: calc(-1 * var(--page-gutter));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.passport-atlas-strip::-webkit-scrollbar {
+  display: none;
+}
+.passport-atlas-strip[data-fade-end]:not([data-fade-start]) {
+  mask-image: linear-gradient(to right, currentcolor calc(100% - 24px), transparent);
+}
+.passport-atlas-strip[data-fade-start]:not([data-fade-end]) {
+  mask-image: linear-gradient(to right, transparent, currentcolor 24px);
+}
+.passport-atlas-strip[data-fade-start][data-fade-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    currentcolor 24px,
+    currentcolor calc(100% - 24px),
+    transparent
+  );
+}
+.passport-atlas-strip ul {
+  position: relative;
+  display: flex;
+  gap: var(--space-1);
+  width: max-content;
+  margin: 0;
+  padding: var(--space-2) var(--page-gutter);
+  list-style: none;
+}
+/* The selection is one tint under the tabs that slides between them with the camera, clipped to the tab it covers. */
+.passport-atlas-strip-thumb {
+  position: absolute;
+  inset: 0;
+  background: var(--accent-tint);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+}
+.passport-atlas-strip-thumb[data-glide] {
+  transition: clip-path var(--dur-base) var(--ease-out);
+}
+.passport-atlas-strip button {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
+}
+/* Colour only: a heavier weight would widen the tab under the sliding selection. */
+.passport-atlas-strip button[aria-current='true'] {
+  color: var(--accent-on-tint);
+}
+.passport-atlas-strip button:active {
+  scale: 0.97;
+}
+.passport-atlas-strip-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The page's list, in the page's own scroll. A new page slides in a little from the side the map turned to. */
+.passport-atlas[data-paged] .passport-atlas-countries {
+  padding-block-start: var(--space-3);
+}
+.passport-atlas-page {
+  display: grid;
+  gap: var(--space-1);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    translate var(--dur-base) var(--ease-out);
+}
+@starting-style {
+  .passport-atlas-page[data-turn] {
+    opacity: 0;
+    translate: calc(var(--turn) * 16px) 0;
+  }
+  /* The cover's rows swap in place when the pages switch between regions and years. */
+  .passport-atlas-page[data-turn='0'] .passport-atlas-rows {
+    opacity: 0;
+  }
+}
+.passport-atlas[data-paged] .passport-atlas-heading {
+  align-items: center;
+  margin: 0;
+}
+.passport-atlas-axis {
+  margin-inline-start: auto;
+}
+.passport-atlas-title:focus:not(:focus-visible) {
+  outline: none;
+}
+.passport-atlas-title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.passport-atlas-total {
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.passport-atlas[data-paged] .passport-atlas-legend {
+  margin-block-end: var(--space-2);
+}
+.passport-atlas-rows {
+  display: grid;
+  transition: opacity var(--dur-base) var(--ease-out);
+  margin: 0 calc(-1 * var(--space-2));
+  padding: 0;
+  list-style: none;
+}
+.passport-atlas-rows button {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.passport-atlas-rows button[data-group] {
+  grid-template-columns: minmax(0, 1fr) auto auto 18px;
+}
+.passport-atlas-rows button:active {
+  background: var(--surface-inset);
+}
+.passport-atlas-rows svg {
+  color: var(--text-muted);
+}
+.passport-atlas-row-meta {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.passport-atlas-row-inks {
+  display: flex;
+  gap: 3px;
+}
+.passport-atlas-row-inks .passport-atlas-swatch {
+  width: 8px;
+  height: 8px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .passport-atlas-strip button:not([aria-current='true']):hover,
+  .passport-atlas-rows button:hover,
+  .passport-atlas-back:hover {
+    background: var(--surface-inset);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .passport-atlas-back:not([data-shown]) {
+    translate: -50% 0;
+    scale: 1;
+  }
+  .passport-atlas-strip button:active,
+  .passport-atlas-back:active {
+    scale: 1;
+  }
+  @starting-style {
+    .passport-atlas-page[data-turn] {
+      translate: 0;
+    }
+  }
+}

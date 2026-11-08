@@ -119,6 +119,17 @@ deleting the underlying travel records or changing factual travel statistics.
 It can be restored; hiding it in the passport is not global privacy protection.
 _Avoid_: Deleted country
 
+### Travel region
+
+One of thirteen display-only groups (Europe, Middle East & Caucasus, East
+Asia…) that page the Passport atlas on phones, so each page frames close enough
+to see and tap its countries. Not a collection region: filters, totals and
+badges keep the catalog's six regions, and Russia, Türkiye and Cyprus sit where
+a traveler reads them (Europe, Middle East & Caucasus, Europe). The phone atlas
+can also page by **first year**: the year a country joined the passport, its
+earliest known visit (a flight date or a land/sea visit year).
+_Avoid_: Continent, collection region
+
 ### Country evidence
 
 The recomputable per-country record of why a country counts (flights, legacy

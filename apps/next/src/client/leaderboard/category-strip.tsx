@@ -15,6 +15,7 @@ import type { LeaderboardBoardPayload } from '../../../../../functions/api/_serv
 import type { Locale } from '../../lib/format'
 import { GateTile } from '../ui/gate-tile'
 import { SplitFlap } from '../ui/split-flap'
+import { useScrollFade } from '../ui/use-scroll-fade'
 import { categoryGroups as groups, categoryName, groupName, tileLabel } from './categories'
 import { tileModel, type Period } from './model'
 
@@ -42,29 +43,15 @@ export function CategoryStrip({
   const scroller = useRef<HTMLDivElement>(null)
   const id = useId()
   const [announced, setAnnounced] = useState('')
-  // The strip scrolls sideways on phones; a fade shows only on an edge that can still scroll.
+  // Centre the selected tile by moving only the strip, never the page.
   useEffect(() => {
     const element = scroller.current
-    if (!element) return
-    const update = () => {
-      element.toggleAttribute('data-fade-start', element.scrollLeft > 1)
-      element.toggleAttribute(
-        'data-fade-end',
-        element.scrollLeft + element.clientWidth < element.scrollWidth - 1,
-      )
-    }
-    // Centre the selected tile by moving only the strip, never the page.
-    const selected = element.querySelector<HTMLElement>('[aria-current="page"]')
-    if (selected && element.scrollWidth > element.clientWidth)
+    const selected = element?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (element && selected && element.scrollWidth > element.clientWidth)
       element.scrollLeft = selected.offsetLeft - (element.clientWidth - selected.offsetWidth) / 2
-    update()
-    element.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      element.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
   }, [])
+  // The strip scrolls sideways on phones; a fade shows only on an edge that can still scroll.
+  useScrollFade(scroller)
   useEffect(() => {
     let active = true
     queueMicrotask(() => {
