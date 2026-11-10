@@ -11,6 +11,11 @@ import type {
   HistoryRunSummary,
 } from '@kuuki/shared/flightyHistory'
 import { sendWithZone, withZone } from '../capture/flight-writes'
+import { awaitPublication } from '../publication'
+
+/** The regular import's passport read and bounded derived-publication wait, so stamps follow the same rule. */
+export { awaitPublication }
+export { fetchPressedCountries } from './import-api'
 
 const base = (runId: string) => `/api/import/history/${encodeURIComponent(runId)}`
 

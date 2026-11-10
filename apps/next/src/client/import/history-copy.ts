@@ -9,6 +9,8 @@ type Pair = { en: string; ru: string }
 const p = (en: string, ru: string): Pair => ({ en, ru })
 
 export const H = {
+  title: p('Flighty import', 'Импорт Flighty'),
+  to: p('to', 'в'),
   reading: p('Reading the file', 'Читаем файл'),
   sending: p('Sending records', 'Отправляем записи'),
   restoring: p('Loading the import', 'Загружаем импорт'),
@@ -32,12 +34,14 @@ export const H = {
   noAirline: p('No airline', 'Без авиакомпании'),
   flew: p('Flown', 'Состоялись'),
   cancelled: p('Cancelled', 'Отменены'),
-  airlineCode: p('IATA airline code', 'Код авиакомпании IATA'),
-  airportCode: p('IATA airport code', 'Код аэропорта IATA'),
+  anotherAirport: p('Another airport', 'Другой аэропорт'),
+  anotherAirline: p('Another airline', 'Другая авиакомпания'),
+  emptyField: p('Empty field', 'Пустое поле'),
+  matchNew: p('New since the earlier import', 'Новые с прошлого импорта'),
+  matchExisting: p('Journal matches', 'Совпадения с журналом'),
+  closeBusy: p('Closing is paused until this finishes.', 'Закрыть можно, когда это закончится.'),
   unknownColumns: p('Kept but not read:', 'Сохранены без разбора:'),
   readyTitle: p('Ready to save', 'Готово к сохранению'),
-  showReady: p('Look through them', 'Просмотреть'),
-  hideReady: p('Hide', 'Скрыть'),
   date: p('Date', 'Дата'),
   noFlightNumber: p('No flight number', 'Без номера рейса'),
   addAllNew: p('Add them', 'Добавить'),
@@ -156,8 +160,12 @@ const QUESTION: Record<string, (token: string) => Pair> = {
 }
 
 /** One question per group, named by its source token. */
+/** The kind of a group key (`airline:<token>`, `airport:<token>`, `canceled:<token>`, `match:<finding>`). */
+export const groupKind = (group: string) =>
+  group.slice(0, group.indexOf(':')) as 'airline' | 'airport' | 'canceled' | 'match'
+
 export const groupQuestion = (locale: Locale, group: string, token: string) =>
-  (QUESTION[group] ?? QUESTION[group.split(':')[0]])(token)[locale]
+  (QUESTION[group] ?? QUESTION[groupKind(group)])(token)[locale]
 
 const COUNT_FORMS = {
   records: {
@@ -169,6 +177,11 @@ const COUNT_FORMS = {
       other: '{count} записи',
     },
   },
+  /** The noun alone, beside a number the caller renders itself (the rolling ready count). */
+  recordNoun: {
+    en: { one: 'record', other: 'records' },
+    ru: { one: 'запись', few: 'записи', many: 'записей', other: 'записи' },
+  },
   save: {
     en: { one: 'Save {count} record', other: 'Save {count} records' },
     ru: {
@@ -176,6 +189,15 @@ const COUNT_FORMS = {
       few: 'Сохранить {count} записи',
       many: 'Сохранить {count} записей',
       other: 'Сохранить {count} записи',
+    },
+  },
+  added: {
+    en: { one: 'flight added', other: 'flights added' },
+    ru: {
+      one: 'перелёт добавлен',
+      few: 'перелёта добавлено',
+      many: 'перелётов добавлено',
+      other: 'перелёта добавлено',
     },
   },
   of: {

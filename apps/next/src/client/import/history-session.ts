@@ -2,7 +2,7 @@
 // then on the server run is the only authority: a refresh restores from it. Browser storage holds the run id, the
 // operation id and the manifest digest, never cells or the file. Confirmation walks the ready rows in pages of 50 with
 // keys derived from row id and version, so a retry after a lost answer replays instead of writing twice.
-import { ApiError } from '@kuuki/client/apiClient'
+import { ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import type {
   HistoryCreateBody,
@@ -12,12 +12,16 @@ import type {
   HistoryRowView,
   HistoryRunSummary,
 } from '@kuuki/shared/flightyHistory'
+import { isCalendarDate } from '../../../../../packages/shared/src/flightValidation'
+import { routeCountries, newlyPressed } from './flight-input'
 import {
   answerHistoryGroup,
+  awaitPublication,
   confirmHistoryRows,
   createHistoryRun,
   discardHistoryRun,
   eraseHistorySource,
+  fetchPressedCountries,
   patchHistoryRow,
   putHistoryChunk,
   readHistoryPage,
@@ -41,8 +45,11 @@ export interface HistoryState {
   reading: boolean
   fileName: string | null
   run: HistoryRunSummary | null
-  /** Chunks sent in this tab / chunks the run expects. */
-  upload: { sent: number; total: number } | null
+  /**
+   * Chunks sent in this tab / chunks the run expects, and the calendar years (as the parser reads the Date column) of
+   * the records in the chunks sent in this tab so far; null while none has a readable date.
+   */
+  upload: { sent: number; total: number; years: { from: number; to: number } | null } | null
   /** Rows that need an answer or cannot be read, in file order, as far as they were paged in. */
   exceptions: HistoryRowView[]
   nextCursor: number | null
@@ -55,6 +62,10 @@ export interface HistoryState {
   failure: HistoryFailure | null
   /** Last derived-state acknowledgement of a confirm, for the totals publication follow-up. */
   ack: DerivedAck | null
+  /** Group answers that succeeded in this tab, oldest first. Not persisted; cleared on a new run, discard or forget. */
+  settled: Array<{ group: string; token: string; answer: string | boolean | null; rows: number }>
+  /** New passport stamps after a save in this tab. null = no save in this tab, or nothing was created. */
+  stamps: { status: 'pending' | 'ready' | 'delayed'; codes: string[] } | null
 }
 
 export interface HistoryRetained {
@@ -72,6 +83,10 @@ export interface HistoryTransport {
   confirm: typeof confirmHistoryRows
   discard: typeof discardHistoryRun
   erase: typeof eraseHistorySource
+  /** Pressed countries of the passport, null when unreadable (the regular import's read). */
+  pressedCountries: typeof fetchPressedCountries
+  /** Bounded derived-publication wait (the regular import's). */
+  awaitPublication: typeof awaitPublication
 }
 
 const httpTransport: HistoryTransport = {
@@ -83,9 +98,33 @@ const httpTransport: HistoryTransport = {
   confirm: confirmHistoryRows,
   discard: discardHistoryRun,
   erase: eraseHistorySource,
+  pressedCountries: fetchPressedCountries,
+  awaitPublication,
 }
 
-type Chunk = { index: number; body: { records: Array<[number, number, string[]]> } }
+type Chunk = {
+  index: number
+  body: { records: Array<[number, number, string[]]> }
+  /** Min and max year of the chunk's readable record dates; read once with the file, never stored. */
+  years: { from: number; to: number } | null
+}
+
+/** Min and max year among the readable `Date` cells (a real YYYY-MM-DD after trimming, as the parser reads it). */
+function yearsOf(dates: Array<string | undefined>) {
+  let years: { from: number; to: number } | null = null
+  for (const cell of dates) {
+    const date = cell?.trim() ?? ''
+    if (!isCalendarDate(date)) continue
+    const year = Number(date.slice(0, 4))
+    years = years
+      ? { from: Math.min(years.from, year), to: Math.max(years.to, year) }
+      : { from: year, to: year }
+  }
+  return years
+}
+
+const widen = (a: { from: number; to: number } | null, b: { from: number; to: number } | null) =>
+  a && b ? { from: Math.min(a.from, b.from), to: Math.max(a.to, b.to) } : (a ?? b)
 
 const INITIAL: HistoryState = {
   reading: false,
@@ -99,6 +138,8 @@ const INITIAL: HistoryState = {
   busy: new Set(),
   failure: null,
   ack: null,
+  settled: [],
+  stamps: null,
 }
 
 export function classifyHistoryError(error: unknown): HistoryFailure {
@@ -129,6 +170,15 @@ export class HistorySession {
   /** A run creation whose answer may have been lost: retried with the same operation id. */
   private creating: HistoryCreateBody | null = null
   private generation = 0
+  /** Cancels the wait for the stamps' publication when the tab leaves or restarts the import. */
+  private stampsWait: AbortController | null = null
+  /** The run's passport baseline and the countries its saves in this tab created (see `save`). */
+  private stampLedger: {
+    runId: string
+    baseline: Promise<Set<string> | null>
+    touched: Set<string>
+    created: number
+  } | null = null
 
   /** The tab's controller for one owner: sessionStorage keeps only the run id, operation id and manifest digest. */
   static forOwner(ownerId: string, transport?: HistoryTransport) {
@@ -165,6 +215,17 @@ export class HistorySession {
   }
   getState = () => this.state
 
+  private cancelStamps() {
+    this.stampsWait?.abort()
+    this.stampsWait = null
+  }
+
+  /** The import view closed: stop waiting for the stamps' publication; a stamp still unknown is not shown later. */
+  stopStamps() {
+    this.cancelStamps()
+    if (this.state.stamps?.status === 'pending') this.set({ stamps: null })
+  }
+
   private set(patch: Partial<HistoryState>) {
     this.state = { ...this.state, ...patch }
     for (const listener of this.listeners) listener()
@@ -184,6 +245,7 @@ export class HistorySession {
   /** Read a chosen file here, then create (or resume) its run and send what the server still lacks. */
   async choose(file: File) {
     const generation = ++this.generation
+    this.cancelStamps()
     this.set({ ...INITIAL, run: this.state.run, reading: true, fileName: file.name })
     try {
       const flighty = await import('@kuuki/shared/flighty')
@@ -214,9 +276,11 @@ export class HistorySession {
       )
       const digest = await flighty.flightyManifestDigest(parsed.headers, manifest)
       if (generation !== this.generation) return
+      const dateColumn = parsed.headers.indexOf('Date')
       this.chunks = groups.map((records, index) => ({
         index,
         body: { records: records.map((record) => [record.ordinal, record.line, record.cells]) },
+        years: yearsOf(records.map((record) => record.cells[dateColumn])),
       }))
       const prior = this.retained()
       const current = this.state.run
@@ -269,7 +333,7 @@ export class HistorySession {
         ? chunks.slice(-1)
         : []
     this.set({
-      upload: { sent: chunks.length - pending.length, total: chunks.length },
+      upload: { sent: chunks.length - pending.length, total: chunks.length, years: null },
       failure: null,
     })
     for (const chunk of pending) {
@@ -279,6 +343,7 @@ export class HistorySession {
         upload: {
           sent: Math.min(chunks.length, (this.state.upload?.sent ?? 0) + 1),
           total: chunks.length,
+          years: widen(this.state.upload?.years ?? null, chunk.years),
         },
       })
     }
@@ -300,6 +365,7 @@ export class HistorySession {
   /** Restore an import from the server alone (after a refresh or from the URL). */
   async resume(runId: string) {
     const generation = ++this.generation
+    this.cancelStamps()
     this.set({ ...INITIAL, reading: true })
     try {
       const page = await this.transport.readPage(runId, { state: 'review' })
@@ -391,6 +457,12 @@ export class HistorySession {
         answer,
         revision: run.revision,
       })
+      this.set({
+        settled: [
+          ...this.state.settled,
+          { group: group.group, token: group.token, answer, rows: group.rows },
+        ],
+      })
       await this.refresh()
     } catch (error) {
       await this.recover(error)
@@ -424,12 +496,26 @@ export class HistorySession {
     // A pending answer or Skip must land first: confirming ahead of it could save the record being excluded.
     if (!run || this.state.saving || this.state.busy.size) return
     const total = run.totals.states.ready
-    this.set({ saving: { done: 0, total }, failure: null, ready: null })
+    this.cancelStamps()
+    this.set({ saving: { done: 0, total }, failure: null, ready: null, stamps: null })
     let done = 0
+    const generation = this.generation
+    // One stamp ledger per run in this tab, so a save that failed half-way or ran before the last questions were
+    // answered still counts: the passport before the run's first confirm (read beside the first page; null claims
+    // no stamp) and the route countries of every row created since.
+    if (this.stampLedger?.runId !== run.id)
+      this.stampLedger = {
+        runId: run.id,
+        baseline: this.transport.pressedCountries().catch(() => null),
+        touched: new Set(),
+        created: 0,
+      }
+    const ledger = this.stampLedger
     try {
       for (;;) {
         const page = await this.transport.readPage(run.id, { state: 'ready', limit: 50 })
         if (!page.rows.length) break
+        await ledger.baseline
         const response = await this.transport.confirm(
           run.id,
           page.rows.map((row) => ({
@@ -439,6 +525,15 @@ export class HistorySession {
           })),
         )
         const progressed = response.results.filter((result) => result.status !== 'error').length
+        const byId = new Map(page.rows.map((row) => [row.id, row]))
+        for (const result of response.results) {
+          if (result.status !== 'created') continue
+          ledger.created += 1
+          const projection = byId.get(result.rowId)?.projection
+          if (projection?.origin && projection.destination)
+            for (const code of routeCountries(projection.origin, projection.destination))
+              ledger.touched.add(code)
+        }
         done += progressed
         this.set({
           run: { ...response.run, groups: this.state.run?.groups ?? [] },
@@ -451,10 +546,43 @@ export class HistorySession {
       }
       this.set({ saving: null })
       await this.refresh()
+      const before = await ledger.baseline
+      if (ledger.created > 0 && before && generation === this.generation)
+        void this.followStamps(generation, before, ledger.touched)
     } catch (error) {
       this.set({ saving: null })
       await this.recover(error)
     }
+  }
+
+  /**
+   * New stamps, as the regular import decides them: wait for the derived publication of the last confirm's
+   * acknowledgement (ready at once, or the bounded poll; anything else or a timeout is delayed), then read the
+   * passport again and keep the countries this save touched that were not pressed before.
+   */
+  private async followStamps(generation: number, before: Set<string>, touched: Set<string>) {
+    const ack = this.state.ack
+    const controller = new AbortController()
+    this.stampsWait = controller
+    const authGeneration = getAuthGeneration()
+    const current = () =>
+      !controller.signal.aborted &&
+      generation === this.generation &&
+      authGeneration === getAuthGeneration()
+    this.set({ stamps: { status: 'pending', codes: [] } })
+    let published: 'ready' | 'delayed' | 'stale' = 'delayed'
+    if (ack?.derived_state === 'ready') published = 'ready'
+    else if (ack?.derived_state === 'pending' && typeof ack.revision === 'number')
+      published = await this.transport.awaitPublication(ack.revision, controller.signal, current)
+    if (!current() || published === 'stale') return
+    if (published === 'delayed') return this.set({ stamps: { status: 'delayed', codes: [] } })
+    const after = await this.transport.pressedCountries(controller.signal).catch(() => null)
+    if (!current()) return
+    this.stampsWait = null
+    // An unreadable passport claims nothing: no codes, and the passport itself shows what was pressed.
+    this.set({
+      stamps: { status: 'ready', codes: after ? newlyPressed(before, after, touched) : [] },
+    })
   }
 
   async discard() {
@@ -482,6 +610,8 @@ export class HistorySession {
   /** Leave the import: the run stays on the server until it completes or expires. */
   forget() {
     this.generation += 1
+    this.cancelStamps()
+    this.stampLedger = null
     this.chunks = null
     this.creating = null
     this.retain(null)

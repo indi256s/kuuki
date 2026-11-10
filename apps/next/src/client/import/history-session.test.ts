@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { ApiError } from '@kuuki/client/apiClient'
 import {
   bawRecord,
@@ -15,6 +15,7 @@ import {
   putChunk,
   type Reply,
 } from '../../../../../functions/test/history-fixture'
+import { routeCountries } from './flight-input'
 import { HistorySession, type HistoryRetained, type HistoryTransport } from './history-session'
 
 // The controller against the real history route handlers on Miniflare D1: transport, recovery and paging are
@@ -51,6 +52,8 @@ function transportFor(db: D1Database, calls: string[] = []): HistoryTransport {
     ),
     discard: async (runId) => unwrap(await discardRun(db, runId)),
     erase: async (runId) => unwrap(await eraseSource(db, runId)),
+    pressedCountries: async () => new Set<string>(),
+    awaitPublication: async () => 'ready',
   } as HistoryTransport
 }
 
@@ -332,3 +335,202 @@ it('does not start a save while a Skip is still on its way', async () => {
   pending.forEach((resolve) => resolve())
   await skip
 })
+
+/** The server acknowledges a confirm as already published; stamps wait only on a pending acknowledgement. */
+function pendingConfirms(transport: HistoryTransport) {
+  const confirm = transport.confirm
+  transport.confirm = async (runId, items) => ({
+    ...(await confirm(runId, items)),
+    derived_state: 'pending',
+    revision: 7,
+  })
+}
+
+it(
+  'widens the years of the sent chunks as each chunk lands, and clears them when the upload ends',
+  { timeout: 60_000 },
+  async () => {
+    const { db, dispose } = await historyAccount()
+    try {
+      const seen: Array<{ sent: number; years: { from: number; to: number } | null }> = []
+      const session = new HistorySession(
+        () => {},
+        () => null,
+        transportFor(db),
+      )
+      session.subscribe(() => {
+        const upload = session.getState().upload
+        if (upload) seen.push({ sent: upload.sent, years: upload.years })
+      })
+      // 150 records span two chunks, all in 2020.
+      await session.choose(fileOf(cleanCsv(150, Date.UTC(2020, 6, 1))))
+      expect(seen[0]).toEqual({ sent: 0, years: null })
+      expect(seen.at(-1)).toEqual({ sent: 2, years: { from: 2020, to: 2020 } })
+      expect(seen.some((entry) => entry.sent === 1 && entry.years?.from === 2020)).toBe(true)
+      expect(session.getState().upload).toBeNull()
+
+      const wide = new HistorySession(
+        () => {},
+        () => null,
+        transportFor(db),
+      )
+      const spans: Array<{ from: number; to: number } | null> = []
+      wide.subscribe(() => spans.push(wide.getState().upload?.years ?? null))
+      await wide.choose(fileOf(cleanCsv(150, Date.UTC(2019, 11, 1))))
+      const last = spans.filter(Boolean).at(-1)
+      expect(last).toEqual({ from: 2019, to: 2020 })
+    } finally {
+      await dispose()
+    }
+  },
+)
+
+it('settles a group answer only when it succeeds', { timeout: 60_000 }, async () => {
+  const { db, dispose } = await historyAccount()
+  try {
+    const transport = transportFor(db)
+    const answer = transport.answerGroup
+    let refuse = true
+    transport.answerGroup = async (runId, body) => {
+      if (refuse) throw new TypeError('Failed to fetch')
+      return answer(runId, body)
+    }
+    const session = new HistorySession(
+      () => {},
+      () => null,
+      transport,
+    )
+    await session.choose(fileOf(fixtureCsv()))
+    const group = session.getState().run!.groups.find((item) => item.group === 'airline:THA')!
+    await session.answerGroup(group, 'TG')
+    expect(session.getState().settled).toEqual([])
+    refuse = false
+    await session.answerGroup(group, 'TG')
+    expect(session.getState().settled).toEqual([
+      { group: 'airline:THA', token: group.token, answer: 'TG', rows: group.rows },
+    ])
+    session.forget()
+    expect(session.getState().settled).toEqual([])
+  } finally {
+    await dispose()
+  }
+})
+
+it(
+  'presses new stamps after the publication: pending, then the countries this save created',
+  { timeout: 60_000 },
+  async () => {
+    const { db, dispose } = await historyAccount()
+    try {
+      const transport = transportFor(db)
+      pendingConfirms(transport)
+      const reads: number[] = []
+      // The passport already holds GB; after the save it also holds the route countries and one the save never touched.
+      let routeCodes: string[] = []
+      transport.pressedCountries = async () => {
+        reads.push(reads.length)
+        return new Set(reads.length === 1 ? ['GB'] : ['GB', 'XX', ...routeCodes])
+      }
+      let release: () => void = () => {}
+      transport.awaitPublication = () =>
+        new Promise((resolve) => {
+          release = () => resolve('ready')
+        })
+      const session = new HistorySession(
+        () => {},
+        () => null,
+        transport,
+      )
+      await session.choose(fileOf(cleanCsv(2)))
+      const rows = (await getPage(db, session.getState().run!.id, { state: 'ready' })).body.rows
+      const touched = new Set(
+        rows.flatMap((row) =>
+          routeCountries(row.projection.origin ?? '', row.projection.destination ?? ''),
+        ),
+      )
+      routeCodes = [...touched]
+      expect(touched.has('US')).toBe(true)
+      await session.save()
+      // Derived state of the confirm was not ready: the stamps wait for the publication, then read once more.
+      expect(session.getState().stamps).toEqual({ status: 'pending', codes: [] })
+      expect(reads).toEqual([0])
+      release()
+      await vi.waitFor(() => expect(session.getState().stamps?.status).toBe('ready'))
+      expect(session.getState().stamps?.codes).toEqual(
+        [...touched].filter((code) => code !== 'GB').sort(),
+      )
+      expect(reads).toEqual([0, 1])
+    } finally {
+      await dispose()
+    }
+  },
+)
+
+it(
+  'keeps the stamps of a save that failed half-way: the retry compares with the passport before the first confirm',
+  { timeout: 60_000 },
+  async () => {
+    const { db, dispose } = await historyAccount()
+    try {
+      const transport = transportFor(db)
+      const confirm = transport.confirm
+      let confirms = 0
+      transport.confirm = async (runId, items) => {
+        confirms += 1
+        if (confirms === 2) throw new TypeError('Failed to fetch')
+        return confirm(runId, items)
+      }
+      // The passport holds GB before the run; every later read also holds what the saves created.
+      let reads = 0
+      let routeCodes: string[] = []
+      transport.pressedCountries = async () =>
+        (reads += 1) === 1 ? new Set(['GB']) : new Set(['GB', ...routeCodes])
+      const session = new HistorySession(
+        () => {},
+        () => null,
+        transport,
+      )
+      await session.choose(fileOf(cleanCsv(120)))
+      const [row] = (await getPage(db, session.getState().run!.id, { state: 'ready', limit: 1 }))
+        .body.rows
+      routeCodes = routeCountries(row.projection.origin ?? '', row.projection.destination ?? '')
+      await session.save()
+      expect(session.getState().failure).toEqual({ kind: 'offline' })
+      await session.save()
+      expect(session.getState().run!.status).toBe('completed')
+      await vi.waitFor(() => expect(session.getState().stamps?.status).toBe('ready'))
+      expect(session.getState().stamps?.codes).toEqual(
+        routeCodes.filter((code) => code !== 'GB').sort(),
+      )
+    } finally {
+      await dispose()
+    }
+  },
+)
+
+it(
+  'says delayed when the publication does not arrive, and forgetting clears the stamps',
+  { timeout: 60_000 },
+  async () => {
+    const { db, dispose } = await historyAccount()
+    try {
+      const transport = transportFor(db)
+      pendingConfirms(transport)
+      transport.awaitPublication = async () => 'delayed'
+      const session = new HistorySession(
+        () => {},
+        () => null,
+        transport,
+      )
+      await session.choose(fileOf(cleanCsv(2)))
+      await session.save()
+      await vi.waitFor(() =>
+        expect(session.getState().stamps).toEqual({ status: 'delayed', codes: [] }),
+      )
+      session.forget()
+      expect(session.getState().stamps).toBeNull()
+    } finally {
+      await dispose()
+    }
+  },
+)
