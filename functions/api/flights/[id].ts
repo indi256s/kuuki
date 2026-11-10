@@ -8,6 +8,7 @@ import { toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBody } from '../_lib/flightValidation'
 import { resolveFlightMetrics } from '../_services/flightMetrics'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
+import { tombstoneHistoryRowsStatement } from '../_services/historyImportRetention'
 import {
   LIFECYCLE_COLUMN_NAMES,
   lifecycleForEdit,
@@ -33,6 +34,7 @@ const PATCH_CAS_COLUMNS = [
   'duration_minutes',
   'duration_source',
   'times_from_schedule',
+  'utc_explicit',
   'zones_overflown',
   'source',
   'enrichment_status',
@@ -257,6 +259,8 @@ export function updateFlightRequest(
     // ADR 0001 §2: date and route edits move lifecycle (and the is_upcoming projection) with the same UPDATE.
     const lifecycle = lifecycleForEdit(existing, { date, origin, destination }, timezone)
 
+    // ADR 0008: explicit source instants hold only while date, route, clock times and zones are unchanged.
+    const utcExplicit = existing.utc_explicit === 1 && !routeChanged && !timeChanged ? 1 : 0
     const metricsChanged = routeChanged || timeChanged || flightNumber !== existing.flight_number
     const metrics = metricsChanged
       ? await resolveFlightMetrics(env.DB, {
@@ -273,6 +277,10 @@ export function updateFlightRequest(
           clientDistanceKm: mergedDistance,
           excludeFlightId: id,
           timesFromSchedule: timesFromSchedule === 1,
+          explicit:
+            utcExplicit && existing.departure_utc && existing.arrival_utc
+              ? { departureUtc: existing.departure_utc, arrivalUtc: existing.arrival_utc }
+              : null,
         })
       : {
           originTz: existing.origin_tz,
@@ -290,7 +298,7 @@ export function updateFlightRequest(
         `UPDATE flights SET
          date = ?, origin = ?, destination = ?, airline_iata = ?, aircraft_icao = ?, flight_number = ?,
          departure_time = ?, arrival_time = ?, departure_utc = ?, arrival_utc = ?, origin_tz = ?, dest_tz = ?,
-         distance_km = ?, duration_minutes = ?, duration_source = ?, times_from_schedule = ?, zones_overflown = ?, source = ?, enrichment_status = ?,
+         distance_km = ?, duration_minutes = ?, duration_source = ?, times_from_schedule = ?, utc_explicit = ?, zones_overflown = ?, source = ?, enrichment_status = ?,
          ${LIFECYCLE_COLUMN_NAMES.map((name) => `${name} = ?`).join(', ')}
        WHERE id = ? AND user_id = ? AND ${PATCH_CAS_COLUMNS.map((name) => `${name} IS ?`).join(' AND ')} RETURNING ${FLIGHT_COLUMNS}`,
       ).bind(
@@ -310,6 +318,7 @@ export function updateFlightRequest(
         metrics.durationMinutes,
         metrics.durationSource,
         timesFromSchedule,
+        utcExplicit,
         metrics.zonesOverflown,
         source,
         enrichmentStatus,
@@ -358,7 +367,9 @@ export function deleteFlightRequest(
     const user = requireUser(data)
     const id = parseId(rawId)
 
-    const [deleted] = await env.DB.batch([
+    const [, deleted] = await env.DB.batch([
+      // ADR 0008: imported source cells go with the flight, in the same transaction.
+      tombstoneHistoryRowsStatement(env.DB, user.id, [id]),
       env.DB.prepare('DELETE FROM flights WHERE id = ? AND user_id = ?').bind(id, user.id),
       dirtyUserStatement(env.DB, user.id, true),
     ])

@@ -274,6 +274,64 @@ describe('server-authoritative flight metrics', () => {
     })
   })
 
+  it('keeps explicit source instants through unrelated edits and re-infers once a clock time changes', async () => {
+    // Tokyo 00:30 on 2026-03-11 lands in Honolulu on the previous UTC day: 420 minutes across the date line.
+    await db.batch(
+      ['HND', 'HNL'].map((iata) => {
+        const airport = findAirport(iata)!
+        return db
+          .prepare(
+            'INSERT INTO airports_reference (iata,name,city,country,country_code,latitude,longitude) VALUES (?,?,?,?,?,?,?)',
+          )
+          .bind(
+            iata,
+            airport.name,
+            airport.city,
+            airport.country,
+            airport.countryCode,
+            airport.latitude,
+            airport.longitude,
+          )
+      }),
+    )
+    const first = await create(
+      {
+        date: '2026-03-11',
+        origin: 'HND',
+        destination: 'HNL',
+        flight_number: '72',
+        departure_time: '00:30',
+        arrival_time: '12:30',
+      },
+      'metrics-explicit-instants',
+    )
+    await db
+      .prepare(
+        "UPDATE flights SET departure_utc = '2026-03-10T15:30:00.000Z', arrival_utc = '2026-03-10T22:30:00.000Z', duration_minutes = 420, duration_source = 'times', utc_explicit = 1 WHERE id = ?",
+      )
+      .bind(first.id)
+      .run()
+    const stored = () =>
+      db
+        .prepare(
+          'SELECT departure_utc, arrival_utc, duration_minutes, utc_explicit FROM flights WHERE id = ?',
+        )
+        .bind(first.id)
+        .first()
+
+    await patch(first.id, { flight_number: '73' })
+    expect(await stored()).toEqual({
+      departure_utc: '2026-03-10T15:30:00.000Z',
+      arrival_utc: '2026-03-10T22:30:00.000Z',
+      duration_minutes: 420,
+      utc_explicit: 1,
+    })
+
+    await patch(first.id, { arrival_time: '13:30' })
+    expect(await stored()).toMatchObject({ utc_explicit: 0 })
+    expect(await stored()).not.toMatchObject({ arrival_utc: '2026-03-10T22:30:00.000Z' })
+  })
+
   it('zones use the departure instant, or date noon when times are unknown', async () => {
     const body = { ...route, date: '2026-03-29', destination: 'LHR' }
     expect(

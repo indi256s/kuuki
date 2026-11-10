@@ -1,0 +1,135 @@
+{
+  "fixture": "observed-33.csv",
+  "provenance": "Synthetic, authored for Kuuki on 2026-11-10 from the observed 33-column header family. Not a Flighty export; values are invented. Expected instants were computed by hand from each airport's IANA zone.",
+  "columns": 33,
+  "blankLines": 1,
+  "records": [
+    {
+      "ordinal": 0,
+      "line": 2,
+      "outcome": "create",
+      "issues": [],
+      "projection": {
+        "date": "2026-03-10",
+        "origin": "JFK",
+        "destination": "LHR",
+        "airline": "BA",
+        "flightNumber": "178",
+        "aircraftIcao": "B77W",
+        "departureUtc": "2026-03-10T23:12:00.000Z",
+        "arrivalUtc": "2026-03-11T06:51:00.000Z",
+        "durationMinutes": 459,
+        "timesFrom": "actual_gate"
+      }
+    },
+    {
+      "ordinal": 1,
+      "line": 3,
+      "outcome": "create",
+      "issues": [],
+      "projection": {
+        "date": "2026-03-11",
+        "origin": "HND",
+        "destination": "HNL",
+        "airline": "JL",
+        "flightNumber": "072",
+        "aircraftIcao": "B789",
+        "departureUtc": "2026-03-10T15:30:00.000Z",
+        "arrivalUtc": "2026-03-10T22:30:00.000Z",
+        "arrivalDate": "2026-03-10",
+        "durationMinutes": 420,
+        "timesFrom": "actual_gate"
+      }
+    },
+    {
+      "ordinal": 2,
+      "line": 5,
+      "outcome": "preserve_only",
+      "issues": [],
+      "projection": {
+        "canceled": true,
+        "origin": "CDG",
+        "destination": "NCE",
+        "departureUtc": null
+      }
+    },
+    {
+      "ordinal": 3,
+      "line": 6,
+      "outcome": "create",
+      "issues": [],
+      "projection": {
+        "origin": "FRA",
+        "destination": "BOS",
+        "bookedDestination": "JFK",
+        "diverted": true,
+        "airline": "LH",
+        "departureUtc": "2026-01-15T09:00:00.000Z",
+        "arrivalUtc": "2026-01-15T18:30:00.000Z",
+        "durationMinutes": 570
+      }
+    },
+    {
+      "ordinal": 4,
+      "line": 7,
+      "outcome": "create",
+      "issues": [],
+      "projection": {
+        "date": "2019-06-01",
+        "origin": "SVO",
+        "destination": "LED",
+        "airline": null,
+        "flightNumber": null,
+        "timesFrom": null
+      }
+    },
+    {
+      "ordinal": 5,
+      "line": 8,
+      "outcome": "review",
+      "issues": ["AMBIGUOUS_AIRLINE@airline:THA"],
+      "projection": { "airline": null, "origin": "BKK", "destination": "CNX" }
+    },
+    {
+      "ordinal": 6,
+      "line": 9,
+      "outcome": "create",
+      "issues": [],
+      "projection": {
+        "airline": "KL",
+        "aircraftIcao": "E190",
+        "departureUtc": "2026-07-01T06:00:00.000Z",
+        "arrivalUtc": "2026-07-01T07:55:00.000Z",
+        "durationMinutes": 115,
+        "timesFrom": "scheduled_gate"
+      }
+    },
+    {
+      "ordinal": 7,
+      "line": 10,
+      "outcome": "review",
+      "issues": ["UNKNOWN_AIRPORT@airport:ZZZ", "UNKNOWN_AIRLINE@airline:XQZ"],
+      "projection": { "origin": null, "destination": "LED" }
+    },
+    {
+      "ordinal": 8,
+      "line": 11,
+      "outcome": "review",
+      "issues": ["AMBIGUOUS_TIME"],
+      "projection": { "origin": "JFK", "destination": "BOS", "departureUtc": null }
+    },
+    { "ordinal": 9, "line": 12, "outcome": "error", "issues": ["EMPTY_RECORD"], "projection": {} },
+    {
+      "ordinal": 10,
+      "line": 14,
+      "outcome": "review",
+      "issues": ["UNKNOWN_CANCELED@canceled:"],
+      "projection": {
+        "airline": "BA",
+        "flightNumber": "0001",
+        "origin": "LHR",
+        "destination": "JFK"
+      }
+    }
+  ]
+}

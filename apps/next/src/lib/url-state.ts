@@ -147,19 +147,27 @@ export function normalizePassportQuery(
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-export type ImportState = { source: 'file' | 'text' | 'pass' | null; batch: string | null }
+export type ImportState = {
+  source: 'file' | 'text' | 'pass' | null
+  batch: string | null
+  /** A Flighty CSV import run (ADR 0008), restored from the server. */
+  history: string | null
+}
 export function normalizeImportQuery(raw: RawQuery): Normalized<ImportState> {
   const entries = toEntries(raw)
   const source = first(entries, 'source')
   const batch = first(entries, 'batch')
+  const history = first(entries, 'history')
   const state: ImportState = {
     source: source === 'file' || source === 'text' || source === 'pass' ? source : null,
     batch: batch && UUID.test(batch) ? batch.toLowerCase() : null,
+    history: history && UUID.test(history) ? history.toLowerCase() : null,
   }
   const known: Entries = []
   if (state.source) known.push(['source', state.source])
   if (state.batch) known.push(['batch', state.batch])
-  return finish(entries, ['source', 'batch'], known, state)
+  if (state.history) known.push(['history', state.history])
+  return finish(entries, ['source', 'batch', 'history'], known, state)
 }
 
 export const withQuery = (path: string, query: string) => (query ? `${path}?${query}` : path)

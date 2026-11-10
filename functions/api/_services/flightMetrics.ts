@@ -1,5 +1,6 @@
 import { findAirport } from '../../../packages/data/src/airport-lookup'
 import { estimateBlockMinutes } from '../../../packages/shared/src/blockTime'
+import { FLIGHTY_MAX_DURATION_MINUTES } from '../../../packages/shared/src/flighty'
 import { validateFlightInput } from '../../../packages/shared/src/flightValidation'
 import { eastwardShare, greatCircleKm, type LatLon } from '../../../packages/shared/src/geo'
 import { utcOffsetMinutes } from '../../../packages/shared/src/timezones'
@@ -23,6 +24,21 @@ export function decideDuration(args: {
   return distanceKm === null
     ? { minutes: null, source: null }
     : { minutes: estimateBlockMinutes(distanceKm, east), source: 'estimate' }
+}
+
+export interface ExplicitInstants {
+  departureUtc: string
+  arrivalUtc: string
+}
+
+/** Minutes between explicit instants, or null when they are unusable as a measured duration. */
+export function explicitDuration(explicit: ExplicitInstants | null | undefined): number | null {
+  if (!explicit) return null
+  const departure = Date.parse(explicit.departureUtc)
+  const arrival = Date.parse(explicit.arrivalUtc)
+  if (!Number.isFinite(departure) || !Number.isFinite(arrival)) return null
+  const minutes = Math.round((arrival - departure) / 60_000)
+  return minutes > 0 && minutes <= FLIGHTY_MAX_DURATION_MINUTES ? minutes : null
 }
 
 export interface FlightMetrics {
@@ -117,6 +133,11 @@ export async function resolveFlightMetrics(
     clientDistanceKm?: number | null
     timesFromSchedule?: boolean
     excludeFlightId?: number
+    /**
+     * Server-validated instants (ADR 0008). They replace wall-clock inference when both parse and give a positive
+     * duration within the clamp; anything else falls back to inference. Never taken from a request body.
+     */
+    explicit?: ExplicitInstants | null
   },
 ): Promise<FlightMetrics> {
   const { results } = await db
@@ -126,7 +147,17 @@ export async function resolveFlightMetrics(
   const origin = coordinates(results.find((row) => row.iata === input.origin))
   const destination = coordinates(results.find((row) => row.iata === input.destination))
   const noon = new Date(`${input.date}T12:00:00Z`)
-  const times = resolveFlightTimes(input, origin, destination)
+  const inferred = resolveFlightTimes(input, origin, destination)
+  const explicitMinutes = explicitDuration(input.explicit)
+  const times =
+    explicitMinutes === null
+      ? inferred
+      : {
+          ...inferred,
+          departureUtc: new Date(input.explicit!.departureUtc).toISOString(),
+          arrivalUtc: new Date(input.explicit!.arrivalUtc).toISOString(),
+          durationMinutes: explicitMinutes,
+        }
   const distanceKm =
     origin && destination
       ? Math.min(20000, Math.round(greatCircleKm(origin, destination)))

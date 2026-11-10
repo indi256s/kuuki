@@ -114,6 +114,8 @@ describe('flight metrics migration', () => {
   it('own-flight reads expose provenance and preserve zero zones', async () => {
     await applyMigrationAtomically(db, migration)
     await applyMigrationAtomically(db, '0009_schedule_time_provenance.sql')
+    // The own-flight read selects `utc_explicit`, which 0020 adds.
+    await applyMigrationAtomically(db, '0020_history_import.sql')
     const [, created] = await oldCreate(db, user.id, 'own-read', flight, 0)
     const id = created.meta.last_row_id
     await db

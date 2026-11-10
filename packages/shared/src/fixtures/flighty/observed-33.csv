@@ -1,0 +1,14 @@
+Date,Airline,Flight,From,To,Dep Terminal,Dep Gate,Arr Terminal,Arr Gate,Canceled,Diverted To,Gate Departure (Scheduled),Gate Departure (Actual),Take off (Scheduled),Take off (Actual),Landing (Scheduled),Landing (Actual),Gate Arrival (Scheduled),Gate Arrival (Actual),Aircraft Type Name,Tail Number,PNR,Seat,Seat Type,Cabin Class,Flight Reason,Notes,Flight Flighty ID,Airline Flighty ID,Departure Airport Flighty ID,Arrival Airport Flighty ID,Diverted To Airport Flighty ID,Aircraft Type Flighty ID
+2026-03-10,BAW,178,JFK,LHR,8,B22,5,,false,,2026-03-10T19:00,2026-03-10T19:12,2026-03-10T19:20,2026-03-10T19:31,2026-03-11T06:40,2026-03-11T06:38,2026-03-11T07:00,2026-03-11T06:51,Boeing 777-300ER,G-STBA,SYN001,12A,WINDOW,ECONOMY,LEISURE,"Window seat, ""great"" view",f0000000-0000-4000-8000-000000000001,a0000000-0000-4000-8000-0000000000ba,p0000000-0000-4000-8000-000000000jfk,p0000000-0000-4000-8000-000000000lhr,,t0000000-0000-4000-8000-000000000777
+2026-03-11,JAL,072,HND,HNL,3,110,,,False,,2026-03-11T00:05,2026-03-11T00:30,,,,,2026-03-10T12:15,2026-03-10T12:30,Boeing 787-9,JA861J,SYN002,24K,,BUSINESS,BUSINESS,"  line one
+line two  ",f0000000-0000-4000-8000-000000000002,,,,,
+2026-04-02,AFR,1234,CDG,NCE,2F,,,,True,,2026-04-02T07:00,,,,,,2026-04-02T08:25,,Airbus A320,,SYN003,,,,,,f0000000-0000-4000-8000-000000000003,,,,,
+2026-01-15,DLH,400,FRA,JFK,1,,,,false,BOS,2026-01-15T10:00,2026-01-15T10:00,,,,,2026-01-15T13:20,2026-01-15T13:30,Boeing 747-8,D-ABYA,,,,,,,f0000000-0000-4000-8000-000000000004,,,,p0000000-0000-4000-8000-000000000bos,
+2019-06-01,,,SVO,LED,,,,,false,,,,,,,,,,,,,,,,,,,,,,,
+2025-12-20,THA,110,BKK,CNX,,,,,false,,,,,,,,,,,,,,,,,,f0000000-0000-4000-8000-000000000006,,,,,
+2026-07-01,KLM,1143,AMS,OSL,,,,,false,,2026-07-01T08:00,,,,,,2026-07-01T09:55,,Embraer 190,,,,,,,,,,,,,
+2024-05-05,XQZ,9,ZZZ,LED,,,,,false,,,,,,,,,,,,,,,,,,,,,,,
+2026-11-01,AAL,100,JFK,BOS,,,,,false,,,2026-11-01T01:30,,,,,,2026-11-01T02:40,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+2018-02-14,BAW,BA0001,LHR,JFK,,,,,,,,,,,,,,,,,,,,,,,,,,,,

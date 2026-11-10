@@ -4,6 +4,7 @@
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
+import { tombstoneHistoryRowsStatement } from '../_services/historyImportRetention'
 
 interface Body {
   ids?: number[]
@@ -33,7 +34,9 @@ export function bulkDeleteRequest(
     const ids = [...new Set(body.ids)]
     if (ids.length === 0) return json({ deleted: 0 })
 
-    const [result] = await env.DB.batch([
+    const [, result] = await env.DB.batch([
+      // ADR 0008: imported source cells go with their flights, in the same transaction.
+      tombstoneHistoryRowsStatement(env.DB, user.id, ids),
       env.DB.prepare(
         'DELETE FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))',
       ).bind(user.id, JSON.stringify(ids)),

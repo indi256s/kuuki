@@ -21,12 +21,18 @@
     "./groundTravel": "./src/groundTravel.ts",
     "./timezones": "./src/timezones.ts",
     "./railTicketOcr": "./src/railTicketOcr.ts",
-    "./airportHistory": "./src/airportHistory.ts"
+    "./airportHistory": "./src/airportHistory.ts",
+    "./flighty": "./src/flighty.ts",
+    "./flighty-time": "./src/flighty-time.ts",
+    "./flightyHistory": "./src/flightyHistory.ts"
   },
   "scripts": {
     "build": "tsc"
   },
   "devDependencies": {
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "csv-parse": "7.0.3"
   }
 }

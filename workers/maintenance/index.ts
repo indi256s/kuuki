@@ -4,6 +4,7 @@ import {
   repairUserDerivedState,
 } from '../../functions/api/_services/derivedState'
 import { interruptBatchSql } from '../../functions/api/_services/importBatchInterrupt'
+import { expireHistoryRunsStatements } from '../../functions/api/_services/historyImportRetention'
 import { applyDueTransitions } from '../../functions/api/_services/lifecycle'
 
 interface MaintenanceEnv {
@@ -102,6 +103,8 @@ export default {
         db
           .prepare('DELETE FROM import_conversion_receipts WHERE created_at < ?')
           .bind(conversionReceiptCutoff),
+        // ADR 0008: Flighty staging closes 30 days after a run opened; committed rows and tombstones stay.
+        ...expireHistoryRunsStatements(db, instant),
         // Ground-travel receipts expire at their stored instant; tombstones stay for the account's lifetime.
         db.prepare('DELETE FROM ground_operation_receipts WHERE expires_at <= ?').bind(instant),
         // A batch whose job died: the one shared interrupt definition (see importBatchInterrupt).

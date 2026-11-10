@@ -28,6 +28,7 @@ export default async function Import({
         locale={locale}
         initialBatchId={normalized.state.batch}
         initialSource={normalized.state.source}
+        initialHistoryId={normalized.state.history}
       />
     </IdentitySnapshot>
   )

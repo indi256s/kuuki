@@ -25,6 +25,7 @@
     "./snapshot-real-account.ts",
     "./verify-import-provider.ts",
     "./evaluate-import.ts",
+    "./evaluate-flighty.ts",
     "../functions/env.d.ts",
     "./evaluate-aircraft.ts",
     "./inventory-aircraft.ts",

@@ -93,7 +93,7 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
           statements.push(
             db
               .prepare(`UPDATE flights SET departure_time=?,arrival_time=?,origin_tz=?,dest_tz=?,
-          departure_utc=?,arrival_utc=?,distance_km=?,duration_minutes=?,duration_source=?,zones_overflown=?,times_from_schedule=1
+          departure_utc=?,arrival_utc=?,distance_km=?,duration_minutes=?,duration_source=?,zones_overflown=?,times_from_schedule=1,utc_explicit=0
           WHERE id=? AND user_id=? AND date=? AND origin=? AND destination=? AND airline_iata IS ? AND flight_number IS ?
           AND departure_time IS ? AND arrival_time IS ? AND origin_tz IS ? AND dest_tz IS ? AND distance_km IS ?
           AND duration_minutes IS ? AND duration_source IS ? AND departure_utc IS ? AND arrival_utc IS ? AND zones_overflown IS ? AND times_from_schedule IS ?`)

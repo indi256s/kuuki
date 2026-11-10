@@ -1069,3 +1069,67 @@
   min-width: 0;
   overflow-wrap: break-word;
 }
+
+/* Flighty CSV import (ADR 0008): a counts summary, one card per question or record. Space groups, no dividers. */
+.history-import-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+.history-import-summary > div {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.history-import-summary dt {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.history-import-summary dd {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.history-import-list,
+.history-import-issues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.history-import-issues {
+  gap: var(--space-1);
+  font-size: 13px;
+  line-height: 20px;
+}
+.history-import-item {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-width: 0;
+}
+.history-import-question {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.history-import-code {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.history-import-code .ui-field-input {
+  inline-size: 7ch;
+  text-transform: uppercase;
+}
+.history-import .ui-button[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 2px var(--selection-contour);
+}

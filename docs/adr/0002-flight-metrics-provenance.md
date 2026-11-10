@@ -1,5 +1,7 @@
 # ADR 0002: Flight metrics and duration provenance
 
+> Amended by [ADR 0008](0008-flighty-history-import.md): `flights.utc_explicit = 1` marks departure/arrival instants taken from a source with resolved offsets; they replace inferred instants until a route or time edit resets the flag.
+
 - **Status:** Accepted for implementation, 2026-10-07.
 - **Scope:** [Overview Release 1](../plans/2026-10-07-overview-release-1-migrations.md), with scheduled-duration acceptance in Release 2.
 - **Vocabulary:** [GLOSSARY.md](../../GLOSSARY.md), flight metrics vocabulary.

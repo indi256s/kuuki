@@ -339,6 +339,50 @@ export const apiRoutes = [
     ]
   },
   {
+    "route": "/api/import/history",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/import/history/:id",
+    "methods": [
+      "GET",
+      "DELETE"
+    ]
+  },
+  {
+    "route": "/api/import/history/:id/chunks/:index",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "route": "/api/import/history/:id/confirm",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/import/history/:id/groups",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "route": "/api/import/history/:id/rows/:rowId",
+    "methods": [
+      "PATCH"
+    ]
+  },
+  {
+    "route": "/api/import/history/:id/source",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
     "route": "/api/import/jobs",
     "methods": [
       "POST"

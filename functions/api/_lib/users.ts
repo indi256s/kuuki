@@ -81,6 +81,9 @@ export async function getPasswordHashById(db: D1Database, userId: string): Promi
 export async function deleteUserCascade(db: D1Database, userId: string): Promise<string[]> {
   const childTables = [
     // ADR 0001 §6: drafts, receipts and evidence first, then the flights they point at.
+    // ADR 0008: Flighty history rows (private source cells), then their runs.
+    'history_import_rows',
+    'history_import_runs',
     'import_conversion_receipts',
     'import_drafts',
     'import_batches',

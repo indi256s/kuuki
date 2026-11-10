@@ -9,7 +9,7 @@ import { HttpError } from '../_lib/http'
 import { sha256Hex } from '../_lib/crypto'
 import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
 import { parseFlightBodies } from '../_lib/flightValidation'
-import { resolveFlightMetrics } from './flightMetrics'
+import { explicitDuration, resolveFlightMetrics, type ExplicitInstants } from './flightMetrics'
 import {
   dirtyUserStatement,
   repairUserDerivedState,
@@ -39,6 +39,28 @@ export interface ConversionTarget {
   requestDigest: string
 }
 
+/**
+ * The Flighty history row a flight is being created from (ADR 0008). Built only by the history confirmation service
+ * after it has re-mapped the row on the server; never from a request body.
+ */
+export interface HistoryTarget {
+  rowId: string
+  /** The row version the owner reviewed. */
+  version: number
+  runId: string
+  /** The run generation the row was read under; a discard or erasure since then fences the write. */
+  generation: number
+  /** The owner said this is a different flight from an owned one on the same date and route. */
+  acknowledged: boolean
+  requestDigest: string
+  /** Resolved source instants; `fromSchedule` when they came from the scheduled gate pair. */
+  timing: (ExplicitInstants & { fromSchedule: boolean }) | null
+}
+
+type CreateGuard = Pick<ConversionTarget, 'draftId' | 'version'> | HistoryTarget
+const isHistoryGuard = (guard: CreateGuard | undefined): guard is HistoryTarget =>
+  !!guard && 'rowId' in guard
+
 /** What a conversion receipt pins: the draft and the version the member reviewed. It must not need the draft row. */
 export const conversionDigest = (draftId: string, version: number) =>
   sha256Hex(JSON.stringify({ kind: 'import_conversion', draftId, version }))
@@ -49,7 +71,8 @@ export const conversionDigest = (draftId: string, version: number) =>
  * `FlightInput`, so it never enters the idempotency digest.
  *
  * With `guard`, the ledger insert requires the reviewed draft version and duplicate acknowledgement when needed,
- * so stale, converted or unacknowledged repeated drafts write nothing at all (ADR 0001 §6 step 4).
+ * so stale, converted or unacknowledged repeated drafts write nothing at all (ADR 0001 §6 step 4). A history guard
+ * does the same for a reviewed Flighty row in an open run of the same generation, and carries its trusted timing.
  */
 export async function createFlightStatements(
   db: D1Database,
@@ -57,7 +80,7 @@ export async function createFlightStatements(
   key: string,
   input: FlightInput,
   timezone: string | null = null,
-  guard?: Pick<ConversionTarget, 'draftId' | 'version'>,
+  guard?: CreateGuard,
 ): Promise<{ digest: string; statements: D1PreparedStatement[] }> {
   const date = input.date!
   const origin = input.origin!
@@ -68,6 +91,8 @@ export async function createFlightStatements(
   const source = input.source ?? 'manual'
   const lifecycle = lifecycleForCreate(date, timezone)
   const enrichmentStatus = input.enrichment_status ?? (input.aircraft_icao ? 'skipped' : 'pending')
+  const timing = isHistoryGuard(guard) ? guard.timing : null
+  const utcExplicit = explicitDuration(timing) === null ? 0 : 1
 
   const {
     originTz,
@@ -89,16 +114,20 @@ export async function createFlightStatements(
     originTz: input.origin_tz ?? null,
     destTz: input.dest_tz ?? null,
     clientDistanceKm: input.distance_km ?? null,
+    timesFromSchedule: timing?.fromSchedule ?? false,
+    explicit: timing,
   })
 
-  const ledger = guard
+  const ledger = isHistoryGuard(guard)
     ? db
         .prepare(
           `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
        SELECT ?, ?, ?, NULL, ?
-       WHERE EXISTS (SELECT 1 FROM import_drafts d WHERE id = ? AND user_id = ? AND version = ? AND status = 'review'
-         AND (d.duplicate_acknowledged = 1 OR NOT EXISTS
-           (SELECT 1 FROM flights f WHERE f.user_id = d.user_id AND f.date = ? AND f.origin = ? AND f.destination = ?)))
+       WHERE EXISTS (SELECT 1 FROM history_import_rows r JOIN history_import_runs h ON h.id = r.run_id
+         WHERE r.id = ? AND r.user_id = ? AND r.version = ? AND r.state = 'ready' AND r.action = 'create'
+           AND h.id = ? AND h.user_id = r.user_id AND h.generation = ? AND h.status IN ('review','completed'))
+         AND (? = 1 OR NOT EXISTS
+           (SELECT 1 FROM flights f WHERE f.user_id = ? AND f.date = ? AND f.origin = ? AND f.destination = ?))
        ON CONFLICT (user_id, key) DO NOTHING`,
         )
         .bind(
@@ -106,32 +135,58 @@ export async function createFlightStatements(
           key,
           digest,
           nowIso(),
-          guard.draftId,
+          guard.rowId,
           userId,
           guard.version,
+          guard.runId,
+          guard.generation,
+          guard.acknowledged ? 1 : 0,
+          userId,
           date,
           origin,
           destination,
         )
-    : db
-        .prepare(
-          `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
+    : guard
+      ? db
+          .prepare(
+            `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
+       SELECT ?, ?, ?, NULL, ?
+       WHERE EXISTS (SELECT 1 FROM import_drafts d WHERE id = ? AND user_id = ? AND version = ? AND status = 'review'
+         AND (d.duplicate_acknowledged = 1 OR NOT EXISTS
+           (SELECT 1 FROM flights f WHERE f.user_id = d.user_id AND f.date = ? AND f.origin = ? AND f.destination = ?)))
+       ON CONFLICT (user_id, key) DO NOTHING`,
+          )
+          .bind(
+            userId,
+            key,
+            digest,
+            nowIso(),
+            guard.draftId,
+            userId,
+            guard.version,
+            date,
+            origin,
+            destination,
+          )
+      : db
+          .prepare(
+            `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
          SELECT ?, ?, ?, NULL, ? WHERE ? IS NULL OR EXISTS (
            SELECT 1 FROM ground_visits v JOIN airports_reference a ON a.iata = ?
            WHERE v.id = ? AND v.user_id = ? AND v.entry_method = 'air'
              AND v.country_code = a.country_code AND v.linked_flight_id IS NULL
          ) ON CONFLICT (user_id, key) DO NOTHING`,
-        )
-        .bind(
-          userId,
-          key,
-          digest,
-          new Date().toISOString(),
-          passportVisitId ?? null,
-          destination,
-          passportVisitId ?? null,
-          userId,
-        )
+          )
+          .bind(
+            userId,
+            key,
+            digest,
+            new Date().toISOString(),
+            passportVisitId ?? null,
+            destination,
+            passportVisitId ?? null,
+            userId,
+          )
 
   const statements = [
     ledger,
@@ -140,8 +195,8 @@ export async function createFlightStatements(
         `INSERT INTO flights (
        date, origin, destination, airline_iata, aircraft_icao, flight_number,
        departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz,
-       distance_km, duration_minutes, duration_source, zones_overflown, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
-     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
+       distance_km, duration_minutes, duration_source, times_from_schedule, utc_explicit, zones_overflown, source, enrichment_status, user_id, ${LIFECYCLE_COLUMN_NAMES.join(', ')}
+     ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${LIFECYCLE_COLUMN_NAMES.map(() => '?').join(', ')} WHERE changes() = 1`,
       )
       .bind(
         date,
@@ -159,6 +214,8 @@ export async function createFlightStatements(
         distanceKm,
         durationMinutes,
         durationSource,
+        timing?.fromSchedule ? 1 : 0,
+        utcExplicit,
         zonesOverflown,
         source,
         enrichmentStatus,
@@ -221,6 +278,28 @@ function conversionStatements(
   ]
 }
 
+/**
+ * The statement that follows the ledger link of a history create (ADR 0008): the row becomes `created`, linked to the
+ * flight this batch inserted, and records its receipt. Gated like the draft flip, so the chain is all-or-nothing.
+ */
+function historyStatements(
+  db: D1Database,
+  userId: string,
+  key: string,
+  target: HistoryTarget,
+): D1PreparedStatement[] {
+  const now = nowIso()
+  return [
+    db
+      .prepare(
+        `UPDATE history_import_rows SET state = 'created', flight_id = last_insert_rowid(), version = version + 1,
+         operation_key = ?, request_digest = ?, committed_at = ?, updated_at = ?
+       WHERE id = ? AND user_id = ? AND version = ? AND state = 'ready' AND changes() = 1`,
+      )
+      .bind(key, target.requestDigest, now, now, target.rowId, userId, target.version),
+  ]
+}
+
 export type BulkItemResult =
   | {
       key: string | null
@@ -248,6 +327,8 @@ export interface BulkCreateOptions {
   timezone: string | null
   /** Positional with `items`: a target turns that item into a draft conversion. */
   conversion?: Array<ConversionTarget | null | undefined>
+  /** Positional with `items`: a target turns that item into a Flighty history create (ADR 0008). */
+  history?: Array<HistoryTarget | null | undefined>
   /** Statements that commit in the same D1 batch, after every item chain (conversion's batch completion). */
   trailing?: D1PreparedStatement[]
 }
@@ -264,7 +345,7 @@ export async function bulkCreate(
   db: D1Database,
   userId: string,
   items: unknown[],
-  { timezone, conversion, trailing = [] }: BulkCreateOptions,
+  { timezone, conversion, history, trailing = [] }: BulkCreateOptions,
 ): Promise<{ results: BulkItemResult[]; derived: DerivedRepairResult | null }> {
   const parsed = await parseFlightBodies(
     db,
@@ -283,13 +364,14 @@ export async function bulkCreate(
     const key = isRecord(item) && isIdempotencyKey(item.key) ? item.key : null
     const input = parsed[index]
     const target = conversion?.[index] ?? undefined
+    const historyTarget = history?.[index] ?? undefined
     if (!key)
       results.push(
         itemFailure(null, 400, 'IDEMPOTENCY_KEY_REQUIRED', 'Valid idempotency key required'),
       )
     else if (input instanceof HttpError)
       results.push(itemFailure(key, input.status, input.code ?? 'INVALID_FLIGHT', input.message))
-    else if (input.passport_visit_id && target)
+    else if (input.passport_visit_id && (target || historyTarget))
       results.push(
         itemFailure(
           key,
@@ -299,7 +381,14 @@ export async function bulkCreate(
         ),
       )
     else {
-      const created = await createFlightStatements(db, userId, key, input, timezone, target)
+      const created = await createFlightStatements(
+        db,
+        userId,
+        key,
+        input,
+        timezone,
+        historyTarget ?? target,
+      )
       accepted.push({
         index,
         key,
@@ -310,6 +399,7 @@ export async function bulkCreate(
       statements.push(
         ...created.statements,
         ...(target ? conversionStatements(db, userId, key, target) : []),
+        ...(historyTarget ? historyStatements(db, userId, key, historyTarget) : []),
       )
       results.push(itemFailure(key, 500, 'RECEIPT_MISSING', 'Flight receipt missing')) // replaced once the ledger is read
     }

@@ -33,6 +33,8 @@ import { ACCEPT } from './source-step'
 import { failureOf } from './batch-run'
 import { FAILURE, ROW_FAILURE, S, count } from './copy'
 import { UnifiedSession, type RetainedEntry, type SessionEntry } from './unified-session'
+import { HistoryImport } from './history-import'
+import { HistorySession, isHistoryCsv } from './history-session'
 
 const C = {
   title: { en: 'Import flights', ru: 'Импорт перелётов' },
@@ -121,11 +123,14 @@ export function UnifiedImport({
   locale: initialLocale,
   initialBatchId = null,
   initialSource = null,
+  initialHistoryId = null,
 }: {
   ownerId: string
   locale: Locale
   initialBatchId?: string | null
   initialSource?: 'file' | 'text' | 'pass' | null
+  /** A Flighty CSV import to restore from the server (`/import?history=`). */
+  initialHistoryId?: string | null
 }) {
   const locale = useLocale(initialLocale)
   const router = useRouter()
@@ -142,6 +147,37 @@ export function UnifiedImport({
       }),
   )
   const entries = useSyncExternalStore(session.subscribe, session.getEntries, session.getEntries)
+  const [history] = useState(() => HistorySession.forOwner(ownerId))
+  const [historyOpen, setHistoryOpen] = useState(Boolean(initialHistoryId))
+  const historyRunId = useSyncExternalStore(
+    history.subscribe,
+    () => history.getState().run?.id ?? null,
+    () => null,
+  )
+  /** CSV files go to the history import (first one only); every other file to the document session. */
+  const addFiles = useCallback(
+    (files: File[]) => {
+      const csv = files.find(isHistoryCsv)
+      const rest = files.filter((file) => !isHistoryCsv(file))
+      if (csv) {
+        setHistoryOpen(true)
+        void history.choose(csv)
+      }
+      if (rest.length) session.add(rest)
+    },
+    [history, session],
+  )
+  useEffect(() => {
+    if (initialHistoryId) void history.resume(initialHistoryId)
+  }, [history, initialHistoryId])
+  useEffect(() => {
+    if (historyRunId)
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `/import?history=${encodeURIComponent(historyRunId)}`,
+      )
+  }, [historyRunId])
   const [states, setStates] = useState<Record<string, SaveState>>({})
   const [dirty, setDirty] = useState<ReadonlySet<string>>(new Set())
   const [saving, setSaving] = useState(false)
@@ -245,12 +281,12 @@ export function UnifiedImport({
       const files = [...(event.clipboardData?.files ?? [])]
       if (files.length) {
         event.preventDefault()
-        session.add(files)
+        addFiles(files)
       }
     }
     document.addEventListener('paste', paste)
     return () => document.removeEventListener('paste', paste)
-  }, [session])
+  }, [addFiles])
 
   const drafts = withSaved(session.drafts(), session.getOutcomes())
   // The final save carries the owner confirmation. This presentation suppresses only that repeated question.
@@ -409,6 +445,19 @@ export function UnifiedImport({
     }
   }
 
+  if (historyOpen)
+    return (
+      <HistoryImport
+        session={history}
+        locale={locale}
+        onClose={() => {
+          history.forget()
+          setHistoryOpen(false)
+          window.history.replaceState(window.history.state, '', '/import')
+        }}
+      />
+    )
+
   return (
     <div
       ref={root}
@@ -418,7 +467,7 @@ export function UnifiedImport({
       }}
       onDrop={(event) => {
         event.preventDefault()
-        if (!saving) session.add([...event.dataTransfer.files])
+        if (!saving) addFiles([...event.dataTransfer.files])
       }}
     >
       <div className="unified-import-heading">
@@ -497,12 +546,12 @@ export function UnifiedImport({
           ref={fileInput}
           className="sr-only"
           type="file"
-          accept={ACCEPT}
+          accept={`${ACCEPT},.csv,text/csv`}
           multiple
           tabIndex={-1}
           aria-hidden="true"
           onChange={(event) => {
-            session.add([...(event.target.files ?? [])])
+            addFiles([...(event.target.files ?? [])])
             event.target.value = ''
           }}
         />
