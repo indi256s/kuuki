@@ -519,6 +519,27 @@ function blankPng(side = 240): Buffer {
 const PASS = 'M1DESMARAIS/LUC       EABC123 YULFRAAC 0834 326J001A0025 100'
 const screenshotInput = (page: Page) => page.locator('input[type=file][multiple]')
 
+test('the empty import screen offers Flighty history through a CSV-only picker', async ({
+  page,
+  baseURL,
+}) => {
+  await setup(page, baseURL)
+  await page.goto('/import')
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.getByRole('button', { name: 'Flighty history' }).click(),
+  ])
+  expect(chooser.isMultiple()).toBe(false)
+  expect(await chooser.element().getAttribute('accept')).toBe('.csv,text/csv')
+  // The file goes to the history import, which names its screen after it.
+  await chooser.setFiles({
+    name: 'not-flighty.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('a,b\n1,2\n'),
+  })
+  await expect(page.getByRole('heading', { name: 'not-flighty.csv' })).toBeVisible()
+})
+
 test('barcode reading automatically complements online, asks the year once, and confirms flown only on final save', async ({
   page,
   baseURL,
@@ -526,9 +547,7 @@ test('barcode reading automatically complements online, asks the year once, and 
   const server = await setup(page, baseURL)
   await page.goto('/import?source=pass')
   await expect(page.getByRole('heading', { name: 'Import flights' })).toBeVisible()
-  await expect(
-    page.getByText('Files and pasted text are sent for online recognition', { exact: false }),
-  ).toBeVisible()
+  await expect(page.getByText('Documents and text are read online', { exact: false })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeHidden()
   const camera = page.locator('input[type=file][capture]')
   await expect(camera).toHaveAttribute('capture', 'environment')
@@ -582,9 +601,7 @@ test('an unreadable pass continues online without another confirmation', async (
   const server = await setup(page, baseURL)
   server.ready([row('d1')])
   await page.goto('/import?source=pass')
-  await expect(
-    page.getByText('Files and pasted text are sent for online recognition', { exact: false }),
-  ).toBeVisible()
+  await expect(page.getByText('Documents and text are read online', { exact: false })).toBeVisible()
   await screenshotInput(page).setInputFiles({
     name: 'blank.png',
     mimeType: 'image/png',

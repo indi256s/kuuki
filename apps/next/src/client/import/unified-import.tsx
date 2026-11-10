@@ -35,6 +35,9 @@ import { FAILURE, ROW_FAILURE, S, count } from './copy'
 import { UnifiedSession, type RetainedEntry, type SessionEntry } from './unified-session'
 import { HistoryImport } from './history-import'
 import { HistorySession, isHistoryCsv } from './history-session'
+import { laneModel } from './lane/lane-model'
+import { SecurityLane } from './lane/security-lane'
+import { carriesFiles } from '../welcome/flights/clipboard'
 
 const C = {
   title: { en: 'Import flights', ru: 'Импорт перелётов' },
@@ -43,10 +46,21 @@ const C = {
   moreSources: { en: 'Add more', ru: 'Добавить ещё' },
   photo: { en: 'Take a photo', ru: 'Сфотографировать' },
   paste: { en: 'Paste text', ru: 'Вставить текст' },
+  flighty: { en: 'Flighty history', ru: 'История из Flighty' },
   online: {
-    en: 'Files and pasted text are sent for online recognition.',
-    ru: 'Файлы и вставленный текст отправляются на онлайн-распознавание.',
+    en: 'Documents and text are read online. A Flighty file is read on this device.',
+    ru: 'Документы и текст распознаются онлайн. Файл Flighty читается на устройстве.',
   },
+  drop: {
+    en: 'You can also drop or paste files here.',
+    ru: 'Файлы можно перетащить или вставить сюда.',
+  },
+  tooBig: {
+    en: 'The file is over 10 MB. Same as liquids: it stays behind.',
+    ru: 'Файл больше 10 МБ. С жидкостями так же: не пронесёте.',
+  },
+  removeFile: { en: 'Remove file', ru: 'Убрать файл' },
+  readText: { en: 'Read text', ru: 'Распознать текст' },
   queued: { en: 'Waiting to read', ru: 'Ожидает чтения' },
   local: { en: 'Reading barcode', ru: 'Чтение штрихкода' },
   onlineReading: { en: 'Reading document online', ru: 'Распознавание документа' },
@@ -182,6 +196,14 @@ export function UnifiedImport({
   const [dirty, setDirty] = useState<ReadonlySet<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const savingNow = useRef(false)
+  /** Everything was saved and the Journal is opening: the lane clears its trays. */
+  const [saved, setSaved] = useState(false)
+  // The figure shrinks to its band with the first source and keeps that height until the screen is left, even when that source is removed.
+  const [banded, setBanded] = useState(false)
+  if (entries.length && !banded) setBanded(true)
+  /** A file is held over the page. Enter and leave fire for every child, so depth counts them. */
+  const [dragging, setDragging] = useState(false)
+  const dragDepth = useRef(0)
   const [error, setError] = useState(false)
   const [textOpen, setTextOpen] = useState(initialSource === 'text')
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false)
@@ -194,6 +216,7 @@ export function UnifiedImport({
   const closeReasonId = useId()
   const fileInput = useRef<HTMLInputElement>(null)
   const cameraInput = useRef<HTMLInputElement>(null)
+  const flightyInput = useRef<HTMLInputElement>(null)
   const [saver] = useState(
     () =>
       new DraftSaver({
@@ -434,6 +457,7 @@ export function UnifiedImport({
         } catch {
           /* Server batches remain the authority. */
         }
+        setSaved(true)
         router.push(destination)
         router.refresh()
       } else if (remaining) setError(true)
@@ -458,15 +482,49 @@ export function UnifiedImport({
       />
     )
 
+  const reviewIds = new Set(review.map((draft) => draft.id))
+  const lane = laneModel({
+    entries: entries.map((entry) => ({
+      id: entry.id,
+      phase: entry.phase,
+      problem: entry.problem,
+      // Only a ready tray shows its stubs: one per flight this source left for review.
+      drafts:
+        entry.phase === 'ready'
+          ? new Set(
+              entry.runs.flatMap((run) =>
+                run.getState().drafts.flatMap((own) => (reviewIds.has(own.id) ? [own.id] : [])),
+              ),
+            ).size
+          : 0,
+    })),
+    dragging,
+    history: 'idle',
+    saved,
+  })
+
   return (
     <div
       ref={root}
       className="import-page unified-import"
+      onDragEnter={(event) => {
+        // Dragged text or links are not sources: only a file transfer reaches the lane.
+        if (saving || !carriesFiles(event.dataTransfer)) return
+        dragDepth.current += 1
+        setDragging(true)
+      }}
+      onDragLeave={(event) => {
+        if (!carriesFiles(event.dataTransfer)) return
+        dragDepth.current = Math.max(0, dragDepth.current - 1)
+        if (!dragDepth.current) setDragging(false)
+      }}
       onDragOver={(event) => {
         if (!saving) event.preventDefault()
       }}
       onDrop={(event) => {
         event.preventDefault()
+        dragDepth.current = 0
+        setDragging(false)
         if (!saving) addFiles([...event.dataTransfer.files])
       }}
     >
@@ -493,7 +551,7 @@ export function UnifiedImport({
           {closeReason}
         </p>
       ) : null}
-      <p className="import-privacy">{C.online[locale]}</p>
+      <SecurityLane model={banded ? { ...lane, size: 'band' } : lane} />
       <div ref={sourceActions} className="unified-import-sources">
         {entries.length ? (
           <Menu
@@ -540,6 +598,9 @@ export function UnifiedImport({
             <Button variant="ghost" disabled={saving} onClick={() => setTextOpen(!textOpen)}>
               {C.paste[locale]}
             </Button>
+            <Button variant="ghost" disabled={saving} onClick={() => flightyInput.current?.click()}>
+              {C.flighty[locale]}
+            </Button>
           </div>
         )}
         <input
@@ -568,6 +629,24 @@ export function UnifiedImport({
             event.target.value = ''
           }}
         />
+        <input
+          ref={flightyInput}
+          className="sr-only"
+          type="file"
+          accept=".csv,text/csv"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => {
+            addFiles([...(event.target.files ?? [])])
+            event.target.value = ''
+          }}
+        />
+        <div className="unified-import-notes" data-empty={entries.length ? undefined : true}>
+          <p className="import-privacy">{C.online[locale]}</p>
+          {entries.length ? null : (
+            <p className="import-privacy unified-import-drop">{C.drop[locale]}</p>
+          )}
+        </div>
       </div>
       {guard.dialog}
       {textOpen ? (
@@ -589,7 +668,7 @@ export function UnifiedImport({
             onChange={(event) => setText(event.target.value)}
           />
           <Button type="submit" disabled={!text.trim() || saving}>
-            {locale === 'ru' ? 'Распознать текст' : 'Read text'}
+            {C.readText[locale]}
           </Button>
         </form>
       ) : null}
@@ -611,7 +690,7 @@ export function UnifiedImport({
                   entry.problem === 'type' ? (
                     S.fileBad[locale]
                   ) : entry.problem === 'size' ? (
-                    S.fileBig[locale]
+                    C.tooBig[locale]
                   ) : entry.problem === 'partial' ? (
                     C.partial[locale]
                   ) : entry.problem === 'reselect' ? (
@@ -644,7 +723,7 @@ export function UnifiedImport({
                   disabled={saving}
                   onClick={() => session.remove(entry)}
                 >
-                  {locale === 'ru' ? 'Убрать файл' : 'Remove file'}
+                  {C.removeFile[locale]}
                 </Button>
               ) : null}
               {entry.phase === 'empty' ? (

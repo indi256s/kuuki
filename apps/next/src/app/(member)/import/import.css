@@ -988,16 +988,27 @@
 .unified-import-heading > .ui-button {
   flex: none;
 }
-.unified-import-source-actions {
+/* Under the lane figure the source buttons keep their natural width, centred. */
+.unified-import-sources {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: start;
+  gap: var(--space-3);
 }
-.unified-import-source-actions > .ui-button[data-variant='ghost'] {
-  grid-column: 1 / -1;
-  justify-self: start;
+.unified-import-source-actions,
+.unified-import-notes[data-empty] {
+  justify-self: stretch;
 }
-.unified-import-source-actions > .ui-button {
-  white-space: normal;
+.unified-import-source-actions {
+  justify-content: center;
+}
+.unified-import-notes[data-empty] {
+  text-align: center;
+}
+/* Dropping and pasting files needs a pointer and a keyboard. */
+@media not ((hover: hover) and (pointer: fine)) {
+  .unified-import-drop {
+    display: none;
+  }
 }
 .unified-import-files,
 .unified-import-rows {
@@ -1072,9 +1083,6 @@
   .unified-import-camera,
   .ui-menu-item:has(.unified-import-camera) {
     display: none;
-  }
-  .unified-import-source-actions {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (prefers-reduced-motion: no-preference) {

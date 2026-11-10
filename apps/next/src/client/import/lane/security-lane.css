@@ -1,0 +1,39 @@
+/* The security lane figure. Each tray is drawn at the lane's mouth and stands at its place by a transform, so a source
+   that changes phase makes its tray travel. At rest nothing moves: rollers run only while a file is over the page or a
+   tray is travelling. */
+.security-lane {
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.security-lane [data-part^='tray:'],
+.security-lane [data-part^='front:'] {
+  transform: translate(var(--tray-x), var(--tray-y));
+}
+.security-lane[data-flaps] [data-part='flaps'] {
+  transform: translate(var(--flap-x), var(--flap-y));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .security-lane:not([data-still]) {
+    transition: height var(--dur-base) var(--ease-out);
+  }
+  .security-lane:not([data-still]) [data-part^='tray:'],
+  .security-lane:not([data-still]) [data-part^='front:'] {
+    transition: transform var(--dur-moment) var(--ease-out);
+  }
+  .security-lane:not([data-still]) [data-part='flaps'] {
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .security-lane[data-rolling]:not([data-still]) [data-part='rollers'] {
+    animation: security-lane-roll 480ms linear infinite;
+  }
+  .security-lane[data-paused] [data-part='rollers'] {
+    animation-play-state: paused;
+  }
+}
+/* One roller pitch, so the loop has no seam. */
+@keyframes security-lane-roll {
+  to {
+    transform: translate(var(--roll-x), var(--roll-y));
+  }
+}

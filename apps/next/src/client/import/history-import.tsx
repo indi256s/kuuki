@@ -43,6 +43,8 @@ import {
 import { airlineName } from './reference'
 import { StampSection, type NewStamp } from './stamp-section'
 import type { HistorySession, HistoryState } from './history-session'
+import { laneModel } from './lane/lane-model'
+import { SecurityLane } from './lane/security-lane'
 
 const SUMMARY: Array<keyof typeof STATE_LABEL> = [
   'ready',
@@ -196,6 +198,9 @@ export function HistoryImport({
   const receiving = run?.status === 'receiving'
   const finished = run?.status === 'completed' || run?.status === 'closed'
   const busyRun = state.reading || Boolean(state.upload) || Boolean(state.saving)
+  // The logbook lies on the inspection table while the file is read or sent, and its tray is stacked once the run is over.
+  // The monitor never lights: this file is not sent for recognition.
+  const laneHistory = state.reading || receiving ? 'reading' : finished ? 'done' : null
   const deciding = state.busy.size > 0
   const stateCount = (key: keyof typeof STATE_LABEL) =>
     key === 'open' ? open : (run?.totals.states[key as 'ready'] ?? 0)
@@ -223,6 +228,11 @@ export function HistoryImport({
       onPointerDownCapture={() => (lastInput.current = 'pointer')}
       onKeyDownCapture={() => (lastInput.current = 'key')}
     >
+      {laneHistory ? (
+        <SecurityLane
+          model={laneModel({ entries: [], dragging: false, history: laneHistory, saved: false })}
+        />
+      ) : null}
       <div className="unified-import-heading">
         <h1 tabIndex={-1}>{state.fileName ?? H.title[locale]}</h1>
         <Button
