@@ -3,9 +3,17 @@ import { fireEvent, render } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { AtlasPager } from './pager'
 
+const motion = vi.hoisted(() => ({
+  reduced: false,
+  finish: null as (() => void) | null,
+}))
 vi.mock('motion/react', () => ({
-  useReducedMotion: () => false,
-  animate: () => ({ stop() {} }),
+  useReducedMotion: () => motion.reduced,
+  animate: (_from: number, _to: number, options: { onComplete?: () => void }) => {
+    const controls = { stop() {} }
+    motion.finish = () => options.onComplete?.()
+    return controls
+  },
 }))
 vi.mock('../../maps/mapcn', () => ({ useMap: () => ({ map, ready: true }) }))
 
@@ -13,15 +21,22 @@ const container = document.createElement('div')
 const canvas = document.createElement('canvas')
 container.appendChild(canvas)
 Object.defineProperty(container, 'clientWidth', { value: 400 })
+const resizes = new Set<() => void>()
+const jumps: { center: [number, number]; zoom: number }[] = []
+let frameCenter: [number, number] = [0, 20]
 const map = {
   getContainer: () => container,
   getCanvas: () => canvas,
   getCenter: () => ({ lng: 0, lat: 20 }),
   getZoom: () => 2,
-  cameraForBounds: () => ({ center: [0, 20], zoom: 2 }),
-  jumpTo() {},
-  on() {},
-  off() {},
+  cameraForBounds: () => ({ center: frameCenter, zoom: 2 }),
+  jumpTo: (camera: { center: [number, number]; zoom: number }) => jumps.push(camera),
+  on: (type: string, handler: () => void) => {
+    if (type === 'resize') resizes.add(handler)
+  },
+  off: (type: string, handler: () => void) => {
+    if (type === 'resize') resizes.delete(handler)
+  },
   cooperativeGestures: { enable() {}, disable() {} },
   doubleClickZoom: { enable() {}, disable() {} },
   dragPan: { enable() {}, disable() {} },
@@ -42,6 +57,11 @@ if (!('PointerEvent' in window))
   })
 
 afterEach(() => {
+  motion.reduced = false
+  motion.finish = null
+  frameCenter = [0, 20]
+  jumps.length = 0
+  resizes.clear()
   canvas.onclick = null
   container.remove()
 })
@@ -90,6 +110,47 @@ it.each(['swipe', 'scroll', 'pinch', 'cancel'] as const)(
     fireEvent.pointerUp(canvas, press)
     fireEvent.click(canvas, { detail: 1 })
     expect(selectCountry).toHaveBeenCalledTimes(2)
+
+    view.unmount()
+  },
+)
+
+// A swipe that ends back on its page leaves the camera on that page's frame, so a later resize or a reordered page
+// list refits it instead of treating the camera as explored.
+it.each(['animated', 'reduced'] as const)(
+  'refits a %s page after a cancelled swipe when the map resizes',
+  (motionMode) => {
+    motion.reduced = motionMode === 'reduced'
+    document.body.appendChild(container)
+    const view = render(
+      <AtlasPager
+        locale="en"
+        pages={[
+          { id: 'world', codes: ['DE'] },
+          { id: 'europe', codes: ['FR'] },
+        ]}
+        page={0}
+        onPage={vi.fn()}
+        reframe={0}
+        onProgress={vi.fn()}
+        frameOf={() => [0, 0, 10, 10]}
+        interrupt={vi.fn()}
+        onPageZoom={vi.fn()}
+      />,
+    )
+    const press = { pointerId: 1, isPrimary: true, button: 0, clientX: 200, clientY: 100 }
+    fireEvent.pointerDown(canvas, press)
+    fireEvent.pointerMove(canvas, { ...press, clientX: 180 })
+    fireEvent.pointerMove(canvas, { ...press, clientX: 170 })
+    fireEvent.pointerCancel(canvas, press)
+    motion.finish?.()
+
+    frameCenter = [30, 40]
+    jumps.length = 0
+    resizes.forEach((measure) => measure())
+    const [lng, lat] = jumps.at(-1)?.center ?? []
+    expect(lng).toBeCloseTo(30)
+    expect(lat).toBeCloseTo(40)
 
     view.unmount()
   },

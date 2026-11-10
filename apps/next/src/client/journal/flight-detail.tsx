@@ -36,10 +36,11 @@ import './flight-detail.css'
 export type FlightEditor = typeof import('./flight-edits')
 
 /**
- * Asked by the container before Escape or a close request ends the sheet. True: the content handled it (left Edit, or is asking
- * whether to discard changes and will call `proceed` on Discard).
+ * Asked by the container before Escape, a close request or opening another flight (`swap`: in-sheet navigation, a ledger row,
+ * the keyboard) ends this edit. True: the content handled it (left Edit, or is asking whether to discard changes and will call
+ * `proceed` on Discard).
  */
-export type CloseGuard = (kind: 'escape' | 'close', proceed: () => void) => boolean
+export type CloseGuard = (kind: 'escape' | 'close' | 'swap', proceed: () => void) => boolean
 
 const ordinalRules = new Intl.PluralRules('en', { type: 'ordinal' })
 const ordinalSuffix: Partial<Record<Intl.LDMLPluralRule, string>> = {
@@ -628,7 +629,7 @@ function FlightEditForm({
         return true
       }
       if (dirty) {
-        setDiscarding({ proceed: kind === 'close' ? proceed : null })
+        setDiscarding({ proceed: kind === 'escape' ? null : proceed })
         return true
       }
       if (kind === 'escape') {

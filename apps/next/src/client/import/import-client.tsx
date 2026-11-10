@@ -55,6 +55,7 @@ import { newlyPressed, routeCountries, routeKm } from './flight-input'
 import { countryNamer } from '../passport/model'
 import { SourceStep } from './source-step'
 import { showSave, UnconfirmedSaves } from './unconfirmed-saves'
+import { failureOf, stoppedOf } from './batch-run'
 import { useImportBatch, type BatchApi } from './use-import-batch'
 
 type Step = 'source' | 'processing' | 'review' | 'done'
@@ -99,6 +100,17 @@ const writeUrl = (batchId: string | null) =>
     '',
     batchId ? `/import?batch=${batchId}` : '/import',
   )
+
+/**
+ * What is in flight and keeps the member on this screen. `epoch` names the reset generation that started it, so a late
+ * answer after a reset neither writes state nor frees a newer operation.
+ */
+type Busy =
+  | { k: 'idle' }
+  | { k: 'confirming' | 'checking' | 'uploading'; epoch: number }
+  | { k: 'retrying'; opId: string; epoch: number }
+
+const IDLE_BUSY: Busy = { k: 'idle' }
 
 export interface ImportResult {
   flights?: Flight[]
@@ -171,13 +183,19 @@ export function ImportClient({
   }
   const [manualRows, setManualRows] = useState<ManualRowState[]>([])
   const [manualOnly, setManualOnly] = useState(false)
-  const [confirming, setConfirming] = useState(false)
+  const [busy, setBusy] = useState<Busy>(IDLE_BUSY)
+  const epoch = useRef(0)
+  // A save (confirming, then checking) freezes the review; any busy state blocks every path that leaves it.
+  const saving = busy.k === 'confirming' || busy.k === 'checking'
+  // Saving or retrying a recovery holds the review and Done controls; a pass upload only blocks other writes.
+  const holding = saving || busy.k === 'retrying'
+  const release = (own: number) =>
+    setBusy((current) => (current.k !== 'idle' && current.epoch === own ? IDLE_BUSY : current))
   const [showDone, setShowDone] = useState(false)
   const [rows, setRows] = useState<Map<string, RowOutcome>>(new Map())
   const [manualSaved, setManualSaved] = useState<ManualRowState[]>([])
   const [canonicalSaved, setCanonicalSaved] = useState<Flight[]>([])
   const [requestedKeys, setRequestedKeys] = useState<ReadonlySet<string>>(new Set())
-  const [checking, setChecking] = useState(false)
   const [checkFailed, setCheckFailed] = useState(false)
   const [newCodes, setNewCodes] = useState<string[] | null>(null)
   const [unfinished, setUnfinished] = useState<UnfinishedImport[] | null>(null)
@@ -194,7 +212,6 @@ export function ImportClient({
   // Quick Add keeps the chosen pass in memory only (never stored) while its reading is partial, so the member can still
   // send it for online recognition. Any other submission, and leaving the flow, drops it.
   const [passFile, setPassFile] = useState<File | null>(null)
-  const [passUploading, setPassUploading] = useState(false)
   const passUploadOperation = useRef<string | null>(null)
   // Names the one pending pass read; leaving the flow clears it, so a read that lands afterwards is dropped.
   const passUploadFence = useRef<symbol | null>(null)
@@ -213,7 +230,6 @@ export function ImportClient({
   // every step until it is settled; a row of this page that owns one shows its own recovery instead.
   const [receipts, setReceipts] = useState<UnconfirmedSave[]>([])
   const [recoveryFailures, setRecoveryFailures] = useState<Record<string, ManualFailure>>({})
-  const [recoveryRetrying, setRecoveryRetrying] = useState<string | null>(null)
   const [recoveryResult, setRecoveryNotice] = useState<{
     kind: 'saved' | 'settled'
     values: ReturnType<typeof emptyValues> | null
@@ -248,11 +264,11 @@ export function ImportClient({
   }, [unsent])
   const [holdDone, setHoldDone] = useState(false)
   useEffect(() => {
-    if (!holdDone || unsent || confirming) return
+    if (!holdDone || unsent || saving) return
     setHoldDone(false)
     setNotice(null)
     setShowDone(true)
-  }, [holdDone, unsent, confirming])
+  }, [holdDone, unsent, saving])
   useEffect(() => {
     if (!unsent) return
     const warn = (event: BeforeUnloadEvent) => {
@@ -276,10 +292,11 @@ export function ImportClient({
     rows.size === 0 &&
     !manualOnly &&
     !reviewing
+  const stopped = stoppedOf(batch)
   const step: Step =
     showDone || finishedBatch
       ? 'done'
-      : manualOnly || (batch.phase === 'ready' && !(batch.partial && batch.drafts.length === 0))
+      : manualOnly || (batch.phase === 'ready' && !(stopped && batch.drafts.length === 0))
         ? 'review'
         : batch.phase === 'processing' || batch.phase === 'starting'
           ? 'processing'
@@ -287,9 +304,8 @@ export function ImportClient({
   const quickSource = step === 'source' && sourceMode === 'pass'
   const failure =
     step === 'source' &&
-    (batch.phase === 'failed' ||
-      (batch.phase === 'ready' && batch.partial && batch.drafts.length === 0))
-      ? batch.failure
+    (batch.phase === 'failed' || (batch.phase === 'ready' && stopped && batch.drafts.length === 0))
+      ? failureOf(batch)
       : null
 
   // Once a submission produced a stored batch with a known outcome, replaying its operation id only replays that outcome
@@ -336,6 +352,8 @@ export function ImportClient({
   }
 
   const reset = useCallback(() => {
+    epoch.current += 1
+    setBusy(IDLE_BUSY)
     clearCancel()
     batch.reset()
     onBatchId(null)
@@ -449,10 +467,11 @@ export function ImportClient({
 
   /** The pass was read only in part: send the same file for online recognition, replacing this partial review. */
   const uploadPartialPass = async () => {
-    if (!passFile || passUploading || confirming || unsent) return
+    if (!passFile || busy.k !== 'idle' || unsent) return
     const fence = Symbol('pass upload')
+    const own = epoch.current
     passUploadFence.current = fence
-    setPassUploading(true)
+    setBusy({ k: 'uploading', epoch: own })
     try {
       const source = await uploadSource(passFile)
       if (passUploadFence.current !== fence) return
@@ -463,7 +482,7 @@ export function ImportClient({
     } catch {
       if (passUploadFence.current === fence) setNotice('fileRead')
     } finally {
-      setPassUploading(false)
+      release(own)
     }
   }
 
@@ -500,10 +519,27 @@ export function ImportClient({
   ) => {
     // Every path that can leave the review (Import, Retry original save, Done retry) is held back while a correction
     // is typed or unsent: leaving would unmount the form and lose it. The review shows the reason beside the control.
-    if (confirming || recoveryRetrying !== null || unsent) return
-    setConfirming(true)
+    if (busy.k !== 'idle' || unsent) return
+    const own = epoch.current
+    setBusy({ k: 'confirming', epoch: own })
     setCheckFailed(false)
+    try {
+      await saveReview(draftIds, manualKeys, originalKeys, own)
+    } catch {
+      // Whatever was sent is settled by the stored snapshot; the review stays usable and the member can import again.
+    } finally {
+      release(own)
+    }
+  }
+  const saveReview = async (
+    draftIds: string[],
+    manualKeys: string[],
+    originalKeys: ReadonlySet<string>,
+    own: number,
+  ) => {
+    const stale = () => epoch.current !== own
     if (baseline.current === undefined) baseline.current = await fetchPressedCountries()
+    if (stale()) return
     const byId = new Map(drafts.map((draft) => [draft.id, draft]))
     const items = draftIds.flatMap((id) => {
       const draft = byId.get(id)
@@ -511,6 +547,9 @@ export function ImportClient({
     })
     const acks: Array<{ derived_state?: 'ready' | 'pending'; revision?: number }> = []
     let wrote = false
+    const abandon = () => {
+      if (wrote) acknowledgeWrites(acks)
+    }
     let outcome: ConfirmOutcome | null = null
     if (items.length > 0 && batch.batch) {
       outcome = await runConfirm({ batchId: batch.batch.id, items, send: confirmItems })
@@ -518,6 +557,8 @@ export function ImportClient({
       wrote ||= [...outcome.rows.values()].some(
         (row) => row.status === 'saved' || row.status === 'uncertain',
       )
+      // The writes happened and the feedback must hear of them; the review they belonged to is gone.
+      if (stale()) return abandon()
       setRows((previous) => {
         const next = new Map(previous)
         for (const [id, row] of outcome!.rows) next.set(id, row)
@@ -529,6 +570,7 @@ export function ImportClient({
       const result = await saveManualRows(ownerId, manual, originalKeys)
       acks.push(...result.acks)
       wrote ||= result.saved.length > 0
+      if (stale()) return abandon()
       setManualSaved((previous) => [...previous, ...result.saved])
       setManualRows((previous) =>
         previous.flatMap((row) =>
@@ -555,7 +597,9 @@ export function ImportClient({
     )
     if (wrote) acknowledgeWrites(acks)
     // The stored snapshot is the truth: it settles rows whose answer was lost.
-    setChecking(true)
+    setBusy((current) =>
+      current.k === 'confirming' && current.epoch === own ? { k: 'checking', epoch: own } : current,
+    )
     if (batch.batch) {
       try {
         await batch.reload()
@@ -563,8 +607,7 @@ export function ImportClient({
         setCheckFailed(true)
       }
     }
-    setChecking(false)
-    setConfirming(false)
+    if (stale()) return
     refreshReceipts()
     // A correction that appeared while saving would be lost with the form: stay on review until it is saved or discarded.
     if (unsentNow.current) {
@@ -650,9 +693,10 @@ export function ImportClient({
       return next
     })
   const onRecoveryRetry = async (operationId: string) => {
-    if (confirming || recoveryRetrying !== null) return
+    if (busy.k !== 'idle') return
     const values = saveValues(operationId)
-    setRecoveryRetrying(operationId)
+    const own = epoch.current
+    setBusy({ k: 'retrying', opId: operationId, epoch: own })
     setRecoveryNotice(null)
     try {
       const result = await retryUnconfirmedSave(
@@ -684,12 +728,12 @@ export function ImportClient({
         setRecoveryNotice({ kind: 'saved', values })
       }
     } finally {
-      setRecoveryRetrying(null)
+      release(own)
       refreshReceipts()
     }
   }
   const onRecoverySettle = (operationId: string) => {
-    if (confirming || recoveryRetrying !== null) return
+    if (busy.k !== 'idle') return
     const values = saveValues(operationId)
     settleUnconfirmedSave(ownerId, operationId)
     setManualRows((previous) =>
@@ -840,8 +884,8 @@ export function ImportClient({
         locale={locale}
         saves={shownSaves}
         failures={recoveryFailures}
-        retrying={recoveryRetrying}
-        paused={confirming}
+        retrying={busy.k === 'retrying' ? busy.opId : null}
+        paused={saving}
         notice={recoveryNotice}
         onRetry={(operationId) => void onRecoveryRetry(operationId)}
         onSettle={onRecoverySettle}
@@ -887,13 +931,13 @@ export function ImportClient({
           error={cancelError}
         />
       ) : null}
-      {step === 'review' && batch.partial && !batch.cancelled && passFile && rows.size === 0 ? (
+      {step === 'review' && stopped?.why === 'interrupted' && passFile && rows.size === 0 ? (
         <section className="import-source" aria-label={S.qaUpload[locale]}>
           <UploadFallback
             locale={locale}
             intro={S.qaPartialNote[locale]}
-            uploading={passUploading}
-            disabled={confirming || unsent}
+            uploading={busy.k === 'uploading'}
+            disabled={busy.k !== 'idle' || unsent}
             onUpload={() => void uploadPartialPass()}
           />
         </section>
@@ -904,9 +948,9 @@ export function ImportClient({
           mobile={mobile === true}
           drafts={drafts}
           saveStates={saveStates}
-          partial={batch.partial}
-          cancelled={batch.cancelled}
-          failure={batch.failure}
+          partial={stopped !== null}
+          cancelled={stopped?.why === 'cancelled'}
+          failure={failureOf(batch)}
           expiresAt={batch.batch?.expiresAt ?? null}
           dirty={dirty}
           onDirty={onDirty}
@@ -917,7 +961,7 @@ export function ImportClient({
           onManualNewOperation={onManualNewOperation}
           canShowSave={(operationId) => receipts.some((save) => save.operationId === operationId)}
           onShowSave={showSave}
-          confirming={confirming || recoveryRetrying !== null}
+          confirming={holding}
           notice={notice}
           onChange={onChange}
           onSelectAll={(drafts, selected) => void onSelectAll(drafts, selected)}
@@ -939,8 +983,8 @@ export function ImportClient({
           failures={failures}
           retryCount={retryable.length}
           retryBlocked={unsent ? S.unsavedDone[locale] : undefined}
-          retrying={confirming || recoveryRetrying !== null}
-          checking={checking}
+          retrying={holding}
+          checking={busy.k === 'checking'}
           checkFailed={checkFailed}
           remaining={groups.active.length + groups.duplicates.length + manualRows.length}
           expiresAt={batch.batch?.expiresAt ?? null}

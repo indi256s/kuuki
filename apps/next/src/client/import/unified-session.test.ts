@@ -13,7 +13,7 @@ vi.mock('./import-api', async (original) => ({
   patchDraft: patch,
   confirmItems: confirm,
 }))
-import { UnifiedSession } from './unified-session'
+import { UnifiedSession, complementPending } from './unified-session'
 
 function server() {
   const batches = new Map<string, Snapshot>()
@@ -592,12 +592,9 @@ it('retains barcode drafts and source recovery when online complement is cancell
   session.add([source])
   await done(session)
   const entry = session.getEntries()[0]
-  expect(entry.online?.getState()).toMatchObject({
-    phase: 'cancelled',
-    cancelled: false,
-    failure: null,
-  })
-  expect(entry).toMatchObject({ phase: 'failed', problem: 'partial', complementPending: true })
+  expect(entry.online?.getState()).toMatchObject({ phase: 'cancelled' })
+  expect(entry).toMatchObject({ phase: 'failed', problem: 'partial' })
+  expect(complementPending(entry)).toBe(true)
   expect(entry.file).toBe(source)
   expect(session.drafts().filter((row) => row.status === 'review')).toHaveLength(1)
   expect(session.retained()[0].complementPending).toBe(true)

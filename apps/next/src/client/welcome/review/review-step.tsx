@@ -10,6 +10,7 @@ import type { Draft } from '../../import/import-types'
 import { answerRestore } from '../../import/questions'
 import { ReviewRow } from '../../import/review-row'
 import { withSaved } from '../../import/review-model'
+import { failureOf, stoppedOf } from '../../import/batch-run'
 import { useImportBatch } from '../../import/use-import-batch'
 import { Button } from '../../ui/button'
 import { useMobile } from '../../ui/use-mobile'
@@ -163,7 +164,13 @@ export function ReviewStep({
   useEffect(() => {
     if (decided.current || !settled) return
     decided.current = true
-    if (fresh && !state.partial && online && groups.unsure.length === 0 && groups.right.length > 0)
+    if (
+      fresh &&
+      !stoppedOf(state) &&
+      online &&
+      groups.unsure.length === 0 &&
+      groups.right.length > 0
+    )
       void save()
     // Runs once, when the batch first settles; `save` reads the state of that render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -296,11 +303,9 @@ export function ReviewStep({
     state.drafts.length === 0 &&
     (state.phase === 'idle' || state.phase === 'starting' || state.phase === 'processing')
   const gone = state.drafts.length === 0 && !loading
+  const failure = failureOf(state)
   const unread =
-    !state.batch &&
-    state.failure &&
-    state.failure.kind !== 'expired' &&
-    state.failure.kind !== 'notFound'
+    !state.batch && failure && failure.kind !== 'expired' && failure.kind !== 'notFound'
 
   if (loading)
     return (

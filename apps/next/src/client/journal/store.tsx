@@ -34,6 +34,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
 } from 'react'
 import {
   onlineManager,
@@ -48,6 +49,8 @@ import { useOnline } from '../awaiting'
 import { LIFECYCLE_CHANGED_EVENT } from '../lifecycle-sync'
 import { ROUTE_LINK_EVENT } from '../navigation-link'
 import type { Locale } from '../../server/locale'
+import type { CloseGuard } from './flight-detail'
+import { guardTraversals } from '../history-gate'
 import { selectJournal, type JournalSelection } from './filter'
 import {
   defaultSort,
@@ -71,6 +74,8 @@ export type JournalStore = {
   setSort: (sort: JournalSort) => void
   openFlight: (id: number | null, opts?: { review?: boolean }) => void
   closeSheet: () => void
+  /** Filled by the open flight's edit form: `openFlight` asks it before a dirty edit would be dropped. */
+  leaveGuard: RefObject<CloseGuard | null>
   selected: ReadonlySet<number>
   selectedVisible: number[]
   toggle: (id: number) => void
@@ -378,7 +383,20 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
   }, [writeUrl, initialQuery])
 
   // Back/Forward and shell links to /journal replace the view from their URL.
+  const leaveGuard = useRef<CloseGuard | null>(null)
   useEffect(() => {
+    // A dirty edit on the open flight asks before Back or Forward replaces or closes it; Discard re-runs the traversal.
+    const stopGuarding = guardTraversals((_from, rerun) => {
+      const current = viewRef.current
+      if (current.flight === null) return false
+      // Another page closes the flight as surely as a journal URL without one.
+      const next =
+        window.location.pathname === JOURNAL_PATH
+          ? parseJournalUrl(window.location.search, window.location.hash)
+          : null
+      if (next && next.flight === current.flight) return false
+      return leaveGuard.current?.(!next || next.flight === null ? 'close' : 'swap', rerun) ?? false
+    })
     const traverse = () => {
       const parent = sheetParent.current
       if (window.location.pathname !== JOURNAL_PATH) return
@@ -408,6 +426,7 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     window.addEventListener('popstate', traverse)
     window.addEventListener(ROUTE_LINK_EVENT, follow)
     return () => {
+      stopGuarding()
       window.removeEventListener('popstate', traverse)
       window.removeEventListener(ROUTE_LINK_EVENT, follow)
     }
@@ -442,14 +461,25 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
   }, [commit])
   const openFlight = useCallback(
     (id: number | null, opts?: { review?: boolean }) => {
+      // Read at call time: a Discard answered later shows what the view needs then.
+      const show = () => {
+        const current = viewRef.current
+        const next: JournalViewState = { ...current, flight: id, review: !!opts?.review }
+        if (!isOpen(next)) closeSheet()
+        else if (next.flight !== current.flight || next.review !== current.review)
+          commit(next, isOpen(current) ? 'replace' : 'push')
+      }
       const current = viewRef.current
       const next: JournalViewState = { ...current, flight: id, review: !!opts?.review }
-      if (!isOpen(next)) {
-        closeSheet()
+      const changes = next.flight !== current.flight || next.review !== current.review
+      // A dirty edit on the open flight asks before another flight (or nothing) replaces it.
+      if (
+        changes &&
+        current.flight !== null &&
+        leaveGuard.current?.(isOpen(next) ? 'swap' : 'close', show)
+      )
         return
-      }
-      if (next.flight === current.flight && next.review === current.review) return
-      commit(next, isOpen(current) ? 'replace' : 'push')
+      show()
     },
     [commit, closeSheet],
   )
@@ -536,6 +566,7 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
       setSort,
       openFlight,
       closeSheet,
+      leaveGuard,
       selected,
       selectedVisible,
       toggle,

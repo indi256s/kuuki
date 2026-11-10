@@ -219,6 +219,8 @@ function Sheet({
     null,
   )
   const arrive = useRef<(() => void) | undefined>(undefined)
+  /** Set while the sheet leaves: only the exit may move it, and only a reopen clears this. */
+  const exiting = useRef(!isPresent)
   const dismissVelocity = useRef<number | undefined>(undefined)
   const suppressClick = useRef(false)
   const mounted = useRef(false)
@@ -272,6 +274,7 @@ function Sheet({
   // Every move retargets the one motion value from wherever it is. A new target drops the previous arrival callback.
   const go = useCallback(
     (stop: Stop, velocity?: number, onArrive?: () => void) => {
+      if (exiting.current && stop !== 'closed') return
       aim.current = stop
       arrive.current = onArrive
       const target = offset(stop)
@@ -297,6 +300,7 @@ function Sheet({
 
   const rest = useCallback(
     (stop: number, velocity?: number) => {
+      if (exiting.current) return
       if (stop !== detentRef.current) {
         detentRef.current = stop
         setDetent(stop)
@@ -328,6 +332,7 @@ function Sheet({
   useLayoutEffect(() => {
     const sheet = sheetRef.current
     if (!sheet) return
+    exiting.current = !isPresent
     if (!mounted.current) {
       mounted.current = true
       height.set(sheet.offsetHeight - EXTENSION)

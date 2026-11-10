@@ -309,3 +309,20 @@ it.each([false, true])(
     })
   },
 )
+
+it('ignores detent inputs while exiting so the exit still removes the sheet', async () => {
+  settings.reduced = false
+  const changed = vi.fn()
+  const content = (open: boolean) => (
+    <Sheet open={open} onOpenChange={() => {}} title="Trip" onDetentChange={changed}>
+      <p>Details</p>
+    </Sheet>
+  )
+  const { rerender } = render(content(true))
+  rerender(content(false))
+  fireEvent.wheel(screen.getByText('Details'), { deltaY: 20 })
+  expect(changed).not.toHaveBeenCalled()
+  await waitFor(() => expect(document.querySelector('.ui-bottom-sheet')).toBeNull(), {
+    timeout: 2000,
+  })
+})

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { failureOf, stoppedOf } from './batch-run'
 import { batch, draft, snapshot } from './fixtures'
 import type { ImportEvent, Snapshot } from './import-types'
 import { useImportBatch, type BatchApi } from './use-import-batch'
@@ -76,7 +77,7 @@ describe('useImportBatch resume', () => {
       }),
     )
     await waitFor(() => expect(missing.result.current.phase).toBe('failed'))
-    expect(missing.result.current.failure?.kind).toBe('notFound')
+    expect(failureOf(missing.result.current)?.kind).toBe('notFound')
     const expired = renderHook(() =>
       useImportBatch({
         api: make({ readBatch: async () => snapshot([], { status: 'review', expired: true }) }),
@@ -84,7 +85,7 @@ describe('useImportBatch resume', () => {
       }),
     )
     await waitFor(() => expect(expired.result.current.phase).toBe('failed'))
-    expect(expired.result.current.failure?.kind).toBe('expired')
+    expect(failureOf(expired.result.current)?.kind).toBe('expired')
   })
 })
 
@@ -131,7 +132,7 @@ describe('useImportBatch start', () => {
       await result.current.start({ type: 'text', content: 'x' }, 'op-12345678')
     })
     expect(result.current.phase).toBe('failed')
-    expect(result.current.failure).toMatchObject({ kind: 'quota', retryAt })
+    expect(failureOf(result.current)).toMatchObject({ kind: 'quota', retryAt })
     expect(result.current.drafts).toEqual([])
   })
 
@@ -141,7 +142,7 @@ describe('useImportBatch start', () => {
       useImportBatch({ api: make({ readBatch: async () => failed }), initialBatchId: 'b1' }),
     )
     await waitFor(() => expect(one.result.current.phase).toBe('failed'))
-    expect(one.result.current.failure?.kind).toBe('nothing')
+    expect(failureOf(one.result.current)?.kind).toBe('nothing')
     const partial = snapshot([draft({ id: 'a' })], {
       status: 'partial',
       errorCode: 'JOB_INTERRUPTED',
@@ -150,8 +151,8 @@ describe('useImportBatch start', () => {
       useImportBatch({ api: make({ readBatch: async () => partial }), initialBatchId: 'b1' }),
     )
     await waitFor(() => expect(two.result.current.phase).toBe('ready'))
-    expect(two.result.current.partial).toBe(true)
-    expect(two.result.current.failure?.kind).toBe('interrupted')
+    expect(stoppedOf(two.result.current)?.why).toBe('interrupted')
+    expect(failureOf(two.result.current)?.kind).toBe('interrupted')
     expect(two.result.current.drafts).toHaveLength(1)
   })
 })
@@ -253,8 +254,7 @@ describe('useImportBatch cancelled batches', () => {
     const { result } = renderHook(() => useImportBatch({ api, initialBatchId: 'b1' }))
     await waitFor(() => expect(result.current.phase).toBe('ready'))
     expect(result.current.drafts.map((row) => row.id)).toEqual(['a'])
-    expect(result.current.partial).toBe(true)
-    expect(result.current.cancelled).toBe(true)
+    expect(stoppedOf(result.current)).toEqual({ why: 'cancelled' })
     expect(api.connect).not.toHaveBeenCalled()
   })
 

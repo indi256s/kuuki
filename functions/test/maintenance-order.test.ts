@@ -416,17 +416,25 @@ describe('cleanup contracts', () => {
       ])
       const stuck = await db
         .prepare(
-          "SELECT id, status, error_code, generation, sequence FROM import_batches WHERE id LIKE 'stuck%' OR id = 'still-running' ORDER BY id",
+          "SELECT id, status, error_code, generation, sequence, processing_deadline FROM import_batches WHERE id LIKE 'stuck%' OR id = 'still-running' ORDER BY id",
         )
         .all()
       expect(stuck.results).toEqual([
-        { id: 'still-running', status: 'processing', error_code: null, generation: 1, sequence: 0 },
+        {
+          id: 'still-running',
+          status: 'processing',
+          error_code: null,
+          generation: 1,
+          sequence: 0,
+          processing_deadline: expect.any(String),
+        },
         {
           id: 'stuck-empty',
           status: 'failed',
           error_code: 'JOB_INTERRUPTED',
           generation: 2,
           sequence: 1,
+          processing_deadline: null,
         },
         {
           id: 'stuck-with-rows',
@@ -434,6 +442,7 @@ describe('cleanup contracts', () => {
           error_code: 'JOB_INTERRUPTED',
           generation: 2,
           sequence: 1,
+          processing_deadline: null,
         },
       ])
       void addUser

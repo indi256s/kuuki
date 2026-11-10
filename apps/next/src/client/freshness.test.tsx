@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const { awaitPublication } = vi.hoisted(() => ({
@@ -56,5 +56,27 @@ describe('ReadFreshness', () => {
       />,
     )
     expect(awaitPublication).not.toHaveBeenCalled()
+  })
+
+  it('shows the delayed note per revision: a newer pending write starts fresh', async () => {
+    const props = {
+      ownerId: 'u1',
+      publishedRevision: 4,
+      derivedState: 'ready',
+      locale: 'en',
+    } as const
+    const { rerender } = render(<ReadFreshness {...props} revision={5} />)
+    await act(async () => {})
+    expect(screen.getByRole('status')).toBeInTheDocument()
+
+    let settle: (value: 'delayed') => void = () => {}
+    awaitPublication.mockImplementation(() => new Promise((resolve) => (settle = resolve)))
+    rerender(<ReadFreshness {...props} revision={6} />)
+    await act(async () => {})
+    expect(screen.queryByRole('status')).toBeNull()
+
+    await act(async () => settle('delayed'))
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    awaitPublication.mockImplementation(async () => 'delayed')
   })
 })

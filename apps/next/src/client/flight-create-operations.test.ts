@@ -5,6 +5,7 @@ import {
   completeFlightCreateOperation,
   getFlightCreateOperation,
   pendingFlightCreateOperation,
+  SettledFlightOperationError,
   UnconfirmedFlightOperationError,
   ExpiredFlightOperationError,
 } from '@kuuki/client/flightCreateOperations'
@@ -79,4 +80,15 @@ it('does not mint a new key over a damaged receipt', () => {
     'Stored flight retry receipt is damaged',
   )
   expect(pendingFlightCreateOperation('alice', 'manual')?.expired).toBe(true)
+})
+
+it('treats a receipt another tab removed from storage as settled, not as this tab’s memory', () => {
+  const first = getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })
+  localStorage.removeItem('kuuki-flight-create-operation:alice:manual')
+  expect(pendingFlightCreateOperation('alice', 'manual')).toBeNull()
+  expect(() =>
+    getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' }, first.key),
+  ).toThrow(SettledFlightOperationError)
+  const next = getFlightCreateOperation('alice', 'manual', { date: '2026-01-01' })
+  expect(next.key).not.toBe(first.key)
 })

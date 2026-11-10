@@ -12,6 +12,7 @@ import {
   parseCookies,
 } from './cookies'
 import { nowIso } from './time'
+import { RESET_REQUIRED, unclaimedSql } from './users'
 import { requireCsrf, requireSameOrigin } from './auth'
 import { HttpError, jsonError } from './http'
 
@@ -50,7 +51,7 @@ export function createAuth(env: Env) {
                   // verification gate for accounts with an existing password or provider identity.
                   await env.DB.prepare(
                     `UPDATE users SET email_verified = 1, updated_at = ?
-                     WHERE email = ? AND email_verified = 0 AND password_hash = 'RESET_REQUIRED'
+                     WHERE email = ? AND email_verified = 0 AND ${unclaimedSql()}
                        AND NOT EXISTS (SELECT 1 FROM auth_accounts WHERE userId = users.id)`,
                   )
                     .bind(nowIso(), profile.email.toLowerCase())
@@ -82,7 +83,7 @@ export function createAuth(env: Env) {
           input: false,
           returned: false,
           required: false,
-          defaultValue: 'RESET_REQUIRED',
+          defaultValue: RESET_REQUIRED,
         },
       },
     },

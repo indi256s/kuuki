@@ -6,7 +6,7 @@ import { getRequestEnv } from '../../../server/identity'
 import type { SettingsCounts } from '../../../client/account/settings-data'
 import { getRequestLocale } from '../../../server/locale'
 import { getOwnPublicPreview } from '../../../server/passport'
-import { getPasswordHashById } from '../../../../../../functions/api/_lib/users'
+import { accountPhase, getPasswordHashById } from '../../../../../../functions/api/_lib/users'
 
 export const generateMetadata = () => pageMetadata('Settings', 'Настройки')
 export default async function Settings() {
@@ -16,7 +16,7 @@ export default async function Settings() {
   try {
     const env = await getRequestEnv()
     const hash = await getPasswordHashById(env.DB, own.ownerId)
-    hasPassword = !!hash && hash !== 'RESET_REQUIRED'
+    hasPassword = !!hash && accountPhase(hash) === 'active'
     counts = await env.DB.prepare(`SELECT
       (SELECT COUNT(*) FROM flights WHERE user_id = ?) AS flights,
       COALESCE((SELECT total_flights FROM user_stats WHERE user_id = ?), 0) AS completed,

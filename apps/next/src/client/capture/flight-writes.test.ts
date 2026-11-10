@@ -230,3 +230,38 @@ describe('explicit original retries never become new writes', () => {
     },
   )
 })
+
+describe('a validation refusal of a first create attempt frees its receipt', () => {
+  beforeEach(() => {
+    post.mockReset()
+    clearFlightCreateOperations()
+    localStorage.clear()
+  })
+  it.each([
+    [400, 'INVALID_FLIGHT'],
+    [400, 'UNKNOWN_AIRPORT'],
+    [422, undefined],
+  ])('abandons the receipt on %s %s', async (status, code) => {
+    post.mockRejectedValue(new ApiError(status, 'refused', code))
+    await expect(createFlight('u1', input, 'refused-op')).rejects.toBeInstanceOf(ApiError)
+    expect(pendingFlightCreateOperation('u1', 'refused-op')).toBeNull()
+  })
+  it.each([
+    [400, 'IDEMPOTENCY_KEY_REQUIRED'],
+    [400, 'CSRF'],
+    [409, 'IDEMPOTENCY_CONFLICT'],
+    [500, undefined],
+  ])('keeps the receipt on %s %s', async (status, code) => {
+    post.mockRejectedValue(new ApiError(status, 'unknown', code))
+    await expect(createFlight('u1', input, 'kept-op')).rejects.toBeInstanceOf(ApiError)
+    expect(pendingFlightCreateOperation('u1', 'kept-op')).not.toBeNull()
+  })
+  it('keeps the receipt when the refused send was a retry of an earlier unknown attempt', async () => {
+    post.mockRejectedValueOnce(new ApiError(500, 'down'))
+    await expect(createFlight('u1', input, 'retry-op')).rejects.toBeInstanceOf(ApiError)
+    const pinned = pendingFlightCreateOperation('u1', 'retry-op')!
+    post.mockRejectedValueOnce(new ApiError(400, 'refused', 'INVALID_FLIGHT'))
+    await expect(createFlight('u1', input, 'retry-op', pinned.key)).rejects.toBeInstanceOf(ApiError)
+    expect(pendingFlightCreateOperation('u1', 'retry-op')).not.toBeNull()
+  })
+})

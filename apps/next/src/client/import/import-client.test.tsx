@@ -16,7 +16,8 @@ const cancelBatch = vi.fn(async () => ({ cancelled: true }))
 const discardBatch = vi.fn(async () => ({ deleted: true }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 vi.mock('../write-feedback', () => ({ useWriteFeedback: () => ({ acknowledge, status: 'idle' }) }))
-vi.mock('../capture/flight-writes', () => ({
+vi.mock('../capture/flight-writes', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../capture/flight-writes')>()),
   createFlights: (...args: unknown[]) => createFlights(...args),
 }))
 vi.mock('../signature/stamp', () => ({ Stamp: () => null }))
@@ -33,6 +34,7 @@ vi.mock('./import-api', async (importOriginal) => ({
 }))
 
 import { ImportClient } from './import-client'
+import { fetchPressedCountries } from './import-api'
 import type { BatchApi } from './use-import-batch'
 
 const ids = ['a', 'b', 'c']
@@ -391,6 +393,24 @@ describe('I1 typed corrections gate the import', () => {
     const after = new Event('beforeunload', { cancelable: true })
     window.dispatchEvent(after)
     expect(after.defaultPrevented).toBe(false)
+  })
+})
+
+describe('a save that throws', () => {
+  it('leaves the review usable: Import is enabled again', async () => {
+    const user = userEvent.setup()
+    const { api } = serverWith(ids.map((id, ordinal) => draft({ id, ordinal })))
+    vi.mocked(fetchPressedCountries).mockRejectedValueOnce(new Error('boom'))
+    render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={api} />)
+    await user.click(await screen.findByRole('button', { name: /import 3/i }))
+    expect(confirmItems).not.toHaveBeenCalled()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /import 3/i })).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+      ),
+    )
+    expect(screen.getByRole('button', { name: /import 3/i })).toBeEnabled()
   })
 })
 

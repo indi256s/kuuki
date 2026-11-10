@@ -26,6 +26,7 @@ import {
   type BatchApi,
   type BatchState,
 } from '../../import/use-import-batch'
+import { stoppedOf } from '../../import/batch-run'
 import { Button } from '../../ui/button'
 import { foundOf } from '../found'
 import type { FactFlight, Found, SavedSummary, StepProps } from '../types'
@@ -46,6 +47,19 @@ type Notice =
   | { kind: 'fileRead' }
   | { kind: 'tooLong'; length: number }
 
+/** A source that went to the server, under the operation id that makes a resend idempotent; `n` counts this submission's 20 s. */
+interface Sent {
+  source: ImportSource
+  opId: string
+  n: number
+}
+
+/** What the member last gave the step. A rejected source never reaches `start`; `prior` is the send it displaced. */
+type Submission =
+  | { k: 'none' }
+  | ({ k: 'sent' } & Sent)
+  | { k: 'rejected'; source: ImportSource; prior: Sent | null }
+
 type Stop =
   | { kind: 'nothing' }
   | { kind: 'rateLimit' }
@@ -57,19 +71,24 @@ type Stop =
   | { kind: 'error'; gone: boolean }
 
 /** Why the step stopped on its own, from what the batch hook reports; null while it is reading or untouched. */
-function stopOf({ phase, failure, partial, drafts }: BatchState): Stop | null {
-  const found = drafts.length > 0
-  if (phase === 'ready') {
-    if (partial) {
-      if (!found) return { kind: 'error', gone: false }
-      return failure?.kind === 'truncated' ? { kind: 'truncated' } : { kind: 'stopped' }
-    }
-    return found ? null : { kind: 'nothing' }
+function stopOf(state: BatchState): Stop | null {
+  const found = state.drafts.length > 0
+  switch (state.phase) {
+    case 'ready':
+      if (state.stopped) {
+        if (!found) return { kind: 'error', gone: false }
+        return state.stopped.why === 'interrupted' && state.stopped.failure.kind === 'truncated'
+          ? { kind: 'truncated' }
+          : { kind: 'stopped' }
+      }
+      return found ? null : { kind: 'nothing' }
+    case 'cancelled':
+      return { kind: 'error', gone: false }
+    case 'failed':
+      return found ? { kind: 'stopped' } : failureStop(state.failure)
+    default:
+      return null
   }
-  if (phase === 'cancelled') return { kind: 'error', gone: false }
-  if (phase !== 'failed') return null
-  if (found) return { kind: 'stopped' }
-  return failureStop(failure)
 }
 
 function failureStop(failure: Failure | null): Stop {
@@ -198,7 +217,7 @@ export function FlightsStep({
 
   const [copied, setCopied] = useState<'ok' | 'failed' | null>(null)
   const [pasteOpen, setPasteOpen] = useState(false)
-  const [kept, setKept] = useState<ImportSource | null>(null)
+  const [submission, setSubmission] = useState<Submission>({ k: 'none' })
   const [notice, setNotice] = useState<Notice | null>(null)
   const [blocked, setBlocked] = useState(false)
   const [dropping, setDropping] = useState(false)
@@ -207,7 +226,6 @@ export function FlightsStep({
   // The job worker accepted the batch (202), or we are resuming one it already holds. The unbound fallback is false.
   const [bound, setBound] = useState(Boolean(batch) && jobs)
   const [skip, setSkip] = useState<'idle' | 'busy' | 'failed'>('idle')
-  const operation = useRef<string | null>(null)
   const promptRef = useRef<HTMLTextAreaElement>(null)
   const boxRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -215,8 +233,7 @@ export function FlightsStep({
   // This mount saw the batch being read (or sent it): only then does ready move on by itself. A batch that is already
   // ready on arrival (Back from review, a reload) waits for the member (17.13).
   const [observed, setObserved] = useState(false)
-  // Each submission counts its own 20 s; `lingered` names the submission that reached them.
-  const [submission, setSubmission] = useState(0)
+  // Each submission counts its own 20 s; `lingered` names the submission (`Sent.n`) that reached them.
   const [lingered, setLingered] = useState<number | null>(null)
 
   const api = useMemo<BatchApi>(
@@ -238,20 +255,23 @@ export function FlightsStep({
     return () => onReading?.(false)
   }, [reading, onReading])
   const stop = stopOf(state)
+  const stopped = stoppedOf(state)
   const prompt = S.prompt[locale]
+  const kept = submission.k === 'none' ? null : submission.source
+  // The last source that was actually sent: the only one a resend or "Try again" may send.
+  const sent =
+    submission.k === 'sent' ? submission : submission.k === 'rejected' ? submission.prior : null
 
-  const run = (source: ImportSource, id: string = crypto.randomUUID()) => {
-    operation.current = id
-    setKept(source)
+  const run = (source: ImportSource, opId: string = crypto.randomUUID()) => {
+    setSubmission({ k: 'sent', source, opId, n: (sent?.n ?? 0) + 1 })
     setNotice(null)
     setBound(false)
     setObserved(true)
-    setSubmission((value) => value + 1)
-    void start(source, id)
+    void start(source, opId)
   }
   const submitText = (value: string) => {
     if (value.length > MAX_TEXT_CHARS) {
-      setKept({ type: 'text', content: value })
+      setSubmission({ k: 'rejected', source: { type: 'text', content: value }, prior: sent })
       setNotice({ kind: 'tooLong', length: value.length })
       return
     }
@@ -281,11 +301,10 @@ export function FlightsStep({
     })
   }
   const resend = () => {
-    if (kept && operation.current) {
-      setObserved(true)
-      setSubmission((value) => value + 1)
-      void start(kept, operation.current)
-    }
+    if (!sent) return
+    setSubmission({ k: 'sent', ...sent, n: sent.n + 1 })
+    setObserved(true)
+    void start(sent.source, sent.opId)
   }
 
   async function copy() {
@@ -320,12 +339,14 @@ export function FlightsStep({
     setSkip('idle')
   }
 
+  // A run resumed on reload was not sent from this mount; it counts as submission 0.
+  const lingerId = sent?.n ?? 0
   useEffect(() => {
     if (!reading || !bound) return
-    const timer = window.setTimeout(() => setLingered(submission), KEEP_EXPLORING_MS)
+    const timer = window.setTimeout(() => setLingered(lingerId), KEEP_EXPLORING_MS)
     return () => window.clearTimeout(timer)
-  }, [reading, bound, submission])
-  const keepExploring = reading && bound && lingered === submission
+  }, [reading, bound, lingerId])
+  const keepExploring = reading && bound && lingered === lingerId
 
   // The prompt text is selected for manual copying whenever the write failed.
   useEffect(() => {
@@ -412,7 +433,7 @@ export function FlightsStep({
   }, [manual])
 
   // 17.11: a submission that never reached the server goes out once the connection is back.
-  const offline = stop?.kind === 'offline' && kept !== null
+  const offline = stop?.kind === 'offline' && sent !== null
   useEffect(() => {
     if (!offline) return
     const onOnline = () => live.current.resend()
@@ -432,13 +453,13 @@ export function FlightsStep({
 
   // Ready with rows after this mount watched the batch: straight to review.
   const arrived =
-    phase === 'ready' && !state.partial && drafts.length > 0 && state.batch !== null && !observed
+    phase === 'ready' && !stopped && drafts.length > 0 && state.batch !== null && !observed
   useEffect(() => {
-    if (phase !== 'ready' || state.partial || drafts.length === 0 || !state.batch) return
+    if (phase !== 'ready' || stopped || drafts.length === 0 || !state.batch) return
     if (!observed || reviewed.current) return
     reviewed.current = true
     onReview(state.batch.id, true)
-  }, [phase, state.partial, state.batch, drafts.length, observed, onReview])
+  }, [phase, stopped, state.batch, drafts.length, observed, onReview])
 
   // A batch that is gone must not stay in the URL.
   const gone = stop?.kind === 'error' && stop.gone
@@ -691,8 +712,8 @@ export function FlightsStep({
             <NoticeBox detail={kept ? undefined : t(COPY.stoppedNoSource)}>
               {formatCount(locale, count, stoppedForms)}
             </NoticeBox>
-            {kept ? (
-              <Button variant="primary" className="auth-primary" onClick={() => run(kept)}>
+            {sent ? (
+              <Button variant="primary" className="auth-primary" onClick={() => run(sent.source)}>
                 {t(COPY.readRest)}
               </Button>
             ) : null}

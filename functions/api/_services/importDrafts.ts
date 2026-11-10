@@ -14,6 +14,7 @@ import { parseFlightBodies } from '../_lib/flightValidation'
 import { airportCandidates } from '../import/_text'
 import type { EnrichmentStatus, ExtractedFlight } from '../import/_shared'
 import type { VerificationStatus } from '../import/_verify'
+import { interruptBatchSql } from './importBatchInterrupt'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
 
 /** Drafts one batch may hold: a locally parsed `KUUKI FLIGHTS` list is exact, model extraction is not. */
@@ -812,19 +813,8 @@ export async function cancelBatch(
 /** Restart/deadline recovery retains review work and never attempts to recover the source. */
 export async function interruptBatch(db: D1Database, fence: BatchFence) {
   const result = await db
-    .prepare(`UPDATE import_batches SET
-    status = CASE WHEN EXISTS (SELECT 1 FROM import_drafts WHERE batch_id = ? AND user_id = ?) THEN 'partial' ELSE 'failed' END,
-    stage = NULL, error_code = 'JOB_INTERRUPTED', generation = generation + 1, sequence = sequence + 1,
-    processing_deadline = NULL, updated_at = ? WHERE id = ? AND user_id = ? AND status = 'processing' AND generation = ?
-    RETURNING sequence`)
-    .bind(
-      fence.batchId,
-      fence.userId,
-      new Date().toISOString(),
-      fence.batchId,
-      fence.userId,
-      fence.generation,
-    )
+    .prepare(`${interruptBatchSql('one')} RETURNING sequence`)
+    .bind(new Date().toISOString(), fence.batchId, fence.userId, fence.generation)
     .first<{ sequence: number }>()
   return result ? { sequence: result.sequence, rowIds: [] } : null
 }

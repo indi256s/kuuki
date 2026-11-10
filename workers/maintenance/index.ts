@@ -3,6 +3,7 @@ import {
   STALE_DERIVED_PREDICATE,
   repairUserDerivedState,
 } from '../../functions/api/_services/derivedState'
+import { interruptBatchSql } from '../../functions/api/_services/importBatchInterrupt'
 import { applyDueTransitions } from '../../functions/api/_services/lifecycle'
 
 interface MaintenanceEnv {
@@ -103,16 +104,8 @@ export default {
           .bind(conversionReceiptCutoff),
         // Ground-travel receipts expire at their stored instant; tombstones stay for the account's lifetime.
         db.prepare('DELETE FROM ground_operation_receipts WHERE expires_at <= ?').bind(instant),
-        // A batch whose job died keeps the rows it already persisted (partial) or fails (failed); the generation bump
-        // fences any late write from the dead job.
-        db
-          .prepare(
-            `UPDATE import_batches SET
-             status = CASE WHEN EXISTS (SELECT 1 FROM import_drafts d WHERE d.batch_id = import_batches.id) THEN 'partial' ELSE 'failed' END,
-             stage = NULL, error_code = 'JOB_INTERRUPTED', generation = generation + 1, sequence = sequence + 1, updated_at = ?
-           WHERE status = 'processing' AND processing_deadline IS NOT NULL AND processing_deadline <= ?`,
-          )
-          .bind(instant, instant),
+        // A batch whose job died: the one shared interrupt definition (see importBatchInterrupt).
+        db.prepare(interruptBatchSql('overdue')).bind(instant, instant),
       ])
 
       // 7. Status. Remaining dirty users, stale stamps or due transitions make the cycle a retryable failure.

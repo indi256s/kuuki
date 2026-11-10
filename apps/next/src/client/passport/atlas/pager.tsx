@@ -277,6 +277,7 @@ export function AtlasPager({
           if (target === state.base) {
             state.pos = target
             apply(camAt(target))
+            state.origin = null
             state.onProgress(target)
           } else rest(target)
         },
@@ -470,6 +471,8 @@ export function AtlasPager({
         const step = Math.abs(moved) > 0.2 || Math.abs(velocity) > 0.8 ? Math.sign(moved) : 0
         const target = cancelled ? done.page : Math.max(0, Math.min(last, done.page + step))
         if (target !== state.current) fade(target)
+        // Nothing moved: the camera is still where the press found it, so the press no longer owns an origin.
+        else if (!state.fading) state.origin = null
         return
       }
       // One page per swipe, however hard the flick, and never past either end.

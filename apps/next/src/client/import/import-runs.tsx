@@ -15,6 +15,7 @@ import { useAwaiting } from '../awaiting'
 import {
   createBatchRun,
   defaultBatchApi,
+  failureOf,
   isReading,
   sourceOf,
   type BatchApi,
@@ -36,8 +37,8 @@ export interface RunEntry {
 const silent = (state: BatchState) =>
   state.phase === 'cancelled' ||
   state.phase === 'idle' ||
-  state.failure?.kind === 'expired' ||
-  (state.phase === 'ready' && !state.partial && !state.drafts.some((d) => d.status === 'review'))
+  failureOf(state)?.kind === 'expired' ||
+  (state.phase === 'ready' && !state.stopped && !state.drafts.some((d) => d.status === 'review'))
 
 interface Held {
   views: number

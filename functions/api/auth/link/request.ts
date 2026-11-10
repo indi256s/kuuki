@@ -8,7 +8,7 @@ import {
   configuredRecoverySender,
 } from '../../_lib/activationSender'
 import { configuredRecoveryOrigin, requestPasswordRecovery } from '../../_lib/passwordRecovery'
-import { EMAIL_RE, getUserByEmail } from '../../_lib/users'
+import { EMAIL_RE, accountPhase, getUserByEmail } from '../../_lib/users'
 
 /**
  * The single "get back in" link. The caller never learns the account state: the
@@ -68,7 +68,7 @@ async function sendLink(
   const user = await getUserByEmail(db, email)
   if (!user) return
   // Each helper re-checks the account state, so a stale choice here cannot send the wrong link.
-  if (user.password_hash === 'RESET_REQUIRED')
+  if (accountPhase(user.password_hash) === 'unclaimed')
     await requestActivation(db, email, activationOrigin, activationSender)
   else await requestPasswordRecovery(db, email, recoveryOrigin, recoverySender)
 }

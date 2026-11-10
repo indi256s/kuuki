@@ -366,6 +366,127 @@ describe('Journal detail sheet', () => {
     expect(payloadNow().flights[0].flight_number).toBe('TK381')
   })
 
+  it('asks before opening another flight over a dirty edit, keeps the edit on Keep editing and moves on Discard', async () => {
+    const user = userEvent.setup()
+    dock()
+    mount(
+      [flight(1), flight(2, { origin: 'IST', destination: 'JFK', flight_number: 'TK1' })],
+      'flight=1',
+    )
+    const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+    await user.click(await within(pane).findByRole('button', { name: 'Edit flight' }))
+    const number = await within(pane).findByRole('textbox', { name: 'Flight number' })
+    await user.type(number, '0')
+
+    await user.click(screen.getByRole('button', { name: 'Open upcoming flight' }))
+    const question = await within(pane).findByRole('alertdialog', {
+      name: 'Discard your changes to this flight?',
+    })
+    expect(window.location.search).toBe('?flight=1')
+    expect(within(pane).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+    await user.click(within(question).getByRole('button', { name: 'Keep editing' }))
+    expect(within(pane).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+
+    await user.click(screen.getByRole('button', { name: 'Open upcoming flight' }))
+    await user.click(await within(pane).findByRole('button', { name: 'Discard' }))
+    await waitFor(() => expect(window.location.search).toBe('?flight=2'))
+    expect(await within(pane).findByText('TK1')).toBeInTheDocument()
+    expect(within(pane).queryByRole('textbox')).toBeNull()
+    expect(api.patch).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['no flight', '/journal', 'TK381'],
+    ['another flight', '/journal?flight=2', 'TK1'],
+  ])(
+    'holds browser Back to %s over a dirty edit, restoring the URL, and follows it on Discard',
+    async (_name, previous, landed) => {
+      const user = userEvent.setup()
+      dock()
+      window.history.replaceState(null, '', previous)
+      window.history.pushState(null, '', '/journal?flight=1')
+      mount(
+        [flight(1), flight(2, { origin: 'IST', destination: 'JFK', flight_number: 'TK1' })],
+        'flight=1',
+      )
+      const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+      await user.click(await within(pane).findByRole('button', { name: 'Edit flight' }))
+      await user.type(await within(pane).findByRole('textbox', { name: 'Flight number' }), '0')
+
+      act(() => window.history.back())
+      const question = await within(pane).findByRole('alertdialog', {
+        name: 'Discard your changes to this flight?',
+      })
+      await waitFor(() => expect(window.location.search).toBe('?flight=1'))
+      expect(window.location.pathname).toBe('/journal')
+      expect(within(pane).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+
+      await user.click(within(question).getByRole('button', { name: 'Keep editing' }))
+      expect(within(pane).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+
+      act(() => window.history.back())
+      await user.click(await within(pane).findByRole('button', { name: 'Discard' }))
+      await waitFor(() =>
+        expect(window.location.search).toBe(previous.includes('?') ? '?flight=2' : ''),
+      )
+      if (previous.includes('?')) expect(await within(pane).findByText(landed)).toBeInTheDocument()
+      expect(screen.queryByRole('textbox', { name: 'Flight number' })).toBeNull()
+      expect(api.patch).not.toHaveBeenCalled()
+    },
+  )
+
+  it('holds browser Back to another page over a dirty edit and restores the journal URL', async () => {
+    const user = userEvent.setup()
+    dock()
+    window.history.replaceState(null, '', '/overview')
+    window.history.pushState(null, '', '/journal?flight=1')
+    mount([flight(1)], 'flight=1')
+    const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+    await user.click(await within(pane).findByRole('button', { name: 'Edit flight' }))
+    await user.type(await within(pane).findByRole('textbox', { name: 'Flight number' }), '0')
+
+    act(() => window.history.back())
+    expect(
+      await within(pane).findByRole('alertdialog', {
+        name: 'Discard your changes to this flight?',
+      }),
+    ).toBeVisible()
+    await waitFor(() => expect(window.location.pathname).toBe('/journal'))
+    expect(window.location.search).toBe('?flight=1')
+    expect(within(pane).getByRole('textbox', { name: 'Flight number' })).toHaveValue('TK3810')
+  })
+
+  it('cancels the bootstrap traversal gate for a held Back, so Next never sees it', async () => {
+    const user = userEvent.setup()
+    const gated = window as Window & { __kuukiHistoryGate?: boolean }
+    gated.__kuukiHistoryGate = true
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {})
+    try {
+      dock()
+      window.history.replaceState(null, '', '/journal?flight=1')
+      mount([flight(1)], 'flight=1')
+      const pane = await screen.findByRole('complementary', { name: 'Flight details' })
+      await user.click(await within(pane).findByRole('button', { name: 'Edit flight' }))
+      await user.type(await within(pane).findByRole('textbox', { name: 'Flight number' }), '0')
+
+      // Back has landed on the list; bootstrap asks the gate before Next's popstate listener runs.
+      window.history.replaceState(null, '', '/journal')
+      const gate = new Event('kuuki:before-popstate', { cancelable: true })
+      act(() => {
+        window.dispatchEvent(gate)
+      })
+      expect(gate.defaultPrevented).toBe(true)
+      expect(
+        await within(pane).findByRole('alertdialog', {
+          name: 'Discard your changes to this flight?',
+        }),
+      ).toBeVisible()
+    } finally {
+      delete gated.__kuukiHistoryGate
+      go.mockRestore()
+    }
+  })
+
   it('makes Edit unavailable offline and points at the note', async () => {
     setOnline(false)
     mount([flight(1)])

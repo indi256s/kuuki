@@ -32,16 +32,39 @@ export const defaultBatchApi: BatchApi = {
 
 export type Phase = 'idle' | 'starting' | 'processing' | 'ready' | 'failed' | 'cancelled'
 
-export interface BatchState {
-  phase: Phase
+/** The server code is always present here, so the classifier always answers. */
+const batchFailure = (code: string, retryAfter: string | null): Failure =>
+  classifyBatchFailure(code || 'INTERNAL', retryAfter)!
+
+/**
+ * Rows were kept although recognition stopped early: shown under an explicit "partial" heading. A cancel keeps the rows
+ * found before it (ADR 0001 section 9); an interruption carries what the server reported.
+ */
+export type Stopped = { why: 'cancelled' } | { why: 'interrupted'; failure: Failure }
+
+interface Held {
   batch: Batch | null
   drafts: Draft[]
-  failure: Failure | null
-  /** Rows were kept although recognition stopped early: shown under an explicit "partial" heading. */
-  partial: boolean
-  /** Recognition was cancelled by the member and the rows found before that are kept (a stopped, partial review). */
-  cancelled: boolean
 }
+
+/** One variant per server outcome; the cause of a failure exists exactly when the run failed or was interrupted. */
+export type BatchState = Held &
+  (
+    | { phase: 'idle' | 'starting' | 'processing' | 'cancelled' }
+    | { phase: 'ready'; stopped: Stopped | null }
+    | { phase: 'failed'; failure: Failure }
+  )
+
+export const stoppedOf = (state: BatchState): Stopped | null =>
+  state.phase === 'ready' ? state.stopped : null
+
+/** The reason the run failed or was interrupted, if it was. */
+export const failureOf = (state: BatchState): Failure | null =>
+  state.phase === 'failed'
+    ? state.failure
+    : state.phase === 'ready' && state.stopped?.why === 'interrupted'
+      ? state.stopped.failure
+      : null
 
 /** What the member gave us, for naming the run before the first snapshot arrives. */
 export interface RunSource {
@@ -49,50 +72,43 @@ export interface RunSource {
   label: string | null
 }
 
-export const IDLE: BatchState = {
-  phase: 'idle',
-  batch: null,
-  drafts: [],
-  failure: null,
-  partial: false,
-  cancelled: false,
-}
+export const IDLE: Held & { phase: 'idle' } = { phase: 'idle', batch: null, drafts: [] }
 
 export function fromSnapshot({ batch, drafts }: Snapshot): BatchState {
   if (batch.expired)
     return {
-      ...IDLE,
       phase: 'failed',
       batch,
-      failure: classifyBatchFailure('IMPORT_BATCH_EXPIRED', null),
+      drafts: [],
+      failure: batchFailure('IMPORT_BATCH_EXPIRED', null),
     }
   switch (batch.status) {
     case 'processing':
-      return { ...IDLE, phase: 'processing', batch, drafts }
+      return { phase: 'processing', batch, drafts }
     case 'failed':
       return {
-        ...IDLE,
         phase: 'failed',
         batch,
         drafts,
-        failure: classifyBatchFailure(batch.errorCode ?? 'INTERNAL', batch.retryAfter),
+        failure: batchFailure(batch.errorCode ?? 'INTERNAL', batch.retryAfter),
       }
     // Cancelling stops extraction but keeps the rows already found (ADR 0001 section 9): they stay reachable as a stopped review.
     case 'cancelled':
       return drafts.length > 0
-        ? { ...IDLE, phase: 'ready', batch, drafts, partial: true, cancelled: true }
-        : { ...IDLE, phase: 'cancelled', batch }
+        ? { phase: 'ready', batch, drafts, stopped: { why: 'cancelled' } }
+        : { phase: 'cancelled', batch, drafts: [] }
     case 'partial':
       return {
-        ...IDLE,
         phase: 'ready',
         batch,
         drafts,
-        failure: classifyBatchFailure(batch.errorCode ?? 'JOB_INTERRUPTED', batch.retryAfter),
-        partial: true,
+        stopped: {
+          why: 'interrupted',
+          failure: batchFailure(batch.errorCode ?? 'JOB_INTERRUPTED', batch.retryAfter),
+        },
       }
     default:
-      return { ...IDLE, phase: 'ready', batch, drafts }
+      return { phase: 'ready', batch, drafts, stopped: null }
   }
 }
 
@@ -160,11 +176,10 @@ export function createBatchRun(
         if (info.reupload && snapshot.batch.status === 'processing') {
           own.abort()
           set({
-            ...IDLE,
             phase: 'failed',
             batch: snapshot.batch,
             drafts: snapshot.drafts,
-            failure: classifyBatchFailure('JOB_INTERRUPTED', null),
+            failure: batchFailure('JOB_INTERRUPTED', null),
           })
           return
         }
@@ -172,7 +187,12 @@ export function createBatchRun(
       },
     }).catch((error) => {
       if (!current()) return
-      set({ ...state, phase: 'failed', failure: classifyRequestFailure(error) })
+      set({
+        phase: 'failed',
+        batch: state.batch,
+        drafts: state.drafts,
+        failure: classifyRequestFailure(error),
+      })
     })
   }
 

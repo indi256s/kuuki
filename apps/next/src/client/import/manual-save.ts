@@ -15,7 +15,11 @@ import {
   pendingFlightCreateOperations,
   UnconfirmedFlightOperationError,
 } from '@kuuki/client/flightCreateOperations'
-import { createFlights, flightCreatePayload } from '../capture/flight-writes'
+import {
+  createFlights,
+  flightCreatePayload,
+  isFlightValidationRefusal,
+} from '../capture/flight-writes'
 import type { ManualFailureKind } from './copy'
 import { toFlightInput } from './flight-input'
 import { toValues, type FieldValues } from './review-model'
@@ -110,12 +114,6 @@ export const flightIdentity = (payload: object): string | null => {
   ])
 }
 
-/** Server answers that come from validating the details, before any receipt or write exists. */
-const isValidationRefusal = (error: ApiError): boolean =>
-  (error.status === 400 || error.status === 422) &&
-  !(error.code ?? '').startsWith('IDEMPOTENCY_') &&
-  error.code !== 'CSRF'
-
 /**
  * The outcome of a create attempt that threw. `firstAttempt` is true only when no receipt existed before this send,
  * i.e. no earlier attempt of unknown outcome. Only then is a validation refusal proof that nothing was written.
@@ -126,7 +124,10 @@ export function classifyManualFailure(error: unknown, firstAttempt: boolean): Ma
   if (error instanceof ExpiredFlightOperationError) return { kind: 'expired', code: null }
   if (error instanceof ApiError) {
     const code = error.code ?? null
-    return { kind: firstAttempt && isValidationRefusal(error) ? 'refused' : 'uncertain', code }
+    return {
+      kind: firstAttempt && isFlightValidationRefusal(error) ? 'refused' : 'uncertain',
+      code,
+    }
   }
   // Network loss, timeout or abort: the request may have been committed.
   if (

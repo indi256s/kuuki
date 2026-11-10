@@ -50,6 +50,17 @@ const savePrefs: Saver = (prefs, signal) =>
   )
 type Lifetime = { active: boolean; generation: number; controllers: Set<AbortController> }
 
+/** Cancels the debounce and forgets the unsent change; the in-flight write, if any, is the caller's. */
+function dropPendingSave(save: {
+  timer: ReturnType<typeof setTimeout> | undefined
+  pending: OverviewPrefs | null
+  eligible: boolean
+}) {
+  clearTimeout(save.timer)
+  save.pending = null
+  save.eligible = false
+}
+
 function useController({
   payload: initial,
   prefs: initialPrefs,
@@ -139,10 +150,7 @@ function useController({
     if (lifetime.generation !== generation) {
       // oxlint-disable-next-line react/immutability -- runtime is a mutable box created once; written only in callbacks and effects
       lifetime.generation = generation
-      clearTimeout(runtime.timer)
-      // oxlint-disable-next-line react/immutability -- runtime is a mutable box created once; written only in callbacks and effects
-      runtime.pending = null
-      runtime.eligible = false
+      dropPendingSave(runtime)
       for (const controller of lifetime.controllers) controller.abort()
       // Keep the write slot until settlement: abort does not undo an accepted UPDATE.
     }
@@ -316,9 +324,7 @@ function useController({
     }
     const stop = () => {
       lifetime.active = false
-      clearTimeout(runtime.timer)
-      runtime.pending = null
-      runtime.eligible = false
+      dropPendingSave(runtime)
       runtime.saving = false
       for (const controller of lifetime.controllers) controller.abort()
     }

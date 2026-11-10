@@ -46,7 +46,7 @@ import { useToast } from '../ui/toast'
 import { useMobile } from '../ui/use-mobile'
 import { useWriteFeedback } from '../write-feedback'
 import { Crossfade } from './crossfade'
-import type { CloseGuard, FlightEditor } from './flight-detail'
+import type { FlightEditor } from './flight-detail'
 import type { Changes, EditableField, EditOutcome, EditRecord, FlightDto } from './flight-edits'
 import type { JournalFlight, JournalPayload } from './model'
 import { OfflineNote } from './states'
@@ -389,8 +389,17 @@ export function JournalDetail({
   placeholder,
 }: JournalDetailProps) {
   const t = copy[locale]
-  const { payload, view, openFlight, closeSheet, refresh, applyFlight, online, hidden } =
-    useJournalStore()
+  const {
+    payload,
+    view,
+    openFlight,
+    closeSheet,
+    leaveGuard: guard,
+    refresh,
+    applyFlight,
+    online,
+    hidden,
+  } = useJournalStore()
   const mounted = useMounted()
   const mobile = useMobile()
   const offlineNoteId = useId()
@@ -410,8 +419,7 @@ export function JournalDetail({
       : undefined
   const idle = id === null ? (placeholder ?? null) : null
 
-  /** Filled by the content while Edit is open: Escape and close requests ask it first. */
-  const guard = useRef<CloseGuard | null>(null)
+  // `guard` is the store's leave guard, filled by the content while Edit is open: Escape, close and opening another flight ask it first.
   const requestClose = () => {
     if (!guard.current?.('close', closeSheet)) closeSheet()
   }

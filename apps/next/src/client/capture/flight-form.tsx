@@ -31,7 +31,7 @@ import {
   getRecentFlights,
   type Flight,
 } from '@kuuki/client/flights'
-import { createFlight, updateFlight } from './flight-writes'
+import { createFlight, isFlightValidationRefusal, updateFlight } from './flight-writes'
 import {
   abandonFlightCreateOperation,
   currentFlightOperationId,
@@ -187,8 +187,8 @@ export function FlightForm({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteCause, setDeleteCause] = useState<unknown>(null)
   const deleteError = deleteCause ? flightErrorMessage(deleteCause, locale, 'delete') : ''
-  const [saved, setSaved] = useState(false)
   const [savedFlight, setSavedFlight] = useState<(Flight & DerivedAck) | null>(null)
+  const saved = savedFlight !== null
   useEffect(() => {
     if (savedFlight) onSaved?.(savedFlight, feedback.status)
   }, [savedFlight, feedback.status, onSaved])
@@ -443,10 +443,12 @@ export function FlightForm({
       }
       feedback.acknowledge(ack)
       setSavedFlight(ack)
-      setSaved(true)
       router.refresh()
     } catch (cause) {
       if (current(generation, controller)) {
+        // createFlight freed the receipt of a refused first attempt; the corrected details are a new operation.
+        if (!flight && !original && isFlightValidationRefusal(cause))
+          setOperationId(rotateFlightOperationId(operationScope))
         setFocusBlockedSave(true)
         setErrorCause({ cause, kind: 'save' })
       }

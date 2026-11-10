@@ -407,6 +407,9 @@ const TRANSITIONS = {
   restore: { from: 'cancelled', to: 'planned' },
 } as const
 
+/** Statuses an `update` may edit; cancelled is a dead state that only `restore` leaves. */
+const UPDATABLE_FROM = ['planned', 'completed'] as const
+
 /** Reads the target and decides whether a new command may run; every refusal re-checks the receipt first. */
 async function classify(
   db: D1Database,
@@ -431,11 +434,13 @@ async function classify(
         new HttpError(409, 'Journey changed since you loaded it', 'VERSION_CONFLICT', { current }),
       )
     }
-    const required =
-      command.action in TRANSITIONS
-        ? TRANSITIONS[command.action as keyof typeof TRANSITIONS].from
-        : null
-    if (required && parent!.status !== required)
+    const allowed: readonly string[] | null =
+      command.action === 'update'
+        ? UPDATABLE_FROM
+        : command.action in TRANSITIONS
+          ? [TRANSITIONS[command.action as keyof typeof TRANSITIONS].from]
+          : null
+    if (allowed && !allowed.includes(parent!.status!))
       await fail(
         stateConflict(`Cannot ${command.action} a ${parent!.status} journey`, 'illegal_transition'),
       )
@@ -558,7 +563,7 @@ function mutationStatements(
           .prepare(
             `UPDATE ground_journeys SET version = version + 1, updated_at = ?, start_date = ?, end_date = ?, title = ?, note = ?,
                confirmed_at = CASE WHEN status = 'completed' THEN ? ELSE NULL END
-             WHERE id = ? AND user_id = ? AND mode = ? AND version = ? AND deleted_at IS NULL`,
+             WHERE id = ? AND user_id = ? AND mode = ? AND version = ? AND deleted_at IS NULL AND status IN ('planned', 'completed')`,
           )
           .bind(
             instant,

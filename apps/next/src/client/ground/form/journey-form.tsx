@@ -203,8 +203,7 @@ function FormBody({
   const [ocrEpoch, setOcrEpoch] = useState(0)
   const [laterEdits, setLaterEdits] = useState(false)
   const [rebased, setRebased] = useState(false)
-  const [rereading, setRereading] = useState(false)
-  const [rereadFailed, setRereadFailed] = useState(false)
+  /** Set synchronously, so two fast clicks cannot both start a re-read before the reducer shows it. */
   const focusCountries = useRef(false)
   const journeyId = initial.journeyId
   const [save, dispatch] = useReducer(saveReducer, initial.pending, (pending) =>
@@ -420,9 +419,8 @@ function FormBody({
   }
 
   const reread = async () => {
-    if (save.phase !== 'conflict' || rereading) return
-    setRereading(true)
-    setRereadFailed(false)
+    if (save.phase !== 'conflict' || save.reread === 'reading') return
+    dispatch({ type: 'reread-start' })
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
     try {
@@ -431,10 +429,9 @@ function FormBody({
       if (outcome.kind === 'read') dispatch({ type: 'conflict-read', current: outcome.current })
       else if (outcome.kind === 'gone')
         dispatch({ type: 'outcome', outcome: { kind: 'gone' }, command: save.command })
-      else if (outcome.kind === 'failed') setRereadFailed(true)
+      else dispatch({ type: 'reread-done', failed: outcome.kind === 'failed' })
     } finally {
       release()
-      if (alive.current) setRereading(false)
     }
   }
 
@@ -685,8 +682,6 @@ function FormBody({
           onCheck={() => void check()}
           onRetry={() => save.phase === 'unknown' && void run(save.command)}
           onApplyOnTop={applyOnTop}
-          rereading={rereading}
-          rereadFailed={rereadFailed}
           onReread={() => void reread()}
           onLeave={() => router.push(returnTo)}
         />
@@ -760,8 +755,6 @@ function SaveNotices({
   onCheck,
   onRetry,
   onApplyOnTop,
-  rereading,
-  rereadFailed,
   onReread,
   onLeave,
 }: {
@@ -775,8 +768,6 @@ function SaveNotices({
   onCheck: () => void
   onRetry: () => void
   onApplyOnTop: () => void
-  rereading: boolean
-  rereadFailed: boolean
   onReread: () => void
   onLeave: () => void
 }) {
@@ -882,8 +873,8 @@ function SaveNotices({
         )}
         {!current && (
           <>
-            <p className="gt-muted" role={rereadFailed ? 'status' : undefined}>
-              {rereadFailed
+            <p className="gt-muted" role={save.reread === 'failed' ? 'status' : undefined}>
+              {save.reread === 'failed'
                 ? ru
                   ? 'Прочитать не удалось и в этот раз. Ваши правки остались в форме.'
                   : 'Still could not read it. Your edits are still in the form.'
@@ -894,7 +885,7 @@ function SaveNotices({
             <div className="gt-actions">
               <Button
                 variant="primary"
-                loading={rereading}
+                loading={save.reread === 'reading'}
                 loadingLabel={ru ? 'Читаем…' : 'Reading…'}
                 onClick={onReread}
               >

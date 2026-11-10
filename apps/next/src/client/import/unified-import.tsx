@@ -30,8 +30,9 @@ import {
   isDuplicate,
 } from './review-model'
 import { ACCEPT } from './source-step'
+import { failureOf } from './batch-run'
 import { FAILURE, ROW_FAILURE, S, count } from './copy'
-import { UnifiedSession, type RetainedEntry } from './unified-session'
+import { UnifiedSession, type RetainedEntry, type SessionEntry } from './unified-session'
 
 const C = {
   title: { en: 'Import flights', ru: 'Импорт перелётов' },
@@ -85,6 +86,9 @@ const C = {
   close: { en: 'Close import', ru: 'Закрыть импорт' },
   pending: { en: 'Wait until the files are submitted.', ru: 'Дождитесь отправки файлов.' },
 } as const
+
+const entryFailure = (entry: SessionEntry) =>
+  entry.runs.map((run) => failureOf(run.getState())).find((failure) => failure !== null)
 
 function retained(ownerId: string, batchId: string | null): RetainedEntry[] {
   try {
@@ -541,61 +545,67 @@ export function UnifiedImport({
         </form>
       ) : null}
       <ul className="unified-import-files" aria-live="polite">
-        {entries.map((entry) => (
-          <li key={entry.id}>
-            <span className="unified-import-file-name" title={entry.label || S.title[locale]}>
-              <span>{(entry.label || S.title[locale]).replace(/\.(pdf|png|jpe?g)$/i, '')}</span>
-              <span>{entry.label.match(/\.(pdf|png|jpe?g)$/i)?.[0]}</span>
-            </span>
-            <span className="import-hint">
-              {entry.phase === 'queued' || entry.phase === 'local' || entry.phase === 'online' ? (
-                <TextShimmer>
-                  {entry.phase === 'online' ? C.onlineReading[locale] : C[entry.phase][locale]}
-                </TextShimmer>
-              ) : entry.phase === 'failed' ? (
-                entry.problem === 'type' ? (
-                  S.fileBad[locale]
-                ) : entry.problem === 'size' ? (
-                  S.fileBig[locale]
-                ) : entry.problem === 'partial' ? (
-                  C.partial[locale]
-                ) : entry.problem === 'reselect' ? (
-                  C.reselect[locale]
-                ) : entry.runs.find((run) => run.getState().failure)?.getState().failure ? (
-                  FAILURE[
-                    entry.runs.find((run) => run.getState().failure)!.getState().failure!.kind
-                  ][locale].title
+        {entries.map((entry) => {
+          const failure = entryFailure(entry)
+          return (
+            <li key={entry.id}>
+              <span className="unified-import-file-name" title={entry.label || S.title[locale]}>
+                <span>{(entry.label || S.title[locale]).replace(/\.(pdf|png|jpe?g)$/i, '')}</span>
+                <span>{entry.label.match(/\.(pdf|png|jpe?g)$/i)?.[0]}</span>
+              </span>
+              <span className="import-hint">
+                {entry.phase === 'queued' || entry.phase === 'local' || entry.phase === 'online' ? (
+                  <TextShimmer>
+                    {entry.phase === 'online' ? C.onlineReading[locale] : C[entry.phase][locale]}
+                  </TextShimmer>
+                ) : entry.phase === 'failed' ? (
+                  entry.problem === 'type' ? (
+                    S.fileBad[locale]
+                  ) : entry.problem === 'size' ? (
+                    S.fileBig[locale]
+                  ) : entry.problem === 'partial' ? (
+                    C.partial[locale]
+                  ) : entry.problem === 'reselect' ? (
+                    C.reselect[locale]
+                  ) : failure ? (
+                    FAILURE[failure.kind][locale].title
+                  ) : (
+                    S.fileRead[locale]
+                  )
                 ) : (
-                  S.fileRead[locale]
-                )
-              ) : (
-                C[entry.phase][locale]
-              )}
-            </span>
-            {/* The same file fails the same type or size check again; only another file helps. */}
-            {entry.phase === 'failed' && entry.problem !== 'type' && entry.problem !== 'size' ? (
-              <Button
-                dense
-                disabledReason={
-                  saving ? S.pausedWhileSaving[locale] : unsent ? unsentReason : undefined
-                }
-                onClick={() => session.retry(entry)}
-              >
-                {C.retry[locale]}
-              </Button>
-            ) : null}
-            {entry.phase === 'failed' && !entry.runs.length ? (
-              <Button dense variant="ghost" disabled={saving} onClick={() => session.remove(entry)}>
-                {locale === 'ru' ? 'Убрать файл' : 'Remove file'}
-              </Button>
-            ) : null}
-            {entry.phase === 'empty' ? (
-              <Link className="ui-button" data-dense="true" href="/add">
-                {C.manual[locale]}
-              </Link>
-            ) : null}
-          </li>
-        ))}
+                  C[entry.phase][locale]
+                )}
+              </span>
+              {/* The same file fails the same type or size check again; only another file helps. */}
+              {entry.phase === 'failed' && entry.problem !== 'type' && entry.problem !== 'size' ? (
+                <Button
+                  dense
+                  disabledReason={
+                    saving ? S.pausedWhileSaving[locale] : unsent ? unsentReason : undefined
+                  }
+                  onClick={() => session.retry(entry)}
+                >
+                  {C.retry[locale]}
+                </Button>
+              ) : null}
+              {entry.phase === 'failed' && !entry.runs.length ? (
+                <Button
+                  dense
+                  variant="ghost"
+                  disabled={saving}
+                  onClick={() => session.remove(entry)}
+                >
+                  {locale === 'ru' ? 'Убрать файл' : 'Remove file'}
+                </Button>
+              ) : null}
+              {entry.phase === 'empty' ? (
+                <Link className="ui-button" data-dense="true" href="/add">
+                  {C.manual[locale]}
+                </Link>
+              ) : null}
+            </li>
+          )
+        })}
       </ul>
       {review.length > 1 ? (
         <div className="import-select-head">

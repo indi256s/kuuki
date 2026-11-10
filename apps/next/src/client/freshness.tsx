@@ -37,7 +37,8 @@ export function ReadFreshness({
   const locale = useLocale(initialLocale)
   const pending = isPublicationPending(revision, publishedRevision, derivedState)
   const router = useRouter()
-  const [delayed, setDelayed] = useState(false)
+  // The revision whose publication ran late; a newer pending revision starts without the note.
+  const [delayedAt, setDelayedAt] = useState<number | null>(null)
   useEffect(() => {
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
@@ -55,7 +56,7 @@ export function ReadFreshness({
     if (pending)
       void awaitPublication(revision, controller.signal, current).then((result) => {
         if (result === 'ready') router.refresh()
-        else if (result === 'delayed') setDelayed(true)
+        else if (result === 'delayed') setDelayedAt(revision)
       })
     return () => {
       controller.abort()
@@ -64,7 +65,7 @@ export function ReadFreshness({
       document.removeEventListener('visibilitychange', refresh)
     }
   }, [ownerId, revision, publishedRevision, pending, router])
-  if (!pending || !delayed) return null
+  if (!pending || delayedAt !== revision) return null
   return (
     <p role="status" className="status-note">
       {locale === 'ru'

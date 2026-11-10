@@ -2,7 +2,9 @@ import { getAuthGeneration } from '@kuuki/client/apiClient'
 import {
   createBatchRun,
   defaultBatchApi,
+  failureOf,
   isReading,
+  stoppedOf,
   type BatchApi,
   type BatchRun,
 } from './batch-run'
@@ -24,22 +26,33 @@ import {
   LOW_CONFIDENCE,
 } from './review-model'
 
-export interface SessionEntry {
+export type EntryProblem = 'type' | 'size' | 'read' | 'recognition' | 'partial' | 'reselect'
+/** A problem exists exactly when the entry failed. */
+export type EntryState =
+  | { phase: 'queued' | 'local' | 'online' | 'ready' | 'empty'; problem?: undefined }
+  | { phase: 'failed'; problem: EntryProblem }
+interface EntryFields {
   id: string
   label: string
   operationId: string
   runs: BatchRun[]
   barcode?: BatchRun
   online?: BatchRun
-  complementPending?: boolean
   suppressedIds?: string[]
   excludedIds?: string[]
   file?: File
   source?: ImportSource
-  phase: 'queued' | 'local' | 'online' | 'ready' | 'failed' | 'empty'
   fingerprint?: string
-  problem?: 'type' | 'size' | 'read' | 'recognition' | 'partial' | 'reselect'
 }
+export type SessionEntry = EntryFields & EntryState
+
+/** The complementary source is still owed: everything except a settled entry. */
+export const complementPending = (entry: SessionEntry): boolean =>
+  entry.phase !== 'ready' && entry.phase !== 'empty'
+
+const entryOf = (fields: EntryFields, state: EntryState): SessionEntry => ({ ...fields, ...state })
+const setState = (entry: SessionEntry, state: EntryState) =>
+  void Object.assign(entry, { problem: undefined }, state)
 export interface RetainedEntry {
   id: string
   label: string
@@ -52,7 +65,7 @@ export interface RetainedEntry {
   excludedIds?: string[]
   selectionRequired?: boolean
   fingerprint?: string
-  problem?: SessionEntry['problem']
+  problem?: EntryProblem
 }
 
 /** Several existing single-source jobs; draft identity and confirmation always stay with their owning run. */
@@ -99,7 +112,7 @@ export class UnifiedSession {
       batchIds: [...new Set(entry.runs.flatMap((run) => (run.batchId() ? [run.batchId()!] : [])))],
       ...(entry.barcode?.batchId() ? { barcodeBatchId: entry.barcode.batchId()! } : {}),
       ...(entry.online?.batchId() ? { onlineBatchId: entry.online.batchId()! } : {}),
-      complementPending: entry.complementPending ?? false,
+      complementPending: complementPending(entry),
       suppressedIds: entry.suppressedIds ?? [],
       excludedIds: entry.excludedIds ?? [],
       selectionRequired: this.selectionRequired,
@@ -148,12 +161,18 @@ export class UnifiedSession {
     this.selectionRequired ||= records.some((record) => record.selectionRequired)
     for (const record of records) {
       if (this.entries.some((entry) => entry.id === record.id)) continue
-      const entry: SessionEntry = {
-        ...record,
-        runs: [],
-        phase: record.batchIds.length ? 'online' : 'failed',
-        problem: record.batchIds.length ? undefined : 'reselect',
-      }
+      const entry = entryOf(
+        {
+          id: record.id,
+          label: record.label,
+          operationId: record.operationId,
+          runs: [],
+          suppressedIds: record.suppressedIds,
+          excludedIds: record.excludedIds,
+          fingerprint: record.fingerprint,
+        },
+        record.batchIds.length ? { phase: 'online' } : { phase: 'failed', problem: 'reselect' },
+      )
       this.entries.push(entry)
       for (const id of record.batchIds) {
         const run = this.attach(entry, this.store?.find(id) ?? createBatchRun(this.api, id))
@@ -166,28 +185,23 @@ export class UnifiedSession {
         void Promise.all(entry.runs.map((run) => this.terminal(run)))
           .then(async () => {
             const online = entry.online
-            if (entry.barcode && online && !online.getState().failure)
+            if (entry.barcode && online && !failureOf(online.getState()))
               await this.reconcile(entry, entry.barcode, online)
             for (const run of entry.runs) await this.clearInvalidOptional(run)
-            entry.problem =
+            this.settle(
+              entry,
               !online ||
-              online.getState().phase !== 'ready' ||
-              online.getState().failure ||
-              online.getState().cancelled ||
-              entry.barcode?.getState().failure
+                online.getState().phase !== 'ready' ||
+                failureOf(online.getState()) ||
+                stoppedOf(online.getState())?.why === 'cancelled' ||
+                (entry.barcode && failureOf(entry.barcode.getState()))
                 ? 'reselect'
-                : undefined
-            entry.complementPending = Boolean(entry.problem)
-            entry.phase = entry.problem
-              ? 'failed'
-              : entry.runs.every((run) => !run.getState().drafts.length)
-                ? 'empty'
-                : 'ready'
+                : undefined,
+            )
             this.publish()
           })
           .catch(() => {
-            entry.phase = 'failed'
-            entry.problem = 'reselect'
+            setState(entry, { phase: 'failed', problem: 'reselect' })
             this.publish()
           })
     }
@@ -202,18 +216,20 @@ export class UnifiedSession {
       if (held) {
         this.prepareRetry(held)
         held.file = file
-        held.phase = 'queued'
-        held.problem = undefined
+        setState(held, { phase: 'queued' })
       } else
-        this.entries.push({
-          id: crypto.randomUUID(),
-          label: file.name,
-          file,
-          operationId: crypto.randomUUID(),
-          runs: [],
-          phase: 'queued',
-          complementPending: true,
-        })
+        this.entries.push(
+          entryOf(
+            {
+              id: crypto.randomUUID(),
+              label: file.name,
+              file,
+              operationId: crypto.randomUUID(),
+              runs: [],
+            },
+            { phase: 'queued' },
+          ),
+        )
     }
     this.publish()
     this.pump()
@@ -227,18 +243,14 @@ export class UnifiedSession {
     if (held) {
       this.prepareRetry(held)
       held.source = source
-      held.phase = 'queued'
-      held.problem = undefined
+      setState(held, { phase: 'queued' })
     } else
-      this.entries.push({
-        id: crypto.randomUUID(),
-        label,
-        operationId: crypto.randomUUID(),
-        source,
-        runs: [],
-        phase: 'queued',
-        complementPending: true,
-      })
+      this.entries.push(
+        entryOf(
+          { id: crypto.randomUUID(), label, operationId: crypto.randomUUID(), source, runs: [] },
+          { phase: 'queued' },
+        ),
+      )
     this.publish()
     this.pump()
   }
@@ -250,14 +262,13 @@ export class UnifiedSession {
   retry(entry: SessionEntry) {
     if (entry.phase !== 'failed') return
     if (!entry.file && !entry.source) {
-      entry.problem = 'reselect'
+      setState(entry, { phase: 'failed', problem: 'reselect' })
       this.publish()
       return
     }
     // Never replace retained partial drafts or receipts. Retry adds a new run and the server's duplicate guard applies.
     this.prepareRetry(entry)
-    entry.phase = 'queued'
-    entry.problem = undefined
+    setState(entry, { phase: 'queued' })
     this.publish()
     this.pump()
   }
@@ -266,7 +277,14 @@ export class UnifiedSession {
       entry.operationId = crypto.randomUUID()
       entry.online = undefined
     }
-    entry.complementPending = true
+  }
+  /** One outcome for a settled entry: failed with its problem, else empty or ready by the drafts the runs hold. */
+  private settle(entry: SessionEntry, problem: EntryProblem | undefined) {
+    if (problem) setState(entry, { phase: 'failed', problem })
+    else
+      setState(entry, {
+        phase: entry.runs.every((run) => !run.getState().drafts.length) ? 'empty' : 'ready',
+      })
   }
   private assertCurrent() {
     if (this.stopped || this.generation !== getAuthGeneration())
@@ -282,8 +300,7 @@ export class UnifiedSession {
     while (this.active < 1) {
       const entry = this.entries.find((item) => item.phase === 'queued')
       if (!entry) break
-      entry.phase = 'local'
-      entry.complementPending = true
+      setState(entry, { phase: 'local' })
       this.active++
       this.publish()
       void this.process(entry).finally(() => {
@@ -383,8 +400,7 @@ export class UnifiedSession {
     try {
       const problem = entry.file ? checkFile(entry.file) : null
       if (problem) {
-        entry.problem = problem
-        entry.phase = 'failed'
+        setState(entry, { phase: 'failed', problem })
         return
       }
       const bytes = entry.file
@@ -396,21 +412,23 @@ export class UnifiedSession {
       const fingerprint = `${entry.file?.type ?? 'text'}:${[...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`
       if (entry.fingerprint && entry.fingerprint !== fingerprint) {
         // A replacement with the same filename is a new source; never replay it as the original request.
-        this.entries.push({
-          id: crypto.randomUUID(),
-          label: entry.label,
-          operationId: crypto.randomUUID(),
-          runs: [],
-          file: entry.file,
-          source: entry.source,
-          fingerprint,
-          phase: 'queued',
-          complementPending: true,
-        })
+        this.entries.push(
+          entryOf(
+            {
+              id: crypto.randomUUID(),
+              label: entry.label,
+              operationId: crypto.randomUUID(),
+              runs: [],
+              file: entry.file,
+              source: entry.source,
+              fingerprint,
+            },
+            { phase: 'queued' },
+          ),
+        )
         entry.file = undefined
         entry.source = undefined
-        entry.phase = 'failed'
-        entry.problem = 'reselect'
+        setState(entry, { phase: 'failed', problem: 'reselect' })
         return
       }
       entry.fingerprint = fingerprint
@@ -432,13 +450,13 @@ export class UnifiedSession {
           )
       }
       // Persist barcode fields before sending the full source, so resume never depends on the file remaining in memory.
-      entry.phase = 'online'
+      setState(entry, { phase: 'online' })
       this.publish()
       const source = entry.source ?? (await uploadSource(entry.file!))
       const online = await this.submit(entry, source, entry.operationId)
       const state = online.getState()
       if (entry.barcode) await this.reconcile(entry, entry.barcode, online)
-      const barcodeFailed = Boolean(entry.barcode?.getState().failure)
+      const barcodeFailed = Boolean(entry.barcode && failureOf(entry.barcode.getState()))
       for (const run of entry.runs) await this.clearInvalidOptional(run)
       for (const run of entry.runs)
         for (const draft of run.getState().drafts) {
@@ -460,26 +478,24 @@ export class UnifiedSession {
             run.setDraft(await patchDraft(draft.id, { version: draft.version, selected: true }))
           }
         }
-      entry.problem =
-        state.phase !== 'ready' || state.failure || state.cancelled || barcodeFailed
+      this.settle(
+        entry,
+        state.phase !== 'ready' ||
+          failureOf(state) ||
+          stoppedOf(state)?.why === 'cancelled' ||
+          barcodeFailed
           ? state.drafts.length || entry.barcode?.getState().drafts.length
             ? 'partial'
             : 'recognition'
-          : undefined
-      entry.complementPending = Boolean(entry.problem)
-      entry.phase = entry.problem
-        ? 'failed'
-        : entry.runs.every((run) => !run.getState().drafts.length)
-          ? 'empty'
-          : 'ready'
+          : undefined,
+      )
       // Source bytes are memory-only. Keep failed inputs for retry while this page remains open.
-      if (!entry.problem) {
+      if (entry.phase !== 'failed') {
         entry.file = undefined
         entry.source = undefined
       }
     } catch {
-      entry.phase = 'failed'
-      entry.problem = 'read'
+      setState(entry, { phase: 'failed', problem: 'read' })
     }
   }
   draftOwner(id: string) {

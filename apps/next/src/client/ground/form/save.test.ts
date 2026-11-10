@@ -151,12 +151,37 @@ describe('save flow', () => {
       phase: 'conflict',
       command,
       current,
+      reread: 'idle',
     })
     // Without the body, the saved version is read separately.
     const bare = depsWith({ send: vi.fn().mockRejectedValue(new ApiError(409, 'changed')) })
     expect(await attemptSave(command, bare, signal)).toMatchObject({
       kind: 'conflict',
       current: { version: 5 },
+    })
+  })
+
+  it('forgets a failed re-read when the next conflict arrives, and starts a re-read only once', () => {
+    const { command } = commandFor(body(), null, () => 'key-conflict-2')
+    const conflict = { kind: 'conflict', current: null } as const
+    let state = saveReducer(
+      { phase: 'saving', command },
+      { type: 'outcome', outcome: conflict, command },
+    )
+    state = saveReducer(state, { type: 'reread-start' })
+    expect(state).toMatchObject({ phase: 'conflict', reread: 'reading' })
+    state = saveReducer(state, { type: 'reread-done', failed: true })
+    expect(state).toMatchObject({ phase: 'conflict', reread: 'failed' })
+    // Apply on top, save again, the server answers with another conflict.
+    state = saveReducer(state, { type: 'start', command })
+    state = saveReducer(state, { type: 'outcome', outcome: conflict, command })
+    expect(state).toMatchObject({ phase: 'conflict', reread: 'idle' })
+    // A successful read settles the status too.
+    state = saveReducer(state, { type: 'reread-start' })
+    const current = { id: journeyId, version: 6 } as GroundJourneyDto
+    expect(saveReducer(state, { type: 'conflict-read', current })).toMatchObject({
+      reread: 'idle',
+      current,
     })
   })
 

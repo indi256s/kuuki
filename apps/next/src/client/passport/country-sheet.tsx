@@ -142,7 +142,7 @@ export function CountrySheet({
   // A legacy land visit has no segment of its own: it stays `land` (and is left out of the PATCH) until a way is picked.
   const [way, setWay] = useState<VisitWay | 'land'>('other')
   // The visit the form is editing; null means the form adds a new one.
-  const [editing, setEditing] = useState<string | null>(null)
+  const [editingId, setEditing] = useState<string | null>(null)
   // A country already in the passport keeps the add form behind its button until asked for.
   const [adding, setAdding] = useState(false)
   const [focusYear, setFocusYear] = useState(false)
@@ -164,9 +164,15 @@ export function CountrySheet({
     draft.current = { year, note }
   }, [year, note])
   // A closed sheet keeps its last country, so a save that completes while it is closed still clears the saved draft.
+  // Each time the sheet moves to a different country is a new selection: an operation, and anything it does on
+  // completion, belongs to the selection it started in, so a return to the same country does not hand it the newer state.
+  const selection = useRef(0)
   useEffect(() => {
+    if (code && code !== shownRef.current) selection.current += 1
     shownRef.current = code ?? shownRef.current
   }, [code])
+  const stillShows = (target: string, started: number) =>
+    shownRef.current === target && selection.current === started
   if (code && code !== shownCode) {
     setShownCode(code)
     setNotice('')
@@ -177,6 +183,12 @@ export function CountrySheet({
     setWay('other')
     setEditing(null)
     setAdding(false)
+    setFocusYear(false)
+    // One operation at a time, and none carried over from the country it started on.
+    setBusy(false)
+    setHiding(false)
+    setDeleting(null)
+    setRemoving(false)
   }
 
   const data = detail.data?.countryCode === code ? detail.data : undefined
@@ -210,14 +222,24 @@ export function CountrySheet({
   const yearInvalid =
     yearValue !== null && (!Number.isInteger(yearValue) || yearValue < 1800 || yearValue > 2200)
 
-  /** Runs one write; resolves after the collection refresh, rejects (for DestructiveConfirm) when it failed. */
-  async function write(run: () => Promise<DerivedAck>, done: string, added = false) {
-    if (!code) return
-    const target = code
+  /** Starts one operation on `target`; `here()` is false once the sheet moved to another country or selection. */
+  function beginOperation(target: string) {
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
     const generation = getAuthGeneration()
     const current = () => !controller.signal.aborted && generation === getAuthGeneration()
+    const started = selection.current
+    // State below belongs to the country and selection the operation started on.
+    const here = () => current() && stillShows(target, started)
+    return { controller, release, current, here }
+  }
+
+  /** Runs one write; resolves after the collection refresh, rejects (for DestructiveConfirm) when it failed. */
+  async function write(run: () => Promise<DerivedAck>, done: string, added = false) {
+    if (!code) return
+    if (busy || hiding) throw new Error('Another operation is in flight')
+    const target = code
+    const { release, current, here } = beginOperation(target)
     setBusy(true)
     setError('')
     setNotice('')
@@ -225,10 +247,10 @@ export function CountrySheet({
       const ack = await run()
       if (!current()) return
       feedback.acknowledge(ack)
-      setNotice(done)
+      if (here()) setNotice(done)
       await Promise.all([detail.refetch(), onChanged(target, added)])
     } catch (cause) {
-      if (current())
+      if (here())
         setError(
           ru
             ? 'Не удалось сохранить. Проверьте сеть и повторите.'
@@ -237,18 +259,15 @@ export function CountrySheet({
       throw cause
     } finally {
       release()
-      if (current()) setBusy(false)
+      if (here()) setBusy(false)
     }
   }
 
   /** Hiding is presentation only (PUT /api/passport/hidden/:cc): records and statistics stay. No confirm; Undo is the net. */
   async function hide() {
-    if (!code) return
+    if (!code || busy || hiding) return
     const target = code
-    const controller = new AbortController()
-    const release = trackPrivateOperation(controller)
-    const generation = getAuthGeneration()
-    const current = () => !controller.signal.aborted && generation === getAuthGeneration()
+    const { controller, release, current, here } = beginOperation(target)
     setHiding(true)
     setHideError('')
     try {
@@ -256,7 +275,7 @@ export function CountrySheet({
       if (!current()) return
       await onHidden(target)
     } catch {
-      if (current())
+      if (here())
         setHideError(
           ru
             ? 'Не удалось скрыть страну. Проверьте сеть и повторите.'
@@ -264,7 +283,7 @@ export function CountrySheet({
         )
     } finally {
       release()
-      if (current()) setHiding(false)
+      if (here()) setHiding(false)
     }
   }
 
@@ -304,8 +323,10 @@ export function CountrySheet({
     ground.map((visit) => visit.visitYear),
   )
   // Adding is the whole job for a country outside the passport; otherwise the record comes first and the form waits.
+  // An edit whose visit left the refetched list (deleted elsewhere) is over: the form follows the list.
+  const editingEntry = editingId ? ground.find((item) => item.id === editingId) : undefined
+  const editing = editingEntry ? editingId : null
   const formOpen = !inPassport || adding || editing !== null
-  const editingEntry = editing ? ground.find((item) => item.id === editing) : undefined
   const held = stampHeldCopy(locale, journeys.length > 0)
   const formWasOpen = useRef(formOpen)
   useEffect(() => {
@@ -618,8 +639,8 @@ export function CountrySheet({
                   className="passport-form"
                   onSubmit={(event) => {
                     event.preventDefault()
-                    if (yearInvalid || busy) return
-                    const submitted = { code: code!, year, note }
+                    if (yearInvalid || busy || hiding) return
+                    const submitted = { code: code!, year, note, selection: selection.current }
                     if (editing) {
                       void write(
                         () =>
@@ -631,7 +652,7 @@ export function CountrySheet({
                           }),
                         ru ? 'Визит обновлён.' : 'Visit updated.',
                       ).then(() => {
-                        if (shownRef.current === submitted.code) leaveEdit()
+                        if (stillShows(submitted.code, submitted.selection)) leaveEdit()
                       }, ignore)
                       return
                     }
@@ -647,7 +668,7 @@ export function CountrySheet({
                       added,
                     ).then(() => {
                       // Both fields stay editable during the save: clear only what is still the submitted text, on the submitted country.
-                      if (shownRef.current !== submitted.code) return
+                      if (!stillShows(submitted.code, submitted.selection)) return
                       const untouched =
                         draft.current.year === submitted.year &&
                         draft.current.note === submitted.note

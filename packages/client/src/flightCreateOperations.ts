@@ -31,13 +31,21 @@ export class SettledFlightOperationError extends Error {
   }
 }
 
+/**
+ * This tab's copy of each stored receipt. localStorage is the source of truth whenever it is readable: a missing entry
+ * means another tab settled or abandoned the receipt, so the copy is dropped, never served. The copy answers only when
+ * storage cannot be read at all or holds a damaged entry.
+ */
 const fallback = new Map<string, PendingOperation>()
 
 function read(id: string): PendingOperation | undefined {
   if (typeof localStorage === 'undefined') return fallback.get(id)
   try {
     const stored = localStorage.getItem(STORAGE_PREFIX + id)
-    if (!stored) return fallback.get(id)
+    if (!stored) {
+      fallback.delete(id)
+      return undefined
+    }
     const receipt = JSON.parse(stored) as PendingOperation
     if (typeof receipt.key !== 'string' || typeof receipt.payload !== 'string')
       throw new Error('Invalid receipt')

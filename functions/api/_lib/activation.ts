@@ -1,5 +1,5 @@
 import { generateToken, hashPassword, newId, sha256Hex } from './crypto'
-import { normalizeEmail, getUserByEmail } from './users'
+import { normalizeEmail, getUserByEmail, accountPhase, unclaimedSql } from './users'
 import { nowIso, isoPlusSeconds } from './time'
 import type { MailSender } from './activationSender'
 
@@ -23,7 +23,7 @@ export async function activationEmailKey(email: string, secret: string): Promise
   return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('')
 }
 
-/** Only RESET_REQUIRED accounts receive a link; callers always return the same public result. */
+/** Only unclaimed accounts receive a link; callers always return the same public result. */
 export async function requestActivation(
   db: D1Database,
   email: string,
@@ -31,14 +31,14 @@ export async function requestActivation(
   sender: MailSender,
 ): Promise<void> {
   const user = await getUserByEmail(db, email)
-  if (!user || user.password_hash !== 'RESET_REQUIRED') return
+  if (!user || accountPhase(user.password_hash) !== 'unclaimed') return
   const token = generateToken()
   const tokenHash = await sha256Hex(token)
   const createdAt = nowIso()
   const inserted = await db
     .prepare(
       `INSERT INTO account_activation_tokens (token_hash, user_id, created_at, expires_at)
-     SELECT ?, id, ?, ? FROM users WHERE id = ? AND password_hash = 'RESET_REQUIRED'`,
+     SELECT ?, id, ?, ? FROM users WHERE id = ? AND ${unclaimedSql()}`,
     )
     .bind(tokenHash, createdAt, isoPlusSeconds(TOKEN_TTL_SECONDS, createdAt), user.id)
     .run()
@@ -79,12 +79,12 @@ export async function completeActivation(
       .prepare(
         `UPDATE account_activation_tokens SET claim_id = ?
        WHERE token_hash = ? AND claim_id IS NULL AND expires_at > ?
-         AND EXISTS (SELECT 1 FROM users WHERE id = account_activation_tokens.user_id AND password_hash = 'RESET_REQUIRED')`,
+         AND EXISTS (SELECT 1 FROM users WHERE id = account_activation_tokens.user_id AND ${unclaimedSql()})`,
       )
       .bind(claimId, tokenHash, now),
     db
       .prepare(
-        `UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE password_hash = 'RESET_REQUIRED'
+        `UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE ${unclaimedSql()}
        AND id = (SELECT user_id FROM account_activation_tokens WHERE token_hash = ? AND claim_id = ?)`,
       )
       .bind(passwordHash, now, tokenHash, claimId),

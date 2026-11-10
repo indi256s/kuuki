@@ -83,6 +83,8 @@ export function Menu({
   const shield = useRef<HTMLDivElement>(null)
   const contentPresent = useTransitionPresence(content, isOpen, still !== undefined)
   const shieldPresent = useTransitionPresence(shield, isOpen, !scrim || still !== undefined)
+  // Modality belongs to one open: it resets once the close has finished, not while the exit still renders.
+  if (keyboard && !isOpen && !contentPresent && !shieldPresent) setKeyboard(false)
   return (
     <DropdownMenu.Root modal={false} open={isOpen} onOpenChange={setOpen}>
       {shieldPresent ? (

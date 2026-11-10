@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type {
   AirportCatalogEntry,
@@ -27,6 +27,7 @@ import { PopoverRoot, PopoverTrigger, PopoverContent } from '../ui/popover'
 import { useAirportHistory } from './use-airport-history'
 import { markAirportVisit, airportOverviewBack } from './return-session'
 import { kindNames } from './airport-copy'
+import { compareFlow, compareSettledReducer, initialCompareSettled } from './compare-flow'
 import { AirportPreview } from './preview'
 import './airport-screen.css'
 
@@ -169,8 +170,7 @@ export function AirportScreen({
     },
     [],
   )
-  const [compareError, setCompareError] = useState(false)
-  const [compareAttempt, setCompareAttempt] = useState(0)
+  const [settled, settle] = useReducer(compareSettledReducer, initialCompareSettled)
   const [picker, setPicker] = useState(false)
   const viewer = useRef<AirportViewerHandle | null>(null),
     compareTrigger = useRef<HTMLButtonElement>(null),
@@ -185,6 +185,12 @@ export function AirportScreen({
   const desiredCompare = compareRequest ?? compareCode
   const reference = catalog.find((item) => item.iata === desiredCompare && item.iata !== entry.iata)
   const comparing = Boolean(compareCode && plans?.reference === compareCode)
+  const flow = compareFlow({
+    desired: desiredCompare,
+    available: Boolean(reference),
+    readyFor: comparing ? compareCode : null,
+    failedFor: settled.failedCode,
+  })
   const history = useAirportHistory(
     ownerId,
     entry.iata,
@@ -240,7 +246,7 @@ export function AirportScreen({
           pair: [pair[0], pair[1]],
           sources: [pair[2], pair[3]],
         })
-        setCompareError(false)
+        settle({ type: 'loaded' })
         if (compareRequest) {
           const next = new URL(window.location.href)
           next.searchParams.set('compare', reference.iata)
@@ -257,10 +263,10 @@ export function AirportScreen({
         }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setCompareError(true)
+        if (!controller.signal.aborted) settle({ type: 'failed', code: reference.iata })
       })
     return () => controller.abort()
-  }, [entry, reference, compareAttempt, compareRequest, compareCode, ownerId, plans])
+  }, [entry, reference, settled.attempt, compareRequest, compareCode, ownerId, plans])
   const previousComparing = useRef(comparing)
   useEffect(() => {
     if (previousComparing.current && !comparing) focusCompare()
@@ -281,7 +287,7 @@ export function AirportScreen({
   const closeCompare = useCallback(() => {
     const marker = window.history.state?.kuukiAirportCompare
     setCompareRequest(null)
-    setCompareError(false)
+    settle({ type: 'reset' })
     if (compareCode && marker?.ownerId === ownerId && marker?.iata === entry.iata)
       window.history.back()
     else if (compareCode) {
@@ -299,6 +305,7 @@ export function AirportScreen({
     if (panel === 'history') historyScroll.current = panelElement.current?.scrollTop ?? 0
     const target = panel === 'history' ? historyTrigger : objectsTrigger
     setPanel(null)
+    if (panel === 'detail') setSelected(null)
     target.current?.focus({ preventScroll: true })
   }, [panel])
   useEffect(() => {
@@ -332,7 +339,7 @@ export function AirportScreen({
     [panel],
   )
   const startCompare = (iata: string) => {
-    setCompareError(false)
+    settle({ type: 'reset' })
     setCompareRequest(iata)
     setPicker(false)
   }
@@ -371,7 +378,7 @@ export function AirportScreen({
       <header className="airport-header">
         <div className="airport-topbar">
           <Button variant="ghost" onClick={back}>
-            {desiredCompare ? copy('Back to model', 'К модели') : copy('Overview', 'Обзор')}
+            {flow.kind !== 'off' ? copy('Back to model', 'К модели') : copy('Overview', 'Обзор')}
           </Button>
           <div className="airport-header-actions">
             {peers.length > 0 && (
@@ -552,7 +559,7 @@ export function AirportScreen({
               </Button>
             </div>
           </div>
-          {panel && (
+          {panel && (panel !== 'detail' || feature) && (
             <aside
               id="airport-context"
               className="airport-context"
@@ -781,19 +788,14 @@ export function AirportScreen({
         {desiredCompare && !comparing && (
           <div className="airport-compare-status" role="status">
             <p>
-              {!reference
+              {flow.kind === 'invalid'
                 ? copy('Choose an available airport.', 'Выберите доступный аэропорт.')
-                : compareError
+                : flow.kind === 'failed'
                   ? copy('The comparison could not load.', 'Не удалось загрузить сравнение.')
                   : copy('Loading comparison…', 'Загружаем сравнение…')}
             </p>
-            {compareError && (
-              <Button
-                onClick={() => {
-                  setCompareError(false)
-                  setCompareAttempt((value) => value + 1)
-                }}
-              >
+            {flow.kind === 'failed' && (
+              <Button onClick={() => settle({ type: 'retry' })}>
                 {copy('Try again', 'Повторить')}
               </Button>
             )}

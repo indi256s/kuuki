@@ -19,6 +19,15 @@ export interface AuthUser {
   email: string
 }
 
+/** users.password_hash value of an account nobody has claimed yet (no password, no credential row). */
+export const RESET_REQUIRED = 'RESET_REQUIRED'
+export type AccountPhase = 'unclaimed' | 'active'
+export const accountPhase = (hash: string | null | undefined): AccountPhase =>
+  hash === RESET_REQUIRED ? 'unclaimed' : 'active'
+/** SQL fragments over a password_hash column expression. The sentinel is a fixed literal, never user input. */
+export const unclaimedSql = (column = 'password_hash') => `${column} = '${RESET_REQUIRED}'`
+export const activeSql = (column = 'password_hash') => `${column} <> '${RESET_REQUIRED}'`
+
 /** Shape-only email check shared by signup and activation requests. */
 export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 

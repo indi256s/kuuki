@@ -5,8 +5,10 @@
 import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import {
+  abandonFlightCreateOperation,
   completeFlightCreateOperation,
   getFlightCreateOperation,
+  pendingFlightCreateOperation,
 } from '@kuuki/client/flightCreateOperations'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import type { Flight, FlightInsert, FlightUpdate } from '@kuuki/client/flights'
@@ -56,23 +58,42 @@ export async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Prom
 export const flightCreatePayload = (flight: object): object =>
   validateFlightInput(omit(flight, 'is_upcoming'), 'create')
 
+/** Server answers that come from validating the details, before any receipt or write exists (flights/index.ts). */
+export const isFlightValidationRefusal = (error: unknown): error is ApiError =>
+  error instanceof ApiError &&
+  (error.status === 400 || error.status === 422) &&
+  !(error.code ?? '').startsWith('IDEMPOTENCY_') &&
+  error.code !== 'CSRF'
+
+/**
+ * A validation refusal of the first attempt proves nothing was written, so its receipt is freed here and the corrected
+ * details can be a fresh operation. Any later attempt, or any other failure, keeps the receipt.
+ */
 export async function createFlight(
   userId: string,
   flight: FlightInsert,
   operationId: string,
   retryKey?: string,
 ): Promise<Flight & DerivedAck> {
+  const firstAttempt = retryKey === undefined && !pendingFlightCreateOperation(userId, operationId)
   const operation = getFlightCreateOperation(
     userId,
     operationId,
     flightCreatePayload(flight),
     retryKey,
   )
-  const dto = await sendWithZone((zone) =>
-    api.post<Flight & DerivedAck>('/api/flights', withZone(operation.body, zone), {
-      headers: { 'Idempotency-Key': operation.key },
-    }),
-  )
+  let dto: Flight & DerivedAck
+  try {
+    dto = await sendWithZone((zone) =>
+      api.post<Flight & DerivedAck>('/api/flights', withZone(operation.body, zone), {
+        headers: { 'Idempotency-Key': operation.key },
+      }),
+    )
+  } catch (error) {
+    if (firstAttempt && isFlightValidationRefusal(error))
+      abandonFlightCreateOperation(userId, operationId)
+    throw error
+  }
   completeFlightCreateOperation(userId, operationId, operation.key)
   return dto
 }

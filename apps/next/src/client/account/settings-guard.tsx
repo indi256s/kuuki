@@ -5,14 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Dialog } from '../ui/dialog'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
-
-type BrowserNavigation = { currentEntry?: { index: number } }
-function entryIndex(): number | undefined {
-  const nativeIndex = (window as Window & { navigation?: BrowserNavigation }).navigation
-    ?.currentEntry?.index
-  const fallback = window.history.state?.__kuukiHistoryIndex
-  return nativeIndex ?? (Number.isSafeInteger(fallback) ? fallback : undefined)
-}
+import { guardTraversals } from '../history-gate'
 
 /** Settings owns this guard; preserve Next's history payload and restore a traversal before asking. */
 export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) {
@@ -22,7 +15,6 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
   useLayoutEffect(() => {
     state.current = { dirty, busy }
   }, [dirty, busy])
-  const permitTraversal = useRef(false)
   const permitUnload = useRef(false)
   const request = (run: () => void) => {
     if (state.current.busy) return
@@ -30,13 +22,6 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
     else run()
   }
   useEffect(() => {
-    let originIndex = entryIndex()
-    let originHref = window.location.href
-    const hash = () => {
-      originIndex = entryIndex()
-      originHref = window.location.href
-    }
-    let restoring = false
     const unload = (event: BeforeUnloadEvent) => {
       if (!permitUnload.current && (state.current.dirty || state.current.busy)) {
         event.preventDefault()
@@ -72,67 +57,21 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
       if (!state.current.busy)
         setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
     }
-    const pop = (event: Event) => {
-      if (permitTraversal.current) {
-        permitTraversal.current = false
-        hash()
-        return
-      }
-      if (restoring) {
-        restoring = false
-        hash()
-        event.preventDefault()
-        event.stopImmediatePropagation()
-        return
-      }
-      const origin = new URL(originHref),
-        destination = new URL(window.location.href)
-      if (
-        origin.pathname === destination.pathname &&
-        origin.search === destination.search &&
-        origin.hash !== destination.hash
-      ) {
-        hash()
-        return
-      }
-      if (!state.current.dirty && !state.current.busy) {
-        hash()
-        return
-      }
-      event.preventDefault()
-      event.stopImmediatePropagation()
-      const destinationIndex = entryIndex()
-      // Native indexes or bootstrap-tagged App Router entries preserve traversal direction.
-      // A pre-bootstrap document entry is handled by beforeunload.
-      const delta =
-        originIndex !== undefined && destinationIndex !== undefined
-          ? destinationIndex - originIndex
-          : -1
-      if (!delta) return
-      restoring = true
-      history.go(-delta)
-      if (!state.current.busy)
-        setPending({
-          run: () => {
-            permitTraversal.current = true
-            history.go(delta)
-          },
-        })
-    }
-    window.addEventListener('hashchange', hash)
-    window.addEventListener('kuuki:history-index', hash)
+    // Back and Forward are held while the form is dirty or saving; a hash-only move on the same page is not leaving it.
+    const stopGuarding = guardTraversals((from, rerun) => {
+      const to = new URL(window.location.href)
+      if (from.pathname === to.pathname && from.search === to.search && from.hash !== to.hash)
+        return false
+      if (!state.current.dirty && !state.current.busy) return false
+      if (!state.current.busy) setPending({ run: rerun })
+      return true
+    })
     window.addEventListener('beforeunload', unload)
     document.addEventListener('click', click, true)
-    const popEvent = (window as Window & { __kuukiHistoryGate?: boolean }).__kuukiHistoryGate
-      ? 'kuuki:before-popstate'
-      : 'popstate'
-    window.addEventListener(popEvent, pop, true)
     return () => {
-      window.removeEventListener('hashchange', hash)
-      window.removeEventListener('kuuki:history-index', hash)
+      stopGuarding()
       window.removeEventListener('beforeunload', unload)
       document.removeEventListener('click', click, true)
-      window.removeEventListener(popEvent, pop, true)
     }
   }, [router])
   const ru = locale === 'ru'

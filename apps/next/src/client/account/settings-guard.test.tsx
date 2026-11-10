@@ -81,6 +81,16 @@ describe.each([true, false])('Settings traversal with Navigation API %s', (nativ
     fireEvent.click(screen.getByRole('button', { name: 'Leave without saving' }))
     expect(history.go).toHaveBeenLastCalledWith(1)
   })
+  it('keeps restoring to the origin when a second Back arrives before the restore lands', () => {
+    render(<Harness />)
+    pop(0)
+    expect(history.go).toHaveBeenLastCalledWith(1)
+    pop(-1) // Second Back, queued before the restore: not the entry the guard expects.
+    expect(history.go).toHaveBeenLastCalledWith(2)
+    pop(1) // The restore finally lands on the origin.
+    fireEvent.click(screen.getByRole('button', { name: 'Leave without saving' }))
+    expect(history.go).toHaveBeenLastCalledWith(-1)
+  })
   it('tracks an approved traversal retained after interrupted RSC before guarding another Back', () => {
     render(<Harness />)
     pop(0)

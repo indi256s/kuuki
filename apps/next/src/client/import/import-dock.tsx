@@ -94,7 +94,7 @@ export function itemOf(
   if (state.phase !== 'ready' || !review) return null
   const groups = partition(state.drafts)
   const total = groups.active.length + groups.duplicates.length
-  if (state.partial)
+  if (state.stopped)
     return {
       ...base,
       kind: 'stopped',

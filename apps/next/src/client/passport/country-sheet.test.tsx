@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -832,6 +832,87 @@ describe('CountrySheet add-visit form during a save', () => {
     await waitFor(() => expect(mocks.acknowledge).toHaveBeenCalled())
     expect(within(next).getByRole('textbox', { name: /^Year/ })).toHaveValue('2021')
     expect(within(next).getByRole('textbox', { name: /^Note/ })).toHaveValue('Paris')
+  })
+
+  it('closes an edit whose visit disappeared in a refetch', async () => {
+    const user = userEvent.setup()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    mocks.get.mockResolvedValue(detail({}))
+    render(<Switchable client={client} code="GR" />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.click(
+      await within(dialog).findByRole('button', { name: 'Edit visit: 2018 · by sea' }),
+    )
+    expect(within(dialog).getByRole('heading', { name: 'Edit visit' })).toBeInTheDocument()
+    mocks.get.mockResolvedValue(
+      detail({
+        groundVisits: detail({}).groundVisits.filter((visit) => visit.id !== 'g1'),
+        entries: detail({}).entries.filter((item) => !('id' in item) || item.id !== 'g1'),
+      }),
+    )
+    await client.invalidateQueries()
+    await waitFor(() =>
+      expect(within(dialog).queryByRole('button', { name: /Edit visit: 2018/ })).toBeNull(),
+    )
+    expect(within(dialog).queryByRole('heading', { name: 'Edit visit' })).toBeNull()
+    expect(within(dialog).queryByRole('button', { name: 'Save changes' })).toBeNull()
+  })
+
+  it('does not start a save while a hide is in flight', async () => {
+    const user = userEvent.setup()
+    mocks.put.mockReturnValue(new Promise(() => {}))
+    mount(detail({}))
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await openForm(user, dialog), '2020')
+    await countryAction(user, dialog, 'Hide from passport')
+    await waitFor(() => expect(mocks.put).toHaveBeenCalled())
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    expect(mocks.addVisit).not.toHaveBeenCalled()
+  })
+
+  it('does not carry a save in flight over to the next country', async () => {
+    const user = userEvent.setup()
+    mocks.get.mockImplementation(async (url: string) =>
+      url.includes('/FR/') ? france : detail({}),
+    )
+    held()
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const { rerender } = render(<Switchable client={client} code="GR" />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await openForm(user, dialog), '2020')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
+    rerender(<Switchable client={client} code="FR" />)
+    const next = await screen.findByRole('dialog', { name: 'France' })
+    await openForm(user, next)
+    expect(within(next).queryByRole('button', { name: 'Saving…' })).toBeNull()
+    expect(within(next).getByRole('button', { name: 'Add visit' })).toBeEnabled()
+  })
+
+  it('does not let a save from an earlier visit to the country unlock a newer save', async () => {
+    const user = userEvent.setup()
+    mocks.get.mockImplementation(async (url: string) =>
+      url.includes('/FR/') ? france : detail({}),
+    )
+    let releaseFirst = () => {}
+    mocks.addVisit
+      .mockReturnValueOnce(new Promise((resolve) => (releaseFirst = () => resolve(ack))))
+      .mockReturnValueOnce(new Promise(() => {}))
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const { rerender } = render(<Switchable client={client} code="GR" />)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await openForm(user, dialog), '2020')
+    await user.click(within(dialog).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(1))
+    rerender(<Switchable client={client} code="FR" />)
+    await screen.findByRole('dialog', { name: 'France' })
+    rerender(<Switchable client={client} code="GR" />)
+    const again = await screen.findByRole('dialog', { name: 'Greece' })
+    await user.type(await openForm(user, again), '2021')
+    await user.click(within(again).getByRole('button', { name: 'Add visit' }))
+    await waitFor(() => expect(mocks.addVisit).toHaveBeenCalledTimes(2))
+    await act(async () => releaseFirst())
+    expect(within(again).getByRole('button', { name: 'Saving…' })).toBeInTheDocument()
   })
 })
 

@@ -1,6 +1,6 @@
 import { generateToken, hashPassword, newId, sha256Hex } from './crypto'
 import type { MailSender } from './activationSender'
-import { getUserByEmail } from './users'
+import { getUserByEmail, accountPhase, activeSql } from './users'
 import { nowIso, isoPlusSeconds } from './time'
 import { HttpError } from './http'
 
@@ -29,7 +29,7 @@ export async function requestPasswordRecovery(
   sender: MailSender,
 ): Promise<void> {
   const user = await getUserByEmail(db, email)
-  if (!user || user.password_hash === 'RESET_REQUIRED') return
+  if (!user || accountPhase(user.password_hash) === 'unclaimed') return
   const credential = await db
     .prepare(
       `SELECT id FROM auth_accounts WHERE userId = ? AND providerId = 'credential' AND password IS NOT NULL`,
@@ -44,7 +44,7 @@ export async function requestPasswordRecovery(
     .prepare(`INSERT INTO auth_verifications (id, identifier, value, expiresAt, createdAt, updatedAt)
     SELECT ?, ?, ?, ?, ?, ? WHERE EXISTS (
       SELECT 1 FROM users u JOIN auth_accounts a ON a.userId = u.id AND a.providerId = 'credential'
-      WHERE u.id = ? AND u.password_hash <> 'RESET_REQUIRED' AND a.password IS NOT NULL
+      WHERE u.id = ? AND ${activeSql('u.password_hash')} AND a.password IS NOT NULL
     )`)
     .bind(
       `${PREFIX}${hash}`,
@@ -92,11 +92,11 @@ export async function completePasswordRecovery(
     db
       .prepare(`UPDATE auth_verifications SET value = ?, updatedAt = ? WHERE id = ? AND value = ? AND expiresAt > ?
       AND EXISTS (SELECT 1 FROM users u JOIN auth_accounts a ON a.userId = u.id AND a.providerId = 'credential'
-        WHERE u.id = substr(auth_verifications.identifier, ${PREFIX.length + 1}) AND u.password_hash <> 'RESET_REQUIRED' AND a.password IS NOT NULL)`)
+        WHERE u.id = substr(auth_verifications.identifier, ${PREFIX.length + 1}) AND ${activeSql('u.password_hash')} AND a.password IS NOT NULL)`)
       .bind(claim, now, id, hash, now),
     db
       .prepare(
-        `UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE id = ${owner} AND password_hash <> 'RESET_REQUIRED'`,
+        `UPDATE users SET password_hash = ?, email_verified = 1, updated_at = ? WHERE id = ${owner} AND ${activeSql()}`,
       )
       .bind(passwordHash, now, id, claim),
     db

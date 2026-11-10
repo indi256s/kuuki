@@ -206,6 +206,22 @@ describe('FlightsStep states', () => {
   })
 })
 
+describe('FlightsStep rejected source', () => {
+  it('never sends an oversized paste when the connection comes back', async () => {
+    m.submit.mockRejectedValue(new TypeError('Failed to fetch'))
+    setup()
+    pasteOn(document, V2)
+    expect(await screen.findByRole('button', { name: 'Try now' })).toBeInTheDocument()
+    expect(m.submit).toHaveBeenCalledTimes(1)
+    const huge = 'x'.repeat(100_001)
+    pasteOn(document, huge)
+    await act(async () => {
+      window.dispatchEvent(new Event('online'))
+    })
+    for (const call of m.submit.mock.calls) expect(call[0].content).not.toBe(huge)
+  })
+})
+
 describe('FlightsStep silent clipboard read (O16)', () => {
   const clipboard = (text: string) => {
     const readText = vi.fn(async () => text)
@@ -269,4 +285,14 @@ describe('FlightsStep keep exploring', () => {
       expect(onSkip).toHaveBeenCalledTimes(1)
     },
   )
+
+  it('offers "Keep exploring" after 20 s of a bound batch resumed on reload', async () => {
+    vi.useFakeTimers()
+    setup({ jobs: true, batch: 'b1' })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_100)
+    })
+    expect(m.submit).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Keep exploring' })).toBeInTheDocument()
+  })
 })

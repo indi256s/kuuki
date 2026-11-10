@@ -146,6 +146,7 @@ export function ConcordeField() {
       if (!frame) {
         speed = spin = 0
         launching = false
+        drawNext = false
         flame?.reset()
       }
     }

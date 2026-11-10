@@ -75,4 +75,19 @@ describe('MenuTray', () => {
     await user.keyboard('{Enter}')
     expect(await screen.findByRole('menu')).toHaveAttribute('data-instant', '')
   })
+
+  it('forgets the keyboard once closed, so a controlled open animates again', async () => {
+    const user = userEvent.setup()
+    const tree = (open: boolean) => (
+      <Menu open={open} trigger={<button type="button">Open</button>}>
+        <MenuItem>First</MenuItem>
+      </Menu>
+    )
+    const { rerender } = render(tree(true))
+    await user.keyboard('{ArrowDown}')
+    expect(await screen.findByRole('menu')).toHaveAttribute('data-instant', '')
+    rerender(tree(false))
+    rerender(tree(true))
+    expect(await screen.findByRole('menu')).not.toHaveAttribute('data-instant')
+  })
 })

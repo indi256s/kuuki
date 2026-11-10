@@ -316,6 +316,30 @@ describe('ground journeys API', () => {
     }
   })
 
+  it('refuses to update a cancelled journey like any other illegal transition', async () => {
+    const t = await setup()
+    try {
+      const id = await t.createPlanned()
+      await t.patch(id, { action: 'cancel', operationKey: key(), expectedVersion: 1 })
+      const before = await t.revision()
+      const refused = await t.patch(id, {
+        action: 'update',
+        operationKey: key(),
+        expectedVersion: 2,
+        journey: rail({ title: 'Edited while cancelled' }),
+      })
+      expect(refused.status).toBe(409)
+      expect(refused.body.code).toBe('STATE_CONFLICT')
+      expect(refused.body.cause).toBe('illegal_transition')
+      expect(await t.revision()).toBe(before)
+      expect(await t.get(id)).toMatchObject({
+        body: { status: 'cancelled', version: 2, title: 'Paris to Lyon' },
+      })
+    } finally {
+      await t.dispose()
+    }
+  })
+
   it('accepts an undated completed journey', async () => {
     const t = await setup()
     try {

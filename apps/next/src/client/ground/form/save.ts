@@ -155,7 +155,13 @@ export type SaveState =
       notFound: boolean
       checkFailed: boolean
     }
-  | { phase: 'conflict'; command: GroundCommand; current: GroundJourneyDto | null }
+  | {
+      phase: 'conflict'
+      command: GroundCommand
+      current: GroundJourneyDto | null
+      /** Reading the saved version again; belongs to this conflict, so a new conflict starts from idle. */
+      reread: 'idle' | 'reading' | 'failed'
+    }
   | { phase: 'gone' }
   | { phase: 'rejected'; message: string }
 
@@ -166,6 +172,8 @@ export type SaveEvent =
   | { type: 'check-done'; outcome: CheckOutcome }
   | { type: 'dismiss' }
   | { type: 'conflict-read'; current: GroundJourneyDto }
+  | { type: 'reread-start' }
+  | { type: 'reread-done'; failed: boolean }
 
 /** `saved` and `aborted` are handled by the caller (navigate / nothing); the reducer returns to idle for them. */
 export function saveReducer(state: SaveState, event: SaveEvent): SaveState {
@@ -177,7 +185,7 @@ export function saveReducer(state: SaveState, event: SaveEvent): SaveState {
       if (outcome.kind === 'unknown')
         return { phase: 'unknown', command, checking: false, notFound: false, checkFailed: false }
       if (outcome.kind === 'conflict')
-        return { phase: 'conflict', command, current: outcome.current }
+        return { phase: 'conflict', command, current: outcome.current, reread: 'idle' }
       if (outcome.kind === 'gone') return { phase: 'gone' }
       if (outcome.kind === 'rejected') return { phase: 'rejected', message: outcome.message }
       return { phase: 'idle' }
@@ -199,6 +207,14 @@ export function saveReducer(state: SaveState, event: SaveEvent): SaveState {
     case 'dismiss':
       return { phase: 'idle' }
     case 'conflict-read':
-      return state.phase === 'conflict' ? { ...state, current: event.current } : state
+      return state.phase === 'conflict'
+        ? { ...state, current: event.current, reread: 'idle' }
+        : state
+    case 'reread-start':
+      return state.phase === 'conflict' ? { ...state, reread: 'reading' } : state
+    case 'reread-done':
+      return state.phase === 'conflict'
+        ? { ...state, reread: event.failed ? 'failed' : 'idle' }
+        : state
   }
 }

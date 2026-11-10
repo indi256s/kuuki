@@ -17,16 +17,22 @@ const mocks = vi.hoisted(() => ({
   remove: vi.fn(),
   recent: vi.fn(),
   acknowledge: vi.fn(),
+  post: vi.fn(),
   refresh: vi.fn(),
   push: vi.fn(),
 }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mocks.refresh, push: mocks.push }),
 }))
-vi.mock('./flight-writes', () => ({
+vi.mock('./flight-writes', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./flight-writes')>()),
   createFlight: mocks.create,
   updateFlight: mocks.update,
 }))
+vi.mock('@kuuki/client/apiClient', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@kuuki/client/apiClient')>()
+  return { ...actual, api: { ...actual.api, post: mocks.post } }
+})
 vi.mock('@kuuki/client/flights', () => ({
   getFlight: mocks.get,
   checkDuplicateFlight: mocks.duplicate,
@@ -166,6 +172,26 @@ describe.each(['en', 'ru'] as const)('manual flight (%s)', (locale) => {
 
 describe('manual flight', () => {
   const locale = 'en' as Locale
+  it('stays saveable after the server refuses the details of a first save', async () => {
+    const { createFlight } =
+      await vi.importActual<typeof import('./flight-writes')>('./flight-writes')
+    mocks.create.mockImplementation(createFlight)
+    mocks.post.mockRejectedValueOnce(new ApiError(400, 'Invalid flight', 'INVALID_FLIGHT'))
+    mocks.post.mockResolvedValueOnce({ id: 8, derived_state: 'ready' })
+    render(<FlightForm ownerId="a" locale={locale} />)
+    await fill(locale)
+    fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true })
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(1))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: words[locale].save })).toBeEnabled(),
+    )
+    expect(screen.queryByText(/unconfirmed/i)).toBeNull()
+    fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true })
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(2))
+    expect(mocks.post.mock.calls[1][2].headers['Idempotency-Key']).not.toBe(
+      mocks.post.mock.calls[0][2].headers['Idempotency-Key'],
+    )
+  })
   it('creates with route/date only via keyboard and publishes the acknowledgement', async () => {
     const onSaved = vi.fn()
     render(<FlightForm ownerId="a" locale={locale} onSaved={onSaved} />)
