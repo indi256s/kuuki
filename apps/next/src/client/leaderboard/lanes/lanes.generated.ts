@@ -22,13 +22,17 @@ import art_DH8B from './art/DH8B.svg'
 import art_GENERIC from './art/GENERIC.svg'
 import art_rail from './art/rail.svg'
 import art_road from './art/road.svg'
+import art_sea from './art/sea.svg'
+import art_other from './art/other.svg'
 
 export const LANE_TYPES = ["A20N","A21N","A319","A320","A321","A332","A333","A359","A35K","A388","B38M","B733","B738","B763","B77W","B788","DH8B","E170","E195","GENERIC","SU95"] as const
 export type LaneVehicleKey = (typeof LANE_TYPES)[number] | 'rail' | 'road'
+/** The Passport atlas's own vehicles, never on a lane. */
+export type AtlasVehicleKey = 'sea' | 'other'
 
 /** Static imports resolve to a URL string under Vite and to image data under Next. */
 type Asset = string | { src: string }
-export const laneArt: Record<LaneVehicleKey, Asset> = {
+export const laneArt: Record<LaneVehicleKey | AtlasVehicleKey, Asset> = {
   A319: art_A319,
   A320: art_A320,
   A20N: art_A20N,
@@ -52,16 +56,21 @@ export const laneArt: Record<LaneVehicleKey, Asset> = {
   GENERIC: art_GENERIC,
   rail: art_rail,
   road: art_road,
+  sea: art_sea,
+  other: art_other,
 }
 
 /**
  * Per family: the shared viewBox; as fractions of it, where the nose stands, where the centre line meets the ground and
  * the taxiway strip's half-height; the strip's slant across the lane (skewX, deg); the reference's drawn length. The
- * ground family adds the locomotive's bed: its half-height and the rails' offset from the centre line.
+ * ground family adds the locomotive's bed: its half-height and the rails' offset from the centre line. The atlas's own
+ * vehicles (sea, other) each have a frame of their own.
  */
 export const laneGeometry = {
   air: {"viewBox":[-168.08,-72.66,171.49,115.42],"nose":0.9802,"ground":0.6295,"deck":0.1337,"skew":-39.66,"unit":112},
-  ground: {"viewBox":[-137.35,-45.76,142.65,62.26],"nose":0.9628,"ground":0.735,"deck":0.3758,"skew":-29.21,"unit":112,"rail":{"offset":0.0435,"deck":0.1047}},
+  ground: {"viewBox":[-137.35,-45.76,142.57,62.26],"nose":0.9634,"ground":0.735,"deck":0.3758,"skew":-29.21,"unit":112,"rail":{"offset":0.0435,"deck":0.1047}},
+  sea: {"viewBox":[-142.33,-149.76,146.94,164.3],"nose":0.9686,"ground":0.9115,"deck":0.1163,"skew":-29.21,"unit":112},
+  other: {"viewBox":[-112.74,-161.57,118.38,167.31],"nose":0.9524,"ground":0.9657,"deck":0.0398,"skew":-29.21,"unit":112},
 } as const
 
 /** Each airliner: its name and measured length and span (m), its own frame and its upper beacon, in viewBox units. */

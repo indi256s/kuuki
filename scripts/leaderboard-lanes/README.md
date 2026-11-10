@@ -16,8 +16,11 @@ along the lane. Air uses the pinned kit's 62° azimuth; ground inherits the rota
   Concorde pins: install it as
   [scripts/concorde/README.md](../concorde/README.md) describes;
   `verify-kit.mjs` checks it before any kit code runs.
-- Locomotive: `apps/next/src/client/leaderboard/lanes/draw/ground.ts` (Trains),
-  with the app's iso `Scene` and ladder parts through `draw/lane-scene.ts`.
+- Locomotive: `scripts/leaderboard-lanes/locomotive/` (Trains), an electric
+  locomotive with two pantographs, roof equipment, bogies and an underframe;
+  member colour is the livery band. `model.ts` holds the lane contract
+  (`LENGTH` over buffers, the `RAIL` half-gauge) and the body surfaces; the
+  camera is derived from `LaneScene`, as the car's is.
 - Car: `scripts/leaderboard-lanes/car/` (Cars), a 993-inspired coupé with open
   wheel arches, curved body and cabin skins, sealed glazing, raised lamps,
   mirrors and detailed five-spoke wheels. The shell stays neutral; member colour
@@ -28,6 +31,12 @@ along the lane. Air uses the pinned kit's 62° azimuth; ground inherits the rota
   Model envelope: 4.245 × 1.735 × 1.30m and 2.272m wheelbase. Factory length,
   width and wheelbase are supported by the
   [FIA's Porsche 993 homologation form](https://historicdb.fia.com/sites/default/files/car_attachment/1601073601/homologation_form_number_4_group_gt2.pdf).
+- Passport atlas only (never on a lane): the sailing yacht
+  (`scripts/leaderboard-lanes/yacht/`, `sea`) and the hot-air balloon
+  (`scripts/leaderboard-lanes/balloon/`, `other`), each in a frame of its own
+  (`laneGeometry.sea`, `.other`, keys typed `AtlasVehicleKey`), so neither
+  resizes the ground lanes. Their sail, cloth and wicker ramps are `YACHT_CSS`
+  and `BALLOON_CSS`.
   Intermediate skin stations, trim and wheel details are illustrative estimates.
   `pnpm exec tsx scripts/leaderboard-lanes/car/preview.ts` writes offline,
   inline previews under `.scratch/car-anatomy/{light,dark}.html`, with a close-up

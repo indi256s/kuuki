@@ -28,11 +28,15 @@
   /* A transition, not keyframes: a close during the lift turns back from where it is. */
   transition: scale var(--dur-base) var(--ease-out);
 }
-.atlas-sticker[data-phase='closing'] {
+.atlas-sticker:is([data-phase='closing'], [data-phase='crossing']) {
   scale: 1;
   transition-duration: var(--dur-fast);
 }
-/* The lift's shadow (sticker.tsx): its own layer, so the tear only fades it. */
+/* Crossing: the vehicle carries the moment; the name leaves at once. */
+.atlas-sticker[data-phase='crossing'] .atlas-sticker-name {
+  opacity: 0;
+}
+/* The lift's shadow (sticker.tsx): its own layer, so closing and the crossing only fade it. */
 .atlas-sticker-shadow {
   position: absolute;
   inset: 0;
@@ -50,15 +54,11 @@
     scale var(--dur-base) var(--ease-out),
     translate var(--dur-base) var(--ease-out);
 }
-.atlas-sticker-shadow[data-phase='closing'] {
+.atlas-sticker-shadow:is([data-phase='closing'], [data-phase='crossing']) {
   opacity: 0;
   scale: 1;
   translate: 0 0;
   transition-duration: var(--dur-fast);
-}
-/* The tear sets the opacity every frame; a transition would trail it. */
-.atlas-sticker-shadow[data-phase='tearing'] {
-  transition: none;
 }
 @starting-style {
   .atlas-sticker {
@@ -71,7 +71,10 @@
   }
   .atlas-sticker-tabs {
     opacity: 0;
-    translate: 0 4px;
+    translate: 0 -4px;
+  }
+  .atlas-tag-string {
+    opacity: 0;
   }
 }
 .atlas-sticker-face {
@@ -82,20 +85,13 @@
   /* The camera scales the drawing; the stroke stays 1.5px. */
   vector-effect: non-scaling-stroke;
 }
-/* The paper back of the peeled flap. */
-.atlas-sticker-back {
-  fill: var(--surface);
-  stroke: var(--map-border);
-  stroke-width: 0.75;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
 .atlas-sticker-name {
   fill: var(--text);
   font-size: 0.75rem;
   font-weight: 600;
   dominant-baseline: middle;
   pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 /* Undo and failure: the sticker fades back over the country before the fill returns underneath it. */
 .atlas-sticker-ghost {
@@ -107,58 +103,214 @@
   }
 }
 
+/* The baggage tag (sticker.tsx): a wrapper placed in screen space, the swinging tag inside it (WAAPI rotates it about
+   its eyelet), a head with the ISO3 code, and tear-off stubs. The paper is split into parts so a tear can fade the
+   rest while the torn stub falls. */
 .atlas-sticker-tabs {
   position: absolute;
   top: 0;
   left: 0;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 2px;
   pointer-events: auto;
+  filter: var(--filter-floating);
   transition:
     opacity var(--dur-base) var(--ease-out),
     translate var(--dur-base) var(--ease-out);
 }
-.atlas-sticker-tabs[data-phase='closing'],
-.atlas-sticker-tabs[data-phase='tearing'] {
+.atlas-sticker-tabs[data-phase='closing'] {
   opacity: 0;
   pointer-events: none;
   transition-duration: var(--dur-fast);
 }
-/* Tabs hang in screen space, so they wait while the camera moves and return on moveend. */
+.atlas-sticker-tabs[data-phase='crossing'] {
+  pointer-events: none;
+}
+.atlas-sticker-tabs[data-phase='crossing']
+  :is(.atlas-tag-head, .atlas-sticker-tab:not([data-torn])) {
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+/* The tag waits while the camera moves and returns on moveend (it hangs in screen space). */
 .atlas-sticker-layer[data-moving] .atlas-sticker-tabs {
   opacity: 0;
   pointer-events: none;
 }
-/* Tear-off tabs: perforated paper stubs, part of the sticker rather than a panel. */
-.atlas-sticker-tab {
-  min-height: 44px;
-  min-width: 0;
-  padding: var(--space-1) var(--space-2);
-  border: 1px dashed var(--map-border);
-  border-top-style: dotted;
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  background: var(--surface);
+.atlas-tag-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  height: 56px;
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--surface-floating);
+}
+/* Centred 10px below the top edge (EYELET in sticker.tsx); the string ends here. */
+.atlas-tag-eyelet {
+  position: absolute;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--background);
+  box-shadow: 0 0 0 1.5px var(--map-border);
+}
+.atlas-tag-code {
   color: var(--text);
-  font-size: 0.8rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+.atlas-tag-barcode {
+  flex: none;
+  width: 72px;
+  height: 24px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--text-muted) 0 2px,
+    transparent 2px 4px,
+    var(--text-muted) 4px 5px,
+    transparent 5px 8px
+  );
+}
+.atlas-tag-stubs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+/* A stub: the perforation runs along its top and between stubs. */
+.atlas-sticker-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: 64px;
+  min-width: 0;
+  padding: var(--space-1) 2px;
+  border: 0;
+  background: var(--surface-floating);
+  /* Perforation: real holes along the top edge (the map shows through), and down the left edge between stubs. */
+  mask-image: radial-gradient(circle at 3.5px 0, transparent 1.75px, black 2.25px);
+  mask-size: 7px 100%;
+  mask-repeat: repeat-x;
+  color: var(--text);
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.2;
   overflow-wrap: anywhere;
+  transform-origin: 50% 0;
+  /* A pulled stub follows the finger (--pull, set while held); released short, it returns. */
+  translate: 0 var(--pull, 0px);
+  transition:
+    scale var(--dur-press) var(--ease-out),
+    translate var(--dur-base) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
   touch-action: none;
   user-select: none;
   cursor: grab;
 }
-.atlas-sticker-tab:active {
-  cursor: grabbing;
+.atlas-sticker-tab + .atlas-sticker-tab {
+  mask-image:
+    radial-gradient(circle at 3.5px 0, transparent 1.75px, black 2.25px),
+    radial-gradient(circle at 0 3.5px, transparent 1.75px, black 2.25px);
+  mask-size:
+    7px 100%,
+    100% 7px;
+  mask-repeat: repeat-x, repeat-y;
+  mask-composite: intersect;
+}
+.atlas-sticker-tab:first-child {
+  border-bottom-left-radius: var(--radius-sm);
+}
+.atlas-sticker-tab:last-child {
+  border-bottom-right-radius: var(--radius-sm);
+}
+/* Notches where the stubs tear from the head, cut through like the holes. */
+.atlas-tag {
+  mask-image:
+    radial-gradient(circle at 0 56px, transparent 5px, black 5.5px),
+    radial-gradient(circle at 100% 56px, transparent 5px, black 5.5px);
+  /* Repeats rather than clips, so a torn stub falling below the tag is not cut off (the next notch is 120px lower). */
+  mask-repeat: repeat;
+  mask-size: 100% 100%;
+  mask-composite: intersect;
 }
 .atlas-sticker-tab:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 @media (hover: hover) and (pointer: fine) {
   .atlas-sticker-tab:hover {
-    background: var(--surface-inset);
-    transition: background-color var(--dur-fast) var(--ease-out);
+    background: color-mix(in srgb, var(--surface-floating), var(--text) 6%);
+  }
+}
+.atlas-sticker-tab:active {
+  cursor: grabbing;
+  scale: 0.97;
+}
+.atlas-sticker-tab[data-dragging] {
+  transition: scale var(--dur-press) var(--ease-out);
+}
+/* The torn stub drops away from its perforation, from wherever the finger left it. */
+.atlas-sticker-tab[data-torn] {
+  translate: 0 calc(var(--pull, 0px) + 12px);
+  rotate: 6deg;
+  opacity: 0;
+  transition:
+    translate var(--dur-base) var(--ease-out),
+    rotate var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) linear 50ms;
+}
+/* The string lives in the sticker's space (sticker.tsx TagString) and leaves with the tag. */
+.atlas-tag-string {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.atlas-sticker:is([data-phase='closing'], [data-phase='crossing']) .atlas-tag-string,
+.atlas-sticker-layer[data-moving] .atlas-tag-string {
+  opacity: 0;
+}
+
+/* The way's vehicle crossing the country (sticker.tsx); lane art, so it carries the lane ramps. */
+.atlas-vehicle {
+  pointer-events: none;
+}
+.atlas-vehicle-shadow {
+  fill: var(--atlas-sticker-shadow);
+  filter: blur(3px);
+}
+/* The yacht rides a swell and the balloon drifts: a slow bob, out of step with the crossing's own ease. */
+.atlas-vehicle:is([data-way='sea'], [data-way='other']) .atlas-vehicle-bob {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: atlas-vehicle-bob 700ms ease-in-out infinite alternate;
+}
+.atlas-vehicle[data-way='sea'] .atlas-vehicle-bob {
+  animation-name: atlas-vehicle-rock;
+}
+@keyframes atlas-vehicle-bob {
+  from {
+    translate: 0 -1.5px;
+  }
+  to {
+    translate: 0 1.5px;
+  }
+}
+@keyframes atlas-vehicle-rock {
+  from {
+    translate: 0 -1px;
+    rotate: -1.5deg;
+  }
+  to {
+    translate: 0 1px;
+    rotate: 1.5deg;
   }
 }
 
@@ -173,7 +325,7 @@
   opacity: 0;
 }
 
-/* Reduced motion: an outline highlight instead of the lift; the tear is the sticker's and the stamp's opacity. */
+/* Reduced motion: an outline highlight instead of the lift; no vehicle, the cover and the stamp crossfade. */
 @media (prefers-reduced-motion: reduce) {
   .atlas-sticker,
   .atlas-sticker[data-phase='closing'] {
@@ -184,12 +336,17 @@
     stroke: var(--accent-text);
     stroke-width: 2;
   }
-  .atlas-sticker[data-phase='tearing'] {
+  .atlas-sticker[data-phase='crossing'] {
     opacity: 0 !important;
   }
   .atlas-sticker-tabs {
     translate: none;
     transition: opacity var(--dur-fast) linear;
+  }
+  .atlas-sticker-tab,
+  .atlas-sticker-tab[data-torn] {
+    translate: none;
+    rotate: none;
   }
   .atlas-sticker-stamp {
     animation: atlas-sticker-fade-in var(--dur-fast) linear;

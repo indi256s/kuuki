@@ -12,6 +12,7 @@ import { countryNamer } from '../model'
 import { markSeen } from '../new-stamps'
 import { visitFlightHref, wayPayload, type VisitWay } from '../visit-ways'
 import { RecordedToast, recordedMessage } from './recorded-toast'
+import { seaRemark } from './sea-remark'
 
 /** How long the recorded toast, and with it the landed stamp, stays (held while its year wheel is open). */
 const RECORDED_TOAST_MS = 8000
@@ -172,6 +173,7 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
         shown = latest.current.toast.show({
           kind: 'success',
           message: recordedMessage(country),
+          description: way === 'sea' ? seaRemark(code, country) : undefined,
           duration: RECORDED_TOAST_MS,
           content: (controls) =>
             createElement(RecordedToast, { controls, country, setYear, undo, flightHref }),

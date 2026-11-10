@@ -55,7 +55,7 @@ export const halfWidth = profile([
   [4.1, 0.68],
   [LENGTH, 0.5],
 ])
-const belt = profile([
+export const belt = profile([
   [0, 0.52],
   [0.2, 0.65],
   [0.65, 0.78],

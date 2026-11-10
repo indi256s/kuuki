@@ -14,7 +14,7 @@ vi.mock('../../write-feedback', () => ({
   useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }),
 }))
 vi.mock('../../ui/use-mobile', () => ({ useMobile: () => false }))
-// Tween stand-in: runs to its end on demand, so the tests decide when a fold finishes.
+// Tween stand-in: runs to its end on demand, so the tests decide when a crossing finishes.
 const tweens = vi.hoisted(() => ({
   running: [] as {
     keys: number[]
@@ -144,6 +144,14 @@ const lift = async () => {
 }
 const inked = () => screen.getByRole('status', { name: 'Inked' }).textContent
 const tab = (name: string) => screen.getByRole('button', { name })
+/** The crossing's tween: its frames, and its end (the vehicle leaving the far edge). */
+const crossing = () => tweens.running.find((tween) => tween.to === 1)
+const arrive = () => act(() => crossing()?.onComplete?.())
+const pull = (stub: HTMLElement, ...ys: number[]) => {
+  fireEvent.pointerDown(stub, { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
+  for (const y of ys) fireEvent.pointerMove(stub, { pointerId: 1, clientX: 200, clientY: y })
+  fireEvent.pointerUp(stub, { pointerId: 1, clientX: 200, clientY: ys.at(-1) })
+}
 
 beforeEach(() => {
   camera.scale = 1
@@ -170,9 +178,12 @@ it('focuses the first way and a Train tap writes a land visit by rail', async ()
     mode: 'rail',
   })
   expect(inked()).toBe('DE')
-  // The toast arrives with the stamp's impact, three quarters into the tear.
+  // The train crosses first; the stamp and the toast arrive as it leaves.
+  expect(document.querySelector('.atlas-vehicle')).toHaveAttribute('data-way', 'rail')
   expect(screen.queryByText('Germany is in your passport.')).not.toBeInTheDocument()
-  await act(async () => vi.advanceTimersByTime(240))
+  arrive()
+  await flush()
+  expect(document.querySelector('.atlas-vehicle')).toBeNull()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   expect(refresh).toHaveBeenCalled()
   // The refreshed collection has it now; the optimistic ink goes.
@@ -188,7 +199,8 @@ it('records an air visit without requiring a flight and offers capture only afte
     entryMethod: 'air',
     mode: null,
   })
-  await act(async () => vi.advanceTimersByTime(240))
+  arrive()
+  await flush()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'Add flight' })).not.toBeInTheDocument()
   await act(async () => write.resolve({ id: 'air-visit', derived_state: 'ready' }))
@@ -199,18 +211,34 @@ it('records an air visit without requiring a flight and offers capture only afte
   expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
 })
 
-it('springs back without writing when a pull is released before the threshold', async () => {
+it('inks behind the vehicle: the cover over the country is clipped at its middle', async () => {
+  api.add.mockResolvedValue({ id: 'v1', derived_state: 'ready' })
+  await lift()
+  fireEvent.click(tab('By car'))
+  expect(crossing()!.keys).toEqual([0, 1])
+  // Germany spans 100–300 px; halfway, the 72 px car's nose is at 100 + 0.5 × (200 + 72) and its middle 36 px behind.
+  act(() => crossing()!.onUpdate?.(0.5))
+  expect(document.querySelector('.atlas-sticker clipPath rect')).toHaveAttribute('x', '200')
+})
+
+it('a stub pulled down returns without writing when released short of tearing', async () => {
   await lift()
   const train = tab('By train')
-  // The tab hangs under the sticker (screen 100–300); a 60 px pull folds a tenth of it.
-  train.getBoundingClientRect = () => ({ left: 180, top: 310, width: 40, height: 44 }) as DOMRect
-  fireEvent.pointerDown(train, { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
-  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 260 })
-  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 260 })
+  pull(train, 330)
   fireEvent.click(train)
-  expect(tweens.running.map((tween) => tween.to)).toEqual([0])
+  expect(train.style.getPropertyValue('--pull')).toBe('0px')
   expect(api.add).not.toHaveBeenCalled()
   expect(inked()).toBe('')
+})
+
+it('a stub pulled down past its perforation tears', async () => {
+  api.add.mockResolvedValue({ id: 'v2', derived_state: 'ready' })
+  await lift()
+  pull(tab('By train'), 330, 360)
+  expect(api.add).toHaveBeenCalledExactlyOnceWith('owner', 'DE', {
+    entryMethod: 'land',
+    mode: 'rail',
+  })
 })
 
 it('closes on Escape without writing and returns focus to the map', async () => {
@@ -229,7 +257,8 @@ it('Undo pressed before the write returns deletes exactly the created row once i
   await lift()
   fireEvent.click(tab('By car'))
   expect(api.add).toHaveBeenCalledWith('owner', 'DE', { entryMethod: 'land', mode: 'road' })
-  await act(async () => vi.advanceTimersByTime(240))
+  arrive()
+  await flush()
   fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
   expect(api.remove).not.toHaveBeenCalled()
   await act(async () => vi.advanceTimersByTime(150))
@@ -278,56 +307,58 @@ it('a later tear of the same country retires the earlier Retry', async () => {
   expect(api.add).toHaveBeenCalledTimes(2)
 })
 
-it('a sticker unmounted mid-tear still offers Undo for the write it started', async () => {
+it('a sticker unmounted mid-crossing still offers Undo for the write it started', async () => {
   api.add.mockResolvedValue({ id: 'v4', derived_state: 'ready' })
   const { view } = await lift()
   fireEvent.click(tab('By train'))
-  // A switch to Cards before the stamp's impact.
+  // A switch to Cards before the vehicle leaves.
   view.rerender(page(false))
   await flush()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
 })
 
-const pressTrain = async () => {
-  await lift()
-  const train = tab('By train')
-  train.getBoundingClientRect = () => ({ left: 180, top: 310, width: 40, height: 44 }) as DOMRect
-  fireEvent.pointerDown(train, { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
-  return train
-}
-
-it('a press lifts the corner at once and its tap tears from there, not from rest', async () => {
+it('a press cut short by the sticker closing does not block the next sticker', async () => {
   api.add.mockResolvedValue({ id: 'v5', derived_state: 'ready' })
-  const train = await pressTrain()
-  expect(tweens.running.map((tween) => tween.keys)).toEqual([[0, 0.06]])
-  act(() => tweens.running[0].onUpdate?.(0.06))
-  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 320 })
-  fireEvent.click(train)
-  expect(tweens.running.map((tween) => tween.keys)).toEqual([[0.06, 1]])
+  const { group } = await lift()
+  fireEvent.pointerDown(tab('By train'), { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
+  // Escape closes it before the finger lifts, so the stub never sees a pointerup.
+  fireEvent.keyDown(group, { key: 'Escape' })
+  await act(async () => vi.advanceTimersByTime(150))
+  expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
+  act(() => handle.current!.lift('DE'))
+  await flush()
+  pull(tab('By train'), 330, 360)
   expect(api.add).toHaveBeenCalledOnce()
+})
+
+it('a stale closing timer cannot finish a newer close of the same country', async () => {
+  const { group } = await lift()
+  fireEvent.keyDown(group, { key: 'Escape' })
+  await act(async () => vi.advanceTimersByTime(100))
+  act(() => handle.current!.lift('DE'))
+  await flush()
+  fireEvent.keyDown(screen.getByRole('group', { name: 'Germany' }), { key: 'Escape' })
+  // The first close would have ended here.
+  await act(async () => vi.advanceTimersByTime(100))
+  expect(screen.getByRole('group', { name: 'Germany' })).toBeInTheDocument()
+  await act(async () => vi.advanceTimersByTime(100))
+  expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
 })
 
 it('a flick tears by its momentum though released short of the threshold', async () => {
   api.add.mockResolvedValue({ id: 'v6', derived_state: 'ready' })
-  const train = await pressTrain()
-  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 305 })
+  await lift()
+  const train = tab('By train')
+  fireEvent.pointerDown(train, { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
+  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 327 })
   act(() => vi.advanceTimersByTime(16))
-  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 285 })
-  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 285 })
+  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 340 })
+  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 340 })
   expect(api.add).toHaveBeenCalledExactlyOnceWith('owner', 'DE', {
     entryMethod: 'land',
     mode: 'rail',
   })
-})
-
-it('a tab grabbed during its spring-back keeps the fold on screen', async () => {
-  const train = await pressTrain()
-  fireEvent.pointerMove(train, { pointerId: 1, clientX: 200, clientY: 260 })
-  fireEvent.pointerUp(train, { pointerId: 1, clientX: 200, clientY: 260 })
-  act(() => tweens.running.at(-1)!.onUpdate?.(0.2))
-  fireEvent.pointerDown(train, { pointerId: 2, button: 0, clientX: 200, clientY: 300 })
-  expect(tweens.running.at(-1)!.keys).toEqual([0.2, 0.2])
 })
 
 it('follows the camera synchronously on move: one transform, no frame and no React commit', async () => {
@@ -369,7 +400,8 @@ it('takes the year on the recorded toast: the open wheel holds the toast and the
   api.update.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 2 })
   await lift()
   fireEvent.click(tab('By train'))
-  await act(async () => vi.advanceTimersByTime(240))
+  arrive()
+  await flush()
   expect(stamp()).toBeInTheDocument()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Year of visit: no year' }))
@@ -405,8 +437,7 @@ it('keeps the country covered from lift until its landed stamp starts to leave',
   await lift()
   expect(covered).toHaveBeenLastCalledWith(['DE'])
   fireEvent.click(tab('By train'))
-  await act(async () => vi.advanceTimersByTime(240))
-  // The tear is over and the stamp prints the name: the map label stays off.
+  // The crossing is cut short and the stamp prints the name: the map label stays off.
   act(() => handle.current!.finish())
   expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
   expect(stamp()).toBeInTheDocument()

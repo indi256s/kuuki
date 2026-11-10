@@ -37,3 +37,25 @@
   --al1:color-mix(in oklab,var(--lv) 84%,black);--al0:color-mix(in oklab,var(--lv) 70%,black);--alp:var(--lv);
   --ais:color-mix(in oklab,var(--iso-crease) 60%,var(--iso-line));--aif:var(--iso-crease);
 }
+.lane-vehicle{
+  --ays4:color-mix(in oklab,var(--iso-top) 70%,white);--ays3:var(--iso-top);
+  --ays2:color-mix(in oklab,var(--iso-top) 60%,var(--iso-front));--ays1:color-mix(in oklab,var(--iso-front) 78%,var(--iso-side));
+  --ays0:color-mix(in oklab,var(--iso-side) 52%,var(--iso-front));--aysp:var(--ays3);
+  --ayw:color-mix(in oklab,var(--iso-top) 55%,var(--agp));--ayf:color-mix(in oklab,var(--iso-top) 80%,var(--ayw));
+}
+:root[data-theme='dark'] .lane-vehicle{
+  --ays4:white;--ays3:color-mix(in oklab,white 97%,var(--iso-front));
+  --ays2:color-mix(in oklab,white 93%,var(--iso-front));--ays1:color-mix(in oklab,white 86%,var(--iso-front));
+  --ays0:color-mix(in oklab,white 78%,var(--iso-front));--aysp:var(--ays3);
+  --ayw:color-mix(in oklab,var(--text) 22%,var(--agp));--ayf:color-mix(in oklab,var(--text) 55%,var(--ayw));
+}
+.lane-vehicle{--ac4:var(--ab4);--ac3:var(--ab3);--ac2:var(--ab2);--ac1:var(--ab1);--ac0:var(--ab0);--acp:var(--ab2);
+  --aw4:var(--am4);--aw3:var(--am3);--aw2:var(--am2);--aw1:var(--am1);--aw0:var(--am0);--awp:var(--amp)}
+:root[data-theme='dark'] .lane-vehicle{
+  --ac4:color-mix(in oklab,var(--text) 92%,var(--iso-front));--ac3:color-mix(in oklab,var(--text) 84%,var(--iso-front));
+  --ac2:color-mix(in oklab,var(--text) 74%,var(--iso-front));--ac1:color-mix(in oklab,var(--text) 62%,var(--iso-front));
+  --ac0:color-mix(in oklab,var(--text) 50%,var(--iso-front));--acp:var(--ac2);
+  --aw4:color-mix(in oklab,var(--text) 64%,var(--iso-front));--aw3:color-mix(in oklab,var(--text) 56%,var(--iso-front));
+  --aw2:color-mix(in oklab,var(--text) 48%,var(--iso-front));--aw1:color-mix(in oklab,var(--text) 40%,var(--iso-front));
+  --aw0:color-mix(in oklab,var(--text) 32%,var(--iso-front));--awp:var(--aw2);
+}
