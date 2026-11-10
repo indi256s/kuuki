@@ -245,8 +245,8 @@ export type Continent = 'europe' | 'asia' | 'americas' | 'africa' | 'oceania' | 
 // Stamp shape (regional variation)
 export type StampShape = 'circle' | 'rectangle'
 
-// Entry method for manual claims
-export type EntryMethod = 'land' | 'sea' | null
+// Entry method for manual visits; air evidence does not create a flight.
+export type EntryMethod = 'air' | 'land' | 'sea' | null
 
 // How a land visit crossed; only a land visit names one
 export type GroundVisitMode = 'rail' | 'road' | null
@@ -278,6 +278,7 @@ export interface GroundVisit {
   visitYear: number | null
   entryMethod: EntryMethod
   mode: GroundVisitMode
+  linkedFlightId?: number | null
   note: string | null
   createdAt: string | null
 }

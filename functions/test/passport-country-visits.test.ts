@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-import { readCountryDetail } from '../api/_services/passport'
-import { accountWith, USER, type FixtureFlight } from './country-fixture'
+import { readCountryDetail, readPassport } from '../api/_services/passport'
+import { accountWith, USER, publish, type FixtureFlight } from './country-fixture'
 
 const flight = (
   id: number,
@@ -109,3 +109,101 @@ it.each([
     await dispose()
   }
 })
+
+it.each([
+  {
+    name: 'logged arrival',
+    state: 'logged',
+    transit: null,
+    country: 'TR',
+    method: 'air',
+    active: false,
+  },
+  {
+    name: 'awaiting arrival',
+    state: 'awaiting',
+    transit: 0,
+    country: 'TR',
+    method: 'air',
+    active: true,
+  },
+  {
+    name: 'future arrival',
+    state: 'upcoming',
+    transit: null,
+    country: 'TR',
+    method: 'air',
+    active: true,
+  },
+  {
+    name: 'transit arrival',
+    state: 'logged',
+    transit: 1,
+    country: 'TR',
+    method: 'air',
+    active: true,
+  },
+  {
+    name: 'changed destination',
+    state: 'logged',
+    transit: null,
+    country: 'US',
+    method: 'air',
+    active: true,
+  },
+  {
+    name: 'changed manual entry method',
+    state: 'logged',
+    transit: null,
+    country: 'TR',
+    method: 'sea',
+    active: true,
+  },
+] as const)(
+  'preserves metadata and counts a linked manual visit correctly for $name',
+  async ({ state, transit, country, method, active }) => {
+    const { db, dispose } = await accountWith(
+      [flight(1, '2025-06-15', 'TBS', 'IST', { state, transit })],
+      (db) => [
+        db
+          .prepare(`INSERT INTO ground_visits
+    (id,user_id,country_code,visit_year,note,entry_method,linked_flight_id)
+    VALUES ('manual-air',?,?,2024,'Original memory',?,1)`)
+          .bind(USER.id, country, method),
+      ],
+    )
+    try {
+      const detail = await readCountryDetail(db, USER.id, country)
+      expect(detail.groundVisits).toContainEqual(
+        expect.objectContaining({
+          id: 'manual-air',
+          visitYear: 2024,
+          note: 'Original memory',
+          linkedFlightId: 1,
+        }),
+      )
+      expect(detail.entries.filter((entry) => entry.kind === 'ground')).toHaveLength(active ? 1 : 0)
+      const passport = await readPassport(db, USER.id)
+      expect(passport.groundVisits).toHaveLength(active ? 1 : 0)
+      expect(
+        passport.countries.find((row) => row.country_code === country)?.ground_visit_count,
+      ).toBe(active ? 1 : 0)
+      if (!active) {
+        expect(detail.totalVisits).toBe(1)
+        await db.prepare('DELETE FROM flights WHERE id = 1').run()
+        await publish(db)
+        const restored = await readCountryDetail(db, USER.id, country)
+        expect(restored.totalVisits).toBe(1)
+        expect(restored.entries).toContainEqual(
+          expect.objectContaining({ kind: 'ground', id: 'manual-air' }),
+        )
+        expect(restored.groundVisits[0]).toMatchObject({
+          note: 'Original memory',
+          linkedFlightId: null,
+        })
+      }
+    } finally {
+      await dispose()
+    }
+  },
+)

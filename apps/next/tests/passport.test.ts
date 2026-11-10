@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { claimUsername } from './helpers'
+import { claimUsername, fillManualFlight } from './helpers'
 
 let client = 0
 
@@ -202,4 +202,42 @@ test('a country is added from search, claimed, visited by sea, and removed with 
     data.getByRole('heading', { name: '246 countries are waiting for you' }),
   ).toBeVisible()
   await expect(page.locator('main h1')).toBeFocused()
+})
+
+test('an air visit survives optional capture cancellation and counts once after its flight is saved', async ({
+  page,
+  baseURL,
+}) => {
+  const { write } = await account(page, baseURL!)
+  const response = await write('POST', '/api/passport/ground-visits', {
+    countryCode: 'US',
+    entryMethod: 'air',
+    visitYear: 2025,
+  })
+  expect(response.status()).toBe(201)
+  const visit = (await response.json()) as { id: string }
+  await page.goto('/passport?country=US')
+  const country = page.getByRole('dialog', { name: 'United States' })
+  await country.getByRole('link', { name: 'Add flight', exact: true }).click()
+  await page.waitForURL(
+    (url) => url.pathname === '/add' && url.searchParams.get('passportVisit') === visit.id,
+  )
+  const capture = page.getByRole('dialog', { name: 'Add a flight' })
+  await capture.getByRole('button', { name: 'Close', exact: true }).click()
+  await expect(country.getByText('2025 · by plane')).toBeVisible()
+
+  await country.getByRole('link', { name: 'Add flight', exact: true }).click()
+  await expect(capture).toBeVisible()
+  await fillManualFlight(page)
+  await capture.getByRole('button', { name: 'Save flight', exact: true }).click()
+  await expect(country.getByRole('heading', { name: 'Visits · 1', exact: true })).toBeVisible()
+  const manualVisits = await (await page.request.get('/api/passport/ground-visits')).json()
+  expect(manualVisits).toEqual([
+    expect.objectContaining({
+      id: visit.id,
+      visitYear: 2025,
+      entryMethod: 'air',
+      linkedFlightId: expect.any(Number),
+    }),
+  ])
 })

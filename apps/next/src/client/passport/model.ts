@@ -406,21 +406,23 @@ export const arrivalHref = (flightId: number | null) =>
   flightId ? `${AWAITING_QUEUE_HREF}#arrival-${flightId}` : AWAITING_QUEUE_HREF
 
 export type RemovalOutcome = {
-  /** Only claims and land/sea visits are removed from the passport directly; flight stamps go through the Journal. */
+  /** Only claims and manual visits are removed from the passport directly; flight stamps go through the Journal. */
   removable: boolean
   claimed: boolean
   groundVisits: number
   /** Live ground journeys that confirmed the country; the claim removal never touches them. */
   journeys: number
-  /** The country after DELETE /api/passport/claims/:cc, which deletes the claim and every land/sea visit, never flights. */
+  /** The country after DELETE /api/passport/claims/:cc, which deletes the claim and every manual visit, never flights. */
   after: 'pressed' | 'pending' | 'gone'
 }
 /** Reads the country detail entries the way the evidence policy does (ADR 0001 §4, C3). */
 export function removalOutcome(
-  detail: Pick<CountryDetail, 'entries'> & Partial<Pick<CountryDetail, 'journeys'>>,
+  detail: Pick<CountryDetail, 'entries' | 'groundVisits'> &
+    Partial<Pick<CountryDetail, 'journeys'>>,
 ): RemovalOutcome {
   const claimed = detail.entries.some((entry) => entry.kind === 'claim')
-  const groundVisits = detail.entries.filter((entry) => entry.kind === 'ground').length
+  // Removal deletes retained metadata too, even when a linked arrival currently supersedes that evidence.
+  const groundVisits = detail.groundVisits.length
   const journeys = detail.journeys?.length ?? 0
   const logged = detail.entries.some(
     (entry) => entry.kind === 'legacy' || (entry.kind === 'flight' && entry.state === 'logged'),

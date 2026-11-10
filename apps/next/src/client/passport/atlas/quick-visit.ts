@@ -10,7 +10,7 @@ import { useToast } from '../../ui/toast'
 import { useWriteFeedback } from '../../write-feedback'
 import { countryNamer } from '../model'
 import { markSeen } from '../new-stamps'
-import { wayPayload, type VisitWay } from '../visit-ways'
+import { visitFlightHref, wayPayload, type VisitWay } from '../visit-ways'
 import { RecordedToast, recordedMessage } from './recorded-toast'
 
 /** How long the recorded toast, and with it the landed stamp, stays (held while its year wheel is open). */
@@ -95,6 +95,13 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
       let undone = false
       let shown: number | null = null
       const write = addGroundVisit(ownerId, code, wayPayload(way))
+      const flightHref =
+        way === 'air'
+          ? write.then(
+              (visit) => (current() && !undone ? visitFlightHref(visit.id) : null),
+              () => null,
+            )
+          : undefined
       // Year edits run one after another on the created row; Undo waits for them so its delete is the last word.
       let yearQueue: Promise<void> = Promise.resolve()
       let yearEdit = 0
@@ -166,7 +173,8 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
           kind: 'success',
           message: recordedMessage(country),
           duration: RECORDED_TOAST_MS,
-          content: (controls) => createElement(RecordedToast, { controls, country, setYear, undo }),
+          content: (controls) =>
+            createElement(RecordedToast, { controls, country, setYear, undo, flightHref }),
           onClose,
         })
       }

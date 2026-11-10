@@ -30,7 +30,7 @@ export function listGroundVisitsRequest(
   return runHandler(async () => {
     const user = requireUser(data)
     const rows = await env.DB.prepare(
-      'SELECT id, user_id, country_code, visit_year, entry_method, mode, note, created_at FROM ground_visits WHERE user_id = ? ORDER BY created_at DESC, id',
+      'SELECT id, user_id, country_code, visit_year, entry_method, mode, note, created_at, linked_flight_id FROM ground_visits WHERE user_id = ? ORDER BY created_at DESC, id',
     )
       .bind(user.id)
       .all<GroundVisitRow>()

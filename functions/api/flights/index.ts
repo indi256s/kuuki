@@ -66,6 +66,12 @@ export function createFlightRequest(
     )
       .bind(user.id, key)
       .first<{ payload_digest: string; flight_id: number | null }>()
+    if (!ledger && input.passport_visit_id)
+      throw new HttpError(
+        409,
+        'Passport visit is unavailable for this arrival',
+        'PASSPORT_VISIT_CONFLICT',
+      )
     if (!ledger) throw new HttpError(500, 'Flight receipt missing', 'RECEIPT_MISSING')
     if (ledger.payload_digest !== digest)
       throw new HttpError(

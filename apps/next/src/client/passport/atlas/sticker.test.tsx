@@ -159,16 +159,10 @@ beforeEach(() => {
 })
 afterEach(() => vi.useRealTimers())
 
-it('lifts with four tabs, focuses the first, and a Train tap writes a land visit by rail', async () => {
+it('focuses the first way and a Train tap writes a land visit by rail', async () => {
   api.add.mockResolvedValue({ id: 'v1', derived_state: 'ready', revision: 1 })
   await lift()
-  expect(screen.getAllByRole('button').map((button) => button.textContent)).toEqual([
-    'By train',
-    'By car',
-    'By sea',
-    'Other',
-  ])
-  expect(tab('By train')).toHaveFocus()
+  expect(tab('By plane')).toHaveFocus()
 
   fireEvent.click(tab('By train'))
   expect(api.add).toHaveBeenCalledExactlyOnceWith('owner', 'DE', {
@@ -183,6 +177,26 @@ it('lifts with four tabs, focuses the first, and a Train tap writes a land visit
   expect(refresh).toHaveBeenCalled()
   // The refreshed collection has it now; the optimistic ink goes.
   expect(inked()).toBe('')
+})
+
+it('records an air visit without requiring a flight and offers capture only after acknowledgement', async () => {
+  const write = deferred<{ id: string; derived_state: string }>()
+  api.add.mockReturnValue(write.promise)
+  await lift()
+  fireEvent.click(tab('By plane'))
+  expect(api.add).toHaveBeenCalledExactlyOnceWith('owner', 'DE', {
+    entryMethod: 'air',
+    mode: null,
+  })
+  await act(async () => vi.advanceTimersByTime(240))
+  expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: 'Add flight' })).not.toBeInTheDocument()
+  await act(async () => write.resolve({ id: 'air-visit', derived_state: 'ready' }))
+  expect(screen.getByRole('link', { name: 'Add flight' })).toHaveAttribute(
+    'href',
+    '/add?passportVisit=air-visit',
+  )
+  expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
 })
 
 it('springs back without writing when a pull is released before the threshold', async () => {

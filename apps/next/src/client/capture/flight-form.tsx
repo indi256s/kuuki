@@ -59,8 +59,8 @@ const empty = {
 type Values = typeof empty
 /** Unfinished manual entry, kept per account until saved, discarded or cleared on sign-out. */
 const UNFINISHED = 'unfinished'
-function readUnfinished(ownerId: string): Values | null {
-  const stored = readCapturePreference<Partial<Values> | null>(ownerId, UNFINISHED, null)
+function readUnfinished(ownerId: string, key: string): Values | null {
+  const stored = readCapturePreference<Partial<Values> | null>(ownerId, key, null)
   if (!stored || typeof stored !== 'object') return null
   const values = { ...empty }
   for (const key of Object.keys(empty) as (keyof Values)[])
@@ -94,10 +94,13 @@ export function FlightForm({
   onDelete,
   onSaved,
   onCreated,
+  passportVisitId,
 }: {
   ownerId: string
   locale: Locale
   editId?: number
+  /** Optional manual air visit being detailed; its draft and retry receipt stay isolated from other captures. */
+  passportVisitId?: string
   initialEditing?: boolean
   /** Opens Optional details and focuses this field once the flight has loaded. */ focusField?: 'aircraft'
   surface?: FlightSurface
@@ -121,6 +124,10 @@ export function FlightForm({
   const online = useOnline()
   const feedback = useWriteFeedback(ownerId)
   const ru = locale === 'ru'
+  const unfinishedKey = passportVisitId ? `${UNFINISHED}:visit:${passportVisitId}` : UNFINISHED
+  const operationScope = passportVisitId
+    ? `next-manual:${ownerId}:visit:${passportVisitId}`
+    : `next-manual:${ownerId}`
   const choices = airportChoices(locale)
   const formId = `flight-form-${editId ?? 'new'}`
   const [editing, setEditing] = useState(initialEditing)
@@ -156,9 +163,7 @@ export function FlightForm({
         {footer}
       </>
     )
-  const [operationId, setOperationId] = useState(() =>
-    currentFlightOperationId(`next-manual:${ownerId}`),
-  )
+  const [operationId, setOperationId] = useState(() => currentFlightOperationId(operationScope))
   const [flight, setFlight] = useState<Flight | null>(null)
   const [loading, setLoading] = useState(!!editId)
   const [loadAttempt, setLoadAttempt] = useState(0)
@@ -192,7 +197,9 @@ export function FlightForm({
     if (saved) savedHeading.current?.focus()
   }, [saved])
   // A new entry restores unfinished input; the previous flight's layout never decides a fresh entry's layout.
-  const [restored, setRestored] = useState(() => (editId ? null : readUnfinished(ownerId)))
+  const [restored, setRestored] = useState(() =>
+    editId ? null : readUnfinished(ownerId, unfinishedKey),
+  )
   const [showDetails, setShowDetails] = useState(() =>
     editId
       ? readCapturePreference(ownerId, 'details', false)
@@ -231,14 +238,14 @@ export function FlightForm({
     const subscription = watch((current) => {
       if (savedOnce.current) return
       if (!Object.values(current).some(Boolean)) {
-        removeCapturePreference(ownerId, UNFINISHED)
+        removeCapturePreference(ownerId, unfinishedKey)
         setStorageFailed(false)
-      } else setStorageFailed(!writeCapturePreference(ownerId, UNFINISHED, current))
+      } else setStorageFailed(!writeCapturePreference(ownerId, unfinishedKey, current))
     })
     return () => subscription.unsubscribe()
-  }, [watch, editId, ownerId])
+  }, [watch, editId, ownerId, unfinishedKey])
   const discard = () => {
-    removeCapturePreference(ownerId, UNFINISHED)
+    removeCapturePreference(ownerId, unfinishedKey)
     reset(empty)
     setRestored(null)
     setShowDetails(false)
@@ -401,6 +408,7 @@ export function FlightForm({
           arrival_time: values.arrival || null,
           origin_tz: from?.timezone || null,
           dest_tz: to?.timezone || null,
+          ...(passportVisitId ? { passport_visit_id: passportVisitId } : {}),
         },
         'create',
       )
@@ -413,7 +421,7 @@ export function FlightForm({
             original ? (receipt ? receipt.key : '') : undefined,
           )
       if (!current(generation, controller)) return
-      if (!flight) setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`))
+      if (!flight) setOperationId(rotateFlightOperationId(operationScope))
       const nextRecents = [...new Set([values.origin, values.destination, ...recents.airports])]
         .filter(Boolean)
         .slice(0, 8)
@@ -422,7 +430,7 @@ export function FlightForm({
       if (!flight) {
         // Confirmed: the unfinished entry is done. An uncertain save never reaches here, so its input stays.
         savedOnce.current = true
-        removeCapturePreference(ownerId, UNFINISHED)
+        removeCapturePreference(ownerId, unfinishedKey)
         if (onCreated) {
           const route = (original ?? values) as Pick<Values, 'date' | 'origin' | 'destination'>
           onCreated(ack, {
@@ -910,7 +918,7 @@ export function FlightForm({
           disabledReason={saveReason}
           onClick={() => {
             abandonFlightCreateOperation(ownerId, operationId)
-            setOperationId(rotateFlightOperationId(`next-manual:${ownerId}`))
+            setOperationId(rotateFlightOperationId(operationScope))
             setErrorCause(null)
           }}
         >

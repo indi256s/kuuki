@@ -85,6 +85,12 @@ export function flightErrorMessage(
     )
   if (cause instanceof ApiError) {
     switch (cause.code) {
+      case 'PASSPORT_VISIT_CONFLICT':
+        return say(
+          locale,
+          'This visit cannot be linked to this arrival. Check the country or reopen it in your passport.',
+          'Не удалось связать визит с этим прилётом. Проверьте страну или откройте визит заново в паспорте.',
+        )
       case 'UNKNOWN_AIRPORT':
         return say(locale, 'Choose an airport from the list.', 'Выберите аэропорт из списка.')
       case 'UNKNOWN_AIRCRAFT':

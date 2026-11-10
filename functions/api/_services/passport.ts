@@ -15,6 +15,7 @@ import {
   countryContributions,
   evidenceFlightsStatement,
   flightCountriesOf,
+  manualVisitSuperseded,
   type CountryEvidenceRow,
   type CountryContribution,
   type EvidenceFlight,
@@ -47,6 +48,7 @@ export type GroundVisit = {
   country_code: string
   visit_year: number | null
   entry_method: string | null
+  linked_flight_id: number | null
   /** The way of a land visit (rail or road); owner presentation only. */
   mode: 'rail' | 'road' | null
 }
@@ -88,7 +90,7 @@ export function passportRead(
       .bind(userId),
     db
       .prepare(
-        'SELECT id, country_code, visit_year, entry_method, mode FROM ground_visits WHERE user_id = ?',
+        'SELECT id, country_code, visit_year, entry_method, mode, linked_flight_id FROM ground_visits WHERE user_id = ?',
       )
       .bind(userId),
     db
@@ -122,6 +124,7 @@ export function passportRead(
             .bind(userId),
         ]
       : []),
+    evidenceFlightsStatement(db, userId, { linkedManualOnly: true }),
   ]
   return {
     statements,
@@ -144,6 +147,12 @@ export function passportRead(
             (row) => !hiddenSet.has(row.country_code),
           )
         : []
+      const contributions = countryContributions(
+        results[results.length - 1].results as unknown as EvidenceFlight[],
+      ).contributions
+      const activeManualVisits = (results[2].results as GroundVisit[]).filter(
+        (visit) => !manualVisitSuperseded(visit, contributions),
+      )
       const allPressed = rows.filter((row) => row.status === 'pressed')
       const countries: PassportCountry[] = rows
         .filter((row) => !hiddenSet.has(row.country_code))
@@ -163,7 +172,7 @@ export function passportRead(
         data: {
           visits: results[0].results as Visit[],
           claims: results[1].results as Claim[],
-          groundVisits: results[2].results as GroundVisit[],
+          groundVisits: activeManualVisits,
           countries,
           hidden,
           journeyModes,
@@ -311,7 +320,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
       .bind(userId, countryCode),
     db
       .prepare(
-        `SELECT id, user_id, country_code, visit_year, note, entry_method, mode, created_at FROM ground_visits
+        `SELECT id, user_id, country_code, visit_year, note, entry_method, mode, linked_flight_id, created_at FROM ground_visits
        WHERE user_id = ? AND country_code = ? ORDER BY created_at DESC`,
       )
       .bind(userId, countryCode),
@@ -359,7 +368,8 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
   assertRows(results, 'Passport country read failed', statements.length)
   const flights = results[0].results as unknown as EvidenceFlight[]
   const claim = results[2].results[0] as { claimed_at: string | null } | undefined
-  const groundVisits = (results[3].results as unknown as GroundVisitRow[]).map(toGroundVisit)
+  const manualRows = results[3].results as unknown as GroundVisitRow[]
+  const groundVisits = manualRows.map(toGroundVisit)
   const published = results[4].results[0] as
     | {
         status: 'pressed' | 'pending'
@@ -394,6 +404,9 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
   )
 
   const policy = countryContributions(flights)
+  const activeManualRows = manualRows.filter(
+    (visit) => !manualVisitSuperseded(visit, policy.contributions),
+  )
   const contributing = policy.contributions.filter((row) => row.country_code === countryCode)
   const entries: DetailEntry[] = contributing
     .map<DetailEntry>((row) => ({
@@ -443,7 +456,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
     })
   }
   if (claim) entries.push({ kind: 'claim', claimedAt: claim.claimed_at })
-  for (const ground of groundVisits)
+  for (const ground of activeManualRows.map(toGroundVisit))
     entries.push({
       kind: 'ground',
       id: ground.id,
@@ -471,7 +484,7 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
     region: catalogRegionOf(countryCode),
     firstVisit: published?.first_visit ?? '',
     lastVisit: published?.last_visit ?? '',
-    totalVisits: countryStays(flights, policy.contributions, countryCode) + groundVisits.length,
+    totalVisits: countryStays(flights, policy.contributions, countryCode) + activeManualRows.length,
     airports: [...airports.entries()]
       .map(([iata, value]) => ({
         iata,

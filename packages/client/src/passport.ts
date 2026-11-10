@@ -23,6 +23,7 @@ interface ApiGroundVisit extends DerivedAck {
   visitYear: number | null
   entryMethod: string | null
   mode: string | null
+  linkedFlightId?: number | null
   note: string | null
   createdAt: string
 }
@@ -39,6 +40,7 @@ function toGroundVisit(v: ApiGroundVisit, userId: string): GroundVisit {
     visitYear: v.visitYear,
     entryMethod: v.entryMethod as EntryMethod,
     mode: v.mode as GroundVisitMode,
+    linkedFlightId: v.linkedFlightId ?? null,
     note: v.note,
     createdAt: v.createdAt,
   }

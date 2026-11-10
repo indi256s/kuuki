@@ -81,9 +81,11 @@ export function FlightDetailSheet({
 export function FlightCaptureDialog({
   ownerId,
   locale: initialLocale,
+  passportVisitId,
 }: {
   ownerId: string
   locale: Locale
+  passportVisitId?: string
 }) {
   const locale = useLocale(initialLocale)
   const router = useRouter()
@@ -99,8 +101,10 @@ export function FlightCaptureDialog({
   const Panel = mobile ? Sheet : Dialog
   return (
     <FlightForm
+      key={passportVisitId ?? 'new'}
       ownerId={ownerId}
       locale={locale}
+      passportVisitId={passportVisitId}
       onCancel={leave}
       onCreated={(flight, route) => {
         const totals =

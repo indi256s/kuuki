@@ -96,7 +96,7 @@ pressed; shown with a text and shape cue.
 
 ### Ground visit
 
-A recorded land or sea visit to a country (`ground_visits`). Immediately pressed. A land visit may name its way, rail or road (`mode`); Passport then counts it under Trains or Road trips instead of Manual. The way never leaves the owner's view.
+A manually recorded country visit (`ground_visits`, the legacy storage/type name), by air, land, sea or an unspecified way. Immediately pressed. A land visit may name rail or road (`mode`); Passport then counts it under Trains or Road trips instead of Manual. A manual air visit stays Manual and creates no flight or aviation statistics. It can be linked to a real flight through Add flight; while that flight contributes a logged arrival in the same country, only the arrival counts. The original year and note remain, and the manual evidence resumes if the flight is deleted, rerouted, upcoming or transit. The way and link never leave the owner's view.
 
 ### Stamp
 
@@ -127,7 +127,7 @@ to see and tap its countries. Not a collection region: filters, totals and
 badges keep the catalog's six regions, and Russia, Türkiye and Cyprus sit where
 a traveler reads them (Europe, Middle East & Caucasus, Europe). The phone atlas
 can also page by **first year**: the year a country joined the passport, its
-earliest known visit (a flight date or a land/sea visit year).
+earliest known visit (a flight date or a manual visit year).
 _Avoid_: Continent, collection region
 
 ### Country evidence

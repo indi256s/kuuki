@@ -2,10 +2,11 @@
 // The recorded toast's own controls (quick-visit.ts): the visit's year and Undo, under "Poland is in your passport."
 // The year pill opens a five-row wheel inside the toast, which grows to hold it; while open the pill reads Done.
 
-import { Plus } from '@keyline-icons/react'
+import { PlaneLanding, Plus } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../../../lib/format'
 import { useLocale } from '../../preferences'
+import { NavigationLink } from '../../navigation-link'
 import type { ToastControls } from '../../ui/toast'
 import { YEAR_NAME, YearDrum, yearLabel, type YearDrumResult, type YearValue } from '../year-drum'
 import type { SetYear } from './quick-visit'
@@ -33,17 +34,30 @@ export function RecordedToast({
   country,
   setYear,
   undo,
+  flightHref,
 }: {
   controls: ToastControls
   country: Country
   setYear: SetYear
   undo: () => void
+  /** Only an acknowledged air visit offers optional flight capture. */
+  flightHref?: Promise<string | null>
 }) {
   const locale = useLocale()
   const [year, setShown] = useState<YearValue>(null)
   /** How the wheel was opened (the keyboard skips its entrance), or null while closed. */
   const [wheel, setWheel] = useState<'pointer' | 'keyboard' | null>(null)
   const pill = useRef<HTMLButtonElement>(null)
+  const [flight, setFlight] = useState<string | null>(null)
+  useEffect(() => {
+    let current = true
+    void flightHref?.then((href) => {
+      if (current) setFlight(href)
+    })
+    return () => {
+      current = false
+    }
+  }, [flightHref])
   // The toast waits while the wheel is open, and lets go if it unmounts open. The toast keeps `controls` stable.
   useEffect(() => {
     controls.hold(wheel !== null)
@@ -101,6 +115,17 @@ export function RecordedToast({
           <span>{COPY.undo[locale]}</span>
         </button>
       </div>
+      {flight ? (
+        <NavigationLink
+          href={flight}
+          className="ui-button"
+          data-variant="ghost"
+          onClick={() => controls.dismiss()}
+        >
+          <PlaneLanding size={18} aria-hidden="true" />
+          {locale === 'ru' ? 'Добавить перелёт' : 'Add flight'}
+        </NavigationLink>
+      ) : null}
       {wheel ? (
         <YearDrum
           size="wheel"

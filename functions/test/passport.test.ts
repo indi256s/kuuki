@@ -199,6 +199,7 @@ it('records a land visit with its way and refuses a way without a land entry', a
     for (const body of [
       { countryCode: 'AT', mode: 'rail' },
       { countryCode: 'AT', entryMethod: 'sea', mode: 'road' },
+      { countryCode: 'AT', entryMethod: 'air', mode: 'rail' },
       { countryCode: 'AT', entryMethod: 'land', mode: 'plane' },
     ])
       expect((await post(body)).status).toBe(400)
@@ -208,6 +209,64 @@ it('records a land visit with its way and refuses a way without a land entry', a
       .bind(user.id)
       .all()
     expect(rows.results).toEqual([{ entry_method: 'land', mode: 'rail', visit_year: null }])
+  } finally {
+    await dispose()
+  }
+})
+
+it('records, reads and edits an air visit without creating a flight', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    const created = await addGroundVisit(
+      context(db, '/api/passport/ground-visits', 'POST', {
+        countryCode: 'JP',
+        visitYear: 2019,
+        entryMethod: 'air',
+        note: 'First visit',
+        linkedFlightId: 999,
+      }),
+    )
+    expect(created.status).toBe(201)
+    const visit = (await created.json()) as { id: string }
+    expect(visit).toMatchObject({
+      entryMethod: 'air',
+      mode: null,
+      visitYear: 2019,
+      linkedFlightId: null,
+    })
+    expect((await editGroundVisit(editContext(db, visit.id, { mode: 'rail' }))).status).toBe(400)
+    const edited = await editGroundVisit(
+      editContext(db, visit.id, { visitYear: 2020, linkedFlightId: 999 }),
+    )
+    expect(edited.status).toBe(200)
+    expect(await edited.json()).toMatchObject({
+      entryMethod: 'air',
+      mode: null,
+      note: 'First visit',
+      visitYear: 2020,
+      linkedFlightId: null,
+    })
+    const read = await listGroundVisits(context(db, '/api/passport/ground-visits', 'GET'))
+    expect(await read.json()).toEqual([
+      expect.objectContaining({ id: visit.id, entryMethod: 'air', mode: null, visitYear: 2020 }),
+    ])
+    expect(await count(db, 'flights')).toBe(0)
+
+    await db
+      .prepare(
+        "INSERT INTO ground_visits (id,user_id,country_code,entry_method,mode) VALUES ('train-to-air',?,'AT','land','rail')",
+      )
+      .bind(user.id)
+      .run()
+    expect(
+      (await editGroundVisit(editContext(db, 'train-to-air', { entryMethod: 'air' }))).status,
+    ).toBe(400)
+    const converted = await editGroundVisit(
+      editContext(db, 'train-to-air', { entryMethod: 'air', mode: null }),
+    )
+    expect(converted.status).toBe(200)
+    expect(await converted.json()).toMatchObject({ entryMethod: 'air', mode: null })
   } finally {
     await dispose()
   }

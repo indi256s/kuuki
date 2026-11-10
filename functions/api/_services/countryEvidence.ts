@@ -227,13 +227,36 @@ export function countryContributions(flights: EvidenceFlight[]): {
   return { suppressions, logged, awaiting, contributions }
 }
 
+/** A linked manual record remains evidence unless its flight supplies the same logged arrival. */
+export function manualVisitSuperseded(
+  visit: { country_code: string; entry_method?: string | null; linked_flight_id?: number | null },
+  contributions: CountryContribution[],
+): boolean {
+  return (
+    visit.entry_method === 'air' &&
+    visit.linked_flight_id != null &&
+    contributions.some(
+      (row) =>
+        row.flight_id === visit.linked_flight_id &&
+        row.endpoint === 'destination' &&
+        row.country_code === visit.country_code &&
+        row.state === 'logged',
+    )
+  )
+}
+
 /** Pure projection from canonical rows; the migration seed equals it while nothing is awaiting or suppressed. */
 export function deriveCountryEvidence<L>(
   input: {
     flights: EvidenceFlight[]
     legacy: L[]
     claims: string[]
-    ground: Array<{ country_code: string; n: number }>
+    ground: Array<{
+      country_code: string
+      n: number
+      entry_method?: string | null
+      linked_flight_id?: number | null
+    }>
     /** Per-country count of the owner's live completed journeys; defaults to none. */
     journeys?: Array<{ country_code: string; n: number }>
   },
@@ -278,7 +301,8 @@ export function deriveCountryEvidence<L>(
   addVisits(merge(awaiting, []), 'awaiting_visit_count')
   for (const code of input.claims) if (isCountry(code)) row(code).claimed = 1
   for (const ground of input.ground)
-    if (isCountry(ground.country_code)) row(ground.country_code).ground_visit_count += ground.n
+    if (isCountry(ground.country_code) && !manualVisitSuperseded(ground, contributions))
+      row(ground.country_code).ground_visit_count += ground.n
   // Journey stamps carry no dates: first/last visit stay flight evidence only.
   for (const journey of input.journeys ?? [])
     if (isCountry(journey.country_code)) row(journey.country_code).ground_journey_count += journey.n
@@ -305,8 +329,12 @@ export function deriveCountryEvidence<L>(
   return { rows, suppressions, contributions }
 }
 
-/** Every flight in every state (upcoming ones are potential outgoing legs) with its airports' countries. */
-export function evidenceFlightsStatement(db: D1Database, userId: string): D1PreparedStatement {
+/** Every state is needed for connection policy; manual linking only needs the named logged destinations. */
+export function evidenceFlightsStatement(
+  db: D1Database,
+  userId: string,
+  { linkedManualOnly = false }: { linkedManualOnly?: boolean } = {},
+): D1PreparedStatement {
   return db
     .prepare(
       `SELECT f.id, f.date, f.origin, f.destination, f.lifecycle_state, f.arrival_transit, f.arrival_transit_leg_id,
@@ -315,9 +343,15 @@ export function evidenceFlightsStatement(db: D1Database, userId: string): D1Prep
      FROM flights f
      LEFT JOIN airports_reference o ON o.iata = f.origin
      LEFT JOIN airports_reference d ON d.iata = f.destination
-     WHERE f.user_id = ?`,
+     WHERE f.user_id = ?${
+       linkedManualOnly
+         ? ` AND f.lifecycle_state = 'logged' AND f.id IN (
+       SELECT linked_flight_id FROM ground_visits WHERE user_id = ? AND entry_method = 'air' AND linked_flight_id IS NOT NULL
+     )`
+         : ''
+     }`,
     )
-    .bind(userId)
+    .bind(...(linkedManualOnly ? [userId, userId] : [userId]))
 }
 
 /** Per-country count of the owner's confirmed journeys: live completed rows only, never plans, cancellations or tombstones. */
@@ -345,7 +379,7 @@ export function countryEvidenceRead<L>(
       db.prepare('SELECT DISTINCT country_code FROM country_claims WHERE user_id = ?').bind(userId),
       db
         .prepare(
-          'SELECT country_code, COUNT(*) AS n FROM ground_visits WHERE user_id = ? GROUP BY country_code',
+          'SELECT country_code, entry_method, linked_flight_id, 1 AS n FROM ground_visits WHERE user_id = ?',
         )
         .bind(userId),
       journeyCountriesStatement(db, userId),
@@ -356,7 +390,12 @@ export function countryEvidenceRead<L>(
         {
           flights: rowsOf<EvidenceFlight>(flights),
           claims: rowsOf<{ country_code: string }>(claims).map((claim) => claim.country_code),
-          ground: rowsOf<{ country_code: string; n: number }>(ground),
+          ground: rowsOf<{
+            country_code: string
+            n: number
+            entry_method: string | null
+            linked_flight_id: number | null
+          }>(ground),
           journeys: rowsOf<{ country_code: string; n: number }>(journeys),
           legacy: rowsOf<L>(legacyRows),
         },

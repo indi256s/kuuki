@@ -40,7 +40,14 @@ const entries = passportEntries({
     row('BR', { status: 'pending', awaiting_visit_count: 1, region: 'americas' }),
   ],
   groundVisits: [
-    { id: 'g1', country_code: 'CH', visit_year: null, entry_method: 'land', mode: null },
+    {
+      id: 'g1',
+      country_code: 'CH',
+      visit_year: null,
+      entry_method: 'land',
+      mode: null,
+      linked_flight_id: null,
+    },
   ],
   journeyModes: [
     { country_code: 'DE', mode: 'rail' },
@@ -61,8 +68,22 @@ describe('filterEntries', () => {
     const [rail, legacy] = passportEntries({
       countries: [row('AT', { ground_visit_count: 1 }), row('CH', { ground_visit_count: 1 })],
       groundVisits: [
-        { id: 'g2', country_code: 'AT', visit_year: null, entry_method: 'land', mode: 'rail' },
-        { id: 'g3', country_code: 'CH', visit_year: null, entry_method: 'land', mode: null },
+        {
+          id: 'g2',
+          country_code: 'AT',
+          visit_year: null,
+          entry_method: 'land',
+          mode: 'rail',
+          linked_flight_id: null,
+        },
+        {
+          id: 'g3',
+          country_code: 'CH',
+          visit_year: null,
+          entry_method: 'land',
+          mode: null,
+          linked_flight_id: null,
+        },
       ],
     })
     expect(rail.sources).toEqual(['trains'])

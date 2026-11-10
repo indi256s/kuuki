@@ -185,9 +185,6 @@ it('public subset leaks nothing finer than a month and counts neither upcoming n
   }
 })
 
-// The owner Overview read is one batch: flights and references (5), Passport (5) and ground journeys (4).
-const OVERVIEW_BATCH = 14
-
 it('a profile turning private during the flight read returns 404', async () => {
   const { db, dispose } = await account()
   try {
@@ -195,8 +192,7 @@ it('a profile turning private during the flight read returns 404', async () => {
       prepare: db.prepare.bind(db),
       batch: async (statements: D1PreparedStatement[]) => {
         const result = await db.batch(statements)
-        if (statements.length === OVERVIEW_BATCH)
-          await db.prepare('UPDATE profiles SET is_public = 0 WHERE id = ?').bind(USER.id).run()
+        await db.prepare('UPDATE profiles SET is_public = 0 WHERE id = ?').bind(USER.id).run()
         return result
       },
     } as unknown as D1Database
@@ -268,11 +264,10 @@ it('section consent revoked during the flight read is respected', async () => {
       prepare: db.prepare.bind(db),
       batch: async (statements: D1PreparedStatement[]) => {
         const result = await db.batch(statements)
-        if (statements.length === OVERVIEW_BATCH)
-          await db
-            .prepare('UPDATE profiles SET overview_prefs = NULL WHERE id = ?')
-            .bind(USER.id)
-            .run()
+        await db
+          .prepare('UPDATE profiles SET overview_prefs = NULL WHERE id = ?')
+          .bind(USER.id)
+          .run()
         return result
       },
     } as unknown as D1Database

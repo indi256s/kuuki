@@ -41,7 +41,15 @@ import {
   type PassportEntry,
 } from './model'
 import { SHEET_STAMP_SIZE } from './stamp-sizes'
-import { rowWayLabel, VISIT_WAYS, WAY_LABELS, wayOf, wayPayload, type VisitWay } from './visit-ways'
+import {
+  rowWayLabel,
+  VISIT_WAYS,
+  visitFlightHref,
+  WAY_LABELS,
+  wayOf,
+  wayPayload,
+  type VisitWay,
+} from './visit-ways'
 import './passport.css'
 
 type GroundEntry = Extract<CountryDetail['entries'][number], { kind: 'ground' }>
@@ -62,13 +70,13 @@ function journeyDates(locale: Locale, journey: JourneySource): string | null {
   return only ? formatDateOnly(locale, only) : null
 }
 
-const LAND_SEA_FORMS = {
-  en: { one: '{count} land or sea visit', other: '{count} land and sea visits' },
+const MANUAL_VISIT_FORMS = {
+  en: { one: '{count} manual visit', other: '{count} manual visits' },
   ru: {
-    one: '{count} визит по суше или морю',
-    few: '{count} визита по суше и морю',
-    many: '{count} визитов по суше и морю',
-    other: '{count} визита по суше и морю',
+    one: '{count} ручной визит',
+    few: '{count} ручных визита',
+    many: '{count} ручных визитов',
+    other: '{count} ручного визита',
   },
 }
 
@@ -293,7 +301,7 @@ export function CountrySheet({
   // The projection leaves first/last NULL for land/sea-only countries; their years still date the visit.
   const dates = chronology(
     [data?.firstVisit, data?.lastVisit],
-    data?.groundVisits.map((visit) => visit.visitYear) ?? [],
+    ground.map((visit) => visit.visitYear),
   )
   // Adding is the whole job for a country outside the passport; otherwise the record comes first and the form waits.
   const formOpen = !inPassport || adding || editing !== null
@@ -539,9 +547,8 @@ export function CountrySheet({
                     ) : null}
                     {ground.map((item) => {
                       const label = `${item.visitYear ?? (ru ? 'Год не указан' : 'Year not set')} · ${rowWayLabel(item, locale)}`
-                      const visitNote = data.groundVisits.find(
-                        (visit) => visit.id === item.id,
-                      )?.note
+                      const visit = data.groundVisits.find((visit) => visit.id === item.id)
+                      const visitNote = visit?.note
                       // The row is the way in: editing opens the form, which also holds Delete.
                       return (
                         <li key={item.id}>
@@ -558,6 +565,16 @@ export function CountrySheet({
                               <span className="passport-note"> · {visitNote}</span>
                             ) : null}
                           </button>
+                          {item.entryMethod === 'air' && !visit?.linkedFlightId ? (
+                            <NavigationLink
+                              className="ui-button"
+                              data-variant="ghost"
+                              href={visitFlightHref(item.id)}
+                            >
+                              <PlaneLanding size={18} aria-hidden="true" />
+                              {ru ? 'Добавить перелёт' : 'Add flight'}
+                            </NavigationLink>
+                          ) : null}
                         </li>
                       )
                     })}
@@ -869,7 +886,7 @@ export function removalCopy(locale: Locale, outcome: ReturnType<typeof removalOu
   const ru = locale === 'ru'
   const parts: string[] = []
   const visits = outcome.groundVisits
-    ? formatCount(locale, outcome.groundVisits, LAND_SEA_FORMS)
+    ? formatCount(locale, outcome.groundVisits, MANUAL_VISIT_FORMS)
     : ''
   if (outcome.claimed && outcome.groundVisits)
     parts.push(

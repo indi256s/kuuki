@@ -1,11 +1,12 @@
-// Editable fields of a manual ground visit, validated the same way for create and edit.
+// Editable fields of a manual visit, validated the same way for create and edit.
+import type { EntryMethod, GroundVisitMode } from '../../../packages/shared/src/types'
 import { HttpError } from './http'
 
 export type GroundVisitFields = {
   visitYear: number | null
   note: string | null
-  entryMethod: 'land' | 'sea' | null
-  mode: 'rail' | 'road' | null
+  entryMethod: EntryMethod
+  mode: GroundVisitMode
 }
 
 /** Validates the editable fields of a ground visit; a way (`mode`) is only for a land visit. Shared by POST and PATCH. */
@@ -15,7 +16,12 @@ export function parseGroundVisitFields(fields: Record<string, unknown>): GroundV
     throw new HttpError(400, 'note is invalid', 'INVALID')
 
   const entryMethod = fields.entryMethod ?? null
-  if (entryMethod != null && entryMethod !== 'land' && entryMethod !== 'sea')
+  if (
+    entryMethod != null &&
+    entryMethod !== 'air' &&
+    entryMethod !== 'land' &&
+    entryMethod !== 'sea'
+  )
     throw new HttpError(400, 'invalid entryMethod', 'INVALID')
 
   const mode = fields.mode ?? null

@@ -1,5 +1,5 @@
 'use client'
-// The atlas sticker: an unrecorded country lifts as a sticker with four tear-off tabs. A tab tap tears it by itself;
+// The atlas sticker: an unrecorded country lifts as a sticker with tear-off tabs. A tab tap tears it by itself;
 // a pull folds it after the finger. The tear records the visit (quick-visit.ts), inks the country and lands its stamp.
 //
 // Following the camera: everything here is drawn in screen pixels at the last React render. The map is flat Mercator
@@ -678,7 +678,7 @@ export function Sticker({
   }
 
   // Tabs hang under the sticker, kept inside the map.
-  const tabsWidth = Math.min(container.clientWidth - 16, 4 * 96)
+  const tabsWidth = Math.min(container.clientWidth - 16, VISIT_WAYS.length * 96)
   const tabsLeft =
     box && centre
       ? Math.min(Math.max(8, centre[0] - tabsWidth / 2), container.clientWidth - 8 - tabsWidth)

@@ -63,6 +63,7 @@ export async function createFlightStatements(
   const origin = input.origin!
   const destination = input.destination!
   const digest = await digestInput(input)
+  const passportVisitId = input.passport_visit_id
 
   const source = input.source ?? 'manual'
   const lifecycle = lifecycleForCreate(date, timezone)
@@ -114,9 +115,23 @@ export async function createFlightStatements(
         )
     : db
         .prepare(
-          'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING',
+          `INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at)
+         SELECT ?, ?, ?, NULL, ? WHERE ? IS NULL OR EXISTS (
+           SELECT 1 FROM ground_visits v JOIN airports_reference a ON a.iata = ?
+           WHERE v.id = ? AND v.user_id = ? AND v.entry_method = 'air'
+             AND v.country_code = a.country_code AND v.linked_flight_id IS NULL
+         ) ON CONFLICT (user_id, key) DO NOTHING`,
         )
-        .bind(userId, key, digest, new Date().toISOString())
+        .bind(
+          userId,
+          key,
+          digest,
+          new Date().toISOString(),
+          passportVisitId ?? null,
+          destination,
+          passportVisitId ?? null,
+          userId,
+        )
 
   const statements = [
     ledger,
@@ -156,6 +171,13 @@ export async function createFlightStatements(
       )
       .bind(userId, key),
   ]
+  if (passportVisitId)
+    statements.push(
+      db
+        .prepare(`UPDATE ground_visits SET linked_flight_id = last_insert_rowid()
+      WHERE id = ? AND user_id = ? AND changes() = 1`)
+        .bind(passportVisitId, userId),
+    )
   return { digest, statements }
 }
 
@@ -249,7 +271,13 @@ export async function bulkCreate(
     items.map((item) => (isRecord(item) ? item.flight : undefined)),
   )
   const results: BulkItemResult[] = []
-  const accepted: Array<{ index: number; key: string; digest: string; first: number }> = []
+  const accepted: Array<{
+    index: number
+    key: string
+    digest: string
+    first: number
+    passportVisit: boolean
+  }> = []
   const statements: D1PreparedStatement[] = []
   for (const [index, item] of items.entries()) {
     const key = isRecord(item) && isIdempotencyKey(item.key) ? item.key : null
@@ -261,9 +289,24 @@ export async function bulkCreate(
       )
     else if (input instanceof HttpError)
       results.push(itemFailure(key, input.status, input.code ?? 'INVALID_FLIGHT', input.message))
+    else if (input.passport_visit_id && target)
+      results.push(
+        itemFailure(
+          key,
+          400,
+          'INVALID_FLIGHT',
+          'Passport visits cannot be combined with import draft conversion',
+        ),
+      )
     else {
       const created = await createFlightStatements(db, userId, key, input, timezone, target)
-      accepted.push({ index, key, digest: created.digest, first: statements.length })
+      accepted.push({
+        index,
+        key,
+        digest: created.digest,
+        first: statements.length,
+        passportVisit: !!input.passport_visit_id,
+      })
       statements.push(
         ...created.statements,
         ...(target ? conversionStatements(db, userId, key, target) : []),
@@ -293,10 +336,19 @@ export async function bulkCreate(
   const rowById = new Map(rows.results.map((row) => [row.id, row]))
 
   const fresh: FlightRow[] = []
-  for (const { index, key, digest, first } of accepted) {
+  for (const { index, key, digest, first, passportVisit } of accepted) {
     const ledger = ledgerByKey.get(key)
     const row = ledger?.flight_id == null ? undefined : rowById.get(ledger.flight_id)
-    if (!ledger) continue
+    if (!ledger) {
+      if (passportVisit)
+        results[index] = itemFailure(
+          key,
+          409,
+          'PASSPORT_VISIT_CONFLICT',
+          'Passport visit is unavailable for this arrival',
+        )
+      continue
+    }
     if (ledger.payload_digest !== digest)
       results[index] = itemFailure(
         key,

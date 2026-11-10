@@ -26,7 +26,7 @@ export function updateGroundVisitRequest(
       throw new HttpError(400, 'body is invalid', 'INVALID')
 
     const current = await env.DB.prepare(
-      'SELECT id, user_id, country_code, visit_year, entry_method, mode, note, created_at FROM ground_visits WHERE id = ? AND user_id = ?',
+      'SELECT id, user_id, country_code, visit_year, entry_method, mode, note, created_at, linked_flight_id FROM ground_visits WHERE id = ? AND user_id = ?',
     )
       .bind(id, user.id)
       .first<GroundVisitRow>()

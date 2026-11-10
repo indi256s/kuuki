@@ -750,6 +750,26 @@ describe('manual entry redesign', () => {
     expect(localStorage.getItem('kuuki:capture:a:unfinished')).toBeNull()
     expect(mocks.acknowledge).not.toHaveBeenCalled()
   })
+  it('isolates an air visit draft and sends its context without consuming another unfinished flight', async () => {
+    localStorage.setItem('kuuki:capture:a:unfinished', JSON.stringify({ origin: 'CDG' }))
+    const first = render(<FlightForm ownerId="a" locale="en" passportVisitId="visit-a" />)
+    expect(routeRow('en', 'from')).toHaveAccessibleName('From: city or airport')
+    await fill('en')
+    first.unmount()
+    const other = render(<FlightForm ownerId="a" locale="en" passportVisitId="visit-b" />)
+    expect(routeRow('en', 'from')).toHaveAccessibleName('From: city or airport')
+    other.unmount()
+    render(<FlightForm ownerId="a" locale="en" passportVisitId="visit-a" onCreated={vi.fn()} />)
+    expect(routeRow('en', 'from')).toHaveAccessibleName('From: Tbilisi, TBS')
+    await userEvent.click(screen.getByRole('button', { name: words.en.save }))
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
+    expect(mocks.create.mock.calls[0][1]).toMatchObject({ passport_visit_id: 'visit-a' })
+    expect(localStorage.getItem('kuuki:capture:a:unfinished')).toBe(
+      JSON.stringify({ origin: 'CDG' }),
+    )
+    expect(localStorage.getItem('kuuki:capture:a:unfinished:visit:visit-a')).toBeNull()
+  })
+
   it('offers Return and Onward from the last completed flight without applying either', async () => {
     mocks.recent.mockResolvedValue([{ ...flight, date: '2026-01-11' }])
     render(<FlightForm ownerId="a" locale="en" />)

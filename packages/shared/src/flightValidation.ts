@@ -1,4 +1,6 @@
 export interface FlightInput {
+  /** Manual Passport air visit being enriched by this create; never editable on a flight. */
+  passport_visit_id?: string
   date?: string
   origin?: string
   destination?: string
@@ -22,6 +24,7 @@ export type FlightCreateInput = FlightInput &
 export const FLIGHT_BULK_CREATE_MAX = 50
 
 const fields = new Set<keyof FlightInput>([
+  'passport_visit_id',
   'date',
   'origin',
   'destination',
@@ -63,6 +66,11 @@ export function validateFlightInput(value: unknown, mode: 'create' | 'patch'): F
   for (const [key, raw] of Object.entries(input)) {
     if (!fields.has(key as keyof FlightInput)) throw new Error(`Unknown flight field: ${key}`)
     if (raw === undefined) continue
+    if (
+      key === 'passport_visit_id' &&
+      (mode !== 'create' || typeof raw !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(raw))
+    )
+      throw new Error('passport_visit_id is invalid')
     let normalized = raw
     if (
       ['origin', 'destination', 'airline_iata', 'aircraft_icao'].includes(key) &&

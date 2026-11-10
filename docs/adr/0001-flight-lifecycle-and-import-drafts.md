@@ -735,3 +735,9 @@ Selection (owner, 15 October 2026): verification is informational. The marker is
 6. **Transit-only production estimate:** `docs/research/2026-10-05-transit-validation-proposal.md`. It runs only with authorization.
 7. **Review test 5, the "add D" case: resolved by controller ruling (fix round 2).** An unrelated later departure D from the hub country may count that country. A's suppressed evidence (its destination and the stored `arrival_transit_leg_id` origin) never reappears or moves. A5 tests exactly this.
 8. **The Overview `'all'` period now includes legacy evidence** (§4). The figure can rise for accounts with legacy-only countries. W4 labels it accordingly.
+
+## Manual air visits (10 November 2026)
+
+A manual country visit may record air entry without inventing a canonical flight. Optional flight capture carries `passport_visit_id` in the canonical create payload and idempotency digest. Creation links the owner's unlinked air visit to a flight arriving in that country within the same D1 batch. The manual row, year and note are preserved. A manual row is superseded only while the shared country-contribution policy includes that linked flight's logged destination for the same country; upcoming, transit, rerouted or deleted flights leave the manual evidence active. The collection and country detail use the same predicate. Single create and ordinary bulk retry preserve this context, so global recovery can replay an unresolved save with its original key and payload. Import-draft conversion and flight PATCH do not accept it. Manual air evidence keeps the existing Manual source and flights-only publication/statistics boundaries.
+
+Schema prerequisite: additive `0019_manual_air_visits.sql`; local implementation does not authorize a remote migration or release. The [interaction contract](../../.scratch/air-visits/spec.md) records capture and retry behavior.

@@ -9,6 +9,7 @@ export interface GroundVisitRow {
   note: string | null
   entry_method: string | null
   mode: string | null
+  linked_flight_id?: number | null
   created_at: string
 }
 
@@ -20,6 +21,7 @@ export function toGroundVisit(row: GroundVisitRow) {
     visitYear: row.visit_year,
     entryMethod: row.entry_method,
     mode: row.mode,
+    linkedFlightId: row.linked_flight_id ?? null,
     note: row.note,
     createdAt: row.created_at,
   }

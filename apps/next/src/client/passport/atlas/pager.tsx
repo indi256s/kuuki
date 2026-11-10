@@ -358,6 +358,14 @@ export function AtlasPager({
     }
     goRef.current = go
 
+    // Unlike MapLibre's own pan, our page turn does not suppress the browser's compatibility click. Keep a
+    // consumed gesture from lifting a country at release; a fresh primary press restores ordinary taps.
+    let suppressClick = false
+    const click = (event: MouseEvent) => {
+      if (!suppressClick || event.detail === 0) return
+      event.preventDefault()
+      event.stopPropagation()
+    }
     let gesture: {
       id: number
       x: number
@@ -376,12 +384,14 @@ export function AtlasPager({
     const down = (event: PointerEvent) => {
       // A second finger is a pinch: MapLibre takes it, and the page goes back where it was until a zoom starts.
       if (!event.isPrimary) {
+        suppressClick = true
         const held = gesture
         gesture = null
         if (held?.dragging) finish(held, held.lastX, event.timeStamp, true)
         else if (held?.caught) settle()
         return
       }
+      suppressClick = false
       if (state.explore || event.button > 0) return
       let caught = false
       if (state.spring) {
@@ -411,6 +421,7 @@ export function AtlasPager({
       const dx = event.clientX - gesture.x,
         dy = event.clientY - gesture.y
       if (!gesture.dragging) {
+        if (Math.hypot(dx, dy) > SLOP) suppressClick = true
         if (Math.abs(dx) > SLOP && Math.abs(dx) > Math.abs(dy) * HORIZONTAL_BIAS) {
           gesture.dragging = true
           // Follow from here, so the page does not jump by the slop at pickup.
@@ -436,6 +447,7 @@ export function AtlasPager({
       const done = gesture
       if (!done || event.pointerId !== done.id) return
       gesture = null
+      if (cancelled) suppressClick = true
       if (!done.dragging) {
         if (done.caught) settle()
         else if (!state.spring) state.origin = null
@@ -477,6 +489,8 @@ export function AtlasPager({
       gesture = null
       setExploring(map, state, true, setExplore)
     }
+    // Capture before MapLibre's canvas listeners can turn the release into a country selection.
+    container.addEventListener('click', click, true)
     container.addEventListener('pointerdown', down)
     container.addEventListener('pointermove', move)
     container.addEventListener('pointerup', up)
@@ -485,6 +499,7 @@ export function AtlasPager({
     backRef.current = () => go(state.current)
     return () => {
       stop()
+      container.removeEventListener('click', click, true)
       container.removeEventListener('pointerdown', down)
       container.removeEventListener('pointermove', move)
       container.removeEventListener('pointerup', up)

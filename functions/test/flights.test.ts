@@ -7,6 +7,7 @@ import { onRequestPost as bulkDelete } from '../api/flights/bulk-delete'
 import { onRequestPost as bulkCreate } from '../api/flights/bulk'
 import { onRequestPost as syncUpcoming } from '../api/flights/sync-upcoming'
 import { onRequestPost as aircraftBatch } from '../api/flights/aircraft-batch'
+import { createFlightStatements } from '../api/_services/flightCreate'
 import { repairUserDerivedState } from '../api/_services/derivedState'
 
 const user = { id: 'u1', email: 'u1@example.test' }
@@ -1070,3 +1071,195 @@ it.each([{ destination: 'JFK' }, { date: '2099-04-03' }])(
     }
   },
 )
+
+it('links an air visit atomically, preserves its metadata and replays even after that visit is removed', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db
+      .prepare(`INSERT INTO ground_visits (id,user_id,country_code,visit_year,note,entry_method)
+      VALUES ('air-visit',?,'GE',2025,'Keep this memory','air')`)
+      .bind(user.id)
+      .run()
+    const body = { ...flight, passport_visit_id: 'air-visit' }
+    await db
+      .prepare(`CREATE TRIGGER refuse_air_link BEFORE UPDATE OF linked_flight_id ON ground_visits
+      BEGIN SELECT RAISE(ABORT, 'link refused'); END`)
+      .run()
+    expect(
+      (await onRequestPost(context(db, '/api/flights', 'POST', body, 'air-link-001'))).status,
+    ).toBe(500)
+    expect(await count(db, 'flights')).toBe(0)
+    expect(await count(db, 'flight_idempotency')).toBe(0)
+    await db.prepare('DROP TRIGGER refuse_air_link').run()
+    const response = await onRequestPost(context(db, '/api/flights', 'POST', body, 'air-link-001'))
+    expect(response.status).toBe(201)
+    const saved = (await response.json()) as { id: number }
+    expect(
+      await db
+        .prepare('SELECT linked_flight_id,visit_year,note FROM ground_visits WHERE id = ?')
+        .bind('air-visit')
+        .first(),
+    ).toEqual({ linked_flight_id: saved.id, visit_year: 2025, note: 'Keep this memory' })
+    // Global unresolved-save recovery retries the exact single-create payload through bulk.
+    const recovery = await bulk(db, [{ key: 'air-link-001', flight: body }])
+    expect(await recovery.json()).toMatchObject({
+      results: [{ status: 'replayed', flight: { id: saved.id } }],
+    })
+    await db.prepare("DELETE FROM ground_visits WHERE id = 'air-visit'").run()
+    const replay = await onRequestPost(context(db, '/api/flights', 'POST', body, 'air-link-001'))
+    expect(replay.status).toBe(200)
+    expect(await replay.json()).toMatchObject({ id: saved.id })
+    expect(
+      (await onRequestPost(context(db, '/api/flights', 'POST', flight, 'air-link-001'))).status,
+    ).toBe(409)
+    expect(await count(db, 'flights')).toBe(1)
+  } finally {
+    await dispose()
+  }
+})
+
+it.each(['missing', 'foreign', 'wrong-country', 'not-air', 'already-linked'])(
+  'rejects %s Passport evidence without writing a flight or receipt',
+  async (kind) => {
+    const { db, dispose } = await createApiDatabase()
+    try {
+      await seed(db)
+      await db
+        .prepare(
+          "INSERT INTO users (id,email,password_hash) VALUES ('u2','u2@test.invalid','hash')",
+        )
+        .run()
+      if (kind === 'already-linked')
+        await db
+          .prepare(
+            "INSERT INTO flights (id,user_id,date,origin,destination) VALUES (99,?,'2025-01-01','TBS','IST')",
+          )
+          .bind(user.id)
+          .run()
+      if (kind !== 'missing')
+        await db
+          .prepare(`INSERT INTO ground_visits
+        (id,user_id,country_code,entry_method,linked_flight_id) VALUES ('target',?,?,?,?)`)
+          .bind(
+            kind === 'foreign' ? 'u2' : user.id,
+            kind === 'wrong-country' ? 'US' : 'GE',
+            kind === 'not-air' ? 'land' : 'air',
+            kind === 'already-linked' ? 99 : null,
+          )
+          .run()
+      const before = await count(db, 'flights')
+      const response = await onRequestPost(
+        context(
+          db,
+          '/api/flights',
+          'POST',
+          { ...flight, passport_visit_id: 'target' },
+          'denied-air-001',
+        ),
+      )
+      expect(response.status).toBe(409)
+      expect(await response.json()).toMatchObject({ code: 'PASSPORT_VISIT_CONFLICT' })
+      expect(await count(db, 'flights')).toBe(before)
+      expect(await count(db, 'flight_idempotency')).toBe(0)
+    } finally {
+      await dispose()
+    }
+  },
+)
+
+it('settles a contextual bulk recovery that never reached the server and reports competing or unavailable visits per item', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db
+      .prepare(`INSERT INTO ground_visits (id,user_id,country_code,entry_method)
+      VALUES ('bulk-air',?,'GE','air')`)
+      .bind(user.id)
+      .run()
+    const body = { ...flight, passport_visit_id: 'bulk-air' }
+    const response = await bulk(db, [
+      { key: 'bulk-air-first', flight: body },
+      { key: 'bulk-air-competing', flight: body },
+      { key: 'bulk-air-missing', flight: { ...flight, passport_visit_id: 'missing' } },
+    ])
+    expect(response.status).toBe(200)
+    const results = (await response.json()) as { results: BulkResult[] }
+    expect(results.results).toMatchObject([
+      { status: 'created' },
+      { status: 'error', http_status: 409, code: 'PASSPORT_VISIT_CONFLICT' },
+      { status: 'error', http_status: 409, code: 'PASSPORT_VISIT_CONFLICT' },
+    ])
+    const id = results.results[0].flight!.id
+    expect(
+      await db.prepare("SELECT linked_flight_id FROM ground_visits WHERE id = 'bulk-air'").first(),
+    ).toEqual({ linked_flight_id: id })
+    await db.prepare("DELETE FROM ground_visits WHERE id = 'bulk-air'").run()
+    const replay = await bulk(db, [{ key: 'bulk-air-first', flight: body }])
+    expect(await replay.json()).toMatchObject({ results: [{ status: 'replayed', flight: { id } }] })
+    expect(await count(db, 'flights')).toBe(1)
+    expect(await count(db, 'flight_idempotency')).toBe(1)
+  } finally {
+    await dispose()
+  }
+})
+
+it('keeps an identical retry valid when the original save commits after the retry begins reading', async () => {
+  const { db, dispose } = await createApiDatabase()
+  try {
+    await seed(db)
+    await db
+      .prepare(`INSERT INTO ground_visits (id,user_id,country_code,entry_method)
+      VALUES ('concurrent-air',?,'GE','air')`)
+      .bind(user.id)
+      .run()
+    const body = { ...flight, passport_visit_id: 'concurrent-air' }
+    let committed = false
+    let savedId = 0
+    const originals = new WeakMap<D1PreparedStatement, D1PreparedStatement>()
+    // Interleave at the first service read, without depending on query text or read counts.
+    const wrap = (statement: D1PreparedStatement): D1PreparedStatement => {
+      const wrapped = new Proxy(statement, {
+        get(target, name) {
+          if (name === 'bind') return (...values: unknown[]) => wrap(target.bind(...values))
+          if (name === 'first' || name === 'all')
+            return async (...args: unknown[]) => {
+              const read = target[name] as (...args: unknown[]) => Promise<unknown>
+              const result = await read.apply(target, args)
+              if (!committed) {
+                committed = true
+                const saved = await onRequestPost(
+                  context(db, '/api/flights', 'POST', body, 'concurrent-air-key'),
+                )
+                expect(saved.status).toBe(201)
+                savedId = ((await saved.json()) as { id: number }).id
+              }
+              return result
+            }
+          const value = Reflect.get(target, name)
+          return typeof value === 'function' ? value.bind(target) : value
+        },
+      })
+      originals.set(wrapped, statement)
+      return wrapped
+    }
+    const interleaved = { prepare: (sql: string) => wrap(db.prepare(sql)) } as D1Database
+    const retry = await createFlightStatements(interleaved, user.id, 'concurrent-air-key', body)
+    await db.batch(retry.statements.map((statement) => originals.get(statement) ?? statement))
+    expect(committed).toBe(true)
+    const replay = await onRequestPost(
+      context(db, '/api/flights', 'POST', body, 'concurrent-air-key'),
+    )
+    expect(replay.status).toBe(200)
+    expect(await replay.json()).toMatchObject({ id: savedId })
+    expect(await count(db, 'flights')).toBe(1)
+    expect(await count(db, 'flight_idempotency')).toBe(1)
+    expect(
+      await db
+        .prepare("SELECT linked_flight_id FROM ground_visits WHERE id = 'concurrent-air'")
+        .first(),
+    ).toEqual({ linked_flight_id: savedId })
+  } finally {
+    await dispose()
+  }
+})

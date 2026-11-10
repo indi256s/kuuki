@@ -214,6 +214,7 @@ describe('CountrySheet', () => {
   it('says ground journeys keep the stamp when a claim and manual visits are removed', () => {
     const outcome = removalOutcome({
       entries: [{ kind: 'claim', claimedAt: '2024-01-01' }] as CountryDetail['entries'],
+      groundVisits: [],
       journeys: [{ id: 'j' }] as CountryDetail['journeys'],
     })
     expect(outcome).toMatchObject({ after: 'pressed', journeys: 1 })
@@ -227,7 +228,7 @@ describe('CountrySheet', () => {
     mount(detail({}), { onRemoved })
     const dialog = await screen.findByRole('dialog', { name: 'Greece' })
     const copy =
-      'This deletes your claim and 2 land and sea visits. Flights in your journal are not deleted. Flights still reach this country, so its stamp stays.'
+      'This deletes your claim and 2 manual visits. Flights in your journal are not deleted. Flights still reach this country, so its stamp stays.'
     await countryAction(user, dialog, 'Remove country…')
     const confirm = await screen.findByRole('dialog', { name: 'Remove Greece from your passport?' })
     expect(within(confirm).getByText(copy)).toBeInTheDocument()
@@ -310,6 +311,7 @@ describe('CountrySheet', () => {
   })
 
   it.each([
+    ['By plane', { entryMethod: 'air', mode: null }],
     ['By train', { entryMethod: 'land', mode: 'rail' }],
     ['By car', { entryMethod: 'land', mode: 'road' }],
     ['By sea', { entryMethod: 'sea', mode: null }],
@@ -328,6 +330,46 @@ describe('CountrySheet', () => {
         note: null,
         ...payload,
       }),
+    )
+  })
+
+  it('keeps a saved air visit editable and offers the existing flight capture as an optional link', async () => {
+    const value = detail({})
+    value.groundVisits[0].entryMethod = 'air'
+    const row = value.entries.find((item) => item.kind === 'ground' && item.id === 'g1')!
+    if (row.kind === 'ground') row.entryMethod = 'air'
+    mount(value)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    expect(await within(dialog).findByRole('link', { name: 'Add flight' })).toHaveAttribute(
+      'href',
+      '/add?passportVisit=g1',
+    )
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /Edit visit: 2018 · by plane/ }),
+    )
+    expect(within(dialog).getByRole('radio', { name: 'By plane' })).toBeChecked()
+    expect(mocks.addVisit).not.toHaveBeenCalled()
+  })
+
+  it('includes superseded air records in the destructive removal count', async () => {
+    const value = detail({})
+    value.groundVisits[0] = { ...value.groundVisits[0], entryMethod: 'air', linkedFlightId: 7 }
+    value.entries = value.entries.filter((item) => item.kind !== 'ground' || item.id !== 'g1')
+    mount(value)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    await countryAction(userEvent.setup(), dialog, 'Remove country…')
+    const confirm = await screen.findByRole('dialog', { name: 'Remove Greece from your passport?' })
+    expect(confirm).toHaveTextContent('This deletes your claim and 2 manual visits.')
+  })
+
+  it('dates a superseded air visit from the actual arrival rather than its old manual year', async () => {
+    const value = detail({ firstVisit: '2025-07-02', lastVisit: '2025-07-02' })
+    value.groundVisits = [{ ...value.groundVisits[0], entryMethod: 'air', linkedFlightId: 7 }]
+    value.entries = value.entries.filter((item) => item.kind !== 'ground')
+    mount(value)
+    const dialog = await screen.findByRole('dialog', { name: 'Greece' })
+    expect((await within(dialog).findByText('First visit')).nextElementSibling).toHaveTextContent(
+      'Jul 2, 2025',
     )
   })
 
@@ -373,6 +415,7 @@ describe('CountrySheet', () => {
             visitYear: 2019,
             entryMethod: 'land',
             mode: null,
+            linkedFlightId: null,
             note: null,
             createdAt: '',
           },
@@ -434,6 +477,7 @@ describe('CountrySheet', () => {
             visitYear: 2021,
             entryMethod: 'sea',
             mode: null,
+            linkedFlightId: null,
             note: null,
             createdAt: '',
           },
@@ -443,6 +487,7 @@ describe('CountrySheet', () => {
             visitYear: 2019,
             entryMethod: 'land',
             mode: null,
+            linkedFlightId: null,
             note: null,
             createdAt: '',
           },
@@ -853,6 +898,7 @@ describe('CountrySheet ground journeys in Russian', () => {
 describe('removalCopy', () => {
   it('is precise in Russian too', () => {
     const outcome = removalOutcome({
+      groundVisits: [{ ...detail({}).groundVisits[0], id: 'a', entryMethod: 'land' }],
       entries: [
         { kind: 'ground', id: 'a', visitYear: 2018, entryMethod: 'land', mode: null },
         {
@@ -866,7 +912,7 @@ describe('removalCopy', () => {
       ],
     })
     expect(removalCopy('ru', outcome)).toBe(
-      'Будет удалён 1 визит по суше или морю. Перелёты в журнале не удаляются. Останется только неподтверждённый перелёт: страна будет ждать отметки.',
+      'Будет удалён 1 ручной визит. Перелёты в журнале не удаляются. Останется только неподтверждённый перелёт: страна будет ждать отметки.',
     )
   })
 })

@@ -77,6 +77,21 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
     )
   })
 
+  it('pins the air visit in the retry payload and resends it with the same receipt', async () => {
+    post.mockRejectedValueOnce(new Error('network'))
+    const flight = { ...input, passport_visit_id: 'visit-a' }
+    await expect(createFlight('u1', flight, 'visit-op')).rejects.toThrow('network')
+    expect(pendingFlightCreateOperation('u1', 'visit-op')?.body).toMatchObject({
+      passport_visit_id: 'visit-a',
+    })
+    post.mockResolvedValueOnce({ id: 8 })
+    await createFlight('u1', flight, 'visit-op')
+    expect(post.mock.calls[1][1]).toMatchObject({ passport_visit_id: 'visit-a' })
+    expect(post.mock.calls[1][2].headers['Idempotency-Key']).toBe(
+      post.mock.calls[0][2].headers['Idempotency-Key'],
+    )
+  })
+
   it('sends one top-level timezone per bulk request, not one per item', async () => {
     post.mockResolvedValue({
       derived_state: 'ready',
