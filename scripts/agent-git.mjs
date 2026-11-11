@@ -233,7 +233,8 @@ function publish(s, recovery, lock) {
   if (live(s) !== recovery.liveTree)
     throw new Error('Recovery refuses intervening live candidate-path changes')
   if (current.base === s.base) git(s.root, ['update-ref', s.branch, recovery.commit, s.base])
-  fs.copyFileSync(recovery.newIndex, lock)
+  // Read, not copyFileSync: on some Linux file systems copying a directory silently yields an empty file.
+  fs.writeFileSync(lock, fs.readFileSync(recovery.newIndex))
   fs.renameSync(lock, s.index)
   write(path.join(s.directory, 'completed.json'), { head: recovery.commit })
   fs.unlinkSync(guard(s))
