@@ -271,13 +271,23 @@ export function normalizeFlights(
       } else if (flight.destination && !/^[a-z]{3}$/i.test(flight.destination)) {
         reasons.push('destination is not 3 letters')
       }
-      // Apply ZZ placeholder for missing airline instead of rejecting
+      const originHint = cleanHint(flight.origin_hint)
+      const destinationHint = cleanHint(flight.destination_hint)
+      // City stays can establish a tentative route without airport codes or a usable date.
+      // Both distinct endpoints and an explicit review marker are required; the draft stays unselected.
+      const hintedRoute =
+        flight.review_required === true &&
+        originHint &&
+        destinationHint &&
+        originHint.toLowerCase() !== destinationHint.toLowerCase()
       if (
         !flight.origin &&
         !flight.destination &&
-        !(typeof flight.date === 'string' && isCalendarDate(flight.date))
+        !(typeof flight.date === 'string' && isCalendarDate(flight.date)) &&
+        !hintedRoute
       )
         reasons.push('missing route and date')
+      // Apply ZZ placeholder for missing airline instead of rejecting
       if (
         typeof flight.airline_iata !== 'string' ||
         !flight.airline_iata ||

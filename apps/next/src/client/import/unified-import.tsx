@@ -31,6 +31,7 @@ import {
 } from './review-model'
 import { ACCEPT } from './source-step'
 import { failureOf } from './batch-run'
+import { NOMADS_ACCEPT } from './nomads-json'
 import { FAILURE, ROW_FAILURE, S, count } from './copy'
 import { UnifiedSession, type RetainedEntry, type SessionEntry } from './unified-session'
 import { HistoryImport } from './history-import'
@@ -47,6 +48,19 @@ const C = {
   photo: { en: 'Take a photo', ru: 'Сфотографировать' },
   paste: { en: 'Paste text', ru: 'Вставить текст' },
   flighty: { en: 'Flighty history', ru: 'История из Flighty' },
+  nomads: { en: 'Nomads.com JSON', ru: 'JSON с Nomads.com' },
+  nomadsHint: {
+    en: 'Nomads JSON is read on this device. Only tentative routes are sent to Kuuki for review. Choose airports, check estimated dates and exclude ground journeys before saving.',
+    ru: 'JSON Nomads читается на устройстве. В Kuuki отправляются только предполагаемые маршруты для проверки. Выберите аэропорты, проверьте примерные даты и исключите наземные переезды перед сохранением.',
+  },
+  nomadsBad: {
+    en: 'Could not read this Nomads.com export. Use valid stay dates and at most 501 stays.',
+    ru: 'Не удалось прочитать экспорт Nomads.com. Проверьте даты пребывания; в файле должно быть не более 501 записи.',
+  },
+  nomadsSkipped: {
+    en: 'Repeated stays or transitions with ambiguous start dates were skipped.',
+    ru: 'Пропущены повторные пребывания или переходы с неоднозначным порядком дат.',
+  },
   online: {
     en: 'Documents and text are read online. A Flighty file is read on this device.',
     ru: 'Документы и текст распознаются онлайн. Файл Flighty читается на устройстве.',
@@ -215,6 +229,7 @@ export function UnifiedImport({
   const reasonId = useId()
   const closeReasonId = useId()
   const fileInput = useRef<HTMLInputElement>(null)
+  const nomadsInput = useRef<HTMLInputElement>(null)
   const cameraInput = useRef<HTMLInputElement>(null)
   const flightyInput = useRef<HTMLInputElement>(null)
   const [saver] = useState(
@@ -570,6 +585,9 @@ export function UnifiedImport({
               <Upload size={18} aria-hidden="true" />
               {C.more[locale]}
             </MenuItem>
+            <MenuItem disabled={saving} onSelect={() => nomadsInput.current?.click()}>
+              {C.nomads[locale]}
+            </MenuItem>
             <MenuItem disabled={saving} onSelect={() => cameraInput.current?.click()}>
               <Camera className="unified-import-camera" size={18} aria-hidden="true" />
               {C.photo[locale]}
@@ -604,8 +622,24 @@ export function UnifiedImport({
             <Button variant="ghost" disabled={saving} onClick={() => flightyInput.current?.click()}>
               {C.flighty[locale]}
             </Button>
+            <Button variant="ghost" disabled={saving} onClick={() => nomadsInput.current?.click()}>
+              {C.nomads[locale]}
+            </Button>
           </div>
         )}
+        <input
+          ref={nomadsInput}
+          className="sr-only"
+          type="file"
+          accept={NOMADS_ACCEPT}
+          multiple
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => {
+            session.add([...(event.target.files ?? [])])
+            event.target.value = ''
+          }}
+        />
         <input
           ref={fileInput}
           className="sr-only"
@@ -651,6 +685,7 @@ export function UnifiedImport({
           )}
         </div>
       </div>
+      <p className="import-hint">{C.nomadsHint[locale]}</p>
       {guard.dialog}
       {textOpen ? (
         <form
@@ -692,6 +727,8 @@ export function UnifiedImport({
                 ) : entry.phase === 'failed' ? (
                   entry.problem === 'type' ? (
                     S.fileBad[locale]
+                  ) : entry.problem === 'nomads' ? (
+                    C.nomadsBad[locale]
                   ) : entry.problem === 'size' ? (
                     C.tooBig[locale]
                   ) : entry.problem === 'partial' ? (
@@ -707,6 +744,9 @@ export function UnifiedImport({
                   C[entry.phase][locale]
                 )}
               </span>
+              {entry.nomads && entry.nomads.skipped > 0 ? (
+                <span className="import-hint">{C.nomadsSkipped[locale]}</span>
+              ) : null}
               {/* The same file fails the same type or size check again; only another file helps. */}
               {entry.phase === 'failed' && entry.problem !== 'type' && entry.problem !== 'size' ? (
                 <Button

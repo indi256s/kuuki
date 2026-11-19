@@ -26,6 +26,8 @@ export interface DraftFields {
   /** Catalog airports for a city with several, when the source did not say which one. */
   origin_options?: string[]
   destination_options?: string[]
+  origin_hint?: string
+  destination_hint?: string
   /** The source's status or evidence is uncertain (possible refund, cancelled outbound, conflicting details). */
   review_required?: boolean
   verification?: 'verified' | 'disagreed' | 'failed' | 'unsupported' | 'not_verified'

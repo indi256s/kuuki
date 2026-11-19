@@ -14,7 +14,8 @@ import { confirmItems, patchDraft, type ImportSource } from './import-api'
 import type { ImportRuns } from './import-runs'
 import type { Draft } from './import-types'
 import { runConfirm, type RowOutcome } from './confirm-runner'
-import { checkFile } from './source-step'
+import { checkFile, MAX_FILE_BYTES } from './source-step'
+import { isNomadsFile, nomadsToText } from './nomads-json'
 import { uploadSource } from './quick-add-source'
 import {
   localToday,
@@ -26,7 +27,14 @@ import {
   LOW_CONFIDENCE,
 } from './review-model'
 
-export type EntryProblem = 'type' | 'size' | 'read' | 'recognition' | 'partial' | 'reselect'
+export type EntryProblem =
+  | 'type'
+  | 'size'
+  | 'read'
+  | 'recognition'
+  | 'partial'
+  | 'reselect'
+  | 'nomads'
 /** A problem exists exactly when the entry failed. */
 export type EntryState =
   | { phase: 'queued' | 'local' | 'online' | 'ready' | 'empty'; problem?: undefined }
@@ -43,6 +51,7 @@ interface EntryFields {
   file?: File
   source?: ImportSource
   fingerprint?: string
+  nomads?: { skipped: number }
 }
 export type SessionEntry = EntryFields & EntryState
 
@@ -66,6 +75,7 @@ export interface RetainedEntry {
   selectionRequired?: boolean
   fingerprint?: string
   problem?: EntryProblem
+  nomads?: SessionEntry['nomads']
 }
 
 /** Several existing single-source jobs; draft identity and confirmation always stay with their owning run. */
@@ -117,6 +127,7 @@ export class UnifiedSession {
       excludedIds: entry.excludedIds ?? [],
       selectionRequired: this.selectionRequired,
       ...(entry.problem ? { problem: entry.problem } : {}),
+      ...(entry.nomads ? { nomads: entry.nomads } : {}),
       ...(entry.fingerprint ? { fingerprint: entry.fingerprint } : {}),
     }))
   }
@@ -398,7 +409,14 @@ export class UnifiedSession {
   }
   private async process(entry: SessionEntry) {
     try {
-      const problem = entry.file ? checkFile(entry.file) : null
+      const nomads = entry.file && isNomadsFile(entry.file)
+      const problem = entry.file
+        ? nomads
+          ? entry.file.size > MAX_FILE_BYTES
+            ? 'size'
+            : null
+          : checkFile(entry.file)
+        : null
       if (problem) {
         setState(entry, { phase: 'failed', problem })
         return
@@ -433,8 +451,25 @@ export class UnifiedSession {
       }
       entry.fingerprint = fingerprint
       this.publish()
+      let nomadsSource: ImportSource | undefined
+      if (nomads) {
+        try {
+          const result = nomadsToText(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
+          this.selectionRequired = true
+          entry.nomads = { skipped: result.skipped }
+          if (!result.content) {
+            setState(entry, { phase: 'empty' })
+            entry.file = undefined
+            return
+          }
+          nomadsSource = { type: 'text', content: result.content, sourceLabel: entry.label }
+        } catch {
+          setState(entry, { phase: 'failed', problem: 'nomads' })
+          return
+        }
+      }
       let legs: Leg[] = []
-      if (entry.file && !entry.barcode?.getState().drafts.length) {
+      if (entry.file && !nomads && !entry.barcode?.getState().drafts.length) {
         const local = await readBoardingPass(entry.file)
         if (local.kind === 'legs') legs = local.legs
         if (legs.length)
@@ -452,7 +487,7 @@ export class UnifiedSession {
       // Persist barcode fields before sending the full source, so resume never depends on the file remaining in memory.
       setState(entry, { phase: 'online' })
       this.publish()
-      const source = entry.source ?? (await uploadSource(entry.file!))
+      const source = nomadsSource ?? entry.source ?? (await uploadSource(entry.file!))
       const online = await this.submit(entry, source, entry.operationId)
       const state = online.getState()
       if (entry.barcode) await this.reconcile(entry, entry.barcode, online)
