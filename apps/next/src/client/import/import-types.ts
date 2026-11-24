@@ -18,6 +18,8 @@ export interface DraftFields {
   flown_confirmed?: true
   origin_options?: string[]
   destination_options?: string[]
+  origin_hint?: string
+  destination_hint?: string
   review_required?: boolean
   verification?: 'verified' | 'disagreed' | 'failed' | 'unsupported' | 'not_verified'
 }

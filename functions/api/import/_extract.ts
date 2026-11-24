@@ -255,10 +255,18 @@ export function normalizeFlights(
       } else if (flight.destination && !/^[a-z]{3}$/i.test(flight.destination)) {
         reasons.push('destination is not 3 letters')
       }
+      const originHint = cleanHint(flight.origin_hint)
+      const destinationHint = cleanHint(flight.destination_hint)
+      const hintedRoute =
+        flight.review_required === true &&
+        originHint &&
+        destinationHint &&
+        originHint.toLowerCase() !== destinationHint.toLowerCase()
       if (
         !flight.origin &&
         !flight.destination &&
-        !(typeof flight.date === 'string' && isCalendarDate(flight.date))
+        !(typeof flight.date === 'string' && isCalendarDate(flight.date)) &&
+        !hintedRoute
       )
         reasons.push('missing route and date')
       if (

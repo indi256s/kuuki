@@ -36,6 +36,8 @@ export interface DraftFields {
   date_month_day?: string
   origin_options?: string[]
   destination_options?: string[]
+  origin_hint?: string
+  destination_hint?: string
   review_required?: boolean
   date_ordinal_day?: number
   flown_required?: true
@@ -75,6 +77,10 @@ export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
       : []
   if (originOptions.length) fields.origin_options = originOptions
   if (destinationOptions.length) fields.destination_options = destinationOptions
+  if (!fields.origin && !originOptions.length && flight.origin_hint)
+    fields.origin_hint = clamp(flight.origin_hint, 160)
+  if (!fields.destination && !destinationOptions.length && flight.destination_hint)
+    fields.destination_hint = clamp(flight.destination_hint, 160)
   if (flight.review_required === true) fields.review_required = true
   return fields
 }

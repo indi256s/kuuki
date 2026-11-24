@@ -112,7 +112,9 @@ export function ReviewRow({
   const airline = draft.fields.airline_iata
     ? (airlineName(draft.fields.airline_iata) ?? draft.fields.airline_iata)
     : undefined
-  const routeLabel = `${draft.fields.origin || '—'} → ${draft.fields.destination || '—'}`
+  const originLabel = draft.fields.origin || draft.fields.origin_hint || '—'
+  const destinationLabel = draft.fields.destination || draft.fields.destination_hint || '—'
+  const routeLabel = `${originLabel} → ${destinationLabel}`
   const yearToConfirm = !draft.fields.date && ordinalOf(draft) !== null
   const monthDay = compact && !draft.fields.date ? monthDayOf(draft) : null
   const dateText = draft.fields.date
@@ -338,11 +340,13 @@ export function ReviewRow({
           }
           origin={{
             iata: draft.fields.origin || '—',
-            city: draft.fields.origin ? city(draft.fields.origin) : '',
+            city: draft.fields.origin ? city(draft.fields.origin) : draft.fields.origin_hint || '',
           }}
           destination={{
             iata: draft.fields.destination || '—',
-            city: draft.fields.destination ? city(draft.fields.destination) : '',
+            city: draft.fields.destination
+              ? city(draft.fields.destination)
+              : draft.fields.destination_hint || '',
           }}
           date={draft.fields.date || ''}
           flightNumber={flightNumber}
@@ -401,10 +405,10 @@ export function ReviewRow({
         {checkbox}
         <div className="import-row-body">
           <p className="import-row-route">
-            <span className="import-code">{draft.fields.origin || '—'}</span>
+            <span className="import-code">{originLabel}</span>
             <span aria-hidden="true"> → </span>
             <span className="sr-only"> {locale === 'ru' ? 'в' : 'to'} </span>
-            <span className="import-code">{draft.fields.destination || '—'}</span>
+            <span className="import-code">{destinationLabel}</span>
           </p>
           <p className="import-row-meta">
             <span>{dateText}</span>
